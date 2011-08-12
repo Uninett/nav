@@ -44,222 +44,6 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         """ Return this official MIB-name"""
         return self.mib.get('moduleName', None)
 
-    def retrieve_std_columns(self):
-        return self.retrieve_columns([
-                    #'climateSerial',
-                    #'climateName',
-                    #'climateAvail',
-                    #'climateTempC',
-                    #'climateHumidity',
-                    #'climateAirflow',
-                    #'climateLight',
-                    #'climateSound',
-                    #'climateIO1',
-                    #'climateIO2',
-                    #'climateIO3',
-                    #
-                    'powMonSerial',
-                    'powMonName',
-                    'powMonAvail',
-                    'powMonKWattHrs',
-                    'powMonVolts',
-                    'powMonVoltMax',
-                    'powMonVoltMin',
-                    'powMonVoltPk',
-                    'powMonAmpsX10',
-                    'powMonRealPow',
-                    'powMonAppPow',
-                    'powMonPwrFact',
-                    'powMonOutlet1',
-                    'powMonOutlet2',
-                    #
-                    #'tempSensorSerial',
-                    #'tempSensorName',
-                    #'tempSensorAvail',
-                    #'tempSensorTempC',
-                    #
-                    #'airFlowSensorSerial',
-                    #'airFlowSensorName',
-                    #'airFlowSensorAvail',
-                    #'airFlowSensorFlow',
-                    #'airFlowSensorTempC',
-                    #'airFlowSensorHumidity',
-                    #
-                    'powerSerial',
-                    'powerName',
-                    'powerAvail',
-                    'powerVolts',
-                    'powerAmps',
-                    'powerRealPow',
-                    'powerAppPow',
-                    'powerPwrFactor',
-                    #
-                    #'doorSensorSerial',
-                    #'doorSensorName',
-                    #'doorSensorAvail',
-                    #'doorSensorStatus',
-                    #
-                    #'waterSensorSerial',
-                    #'waterSensorName',
-                    #'waterSensorAvail',
-                    #'waterSensorDampness',
-                    #
-                    #'currentMonitorSerial',
-                    #'currentMonitorName',
-                    #'currentMonitorAvail',
-                    #'currentMonitorAmps',
-                    #
-                    #'millivoltMonitorSerial',
-                    #'millivoltMonitorName',
-                    #'millivoltMonitorAvail',
-                    #'millivoltMonitorMV',
-                    #
-                    'pow3ChSerial',
-                    'pow3ChName',
-                    'pow3ChAvail',
-                    'pow3ChKWattHrsA',
-                    'pow3ChVoltsA',
-                    'pow3ChVoltMaxA',
-                    'pow3ChVoltMinA',
-                    'pow3ChVoltPkA',
-                    'pow3ChAmpsX10A',
-                    'pow3ChRealPowA',
-                    'pow3ChAppPowA',
-                    'pow3ChPwrFactA',
-                    'pow3ChKWattHrsB',
-                    'pow3ChVoltsB',
-                    'pow3ChVoltMaxB',
-                    'pow3ChVoltMinB',
-                    'pow3ChVoltPkB',
-                    'pow3ChAmpsX10B',
-                    'pow3ChRealPowB',
-                    'pow3ChAppPowB',
-                    'pow3ChPwrFactB',
-                    'pow3ChKWattHrsC',
-                    'pow3ChVoltsC',
-                    'pow3ChVoltMaxC',
-                    'pow3ChVoltMinC',
-                    'pow3ChVoltPkC',
-                    'pow3ChAmpsX10C',
-                    'pow3ChRealPowC',
-                    'pow3ChAppPowC',
-                    'pow3ChPwrFactC',
-                    #
-                    'outletSerial',
-                    'outletName',
-                    'outletAvail',
-                    'outlet1Status',
-                    'outlet2Status',
-                    #
-                    'vsfcSerial',
-                    'vsfcName',
-                    'vsfcAvail',
-                    'vsfcSetPointC',
-                    'vsfcIntTempC',
-                    'vsfcExt1TempC',
-                    'vsfcExt2TempC',
-                    'vsfcExt3TempC',
-                    'vsfcExt4TempC',
-                    'vsfcFanSpeed',
-                    #
-                    'ctrl3ChSerial',
-                    'ctrl3ChName',
-                    'ctrl3ChAvail',
-                    'ctrl3ChVoltsA',
-                    'ctrl3ChVoltPkA',
-                    'ctrl3ChAmpsA',
-                    'ctrl3ChAmpPkA',
-                    'ctrl3ChRealPowA',
-                    'ctrl3ChAppPowA',
-                    'ctrl3ChPwrFactA',
-                    'ctrl3ChVoltsB',
-                    'ctrl3ChVoltPkB',
-                    'ctrl3ChAmpsB',
-                    'ctrl3ChAmpPkB',
-                    'ctrl3ChRealPowB',
-                    'ctrl3ChAppPowB',
-                    'ctrl3ChPwrFactB',
-                    'ctrl3ChVoltsC',
-                    'ctrl3ChVoltPkC',
-                    'ctrl3ChAmpsC',
-                    'ctrl3ChAmpPkC',
-                    'ctrl3ChRealPowC',
-                    'ctrl3ChAppPowC',
-                    'ctrl3ChPwrFactC',
-                    #
-                    'ctrlGrpAmpsSerial',
-                    'ctrlGrpAmpsName',
-                    'ctrlGrpAmpsAvail',
-                    'ctrlGrpAmpsA',
-                    'ctrlGrpAmpsB',
-                    'ctrlGrpAmpsC',
-                    'ctrlGrpAmpsD',
-                    'ctrlGrpAmpsE',
-                    'ctrlGrpAmpsF',
-                    #
-                    'ctrlOutletName',
-                    'ctrlOutletStatus',
-                    'ctrlOutletFeedback',
-                    'ctrlOutletPending',
-                    'ctrlOutletAmps',
-                    'ctrlOutletGroup',
-                    'ctrlOutletUpDelay',
-                    'ctrlOutletDwnDelay',
-                    'ctrlOutletRbtDelay',
-                    'ctrlOutletURL',
-                    #
-                    #'dewPointSensorSerial',
-                    #'dewPointSensorName',
-                    #'dewPointSensorAvail',
-                    #'dewPointSensorDewPoint',
-                    #'dewPointSensorTempC',
-                    #'dewPointSensorHumidity',
-                    #
-                    #'digitalSensorSerial',
-                    #'digitalSensorName',
-                    #'digitalSensorAvail',
-                    #'digitalSensorDigital',
-                    #
-                    'dstsSerial',
-                    'dstsName',
-                    'dstsAvail',
-                    'dstsVoltsA',
-                    'dstsAmpsA',
-                    'dstsVoltsB',
-                    'dstsAmpsB',
-                    'dstsSourceAActive',
-                    'dstsSourceBActive',
-                    'dstsPowerStatusA',
-                    'dstsPowerStatusB',
-                    'dstsSourceATempC',
-                    'dstsSourceBTempC',
-                    #
-                    #'cpmSensorSerial',
-                    #'cpmSensorName',
-                    #'cpmSensorAvail',
-                    #'cpmSensorStatus',
-                    #
-                    #'smokeAlarmSerial',
-                    #'smokeAlarmName',
-                    #'smokeAlarmAvail',
-                    #'smokeAlarmStatus',
-                    #
-                    #'neg48VdcSensorSerial',
-                    #'neg48VdcSensorName',
-                    #'neg48VdcSensorAvail',
-                    #'neg48VdcSensorVoltage',
-                    #
-                    #'pos30VdcSensorSerial',
-                    #'pos30VdcSensorName',
-                    #'pos30VdcSensorAvail',
-                    #'pos30VdcSensorVoltage',
-                    #
-                    #'analogSensorSerial',
-                    #'analogSensorName',
-                    #'analogSensorAvail',
-                    #'analogSensorAnalog',
-                    ])
-
     def _make_result_dict(self, sensor_oid, sensor_mib, serial, desc,
                                 u_o_m=None, precision=0, scale=None, name=None):
         """ Make a simple dictionary to return to plugin"""
@@ -542,6 +326,394 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 serial, 'analogSensorAnalog', name=name))
         return sensors
 
+
+    @for_table("powerMonitorTable")
+    def _get_power_monitor_params(self, power_monitors_sensors):
+        sensors = []
+        for idx, pow_mon_sensor in power_monitors_sensors:
+            pow_mon_avail = pow_mon_sensor.get('powMonAvail', None)
+            if pow_mon_avail:
+                pow_mon_oid = pow_mon_sensor.get(0, None)
+                serial = pow_mon_sensor.get('powMonSerial', None)
+                name = pow_mon_sensor.get('powMonName', None)
+                sensors.append(self._make_result_dict(pow_mon_oid, 
+                                self.nodes.get('powMonKWattHrs', None), serial,
+                                'powMonKWattHrs', u_o_m='watts', name=name))
+                sensors.append(self._make_result_dict(pow_mon_oid,
+                                self.nodes.get('powMonVolts', None), serial,
+                                'powMonVolts', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow_mon_oid,
+                                self.nodes.get('powMonVoltMax', None), serial,
+                                'powMonVoltMax', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow_mon_oid,
+                                self.nodes.get('powMonVoltMin', None),serial,
+                                'powMonVoltMin', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow_mon_oid,
+                                self.nodes.get('powMonVoltPk', None), serial,
+                                'powMonVoltPk', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow_mon_oid,
+                                self.nodes.get('powMonAmpsX10', None), serial,
+                                'powMonAmpsX10', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(pow_mon_oid,
+                                self.nodes.get('powMonRealPow', None), serial,
+                                'powMonRealPow', name=name))
+                sensors.append(self._make_result_dic(pow_mon_oid,
+                                self.nodes.get('powMonAppPow', None), serial,
+                                'powMonAppPow', name=name))
+                sensors.append(self._make_result_dict(pow_mon_oid,
+                                self.nodes.get('powMonPwrFact', None), serial,
+                                'powMonPwrFact', name=name))
+                sensors.append(self._make_result_dict(pow_mon_oid,
+                                self.nodes.get('powMonOutlet1', None), serial,
+                                'powMonOutlet1', name=name))
+                sensors.append(self._make_result_dict(pow_mon_oid,
+                                self.nodes.get('powMonOutlet2', None), serial,
+                                'powMonOutlet2', name=name))
+        return sensors
+
+    @for_table("powerOnlyTable")
+    def _get_power_only_params(self, power_only_sensors):
+        sensors = []
+        for idx, power_sensor in power_only_sensors:
+            power_sensor_avail = power_sensor.get('powerAvail', None)
+            if power_sensor_avail:
+                power_sensor_oid = power_sensor.get(0, None)
+                serial = power_sensor.get('powerSerial', None)
+                name = power_sensor.get('powerName', None)
+                sensors.append(self._name_result_dict(power_sensor_oid,
+                                self.nodes.get('powerVolts', None), serial,
+                                'powerVolts', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(power_sensor_oid,
+                                self.nodes.get('powerAmps', None), serial,
+                                'powerAmps', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(power_sensor_oid,
+                                self.nodes.get('powerRealPow', None), serial,
+                                'powerRealPow', name=name))
+                sensors.append(self._make_result_dict(power_sensor_oid,
+                                self.nodes.get('powerAppPow', None), serial,
+                                'powerAppPow', name=name))
+                sensors.append(self._make_result_dict(power_sensor_oid,
+                                self.nodes.get('powerPwrFactor', None), serial,
+                                'powerPwrFactor', name=name))
+        return sensors
+
+    @for_table("power3ChTable")
+    def _get_power3_ch_params(self, power3_ch_sensors):
+        sensors = []
+        for idx, pow3_ch_sensor in power3_ch_sensors:
+            pow3_ch_avail = pow3_ch_sensor.get('pow3ChAvail', None)
+            if pow3_ch_avail:
+                pow3_ch_sensor_oid = pow3_ch_sensor.get(0, None)
+                serial = pow3_ch_sensor.get('pow3ChSerial', None)
+                name = pow3_ch_sensor.get('pow3ChName', None)
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChKWattHrsA', None), serial,
+                                'pow3ChKWattHrsA', u_o_m='watts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltsA', None), serial,
+                                'pow3ChVoltsA', u_o_m='watts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltMaxA', None), serial,
+                                'pow3ChVoltMaxA', u_o_m='watts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltMinA', None), serial,
+                                'pow3ChVoltMinA', 'watts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltPkA', None), serial,
+                                'pow3ChVoltPkA', u_o_m='watts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChAmpsX10A', None), serial,
+                                'pow3ChAmpsX10A', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChRealPowA', None), serial,
+                                'pow3ChRealPowA', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChAppPowA', None), serial,
+                                'pow3ChAppPowA', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChPwrFactA', None), serial,
+                                'pow3ChPwrFactA', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChKWattHrsB', None), serial,
+                                'pow3ChKWattHrsB', u_o_m='watts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltsB', None), serial,
+                                'pow3ChVoltsB', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltMaxB', None), serial,
+                                'pow3ChVoltMaxB', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltMinB', None), serial,
+                                'pow3ChVoltMinB', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltPkB', None), serial,
+                                'pow3ChVoltPkB', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChAmpsX10B', None), serial,
+                                'pow3ChAmpsX10B', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChRealPowB', None), serial,
+                                'pow3ChRealPowB', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChAppPowB', None), serial,
+                                'pow3ChAppPowB', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChPwrFactB', None), serial,
+                                'pow3ChPwrFactB', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChKWattHrsC', None), serial,
+                                'pow3ChKWattHrsC', u_o_m='watts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltsC', None), serial,
+                                'pow3ChVoltsC', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltMaxC', None), serial,
+                                'pow3ChVoltMaxC', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltMinC', None), serial,
+                                'pow3ChVoltMinC', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChVoltPkC', None), serial,
+                                'pow3ChVoltPkC', u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChAmpsX10C', None), serial,
+                                'pow3ChAmpsX10C', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChRealPowC', None), serial,
+                                'pow3ChRealPowC', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChAppPowC', None), serial,
+                                'pow3ChAppPowC', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('pow3ChPwrFactC', None), serial,
+                                'pow3ChPwrFactC', name=name))
+        return sensors
+
+    @for_table("outletTable")
+    def _get_outlet_params(self, outlet_sensors):
+        sensors = []
+        for idx, outlet_sensor in outlet_sensors:
+            outlet_avail = outlet_sensor.get('outletAvail', None)
+            if outlet_avail:
+                outlet_oid = outlet_sensor.get(0, None)
+                serial = outlet_sensor.get('outletSerial', None)
+                name = outlet_sensor.get('outletName', None)
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('outlet1Status', None), serial,
+                                'outlet1Status', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('outlet2Status', None), serial,
+                                'outlet2Status', name=name))
+        return sensors
+
+    @for_table("vsfcTable")
+    def _get_vsfc_params(self, vsfc_sensors):
+        sensors = []
+        for idx, vsfc_sensor in vsfc_sensors:
+            vsfc_avail = vsfc_sensor.get('vsfcAvail', None)
+            if vsfc_avail:
+                vsfc_oid = vsfc_sensor.get(0, None)
+                serial = vsfc_sensor.get('vsfcSerial', None)
+                name = vsfc_sensor.get('vsfcName', None)
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('vsfcSetPointC', None), serial,
+                                'vsfcSetPointC', u_o_m='celsius', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('vsfcIntTempC', None), serial,
+                                'vsfcIntTempC', u_o_m='celsius', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('vsfcExt1TempC', None), serial,
+                                'vsfcExt1TempC', u_o_m='celsius', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('vsfcExt2TempC', None), serial,
+                                'vsfcExt2TempC', u_o_m='celsius', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('vsfcExt3TempC', None), serial,
+                                'vsfcExt3TempC', u_o_m='celsius', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('vsfcExt4TempC', None), serial,
+                                'vsfcExt4TempC', u_o_m='celsius', name=name))
+                sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
+                                self.nodes.get('vsfcFanSpeed', None), serial,
+                                'vsfcFanSpeed', u_o_m='rpm', name=name))
+        return sensors
+
+    @for_table("ctrl3ChTable")
+    def _get_ctrl3_ch_params(self, ctrl3_ch_sensors):
+        sensors = []
+        for idx, ctrl3_ch_sensor in ctrl3_ch_sensors:
+            ctrl3_ch_avail = ctrl3_ch_sensor.get('ctrl3ChAvail', None)
+            if ctrl3_ch_avail:
+                ctrl3_ch_oid = ctrl3_ch_sensor.get(0, None)
+                serial = ctrl3_ch_sensor.get('ctrl3ChSerial', None)
+                name= ctrl3_ch_sensor.get('ctrl3ChName', None)
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChVoltsA', None), serial,
+                                'ctrl3ChVoltsA',u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChVoltPkA', None), serial,
+                                'ctrl3ChVoltPkA',u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChAmpsA', None), serial,
+                                'ctrl3ChAmpsA',u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChAmpPkA', None), serial,
+                                'ctrl3ChAmpPkA',u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChRealPowA', None), serial,
+                                'ctrl3ChRealPowA', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChAppPowA', None), serial,
+                                'ctrl3ChAppPowA',u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChPwrFactA', None), serial,
+                                'ctrl3ChPwrFactA', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChVoltsB', None), serial,
+                                'ctrl3ChVoltsB',u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChVoltPkB', None), serial,
+                                'ctrl3ChVoltPkB',u_o_m='volsta', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChAmpsB', None), serial,
+                                'ctrl3ChAmpsB',u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChAmpPkB', None), serial,
+                                'ctrl3ChAmpPkB',u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChRealPowB', None), serial,
+                                'ctrl3ChRealPowB', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChAppPowB', None), serial,
+                                'ctrl3ChAppPowB', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChPwrFactB', None), serial,
+                                'ctrl3ChPwrFactB',name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChVoltsC', None), serial,
+                                'ctrl3ChVoltsC',u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChVoltPkC', None), serial,
+                                'ctrl3ChVoltPkC',u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChAmpsC', None), serial,
+                                'ctrl3ChAmpsC',u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChAmpPkC', None), serial,
+                                'ctrl3ChAmpPkC',u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChRealPowC', None), serial,
+                                'ctrl3ChRealPowC', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChAppPowC', None), serial,
+                                'ctrl3ChAppPowC', name=name))
+                sensors.append(self._make_result_dict(ctrl3_ch_oid,
+                                self.nodes.get('ctrl3ChPwrFactC', None), serial,
+                                'ctrl3ChPwrFactC', name=name))
+        return sensors
+
+    @for_table("ctrlGrpAmpsTable")
+    def _get_ctrl_grp_amps_params(self, ctrl_grp_amps_sensors):
+        sensors = []
+        for idx, c_grp_amps_sensor in ctrl_grp_amps_sensors:
+            c_grp_amp_avail = c_grp_amps_sensor.get('ctrlGrpAmpsAvail', None)
+            if c_grp_amp_avail:
+                c_grp_amp_oid = c_grp_amps_sensor.get(0, None)
+                serial = c_grp_amps_sensor.get('ctrlGrpAmpsSerial', None)
+                name = c_grp_amps_sensor.get('ctrlGrpAmpsName', None)
+                sensors.append(self._make_result_dict(c_grp_amp_oid,
+                                self.nodes.get('ctrlGrpAmpsA', None), serial,
+                                'ctrlGrpAmpsA', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(c_grp_amp_oid,
+                                self.nodes.get('ctrlGrpAmpsB', None), serial,
+                                'ctrlGrpAmpsB', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(c_grp_amp_oid,
+                                self.nodes.get('ctrlGrpAmpsC', None), serial,
+                                'ctrlGrpAmpsC', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(c_grp_amp_oid,
+                                self.nodes.get('ctrlGrpAmpsD', None), serial,
+                                'ctrlGrpAmpsD', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(c_grp_amp_oid,
+                                self.nodes.get('ctrlGrpAmpsE', None), serial,
+                                'ctrlGrpAmpsE', u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(c_grp_amp_oid,
+                                self.nodes.get('ctrlGrpAmpsF', None), serial,
+                                'ctrlGrpAmpsF', u_o_m='amperes', name=name))
+        return sensors
+
+    @for_table("ctrlOutletTable")
+    def _get_ctrl_outlet_params(self, ctrl_outlet_sensors):
+        sensors = []
+        for idx, c_outlet_sensor in ctrl_outlet_sensors:
+            c_outlet_oid = c_outlet_sensor.get(0, None)
+            serial = c_outlet_sensor.get('ctrlOutletGroup', None)
+            name = c_outlet_sensor.get('ctrlOutletName', None)
+            sensors.append(self._make_result_dict(c_outlet_oid,
+                            self.nodes.get('ctrlOutletStatus', None), serial,
+                            'ctrlOutletStatus', name=name))
+            sensors.append(self._make_result_dict(c_outlet_oid,
+                            self.nodes.get('ctrlOutletFeedback', None), serial,
+                            'ctrlOutletFeedback', name=name))
+            sensors.append(self._make_result_dict(c_outlet_oid,
+                            self.nodes.get('ctrlOutletPending', None), serial,
+                            'ctrlOutletPending', name=name))
+            sensors.append(self._make_result_dict(c_outlet_oid,
+                            self.nodes.get('ctrlOutletAmps', None), serial,
+                            'ctrlOutletAmps', u_o_m='amperes', name=name))
+            sensors.append(self._make_result_dict(c_outlet_oid,
+                            self.nodes.get('ctrlOutletUpDelay', None), serial,
+                            'ctrlOutletUpDelay', name=name))
+            sensors.append(self._make_result_dict(c_outlet_oid,
+                            self.nodes.get('ctrlOutletDwnDelay', None), serial,
+                            'ctrlOutletDwnDelay', name=name))
+            sensors.append(self._make_result_dict(c_outlet_oid,
+                            self.nodes.get('ctrlOutletRbtDelay', None), serial,
+                            'ctrlOutletRbtDelay', name=name))
+        return sensors
+
+    @for_table("dstsTable")
+    def _get_dsts_params(self, dsts_sensors):
+        sensors = []
+        for idx, dsts_sensor in dsts_sensors:
+            dsts_avail = dsts_sensor.get('dstsAvail', None)
+            if dsts_avail:
+                dsts_oid = dsts_sensor.get(0, None)
+                serial = dsts_sensor.get('dstsSerial', None)
+                name = dsts_sensor.get('dstsName', None)
+                sensors.append(self._make_result_dict(dsts_oid,
+                                self.nodes.get('dstsVoltsA', None), serial,
+                                'dstsVoltsA',u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(dsts_oid,
+                                self.nodes.get('dstsAmpsA', None), serial,
+                                'dstsAmpsA',u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(dsts_oid,
+                                self.nodes.get('dstsVoltsB', None), serial,
+                                'dstsVoltsB',u_o_m='volts', name=name))
+                sensors.append(self._make_result_dict(dsts_oid,
+                                self.nodes.get('dstsAmpsB', None), serial,
+                                'dstsAmpsB',u_o_m='amperes', name=name))
+                sensors.append(self._make_result_dict(dsts_oid,
+                                self.nodes.get('dstsSourceAActive', None),
+                                serial, 'dstsSourceAActive',name=name))
+                sensors.append(self._make_result_dict(dsts_oid,
+                                self.nodes.get('dstsSourceBActive', None),
+                                serial, 'dstsSourceBActive',name=name))
+                sensors.append(self._make_result_dict(dsts_oid,
+                                self.nodes.get('dstsPowerStatusA', None),
+                                serial, 'dstsPowerStatusA', name=name))
+                sensors.append(self._make_result_dict(dsts_oid,
+                                self.nodes.get('dstsPowerStatusB', None),
+                                serial, 'dstsPowerStatusB', name=name))
+                sensors.append(self._make_result_dict(dsts_oid,
+                                self.nodes.get('dstsSourceATempC', None),
+                                serial, 'dstsSourceATempC',u_o_m='celsius',
+                                name=name))
+                sensors.append(self._make_result_dict(dsts_oid,
+                                self.nodes.get('dstsSourceBTempC', None),
+                                serial, 'dstsSourceBTempC',u_o_m='celsius',
+                                name=name))
+        return sensors
+
     @defer.inlineCallbacks
     def _get_sensor_count(self):
         """Count all available sensors in this WxGoose"""
@@ -553,6 +725,8 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         result = dict((self.oid_name_map[oid], count)
                       for oid, count in mapped_counts
                       if oid in self.oid_name_map)
+        self.logger.error('ItWatchDogsMib:: _get_sensor_count: result = %s',
+                            result)
         defer.returnValue(result)
 
     @defer.inlineCallbacks
@@ -569,8 +743,10 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
 
         result = []
         for table in tables:
+            self.logger.error('ItWatchDogsMib:: get_all_sensors: table = %s',
+                                    table)
             sensors = yield self.retrieve_table(table).addCallback(reduce_index)
-            self.logger.debug('ItWatchDogsMib:: get_all_sensors: %s = %s',
+            self.logger.error('ItWatchDogsMib:: get_all_sensors: %s = %s',
                               table, sensors)
             handler = for_table.map.get(table, None)
             if not handler:
