@@ -163,7 +163,7 @@ def matrix_report(req):
             # a list of scopes.
             page = MatrixScopesTemplate()
             page.path = [("Home", "/"), ("Report", "/report/"),
-                         ("Prefix Matrix", False)]
+                         ("Subnet matrix", False)]
             page.scopes = []
             for scope in databasescopes:
                 page.scopes.append(scope[0])

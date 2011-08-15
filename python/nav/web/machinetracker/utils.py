@@ -48,6 +48,17 @@ def from_to_ip(from_ip, to_ip):
         to_ip = from_ip
     return (from_ip, to_ip)
 
+def get_prefix_info(addr):
+    try:
+        return Prefix.objects.select_related().extra(
+        select={"mask_size": "masklen(netaddr)"},
+        where=["%s << netaddr AND nettype <> 'scope'"],
+        order_by=["-mask_size"],
+        params=[addr])[0]
+    except:
+        return None
+
+
 def ip_dict(rows):
     result = SortedDict()
     for row in rows:
