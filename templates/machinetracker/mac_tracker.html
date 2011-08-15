@@ -46,7 +46,7 @@
             </td>
             <td>
                 {% if row.netbox__sysname and row.port %}
-                <a href="{% url ipdevinfo-interface-details row.netbox__sysname row.port %}" title="Browse this interface (IP Device Info)">
+                <a href="{% url ipdevinfo-interface-details-by-name row.netbox__sysname row.port %}" title="Browse this interface (IP Device Info)">
                 <img src="/images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
                 {% endif %}
             </td>
