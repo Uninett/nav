@@ -1108,3 +1108,13 @@ class Sensor(models.Model):
     class Meta:
         db_table = 'sensor'
 
+class PowerSupplyState(models.Model):
+    id = models.AutoField(db_column='stateid', primary_key=True)
+    netbox = models.ForeignKey(Netbox, db_column='netboxid')
+    power_name = VarcharField(db_column='power_name')
+    down_since = models.DateTimeField(db_column='down_since', auto_now_add=True)
+    event_posted = models.DateTimeField(db_column='event_posted'),
+    state = VarcharField(db_column='state')
+
+    class Meta:
+        db_table = 'powersupply_state'
