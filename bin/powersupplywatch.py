@@ -36,6 +36,7 @@ from nav.Snmp.pysnmp_se import Snmp
 from nav.Snmp.errors import *
 
 from nav.models.manage import Netbox
+from nav.models.manage import PowerSupplyState
 
 # These have to be imported after the envrionment is setup
 from django.db import DatabaseError, connection
@@ -166,6 +167,29 @@ def get_netboxes(sysnames):
     else:
         return Netbox.objects.all()
 
+def post_event(netbox, pwr_name, state):
+    """Posts an event on the eventqueue"""
+
+    source = "powersupplywatch"
+    target = "eventEngine"
+    eventtypeid = "info"
+    value = 100
+    severity = 50
+    event = nav.event.Event(source=source, target=target,
+                            netboxid=netbox.id,
+                            eventtypeid=eventtypeid,
+                            state=pwr_name + " " + state
+                            value=value,
+                            severity=severity)
+    event['sysname'] = netbox.sysname
+    event['alerttype'] = 'powerSupplyWarning'
+    try:
+        event.post()
+    except Exception, why:
+        print >> sys.stderr, "%s" % why
+        return False
+    return True
+
 def main():
     global logger
     #logger = get_logger()
@@ -174,7 +198,7 @@ def main():
     parser.add_option("-d", "--dry-run", action="store_true", dest="dryrun",
             help="Dry run.  No changes will be made and no events posted")
     parser.add_option("-f", "--file", dest="hostsfile",
-            help="A file with hostnames to check")
+            help="A file with hostnames to check. Must be one FQDN per line")
     parser.add_option("-n", "--netbox", dest="hostname",
             help="Check only this hostname.  Must be a FQDN")
     opts, args = parser.parse_args()
@@ -183,7 +207,13 @@ def main():
     if opts.hostname:
         sysnames.append(opts.hostname.strip())
     if opts.hostsfile:
-        f = open(opts.hostsfile, 'r')
+        f = None
+        try:
+            f = open(opts.hostsfile, 'r')
+        except IOError as (errno, strerror):
+            err_str = "I/O error ({0}): " + opts.hostsfile + " ({1})"
+            print >> sys.stderr, err_str.format(errno, strerror)
+            sys.exit(2)
         for line in f:
             line.strip()
             if line:
@@ -198,16 +228,39 @@ def main():
             dup_powers[handle] = pwr_supplies
     
     for handle, pwr_supplies in dup_powers.items():
-        print '%s:' % handle.get_netbox().sysname
+        print >> sys.stdout, '%s:' % handle.get_netbox().sysname
         i = 1;
         for pwr in pwr_supplies:
             pwr_name = handle.get_power_name(str(i))
-            if not handle.is_power_supply_ok(str(i)):
-                print '\t%s: %s has failed' % (handle.get_netbox().sysname,
-                                             pwr_name)
-            else:
-                print '\t%s: %s is ok' % (handle.get_netbox().sysname,
-                                                pwr_name)
+            up = handle.is_power_supply_ok(str(i))
+            stored_state = None
+            stored_states = PowerSupplyState.objects.filter(
+                        netbox=handle.get_netbox()).filter(power_name=pwr_name)
+            if len(stored_states) > 0:
+                if len(stored_states) == 1:
+                    stored_state = stored_states[0]
+                else:
+                    print >> sys.stderr, "Something is very wrong"
+                    sys.exit(3)
+            if not stored_state and not up:
+                new_state = PowerSupplyState(netbox=handle.get_netbox(),
+                                            power_name=pwr_name, state='down')
+                if post_event(handle.get_netbox(), pwr_name, 'down'):
+                    new_state.event_posted = datetime.now()
+                else:
+                    new_state.event_posted = None
+                new_state.save()
+            if stored_state:
+                if 'down' == stored_state.state and not up:
+                    if not stored_state.event_posted:
+                        if post_event(handle.get_netbox(), pwr_name, 'down'):
+                            stored_state.event_posted = datetime.now()
+                        else:
+                            stored_state.event_posted = None
+                    stored_state.save()
+                if 'down' == stored_state.state and up:
+                    if post_event(handle.get_netbox(), pwr_name, 'up'):
+                        stored_state.delete()
             i += 1
         
     sys.exit(0)
