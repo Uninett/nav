@@ -15,7 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-    A script to poll the power-supply states in netboxes.
+A script to poll the power-supply states in netboxes.
 """
 from os.path import join
 from datetime import datetime
@@ -45,6 +45,7 @@ LOGLEVEL = 'INFO'
 
 logger = None
 should_verify = False
+
 
 class SNMPHandler(object):
     """
@@ -94,7 +95,7 @@ class SNMPHandler(object):
         if not index.isdigit():
             raise TypeError('Illegal value for power-index')
         return index
-    
+
     def is_power_supply_ok(self, pwr_index):
         """ Poll status from power-sensor in a netbox."""
         status = -1
@@ -111,12 +112,15 @@ class SNMPHandler(object):
         pwr_index = self._get_legal_index(pwr_index)
         return self.get_snmp_handle().get(self.pwr_name_oid + "." + pwr_index)
 
+
 class HP(SNMPHandler):
     """
     A specialised class for handling power-supplies in HP netbox.
     """
+
     def __init__(self, netbox):
         super(HP, self).__init__(netbox)
+
 
 class Cisco(SNMPHandler):
     """
@@ -145,10 +149,12 @@ class Cisco(SNMPHandler):
 VENDOR_CISCO = 9
 VENDOR_HP = 11
 
+
 class SNMPFactory(object):
     """
     Factory for makeing snmp-handles depending on vendor-identities.
     """
+
     @classmethod
     def get_instance(cls, netbox):
         """
@@ -182,15 +188,15 @@ def verify(msg):
     if should_verify:
         print >> sys.stderr, msg
 
+
 def get_netboxes(sysnames):
-    """
-    Get netboxes from DB,- if hostnames are specified fetch only those;
-    otherwise fetch all.
-    """
+    """ Get netboxes from DB,- if hostnames are specified fetch only those;
+    otherwise fetch all."""
     if sysnames and len(sysnames) > 0:
         return Netbox.objects.filter(sysname__in=sysnames)
     else:
         return Netbox.objects.all()
+
 
 def post_event(netbox, pwr_name, status):
     """ Posts an event on the eventqueue."""
@@ -217,12 +223,14 @@ def post_event(netbox, pwr_name, status):
         return False
     return True
 
+
 def get_power_state(netbox, pwr_name):
     """
     Get the power-state from DB for this netbox and power-supply.
     """
     return PowerSupplyState.objects.filter(netbox=netbox).filter(
                                                         power_name=pwr_name)
+
 
 def store_state_down(netbox, pwr_name):
     """ Store a record in DB with down-state."""
@@ -237,7 +245,8 @@ def store_state_down(netbox, pwr_name):
         new_state.event_posted = None
     new_state.save()
     verify("New record saved successfully.")
-        
+
+
 def handle_power_state(netbox, stored_state, pwr_name, pwr_up):
     """
     Handle states,- create or delete states, and post events as necessary.
@@ -276,6 +285,7 @@ def handle_power_state(netbox, stored_state, pwr_name, pwr_up):
             stored_state.delete()
             store_state_down(netbox, pwr_name)
 
+
 def handle_too_many_states(power_states, netbox, pwr_name):
     """
     Function that take actions when we discover more than one
@@ -288,11 +298,13 @@ def handle_too_many_states(power_states, netbox, pwr_name):
     logger.error(msg)
     delete_power_states(power_states)
 
+
 def delete_power_states(power_states):
     """ Delete the given power-supply states from DB."""
     if power_states:
         for state in power_states:
             state.delete()
+
 
 def read_hostsfile(filename):
     """ Read file with hostnames."""
@@ -312,6 +324,7 @@ def read_hostsfile(filename):
     hosts_file.close()
     return hostnames
 
+
 def main():
     """ Plain old main..."""
     global logger
@@ -328,7 +341,7 @@ def main():
     parser.add_option("-v", "--verify", action="store_true", dest="verify",
             help="Print debug-information to stderr")
     opts, args = parser.parse_args()
-    
+
     if opts.verify:
         should_verify = opts.verify
 
@@ -351,7 +364,7 @@ def main():
         logger.debug(msg)
         if len(pwr_supplies) > 1:
             dup_powers[handle] = pwr_supplies
-    
+
     for handle, pwr_supplies in dup_powers.items():
         power_supply_index = 1
         for pwr in pwr_supplies:
