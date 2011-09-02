@@ -1,0 +1,44 @@
+{% extends "powersupplies/base.html" %}
+{% load default_date_filter %}
+
+{% block content %}
+
+<div>
+{% if states %}
+<div id="tablecontainer" class="text-right">
+<table id="powersupplycontainer" class="vertitable">
+	<caption>Current states</caption>
+    <tr>
+        <th>Netbox</th>
+        <th>Power-supply module</th>
+        <th>State</th>
+        <th>Down since</th>
+    </tr>
+    {% for state in states %}
+    <tr>
+        <td><a href="/ipdevinfo/{{ state.netbox.sysname }}/">{{ state.netbox.sysname }}</a></td>
+        <td>{{ state.power_name }}</td>
+        <td>
+            {% ifequal state.state 'down' %}
+                <font color="red">
+            {% else %}
+                <font color="green">
+            {% endifequal %}
+                {{ state.state }}</font> </td>
+        <td>
+            {% ifequal state.state 'down' %}
+                {{ state.down_since }}
+            {% else %}
+                &nbsp;
+            {% endifequal %}</td>
+    <tr>
+    {% endfor %}
+</table>
+</div>
+
+{% else %}
+ <p> No power-supplies are down</p>
+{% endif %}
+</div>
+{% endblock %}
+
