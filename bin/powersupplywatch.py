@@ -14,18 +14,16 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""
+    A script to poll the power-supply states in netboxes.
+"""
 from os.path import join
 from datetime import datetime
 
-import time
 import logging
 import logging.handlers
-import os
-import os.path
-import pwd
 import sys
 from optparse import OptionParser
-from datetime import datetime
 
 # import NAV libraries
 import nav.config
@@ -35,14 +33,10 @@ import nav.path
 import nav.db
 from nav.event import Event
 from nav.Snmp.pysnmp_se import Snmp
-from nav.Snmp.errors import *
-
+from nav.Snmp.errors import UnsupportedSnmpVersionError
+from nav.Snmp.errors import TimeOutException
 from nav.models.manage import Netbox
 from nav.models.manage import PowerSupplyState
-
-# These have to be imported after the envrionment is setup
-from django.db import DatabaseError, connection
-from nav.alertengine.base import check_alerts
 
 LOGFILE = join(nav.buildconf.localstatedir, "log/powersupplywatch.log")
 # Loglevel (case-sensitive), may be:
@@ -61,13 +55,16 @@ class SNMPHandler(object):
     pwr_name_oid = '.1.3.6.1.4.1.11.2.14.11.1.2.6.1.7'
 
     def __init__(self, netbox):
+        """ A plain and old constructor."""
         self.netbox = netbox
         self.snmp_handle = None
 
     def get_netbox(self):
+        """ Return the current netbox."""
         return self.netbox
 
     def get_snmp_handle(self):
+        """ Allocate a snmp-handle for the netbox."""
         if not self.snmp_handle:
             self.snmp_handle = Snmp(self.netbox.ip,
                                     self.netbox.read_only,
@@ -75,18 +72,21 @@ class SNMPHandler(object):
         return self.snmp_handle
 
     def get_power_supplies(self):
+        """ Walk a netbox and try to find all possible power-supplies."""
         pwr_supplies = []
         try:
             try:
                 pwr_supplies = self.get_snmp_handle().bulkwalk(
                                             self.pwr_supplies_oid)
-            except UnsupportedSnmpVersionError, e:
-                pwr_supplies = self.get_snmp_handle().walk(self.pwr_supplies_oid)
-        except TimeOutException, e:
-            pass
+            except UnsupportedSnmpVersionError, unsupported_snmp_ver_ex:
+                pwr_supplies = self.get_snmp_handle().walk(
+                                                        self.pwr_supplies_oid)
+        except TimeOutException, timed_out_ex:
+            logger.info('%s timed out' % self.netbox.sysname)
         return pwr_supplies
 
     def _get_legal_index(self, index):
+        """ Check that the index is valid. """
         if isinstance(index, int):
             index = str(index)
         if not (isinstance(index, str) or isinstance(index, unicode)):
@@ -96,6 +96,7 @@ class SNMPHandler(object):
         return index
     
     def is_power_supply_ok(self, pwr_index):
+        """ Poll status from power-sensor in a netbox."""
         status = -1
         pwr_index = self._get_legal_index(pwr_index)
         status = self.get_snmp_handle().get(self.pwr_status_oid + "." +
@@ -106,6 +107,7 @@ class SNMPHandler(object):
         return (status == 4 or status == 5)
 
     def get_power_name(self, pwr_index):
+        """ Get power name."""
         pwr_index = self._get_legal_index(pwr_index)
         return self.get_snmp_handle().get(self.pwr_name_oid + "." + pwr_index)
 
@@ -125,9 +127,11 @@ class Cisco(SNMPHandler):
     pwr_name_oid = '.1.3.6.1.4.1.9.9.13.1.5.1.2'
 
     def __init__(self, netbox):
+        """ Nothing more than a constructor."""
         super(Cisco, self).__init__(netbox)
 
     def is_power_supply_ok(self, pwr_index):
+        """ Poll status from power-sensor in a Cisco netbox."""
         status = -1
         pwr_index = self._get_legal_index(pwr_index)
         status = self.get_snmp_handle().get(self.pwr_status_oid + "." +
@@ -147,6 +151,10 @@ class SNMPFactory(object):
     """
     @classmethod
     def get_instance(cls, netbox):
+        """
+        Get a snmp-handle to a given netbox.  Currently handle only
+        HP- and Cisco-netboxes.
+        """
         vendor_id = None
         if netbox.type:
             vendor_id = netbox.type.get_enterprise_id()
@@ -158,18 +166,19 @@ class SNMPFactory(object):
 
 
 def get_logger():
-    """ Return a custom logger """
-    format = "[%(asctime)s] [%(levelname)s] %(message)s"
+    """ Return a custom logger."""
+    format_pattern = "[%(asctime)s] [%(levelname)s] %(message)s"
     filehandler = logging.FileHandler(LOGFILE)
-    formatter = logging.Formatter(format)
-    filehandler.setFormatter(formatter)
-    logger = logging.getLogger('powersupplywatch')
-    logger.addHandler(filehandler)
-    logger.setLevel(logging.getLevelName(LOGLEVEL))
-    return logger
+    log_formatter = logging.Formatter(format_pattern)
+    filehandler.setFormatter(log_formatter)
+    log = logging.getLogger('powersupplywatch')
+    log.addHandler(filehandler)
+    log.setLevel(logging.getLevelName(LOGLEVEL))
+    return log
 
 
 def verify(msg):
+    """ Print message to stderr if verify-option is given."""
     if should_verify:
         print >> sys.stderr, msg
 
@@ -184,7 +193,7 @@ def get_netboxes(sysnames):
         return Netbox.objects.all()
 
 def post_event(netbox, pwr_name, status):
-    """Posts an event on the eventqueue"""
+    """ Posts an event on the eventqueue."""
     source = "powersupplywatch"
     target = "eventEngine"
     eventtypeid = "moduleState"
@@ -202,7 +211,9 @@ def post_event(netbox, pwr_name, status):
     try:
         event.post()
     except Exception, why:
-        print >> sys.stderr, "%s" % why
+        msg = 'post_event: exception = %s' % why
+        verify(msg)
+        logger.error(msg)
         return False
     return True
 
@@ -214,53 +225,53 @@ def get_power_state(netbox, pwr_name):
                                                         power_name=pwr_name)
 
 def store_state_down(netbox, pwr_name):
-    """
-    Store a record in DB with down-state.
-    """
+    """ Store a record in DB with down-state."""
     new_state = PowerSupplyState(netbox=netbox,
                                         power_name=pwr_name,
-                                        state='down')
-    if post_event(netbox, pwr_name, 'down'):
-        verify("\tEvent posted successfully.")
+                                        state=PowerSupplyState.STATE_DOWN)
+    if post_event(netbox, pwr_name, PowerSupplyState.STATE_DOWN):
+        verify("Event posted successfully")
         new_state.event_posted = datetime.now()
     else:
-        verify("\tPost event failed.")
+        verify("Post event failed")
         new_state.event_posted = None
     new_state.save()
-    verify("\tNew record saved successfully.")
+    verify("New record saved successfully.")
         
-def handle_power_state(netbox, stored_state, pwr_name, up):
+def handle_power_state(netbox, stored_state, pwr_name, pwr_up):
     """
     Handle states,- create or delete states, and post events as necessary.
     """
-    if not stored_state and not up:
-        verify('\t%s: %s has gone down.  Store state in DB.' %
+    if not stored_state and not pwr_up:
+        msg = ('%s: %s has gone down.  Store state in DB' %
                     (netbox.sysname, pwr_name))
+        verify(msg)
+        logger.warn(msg)
         store_state_down(netbox, pwr_name)
     if stored_state:
-        if PowerSupplyState.STATE_DOWN == stored_state.state and not up:
-            verify("\tState is down and polled state is down.")
+        if PowerSupplyState.STATE_DOWN == stored_state.state and not pwr_up:
+            verify("State is down and polled state is down")
             if not stored_state.event_posted:
-                verify("\tEvent not posted for this")
-                if post_event(netbox, pwr_name, 'down'):
-                    verify("\tEvent posted successfully.")
+                verify("Event not posted for this")
+                if post_event(netbox, pwr_name, PowerSupplyState.STATE_DOWN):
+                    verify("Event posted successfully")
                     stored_state.event_posted = datetime.now()
                 else:
-                    verfify("\tPost event failed.")
+                    verify("Post event failed")
                     stored_state.event_posted = None
                 stored_state.save()
-        if PowerSupplyState.STATE_DOWN == stored_state.state and up:
-            msg = '%s: %s has come up.' % (netbox.sysname, pwr_name)
-            #logger.info(msg)
-            verify('\t' + msg)
-            if post_event(netbox, pwr_name, 'up'):
-                verify("\tEvent posted successfully.")
+        if PowerSupplyState.STATE_DOWN == stored_state.state and pwr_up:
+            msg = '%s: %s has come up' % (netbox.sysname, pwr_name)
+            verify(msg)
+            logger.info(msg)
+            if post_event(netbox, pwr_name, PowerSupplyState.STATE_UP):
+                verify("Event posted successfully")
                 stored_state.delete()
-                verify("\tRecord deleted successfully.")
-        if PowerSupplyState.STATE_UP == stored_state.state and up:
+                verify("Record deleted successfully")
+        if PowerSupplyState.STATE_UP == stored_state.state and pwr_up:
             # This should not happen...
             stored_state.delete()
-        if PowerSupplyState.STATE_UP == stored_state.state and not up:
+        if PowerSupplyState.STATE_UP == stored_state.state and not pwr_up:
             # nor this...
             stored_state.delete()
             store_state_down(netbox, pwr_name)
@@ -271,21 +282,41 @@ def handle_too_many_states(power_states, netbox, pwr_name):
     state-record in DB.
     """
     # The safest is probably to delete all states. Anyone?
-    msg = ('%d records in DB for %s: %s; Will delete all.' %
-                (len(power_states), netbox.sysname, pwr_name))
-    verify('\t' + msg)
-    #logger.error(msg)
+    msg = ('%s: %s %d records in DB; Will delete all' %
+                (netbox.sysname, pwr_name, len(power_states)))
+    verify(msg)
+    logger.error(msg)
     delete_power_states(power_states)
 
 def delete_power_states(power_states):
+    """ Delete the given power-supply states from DB."""
     if power_states:
         for state in power_states:
             state.delete()
 
+def read_hostsfile(filename):
+    """ Read file with hostnames."""
+    hostnames = []
+    hosts_file = None
+    try:
+        hosts_file = open(filename, 'r')
+    except IOError as (errno, strerror):
+        err_str = "I/O error ({0}): " + filename + " ({1})"
+        print >> sys.stderr, err_str.format(errno, strerror)
+        logger.error(err_str)
+        sys.exit(2)
+    for line in hosts_file:
+        line.strip()
+        if line:
+            hostnames.append(line.strip())
+    hosts_file.close()
+    return hostnames
+
 def main():
+    """ Plain old main..."""
     global logger
     global should_verify
-    #logger = get_logger()
+    logger = get_logger()
 
     parser = OptionParser()
     parser.add_option("-d", "--dry-run", action="store_true", dest="dryrun",
@@ -299,41 +330,33 @@ def main():
     opts, args = parser.parse_args()
     
     if opts.verify:
-        print 'verify'
         should_verify = opts.verify
 
     sysnames = []
     if opts.hostname:
         sysnames.append(opts.hostname.strip())
     if opts.hostsfile:
-        f = None
-        try:
-            f = open(opts.hostsfile, 'r')
-        except IOError as (errno, strerror):
-            err_str = "I/O error ({0}): " + opts.hostsfile + " ({1})"
-            print >> sys.stderr, err_str.format(errno, strerror)
-            sys.exit(2)
-        for line in f:
-            line.strip()
-            if line:
-                sysnames.append(line.strip())
-        f.close()
+        sysnames.extend(read_hostsfile(opts.hostsfile))
 
     dup_powers = {}
     for netbox in get_netboxes(sysnames):
         handle = SNMPFactory.get_instance(netbox)
-        verify("Get power-supplies from: %s" % (netbox.sysname))
+        msg = '%s: Collecting power-supplies' % netbox.sysname
+        verify(msg)
+        logger.debug(msg)
         pwr_supplies = handle.get_power_supplies()
-        verify("\tNumber of power-supplies %d\n" % (len(pwr_supplies)))
+        msg = ("%s: Number of power-supplies %d" %
+                (netbox.sysname, len(pwr_supplies)))
+        verify(msg)
+        logger.debug(msg)
         if len(pwr_supplies) > 1:
             dup_powers[handle] = pwr_supplies
     
     for handle, pwr_supplies in dup_powers.items():
-        verify('%s:' % handle.get_netbox().sysname)
-        i = 1;
+        power_supply_index = 1
         for pwr in pwr_supplies:
-            pwr_name = handle.get_power_name(str(i))
-            up = handle.is_power_supply_ok(str(i))
+            pwr_name = handle.get_power_name(str(power_supply_index))
+            pwr_up = handle.is_power_supply_ok(str(power_supply_index))
             stored_states = get_power_state(handle.get_netbox(), pwr_name)
             stored_state = None
             if len(stored_states) > 0:
@@ -342,15 +365,17 @@ def main():
                 elif len(stored_states) > 1:
                     handle_too_many_states(stored_states, handle.get_netbox(),
                                                 pwr_name)
-            if should_verify:
-                status = PowerSupplyState.STATE_DOWN
-                if up:
-                    status = PowerSupplyState.STATE_UP
-                verify('\t%s is %s' % (pwr_name, status))
+            pwr_status = PowerSupplyState.STATE_DOWN
+            if pwr_up:
+                pwr_status = PowerSupplyState.STATE_UP
+            msg = '%s: %s is %s' % (handle.get_netbox().sysname, pwr_name,
+                                        (pwr_status))
+            verify(msg)
+            logger.debug(msg)
             if not opts.dryrun:
-                handle_power_state(handle.get_netbox(),stored_state,
-                                    pwr_name, up)
-            i += 1
+                handle_power_state(handle.get_netbox(), stored_state,
+                                    pwr_name, pwr_up)
+            power_supply_index += 1
     sys.exit(0)
 
 if __name__ == '__main__':
