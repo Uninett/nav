@@ -339,7 +339,7 @@ def main():
     parser.add_option("-n", "--netbox", dest="hostname",
             help="Check only this hostname.  Must be a FQDN")
     parser.add_option("-v", "--verify", action="store_true", dest="verify",
-            help="Print debug-information to stderr")
+            help="Print (lots of) debug-information to stderr")
     opts, args = parser.parse_args()
 
     if opts.verify:
