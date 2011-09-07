@@ -229,13 +229,13 @@ def get_power_state(netbox, pwr_name):
     Get the power-state from DB for this netbox and power-supply.
     """
     return PowerSupplyState.objects.filter(netbox=netbox).filter(
-                                                        power_name=pwr_name)
+                                                        name=pwr_name)
 
 
 def store_state_down(netbox, pwr_name):
     """ Store a record in DB with down-state."""
     new_state = PowerSupplyState(netbox=netbox,
-                                        power_name=pwr_name,
+                                        name=pwr_name,
                                         state=PowerSupplyState.STATE_DOWN)
     if post_event(netbox, pwr_name, PowerSupplyState.STATE_DOWN):
         verify("Event posted successfully")

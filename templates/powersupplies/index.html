@@ -9,24 +9,23 @@
 <table id="powersupplycontainer" class="vertitable">
 	<caption>Current states</caption>
     <tr>
-        <th>Netbox</th>
-        <th>Power-supply module</th>
-        <th>State</th>
-        <th>Down since</th>
+        {% for header in headers %}
+            <th>{{ header }}</th>
+        {% endfor %}
     </tr>
     {% for state in states %}
     <tr>
         <td><a href="/ipdevinfo/{{ state.netbox.sysname }}/">{{ state.netbox.sysname }}</a></td>
-        <td>{{ state.power_name }}</td>
+        <td>{{ state.netbox.ip }}</th>
+        <td>{{ state.name }}</td>
         <td>
-            {% ifequal state.state 'down' %}
-                <font color="red">
+            {% ifequal state.state 'n' %}
+                <font color="red">Down</font>
             {% else %}
-                <font color="green">
+                <font color="green">Up</font>
             {% endifequal %}
-                {{ state.state }}</font> </td>
         <td>
-            {% ifequal state.state 'down' %}
+            {% ifequal state.state 'n' %}
                 {{ state.down_since }}
             {% else %}
                 &nbsp;

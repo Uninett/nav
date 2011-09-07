@@ -1109,8 +1109,8 @@ class Sensor(models.Model):
         db_table = 'sensor'
 
 class PowerSupplyState(models.Model):
-    STATE_UP = 'up'
-    STATE_DOWN = 'down'
+    STATE_UP = 'y'
+    STATE_DOWN = 'n'
 
     STATE_CHOICES = (
         (STATE_UP, "Up"),
@@ -1119,7 +1119,10 @@ class PowerSupplyState(models.Model):
 
     id = models.AutoField(db_column='stateid', primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
-    power_name = VarcharField(db_column='power_name')
+    name = VarcharField(db_column='name')
+    descr = VarcharField(db_column='descr')
+    serialnum = VarcharField(db_column='serialnum')
+    modelname = VarcharField(db_column='modelname')
     down_since = models.DateTimeField(db_column='down_since', auto_now_add=True)
     event_posted = models.DateTimeField(db_column='event_posted')
     state = VarcharField(db_column='state', choices=STATE_CHOICES)
