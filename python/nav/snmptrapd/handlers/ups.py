@@ -14,7 +14,12 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """NAV snmptrapd handler plugin to handle on battery, battery-time and
-off battery traps from APC and Eation UPS'.
+off battery traps from APC and Eation UPSes.
+
+It should also handle UPSes that are UPS-MIB (RFC1628) compliant like
+Liebert UPSes,- but it looks like UPS-MIB do not have any alarm for
+off battery.
+
 """
 
 import logging
@@ -31,16 +36,22 @@ logger = logging.getLogger('nav.snmptrapd.ups')
 ONBATTERY = {'APC': ['.1.3.6.1.4.1.318.0.5'],
              'Eaton': ['.1.3.6.1.4.1.534.1.0.0.0.3',
                        '.1.3.6.1.4.1.534.1.11.4.1.0.3',
-                       '.1.3.6.1.4.1.534.1.11.4.2.0.3']
+                       '.1.3.6.1.4.1.534.1.11.4.2.0.3'],
+                # UPS-MIB: upsAlarmOnBattery
+             'RFC1628': ['.1.3.6.1.2.1.33.1.6.3.2'],
              }
 BATTERYTIME = {'APC': ('.1.3.6.1.4.1.318.1.1.1.2.2.3.0', 'TIMETICKS'),
-               'Eaton': ('.1.3.6.1.4.1.534.1.2.1.0', 'SECONDS')}
+               'Eaton': ('.1.3.6.1.4.1.534.1.2.1.0', 'SECONDS'),
+                # UPS-MIB: upsEstimatedMinutesRemaining
+               'RFC1628': ('.1.3.6.1.2.1.33.1.2.3', 'MINUTES'),
+            }
 
 # upsoffbattery traps
+# Cannot find anything in UPS-MIB (RFC1628) for off Battery. Hmmm...
 OFFBATTERY = {'APC': ['.1.3.6.1.4.1.318.0.9'],
               'Eaton': ['.1.3.6.1.4.1.534.1.0.0.0.5',
                         '.1.3.6.1.4.1.534.1.11.4.1.0.5',
-                        '.1.3.6.1.4.1.534.1.11.4.2.0.5']
+                        '.1.3.6.1.4.1.534.1.11.4.2.0.5'],
               }
 
 def handleTrap(trap, config=None):
@@ -142,7 +153,10 @@ def handleTrap(trap, config=None):
 def format_batterytime(timeunit, format):
     if isinstance(timeunit, int):
         seconds = timeunit
-        if format == 'TIMETICKS':
+        if 'MINUTES' == format:
+            # UPS-MIB
+            seconds = (timeunit * 60)
+        if 'TIMETICKS' == format:
             seconds = timeunit / 100
         return "%sh:%sm" %(int(seconds / 60 / 60), (seconds/60) % 60)
 
