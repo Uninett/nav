@@ -211,9 +211,12 @@ def post_event(netbox, pwr_name, status):
                             value=value,
                             severity=severity)
     event['sysname'] = netbox.sysname
-    event['alerttype'] = 'powerSupplyWarning'
+    if PowerSupplyState.STATE_DOWN == status:
+        event['alerttype'] = 'moduleDown'
+    elif PowerSupplyState.STATE_UP == status:
+        event['alerttype'] = 'moduleUp'
     event['powername'] = pwr_name
-    event['status'] = status
+    event['state'] = status
     try:
         event.post()
     except Exception, why:
