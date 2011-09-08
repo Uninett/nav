@@ -778,3 +778,8 @@ class NetboxSnmpOid(Shadow):
 class Sensor(Shadow):
     __shadowclass__ = manage.Sensor
     __lookups__ = [('netbox', 'internal_name', 'mib')]
+
+class PowerSupplyState(Shadow):
+    __shadowclass__ = manage.PowerSupplyState
+    __lookups__ = [('netbox', 'name')]
+
