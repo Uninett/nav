@@ -13,9 +13,19 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-import mibretriever
+from twisted.internet import defer
 
 from nav.mibs import reduce_index
+from nav.mibs import mibretriever
 
 class UpsMib(mibretriever.MibRetriever):
     from nav.smidumps.ups_mib import MIB as mib
+
+    def get_module_name(self):
+        """return the MIB-name."""
+        return self.mib.get('moduleName', None)
+
+    @defer.inlineCallbacks
+    def get_all_sensors(self):
+        """ .... """
+        return {}

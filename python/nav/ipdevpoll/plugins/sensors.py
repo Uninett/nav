@@ -26,11 +26,18 @@ from nav.mibs.itw_mibv3 import ItWatchDogsMibV3
 from nav.mibs.cisco_envmon_mib import CiscoEnvMonMib
 from nav.mibs.entity_sensor_mib import EntitySensorMib
 
+from nav.mibs.ups_mib import UpsMib
+from nav.mibs.xups_mib import XupsMib
+from nav.mibs.PowerNet_mib import PowerNetMib
+
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
+VENDOR_APC = 318
+VENDOR_EATON = 534
+VENDOR_MGE = 705
 VENDOR_ITWATCHDOGS = 17373
 
 
@@ -42,14 +49,24 @@ class MIBFactory(object):
     def get_instance(cls, netbox, agent):
         """ Factory for allocating mibs based on
         netbox-vendors and -models"""
-        vendor_id = netbox.type.get_enterprise_id()
-        if vendor_id == VENDOR_CISCO:
-            # Some cisco-boxes may use standard-mib
-            return [EntitySensorMib(agent), CiscoEnvMonMib(agent)]
-        elif vendor_id == VENDOR_ITWATCHDOGS:
-            # Try with the most recent first
-            return [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
-        return [EntitySensorMib(agent)]
+        vendor_id = None
+        if netbox.type:
+            vendor_id = netbox.type.get_enterprise_id()
+        if vendor_id:
+            if vendor_id == VENDOR_CISCO:
+                # Some cisco-boxes may use standard-mib
+                return [EntitySensorMib(agent), CiscoEnvMonMib(agent)]
+            elif vendor_id = VENDOR_HP:
+                return [EntitySensorMib(agent)]
+            elif vendor_id == VENDOR_APC:
+                return [PowerNetMib(agent)]
+            elif vendor_id == VENDOR_EATON:
+                return [XupsMib(agent)]
+            elif vendor_id == VENDOR_ITWATCHDOGS:
+                # Try with the most recent first
+                return [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
+        # and then we just sweep up the remains....
+        return [EntitySensorMib(agent), UpsMib(agent)]
 
 
 class Sensors(Plugin):
