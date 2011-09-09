@@ -35,21 +35,24 @@ logger = logging.getLogger('nav.snmptrapd.ups')
 # upsonbattery traps
 ONBATTERY = {'APC': ['.1.3.6.1.4.1.318.0.5'],
              'Eaton': ['.1.3.6.1.4.1.534.1.0.0.0.3',
+                        # XUPS-MIB: xupstdOnBattery
                        '.1.3.6.1.4.1.534.1.11.4.1.0.3',
                        '.1.3.6.1.4.1.534.1.11.4.2.0.3'],
-                # UPS-MIB: upsAlarmOnBattery
+                        # UPS-MIB: upsAlarmOnBattery
              'RFC1628': ['.1.3.6.1.2.1.33.1.6.3.2'],
              }
 BATTERYTIME = {'APC': ('.1.3.6.1.4.1.318.1.1.1.2.2.3.0', 'TIMETICKS'),
+                        # XUPS-MIB: xupsBatTimeRemaining
                'Eaton': ('.1.3.6.1.4.1.534.1.2.1.0', 'SECONDS'),
-                # UPS-MIB: upsEstimatedMinutesRemaining
-               'RFC1628': ('.1.3.6.1.2.1.33.1.2.3', 'MINUTES'),
+                        # UPS-MIB: upsEstimatedMinutesRemaining
+               'RFC1628': ('.1.3.6.1.2.1.33.1.2.3.0', 'MINUTES'),
             }
 
 # upsoffbattery traps
 # Cannot find anything in UPS-MIB (RFC1628) for off Battery. Hmmm...
 OFFBATTERY = {'APC': ['.1.3.6.1.4.1.318.0.9'],
               'Eaton': ['.1.3.6.1.4.1.534.1.0.0.0.5',
+                        # XUPS-MIBS: xupstdUtilityPowerRestored
                         '.1.3.6.1.4.1.534.1.11.4.1.0.5',
                         '.1.3.6.1.4.1.534.1.11.4.2.0.5'],
               }
