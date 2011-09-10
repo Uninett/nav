@@ -13,6 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+""" A class for extracting sensors from APC UPSes.
+"""
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
@@ -25,7 +27,43 @@ class PowerNetMib(mibretriever.MibRetriever):
         """Return the MIB-name."""
         return self.mib.get('moduleName', None)
 
+    def _get_input_voltage_sensors(self):
+        """ volts """
+        df = self.retrieve_columns(['atsInputVoltage'])
+        df.addCallback(reduce_index)
+        return df
+
+    def _get_input_frequency_sensors(self):
+        """ Hz """
+        df = self.retrieve_columns(['upsAdvInputFrequency'])
+        df.addCallback(reduce_index)
+        return df
+
+    def _get_output_current_sensors(self):
+        """ amperes """
+        df = self.retrieve_columns(['upsAdvOutputCurrent'])
+        df.addCallback(reduce_index)
+        return df
+
+    def _get_temp_sensors(self):
+        """ celsius """
+        df = self.retrieve_columns(['mUpsEnvironAmbientTemperature'])
+        df.addCallback(reduce_index)
+        return df
+
+    def _get_battery_level_sensors(self):
+        """ percent """
+        df = self.retrieve_columns(['upsAdvBatteryCapacity'])
+        df.addCallback(reduce_index)
+        return df
+
+    def _get_battery_remaining_time_sensors(self):
+        """ Timeticks:  seconds = timeticks/100 """
+        df = self.retrieve_columns(['upsBasicBatteryTimeOnBattery'])
+        df.addCallback(reduce_index)
+        return df
+
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """ .... """
-        return {}
+        return []

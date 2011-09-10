@@ -13,6 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+""" A class for extracting sensors from EATON UPSes.
+"""
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
@@ -25,17 +27,48 @@ class XupsMib(mibretriever.MibRetriever):
         """Return the MIB-name."""
         return self.mib.get('moduleName', None)
 
-    def _get_sensors(self):
+    def _get_input_voltage_sensors(self):
+        """ volts """
+        df = self.retrieve_columns(['xupsInputVoltage'])
+        df.addCallback(reduce_index)
+        return df
+
+    def _get_input_frequency_sensors(self):
+        """ Hz """
+        df = self.retrieve_columns(['xupsInputFrequency'])
+        df.addCallback(reduce_index)
+        return df
+
+    def _get_output_current_sensors(self):
+        """ amperes """
+        df = self.retrieve_columns(['xupsOutputCurrent'])
+        df.addCallback(reduce_index)
+        return df
+
+    def _get_temp_sensors(self):
+        """ celsius """
         df = self.retrieve_columns(['xupsEnvAmbientTemp'])
+        df.addCallback(reduce_index)
+        return df
+
+    def _get_battery_level_sensors(self):
+        """ percent """
+        df = self.retrieve_columns(['xupsBatCapacity'])
+        df.addCallback(reduce_index)
+        return df
+
+    def _get_battery_time_sensors(self):
+        """ seconds """
+        df = self.retrieve_columns(['xupsBatTimeRemaining'])
         df.addCallback(reduce_index)
         return df
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """ .... """
-        sensors = yield self._get_sensors()
+        temp_sensors = yield self._get_temp_sensors()
         result = []
-        for row_id, row in sensor.items():
+        for row_id, row in temp_sensor.items():
             row_oid = row.get(0, None)
             mibobject = self.nodes.get('xupsEnvAmbientTemp', None)
             oid = str(mibobject.oid) + str(row_oid)
