@@ -26,18 +26,23 @@ from nav.mibs.itw_mibv3 import ItWatchDogsMibV3
 from nav.mibs.cisco_envmon_mib import CiscoEnvMonMib
 from nav.mibs.entity_sensor_mib import EntitySensorMib
 
+from nav.mibs.mg_snmp_ups_mib import MgSnmpUpsMib
+from nav.mibs.PowerNet_mib import PowerNetMib
 from nav.mibs.ups_mib import UpsMib
 from nav.mibs.xups_mib import XupsMib
-from nav.mibs.PowerNet_mib import PowerNetMib
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
+# APC UPSes
 VENDOR_APC = 318
+# Eaton UPSes
 VENDOR_EATON = 534
+# MGE UPSes
 VENDOR_MGE = 705
+# IT-Watchdogs,- i.e. WxGooses
 VENDOR_ITWATCHDOGS = 17373
 
 
@@ -62,6 +67,8 @@ class MIBFactory(object):
                 return [PowerNetMib(agent)]
             elif vendor_id == VENDOR_EATON:
                 return [XupsMib(agent)]
+            elif vendor_id == VENDOR_MGE:
+                return [MgSnmpUpsMib(agent)]
             elif vendor_id == VENDOR_ITWATCHDOGS:
                 # Try with the most recent first
                 return [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
