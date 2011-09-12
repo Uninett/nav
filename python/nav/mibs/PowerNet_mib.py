@@ -20,7 +20,9 @@ from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.mibs import mibretriever
 
+
 class PowerNetMib(mibretriever.MibRetriever):
+    """ Custom class for retrieveing sensors from APC UPSes."""
     from nav.smidumps.PowerNet_mib import MIB as mib
 
     sensor_columns = {
@@ -56,12 +58,13 @@ class PowerNetMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
+        """ Get all the interesting sensors for this UPS."""
         result = []
         for sensor_name in self.sensor_columns.keys():
             sensor_params = yield self._get_named_column(sensor_name)
-            self.logger.error('PowerNetMib:: get_all_sensors: ip = %s' %
+            self.logger.debug('PowerNetMib:: get_all_sensors: ip = %s' %
                 self.agent_proxy.ip)
-            self.logger.error('PowerNetMib:: get_all_sensors: %s = %s' %
+            self.logger.debug('PowerNetMib:: get_all_sensors: %s = %s' %
                 (sensor_name, sensor_params))
             for row_id, row in sensor_params.items():
                 row_oid = row.get(0, None)
@@ -76,7 +79,7 @@ class PowerNetMib(mibretriever.MibRetriever):
                                                            'description', None)
                 name = sensor_name
                 internal_name = name
-                result.append( {
+                result.append({
                     'oid': oid,
                     'unit_of_measurement': unit_of_measurement,
                     'precision': precision,

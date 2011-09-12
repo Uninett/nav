@@ -20,9 +20,10 @@ from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.mibs import mibretriever
 
-class XupsMib(mibretriever.MibRetriever):
-    from nav.smidumps.xups_mib import MIB as mib
 
+class XupsMib(mibretriever.MibRetriever):
+    """ A custom class for retrieving sensors from EATON UPSes."""
+    from nav.smidumps.xups_mib import MIB as mib
 
     sensor_columns = {
         'xupsInputVoltage': {
@@ -57,12 +58,13 @@ class XupsMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
+        """ Get all the interesting sensors for this UPS."""
         result = []
         for sensor_name in self.sensor_columns.keys():
             sensor_params = yield self._get_named_column(sensor_name)
-            self.logger.error('XupsMib:: get_all_sensors: ip = %s' %
+            self.logger.debug('XupsMib:: get_all_sensors: ip = %s' %
                 self.agent_proxy.ip)
-            self.logger.error('XupsMib:: get_all_sensors: %s = %s' %
+            self.logger.debug('XupsMib:: get_all_sensors: %s = %s' %
                 (sensor_name, sensor_params))
             for row_id, row in sensor_params.items():
                 row_oid = row.get(0, None)
@@ -77,7 +79,7 @@ class XupsMib(mibretriever.MibRetriever):
                                                            'description', None)
                 name = sensor_name
                 internal_name = name
-                result.append( {
+                result.append({
                     'oid': oid,
                     'unit_of_measurement': unit_of_measurement,
                     'precision': precision,

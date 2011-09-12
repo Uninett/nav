@@ -20,7 +20,9 @@ from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.mibs import mibretriever
 
+
 class MgSnmpUpsMib(mibretriever.MibRetriever):
+    """ A custom class for retrieving sensors from MGE UPSes."""
     from nav.smidumps.mg_snmp_ups_mib import MIB as mib
 
     sensor_columns = {
@@ -59,12 +61,13 @@ class MgSnmpUpsMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
+        """ Get all the interesting sensors for this UPS."""
         result = []
         for sensor_name in self.sensor_columns.keys():
             sensor_params = yield self._get_named_column(sensor_name)
-            self.logger.error('MgSnmpUpsMib:: get_all_sensors: ip= %s' %
+            self.logger.debug('MgSnmpUpsMib:: get_all_sensors: ip= %s' %
                 self.agent_proxy.ip)
-            self.logger.error('MgSnmpUpsMib:: get_all_sensors: %s = %s' %
+            self.logger.debug('MgSnmpUpsMib:: get_all_sensors: %s = %s' %
                 (sensor_name, sensor_params))
             for row_id, row in sensor_params.items():
                 row_oid = row.get(0, None)
@@ -79,7 +82,7 @@ class MgSnmpUpsMib(mibretriever.MibRetriever):
                                                            'description', None)
                 name = sensor_name
                 internal_name = name
-                result.append( {
+                result.append({
                     'oid': oid,
                     'unit_of_measurement': unit_of_measurement,
                     'precision': precision,
