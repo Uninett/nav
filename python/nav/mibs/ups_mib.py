@@ -23,47 +23,67 @@ from nav.mibs import mibretriever
 class UpsMib(mibretriever.MibRetriever):
     from nav.smidumps.ups_mib import MIB as mib
 
+    sensor_columns = {
+        'upsInputVoltage': {
+            'u_o_m': 'Volts',
+            },
+        'upsInputFrequency': {
+            'u_o_m': 'Hz',
+            },
+        'upsOutputCurrent': {
+            'u_o_m': 'Amperes',
+            },
+        'upsBatteryTemperature': {
+            'u_o_m': 'Celsius',
+            },
+        'upsEstimatedChargeRemaining': {
+            'u_o_m': 'Percent',
+            },
+        'upsEstimatedMinutesRemaining': {
+            'u_o_m': 'Minutes',
+            },
+        }
+
     def get_module_name(self):
         """return the MIB-name."""
         return self.mib.get('moduleName', None)
 
-    def _get_input_voltage_sensors(self):
-        """ volts """
-        df = self.retrieve_columns(['upsInputVoltage'])
-        df.addCallback(reduce_index)
-        return df
-
-    def _get_input_frequency_sensors(self):
-        """ Hz """
-        df = self.retrieve_columns(['upsInputFrequency'])
-        df.addCallback(reduce_index)
-        return df
-
-    def _get_output_current_sensors(self):
-        """ amperes """
-        df = self.retrieve_columns(['upsOutputCurrent'])
-        df.addCallback(reduce_index)
-        return df
-
-    def _get_temp_sensors(self):
-        """ celsius """
-        df = self.retrieve_columns(['upsBatteryTemperature'])
-        df.addCallback(reduce_index)
-        return df
-
-    def _get_batter_level_sensors(self):
-        """ percent : 100 - this-value """
-        df = self.retrieve_columns(['upsEstimatedChargeRemaining'])
-        df.addCallback(reduce_index)
-        return df
-
-    def _get_battery_remaining_sensors(self):
-        """ minutes """
-        df = self.retrieve_columns(['upsEstimatedMinutesRemaining'])
+    def _get_named_column(self, column):
+        """ Return the named column in this mib"""
+        df = self.retrieve_columns([column])
         df.addCallback(reduce_index)
         return df
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        """ .... """
-        return []
+        result = []
+        for sensor_name in self.sensor_columns.keys():
+            sensor_params = yield self._get_named_column(sensor_name)
+            self.logger.error('UpsMib:: get_all_sensors: ip = %s' %
+                    self.agent_proxy.ip)
+            self.logger.error('UpsMib:: get_all_sensors: %s = %s' %
+                (sensor_name, sensor_params))
+            for row_id, row in sensor_params.items():
+                row_oid = row.get(0, None)
+                mibobject = self.nodes.get(sensor_name, None)
+                oid = str(mibobject.oid) + str(row_oid)
+                unit_of_measurement = self.sensor_columns[sensor_name].get(
+                                                                'u_o_m', None)
+                precision = self.sensor_columns[sensor_name].get(
+                                                            'precision', None)
+                scale = self.sensor_columns[sensor_name].get('scale', None)
+                description = self.mib.get('nodes').get(sensor_name).get(
+                                                           'description', None)
+                name = sensor_name
+                internal_name = name
+                result.append( {
+                    'oid': oid,
+                    'unit_of_measurement': unit_of_measurement,
+                    'precision': precision,
+                    'scale': scale,
+                    'description': description,
+                    'name': name,
+                    'internal_name': internal_name,
+                    'mib': self.get_module_name(),
+                    })
+        defer.returnValue(result)

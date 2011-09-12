@@ -36,11 +36,13 @@ from nav.ipdevpoll import shadows
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
-# APC UPSes
+# American Power Conversion Corp., APC UPSes
 VENDOR_APC = 318
-# Eaton UPSes
+# Emerson Computer Power, Liebert UPSes
+VENDOR_EMERSON_COMPUTER_POWER = 476
+# Eaton Corporation, Eaton UPSes
 VENDOR_EATON = 534
-# MGE UPSes
+# Merlin Gerin, MGE UPSes
 VENDOR_MGE = 705
 # IT-Watchdogs,- i.e. WxGooses
 VENDOR_ITWATCHDOGS = 17373
@@ -61,10 +63,12 @@ class MIBFactory(object):
             if vendor_id == VENDOR_CISCO:
                 # Some cisco-boxes may use standard-mib
                 return [EntitySensorMib(agent), CiscoEnvMonMib(agent)]
-            elif vendor_id = VENDOR_HP:
+            elif vendor_id == VENDOR_HP:
                 return [EntitySensorMib(agent)]
             elif vendor_id == VENDOR_APC:
                 return [PowerNetMib(agent)]
+            elif vendor_id == VENDOR_EMERSON_COMPUTER_POWER:
+                return [UpsMib(agent)]
             elif vendor_id == VENDOR_EATON:
                 return [XupsMib(agent)]
             elif vendor_id == VENDOR_MGE:
