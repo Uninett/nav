@@ -62,10 +62,8 @@ class UpsMib(mibretriever.MibRetriever):
         result = []
         for sensor_name in self.sensor_columns.keys():
             sensor_params = yield self._get_named_column(sensor_name)
-            self.logger.debug('UpsMib:: get_all_sensors: ip = %s' %
-                    self.agent_proxy.ip)
-            self.logger.debug('UpsMib:: get_all_sensors: %s = %s' %
-                (sensor_name, sensor_params))
+            self.logger.error('get_all_sensors: %s; %s = %s' %
+                (self.agent_proxy.ip, sensor_name, sensor_params))
             for row_id, row in sensor_params.items():
                 row_oid = row.get(0, None)
                 mibobject = self.nodes.get(sensor_name, None)

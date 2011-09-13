@@ -27,7 +27,7 @@ from nav.mibs.cisco_envmon_mib import CiscoEnvMonMib
 from nav.mibs.entity_sensor_mib import EntitySensorMib
 
 from nav.mibs.mg_snmp_ups_mib import MgSnmpUpsMib
-from nav.mibs.PowerNet_mib import PowerNetMib
+from nav.mibs.powernet_mib import PowerNetMib
 from nav.mibs.ups_mib import UpsMib
 from nav.mibs.xups_mib import XupsMib
 
