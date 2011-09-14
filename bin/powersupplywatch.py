@@ -18,6 +18,7 @@
 A script to poll the power-supply states in netboxes.
 """
 from os.path import join
+from datetime import datetime
 
 import logging
 import logging.handlers
@@ -242,6 +243,10 @@ def store_new_state(netbox, pwr_name, up):
     new_state = PowerSupply(netbox=netbox,
                             name=pwr_name,
                             up=up)
+    if PowerSupply.STATE_DOWN == up:
+        new_state.downsince = datetime.now()
+    else:
+        new_state.downsince = None
     new_state.save()
     verify("New record saved successfully.")
 
@@ -270,6 +275,7 @@ def handle_power_state(netbox, stored_state, pwr_name, pwr_up):
             verify(msg)
             logger.info(msg)
             post_event(netbox, pwr_name, PowerSupply.STATE_UP)
+            stored_state.downsince = None
             stored_state.up = PowerSupply.STATE_UP
             stored_state.save()
         if PowerSupply.STATE_UP == stored_state.up and not pwr_up:
@@ -277,6 +283,7 @@ def handle_power_state(netbox, stored_state, pwr_name, pwr_up):
             verify(msg)
             logger.info(msg)
             post_event(netbox, pwr_name, PowerSupply.STATE_DOWN)
+            stored_state.downsince = datetime.now()
             stored_state.up = PowerSupply.STATE_DOWN
             stored_state.save()
 
