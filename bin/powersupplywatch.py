@@ -18,7 +18,6 @@
 A script to poll the power-supply states in netboxes.
 """
 from os.path import join
-from datetime import datetime
 
 import logging
 import logging.handlers
@@ -36,7 +35,7 @@ from nav.Snmp.pysnmp_se import Snmp
 from nav.Snmp.errors import UnsupportedSnmpVersionError
 from nav.Snmp.errors import TimeOutException
 from nav.models.manage import Netbox
-from nav.models.manage import PowerSupplyState
+from nav.models.manage import PowerSupply
 
 LOGFILE = join(nav.buildconf.localstatedir, "log/powersupplywatch.log")
 # Loglevel (case-sensitive), may be:
@@ -80,10 +79,13 @@ class SNMPHandler(object):
                 pwr_supplies = self.get_snmp_handle().bulkwalk(
                                             self.pwr_supplies_oid)
             except UnsupportedSnmpVersionError, unsupported_snmp_ver_ex:
+                logger.warn('%s: Unsupported SNMP version; %s' %
+                            (self.netbox.sysname, unsupported_snmp_ver_ex))
                 pwr_supplies = self.get_snmp_handle().walk(
                                                         self.pwr_supplies_oid)
         except TimeOutException, timed_out_ex:
-            logger.info('%s timed out' % self.netbox.sysname)
+            logger.info('%s timed out; %s' % (self.netbox.sysname,
+                                                 timed_out_ex))
         return pwr_supplies
 
     def _get_legal_index(self, index):
@@ -211,9 +213,9 @@ def post_event(netbox, pwr_name, status):
                             value=value,
                             severity=severity)
     event['sysname'] = netbox.sysname
-    if PowerSupplyState.STATE_DOWN == status:
+    if PowerSupply.STATE_DOWN == status:
         event['alerttype'] = 'moduleDown'
-    elif PowerSupplyState.STATE_UP == status:
+    elif PowerSupply.STATE_UP == status:
         event['alerttype'] = 'moduleUp'
     event['powername'] = pwr_name
     event['state'] = status
@@ -231,21 +233,15 @@ def get_power_state(netbox, pwr_name):
     """
     Get the power-state from DB for this netbox and power-supply.
     """
-    return PowerSupplyState.objects.filter(netbox=netbox).filter(
+    return PowerSupply.objects.filter(netbox=netbox).filter(
                                                         name=pwr_name)
 
 
-def store_state_down(netbox, pwr_name):
+def store_new_state(netbox, pwr_name, up):
     """ Store a record in DB with down-state."""
-    new_state = PowerSupplyState(netbox=netbox,
-                                        name=pwr_name,
-                                        state=PowerSupplyState.STATE_DOWN)
-    if post_event(netbox, pwr_name, PowerSupplyState.STATE_DOWN):
-        verify("Event posted successfully")
-        new_state.event_posted = datetime.now()
-    else:
-        verify("Post event failed")
-        new_state.event_posted = None
+    new_state = PowerSupply(netbox=netbox,
+                            name=pwr_name,
+                            up=up)
     new_state.save()
     verify("New record saved successfully.")
 
@@ -254,40 +250,35 @@ def handle_power_state(netbox, stored_state, pwr_name, pwr_up):
     """
     Handle states,- create or delete states, and post events as necessary.
     """
-    if not stored_state and not pwr_up:
-        msg = ('%s: %s has gone down.  Store state in DB' %
+    if not stored_state:
+        if not pwr_up:
+            msg = ('%s: %s has gone down.  Store new record in DB' %
                     (netbox.sysname, pwr_name))
-        verify(msg)
-        logger.warn(msg)
-        store_state_down(netbox, pwr_name)
+            verify(msg)
+            logger.warn(msg)
+            post_event(netbox, pwr_name, PowerSupply.STATE_DOWN)
+            store_new_state(netbox, pwr_name, PowerSupply.STATE_DOWN)
+        else:
+            msg = ('%s: %s has no record. Store new record in DB' %
+                    (netbox.sysname, pwr_name))
+            verify(msg)
+            logger.info(msg)
+            store_new_state(netbox, pwr_name, PowerSupply.STATE_UP)
     if stored_state:
-        if PowerSupplyState.STATE_DOWN == stored_state.state and not pwr_up:
-            verify("State is down and polled state is down")
-            if not stored_state.event_posted:
-                verify("Event not posted for this")
-                if post_event(netbox, pwr_name, PowerSupplyState.STATE_DOWN):
-                    verify("Event posted successfully")
-                    stored_state.event_posted = datetime.now()
-                else:
-                    verify("Post event failed")
-                    stored_state.event_posted = None
-                stored_state.save()
-        if PowerSupplyState.STATE_DOWN == stored_state.state and pwr_up:
+        if PowerSupply.STATE_DOWN == stored_state.up and pwr_up:
             msg = '%s: %s has come up' % (netbox.sysname, pwr_name)
             verify(msg)
             logger.info(msg)
-            if post_event(netbox, pwr_name, PowerSupplyState.STATE_UP):
-                verify("Event posted successfully")
-                stored_state.delete()
-                verify("Record deleted successfully")
-        if PowerSupplyState.STATE_UP == stored_state.state and pwr_up:
-            # This should not happen...
-            stored_state.delete()
-        if PowerSupplyState.STATE_UP == stored_state.state and not pwr_up:
-            # nor this...
-            stored_state.delete()
-            store_state_down(netbox, pwr_name)
-
+            post_event(netbox, pwr_name, PowerSupply.STATE_UP)
+            stored_state.up = PowerSupply.STATE_UP
+            stored_state.save()
+        if PowerSupply.STATE_UP == stored_state.up and not pwr_up:
+            msg = '%s: %s has gone down ' % (netbox.sysname, pwr_name)
+            verify(msg)
+            logger.info(msg)
+            post_event(netbox, pwr_name, PowerSupply.STATE_DOWN)
+            stored_state.up = PowerSupply.STATE_DOWN
+            stored_state.save()
 
 def handle_too_many_states(power_states, netbox, pwr_name):
     """
@@ -300,7 +291,6 @@ def handle_too_many_states(power_states, netbox, pwr_name):
     verify(msg)
     logger.error(msg)
     delete_power_states(power_states)
-
 
 def delete_power_states(power_states):
     """ Delete the given power-supply states from DB."""
@@ -381,9 +371,9 @@ def main():
                 elif len(stored_states) > 1:
                     handle_too_many_states(stored_states, handle.get_netbox(),
                                                 pwr_name)
-            pwr_status = PowerSupplyState.STATE_DOWN
+            pwr_status = PowerSupply.STATE_DOWN
             if pwr_up:
-                pwr_status = PowerSupplyState.STATE_UP
+                pwr_status = PowerSupply.STATE_UP
             msg = '%s: %s is %s' % (handle.get_netbox().sysname, pwr_name,
                                         (pwr_status))
             verify(msg)

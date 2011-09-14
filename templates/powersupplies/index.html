@@ -19,14 +19,14 @@
         <td>{{ state.netbox.ip }}</th>
         <td>{{ state.name }}</td>
         <td>
-            {% ifequal state.state 'n' %}
+            {% ifequal state.up 'n' %}
                 <font color="red">Down</font>
             {% else %}
                 <font color="green">Up</font>
             {% endifequal %}
         <td>
-            {% ifequal state.state 'n' %}
-                {{ state.down_since }}
+            {% ifequal state.up 'n' %}
+                {{ state.downsince }}
             {% else %}
                 &nbsp;
             {% endifequal %}</td>
@@ -36,7 +36,7 @@
 </div>
 
 {% else %}
- <p> No power-supplies are down</p>
+ <p> No power-supplies are registered.</p>
 {% endif %}
 </div>
 {% endblock %}

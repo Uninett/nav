@@ -779,7 +779,7 @@ class Sensor(Shadow):
     __shadowclass__ = manage.Sensor
     __lookups__ = [('netbox', 'internal_name', 'mib')]
 
-class PowerSupplyState(Shadow):
-    __shadowclass__ = manage.PowerSupplyState
+class PowerSupply(Shadow):
+    __shadowclass__ = manage.PowerSupply
     __lookups__ = [('netbox', 'name')]
 

@@ -1,11 +1,10 @@
-CREATE TABLE manage.powersupply_state (
-    stateid SERIAL PRIMARY KEY,
+CREATE TABLE manage.powersupply (
+    powersupplyid SERIAL PRIMARY KEY,
     netboxid INT REFERENCES netbox(netboxid) ON DELETE CASCADE ON UPDATE CASCADE,
+    deviceid INT REFERENCES device(deviceid) ON DELETE CASCADE ON UPDATE CASCADE,
     name VARCHAR NOT NULL,
+    model VARCHAR,
     descr VARCHAR,
-    serialnum VARCHAR,
-    modelname VARCHAR,
-    down_since TIMESTAMP default NOW(),
-    event_posted TIMESTAMP,
-    state VARCHAR NOT NULL
+    downsince TIMESTAMP default NOW(),
+    up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n')
 );
