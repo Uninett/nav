@@ -51,6 +51,7 @@ class SNMPHandler(object):
     """
     A generic class for handling power-supplies in a netbox.
     """
+    # These are actually OIDs for HP
     pwr_supplies_oid = '.1.3.6.1.4.1.11.2.14.11.1.2.6.1.4'
     pwr_status_oid = '.1.3.6.1.4.1.11.2.14.11.1.2.6.1.4'
     pwr_name_oid = '.1.3.6.1.4.1.11.2.14.11.1.2.6.1.7'
