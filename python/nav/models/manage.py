@@ -1124,6 +1124,7 @@ class PowerSupply(models.Model):
     model = VarcharField(db_column='model', null=True)
     descr = VarcharField(db_column='descr', null=True)
     downsince = models.DateTimeField(db_column='downsince', null=True)
+    physical_class = VarcharField(db_column='physical_class')
     up = VarcharField(db_column='up', choices=STATE_CHOICES)
 
     class Meta:

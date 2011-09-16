@@ -5,6 +5,7 @@ CREATE TABLE manage.powersupply (
     name VARCHAR NOT NULL,
     model VARCHAR,
     descr VARCHAR,
+    physical_class VARCHAR not null,
     downsince TIMESTAMP default null,
     up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n')
 );
