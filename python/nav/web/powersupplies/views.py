@@ -32,10 +32,10 @@ logger = logging.getLogger("nav.web.powersupplies")
 
 def index(request):
     info_dict = {}
-    headers = ['Netbox', 'IP', 'Power-supply module', 'State', 'Down since',]
+    headers = ['Netbox', 'IP', 'Power-supply module', 'Model', 'Description', 'State', 'Down since',]
     info_dict['headers'] = headers
     info_dict['account'] = get_account(request)
-    info_dict['states'] = PowerSupply.objects.all()
+    info_dict['states'] = PowerSupply.objects.all().order_by('netbox')
     info_dict.update(DEFAULT_VALUES)
     return render_to_response(
           'powersupplies/index.html',
