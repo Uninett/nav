@@ -19,6 +19,7 @@ from twisted.internet import defer
 
 from nav.mibs import reduce_index
 from nav.mibs.entity_mib import EntityMib
+from nav.mibs.entity_mib import EntityTable
 from nav.mibs import mibretriever
 
 UNITS_OF_MEASUREMENTS = {
@@ -59,6 +60,11 @@ DATA_SCALE = {
 class EntitySensorMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_sensor_mib import MIB as mib
 
+    def __init__(self, agent_proxy):
+        """Good old constructor..."""
+        super(EntitySensorMib, self).__init__(agent_proxy)
+        self.entity_mib = EntityMib(self.agent_proxy)
+
     def get_module_name(self):
         """Return this MIB-name"""
         return self.mib.get('moduleName', None)
@@ -78,13 +84,25 @@ class EntitySensorMib(mibretriever.MibRetriever):
             
     def _collect_entity_names(self):
         """ Collect all entity-names on netbox."""
-        entity_mib = EntityMib(self.agent_proxy)
-        df = entity_mib.retrieve_columns([
+        df = self.entity_mib.retrieve_columns([
                 'entPhysicalDescr',
                 'entPhysicalName',
                 ])
         df.addCallback(reduce_index)
         return df
+
+    @defer.inlineCallbacks
+    def _get_named_table(self, table_name):
+        df = self.retrieve_table(table_name)
+        df.addCallback(self.entity_mib.translate_result)
+        ret_table = yield df
+        named_table = EntityTable(ret_table)
+        defer.returnValue(named_table)
+
+    @defer.inlineCallbacks
+    def get_phy_sensor_table(self):
+        phy_sensor_table = yield self._get_named_table('entPhySensorTable')
+        defer.returnValue(phy_sensor_table)
 
     @defer.inlineCallbacks
     def get_all_sensors(self):

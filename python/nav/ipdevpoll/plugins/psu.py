@@ -31,7 +31,9 @@ from nav.ipdevpoll import shadows
 
 from nav.mibs.entity_mib import EntityMib
 from nav.mibs.entity_mib import EntityTable
+from nav.mibs.entity_sensor_mib import EntitySensorMib
 from nav.mibs.cisco_entity_fru_control_mib import CiscoEntityFruControlMib
+from nav.mibs.hp_icf_chassis import HpIcfChassis
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
@@ -43,28 +45,18 @@ class PowerSupplyUnit(Plugin):
     def __init__(self, *args, **kwargs):
         super(PowerSupplyUnit, self).__init__(*args, **kwargs)
         self.entity_mib = EntityMib(self.agent)
+        self.entity_sensor_mib = EntitySensorMib(self.agent)
         self.entity_fru_control = None
         if self.netbox.type:
             self.vendor_id = self.netbox.type.get_enterprise_id()
         if self.vendor_id == VENDOR_CISCO:
             self.entity_fru_control = CiscoEntityFruControlMib(self.agent)
         elif self.vendor_id == VENDOR_HP:
-            pass
+            self.entity_fru_control = HpIcfChassis(self.agent)
 
     @classmethod
     def can_handle(cls, netbox):
         return True
-
-    @defer.inlineCallbacks
-    def get_physical_table(self):
-        """ Get all entities in a netbox and return it as a table with
-        dicts and entity-index as key."""
-        df = self.entity_mib.retrieve_table('entPhysicalTable')
-        df.addCallback(self.entity_mib.translate_result)
-        physical_table = yield df
-        ent_table = EntityTable(physical_table)
-        defer.returnValue(ent_table)
-
     def _get_redundant_psus_and_fans(self, to_filter):
         """ Filter out PSUs and FANs, and return only redundant."""
         filtered = []
@@ -79,43 +71,62 @@ class PowerSupplyUnit(Plugin):
     def is_fan(self, pwr):
         return (pwr.get('entPhysicalClass', None) == 'fan')
 
+    def is_psu(self, pwr):
+        return (pwr.get('entPhysicalClass', None) == 'powerSupply')
+
     @defer.inlineCallbacks
     def handle(self):
         self._logger.error("Collecting PSUs")
-        entity_table = yield self.get_physical_table()
+        entity_table = yield self.entity_mib.get_entity_physical_table()
         psus_and_fans = self._get_redundant_psus_and_fans(entity_table)
         if psus_and_fans:
             for psu_or_fan in psus_and_fans:
+                self._logger.error('PSU:FAN: %s' % psu_or_fan)
                 entity_index = psu_or_fan.get(0, None)
                 up = 'n'
-                if self.is_fan(psu_or_fan):
-                    # locate sensor and get status
-                    if self.entity_fru_control:
-                        if self.entity_fru_control.is_fan_up(entity_index):
+                sensor_oid = None
+                if self.entity_fru_control:
+                    if self.is_fan(psu_or_fan):
+                        # locate sensor and get status
+                        ret = yield self.entity_fru_control.is_fan_up(
+                                                                entity_index)
+                        if ret:
                             up = 'y'
-                        self._logger.error('%s' % psu_or_fan)
-                        self._logger.error('fanstatus: %s: %s' %
-                           (self.entity_fru_control.get_fan_status_table(), up))
-#                power_supply = self.containers.factory(entity_index,
-#                                                        shadows.PowerSupply)
-#                # psu info
-#                power_supply.netbox = self.netbox
-#                power_supply.name = psu.get('entPhysicalName', None)
-#                #self._logger.error('%s: %s' % (self.netbox.sysname,
-#                #                                    power_supply.name))
-#                power_supply.model = psu.get('entPhysicalModelName', None)
-#                power_supply.descr = psu.get('entPhysicalDescr', None)
-#                power_supply.physical_class = psu.get('entPhysicalClass', None)
-#                power_supply.up = up
-#                # device info
-#                serial = pwr.get('entPhysicalSerialNum', None)
-#                if serial:
-#                    device = self.containers.factory(pwr_index, shadows.Device)
-#                    device.serial = serial
-#                    device.hardware_version = psu.get('entPhysicalHardwareRev',
-#                                                        None)
-#                    device.firmware_version = psu.get('entPhysicalFirmwareRev',
-#                                                        None)
-#                    device.software_version = psu.get('entPhysicalSoftwareRev',
-#                                                        None)
-#                    power_supply.device = device
+                            sensor_oid = (
+                                self.entity_fru_control.get_oid_for_fan_status(
+                                                                entity_index))
+                        self._logger.error('FAN: %s: %s' % (ret, sensor_oid))
+                    elif self.is_psu(psu_or_fan):
+                        ret = yield self.entity_fru_control.is_psu_up(
+                                                                entity_index)
+                        if ret:
+                            up = 'y'
+                            sensor_oid = (
+                                self.entity_fru_control.get_oid_for_psu_status(
+                                                                entity_index))
+                        self._logger.error('PSU: %s: %s' % (ret, sensor_oid))
+                power_supply = self.containers.factory(entity_index,
+                                                        shadows.PowerSupply)
+                # psu info
+                power_supply.netbox = self.netbox
+                power_supply.name = psu_or_fan.get('entPhysicalName', None)
+                power_supply.model = psu_or_fan.get('entPhysicalModelName',
+                                                                        None)
+                power_supply.descr = psu_or_fan.get('entPhysicalDescr', None)
+                power_supply.physical_class = psu_or_fan.get(
+                                                    'entPhysicalClass', None)
+                power_supply.sensor_oid = sensor_oid
+                power_supply.up = up
+                # device info
+                serial = psu_or_fan.get('entPhysicalSerialNum', None)
+                if serial:
+                    device = self.containers.factory(entity_index,
+                                                        shadows.Device)
+                    device.serial = serial
+                    device.hardware_version = psu_or_fan.get(
+                                                'entPhysicalHardwareRev', None)
+                    device.firmware_version = psu_or_fan.get(
+                                                'entPhysicalFirmwareRev', None)
+                    device.software_version = psu_or_fan.get(
+                                                'entPhysicalSoftwareRev', None)
+                    power_supply.device = device

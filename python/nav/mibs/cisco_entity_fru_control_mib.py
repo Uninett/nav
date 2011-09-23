@@ -27,10 +27,59 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
     from nav.smidumps.cisco_entity_fru_control_mib import MIB as mib
 
     def __init__(self, agent_proxy):
-        """Good old constructor...."""
+        """Good old constructor..."""
         super(CiscoEntityFruControlMib, self).__init__(agent_proxy)
         self.entity_mib = EntityMib(self.agent_proxy)
-        self.fantray_status_table = None
+        self.fan_status_table = None
+        self.psu_status_table = None
+
+    @defer.inlineCallbacks
+    def _get_named_table(self, table_name):
+        df = self.retrieve_table(table_name)
+        df.addCallback(self.entity_mib.translate_result)
+        named_table = yield df
+        status_table = EntityTable(named_table)
+        defer.returnValue(status_table)
+
+    @defer.inlineCallbacks
+    def _get_fantray_status_table(self):
+        """Retrieve the whole table of fan-sensors."""
+        table = yield self._get_named_table('cefcFanTrayStatusTable')
+        defer.returnValue(table)
+
+    @defer.inlineCallbacks
+    def _get_power_status_table(self):
+        """Retrieve the whole table of PSU-sensors."""
+        table = yield self._get_named_table('cefcFRUPowerStatusTable')
+        defer.returnValue(table)
+
+    @defer.inlineCallbacks
+    def is_fan_up(self, idx):
+        """Return operation-status for fan with the given index."""
+        is_up = False
+        if not self.fan_status_table:
+            self.fan_status_table = yield self._get_fantray_status_table()
+        self._logger.error('fan_status_table: %s' % self.fan_status_table)
+        fan_status_row = self.fan_status_table.get(idx, None)
+        if fan_status_row:
+            fan_status = fan_status_row.get('cefcFanTrayOperStatus', None)
+            if fan_status:
+                is_up = (fan_status == 2)
+        defer.returnValue(is_up)
+
+    @defer.inlineCallbacks
+    def is_psu_up(self, idx):
+        """Return operation-status for PSU with the given index."""
+        is_up = False
+        if not self.psu_status_table:
+            self.psu_status_table = yield self._get_power_status_table()
+        self._logger.error('psu_status_table: %s' % self.psu_status_table)
+        psu_status_row = self.psu_status_table.get(idx, None)
+        if psu_status_row:
+            psu_status = psu_status_row.get('cefcFRUPowerOperStatus', None)
+            if psu_status:
+                is_up = (psu_status == 2)
+        defer.returnValue(is_up)
 
     def get_module_name(self):
         """return the MIB-name."""
@@ -38,28 +87,30 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_fan_status_table(self):
-        """Retrieve the whole table of fan-sensors."""
-        if not self.fantray_status_table:
-            df = self.retrieve_table('cefcFanTrayStatusTable')
-            df.addCallback(self.entity_mib.translate_result)
-            status_table = yield df
-            self.fantray_status_table = EntityTable(status_table)
-        defer.returnValue(self.fantray_status_table)
+        """Retrieve the whole table of fan-sensors and cache the result."""
+        if not self.fan_status_table:
+            self.fan_status_table = yield self._get_fantray_status_table()
+        defer.returnValue(self.fan_status_table)
 
     @defer.inlineCallbacks
-    def is_fan_up(self, idx):
-        """Return operation-status for fan with the given index."""
-        fan_status_table = yield self.get_fan_status_table()
-        fan_status_row = fan_status_table.get(idx, None)
-        if fan_status_row:
-            fan_status = fan_status_row.get('cefcFanTrayOperStatus', None)
-            if fan_status:
-                defer.returnValue((fan_status == 2))
-        defer.returnValue(False)
-    
+    def get_psu_status_table(self):
+        """Retrieve the whole table of PSU-sensors and cache the result."""
+        if not self.psu_status_table:
+            self.psu_status_table = yield self._get_power_status_table()
+        defer.returnValue(self.psu_status_table)
+
     def get_oid_for_fan_status(self, idx):
+        """Get the OID for the fan sensor with the given index."""
         oid = None
-        oper_status_oid = self.nodes.get('cefcFanTrayOperStatus').oid
+        oper_status_oid = self.nodes.get('cefcFanTrayOperStatus', None)
         if oper_status_oid:
-            oid = '%s.%d' % (str(oper_status_oid), idx)
+            oid = '%s.%d' % (str(oper_status_oid.oid), idx)
+        return oid
+
+    def get_oid_for_psu_status(self, idx):
+        """Get the OID for the PSU sensor with the given index."""
+        oid = None
+        oper_status_oid = self.nodes.get('cefcFRUPowerOperStatus', None)
+        if oper_status_oid:
+            oid = '%s.%d' % (str(oper_status_oid.oid), idx)
         return oid
