@@ -1111,10 +1111,14 @@ class Sensor(models.Model):
 class PowerSupply(models.Model):
     STATE_UP = u'y'
     STATE_DOWN = u'n'
+    STATE_UNKNOWN = u'u'
+    STATE_WARNING = u'w'
 
     STATE_CHOICES = (
         (STATE_UP, "Up"),
         (STATE_DOWN, "Down"),
+        (STATE_UNKNOWN, "Unknown"),
+        (STATE_WARNING, "Warning"),
     )
 
     id = models.AutoField(db_column='powersupplyid', primary_key=True)

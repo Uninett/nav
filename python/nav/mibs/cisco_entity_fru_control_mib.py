@@ -35,6 +35,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def _get_named_table(self, table_name):
+        """Retrive table with the given name. """
         df = self.retrieve_table(table_name)
         df.addCallback(self.entity_mib.translate_result)
         named_table = yield df
@@ -53,10 +54,21 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
         table = yield self._get_named_table('cefcFRUPowerStatusTable')
         defer.returnValue(table)
 
+    def _get_status_value(self, oper_status):
+        status = 'u'
+        if oper_status == 2:
+            status = 'y'
+        elif oper_status == 3:
+            status = 'n'
+        elif oper_status == 4:
+            status = 'w'
+        return status
+        
     @defer.inlineCallbacks
     def is_fan_up(self, idx):
         """Return operation-status for fan with the given index."""
-        is_up = False
+        # Return status undecided if not able to extract status.
+        is_up = None
         if not self.fan_status_table:
             self.fan_status_table = yield self._get_fantray_status_table()
         self._logger.error('fan_status_table: %s' % self.fan_status_table)
@@ -64,13 +76,14 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
         if fan_status_row:
             fan_status = fan_status_row.get('cefcFanTrayOperStatus', None)
             if fan_status:
-                is_up = (fan_status == 2)
+                is_up = self._get_status_value(fan_status)
         defer.returnValue(is_up)
 
     @defer.inlineCallbacks
     def is_psu_up(self, idx):
         """Return operation-status for PSU with the given index."""
-        is_up = False
+        # Return status undecided if not able to extract status.
+        is_up = None
         if not self.psu_status_table:
             self.psu_status_table = yield self._get_power_status_table()
         self._logger.error('psu_status_table: %s' % self.psu_status_table)
@@ -78,7 +91,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
         if psu_status_row:
             psu_status = psu_status_row.get('cefcFRUPowerOperStatus', None)
             if psu_status:
-                is_up = (psu_status == 2)
+                is_up = self._get_status_value(psu_status)
         defer.returnValue(is_up)
 
     def get_module_name(self):

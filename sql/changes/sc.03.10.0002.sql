@@ -8,5 +8,5 @@ CREATE TABLE manage.powersupply (
     physical_class VARCHAR not null,
     downsince TIMESTAMP default null,
     sensor_oid VARCHAR,
-    up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n')
+    up CHAR(1) NOT NULL DEFAULT 'u' CHECK (up='y' OR up='n' or up='u' or up='w')
 );

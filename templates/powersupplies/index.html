@@ -27,12 +27,23 @@
         <td>
             {% ifequal state.up 'n' %}
                 <font color="red">Down</font>
-            {% else %}
+            {% endifequal %}
+            {% ifequal state.up 'w' %}
+                <font color="yellow">Warning</font>
+            {% endifequal %}
+            {% ifequal state.up 'y' %}
                 <font color="green">Up</font>
+            {% endifequal %}
+            {% ifequal state.up 'u' %}
+                <font color="blue">Unknown</font>
             {% endifequal %}
         <td>
             {% ifequal state.up 'n' %}
-                {{ state.downsince }}
+                {% if state.downsince %}
+                    {{ state.downsince }}
+                {% else %}
+                    &nbsp;
+                {% endif %}
             {% else %}
                 &nbsp;
             {% endifequal %}</td>

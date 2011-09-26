@@ -59,13 +59,18 @@ class PowerSupplyUnit(Plugin):
         return True
     def _get_redundant_psus_and_fans(self, to_filter):
         """ Filter out PSUs and FANs, and return only redundant."""
-        filtered = []
+        power_supplies = []
+        fans = []
         for key, values in to_filter.items():
-            if to_filter[key]['entPhysicalClass'] in ['powerSupply', 'fan']:
-                filtered.append(values)
-        # weed out boxes with only one PSU
-        if len(filtered) < 2:
-            filtered = []
+            if to_filter[key]['entPhysicalClass'] == 'powerSupply':
+                power_supplies.append(values)
+            if to_filter[key]['entPhysicalClass'] == 'fan':
+                fans.append(values)
+        filtered = []
+        # Select only boxes with more than one PSU
+        if len(power_supplies) > 1:
+            filtered = power_supplies
+            filtered.extend(fans)
         return filtered
 
     def is_fan(self, pwr):
@@ -83,7 +88,7 @@ class PowerSupplyUnit(Plugin):
             for psu_or_fan in psus_and_fans:
                 self._logger.error('PSU:FAN: %s' % psu_or_fan)
                 entity_index = psu_or_fan.get(0, None)
-                up = 'n'
+                up = 'u'
                 sensor_oid = None
                 if self.entity_fru_control:
                     if self.is_fan(psu_or_fan):
@@ -91,7 +96,7 @@ class PowerSupplyUnit(Plugin):
                         ret = yield self.entity_fru_control.is_fan_up(
                                                                 entity_index)
                         if ret:
-                            up = 'y'
+                            up = ret
                             sensor_oid = (
                                 self.entity_fru_control.get_oid_for_fan_status(
                                                                 entity_index))
@@ -100,7 +105,7 @@ class PowerSupplyUnit(Plugin):
                         ret = yield self.entity_fru_control.is_psu_up(
                                                                 entity_index)
                         if ret:
-                            up = 'y'
+                            up = ret
                             sensor_oid = (
                                 self.entity_fru_control.get_oid_for_psu_status(
                                                                 entity_index))
