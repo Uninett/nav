@@ -22,6 +22,8 @@ from IPy import IP
 from itertools import cycle
 from twisted.names import dns
 from twisted.names import client
+from twisted.internet import defer
+from twisted.internet.defer import Deferred, DeferredList
 # pylint: disable=E1101
 from twisted.internet import reactor
 # pylint: disable=W0611
@@ -32,6 +34,7 @@ from twisted.names.error import DNSServerError, DNSNameError
 from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError 
 
 _resolvers = cycle([client.Resolver('/etc/resolv.conf') for i in range(3)])
+_results = {}
 
 def reverse_lookup(addresses):
     """Performs reverse lookups and returns a dict of
@@ -44,19 +47,30 @@ def forward_lookup(names):
     return _lookup(names, _lookup_all_records, _extract_a_and_aaaa)
 
 def _lookup(hosts, lookup_func, callback):
-    """Adds hosts to deferred, waits for results and does callback"""
+    """Adds hosts to deferred, deferreds to deferredList, waits for results
+    and does callbacks before returning result"""
     deferred_list = []
-
     for host in hosts:
         deferred = lookup_func(host)
         deferred.addCallback(callback, host)
         deferred.addErrback(_errback, host)
         deferred_list.append(deferred)
 
-    while any(not deferred.called for deferred in deferred_list):
-        reactor.iterate()
+    deferred_list = defer.DeferredList(deferred_list)
+    deferred_list.addCallback(_parse_result)
+    deferred_list.addCallback(_finish)
+    reactor.run()
 
-    return dict(deferred.result for deferred in deferred_list)
+    return _results
+
+def _finish(arg):
+    """Stops the reactor when everything is done"""
+    reactor.stop()
+    
+def _parse_result(result):
+    """Parses the result to the correct format"""
+    for success, value in result:
+        _results[value[0]] = value[1]
     
 def _lookup_pointer(address):
     """Returns a deferred object which tries to get the hostname from ip"""
