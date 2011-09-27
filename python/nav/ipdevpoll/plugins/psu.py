@@ -33,7 +33,7 @@ from nav.mibs.entity_mib import EntityMib
 from nav.mibs.entity_mib import EntityTable
 from nav.mibs.entity_sensor_mib import EntitySensorMib
 from nav.mibs.cisco_entity_fru_control_mib import CiscoEntityFruControlMib
-from nav.mibs.hp_icf_chassis import HpIcfChassis
+from nav.mibs.hp_entity_fru_control_mib import HpEntityFruControlMib
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
@@ -52,11 +52,26 @@ class PowerSupplyUnit(Plugin):
         if self.vendor_id == VENDOR_CISCO:
             self.entity_fru_control = CiscoEntityFruControlMib(self.agent)
         elif self.vendor_id == VENDOR_HP:
-            self.entity_fru_control = HpIcfChassis(self.agent)
+            self.entity_fru_control = HpEntityFruControlMib(self.agent)
 
     @classmethod
     def can_handle(cls, netbox):
         return True
+
+    def _rearrange_indexes(self, values):
+        lowest_index = 2147483647L
+        for val in values:
+            curr_idx = val.get(0, None)
+            if curr_idx < lowest_index:
+                lowest_index = curr_idx
+        lowest_index -= 1
+        if lowest_index < 0:
+            lowest_index = 0
+        for val in values:
+            curr_idx = val.get(0, None)
+            val[0] = curr_idx - lowest_index
+        return values
+
     def _get_redundant_psus_and_fans(self, to_filter):
         """ Filter out PSUs and FANs, and return only redundant."""
         power_supplies = []
@@ -67,6 +82,9 @@ class PowerSupplyUnit(Plugin):
             if to_filter[key]['entPhysicalClass'] == 'fan':
                 fans.append(values)
         filtered = []
+        if self.vendor_id == VENDOR_HP:
+            power_supplies = self._rearrange_indexes(power_supplies)
+            fans = self._rearrange_indexes(fans)
         # Select only boxes with more than one PSU
         if len(power_supplies) > 1:
             filtered = power_supplies
@@ -110,7 +128,8 @@ class PowerSupplyUnit(Plugin):
                                 self.entity_fru_control.get_oid_for_psu_status(
                                                                 entity_index))
                         self._logger.error('PSU: %s: %s' % (ret, sensor_oid))
-                power_supply = self.containers.factory(entity_index,
+                power_supply = self.containers.factory(
+                                    psu_or_fan.get('entPhysicalName', None),
                                                         shadows.PowerSupply)
                 # psu info
                 power_supply.netbox = self.netbox

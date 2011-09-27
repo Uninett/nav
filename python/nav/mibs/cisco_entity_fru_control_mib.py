@@ -20,7 +20,6 @@ from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.mibs import mibretriever
 
-from nav.mibs.entity_mib import EntityMib
 from nav.mibs.entity_mib import EntityTable
 
 class CiscoEntityFruControlMib(mibretriever.MibRetriever):
@@ -29,7 +28,6 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
     def __init__(self, agent_proxy):
         """Good old constructor..."""
         super(CiscoEntityFruControlMib, self).__init__(agent_proxy)
-        self.entity_mib = EntityMib(self.agent_proxy)
         self.fan_status_table = None
         self.psu_status_table = None
 
@@ -37,7 +35,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
     def _get_named_table(self, table_name):
         """Retrive table with the given name. """
         df = self.retrieve_table(table_name)
-        df.addCallback(self.entity_mib.translate_result)
+        df.addCallback(self.translate_result)
         named_table = yield df
         status_table = EntityTable(named_table)
         defer.returnValue(status_table)
@@ -54,16 +52,37 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
         table = yield self._get_named_table('cefcFRUPowerStatusTable')
         defer.returnValue(table)
 
-    def _get_status_value(self, oper_status):
+    def _get_fan_status_value(self, oper_status):
         status = 'u'
-        if oper_status == 2:
+        self._logger.error('_get_fan_status_value: %s' % oper_status)
+        if oper_status == 'up':
             status = 'y'
-        elif oper_status == 3:
+        elif oper_status == 'down':
             status = 'n'
-        elif oper_status == 4:
+        elif oper_status == 'warning':
             status = 'w'
         return status
-        
+
+    def _get_psu_status_value(self, oper_status):
+        status = 'u'
+        self._logger.error('_get_psu_status_value: %s' % oper_status)
+        if oper_status == 'on':
+            status = 'y'
+        elif oper_status == 'onButFanFail':
+            status = 'w'
+        if (oper_status == 'offEnvOther'
+            or oper_status == 'offAdmin'
+              or oper_status == 'offDenied'
+                or oper_status == 'offEnvPower'
+                  or oper_status == 'offEnvTemp'
+                    or oper_status == 'offEnvFan'
+                      or oper_status == 'failed'
+                        or oper_status == 'offCooling'
+                          or oper_status == 'offConnectorRating'
+                            or oper_status == 'onButInlinePowerFail'):
+            status = 'n'
+        return status
+
     @defer.inlineCallbacks
     def is_fan_up(self, idx):
         """Return operation-status for fan with the given index."""
@@ -76,7 +95,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
         if fan_status_row:
             fan_status = fan_status_row.get('cefcFanTrayOperStatus', None)
             if fan_status:
-                is_up = self._get_status_value(fan_status)
+                is_up = self._get_fan_status_value(fan_status)
         defer.returnValue(is_up)
 
     @defer.inlineCallbacks
@@ -91,7 +110,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
         if psu_status_row:
             psu_status = psu_status_row.get('cefcFRUPowerOperStatus', None)
             if psu_status:
-                is_up = self._get_status_value(psu_status)
+                is_up = self._get_psu_status_value(psu_status)
         defer.returnValue(is_up)
 
     def get_module_name(self):

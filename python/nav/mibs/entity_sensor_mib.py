@@ -94,7 +94,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
     @defer.inlineCallbacks
     def _get_named_table(self, table_name):
         df = self.retrieve_table(table_name)
-        df.addCallback(self.entity_mib.translate_result)
+        df.addCallback(self.translate_result)
         ret_table = yield df
         named_table = EntityTable(ret_table)
         defer.returnValue(named_table)
