@@ -13,7 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
+"""Implements a wrapper around HpIcfFanMib- and HpIcfPowerSupplyMib-classes.
+This is more convenient than calling both.
 """
 
 from nav.mibs import mibretriever
@@ -21,22 +22,30 @@ from nav.mibs import mibretriever
 from nav.mibs.hpicf_fan_mib import HpIcfFanMib
 from nav.mibs.hpicf_powersupply_mib import HpIcfPowerSupplyMib
 
+
 class HpEntityFruControlMib(mibretriever.MibRetriever):
+    """Actually a wrapper class around two classes that retrieve status
+    for powersupplies and fans in HP netboxes."""
     from nav.smidumps.hpicf_powersupply_mib import MIB as mib
 
     def __init__(self, agent_proxy):
+        """A good old constructor."""
         super(HpEntityFruControlMib, self).__init__(agent_proxy)
         self.hpicf_fan_mib = HpIcfFanMib(agent_proxy)
         self.hpicf_powersupply_mib = HpIcfPowerSupplyMib(agent_proxy)
 
     def is_fan_up(self, idx):
+        """A wrapper for HpIcfFanMib.is_fan_up"""
         return self.hpicf_fan_mib.is_fan_up(idx)
 
     def get_oid_for_fan_status(self, idx):
+        """A wrapper for HpIcfFanMib.get_oid_for_fan_status"""
         return self.hpicf_fan_mib.get_oid_for_fan_status(idx)
 
     def is_psu_up(self, idx):
+        """A wrapper for HpIcfPowerSupplyMib.is_psu_up"""
         return self.hpicf_powersupply_mib.is_psu_up(idx)
 
     def get_oid_for_psu_status(self, idx):
+        """A wrapper for HpIcfPowerSupplyMib.get_oid_for_psu_status"""
         return self.hpicf_powersupply_mib.get_oid_for_psu_status(idx)

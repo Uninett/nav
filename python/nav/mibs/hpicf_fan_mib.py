@@ -13,40 +13,45 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
+""" Implements a MibRetriever for the FAN-MIB, as well as helper classes.
+FAN-MIB is a mib that can be downloaded from HP's support pages.
 """
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
 from nav.mibs import mibretriever
 
-from nav.mibs.entity_mib import EntityTable
 
 class HpIcfFanMib(mibretriever.MibRetriever):
+    """ A class for collecting fan states from HP netboxes."""
     from nav.smidumps.hpicf_fan_mib import MIB as mib
-    
+
     def __init__(self, agent_proxy):
+        """Just a constructor..."""
         super(HpIcfFanMib, self).__init__(agent_proxy)
         self.fan_status_table = None
 
     @defer.inlineCallbacks
     def _get_fan_status_table(self):
+        """Get the fan-status table from netbox."""
         df = self.retrieve_table('hpicfFanTable')
         df.addCallback(self.translate_result)
         df.addCallback(reduce_index)
         fan_table = yield df
         self._logger.error('fan_table: %s' % fan_table)
         defer.returnValue(fan_table)
-        
+
     def _get_fan_status(self, fan_status):
-        status = 'n'
+        """Return the status for a fan,- represented as a single character.
+        Return-values: u = unknown, n = failed, y = ok, w = warning."""
+        status = 'u'
         if fan_status == 'failed':
             status = 'n'
         elif fan_status == 'removed' or fan_status == 'off':
             status = 'y'
         elif (fan_status == 'underspeeed'
-                    or fan_status == 'overspeed'
-                        or fan_status == 'maxstate'):
+                or fan_status == 'overspeed'
+                  or fan_status == 'maxstate'):
             status = 'w'
         elif fan_status == 'ok':
             status = 'y'
@@ -54,6 +59,7 @@ class HpIcfFanMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def is_fan_up(self, idx):
+        """Return the status of the fan with the given index."""
         is_up = None
         if not self.fan_status_table:
             self.fan_status_table = yield self._get_fan_status_table()
@@ -65,6 +71,7 @@ class HpIcfFanMib(mibretriever.MibRetriever):
         defer.returnValue(is_up)
 
     def get_oid_for_fan_status(self, idx):
+        """Return the full OID for the fan with the given index."""
         oid = None
         fan_state_oid = self.nodes.get('hpicfFanState', None)
         if fan_state_oid:
