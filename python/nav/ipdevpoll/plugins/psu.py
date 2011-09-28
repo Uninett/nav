@@ -62,15 +62,21 @@ class PowerSupplyUnit(Plugin):
         """Return always True"""
         return True
 
-    def _rearrange_indexes(self, values):
-        """Rearrange indexes down to the lowest possible number"""
+    def _get_lowest_index(self, values):
+        """Return the lowest index in the list of dicts.  Index is placed at
+        key 0 in the dicts"""
         lowest_index = 2147483647L
         for val in values:
             curr_idx = val.get(0, None)
             if curr_idx < lowest_index:
                 lowest_index = curr_idx
+        return lowest_index
+
+    def _rearrange_indexes(self, values):
+        """Rearrange indexes down to the lowest possible number"""
+        lowest_index = self._get_lowest_index(values)
+        # First index must start at 1.
         lowest_index -= 1
-        #Index-numbers for PSUs and FANs are never less than 1
         if lowest_index < 0:
             lowest_index = 0
         for val in values:
@@ -92,7 +98,7 @@ class PowerSupplyUnit(Plugin):
             # Index-numbers from HP-netboxes need to be re-numbered to match
             # index-numbers in POWERSUPPLY-MIB and FAN-MIB.
             # Index-numbers should in practice start at 1 for both PSUs and
-            # FANs.
+            # FANs to match the corresponding statuses.
             power_supplies = self._rearrange_indexes(power_supplies)
             fans = self._rearrange_indexes(fans)
         # Select only those boxes with more than one PSU
@@ -111,7 +117,8 @@ class PowerSupplyUnit(Plugin):
 
     @defer.inlineCallbacks
     def handle(self):
-        """Collect PSUs and FANs,- their statuses and store in database"""
+        """Collect PSUs and FANs,- their corresponding statuses and store
+        in database"""
         self._logger.error("Collecting PSUs and FANs")
         entity_table = yield self.entity_mib.get_entity_physical_table()
         psus_and_fans = self._get_redundant_psus_and_fans(entity_table)
