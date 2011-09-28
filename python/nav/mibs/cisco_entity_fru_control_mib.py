@@ -70,7 +70,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
             status = 'y'
         elif oper_status == 'onButFanFail':
             status = 'w'
-        elif oper_status == 'offAdmin'
+        elif oper_status == 'offAdmin':
             status = 'u'
         if (oper_status == 'offEnvOther'
             or oper_status == 'offDenied'
