@@ -143,5 +143,5 @@ class EntitySensorMib(mibretriever.MibRetriever):
                     'internal_name': internal_name,
                     'mib': self.get_module_name(),
                     })
-        ##self.logger.error('get_all_sensors: result=%s' % result)
+        self.logger.debug('get_all_sensors: result=%s' % result)
         defer.returnValue(result)

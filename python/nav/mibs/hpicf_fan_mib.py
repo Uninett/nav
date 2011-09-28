@@ -38,7 +38,7 @@ class HpIcfFanMib(mibretriever.MibRetriever):
         df.addCallback(self.translate_result)
         df.addCallback(reduce_index)
         fan_table = yield df
-        self._logger.error('fan_table: %s' % fan_table)
+        self._logger.debug('fan_table: %s' % fan_table)
         defer.returnValue(fan_table)
 
     def _get_fan_status(self, fan_status):

@@ -54,7 +54,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
 
     def _get_fan_status_value(self, oper_status):
         status = 'u'
-        self._logger.error('_get_fan_status_value: %s' % oper_status)
+        self._logger.debug('_get_fan_status_value: %s' % oper_status)
         if oper_status == 'up':
             status = 'y'
         elif oper_status == 'down':
@@ -65,7 +65,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
 
     def _get_psu_status_value(self, oper_status):
         status = 'u'
-        self._logger.error('_get_psu_status_value: %s' % oper_status)
+        self._logger.debug('_get_psu_status_value: %s' % oper_status)
         if oper_status == 'on':
             status = 'y'
         elif oper_status == 'onButFanFail':
@@ -90,7 +90,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
         is_up = None
         if not self.fan_status_table:
             self.fan_status_table = yield self._get_fantray_status_table()
-        self._logger.error('fan_status_table: %s' % self.fan_status_table)
+        self._logger.debug('fan_status_table: %s' % self.fan_status_table)
         fan_status_row = self.fan_status_table.get(idx, None)
         if fan_status_row:
             fan_status = fan_status_row.get('cefcFanTrayOperStatus', None)
@@ -105,7 +105,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
         is_up = None
         if not self.psu_status_table:
             self.psu_status_table = yield self._get_power_status_table()
-        self._logger.error('psu_status_table: %s' % self.psu_status_table)
+        self._logger.debug('psu_status_table: %s' % self.psu_status_table)
         psu_status_row = self.psu_status_table.get(idx, None)
         if psu_status_row:
             psu_status = psu_status_row.get('cefcFRUPowerOperStatus', None)

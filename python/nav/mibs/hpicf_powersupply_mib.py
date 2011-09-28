@@ -41,7 +41,7 @@ class HpIcfPowerSupplyMib(mibretriever.MibRetriever):
         df.addCallback(self.translate_result)
         df.addCallback(reduce_index)
         psu_table = yield df
-        self._logger.error('psu_table: %s' % psu_table)
+        self._logger.debug('psu_table: %s' % psu_table)
         defer.returnValue(psu_table)
 
     def _get_psu_status(self, psu_status):

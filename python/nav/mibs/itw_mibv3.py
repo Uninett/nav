@@ -780,7 +780,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
         result = dict((self.oid_name_map[oid], count)
                       for oid, count in mapped_counts
                       if oid in self.oid_name_map)
-        self.logger.error('ItWatchDogsMib:: _get_sensor_count: result = %s',
+        self.logger.debug('ItWatchDogsMib:: _get_sensor_count: result = %s',
                             result)
         defer.returnValue(result)
 
@@ -798,10 +798,10 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
 
         result = []
         for table in tables:
-            self.logger.error('ItWatchDogsMib:: get_all_sensors: table = %s',
+            self.logger.debug('ItWatchDogsMib:: get_all_sensors: table = %s',
                                     table)
             sensors = yield self.retrieve_table(table).addCallback(reduce_index)
-            self.logger.error('ItWatchDogsMib:: get_all_sensors: %s = %s',
+            self.logger.debug('ItWatchDogsMib:: get_all_sensors: %s = %s',
                               table, sensors)
             handler = for_table.map.get(table, None)
             if not handler:

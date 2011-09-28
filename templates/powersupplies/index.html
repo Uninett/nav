@@ -15,7 +15,7 @@
     </tr>
     {% for state in states %}
     <tr>
-        <td><a href="/ipdevinfo/{{ state.netbox.sysname }}/">{{ state.netbox.sysname }}</a></td>
+        <td><a href="/ipdevinfo/{{state.netbox.sysname}}/">{{ state.netbox.get_short_sysname }}</a></td>
         <td>{{ state.name }}</td>
         <td>{% if state.model %}
                 {{ state.model }}
