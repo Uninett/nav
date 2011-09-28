@@ -48,7 +48,7 @@ class HpIcfFanMib(mibretriever.MibRetriever):
         if fan_status == 'failed':
             status = 'n'
         elif fan_status == 'removed' or fan_status == 'off':
-            status = 'y'
+            status = 'u'
         elif (fan_status == 'underspeeed'
                 or fan_status == 'overspeed'
                   or fan_status == 'maxstate'):

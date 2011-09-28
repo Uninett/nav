@@ -50,9 +50,9 @@ class HpIcfPowerSupplyMib(mibretriever.MibRetriever):
         w = warning
         """
         status = 'u'
-        if (psu_status == 'psNotPresent'
-                or psu_status == 'psNotPlugged'
-                     or psu_status == 'psPowered'):
+        if psu_status == 'psNotPresent' or psu_status == 'psNotPlugged':
+            status = 'u'
+        elif psu_status == 'psPowered':
             status = 'y'
         elif psu_status == 'psFailed' or psu_status == 'psPermFailure':
             status = 'n'
