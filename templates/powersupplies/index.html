@@ -22,6 +22,15 @@
             {% else %}
                 &nbsp;
             {% endif %}</td>
+        <td>{% if state.device %}
+                {% if state.device.serial %}
+                    {{ state.device.serial }}
+                {% else %}
+                    &nbsp;
+                {% endif %}
+            {% else %}
+                &nbsp;
+            {% endif %}
         <td>{{ state.descr }}</td>
         <td>
             {% ifequal state.up 'n' %}
