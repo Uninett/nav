@@ -23,7 +23,7 @@ from django.shortcuts import render_to_response
 
 from nav.django.utils import get_account
 from nav.models.manage import Netbox
-from nav.models.manage import PowerSupply
+from nav.models.manage import PowerSupplyOrFan
 
 NAVBAR = [('Home', '/'), ('PowerSupplies', None)]
 DEFAULT_VALUES = {'title': "PowerSupplies", 'navpath': NAVBAR}
@@ -35,7 +35,7 @@ def index(request):
     headers = ['Netbox', 'Power-supply module', 'Model', 'Description', 'State', 'Down since',]
     info_dict['headers'] = headers
     info_dict['account'] = get_account(request)
-    info_dict['states'] = PowerSupply.objects.all().order_by('netbox')
+    info_dict['states'] = PowerSupplyOrFan.objects.all().order_by('netbox')
     info_dict.update(DEFAULT_VALUES)
     return render_to_response(
           'powersupplies/index.html',

@@ -1,4 +1,4 @@
-CREATE TABLE manage.powersupply (
+CREATE TABLE manage.powersupply_or_fan (
     powersupplyid SERIAL PRIMARY KEY,
     netboxid INT REFERENCES netbox(netboxid) ON DELETE CASCADE ON UPDATE CASCADE,
     deviceid INT REFERENCES device(deviceid) ON DELETE CASCADE ON UPDATE CASCADE,

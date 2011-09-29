@@ -150,7 +150,7 @@ class PowerSupplyUnit(Plugin):
                         self._logger.error('PSU: %s: %s' % (ret, sensor_oid))
                 power_supply = self.containers.factory(
                                     psu_or_fan.get('entPhysicalName', None),
-                                                        shadows.PowerSupply)
+                                                    shadows.PowerSupplyOrFan)
                 # psu info
                 power_supply.netbox = self.netbox
                 power_supply.name = psu_or_fan.get('entPhysicalName', None)
@@ -164,7 +164,7 @@ class PowerSupplyUnit(Plugin):
                 # device info
                 serial = psu_or_fan.get('entPhysicalSerialNum', None)
                 if serial:
-                    device = self.containers.factory(entity_index,
+                    device = self.containers.factory(serial,
                                                         shadows.Device)
                     device.serial = serial
                     device.hardware_version = psu_or_fan.get(

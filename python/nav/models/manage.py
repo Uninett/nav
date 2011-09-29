@@ -1108,7 +1108,7 @@ class Sensor(models.Model):
     class Meta:
         db_table = 'sensor'
 
-class PowerSupply(models.Model):
+class PowerSupplyOrFan(models.Model):
     STATE_UP = u'y'
     STATE_DOWN = u'n'
     STATE_UNKNOWN = u'u'
@@ -1133,4 +1133,4 @@ class PowerSupply(models.Model):
     up = VarcharField(db_column='up', choices=STATE_CHOICES)
 
     class Meta:
-        db_table = 'powersupply'
+        db_table = 'powersupply_or_fan'
