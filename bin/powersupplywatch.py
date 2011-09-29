@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# encoding: utf-8
 #
 # Copyright (C) 2011 UNINETT AS
 #
@@ -15,8 +16,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-A script to poll the power-supply states in netboxes.
+A script to poll the powersupply- and fan-states in netboxes, send alerts at
+state-changes and store states in DB.
 """
+
 from os.path import join
 from datetime import datetime
 
@@ -33,146 +36,101 @@ import nav.path
 import nav.db
 from nav.event import Event
 from nav.Snmp.pysnmp_se import Snmp
-from nav.Snmp.errors import UnsupportedSnmpVersionError
-from nav.Snmp.errors import TimeOutException
-from nav.models.manage import Netbox
-from nav.models.manage import PowerSupply
+from nav.models.manage import PowerSupplyOrFan
+
+VENDOR_CISCO = 9
+VENDOR_HP = 11
+
+# Possible FAN states for Cisco
+CISCO_FAN_STATE_UNKNOWN = 1
+CISCO_FAN_STATE_UP = 2
+CISCO_FAN_STATE_DOWN = 3
+CISCO_FAN_STATE_WARNING = 4
+
+# Possible FAN states for HP
+HP_FAN_STATE_FAILED = 0
+HP_FAN_STATE_REMOVED = 1
+HP_FAN_STATE_OFF = 2
+HP_FAN_STATE_UNDERSPEED = 3
+HP_FAN_STATE_OVERSPEED = 4
+HP_FAN_STATE_OK = 5
+HP_FAN_STATE_MAXSTATE = 6
+
+# Possible PSU states for Cisco
+CISCO_PSU_OFF_ENV_OTHER = 1
+CISCO_PSU_ON = 2
+CISCO_PSU_OFF_ADMIN = 3
+CISCO_PSU_OFF_DENIED = 4
+CISCO_PSU_OFF_ENV_POWER = 5
+CISCO_PSU_OFF_ENV_TEMP = 6
+CISCO_PSU_OFF_ENV_FAN = 7
+CISCO_PSU_OFF_FAILED = 8
+CISCO_PSU_ON_BUT_FAN_FAIL = 9
+CISCO_PSU_OFF_COOLING = 10
+CISCO_PSU_OFF_CONNECTOR_RATING = 11
+CISCO_PSU_ON_BUT_INLINE_POWER_FAIL = 12
+
+# Possible PSU states for HP
+HP_PSU_PS_NOT_PRESENT = 1
+HP_PSU_PS_NOT_PLUGGED = 2
+HP_PSU_PS_POWERED = 3
+HP_PSU_PS_FAILED = 4
+HP_PSU_PS_PERM_FAILURE = 5
+HP_PSU_PS_MAX = 5
+
+# Mapping between vendors and fan-states
+VENDOR_FAN_STATES = {
+                VENDOR_CISCO: {
+                                CISCO_FAN_STATE_UNKNOWN: 'u',
+                                CISCO_FAN_STATE_UP: 'y',
+                                CISCO_FAN_STATE_DOWN: 'n',
+                                CISCO_FAN_STATE_WARNING: 'w',
+                                },
+                VENDOR_HP: {
+                                CISCO_FAN_STATE_WARNING: 'n',
+                                HP_FAN_STATE_REMOVED: 'u',
+                                HP_FAN_STATE_OFF: 'u',
+                                HP_FAN_STATE_UNDERSPEED: 'w',
+                                HP_FAN_STATE_OVERSPEED: 'w',
+                                HP_FAN_STATE_OK: 'y',
+                                HP_FAN_STATE_MAXSTATE: 'w',
+                            },
+                }
+
+# Mapping between vendors and psu-states
+VENDOR_PSU_STATES = {
+                VENDOR_CISCO: {
+                                CISCO_PSU_OFF_ENV_OTHER: 'n',
+                                CISCO_PSU_ON: 'y',
+                                CISCO_PSU_OFF_ADMIN: 'u',
+                                CISCO_PSU_OFF_DENIED: 'n',
+                                CISCO_PSU_OFF_ENV_POWER: 'n',
+                                CISCO_PSU_OFF_ENV_TEMP: 'n',
+                                CISCO_PSU_OFF_ENV_FAN: 'n',
+                                CISCO_PSU_OFF_FAILED: 'n',
+                                CISCO_PSU_ON_BUT_FAN_FAIL: 'w',
+                                CISCO_PSU_OFF_COOLING: 'n',
+                                CISCO_PSU_OFF_CONNECTOR_RATING: 'n',
+                                CISCO_PSU_ON_BUT_INLINE_POWER_FAIL: 'n',
+                                },
+                VENDOR_HP: {
+                                HP_PSU_PS_NOT_PRESENT: 'u',
+                                HP_PSU_PS_NOT_PLUGGED: 'u',
+                                HP_PSU_PS_POWERED: 'y',
+                                HP_PSU_PS_FAILED: 'n',
+                                HP_PSU_PS_PERM_FAILURE: 'n',
+                                HP_PSU_PS_MAX: 'w',
+                            },
+                }
 
 LOGFILE = join(nav.buildconf.localstatedir, "log/powersupplywatch.log")
 # Loglevel (case-sensitive), may be:
 # DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOGLEVEL = 'INFO'
+LOGLEVEL = 'DEBUG'
 
 logger = None
+dry_run = False
 should_verify = False
-
-
-class SNMPHandler(object):
-    """
-    A generic class for handling power-supplies in a netbox.
-    """
-    # These are actually OIDs for HP
-    pwr_supplies_oid = '.1.3.6.1.4.1.11.2.14.11.1.2.6.1.4'
-    pwr_status_oid = '.1.3.6.1.4.1.11.2.14.11.1.2.6.1.4'
-    pwr_name_oid = '.1.3.6.1.4.1.11.2.14.11.1.2.6.1.7'
-
-    def __init__(self, netbox):
-        """ A plain and old constructor."""
-        self.netbox = netbox
-        self.snmp_handle = None
-
-    def get_netbox(self):
-        """ Return the current netbox."""
-        return self.netbox
-
-    def get_snmp_handle(self):
-        """ Allocate a snmp-handle for the netbox."""
-        if not self.snmp_handle:
-            self.snmp_handle = Snmp(self.netbox.ip,
-                                    self.netbox.read_only,
-                                    self.netbox.snmp_version)
-        return self.snmp_handle
-
-    def get_power_supplies(self):
-        """ Walk a netbox and try to find all possible power-supplies."""
-        pwr_supplies = []
-        try:
-            try:
-                pwr_supplies = self.get_snmp_handle().bulkwalk(
-                                            self.pwr_supplies_oid)
-            except UnsupportedSnmpVersionError, unsupported_snmp_ver_ex:
-                logger.warn('%s: Unsupported SNMP version; %s' %
-                            (self.netbox.sysname, unsupported_snmp_ver_ex))
-                pwr_supplies = self.get_snmp_handle().walk(
-                                                        self.pwr_supplies_oid)
-        except TimeOutException, timed_out_ex:
-            logger.info('%s timed out; %s' % (self.netbox.sysname,
-                                                 timed_out_ex))
-        return pwr_supplies
-
-    def _get_legal_index(self, index):
-        """ Check that the index is valid. """
-        if isinstance(index, int):
-            index = str(index)
-        if not (isinstance(index, str) or isinstance(index, unicode)):
-            raise TypeError('Illegal value for power-index')
-        if not index.isdigit():
-            raise TypeError('Illegal value for power-index')
-        return index
-
-    def is_power_supply_ok(self, pwr_index):
-        """ Poll status from power-sensor in a netbox."""
-        status = -1
-        pwr_index = self._get_legal_index(pwr_index)
-        status = self.get_snmp_handle().get(self.pwr_status_oid + "." +
-                                            pwr_index)
-        if isinstance(status, str) or isinstance(status, unicode):
-            if status.isdigit():
-                status = int(status)
-        return (status == 4 or status == 5)
-
-    def get_power_name(self, pwr_index):
-        """ Get power name."""
-        pwr_index = self._get_legal_index(pwr_index)
-        return self.get_snmp_handle().get(self.pwr_name_oid + "." + pwr_index)
-
-
-class HP(SNMPHandler):
-    """
-    A specialised class for handling power-supplies in HP netbox.
-    """
-
-    def __init__(self, netbox):
-        super(HP, self).__init__(netbox)
-
-
-class Cisco(SNMPHandler):
-    """
-    A specialised class for handling power-supplies in Cisco netbox.
-    """
-    pwr_supplies_oid = '.1.3.6.1.4.1.9.9.13.1.5.1.2'
-    pwr_status_oid = '.1.3.6.1.4.1.9.9.13.1.5.1.3'
-    pwr_name_oid = '.1.3.6.1.4.1.9.9.13.1.5.1.2'
-
-    def __init__(self, netbox):
-        """ Nothing more than a constructor."""
-        super(Cisco, self).__init__(netbox)
-
-    def is_power_supply_ok(self, pwr_index):
-        """ Poll status from power-sensor in a Cisco netbox."""
-        status = -1
-        pwr_index = self._get_legal_index(pwr_index)
-        status = self.get_snmp_handle().get(self.pwr_status_oid + "." +
-                                                pwr_index)
-        if isinstance(status, str) or isinstance(status, unicode):
-            if status.isdigit():
-                status = int(status)
-        return (status == 1)
-
-# ISO vendor-identities
-VENDOR_CISCO = 9
-VENDOR_HP = 11
-
-
-class SNMPFactory(object):
-    """
-    Factory for makeing snmp-handles depending on vendor-identities.
-    """
-
-    @classmethod
-    def get_instance(cls, netbox):
-        """
-        Get a snmp-handle to a given netbox.  Currently handle only
-        HP- and Cisco-netboxes.
-        """
-        vendor_id = None
-        if netbox.type:
-            vendor_id = netbox.type.get_enterprise_id()
-        if vendor_id and vendor_id == VENDOR_CISCO:
-            return Cisco(netbox)
-        if vendor_id and vendor_id == VENDOR_HP:
-            return HP(netbox)
-        return SNMPHandler(netbox)
 
 
 def get_logger():
@@ -188,39 +146,37 @@ def get_logger():
 
 
 def verify(msg):
-    """ Print message to stderr if verify-option is given."""
+    """Write message to stderr"""
     if should_verify:
         print >> sys.stderr, msg
+    logger.debug(msg)
 
 
-def get_netboxes(sysnames):
-    """ Get netboxes from DB,- if hostnames are specified fetch only those;
-    otherwise fetch all."""
-    if sysnames and len(sysnames) > 0:
-        return Netbox.objects.filter(sysname__in=sysnames)
-    else:
-        return Netbox.objects.all()
-
-
-def post_event(netbox, pwr_name, status):
+def post_event(psu_or_fan, status):
     """ Posts an event on the eventqueue."""
     source = "powersupplywatch"
     target = "eventEngine"
     eventtypeid = "moduleState"
     value = 100
     severity = 50
+    device_id = None
+    if psu_or_fan.device:
+        device_id = psu_or_fan.device.id
     event = Event(source=source, target=target,
-                            netboxid=netbox.id,
+                            deviceid=device_id,
+                            netboxid=psu_or_fan.netbox.id,
                             eventtypeid=eventtypeid,
                             value=value,
                             severity=severity)
-    event['sysname'] = netbox.sysname
-    if PowerSupply.STATE_DOWN == status:
+    event['sysname'] = psu_or_fan.netbox.sysname
+    if (PowerSupplyOrFan.STATE_DOWN == status
+            or PowerSupplyOrFan.STATE_WARNING == status):
         event['alerttype'] = 'moduleDown'
-    elif PowerSupply.STATE_UP == status:
+    elif PowerSupplyOrFan.STATE_UP == status:
         event['alerttype'] = 'moduleUp'
-    event['powername'] = pwr_name
+    event['powername'] = psu_or_fan.name
     event['state'] = status
+    verify('Posting event: %s' % event)
     try:
         event.post()
     except Exception, why:
@@ -231,84 +187,9 @@ def post_event(netbox, pwr_name, status):
     return True
 
 
-def get_power_state(netbox, pwr_name):
-    """
-    Get the power-state from DB for this netbox and power-supply.
-    """
-    return PowerSupply.objects.filter(netbox=netbox).filter(
-                                                        name=pwr_name)
-
-
-def store_new_state(netbox, pwr_name, up):
-    """ Store a record in DB with down-state."""
-    new_state = PowerSupply(netbox=netbox,
-                            name=pwr_name,
-                            up=up)
-    if PowerSupply.STATE_DOWN == up:
-        new_state.downsince = datetime.now()
-    else:
-        new_state.downsince = None
-    new_state.save()
-    verify("New record saved successfully.")
-
-
-def handle_power_state(netbox, stored_state, pwr_name, pwr_up):
-    """
-    Handle states,- create or delete states, and post events as necessary.
-    """
-    if not stored_state:
-        if not pwr_up:
-            msg = ('%s: %s has gone down.  Store new record in DB' %
-                    (netbox.sysname, pwr_name))
-            verify(msg)
-            logger.warn(msg)
-            post_event(netbox, pwr_name, PowerSupply.STATE_DOWN)
-            store_new_state(netbox, pwr_name, PowerSupply.STATE_DOWN)
-        else:
-            msg = ('%s: %s has no record. Store new record in DB' %
-                    (netbox.sysname, pwr_name))
-            verify(msg)
-            logger.info(msg)
-            store_new_state(netbox, pwr_name, PowerSupply.STATE_UP)
-    if stored_state:
-        if PowerSupply.STATE_DOWN == stored_state.up and pwr_up:
-            msg = '%s: %s has come up' % (netbox.sysname, pwr_name)
-            verify(msg)
-            logger.info(msg)
-            post_event(netbox, pwr_name, PowerSupply.STATE_UP)
-            stored_state.downsince = None
-            stored_state.up = PowerSupply.STATE_UP
-            stored_state.save()
-        if PowerSupply.STATE_UP == stored_state.up and not pwr_up:
-            msg = '%s: %s has gone down ' % (netbox.sysname, pwr_name)
-            verify(msg)
-            logger.info(msg)
-            post_event(netbox, pwr_name, PowerSupply.STATE_DOWN)
-            stored_state.downsince = datetime.now()
-            stored_state.up = PowerSupply.STATE_DOWN
-            stored_state.save()
-
-def handle_too_many_states(power_states, netbox, pwr_name):
-    """
-    Function that take actions when we discover more than one
-    state-record in DB.
-    """
-    # The safest is probably to delete all states. Anyone?
-    msg = ('%s: %s %d records in DB; Will delete all' %
-                (netbox.sysname, pwr_name, len(power_states)))
-    verify(msg)
-    logger.error(msg)
-    delete_power_states(power_states)
-
-def delete_power_states(power_states):
-    """ Delete the given power-supply states from DB."""
-    if power_states:
-        for state in power_states:
-            state.delete()
-
-
 def read_hostsfile(filename):
     """ Read file with hostnames."""
+    verify('Reading hosts from %s' % filename)
     hostnames = []
     hosts_file = None
     try:
@@ -320,16 +201,112 @@ def read_hostsfile(filename):
         sys.exit(2)
     for line in hosts_file:
         line.strip()
-        if line:
-            hostnames.append(line.strip())
+        if line and len(line) > 0:
+            hostnames.append(line)
     hosts_file.close()
+    verify('Hosts from %s: %s' % (filename, hostnames))
     return hostnames
 
 
+def get_psus_and_fans(sysnames):
+    """ Get netboxes from DB,- if hostnames are specified fetch only those;
+    otherwise fetch all."""
+    verify('Getting PSUs and FANs')
+    psus_and_fans = None
+    if sysnames and len(sysnames) > 0:
+        psus_and_fans = PowerSupplyOrFan.objects.filter(
+                                                netbox__sysname__in=sysnames)
+    else:
+        psus_and_fans = PowerSupplyOrFan.objects.all()
+    verify('Got %s PSUs and FANs' % len(psus_and_fans))
+    return psus_and_fans
+
+
+def get_snmp_handle(netbox):
+    """Allocate an Snmp-handle for a given netbox"""
+    verify('Allocate SNMP-handle for %s' % netbox.sysname)
+    return Snmp(netbox.ip, netbox.read_only, netbox.snmp_version)
+
+
+def is_fan(psu_or_fan):
+    """Determine if this PowerSupplyOrFan-object is a FAN"""
+    return (psu_or_fan.physical_class == 'fan')
+
+
+def is_psu(psu_or_fan):
+    """Determine if this PowerSupplyOrFan-object is a PSU"""
+    return (psu_or_fan.physical_class == 'powerSupply')
+
+
+def get_state(numerical_state, vendor_id, vendor_state_dict):
+    """Get the state as a character, based on numerical state, vendor-id.
+    and state-dictitonary"""
+    if not numerical_state or not vendor_id:
+        return 'u'
+    vendor_states = vendor_state_dict.get(vendor_id, None)
+    if not vendor_states:
+        return 'u'
+    return vendor_states.get(numerical_state, None)
+
+
+def get_fan_state(fan_state, vendor_id):
+    """Get the state as a character, based on numerical state and vendor-id."""
+    return get_state(fan_state, vendor_id, VENDOR_FAN_STATES)
+
+
+def get_psu_state(psu_state, vendor_id):
+    """Get the state as a character, based on numerical state and vendor-id."""
+    return get_state(psu_state, vendor_id, VENDOR_PSU_STATES)
+
+
+def check_psus_and_fans(to_check):
+    """Check the state of the given PSUs and FANs, check against state in the
+    DB, send alerts if necessary and store any changes."""
+    snmp_handles = {}
+    for psu_or_fan in to_check:
+        netbox = psu_or_fan.netbox
+        verify('Polling %s: %s' % (netbox.sysname, psu_or_fan.name))
+        if not netbox.sysname in snmp_handles:
+            snmp_handles[netbox.sysname] = get_snmp_handle(netbox)
+        snmp_handle = snmp_handles.get(netbox.sysname, None)
+        numerical_status = None
+        if psu_or_fan.sensor_oid:
+            numerical_status = snmp_handle.get(psu_or_fan.sensor_oid)
+        vendor_id = None
+        if netbox.type:
+            vendor_id = netbox.type.get_enterprise_id()
+        status = None
+        if is_fan(psu_or_fan):
+            status = get_fan_state(numerical_status, vendor_id)
+        elif is_psu(psu_or_fan):
+            status = get_psu_state(numerical_status, vendor_id)
+        if status:
+            verify('Stored state = %s; polled state = %s' %
+                         (psu_or_fan.up, status))
+            if psu_or_fan.up != status:
+                if psu_or_fan.up == 'y' or psu_or_fan.up == 'u':
+                    if status == 'w' or status == 'n':
+                        psu_or_fan.downsince = datetime.now()
+                        verify('Posting down-event...')
+                        post_event(psu_or_fan, status)
+                elif psu_or_fan.up == 'n' or psu_or_fan.up == 'w':
+                    if status == 'y':
+                        psu_or_fan.downsince = None
+                        verify('Posting up-event...')
+                        post_event(psu_or_fan, status)
+                psu_or_fan.up = status
+                if not dry_run:
+                    verify('Save state to database.')
+                    psu_or_fan.save()
+                else:
+                    verify('Dry-run, not saving state.')
+
 def main():
-    """ Plain old main..."""
+    """Plain good old main..."""
     global logger
+    global dry_run
     global should_verify
+
     logger = get_logger()
 
     parser = OptionParser()
@@ -343,6 +320,9 @@ def main():
             help="Print (lots of) debug-information to stderr")
     opts, args = parser.parse_args()
 
+    if opts.dryrun:
+        dry_run = opts.dryrun
+
     if opts.verify:
         should_verify = opts.verify
 
@@ -352,45 +332,10 @@ def main():
     if opts.hostsfile:
         sysnames.extend(read_hostsfile(opts.hostsfile))
 
-    dup_powers = {}
-    for netbox in get_netboxes(sysnames):
-        handle = SNMPFactory.get_instance(netbox)
-        msg = '%s: Collecting power-supplies' % netbox.sysname
-        verify(msg)
-        logger.debug(msg)
-        pwr_supplies = handle.get_power_supplies()
-        msg = ("%s: Number of power-supplies %d" %
-                (netbox.sysname, len(pwr_supplies)))
-        verify(msg)
-        logger.debug(msg)
-        if len(pwr_supplies) > 1:
-            dup_powers[handle] = pwr_supplies
-
-    for handle, pwr_supplies in dup_powers.items():
-        power_supply_index = 1
-        for pwr in pwr_supplies:
-            pwr_name = handle.get_power_name(str(power_supply_index))
-            pwr_up = handle.is_power_supply_ok(str(power_supply_index))
-            stored_states = get_power_state(handle.get_netbox(), pwr_name)
-            stored_state = None
-            if len(stored_states) > 0:
-                if len(stored_states) == 1:
-                    stored_state = stored_states[0]
-                elif len(stored_states) > 1:
-                    handle_too_many_states(stored_states, handle.get_netbox(),
-                                                pwr_name)
-            pwr_status = PowerSupply.STATE_DOWN
-            if pwr_up:
-                pwr_status = PowerSupply.STATE_UP
-            msg = '%s: %s is %s' % (handle.get_netbox().sysname, pwr_name,
-                                        (pwr_status))
-            verify(msg)
-            logger.debug(msg)
-            if not opts.dryrun:
-                handle_power_state(handle.get_netbox(), stored_state,
-                                    pwr_name, pwr_up)
-            power_supply_index += 1
+    verify('Start checking PSUs and FANs')
+    check_psus_and_fans(get_psus_and_fans(sysnames))
     sys.exit(0)
+
 
 if __name__ == '__main__':
     main()
