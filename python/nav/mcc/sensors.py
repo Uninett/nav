@@ -6,7 +6,7 @@ import logging
 import os
 
 from nav.models.manage import Netbox
-from nav.mcc import utils
+from nav.mcc import dbutils, utils
 from nav.mcc.utils import encode_and_escape
 from os.path import join, isdir
 
@@ -27,7 +27,7 @@ def make_config(globalconfig):
     for netbox in Netbox.objects.all():
         containers = create_netbox_config(netbox, path_to_directory)
         if containers:
-            utils.updatedb(path_to_directory, containers)
+            dbutils.updatedb(path_to_directory, containers)
 
     return True
 
@@ -110,7 +110,10 @@ def format_yaxis(sensor):
 
 def calculate_scalevalue(precision):
     """ Return correct scaling value based on precision """
-    return 10 ** precision
+    if precision:
+        return 10 ** precision
+    else:
+        return 1
 
 
 def write_config_to_file(path, config):

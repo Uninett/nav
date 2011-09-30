@@ -238,6 +238,7 @@ def encode_and_escape(string):
     if isinstance(string, unicode):
         string = convert_unicode_to_latin1(string)
     string = string.replace("\"", "&quot;")
+    string = string.replace("\n", " ");
 
     return string
 
