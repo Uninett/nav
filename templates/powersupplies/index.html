@@ -25,35 +25,36 @@
         <td>{% if state.device %}
                 {% if state.device.serial %}
                     {{ state.device.serial }}
-                {% else %}
-                    &nbsp;
                 {% endif %}
-            {% else %}
-                &nbsp;
-            {% endif %}
+            {% endif %}</td>
         <td>{{ state.descr }}</td>
-        <td>
             {% ifequal state.up 'n' %}
-                <font color="red">Down</font>
+                <td class="down">
+                Down
             {% endifequal %}
             {% ifequal state.up 'w' %}
-                <font color="#FF7F50">Warning</font>
+                <td class="warning">
+                Warning
             {% endifequal %}
             {% ifequal state.up 'y' %}
-                <font color="green">Up</font>
+                <td class="up">
+                Up
             {% endifequal %}
             {% ifequal state.up 'u' %}
-                <font color="blue">Unknown</font>
+                <td class="unknown">
+                Unknown
             {% endifequal %}
+            </td>
         <td>
             {% ifequal state.up 'n' %}
                 {% if state.downsince %}
                     {{ state.downsince }}
-                {% else %}
-                    &nbsp;
                 {% endif %}
-            {% else %}
-                &nbsp;
+            {% endifequal %}
+            {% ifequal state.up 'w' %}
+                {% if state.downsince %}
+                    {{ state.downsince }}
+                {% endif %}
             {% endifequal %}</td>
     <tr>
     {% endfor %}
