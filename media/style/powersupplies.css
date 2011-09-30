@@ -80,33 +80,22 @@ div#summary ul {
 	background-color: #FFBABA;
 	background-image: url('/images/lys/red.png');
 }
-/*
-table#powersupplycontainer .vertitable > tbody > tr > td.warning {
-*/
+
 table#powersupplycontainer td.warning {
     color: black;
     background-color: #FFCC33;
 }
 
-/*
-table#powersupplycontainer .vertitable > tbody > tr > td.down {
-*/
 table#powersupplycontainer td.down {
     color: black;
     background-color: #FFACAC;
 }
 
-/*
-table#powersupplycontainer .vertitable > tbody > tr > td.unknown {
-*/
 table#powersupplycontainer td.unknown {
     color: black;
     background-color: #AACCFF;
 }
 
-/*
-table#powersupplycontainer .vertitable > tbody > tr > td.up {
-*/
 table#powersupplycontainer td.up {
     color: black;
     background-color: #66FFCC;
