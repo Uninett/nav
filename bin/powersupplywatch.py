@@ -41,6 +41,10 @@ from nav.models.manage import PowerSupplyOrFan
 VENDOR_CISCO = 9
 VENDOR_HP = 11
 
+# All the states and their constants are copies of values in
+# CSICO-ENTITY-FRU-CONTROL-MIB,- and POWERSUPPLY-MIB and FAN-MIB
+# from HP
+#
 # Possible FAN states for Cisco
 CISCO_FAN_STATE_UNKNOWN = 1
 CISCO_FAN_STATE_UP = 2
@@ -149,6 +153,7 @@ def verify(msg):
     """Write message to stderr"""
     if should_verify:
         print >> sys.stderr, msg
+    # Convenient to include a debug-statement too
     logger.debug(msg)
 
 
@@ -160,8 +165,11 @@ def post_event(psu_or_fan, status):
     value = 100
     severity = 50
     device_id = None
-    if psu_or_fan.device:
-        device_id = psu_or_fan.device.id
+    try:
+        if psu_or_fan.device:
+            device_id = psu_or_fan.device.id
+    except Exception, ex:
+        pass
     event = Event(source=source, target=target,
                             deviceid=device_id,
                             netboxid=psu_or_fan.netbox.id,
@@ -200,9 +208,9 @@ def read_hostsfile(filename):
         logger.error(err_str)
         sys.exit(2)
     for line in hosts_file:
-        line.strip()
-        if line and len(line) > 0:
-            hostnames.append(line)
+        sysname = line.strip()
+        if sysname and len(sysname) > 0:
+            hostnames.append(sysname)
     hosts_file.close()
     verify('Hosts from %s: %s' % (filename, hostnames))
     return hostnames
@@ -215,9 +223,9 @@ def get_psus_and_fans(sysnames):
     psus_and_fans = None
     if sysnames and len(sysnames) > 0:
         psus_and_fans = PowerSupplyOrFan.objects.filter(
-                                                netbox__sysname__in=sysnames)
+                            netbox__sysname__in=sysnames).order_by('netbox')
     else:
-        psus_and_fans = PowerSupplyOrFan.objects.all()
+        psus_and_fans = PowerSupplyOrFan.objects.all().order_by('netbox')
     verify('Got %s PSUs and FANs' % len(psus_and_fans))
     return psus_and_fans
 
@@ -265,10 +273,10 @@ def check_psus_and_fans(to_check):
     snmp_handles = {}
     for psu_or_fan in to_check:
         netbox = psu_or_fan.netbox
-        verify('Polling %s: %s' % (netbox.sysname, psu_or_fan.name))
         if not netbox.sysname in snmp_handles:
             snmp_handles[netbox.sysname] = get_snmp_handle(netbox)
         snmp_handle = snmp_handles.get(netbox.sysname, None)
+        verify('Polling %s: %s' % (netbox.sysname, psu_or_fan.name))
         numerical_status = None
         if psu_or_fan.sensor_oid:
             numerical_status = snmp_handle.get(psu_or_fan.sensor_oid)
@@ -288,18 +296,20 @@ def check_psus_and_fans(to_check):
                     if status == 'w' or status == 'n':
                         psu_or_fan.downsince = datetime.now()
                         verify('Posting down-event...')
-                        post_event(psu_or_fan, status)
+                        if not dry_run:
+                            post_event(psu_or_fan, status)
                 elif psu_or_fan.up == 'n' or psu_or_fan.up == 'w':
                     if status == 'y':
                         psu_or_fan.downsince = None
                         verify('Posting up-event...')
-                        post_event(psu_or_fan, status)
+                        if not dry_run:
+                            post_event(psu_or_fan, status)
                 psu_or_fan.up = status
                 if not dry_run:
                     verify('Save state to database.')
                     psu_or_fan.save()
                 else:
-                    verify('Dry-run, not saving state.')
+                    verify('Dry run, not saving state.')
 
 def main():
     """Plain good old main..."""
