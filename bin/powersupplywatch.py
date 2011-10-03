@@ -135,6 +135,7 @@ LOGLEVEL = 'DEBUG'
 logger = None
 dry_run = False
 should_verify = False
+snmp_handles = {}
 
 
 def get_logger():
@@ -232,8 +233,12 @@ def get_psus_and_fans(sysnames):
 
 def get_snmp_handle(netbox):
     """Allocate an Snmp-handle for a given netbox"""
-    verify('Allocate SNMP-handle for %s' % netbox.sysname)
-    return Snmp(netbox.ip, netbox.read_only, netbox.snmp_version)
+    global snmp_handles
+    if not netbox.sysname in snmp_handles:
+        verify('Allocate SNMP-handle for %s' % netbox.sysname)
+        snmp_handles[netbox.sysname] = Snmp(netbox.ip, netbox.read_only,
+                                                    netbox.snmp_version)
+    return snmp_handles.get(netbox.sysname, None)
 
 
 def is_fan(psu_or_fan):
@@ -267,22 +272,41 @@ def get_psu_state(psu_state, vendor_id):
     return get_state(psu_state, vendor_id, VENDOR_PSU_STATES)
 
 
+def handle_status(psu_or_fan, status):
+    """Check status-value,- post alerts and store state in DB if necessary"""
+    if psu_or_fan.up != status:
+        if psu_or_fan.up == 'y' or psu_or_fan.up == 'u':
+            if status == 'w' or status == 'n':
+                psu_or_fan.downsince = datetime.now()
+                verify('Posting down-event...')
+                if not dry_run:
+                    post_event(psu_or_fan, status)
+        elif psu_or_fan.up == 'n' or psu_or_fan.up == 'w':
+            if status == 'y':
+                psu_or_fan.downsince = None
+                verify('Posting up-event...')
+                if not dry_run:
+                    post_event(psu_or_fan, status)
+        psu_or_fan.up = status
+        if not dry_run:
+            verify('Save state to database.')
+            psu_or_fan.save()
+        else:
+            verify('Dry run, not saving state.')
+
+
 def check_psus_and_fans(to_check):
     """Check the state of the given PSUs and FANs, check against state in the
     DB, send alerts if necessary and store any changes."""
-    snmp_handles = {}
     for psu_or_fan in to_check:
-        netbox = psu_or_fan.netbox
-        if not netbox.sysname in snmp_handles:
-            snmp_handles[netbox.sysname] = get_snmp_handle(netbox)
-        snmp_handle = snmp_handles.get(netbox.sysname, None)
-        verify('Polling %s: %s' % (netbox.sysname, psu_or_fan.name))
+        snmp_handle = get_snmp_handle(psu_or_fan.netbox)
         numerical_status = None
-        if psu_or_fan.sensor_oid:
+        verify('Polling %s: %s' % (psu_or_fan.netbox.sysname, psu_or_fan.name))
+        if psu_or_fan.sensor_oid and snmp_handle:
             numerical_status = snmp_handle.get(psu_or_fan.sensor_oid)
         vendor_id = None
-        if netbox.type:
-            vendor_id = netbox.type.get_enterprise_id()
+        if psu_or_fan.netbox.type:
+            vendor_id = psu_or_fan.netbox.type.get_enterprise_id()
         status = None
         if is_fan(psu_or_fan):
             status = get_fan_state(numerical_status, vendor_id)
@@ -290,26 +314,9 @@ def check_psus_and_fans(to_check):
             status = get_psu_state(numerical_status, vendor_id)
         if status:
             verify('Stored state = %s; polled state = %s' %
-                         (psu_or_fan.up, status))
-            if psu_or_fan.up != status:
-                if psu_or_fan.up == 'y' or psu_or_fan.up == 'u':
-                    if status == 'w' or status == 'n':
-                        psu_or_fan.downsince = datetime.now()
-                        verify('Posting down-event...')
-                        if not dry_run:
-                            post_event(psu_or_fan, status)
-                elif psu_or_fan.up == 'n' or psu_or_fan.up == 'w':
-                    if status == 'y':
-                        psu_or_fan.downsince = None
-                        verify('Posting up-event...')
-                        if not dry_run:
-                            post_event(psu_or_fan, status)
-                psu_or_fan.up = status
-                if not dry_run:
-                    verify('Save state to database.')
-                    psu_or_fan.save()
-                else:
-                    verify('Dry run, not saving state.')
+                                    (psu_or_fan.up, status))
+            handle_status(psu_or_fan, status)
+
 
 def main():
     """Plain good old main..."""
