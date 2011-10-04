@@ -119,12 +119,12 @@ class PowerSupplyUnit(Plugin):
     def handle(self):
         """Collect PSUs and FANs,- their corresponding statuses and store
         in database"""
-        self._logger.error("Collecting PSUs and FANs")
+        self._logger.debug("Collecting PSUs and FANs")
         entity_table = yield self.entity_mib.get_entity_physical_table()
         psus_and_fans = self._get_redundant_psus_and_fans(entity_table)
         if psus_and_fans:
             for psu_or_fan in psus_and_fans:
-                self._logger.error('PSU:FAN: %s' % psu_or_fan)
+                self._logger.debug('PSU:FAN: %s' % psu_or_fan)
                 entity_index = psu_or_fan.get(0, None)
                 is_up = 'u'
                 sensor_oid = None
@@ -138,7 +138,7 @@ class PowerSupplyUnit(Plugin):
                             sensor_oid = (
                                 self.entity_fru_control.get_oid_for_fan_status(
                                                                 entity_index))
-                        self._logger.error('FAN: %s: %s' % (ret, sensor_oid))
+                        self._logger.debug('FAN: %s: %s' % (ret, sensor_oid))
                     elif self.is_psu(psu_or_fan):
                         ret = yield self.entity_fru_control.is_psu_up(
                                                                 entity_index)
@@ -147,7 +147,7 @@ class PowerSupplyUnit(Plugin):
                             sensor_oid = (
                                 self.entity_fru_control.get_oid_for_psu_status(
                                                                 entity_index))
-                        self._logger.error('PSU: %s: %s' % (ret, sensor_oid))
+                        self._logger.debug('PSU: %s: %s' % (ret, sensor_oid))
                 power_supply = self.containers.factory(
                                     psu_or_fan.get('entPhysicalName', None),
                                                     shadows.PowerSupplyOrFan)
