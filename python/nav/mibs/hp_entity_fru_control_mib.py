@@ -15,6 +15,10 @@
 #
 """Implements a wrapper around HpIcfFanMib- and HpIcfPowerSupplyMib-classes.
 This is more convenient than calling both.
+
+The reason why it is implemented this way is that the classes are operating
+on two different MIBs,- and we need to keep them apart.  Therfore it is not
+possible to use inheritance.  Call it cheating,- well it works perfectly...
 """
 
 from nav.mibs import mibretriever
