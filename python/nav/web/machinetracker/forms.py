@@ -23,19 +23,56 @@ from IPy import IP
 from django import forms
 from django.forms.util import ErrorList
 
-def _check_ip(ip):
+def _check_ips_in_input(ip):
     if ip:
-        try:
-            ip = ip.split('/')
-            ip = ip[0]
-            IP(ip)
-        except ValueError:
-            raise forms.ValidationError(u"Invalid IP address")
+        # Check if range with dash
+        if '-' in ip:
+            try:
+                ips = ip.split('-')
+                # Check the first ip
+                IP(ips[0])
+                # Try to parse the second ip to int and assemble the postfix with the first ip
+                try:
+                    if IP(ips[0])._ipversion == 6:
+                        int(ips[1], 16)
+                        original_ip = ips[0].rsplit(":", 1)
+                        assembled_ip = ":".join([original_ip[0], ips[1]])
+                        IP(assembled_ip)
+                    else:
+                        int(ips[1])
+                        original_ip = ips[0].rsplit(".", 1)
+                        assembled_ip = ".".join([original_ip[0], ips[1]])
+                        IP(assembled_ip)
+                except ValueError:
+                    # Check if the second ip is not just a number, but an actual ip
+                    try:
+                        if '.' not in ips[1] and ':' not in ips[1]:
+                            raise forms.ValidationError(u"Invalid IP address or range")
+                        IP(ips[1])
+                    except ValueError:
+                        raise forms.ValidationError(u"Invalid IP address or range")
+            except ValueError:
+                raise forms.ValidationError(u"Invalid IP address or range")
+        # Else check single address or CIDR
+        else:
+            try:
+                ip_and_mask = ip.split('/')
+                ip = ip_and_mask[0]
+                IP(ip)
+
+                # If net mask is given, check if subnet can be made
+                if len(ip_and_mask) > 1:
+                    try:
+                        if ip_and_mask[1]:
+                            IP(ip).make_net(ip_and_mask[1])
+                    except ValueError:
+                        raise forms.ValidationError(u"Invalid net mask")
+            except ValueError:
+                raise forms.ValidationError(u"Invalid IP address")
 
 class IpTrackerForm(forms.Form):
     # IPAddressField only supports IPv4 as of Django 1.1
-    from_ip = forms.CharField()
-    to_ip = forms.CharField(required=False)
+    ip_range = forms.CharField()
     active = forms.BooleanField(required=False, initial=True)
     inactive = forms.BooleanField(required=False)
     dns = forms.BooleanField(required=False, initial=False)
@@ -53,15 +90,10 @@ class IpTrackerForm(forms.Form):
             del data['inactive']
         return data
 
-    def clean_from_ip(self):
-        ip = self.cleaned_data['from_ip']
-        _check_ip(ip)
-        return ip
-
-    def clean_to_ip(self):
-        ip = self.cleaned_data['to_ip']
-        _check_ip(ip)
-        return ip
+    def clean_ip_range(self):
+        ips = self.cleaned_data['ip_range']
+        _check_ips_in_input(ips)
+        return ips
 
 class MacTrackerForm(forms.Form):
     mac = forms.CharField()
