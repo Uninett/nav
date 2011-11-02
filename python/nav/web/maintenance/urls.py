@@ -17,24 +17,28 @@
 
 from django.conf.urls.defaults import patterns, url
 
+from nav.web.maintenance.views import active, planned, historic
+
 dummy = lambda *args, **kwargs: None
 
 urlpatterns = patterns('',
-    url(r'$', dummy,
+    url(r'^$', dummy,
         name='maintenance'),
-    url(r'calendar/$', dummy,
+    url(r'^calendar/$', dummy,
         name='maintenance-calendar'),
-    url(r'active/$', dummy,
+    url(r'^active/$', active,
         name='maintenance-active'),
-    url(r'planned/$', dummy,
+    url(r'^planned/$', planned,
         name='maintenance-planned'),
-    url(r'historic/$', dummy,
+    url(r'^historic/$', historic,
         name='maintenance-historic'),
-    url(r'new/$', dummy,
+    url(r'^new/$', dummy,
         name='maintenance-new'),
+    url(r'^view/(?P<task_id>\d+)/$', dummy,
+        name='maintenance-view'),
 
-    url(r'new\?netbox=(?P<netbox_id>\d+)$', dummy,
+    url(r'^new\?netbox=(?P<netbox_id>\d+)$', dummy,
         name='maintenance-new-netbox'),
-    url(r'new\?service=(?P<service_id>\d+)$', dummy,
+    url(r'^new\?service=(?P<service_id>\d+)$', dummy,
         name='maintenance-new-service'),
 )
