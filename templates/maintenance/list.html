@@ -1,0 +1,37 @@
+{% extends "maintenance/base.html" %}
+
+{% block content %}
+{% if tasks %}
+<table class="listtable">
+    <caption>Maintenance Tasks</caption>
+
+    <thead>
+        <tr>
+            <th>Start</th>
+            <th>End</th>
+            <th>Description</th>
+            <th>Components</th>
+            <th>Author</th>
+            <th>State</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for task in tasks %}
+        <tr>
+            <td>{{ task.maint_start|date:"Y-m-d H:i" }}</td>
+            <td>{{ task.maint_end|date:"Y-m-d H:i" }}</td>
+            <td>
+                <a href="{% url maintenance-view task.maint_taskid %}">{{ task.description }}</a>
+            </td>
+            <td>{{ task.components|length }}</td>
+            <td>{{ task.author }}</td>
+            <td>{{ task.state }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No maintenance tasks found.</p>
+{% endif %}
+{% endblock %}
