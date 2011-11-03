@@ -19,6 +19,8 @@ import nav.maintenance
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
+from nav.web.maintenance.utils import task_components
+
 def active(request):
     tasks = nav.maintenance.getTasks('maint_start < now() AND maint_end > now()')
     return render_to_response(
@@ -48,6 +50,18 @@ def historic(request):
         {
             'active': {'planned': True},
             'tasks': tasks,
+        },
+        RequestContext(request)
+    )
+
+def view(request, task_id):
+    tasks = nav.maintenance.getTask(task_id)
+    components = task_components(tasks[0])
+    return render_to_response(
+        'maintenance/details.html',
+        {
+            'tasks': tasks,
+            'components': components,
         },
         RequestContext(request)
     )
