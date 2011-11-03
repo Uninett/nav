@@ -22,7 +22,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Count
 from django.template import RequestContext
 from django.shortcuts import render_to_response
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 
 from nav.django.utils import get_account
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
@@ -74,11 +74,14 @@ def historic(request):
 
 def view(request, task_id):
     tasks = nav.maintenance.getTask(task_id)
-    components = task_components(tasks[0])
+    if not tasks:
+        raise Http404()
+    task = tasks[0]
+    components = task_components(task)
     return render_to_response(
         'maintenance/details.html',
         {
-            'tasks': tasks,
+            'task': task,
             'components': components,
         },
         RequestContext(request)

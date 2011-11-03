@@ -1,8 +1,6 @@
 {% extends "maintenance/base.html" %}
 
 {% block content %}
-{% if tasks %}
-{% for task in tasks %}
 <table class="vertitable vertitablefull">
     <caption>
         {{ task.description }}
@@ -68,8 +66,4 @@
         {% endif %}
     </tbody>
 </table>
-{% endfor %}
-{% else %}
-<p>No maintenance tasks found.</p>
-{% endif %}
 {% endblock %}
