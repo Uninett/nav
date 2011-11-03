@@ -3,8 +3,8 @@
 {% block content %}
 <p>
     Are you sure you want to cancel the task <b>{{ task.description }}</b>?
-    <form action="{% url maintenance-cancel task.maint_taskid %}" method="post">
-        <input type="hidden" name="task_id" value="{{ task.maint_taskid }}" />
+    <form action="{% url maintenance-cancel task.id %}" method="post">
+        <input type="hidden" name="task_id" value="{{ task.id }}" />
         <input type="submit" value="Yes, cancel it!" />
     </form>
 </p>

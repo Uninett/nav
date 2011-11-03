@@ -21,7 +21,7 @@ from datetime import datetime
 from django.core.urlresolvers import reverse
 from django.db.models import Count
 from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, Http404
 
 from nav.django.utils import get_account
@@ -93,10 +93,10 @@ def cancel(request, task_id):
         #FIXME redirect
         raise Exception("Oh noes")
 
-    tasks = nav.maintenance.getTask(task_id)
-    task = tasks[0]
+    task = get_object_or_404(MaintenanceTask, pk=task_id)
     if request.method == 'POST':
-        nav.maintenance.cancelTask(task_id)
+        task.state = 'canceled'
+        task.save()
         new_message(request._req,
             "This task is now cancelled.", Messages.SUCCESS)
         url = reverse('maintenance-view', args=[task_id])
