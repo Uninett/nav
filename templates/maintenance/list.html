@@ -19,12 +19,12 @@
     <tbody>
     {% for task in tasks %}
         <tr>
-            <td>{{ task.maint_start|date:"Y-m-d H:i" }}</td>
-            <td>{{ task.maint_end|date:"Y-m-d H:i" }}</td>
+            <td>{{ task.start_time|date:"Y-m-d H:i" }}</td>
+            <td>{{ task.end_time|date:"Y-m-d H:i" }}</td>
             <td>
-                <a href="{% url maintenance-view task.maint_taskid %}">{{ task.description }}</a>
+                <a href="{% url maintenance-view task.id %}">{{ task.description }}</a>
             </td>
-            <td>{{ task.components|length }}</td>
+            <td>{{ task.component_count }}</td>
             <td>{{ task.author }}</td>
             <td>{{ task.state }}</td>
         </tr>

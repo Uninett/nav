@@ -16,18 +16,25 @@
 
 import nav.maintenance
 
+from datetime import datetime
+
 from django.core.urlresolvers import reverse
+from django.db.models import Count
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 
 from nav.django.utils import get_account
+from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.web.message import new_message, Messages
 
 from nav.web.maintenance.utils import task_components
 
 def active(request):
-    tasks = nav.maintenance.getTasks('maint_start < now() AND maint_end > now()')
+    tasks = MaintenanceTask.objects.filter(
+        start_time__lt=datetime.now(),
+        end_time__gt=datetime.now()
+    ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
         'maintenance/list.html',
         {
@@ -39,6 +46,10 @@ def active(request):
 
 def planned(request):
     tasks = nav.maintenance.getTasks('maint_start > now() AND maint_end > NOW()')
+    tasks = MaintenanceTask.objects.filter(
+        start_time__gt=datetime.now(),
+        end_time__gt=datetime.now()
+    ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
         'maintenance/list.html',
         {
@@ -49,11 +60,13 @@ def planned(request):
     )
 
 def historic(request):
-    tasks = nav.maintenance.getTasks('maint_end < now()', 'maint_end DESC')
+    tasks = MaintenanceTask.objects.filter(
+        end_time__lt=datetime.now()
+    ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
         'maintenance/list.html',
         {
-            'active': {'planned': True},
+            'active': {'historic': True},
             'tasks': tasks,
         },
         RequestContext(request)
