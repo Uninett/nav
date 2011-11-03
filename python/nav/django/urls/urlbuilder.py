@@ -49,6 +49,11 @@ def get_urlpatterns():
         url(r'^report/type\?typeid=(?P<type_id>\d+)$',
             dummy, name='report-type-type'),
 
+        url(r'^report/room$',
+            dummy, name='report-room-all'),
+        url(r'^report/room\?locationid=(?P<location_id>[^&]+)$',
+            dummy, name='report-room-location'),
+
         url(r'^report/netbox$',
             dummy, name='report-netbox-all'),
         url(r'^report/netbox\?roomid=(?P<room_id>[^&]+)$',
