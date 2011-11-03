@@ -16,8 +16,13 @@
 
 import nav.maintenance
 
+from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.shortcuts import render_to_response
+from django.http import HttpResponseRedirect
+
+from nav.django.utils import get_account
+from nav.web.message import new_message, Messages
 
 from nav.web.maintenance.utils import task_components
 
@@ -65,3 +70,26 @@ def view(request, task_id):
         },
         RequestContext(request)
     )
+
+def cancel(request, task_id):
+    account = get_account(request)
+    if account.is_default_account():
+        #FIXME redirect
+        raise Exception("Oh noes")
+
+    tasks = nav.maintenance.getTask(task_id)
+    task = tasks[0]
+    if request.method == 'POST':
+        nav.maintenance.cancelTask(task_id)
+        new_message(request._req,
+            "This task is now cancelled.", Messages.SUCCESS)
+        url = reverse('maintenance-view', args=[task_id])
+        return HttpResponseRedirect(reverse('maintenance-view', args=[task_id]))
+    else:
+        return render_to_response(
+            'maintenance/cancel.html',
+            {
+                'task': task,
+            },
+            RequestContext(request)
+        )

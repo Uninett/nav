@@ -61,7 +61,7 @@
             <td>
                 <a href="">Edit</a>
                 {% ifnotequal task.state "cancelled" %}
-                | <a href="">Cancel now</a>
+                | <a href="{% url maintenance-cancel task.maint_taskid %}">Cancel now</a>
                 {% endifnotequal %}
             </td>
         </tr>
