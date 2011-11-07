@@ -184,7 +184,7 @@ def updatedb(datadir, containers):
         if container.path:
             datapath = join(datapath, container.path)
         
-        filename = container.filename
+        filename = container.filename.lower()
         if not filename.endswith('.rrd'):
             filename = filename + '.rrd'
 
@@ -209,7 +209,7 @@ def updatedb(datadir, containers):
 
         # Check if this target already exists
         verify = """
-        SELECT * FROM rrd_file WHERE path = %s AND filename = %s        
+        SELECT * FROM rrd_file WHERE path = %s AND lower(filename) = %s        
         """
         c.execute(verify, (datapath, filename))
         if c.rowcount > 0:
@@ -311,7 +311,7 @@ def updatedb(datadir, containers):
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
                 c.execute(sql, (nextval, datapath, filename, container.step,
-                            'cricket', container.netboxid, key, value))
+                                'cricket', container.netboxid, key, value))
 
                 # Each containter contains a list of tuples of
                 # datasources. It's up to each module to ensure that these are
@@ -354,12 +354,13 @@ def compare_datasources(path, filename, targetoids):
     conn = getConnection('default')
     c = conn.cursor()
 
+    filename = filename.lower()
     if not filename.endswith('.rrd'):
         filename = filename + '.rrd'
 
     numdsq = """SELECT name, descr FROM rrd_file
     JOIN rrd_datasource USING (rrd_fileid)
-    WHERE path = %s AND filename = %s
+    WHERE path = %s AND lower(filename) = %s
     ORDER BY name
     """
     c.execute(numdsq, (path, filename))
@@ -387,6 +388,7 @@ def check_file_existence(datadir, sysname):
     Check if rrd-file exists. If not, delete tuple from database.
     """
 
+    sysname = sysname.lower()
     if not sysname.endswith('.rrd'):
         sysname = sysname + '.rrd'
     filename = join(datadir, sysname)
@@ -397,7 +399,8 @@ def check_file_existence(datadir, sysname):
 
         conn = getConnection('default')
         c = conn.cursor()
-        sql = """DELETE FROM rrd_file WHERE path = %s AND filename = %s """
+        sql = """DELETE FROM rrd_file WHERE path = %s AND
+                                lower(filename) = %s """
         c.execute(sql, (datadir, sysname))
 
         conn.commit()
@@ -479,7 +482,7 @@ class RRDcontainer:
     """
     def __init__(self, filename, netboxid, path="", key=None, value=None,
                  step=300, speed=None):
-        self.filename = filename
+        self.filename = filename.lower()
         self.netboxid = netboxid
         self.path = path
         self.key = key
