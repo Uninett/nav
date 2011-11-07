@@ -76,7 +76,7 @@ def handleTrap(trap, config=None):
 
         # Find interfaceid
         idquery = """SELECT interfaceid, module.deviceid, module.module,
-                            interface.ifdescr
+                            interface.ifdescr, interface.ifalias
                      FROM netbox
                      JOIN module USING (netboxid)
                      JOIN interface USING (moduleid)
