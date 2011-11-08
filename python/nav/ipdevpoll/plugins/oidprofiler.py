@@ -132,7 +132,7 @@ class OidProfiler(Plugin):
             failure.trap(error.TimeoutError, defer.TimeoutError)
             self._logger.debug("timed out waiting for %s response.",
                                snmpoid.oid_key)
-            return []
+            return {}
 
         def getnext_result_checker(result):
             if len(result) > 0:
