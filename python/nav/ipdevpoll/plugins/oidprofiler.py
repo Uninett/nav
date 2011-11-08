@@ -144,7 +144,7 @@ class OidProfiler(Plugin):
             return False
 
         def get_result_checker(result):
-            if oid in result or str(oid) in result:
+            if result.get(oid, None) or result.get(str(oid), None):
                 self._logger.debug("%s support found using GET: %r",
                                   snmpoid.oid_key, result)
                 return True
