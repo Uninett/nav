@@ -16,8 +16,7 @@
 #
 """logengine.py inserts Cisco syslog messages into the NAV database.
 
-This program takes no arguments; its operation is configured in the
-file logger.conf.
+Most of the operation of this program is configured in logger.conf.
 
 Syslog messages will be read from the configured file, parsed and
 inserted into structured NAV database tables.  Messages that cannot be
