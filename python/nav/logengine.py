@@ -223,7 +223,7 @@ def delete_old_messages(config):
 
     connection.commit()
 
-def verify_singleton():
+def verify_singleton(quiet=False):
     """Verify that we are the single running logengine process.
 
     If a logengine process is already running, we exit this process.
@@ -237,8 +237,11 @@ def verify_singleton():
     try:
         daemon.justme(pidfile)
     except daemon.AlreadyRunningError, e:
-        print >> sys.stderr, "logengine is already running (%d)" % e.pid
-        sys.exit(1)
+        if quiet:
+            sys.exit(0)
+        else:
+            print >> sys.stderr, "logengine is already running (%d)" % e.pid
+            sys.exit(1)
 
     daemon.writepidfile(pidfile)
     atexit.register(daemon.daemonexit, pidfile)
@@ -417,10 +420,10 @@ def add_type(facility, mnemonic, priorityid, types, database):
         types[facility] = {}
     types[facility][mnemonic] = typeid
 
-def logengine(config):
+def logengine(config, options):
     global connection, database
 
-    verify_singleton()
+    verify_singleton(options.quiet)
 
     connection = db.getConnection('logger','logger')
     database = connection.cursor()
@@ -463,6 +466,9 @@ def parse_options():
     parser = optparse.OptionParser()
     parser.add_option("-d", "--delete", action="store_true", dest="delete",
                       help="delete old messages from database and exit")
+    parser.add_option("-q", "--quiet", action="store_true", dest="quiet",
+                      help="quietly exit without returning an error code if "
+                      "logengine is already running")
 
     return parser.parse_args()
 
@@ -483,7 +489,7 @@ def main():
         delete_old_messages(config)
         sys.exit(0)
     else:
-        logengine(config)
+        logengine(config, options)
 
 
 if __name__ == '__main__':
