@@ -47,6 +47,7 @@ import fcntl
 import sys
 import os
 import os.path
+import errno
 import atexit
 import logging
 from ConfigParser import ConfigParser
@@ -293,9 +294,9 @@ def read_log_lines(config):
     try:
         f = open(logfile, "r+")
     except IOError, e:
-        # If errno==2 (file not found), we ignore it.  We won't needlessly
+        # If logfile can't be found, we ignore it.  We won't needlessly
         # spam the NAV admin every minute with a file not found error!
-        if e.errno != 2:
+        if e.errno != ENOENT:
             logger.exception("Couldn't open logfile %s", logfile)
 
     ## if the file exists
