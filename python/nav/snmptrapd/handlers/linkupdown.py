@@ -100,6 +100,7 @@ def handleTrap(trap, config=None):
         subid = idres['swportid']
         interface = idres['interface']
         module = idres['module']
+        ifalias = idres['ifalias']
 
         # The deviceid of the module containing the port
         deviceid = idres['deviceid']
@@ -120,6 +121,7 @@ def handleTrap(trap, config=None):
             e['alerttype'] = 'linkUp'
             e['module'] = module
             e['interface'] = interface
+            e['ifalias'] = ifalias
 
             try:
                 e.post()
@@ -138,6 +140,7 @@ def handleTrap(trap, config=None):
             e['alerttype'] = 'linkDown'
             e['module'] = module
             e['interface'] = interface
+            e['ifalias'] = ifalias
 
             try:
                 e.post()
