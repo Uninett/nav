@@ -1272,7 +1272,12 @@ def filter_show_form(request, filter_id=None, filter_form=None):
     # If no form is supplied we must make one
     if not filter_form:
         if filter_id:
-            filter_form = FilterForm(instance=filter, admin=admin,
+            data = {
+                'id': filter_id,
+                'owner': filter.owner != None or False,
+                'name': filter.name,
+            }
+            filter_form = FilterForm(data, admin=admin,
                                      is_owner=is_owner)
         else:
             filter_form = FilterForm(initial={'owner': account}, admin=admin,
@@ -1324,9 +1329,7 @@ def filter_save(request):
             return alertprofiles_response_forbidden(
                 request, _('You do not own this filter.'))
 
-        form = FilterForm(request.POST, instance=filter, admin=admin)
-    else:
-        form = FilterForm(request.POST, admin=admin)
+    form = FilterForm(request.POST, admin=admin)
 
     # If there are some invalid values, return to form and show the errors
     if not form.is_valid():
@@ -1707,7 +1710,13 @@ def filter_group_show_form(request, filter_group_id=None,
     # If no form is supplied we must make it
     if not filter_group_form:
         if filter_group_id:
-            filter_group_form = FilterGroupForm(instance=filter_group,
+            data = {
+                'id': filter_group_id,
+                'owner': filter_group.owner != None or False,
+                'name': filter_group.name,
+                'description': filter_group.description,
+            }
+            filter_group_form = FilterGroupForm(data,
                                                 admin=admin, is_owner=is_owner)
         else:
             filter_group_form = FilterGroupForm(initial={'owner': account},
@@ -1757,9 +1766,7 @@ def filter_group_save(request):
         if not account_owns_filters(account, filter_group):
             return alertprofiles_response_forbidden(
                 request, _('You do not own this filter group.'))
-        form = FilterGroupForm(request.POST, instance=filter_group, admin=admin)
-    else:
-        form = FilterGroupForm(request.POST, admin=admin)
+    form = FilterGroupForm(request.POST, admin=admin)
 
     if not form.is_valid():
         detail_id = request.POST.get('id') or None

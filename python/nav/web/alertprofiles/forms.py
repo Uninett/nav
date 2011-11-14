@@ -220,7 +220,7 @@ class AlertSubscriptionForm(forms.ModelForm):
 
         return self.cleaned_data
 
-class FilterGroupForm(forms.ModelForm):
+class FilterGroupForm(forms.Form):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label='Private',
         help_text=_(u'Uncheck to allow all users to use this filter group.'))
@@ -243,7 +243,7 @@ class FilterGroupForm(forms.ModelForm):
             for field in self.fields.itervalues():
                 field.widget.attrs['disabled'] = 'disabled'
 
-class FilterForm(forms.ModelForm):
+class FilterForm(forms.Form):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(required=False, label=u'Private',
         help_text=_(u'Uncheck to allow all users to use this filter.'))
