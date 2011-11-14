@@ -75,12 +75,14 @@ def handleTrap(trap, config=None):
 
 
         # Find interfaceid
-        idquery = """SELECT interfaceid, module.deviceid, module.module,
-                            interface.ifdescr, interface.ifalias
+        idquery = """SELECT
+                       interfaceid, module.deviceid,
+                       module.name AS modulename,
+                       interface.ifname, interface.ifalias
                      FROM netbox
-                     JOIN module USING (netboxid)
-                     JOIN interface USING (moduleid)
-                     WHERE ip=%s AND ifindex = %s""" 
+                     JOIN interface USING (netboxid)
+                     LEFT JOIN module USING (moduleid)
+                     WHERE ip=%s AND ifindex = %s"""
         logger.debug(idquery)
         try:
             c.execute(idquery, (trap.agent, ifindex))
@@ -96,10 +98,10 @@ def handleTrap(trap, config=None):
         
         idres = c.fetchone()
 
-        # Subid is swportid in this case
-        subid = idres['swportid']
-        interface = idres['interface']
-        module = idres['module']
+        # Subid is interfaceid in this case
+        subid = idres['interfaceid']
+        interface = idres['ifname']
+        module = idres['modulename']
         ifalias = idres['ifalias']
 
         # The deviceid of the module containing the port
