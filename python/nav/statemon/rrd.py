@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
-# Copyright (C) 2010 UNINETT AS
+# Copyright (C) 2010, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -23,34 +23,34 @@ import event
 from debug import debug
 import rrdtool as rrd
 import db
-import config
 
 try:
     import nav.path
     RRDDIR = nav.path.localstatedir + '/rrd'
-except:
+except ImportError:
     # Not properly installed
     RRDDIR = '/var/rrd'
 RRD_STEP = 300
-database = db.db()
+_database = db.db()
 
 def create(filename, netboxid, serviceid=None, handler=""):
+    """Creates a new RRD file and registers it in the database"""
     dirname = os.path.dirname(filename)
     if not os.path.exists(dirname):
         os.mkdir(dirname)
-    tupleFromHell = (str(filename),
-             '-s %s' % RRD_STEP,
-             'DS:STATUS:GAUGE:600:0:1',
-             'DS:RESPONSETIME:GAUGE:600:0:300',
-             'RRA:AVERAGE:0.5:1:288',
-             'RRA:AVERAGE:0.5:6:336',
-             'RRA:AVERAGE:0.5:12:720',
-             'RRA:MAX:0.5:12:720',
-             'RRA:AVERAGE:0.5:288:365',
-             'RRA:MAX:0.5:288:365',
-             'RRA:AVERAGE:0.5:288:1095',
-             'RRA:MAX:0.5:288:1095')
-    rrd.create(*tupleFromHell)
+    args = (str(filename),
+            '-s %s' % RRD_STEP,
+            'DS:STATUS:GAUGE:600:0:1',
+            'DS:RESPONSETIME:GAUGE:600:0:300',
+            'RRA:AVERAGE:0.5:1:288',
+            'RRA:AVERAGE:0.5:6:336',
+            'RRA:AVERAGE:0.5:12:720',
+            'RRA:MAX:0.5:12:720',
+            'RRA:AVERAGE:0.5:288:365',
+            'RRA:MAX:0.5:288:365',
+            'RRA:AVERAGE:0.5:288:1095',
+            'RRA:MAX:0.5:288:1095')
+    rrd.create(*args)
     debug("Created rrd file %s" % filename)
     verify_rrd_registry(filename, netboxid, serviceid, handler)
 
@@ -70,12 +70,12 @@ def register_rrd(filename, netboxid, serviceid=None, handler=""):
         statusdescr = "Packet loss"
         responsedescr = "Roundtrip time"
         unit = '100%'
-    rrd_fileid = database.registerRrd(filename, RRD_STEP, netboxid,
-                                      subsystem, key, val)
-    database.registerDS(rrd_fileid, "RESPONSETIME",
-                        responsedescr, "GAUGE", "s")
+    rrd_fileid = _database.registerRrd(filename, RRD_STEP, netboxid,
+                                       subsystem, key, val)
+    _database.registerDS(rrd_fileid, "RESPONSETIME",
+                         responsedescr, "GAUGE", "s")
 
-    database.registerDS(rrd_fileid, "STATUS", statusdescr, "GAUGE", unit)
+    _database.registerDS(rrd_fileid, "STATUS", statusdescr, "GAUGE", unit)
 
 def verify_rrd_registry(filename, netboxid, serviceid=None, handler=""):
     """Verifies that an RRD file is known in the RRD registry.
@@ -85,12 +85,12 @@ def verify_rrd_registry(filename, netboxid, serviceid=None, handler=""):
 
     """
     try:
-        registered_netboxid = database.verify_rrd(filename)
-    except db.UnknownRRDFileError, e:
+        registered_netboxid = _database.verify_rrd(filename)
+    except db.UnknownRRDFileError:
         register_rrd(filename, netboxid, serviceid, handler)
     else:
         if registered_netboxid is None:
-            database.reconnect_rrd(filename, netboxid)
+            _database.reconnect_rrd(filename, netboxid)
         # We don't handle the unusual case where a netboxid in the db differs
         # from the one we are working with
     return True
@@ -110,10 +110,10 @@ def update(netboxid, sysname, time, status, responsetime, serviceid=None,
     else:
         rrdstatus = 1
 
-    rrdParam = (str(filename),
-                '%s:%i:%s' % (time, rrdstatus, responsetime))
+    args = (str(filename),
+            '%s:%i:%s' % (time, rrdstatus, responsetime))
     try:
-        rrd.update(*rrdParam)
+        rrd.update(*args)
     except Exception, err:
         debug("Failed to update %s" % filename, 7)
         debug("Exception: %s" % err)
@@ -131,7 +131,7 @@ def resolve_rrd_file(netboxid, sysname, serviceid, handler):
     wanted_filename = os.path.normpath(make_rrd_filename(sysname, serviceid))
     try:
         db_filename = os.path.normpath(
-            database.get_existing_rrd(netboxid, serviceid))
+            _database.get_existing_rrd(netboxid, serviceid))
     except db.UnknownRRDFileError:
         if os.path.exists(wanted_filename):
             verify_rrd_registry(wanted_filename, netboxid, serviceid, handler)
@@ -142,16 +142,17 @@ def resolve_rrd_file(netboxid, sysname, serviceid, handler):
             if db_filename == wanted_filename:
                 create(wanted_filename, netboxid, serviceid, handler)
             else:
-                database.rename_rrd(db_filename, wanted_filename)
+                _database.rename_rrd(db_filename, wanted_filename)
                 db_filename = wanted_filename
         if not db_filename == wanted_filename:
             shutil.move(db_filename, wanted_filename)
-            database.rename_rrd(db_filename, wanted_filename)
+            _database.rename_rrd(db_filename, wanted_filename)
             db_filename = wanted_filename
 
     return wanted_filename
 
 def make_rrd_filename(sysname, serviceid=None):
+    """Returns the desired RRD filename for the given sysname/serviceid"""
     if serviceid:
         return os.path.join(RRDDIR, '%s.%s.rrd' % (sysname, serviceid))
         # typically ludvig.ntnu.no.54.rrd
