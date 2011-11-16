@@ -14,7 +14,13 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from calendar import HTMLCalendar
+from itertools import groupby
+from datetime import date
+from time import strftime
+
 from django.core.urlresolvers import reverse
+from django.utils.html import conditional_escape
 
 def task_components(task):
     components = []
@@ -65,3 +71,41 @@ def task_components(task):
             'trail': trail,
         })
     return components
+
+class MaintenanceCalendar(HTMLCalendar):
+    def __init__(self, tasks):
+        super(MaintenanceCalendar, self).__init__(0)
+        self.tasks = self.group_by_start(tasks)
+
+    def formatday(self, day, weekday):
+        if day != 0:
+            this_day = date(self.year, self.month, day)
+            css = self.cssclasses[weekday]
+            if date.today() == this_day:
+                css += " today"
+            if this_day in self.tasks:
+                css += " task"
+                content = ["<ul>"]
+                for task in self.tasks[this_day]:
+                    desc = task.description
+                    if len(desc) > 16:
+                        desc = desc[:16]
+                    content.append("<li>")
+                    content.append("%s " % strftime('%H:%M', task.start_time.timetuple()))
+                    content.append(conditional_escape(desc))
+                    content.append("</li>")
+                content.append("</ul>")
+                return self.day_cell(css, "%d %s" % (day, ''.join(content)))
+            return self.day_cell(css, day)
+        return self.day_cell('noday', '&nbsp;')
+
+    def formatmonth(self, year, month):
+        self.year, self.month = year, month
+        return super(MaintenanceCalendar, self).formatmonth(year, month)
+
+    def group_by_start(self, tasks):
+        field = lambda task: task.start_time.date()
+        return dict([(start_time, list(items)) for start_time, items in groupby(tasks, field)])
+
+    def day_cell(self, css_class, content):
+        return '<td class="%s">%s</td>' % (css_class, content)
