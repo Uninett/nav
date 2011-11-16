@@ -16,19 +16,20 @@
 
 import nav.maintenance
 
-from datetime import datetime
+from datetime import datetime, date
 
 from django.core.urlresolvers import reverse
 from django.db.models import Count
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, Http404
+from django.utils.safestring import mark_safe
 
 from nav.django.utils import get_account
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.web.message import new_message, Messages
 
-from nav.web.maintenance.utils import task_components
+from nav.web.maintenance.utils import task_components, MaintenanceCalendar
 
 def active(request):
     tasks = MaintenanceTask.objects.filter(
@@ -109,3 +110,24 @@ def cancel(request, task_id):
             },
             RequestContext(request)
         )
+
+def calendar(request, year=None, month=None):
+    if not year:
+        year = date.today().year
+    if not month:
+        month = date.today().month
+    this_month = date(year, month, 1)
+    next_month = date(year, month + 1, 1)
+    tasks = MaintenanceTask.objects.filter(
+        start_time__gt=this_month,
+        start_time__lt=next_month
+    )
+    calendar = MaintenanceCalendar(tasks).formatmonth(year, month)
+    return render_to_response(
+        'maintenance/calendar.html',
+        {
+            'active': {'calendar': True},
+            'calendar': mark_safe(calendar),
+        },
+        RequestContext(request)
+    )

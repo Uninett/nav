@@ -17,15 +17,15 @@
 
 from django.conf.urls.defaults import patterns, url
 
-from nav.web.maintenance.views import active, planned, historic
+from nav.web.maintenance.views import active, planned, historic, calendar
 from nav.web.maintenance.views import view, cancel
 
 dummy = lambda *args, **kwargs: None
 
 urlpatterns = patterns('',
-    url(r'^$', dummy,
+    url(r'^$', calendar,
         name='maintenance'),
-    url(r'^calendar/$', dummy,
+    url(r'^calendar/$', calendar,
         name='maintenance-calendar'),
     url(r'^active/$', active,
         name='maintenance-active'),
