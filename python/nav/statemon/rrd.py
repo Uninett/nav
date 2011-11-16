@@ -18,6 +18,7 @@
 Module for creating and updating rrd-objects
 """
 import os
+import shutil
 import event
 from debug import debug
 import rrdtool as rrd
@@ -34,9 +35,10 @@ RRD_STEP = 300
 database = db.db()
 
 def create(filename, netboxid, serviceid=None, handler=""):
-    if RRDDIR and not os.path.exists(RRDDIR):
-        os.mkdir(RRDDIR)
-    tupleFromHell = (str(os.path.join(RRDDIR, filename)),
+    dirname = os.path.dirname(filename)
+    if not os.path.exists(dirname):
+        os.mkdir(dirname)
+    tupleFromHell = (str(filename),
              '-s %s' % RRD_STEP,
              'DS:STATUS:GAUGE:600:0:1',
              'DS:RESPONSETIME:GAUGE:600:0:300',
@@ -68,10 +70,10 @@ def register_rrd(filename, netboxid, serviceid=None, handler=""):
         statusdescr = "Packet loss"
         responsedescr = "Roundtrip time"
         unit = '100%'
-    rrd_fileid = database.registerRrd(RRDDIR, filename, RRD_STEP, netboxid,
-                      subsystem, key, val)
+    rrd_fileid = database.registerRrd(filename, RRD_STEP, netboxid,
+                                      subsystem, key, val)
     database.registerDS(rrd_fileid, "RESPONSETIME",
-                responsedescr, "GAUGE", "s")
+                        responsedescr, "GAUGE", "s")
 
     database.registerDS(rrd_fileid, "STATUS", statusdescr, "GAUGE", unit)
 
@@ -83,12 +85,12 @@ def verify_rrd_registry(filename, netboxid, serviceid=None, handler=""):
 
     """
     try:
-        registered_netboxid = database.verify_rrd(RRDDIR, filename)
+        registered_netboxid = database.verify_rrd(filename)
     except db.UnknownRRDFileError, e:
         register_rrd(filename, netboxid, serviceid, handler)
     else:
         if registered_netboxid is None:
-            database.reconnect_rrd(RRDDIR, filename, netboxid)
+            database.reconnect_rrd(filename, netboxid)
         # We don't handle the unusual case where a netboxid in the db differs
         # from the one we are working with
     return True
@@ -101,28 +103,58 @@ def update(netboxid, sysname, time, status, responsetime, serviceid=None,
     status: 'UP' or 'DOWN' (from Event.status)
     responsetime: 0-300 or '' (undef)
     """
-    if serviceid:
-        filename = '%s.%s.rrd' % (sysname, serviceid)
-        # typically ludvig.ntnu.no.54.rrd
-    else:
-        filename = '%s.rrd' % (sysname)
-        # typically ludvig.ntnu.no.rrd
+    filename = resolve_rrd_file(netboxid, sysname, serviceid, handler)
 
-    if os.path.exists(os.path.join(RRDDIR, filename)):
-        verify_rrd_registry(filename, netboxid, serviceid, handler)
-    else:
-        create(filename, netboxid, serviceid, handler)
     if status == event.Event.UP:
         rrdstatus = 0
     else:
         rrdstatus = 1
 
-    rrdParam = (str(os.path.join(RRDDIR, filename)),
-            '%s:%i:%s' % (time, rrdstatus, responsetime))
+    rrdParam = (str(filename),
+                '%s:%i:%s' % (time, rrdstatus, responsetime))
     try:
         rrd.update(*rrdParam)
-    except Exception, e:
+    except Exception, err:
         debug("Failed to update %s" % filename, 7)
-        debug("Exception: %s" % e)
+        debug("Exception: %s" % err)
     else:
         debug("Updated %s" % filename, 7)
+
+def resolve_rrd_file(netboxid, sysname, serviceid, handler):
+    """Resolves and returns the name of an RRD file to update.
+
+    This function will create the RRD file if necessary, and resolves most
+    problems that can occur from differences between the file system and the
+    database RRD registry, and from device sysname changes.
+
+    """
+    wanted_filename = os.path.normpath(make_rrd_filename(sysname, serviceid))
+    try:
+        db_filename = os.path.normpath(
+            database.get_existing_rrd(netboxid, serviceid))
+    except db.UnknownRRDFileError:
+        if os.path.exists(wanted_filename):
+            verify_rrd_registry(wanted_filename, netboxid, serviceid, handler)
+        else:
+            create(wanted_filename, netboxid, serviceid, handler)
+    else:
+        while not os.path.exists(db_filename):
+            if db_filename == wanted_filename:
+                create(wanted_filename, netboxid, serviceid, handler)
+            else:
+                database.rename_rrd(db_filename, wanted_filename)
+                db_filename = wanted_filename
+        if not db_filename == wanted_filename:
+            shutil.move(db_filename, wanted_filename)
+            database.rename_rrd(db_filename, wanted_filename)
+            db_filename = wanted_filename
+
+    return wanted_filename
+
+def make_rrd_filename(sysname, serviceid=None):
+    if serviceid:
+        return os.path.join(RRDDIR, '%s.%s.rrd' % (sysname, serviceid))
+        # typically ludvig.ntnu.no.54.rrd
+    else:
+        return os.path.join(RRDDIR, '%s.rrd' % (sysname))
+        # typically ludvig.ntnu.no.rrd
