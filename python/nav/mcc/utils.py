@@ -150,12 +150,13 @@ def compare_datasources(path_to_config, filename, targetoids):
     conn = getConnection('default')
     cur = conn.cursor()
 
+    filename = filename.lower()
     if not filename.endswith('.rrd'):
         filename = filename + '.rrd'
 
     numdsq = """SELECT name, descr FROM rrd_file
     JOIN rrd_datasource USING (rrd_fileid)
-    WHERE path = %s AND filename = %s
+    WHERE path = %s AND lower(filename) = %s
     ORDER BY name
     """
     cur.execute(numdsq, (path_to_config, filename))
@@ -183,6 +184,7 @@ def check_file_existence(datadir, sysname):
     Check if rrd-file exists. If not, delete tuple from database.
     """
 
+    sysname = sysname.lower()
     if not sysname.endswith('.rrd'):
         sysname = sysname + '.rrd'
     filename = join(datadir, sysname)
@@ -193,7 +195,8 @@ def check_file_existence(datadir, sysname):
 
         conn = getConnection('default')
         cur = conn.cursor()
-        sql = """DELETE FROM rrd_file WHERE path = %s AND filename = %s """
+        sql = """DELETE FROM rrd_file WHERE path = %s AND
+                 lower(filename) = %s """
         cur.execute(sql, (datadir, sysname))
 
         conn.commit()
@@ -401,7 +404,7 @@ class RRDcontainer:
 
     def __init__(self, filename, netboxid, path="", key=None, value=None,
                  step=300, speed=None):
-        self.filename = filename
+        self.filename = filename.lower()
         self.netboxid = netboxid
         self.path = path
         self.key = key

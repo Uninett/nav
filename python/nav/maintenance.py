@@ -144,11 +144,14 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
                 %(state)s
             )"""
 
+    if not isinstance(description, unicode):
+        description = description.decode('utf-8')
+
     data = {
         'maint_taskid': taskid,
         'maint_start': time.strftime('%Y-%m-%d %H:%M:%S', maint_start),
         'maint_end': time.strftime('%Y-%m-%d %H:%M:%S', maint_end),
-        'description': str(description),
+        'description': description,
         'author': author,
         'state': state
     }

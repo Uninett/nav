@@ -51,7 +51,9 @@ class HttpsChecker(AbstractChecker):
 
         if vhost:
             i.host = vhost
-        
+
+        if '?' in url:
+            path = path + '?' + query
         i.putrequest('GET', path)
         internalRev = "$Rev: 1361 $"
         internalRev = internalRev[:-2].replace('$Rev: ','')
