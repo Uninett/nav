@@ -279,6 +279,32 @@ class _db(threading.Thread):
             return netboxid
         raise UnknownRRDFileError(path, filename)
 
+    def get_existing_rrd(self, netboxid, serviceid=None):
+        """Returns the (path, filename) tuple of the last registered RRD file
+        for the given netboxid/serviceid combination"""
+        if serviceid:
+            where = """WHERE netboxid=%s AND subsystem='serviceping' AND
+                       key='serviceid' AND value=%s"""
+            values = (netboxid, str(serviceid))
+        else:
+            where = "WHERE netboxid=%s AND subsystem='pping'"
+            values = (netboxid,)
+
+        statement = """SELECT path, filename FROM rrd_file %s
+                       ORDER BY rrd_fileid DESC LIMIT 1""" % where
+        rows = self.query(statement, values)
+        if len(rows) > 0:
+            return rows[0]
+        else:
+            raise UnknownRRDFileError(netboxid, serviceid)
+
+    def rename_rrd(self, path, filename, newpath, newfilename):
+        """Renames a referenced RRD file in the database, but not on disk"""
+        statement = """UPDATE rrd_file
+                       SET path=%s, filename=%s
+                       WHERE path=%s AND filename=%s"""
+        self.execute(statement, (path, filename, newpath, newfilename))
+
     def reconnect_rrd(self, path, filename, netboxid):
         """Reconnects a known, disconnected RRD file with a netboxid."""
         statement = """UPDATE rrd_file
