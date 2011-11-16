@@ -92,12 +92,18 @@ class MaintenanceCalendar(HTMLCalendar):
                         desc = desc[:16]
                     content.append("<li>")
                     content.append("%s " % strftime('%H:%M', task.start_time.timetuple()))
+                    content.append('<a href="%s">' % reverse('maintenance-view', args=[task.id]))
                     content.append(conditional_escape(desc))
+                    content.append("</a>")
                     content.append("</li>")
                 content.append("</ul>")
                 return self.day_cell(css, "%d %s" % (day, ''.join(content)))
             return self.day_cell(css, day)
         return self.day_cell('noday', '&nbsp;')
+
+    def formatweekheader(self):
+        header = super(MaintenanceCalendar, self).formatweekheader()
+        return header.replace('<tr>', '<tr class="weekheader">', 1)
 
     def formatmonth(self, year, month):
         self.year, self.month = year, month
