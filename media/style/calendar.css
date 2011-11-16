@@ -16,26 +16,36 @@
  *
  */
 
-table.calendar {
+div.calendar table {
 	width: 100%;
 }
-table.calendar caption {
-}
-table.calendar tr {
-}
-table.calendar tr th {
+div.calendar tr th {
 	width: 14%;
 }
-table.calendar tr td {
+div.calendar tr td {
 	border: 1px solid #999;
 	height: 5em; /* Content will increase height if necessary. */
+	vertical-align: top;
 }
-table.calendar tr td.today {
+div.calendar tr td.today {
 	background: #FFC;
 	color: black;
 }
-table.calendar tr td span.dayheader {
-	float: right;
-	margin: 0.3em 0;
-	padding: 0.3em;
+
+div.calendar tr th.month {
+	background: #567899;
+	color: white;
+	border-bottom: 2px solid white;
+	font-size: 1.2em;
+	font-weight: bolder;
+	padding: 0.3em 0.5em;
+	text-align: left;
+}
+
+div.calendar tr.weekheader th {
+  background: #D3D7CF;
+	border-left: 1px solid white;
+	border-right: 2px solid white;
+	padding: 5px;
+	padding-bottom: 0;
 }
