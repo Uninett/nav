@@ -21,7 +21,7 @@ by the service monitor.
 It implements the singleton pattern, ensuring only one instance
 is used at a time.
 """
-
+import os
 import threading
 import checkermap
 import psycopg2
@@ -263,7 +263,7 @@ class _db(threading.Thread):
         return self._checkers
 
 
-    def verify_rrd(self, path, filename):
+    def verify_rrd(self, filename):
         """Verifies that a given RRD file is registered in the db.
 
         Returns: The netboxid of the netbox to which this RRD file belongs.
@@ -273,14 +273,15 @@ class _db(threading.Thread):
         """
         statement = """SELECT rrd_fileid, netboxid FROM rrd_file
                        WHERE path=%s AND filename=%s"""
-        rows = self.query(statement, (path, filename))
+        rows = self.query(statement, (os.path.dirname(filename),
+                                      os.path.basename(filename)))
         if len(rows) > 0:
             (rrd_fileid, netboxid) = rows[0]
             return netboxid
-        raise UnknownRRDFileError(path, filename)
+        raise UnknownRRDFileError(filename)
 
     def get_existing_rrd(self, netboxid, serviceid=None):
-        """Returns the (path, filename) tuple of the last registered RRD file
+        """Returns the filename tuple of the last registered RRD file
         for the given netboxid/serviceid combination"""
         if serviceid:
             where = """WHERE netboxid=%s AND subsystem='serviceping' AND
@@ -294,27 +295,31 @@ class _db(threading.Thread):
                        ORDER BY rrd_fileid DESC LIMIT 1""" % where
         rows = self.query(statement, values)
         if len(rows) > 0:
-            return rows[0]
+            return os.path.join(*rows[0])
         else:
             raise UnknownRRDFileError(netboxid, serviceid)
 
-    def rename_rrd(self, path, filename, newpath, newfilename):
+    def rename_rrd(self, from_file, to_file):
         """Renames a referenced RRD file in the database, but not on disk"""
         statement = """UPDATE rrd_file
                        SET path=%s, filename=%s
                        WHERE path=%s AND filename=%s"""
-        self.execute(statement, (path, filename, newpath, newfilename))
+        self.execute(statement,
+                     (os.path.dirname(to_file), os.path.basename(to_file),
+                      os.path.dirname(from_file), os.path.basename(from_file)))
 
-    def reconnect_rrd(self, path, filename, netboxid):
+    def reconnect_rrd(self, filename, netboxid):
         """Reconnects a known, disconnected RRD file with a netboxid."""
         statement = """UPDATE rrd_file
                        SET netboxid=%s
                        WHERE path=%s AND
                              filename=%s AND
                              netboxid IS NULL"""
-        return self.execute(statement, (netboxid, path, filename))
+        return self.execute(statement, (netboxid,
+                                        os.path.dirname(filename),
+                                        os.path.basename(filename)))
 
-    def registerRrd(self, path, filename, step, netboxid, subsystem, key="",
+    def registerRrd(self, filename, step, netboxid, subsystem, key="",
                     val=""):
         rrdid = self.query("SELECT nextval('rrd_file_rrd_fileid_seq')")[0][0]
         if key and val:
@@ -322,14 +327,17 @@ class _db(threading.Thread):
                            (rrd_fileid, path, filename, step, netboxid,
                             key, value, subsystem)
                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
-            values = (rrdid, path, filename, step, netboxid, key, val,
-                      subsystem)
+            values = (rrdid,
+                      os.path.dirname(filename), os.path.basename(filename),
+                      step, netboxid, key, val, subsystem)
         else:
             statement = """INSERT INTO rrd_file
                            (rrd_fileid, path, filename, step, netboxid,
                             subsystem)
                            VALUES (%s, %s, %s, %s, %s, %s)"""
-            values = (rrdid, path, filename, step, netboxid, subsystem)
+            values = (rrdid,
+                      os.path.dirname(filename), os.path.basename(filename),
+                      step, netboxid, subsystem)
         self.execute(statement, values)
         return rrdid
 
