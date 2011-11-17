@@ -31,6 +31,27 @@ from nav.web.message import new_message, Messages
 
 from nav.web.maintenance.utils import task_components, MaintenanceCalendar
 
+def calendar(request, year=None, month=None):
+    if not year:
+        year = date.today().year
+    if not month:
+        month = date.today().month
+    this_month = date(year, month, 1)
+    next_month = date(year, month + 1, 1)
+    tasks = MaintenanceTask.objects.filter(
+        start_time__gt=this_month,
+        start_time__lt=next_month
+    )
+    calendar = MaintenanceCalendar(tasks).formatmonth(year, month)
+    return render_to_response(
+        'maintenance/calendar.html',
+        {
+            'active': {'calendar': True},
+            'calendar': mark_safe(calendar),
+        },
+        RequestContext(request)
+    )
+
 def active(request):
     tasks = MaintenanceTask.objects.filter(
         start_time__lt=datetime.now(),
@@ -110,24 +131,3 @@ def cancel(request, task_id):
             },
             RequestContext(request)
         )
-
-def calendar(request, year=None, month=None):
-    if not year:
-        year = date.today().year
-    if not month:
-        month = date.today().month
-    this_month = date(year, month, 1)
-    next_month = date(year, month + 1, 1)
-    tasks = MaintenanceTask.objects.filter(
-        start_time__gt=this_month,
-        start_time__lt=next_month
-    )
-    calendar = MaintenanceCalendar(tasks).formatmonth(year, month)
-    return render_to_response(
-        'maintenance/calendar.html',
-        {
-            'active': {'calendar': True},
-            'calendar': mark_safe(calendar),
-        },
-        RequestContext(request)
-    )
