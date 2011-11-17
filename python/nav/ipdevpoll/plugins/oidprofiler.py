@@ -132,7 +132,7 @@ class OidProfiler(Plugin):
             failure.trap(error.TimeoutError, defer.TimeoutError)
             self._logger.debug("timed out waiting for %s response.",
                                snmpoid.oid_key)
-            return []
+            return {}
 
         def getnext_result_checker(result):
             if len(result) > 0:
@@ -144,7 +144,7 @@ class OidProfiler(Plugin):
             return False
 
         def get_result_checker(result):
-            if oid in result:
+            if result.get(oid, None) or result.get(str(oid), None):
                 self._logger.debug("%s support found using GET: %r",
                                   snmpoid.oid_key, result)
                 return True

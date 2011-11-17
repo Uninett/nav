@@ -120,7 +120,7 @@ class Dot1q(Plugin):
 
         if not egress or not untagged:
             egress = yield query.get_vlan_static_egress_ports()
-            untagged = yield query.get_vlan_static_egress_ports()
+            untagged = yield query.get_vlan_static_untagged_ports()
 
         returnValue((egress, untagged))
 
