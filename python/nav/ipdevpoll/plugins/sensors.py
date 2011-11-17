@@ -20,6 +20,7 @@ This plugin use CISCO-ENVMON-MIB, ENTITY-SENSOR-MIB and IT-WATCHDOGS-MIB-V3
 to retrieve all possible sensors in network-equipment.
 """
 
+from twisted.internet import defer
 
 from nav.mibs.itw_mib import ItWatchDogsMib
 from nav.mibs.itw_mibv3 import ItWatchDogsMibV3
@@ -87,14 +88,18 @@ class Sensors(Plugin):
     def can_handle(cls, netbox):
         return True
 
+    @defer.inlineCallbacks
     def handle(self):
         """ Collect sensors and feed them in to persistent store."""
         self._logger.debug('Collection sensors data')
         mibs = MIBFactory.get_instance(self.netbox, self.agent)
         for mib in mibs:
-            df = mib.get_all_sensors()
-            df.addCallback(self._store_sensors)
-        return df
+            all_sensors = yield mib.get_all_sensors()
+            if len(all_sensors) > 0:
+                # Store and jump out on the first MIB that give
+                # any results
+                self._store_sensors(all_sensors)
+                break
 
     def _store_sensors(self, result):
         """ Store sensor-records to database (this is actually
