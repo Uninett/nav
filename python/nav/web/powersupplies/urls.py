@@ -1,6 +1,5 @@
-# encoding: utf-8
 #
-# Copyright 2008 - 2011 (C) UNINETT AS
+# Copyright 2011 (C) UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,23 +13,12 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-"""
-from twisted.internet import defer
+"""PowerSupplies Django URL config"""
 
-from nav.mibs import reduce_index
-from nav.mibs import mibretriever
-
-from nav.mibs.entity_mib import EntityTable
+from django.conf.urls.defaults import patterns, url
+from nav.web.powersupplies.views import index
 
 
-class IfMib(mibretriever.MibRetriever):
-    from nav.smidumps.if_mib import MIB as mib
-
-    @defer.inlineCallbacks
-    def get_if_table(self):
-        df = self.retrieve_table('ifTable')
-        df.addCallback(self.translate_result)
-        df.addCallback(reduce_index)
-        if_table = yield df
-        defer.returnValue(if_table)
+urlpatterns = patterns('',
+    url(r'^$', index),
+   )

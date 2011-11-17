@@ -190,8 +190,8 @@ class PrefixBulkParser(BulkParser):
 
 class RoomBulkParser(BulkParser):
     """Parses the room bulk format"""
-    format = ('roomid', 'locationid',
-              'descr', 'opt1', 'opt2', 'opt3', 'opt4', 'position')
+    format = ('roomid',
+              'locationid', 'descr', 'opt1', 'opt2', 'opt3', 'opt4')
     required = 1
 
 class ServiceBulkParser(BulkParser):
