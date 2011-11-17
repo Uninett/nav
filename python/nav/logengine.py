@@ -296,7 +296,7 @@ def read_log_lines(config):
     except IOError, e:
         # If logfile can't be found, we ignore it.  We won't needlessly
         # spam the NAV admin every minute with a file not found error!
-        if e.errno != ENOENT:
+        if e.errno != errno.ENOENT:
             logger.exception("Couldn't open logfile %s", logfile)
 
     ## if the file exists
