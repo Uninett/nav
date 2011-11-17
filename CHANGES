@@ -1,3 +1,24 @@
+Version 3.9.2
+(released 17 Nov 2011)
+
+ Bugfixes:
+
+  * LP#300708 (Improve the link up/down trap plugin to include description)
+  * LP#338696 (Postgresql service checker is actually a port checker)
+  * LP#787957 (No trunk information on H3C switches)
+  * LP#802408 (Lowercase cricket rrd file not found when sysname has uppercase
+               letters)
+  * LP#854696 (Adding a new filter or new filter group in Alert Profiles fails)
+  * LP#858055 (Creating a new maintenance task with ÆØÅ in description fails)
+  * LP#862208 (No cricket stats for directories "routers" and "switches" in
+               cricket)
+  * LP#865292 (HTTP service checker ignores query string)
+  * LP#890190 (linkstate trap handler does not work)
+  * LP#890607 (Set supervisor SW version as chassis SW version on Cisco devices)
+  * LP#891090 (pping creates multiple RRD files for same data, causing ipdevinfo
+               to display availability as N/A)
+
+
 Version 3.9.1
 (released 12 Aug 2011)
 
