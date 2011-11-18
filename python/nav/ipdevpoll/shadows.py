@@ -779,6 +779,33 @@ class Sensor(Shadow):
     __shadowclass__ = manage.Sensor
     __lookups__ = [('netbox', 'internal_name', 'mib')]
 
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        cls._delete_missing_sensors(containers)
+        
+    @classmethod
+    @db.autocommit
+    def _delete_missing_sensors(cls, containers):
+        missing_sensors = cls._get_missing_sensors(containers)
+        sensor_names = [row['internal_name']
+                            for row in missing_sensors.values('internal_name')]
+        if len(missing_sensors) < 1:
+            return
+        netbox = containers.get(None, Netbox)
+        cls._logger.error('Deleting %d missing sensors from %s: %s',
+                                len(sensor_names), netbox.sysname,
+                                ", ".join(sensor_names))
+        missing_sensors.delete()
+
+    @classmethod
+    @db.autocommit
+    def _get_missing_sensors(cls, containers):
+        found_sensor_pks = [sensor.id for sensor in containers[cls].values()]
+        netbox = containers.get(None, Netbox)
+        missing_sensors = manage.Sensor.objects.filter(
+                        netbox=netbox).exclude(pk__in=found_sensor_pks)
+        return missing_sensors
+        
 class PowerSupplyOrFan(Shadow):
     __shadowclass__ = manage.PowerSupplyOrFan
     __lookups__ = [('netbox', 'name')]

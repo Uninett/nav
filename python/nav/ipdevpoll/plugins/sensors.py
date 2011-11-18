@@ -86,11 +86,12 @@ class Sensors(Plugin):
 
     @classmethod
     def can_handle(cls, netbox):
+        """Handles all types of netboxes"""
         return True
 
     @defer.inlineCallbacks
     def handle(self):
-        """ Collect sensors and feed them in to persistent store."""
+        """Collect sensors and feed them in to persistent store."""
         self._logger.debug('Collection sensors data')
         mibs = MIBFactory.get_instance(self.netbox, self.agent)
         for mib in mibs:
