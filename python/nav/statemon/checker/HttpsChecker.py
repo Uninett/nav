@@ -22,6 +22,14 @@ from urlparse import urlsplit
 from nav.statemon.event import Event
 from nav.statemon.abstractChecker import AbstractChecker
 
+if sys.version_info[:2] >= (2, 6):
+    from ssl import wrap_socket
+else:
+    # Fallback for older Python versions.                                       
+    def wrap_socket(sock):
+        ssl = socket.ssl(sock, None, None)
+        return httplib.FakeSocket(sock, ssl)
+
 class HTTPSConnection(httplib.HTTPSConnection):
     def __init__(self, timeout, host, port=443):
         httplib.HTTPSConnection.__init__(self, host, port)
@@ -31,8 +39,7 @@ class HTTPSConnection(httplib.HTTPSConnection):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(self.timeout)
         self.sock.connect((self.host, self.port))
-        ssl = socket.ssl(self.sock, None, None)
-        self.sock = httplib.FakeSocket(self.sock, ssl)
+        self.sock = wrap_socket(self.sock)
         
 class HttpsChecker(AbstractChecker):
     def __init__(self, service, **kwargs):

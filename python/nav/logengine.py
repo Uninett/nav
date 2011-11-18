@@ -251,28 +251,28 @@ def verify_singleton(quiet=False):
 def get_categories(cursor):
     categories = {}
     cursor.execute("select category from category")
-    for r in cursor.fetchall():
-        if not categories.has_key(r[0]):
-            categories[r[0]] = r[0]
+    for category, in cursor.fetchall():
+        if not categories.has_key(category):
+            categories[category] = category
     return categories
 
 def get_origins(cursor):
     origins = {}
     cursor.execute("select origin, name from origin")
-    for r in cursor.fetchall():
-        if not origins.has_key(r[1]):
-            origins[r[1]] = int(r[0])
+    for origin, name in cursor.fetchall():
+        if not origins.has_key(name):
+            origins[name] = int(origin)
     return origins
 
 def get_types(cursor):
     types = {}
     cursor.execute(
         "select type, facility, mnemonic, priority from log_message_type")
-    for r in cursor.fetchall():
-        if not types.has_key(r[1]):
-            types[r[1]] = {}
-        if not types[r[1]].has_key(r[2]):
-            types[r[1]][r[2]] = int(r[0])
+    for type_, facility, mnemonic, priority in cursor.fetchall():
+        if not types.has_key(facility):
+            types[facility] = {}
+        if not types[facility].has_key(mnemonic):
+            types[facility][mnemonic] = int(type_)
     return types
 
 def read_log_lines(config):
