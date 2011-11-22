@@ -803,7 +803,7 @@ class Sensor(Shadow):
         found_sensor_pks = [sensor.id for sensor in containers[cls].values()]
         netbox = containers.get(None, Netbox)
         missing_sensors = manage.Sensor.objects.filter(
-                        netbox=netbox).exclude(pk__in=found_sensor_pks)
+            netbox=netbox.id).exclude(pk__in=found_sensor_pks)
         return missing_sensors
         
 class PowerSupplyOrFan(Shadow):
