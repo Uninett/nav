@@ -37,6 +37,7 @@ import nav.db
 from nav.event import Event
 from nav.Snmp.pysnmp_se import Snmp
 from nav.models.manage import PowerSupplyOrFan
+from nav.Snmp.errors import NoSuchObjectError
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
@@ -303,7 +304,15 @@ def check_psus_and_fans(to_check):
         numerical_status = None
         verify('Polling %s: %s' % (psu_or_fan.netbox.sysname, psu_or_fan.name))
         if psu_or_fan.sensor_oid and snmp_handle:
-            numerical_status = snmp_handle.get(psu_or_fan.sensor_oid)
+            try:
+                numerical_status = snmp_handle.get(psu_or_fan.sensor_oid)
+            except NoSuchObjectError, noSuchObjErr:
+                msg = '%s: %s, Exception = %s' % (psu_or_fan.netbox.sysname,
+                    psu_or_fan.name, noSuchObjErr)
+                verify(msg)
+                logger.error(msg)
+                # Don't jump out, continue to next psu or fan
+                continue
         vendor_id = None
         if psu_or_fan.netbox.type:
             vendor_id = psu_or_fan.netbox.type.get_enterprise_id()
