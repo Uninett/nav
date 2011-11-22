@@ -792,9 +792,9 @@ class Sensor(Shadow):
         if len(missing_sensors) < 1:
             return
         netbox = containers.get(None, Netbox)
-        cls._logger.error('Deleting %d missing sensors from %s: %s',
-                                len(sensor_names), netbox.sysname,
-                                ", ".join(sensor_names))
+        cls._logger.debug('Deleting %d missing sensors from %s: %s',
+                          len(sensor_names), netbox.sysname,
+                          ", ".join(sensor_names))
         missing_sensors.delete()
 
     @classmethod
