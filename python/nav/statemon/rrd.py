@@ -104,6 +104,9 @@ def update(netboxid, sysname, time, status, responsetime, serviceid=None,
     responsetime: 0-300 or '' (undef)
     """
     filename = resolve_rrd_file(netboxid, sysname, serviceid, handler)
+    if not filename:
+        debug("No RRD file to update for %s:%s" % (sysname, serviceid), 3)
+        return
 
     if status == event.Event.UP:
         rrdstatus = 0
@@ -129,27 +132,56 @@ def resolve_rrd_file(netboxid, sysname, serviceid, handler):
 
     """
     wanted_filename = os.path.normpath(make_rrd_filename(sysname, serviceid))
+    db_filename = _get_rrd_for(netboxid, serviceid)
+
+    wanted_file_exists = os.path.exists(wanted_filename)
+    wanted_file_known = _is_rrd_known(wanted_filename)
+
+    db_file_exists = db_filename and os.path.exists(db_filename)
+
+    if wanted_filename == db_filename:
+        if not wanted_file_exists:
+            create(wanted_filename, netboxid, serviceid, handler)
+        return wanted_filename
+    else:
+        if wanted_file_known:
+            if db_filename:
+                debug("Want to rename %s to %s but the latter is already in "
+                      "use by something else" % (db_filename, wanted_filename),
+                      7)
+                if not db_file_exists:
+                    create(db_filename, netboxid, serviceid, handler)
+                return db_filename
+            else:
+                debug("Want to update %s for %s, but it is already in use by "
+                      "something else" % (wanted_filename, sysname), 3)
+                return
+        else:
+            if db_file_exists:
+                debug("Renaming %s to %s" % (db_filename, wanted_filename), 7)
+                shutil.move(db_filename, wanted_filename)
+                _database.rename_rrd(db_filename, wanted_filename)
+            elif wanted_file_exists:
+                verify_rrd_registry(wanted_filename, netboxid, serviceid,
+                                    handler)
+            else:
+                create(wanted_filename, netboxid, serviceid, handler)
+            return wanted_filename
+
+def _is_rrd_known(filename):
     try:
-        db_filename = os.path.normpath(
+        _database.verify_rrd(filename)
+    except db.UnknownRRDFileError:
+        return False
+    else:
+        return True
+
+def _get_rrd_for(netboxid, serviceid):
+    try:
+        return os.path.normpath(
             _database.get_existing_rrd(netboxid, serviceid))
     except db.UnknownRRDFileError:
-        if os.path.exists(wanted_filename):
-            verify_rrd_registry(wanted_filename, netboxid, serviceid, handler)
-        else:
-            create(wanted_filename, netboxid, serviceid, handler)
-    else:
-        while not os.path.exists(db_filename):
-            if db_filename == wanted_filename:
-                create(wanted_filename, netboxid, serviceid, handler)
-            else:
-                _database.rename_rrd(db_filename, wanted_filename)
-                db_filename = wanted_filename
-        if not db_filename == wanted_filename:
-            shutil.move(db_filename, wanted_filename)
-            _database.rename_rrd(db_filename, wanted_filename)
-            db_filename = wanted_filename
-
-    return wanted_filename
+        return None
 
 def make_rrd_filename(sysname, serviceid=None):
     """Returns the desired RRD filename for the given sysname/serviceid"""

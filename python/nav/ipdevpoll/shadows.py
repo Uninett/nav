@@ -674,9 +674,9 @@ class GwPortPrefix(Shadow):
 
         data = self._parse_description_with_all_parsers()
         if not data:
-            self._logger.info("ifalias did not match any known router port "
-                              "description conventions: %s",
-                              self.interface.ifalias)
+            self._logger.debug("ifalias did not match any known router port "
+                               "description conventions: %s",
+                               self.interface.ifalias)
             self.prefix.vlan.netident = self.interface.ifalias
             return
 
