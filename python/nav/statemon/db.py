@@ -138,6 +138,7 @@ class _db(threading.Thread):
                     debug("Failed to commit", 2)
         except psycopg2.IntegrityError, e:
             debug(str(e), 2)
+            debug("Tried to execute: %s" % cursor.query, 7)
             debug("Throwing away update...", 2)
         except Exception, e:
             debug("Could not execute statement: "
