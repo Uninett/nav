@@ -28,7 +28,7 @@ import IPy
 from django.db.models import Q
 
 from nav.models import manage, oid
-from nav.models.event import EventQueue as Event
+from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 
 from storage import Shadow
 import descrparsers
@@ -302,6 +302,7 @@ class Interface(Shadow):
         """Cleans up Interface data."""
         cls._mark_missing_interfaces(containers)
         cls._delete_missing_interfaces(containers)
+        cls._generate_linkstate_events(containers)
         super(Interface, cls).cleanup_after_save(containers)
 
     @classmethod
@@ -370,6 +371,56 @@ class Interface(Shadow):
         down_modules = manage.Module.objects.exclude(up='y')
         dead_ifcs = ancient_ifcs.exclude(module__in = down_modules)
         return [row['pk'] for row in dead_ifcs.values('pk')]
+
+    @classmethod
+    @db.commit_on_success
+    def _generate_linkstate_events(cls, containers):
+        changed_ifcs = [ifc for ifc in containers[cls].values()
+                        if ifc.is_linkstate_changed()]
+        if not changed_ifcs:
+            return
+
+        netbox = containers.factory(None, Netbox)
+        cls._logger.debug("%s link state changed for: %s",
+                          netbox.sysname,
+                          ', '.join(ifc.ifname for ifc in changed_ifcs))
+
+        for ifc in changed_ifcs:
+            ifc.post_linkstate_event()
+
+    def is_linkstate_changed(self):
+        return (hasattr(self, 'ifoperstatus_change')
+                and self.ifoperstatus_change)
+
+    def post_linkstate_event(self):
+        if not self.is_linkstate_changed():
+            return
+
+        oldstate, newstate = self.ifoperstatus_change
+        if newstate == manage.Interface.OPER_DOWN:
+            self._make_linkstate_event(True)
+        elif newstate == manage.Interface.OPER_UP:
+            self._make_linkstate_event(False)
+
+    def _make_linkstate_event(self, start=True):
+        django_ifc = self._cached_converted_model
+        event = Event()
+        # FIXME: ipdevpoll is not a registered subsystem in the database yet
+        event.source_id = 'getDeviceData'
+        event.target_id = 'eventEngine'
+        event.netbox_id = self.netbox.id
+        event.device = django_ifc.netbox.device
+        event.subid = self.id
+        event.event_type_id = 'linkState'
+        event.state = event.STATE_START if start else event.STATE_END
+        event.save()
+
+        EventVar(event_queue=event, variable='alerttype',
+                 value='linkDown' if start else 'linkUp').save()
+        EventVar(event_queue=event, variable='interface',
+                 value=self.ifname).save()
+        EventVar(event_queue=event, variable='ifalias',
+                 value=django_ifc.ifalias or '').save()
 
     def lookup_matching_objects(self, containers):
         """Finds existing db objects that match this container.
