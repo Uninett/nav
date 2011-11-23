@@ -412,8 +412,17 @@ class Interface(Shadow):
                 "get_existing_model: "
                 "Found multiple matching objects for %r" % self)
         else:
-            self.id = result[0].id
-            return result[0]
+            stored = result[0]
+            self.id = stored.id
+            self._verify_operstatus_change(stored)
+            return stored
+
+    def _verify_operstatus_change(self, stored):
+        if self.ifoperstatus != stored.ifoperstatus:
+            self.ifoperstatus_change = (stored.ifoperstatus, self.ifoperstatus)
+        else:
+            self.ifoperstatus_change = None
+
 
     @classmethod
     def prepare_for_save(cls, containers):
