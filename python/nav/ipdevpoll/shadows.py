@@ -381,16 +381,48 @@ class Interface(Shadow):
             return
 
         netbox = containers.factory(None, Netbox)
-        cls._logger.debug("%s link state changed for: %s",
+        cls._logger.debug("(%s) link state changed for: %s",
                           netbox.sysname,
                           ', '.join(ifc.ifname for ifc in changed_ifcs))
 
-        for ifc in changed_ifcs:
+        linkstate_filter = cls.get_linkstate_filter()
+        eventful_ifcs = [ifc for ifc in changed_ifcs
+                         if ifc.matches_filter(linkstate_filter)]
+        if eventful_ifcs:
+            cls._logger.debug("(%s) posting linkState events for %r: %s",
+                              netbox.sysname, linkstate_filter,
+                              ', '.join(ifc.ifname for ifc in eventful_ifcs))
+
+        for ifc in eventful_ifcs:
             ifc.post_linkstate_event()
 
     def is_linkstate_changed(self):
         return (hasattr(self, 'ifoperstatus_change')
-                and self.ifoperstatus_change)
+                and bool(self.ifoperstatus_change))
+
+    @classmethod
+    def get_linkstate_filter(cls):
+        from nav.ipdevpoll.config import ipdevpoll_conf as conf
+        DEFAULT = 'topology'
+        link_filter = (conf.get('linkstate', 'filter')
+                       if conf.has_option('linkstate', 'filter')
+                       else DEFAULT)
+
+        if link_filter not in ('any', 'topology'):
+            cls._logger.warning("configured linkstate filter is invalid: %r"
+                                " (using %r as default)", link_filter, DEFAULT)
+            return DEFAULT
+        else:
+            return link_filter
+
+    def matches_filter(self, linkstate_filter):
+        django_ifc = self._cached_converted_model
+        if linkstate_filter == 'topology' and django_ifc.to_netbox:
+            return True
+        elif linkstate_filter == 'any':
+            return True
+        else:
+            return False
 
     def post_linkstate_event(self):
         if not self.is_linkstate_changed():
