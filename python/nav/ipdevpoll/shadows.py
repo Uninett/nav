@@ -305,6 +305,7 @@ class Interface(Shadow):
         super(Interface, cls).cleanup_after_save(containers)
 
     @classmethod
+    @db.commit_on_success
     def _mark_missing_interfaces(cls, containers):
         """Marks interfaces in db as gone if they haven't been collected in
         this round.
@@ -334,6 +335,7 @@ class Interface(Shadow):
         missing_interfaces.update(gone_since=timestamp)
 
     @classmethod
+    @db.commit_on_success
     def _delete_missing_interfaces(cls, containers):
         """Deletes missing interfaces from the database."""
         netbox = containers.get(None, Netbox)
