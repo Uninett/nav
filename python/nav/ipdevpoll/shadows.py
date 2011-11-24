@@ -403,15 +403,15 @@ class Interface(Shadow):
     @classmethod
     def get_linkstate_filter(cls):
         from nav.ipdevpoll.config import ipdevpoll_conf as conf
-        DEFAULT = 'topology'
+        default = 'topology'
         link_filter = (conf.get('linkstate', 'filter')
                        if conf.has_option('linkstate', 'filter')
-                       else DEFAULT)
+                       else default)
 
         if link_filter not in ('any', 'topology'):
             cls._logger.warning("configured linkstate filter is invalid: %r"
-                                " (using %r as default)", link_filter, DEFAULT)
-            return DEFAULT
+                                " (using %r as default)", link_filter, default)
+            return default
         else:
             return link_filter
 
@@ -437,7 +437,6 @@ class Interface(Shadow):
     def _make_linkstate_event(self, start=True):
         django_ifc = self._cached_converted_model
         event = Event()
-        # FIXME: ipdevpoll is not a registered subsystem in the database yet
         event.source_id = 'getDeviceData'
         event.target_id = 'eventEngine'
         event.netbox_id = self.netbox.id
@@ -454,7 +453,25 @@ class Interface(Shadow):
         EventVar(event_queue=event, variable='ifalias',
                  value=django_ifc.ifalias or '').save()
 
-    def lookup_matching_objects(self, containers):
+    def get_existing_model(self, containers=None):
+        """Implements custom logic for finding known interfaces."""
+        result = self._lookup_matching_objects(containers)
+        if not result:
+            return None
+        elif len(result) > 1:
+            self._logger.debug(
+                "get_existing_model: multiple matching objects returned. "
+                "query is: %r", result.query.as_sql())
+            raise manage.Interface.MultipleObjectsReturned(
+                "get_existing_model: "
+                "Found multiple matching objects for %r" % self)
+        else:
+            stored = result[0]
+            self.id = stored.id
+            self._verify_operstatus_change(stored)
+            return stored
+
+    def _lookup_matching_objects(self, containers):
         """Finds existing db objects that match this container.
 
         ifName is a more important identifier than ifindex, as ifindexes may
@@ -481,24 +498,6 @@ class Interface(Shadow):
             result = query.filter(ifindex=self.ifindex)
 
         return result
-
-    def get_existing_model(self, containers=None):
-        """Implements custom logic for finding known interfaces."""
-        result = self.lookup_matching_objects(containers)
-        if not result:
-            return None
-        elif len(result) > 1:
-            self._logger.debug(
-                "get_existing_model: multiple matching objects returned. "
-                "query is: %r", result.query.as_sql())
-            raise manage.Interface.MultipleObjectsReturned(
-                "get_existing_model: "
-                "Found multiple matching objects for %r" % self)
-        else:
-            stored = result[0]
-            self.id = stored.id
-            self._verify_operstatus_change(stored)
-            return stored
 
     def _verify_operstatus_change(self, stored):
         if self.ifoperstatus != stored.ifoperstatus:
@@ -541,15 +540,15 @@ class Interface(Shadow):
         changed_interfaces.update(ifindex=None)
 
     def prepare(self, containers):
-        self.set_netbox_if_unset(containers)
-        self.set_ifindex_if_unset(containers)
+        self._set_netbox_if_unset(containers)
+        self._set_ifindex_if_unset(containers)
 
-    def set_netbox_if_unset(self, containers):
+    def _set_netbox_if_unset(self, containers):
         """Sets this Interface's netbox reference if unset by plugins."""
         if self.netbox is None:
             self.netbox = containers.get(None, Netbox)
 
-    def set_ifindex_if_unset(self, containers):
+    def _set_ifindex_if_unset(self, containers):
         """Sets this Interface's ifindex value if unset by plugins."""
         if self.ifindex is None:
             interfaces = dict((v, k) for k, v in containers[Interface].items())
