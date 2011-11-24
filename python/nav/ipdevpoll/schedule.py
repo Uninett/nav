@@ -27,11 +27,9 @@ from twisted.internet import task, threads, reactor
 from twisted.internet.defer import Deferred, maybeDeferred
 
 from nav import ipdevpoll
-import shadows
-import config
-import signals
-from dataloader import NetboxLoader
-from jobs import JobHandler, AbortedJobError
+from . import shadows, config, signals
+from .dataloader import NetboxLoader
+from .jobs import JobHandler, AbortedJobError
 from nav.tableformat import SimpleTableFormatter
 
 from nav.ipdevpoll.utils import log_unhandled_failure

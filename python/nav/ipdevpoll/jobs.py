@@ -29,11 +29,10 @@ from nav import toposort
 
 from nav.ipdevpoll import get_context_logger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
-import storage
-import shadows
-from plugins import plugin_registry
+from . import storage, shadows
+from .plugins import plugin_registry
 from nav.ipdevpoll import db
-from utils import log_unhandled_failure
+from .utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
 ports = cycle([snmpprotocol.port() for i in range(50)])
