@@ -9,11 +9,11 @@
     <tbody>
         <tr>
             <th>Start</th>
-            <td>{{ task.maint_start|date:"Y-m-d H:i" }}</td>
+            <td>{{ task.start_time|date:"Y-m-d H:i" }}</td>
         </tr>
         <tr>
             <th>End</th>
-            <td>{{ task.maint_end|date:"Y-m-d H:i" }}</td>
+            <td>{{ task.end_time|date:"Y-m-d H:i" }}</td>
         </tr>
         <tr>
             <th>Description</th>
@@ -22,7 +22,7 @@
         <tr>
             <th>Components</th>
             <td>
-            {% if task.components %}
+            {% if components %}
             <ul>
             {% for comp in components %}
                 <li>
@@ -59,7 +59,7 @@
             <td>
                 <a href="">Edit</a>
                 {% ifnotequal task.state "cancelled" %}
-                | <a href="{% url maintenance-cancel task.maint_taskid %}">Cancel now</a>
+                | <a href="{% url maintenance-cancel task.id %}">Cancel now</a>
                 {% endifnotequal %}
             </td>
         </tr>

@@ -29,7 +29,9 @@ from nav.django.utils import get_account
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.web.message import new_message, Messages
 
-from nav.web.maintenance.utils import task_components, MaintenanceCalendar
+from nav.web.maintenance.utils import components_for_task, components_for_keys, task_component_trails
+from nav.web.maintenance.utils import MaintenanceCalendar
+from nav.web.maintenance.forms import MaintenanceTaskForm
 
 def calendar(request, year=None, month=None):
     if not year:
@@ -95,16 +97,14 @@ def historic(request):
     )
 
 def view(request, task_id):
-    tasks = nav.maintenance.getTask(task_id)
-    if not tasks:
-        raise Http404()
-    task = tasks[0]
-    components = task_components(task)
+    task = get_object_or_404(MaintenanceTask, pk=task_id)
+    components = components_for_task(task_id)
+    component_trail = task_component_trails(components)
     return render_to_response(
         'maintenance/details.html',
         {
             'task': task,
-            'components': components,
+            'components': component_trail,
         },
         RequestContext(request)
     )
