@@ -3,14 +3,17 @@ import logging
 
 from os.path import join
 from shutil import move
+
 from nav.models.manage import Netbox
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.models.event import Subsystem
 
+from django.db import transaction
+
 OCTET_COUNTERS = ['ifHCInOctets', 'ifHCOutOctets', 'ifInOctets', 'ifOutOctets']
 LOGGER = logging.getLogger(__name__)
 
-
+@transaction.commit_on_success
 def updatedb(datadir, containers):
     """
     Update database with information given from a module in form of a list of
