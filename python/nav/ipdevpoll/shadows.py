@@ -111,6 +111,23 @@ class NetboxType(Shadow):
     __shadowclass__ = manage.NetboxType
     __lookups__ = ['sysobjectid']
 
+    def get_enterprise_id(self):
+        """Returns the type's enterprise ID as an integer.
+
+        The type's sysobjectid should always start with
+        SNMPv2-SMI::enterprises (1.3.6.1.4.1).  The next OID element will be
+        an enterprise ID, while the remaining elements will describe the type
+        specific to the vendor.
+
+        """
+        prefix = u"1.3.6.1.4.1."
+        if self.sysobjectid.startswith(prefix):
+            specific = self.sysobjectid[len(prefix):]
+            enterprise = specific.split('.')[0]
+            return long(enterprise)
+        else:
+            raise ValueError("%r is not a valid sysObjectID" % self.sysobjectid)
+
 class NetboxInfo(Shadow):
     __shadowclass__ = manage.NetboxInfo
     __lookups__ = [('netbox', 'key', 'variable')]
@@ -850,4 +867,38 @@ class SnmpOid(Shadow):
 class NetboxSnmpOid(Shadow):
     __shadowclass__ = oid.NetboxSnmpOid
 
+class Sensor(Shadow):
+    __shadowclass__ = manage.Sensor
+    __lookups__ = [('netbox', 'internal_name', 'mib')]
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        cls._delete_missing_sensors(containers)
+        
+    @classmethod
+    @db.autocommit
+    def _delete_missing_sensors(cls, containers):
+        missing_sensors = cls._get_missing_sensors(containers)
+        sensor_names = [row['internal_name']
+                            for row in missing_sensors.values('internal_name')]
+        if len(missing_sensors) < 1:
+            return
+        netbox = containers.get(None, Netbox)
+        cls._logger.debug('Deleting %d missing sensors from %s: %s',
+                          len(sensor_names), netbox.sysname,
+                          ", ".join(sensor_names))
+        missing_sensors.delete()
+
+    @classmethod
+    @db.autocommit
+    def _get_missing_sensors(cls, containers):
+        found_sensor_pks = [sensor.id for sensor in containers[cls].values()]
+        netbox = containers.get(None, Netbox)
+        missing_sensors = manage.Sensor.objects.filter(
+            netbox=netbox.id).exclude(pk__in=found_sensor_pks)
+        return missing_sensors
+        
+class PowerSupplyOrFan(Shadow):
+    __shadowclass__ = manage.PowerSupplyOrFan
+    __lookups__ = [('netbox', 'name')]
 

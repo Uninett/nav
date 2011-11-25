@@ -14,8 +14,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a MibRetriever for the ENTITY-MIB, as well as helper classes."""
+
+from twisted.internet import defer
+
 from nav.oids import OID
-import mibretriever
+from nav.mibs import mibretriever
 
 class EntityMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_mib import MIB as mib
@@ -50,6 +53,18 @@ class EntityMib(mibretriever.MibRetriever):
         df.addCallback(bridge_mib_filter)
         return df
 
+    @defer.inlineCallbacks
+    def _get_named_table(self, table_name):
+        df = self.retrieve_table(table_name)
+        df.addCallback(self.translate_result)
+        ret_table = yield df
+        named_table = EntityTable(ret_table)
+        defer.returnValue(named_table)
+
+    @defer.inlineCallbacks
+    def get_entity_physical_table(self):
+        phy_sensor_table = yield self._get_named_table('entPhysicalTable')
+        defer.returnValue(phy_sensor_table)
 
 class EntityTable(dict):
     """Represent the contents of the entPhysicalTable as a dictionary"""

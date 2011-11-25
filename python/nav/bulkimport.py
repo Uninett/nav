@@ -185,11 +185,14 @@ class RoomImporter(BulkImporter):
     """Creates objects from the room bulk format"""
     def _create_objects_from_row(self, row):
         raise_if_exists(Room, id=row['roomid'])
-        location = get_object_or_fail(Location, id=row['locationid'])
+        if row['locationid']:
+            location = get_object_or_fail(Location, id=row['locationid'])
+        else:
+            location = None
         room = Room(id=row['roomid'], location=location,
                     description=row['descr'], optional_1=row['opt1'],
                     optional_2=row['opt2'], optional_3=row['opt3'],
-                    optional_4=row['opt4'], position=row['position'])
+                    optional_4=row['opt4'])
         return [room]
 
 class OrgImporter(BulkImporter):
