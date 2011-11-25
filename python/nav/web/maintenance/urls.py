@@ -18,7 +18,7 @@
 from django.conf.urls.defaults import patterns, url
 
 from nav.web.maintenance.views import active, planned, historic, calendar
-from nav.web.maintenance.views import view, cancel
+from nav.web.maintenance.views import view, cancel, new_task
 
 dummy = lambda *args, **kwargs: None
 
@@ -33,7 +33,7 @@ urlpatterns = patterns('',
         name='maintenance-planned'),
     url(r'^historic/$', historic,
         name='maintenance-historic'),
-    url(r'^new/$', dummy,
+    url(r'^new/$', new_task,
         name='maintenance-new'),
     url(r'^view/(?P<task_id>\d+)/$', view,
         name='maintenance-view'),

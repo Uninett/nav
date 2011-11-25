@@ -1,0 +1,47 @@
+{% extends "maintenance/base.html" %}
+
+{% block base_header_additional_head %}
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/quickselect.js"></script>
+{% endblock %}
+
+{% block content %}
+<form action="" method="post">
+{{ quickselect }}
+{% for key, identifiers in selected.items %}
+    {% ifnotequal key "location" %}
+    {% for id in identifiers %}
+<input type="hidden" name="{{ key }}" value="{{ id }}" />
+    {% endfor %}
+    {% endifnotequal %}
+{% endfor %}
+</form>
+
+{% if components %}
+<ul>
+{% for comp in components %}
+    <li>
+        {{ comp.title|capfirst }}:
+    {% for elem in comp.trail %}
+        {% if elem.url %}
+        <a href="{{ elem.url }}" title="{{ elem.title }}">{{ elem.name }}</a>
+        {% else %}
+        {{ elem.name }}
+        {% endif %}
+        {% if not forloop.last %}
+        &rarr;
+        {% endif %}
+    {% endfor %}
+    </li>
+{% endfor %}
+</ul>
+{% else %}
+    (none)
+{% endif %}
+
+<form action="" method="post">
+<table class="listtable vertitable">
+{{ task_form }}
+</table>
+</form>
+{% endblock %}

@@ -28,6 +28,7 @@ from django.utils.safestring import mark_safe
 from nav.django.utils import get_account
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.web.message import new_message, Messages
+from nav.web.quickselect import QuickSelect
 
 from nav.web.maintenance.utils import components_for_task, components_for_keys, task_component_trails
 from nav.web.maintenance.utils import MaintenanceCalendar
@@ -131,3 +132,33 @@ def cancel(request, task_id):
             },
             RequestContext(request)
         )
+
+def new_task(request):
+    task_form = MaintenanceTaskForm()
+    quickselect = QuickSelect(service=True)
+    component_trail = None
+    qs_res = None
+    if request.method == 'POST':
+        qs_res = {
+            'service': request.POST.getlist('service'),
+            'netbox': request.POST.getlist('netbox'),
+            'room': request.POST.getlist('room'),
+            'location': request.POST.getlist('loc'),
+            'loc': request.POST.getlist('loc'),
+        }
+        components = components_for_keys(qs_res)
+        component_trail = task_component_trails(components)
+#        locations = Location.objects.filter(pk__in=qs_res['location'])
+#        rooms = Location.objects.filter(pk__in=qs_res['room'])
+#        netboxes = Netbox.objects.filter(pk__in=qs_res['netbox'])
+#        services = Service.objects.filter(pk__in=qs_res['service'])
+    return render_to_response(
+        'maintenance/new_task.html',
+        {
+            'task_form': task_form,
+            'quickselect': mark_safe(quickselect),
+            'components': component_trail,
+            'selected': qs_res,
+        },
+        RequestContext(request)
+    )
