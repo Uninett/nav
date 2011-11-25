@@ -130,10 +130,11 @@ def ip_do_search(request):
                 for row in rows:
                     row = process_ip_row(row, dns=False)
                     if dns:
-                        if not isinstance(dns_lookups[ip], Exception):
-                            row.dns_lookup = dns_lookups[ip]
-                        else:
+                        if (isinstance(dns_lookups[ip], Exception)
+                            or not dns_lookups[ip]):
                             row.dns_lookup = ""
+                        else:
+                            row.dns_lookup = dns_lookups[ip].pop()
                     if (row.ip, row.mac) not in tracker:
                         tracker[(row.ip, row.mac)] = []
                     else:
