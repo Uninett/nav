@@ -26,6 +26,7 @@ support.
 import socket
 from IPy import IP
 from itertools import cycle
+from collections import defaultdict
 from twisted.names import dns
 from twisted.names import client
 from twisted.internet import defer
@@ -41,7 +42,7 @@ from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError
 def reverse_lookup(addresses):
     """Runs parallel reverse DNS lookups for addresses.
 
-    :returns: A dict of {address: name} items
+    :returns: A dict of {address: [name, ...]} items
 
     """
     resolver = ReverseResolver()
@@ -59,22 +60,22 @@ def forward_lookup(names):
 class Resolver(object):
     """Abstract base class for resolvers"""
     def __init__(self):
-        self._resolvers = cycle([client.Resolver('/etc/resolv.conf')
+        self._resolvers = cycle([_Resolver('/etc/resolv.conf')
                                  for _i in range(3)])
-        self.results = {}
+        self.results = defaultdict(list)
         self._finished = False
 
     def resolve(self, names):
         """Resolves DNS names in parallel"""
         self._finished = False
-        self.results = {}
+        self.results = defaultdict(list)
 
         deferred_list = []
         for name in names:
-            deferred = self.lookup(name)
-            deferred.addCallback(self._extract_records, name)
-            deferred.addErrback(self._errback, name)
-            deferred_list.append(deferred)
+            for deferred in self.lookup(name):
+                deferred.addCallback(self._extract_records, name)
+                deferred.addErrback(self._errback, name)
+                deferred_list.append(deferred)
 
         deferred_list = defer.DeferredList(deferred_list)
         deferred_list.addCallback(self._parse_result)
@@ -83,10 +84,10 @@ class Resolver(object):
         while not self._finished:
             reactor.iterate()
 
-        return self.results
+        return dict(self.results)
 
     def lookup(self, name):
-        """Initiates an asynchronous DNS lookup for a single name"""
+        """Initiates possibly multiple asynchronous DNS lookups for a name"""
         raise NotImplementedError
 
     @staticmethod
@@ -95,8 +96,11 @@ class Resolver(object):
 
     def _parse_result(self, result):
         """Parses the result to the correct format"""
-        for _success, value in result:
-            self.results[value[0]] = value[1]
+        for _success, (name, response) in result:
+            if isinstance(response, Exception):
+                self.results[name] = response
+            else:
+                self.results[name].extend(response)
 
     @staticmethod
     def _errback(failure, host):
@@ -107,12 +111,16 @@ class Resolver(object):
         self._finished = True
 
 class ForwardResolver(Resolver):
-    """A forward resolver implementation for A and AAAA record lookups"""
+    """A forward resolver implementation for A and AAAA record lookups.
+
+    NOTE: It will not lookup and follow CNAME records.
+
+    """
 
     def lookup(self, name):
         """Returns a deferred object with all records related to hostname"""
         resolver = self._resolvers.next()
-        return resolver.lookupAllRecords(name)
+        return [resolver.lookupAddress(name), resolver.lookupIPV6Address(name)]
 
     @staticmethod
     def _extract_records(result, name):
@@ -137,12 +145,25 @@ class ReverseResolver(Resolver):
         """Returns a deferred object which tries to get the hostname from ip"""
         resolver = self._resolvers.next()
         ip = IP(address)
-        return resolver.lookupPointer(ip.reverseName())
+        return [resolver.lookupPointer(ip.reverseName())]
 
     @staticmethod
     def _extract_records(result, ip):
         """Callback for PTR records"""
+        name_list = []
+
         for record_list in result:
             for record in record_list:
                 if record.type == dns.PTR:
-                    return (ip, str(record.payload.name))
+                    name_list.append(str(record.payload.name))
+
+        return (ip, name_list)
+
+class _Resolver(client.Resolver):
+    def connectionLost(self, _):
+        """Method to override for disconnect related tasks.
+
+        It's basically here to fix a deficiency in the Twisted version we're
+        working on.
+        """
+        pass
