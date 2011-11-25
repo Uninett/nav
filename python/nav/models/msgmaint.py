@@ -18,7 +18,7 @@
 
 from django.db import models
 
-from nav.models.fields import VarcharField
+from nav.models.fields import VarcharField, LegacyGenericForeignKey
 
 class Message(models.Model):
     """From MetaNAV: The table contains the messages registered in the messages
@@ -70,6 +70,7 @@ class MaintenanceComponent(models.Model):
         db_column='maint_taskid')
     key = VarcharField()
     value = VarcharField()
+    component = LegacyGenericForeignKey('key', 'value')
 
     class Meta:
         db_table = 'maint_component'
