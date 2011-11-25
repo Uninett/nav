@@ -359,15 +359,17 @@ def create_target_config(netbox):
         shortdesc = encode_and_escape(netbox.type.name)
 
     LOGGER.info("Writing target %s" % netbox.sysname)
-    config = ""
-    config = config + "target \"%s\"\n" % netbox.sysname
-    config = config + "\tdisplay-name\t = \"%s\"\n" % displayname
-    config = config + "\tsnmp-host\t= %s\n" % netbox.ip
-    config = config + "\tsnmp-community\t= %s\n" % netbox.read_only
-    config = config + "\ttarget-type\t= %s\n" % netbox.sysname
-    config = config + "\tshort-desc\t= \"%s\"\n\n" % shortdesc
+    config = [
+        'target "%s"' % str(netbox.sysname),
+        '\tdisplay-name\t= "%s"' % displayname,
+        '\tsnmp-host\t= %s' % str(netbox.ip),
+        '\tsnmp-community\t= %s' % str(netbox.read_only),
+        '\ttarget-type\t= %s' % str(netbox.sysname),
+        '\tshort-desc\t= "%s"' % shortdesc,
+        ''
+        ]
 
-    return config
+    return "\n".join(config)
 
 
 def create_container(netbox, targetoids):
