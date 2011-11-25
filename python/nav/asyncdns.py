@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008-2011 UNINETT AS
 #
@@ -14,84 +13,157 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Asynchronous DNS resolver for lookups on both IPv4 and IPv6.
 
-"""Asynchronous DNS resolver that does lookups on both IPv4 and IPv6"""
+The API is designed for use in synchronous programs and uses Twisted in
+perverted ways to accomplish the behind-the-curtain asynchronous work.
+
+We would rather have used adns, but the available versions have poor IPv6
+support.
+
+"""
 
 import socket
 from IPy import IP
 from itertools import cycle
+from collections import defaultdict
 from twisted.names import dns
 from twisted.names import client
+from twisted.internet import defer
 # pylint: disable=E1101
 from twisted.internet import reactor
 # pylint: disable=W0611
 from twisted.names.error import DNSUnknownError
 from twisted.names.error import DomainError, AuthoritativeDomainError
-from twisted.names.error import DNSQueryTimeoutError, DNSFormatError 
+from twisted.names.error import DNSQueryTimeoutError, DNSFormatError
 from twisted.names.error import DNSServerError, DNSNameError
-from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError 
-
-_resolvers = cycle([client.Resolver('/etc/resolv.conf') for i in range(3)])
+from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError
 
 def reverse_lookup(addresses):
-    """Performs reverse lookups and returns a dict of
-    ip => hostname"""
-    return _lookup(addresses, _lookup_pointer, _extract_ptr)
+    """Runs parallel reverse DNS lookups for addresses.
+
+    :returns: A dict of {address: [name, ...]} items
+
+    """
+    resolver = ReverseResolver()
+    return resolver.resolve(addresses)
 
 def forward_lookup(names):
-    """Performs forward lookups and returns a dict of
-    hostname => list of addresses"""
-    return _lookup(names, _lookup_all_records, _extract_a_and_aaaa)
+    """Runs parallel forward DNS lookups for names.
 
-def _lookup(hosts, lookup_func, callback):
-    """Adds hosts to deferred, waits for results and does callback"""
-    deferred_list = []
+    :returns: A dict of {name: [address, ...]} items
 
-    for host in hosts:
-        deferred = lookup_func(host)
-        deferred.addCallback(callback, host)
-        deferred.addErrback(_errback, host)
-        deferred_list.append(deferred)
+    """
+    resolver = ForwardResolver()
+    return resolver.resolve(names)
 
-    while any(not deferred.called for deferred in deferred_list):
-        reactor.iterate()
+class Resolver(object):
+    """Abstract base class for resolvers"""
+    def __init__(self):
+        self._resolvers = cycle([_Resolver('/etc/resolv.conf')
+                                 for _i in range(3)])
+        self.results = defaultdict(list)
+        self._finished = False
 
-    return dict(deferred.result for deferred in deferred_list)
-    
-def _lookup_pointer(address):
-    """Returns a deferred object which tries to get the hostname from ip"""
-    resolver = _resolvers.next()
-    ip = IP(address)
-    return resolver.lookupPointer(ip.reverseName())
+    def resolve(self, names):
+        """Resolves DNS names in parallel"""
+        self._finished = False
+        self.results = defaultdict(list)
 
-def _lookup_all_records(name):
-    """Returns a deferred object with all records related to hostname"""
-    resolver = _resolvers.next()
-    return resolver.lookupAllRecords(name)
+        deferred_list = []
+        for name in names:
+            for deferred in self.lookup(name):
+                deferred.addCallback(self._extract_records, name)
+                deferred.addErrback(self._errback, name)
+                deferred_list.append(deferred)
 
-    
-def _extract_a_and_aaaa(result, name):
-    """Callback for A and AAAA records"""
-    address_list = []
+        deferred_list = defer.DeferredList(deferred_list)
+        deferred_list.addCallback(self._parse_result)
+        deferred_list.addCallback(self._finish)
 
-    for record_list in result:
-        for record in record_list:
-            if str(record.name) == name:
-                if record.type == dns.A:
-                    address_list.append(socket.inet_ntop(socket.AF_INET,
-                        record.payload.address))
-                elif record.type == dns.AAAA:
-                    address_list.append(socket.inet_ntop(socket.AF_INET6,
-                        record.payload.address))
-    return (name, address_list)
+        while not self._finished:
+            reactor.iterate()
 
-def _extract_ptr(result, ip):
-    """Callback for PTR records"""
-    for record_list in result:
-        for record in record_list:
-            if record.type == dns.PTR:
-                return (ip, str(record.payload.name))
+        return dict(self.results)
 
-def _errback(failure, host):
-    """Errback"""
-    return (host, failure.value)
+    def lookup(self, name):
+        """Initiates possibly multiple asynchronous DNS lookups for a name"""
+        raise NotImplementedError
+
+    @staticmethod
+    def _extract_records(result, name):
+        raise NotImplementedError
+
+    def _parse_result(self, result):
+        """Parses the result to the correct format"""
+        for _success, (name, response) in result:
+            if isinstance(response, Exception):
+                self.results[name] = response
+            else:
+                self.results[name].extend(response)
+
+    @staticmethod
+    def _errback(failure, host):
+        """Errback"""
+        return (host, failure.value)
+
+    def _finish(self, _):
+        self._finished = True
+
+class ForwardResolver(Resolver):
+    """A forward resolver implementation for A and AAAA record lookups.
+
+    NOTE: It will not lookup and follow CNAME records.
+
+    """
+
+    def lookup(self, name):
+        """Returns a deferred object with all records related to hostname"""
+        resolver = self._resolvers.next()
+        return [resolver.lookupAddress(name), resolver.lookupIPV6Address(name)]
+
+    @staticmethod
+    def _extract_records(result, name):
+        """Callback for A and AAAA records"""
+        address_list = []
+
+        for record_list in result:
+            for record in record_list:
+                if str(record.name) == name:
+                    if record.type == dns.A:
+                        address_list.append(socket.inet_ntop(socket.AF_INET,
+                            record.payload.address))
+                    elif record.type == dns.AAAA:
+                        address_list.append(socket.inet_ntop(socket.AF_INET6,
+                            record.payload.address))
+        return (name, address_list)
+
+
+class ReverseResolver(Resolver):
+    """Reverse resolver implementation for PTR record lookups"""
+    def lookup(self, address):
+        """Returns a deferred object which tries to get the hostname from ip"""
+        resolver = self._resolvers.next()
+        ip = IP(address)
+        return [resolver.lookupPointer(ip.reverseName())]
+
+    @staticmethod
+    def _extract_records(result, ip):
+        """Callback for PTR records"""
+        name_list = []
+
+        for record_list in result:
+            for record in record_list:
+                if record.type == dns.PTR:
+                    name_list.append(str(record.payload.name))
+
+        return (ip, name_list)
+
+class _Resolver(client.Resolver):
+    def connectionLost(self, _):
+        """Method to override for disconnect related tasks.
+
+        It's basically here to fix a deficiency in the Twisted version we're
+        working on.
+        """
+        pass

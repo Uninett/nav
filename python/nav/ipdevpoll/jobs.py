@@ -29,11 +29,10 @@ from nav import toposort
 
 from nav.ipdevpoll import get_context_logger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
-import storage
-import shadows
-from plugins import plugin_registry
+from . import storage, shadows
+from .plugins import plugin_registry
 from nav.ipdevpoll import db
-from utils import log_unhandled_failure
+from .utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
 ports = cycle([snmpprotocol.port() for i in range(50)])
@@ -389,7 +388,7 @@ class JobHandler(object):
         """
         for shadow_class in sorted_shadow_classes:
             if shadow_class in self.containers:
-                shadows = self.containers[shadow_class].values()
+                shadows = set(self.containers[shadow_class].values())
                 self.storage_queue.extend(shadows)
 
     def container_factory(self, container_class, key):

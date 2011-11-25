@@ -62,7 +62,7 @@ class Modules(Plugin):
         self._process_entities(physical_table)
 
 
-    def _device_from_entity(self, ent):
+    def _device_from_entity(self, ent, chassis=False):
         serial_column = 'entPhysicalSerialNum'
         if serial_column in ent and ent[serial_column] and \
             ent[serial_column].strip():
@@ -72,7 +72,14 @@ class Modules(Plugin):
             serial_number = None
             device_key = 'unknown-%s' % ent[0]
 
-        device = self.containers.factory(device_key, shadows.Device)
+        # check whether some plugin already registered a chassis device
+        # without knowing its serial. If so, give the device two keys in the
+        # container repository
+        if chassis and self.containers.get(None, shadows.Device):
+            device = self.containers.get(None, shadows.Device)
+            self.containers[shadows.Device][device_key] = device
+        else:
+            device = self.containers.factory(device_key, shadows.Device)
         if serial_number:
             device.serial = serial_number
         if ent['entPhysicalHardwareRev']:
@@ -127,7 +134,7 @@ class Modules(Plugin):
         # This should be revised by someone who has stacked chassis
         # devices to test on.
         the_chassis = chassis[0]
-        device = self._device_from_entity(the_chassis)
+        device = self._device_from_entity(the_chassis, chassis=True)
         netbox = self.containers.factory(None, shadows.Netbox)
         netbox.device = device
 

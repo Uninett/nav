@@ -32,6 +32,8 @@ from nav.models.manage import Netbox, Module, Interface, Prefix, Vlan, Arp, Cam
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.models.service import Service
 
+from nav import asyncdns
+
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
 from nav.web.ipdevinfo import utils
@@ -107,38 +109,29 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         return HttpResponseRedirect(netbox.get_absolute_url())
 
     def get_host_info(host):
-        """Lookup information about host in DNS etc."""
+        """Returns a dictionary containing DNS information about the host"""
+        addresses = forward_lookup(host) or []
+        if addresses:
+            addresses = list(reverse_lookup(addresses))
+        return {'host': host, 'addresses': addresses}
 
-        import socket
-        from nav import natsort
+    def forward_lookup(host):
+        addrinfo = asyncdns.forward_lookup([host])
+        if not isinstance(addrinfo[host], Exception):
+            return set(addr for addr in addrinfo[host])
 
-        # Build a dictionary with information about the host
-        host_info = {'host': host, 'addresses': []}
+    def reverse_lookup(addresses):
+        reverses = asyncdns.reverse_lookup(addresses)
+        for addr, response in sorted(reverses.items(), key=address_sorter):
+            if isinstance(response, Exception):
+                yield {'addr': addr, 'error': response.__class__.__name__}
+            else:
+                for name in response :
+                    yield {'addr': addr, 'name': name}
 
-        # Use getaddrinfo, as it supports both IPv4 and v6
-        try:
-            addrinfo = socket.getaddrinfo(host, None)
-        except socket.gaierror, (errno, errstr):
-            addrinfo = []
-
-        # Extract all unique addresses
-        unique_addresses = []
-        for (family, socktype, proto, canonname, sockaddr) in addrinfo:
-            hostaddr = sockaddr[0]
-            if hostaddr not in unique_addresses:
-                unique_addresses.append(hostaddr)
-        unique_addresses.sort(key=natsort.split)
-
-        # Lookup the reverse and add it to host_info['addresses']
-        for addr in unique_addresses:
-            this = {'addr': addr}
-            try:
-                this['name'] = socket.gethostbyaddr(addr)[0]
-            except socket.herror, (errno, errstr):
-                this['error'] = errstr
-            host_info['addresses'].append(this)
-
-        return host_info
+    def address_sorter(addr_tuple):
+        addr, response = addr_tuple
+        return IPy.IP(addr)
 
     def get_netbox(name=None, addr=None, host_info=None):
         """Lookup IP device in NAV by either hostname or IP address"""

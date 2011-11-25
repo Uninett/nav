@@ -39,7 +39,7 @@ from twisted.internet import threads
 
 from nav.models import manage
 from nav import ipdevpoll
-import storage
+from . import storage
 from nav.ipdevpoll.db import autocommit, django_debug_cleanup
 
 class NetboxLoader(dict):

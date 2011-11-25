@@ -1,4 +1,4 @@
-#!/usr/local/bin/python -W ignore
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright 2008 University of Tromsø 

@@ -1,0 +1,36 @@
+#############################################
+# Edited specifically for NAV v3 - NTNU
+# by John Magne Bredal <john.m.bredal@ntnu.no>
+#############################################
+
+Target	--default--
+	short-desc      	=	"Sensor"
+
+datasource	--default--
+	rrd-ds-type		=	GAUGE
+	rrd-min			=	undef
+	rrd-max			=	undef
+
+datasource sensor
+	ds-source = snmp://%snmp%/%oid%
+
+graph --default--
+	draw-as	= LINE2
+	legend 	= %legend%
+	y-axis	= %yaxis%
+	scale	= %scalevalue%,/
+
+targetType sensor
+	ds = sensor
+
+html 	short-desc	Sensors
+
+html    page-header
+	<table width=100%>
+	<tr class=header>
+		<td width=33% align=left class=header>%auto-title%</td>
+		<td width=33% align=center class=header2>NAV-v3</td>
+		<td width=33% align=right><a href=/>Back to NAV</a></td>
+	</tr>
+	</table>
+	<h1>%auto-target-path%<br>%short-desc%</h1>

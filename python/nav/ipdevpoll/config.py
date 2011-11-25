@@ -36,6 +36,9 @@ logfile = ipdevpolld.log
 
 [prefix]
 ignored = 127.0.0.0/8, fe80::/16
+
+[linkstate]
+filter = topology
 """
 
 class IpdevpollConfig(ConfigParser.ConfigParser):

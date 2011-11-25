@@ -1,3 +1,50 @@
+Version 3.9.2
+(released 17 Nov 2011)
+
+ Bugfixes:
+
+  * LP#300708 (Improve the link up/down trap plugin to include description)
+  * LP#338696 (Postgresql service checker is actually a port checker)
+  * LP#787957 (No trunk information on H3C switches)
+  * LP#802408 (Lowercase cricket rrd file not found when sysname has uppercase
+               letters)
+  * LP#854696 (Adding a new filter or new filter group in Alert Profiles fails)
+  * LP#858055 (Creating a new maintenance task with ÆØÅ in description fails)
+  * LP#862208 (No cricket stats for directories "routers" and "switches" in
+               cricket)
+  * LP#865292 (HTTP service checker ignores query string)
+  * LP#890190 (linkstate trap handler does not work)
+  * LP#890607 (Set supervisor SW version as chassis SW version on Cisco devices)
+  * LP#891090 (pping creates multiple RRD files for same data, causing ipdevinfo
+               to display availability as N/A)
+
+
+Version 3.9.1
+(released 12 Aug 2011)
+
+ Bugfixes:
+
+  These two bugs were actually fixed in 3.9.0, but were omitted
+  from the changelog:
+
+  * LP#737102 (Trying to add a prefix that already exists yields an
+               error, but an entry (without the prefix) is added to 
+               vlan-table)
+  * LP#771677 (the delete button on seeddb/prefix is missing)
+
+
+  * LP#643469 (Status history link URL is ridiculously long)
+  * LP#643472 (Device history search results lack context)
+  * LP#643544 (Partial fix for: Flexibility when entering ip address in 
+               machine tracker)
+  * LP#726545 (SeedDB should verify SNMP write community)
+  * LP#751302 (Change the name for prefix matrix to "Subnet matrix")
+  * LP#754602 (seeddb: improve Move Selected)
+  * LP#790178 (pping can crash if clock is adjusted backwards)
+  * LP#804869 (Interface-URL in 'machinetracker' yields 404)
+  * LP#817201 (network discovery vlan index fault)
+
+
 Version 3.9.0
 (released 01 Jul 2011)
 

@@ -16,6 +16,9 @@
 #
 """Django ORM wrapper for the NAV manage database"""
 
+# Don't warn about Meta classes, we can't help the Django API
+# pylint: disable=R0903
+
 import datetime as dt
 
 from django.db import models
@@ -64,8 +67,8 @@ class EventQueue(models.Model):
         related_name='source_of_events')
     target = models.ForeignKey('Subsystem', db_column='target',
         related_name='target_of_events')
-    device = models.ForeignKey('Device', db_column='deviceid', null=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
+    device = models.ForeignKey(Device, db_column='deviceid', null=True)
+    netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
     subid = VarcharField()
     time = models.DateTimeField(default=dt.datetime.now)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
@@ -136,8 +139,8 @@ class AlertQueue(models.Model):
 
     id = models.IntegerField(db_column='alertqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
-    device = models.ForeignKey('Device', db_column='deviceid', null=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
+    device = models.ForeignKey(Device, db_column='deviceid', null=True)
+    netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
     subid = VarcharField()
     time = models.DateTimeField()
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
@@ -219,8 +222,8 @@ class AlertHistory(models.Model):
 
     id = models.AutoField(db_column='alerthistid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
-    device = models.ForeignKey('Device', db_column='deviceid', null=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
+    device = models.ForeignKey(Device, db_column='deviceid', null=True)
+    netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
     subid = VarcharField()
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True)

@@ -34,7 +34,7 @@ class MacWatchForm(forms.Form):
         if not re.match("[a-fA-F0-9]{12}$", filteredmacaddress):
             raise forms.ValidationError("Wrong format on mac address.")
 
-        if int(MacWatch.objects.filter(mac=macaddress).count()) > 0:
+        if int(MacWatch.objects.filter(mac=filteredmacaddress).count()) > 0:
             raise forms.ValidationError("This mac address is already watched.")
         
         return filteredmacaddress

@@ -34,7 +34,7 @@ import nav.daemon
 import nav.logs
 import nav.models.manage
 
-import plugins
+from . import plugins
 from nav.ipdevpoll import ContextFormatter
 
 
@@ -57,7 +57,7 @@ class IPDevPollProcess(object):
         # logging.basicConfig().  If imported before our own loginit, this
         # causes us to have two StreamHandlers on the root logger, duplicating
         # every log statement.
-        from schedule import JobScheduler
+        from .schedule import JobScheduler
 
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run)
         reactor.addSystemEventTrigger("after", "shutdown", self.shutdown)
@@ -137,7 +137,7 @@ class CommandProcessor(object):
 
         # Now try to load config and output logs to the configured file
         # instead.
-        import config
+        from nav.ipdevpoll import config
         logfile_name = config.ipdevpoll_conf.get('ipdevpoll', 'logfile')
         if logfile_name[0] not in './':
             logfile_name = os.path.join(nav.buildconf.localstatedir,

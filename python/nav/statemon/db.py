@@ -1,27 +1,18 @@
-# -*- coding: ISO8859-1 -*-
 #
-# Copyright 2002 Norwegian University of Science and Technology
+# Copyright (C) 2002 Norwegian University of Science and Technology
+# Copyright (C) 2010 UNINETT AS
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id: $
-# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
-#          Erik Gorset     <erikgors@stud.ntnu.no>
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
 This class is an abstraction of the database operations needed
@@ -30,7 +21,7 @@ by the service monitor.
 It implements the singleton pattern, ensuring only one instance
 is used at a time.
 """
-
+import os
 import threading
 import checkermap
 import psycopg2
@@ -114,16 +105,18 @@ class _db(threading.Thread):
                 self.newEvent(event)
                 time.sleep(5)
 
-    def query(self, statement, commit=1):
+    def query(self, statement, values=None, commit=1):
+        cursor = None
         try:
             cursor = self.cursor()
-            debug("Executing: %s" % statement, 7)
-            cursor.execute(statement)
+            cursor.execute(statement, values)
+            debug("Executed: %s" % cursor.query, 7)
             if commit:
                 self.db.commit()
             return cursor.fetchall()
         except Exception, e:
-            debug("Failed to execute query: %s" % statement, 2)
+            debug("Failed to execute query: "
+                  "%s" % cursor.query if cursor else statement, 2)
             debug(str(e))
             if commit:
                 try:
@@ -131,11 +124,13 @@ class _db(threading.Thread):
                 except:
                     debug("Failed to rollback", 2)
             raise dbError()
-    def execute(self, statement, commit=1):
+
+    def execute(self, statement, values=None, commit=1):
+        cursor = None
         try:
             cursor = self.cursor()
-            debug("Executing: %s" % statement, 5)
-            cursor.execute(statement)
+            cursor.execute(statement, values)
+            debug("Executed: %s" % cursor.query, 7)
             if commit:
                 try:
                     self.db.commit()
@@ -143,9 +138,11 @@ class _db(threading.Thread):
                     debug("Failed to commit", 2)
         except psycopg2.IntegrityError, e:
             debug(str(e), 2)
+            debug("Tried to execute: %s" % cursor.query, 7)
             debug("Throwing away update...", 2)
         except Exception, e:
-            debug("Could not execute statement: %s" % statement, 2)
+            debug("Could not execute statement: "
+                  "%s" % cursor.query if cursor else statement, 2)
             debug(str(e))
             if commit:
                 self.db.rollback()
@@ -159,13 +156,11 @@ class _db(threading.Thread):
             debug("Invalid source for event: %s" % event.source, 1)
             return
         if event.eventtype == "version":
-            statement = """UPDATE service SET
-            version = '%s' WHERE serviceid = %i""" % (event.version,
-                                                      event.serviceid
-                                                      )
-            self.execute(statement)
+            statement = """UPDATE service SET version = %s
+                           WHERE serviceid = %s"""
+            self.execute(statement, (event.version, event.serviceid))
             return
-        
+
         if event.status == Event.UP:
             value = 100
             state = 'e'
@@ -175,23 +170,18 @@ class _db(threading.Thread):
 
         nextid = self.query("SELECT nextval('eventq_eventqid_seq')")[0][0]
         statement = """INSERT INTO eventq
-(eventqid, subid, netboxid, deviceid, eventtypeid, state, value, source, target)
-VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
-                                                        event.serviceid,
-                                                        event.netboxid,
-                                                        event.deviceid,
-                                                        event.eventtype,
-                                                        state,
-                                                        value,
-                                                        event.source,
-                                                        "eventEngine"
-                                                        )
-        self.execute(statement)
+                       (eventqid, subid, netboxid, deviceid, eventtypeid,
+                        state, value, source, target)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        values = (nextid, event.serviceid, event.netboxid, event.deviceid,
+                  event.eventtype, state, value, event.source, "eventEngine")
+        self.execute(statement, values)
+
         statement = """INSERT INTO eventqvar
-        (eventqid, var, val) VALUES
-        (%i, '%s', '%s')""" % (nextid, 'descr', event.info.replace("'","\\'"))
-        # self.execute(statement)
-        debug("Executed: %s" % statement)
+                       (eventqid, var, val) VALUES
+                       (%s, %s, %s)"""
+        values = (nextid, 'descr', event.info)
+        self.execute(statement, values)
 
     def hostsToPing(self):
         query = """SELECT netboxid, deviceid, sysname, ip, up FROM netbox """
@@ -205,7 +195,7 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
         query = """SELECT serviceid, property, value
         FROM serviceproperty
         order BY serviceid"""
-        
+
         property = {}
         try:
             properties = self.query(query)
@@ -225,7 +215,7 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
             fromdb = self.query(query)
         except dbError:
             return self._checkers
-        
+
         self._checkers = []
         for each in fromdb:
             if len(each) == 9:
@@ -274,52 +264,86 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
         return self._checkers
 
 
-    def verify_rrd(self, path, filename):
+    def verify_rrd(self, filename):
         """Verifies that a given RRD file is registered in the db.
 
         Returns: The netboxid of the netbox to which this RRD file belongs.
 
         If the RRD file is unknown, a UnknownRRDFileError is raised.
 
-        BUGS: Big gaping hole: Does not use parameterized SQL statement.
         """
-        statement = \
-            """SELECT rrd_fileid, netboxid FROM rrd_file
-               WHERE path='%s' AND
-                     filename='%s'""" % (path, filename)
-        rows = self.query(statement)
+        statement = """SELECT rrd_fileid, netboxid FROM rrd_file
+                       WHERE path=%s AND filename=%s"""
+        rows = self.query(statement, (os.path.dirname(filename),
+                                      os.path.basename(filename)))
         if len(rows) > 0:
             (rrd_fileid, netboxid) = rows[0]
             return netboxid
-        raise UnknownRRDFileError(path, filename)
+        raise UnknownRRDFileError(filename)
 
-    def reconnect_rrd(self, path, filename, netboxid):
+    def get_existing_rrd(self, netboxid, serviceid=None):
+        """Returns the filename tuple of the last registered RRD file
+        for the given netboxid/serviceid combination"""
+        if serviceid:
+            where = """WHERE netboxid=%s AND subsystem='serviceping' AND
+                       key='serviceid' AND value=%s"""
+            values = (netboxid, str(serviceid))
+        else:
+            where = "WHERE netboxid=%s AND subsystem='pping'"
+            values = (netboxid,)
+
+        statement = """SELECT path, filename FROM rrd_file %s
+                       ORDER BY rrd_fileid DESC LIMIT 1""" % where
+        rows = self.query(statement, values)
+        if len(rows) > 0:
+            return os.path.join(*rows[0])
+        else:
+            raise UnknownRRDFileError(netboxid, serviceid)
+
+    def rename_rrd(self, from_file, to_file):
+        """Renames a referenced RRD file in the database, but not on disk"""
+        statement = """UPDATE rrd_file
+                       SET path=%s, filename=%s
+                       WHERE path=%s AND filename=%s"""
+        self.execute(statement,
+                     (os.path.dirname(to_file), os.path.basename(to_file),
+                      os.path.dirname(from_file), os.path.basename(from_file)))
+
+    def reconnect_rrd(self, filename, netboxid):
         """Reconnects a known, disconnected RRD file with a netboxid."""
-        statement = \
-            """UPDATE rrd_file
-               SET netboxid=%d
-               WHERE path='%s' AND
-                     filename='%s' AND
-                     netboxid IS NULL""" % (netboxid, path, filename)
-        return self.execute(statement)
+        statement = """UPDATE rrd_file
+                       SET netboxid=%s
+                       WHERE path=%s AND
+                             filename=%s AND
+                             netboxid IS NULL"""
+        return self.execute(statement, (netboxid,
+                                        os.path.dirname(filename),
+                                        os.path.basename(filename)))
 
-    def registerRrd(self, path, filename, step, netboxid, subsystem, key="",
+    def registerRrd(self, filename, step, netboxid, subsystem, key="",
                     val=""):
         rrdid = self.query("SELECT nextval('rrd_file_rrd_fileid_seq')")[0][0]
         if key and val:
             statement = """INSERT INTO rrd_file
-            (rrd_fileid, path, filename, step, netboxid, key, value, subsystem) values
-            (%s, '%s','%s',%s,%s,'%s',%s,'%s')""" %    (rrdid, path, filename,
-                                 step, netboxid, key, val, subsystem)
+                           (rrd_fileid, path, filename, step, netboxid,
+                            key, value, subsystem)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+            values = (rrdid,
+                      os.path.dirname(filename), os.path.basename(filename),
+                      step, netboxid, key, val, subsystem)
         else:
             statement = """INSERT INTO rrd_file
-            (rrd_fileid, path, filename, step, netboxid, subsystem) VALUES
-            (%s,'%s','%s',%s,%s,'%s')""" % (rrdid, path, filename,
-                                            step, netboxid, subsystem)
-        self.execute(statement)
+                           (rrd_fileid, path, filename, step, netboxid,
+                            subsystem)
+                           VALUES (%s, %s, %s, %s, %s, %s)"""
+            values = (rrdid,
+                      os.path.dirname(filename), os.path.basename(filename),
+                      step, netboxid, subsystem)
+        self.execute(statement, values)
         return rrdid
+
     def registerDS(self, rrd_fileid, name, descr, dstype, unit):
         statement = """INSERT INTO rrd_datasource
         (rrd_fileid, name, descr, dstype, units) VALUES
-        (%s, '%s', '%s', '%s', '%s')""" % (rrd_fileid, name, descr, dstype, unit)
-        self.execute(statement)
+        (%s, %s, %s, %s, %s)"""
+        self.execute(statement, (rrd_fileid, name, descr, dstype, unit))

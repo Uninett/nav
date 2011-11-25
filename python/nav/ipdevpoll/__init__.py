@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008-2011 UNINETT AS
 #
@@ -59,7 +58,7 @@ class Plugin(object):
 
     def handle(self):
         """Handle plugin business, return a deferred."""
-        raise NotImplemented
+        raise NotImplementedError
 
     @classmethod
     def can_handle(cls, netbox):
@@ -68,7 +67,7 @@ class Plugin(object):
 
         Returns a boolean value.
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @classmethod
     def on_plugin_load(cls):
