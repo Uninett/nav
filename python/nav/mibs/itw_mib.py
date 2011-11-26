@@ -272,7 +272,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         sensors = []
         for idx, smoke_sensor in smoke_sensors.items():
             smoke_avail = smoke_sensor.get('smokeAlarmAvail', None)
-            if smoke_aval:
+            if smoke_avail:
                 smoke_oid = smoke_sensor.get(0, None)
                 serial = smoke_sensor.get('smokeAlarmSerial', None)
                 name = smoke_sensor.get('smokeAlarmName', None)
