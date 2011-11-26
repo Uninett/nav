@@ -58,27 +58,32 @@ class MIBFactory(object):
         """ Factory for allocating mibs based on
         netbox-vendors and -models"""
         vendor_id = None
+        mibs = None
         if netbox.type:
             vendor_id = netbox.type.get_enterprise_id()
         if vendor_id:
+            # Allocate vendor-specific mibs if we know the vendor
             if vendor_id == VENDOR_CISCO:
                 # Some cisco-boxes may use standard-mib
-                return [EntitySensorMib(agent), CiscoEnvMonMib(agent)]
+                mibs = [EntitySensorMib(agent), CiscoEnvMonMib(agent)]
             elif vendor_id == VENDOR_HP:
-                return [EntitySensorMib(agent)]
+                mibs = [EntitySensorMib(agent)]
             elif vendor_id == VENDOR_APC:
-                return [PowerNetMib(agent)]
+                mibs = [PowerNetMib(agent)]
             elif vendor_id == VENDOR_EMERSON_COMPUTER_POWER:
-                return [UpsMib(agent)]
+                mibs =  [UpsMib(agent)]
             elif vendor_id == VENDOR_EATON:
-                return [XupsMib(agent)]
+                mibs = [XupsMib(agent)]
             elif vendor_id == VENDOR_MGE:
-                return [MgSnmpUpsMib(agent)]
+                mibs = [MgSnmpUpsMib(agent)]
             elif vendor_id == VENDOR_ITWATCHDOGS:
                 # Try with the most recent first
-                return [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
-        # and then we just sweep up the remains....
-        return [EntitySensorMib(agent), UpsMib(agent)]
+                mibs = [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
+        if not mibs:
+            # And then we just sweep up the remains if we could not
+            # find a matching vendor.
+            mibs = [EntitySensorMib(agent), UpsMib(agent)]
+        return mibs
 
 
 class Sensors(Plugin):
