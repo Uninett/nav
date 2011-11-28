@@ -29,11 +29,12 @@ logger = logging.getLogger(__name__)
 
 class DebugDispatcher(Dispatcher):
     """Debug dispatcher for smsd."""
+    RESULT_PERMANENT = 'permanent'
     RESULT_FAIL = 'fail'
     RESULT_SUCCESS = 'success'
     RESULT_ERROR = 'error'
 
-    OPTIONS = [RESULT_FAIL, RESULT_SUCCESS, RESULT_ERROR]
+    OPTIONS = [RESULT_PERMANENT, RESULT_FAIL, RESULT_SUCCESS, RESULT_ERROR]
 
     def __init__(self, config):
         # Call mother's init
@@ -71,6 +72,10 @@ class DebugDispatcher(Dispatcher):
         elif self.result == self.RESULT_ERROR:
             logger.info("Raising DispatcherError")
             raise DispatcherError("Failed, because I was configured to.")
+        elif self.result == self.RESULT_PERMANENT:
+            logger.info("Raising PermanentDispatcherError")
+            raise PermanentDispatcherError(
+                "Failed permanently, because I was configured to.")
 
         return (sms, sent_count, ignored_count, result, smsid)
 

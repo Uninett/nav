@@ -20,7 +20,8 @@ from nav.ipdevpoll import Plugin, shadows
 class CiscoSup(Plugin):
     @classmethod
     def can_handle(cls, netbox):
-        return netbox.type.vendor.id.lower() == 'cisco'
+        """Handles Cisco devices and any device whose type hasn't been found"""
+        return netbox.type is None or netbox.type.vendor.id.lower() == 'cisco'
 
     def handle(self):
         netbox = self.containers.factory(None, shadows.Netbox)
