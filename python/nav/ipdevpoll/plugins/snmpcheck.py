@@ -17,9 +17,11 @@
 
 import datetime
 
-from twisted.internet import error, defer
+from twisted.internet import error, defer, threads
 from twisted.internet.defer import returnValue
 
+from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
+from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import AlertHistory
 from nav.ipdevpoll import Plugin
 
@@ -50,9 +52,9 @@ class SnmpCheck(Plugin):
         is_ok = yield self._do_check()
 
         if not is_ok:
-            returnValue(self._mark_as_down())
+            yield self._mark_as_down()
         else:
-            returnValue(self._mark_as_up())
+            yield self._mark_as_up()
 
     @defer.inlineCallbacks
     def _do_check(self):
@@ -79,16 +81,48 @@ class SnmpCheck(Plugin):
                 self._logger.debug("response was empty")
             returnValue(bool(result))
 
+    @defer.inlineCallbacks
     def _mark_as_down(self):
         if self.netbox.id not in self.down_set:
             self._logger.warning("SNMP agent down on %s", self.netbox.sysname)
             self.down_set.add(self.netbox.id)
+            yield threads.deferToThread(self._dispatch_down_event)
 
     def _mark_as_up(self):
         if self.netbox.id in self.down_set:
             self._logger.warning("SNMP agent up again on %s",
                                  self.netbox.sysname)
             self.down_set.remove(self.netbox.id)
+            yield threads.deferToThread(self._dispatch_up_event)
+
+    @commit_on_success
+    def _dispatch_down_event(self):
+        event = self._make_snmpagentstate_event()
+        event.state = event.STATE_START
+        event.save()
+        var = EventVar(event_queue=event,
+                       variable='alerttype', value='snmpAgentDown')
+        var.save()
+
+    @commit_on_success
+    def _dispatch_up_event(self):
+        event = self._make_snmpagentstate_event()
+        event.state = event.STATE_END
+        event.save()
+        var = EventVar(event_queue=event,
+                       variable='alerttype', value='snmpAgentUp')
+        var.save()
+
+    def _make_snmpagentstate_event(self):
+        event = Event()
+        # FIXME: ipdevpoll is not a registered subsystem in the database yet
+        event.source_id = 'getDeviceData'
+        event.target_id = 'eventEngine'
+        event.device_id = self.netbox.device.id
+        event.netbox_id = self.netbox.id
+        event.event_type_id = 'snmpAgentState'
+        return event
+
 
 def get_snmp_agent_down_set():
     """Returns a set of netbox ids where the SNMP agent is known to be down"""
