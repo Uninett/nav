@@ -16,6 +16,7 @@
 """snmp check plugin"""
 
 from twisted.internet import error, defer
+from twisted.internet.defer import returnValue
 from nav.ipdevpoll import Plugin
 
 SYSTEM_OID = '.1.3.6.1.2.1.1'
@@ -33,20 +34,36 @@ class SnmpCheck(Plugin):
     def can_handle(cls, netbox):
         return True
 
+    @defer.inlineCallbacks
     def handle(self):
-        self._logger.debug("checking snmp agent availability")
-        df = self.agent.getTable([SYSTEM_OID], maxRepetitions=1)
-        df.addCallbacks(self._verify_result, self._handle_failure)
-        return df
+        self._logger.debug("snmp version from db: %s", self.netbox.snmp_version)
 
-    def _verify_result(self, result):
-        if not result:
-            self._logger.debug("result was empty")
-            self._mark_as_down()
+        version = 2
+        is_ok = yield self._do_check(version)
+        if not is_ok:
+            version = 1
+            is_ok = yield self._do_check(version)
+        if not is_ok:
+            returnValue(self._mark_as_down())
+        else:
+            returnValue(self._all_is_ok(version))
 
-    def _handle_failure(self, failure):
-        failure.trap(defer.TimeoutError, error.TimeoutError)
-        self._mark_as_down()
+    @defer.inlineCallbacks
+    def _do_check(self, version=2):
+        self.agent.snmpVersion = 'v%s' % version
+        self._logger.debug("checking SNMPv%s availability", version)
+        try:
+            result = yield self.agent.getTable([SYSTEM_OID], maxRepetitions=1)
+        except (defer.TimeoutError, error.TimeoutError):
+            self._logger.debug("SNMPv% timed out", version)
+            returnValue(False)
+        else:
+            if not result:
+                self._logger.debug("response was empty")
+            returnValue(bool(result))
 
     def _mark_as_down(self):
         self._logger.warning("SNMP agent down on %s", self.netbox.sysname)
+
+    def _all_is_ok(self, version):
+        self._logger.debug("SNMPv%s response ok", version)
