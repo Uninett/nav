@@ -43,6 +43,15 @@ class AbortedJobError(Exception):
         Exception.__init__(self, msg, cause)
         self.cause = cause
 
+class SuggestedReschedule(AbortedJobError):
+    """Can be raised by plugins to abort and reschedule a job at a specific
+    later time, without necessarily logging it as a job failure.
+
+    """
+    def __init__(self, delay=60):
+        self.delay = 60
+        super(SuggestedReschedule, self).__init__(
+            "Job was suggested rescheduled in %d seconds" % self.delay)
 
 class JobHandler(object):
 
@@ -141,6 +150,10 @@ class JobHandler(object):
             if failure.check(TimeoutError, defer.TimeoutError):
                 self._logger.debug("Plugin %s reported a timeout",
                                    plugin_instance)
+            elif failure.check(SuggestedReschedule):
+                self._logger.debug("Plugin %s suggested a reschedule in "
+                                   "%d seconds",
+                                   plugin_instance, failure.value.delay)
             else:
                 log_unhandled_failure(self._logger,
                                       failure,
@@ -187,8 +200,10 @@ class JobHandler(object):
 
         def plugin_failure(failure):
             self._log_timings()
-            raise AbortedJobError("Job aborted due to plugin failure",
-                                  cause=failure.value)
+            if not failure.check(AbortedJobError):
+                raise AbortedJobError("Job aborted due to plugin failure",
+                                      cause=failure.value)
+            return failure
 
         def save_failure(failure):
             log_unhandled_failure(self._logger,
@@ -199,6 +214,8 @@ class JobHandler(object):
                                   cause=failure.value)
 
         def log_abort(failure):
+            if failure.check(SuggestedReschedule):
+                return failure
             if failure.check(AbortedJobError):
                 self._logger.error("Job %r for %s aborted: %s",
                                    self.name, self.netbox.sysname,
