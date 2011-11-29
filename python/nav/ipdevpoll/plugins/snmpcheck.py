@@ -23,7 +23,7 @@ from twisted.internet.defer import returnValue
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import AlertHistory
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import Plugin, get_class_logger
 from nav.ipdevpoll.snmp import AgentProxy
 
 SYSTEM_OID = '.1.3.6.1.2.1.1'
@@ -42,6 +42,8 @@ class SnmpCheck(Plugin):
         super(SnmpCheck, self).__init__(*args, **kwargs)
         if SnmpCheck.down_set is None:
             SnmpCheck.down_set = get_snmp_agent_down_set()
+            get_class_logger(SnmpCheck).debug("initially down: %r",
+                                              SnmpCheck.down_set)
 
     @classmethod
     def can_handle(cls, netbox):
@@ -59,11 +61,9 @@ class SnmpCheck(Plugin):
 
     @defer.inlineCallbacks
     def _do_check(self):
-        version = 2
-        is_ok = yield self._check_version(version)
+        is_ok = yield self._check_version(2)
         if not is_ok:
-            version = 1
-            is_ok = yield self._check_version(version)
+            is_ok = yield self._check_version(1)
         returnValue(is_ok)
 
     @defer.inlineCallbacks
@@ -84,10 +84,7 @@ class SnmpCheck(Plugin):
             if agent is not self.agent:
                 agent.close()
 
-        if result:
-            self._logger.debug("SNMP%s response ok", version)
-        else:
-            self._logger.debug("response was empty")
+        self._logger.debug("SNMP response: %r", result)
         returnValue(bool(result))
 
 
