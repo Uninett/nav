@@ -144,8 +144,7 @@ class SnmpCheck(Plugin):
 
     def _make_snmpagentstate_event(self):
         event = Event()
-        # FIXME: ipdevpoll is not a registered subsystem in the database yet
-        event.source_id = 'getDeviceData'
+        event.source_id = 'ipdevpoll'
         event.target_id = 'eventEngine'
         event.device_id = self.netbox.device.id
         event.netbox_id = self.netbox.id
