@@ -118,7 +118,7 @@ Other contributors and previous maintainers
 
 This dynamic duo wrote most of NAV's service monitor and parallel
 pinger:
-<
+
 * Stian Søiland, 2002-2004
 * Magnus Thanem Nordseth, 2002-2004
 
