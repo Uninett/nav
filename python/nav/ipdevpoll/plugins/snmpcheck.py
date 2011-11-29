@@ -117,6 +117,7 @@ class SnmpCheck(Plugin):
             self.down_set.add(self.netbox.id)
             yield threads.deferToThread(self._dispatch_down_event)
 
+    @defer.inlineCallbacks
     def _mark_as_up(self):
         if self.netbox.id in self.down_set:
             self._logger.warning("SNMP agent up again on %s",
@@ -152,7 +153,7 @@ class SnmpCheck(Plugin):
         event.event_type_id = 'snmpAgentState'
         return event
 
-
+@commit_on_success
 def get_snmp_agent_down_set():
     """Returns a set of netbox ids where the SNMP agent is known to be down"""
     infinity = datetime.datetime.max
