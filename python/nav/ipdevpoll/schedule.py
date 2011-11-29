@@ -29,7 +29,7 @@ from twisted.internet.defer import Deferred, maybeDeferred
 from nav import ipdevpoll
 from . import shadows, config, signals
 from .dataloader import NetboxLoader
-from .jobs import JobHandler, AbortedJobError
+from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
 from nav.tableformat import SimpleTableFormatter
 
 from nav.ipdevpoll.utils import log_unhandled_failure
@@ -139,8 +139,10 @@ class NetboxJobScheduler(object):
     def _reschedule_on_failure(self, failure):
         """Examines the job failure and reschedules the job if needed."""
         failure.trap(AbortedJobError)
-        # FIXME: Should be configurable per. job
-        delay = randint(5*60, 10*60) # within 5-10 minutes
+        if failure.check(SuggestedReschedule):
+            delay = int(failure.value.delay)
+        else:
+            delay = randint(5*60, 10*60) # within 5-10 minutes
         self.reschedule(delay)
 
     def reschedule(self, delay):
