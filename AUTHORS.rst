@@ -41,6 +41,11 @@ Currently active contributors/maintainers
 * Kai Arne Bjørnenak <kai.bjornenak at cc.uit.no>
   Maintains the radius accounting logger.  Also a stand-in for Ole Martin.
 
+* Christian Strand Young <christian at strandyoung.com>
+  Joined in the summer of 2011.  His main contributions are implementing IPv6
+  support in pping and asynchronous DNS lookups in ipdevinfo & the Machine
+  Tracker, as well as fixing various bugs.
+
 
 Other contributors and previous maintainers
 -------------------------------------------
@@ -113,7 +118,7 @@ Other contributors and previous maintainers
 
 This dynamic duo wrote most of NAV's service monitor and parallel
 pinger:
-
+<
 * Stian Søiland, 2002-2004
 * Magnus Thanem Nordseth, 2002-2004
 
