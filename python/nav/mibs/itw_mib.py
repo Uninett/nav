@@ -72,9 +72,9 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         """ Make a simple dictionary to return to plugin"""
         if not sensor_oid or not base_oid or not serial or not desc:
             return {}
-        oid = '%s%s' % (base_oid, str(sensor_oid))
+        oid = OID(base_oid) + OID(sensor_oid)
         internal_name = serial + desc
-        return {'oid': oid,
+        return {'oid': str(oid),
                 'unit_of_measurement': u_o_m,
                 'precision': precision,
                 'scale': scale,
