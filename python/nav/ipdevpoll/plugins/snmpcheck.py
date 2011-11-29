@@ -24,6 +24,7 @@ from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import AlertHistory
 from nav.ipdevpoll import Plugin
+from nav.ipdevpoll.snmp import AgentProxy
 
 SYSTEM_OID = '.1.3.6.1.2.1.1'
 
@@ -31,7 +32,7 @@ class SnmpCheck(Plugin):
     """Checks that the device's SNMP agent is responding properly.
 
     This is done by attempting to retrieve the SNMPv2-MIB::system variables.
-    If there is not response, an snmpAgentState (snmpAgentDown) event is
+    If there is no response, an snmpAgentState (snmpAgentDown) event is
     dispatched.
 
     """
@@ -67,19 +68,47 @@ class SnmpCheck(Plugin):
 
     @defer.inlineCallbacks
     def _check_version(self, version):
-        self.agent.snmpVersion = 'v%s' % version
-        self._logger.debug("checking SNMPv%s availability", version)
-        try:
-            result = yield self.agent.getTable([SYSTEM_OID], maxRepetitions=1)
-        except (defer.TimeoutError, error.TimeoutError):
-            self._logger.debug("SNMPv% timed out", version)
-            returnValue(False)
+        version = 'v%s' % version
+        if self.agent.snmpVersion != version:
+            agent = self._get_alternate_agent(version)
         else:
-            if result:
-                self._logger.debug("SNMPv%s response ok", version)
-            else:
-                self._logger.debug("response was empty")
-            returnValue(bool(result))
+            agent = self.agent
+
+        self._logger.debug("checking SNMP%s availability", version)
+        try:
+            result = yield agent.walk(SYSTEM_OID)
+        except (defer.TimeoutError, error.TimeoutError):
+            self._logger.debug("SNMP%s timed out", version)
+            returnValue(False)
+        finally:
+            if agent is not self.agent:
+                agent.close()
+
+        if result:
+            self._logger.debug("SNMP%s response ok", version)
+        else:
+            self._logger.debug("response was empty")
+        returnValue(bool(result))
+
+
+    def _get_alternate_agent(self, version):
+        """Create an alternative Agent Proxy for our host.
+
+        Return value is an AgentProxy object created with the same
+        parameters as the controlling job handler's AgentProxy, but
+        with a different SNMP version.
+
+        """
+        old_agent = self.agent
+        agent = AgentProxy(
+            old_agent.ip, old_agent.port,
+            community=old_agent.community,
+            snmpVersion = version)
+        if hasattr(old_agent, 'protocol'):
+            agent.protocol = old_agent.protocol
+
+        agent.open()
+        return agent
 
     @defer.inlineCallbacks
     def _mark_as_down(self):
