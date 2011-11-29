@@ -234,8 +234,7 @@ class Module(Shadow):
     @classmethod
     def _make_modulestate_event(cls, django_module):
         event = Event()
-        # FIXME: ipdevpoll is not a registered subsystem in the database yet
-        event.source_id = 'getDeviceData'
+        event.source_id = 'ipdevpoll'
         event.target_id = 'eventEngine'
         event.device = django_module.device
         event.netbox = django_module.netbox
@@ -454,7 +453,7 @@ class Interface(Shadow):
     def _make_linkstate_event(self, start=True):
         django_ifc = self._cached_converted_model
         event = Event()
-        event.source_id = 'getDeviceData'
+        event.source_id = 'ipdevpoll'
         event.target_id = 'eventEngine'
         event.netbox_id = self.netbox.id
         event.device = django_ifc.netbox.device
