@@ -25,6 +25,7 @@ from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import AlertHistory
 from nav.ipdevpoll import Plugin, get_class_logger
 from nav.ipdevpoll.snmp import AgentProxy
+from nav.ipdevpoll.jobs import SuggestedReschedule
 
 SYSTEM_OID = '.1.3.6.1.2.1.1'
 
@@ -56,6 +57,7 @@ class SnmpCheck(Plugin):
 
         if not is_ok:
             yield self._mark_as_down()
+            raise SuggestedReschedule(60)
         else:
             yield self._mark_as_up()
 
