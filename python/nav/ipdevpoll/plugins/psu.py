@@ -13,8 +13,10 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""ipdevpolld-plugin to collect redundant power-supply units and fans,- and
-their correspnding status.
+"""
+ipdevpolld-plugin to collect powersupply units and fans,- and their
+corresponding status.  For the time beeing this plugin is only able
+to collect powersupplies and fans from Cisco- and HP-netboxes.
 
 This plugin uses ENTITY-MIB to retrieve all possible PSUs in network-
 equipment.
@@ -49,6 +51,7 @@ class PowerSupplyUnit(Plugin):
         super(PowerSupplyUnit, self).__init__(*args, **kwargs)
         self.entity_mib = EntityMib(self.agent)
         self.entity_fru_control = None
+        self.vendor_id = None
         if self.netbox.type:
             self.vendor_id = self.netbox.type.get_enterprise_id()
         if self.vendor_id == VENDOR_CISCO:
@@ -83,7 +86,7 @@ class PowerSupplyUnit(Plugin):
             val[0] = curr_idx - lowest_index
         return values
 
-    def _get_redundant_psus_and_fans(self, to_filter):
+    def _get_psus_and_fans(self, to_filter):
         """ Filter out PSUs and FANs, and return only redundant."""
         power_supplies = []
         fans = []
@@ -92,19 +95,18 @@ class PowerSupplyUnit(Plugin):
                 power_supplies.append(unit)
             if self.is_fan(unit):
                 fans.append(unit)
-        filtered = []
-        if self.vendor_id == VENDOR_HP:
+        if self.vendor_id and self.vendor_id == VENDOR_HP:
             # Index-numbers from HP-netboxes need to be re-numbered to match
             # index-numbers in POWERSUPPLY-MIB and FAN-MIB.
             # Index-numbers should in practice start at 1 for both PSUs and
             # FANs to match the corresponding statuses.
             power_supplies = self._rearrange_indexes(power_supplies)
             fans = self._rearrange_indexes(fans)
-        # Select only those boxes with more than one PSU
-        if len(power_supplies) > 1:
-            filtered = power_supplies
-            filtered.extend(fans)
-        return filtered
+        # Create list of all psus and fans.  Add all psus first.
+        all_psus_and_fans = power_supplies
+        # Then add all fans.
+        all_psus_and_fans.extend(fans)
+        return all_psus_and_fans
 
     def is_fan(self, pwr):
         """Determine if this unit is a fan"""
@@ -120,7 +122,7 @@ class PowerSupplyUnit(Plugin):
         in database"""
         self._logger.debug("Collecting PSUs and FANs")
         entity_table = yield self.entity_mib.get_entity_physical_table()
-        psus_and_fans = self._get_redundant_psus_and_fans(entity_table)
+        psus_and_fans = self._get_psus_and_fans(entity_table)
         if psus_and_fans:
             for psu_or_fan in psus_and_fans:
                 self._logger.debug('PSU:FAN: %s' % psu_or_fan)
@@ -147,29 +149,31 @@ class PowerSupplyUnit(Plugin):
                                 self.entity_fru_control.get_oid_for_psu_status(
                                                                 entity_index))
                         self._logger.debug('PSU: %s: %s' % (ret, sensor_oid))
-                power_supply = self.containers.factory(
-                                    psu_or_fan.get('entPhysicalName', None),
+                    phys_name = psu_or_fan.get('entPhysicalName', None)
+
+                    power_supply = self.containers.factory(phys_name,
                                                     shadows.PowerSupplyOrFan)
-                # psu info
-                power_supply.netbox = self.netbox
-                power_supply.name = psu_or_fan.get('entPhysicalName', None)
-                power_supply.model = psu_or_fan.get('entPhysicalModelName',
+                    # psu info
+                    power_supply.netbox = self.netbox
+                    power_supply.name = phys_name
+                    power_supply.model = psu_or_fan.get('entPhysicalModelName',
                                                                         None)
-                power_supply.descr = psu_or_fan.get('entPhysicalDescr', None)
-                power_supply.physical_class = psu_or_fan.get(
+                    power_supply.descr = psu_or_fan.get('entPhysicalDescr',
+                                                                        None)
+                    power_supply.physical_class = psu_or_fan.get(
                                                     'entPhysicalClass', None)
-                power_supply.sensor_oid = sensor_oid
-                power_supply.up = is_up
-                # device info
-                serial = psu_or_fan.get('entPhysicalSerialNum', None)
-                if serial:
-                    device = self.containers.factory(serial,
-                                                        shadows.Device)
-                    device.serial = serial
-                    device.hardware_version = psu_or_fan.get(
+                    power_supply.sensor_oid = sensor_oid
+                    power_supply.up = is_up
+                    # device info
+                    serial = psu_or_fan.get('entPhysicalSerialNum', None)
+                    if serial:
+                        device = self.containers.factory(serial,
+                                                            shadows.Device)
+                        device.serial = serial
+                        device.hardware_version = psu_or_fan.get(
                                                 'entPhysicalHardwareRev', None)
-                    device.firmware_version = psu_or_fan.get(
+                        device.firmware_version = psu_or_fan.get(
                                                 'entPhysicalFirmwareRev', None)
-                    device.software_version = psu_or_fan.get(
+                        device.software_version = psu_or_fan.get(
                                                 'entPhysicalSoftwareRev', None)
-                    power_supply.device = device
+                        power_supply.device = device
