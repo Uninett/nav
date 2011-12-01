@@ -94,7 +94,7 @@ urlpatterns = patterns('',
     # Usage category
     url(r'^usage/$', usage,
         name='seeddb-usage'),
-    url(r'^usage/edit/(?P<usage_id>[^/]+)/$', usage_edit,
+    url(r'^usage/edit/(?P<usage_id>.+)/$', usage_edit,
         name='seeddb-usage-edit'),
     url(r'^usage/add/$', usage_edit,
         name='seeddb-usage-edit'),
