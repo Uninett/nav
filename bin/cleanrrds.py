@@ -15,8 +15,6 @@ from os.path import join, exists, isdir, getmtime, getsize, walk
 from optparse import OptionParser
 from collections import defaultdict
 
-from nav.db import getConnection
-
 from nav.models.rrd import RrdFile
 from django.db import transaction
 
@@ -31,40 +29,32 @@ def main(opts):
     elif opts.path:
         clean_filesystem(opts.path, opts.delete)
 
+@transaction.commit_on_success
 def clean_database():
-    """
-    Search the rrd database for tuples that do not have a corresponding
-    file. 
-    """
+    """Deletes database records referencing RRD files that don't exist on the
+    filesystem.
 
-    conn = getConnection("default")
-    c = conn.cursor()
-
-    query = """
-    SELECT rrd_fileid, path, filename
-    FROM rrd_file
-    ORDER BY path, filename
     """
-    c.execute(query)
+    rrds = RrdFile.objects.all().order_by('path', 'filename')
 
-    to_be_deleted = []
-    for fileid, path, filename in c.fetchall():
-        fullpath = join(path, filename)
-        if not exists(fullpath):
-            to_be_deleted.append((fileid, fullpath))
+    to_be_deleted = [rrd for rrd in rrds
+                     if not exists(rrd.get_file_path())]
 
     if len(to_be_deleted) > 0:
         print "Deleting references to non-existant RRD files from database:"
-        for id, fullpath in to_be_deleted:
-            print fullpath
-            c.execute("DELETE FROM rrd_file WHERE rrd_fileid=%s", (id,))
-        conn.commit()
+        for rrd in to_be_deleted:
+            print rrd.get_file_path()
+            rrd.delete()
         print "%s tuples deleted from database." % len(to_be_deleted)
-
-    return
 
 @transaction.commit_on_success
 def clean_pping_dupes():
+    """Deletes database records referencing duplicate pping response time RRD
+    files.
+
+    Only the reference to the newest file is kept.
+
+    """
     files_for_box = defaultdict(list)
     for rrd in RrdFile.objects.filter(subsystem="pping"):
         files_for_box[rrd.netbox_id].append(rrd)
