@@ -1,3 +1,28 @@
+Version 3.9.3
+(released 01 Dec 2011)
+
+ Improvements:
+
+  * Using the `-d` option with cleanrrds.py will now also remove references to
+    stale availability and response time RRD files from NAV's database.  This
+    should help against the "Availability: N/A" issue seen by some in
+    ipdevinfo, whereas bugfixes to pping should prevent it from creating new
+    entries while leaving stale ones in the future.
+
+ Bugfixes:
+
+  * LP#586334 (HTTPS service checker doesn't work with Python 2.6)
+  * LP#744958 (ranked stats config file should default to mbit/s)
+  * LP#888056 (MacWatch GUI crashes if the input of the MAC address is invalid)
+  * LP#891542 (Add option to make smsd ignore "permanent" dispatch errors)
+  * LP#891568 (logengine cron mail complains: global name 'ENOENT' is not
+               defined)
+  * LP#893591 (pping crashes when rrd files already exist)
+  * LP#897175 (ipdevpoll stops polling a device whose type is yet unregistered)
+  * LP#897194 (NameError when adding IP device in SeedDB)
+  * LP#898128 (Trying to seed - when going to USAGE crash)
+
+
 Version 3.9.2
 (released 17 Nov 2011)
 
