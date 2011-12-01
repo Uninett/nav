@@ -11,10 +11,14 @@ import re
 import time
 import sys
 import os
-from os.path import *
+from os.path import join, exists, isdir, getmtime, getsize, walk
 from optparse import OptionParser
+from collections import defaultdict
 
 from nav.db import getConnection
+
+from nav.models.rrd import RrdFile
+from django.db import transaction
 
 # Default threshold in days for deleting files based on modification time.
 MODIFIEDTHRESHOLD = 365
@@ -23,6 +27,7 @@ def main(opts):
 
     if opts.db:
         clean_database()
+        clean_pping_dupes()
     elif opts.path:
         clean_filesystem(opts.path, opts.delete)
 
@@ -49,16 +54,37 @@ def clean_database():
             to_be_deleted.append((fileid, fullpath))
 
     if len(to_be_deleted) > 0:
-        print "Deleting tuples from the database regarding:"
+        print "Deleting references to non-existant RRD files from database:"
         for id, fullpath in to_be_deleted:
             print fullpath
             c.execute("DELETE FROM rrd_file WHERE rrd_fileid=%s", (id,))
         conn.commit()
         print "%s tuples deleted from database." % len(to_be_deleted)
-    else:
-        print "All files existed, nothing done."
 
     return
+
+@transaction.commit_on_success
+def clean_pping_dupes():
+    files_for_box = defaultdict(list)
+    for rrd in RrdFile.objects.filter(subsystem="pping"):
+        files_for_box[rrd.netbox_id].append(rrd)
+
+    def mtime_sortkey(rrd):
+        path = rrd.get_file_path()
+        return getmtime(path) if exists(path) else 0
+
+    deleteable = []
+    for box, files in files_for_box.items():
+        files.sort(key=mtime_sortkey, reverse=True)
+        deleteable.extend(files[1:])
+
+    if deleteable:
+        print "\nDeleting stale ping response time duplicates for:"
+        for rrd in deleteable:
+            print "%s: %s" % (rrd.netbox.sysname,
+                              rrd.get_file_path())
+            rrd.delete()
+        print "%s tuples delete from database." % len(deleteable)
 
 
 def clean_filesystem(path, delete):
