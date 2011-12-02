@@ -98,8 +98,9 @@ def _cache_vlan_data_in_ports(ports):
         if port.vlan is not None:
             port._vlan_cache.add(port.vlan)
 
-        port._blocked_vlans_cache = set(blocked_vlan.vlan 
-                                        for blocked_vlan in blocked_vlans)
+        port._blocked_vlans_cache = set(blocked_vlan.vlan
+                                        for blocked_vlan in blocked_vlans
+                                        if blocked_vlan.interface == port)
 
 def _get_swportstatus_class(swport):
     """Classes for the swportstatus port view"""
