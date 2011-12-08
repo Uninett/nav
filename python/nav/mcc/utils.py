@@ -171,7 +171,8 @@ def updatedb(datadir, containers):
                    SET units = %(units)s, max = %(max_speed)s
                    WHERE rrd_fileid = %(rrd_fileid)s
                      AND descr IN %(octet_counters)s
-                     AND (units <> %(units)s OR max <> %(max_speed)s)""",
+                     AND (COALESCE(units, '') <> %(units)s OR
+                          COALESCE(max, '') <> %(max_speed)s)""",
                 {'units': 'bytes',
                  'max_speed': str(convert_Mbit_to_bytes(container.speed)),
                  'rrd_fileid': rrd_fileid,
