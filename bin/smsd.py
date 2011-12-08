@@ -405,9 +405,9 @@ def backoffaction(error, retrylimitaction):
             (failed, numbmsg))
 
         for index, msg in enumerate(msgs):
-            print msg.keys
-            error_message += u"\n%s: \"%s\" --> %s" % \
-                (index+1, msg['msg'], msg['name'])
+            error_message += u"\n%s: \"%s\" --> %s" % (
+                index+1,
+                msg['msg'].decode('utf-8'), msg['name'].decode('utf-8'))
 
         error_message += u"\nError message: %s" % error
         logger.critical(error_message.encode('utf-8'))
