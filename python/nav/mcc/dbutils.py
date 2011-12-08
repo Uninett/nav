@@ -157,16 +157,20 @@ def insert_datasources(container, rrdfile):
 
 def update_datasource_metainfo(container, rrdfile):
     """ Update datasourcetuple regarding this container """
-    LOGGER.debug("Updating datasource for %s" % container.filename)
-    counter_sources = [ds[1] for ds in container.datasources
-                       if is_octet_counter(ds[1]) and container.speed > 0]
+    if not container.speed > 0:
+        return
 
-    if counter_sources:
+    LOGGER.debug("Updating datasource for %s" % container.filename)
+    has_counter_sources = any(is_octet_counter(descr)
+                              for name, descr, dstype in container.datasources)
+
+    if has_counter_sources:
         maxspeed = str(convert_megabit_to_bytes(container.speed))
-        rrdfile.rrddatasource_set.filter(
-            description__in=OCTET_COUNTERS).exclude(
-            units='bytes', max=maxspeed).update(
-            units='bytes', max=maxspeed)
+        sources = rrdfile.rrddatasource_set.filter(
+            description__in=OCTET_COUNTERS)
+        needs_update = sources.exclude(units__isnull=False, units='bytes',
+                                       max__isnull=False, max=maxspeed)
+        needs_update.update(units='bytes', max=maxspeed)
 
 
 def move_file(source, destination):
