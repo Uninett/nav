@@ -256,7 +256,7 @@ def main(argv):
             elif delimiter == '>' and value > threshold:
                 surpassed = 1
 
-        if surpassed and thresholdstate == 'inactive':
+        if surpassed and (thresholdstate == 'inactive' or not thresholdstate):
             logger.info("--------------------")
             logger.info("Threshold surpassed (%s,%s,%s ds:%s)" %
                     (value, threshold, threshold_max, rrd_datasourceid))
@@ -269,16 +269,20 @@ def main(argv):
                     (value, threshold, threshold_max, rrd_datasourceid))
             make_event(descr, threshold, rrd_datasourceid, rrd_fileid,
                       'stillactive')
-        elif thresholdstate == 'active':
+        elif not surpassed and thresholdstate == 'active':
             logger.info("--------------------")
             logger.info("Threshold below value (%s,%s,%s ds:%s)" %
                     (value, threshold, threshold_max, rrd_datasourceid))
             # Must send nodanger-event
             make_event(descr, threshold, rrd_datasourceid, rrd_fileid,
                   'inactive')
-        else:
+        elif not surpassed and (thresholdstate == 'inactive'
+                                        or not thresholdstate):
             logger.debug("Threshold not surpassed (%s,%s,%s)" %
                     (value, threshold, threshold_max))
+        else:
+            logger.warn('This should not happen: surpassed = %d' +
+                        '; thresholdstate = %s' % (surpassed, thresholdstate))
 
     end = time.time()
     logger.info("%s executed in %.2f seconds." % (argv[0], end - start))

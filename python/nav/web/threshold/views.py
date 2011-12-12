@@ -607,8 +607,11 @@ def thresholds_save(request):
             if not thrVal:
                 # Threshold can be an empty string,- in that case insert None
                 rrd_data_source.threshold = None
+                rrd_data_source.threshold_state = None
             else:
                 rrd_data_source.threshold = thrVal
+                if not rrd_data_source.threshold_state:
+                    rrd_data_source.threshold_state = 'inactive'
             rrd_data_source.delimiter = op
             try:
                 rrd_data_source.save()
