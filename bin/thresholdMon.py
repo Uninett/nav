@@ -75,7 +75,7 @@ def set_state(dsid, descr, state):
         logger.error('%s' % get_ex)
         return
 
-    rrd_datasource.thresholdstate = state
+    rrd_datasource.threshold_state = state
     try:
         rrd_datasource.save()
     except Exception, save_ex:
