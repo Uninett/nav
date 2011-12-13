@@ -136,6 +136,7 @@ def send_event(var, val, netboxid, state, subid):
                 netboxid=netboxid, subid=subid,
                 eventtypeid='thresholdState', state=state)
     the_event[var] = val
+    the_event['threshold'] = val
 
     try:
         the_event.post()
