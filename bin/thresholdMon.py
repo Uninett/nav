@@ -228,6 +228,8 @@ def main(argv):
             logger.debug("No value returned")
             continue
 
+        # Save unmodified threshold for logging and alerts
+        orig_threshold = threshold
         # Checking if it is percent or a normal value we are comparing
         is_percent = re.compile("%$").search(threshold)
         threshold = re.sub('%$', '', threshold.strip())
@@ -260,27 +262,27 @@ def main(argv):
         if surpassed and (thresholdstate == 'inactive' or not thresholdstate):
             logger.info("--------------------")
             logger.info("Threshold surpassed (%s,%s,%s ds:%s)" %
-                    (value, threshold, threshold_max, rrd_datasourceid))
+                    (value, orig_threshold, threshold_max, rrd_datasourceid))
             # must send danger-event
-            make_event(descr, threshold, rrd_datasourceid, rrd_fileid,
+            make_event(descr, orig_threshold, rrd_datasourceid, rrd_fileid,
                       'active')
         elif surpassed and thresholdstate == 'active':
             logger.info("--------------------")
             logger.info("Threshold still surpassed. (%s,%s,%s ds:%s)" %
-                    (value, threshold, threshold_max, rrd_datasourceid))
-            make_event(descr, threshold, rrd_datasourceid, rrd_fileid,
+                    (value, orig_threshold, threshold_max, rrd_datasourceid))
+            make_event(descr, orig_threshold, rrd_datasourceid, rrd_fileid,
                       'stillactive')
         elif not surpassed and thresholdstate == 'active':
             logger.info("--------------------")
             logger.info("Threshold below value (%s,%s,%s ds:%s)" %
-                    (value, threshold, threshold_max, rrd_datasourceid))
+                    (value, orig_threshold, threshold_max, rrd_datasourceid))
             # Must send nodanger-event
-            make_event(descr, threshold, rrd_datasourceid, rrd_fileid,
+            make_event(descr, orig_threshold, rrd_datasourceid, rrd_fileid,
                   'inactive')
         elif not surpassed and (thresholdstate == 'inactive'
                                         or not thresholdstate):
             logger.debug("Threshold not surpassed (%s,%s,%s)" %
-                    (value, threshold, threshold_max))
+                    (value, orig_threshold, threshold_max))
         else:
             logger.warn('This should not happen: surpassed = %d' +
                         '; thresholdstate = %s' % (surpassed, thresholdstate))
