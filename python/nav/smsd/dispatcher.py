@@ -40,6 +40,10 @@ class DispatcherHandler(object):
         # Create logger
         self.logger = logging.getLogger("nav.smsd.dispatcher")
 
+        exit_on_permanent_error = config['main']['exit_on_permanent_error']
+        self.cull_dead_dispatcher = (exit_on_permanent_error.lower()
+                                     in ('yes', 'true'))
+
         # Get dispatchers
         self.dispatchers = []
         for pri in range(len(config['dispatcher']) + 1):
@@ -113,11 +117,14 @@ class DispatcherHandler(object):
                 (sms, sent, ignored, result, smsid) = \
                     dispatcher.sendsms(phone, msgs)
             except PermanentDispatcherError, error:
-                self.logger.error("%s failed permanently to send SMS: %s",
+                self.logger.error(
+                    "%s reports a possibly permanent SMS dispatch failure: %s",
                     dispatchername, error)
-                self.logger.info("Removing failed dispatcher %s.",
-                    dispatchername)
-                del self.dispatchers[i]
+                if self.cull_dead_dispatcher:
+                    self.logger.error(
+                        "Removing permanently failed dispatcher %s",
+                        dispatchername)
+                    del self.dispatchers[i]
                 continue # Skip to next dispatcher
             except DispatcherError, error:
                 self.logger.warning("%s failed to send SMS: %s",

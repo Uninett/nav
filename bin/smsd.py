@@ -145,13 +145,10 @@ def main(args):
         'retrylimitaction': retrylimitaction
     }
 
-    exit_on_permanent_error = (
-        config['main']['exit_on_permanent_error'].lower() in ('yes', 'true'))
-
     username = config['main']['username']
     autocancel = config['main']['autocancel']
-    loglevel = eval('logging.' + config['main']['loglevel'])
-    mailwarnlevel = eval('logging.' + config['main']['mailwarnlevel'])
+    loglevel = logging.getLevelName(config['main']['loglevel'])
+    mailwarnlevel = logging.getLevelName(config['main']['mailwarnlevel'])
     mailserver = config['main']['mailserver']
     mailaddr = config['main']['mailaddr']
 
@@ -287,13 +284,11 @@ def main(args):
             # Dispatcher: Format and send SMS
             try:
                 (sms, sent, ignored, smsid) = dh.sendsms(user, msgs)
+            except PermanentDispatcherError, error:
+                logger.critical("Sending failed permanently. Exiting. (%s)",
+                                error)
+                sys.exit(1)
             except DispatcherError, error:
-                if exit_on_permanent_error:
-                    if isinstance(error, PermanentDispatcherError):
-                        logger.critical(
-                            "Sending failed permanently. Exiting. (%s)", error)
-                        sys.exit(1)
-
                 try:
                     # Dispatching failed. Backing off.
                     backoff(delay, error, retryvars)

@@ -25,6 +25,7 @@ import os
 import threading
 import checkermap
 import psycopg2
+from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION
 import Queue
 import time
 import atexit
@@ -56,6 +57,7 @@ class _db(threading.Thread):
         self.queue = Queue.Queue()
         self._hostsToPing = []
         self._checkers = []
+        self.db = None
 
     def connect(self):
         try:
@@ -71,6 +73,13 @@ class _db(threading.Thread):
             debug(str(e), 2)
             self.db = None
 
+    def close(self):
+        try:
+            self.db.close()
+        except psycopg2.InterfaceError:
+            # ignore "already-closed" type errors
+            pass
+
     def status(self):
         try:
             if self.db.status:
@@ -81,11 +90,19 @@ class _db(threading.Thread):
 
     def cursor(self):
         try:
-            cursor = self.db.cursor()
-            # this is a very dirty workaround...
-            cursor.execute('SELECT 1')
-        except:
+            try:
+                cursor = self.db.cursor()
+                cursor.execute('SELECT 1')
+            except psycopg2.InternalError, err:
+                if err.pgcode == IN_FAILED_SQL_TRANSACTION:
+                    debug("Rolling back aborted transaction...", 2)
+                    self.db.rollback()
+                else:
+                    raise
+        except Exception, err:
+            debug(str(err), 2)
             debug("Could not get cursor. Trying to reconnect...", 2)
+            self.close()
             self.connect()
             cursor = self.db.cursor()
         return cursor
@@ -121,7 +138,7 @@ class _db(threading.Thread):
             if commit:
                 try:
                     self.db.rollback()
-                except:
+                except Exception:
                     debug("Failed to rollback", 2)
             raise dbError()
 
@@ -140,6 +157,8 @@ class _db(threading.Thread):
             debug(str(e), 2)
             debug("Tried to execute: %s" % cursor.query, 7)
             debug("Throwing away update...", 2)
+            if commit:
+                self.db.rollback()
         except Exception, e:
             debug("Could not execute statement: "
                   "%s" % cursor.query if cursor else statement, 2)
