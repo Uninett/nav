@@ -29,6 +29,7 @@ class DispatcherHandlerTest(unittest.TestCase):
     """
     def setUp(self):
         self.config = {
+            'main': {'exit_on_permanent_error': 'yes'},
             'dispatcher': {'dispatcherretry':'30',
                            'dispatcher1':'FakeDispatcher'},
             'FakeDispatcher': {}
