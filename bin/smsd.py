@@ -147,8 +147,8 @@ def main(args):
 
     username = config['main']['username']
     autocancel = config['main']['autocancel']
-    loglevel = eval('logging.' + config['main']['loglevel'])
-    mailwarnlevel = eval('logging.' + config['main']['mailwarnlevel'])
+    loglevel = logging.getLevelName(config['main']['loglevel'])
+    mailwarnlevel = logging.getLevelName(config['main']['mailwarnlevel'])
     mailserver = config['main']['mailserver']
     mailaddr = config['main']['mailaddr']
 
