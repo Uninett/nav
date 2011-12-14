@@ -699,10 +699,12 @@ class SwPortVlan(models.Model):
     DIRECTION_UNDEFINED = 'x'
     DIRECTION_UP = 'o'
     DIRECTION_DOWN = 'n'
+    DIRECTION_BLOCKED = 'b'
     DIRECTION_CHOICES = (
         (DIRECTION_UNDEFINED, 'undefined'),
         (DIRECTION_UP, 'up'),
         (DIRECTION_DOWN, 'down'),
+        (DIRECTION_BLOCKED, 'blocked'),
     )
 
     id = models.AutoField(db_column='swportvlanid', primary_key=True)
