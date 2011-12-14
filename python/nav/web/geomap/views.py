@@ -18,26 +18,78 @@
 
 
 import logging
+import psycopg2.extras
+from decimal import Decimal
 
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse
+from django.http import HttpResponseRedirect
+from django.http import Http404
 from django.core.urlresolvers import reverse
 from django import forms
 
+import nav.db
 from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
-import nav.db
-import psycopg2.extras
+
 from nav.web.geomap.conf import get_configuration
-from nav.web.geomap.db import get_data, get_data_finish
-from nav.web.geomap.graph import build_graph, simplify
+from nav.web.geomap.db import get_data
+from nav.web.geomap.db import get_data_finish
+from nav.web.geomap.graph import build_graph
+from nav.web.geomap.graph import simplify
 from nav.web.geomap.features import create_features
-from nav.web.geomap.output_formats import format_data, format_mime_type
+from nav.web.geomap.output_formats import format_data
+from nav.web.geomap.output_formats import format_mime_type
 from nav.web.templates.GeomapTemplate import GeomapTemplate
 
+from nav.models.manage import Room
 
 logger = logging.getLogger('nav.web.geomap.views')
 
+DEFAULT_LON = Decimal('10.4059409151806')
+DEFAULT_LAT = Decimal('63.4141131037476')
+
+DEFAULT_VARIANCE = Decimal('0.5')
+
+def geomap_get_lat_lon():
+    lon = DEFAULT_LON
+    lat = DEFAULT_LAT
+    sum_lon = Decimal(0)
+    sum_lat = Decimal(0)
+    rooms_with_pos = Room.objects.filter(position__isnull=False)
+    if len(rooms_with_pos) > 0:
+        num_pos = len(rooms_with_pos)
+        for room in rooms_with_pos:
+            room_lat, room_lon = room.position
+            sum_lon += room_lon
+            sum_lat += room_lat
+        lon = sum_lon / num_pos
+        lat = sum_lat / num_pos
+    return (float(lon), float(lat))
+        
+def geomap_bbox():
+    max_lon = Decimal(0)
+    min_lon = Decimal(2147483647L)
+    max_lat = Decimal(0)
+    min_lat = Decimal(2147483647L)
+    bbox = (float(DEFAULT_LON - DEFAULT_VARIANCE),
+            float(DEFAULT_LAT - DEFAULT_VARIANCE),
+            float(DEFAULT_LON + DEFAULT_VARIANCE),
+            float(DEFAULT_LAT + DEFAULT_VARIANCE))
+    rooms_with_pos = Room.objects.filter(position__isnull=False)
+    if len(rooms_with_pos) > 0:
+        for room in rooms_with_pos:
+            room_lat, room_lon = room.position
+            if room_lon > max_lon:
+                max_lon = room_lon
+            if room_lon < min_lon:
+                min_lon = room_lon
+            if room_lat > max_lat:
+                max_lat = room_lat
+            if room_lat < min_lat:
+                min_lat = room_lat
+        bbox = (float(min_lon), float(min_lat), float(max_lon), float(max_lat))
+    return bbox
 
 def geomap(request, variant):
     """Create the page showing the map.
@@ -48,10 +100,22 @@ def geomap(request, variant):
     config = get_configuration()
     if variant not in config['variants']:
         raise Http404
+    start_lon, start_lat = geomap_get_lat_lon()
+    lon_1, lat_1, lon_2, lat_2 = geomap_bbox()
+    logger.error('geomap: start_lon = %f, start_lat = %f' %
+                                (start_lon, start_lat))
+    logger.error('geomap: lon_1 = %f, lat_1 = %f, lon_2 = %f, lat_2 = %f' %
+                    (lon_1, lat_1, lon_2, lat_2))
     variant_config = config['variants'][variant]
     return render_to_response(GeomapTemplate,
                               'geomap/geomap.html',
-                              {'config': config,
+                              {'start_lon': start_lon,
+                               'start_lat': start_lat,
+                               'lon_1': lon_1,
+                               'lat_1': lat_1,
+                               'lon_2': lon_2,
+                               'lat_2': lat_2,
+                               'config': config,
                                'variant': variant,
                                'variant_config': variant_config},
                               RequestContext(request),
