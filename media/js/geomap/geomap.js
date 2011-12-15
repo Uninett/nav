@@ -19,8 +19,11 @@
  */
 
 // Initial position and zoom level (if none provided in the URL):
+/*
 var lat=63.4141131037476;
 var lon=10.4059409151806;
+*/
+
 var zoom=6;
 
 // Variables holding the objects created by init:
@@ -93,9 +96,19 @@ function init(mapElementId, url) {
     themap.addControl(posControl);
     posControl.activate();
 
+    /*
     var lonLat = new OpenLayers.LonLat(lon, lat).transform(themap.displayProjection, themap.getProjectionObject());
+    */
+
+    var lonLat = new OpenLayers.LonLat(nav.geomapMiddle[0], nav.geomapMiddle[1]).transform(themap.displayProjection, themap.getProjectionObject());
+
     themap.setCenter(lonLat, zoom, false);
-    
+
+    var intialBBox = OpenLayers.Bounds.fromArray(nav.geomapBBox);
+    intialBBox.transform(themap.displayProjection, themap.getProjectionObject());
+    themap.zoomToExtent(intialBBox);
+
+
     if (parameters.bbox) {
 	var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
 	requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());

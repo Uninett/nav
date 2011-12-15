@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
+<script type="text/javascript">
+var nav = nav || {};
+nav.geomapMiddle = [{{start_lon}}, {{start_lat}}];
+nav.geomapBBox = [{{lon_1}},{{lat_1}}, {{lon_2}}, {{lat_2}}];
+</script>
 <script type="text/javascript" src="/js/geomap/proj4js-compressed.js"></script>
 <script type="text/javascript" src="/js/geomap/projdefs/EPSG326xx.js"></script>
 <script type="text/javascript" src="/js/geomap/projdefs/EPSG327xx.js"></script>
