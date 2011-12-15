@@ -15,15 +15,18 @@
 #
 """Analysis of VLAN topology as subset of layer 2 topology"""
 
+import logging
 import networkx as nx
 
-from nav.models.manage import GwPortPrefix, Interface, SwPortVlan
+from nav.models.manage import GwPortPrefix, Interface, SwPortVlan, SwPortBlocked
 
 from django.db.models import Q
 from django.db import transaction
 from itertools import groupby, chain
 from operator import attrgetter
+from collections import defaultdict
 
+_LOGGER = logging.getLogger(__name__)
 NO_TRUNK = Q(trunk=False) | Q(trunk__isnull=True)
 
 class VlanGraphAnalyzer(object):
@@ -31,6 +34,8 @@ class VlanGraphAnalyzer(object):
     def __init__(self):
         self.vlans = self._build_vlan_router_dict()
         self.layer2 = build_layer2_graph()
+        self.stp_blocked = get_stp_blocked_ports()
+        _LOGGER.debug("blocked ports: %r", self.stp_blocked)
         self.ifc_vlan_map = {}
 
     @staticmethod
@@ -41,13 +46,15 @@ class VlanGraphAnalyzer(object):
     def analyze_all(self):
         """Analyze all VLAN topologies"""
         for vlan in self.vlans:
+            _LOGGER.debug("Analyzing VLAN %s", vlan)
             self.analyze_vlan(vlan)
         return self.ifc_vlan_map
 
     def analyze_vlan(self, vlan):
         """Analyzes a single vlan"""
         addr = self.vlans[vlan]
-        analyzer = RoutedVlanTopologyAnalyzer(addr, self.layer2)
+        analyzer = RoutedVlanTopologyAnalyzer(addr, self.layer2,
+                                              self.stp_blocked)
         topology = analyzer.analyze()
         self._integrate_vlan_topology(vlan, topology)
 
@@ -92,7 +99,7 @@ class VlanGraphAnalyzer(object):
 class RoutedVlanTopologyAnalyzer(object):
     """Analyzer of a single routed VLAN topology"""
 
-    def __init__(self, address, layer2_graph):
+    def __init__(self, address, layer2_graph, stp_blocked=None):
         """Initializes an analyzer for a given routed VLAN.
 
         :param address: A GwPortPrefix representing the router address of this
@@ -108,6 +115,7 @@ class RoutedVlanTopologyAnalyzer(object):
         self.router_port = address.interface
         self.router = self.router_port.netbox
 
+        self.stp_blocked = stp_blocked or {}
         self.ifc_directions = {}
 
     def analyze(self):
@@ -138,8 +146,14 @@ class RoutedVlanTopologyAnalyzer(object):
         if direction == 'down':
             # Recursive depth first search on each outgoing edge
             for next_edge in self._out_edges_on_vlan(dest):
-                sub_active = self._examine_edge(next_edge, visited_nodes)
-                vlan_is_active = vlan_is_active or sub_active
+                if not self._is_blocked_on_any_end(next_edge):
+                    self._log_descent(next_edge)
+                    sub_active = self._examine_edge(next_edge, visited_nodes)
+                    vlan_is_active = vlan_is_active or sub_active
+                else:
+                    vlan_is_active = False
+                    self._mark_both_ends_as_blocked(next_edge)
+                    self._log_block(next_edge)
 
         if vlan_is_active and ifc:
             self.ifc_directions[ifc] = direction
@@ -200,6 +214,46 @@ class RoutedVlanTopologyAnalyzer(object):
                 ifc.swportallowedvlan and
                 self.vlan.vlan in ifc.swportallowedvlan)
 
+    def _is_blocked_on_any_end(self, edge):
+        """Returns True if at least one of the edge endpoints are blocked"""
+        reverse_edge = self._find_reverse_edge(edge)
+        if not reverse_edge:
+            _LOGGER.debug("could not find reverse edge for %r", edge)
+        return (self._is_edge_blocked(edge) or
+                self._is_edge_blocked(reverse_edge))
+
+    def _is_edge_blocked(self, edge):
+        if edge:
+            _source, _dest, ifc = edge
+            return self.vlan.vlan in self.stp_blocked.get(ifc.id, [])
+        return False
+
+    def _log_descent(self, next_edge):
+        source, dest, ifc = next_edge
+        _LOGGER.debug("(%s) descending from %s (%s [%d]) to %s",
+                      self.vlan.vlan,
+                      source.sysname, ifc.ifname, ifc.id,
+                      dest.sysname)
+
+    def _log_block(self, next_edge):
+        source, _dest, source_ifc = next_edge
+        dest, _source, dest_ifc = self._find_reverse_edge(next_edge)
+        _LOGGER.info("at least one of %s (%s) <-> %s (%s) is blocked "
+                     "on VLAN %s",
+                     source.sysname, source_ifc.ifname,
+                     dest.sysname, dest_ifc.ifname,
+                     self.vlan.vlan)
+
+    def _mark_both_ends_as_blocked(self, edge):
+        _source, _dest, source_ifc = edge
+        self.ifc_directions[source_ifc] = 'blocked'
+        reverse_edge = self._find_reverse_edge(edge)
+        if reverse_edge:
+            _dest, _source, dest_ifc = reverse_edge
+            self.ifc_directions[dest_ifc] = 'blocked'
+
+
+
 class VlanTopologyUpdater(object):
     """Updater of the VLAN topology.
 
@@ -250,6 +304,7 @@ class VlanTopologyUpdater(object):
     DIRECTION_MAP = {
         'up': SwPortVlan.DIRECTION_UP,
         'down': SwPortVlan.DIRECTION_DOWN,
+        'blocked': SwPortVlan.DIRECTION_BLOCKED,
     }
 
     @classmethod
@@ -334,3 +389,13 @@ def get_router_addresses():
     return GwPortPrefix.objects.filter(
         interface__netbox__category__id__in=('GW', 'GSW'))
 
+def get_stp_blocked_ports():
+    """Returns a dictionary of ports in STP blocking mode.
+
+    :returns: A dictionary: {interfaceid: [vlan1, vlan2, ...]}
+
+    """
+    blocked = defaultdict(list)
+    for block in SwPortBlocked.objects.all():
+        blocked[block.interface_id].append(block.vlan)
+    return dict(blocked)
