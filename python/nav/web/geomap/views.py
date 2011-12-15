@@ -63,72 +63,21 @@ def _get_rooms_with_pos():
         fetched_rooms = Room.objects.filter(position__isnull=False)
     return fetched_rooms
 
-
-def geomap_get_lon_lat():
-    """
-    Try to find the middle longitude and latitude point from
-    the give room-posistions.
-    """
-    lon = DEFAULT_LON
-    lat = DEFAULT_LAT
-    sum_lon = Decimal(0)
-    sum_lat = Decimal(0)
-    rooms_with_pos = _get_rooms_with_pos()
-    if len(rooms_with_pos) > 0:
-        num_pos = len(rooms_with_pos)
-        for room in rooms_with_pos:
-            room_lat, room_lon = room.position
-            sum_lon += room_lon
-            sum_lat += room_lat
-        lon = sum_lon / num_pos
-        lat = sum_lat / num_pos
-    return (float(lon), float(lat))
-
-
-def geomap_rooms_bbox():
-    """
-    Try to find the points (longitude- and latitudes-pair) that are the
-    bounding box from the given room-posistions.
-    """
-    max_lon = Decimal(-2147483647L)
-    min_lon = Decimal(2147483647L)
-    max_lat = Decimal(-2147483647L)
-    min_lat = Decimal(2147483647L)
-    bbox = (float(DEFAULT_LON - DEFAULT_VARIANCE),
-            float(DEFAULT_LAT - DEFAULT_VARIANCE),
-            float(DEFAULT_LON + DEFAULT_VARIANCE),
-            float(DEFAULT_LAT + DEFAULT_VARIANCE))
-    rooms_with_pos = _get_rooms_with_pos()
-    if len(rooms_with_pos) > 0:
-        for room in rooms_with_pos:
-            room_lat, room_lon = room.position
-            if room_lon > max_lon:
-                max_lon = room_lon
-            if room_lon < min_lon:
-                min_lon = room_lon
-            if room_lat > max_lat:
-                max_lat = room_lat
-            if room_lat < min_lat:
-                min_lat = room_lat
-        bbox = (float(min_lon), float(min_lat), float(max_lon), float(max_lat))
-    return bbox
-
-
 def geomap_all_room_pos():
     """
     Collect all room-positions (longitude and latitude) and return
     them as points in an array: [(lon, lat), (lon,lat), ...]
     """
-    multi_points = [(float(DEFAULT_LON - DEFAULT_VARIANCE),
-            float(DEFAULT_LAT - DEFAULT_VARIANCE)),
-            (float(DEFAULT_LON + DEFAULT_VARIANCE),
-            float(DEFAULT_LAT + DEFAULT_VARIANCE))]
+    multi_points = [(DEFAULT_LON - DEFAULT_VARIANCE,
+                     DEFAULT_LAT - DEFAULT_VARIANCE),
+                    (DEFAULT_LON + DEFAULT_VARIANCE,
+                     DEFAULT_LAT + DEFAULT_VARIANCE)]
     rooms_with_pos = _get_rooms_with_pos()
     if len(rooms_with_pos) > 0:
         multi_points = []
         for room in rooms_with_pos:
             room_lat, room_lon = room.position
-            multi_points.append((float(room_lon), float(room_lat)))
+            multi_points.append((room_lon, room_lat))
     return multi_points
 
 
@@ -141,17 +90,12 @@ def geomap(request, variant):
     config = get_configuration()
     if variant not in config['variants']:
         raise Http404
-    start_lon, start_lat = geomap_get_lon_lat()
-    logger.debug('geomap: start_lon = %f, start_lat = %f' %
-                                (start_lon, start_lat))
     room_points = geomap_all_room_pos()
     logger.debug('geomap: room_points = %s' % room_points)
     variant_config = config['variants'][variant]
     return render_to_response(GeomapTemplate,
                               'geomap/geomap.html',
-                              {'start_lon': start_lon,
-                               'start_lat': start_lat,
-                               'room_points': room_points,
+                              {'room_points': room_points,
                                'config': config,
                                'variant': variant,
                                'variant_config': variant_config},

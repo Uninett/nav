@@ -10,15 +10,12 @@
 <script type="text/javascript">
 var nav = nav || {};
 
-nav.geomapMiddle = [{{start_lon}}, {{start_lat}}];
-
 var roomPosArray = new Array();
-{% for lon, lat in room_points %}
- roomPosArray.push(new OpenLayers.Geometry.Point({{lon}}, {{lat}}));
+{% for lon, lat in room_points %}roomPosArray.push(new OpenLayers.Geometry.Point({{lon}}, {{lat}}));
 {% endfor %}
 
-var roomPositins = new OpenLayers.Geometry.MultiPoint(roomPosArray);
-nav.geomapBBox = roomPositins.getBounds();
+var roomPositions = new OpenLayers.Geometry.MultiPoint(roomPosArray);
+nav.geomapBBox = roomPositions.getBounds();
 
 </script>
 
