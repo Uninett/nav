@@ -50,6 +50,13 @@ class VlanGraphAnalyzer(object):
             self.analyze_vlan(vlan)
         return self.ifc_vlan_map
 
+    def analyze_vlans_by_id(self, vlans):
+        """Analyzes a list of VLANs by their PVIDs"""
+        vlan_id_map = dict((vlan.vlan, vlan) for vlan in self.vlans.keys())
+        for vlan in vlans:
+            if vlan in vlan_id_map:
+                self.analyze_vlan(vlan_id_map[vlan])
+
     def analyze_vlan(self, vlan):
         """Analyzes a single vlan"""
         addr = self.vlans[vlan]

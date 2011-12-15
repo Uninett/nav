@@ -42,9 +42,14 @@ def main():
     (options, _args) = parser.parse_args()
 
     init_logging()
-    do_layer2_detection()
+    if options.l2:
+        do_layer2_detection()
     if options.vlan:
-        do_vlan_detection()
+        if options.include_vlans:
+            vlans = [int(v) for v in options.include_vlans]
+        else:
+            vlans = []
+        do_vlan_detection(vlans)
 
 def make_option_parser():
     """Sets up and returns a command line option parser."""
@@ -54,8 +59,13 @@ def make_option_parser():
                      "database")
         )
 
+    parser.add_option("--l2", action="store_true", dest="l2",
+                      help="Detect physical topology")
     parser.add_option("--vlan", action="store_true", dest="vlan",
-                      help="Also detect vlan subtopologies")
+                      help="Detect vlan subtopologies")
+    parser.add_option("-i", dest="include_vlans", default="",
+                      metavar="vlan[,...]",
+                      help="Only analyze the VLANs included in this list")
     return parser
 
 def init_logging():
@@ -96,9 +106,12 @@ def do_layer2_detection():
     update_layer2_topology(links)
 
 @with_exception_logging
-def do_vlan_detection():
+def do_vlan_detection(vlans):
     analyzer = VlanGraphAnalyzer()
-    analyzer.analyze_all()
+    if vlans:
+        analyzer.analyze_vlans_by_id(vlans)
+    else:
+        analyzer.analyze_all()
     ifc_vlan_map = analyzer.add_access_port_vlans()
     update = VlanTopologyUpdater(ifc_vlan_map)
     update()
