@@ -23,10 +23,10 @@ from decimal import Decimal
 
 from django.template import RequestContext
 from django.http import HttpResponse
+from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.core.urlresolvers import reverse
-from django import forms
 
 import nav.db
 from nav.django.shortcuts import render_to_response
@@ -51,12 +51,29 @@ DEFAULT_LAT = Decimal('63.4141131037476')
 
 DEFAULT_VARIANCE = Decimal('0.5')
 
+fetched_rooms = None
+
+
+def _get_rooms_with_pos():
+    """
+    Cache already fetched rows from database.
+    """
+    global fetched_rooms
+    if not fetched_rooms:
+        fetched_rooms = Room.objects.filter(position__isnull=False)
+    return fetched_rooms
+
+
 def geomap_get_lon_lat():
+    """
+    Try to find the middle longitude and latitude point from
+    the give room-posistions.
+    """
     lon = DEFAULT_LON
     lat = DEFAULT_LAT
     sum_lon = Decimal(0)
     sum_lat = Decimal(0)
-    rooms_with_pos = Room.objects.filter(position__isnull=False)
+    rooms_with_pos = _get_rooms_with_pos()
     if len(rooms_with_pos) > 0:
         num_pos = len(rooms_with_pos)
         for room in rooms_with_pos:
@@ -66,8 +83,13 @@ def geomap_get_lon_lat():
         lon = sum_lon / num_pos
         lat = sum_lat / num_pos
     return (float(lon), float(lat))
-        
+
+
 def geomap_rooms_bbox():
+    """
+    Try to find the points (longitude- and latitudes-pair) that are the
+    bounding box from the given room-posistions.
+    """
     max_lon = Decimal(-2147483647L)
     min_lon = Decimal(2147483647L)
     max_lat = Decimal(-2147483647L)
@@ -76,7 +98,7 @@ def geomap_rooms_bbox():
             float(DEFAULT_LAT - DEFAULT_VARIANCE),
             float(DEFAULT_LON + DEFAULT_VARIANCE),
             float(DEFAULT_LAT + DEFAULT_VARIANCE))
-    rooms_with_pos = Room.objects.filter(position__isnull=False)
+    rooms_with_pos = _get_rooms_with_pos()
     if len(rooms_with_pos) > 0:
         for room in rooms_with_pos:
             room_lat, room_lon = room.position
@@ -91,18 +113,24 @@ def geomap_rooms_bbox():
         bbox = (float(min_lon), float(min_lat), float(max_lon), float(max_lat))
     return bbox
 
+
 def geomap_all_room_pos():
+    """
+    Collect all room-positions (longitude and latitude) and return
+    them as points in an array: [(lon, lat), (lon,lat), ...]
+    """
     multi_points = [(float(DEFAULT_LON - DEFAULT_VARIANCE),
             float(DEFAULT_LAT - DEFAULT_VARIANCE)),
             (float(DEFAULT_LON + DEFAULT_VARIANCE),
             float(DEFAULT_LAT + DEFAULT_VARIANCE))]
-    rooms_with_pos = Room.objects.filter(position__isnull=False)
+    rooms_with_pos = _get_rooms_with_pos()
     if len(rooms_with_pos) > 0:
         multi_points = []
         for room in rooms_with_pos:
             room_lat, room_lon = room.position
-            multi_points.append((float(room_lon),float(room_lat)))
+            multi_points.append((float(room_lon), float(room_lat)))
     return multi_points
+
 
 def geomap(request, variant):
     """Create the page showing the map.
@@ -116,9 +144,6 @@ def geomap(request, variant):
     start_lon, start_lat = geomap_get_lon_lat()
     logger.debug('geomap: start_lon = %f, start_lat = %f' %
                                 (start_lon, start_lat))
-    #lon_1, lat_1, lon_2, lat_2 = geomap_rooms_bbox()
-    #logger.error('geomap: lon_1 = %f, lat_1 = %f, lon_2 = %f, lat_2 = %f' %
-    #                (lon_1, lat_1, lon_2, lat_2))
     room_points = geomap_all_room_pos()
     logger.debug('geomap: room_points = %s' % room_points)
     variant_config = config['variants'][variant]
@@ -134,7 +159,7 @@ def geomap(request, variant):
                               path=[('Home', '/'),
                                     ('Geomap', None)])
 
-            
+
 def forward_to_default_variant(request):
     """Redirect the client to the default variant.
 
