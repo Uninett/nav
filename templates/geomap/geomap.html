@@ -1,17 +1,27 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-<script type="text/javascript">
-var nav = nav || {};
-nav.geomapMiddle = [{{start_lon}}, {{start_lat}}];
-nav.geomapBBox = [{{lon_1}},{{lat_1}}, {{lon_2}}, {{lat_2}}];
-</script>
 <script type="text/javascript" src="/js/geomap/proj4js-compressed.js"></script>
 <script type="text/javascript" src="/js/geomap/projdefs/EPSG326xx.js"></script>
 <script type="text/javascript" src="/js/geomap/projdefs/EPSG327xx.js"></script>
 <script type="text/javascript" src="http://www.openlayers.org/api/OpenLayers.js"></script>
 <script type="text/javascript" src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
  
+<script type="text/javascript">
+var nav = nav || {};
+
+nav.geomapMiddle = [{{start_lon}}, {{start_lat}}];
+
+var roomPosArray = new Array();
+{% for lon, lat in room_points %}
+ roomPosArray.push(new OpenLayers.Geometry.Point({{lon}}, {{lat}}));
+{% endfor %}
+
+var roomPositins = new OpenLayers.Geometry.MultiPoint(roomPosArray);
+nav.geomapBBox = roomPositins.getBounds();
+
+</script>
+
 <script type="text/javascript" src="/js/geomap/util.js"></script>
 <script type="text/javascript" src="/js/geomap/coordinates.js"></script>
 <script type="text/javascript" src="/js/geomap/NetworkLayer.js"></script>

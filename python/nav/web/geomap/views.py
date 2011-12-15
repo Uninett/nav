@@ -51,7 +51,7 @@ DEFAULT_LAT = Decimal('63.4141131037476')
 
 DEFAULT_VARIANCE = Decimal('0.5')
 
-def geomap_get_lat_lon():
+def geomap_get_lon_lat():
     lon = DEFAULT_LON
     lat = DEFAULT_LAT
     sum_lon = Decimal(0)
@@ -67,10 +67,10 @@ def geomap_get_lat_lon():
         lat = sum_lat / num_pos
     return (float(lon), float(lat))
         
-def geomap_bbox():
-    max_lon = Decimal(0)
+def geomap_rooms_bbox():
+    max_lon = Decimal(-2147483647L)
     min_lon = Decimal(2147483647L)
-    max_lat = Decimal(0)
+    max_lat = Decimal(-2147483647L)
     min_lat = Decimal(2147483647L)
     bbox = (float(DEFAULT_LON - DEFAULT_VARIANCE),
             float(DEFAULT_LAT - DEFAULT_VARIANCE),
@@ -91,6 +91,19 @@ def geomap_bbox():
         bbox = (float(min_lon), float(min_lat), float(max_lon), float(max_lat))
     return bbox
 
+def geomap_all_room_pos():
+    multi_points = [(float(DEFAULT_LON - DEFAULT_VARIANCE),
+            float(DEFAULT_LAT - DEFAULT_VARIANCE)),
+            (float(DEFAULT_LON + DEFAULT_VARIANCE),
+            float(DEFAULT_LAT + DEFAULT_VARIANCE))]
+    rooms_with_pos = Room.objects.filter(position__isnull=False)
+    if len(rooms_with_pos) > 0:
+        multi_points = []
+        for room in rooms_with_pos:
+            room_lat, room_lon = room.position
+            multi_points.append((float(room_lon),float(room_lat)))
+    return multi_points
+
 def geomap(request, variant):
     """Create the page showing the map.
 
@@ -100,21 +113,20 @@ def geomap(request, variant):
     config = get_configuration()
     if variant not in config['variants']:
         raise Http404
-    start_lon, start_lat = geomap_get_lat_lon()
-    lon_1, lat_1, lon_2, lat_2 = geomap_bbox()
-    logger.error('geomap: start_lon = %f, start_lat = %f' %
+    start_lon, start_lat = geomap_get_lon_lat()
+    logger.debug('geomap: start_lon = %f, start_lat = %f' %
                                 (start_lon, start_lat))
-    logger.error('geomap: lon_1 = %f, lat_1 = %f, lon_2 = %f, lat_2 = %f' %
-                    (lon_1, lat_1, lon_2, lat_2))
+    #lon_1, lat_1, lon_2, lat_2 = geomap_rooms_bbox()
+    #logger.error('geomap: lon_1 = %f, lat_1 = %f, lon_2 = %f, lat_2 = %f' %
+    #                (lon_1, lat_1, lon_2, lat_2))
+    room_points = geomap_all_room_pos()
+    logger.debug('geomap: room_points = %s' % room_points)
     variant_config = config['variants'][variant]
     return render_to_response(GeomapTemplate,
                               'geomap/geomap.html',
                               {'start_lon': start_lon,
                                'start_lat': start_lat,
-                               'lon_1': lon_1,
-                               'lat_1': lat_1,
-                               'lon_2': lon_2,
-                               'lat_2': lat_2,
+                               'room_points': room_points,
                                'config': config,
                                'variant': variant,
                                'variant_config': variant_config},
