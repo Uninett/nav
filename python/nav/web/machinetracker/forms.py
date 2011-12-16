@@ -31,10 +31,6 @@ def _check_ips_in_input(ip):
             try:
                 ips = ip.split('-')
 
-                # Check the first ip for more than one range
-                if len(ips) > 2:
-                    raise forms.ValidationError(u"You can only specify one range")
-
                 # Try to parse the first IP to an IP-object
                 IP(ips[0])
 
