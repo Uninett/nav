@@ -4,5 +4,5 @@
 
 # If you want to run the old topology detector, uncomment the following lines:
 
-# 35 * * * *              @bindir@/networkDiscovery.sh topology
-# 38 * * * *              @bindir@/networkDiscovery.sh vlan
+# 35 * * * *              @bindir@/network-discovery topology
+# 38 * * * *              @bindir@/network-discovery vlan
