@@ -22,8 +22,15 @@
     {% include "machinetracker/ip_tracker.html" %}
 </div>
 {% else %}
-
+<p>Your search did not give any results.</p>
 <div class="infobox">
+    <h4>Valid Search terms</h4>
+    <ul>
+        <li>Single IP addresses</li>
+        <li>Ranges like 10.0.0.0-10.0.1.255, 10.0.0.0-255 or 2001:701::0000-FFF.</li>
+        <li>CIDR addresses like 129.241.105.0/24.</li>
+        <li>Single addresses with a CIDR slash, 129.241.105.0/ will return subnet based on what info NAV's database have.
+    </ul>
     <h4>Accuracy of the Results</h4>
     <ul>
         <li>
@@ -40,9 +47,7 @@
             number data cannot be accurately mapped to interface names.
         </li>
         <li>
-            Checking the &quot;inactive&quot; checkbox will have no effect when
-            searching IPv6 address ranges.  The output would be huge (about
-            <em>10<sup>19</sup></em> resulting rows for a /64 subnet).
+            Searches will not return more than 4096 results, equivalent to an IPv4 /20 subnet.
         </li>
     </ul>
 </div>
