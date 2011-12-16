@@ -108,6 +108,32 @@ pping has gained support for pinging IPv6 hosts. _However_, SNMP over IPv6 is
 not supported quite yet. This means you can add servers with IPv6 addresses
 using SeedDB, but not with an enabled SNMP community.
 
+Files to remove
+---------------
+
+If any of the following files and directories are still in your installation
+after upgrading to NAV 3.10, they should be removed (installation prefix has
+been stripped from these file names).  If you installed and upgraded NAV using
+a packaging system, you should be able to safely ignore this section::
+
+  doc/sql/*.sql
+  etc/cron.d/networkDiscovery
+  lib/python/nav/database.py
+  lib/python/nav/mcc/routers.py
+  lib/python/nav/mcc/switches.py
+  lib/python/nav/web/templates/seeddbTemplate.py
+  lib/python/nav/web/templates/selectTreeTemplate.py
+  lib/python/nav/web/l2trace.py
+  lib/python/nav/web/sortedStats.py
+  lib/python/nav/web/netmap/handler.py
+  lib/python/nav/web/serviceHelper.py
+  lib/python/nav/web/ldapAuth.py
+  lib/python/nav/web/selectTree.py
+  lib/python/nav/statemon/output.py
+  lib/templates/geomap/geomap-data-kml.xml
+  apache/
+  bin/navschema.py
+
 
 NAV 3.9
 =======
