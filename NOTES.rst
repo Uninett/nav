@@ -89,6 +89,18 @@ To receive alerts about SNMP agent states, please subscribe to
 `snmpAgentState` events in your alert profile.
 
 
+Redundant power supply and fan state monitoring
+-----------------------------------------------
+
+NAV now finds and stores information about power supply and fan units from
+Cisco and HP devices, and monitors for any failures in redundant
+configurations.
+
+For the time being, the monitoring is run by a separate program,
+`powersupplywatch.py`, which is by default set up to run as a cron job once an
+hour. To adjust the monitoring interval, edit `cron.d/psuwatch`.
+
+
 IPv6 status monitoring
 ----------------------
 
