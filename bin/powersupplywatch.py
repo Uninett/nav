@@ -24,6 +24,8 @@ from os.path import join
 from datetime import datetime
 
 import logging
+logging.raiseExceptions = False
+
 import logging.handlers
 import sys
 from optparse import OptionParser
