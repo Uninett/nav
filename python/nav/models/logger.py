@@ -15,19 +15,29 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
+Django ORM wrapper for the NAV logger database
 """
+
 
 from django.db import models
 from nav.models.fields import VarcharField
 
+
 class Category(models.Model):
+    """
+    Model for the logger.category-table
+    """
     id = models.AutoField(db_column='category_id', primary_key=True)
     category = VarcharField(db_column='category', unique=True)
 
     class Meta:
         db_table = 'category'
 
+
 class Origin(models.Model):
+    """
+    Model for the logger.origin-table
+    """
     origin = models.AutoField(db_column='origin', primary_key=True)
     name = VarcharField(db_column='name')
     category = models.ForeignKey(Category, db_column='category')
@@ -35,7 +45,11 @@ class Origin(models.Model):
     class Meta:
         db_table = 'origin'
 
+
 class Priority(models.Model):
+    """
+    Model for the logger.priority-table
+    """
     priority = models.AutoField(db_column='priority', primary_key=True)
     keyword = VarcharField(db_column='keyword', unique=True)
     description = VarcharField(db_column='description')
@@ -43,7 +57,11 @@ class Priority(models.Model):
     class Meta:
         db_table = 'priority'
 
+
 class LogMessageType(models.Model):
+    """
+    Model for the logger.log_message_type-table
+    """
     type = models.AutoField(db_column='type', primary_key=True)
     priority = models.ForeignKey(Priority, db_column='priority')
     facility = VarcharField(db_column='facility')
@@ -53,7 +71,11 @@ class LogMessageType(models.Model):
         db_table = 'log_message_type'
         unique_together = (('priority', 'facility', 'mnemonic'),)
 
+
 class LogMessage(models.Model):
+    """
+    Model for the logger.log_message-table
+    """
     id = models.AutoField(db_column='id', primary_key=True)
     time = models.DateTimeField(db_column='time', auto_now=True)
     origin = models.ForeignKey(Origin, db_column='origin')
@@ -64,12 +86,17 @@ class LogMessage(models.Model):
     class Meta:
         db_table = 'log_message'
 
+
 class ErrorError(models.Model):
+    """
+    Model for the logger.errorerror-table
+    """
     id = models.AutoField(db_column='id', primary_key=True)
     message = VarcharField(db_column='message')
 
     class Meta:
         db_table = 'errorerror'
+
 
 class MessageView(models.Model):
     """
@@ -82,7 +109,7 @@ class MessageView(models.Model):
     type = models.IntegerField(db_column='type')
     newpriority = models.IntegerField(db_column='newpriority')
     category = models.IntegerField(db_column='category')
-    time =  models.DateTimeField(db_column='time')
+    time = models.DateTimeField(db_column='time')
 
     class Meta:
         db_table = 'message_view'
