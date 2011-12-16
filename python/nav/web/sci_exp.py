@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
 #
@@ -44,7 +43,7 @@ def sci(number, long=False):
             # We want 311m - not 0.311 
             exponent -= 3
         if abs(exponent) > 24:
-          exponent = 24 * (exponent/abs(exponent))
+            exponent = 24 * (exponent/abs(exponent))
         factor = number / 10**exponent
         # note - long means column 1, short is col 0 =)
         return (factor, units[exponent][long])

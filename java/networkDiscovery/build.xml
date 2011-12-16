@@ -51,15 +51,15 @@
     <copy file="${dist}/${jar}" todir="${DESTDIR}${instdir}"/>
 
     <mkdir dir="${DESTDIR}${bindir}"/>
-    <copy file="networkDiscovery.sh" todir="${DESTDIR}${bindir}"/>
+    <copy file="network-discovery" todir="${DESTDIR}${bindir}"/>
     <exec dir="${DESTDIR}${bindir}" executable="chmod" os="${isUnix}">
-      <arg line="755 networkDiscovery.sh" />
+      <arg line="755 network-discovery" />
     </exec>
 
   </target>
   <target name="uninstall">
     <delete file="${DESTDIR}${instdir}/${jar}"/>
-    <delete file="${DESTDIR}${bindir}/networkDiscovery.sh"/>
+    <delete file="${DESTDIR}${bindir}/network-discovery"/>
   </target>
 
   <target name="clean"

@@ -28,11 +28,11 @@ import IPy
 from django.db.models import Q
 
 from nav.models import manage, oid
-from nav.models.event import EventQueue as Event
+from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 
-from storage import Shadow
-import descrparsers
-import utils
+from .storage import Shadow
+from . import descrparsers
+from . import utils
 from nav.ipdevpoll import db
 
 # Shadow classes.  Not all of these will be used to store data, but
@@ -110,6 +110,23 @@ class Netbox(Shadow):
 class NetboxType(Shadow):
     __shadowclass__ = manage.NetboxType
     __lookups__ = ['sysobjectid']
+
+    def get_enterprise_id(self):
+        """Returns the type's enterprise ID as an integer.
+
+        The type's sysobjectid should always start with
+        SNMPv2-SMI::enterprises (1.3.6.1.4.1).  The next OID element will be
+        an enterprise ID, while the remaining elements will describe the type
+        specific to the vendor.
+
+        """
+        prefix = u"1.3.6.1.4.1."
+        if self.sysobjectid.startswith(prefix):
+            specific = self.sysobjectid[len(prefix):]
+            enterprise = specific.split('.')[0]
+            return long(enterprise)
+        else:
+            raise ValueError("%r is not a valid sysObjectID" % self.sysobjectid)
 
 class NetboxInfo(Shadow):
     __shadowclass__ = manage.NetboxInfo
@@ -217,8 +234,7 @@ class Module(Shadow):
     @classmethod
     def _make_modulestate_event(cls, django_module):
         event = Event()
-        # FIXME: ipdevpoll is not a registered subsystem in the database yet
-        event.source_id = 'getDeviceData'
+        event.source_id = 'ipdevpoll'
         event.target_id = 'eventEngine'
         event.device = django_module.device
         event.netbox = django_module.netbox
@@ -302,9 +318,11 @@ class Interface(Shadow):
         """Cleans up Interface data."""
         cls._mark_missing_interfaces(containers)
         cls._delete_missing_interfaces(containers)
+        cls._generate_linkstate_events(containers)
         super(Interface, cls).cleanup_after_save(containers)
 
     @classmethod
+    @db.commit_on_success
     def _mark_missing_interfaces(cls, containers):
         """Marks interfaces in db as gone if they haven't been collected in
         this round.
@@ -334,6 +352,7 @@ class Interface(Shadow):
         missing_interfaces.update(gone_since=timestamp)
 
     @classmethod
+    @db.commit_on_success
     def _delete_missing_interfaces(cls, containers):
         """Deletes missing interfaces from the database."""
         netbox = containers.get(None, Netbox)
@@ -369,7 +388,106 @@ class Interface(Shadow):
         dead_ifcs = ancient_ifcs.exclude(module__in = down_modules)
         return [row['pk'] for row in dead_ifcs.values('pk')]
 
-    def lookup_matching_objects(self, containers):
+    @classmethod
+    @db.commit_on_success
+    def _generate_linkstate_events(cls, containers):
+        changed_ifcs = [ifc for ifc in containers[cls].values()
+                        if ifc.is_linkstate_changed()]
+        if not changed_ifcs:
+            return
+
+        netbox = containers.factory(None, Netbox)
+        cls._logger.debug("(%s) link state changed for: %s",
+                          netbox.sysname,
+                          ', '.join(ifc.ifname for ifc in changed_ifcs))
+
+        linkstate_filter = cls.get_linkstate_filter()
+        eventful_ifcs = [ifc for ifc in changed_ifcs
+                         if ifc.matches_filter(linkstate_filter)]
+        if eventful_ifcs:
+            cls._logger.debug("(%s) posting linkState events for %r: %s",
+                              netbox.sysname, linkstate_filter,
+                              ', '.join(ifc.ifname for ifc in eventful_ifcs))
+
+        for ifc in eventful_ifcs:
+            ifc.post_linkstate_event()
+
+    def is_linkstate_changed(self):
+        return (hasattr(self, 'ifoperstatus_change')
+                and bool(self.ifoperstatus_change))
+
+    @classmethod
+    def get_linkstate_filter(cls):
+        from nav.ipdevpoll.config import ipdevpoll_conf as conf
+        default = 'topology'
+        link_filter = (conf.get('linkstate', 'filter')
+                       if conf.has_option('linkstate', 'filter')
+                       else default)
+
+        if link_filter not in ('any', 'topology'):
+            cls._logger.warning("configured linkstate filter is invalid: %r"
+                                " (using %r as default)", link_filter, default)
+            return default
+        else:
+            return link_filter
+
+    def matches_filter(self, linkstate_filter):
+        django_ifc = self._cached_converted_model
+        if linkstate_filter == 'topology' and django_ifc.to_netbox:
+            return True
+        elif linkstate_filter == 'any':
+            return True
+        else:
+            return False
+
+    def post_linkstate_event(self):
+        if not self.is_linkstate_changed():
+            return
+
+        oldstate, newstate = self.ifoperstatus_change
+        if newstate == manage.Interface.OPER_DOWN:
+            self._make_linkstate_event(True)
+        elif newstate == manage.Interface.OPER_UP:
+            self._make_linkstate_event(False)
+
+    def _make_linkstate_event(self, start=True):
+        django_ifc = self._cached_converted_model
+        event = Event()
+        event.source_id = 'ipdevpoll'
+        event.target_id = 'eventEngine'
+        event.netbox_id = self.netbox.id
+        event.device = django_ifc.netbox.device
+        event.subid = self.id
+        event.event_type_id = 'linkState'
+        event.state = event.STATE_START if start else event.STATE_END
+        event.save()
+
+        EventVar(event_queue=event, variable='alerttype',
+                 value='linkDown' if start else 'linkUp').save()
+        EventVar(event_queue=event, variable='interface',
+                 value=self.ifname).save()
+        EventVar(event_queue=event, variable='ifalias',
+                 value=django_ifc.ifalias or '').save()
+
+    def get_existing_model(self, containers=None):
+        """Implements custom logic for finding known interfaces."""
+        result = self._lookup_matching_objects(containers)
+        if not result:
+            return None
+        elif len(result) > 1:
+            self._logger.debug(
+                "get_existing_model: multiple matching objects returned. "
+                "query is: %r", result.query.as_sql())
+            raise manage.Interface.MultipleObjectsReturned(
+                "get_existing_model: "
+                "Found multiple matching objects for %r" % self)
+        else:
+            stored = result[0]
+            self.id = stored.id
+            self._verify_operstatus_change(stored)
+            return stored
+
+    def _lookup_matching_objects(self, containers):
         """Finds existing db objects that match this container.
 
         ifName is a more important identifier than ifindex, as ifindexes may
@@ -397,21 +515,12 @@ class Interface(Shadow):
 
         return result
 
-    def get_existing_model(self, containers=None):
-        """Implements custom logic for finding known interfaces."""
-        result = self.lookup_matching_objects(containers)
-        if not result:
-            return None
-        elif len(result) > 1:
-            self._logger.debug(
-                "get_existing_model: multiple matching objects returned. "
-                "query is: %r", result.query.as_sql())
-            raise manage.Interface.MultipleObjectsReturned(
-                "get_existing_model: "
-                "Found multiple matching objects for %r" % self)
+    def _verify_operstatus_change(self, stored):
+        if self.ifoperstatus != stored.ifoperstatus:
+            self.ifoperstatus_change = (stored.ifoperstatus, self.ifoperstatus)
         else:
-            self.id = result[0].id
-            return result[0]
+            self.ifoperstatus_change = None
+
 
     @classmethod
     def prepare_for_save(cls, containers):
@@ -447,15 +556,15 @@ class Interface(Shadow):
         changed_interfaces.update(ifindex=None)
 
     def prepare(self, containers):
-        self.set_netbox_if_unset(containers)
-        self.set_ifindex_if_unset(containers)
+        self._set_netbox_if_unset(containers)
+        self._set_ifindex_if_unset(containers)
 
-    def set_netbox_if_unset(self, containers):
+    def _set_netbox_if_unset(self, containers):
         """Sets this Interface's netbox reference if unset by plugins."""
         if self.netbox is None:
             self.netbox = containers.get(None, Netbox)
 
-    def set_ifindex_if_unset(self, containers):
+    def _set_ifindex_if_unset(self, containers):
         """Sets this Interface's ifindex value if unset by plugins."""
         if self.ifindex is None:
             interfaces = dict((v, k) for k, v in containers[Interface].items())
@@ -674,9 +783,9 @@ class GwPortPrefix(Shadow):
 
         data = self._parse_description_with_all_parsers()
         if not data:
-            self._logger.info("ifalias did not match any known router port "
-                              "description conventions: %s",
-                              self.interface.ifalias)
+            self._logger.debug("ifalias did not match any known router port "
+                               "description conventions: %s",
+                               self.interface.ifalias)
             self.prefix.vlan.netident = self.interface.ifalias
             return
 
@@ -757,4 +866,38 @@ class SnmpOid(Shadow):
 class NetboxSnmpOid(Shadow):
     __shadowclass__ = oid.NetboxSnmpOid
 
+class Sensor(Shadow):
+    __shadowclass__ = manage.Sensor
+    __lookups__ = [('netbox', 'internal_name', 'mib')]
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        cls._delete_missing_sensors(containers)
+        
+    @classmethod
+    @db.autocommit
+    def _delete_missing_sensors(cls, containers):
+        missing_sensors = cls._get_missing_sensors(containers)
+        sensor_names = [row['internal_name']
+                            for row in missing_sensors.values('internal_name')]
+        if len(missing_sensors) < 1:
+            return
+        netbox = containers.get(None, Netbox)
+        cls._logger.debug('Deleting %d missing sensors from %s: %s',
+                          len(sensor_names), netbox.sysname,
+                          ", ".join(sensor_names))
+        missing_sensors.delete()
+
+    @classmethod
+    @db.autocommit
+    def _get_missing_sensors(cls, containers):
+        found_sensor_pks = [sensor.id for sensor in containers[cls].values()]
+        netbox = containers.get(None, Netbox)
+        missing_sensors = manage.Sensor.objects.filter(
+            netbox=netbox.id).exclude(pk__in=found_sensor_pks)
+        return missing_sensors
+        
+class PowerSupplyOrFan(Shadow):
+    __shadowclass__ = manage.PowerSupplyOrFan
+    __lookups__ = [('netbox', 'name')]
 

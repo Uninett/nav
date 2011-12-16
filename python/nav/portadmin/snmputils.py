@@ -39,13 +39,13 @@ class SNMPHandler(object):
         return self.netbox.type.vendor.id
 
     def _bulkwalk(self, oid):
-       handle = self._getReadOnlyHandle()
-       result = []
-       try:
-           result = handle.bulkwalk(oid)
-       except UnsupportedSnmpVersionError, e:
-           result = handle.walk(oid)
-       return result
+        handle = self._getReadOnlyHandle()
+        result = []
+        try:
+            result = handle.bulkwalk(oid)
+        except UnsupportedSnmpVersionError, e:
+            result = handle.walk(oid)
+        return result
 
     def _getLegalIfIndex(self, ifindex):
         if isinstance(ifindex, int):

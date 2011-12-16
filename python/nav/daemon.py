@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2006-2008 UNINETT AS
+# Copyright (C) 2006-2008, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -35,6 +34,7 @@ import atexit
 import grp
 import logging
 import os
+import errno
 import pwd
 import sys
 import time
@@ -359,9 +359,10 @@ def daemonexit(pidfile):
         os.remove(pidfile)
     except Exception, error:
         logger.debug("Can't remove pidfile (%s). (%s)", pidfile, error)
-        raise PidFileWriteError(pidfile, error)
-
-    logger.debug("pidfile (%s) removed.", pidfile)
+        if error.errno != errno.ENOENT:
+            raise PidFileWriteError(pidfile, error)
+    else:
+        logger.debug("pidfile (%s) removed.", pidfile)
     return True
 
 def safesleep(delay):

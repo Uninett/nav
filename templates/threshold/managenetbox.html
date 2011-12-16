@@ -1,0 +1,50 @@
+{% extends 'threshold/base.html' %}
+
+{% block content %}
+
+<div id="messagesDiv">
+</div>
+
+<table class="vertitable">
+    <caption>IP Device: <a href="{% url ipdevinfo-details-by-name sysname %}">{{ short_sysname }}</a></caption>
+    <tr>
+        <th>Full sysname</th><td><a href="{% url ipdevinfo-details-by-name sysname %}">{{ sysname }}</a></td>
+    </tr>
+</table>
+
+<div class="netboxcontainer">
+<table class="vertitable">
+    <tr>
+        <th>Description</th>
+        <th>Operator</th>
+        <th>Threshold</th>
+        <th>Max</th>
+        <th>Thresholdstate</th>
+        <th>&nbsp;</th>
+    </tr>
+{% for threshold in thresholds %}
+    <tr>
+        <td><span title="{{ threshold.extra_descr }}">{{ threshold.description }}</span></td>
+        <td>
+            <select id="operator" name="operator">
+                <option value=">">Greater than</option>
+                <option value="<">Less than</option>
+            </select>
+        </td>
+        {% if threshold.threshold %}
+        <td><input type="text" class="thresholdvalue" size="10" id="threshold" name="threshold" value="{{ threshold.threshold }}"></td>
+        {% else %}
+        <td><input type="text" class="thresholdvalue" size="10" id="threshold" name="threshold" value=""></td>
+        {% endif %}
+
+        <td class="maxvalue">{% if threshold.max %}{{ threshold.max }}{% endif %}</td>
+        <td>{% if threshold.state %}{{ threshold.state }}{% endif %}</td>
+        <td data_dsid="{{threshold.id}}">
+            <input class="button" type="submit" id="update" name="update" value="Update"/>
+        </td>
+    </tr>
+{% endfor %}
+</table>
+</div>
+{% endblock %}
+

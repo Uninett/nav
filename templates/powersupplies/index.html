@@ -1,0 +1,69 @@
+{% extends "powersupplies/base.html" %}
+{% load default_date_filter %}
+
+{% block content %}
+
+<div>
+{% if states %}
+<div id="tablecontainer" class="text-right">
+<table id="powersupplycontainer" class="vertitable">
+	<caption>Current states</caption>
+    <tr>
+        {% for header in headers %}
+            <th>{{ header }}</th>
+        {% endfor %}
+    </tr>
+    {% for state in states %}
+    <tr>
+        <td><a href="/ipdevinfo/{{state.netbox.sysname}}/">{{ state.netbox.get_short_sysname }}</a></td>
+        <td>{{ state.name }}</td>
+        <td>{% if state.model %}
+                {{ state.model }}
+            {% else %}
+                &nbsp;
+            {% endif %}</td>
+        <td>{% if state.device %}
+                {% if state.device.serial %}
+                    {{ state.device.serial }}
+                {% endif %}
+            {% endif %}</td>
+        <td>{{ state.descr }}</td>
+            {% ifequal state.up 'n' %}
+                <td class="down">
+                Down
+            {% endifequal %}
+            {% ifequal state.up 'w' %}
+                <td class="warning">
+                Warning
+            {% endifequal %}
+            {% ifequal state.up 'y' %}
+                <td class="up">
+                Up
+            {% endifequal %}
+            {% ifequal state.up 'u' %}
+                <td class="unknown">
+                Unknown
+            {% endifequal %}
+            </td>
+        <td>
+            {% ifequal state.up 'n' %}
+                {% if state.downsince %}
+                    {{ state.downsince }}
+                {% endif %}
+            {% endifequal %}
+            {% ifequal state.up 'w' %}
+                {% if state.downsince %}
+                    {{ state.downsince }}
+                {% endif %}
+            {% endifequal %}</td>
+    <tr>
+    {% endfor %}
+</table>
+</div>
+
+{% else %}
+ <p> No power-supplies are registered.</p>
+{% endif %}
+</div>
+{% endblock %}
+

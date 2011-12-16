@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003-2005 Norwegian University of Science and Technology
 # Copyright (C) 2008-2011 UNINETT AS
@@ -164,7 +163,7 @@ def matrix_report(req):
             # a list of scopes.
             page = MatrixScopesTemplate()
             page.path = [("Home", "/"), ("Report", "/report/"),
-                         ("Prefix Matrix", False)]
+                         ("Subnet matrix", False)]
             page.scopes = []
             for scope in databasescopes:
                 page.scopes.append(scope[0])

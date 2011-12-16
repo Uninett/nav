@@ -186,12 +186,19 @@
         <td>
             {% with port.get_rrd_data_sources as dss %}
                 {% if dss|length %}
-                    <ul>
+                    <table>
+                    <tr>
+                        <th>Data source</th>
+                        <th>Threshold</th>
+                    </tr>
                     {% for ds in dss %}
-                        <li><a href="{{ ds.get_absolute_url }}">
-                            {{ ds.description }}</a></li>
+                    <tr>
+                        <td><a href="{{ ds.get_absolute_url }}">
+                            {{ ds.description }}</a></td>
+                        <td><a href="{% url threshold-interface port.id %}">{% if ds.threshold %}{{ ds.threshold }}{% else %}not configured{% endif %}</a></td>
+                    </tr>
                     {% endfor %}
-                    </ul>
+                    </table>
                 {% else %}
                     N/A
                 {% endif %}

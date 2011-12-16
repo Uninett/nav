@@ -22,15 +22,14 @@ import time
 from operator import itemgetter
 from random import randint
 
+from twisted.python.failure import Failure
 from twisted.internet import task, threads, reactor
-from twisted.internet.defer import Deferred
+from twisted.internet.defer import Deferred, maybeDeferred
 
 from nav import ipdevpoll
-import shadows
-import config
-import signals
-from dataloader import NetboxLoader
-from jobs import JobHandler, AbortedJobError
+from . import shadows, config, signals
+from .dataloader import NetboxLoader
+from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
 from nav.tableformat import SimpleTableFormatter
 
 from nav.ipdevpoll.utils import log_unhandled_failure
@@ -106,13 +105,20 @@ class NetboxJobScheduler(object):
             return
 
         # We're ok to start a polling run.
-        job_handler = JobHandler(self.job.name, self.netbox,
-                                 plugins=self.job.plugins)
+        try:
+            job_handler = JobHandler(self.job.name, self.netbox,
+                                     plugins=self.job.plugins)
+        except Exception:
+            self._log_unhandled_error(Failure())
+            self.reschedule(60)
+            self._log_time_to_next_run()
+            return
+
         self.job_handler = job_handler
         self.count_job()
         self._last_job_started_at = time.time()
 
-        deferred = job_handler.run()
+        deferred = maybeDeferred(job_handler.run)
         deferred.addCallbacks(self._reschedule_on_success,
                               self._reschedule_on_failure)
         deferred.addErrback(self._log_unhandled_error)
@@ -133,8 +139,10 @@ class NetboxJobScheduler(object):
     def _reschedule_on_failure(self, failure):
         """Examines the job failure and reschedules the job if needed."""
         failure.trap(AbortedJobError)
-        # FIXME: Should be configurable per. job
-        delay = randint(5*60, 10*60) # within 5-10 minutes
+        if failure.check(SuggestedReschedule):
+            delay = int(failure.value.delay)
+        else:
+            delay = randint(5*60, 10*60) # within 5-10 minutes
         self.reschedule(delay)
 
     def reschedule(self, delay):

@@ -43,10 +43,10 @@ The following Java librares are required:
 
 The following python modules are required:
 
- * django (>= 1.0)
+ * django >= 1.0
  * ipy
  * ldap
- * networkx
+ * networkx >= 1.0
  * psycopg2
  * pysnmp-se
  * pyrad
@@ -54,6 +54,10 @@ The following python modules are required:
  * simplejson
  * twisted >= 8.1
  * twisted-snmp >= 0.3
+
+The following python modules are optional:
+
+ * pynetsnmp (optional)
  * xmpp (optional)
 
 `psycopg2` should be at least version 2.0.8: Earlier versions have bugs that may

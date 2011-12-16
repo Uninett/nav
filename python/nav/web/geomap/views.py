@@ -18,25 +18,67 @@
 
 
 import logging
+import psycopg2.extras
+from decimal import Decimal
 
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse
+from django.http import HttpResponseForbidden
+from django.http import HttpResponseRedirect
+from django.http import Http404
 from django.core.urlresolvers import reverse
-from django import forms
 
+import nav.db
 from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
-import nav.db
-import psycopg2.extras
+
 from nav.web.geomap.conf import get_configuration
-from nav.web.geomap.db import get_data, get_data_finish
-from nav.web.geomap.graph import build_graph, simplify
+from nav.web.geomap.db import get_data
+from nav.web.geomap.db import get_data_finish
+from nav.web.geomap.graph import build_graph
+from nav.web.geomap.graph import simplify
 from nav.web.geomap.features import create_features
-from nav.web.geomap.output_formats import format_data, format_mime_type
+from nav.web.geomap.output_formats import format_data
+from nav.web.geomap.output_formats import format_mime_type
 from nav.web.templates.GeomapTemplate import GeomapTemplate
 
+from nav.models.manage import Room
 
 logger = logging.getLogger('nav.web.geomap.views')
+
+DEFAULT_LON = Decimal('10.4059409151806')
+DEFAULT_LAT = Decimal('63.4141131037476')
+
+DEFAULT_VARIANCE = Decimal('0.5')
+
+fetched_rooms = None
+
+
+def _get_rooms_with_pos():
+    """
+    Cache already fetched rows from database.
+    """
+    global fetched_rooms
+    if not fetched_rooms:
+        fetched_rooms = Room.objects.filter(position__isnull=False)
+    return fetched_rooms
+
+def geomap_all_room_pos():
+    """
+    Collect all room-positions (longitude and latitude) and return
+    them as points in an array: [(lon, lat), (lon,lat), ...]
+    """
+    multi_points = [(DEFAULT_LON - DEFAULT_VARIANCE,
+                     DEFAULT_LAT - DEFAULT_VARIANCE),
+                    (DEFAULT_LON + DEFAULT_VARIANCE,
+                     DEFAULT_LAT + DEFAULT_VARIANCE)]
+    rooms_with_pos = _get_rooms_with_pos()
+    if len(rooms_with_pos) > 0:
+        multi_points = []
+        for room in rooms_with_pos:
+            room_lat, room_lon = room.position
+            multi_points.append((room_lon, room_lat))
+    return multi_points
 
 
 def geomap(request, variant):
@@ -48,17 +90,20 @@ def geomap(request, variant):
     config = get_configuration()
     if variant not in config['variants']:
         raise Http404
+    room_points = geomap_all_room_pos()
+    logger.debug('geomap: room_points = %s' % room_points)
     variant_config = config['variants'][variant]
     return render_to_response(GeomapTemplate,
                               'geomap/geomap.html',
-                              {'config': config,
+                              {'room_points': room_points,
+                               'config': config,
                                'variant': variant,
                                'variant_config': variant_config},
                               RequestContext(request),
                               path=[('Home', '/'),
                                     ('Geomap', None)])
 
-            
+
 def forward_to_default_variant(request):
     """Redirect the client to the default variant.
 

@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009-2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,7 +14,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a MibRetriever for the ENTITY-MIB, as well as helper classes."""
-import mibretriever
+
+from twisted.internet import defer
+
+from nav.oids import OID
+from nav.mibs import mibretriever
 
 class EntityMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_mib import MIB as mib
@@ -34,11 +37,12 @@ class EntityMib(mibretriever.MibRetriever):
 
         """
         # Define this locally to avoid external overhead
-        bridge_mib_oid = [1, 3, 6, 1, 2, 1, 17]
+        bridge_mib_oid = OID('.1.3.6.1.2.1.17')
         def bridge_mib_filter(result):
             new_result = [(r['entLogicalDescr'], r['entLogicalCommunity'])
                           for r in result.values()
-                          if r['entLogicalType'] == bridge_mib_oid]
+                          if r['entLogicalType']
+                          and OID(r['entLogicalType']) == bridge_mib_oid]
             return new_result
 
         df = self.retrieve_columns([
@@ -49,6 +53,18 @@ class EntityMib(mibretriever.MibRetriever):
         df.addCallback(bridge_mib_filter)
         return df
 
+    @defer.inlineCallbacks
+    def _get_named_table(self, table_name):
+        df = self.retrieve_table(table_name)
+        df.addCallback(self.translate_result)
+        ret_table = yield df
+        named_table = EntityTable(ret_table)
+        defer.returnValue(named_table)
+
+    @defer.inlineCallbacks
+    def get_entity_physical_table(self):
+        phy_sensor_table = yield self._get_named_table('entPhysicalTable')
+        defer.returnValue(phy_sensor_table)
 
 class EntityTable(dict):
     """Represent the contents of the entPhysicalTable as a dictionary"""

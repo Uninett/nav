@@ -126,29 +126,29 @@ def handle_new_alerts(new_alerts):
     # Build datastructure that contains accounts and corresponding
     # filtergroupcontent_set so that we don't redo db queries to much
     for account in Account.objects.filter(alertpreference__active_profile__isnull=False):
-            time_period = account.get_active_profile().get_active_timeperiod()
+        time_period = account.get_active_profile().get_active_timeperiod()
 
-            if not time_period:
-                continue
+        if not time_period:
+            continue
 
-            current_alertsubscriptions = sorted(time_period.alertsubscription_set.all(),
-                                                key = subscription_sort_key)
+        current_alertsubscriptions = sorted(time_period.alertsubscription_set.all(),
+                                            key = subscription_sort_key)
 
-            tmp = []
-            for alertsubscription in current_alertsubscriptions:
-                tmp.append( (alertsubscription, alertsubscription.filter_group.filtergroupcontent_set.all()) )
+        tmp = []
+        for alertsubscription in current_alertsubscriptions:
+            tmp.append( (alertsubscription, alertsubscription.filter_group.filtergroupcontent_set.all()) )
 
-            if tmp:
-                permissions = []
-                for filtergroup in FilterGroup.objects.filter(group_permissions__accounts__in=[account]):
-                    permissions.append(filtergroup.filtergroupcontent_set.all())
+        if tmp:
+            permissions = []
+            for filtergroup in FilterGroup.objects.filter(group_permissions__accounts__in=[account]):
+                permissions.append(filtergroup.filtergroupcontent_set.all())
 
-                accounts.append( (account, tmp, permissions) )
-                del permissions
+            accounts.append( (account, tmp, permissions) )
+            del permissions
 
-            del tmp
-            del current_alertsubscriptions
-            del account
+        del tmp
+        del current_alertsubscriptions
+        del account
 
     # Remember which alerts are sent where to avoid duplicates
     dupemap = set()
@@ -324,9 +324,9 @@ def handle_queued_alerts(queued_alerts, now=None):
                 num_sent_alerts += 1
 
                 if weekly:
-                   sent_weekly.append(queued_alert.account)
+                    sent_weekly.append(queued_alert.account)
                 elif daily:
-                   sent_daily.append(queued_alert.account)
+                    sent_daily.append(queued_alert.account)
             # Count failure
             else:
                 num_failed_sends += 1

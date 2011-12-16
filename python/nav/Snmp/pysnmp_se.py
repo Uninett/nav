@@ -100,7 +100,7 @@ class Snmp(object):
 
         # ensure the response matches the request
         if not req.apiAlphaMatch(rsp):
-            raise SnmpException("Response did not match request")
+            raise SnmpError("Response did not match request")
 
         # Check for errors in the response
         self._error_check(rsp)
@@ -182,7 +182,7 @@ class Snmp(object):
 
         # ensure the response matches the request
         if not req.apiAlphaMatch(rsp):
-            raise SnmpException("Response did not match request")
+            raise SnmpError("Response did not match request")
 
         # Check for errors in the response
         self._error_check(rsp)
@@ -226,7 +226,7 @@ class Snmp(object):
 
             # ensure the response matches the request
             if not req.apiAlphaMatch(rsp):
-                raise SnmpException("Response did not match request")
+                raise SnmpError("Response did not match request")
 
             # Check for errors in the response
             try:

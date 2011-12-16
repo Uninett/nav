@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2007-2008 UNINETT AS
 #
@@ -40,7 +39,7 @@ class MatrixIPv6(Matrix):
     def getTemplateResponse(self):
         template = MatrixIPv6Template()
         template.path = [("Home", "/"), ("Report", "/report/"),
-                         ("Prefix Matrix", False)]
+                         ("Subnet matrix", False)]
 
         #functions and classes
         template.sort_nets_by_address = getattr(IPtools,"sort_nets_by_address")

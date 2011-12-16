@@ -15,7 +15,7 @@
 #
 """Import seed data in bulk."""
 # no importer implementations have public methods, disable R0903 warning
-# pylint: disable-msg=R0903
+# pylint: disable=R0903
 
 from nav.models.manage import Device, Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo, Subcategory
@@ -24,7 +24,7 @@ from nav.models.manage import Location, Usage, NetboxType, Vendor
 from nav.models.manage import Prefix, Vlan, NetType
 from nav.models.cabling import Cabling, Patch
 from nav.models.service import Service, ServiceProperty
-from nav.web.serviceHelper import getDescription
+from nav.web.servicecheckers import get_description
 
 from nav.bulkparse import BulkParseError
 
@@ -131,10 +131,10 @@ class ServiceImporter(BulkImporter):
     def _create_objects_from_row(self, row):
         objects = []
         netbox = get_object_or_fail(Netbox, sysname=row['host'])
-        service = Service(netbox=netbox, handler=row['handler'])
+        service = Service(netbox=netbox, handler=row['service'])
         objects.append(service)
 
-        handler_descr = self._get_handler_descr(row['handler'])
+        handler_descr = self._get_handler_descr(row['service'])
         service_args = dict([arg.split('=', 1) for arg in row.get('arg', [])])
         self._validate_handler_args(handler_descr, service_args)
         service_properties = self._get_service_properties(service, service_args)
@@ -146,7 +146,7 @@ class ServiceImporter(BulkImporter):
 
     @staticmethod
     def _get_handler_descr(handler):
-        descr = getDescription(handler)
+        descr = get_description(handler)
         if not descr:
             raise BulkImportError("Service handler %s does not exist" % handler)
         return descr

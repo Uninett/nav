@@ -1,2 +1,3 @@
-description=this checker is currently not working
-optargs=port timeout
+description=Postgresql checker
+args=user password
+optargs=port timeout database

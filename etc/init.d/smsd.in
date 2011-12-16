@@ -1,14 +1,8 @@
 #!/usr/bin/env bash
-####################
 #
-# $Id$
-# This file is part of Network Administration Visualized.
 # This script controls start/stop/status of the NAV SMS Daemon.
 #
-# Copyright 2006, 2008 UNINETT AS
-# Authors: Morten Brekkevold <morten.brekkevold@uninett.no>
-#
-####################
+## info: Dispatches queued SMS alerts.
 initdir=@initdir@
 bindir=@bindir@
 user=@nav_user@

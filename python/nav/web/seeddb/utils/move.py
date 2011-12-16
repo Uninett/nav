@@ -23,16 +23,17 @@ from django.http import HttpResponseRedirect
 from nav.django.utils import get_verbose_name
 
 from nav.web.message import new_message, Messages
-from nav.web.seeddb.forms.move import MoveOperationForm
 
-STEP_OPERATION_CHOICE = 0
-STEP_DO_OPERATION = 1
-STEP_CONFIRM = 2
-STEP_SAVE = 3
+STEP_CHANGEVALUES = 0 # Dropdown boxes with new values
+STEP_CONFIRM = 1 # What the objects will look like afterwards
+STEP_SAVE = 2 # Update the objects
 
-def move(request, model, form_model, redirect, title_attr='id', extra_context=None):
+def move(request, model, form_model, redirect, title_attr='id',                  extra_context=None):
+    
     if not extra_context:
         extra_context = {}
+
+    # If no post or no objects selected, start over
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
     if not len(request.POST.getlist('object')):
@@ -46,65 +47,67 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context=No
     confirm = False
     verbose_name = model._meta.verbose_name
     objects = model.objects.filter(id__in=request.POST.getlist('object'))
+
+    # Find out what step we are on, or default to start of wizard
     try:
         step = int(request.POST.get('step', '0'))
     except ValueError:
-        step = STEP_OPERATION_CHOICE
+        step = STEP_CHANGEVALUES
 
-    form = None
-    op_form = None
-    if step == STEP_OPERATION_CHOICE:
-        op_form = MoveOperationForm(form=form_model(), hidden=False)
-        step = STEP_DO_OPERATION
-    else:
-        op_form = MoveOperationForm(
-            request.POST, form=form_model(), hidden=True)
-        if not op_form.is_valid():
-            # Since the MoveOperationForm instance was made with hidden=True we
-            # need to make it again (and validate it) if there was a error,
-            # with hidden=False this time.
-            op_form = MoveOperationForm(
-                request.POST, form=form_model(), hidden=False)
-            op_form.is_valid()
-            step = STEP_DO_OPERATION
-        else:
-            if step == STEP_DO_OPERATION:
-                form = form_model(operation_form=op_form)
-                step = STEP_CONFIRM
-            elif step == STEP_CONFIRM:
-                form = form_model(request.POST, operation_form=op_form)
-                if form.is_valid():
-                    data = form.cleaned_data
-                    confirm = True
-                    step = STEP_SAVE
-            elif step == STEP_SAVE:
-                form = form_model(request.POST, operation_form=op_form)
-                if form.is_valid():
-                    foreign_keys = form.cleaned_data.keys()
-                    data = dict(
-                        [(key, form.cleaned_data[key]) for key in foreign_keys])
-                    objects.update(**data)
-                    foreign_key_string = ", ".join(
-                        [get_verbose_name(model, key) for key in foreign_keys])
-                    new_message(
-                        request._req,
-                        "Changed %s on %i %s models" % (
-                            foreign_key_string, len(objects), verbose_name),
-                        Messages.SUCCESS)
-                    return HttpResponseRedirect(reverse(redirect))
+    # Choose new values to foreign keys
+    if step == STEP_CHANGEVALUES:
+        form = form_model()
+        step = STEP_CONFIRM
 
-    # Form instances may be modified by the operation_form, so if we have a
-    # specific instance we will use the fields from that one.
+    # Confirm the changes
+    elif step == STEP_CONFIRM:
+        form= form_model(request.POST)    
+        if form.is_valid():
+            data = form.cleaned_data
+            confirm = True
+            step = STEP_SAVE
+
+    # Update the objects
+    elif step == STEP_SAVE:
+        form = form_model(request.POST)
+        if form.is_valid():
+            foreign_keys = form.cleaned_data.keys()
+            data = dict()
+
+            # If nothing is selected, don't update
+            for key in foreign_keys:
+                if not form.cleaned_data[key] is None:
+                    data[key] = form.cleaned_data[key]
+
+            # Update
+            objects.update(**data)
+
+            # Generate message based on what was changed and redirect back
+            foreign_key_string = ", ".join(
+                [get_verbose_name(model, key) for key in data])
+
+            if foreign_key_string == "":
+                foreign_key_string = "nothing"
+
+            new_message(
+                request._req,
+                "Changed %s on %i %s models" %
+                (foreign_key_string, len(objects), verbose_name),
+                Messages.SUCCESS)
+
+            return HttpResponseRedirect(reverse(redirect))
+
+    # Keep values from the form and pass them as context
     if form:
         fields = form.fields.keys()
     else:
         fields = form_model().fields.keys()
+
     values = objects.values('pk', title_attr, *fields)
-    object_list = _process_values(values, data, title_attr, fields)
+    object_list = _parse_value_differences(values, data, title_attr, fields)
 
     context = {
         'form': form or '',
-        'operation_form': op_form or '',
         'objects': objects,
         'values': object_list,
         'data': data,
@@ -113,20 +116,38 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context=No
         'title': 'Move %s' % verbose_name,
         'step': step,
     }
+
     extra_context.update(context)
+
     return render_to_response('seeddb/move.html',
         extra_context, RequestContext(request))
 
-def _process_values(values, data, title_attr, fields):
+def _parse_value_differences(values, data, title_attr, fields):
+    """Creates a data structure describing the before/after values of a
+    requested move operation.  Output can be used in templates to show a
+    preview of the changes that will be made.
+
+    """
     object_list = []
     attr_list = [title_attr] + fields
+
     for obj in values:
         row = {
             'pk': obj['pk'],
-            'values': [("Current %s" % attr, obj[attr]) for attr in attr_list],
+            'values': [("Current %s" % attr, obj[attr])
+                for attr in attr_list],
         }
+
+        # If the form has data, format the fields with new values
         if data:
-            new_values = [("New %s" % attr, data[attr]) for attr in fields]
+            new_values = []
+            for attr in fields:
+                if not data[attr] is None:
+                    new_values.append(("New %s" % attr, data[attr]))
+                else:
+                    new_values.append(("New %s" % attr, obj[attr]))
+
             row['values'].extend(new_values)
         object_list.append(row)
+
     return object_list

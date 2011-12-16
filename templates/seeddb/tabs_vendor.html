@@ -3,10 +3,5 @@
 <li class="{{ sub_active.add|yesno:"tabactive," }}">
     <a href="{% url seeddb-vendor-edit %}">Add new vendor</a>
 </li>
-{% if object %}
-<li class="{{ sub_active.edit|yesno:"tabactive," }}">
-    <a href="{% url seeddb-vendor-edit object.id %}">Edit vendor "{{ object.name }}"</a>
-</li>
-{% endif %}
 <li class="{{ sub_active.bulk|yesno:"tabactive," }}">
     <a href="{% url seeddb-vendor-bulk %}">Bulk import</a></li>

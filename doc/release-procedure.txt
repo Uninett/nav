@@ -1,0 +1,54 @@
+Checklist for creating a new stable release for NAV
+===================================================
+
+Check milestone (for the next release) in Launchpad (https://launchpad.net/nav)
+  - Are all bugs fixed?
+  - Unfixed bugs must be retargeted/untargeted to make the release deadline?
+
+Check hudson (metanav.ntnu.no/hudson)
+  - Are there any red/yellow lights on the branch to be releases?
+  - Red light means that we can not release
+
+Check out the release branch from the mercurial
+   hg clone http://metanav.uninett.no/hg/series/3.9.x
+
+OBS OBS: when you do 'hg clone', your working copy will be on the
+default branch. Update to correct branch by doing:
+   hg up 3.9.x
+
+To update your working copy later do
+   hg pull
+
+To view branches, do 
+   hg glog | less
+
+Compare changesets with bugs from Launchpad
+  hg log-r 3.9.0: tip-v |. / tools / buglog.py
+  Update CHANGES with the new fixes, check that all the bugs are resolved
+
+Commit 
+  hg commit-m 'Update changelog for the upcoming 3.9.1 release'
+
+  hg tag 3.9.1
+
+Go back to the version that we just tagged
+  hg up 3.9.1
+
+Create tar ball
+  ./dist.sh-r 3.9.1
+
+Sign the tar-ball
+
+Go to the LaunchPad, create release
+
+Download the tar-ball and sign
+
+Update the shared repo
+  hg push
+
+Update the wiki with new version number (two places, frontpage and
+downloads)
+
+Send email to nav-users
+
+Set topic on IRC

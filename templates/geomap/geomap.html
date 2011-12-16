@@ -7,6 +7,18 @@
 <script type="text/javascript" src="http://www.openlayers.org/api/OpenLayers.js"></script>
 <script type="text/javascript" src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
  
+<script type="text/javascript">
+var nav = nav || {};
+
+var roomPosArray = new Array();
+{% for lon, lat in room_points %}roomPosArray.push(new OpenLayers.Geometry.Point({{lon}}, {{lat}}));
+{% endfor %}
+
+var roomPositions = new OpenLayers.Geometry.MultiPoint(roomPosArray);
+nav.geomapBBox = roomPositions.getBounds();
+
+</script>
+
 <script type="text/javascript" src="/js/geomap/util.js"></script>
 <script type="text/javascript" src="/js/geomap/coordinates.js"></script>
 <script type="text/javascript" src="/js/geomap/NetworkLayer.js"></script>

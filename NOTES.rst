@@ -1,11 +1,13 @@
-===========================
- Release notes for NAV 3.9
-===========================
+=================================================
+ Network Administration Visualized release notes
+=================================================
 
-Please report bugs at https://bugs.launchpad.net/nav
+Please report bugs at https://bugs.launchpad.net/nav/+filebug . To browse
+existing bug reports, go to https://bugs.launchpad.net/nav .
 
 If you are upgrading from versions of NAV older than 3.7, please refer to the
 release notes of the in-between versions before reading any further.
+
 
 Known problems
 ==============
@@ -15,26 +17,156 @@ retrieval operations.  Timeouts and retries aren't handled properly, and this
 may cause slow or otherwise busy devices to be bombarded with requests from
 NAV.  The `contrib/patches` directory contains a patch for TwistedSNMP that
 solves this problem.  The patch has been submitted upstream, but not yet
-accepted into a new release.
+accepted into a new release.  Alternatively, you can install `pynetsnmp` for
+improved performance.
+
+NAV 3.10
+========
+
+To see the overview of scheduled features and reported bugs on the 3.10 series
+of NAV, please go to https://launchpad.net/nav/3.10 .
+
+Cricket configuration changes
+-----------------------------
+
+NAV 3.10 now configures Cricket to collect a wide range of available sensor
+data from devices, including temperature sensors. Devices that implement
+either ENTITY-SENSOR-MIB (RFC 3433), CISCO-ENVMON-MIB or IT-WATCHDOGS-MIB (IT
+Watchdogs WeatherGoose) are supported.
+
+Your need to copy the baseline Cricket configuration for sensors to your
+cricket-config directory. Given that your NAV install prefix is
+`/usr/local/nav/`::
+
+  sudo cp -r doc/cricket/cricket-config/sensors \
+             /usr/local/nav/etc/cricket-config/
+
+You also need to add the `/sensors` tree to your Cricket's `subtree-sets`
+file. See the example file containing all NAV subtrees at
+`doc/cricket/cricket/subtree-sets`.
+
+Topology detection
+------------------
+
+VLAN subtopology detection has now also been rewritten as a separate option to
+the `navtopology` program. The old `networkDiscovery` service has been renamed
+to `topology` and now runs physical and vlan topology detection using
+`navtopology` once an hour.
+
+If you notice topology problems that weren't there before the upgrade to 3.10,
+please report them so that we can fix them.
+
+The old detector code is deprecated, but if you wish to temporarily go back
+to the old detector code, you can; see the comments in the `cron.d/topology`
+file. The old detector will be removed entirely in NAV 3.11.
 
 
-To see the overview of scheduled features and reported bugs on the 3.8 series
-of NAV, please go to https://launchpad.net/nav/3.8 .
+Link state monitoring
+---------------------
 
-Significant changes since NAV 3.8
-=================================
+ipdevpoll will now post `linkState` events when a port's link state changes,
+regardless of whether you have configured your devices to send link state
+traps to NAV.
+
+To avoid a deluge of `linkDown` or `linkUp` alerts from all access ports in
+your network, it is recommended to keep the `filter` setting in the
+`[linkstate]` section of `ipdevpoll.conf` to the default setting of
+`topology`. This means that events will only be posted for ports that have
+been detected as uplinks or downlinks.
+
+To facilitate faster detection of link state changes, ipdevpoll is now
+configured with a `linkcheck` job that runs the `linkstate` plugin every five
+minutes. You can adjust this to your own liking in `ipdevpoll.conf`.
+
+SNMP agent monitoring
+---------------------
+
+An `snmpAgentDown` alert will now be sent if an IP device with a configured
+community stops responding to SNMP requests.  The ipdevpoll job `snmpcheck`
+will check for this every 30 minutes.
+
+To receive alerts about SNMP agent states, please subscribe to
+`snmpAgentState` events in your alert profile.
+
+
+Redundant power supply and fan state monitoring
+-----------------------------------------------
+
+NAV now finds and stores information about power supply and fan units from
+Cisco and HP devices, and monitors for any failures in redundant
+configurations.
+
+For the time being, the monitoring is run by a separate program,
+`powersupplywatch.py`, which is by default set up to run as a cron job once an
+hour. To adjust the monitoring interval, edit `cron.d/psuwatch`.
+
+
+IPv6 status monitoring
+----------------------
+
+pping has gained support for pinging IPv6 hosts. _However_, SNMP over IPv6 is
+not supported quite yet. This means you can add servers with IPv6 addresses
+using SeedDB, but not with an enabled SNMP community.
+
+Files to remove
+---------------
+
+If any of the following files and directories are still in your installation
+after upgrading to NAV 3.10, they should be removed (installation prefix has
+been stripped from these file names).  If you installed and upgraded NAV using
+a packaging system, you should be able to safely ignore this section::
+
+  doc/sql/*.sql
+  etc/cron.d/networkDiscovery
+  lib/python/nav/database.py
+  lib/python/nav/mcc/routers.py
+  lib/python/nav/mcc/switches.py
+  lib/python/nav/web/templates/seeddbTemplate.py
+  lib/python/nav/web/templates/selectTreeTemplate.py
+  lib/python/nav/web/l2trace.py
+  lib/python/nav/web/sortedStats.py
+  lib/python/nav/web/netmap/handler.py
+  lib/python/nav/web/serviceHelper.py
+  lib/python/nav/web/ldapAuth.py
+  lib/python/nav/web/selectTree.py
+  lib/python/nav/statemon/output.py
+  lib/templates/geomap/geomap-data-kml.xml
+  apache/
+  bin/navschema.py
+
+
+NAV 3.9
+=======
+
+To see the overview of scheduled features and reported bugs on the 3.9 series
+of NAV, please go to https://launchpad.net/nav/3.9 .
+
 
 Dependency changes
 ------------------
 
-NAV 3.9 adds a dependency to the Python library NetworkX
-(http://networkx.lanl.gov/).  NetworkX lists a number of optional third party
-packages that will extend NetworkX' functionality, but none of these are
-currently needed by NAV.
+- A dependency to the Python library NetworkX (http://networkx.lanl.gov/),
+  version 1.0 or newer, has been introduced in the new topology
+  detector.
+
+  NetworkX lists a number of optional third party packages that will extend
+  NetworkX' functionality, but none of these are currently needed by NAV.
+
+- An optional, but recommended, dependency to the `pynetsnmp` library has been
+  introduced to increase SNMP-related performance in the `ipdevpoll` daemon.
+  `pynetsnmp` is a ctypes binding (as opposed to a native C module) enabling
+  integration with the efficient SNMP processing of the mature NetSNMP
+  library.
+
+  `pynetsnmp` was created for and is distributed with ZenOSS.  There doesn't
+  seem to be a separate tarball for `pynetsnmp`, but the source code
+  repository is at http://dev.zenoss.com/trac/browser/trunk/pynetsnmp . The
+  library has been packaged for Debian under the name `python-pynetsnmp`.
 
 
-Significant changes since NAV 3.7
-=================================
+
+NAV 3.8
+=======
 
 Source code directory layout
 ----------------------------
@@ -114,7 +246,8 @@ configuring your devices, do you?
 
 Dependency changes
 ------------------
-The INSTALL file referred to the python package `egenix-mxdatetime` as a
+
+The INSTALL file used to refer to the python package `egenix-mxdatetime` as a
 dependency.  This has been removed, as NAV stopped using it in version 3.6.
 You psycopg2 installation may still require it, though.
 

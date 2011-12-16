@@ -82,11 +82,6 @@
       <arg line="755 eventEngine.sh" />
     </exec>
 
-    <mkdir dir="${DESTDIR}${initdir}" />
-    <copy file="eventengine" todir="${DESTDIR}${initdir}" />
-    <exec dir="${DESTDIR}${initdir}" executable="chmod" os="${isUnix}">
-      <arg line="755 eventengine" />
-    </exec>
     <copy file="eventEngine.conf" todir="${DESTDIR}${sysconfdir}" />
     <copy file="alertmsg.conf" todir="${DESTDIR}${sysconfdir}" />
   </target>

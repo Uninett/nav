@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2009-2011 UNINETT AS
 #
@@ -28,143 +27,145 @@ interfaces, as well as set the list of enabled VLANs on trunks.
 
 import math
 
+from twisted.internet.defer import inlineCallbacks, returnValue
+
+from nav.util import mergedicts
 from nav.bitvector import BitVector
-from nav.mibs import reduce_index
 from nav.mibs.bridge_mib import BridgeMib
-from nav.mibs.qbridge_mib import QBridgeMib, PortList
+from nav.mibs.qbridge_mib import QBridgeMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
 
 class Dot1q(Plugin):
     """Collect 802.1q info from BRIDGE and Q-BRIDGE MIBs."""
+    baseports = {}
+    pvids = {}
 
     @classmethod
     def can_handle(cls, netbox):
         """This plugin handles netboxes"""
         return True
 
-    def handle(self):
-        """Plugin entrypoint"""
-
-        self._logger.debug("Collecting 802.1q VLAN information")
-
+    def __init__(self, *args, **kwargs):
+        super(Dot1q, self).__init__(*args, **kwargs)
         self.bridgemib = BridgeMib(self.agent)
         self.qbridgemib = QBridgeMib(self.agent)
-        
-        # We first need the baseport list to translate port numbers to
-        # ifindexes
-        deferred = self.bridgemib.retrieve_column('dot1dBasePortIfIndex')
-        deferred.addCallback(reduce_index)
-        deferred.addCallback(self._get_pvids)
-        #deferred.addCallback(self._get_trunkports)
-        return deferred
 
-    def _get_pvids(self, baseports):
-        """Initiate collection of the current vlan config."""
-        deferred = self.qbridgemib.retrieve_column('dot1qPvid')
-        deferred.addCallback(reduce_index)
-        deferred.addCallback(self._process_pvids, baseports)
-        return deferred
+    @inlineCallbacks
+    def handle(self):
+        """Collects VLAN configuration using Q-BRIDGE-MIB.
 
-    def _process_pvids(self, pvids, baseports):
+        If no PVID information can be found in Q-BRIDGE, the plugin assumes
+        the device either doesn't support Q-BRIDGE or doesn't support 802.1q
+        and exits.
+
+        """
+        self._logger.debug("Collecting 802.1q VLAN information")
+
+        self.baseports = yield self.bridgemib.get_baseport_ifindex_map()
+        self.pvids = yield self.qbridgemib.get_baseport_pvid_map()
+        if self.pvids:
+            self._process_pvids()
+        else:
+            return
+
+        yield self._get_tagging_info()
+
+    def _process_pvids(self):
         """Process the list of collected port/PVID mappings.
 
         If no PVID data was found, it is assumed that this bridge
         either does not support Q-BRIDGE-MIB or does not support
-        802.1.q, and the plugin exits.
-
-        If we did find some data, proceed to retrieve information
-        about trunks (ports transmitting and receiving tagged ethernet
-        frames).
+        802.1q, and the plugin exits.
 
         """
+        self._logger.debug("PVID mapping: %r", self.pvids)
 
-        self._logger.debug("PVID mapping: %r", pvids)
-        if not pvids:
-            return
+        for port, pvid in self.pvids.items():
+            self._set_port_pvid(port, pvid)
+
+    def _set_port_pvid(self, port, pvid):
+        if port in self.baseports:
+            ifindex = self.baseports[port]
+            interface = self.containers.factory(ifindex,
+                                                shadows.Interface)
+            interface.vlan = pvid
         else:
-            for port, pvid in pvids.items():
-                if port in baseports:
-                    ifindex = baseports[port]
-                    interface = self.containers.factory(ifindex,
-                                                        shadows.Interface)
-                    interface.vlan = pvid
-                else:
-                    self._logger.info("dot1qPortVlanTable referred to unknown "
-                                     "port number %s", port)
+            self._logger.debug("saw reference to non-existant baseport %s",
+                               port)
 
-            deferred = self.qbridgemib.retrieve_columns((
-                'dot1qVlanCurrentEgressPorts', 
-                'dot1qVlanCurrentUntaggedPorts',
-                ))
-            deferred.addCallback(self._process_trunkports, baseports)
-            return deferred
-
-    def _process_trunkports(self, vlans, baseports):
-        """Process a result from the dot1qVlanCurrentTable.
+    @inlineCallbacks
+    def _get_tagging_info(self):
+        """Retrieves and processes information about VLAN egress ports and
+        tagging.
 
         The set of untagged ports is subtracted from the total set of
         egress ports for each vlan, resulting in a set of ports that
         transmit and receive tagged frames for this vlan (i.e. trunk
         ports).
 
-        The first index element of this table is a TimeFilter, so we
-        try to prune old rows and only use the most recent one for
-        each VlanIndex.
-
         """
-        
-        # First prune the result table. We're not particularly
-        # interested in the actual value of the time_index, we just
-        # want to have the rows with the highest time_index for each
-        # vlan_index.
-        for index in sorted(vlans.keys()):
-            time_index, vlan_index = index
-            vlans[vlan_index] = vlans[index]
-            del vlans[index]
+        egress, untagged = yield self._retrieve_vlan_ports()
+        trunkports = self._find_trunkports(egress, untagged)
+        self._logger.debug("trunkports: %r", trunkports)
 
-        # Map trunk ports and their VLANs
+        self._store_trunkports(trunkports)
+
+    @inlineCallbacks
+    def _retrieve_vlan_ports(self):
+        query = self.qbridgemib
+        egress = yield query.get_vlan_current_egress_ports()
+        untagged = yield query.get_vlan_current_untagged_ports()
+
+        if not egress or not untagged:
+            egress = yield query.get_vlan_static_egress_ports()
+            untagged = yield query.get_vlan_static_untagged_ports()
+
+        returnValue((egress, untagged))
+
+    def _find_trunkports(self, egress, untagged):
         trunkports = {}
-        for vlan, row in vlans.items():
-            egress = PortList(row['dot1qVlanCurrentEgressPorts'])
-            untagged = PortList(row['dot1qVlanCurrentUntaggedPorts'])
+        for vlan, (egress, untagged) in mergedicts(egress, untagged).items():
             try:
                 tagged = egress - untagged
             except ValueError:
                 self._logger.error("vlan %s subtraction mismatch between "
                                    "EgressPorts and UntaggedPorts", vlan)
-                self._logger.debug("vlan: %s egress: %r untagged: %r",
-                                   vlan, egress, untagged)
             else:
                 for port in tagged.get_ports():
                     if port not in trunkports:
                         trunkports[port] = [vlan]
                     else:
                         trunkports[port].append(vlan)
+            finally:
+                self._logger.debug("vlan: %s egress: %r untagged: %r",
+                   vlan, egress.get_ports(), untagged.get_ports())
 
-        self._logger.debug("trunkports: %r", trunkports)
+        return trunkports
 
-        # Now store it
+
+    def _store_trunkports(self, trunkports):
         for port, vlans in trunkports.items():
-            if port in baseports:
-                # Mark as trunk
-                ifindex = baseports[port]
-                interface = self.containers.factory(ifindex,
-                                                    shadows.Interface)
-                interface.trunk = True
+            self._set_trunkport(port, vlans)
 
-                # Store a hex string representation of enabled VLANs
-                # in swportallowedvlan
-                allowed = self.containers.factory(ifindex,
-                                                 shadows.SwPortAllowedVlan)
-                allowed.interface = interface
-                allowed.hex_string = vlan_list_to_hex(vlans)
+    def _set_trunkport(self, port, vlans):
+        if port not in self.baseports:
+            self._logger.debug("saw reference to non-existant baseport %s",
+                               port)
+            return
 
-            else:
-                self._logger.info("dot1qVlanCurrentTable referred to unknown "
-                                  "port number %s", port)
-            
+        # Mark as trunk
+        ifindex = self.baseports[port]
+        interface = self.containers.factory(ifindex, shadows.Interface)
+        interface.trunk = True
+
+        # Store a hex string representation of enabled VLANs
+        # in swportallowedvlan
+        allowed = self.containers.factory(ifindex, shadows.SwPortAllowedVlan)
+        allowed.interface = interface
+        allowed.hex_string = vlan_list_to_hex(vlans)
+
 
 def vlan_list_to_hex(vlans):
     """Convert a list of VLAN numbers to a hexadecimal string.

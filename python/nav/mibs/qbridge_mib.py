@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,11 +15,85 @@
 #
 """Implements a Q-BRIDGE-MIB MibRetriever and associated functionality."""
 
-import mibretriever
 import nav.bitvector
+from nav.mibs import mibretriever, reduce_index
 
 class QBridgeMib(mibretriever.MibRetriever):
     from nav.smidumps.qbridge_mib import MIB as mib
+
+    def get_baseport_pvid_map(self):
+        """Retrieves the mapping between baseport numbers and VLAN tag numbers.
+
+        :returns: A Deferred whose result is a dict of the form
+                  { baseportnum: PVID }
+
+        """
+        df = self.retrieve_column('dot1qPvid')
+        return df.addCallback(reduce_index)
+
+    def get_vlan_current_egress_ports(self):
+        """Retrieves, for each VLAN, a list of ports that can currently
+        transmit frames for the VLAN.
+
+        :returns: A Deferred, whose result is a dict of the form
+                  { PVID: <PortList instance> }
+
+        """
+        df = self.retrieve_column('dot1qVlanCurrentEgressPorts')
+        df.addCallback(filter_newest_current_entries)
+        return df.addCallback(convert_data_to_portlist)
+
+    def get_vlan_current_untagged_ports(self):
+        """Retrieves, for each VLAN, a list of ports that can currently
+        transmit untagged frames for the VLAN.
+
+        :returns: A Deferred, whose result is a dict of the form
+                  { PVID: <PortList instance> }
+
+        """
+        df = self.retrieve_column('dot1qVlanCurrentUntaggedPorts')
+        df.addCallback(filter_newest_current_entries)
+        return df.addCallback(convert_data_to_portlist)
+
+    def get_vlan_static_egress_ports(self):
+        """Retrieves, for each VLAN, a list of ports that are configured to
+        transmit untagged frames for the VLAN.
+
+        :returns: A Deferred, whose result is a dict of the form
+                  { PVID: <PortList instance> }
+
+        """
+        df = self.retrieve_column('dot1qVlanStaticEgressPorts')
+        df.addCallback(reduce_index)
+        return df.addCallback(convert_data_to_portlist)
+
+
+    def get_vlan_static_untagged_ports(self):
+        """Retrieves, for each VLAN, a list of ports that are configured to
+        transmit untagged frames for the VLAN.
+
+        :returns: A Deferred, whose result is a dict of the form
+                  { PVID: <PortList instance> }
+
+        """
+        df = self.retrieve_column('dot1qVlanStaticUntaggedPorts')
+        df.addCallback(reduce_index)
+        return df.addCallback(convert_data_to_portlist)
+
+
+def filter_newest_current_entries(dot1qvlancurrenttable):
+    """Filters a result from the dot1qVlanCurrentTable, removing the
+    TimeFilter element of the table index and returning only the newest entry
+    for each VLAN.
+
+    """
+    return dict((vlan_index, data)
+                for (time_index, vlan_index), data
+                in sorted(dot1qvlancurrenttable.items()))
+
+def convert_data_to_portlist(result):
+    return dict((key, PortList(data))
+                 for key, data in result.items())
 
 class PortList(str):
     """Represent an octet string, as defined by the PortList syntax of

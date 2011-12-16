@@ -17,20 +17,25 @@
 
 from django.conf.urls.defaults import patterns, url
 
-from nav.web.seeddb.views import netbox, service, room, location, organization
-from nav.web.seeddb.views import usage, netboxtype, vendor, subcategory
-from nav.web.seeddb.views import cabling, patch, index
-from nav.web.seeddb.views.list import vlan_list, prefix_list
-from nav.web.seeddb.views.edit import netbox_edit, service_edit, room_edit
-from nav.web.seeddb.views.edit import location_edit, organization_edit
-from nav.web.seeddb.views.edit import usage_edit, netboxtype_edit, vendor_edit
-from nav.web.seeddb.views.edit import subcategory_edit, vlan_edit, prefix_edit
-from nav.web.seeddb.views.edit import cabling_edit, patch_edit
-from nav.web.seeddb.views.bulk import netbox_bulk, room_bulk, location_bulk
-from nav.web.seeddb.views.bulk import organization_bulk, usage_bulk
-from nav.web.seeddb.views.bulk import netboxtype_bulk, vendor_bulk, patch_bulk
-from nav.web.seeddb.views.bulk import subcategory_bulk, cabling_bulk
-from nav.web.seeddb.views.bulk import service_bulk, prefix_bulk
+from nav.web.seeddb.page import index
+from nav.web.seeddb.page.room import room, room_edit, room_bulk
+from nav.web.seeddb.page.location import location, location_edit, location_bulk
+from nav.web.seeddb.page.organization import organization, organization_edit
+from nav.web.seeddb.page.organization import organization_bulk
+from nav.web.seeddb.page.usage import usage, usage_edit, usage_bulk
+from nav.web.seeddb.page.netboxtype import netboxtype, netboxtype_edit
+from nav.web.seeddb.page.netboxtype import netboxtype_bulk
+from nav.web.seeddb.page.vendor import vendor, vendor_edit, vendor_bulk
+from nav.web.seeddb.page.subcategory import subcategory, subcategory_edit
+from nav.web.seeddb.page.subcategory import subcategory_bulk
+from nav.web.seeddb.page.vlan import vlan_list, vlan_edit
+from nav.web.seeddb.page.prefix import prefix, prefix_edit, prefix_bulk
+from nav.web.seeddb.page.cabling import cabling, cabling_edit, cabling_bulk
+from nav.web.seeddb.page.patch import patch, patch_edit, patch_bulk
+from nav.web.seeddb.page.netbox import netbox, netbox_bulk
+from nav.web.seeddb.page.netbox.edit import netbox_edit
+from nav.web.seeddb.page.service import service, service_bulk
+from nav.web.seeddb.page.service.edit import service_edit
 
 urlpatterns = patterns('',
     url(r'^$', index,
@@ -89,7 +94,7 @@ urlpatterns = patterns('',
     # Usage category
     url(r'^usage/$', usage,
         name='seeddb-usage'),
-    url(r'^usage/edit/(?P<usage_id>[^/]+)/$', usage_edit,
+    url(r'^usage/edit/(?P<usage_id>.+)/$', usage_edit,
         name='seeddb-usage-edit'),
     url(r'^usage/add/$', usage_edit,
         name='seeddb-usage-edit'),
@@ -109,8 +114,6 @@ urlpatterns = patterns('',
     # Vendor
     url(r'^vendor/$', vendor,
         name='seeddb-vendor'),
-    url(r'^vendor/edit/(?P<vendor_id>[^/]+)/$', vendor_edit,
-        name='seeddb-vendor-edit'),
     url(r'^vendor/add/$', vendor_edit,
         name='seeddb-vendor-edit'),
     url(r'^vendor/bulk/$', vendor_bulk,
@@ -135,7 +138,7 @@ urlpatterns = patterns('',
         name='seeddb-vlan-edit'),
 
     # Prefix
-    url(r'^prefix/$', prefix_list,
+    url(r'^prefix/$', prefix,
         name='seeddb-prefix'),
     url(r'^prefix/edit/(?P<prefix_id>[\d]+)/$', prefix_edit,
         name='seeddb-prefix-edit'),

@@ -59,8 +59,6 @@
       <arg line="755 getBoksMacs.sh" />
     </exec>
 
-    <mkdir dir="${DESTDIR}${crondir}"/>
-    <copy file="mactrace" todir="${DESTDIR}${crondir}"/>
   </target>
   <target name="uninstall">
     <delete file="${DESTDIR}${instdir}/${jar}"/>

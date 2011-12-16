@@ -7,12 +7,8 @@
     <caption>
         {{ title }}
     </caption>
-
     <thead>
         <tr>
-        {% if not confirm %}
-            <th></th>
-        {% endif %}
         {% for values in values.0.values %}
             <th>{{ values.0 }}</th>
         {% endfor %}
@@ -23,7 +19,7 @@
     {% for row in values %}
         <tr class="{% cycle 'oddrow' 'evenrow' %}">
         {% if not confirm %}
-            <td><input type="checkbox" name="object" value="{{ row.pk }}" checked="checked" /></td>
+            <input type="hidden" name="object" value="{{ row.pk }}" />
         {% endif %}
         {% for value in row.values %}
             <td>{{ value.1|default_if_none:"" }}</td>
@@ -43,17 +39,16 @@
     <input type="hidden" name="object" value="{{ row.pk }}" />
     {% endfor %}
     <input type="hidden" name="move" value="yes" />
-    <input type="submit" name="save" value="Confirm save" />
+    <input type="submit" name="save" value="Confirm and save changes" />
 </p>
 {% else %}
 <table class="listtable">
     {{ form.as_table }}
-    {{ operation_form }}
     <tr>
         <th></th>
         <td>
             <input type="hidden" name="move" value="yes" />
-            <input type="submit" name="preview" value="Save" />
+            <input type="submit" name="preview" value="Next" /> 
         </td>
     </tr>
 </table>

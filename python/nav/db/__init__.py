@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003 Norwegian University of Science and Technology
 # Copyright (C) 2006-2009 UNINETT AS

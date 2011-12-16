@@ -1,3 +1,204 @@
+Version 3.10.0
+(released 16 Dec 2011)
+
+ User-visible features and improvements:
+
+  * VLAN subtopology detection has been rewritten to Python. The old
+    networkDiscovery Java program is now deprecated.
+
+  * Alerts when SNMP agents stop responding.
+
+  * Alerts on power failure SNMP traps from UPS units. UPS-MIB (RFC 1628) and
+    proprietary MIBs from Eaton Corporation, APC and MGE are supported.
+
+  * Configurable port link status monitoring and alerting in ipdevpoll,
+    independent of SNMP trap configuration.
+
+  * Alerts on redundant power supply and fan failures on Cisco and HP devices.
+
+  * Statistics from all environment sensors (such as temperature, humidity,
+    light, sound, etc.) detectable through either ENTITY-SENSOR-MIB (RFC
+    3433), CISCO-ENVMON-MIB or IT-WATCHDOGS-MIB (IT Watchdogs WeatherGoose)
+    are now collected via Cricket.
+
+  * pping can now ping IPv6 hosts.
+
+  * ipdevinfo and Machine Tracker now perform bulk DNS lookups in parallel,
+    improving page load times when DNS is slow.
+
+ Bugfixes:
+
+  * LP#744940 (geomap should default to a sensible start map)
+  * LP#894727 (No server software versions since NAV 3.5)
+
+
+Version 3.9.4
+(released 16 Dec 2011)
+
+ Bugfixes:
+
+  * LP#898992 (ipdevinfo displays all ports as blocking whereas stpblock report
+               confirms that they're not)
+  * LP#900723 (No SW version on Cisco 4506E L3 switch)
+  * LP#900779 (smsd crashes when discarding non-dispatchable messages with non-
+               ASCII chars)
+  * LP#901623 (mcc does not update maximum threshold value for interfaces)
+  * LP#903128 (servicemon/pping opens a new connection on any database error)
+  * LP#903681 (room report should include position)
+  * LP#904178 (smsd removes permanently failed dispatchers even when it should
+               ignore permanent failures)
+
+Version 3.9.3
+(released 01 Dec 2011)
+
+ Improvements:
+
+  * Using the `-d` option with cleanrrds.py will now also remove references to
+    stale availability and response time RRD files from NAV's database.  This
+    should help against the "Availability: N/A" issue seen by some in
+    ipdevinfo, whereas bugfixes to pping should prevent it from creating new
+    entries while leaving stale ones in the future.
+
+ Bugfixes:
+
+  * LP#586334 (HTTPS service checker doesn't work with Python 2.6)
+  * LP#744958 (ranked stats config file should default to mbit/s)
+  * LP#888056 (MacWatch GUI crashes if the input of the MAC address is invalid)
+  * LP#891542 (Add option to make smsd ignore "permanent" dispatch errors)
+  * LP#891568 (logengine cron mail complains: global name 'ENOENT' is not
+               defined)
+  * LP#893591 (pping crashes when rrd files already exist)
+  * LP#897175 (ipdevpoll stops polling a device whose type is yet unregistered)
+  * LP#897194 (NameError when adding IP device in SeedDB)
+  * LP#898128 (Trying to seed - when going to USAGE crash)
+
+
+Version 3.9.2
+(released 17 Nov 2011)
+
+ Bugfixes:
+
+  * LP#300708 (Improve the link up/down trap plugin to include description)
+  * LP#338696 (Postgresql service checker is actually a port checker)
+  * LP#787957 (No trunk information on H3C switches)
+  * LP#802408 (Lowercase cricket rrd file not found when sysname has uppercase
+               letters)
+  * LP#854696 (Adding a new filter or new filter group in Alert Profiles fails)
+  * LP#858055 (Creating a new maintenance task with ÆØÅ in description fails)
+  * LP#862208 (No cricket stats for directories "routers" and "switches" in
+               cricket)
+  * LP#865292 (HTTP service checker ignores query string)
+  * LP#890190 (linkstate trap handler does not work)
+  * LP#890607 (Set supervisor SW version as chassis SW version on Cisco devices)
+  * LP#891090 (pping creates multiple RRD files for same data, causing ipdevinfo
+               to display availability as N/A)
+
+
+Version 3.9.1
+(released 12 Aug 2011)
+
+ Bugfixes:
+
+  These two bugs were actually fixed in 3.9.0, but were omitted
+  from the changelog:
+
+  * LP#737102 (Trying to add a prefix that already exists yields an
+               error, but an entry (without the prefix) is added to 
+               vlan-table)
+  * LP#771677 (the delete button on seeddb/prefix is missing)
+
+
+  * LP#643469 (Status history link URL is ridiculously long)
+  * LP#643472 (Device history search results lack context)
+  * LP#643544 (Partial fix for: Flexibility when entering ip address in 
+               machine tracker)
+  * LP#726545 (SeedDB should verify SNMP write community)
+  * LP#751302 (Change the name for prefix matrix to "Subnet matrix")
+  * LP#754602 (seeddb: improve Move Selected)
+  * LP#790178 (pping can crash if clock is adjusted backwards)
+  * LP#804869 (Interface-URL in 'machinetracker' yields 404)
+  * LP#817201 (network discovery vlan index fault)
+
+
+Version 3.9.0
+(released 01 Jul 2011)
+
+ User-visible features and improvements:
+
+  * WeatherGoose snmptrapd plugin now also supports WeatherGoose II traps.
+  * Added portname information to port listings in Arnold.
+
+ Bugfixes:
+
+  * LP#736905 (Changing a vendor id creates a new vendor instead)
+  * LP#749376 (Seed DB: Bulk import for room should require location and allow
+               position)
+  * LP#787986 (No information collected for devices of unknown type)
+  * LP#789005 (Config option for portadmin to turn off authorization)
+  * LP#790600 (ARP records aren't closed when router goes down)
+  * LP#791146 (oidprofiler job fails under TwistedSNMP)
+  * LP#791150 (ipdevpoll doesn't work with pynetsnmp installed on Debian Lenny)
+  * LP#791222 (ipdevpoll fails under pynetsnmp 0.28.8 / Debian Lenny)
+  * LP#794511 (navtopology crashes with error "can't adapt")
+  * LP#797143 (unrecognizedCDP report links to removed ipinfo app)
+  * LP#797576 (web login crashes on first-time login for LDAP user)
+  * LP#798146 (Lots of data aren't collected when using TwistedSNMP)
+
+
+Version 3.9.0b1
+(released 20 May 2011)
+
+ User-visible features and improvements:
+
+  * NAV's threshold monitoring feature has finally been completed - Threshold
+    Manager is a new web tool that allows adjusting threshold values for
+    individual statistical data sources.  Alerts generated by the threshold
+    monitor can be subscribed to in users' alert profiles.
+
+  * MAC Watch is a new web tool that maintains a watch list of MAC addresses.
+    Whenever a watched MAC address appears on your network, NAV will send an
+    alert that can be subscribed to.
+
+  * ipdevpoll can now retrieve VLAN configuration from Extreme Networks
+    devices.
+
+  * ipdevpoll can now optionally use the pynetsnmp library as an alternative
+    to the TwistedSNMP/PySNMP combination.  pynetsnmp is a ctypes binding to
+    the well-known NetSNMP library, and should noticeably improve performance
+    if used.
+
+  * Layer 2 topology discovery has been rewritten from scratch, due to both
+    problems with the results of the old discovery code and problems with
+    maintaining the old code.
+
+ Bugfixes:
+
+  * LP#739718 (ifName should be derived from baseport number if not available)
+
+
+Version 3.8.6
+(released 20 May 2011)
+
+ Bugfixes:
+
+  * LP#777821 (ipdevpoll crash on IPv4 addresses in IP-MIB::ipAddressTable)
+  * LP#778422 (No router addresses collected on a Cisco Nexus 7000)
+  * LP#782161 (Only IPv6 client addresses collected on some routers)
+
+Version 3.8.5
+(released 14 April 2011)
+
+ Bugfixes:
+
+  * LP#745616 (edit vlan in seeddb needs improvement)
+  * LP#745620 (change text descriptions in seeddb)
+  * LP#746381 (Add a report to display all collected interfaces, regardless of
+               type)
+  * LP#747104 (Missing interfaces are left lingering in the database)
+  * LP#748852 (Avoid using the word "handler" in SeedDB/Service)
+  * LP#749502 (Seed DB: Indicate required fields with an asterisk)
+  * LP#751310 (Not possible to add a function when adding a new ip device)
+
 Version 3.8.4
 (released 31 March 2011)
 

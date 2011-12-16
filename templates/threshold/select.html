@@ -1,0 +1,127 @@
+{% extends 'threshold/base.html' %}
+
+{% block content %}
+
+    {% if thresholds %}
+    <div>
+        <label for="descr">Data source:</label>
+        <select id="descr" name="descr">
+            <option value="empty">Not chosen</option>
+            {% for threshold in thresholds %}
+                <option value="{{ threshold }}">{{ threshold }}</option>
+            {% endfor %}
+        </select><span class="ajaxLoader">&nbsp;<img id="spinnerWheel" src="/images/threshold/ajax-loader.gif" alt="Loading..."/></span>
+
+        <div id="messagesDiv">
+        </div>
+
+        <div id="netboxsearch" style="display: none;">
+
+        <table class="vertitable">
+        <caption>Netboxes</caption>
+        <thead></thead>
+        <tbody>
+            <tr>
+                <th><label for="netboxname">Search:</label></th>
+                <td><input id="netboxname" type="text" name="netboxname"/></td>
+            </tr>
+            <tr>
+                <th>Category:</th>
+                <td>
+                    <input id="gw" type="checkbox" name="boxtype"
+                        value="GW">GW</input>
+                    &nbsp;
+                    <input id="gsw" type="checkbox" name="boxtype"
+                        value="GSW">GSW</input>
+                    &nbsp;
+                    <input id="sw" type="checkbox" name="boxtype"
+                        value="SW">SW</input></td>
+            </tr>
+            <tr>
+                <th><label for="vendor">Vendor:</label></th>
+                <td>
+                    <select id="vendor" name="vendor">
+                        <option value="empty">Not chosen</option>
+                        {% if vendors %}
+                        {% for vendor in vendors %}
+                            <option value="{{ vendor }}">{{ vendor }}</option>
+                        {% endfor %}
+                        {% endif %}
+                    </select></td>
+            </tr>
+            <tr>
+                <th><label for="model">Type:</label></th>
+                <td>
+                    <select id="model" name="model">
+                        <option value="empty">Not Chosen</option>
+                        {% if types %}
+                        {% for type in types %}
+                            <option value="{{ type }}">{{ type }}</option>
+                        {% endfor %}
+                        {% endif %}
+                    </select></td>
+            </tr>
+            <tr>
+                <th><label for="chosenboxes">Netboxes:</label></th>
+                <td>
+                    <select id="chosenboxes" name="chosenboxes" size="24" multiple>
+                        {% if chosenboxes %}
+                        {% for netbox in chosenboxes %}
+                        <option value="{{ netbox.id }}">{{ netbox.sysname }}</option>
+                        {% endfor %}
+                        {% endif %}
+                    </select></td>
+            </tr>
+            </tbody>
+            </table>
+
+	    <div id="netboxSubmitDiv" style="display: none;">
+	        <input type="button" id="netboxsubmit" name="netboxsubmit"
+		     value="Continue"/>
+	    </div>
+        
+        </div>
+        <div id="interfacesearch" style="display: none;">
+
+            <table class="vertitable">
+            <caption>Interface</caption>
+            <thead></thead>
+            <tbody>
+            <tr>
+                <th><label for="interfacename">Search interfaces:</label></th>
+                <td><input id="interfacename" type="text"
+                        name="interfacename"/></td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td><input id="updown" type="checkbox" name="updown"
+                        value="updown">Up-/Down-link</input></tr>
+            </tr>
+            <tr>
+                <th><label for="choseninterfaces">Interfaces:</label></th>
+                <td>
+                <select id="choseninterfaces" name="choseninterfacs"
+                    size="24" multiple>
+                {% if choseninterfaces %}
+                {% for interface in choseninterfaces %}
+                    <option value="{{ interface.id }}">{{ interface.netbox.sysname}} - {{ interface.ifname }} {% if interface.ifalias %} ({{ interface.ifalias }}) {% endif %}</option>
+                {% endfor %}
+                {% endif %}</td>
+            </tr>
+            </tbody>
+            </table>
+
+	    <div id="interfaceSubmitDiv" style="display: none;">
+	      <input type="button" id="interfacesubmit"
+		     name="interfacesubmit" value="Continue" />
+	    </div>
+        </div>
+        
+        <div id="bulkupdateDiv" style="display: none;">
+        </div>
+        
+    </div>
+    {% endif %}
+
+{% endblock %}
+

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2007-2008 UNINETT AS
 #
@@ -46,7 +45,7 @@ class MatrixIPv4(Matrix):
     def getTemplateResponse(self):
         template = MatrixIPv4Template()
         template.path = [("Home", "/"), ("Report", "/report/"),
-                         ("Prefix Matrix", False)]
+                         ("Subnet matrix", False)]
 
         #functions and classes
         template.MetaIP = getattr(metaIP,"MetaIP")

@@ -37,7 +37,7 @@ do.
 import re
 import logging
 
-from twisted.internet import defer
+from twisted.internet import defer, error
 
 from IPy import IP
 
@@ -161,13 +161,13 @@ class Prefix(Plugin):
         defer.returnValue(vlan_ifs)
 
     def _ignore_timeout(self, failure, result=None):
-        """Ignores a defer.TimeoutError in an errback chain.
+        """Ignores a TimeoutError in an errback chain.
 
         The result argument will be returned, and there injected into the
         regular callback chain.
 
         """
-        failure.trap(defer.TimeoutError)
+        failure.trap(error.TimeoutError, defer.TimeoutError)
         self._logger.debug("request timed out, ignoring and moving on...")
         return result
 

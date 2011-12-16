@@ -16,8 +16,7 @@
 #
 """logengine.py inserts Cisco syslog messages into the NAV database.
 
-This program takes no arguments; its operation is configured in the
-file logger.conf.
+Most of the operation of this program is configured in logger.conf.
 
 Syslog messages will be read from the configured file, parsed and
 inserted into structured NAV database tables.  Messages that cannot be
@@ -48,6 +47,7 @@ import fcntl
 import sys
 import os
 import os.path
+import errno
 import atexit
 import logging
 from ConfigParser import ConfigParser
@@ -224,7 +224,7 @@ def delete_old_messages(config):
 
     connection.commit()
 
-def verify_singleton():
+def verify_singleton(quiet=False):
     """Verify that we are the single running logengine process.
 
     If a logengine process is already running, we exit this process.
@@ -238,8 +238,11 @@ def verify_singleton():
     try:
         daemon.justme(pidfile)
     except daemon.AlreadyRunningError, e:
-        print >> sys.stderr, "logengine is already running (%d)" % e.pid
-        sys.exit(1)
+        if quiet:
+            sys.exit(0)
+        else:
+            print >> sys.stderr, "logengine is already running (%d)" % e.pid
+            sys.exit(1)
 
     daemon.writepidfile(pidfile)
     atexit.register(daemon.daemonexit, pidfile)
@@ -248,28 +251,28 @@ def verify_singleton():
 def get_categories(cursor):
     categories = {}
     cursor.execute("select category from category")
-    for r in cursor.fetchall():
-        if not categories.has_key(r[0]):
-            categories[r[0]] = r[0]
+    for category, in cursor.fetchall():
+        if not categories.has_key(category):
+            categories[category] = category
     return categories
 
 def get_origins(cursor):
     origins = {}
     cursor.execute("select origin, name from origin")
-    for r in cursor.fetchall():
-        if not origins.has_key(r[1]):
-            origins[r[1]] = int(r[0])
+    for origin, name in cursor.fetchall():
+        if not origins.has_key(name):
+            origins[name] = int(origin)
     return origins
 
 def get_types(cursor):
     types = {}
     cursor.execute(
         "select type, facility, mnemonic, priority from log_message_type")
-    for r in cursor.fetchall():
-        if not types.has_key(r[1]):
-            types[r[1]] = {}
-        if not types[r[1]].has_key(r[2]):
-            types[r[1]][r[2]] = int(r[0])
+    for type_, facility, mnemonic, priority in cursor.fetchall():
+        if not types.has_key(facility):
+            types[facility] = {}
+        if not types[facility].has_key(mnemonic):
+            types[facility][mnemonic] = int(type_)
     return types
 
 def read_log_lines(config):
@@ -291,9 +294,9 @@ def read_log_lines(config):
     try:
         f = open(logfile, "r+")
     except IOError, e:
-        # If errno==2 (file not found), we ignore it.  We won't needlessly
+        # If logfile can't be found, we ignore it.  We won't needlessly
         # spam the NAV admin every minute with a file not found error!
-        if e.errno != 2:
+        if e.errno != errno.ENOENT:
             logger.exception("Couldn't open logfile %s", logfile)
 
     ## if the file exists
@@ -418,10 +421,10 @@ def add_type(facility, mnemonic, priorityid, types, database):
         types[facility] = {}
     types[facility][mnemonic] = typeid
 
-def logengine(config):
+def logengine(config, options):
     global connection, database
 
-    verify_singleton()
+    verify_singleton(options.quiet)
 
     connection = db.getConnection('logger','logger')
     database = connection.cursor()
@@ -464,6 +467,9 @@ def parse_options():
     parser = optparse.OptionParser()
     parser.add_option("-d", "--delete", action="store_true", dest="delete",
                       help="delete old messages from database and exit")
+    parser.add_option("-q", "--quiet", action="store_true", dest="quiet",
+                      help="quietly exit without returning an error code if "
+                      "logengine is already running")
 
     return parser.parse_args()
 
@@ -484,7 +490,7 @@ def main():
         delete_old_messages(config)
         sys.exit(0)
     else:
-        logengine(config)
+        logengine(config, options)
 
 
 if __name__ == '__main__':

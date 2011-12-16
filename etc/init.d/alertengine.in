@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
-####################
 #
-# This file is part of Network Administration Visualized.
 # This script controls start/stop/status of the NAV Alert Engine daemon.
 #
-# Copyright 2006 UNINETT AS
-#
-####################
+## info: Dispatches alerts according to individual alert profiles.
 initdir=@initdir@
 bindir=@bindir@
 ALERTENGINE=${bindir}/alertengine.py

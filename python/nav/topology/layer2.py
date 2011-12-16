@@ -49,10 +49,10 @@ def _update_interface_topology(source_node, dest_node):
                                    gone_since__isnull=True)
 
     if isinstance(dest_node, Port):
-        kwargs = {'to_netbox': dest_node[0],
-                  'to_interface': dest_node[1]}
+        kwargs = {'to_netbox': int(dest_node[0]),
+                  'to_interface': int(dest_node[1])}
     else:
-        kwargs = {'to_netbox': dest_node,
+        kwargs = {'to_netbox': int(dest_node),
                   'to_interface': None}
 
     ifc = ifc.exclude(**kwargs)
@@ -66,8 +66,7 @@ def _clear_topology_for_nontouched(touched_ifc_ids):
     """
     touched_ifcs = Interface.objects.filter(ifadminstatus=Interface.ADM_UP,
                                             netbox__up=Netbox.UP_UP)
-    clearable_ifcs = touched_ifcs.exclude(
-        id__in=touched_ifc_ids,
-        to_netbox__isnull=True,
-        to_interface__isnull=True)
+    nontouched_ifcs = touched_ifcs.exclude(id__in=touched_ifc_ids)
+    clearable_ifcs = nontouched_ifcs.exclude(to_netbox__isnull=True,
+                                             to_interface__isnull=True)
     clearable_ifcs.update(to_netbox=None, to_interface=None)

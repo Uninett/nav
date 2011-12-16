@@ -13,3 +13,9 @@ table.seeddbtable tr td:first-child {
 table.seeddbtable .info {
 	width: 60%;
 }
+
+.required:after {
+	content: " *";
+	color: #F00;
+	font-weight: bold;
+}

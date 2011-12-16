@@ -21,26 +21,83 @@ functionality will later be moved to this program.
 """
 
 from optparse import OptionParser
+from functools import wraps
+import inspect
+import logging
+import os
 
 from nav import buildconf
+from nav.debug import log_stacktrace, log_last_django_query
 from nav.topology.layer2 import update_layer2_topology
 from nav.topology.analyze import AdjacencyReducer, build_candidate_graph_from_db
+from nav.topology.vlan import VlanGraphAnalyzer, VlanTopologyUpdater
+
+LOGFILE_NAME = 'navtopology.log'
+LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
+
 
 def main():
     """Program entry point"""
     parser = make_option_parser()
-    parser.parse_args()
+    (options, _args) = parser.parse_args()
 
-    do_layer2_detection()
+    init_logging()
+    if options.l2:
+        do_layer2_detection()
+    if options.vlan:
+        if options.include_vlans:
+            vlans = [int(v) for v in options.include_vlans]
+        else:
+            vlans = []
+        do_vlan_detection(vlans)
 
 def make_option_parser():
     """Sets up and returns a command line option parser."""
     parser = OptionParser(
         version="NAV " + buildconf.VERSION,
-        epilog="Detects and updates the network topology in the NAV database"
+        description=("Detects and updates the network topology in your NAV "
+                     "database")
         )
+
+    parser.add_option("--l2", action="store_true", dest="l2",
+                      help="Detect physical topology")
+    parser.add_option("--vlan", action="store_true", dest="vlan",
+                      help="Detect vlan subtopologies")
+    parser.add_option("-i", dest="include_vlans", default="",
+                      metavar="vlan[,...]",
+                      help="Only analyze the VLANs included in this list")
     return parser
 
+def init_logging():
+    """Initializes logging for this program"""
+    formatter = logging.Formatter(
+        "%(asctime)s [%(levelname)s %(name)s] %(message)s")
+    handler = logging.FileHandler(LOGFILE_PATH, 'a')
+    handler.setFormatter(formatter)
+
+    root = logging.getLogger('')
+    root.addHandler(handler)
+
+    import nav.logs
+    nav.logs.set_log_levels()
+
+def with_exception_logging(func):
+    """Decorates a function to log unhandled exceptions"""
+    def _decorator(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            stacktrace = inspect.trace()[1:]
+            logger = logging.getLogger(__name__)
+            logger.exception("An unhandled exception occurred")
+            log_last_django_query(logger)
+            log_stacktrace(logging.getLogger('nav.topology.stacktrace'),
+                           stacktrace)
+            raise
+
+    return wraps(func)(_decorator)
+
+@with_exception_logging
 def do_layer2_detection():
     """Detect and update layer 2 topology"""
     reducer = AdjacencyReducer(build_candidate_graph_from_db())
@@ -48,6 +105,16 @@ def do_layer2_detection():
     links = reducer.get_single_edges_from_ports()
     update_layer2_topology(links)
 
+@with_exception_logging
+def do_vlan_detection(vlans):
+    analyzer = VlanGraphAnalyzer()
+    if vlans:
+        analyzer.analyze_vlans_by_id(vlans)
+    else:
+        analyzer.analyze_all()
+    ifc_vlan_map = analyzer.add_access_port_vlans()
+    update = VlanTopologyUpdater(ifc_vlan_map)
+    update()
 
 if __name__ == '__main__':
     main()

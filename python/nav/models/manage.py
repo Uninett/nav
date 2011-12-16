@@ -26,6 +26,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
 
+from nav.bitvector import BitVector
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
@@ -70,6 +71,8 @@ class Netbox(models.Model):
 
     class Meta:
         db_table = 'netbox'
+        verbose_name = 'netbox'
+        verbose_name_plural = 'netboxes'
         ordering = ('sysname',)
 
     def __unicode__(self):
@@ -124,6 +127,11 @@ class Netbox(models.Model):
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
         return sorted_ports
+
+    def get_sensors(self):
+        """ Returns sensors associated with this netbox """
+
+        return Sensor.objects.filter(netbox=self)
 
     def get_availability(self):
         """Calculates and returns an availability data structure."""
@@ -319,6 +327,7 @@ class Module(models.Model):
 
     class Meta:
         db_table = 'module'
+        verbose_name = 'module'
         ordering = ('netbox', 'module_number', 'name')
         unique_together = (('netbox', 'name'),)
 
@@ -398,6 +407,7 @@ class Room(models.Model):
 
     class Meta:
         db_table = 'room'
+        verbose_name = 'room'
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
@@ -412,6 +422,7 @@ class Location(models.Model):
 
     class Meta:
         db_table = 'location'
+        verbose_name = 'location'
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
@@ -429,6 +440,7 @@ class Organization(models.Model):
 
     class Meta:
         db_table = 'org'
+        verbose_name = 'organization'
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
@@ -443,6 +455,8 @@ class Category(models.Model):
 
     class Meta:
         db_table = 'cat'
+        verbose_name = 'category'
+        verbose_name_plural = 'categories'
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
@@ -685,10 +699,12 @@ class SwPortVlan(models.Model):
     DIRECTION_UNDEFINED = 'x'
     DIRECTION_UP = 'o'
     DIRECTION_DOWN = 'n'
+    DIRECTION_BLOCKED = 'b'
     DIRECTION_CHOICES = (
         (DIRECTION_UNDEFINED, 'undefined'),
         (DIRECTION_UP, 'up'),
         (DIRECTION_DOWN, 'down'),
+        (DIRECTION_BLOCKED, 'blocked'),
     )
 
     id = models.AutoField(db_column='swportvlanid', primary_key=True)
@@ -705,18 +721,44 @@ class SwPortVlan(models.Model):
         return u'%s, on vlan %s' % (self.interface, self.vlan)
 
 class SwPortAllowedVlan(models.Model):
-    """From MetaNAV: Stores a hexstring that has “hidden” information about
-    the vlans that are allowed to traverse a given trunk."""
+    """Stores a hexstring that encodes the list of VLANs that are allowed to
+    traverse a trunk port.
 
+    """
     interface = models.OneToOneField('Interface', db_column='interfaceid',
                                      primary_key=True)
     hex_string = VarcharField(db_column='hexstring')
+    _cached_hex_string = ''
+    _cached_vlan_set = None
 
     class Meta:
         db_table = 'swportallowedvlan'
 
+    def __contains__(self, item):
+        vlans = self.get_allowed_vlans()
+        return item in vlans
+
+    def get_allowed_vlans(self):
+        """Converts the plaintext formatted hex_string attribute to a list of
+        VLAN numbers.
+
+        :returns: A set of integers.
+        """
+        if self._cached_hex_string != self.hex_string:
+            self._cached_hex_string = self.hex_string
+            self._cached_vlan_set = self._calculate_allowed_vlans()
+
+        return self._cached_vlan_set or set()
+
+    def _calculate_allowed_vlans(self):
+        octets = [self.hex_string[x:x+2]
+                  for x in xrange(0, len(self.hex_string), 2)]
+        string = ''.join(chr(int(o, 16)) for o in octets)
+        bits = BitVector(string)
+        return set(bits.get_set_bits())
+
     def __unicode__(self):
-        return u'Allowed vlan for swport %s' % self.interface
+        return u'Allowed vlans for swport %s' % self.interface
 
 class SwPortBlocked(models.Model):
     """From MetaNAV: This table defines the spanning tree blocked ports for a
@@ -973,3 +1015,124 @@ class RoutingProtocolAttribute(models.Model):
 
     class Meta:
         db_table = u'rproto_attr'
+
+
+class Sensor(models.Model):
+    """
+    This table contains meta-data about available sensors in
+    network-equipment.
+
+    Information in this table is used to make configurations for
+    Cricket,- and Cricket maintain the resulting RRD-files for
+    statistics.
+    """
+
+    UNIT_OTHER = 'other'        # Other than those listed
+    UNIT_UNKNOWN = 'unknown'    # unknown measurement, or arbitrary,
+                                # relative numbers
+    UNIT_VOLTS_AC = 'voltsAC'   # electric potential
+    UNIT_VOLTS_DC = 'voltsDC'    # electric potential
+    UNIT_AMPERES = 'amperes'    # electric current
+    UNIT_WATTS = 'watts'        # power
+    UNIT_HERTZ = 'hertz'        # frequency
+    UNIT_CELSIUS = 'celsius'    # temperature
+    UNIT_PERCENT_RELATIVE_HUMIDITY = 'percentRH' # percent relative humidity
+    UNIT_RPM = 'rpm'            # shaft revolutions per minute
+    UNIT_CMM = 'cmm'            # cubic meters per minute (airflow)
+    UNIT_TRUTHVALUE = 'boolean' # value takes { true(1), false(2) }
+    
+    UNIT_OF_MEASUREMENTS_CHOICES =(
+        (UNIT_OTHER, 'Other'),
+        (UNIT_UNKNOWN, 'Unknown'),
+        (UNIT_VOLTS_AC, 'VoltsAC'),
+        (UNIT_VOLTS_DC, 'VoltsDC'),
+        (UNIT_AMPERES, 'Amperes'),
+        (UNIT_WATTS, 'Watts'),
+        (UNIT_HERTZ, 'Hertz'),
+        (UNIT_CELSIUS, 'Celsius'),
+        (UNIT_PERCENT_RELATIVE_HUMIDITY, 'Relative humidity'),
+        (UNIT_RPM, 'Revolutions per minute'),
+        (UNIT_CMM, 'Cubic meters per minute'),
+        (UNIT_TRUTHVALUE, 'Boolean'),
+    )
+
+    SCALE_YOCTO = 'yocto' # 10^-24
+    SCALE_ZEPTO = 'zepto' # 10^-21
+    SCALE_ATTO = 'atto'   # 10^-18
+    SCALE_FEMTO = 'femto' # 10^-15
+    SCALE_PICO = 'pico'   # 10^-12
+    SCALE_NANO = 'nano'   # 10^-9
+    SCALE_MICRO = 'micro' # 10^-6
+    SCALE_MILLI = 'milli' # 10^-3
+    SCALE_UNITS = 'units' # 10^0
+    SCALE_KILO = 'kilo'   # 10^3
+    SCALE_MEGA = 'mega'   # 10^6
+    SCALE_GIGA = 'giga'   # 10^9
+    SCALE_TERA = 'tera'   # 10^12
+    SCALE_EXA = 'exa'     # 10^15
+    SCALE_PETA = 'peta'   # 10^18
+    SCALE_ZETTA = 'zetta' # 10^21
+    SCALE_YOTTA = 'yotta' # 10^24
+
+    DATA_SCALE_CHOICES = (
+        (SCALE_YOCTO, 'Yocto'),
+        (SCALE_ZEPTO, 'Zepto'),
+        (SCALE_ATTO, 'Atto'),
+        (SCALE_FEMTO, 'Femto'),
+        (SCALE_PICO, 'Pico'),
+        (SCALE_NANO, 'Nano'),
+        (SCALE_MICRO, 'Micro'),
+        (SCALE_MILLI, 'Milli'),
+        (SCALE_UNITS, 'No unit scaling'),
+        (SCALE_KILO, 'Kilo'),
+        (SCALE_MEGA, 'Mega'),
+        (SCALE_GIGA, 'Giga'),
+        (SCALE_TERA, 'Tera'),
+        (SCALE_EXA, 'Exa'),
+        (SCALE_PETA, 'Peta'),
+        (SCALE_ZETTA, 'Zetta'),
+        (SCALE_YOTTA, 'Yotta'),
+    )
+
+    id = models.AutoField(db_column='sensorid', primary_key=True)
+    netbox = models.ForeignKey(Netbox, db_column='netboxid')
+    oid = VarcharField(db_column="oid")
+    unit_of_measurement = VarcharField(db_column="unit_of_measurement",
+                                        choices=UNIT_OF_MEASUREMENTS_CHOICES)
+    data_scale = VarcharField(db_column="data_scale",
+                                choices=DATA_SCALE_CHOICES)
+    precision = models.IntegerField(db_column="precision")
+    human_readable = VarcharField(db_column="human_readable")
+    name = VarcharField(db_column="name")
+    internal_name = VarcharField(db_column="internal_name")
+    mib = VarcharField(db_column="mib")
+
+    class Meta:
+        db_table = 'sensor'
+
+class PowerSupplyOrFan(models.Model):
+    STATE_UP = u'y'
+    STATE_DOWN = u'n'
+    STATE_UNKNOWN = u'u'
+    STATE_WARNING = u'w'
+
+    STATE_CHOICES = (
+        (STATE_UP, "Up"),
+        (STATE_DOWN, "Down"),
+        (STATE_UNKNOWN, "Unknown"),
+        (STATE_WARNING, "Warning"),
+    )
+
+    id = models.AutoField(db_column='powersupplyid', primary_key=True)
+    netbox = models.ForeignKey(Netbox, db_column='netboxid')
+    device = models.ForeignKey(Device, db_column='deviceid')
+    name = VarcharField(db_column='name')
+    model = VarcharField(db_column='model', null=True)
+    descr = VarcharField(db_column='descr', null=True)
+    downsince = models.DateTimeField(db_column='downsince', null=True)
+    physical_class = VarcharField(db_column='physical_class')
+    sensor_oid = VarcharField(db_column='sensor_oid', null=True)
+    up = VarcharField(db_column='up', choices=STATE_CHOICES)
+
+    class Meta:
+        db_table = 'powersupply_or_fan'

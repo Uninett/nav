@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008, 2009 UNINETT AS
 #
@@ -16,10 +15,11 @@
 #
 """Dynamic CAM record collecting with and without community string indexing.
 """
-
+from itertools import cycle
 from datetime import datetime
 
 from twisted.internet import defer, threads
+from twisted.internet.error import TimeoutError
 from twisted.python.failure import Failure
 from twistedsnmp import snmpprotocol, agentproxy
 
@@ -29,7 +29,6 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
 from nav.models import manage
-from nav.util import round_robin
 
 MAX_MISS_COUNT = 3
 
@@ -75,7 +74,7 @@ class Cam(Plugin):
 
                 try:
                     num = dw.getResult()
-                except defer.TimeoutError:
+                except (TimeoutError, defer.TimeoutError):
                     self._logger.debug("Timeout on vlan %d" % vlan)
                 else:
                     self._logger.debug("Found %d macs on vlan %d" % (num, vlan))
@@ -265,7 +264,7 @@ class CommunityIndexAgentProxy(object):
 
     def __init__(self, netbox):
         self.netbox = netbox
-        self.ports = round_robin([snmpprotocol.port() for i in range(10)])
+        self.ports = cycle([snmpprotocol.port() for i in range(10)])
 
     def agent_for_vlan(self, vlan):
         """Returns a new agent proxy with community string index set to the

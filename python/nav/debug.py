@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2006 Norwegian University of Science and Technology
+# Copyright (C) 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,6 +16,9 @@
 #
 """This module provides some useful debugging tools for NAV developers"""
 
+from __future__ import absolute_import
+import logging
+import pprint
 from traceback import print_stack
 from cStringIO import StringIO
 
@@ -54,3 +57,53 @@ def calltracer(function, logfunction=apache_log):
     else:
         return tracer
 
+
+def log_stacktrace(logger, stacktrace):
+    """Debug logs a stacktrace, including the global and local variables from
+    each stack frame.
+
+    :param logger: A logging.Logger instance.
+    :param stacktrace: An output from the inspect.trace() function.
+
+    """
+    if logger.getEffectiveLevel() > logging.DEBUG:
+        # don't waste time here if DEBUG logging isn't activated
+        return
+
+    dump = []
+    for (frame, filename, line_no, func, source, _) in stacktrace:
+        dump.append("  File %r, line %s, in %s" % (filename, line_no, func))
+        for line in source:
+            dump.append("  %s" % line.rstrip())
+
+        dump.append("(Globals)")
+        globs = ((var, val) for var, val in frame.f_globals.items()
+                 if var != '__builtins__')
+        dump.extend(_dumpvars(globs))
+
+        dump.append("(Locals)")
+        dump.extend(_dumpvars(frame.f_locals.items()))
+        dump.append("")
+
+    logger.debug("Stack frame dump:\n%s", '\n'.join(dump))
+    logger.debug("--- end of stack trace ---")
+
+def _dumpvars(varitems):
+    for var, val in varitems:
+        try:
+            yield "  %r: %s" % (var, pprint.pformat(val, indent=2))
+        except Exception, e:
+            yield "  %r: <<exception during formatting: %s>>" % (var, e)
+
+def log_last_django_query(logger):
+    """Debug logs the latest SQL query made by Django.
+
+    Will only work if the DEBUG=True in the Django settings.
+
+    :param logger: The logging.Logger object to use for logging.
+    """
+    from nav.models import manage as _manage
+    from django.db import connection
+    if connection.queries:
+        logger.debug("Last Django SQL query was: %s",
+                     connection.queries[-1]['sql'])

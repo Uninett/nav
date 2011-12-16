@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+    <link rel="stylesheet" type="text/css" href="/style/threshold.css" />
+    <script type="text/javascript" src="/js/jquery-1.4.4.min.js"></script>
+    <script type="text/javascript" src="/js/jquery-json-2.2.min.js"></script>
+    <script type="text/javascript" src="/js/threshold.js"></script>
+{% endblock %}
+
+{% block base_content %}
+<h3>Threshold manager</h3>
+
+{# Only when tabbed page #}
+{% if active %}
+<div class="tabs">
+    <ul>
+        <li class="{{ active.bulk|yesno:"tabactive," }}">
+            <a href="{% url threshold-index %}">Bulk configure</a>
+        </li>
+        <li class="{{ active.all|yesno:"tabactive," }}">
+            <a href="{% url threshold-all %}">Configured thresholds</a>
+        </li>
+        <li class="{{ active.exceeded|yesno:"tabactive," }}">
+            <a href="{% url threshold-exceeded %}">Exceeded thresholds</a>
+        </li>
+    </ul>
+</div>
+
+<div class="tabcontent">
+
+  {% if active.all %}
+    <div class="infobox">
+      <ul><li>These are the currently configured thresholds, which may be adjusted here.</li></ul>
+    </div>
+
+    {% if not netboxes %}
+      <p><em>No thresholds are currently configured</em></p>
+    {% endif %}
+
+  {% endif %}
+
+  {% if active.exceeded %}
+    <div class="infobox">
+      <ul><li>These are the currently exceeded thresholds, which may be adjusted here.</li></ul>
+    </div>
+
+    {% if not netboxes %}
+      <p><em>No thresholds are currently exceeded</em></p>
+    {% endif %}
+
+  {% endif %}
+
+  {% if active.bulk %}
+    
+    <div class="infobox">
+      <ul>
+        <li>Please select a type of data source you want to adjust thresholds for.</li>
+        <li>Then, select the IP devices whose thresholds you want to adjust.</li>
+        <li>If you selected a network interface datasource, also select the
+            interfaces you wish to adjust thresholds for.</li>
+      </ul>
+    </div>
+
+  {% endif %}
+
+{% endif %}
+
+{% block content %}
+
+{% endblock %}
+
+{# Only when tabbed page #}
+{% if active %}
+</div>
+{% endif %}
+
+{% endblock %}

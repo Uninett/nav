@@ -20,21 +20,22 @@ import pprint
 import logging
 import threading
 import gc
-from twisted.internet import defer, threads, reactor
-from twistedsnmp import snmpprotocol, agentproxy
+from itertools import cycle
 
-from nav.util import round_robin
+from twisted.internet import defer, threads, reactor
+from twisted.internet.error import TimeoutError
+
 from nav import toposort
 
 from nav.ipdevpoll import get_context_logger
-import storage
-import shadows
-from plugins import plugin_registry
+from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
+from . import storage, shadows
+from .plugins import plugin_registry
 from nav.ipdevpoll import db
-from utils import log_unhandled_failure
+from .utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
-ports = round_robin([snmpprotocol.port() for i in range(50)])
+ports = cycle([snmpprotocol.port() for i in range(50)])
 
 class AbortedJobError(Exception):
     """Signals an aborted collection job."""
@@ -42,6 +43,15 @@ class AbortedJobError(Exception):
         Exception.__init__(self, msg, cause)
         self.cause = cause
 
+class SuggestedReschedule(AbortedJobError):
+    """Can be raised by plugins to abort and reschedule a job at a specific
+    later time, without necessarily logging it as a job failure.
+
+    """
+    def __init__(self, delay=60):
+        self.delay = 60
+        super(SuggestedReschedule, self).__init__(
+            "Job was suggested rescheduled in %d seconds" % self.delay)
 
 class JobHandler(object):
 
@@ -78,17 +88,27 @@ class JobHandler(object):
         nb = self.container_factory(shadows.Netbox, key=None)
         (nb.id, nb.sysname) = (netbox.id, netbox.sysname)
 
-        port = ports.next()
+        self.agent = None
 
-        self.agent = agentproxy.AgentProxy(
+    def _create_agentproxy(self):
+        if self.agent:
+            self._destroy_agentproxy()
+
+        port = ports.next()
+        self.agent = AgentProxy(
             self.netbox.ip, 161,
             community = self.netbox.read_only,
             snmpVersion = 'v%s' % self.netbox.snmp_version,
             protocol = port.protocol,
         )
+        self.agent.open()
         self._logger.debug("AgentProxy created for %s: %s",
                            self.netbox.sysname, self.agent)
 
+    def _destroy_agentproxy(self):
+        if self.agent:
+            self.agent.close()
+        self.agent = None
 
     def find_plugins(self):
         """Populate the internal plugin list with plugin class instances."""
@@ -127,9 +147,13 @@ class JobHandler(object):
         plugins = iter(plugins)
 
         def log_plugin_failure(failure, plugin_instance):
-            if failure.check(defer.TimeoutError):
+            if failure.check(TimeoutError, defer.TimeoutError):
                 self._logger.debug("Plugin %s reported a timeout",
                                    plugin_instance)
+            elif failure.check(SuggestedReschedule):
+                self._logger.debug("Plugin %s suggested a reschedule in "
+                                   "%d seconds",
+                                   plugin_instance, failure.value.delay)
             else:
                 log_unhandled_failure(self._logger,
                                       failure,
@@ -158,9 +182,11 @@ class JobHandler(object):
 
     def run(self):
         """Starts a polling job for netbox and returns a Deferred."""
+        self._create_agentproxy()
         plugins = self.find_plugins()
         self._reset_timers()
         if not plugins:
+            self._destroy_agentproxy()
             return defer.succeed(None)
 
         self._logger.info("Starting job %r for %s",
@@ -174,8 +200,10 @@ class JobHandler(object):
 
         def plugin_failure(failure):
             self._log_timings()
-            raise AbortedJobError("Job aborted due to plugin failure",
-                                  cause=failure.value)
+            if not failure.check(AbortedJobError):
+                raise AbortedJobError("Job aborted due to plugin failure",
+                                      cause=failure.value)
+            return failure
 
         def save_failure(failure):
             log_unhandled_failure(self._logger,
@@ -186,6 +214,8 @@ class JobHandler(object):
                                   cause=failure.value)
 
         def log_abort(failure):
+            if failure.check(SuggestedReschedule):
+                return failure
             if failure.check(AbortedJobError):
                 self._logger.error("Job %r for %s aborted: %s",
                                    self.name, self.netbox.sysname,
@@ -205,7 +235,8 @@ class JobHandler(object):
         # pylint: disable=E1101
         shutdown_trigger_id = reactor.addSystemEventTrigger(
             "before", "shutdown", self.cancel)
-        def remove_event_trigger(result):
+        def cleanup(result):
+            self._destroy_agentproxy()
             reactor.removeSystemEventTrigger(shutdown_trigger_id)
             return result
 
@@ -214,7 +245,7 @@ class JobHandler(object):
         df.addErrback(plugin_failure)
         df.addCallback(save)
         df.addErrback(log_abort)
-        df.addBoth(remove_event_trigger)
+        df.addBoth(cleanup)
         return df
 
     def cancel(self):
@@ -374,7 +405,7 @@ class JobHandler(object):
         """
         for shadow_class in sorted_shadow_classes:
             if shadow_class in self.containers:
-                shadows = self.containers[shadow_class].values()
+                shadows = set(self.containers[shadow_class].values())
                 self.storage_queue.extend(shadows)
 
     def container_factory(self, container_class, key):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2009 UNINETT AS
 #
@@ -30,7 +29,7 @@ from nav.models.profiles import StatusPreference, StatusPreferenceCategory, \
 from nav.models.event import AlertHistory, AlertType, AlertHistoryVariable
 from nav.models.manage import Netbox, Module, Category, Organization
 
-from nav.web import serviceHelper
+from nav.web import servicecheckers
 
 MAINTENANCE_STATE = 'maintenanceState'
 BOX_STATE = 'boxState'
@@ -140,14 +139,18 @@ class _Section(object):
         url = reverse('devicehistory-view')
         url += "?type=%s" % self.devicehistory_type
         url += "&group_by=datetime"
+        
+        if not self.prefs.all_organizations:
+            for org in self.organizations:
+                url += "&org=%s" % org
+        if not self.prefs.all_categories:
+            for cat in self.categories:
+                url += "&cat=%s" % cat
 
-        if not self.prefs.all_categories or not self.prefs.all_organizations:
-            netboxes = Netbox.objects.filter(
-                category__in=self.categories,
-                organization__in=self.organizations,
-            ).values('id')
-            for n in netboxes:
-                url += "&netbox=%s" % n['id']
+        # If custom orgs and cats, use AND search        
+        if not self.prefs.all_categories and not self.prefs.all_organizations:    
+            url += "&mode=and"
+
         return url
 
 class NetboxSection(_Section):
@@ -242,8 +245,8 @@ class NetboxMaintenanceSection(_Section):
                 downtime = ''
             else:
                 if down:
-                   down_since = down['start_time']
-                   downtime = down['downtime']
+                    down_since = down['start_time']
+                    downtime = down['downtime']
                 else:
                     down_since = 'N/A'
                     downtime = 'N/A'
@@ -311,7 +314,7 @@ class ServiceSection(_Section):
         if self.prefs.services:
             self.services = self.prefs.services.split(',')
         else:
-            self.services = [s for s in serviceHelper.getCheckers()]
+            self.services = [s for s in servicecheckers.get_checkers()]
 
     def fetch_history(self):
         maintenance = AlertHistory.objects.filter(
@@ -423,8 +426,8 @@ class ServiceMaintenanceSection(ServiceSection):
                 downtime = ''
             else:
                 if down:
-                   down_since = down['start_time']
-                   downtime = down['downtime']
+                    down_since = down['start_time']
+                    downtime = down['downtime']
                 else:
                     down_since = 'N/A'
                     downtime = 'N/A'
