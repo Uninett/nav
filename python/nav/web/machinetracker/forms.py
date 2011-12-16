@@ -25,12 +25,19 @@ from django.forms.util import ErrorList
 
 def _check_ips_in_input(ip):
     if ip:
+        
         # Check if range with dash
-        if '-' in ip:
+        if '-' in ip and ip.count('-') < 2:
             try:
                 ips = ip.split('-')
-                # Check the first ip
+
+                # Check the first ip for more than one range
+                if len(ips) > 2:
+                    raise forms.ValidationError(u"You can only specify one range")
+
+                # Try to parse the first IP to an IP-object
                 IP(ips[0])
+
                 # Try to parse the second ip to int and assemble the postfix with the first ip
                 try:
                     if IP(ips[0])._ipversion == 6:
@@ -53,8 +60,8 @@ def _check_ips_in_input(ip):
                         raise forms.ValidationError(u"Invalid IP address or range")
             except ValueError:
                 raise forms.ValidationError(u"Invalid IP address or range")
-        # Else check single address or CIDR
-        else:
+        # Check if CIDR
+        elif '/' in ip and ip.count('/') < 2:
             try:
                 ip_and_mask = ip.split('/')
                 ip = ip_and_mask[0]
@@ -69,6 +76,12 @@ def _check_ips_in_input(ip):
                         raise forms.ValidationError(u"Invalid net mask")
             except ValueError:
                 raise forms.ValidationError(u"Invalid IP address")
+        # Else check single address
+        else:
+            try:
+                IP(ip)
+            except ValueError:
+                raise forms.ValidationError(u"Invalid input")
 
 class IpTrackerForm(forms.Form):
     # IPAddressField only supports IPv4 as of Django 1.1
