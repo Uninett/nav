@@ -13,12 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""NAV network topology detection program.
-
-Currently, this will only detect the layer 2 topology.  VLAN topology
-detection is still done by the Java-based networkDiscovery program; this
-functionality will later be moved to this program.
-"""
+"""NAV network topology detection program"""
 
 from optparse import OptionParser
 from functools import wraps
