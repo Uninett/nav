@@ -87,9 +87,13 @@ class DaemonService(Service):
         f.close()
 
     def loadServices(cls):
+        def isBlacklisted(f):
+            return (f.startswith('.') or f.endswith('~')
+                    or f == 'functions'
+                    or '.dpkg-' in f)
         fileList = [os.path.join(INITDIR, f)
                     for f in os.listdir(INITDIR)
-                    if f != 'functions' and f[0] != '.' and f[-1] != '~']
+                    if not isBlacklisted(f)]
         serviceList = [cls(f) for f in fileList]
         return serviceList
     loadServices = classmethod(loadServices)
@@ -158,9 +162,12 @@ class CronService(Service):
         f.close()
 
     def loadServices(cls):
+        def isBlacklisted(f):
+            return (f.startswith('.') or f.endswith('~')
+                    or '.dpkg-' in f)
         fileList = [os.path.join(CRONDIR, f)
                     for f in os.listdir(CRONDIR)
-                    if f[0] != '.' and f[-1] != '~']
+                    if not isBlacklisted(f)]
         serviceList = [cls(f) for f in fileList]
         return serviceList
     loadServices = classmethod(loadServices)
