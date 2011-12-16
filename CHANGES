@@ -1,3 +1,19 @@
+Version 3.9.4
+(released 16 Dec 2011)
+
+ Bugfixes:
+
+  * LP#898992 (ipdevinfo displays all ports as blocking whereas stpblock report
+               confirms that they're not)
+  * LP#900723 (No SW version on Cisco 4506E L3 switch)
+  * LP#900779 (smsd crashes when discarding non-dispatchable messages with non-
+               ASCII chars)
+  * LP#901623 (mcc does not update maximum threshold value for interfaces)
+  * LP#903128 (servicemon/pping opens a new connection on any database error)
+  * LP#903681 (room report should include position)
+  * LP#904178 (smsd removes permanently failed dispatchers even when it should
+               ignore permanent failures)
+
 Version 3.9.3
 (released 01 Dec 2011)
 
