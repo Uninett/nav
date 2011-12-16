@@ -1,3 +1,37 @@
+Version 3.10.0
+(released 16 Dec 2011)
+
+ User-visible features and improvements:
+
+  * VLAN subtopology detection has been rewritten to Python. The old
+    networkDiscovery Java program is now deprecated.
+
+  * Alerts when SNMP agents stop responding.
+
+  * Alerts on power failure SNMP traps from UPS units. UPS-MIB (RFC 1628) and
+    proprietary MIBs from Eaton Corporation, APC and MGE are supported.
+
+  * Configurable port link status monitoring and alerting in ipdevpoll,
+    independent of SNMP trap configuration.
+
+  * Alerts on redundant power supply and fan failures on Cisco and HP devices.
+
+  * Statistics from all environment sensors (such as temperature, humidity,
+    light, sound, etc.) detectable through either ENTITY-SENSOR-MIB (RFC
+    3433), CISCO-ENVMON-MIB or IT-WATCHDOGS-MIB (IT Watchdogs WeatherGoose)
+    are now collected via Cricket.
+
+  * pping can now ping IPv6 hosts.
+
+  * ipdevinfo and Machine Tracker now perform bulk DNS lookups in parallel,
+    improving page load times when DNS is slow.
+
+ Bugfixes:
+
+  * LP#744940 (geomap should default to a sensible start map)
+  * LP#894727 (No server software versions since NAV 3.5)
+
+
 Version 3.9.4
 (released 16 Dec 2011)
 
