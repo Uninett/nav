@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """NAV Service start/stop library."""
+from __future__ import with_statement
 
 import os
 import os.path
@@ -27,73 +28,78 @@ from UserDict import UserDict
 
 try:
     import nav.buildconf
-except:
-    # If the path module was not found, just pick default directories
-    # below CWD
+except ImportError:
     CRONDIR = 'cron.d'
     INITDIR = 'init.d'
 else:
     CRONDIR = nav.buildconf.crondir
     INITDIR = nav.buildconf.initdir
-    
+
+INFOHEAD = '## info:'
+def getInfoFromContent(content):
+    """Extracts and returns service information from an iterable"""
+    for line in content:
+        if not line.startswith('#'):
+            break
+        elif line.startswith(INFOHEAD):
+            return line[len(INFOHEAD):].strip()
+
 class Service(object):
     """ Represents a NAV service in general, and should never be
     instantiated."""
-    def __init__(self, file):
-        self.name = os.path.split(file)[1]
+    def __init__(self, filename):
+        self.name = os.path.split(filename)[1]
         self.info = 'N/A'
-        self.source = file
-        self.loadFromFile(file)
+        self.source = filename
+        self.loadFromFile(filename)
 
     def __repr__(self):
         return "<%s '%s'>" % (self.__class__.__name__, self.name)
 
-    def loadFromFile(self, file):
-        raise "Not Implemented"
+    def loadFromFile(self, filename):
+        """Loads the service from a file"""
+        raise NotImplementedError
 
     def start(self, silent=False):
-        raise "Not Implemented"
+        """Starts the service"""
+        raise NotImplementedError
 
     def stop(self, silent=False):
-        raise "Not Implemented"
+        """Stops the service"""
+        raise NotImplementedError
 
     def restart(self, silent=False):
-        raise "Not Implemented"
+        """Restarts the service"""
+        raise NotImplementedError
 
     def isUp(self, silent=False):
-        raise "Not Implemented"
+        """Verifies that the service is up and running"""
+        raise NotImplementedError
 
     def command(self, command, silent=False):
-        raise CommandNotSupportedError, self.command
+        """Runs command against this service handler"""
+        raise NotImplementedError
 
+    @classmethod
     def loadServices(cls):
-        raise "Not Implemented"
-    loadServices = classmethod(loadServices)
+        """Loads all services of this kind"""
+        raise NotImplementedError
 
 
 class DaemonService(Service):
     """ Represents daemon based services."""
-    def loadFromFile(self, file):
-        f = open(file, 'r')
-        line = f.readline()
-        while line != '':
-            if len(line) == 0 or line[0] != '#':
-                break
-            elif line.lower()[:8] == '## info:':
-                self.info = line[8:].strip()
-
-            # get next line
-            line = f.readline()
-        f.close()
+    def loadFromFile(self, filename):
+        with file(filename, 'r') as initfile:
+            self.info = getInfoFromContent(initfile)
 
     def loadServices(cls):
-        def isBlacklisted(f):
-            return (f.startswith('.') or f.endswith('~')
-                    or f == 'functions'
-                    or '.dpkg-' in f)
+        def _isBlacklisted(fname):
+            return (fname.startswith('.') or fname.endswith('~')
+                    or fname == 'functions'
+                    or '.dpkg-' in fname)
         fileList = [os.path.join(INITDIR, f)
                     for f in os.listdir(INITDIR)
-                    if not isBlacklisted(f)]
+                    if not _isBlacklisted(f)]
         serviceList = [cls(f) for f in fileList]
         return serviceList
     loadServices = classmethod(loadServices)
@@ -106,7 +112,7 @@ class DaemonService(Service):
                 raise CommandFailedError, self.status
         else:
             return True
-        
+
     def stop(self, silent=False):
         if not self.command('stop', silent=silent):
             if self.status >> 8 == 1:
@@ -144,30 +150,25 @@ class CronService(Service):
     """ Represents cron based services."""
     crontab = None
     cronUser = 'navcron'
-    
-    def __init__(self, file):
+
+    def __init__(self, filename):
+        self.content = None
         if CronService.crontab is None:
             CronService.crontab = Crontab(CronService.cronUser)
-        super(CronService, self).__init__(file)
-    
-    def loadFromFile(self, file):
-        f = open(file, 'r')
-        self.content = [line.strip() for line in f.readlines()]
-        for line in self.content:
-            if len(line) == 0 or line[0] != '#':
-                break
-            elif line.lower()[:8] == '## info:':
-                self.info = line[8:].strip()
+        super(CronService, self).__init__(filename)
 
-        f.close()
+    def loadFromFile(self, filename):
+        with file(filename, 'r') as cronfile:
+            self.content = [line.strip() for line in cronfile]
+            self.info = getInfoFromContent(self.content)
 
     def loadServices(cls):
-        def isBlacklisted(f):
-            return (f.startswith('.') or f.endswith('~')
-                    or '.dpkg-' in f)
+        def _isBlacklisted(fname):
+            return (fname.startswith('.') or fname.endswith('~')
+                    or '.dpkg-' in fname)
         fileList = [os.path.join(CRONDIR, f)
                     for f in os.listdir(CRONDIR)
-                    if not isBlacklisted(f)]
+                    if not _isBlacklisted(f)]
         serviceList = [cls(f) for f in fileList]
         return serviceList
     loadServices = classmethod(loadServices)
@@ -178,25 +179,25 @@ class CronService(Service):
         try:
             CronService.crontab[self.name] = self.content
             CronService.crontab.save()
-        except CrontabError, e:
+        except CrontabError, error:
             print "Failed"
-            raise e
+            raise error
         else:
             if not silent:
                 print "Ok"
             return True
-        
+
     def stop(self, silent=False):
         if not silent:
             print "Stopping %s:" % self.name,
         try:
             del CronService.crontab[self.name]
             CronService.crontab.save()
-        except CrontabError, e:
+        except CrontabError, error:
             if not silent:
                 print "Failed"
-            raise e
-        except KeyError, e:
+            raise error
+        except KeyError, error:
             if not silent:
                 print "Not running"
         else:
@@ -221,8 +222,13 @@ class CronService(Service):
                                           "match the content of %s" % self.name)
             return True
         else:
-            if not silent: print "Down"
+            if not silent:
+                print "Down"
             return False
+
+    def command(self, command, silent=False):
+        raise CommandNotSupportedError(command)
+
 
 class Crontab(object):
     """ Represents the crontab of a user.  Recognizes tags to define a
@@ -235,16 +241,17 @@ class Crontab(object):
         self.load()
 
     def load(self):
+        """Loads the currently active crontab"""
         pipe = os.popen('crontab -u %s -l' % self.user)
         self.content = [line.strip() for line in pipe.readlines()]
         pipe.close()
         # cron often inserts three comment lines in the spooled
         # crontab; the following is an attempt to remove those three
         # lines.
-        for x in range(3):
+        for _dummy in range(3):
             if not self.content:
                 break
-            if self.content[0][:2] == '# ': 
+            if self.content[0][:2] == '# ':
                 del self.content[0]
         self._parseBlocks()
 
@@ -252,6 +259,7 @@ class Crontab(object):
             self.updateInit()
 
     def save(self):
+        """Saves the current state to the crontab"""
         self.updateInit()
         pipe = os.popen('crontab -u %s -' % self.user, 'w')
         pipe.write(str(self))
@@ -307,7 +315,7 @@ class Crontab(object):
                 inBlock = None
                 startLine = 0
             pos += 1
-            
+
         if inBlock is not None:
             raise CrontabBlockError, (self.user, inBlock)
         self._blocks = blockList
@@ -321,7 +329,7 @@ class Crontab(object):
     def __getitem__(self, key):
         pos = self._blocks[key]
         return self.content[pos[0]+1:pos[1]]
-        
+
     def __setitem__(self, key, content):
 
         block = ['##block %s##' % key, '##end##']
@@ -329,7 +337,7 @@ class Crontab(object):
             block[1:1] = content.split('\n')
         else:
             block[1:1] = content
-        
+
         if self._blocks.has_key(key):
             insLine = self._blocks[key][0]
             del self[key]
@@ -364,7 +372,7 @@ class ServiceRegistry(UserDict):
 #
 class ServiceError(GeneralException):
     "General service error"
-    
+
 class CommandNotSupportedError(ServiceError):
     "Command not supported"
 
