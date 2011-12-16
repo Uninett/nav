@@ -96,7 +96,7 @@ def ip_do_search(request):
         # Check if input is CIDR
         elif '/' in ip_input:
             cidr = ip_input.split("/")
-            from_ip_string = cidr[0]
+            from_ip_string = IP.strNormal(IP(cidr[0]))
 
             # If no netmask, get prefix for address
             if not cidr[1]:
