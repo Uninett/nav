@@ -2,5 +2,5 @@
 echo "This command has been deprecated.
 networkDiscovery has been replaced by navtopology.  If you wish to run
 the old topology detector, please use the network-discovery command.
-" >/dev/stderr
+" >&2
 exit 1
