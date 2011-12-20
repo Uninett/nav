@@ -1,0 +1,47 @@
+{% extends "loggerhandler/base.html" %}
+{% load portadmin %}
+
+{% block content %}
+
+{% if errors_mode %}
+    {% if errors %}
+        <table class="listtable">
+        <caption>Parsing errors</caption>
+        <tbody>
+            {% for err in errors %}
+            <tr class="$rowcycler">
+                <td>{{ err }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tbody class="footer">
+            <tr>
+                <th>Total {{ errors_count }}  error conditions</th>
+            </tr>
+        </tbody>
+        </table>
+    {% else %}
+        No errors
+    {% endif %}
+{% endif %}
+
+{% if exceptions_mode %}
+    {% if exceptions %}
+        <table class="listtable">
+        <caption>Parsing errors</caption>
+        <tbody>
+            {% for option, pri in exceptions %}
+             <tr class="$rowcycler">
+                <td>{{ option }}</td>
+                <td>{{ pri }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    {% else %}
+        No exceptions
+    {% endif %}
+{% endif %}
+
+{% endblock %}
+
