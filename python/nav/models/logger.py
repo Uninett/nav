@@ -23,12 +23,12 @@ from django.db import models
 from nav.models.fields import VarcharField
 
 
-class Category(models.Model):
+class LoggerCategory(models.Model):
     """
     Model for the logger.category-table
     """
     id = models.AutoField(db_column='category_id', primary_key=True)
-    category = VarcharField(db_column='category', unique=True)
+    cat_name = VarcharField(db_column='cat_name', unique=True)
 
     class Meta:
         db_table = 'category'
@@ -40,7 +40,7 @@ class Origin(models.Model):
     """
     origin = models.AutoField(db_column='origin', primary_key=True)
     name = VarcharField(db_column='name')
-    category = models.ForeignKey(Category, db_column='category')
+    category = models.ForeignKey(LoggerCategory, db_column='log_category')
 
     class Meta:
         db_table = 'origin'
