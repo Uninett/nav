@@ -43,22 +43,19 @@ def current_messages():
     )
 
 def boxes_down():
-    """Find boxes that are down and not on maintenance"""
-    # FIXME We should ask for end_time='infinity', as infinity has a special
-    # meaning in postgres. However, end_time__gt=datetime.max works as well
-    # (for now).
-    on_maintenance = AlertHistory.objects.filter(
-        end_time__gt=datetime.max,
-        event_type='maintenanceState',
-    ).values('id').query
+    """Finds boxes that are down and not currently on maintenance"""
+    infinity = datetime.max
+    on_maintenance = Netbox.objects.filter(
+        alerthistory__event_type='maintenanceState',
+        alerthistory__end_time__gte=infinity,
+    )
     boxes_down = AlertHistory.objects.select_related(
         'netbox'
     ).filter(
-        ~Q(id__in=on_maintenance),
         Q(netbox__up=Netbox.UP_DOWN) | Q(netbox__up=Netbox.UP_SHADOW),
-        end_time__gt=datetime.max,
+        end_time__gte=infinity,
         event_type='boxState'
-    ).order_by('-start_time')
+    ).exclude(netbox__in=on_maintenance).order_by('-start_time')
     return boxes_down
 
 def tool_list(account):
