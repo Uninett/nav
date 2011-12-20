@@ -3,6 +3,95 @@
 
 {% block content %}
 
+<div>
+[<a href="/logger/errors/">parsing errors</a>] [<a href="/logger/exceptions/">priority exceptions</a>]
+</div>
+
+<div>
+{% if priorities %}
+    <form action="/logger" method="get">
+        <table class="vertitable">
+        <tr>
+            <th>
+                <label for="priority">Priority</label>
+            </th>
+            <td>
+                <select id="priority" name="priority">
+                {% for pri, label in priorities %}
+                <option value="{{ pri }}">{{ label}}</option>
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <label for="type"><a href="http://www.cisco.com/univercd/cc/td/doc/product/software/ios120/12supdoc/12sems/emover.htm#5002">Message type</a></label>
+            </th>
+            <td>
+            
+                <select id="type" name="type">
+                {% for logtype, logtype in types %}
+                <option value="{{ logtype }}">{{ logtype}}</option>
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <label for="category">Category</label>
+            </th>
+            <td>
+                <select id="category" name="category">
+                {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <label for="origin">Origin</label>
+            </th>
+
+            <td>
+                <select id="origin" name="origin">
+                {% for origid, origname in origins %}
+                <option value="{{ origname }}">{{ origname }}</option>
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <label for="tfrom" title="yyyy-mm-dd HH:MM:SS">From</label>
+            </th>
+            <td>
+                <input type=text" name="tfrom" value="{{ tfrom }}"
+                    title="yyyy-mm-dd HH:MM:SS" size="19" maxlength="19"/>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <label for="tto" title="yyyy-mm-dd HH:MM:SS">To</label>
+            </th>
+            <td>
+                <input type="text" name="tto" value="{{ tto }}"
+                    title="yyyy-mm-dd HH:MM:SS" size="19" maxlength="19"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                &nbsp;
+            </td>
+            <td>
+                <button type="submit" name="filter">Filter</button>
+            </td>
+        </tr>
+        </table>
+    </form>
+{% endif %}
+</div>
+
 {% if errors_mode %}
     {% if errors %}
         <table class="listtable">

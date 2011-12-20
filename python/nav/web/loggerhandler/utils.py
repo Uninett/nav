@@ -110,7 +110,7 @@ class DbAccess(object):
         """
         if not self.priorities:
             self.priorities = []
-            self.priorities.append(("-", "(All)", ""))
+            self.priorities.append(("-", "(All)"))
             for pri in self._get_priorities_db():
                 self.priorities.append((pri.priority, '%d - %s' %
                     (pri.priority, pri.keyword), pri.description))
@@ -253,8 +253,8 @@ class ParamUtil(object):
             if tto:
                 if self.DATE_REGEXP.match(tto):
                     self.time_to_param = tto
-        else:
-            self.time_to_param = datetime.datetime.now().strftime(
+            else:
+                self.time_to_param = datetime.datetime.now().strftime(
                                                         self.DATEFORMAT)
         return self.time_to_param
 
