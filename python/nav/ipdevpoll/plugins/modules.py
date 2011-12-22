@@ -124,10 +124,10 @@ class Modules(Plugin):
     def _process_chassis(self, entities):
         chassis = entities.get_chassis()
         if not chassis:
-            self._logger.info('No chassis found')
+            self._logger.debug('No chassis found')
             return
         elif len(chassis) > 1:
-            self._logger.info('Found multiple chassis')
+            self._logger.debug('Found multiple chassis')
 
         # We don't really know how to handle a multiple chassis
         # situation.  Best effort is to use the first one in the list.

@@ -153,8 +153,8 @@ class NetboxJobScheduler(object):
 
         next_time = datetime.datetime.now() + datetime.timedelta(seconds=delay)
 
-        self._logger.info("Next %r job for %s will be in %d seconds (%s)",
-                          self.job.name, self.netbox.sysname, delay, next_time)
+        self._logger.debug("Next %r job for %s will be in %d seconds (%s)",
+                           self.job.name, self.netbox.sysname, delay, next_time)
 
         if self._next_call.active():
             self._next_call.reset(delay)
