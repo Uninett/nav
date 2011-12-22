@@ -22,6 +22,7 @@ Do database-operations and get hold of parameters in the URL.
 
 import logging
 import re
+import time
 import datetime
 
 import nav
@@ -50,6 +51,7 @@ class DbAccess(object):
         self.db_message_types = None
 
         self.categories = None
+        self.legal_categories = None
         self.priorities = None
         self.legal_priorities = None
 
@@ -99,10 +101,17 @@ class DbAccess(object):
         """
         if not self.categories:
             self.categories = []
-            self.categories.append(('(All)'))
+            self.categories.append(('-', '(All)'))
             for cat in self._get_categories_db():
-                self.categories.append((cat.cat_name))
+                self.categories.append((cat.id, cat.cat_name))
         return self.categories
+
+    def get_legal_categories(self):
+        if not self.legal_categories:
+            self.legal_categories = []
+            for cat in self._get_categories_db():
+                self.legal_categories.append(cat.id)
+        return self.legal_categories
 
     def get_priorities(self):
         """
@@ -132,7 +141,7 @@ class DbAccess(object):
         """
         if not self.origins:
             self.origins = []
-            self.origins.append((0, '(All)'))
+            self.origins.append(('-', '(All)'))
             for orig in self._get_origins_db():
                 shortorigin = orig.name
                 for domain_suffix in self.DOMAIN_SUFFICES:
@@ -173,7 +182,7 @@ class DbAccess(object):
         """
         if not self.types:
             self.types = []
-            self.types.append((0, '(All)'))
+            self.types.append(('-', '(All)'))
             for mess_type in self._get_message_types_db():
                 the_type = '%s-%d-%s' % (mess_type.facility,
                                  mess_type.priority.priority,
@@ -239,7 +248,7 @@ class ParamUtil(object):
         """
         param = None
         if (param_name in self.request.GET
-                and self.request.GET.get(param_name, None)):
+                        and self.request.GET.get(param_name, None)):
             param = self.request.GET.get(param_name, None)
         return param
 
@@ -251,11 +260,12 @@ class ParamUtil(object):
         if not self.time_to_param:
             tto = self._get_named_param('tto')
             if tto:
+                tto = tto.strip()
                 if self.DATE_REGEXP.match(tto):
-                    self.time_to_param = tto
+                    self.time_to_param = datetime.datetime(
+                            *(time.strptime(tto, self.DATEFORMAT)[0:6]))
             else:
-                self.time_to_param = datetime.datetime.now().strftime(
-                                                        self.DATEFORMAT)
+                self.time_to_param = datetime.datetime.now()
         return self.time_to_param
 
     def get_time_from(self):
@@ -265,12 +275,15 @@ class ParamUtil(object):
         """
         if not self.time_from_param:
             tfrom = self._get_named_param('tfrom')
+            self.logger.error('tfrom = %s' % tfrom)
             if tfrom:
+                tfrom = tfrom.strip()
                 if self.DATE_REGEXP.match(tfrom):
-                    self.time_from_param = tfrom
+                    self.time_from_param = datetime.datetime(
+                            *(time.strptime(tfrom, self.DATEFORMAT)[0:6]))
             else:
-                tfrom = datetime.datetime.now() - datetime.timedelta(days=1)
-                self.time_from_param = tfrom.strftime(self.DATEFORMAT)
+                self.time_from_param = (datetime.datetime.now() -
+                                            datetime.timedelta(days=1))
         return self.time_from_param
 
     def get_priority(self):
@@ -280,7 +293,8 @@ class ParamUtil(object):
         """
         if not self.priority_param:
             pri = self._get_named_param('priority')
-            if pri and pri != '-':
+            if pri:
+                pri = pri.strip()
                 if pri.isdigit():
                     pri = int(pri)
                     if pri in self.db_access.get_legal_priorities():
@@ -295,8 +309,11 @@ class ParamUtil(object):
         if not self.type_param:
             the_type = self._get_named_param('type')
             if the_type:
-                if the_type in self.db_access.get_type2typeid():
-                    self.type_param = the_type
+                the_type = the_type.strip()
+                if the_type.isdigit():
+                    the_type = int(the_type)
+                    if the_type in self.db_access.get_type2typeid():
+                        self.type_param = the_type
         return self.type_param
 
     def get_origin(self):
@@ -307,8 +324,11 @@ class ParamUtil(object):
         if not self.origin_param:
             orig = self._get_named_param('origin')
             if orig:
-                if orig in self.db_access.get_origin2originid():
-                    self.origin_param = orig
+                orig = orig.strip()
+                if orig.isdigit():
+                    orig = int(orig)
+                    if orig in self.db_access.get_origin2originid():
+                        self.origin_param = orig
         return self.origin_param
 
     def get_category(self):
@@ -317,7 +337,11 @@ class ParamUtil(object):
         return None.
         """
         if not self.category_param:
-            cat = self._get_named_param('category')
-            if (cat) in self.db_access.get_categories():
-                self.category_param = cat
+            catid = self._get_named_param('category')
+            if catid:
+                catid = catid.strip()
+                if catid.isdigit():
+                    catid = int(catid)
+                    if catid in self.db_access.get_legal_categories():
+                        self.category_param = catid
         return self.category_param

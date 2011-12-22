@@ -1,5 +1,4 @@
 {% extends "loggerhandler/base.html" %}
-{% load portadmin %}
 
 {% block content %}
 
@@ -18,7 +17,11 @@
             <td>
                 <select id="priority" name="priority">
                 {% for pri, label in priorities %}
-                <option value="{{ pri }}">{{ label}}</option>
+                    {% ifequal pri priority %}
+                    <option value="{{ pri }}" selected>{{ label}}</option>
+                    {% else %}
+                    <option value="{{ pri }}">{{ label}}</option>
+                    {% endifequal %}
                 {% endfor %}
                 </select>
             </td>
@@ -30,8 +33,12 @@
             <td>
             
                 <select id="type" name="type">
-                {% for logtype, logtype in types %}
-                <option value="{{ logtype }}">{{ logtype}}</option>
+                {% for logtype, loglabel in types %}
+                    {% ifequal logtype type %}
+                    <option value="{{ logtype }}" selected>{{ loglabel }}</option>
+                    {% else %}
+                    <option value="{{ logtype }}">{{ loglabel }}</option>
+                    {% endifequal %}
                 {% endfor %}
                 </select>
             </td>
@@ -42,8 +49,12 @@
             </th>
             <td>
                 <select id="category" name="category">
-                {% for cat in categories %}
-                <option value="{{ cat }}">{{ cat }}</option>
+                {% for catid, catname  in categories %}
+                    {% ifequal catid category %}
+                    <option value="{{ catid }}" selected>{{ catname }}</option>
+                    {% else %}
+                    <option value="{{ catid }}">{{ catname }}</option>
+                    {% endifequal %}
                 {% endfor %}
                 </select>
             </td>
@@ -56,7 +67,11 @@
             <td>
                 <select id="origin" name="origin">
                 {% for origid, origname in origins %}
-                <option value="{{ origname }}">{{ origname }}</option>
+                    {% ifequal origid origin %}
+                    <option value="{{ origid }}" selected>{{ origname }}</option>
+                    {% else %}
+                    <option value="{{ origid }}">{{ origname }}</option>
+                    {% endifequal %}
                 {% endfor %}
                 </select>
             </td>
@@ -110,7 +125,9 @@
         </tbody>
         </table>
     {% else %}
-        No errors
+        <div>
+            No errors
+        </div>
     {% endif %}
 {% endif %}
 
@@ -128,7 +145,39 @@
         </tbody>
         </table>
     {% else %}
-        No exceptions
+        <div>
+            No exceptions
+        </div>
+    {% endif %}
+{% endif %}
+
+{% if log_mode %}
+    {% if log_messages %}
+        <table class="listtable">
+        <caption>Log</caption>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Origin</th>
+                <th>Message type</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mess in log_messages %}
+            <tr>
+                <td>{{ mess.time }}</td>
+                <td>{{ mess.origin.name }}</td>
+                <td>{{ mess.type.priority.keyword }}</td>
+                <td>{{ mess.message }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    {% else %}
+        <div>
+            No log-messages
+        </div>
     {% endif %}
 {% endif %}
 

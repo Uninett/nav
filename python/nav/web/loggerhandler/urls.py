@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 #
 # Copyright (C) 2011 UNINETT AS
 #
@@ -13,16 +14,19 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""macwatch Django URL config"""
+"""loggerhandler Django URL config"""
 
 from django.conf.urls.defaults import patterns, url
 from nav.web.loggerhandler.views import index
-from nav.web.loggerhandler.views import exceptions
-from nav.web.loggerhandler.views import errors
+from nav.web.loggerhandler.views import exceptions_response
+from nav.web.loggerhandler.views import errors_response
+from nav.web.loggerhandler.views import log_response
+
 
 urlpatterns = patterns('',
     # Default view
     url(r'^$', index, name='index'),
-    url(r'^exceptions/$', exceptions),
-    url(r'^errors/$', errors),
+    url(r'^exceptions/$', exceptions_response),
+    url(r'^errors/$', errors_response),
+    url(r'^log/$', log_response),
 )
