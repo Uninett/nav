@@ -111,7 +111,6 @@ class NetboxJobScheduler(object):
         except Exception:
             self._log_unhandled_error(Failure())
             self.reschedule(60)
-            self._log_time_to_next_run()
             return
 
         self.job_handler = job_handler
