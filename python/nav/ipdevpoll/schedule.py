@@ -137,13 +137,13 @@ class NetboxJobScheduler(object):
 
     def _reschedule_on_failure(self, failure):
         """Examines the job failure and reschedules the job if needed."""
-        failure.trap(AbortedJobError)
         if failure.check(SuggestedReschedule):
             delay = int(failure.value.delay)
         else:
             delay = randint(5*60, 10*60) # within 5-10 minutes
         self.reschedule(delay)
         self._log_finished_job(False)
+        failure.trap(AbortedJobError)
 
     def _log_finished_job(self, success=True):
         status = "completed" if success else "failed"
