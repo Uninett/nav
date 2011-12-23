@@ -112,8 +112,11 @@
         <table class="listtable">
         <caption>Parsing errors</caption>
         <tbody>
+            {% comment %)
+                Implement this!
+            {% endcomment %}
             {% for err in errors %}
-            <tr class="$rowcycler">
+            <tr class="rowcycler">
                 <td>{{ err }}</td>
             </tr>
             {% endfor %}
@@ -137,7 +140,7 @@
         <caption>Parsing errors</caption>
         <tbody>
             {% for option, pri in exceptions %}
-             <tr class="$rowcycler">
+             <tr class="rowcycler">
                 <td>{{ option }}</td>
                 <td>{{ pri }}</td>
             </tr>
@@ -164,6 +167,9 @@
             </tr>
         </thead>
         <tbody>
+            {% comment %)
+                Implement this!
+            {% endcomment %}
             {% for mess in log_messages %}
             <tr>
                 <td>{{ mess.time }}</td>
@@ -178,6 +184,31 @@
         <div>
             No log-messages
         </div>
+    {% endif %}
+{% endif %}
+
+{% if priority_mode %}
+    {% if priority_list %}
+        <table class="listtable">
+        <caption>Priorities</caption>
+        <thead>
+            <tr>
+                <th>Priority</th>
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% comment %)
+                Implement this!
+            {% endcomment %}
+            {% for pri in priority_list %}
+            <tr>
+                <td></td>
+                <td></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
     {% endif %}
 {% endif %}
 

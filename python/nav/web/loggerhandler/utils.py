@@ -240,6 +240,7 @@ class ParamUtil(object):
         self.type_param = None
         self.origin_param = None
         self.category_param = None
+        self.log_param = None
 
     def _get_named_param(self, param_name):
         """
@@ -345,3 +346,14 @@ class ParamUtil(object):
                     if catid in self.db_access.get_legal_categories():
                         self.category_param = catid
         return self.category_param
+
+    def get_log(self):
+        if not self.log_param:
+            log = self._get_named_param('log')
+            if log:
+                log = log.strip()
+                if log.isdigit():
+                    log = int(log)
+                    if log == 1:
+                        self.log_param = log
+        return self.log_param

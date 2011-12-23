@@ -50,10 +50,33 @@ def _get_basic_info_dict(db_access, param_util):
     """
     Get all default parameters for view.
     """
-    origin_param = param_util.get_origin()
-    type_param = param_util.get_type()
-    link = []
+    links = []
     error_list = []
+    tfrom = param_util.get_time_from()
+    if tfrom:
+        links.append('tfrom=%s' % tfrom.strftime(DATEFORMAT))
+    else:
+        error_list.append('Illegal from date (YYYY-MM-DD hh:mm:ss).')
+    tto = param_util.get_time_to()
+    if tto:
+        links.append('tto=%s' % tto.strftime(DATEFORMAT))
+    else:
+        error_list.append('Illegal to date (YYYY-MM-DD hh:mm:ss).')
+    priority =  param_util.get_priority()
+    if priority:
+        links.append('priority=%d' % priority)
+    type_param = param_util.get_type()
+    if type_param:
+        links.append('type=%d' % type_param)
+    origin = param_util.get_origin()
+    if origin:
+        links.append('origin=%d' % origin)
+    category = param_util.get_category()
+    if category:
+        links.append('category=%d' % category)
+
+    link = "&amp;".join(links)
+
     info_dict = {'priority': param_util.get_priority(),
                  'origin': origin_param,
                  'originid': db_access.get_origin2originid().get(origin_param,
@@ -72,6 +95,9 @@ def _get_basic_info_dict(db_access, param_util):
                  'link': link,
                  'error_list': error_list,
                  }
+    log = param_util.get_log()
+    if log:
+        info_dict['log'] = log
     info_dict.update(DEFAULT_VALUES)
     return info_dict
 
@@ -93,8 +119,10 @@ def index(request):
     type_param = info_dict.get('type', None)
     origin_param = info_dict.get('origin', None)
     category_param = info_dict.get('category', None)
+    log_param = info_dict.get('log', None)
 
-    if (origin_param and type_param) or origin_param:
+    if ((origin_param and type_param) or (origin_param and log_param)
+            or (type_param and log)):
         return log_reponse(request, db_access, param_util)
     elif origin_param or type_param or priority_param:
         return statistics_reponse(request, db_access, param_util)
@@ -136,6 +164,7 @@ def index(request):
     update_dict = {'tfrom': tfrom_param.strftime(DATEFORMAT),
                    'tto': tto_param.strftime(DATEFORMAT),
                    'priority_mode': True,
+                   'priority_list': None,
                   }
     info_dict.update(update_dict)
     return render_to_response('loggerhandler/index.html',
