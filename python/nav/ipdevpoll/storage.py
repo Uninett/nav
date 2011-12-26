@@ -70,6 +70,7 @@ class DefaultManager(object):
         """
         self.cls = cls
         self.containers = containers
+        self._logger = ipdevpoll.get_class_logger(self.__class__)
 
     def prepare(self):
         """Prepares managed shadows in containers"""
