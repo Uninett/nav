@@ -56,8 +56,18 @@ class MetaShadow(type):
         MetaShadow.shadowed_classes[shadowclass] = mcs
 
 class DefaultManager(object):
-    """The default storage manager used by all shadow classes"""
+    """The default storage manager used by all shadow classes.
+
+    Mostly uses helper methods in shadow classes to perform its work.
+
+    """
     def __init__(self, cls, containers):
+        """Creates a storage manager.
+
+        :param cls: The Shadow subclass this instance will work with.
+        :param containers: A ContainerRepository instance.
+
+        """
         self.cls = cls
         self.containers = containers
 
@@ -71,9 +81,11 @@ class DefaultManager(object):
             obj.save(self.containers)
 
     def cleanup(self):
+        """Runs any necessary cleanup hooks after save is done"""
         self.cls.cleanup_after_save(self.containers)
 
     def get_managed(self):
+        """Returns the list of container objects managed by this instance"""
         if self.cls in self.containers:
             return self.containers[self.cls].values()
         else:

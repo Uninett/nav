@@ -326,19 +326,13 @@ class JobHandler(object):
         return df
 
     def prepare_containers_for_save(self):
-        """Execute the prepare_for_save-method on all shadow classes with known
-        instances.
-
-        """
+        """Runs every queued manager's prepare routine"""
         for manager in self.storage_queue:
             self.raise_if_cancelled()
             manager.prepare()
 
     def cleanup_containers_after_save(self):
-        """Execute the cleanup_after_save-method on all shadow classes with
-        known instances.
-
-        """
+        """Runs every queued manager's cleanup routine"""
         self._logger.debug("Running cleanup routines for %d managers",
                            len(self.storage_queue), self.storage_queue)
         try:
