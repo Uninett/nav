@@ -30,9 +30,9 @@ from django.db.models import Q
 from nav.models import manage, oid
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 
-from .storage import Shadow
-from . import descrparsers
-from . import utils
+from nav.ipdevpoll.storage import Shadow
+from nav.ipdevpoll import descrparsers
+from nav.ipdevpoll import utils
 from nav.ipdevpoll import db
 
 # Shadow classes.  Not all of these will be used to store data, but
