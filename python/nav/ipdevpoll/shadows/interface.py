@@ -24,6 +24,7 @@ from nav.ipdevpoll import db
 
 from .netbox import Netbox
 
+# pylint: disable=C0111
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
 
