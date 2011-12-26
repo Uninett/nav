@@ -55,6 +55,35 @@ class MetaShadow(type):
         setattr(mcs, '_logger', ipdevpoll.get_class_logger(mcs))
         MetaShadow.shadowed_classes[shadowclass] = mcs
 
+class DefaultManager(object):
+    """The default storage manager used by all shadow classes"""
+    def __init__(self, cls, containers):
+        self.cls = cls
+        self.containers = containers
+
+    def prepare(self):
+        """Prepares managed shadows in containers"""
+        self.cls.prepare_for_save(self.containers)
+
+    def save(self):
+        """Saves managed shadows in containers"""
+        for obj in self.get_managed():
+            obj.save(self.containers)
+
+    def cleanup(self):
+        self.cls.cleanup_after_save(self.containers)
+
+    def get_managed(self):
+        if self.cls in self.containers:
+            return self.containers[self.cls].values()
+        else:
+            return []
+
+    def __repr__(self):
+        return "%s(%r, %r(...))" % (self.__class__.__name__,
+                                    self.cls,
+                                    self.containers.__class__.__name__)
+
 class Shadow(object):
     """Base class to shadow Django model classes.
 
@@ -77,6 +106,7 @@ class Shadow(object):
     """
     __metaclass__ = MetaShadow
     __lookups__ = []
+    manager = DefaultManager
 
     def __init__(self, *args, **kwargs):
         """Initialize a shadow container.
