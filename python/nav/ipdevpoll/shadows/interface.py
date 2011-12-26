@@ -15,18 +15,100 @@
 #
 """interface related shadow classes"""
 import datetime
+import operator
+from itertools import groupby
 
 from nav.models import manage
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 
-from nav.ipdevpoll.storage import Shadow
+from nav.ipdevpoll.storage import Shadow, DefaultManager
 from nav.ipdevpoll import db
 
 from .netbox import Netbox
 
 # pylint: disable=C0111
+
+class InterfaceManager(DefaultManager):
+    def __init__(self, *args, **kwargs):
+        super(InterfaceManager, self).__init__(*args, **kwargs)
+        self.netbox = self.containers.get(None, Netbox)
+        self.found_existing_map = {}
+
+    def prepare(self):
+        self._load_existing_objects()
+        self._map_found_to_existing()
+        for ifc in self.get_managed():
+            ifc.prepare(self.containers)
+        self._resolve_changed_ifindexes()
+
+    def _load_existing_objects(self):
+        db_ifcs = manage.Interface.objects.filter(netbox__id=self.netbox.id)
+
+        self.db_ifcs = db_ifcs
+        self.by_ifname = mapby(db_ifcs, 'ifname')
+        self.by_ifnamedescr = mapby(db_ifcs, 'ifname', 'ifdescr')
+        self.by_ifindex = mapby(db_ifcs, 'ifindex')
+
+    def _map_found_to_existing(self):
+        self.found_existing_map = dict(
+            (snmp_ifc, self._find_existing_for(snmp_ifc))
+            for snmp_ifc in self.get_managed())
+        for found, existing in self.found_existing_map.items():
+            found.set_existing_model(existing)
+
+    def _find_existing_for(self, snmp_ifc):
+        result = None
+        if snmp_ifc.ifname:
+            result = self.by_ifname.get(snmp_ifc.ifname, None)
+        if not result and snmp_ifc.ifdescr:
+            # this is only likely on a db recently migrated from NAV 3.5
+            result = self.by_ifnamedescr.get(
+                (snmp_ifc.ifdescr, snmp_ifc.ifdescr), None)
+        if result and len(result) > 1:
+            # Multiple ports with same name? damn...
+            # also filter for ifindex, maybe we get lucky
+            result = [i for i in result if i.ifindex == snmp_ifc.ifindex]
+
+        # If none of this voodoo helped, try matching ifindex only
+        if not result:
+            result = self.by_ifindex.get(snmp_ifc.ifindex, None)
+
+        if result and len(result) > 1:
+            self._logger.debug(
+                "_find_existing_for: multiple matching interfaces "
+                "found for %r: %r", snmp_ifc, result)
+            raise manage.Interface.MultipleObjectsReturned(
+                "_find_existing_for: "
+                "Found multiple matching interfaces for %r" % snmp_ifc)
+        elif result:
+            return result[0]
+
+    def _resolve_changed_ifindexes(self):
+        """Resolves conflicts that arise from changed ifindexes.
+
+        The db model will not allow duplicate ifindex, so any ifindex
+        that appears to have changed on the device must be nulled out
+        in the database before we start updating Interfaces.
+
+        """
+        changed_ifindexes = [(new.ifindex, old.ifindex)
+                             for new, old in self.found_existing_map.items()
+                             if old and new.ifindex != old.ifindex]
+        if not changed_ifindexes:
+            return
+
+        self._logger.debug("%s changed ifindex mappings (new/old): %r",
+                           self.netbox.sysname, changed_ifindexes)
+
+        changed_interfaces = self.db_ifcs.filter(
+            ifindex__in=[new for new, old in changed_ifindexes])
+        changed_interfaces.update(ifindex=None)
+
+
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
+    manager = InterfaceManager
+    _existing_model = None
 
     @classmethod
     def cleanup_after_save(cls, containers):
@@ -186,89 +268,17 @@ class Interface(Shadow):
 
     def get_existing_model(self, containers=None):
         """Implements custom logic for finding known interfaces."""
-        result = self._lookup_matching_objects(containers)
-        if not result:
-            return None
-        elif len(result) > 1:
-            self._logger.debug(
-                "get_existing_model: multiple matching objects returned. "
-                "query is: %r", result.query.as_sql())
-            raise manage.Interface.MultipleObjectsReturned(
-                "get_existing_model: "
-                "Found multiple matching objects for %r" % self)
-        else:
-            stored = result[0]
-            self.id = stored.id
-            self._verify_operstatus_change(stored)
-            return stored
+        return self._existing_model
 
-    def _lookup_matching_objects(self, containers):
-        """Finds existing db objects that match this container.
-
-        ifName is a more important identifier than ifindex, as ifindexes may
-        change at any time.  A database migrated from NAV 3.5 may also have a
-        lot of weird or duplicate data, due to sloppiness on getDeviceData's
-        part.
-
-        """
-        query = manage.Interface.objects.filter(netbox__id=self.netbox.id)
-        result = None
-        if self.ifname:
-            result = query.filter(ifname=self.ifname)
-        if not result and self.ifdescr:
-            # this is only likely on a db recently migrated from NAV 3.5
-            result = query.filter(ifname=self.ifdescr,
-                                  ifdescr=self.ifdescr)
-        if result and len(result) > 1:
-            # Multiple ports with same name? damn...
-            # also filter for ifindex, maybe we get lucky
-            result = result.filter(ifindex=self.ifindex)
-
-        # If none of this voodoo helped, try matching ifindex only
-        if not result:
-            result = query.filter(ifindex=self.ifindex)
-
-        return result
+    def set_existing_model(self, django_object):
+        self._existing_model = django_object
+        self._verify_operstatus_change(django_object)
 
     def _verify_operstatus_change(self, stored):
         if self.ifoperstatus != stored.ifoperstatus:
             self.ifoperstatus_change = (stored.ifoperstatus, self.ifoperstatus)
         else:
             self.ifoperstatus_change = None
-
-
-    @classmethod
-    def prepare_for_save(cls, containers):
-        super(Interface, cls).prepare_for_save(containers)
-        cls._resolve_changed_ifindexes(containers)
-
-    @classmethod
-    def _resolve_changed_ifindexes(cls, containers):
-        """Resolves conflicts that arise from changed ifindexes.
-
-        The db model will not allow duplicate ifindex, so any ifindex
-        that appears to have changed on the device must be nulled out
-        in the database before we start updating Interfaces.
-
-        """
-        netbox = containers.get(None, Netbox)
-        found_existing_map = (
-            (interface, interface.get_existing_model(containers))
-            for interface in containers[Interface].values())
-
-        changed_ifindexes = [(new.ifindex, old.ifindex)
-                             for new, old in found_existing_map
-                             if old and new.ifindex != old.ifindex]
-        if not changed_ifindexes:
-            return
-
-        cls._logger.debug("%s changed ifindex mappings (new/old): %r",
-                          netbox.sysname, changed_ifindexes)
-
-        my_interfaces = manage.Interface.objects.filter(netbox__id=netbox.id)
-        changed_interfaces = my_interfaces.filter(
-            ifindex__in=[new for new, old in changed_ifindexes])
-        changed_interfaces.update(ifindex=None)
 
     def prepare(self, containers):
         self._set_netbox_if_unset(containers)
@@ -286,3 +296,9 @@ class Interface(Shadow):
             if self in interfaces:
                 self.ifindex = interfaces[self]
 
+
+def mapby(items, *attrs):
+    """Maps items by attributes"""
+    keyfunc = operator.attrgetter(*attrs)
+    groupgen = groupby(items, keyfunc)
+    return dict((k, list(v)) for k, v in groupgen)
