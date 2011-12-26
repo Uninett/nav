@@ -547,8 +547,8 @@ class Interface(Shadow):
         if not changed_ifindexes:
             return
 
-        cls._logger.info("%s changed ifindex mappings (new/old): %r",
-                         netbox.sysname, changed_ifindexes)
+        cls._logger.debug("%s changed ifindex mappings (new/old): %r",
+                          netbox.sysname, changed_ifindexes)
 
         my_interfaces = manage.Interface.objects.filter(netbox__id=netbox.id)
         changed_interfaces = my_interfaces.filter(

@@ -111,7 +111,6 @@ class NetboxJobScheduler(object):
         except Exception:
             self._log_unhandled_error(Failure())
             self.reschedule(60)
-            self._log_time_to_next_run()
             return
 
         self.job_handler = job_handler
@@ -131,19 +130,41 @@ class NetboxJobScheduler(object):
 
     def _reschedule_on_success(self, result):
         """Reschedules the next normal run of this job."""
-        time_passed = time.time() - self._last_job_started_at
-        delay = max(0, self.job.interval - time_passed)
+        delay = max(0, self.job.interval - self.get_runtime())
         self.reschedule(delay)
+        self._log_finished_job(True)
         return result
 
     def _reschedule_on_failure(self, failure):
         """Examines the job failure and reschedules the job if needed."""
-        failure.trap(AbortedJobError)
         if failure.check(SuggestedReschedule):
             delay = int(failure.value.delay)
         else:
             delay = randint(5*60, 10*60) # within 5-10 minutes
         self.reschedule(delay)
+        self._log_finished_job(False)
+        failure.trap(AbortedJobError)
+
+    def _log_finished_job(self, success=True):
+        status = "completed" if success else "failed"
+        runtime = datetime.timedelta(seconds=self.get_runtime())
+        next_time = self.get_time_to_next_run()
+        if next_time:
+            self._logger.info("%s in %s. next run in %s",
+                              status, runtime,
+                              datetime.timedelta(seconds=next_time))
+        else:
+            self._logger.info("%s in %s. no next run scheduled",
+                              status, runtime)
+
+    def get_runtime(self):
+        """Returns the number of seconds passed since the start of last job"""
+        return time.time() - self._last_job_started_at
+
+    def get_time_to_next_run(self):
+        """Returns the number of seconds until the next job starts"""
+        if self._next_call.active():
+            return self._next_call.getTime() - time.time()
 
     def reschedule(self, delay):
         """Reschedules the next run of of this job"""
@@ -153,8 +174,8 @@ class NetboxJobScheduler(object):
 
         next_time = datetime.datetime.now() + datetime.timedelta(seconds=delay)
 
-        self._logger.info("Next %r job for %s will be in %d seconds (%s)",
-                          self.job.name, self.netbox.sysname, delay, next_time)
+        self._logger.debug("Next %r job for %s will be in %d seconds (%s)",
+                           self.job.name, self.netbox.sysname, delay, next_time)
 
         if self._next_call.active():
             self._next_call.reset(delay)

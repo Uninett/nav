@@ -189,12 +189,12 @@ class JobHandler(object):
             self._destroy_agentproxy()
             return defer.succeed(None)
 
-        self._logger.info("Starting job %r for %s",
-                          self.name, self.netbox.sysname)
+        self._logger.debug("Starting job %r for %s",
+                           self.name, self.netbox.sysname)
 
         def wrap_up_job(result):
-            self._logger.info("Job %s for %s done.", self.name,
-                              self.netbox.sysname)
+            self._logger.debug("Job %s for %s done.", self.name,
+                               self.netbox.sysname)
             self._log_timings()
             return result
 

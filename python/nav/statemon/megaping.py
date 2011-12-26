@@ -255,7 +255,7 @@ class MegaPing:
             debug("The packet recieved from %s does not match any of "
                   "the packets we sent." % repr(sender), 7)
             debug("Length of recieved packet: %i Cookie: [%s]" %
-                  (len(pong), identity), 7)
+                  (len(raw_pong), identity), 7)
             return
 
         # Delete the entry of the host who has replied and add the pingtime
