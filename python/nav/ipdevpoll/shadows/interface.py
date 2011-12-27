@@ -271,6 +271,7 @@ class Interface(Shadow):
         return self._existing_model
 
     def set_existing_model(self, django_object):
+        self.id = django_object.id
         self._existing_model = django_object
         self._verify_operstatus_change(django_object)
 
