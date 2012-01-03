@@ -205,9 +205,10 @@ def read_hostsfile(filename):
     hosts_file = None
     try:
         hosts_file = open(filename, 'r')
-    except IOError as (errno, strerror):
-        err_str = "I/O error ({0}): " + filename + " ({1})"
-        print >> sys.stderr, err_str.format(errno, strerror)
+    except IOError, error:
+        err_str = "I/O error (%s): %s (%s)" % (
+            error.errno, filename, error.strerror)
+        print >> sys.stderr, err_str
         logger.error(err_str)
         sys.exit(2)
     for line in hosts_file:
