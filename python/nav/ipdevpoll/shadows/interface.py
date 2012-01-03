@@ -54,7 +54,8 @@ class InterfaceManager(DefaultManager):
             (snmp_ifc, self._find_existing_for(snmp_ifc))
             for snmp_ifc in self.get_managed())
         for found, existing in self.found_existing_map.items():
-            found.set_existing_model(existing)
+            if existing:
+                found.set_existing_model(existing)
 
     def _find_existing_for(self, snmp_ifc):
         result = None
@@ -108,7 +109,6 @@ class InterfaceManager(DefaultManager):
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
     manager = InterfaceManager
-    _existing_model = None
 
     @classmethod
     def cleanup_after_save(cls, containers):
@@ -267,12 +267,14 @@ class Interface(Shadow):
                  value=django_ifc.ifalias or '').save()
 
     def get_existing_model(self, containers=None):
-        """Implements custom logic for finding known interfaces."""
-        return self._existing_model
+        """Returns the set existing Django model instance, without attempting
+        to lookup ourselves in the db.
+
+        """
+        return self._cached_existing_model
 
     def set_existing_model(self, django_object):
-        self.id = django_object.id
-        self._existing_model = django_object
+        super(Interface, self).set_existing_model(django_object)
         self._verify_operstatus_change(django_object)
 
     def _verify_operstatus_change(self, stored):
