@@ -423,7 +423,7 @@ def get_shadow_sort_order():
     shadow_classes = storage.MetaShadow.shadowed_classes.values()
     graph = toposort.build_graph(shadow_classes, get_dependencies)
     sorted_classes = toposort.topological_sort(graph)
-    return reversed(sorted_classes)
+    return sorted_classes
 
 
 # As this module is loaded, we want to build a list of shadow classes
