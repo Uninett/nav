@@ -41,26 +41,27 @@ class InterfaceManager(DefaultManager):
 
     def prepare(self):
         self._load_existing_objects()
-        self._map_found_to_existing()
         for ifc in self.get_managed():
             ifc.prepare(self.containers)
         self._resolve_changed_ifindexes()
 
     def _load_existing_objects(self):
         db_ifcs = manage.Interface.objects.filter(netbox__id=self.netbox.id)
+        self._make_maps(db_ifcs)
 
+    def _make_maps(self, db_ifcs):
         self._db_ifcs = db_ifcs
         self._by_ifname = mapby(db_ifcs, 'ifname')
         self._by_ifnamedescr = mapby(db_ifcs, 'ifname', 'ifdescr')
         self._by_ifindex = mapby(db_ifcs, 'ifindex')
 
-    def _map_found_to_existing(self):
         self._found_existing_map = dict(
             (snmp_ifc, self._find_existing_for(snmp_ifc))
             for snmp_ifc in self.get_managed())
         for found, existing in self._found_existing_map.items():
             if existing:
                 found.set_existing_model(existing)
+
 
     def _find_existing_for(self, snmp_ifc):
         result = None
