@@ -52,11 +52,13 @@ def netbox_edit(request, netbox_id=None):
                     netbox_form, netbox_id)
                 step = SAVE_STEP
         else:
-            try:
-                netbox = netbox_save(request, netbox_id)
-            except NetboxSaveException:
-                pass
-            else:
+            (forms_are_valid,
+             netbox_form,
+             serial_form,
+             subcat_form) = netbox_validate_before_save(request, netbox_id)
+
+            if forms_are_valid:
+                netbox = netbox_do_save(netbox_form, serial_form, subcat_form)
                 new_message(request._req,
                     "Saved netbox %s" % netbox.sysname,
                     Messages.SUCCESS)
@@ -101,7 +103,7 @@ def netbox_serial_and_type(form, netbox_id):
                 form, serial, function, netbox_type)
     return (ro_form, serial_form, subcat_form)
 
-def netbox_save(request, netbox_id):
+def netbox_validate_before_save(request, netbox_id):
     form = NetboxReadonlyForm(request.POST)
     if form.is_valid():
         data = form.cleaned_data
@@ -110,11 +112,13 @@ def netbox_save(request, netbox_id):
         subcat_form = get_netbox_subcategory_form(
             data['category'], post_data=request.POST)
 
+        serial_form_valid = serial_form and serial_form.is_valid()
         subcat_form_valid = not subcat_form or subcat_form.is_valid()
-        if serial_form.is_valid() and subcat_form_valid:
-            return netbox_do_save(form, serial_form, subcat_form)
-        else:
-            raise NetboxSaveException
+
+        return (serial_form_valid and subcat_form_valid,
+                form, serial_form, subcat_form)
+    else:
+        return (False, form, None, None)
 
 def netbox_render(request, step, netbox, netbox_form, serial_form, subcat_form):
     context = {
@@ -271,6 +275,3 @@ def netbox_do_save(form, serial_form, subcat_form):
             NetboxCategory.objects.create(netbox=netbox, category=subcat)
 
     return netbox
-
-class NetboxSaveException(Exception):
-    pass
