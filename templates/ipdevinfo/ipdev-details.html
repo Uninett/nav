@@ -49,13 +49,13 @@
 
     <tr>
         <th>Organization</th>
-        <td><a href="{% url report-organization-organization netbox.organization.id %}">
+        <td><a href="{% url report-organization-organization netbox.organization.id|urlencode %}">
             {{ netbox.organization }}</a></td>
     </tr>
 
     <tr>
         <th>Room</th>
-        <td><a href="{% url report-netbox-room netbox.room.id %}">
+        <td><a href="{% url report-netbox-room netbox.room.id|urlencode %}">
             {{ netbox.room }}</a></td>
     </tr>
 
@@ -334,7 +334,7 @@
         <th class="indent">Organization</th>
         <td>
             {% if vlan.organization %}
-                <a href="{% url report-organization-organization vlan.organization.id %}">
+                <a href="{% url report-organization-organization vlan.organization.id|urlencode %}">
                 {{ vlan.organization|default:"N/A" }}
                 </a>
             {% else %}
