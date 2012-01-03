@@ -110,18 +110,16 @@ class InterfaceManager(DefaultManager):
             ifindex__in=[new for new, old in changed_ifindexes])
         changed_interfaces.update(ifindex=None)
 
+    def cleanup(self):
+        """Cleans up Interface data."""
+        self.cls._mark_missing_interfaces(self.containers)
+        self.cls._delete_missing_interfaces(self.containers)
+        self.cls._generate_linkstate_events(self.containers)
+
 
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
     manager = InterfaceManager
-
-    @classmethod
-    def cleanup_after_save(cls, containers):
-        """Cleans up Interface data."""
-        cls._mark_missing_interfaces(containers)
-        cls._delete_missing_interfaces(containers)
-        cls._generate_linkstate_events(containers)
-        super(Interface, cls).cleanup_after_save(containers)
 
     @classmethod
     @db.commit_on_success
