@@ -194,16 +194,16 @@ class NetboxSerialForm(forms.Form):
         serial = self.cleaned_data['serial']
         try:
             if self.netbox_id:
-                Netbox.objects.get(
+                netbox = Netbox.objects.get(
                     Q(device__serial=serial),
                     ~Q(id=self.netbox_id))
             else:
-                Netbox.objects.get(device__serial=serial)
+                netbox = Netbox.objects.get(device__serial=serial)
         except Netbox.DoesNotExist:
             return serial
         else:
             raise forms.ValidationError(
-                "Serial (%s) exists in database" % serial)
+                "Serial (%s) is already taken by %s" % (serial, netbox))
 
 class NetboxSubcategoryForm(forms.Form):
     def __init__(self, *args, **kwargs):
