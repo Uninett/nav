@@ -34,6 +34,7 @@ class InterfaceManager(DefaultManager):
     _by_ifname = {}
     _by_ifnamedescr = {}
     _by_ifindex = {}
+    _missing_ifcs = {}
 
     def __init__(self, *args, **kwargs):
         super(InterfaceManager, self).__init__(*args, **kwargs)
@@ -62,6 +63,9 @@ class InterfaceManager(DefaultManager):
             if existing:
                 found.set_existing_model(existing)
 
+        self._missing_ifcs = dict(
+            (ifc.id, ifc) for ifc in self._db_ifcs
+            if ifc not in self._found_existing_map.values())
 
     def _find_existing_for(self, snmp_ifc):
         result = None
@@ -113,44 +117,29 @@ class InterfaceManager(DefaultManager):
 
     def cleanup(self):
         """Cleans up Interface data."""
-        self.cls._mark_missing_interfaces(self.containers)
+        self._mark_missing_interfaces()
         self.cls._delete_missing_interfaces(self.containers)
         self.cls._generate_linkstate_events(self.containers)
+
+    @db.commit_on_success
+    def _mark_missing_interfaces(self):
+        """Marks interfaces in db as gone if they haven't been collected in
+        this round.
+
+        """
+        if self._missing_ifcs:
+            ifnames = sorted(ifc.ifname for ifc in self._missing_ifcs.values())
+            self._logger.debug("marking %d interface(s) as gone: %r",
+                               len(self._missing_ifcs), ifnames)
+
+            missing = manage.Interface.objects.filter(
+                id__in=self._missing_ifcs.keys())
+            missing.update(gone_since=datetime.datetime.now())
 
 
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
     manager = InterfaceManager
-
-    @classmethod
-    @db.commit_on_success
-    def _mark_missing_interfaces(cls, containers):
-        """Marks interfaces in db as gone if they haven't been collected in
-        this round.
-
-        This is designed to run in the cleanup_after_save phase, as it needs
-        primary keys of the containers to have been found.
-
-        """
-        netbox = containers.get(None, Netbox)
-        found_interfaces = containers[cls].values()
-        timestamp = datetime.datetime.now()
-
-        # start by finding the existing interface's primary keys
-        pks = [i.id for i in found_interfaces if i.id]
-
-        # the rest of the interfaces that haven't already been marked as gone,
-        # should be marked as such
-        missing_interfaces = manage.Interface.objects.filter(
-            netbox=netbox.id, gone_since__isnull=True
-            ).exclude(pk__in=pks)
-
-        count = missing_interfaces.count()
-        if count > 0:
-            cls._logger.debug("_mark_missing_interfaces(%s): "
-                              "marking %d interfaces as gone",
-                              netbox.sysname, count)
-        missing_interfaces.update(gone_since=timestamp)
 
     @classmethod
     @db.commit_on_success
