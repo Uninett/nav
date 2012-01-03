@@ -111,7 +111,7 @@ def dependencies(queryset, whitelist):
 
     return related_objects
 
-@transaction.commit_manually
+@transaction.commit_on_success
 def qs_delete(queryset):
     """Deletes objects from the database.
 
@@ -131,11 +131,6 @@ def qs_delete(queryset):
     }
     try:
         cursor.execute(sql, (pk_list,))
-    except:
-        # Something went wrong, rollback and re-raise exception
-        transaction.rollback()
-        raise
-    else:
-        transaction.commit()
-        # FIXME Right return value?
-        return cursor.rowcount
+    finally:
+        transaction.set_dirty()
+    return cursor.rowcount
