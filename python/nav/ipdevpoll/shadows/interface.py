@@ -65,7 +65,9 @@ class InterfaceManager(DefaultManager):
 
         self._missing_ifcs = dict(
             (ifc.id, ifc) for ifc in self._db_ifcs
-            if ifc not in self._found_existing_map.values())
+            if (ifc not in self._found_existing_map.values()
+                and not ifc.gone_since))
+
 
     def _find_existing_for(self, snmp_ifc):
         result = None
