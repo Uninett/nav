@@ -127,7 +127,6 @@ class Prefix(Plugin):
             # Host masks aren't included when IPy converts to string
             if '/' not in prefix.net_address:
                 prefix.net_address += "/%s"  % net_prefix.prefixlen()
-                self._logger.warning("fixing prefix to %r", prefix.net_address)
             port_prefix.prefix = prefix
 
             # Always associate prefix with a VLAN record, but set a
