@@ -17,6 +17,8 @@
 
 """Functions for deleting objects from seeddb.
 """
+import logging
+LOGGER = logging.getLogger(__name__)
 
 from django.db import connection, transaction, IntegrityError
 from django.core.urlresolvers import reverse
@@ -63,6 +65,7 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None):
             new_message(request._req, msg, Messages.ERROR)
         except Exception, ex:
             # Something else went wrong
+            LOGGER.exception("Unhandled exception during delete: %r", request)
             msg = "Error: %s" % ex
             new_message(request._req, msg, Messages.ERROR)
         else:
