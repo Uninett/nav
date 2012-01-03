@@ -29,10 +29,15 @@ from .netbox import Netbox
 # pylint: disable=C0111
 
 class InterfaceManager(DefaultManager):
+    _found_existing_map = {}
+    _db_ifcs = []
+    _by_ifname = {}
+    _by_ifnamedescr = {}
+    _by_ifindex = {}
+
     def __init__(self, *args, **kwargs):
         super(InterfaceManager, self).__init__(*args, **kwargs)
         self.netbox = self.containers.get(None, Netbox)
-        self.found_existing_map = {}
 
     def prepare(self):
         self._load_existing_objects()
@@ -44,26 +49,26 @@ class InterfaceManager(DefaultManager):
     def _load_existing_objects(self):
         db_ifcs = manage.Interface.objects.filter(netbox__id=self.netbox.id)
 
-        self.db_ifcs = db_ifcs
-        self.by_ifname = mapby(db_ifcs, 'ifname')
-        self.by_ifnamedescr = mapby(db_ifcs, 'ifname', 'ifdescr')
-        self.by_ifindex = mapby(db_ifcs, 'ifindex')
+        self._db_ifcs = db_ifcs
+        self._by_ifname = mapby(db_ifcs, 'ifname')
+        self._by_ifnamedescr = mapby(db_ifcs, 'ifname', 'ifdescr')
+        self._by_ifindex = mapby(db_ifcs, 'ifindex')
 
     def _map_found_to_existing(self):
-        self.found_existing_map = dict(
+        self._found_existing_map = dict(
             (snmp_ifc, self._find_existing_for(snmp_ifc))
             for snmp_ifc in self.get_managed())
-        for found, existing in self.found_existing_map.items():
+        for found, existing in self._found_existing_map.items():
             if existing:
                 found.set_existing_model(existing)
 
     def _find_existing_for(self, snmp_ifc):
         result = None
         if snmp_ifc.ifname:
-            result = self.by_ifname.get(snmp_ifc.ifname, None)
+            result = self._by_ifname.get(snmp_ifc.ifname, None)
         if not result and snmp_ifc.ifdescr:
             # this is only likely on a db recently migrated from NAV 3.5
-            result = self.by_ifnamedescr.get(
+            result = self._by_ifnamedescr.get(
                 (snmp_ifc.ifdescr, snmp_ifc.ifdescr), None)
         if result and len(result) > 1:
             # Multiple ports with same name? damn...
@@ -72,7 +77,7 @@ class InterfaceManager(DefaultManager):
 
         # If none of this voodoo helped, try matching ifindex only
         if not result:
-            result = self.by_ifindex.get(snmp_ifc.ifindex, None)
+            result = self._by_ifindex.get(snmp_ifc.ifindex, None)
 
         if result and len(result) > 1:
             self._logger.debug(
@@ -93,7 +98,7 @@ class InterfaceManager(DefaultManager):
 
         """
         changed_ifindexes = [(new.ifindex, old.ifindex)
-                             for new, old in self.found_existing_map.items()
+                             for new, old in self._found_existing_map.items()
                              if old and new.ifindex != old.ifindex]
         if not changed_ifindexes:
             return
@@ -101,7 +106,7 @@ class InterfaceManager(DefaultManager):
         self._logger.debug("%s changed ifindex mappings (new/old): %r",
                            self.netbox.sysname, changed_ifindexes)
 
-        changed_interfaces = self.db_ifcs.filter(
+        changed_interfaces = self._db_ifcs.filter(
             ifindex__in=[new for new, old in changed_ifindexes])
         changed_interfaces.update(ifindex=None)
 
