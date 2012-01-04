@@ -498,7 +498,6 @@ class Shadow(object):
             filtr = {pkey: getattr(obj, pkey)}
             myself = self.__shadowclass__.objects.filter(**filtr)
             myself.update(**update)
-            self.set_existing_model(obj)
             self._touched.clear()
 
 
