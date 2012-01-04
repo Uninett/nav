@@ -63,7 +63,7 @@ class _db(threading.Thread):
         try:
             conn_str = get_connection_string(script_name='servicemon')
             self.db = psycopg2.connect(conn_str)
-            atexit.register(self.db.close)
+            atexit.register(self.close)
 
             debug("Successfully (re)connected to NAVdb")
             # Set transaction isolation level to READ COMMITTED
@@ -75,7 +75,8 @@ class _db(threading.Thread):
 
     def close(self):
         try:
-            self.db.close()
+            if self.db:
+                self.db.close()
         except psycopg2.InterfaceError:
             # ignore "already-closed" type errors
             pass
