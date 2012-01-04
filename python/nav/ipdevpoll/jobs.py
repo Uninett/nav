@@ -395,7 +395,8 @@ class JobHandler(object):
         """
         for shadow_class in sorted_shadow_classes:
             if shadow_class in self.containers:
-                manager = shadow_class.manager(shadow_class, self.containers)
+                manager = shadow_class.manager(shadow_class, self.containers,
+                                               log_context=self.log_context)
                 self.storage_queue.append(manager)
 
     def container_factory(self, container_class, key):

@@ -61,7 +61,7 @@ class DefaultManager(object):
     Mostly uses helper methods in shadow classes to perform its work.
 
     """
-    def __init__(self, cls, containers):
+    def __init__(self, cls, containers, log_context=None):
         """Creates a storage manager.
 
         :param cls: The Shadow subclass this instance will work with.
@@ -70,7 +70,10 @@ class DefaultManager(object):
         """
         self.cls = cls
         self.containers = containers
-        self._logger = ipdevpoll.get_class_logger(self.__class__)
+        if log_context:
+            self._logger = ipdevpoll.get_context_logger(self, **log_context)
+        else:
+            self._logger = ipdevpoll.get_class_logger(self.__class__)
 
     def prepare(self):
         """Prepares managed shadows in containers"""
