@@ -26,6 +26,8 @@ from nav.ipdevpoll import db
 
 from .netbox import Netbox
 
+MISSING_THRESHOLD = datetime.timedelta(days=1)
+
 # pylint: disable=C0111
 
 class InterfaceManager(DefaultManager):
@@ -47,7 +49,8 @@ class InterfaceManager(DefaultManager):
         self._resolve_changed_ifindexes()
 
     def _load_existing_objects(self):
-        db_ifcs = manage.Interface.objects.filter(netbox__id=self.netbox.id)
+        db_ifcs = manage.Interface.objects.filter(
+            netbox__id=self.netbox.id).select_related('module')
         self._make_maps(db_ifcs)
 
     def _make_maps(self, db_ifcs):
@@ -120,7 +123,7 @@ class InterfaceManager(DefaultManager):
     def cleanup(self):
         """Cleans up Interface data."""
         self._mark_missing_interfaces()
-        self.cls._delete_missing_interfaces(self.containers)
+        self._delete_missing_interfaces()
         self.cls._generate_linkstate_events(self.containers)
 
     @db.commit_on_success
@@ -138,47 +141,41 @@ class InterfaceManager(DefaultManager):
                 id__in=self._missing_ifcs.keys())
             missing.update(gone_since=datetime.datetime.now())
 
+    @db.commit_on_success
+    def _delete_missing_interfaces(self):
+        """Deletes missing interfaces from the database."""
+        indexless = self._get_indexless_ifcs()
+        dead = self._get_dead_ifcs()
+
+        deleteable = set(indexless + dead)
+        if deleteable:
+            ifnames = [ifc.ifname for ifc in deleteable]
+            self._logger.info("deleting %d missing interfaces: %r",
+                              len(deleteable), ifnames)
+            pks = [ifc.id for ifc in deleteable]
+            manage.Interface.objects.filter(pk__in=pks).delete()
+
+    def _get_indexless_ifcs(self):
+        return [ifc for ifc in self._db_ifcs
+                if not ifc.ifindex]
+
+    def _get_dead_ifcs(self):
+        """Returns a list of dead interfaces.
+
+        An interface is considered dead if has a gone_since timestamp older
+        than the MISSING_THRESHOLD and is either not associated with a module or
+        is associated with a module known to still be up.
+        """
+        deadline = datetime.datetime.now() - MISSING_THRESHOLD
+        def is_dead(ifc):
+            return (ifc.gone_since and ifc.gone_since < deadline
+                    and (not ifc.module or ifc.module.up == 'y'))
+        return [ifc for ifc in self._db_ifcs if is_dead(ifc)]
+
 
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
     manager = InterfaceManager
-
-    @classmethod
-    @db.commit_on_success
-    def _delete_missing_interfaces(cls, containers):
-        """Deletes missing interfaces from the database."""
-        netbox = containers.get(None, Netbox)
-        ifcs = manage.Interface.objects.filter(netbox__id=netbox.id)
-        missing_ifcs = ifcs.exclude(gone_since__isnull=True)
-
-        deleteable = set(cls._get_indexless_ifcs_pk(missing_ifcs))
-        deleteable.update(cls._get_dead_ifcs_pk(ifcs))
-
-        if deleteable:
-            cls._logger.info("(%s) Deleting %d missing interfaces",
-                             netbox.sysname, len(deleteable))
-            manage.Interface.objects.filter(pk__in=deleteable).delete()
-
-    @staticmethod
-    def _get_indexless_ifcs_pk(interfaces):
-        indexless = interfaces.filter(ifindex__isnull=True).values('pk')
-        return [row['pk'] for row in indexless]
-
-    @staticmethod
-    def _get_dead_ifcs_pk(interfaces,
-                          grace_period = datetime.timedelta(days=1)):
-        """Returns a list of primary keys of dead interfaces.
-
-        An interface is considered dead if has a gone_since timestamp older
-        than the grace period and is either not associated with a module or
-        associated with a module known to still be up.
-
-        """
-        deadline = datetime.datetime.now() - grace_period
-        ancient_ifcs = interfaces.filter(gone_since__lt = deadline)
-        down_modules = manage.Module.objects.exclude(up='y')
-        dead_ifcs = ancient_ifcs.exclude(module__in = down_modules)
-        return [row['pk'] for row in dead_ifcs.values('pk')]
 
     @classmethod
     @db.commit_on_success
