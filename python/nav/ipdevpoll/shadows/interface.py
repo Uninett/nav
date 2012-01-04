@@ -20,6 +20,7 @@ from itertools import groupby
 
 from nav.models import manage
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
+from nav import natsort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
 from nav.ipdevpoll import db
@@ -133,9 +134,9 @@ class InterfaceManager(DefaultManager):
 
         """
         if self._missing_ifcs:
-            ifnames = sorted(ifc.ifname for ifc in self._missing_ifcs.values())
             self._logger.debug("marking %d interface(s) as gone: %r",
-                               len(self._missing_ifcs), ifnames)
+                               len(self._missing_ifcs),
+                               ifnames(self._missing_ifcs.values()))
 
             missing = manage.Interface.objects.filter(
                 id__in=self._missing_ifcs.keys())
@@ -149,9 +150,8 @@ class InterfaceManager(DefaultManager):
 
         deleteable = set(indexless + dead)
         if deleteable:
-            ifnames = [ifc.ifname for ifc in deleteable]
-            self._logger.info("deleting %d missing interfaces: %r",
-                              len(deleteable), ifnames)
+            self._logger.info("deleting %d missing interfaces: %s",
+                              len(deleteable), ifnames(deleteable))
             pks = [ifc.id for ifc in deleteable]
             manage.Interface.objects.filter(pk__in=pks).delete()
 
@@ -179,16 +179,14 @@ class InterfaceManager(DefaultManager):
         if not changed_ifcs:
             return
 
-        self._logger.debug("link state changed for: %r",
-                           [ifc.ifname for ifc in changed_ifcs])
+        self._logger.debug("link state changed for: %s", ifnames(changed_ifcs))
 
         linkstate_filter = self.get_linkstate_filter()
         eventful_ifcs = [ifc for ifc in changed_ifcs
                          if ifc.matches_filter(linkstate_filter)]
         if eventful_ifcs:
-            self._logger.debug("posting linkState events for %r: %r",
-                               linkstate_filter,
-                               [ifc.ifname for ifc in eventful_ifcs])
+            self._logger.debug("posting linkState events for %r: %s",
+                               linkstate_filter, ifnames(eventful_ifcs))
 
         for ifc in eventful_ifcs:
             ifc.post_linkstate_event()
@@ -294,3 +292,10 @@ def mapby(items, *attrs):
     keyfunc = operator.attrgetter(*attrs)
     groupgen = groupby(items, keyfunc)
     return dict((k, list(v)) for k, v in groupgen)
+
+def ifnames(ifcs):
+    """Returns a loggable string of interface names from a list of Interface
+    objects.
+
+    """
+    return ', '.join(sorted((ifc.ifname for ifc in ifcs), key=natsort.split))
