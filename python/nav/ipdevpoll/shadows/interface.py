@@ -207,6 +207,8 @@ class InterfaceManager(DefaultManager):
         else:
             return link_filter
 
+# pylint is unable to see which members are created dynamically by metaclass:
+# pylint: disable=W0201,E0203
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
     manager = InterfaceManager
