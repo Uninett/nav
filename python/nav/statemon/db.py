@@ -26,6 +26,7 @@ import threading
 import checkermap
 import psycopg2
 from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION
+from psycopg2.errorcodes import lookup as pg_err_lookup
 import Queue
 import time
 import atexit
@@ -99,6 +100,9 @@ class _db(threading.Thread):
                     debug("Rolling back aborted transaction...", 2)
                     self.db.rollback()
                 else:
+                    debug("PostgreSQL reported an internal error I don't know "
+                          "how to handle: %s (code=%s)" % (
+                            pg_err_lookup(err.pgcode), err.pgcode), 2)
                     raise
         except Exception, err:
             debug(str(err), 2)
