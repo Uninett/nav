@@ -124,7 +124,7 @@ class InterfaceManager(DefaultManager):
         """Cleans up Interface data."""
         self._mark_missing_interfaces()
         self._delete_missing_interfaces()
-        self.cls._generate_linkstate_events(self.containers)
+        self._generate_linkstate_events()
 
     @db.commit_on_success
     def _mark_missing_interfaces(self):
@@ -172,41 +172,28 @@ class InterfaceManager(DefaultManager):
                     and (not ifc.module or ifc.module.up == 'y'))
         return [ifc for ifc in self._db_ifcs if is_dead(ifc)]
 
-
-class Interface(Shadow):
-    __shadowclass__ = manage.Interface
-    manager = InterfaceManager
-
-    @classmethod
     @db.commit_on_success
-    def _generate_linkstate_events(cls, containers):
-        changed_ifcs = [ifc for ifc in containers[cls].values()
+    def _generate_linkstate_events(self):
+        changed_ifcs = [ifc for ifc in self.get_managed()
                         if ifc.is_linkstate_changed()]
         if not changed_ifcs:
             return
 
-        netbox = containers.factory(None, Netbox)
-        cls._logger.debug("(%s) link state changed for: %s",
-                          netbox.sysname,
-                          ', '.join(ifc.ifname for ifc in changed_ifcs))
+        self._logger.debug("link state changed for: %r",
+                           [ifc.ifname for ifc in changed_ifcs])
 
-        linkstate_filter = cls.get_linkstate_filter()
+        linkstate_filter = self.get_linkstate_filter()
         eventful_ifcs = [ifc for ifc in changed_ifcs
                          if ifc.matches_filter(linkstate_filter)]
         if eventful_ifcs:
-            cls._logger.debug("(%s) posting linkState events for %r: %s",
-                              netbox.sysname, linkstate_filter,
-                              ', '.join(ifc.ifname for ifc in eventful_ifcs))
+            self._logger.debug("posting linkState events for %r: %r",
+                               linkstate_filter,
+                               [ifc.ifname for ifc in eventful_ifcs])
 
         for ifc in eventful_ifcs:
             ifc.post_linkstate_event()
 
-    def is_linkstate_changed(self):
-        return (hasattr(self, 'ifoperstatus_change')
-                and bool(self.ifoperstatus_change))
-
-    @classmethod
-    def get_linkstate_filter(cls):
+    def get_linkstate_filter(self):
         from nav.ipdevpoll.config import ipdevpoll_conf as conf
         default = 'topology'
         link_filter = (conf.get('linkstate', 'filter')
@@ -214,14 +201,22 @@ class Interface(Shadow):
                        else default)
 
         if link_filter not in ('any', 'topology'):
-            cls._logger.warning("configured linkstate filter is invalid: %r"
-                                " (using %r as default)", link_filter, default)
+            self._logger.warning("configured linkstate filter is invalid: %r"
+                                 " (using %r as default)", link_filter, default)
             return default
         else:
             return link_filter
 
+class Interface(Shadow):
+    __shadowclass__ = manage.Interface
+    manager = InterfaceManager
+    ifoperstatus_change = None
+
+    def is_linkstate_changed(self):
+        return bool(self.ifoperstatus_change)
+
     def matches_filter(self, linkstate_filter):
-        django_ifc = self._cached_converted_model
+        django_ifc = self.get_existing_model()
         if linkstate_filter == 'topology' and django_ifc.to_netbox:
             return True
         elif linkstate_filter == 'any':
@@ -240,7 +235,7 @@ class Interface(Shadow):
             self._make_linkstate_event(False)
 
     def _make_linkstate_event(self, start=True):
-        django_ifc = self._cached_converted_model
+        django_ifc = self.get_existing_model()
         event = Event()
         event.source_id = 'ipdevpoll'
         event.target_id = 'eventEngine'
