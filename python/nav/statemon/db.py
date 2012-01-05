@@ -31,12 +31,31 @@ import Queue
 import time
 import atexit
 import traceback
+from functools import wraps
 
 from event import Event
 from service import Service
 from debug import debug
 
 from nav.db import get_connection_string
+
+def synchronized(lock):
+    """Synchronization decorator.
+
+    Since there is only one database connection, we need to serialize access
+    to it so multiple threads won't interfere with each others transactions.
+
+    """
+    def _decorator(func):
+        @wraps(func)
+        def _wrapper(*args, **kwargs):
+            lock.acquire()
+            try:
+                return func(*args, **kwargs)
+            finally:
+                lock.release()
+        return _wrapper
+    return _decorator
 
 def db():
     if _db._instance is None:
@@ -50,6 +69,7 @@ class dbError(Exception):
 class UnknownRRDFileError(Exception):
     pass
 
+_queryLock = threading.Lock()
 class _db(threading.Thread):
     _instance = None
     def __init__(self):
@@ -127,6 +147,7 @@ class _db(threading.Thread):
                 self.newEvent(event)
                 time.sleep(5)
 
+    @synchronized(_queryLock)
     def query(self, statement, values=None, commit=1):
         cursor = None
         try:
@@ -147,6 +168,7 @@ class _db(threading.Thread):
                     debug("Failed to rollback", 2)
             raise dbError()
 
+    @synchronized(_queryLock)
     def execute(self, statement, values=None, commit=1):
         cursor = None
         try:
