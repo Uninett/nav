@@ -1,6 +1,6 @@
 #
 # Copyright (C) 23. Feb. 2004 - Lars Strand <lars strand at gnist org>
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,94 +14,134 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""ICMP packet manipulation.
+
+Required reading list:
+
+* RFC  792 (ICMP)
+* RFC 2460 (IPv6)
+* RFC 4443 (ICMPv6)
+* http://www.iana.org/assignments/icmpv6-parameters
+
+"""
 import struct
 import array
-import time
 
+ICMP_MINLEN = 8
 
-ICMP_DATA_STR = 56
-ICMP_TYPE = 8
-ICMP_TYPE_IP6 = 128
-ICMP_CODE = 0
-ICMP_CHECKSUM = 0
-ICMP_ID = 0
-ICMP_SEQ_NR = 0
+class Packet(object):
+    """An ICMP packet"""
+    packet_slice = slice(0, None)
+    header_slice = slice(0, 8)
+    data_slice = slice(8, None)
 
+    def __init__(self, packet=None, verify=True):
+        """Initializes an ICMP packet structure.
 
-class PacketV4(object):
+        :param packet: Disassembled as an off -the-wire packet if supplied;
+                       otherwise an empty ping packet is constructed.
+        :param verify: Verify the packet checksum if True.
+
+        """
+        if packet:
+            self._disassemble(packet, verify)
+        else:
+            self.type = getattr(self, 'ICMP_ECHO', 0)
+            self.code = 0
+            self.checksum = 0
+            self.id = 0
+            self.sequence = 0
+            self.data = ''
+
+    def __repr__(self):
+        return "<ICMP %s type=%s code=%s id=%s sequence=%s>" % (
+            self.__class__.__name__,
+            self.lookup_type(), self.code, self.id, self.sequence)
+
+    def _disassemble(self, packet, verify=True):
+        packet = packet[self.packet_slice]
+        (self.type, self.code, self.checksum, self.id, self.sequence
+         ) = struct.unpack("BBHHH", packet[self.header_slice])
+        self.data = packet[self.data_slice]
+
+        if verify:
+            my_checksum = inet_checksum(packet)
+            if my_checksum != 0:
+                raise ValueError("unable to verify packet checksum")
+
+    def assemble(self, calc_checksum=True):
+        """Assembles a raw ICMP packet string from packet attributes.
+
+        :param calc_checksum: Calculate and fill the checksum field of the
+                              packet if True.
+
+        """
+        packet = self._assemble(0)
+        if calc_checksum:
+            self.checksum = inet_checksum(packet)
+            packet = self._assemble(self.checksum)
+        return packet
+
+    def _assemble(self, checksum):
+        header = struct.pack("BBHHH", self.type, self.code, checksum,
+                             self.id, self.sequence)
+        packet = header + self.data
+        return packet
+
+    def lookup_type(self, type_=None):
+        """Reverse looks up a packet type id and returns a name string.
+
+        If the type is not known, the supplied integer is returned as a string
+        instead.
+
+        """
+        if type_ is None:
+            type_ = self.type
+        attrs = vars(self.__class__)
+        type_map = dict((v, k) for k, v in attrs.items()
+                        if k.startswith('ICMP_'))
+        return type_map.get(type_, str(type_))
+
+class PacketV4(Packet):
     """An ICMPv4 packet"""
+    ICMP_ECHO_REPLY = 0
+    ICMP_DESTINATION_UNREACHABLE = 3
+    ICMP_ECHO = 8
 
-    def __init__(self, id=None, payload=None):
-        self.id = id
-        self.payload = payload
-        self.size = ICMP_DATA_STR
-        self.packet = None
-        self.header = None
-
-
-    def construct(self):
-        """Constructs a ICMP echo packet of variable size"""
-        # size must be big enough to contain time sent
-        if self.size < int(struct.calcsize("d")):
-            _error("packetsize to small, must be at least %d" % int(struct.calcsize("d")))
-
-        header = self._construct_header()
-
-        # space for time
-        self.size -= struct.calcsize("d")
-
-        # construct payload based on size, may be omitted :)
-        rest = ""
-        if self.size > len(self.payload):
-            rest = self.payload
-            self.size -= len(self.payload)
-
-        # pad the rest of payload
-        rest += self.size * "X"
-
-        # pack
-        data = struct.pack("d", time.time()) + rest
-        packet = header + data          # ping packet without checksum
-        checksum = inet_checksum(packet)
-
-        header = self._construct_header(checksum)
-
-        self.header = header
-        self.data   = data    
-        self.checksum = checksum
-        # ping packet *with* checksum
-        packet = header + data
-
-        # a perfectly formatted ICMP echo packet
-        self.packet = packet
-
-    def _construct_header(self, checksum=ICMP_CHECKSUM):
-        return struct.pack('BBHHH', ICMP_TYPE, ICMP_CODE, checksum,
-                           ICMP_ID, ICMP_SEQ_NR+self.id)
+    # IPv4 RAW sockets include the IP header in the received datagram.  This
+    # packet slice chops of the first 20 octets to get at the ICMP datagram
+    packet_slice = slice(20, None)
 
 
-    def unpack(self, packet):
-        """Unpacks data from raw packet into this instance"""
-        self.packet = packet
-        self.header = self.packet[20:28]
-        _type, code, chksum, _id, seqnr = struct.unpack("BBHHH", self.header)
-        self.id = seqnr
-        self.payload = self.packet[36:73]
+class PacketV6(Packet):
+    """An ICMPv6 packet.
 
-class PacketV6(PacketV4):
-    """An ICMPv6 packet"""
+    NOTE: This will never verify the checksum when disassembling a packet,
+    since we need to generate a pseudo-header using the source and destination
+    IPv6 addresses to include in the calculation of the sum.  See RFC 4443
+    Section 2.3 and RFC 2460 Section 8.1.
 
-    def _construct_header(self, checksum=ICMP_CHECKSUM):
-        return struct.pack('BBHHH', ICMP_TYPE_IP6, ICMP_CODE, checksum,
-                           ICMP_ID, ICMP_SEQ_NR+self.id)
+    The generated checksum of an assembled PacketV6 will also likely be wrong
+    because of this, but it appears that the OS somehow magically fixes the
+    checksum when transmitted over the wire.
 
+    """
+    ICMP_DESTINATION_UNREACHABLE = 1
+    ICMP_ECHO = 128
+    ICMP_ECHO_REPLY = 129
 
-    def unpack(self, packet):
-        self.packet = packet
-        self.header = self.packet[0:8]
-        _type, code, chksum, _id, seqnr = struct.unpack("BBHHH", self.header)
-        self.id = seqnr
-        self.payload = self.packet[16:53]
+    ICMP_MULTICAST_LISTENER_QUERY = 130
+    ICMP_MULTICAST_LISTENER_REPORT = 131
+    ICMP_MULTICAST_LISTENER_DONE = 132
+
+    ICMP_ROUTER_SOLICITATION = 133
+    ICMP_ROUTER_ADVERTISEMENT = 134
+
+    ICMP_NEIGHBOR_SOLICITATION = 135
+    ICMP_NEIGHBOR_ADVERTISEMENT = 136
+
+    def __init__(self, packet=None, verify=False):
+        super(PacketV6, self).__init__(packet, False)
 
 def inet_checksum(packet):
     """Calculates the checksum of a (ICMP) packet.

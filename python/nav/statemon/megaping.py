@@ -31,34 +31,59 @@ from debug import debug
 
 from nav.daemon import safesleep as sleep
 
-from .icmppacket import PacketV4, PacketV6
+from .icmppacket import ICMP_MINLEN, PacketV4, PacketV6
 
 # Global method to create the sockets as root before the process changes user
 def makeSockets():
     try:
-        socketv6 = socket.socket(socket.AF_INET6, socket.SOCK_RAW, socket.getprotobyname('ipv6-icmp'))
+        socketv6 = socket.socket(socket.AF_INET6, socket.SOCK_RAW,
+                                 socket.getprotobyname('ipv6-icmp'))
     except:
         debug("Could not create v6 socket")
 
     try:
-        socketv4 = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
+        socketv4 = socket.socket(socket.AF_INET, socket.SOCK_RAW,
+                                 socket.getprotobyname('icmp'))
     except:
         debug("Could not create v6 socket")
 
     return [socketv6, socketv4]
 
-class Host:
+class Host(object):
+    COOKIE_LENGTH = len(hashlib.md5().digest())
+
     def __init__(self, ip):
         self.rnd = random.randint(10000, 2**16-1)
+        self.time = 0
         self.certain = 0
         self.ip = ip
-        self.packet = None
-        self.ipv6 = False
 
         if self.is_valid_ipv6(ip):
             self.ipv6 = True
-
+            self.packet = PacketV6()
+        else:
+            self.ipv6 = False
+            self.packet = PacketV4()
+        self.packet.id = os.getpid() % 65536
         self.replies = circbuf.CircBuf()
+
+    def make_packet(self, size, cookie=None):
+        """Makes the next echo reply packet"""
+        if not cookie:
+            cookie = self.make_cookie()
+        self.packet.data = cookie.ljust(size-ICMP_MINLEN)
+        return (self.packet.assemble(), cookie)
+
+    def make_cookie(self):
+        """Makes and returns a request identifier to be used as data in a ping
+        packet.
+
+        """
+        hash = hashlib.md5()
+        hash.update(self.ip)
+        hash.update(str(self.rnd))
+        hash.update(str(self.time))
+        return hash.digest()
 
     def is_v6(self):
         return self.ipv6
@@ -79,15 +104,18 @@ class Host:
         except socket.error:
             return False
 
-    def get_ipversion(self):
-        return self.ip_version
-
     def getseq(self):
         return self.packet.id
 
     def nextseq(self):
-        self.packet.id = (self.packet.id + 1) % 2**16
-        if not self.certain and self.packet.id > 2:
+        """Increments the echo request sequence number to use with the next
+        request.
+
+        Wrap around at 65536 (values must be unsigned short).
+
+        """
+        self.packet.sequence = (self.packet.sequence + 1) % 2**16
+        if not self.certain and self.packet.sequence > 2:
             self.certain = 1
 
     def __hash__(self):
@@ -232,30 +260,39 @@ class MegaPing:
         # Everything else timed out
         for host in self._requests.values():
             host.replies.push(None)
-            #host.logPingTime(None)
         end = time.time()
         self._elapsedtime = end - start
 
 
     def _processResponse(self, raw_pong, sender, is_ipv6, arrival):
         # Extract header info and payload
-        
-        pong = PacketV6() if is_ipv6 else PacketV4()
-        pong.unpack(raw_pong)
-
-        if not pong.id == self._pid:
+        packet_class = PacketV6 if is_ipv6 else PacketV4
+        try:
+            pong = packet_class(raw_pong)
+        except Exception, error:
+            debug("could not disassemble packet from %r: %s" % (
+                    sender, error), 2)
             return
 
-        identity = pong.payload
+        if pong.type != pong.ICMP_ECHO_REPLY:
+            # we only care about echo replies
+            return
 
-        # Find the host with this identity
+        if not pong.id == self._pid:
+            debug("packet from %r doesn't match our id "
+                  "(%s): %r (raw packet: %r)" % (sender, self._pid, pong,
+                                                 raw_pong), 7)
+            return
+
+        cookie = pong.data[:Host.COOKIE_LENGTH]
+
+        # Find the host with this cookie
         try:
-            host = self._requests[identity]
+            host = self._requests[cookie]
         except KeyError:
-            debug("The packet recieved from %s does not match any of "
-                  "the packets we sent." % repr(sender), 7)
-            debug("Length of recieved packet: %i Cookie: [%s]" %
-                  (len(raw_pong), identity), 7)
+            debug("packet from %r does not match any outstanding request: "
+                  "%r (raw packet: %r cookie: %r)" % (sender, pong, raw_pong,
+                                                      cookie), 7)
             return
 
         # Delete the entry of the host who has replied and add the pingtime
@@ -263,7 +300,7 @@ class MegaPing:
         host.replies.push(pingtime)
         debug("Response from %-16s in %03.3f ms" %
               (sender, pingtime*1000), 7)
-        del self._requests[identity]
+        del self._requests[cookie]
 
 
     def _sendRequests(self, mySocket=None, hosts=None):
@@ -278,38 +315,18 @@ class MegaPing:
                 continue
 
             host.time = time.time()
-
-            # Create an unique identifier for each ping
-            # Format: md5 hash of the ip + host.rnd (random number)
-            # Example: 'f528764d624db129b32c21fbca0cb8d623930'
-            md5ip = hashlib.md5()
-            md5ip.update(host.ip)
-            md5ip_hashed = md5ip.hexdigest()
-
-            identifier = ''.join([md5ip_hashed, str(host.rnd)])
-            
-            # Save the identifier
-            self._requests[identifier] = host
-            
-            # Create the ping packet and attach to host
-            packet_class = PacketV6 if host.is_v6() else PacketV4
-            host.packet = packet_class(os.getpid() % 65536, identifier)
-            host.packet.construct()
-
-            # TODO: why do we need this
+            # create and save a request identifier
+            packet, cookie = host.make_packet(self._packetsize)
+            self._requests[cookie] = host
             host.nextseq()
 
-            # Choose what socket to send the packet to
-            if not host.is_v6():
-                try:
-                    self._sock4.sendto(host.packet.packet, (host.ip, 0))
-                except Exception, e:
-                    debug("Failed to ping %s [%s]" % (host.ip, str(e)), 5)
-            else:
-                try:
-                    self._sock6.sendto(host.packet.packet,(host.ip,0,0,0))
-                except Exception, e:
-                    debug("failed to ping %s [%s]" % (host.ip, str(e)), 5)
+            try:
+                if not host.is_v6():
+                    self._sock4.sendto(packet, (host.ip, 0))
+                else:
+                    self._sock6.sendto(packet, (host.ip, 0, 0, 0))
+            except Exception, error:
+                debug("Failed to ping %s [%s]" % (host.ip, error), 5)
 
             sleep(self._delay)
         self._senderFinished = time.time()
