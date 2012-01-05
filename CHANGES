@@ -1,3 +1,25 @@
+Version 3.10.1
+(released 05 Jan 2012)
+
+ Bugfixes:
+
+  * LP#903096 (Ampersand in organization id crashes ipdevinfo)
+  * LP#904605 (netboxinfo subcat column links to a failing page)
+  * LP#906763 (SyntaxError in powersupplywatch.py on Python < 2.6)
+  * LP#906845 (Status on front page shows device on maintenance as down)
+  * LP#906850 (Alert Profiles NoReverseMatch error under Django 1.3)
+  * LP#907193 (COMMIT/ROLLBACK error after deleting device (Django 1.3))
+  * LP#907204 (seeddb crashes while adding an already existing switch)
+  * LP#907741 (NAV 3.10 pping inaccurately reports multitudes of devices as down
+               when pinging self)
+  * LP#907772 (navtopology crashes with TypeError)
+  * LP#910849 (ipdevpoll wastes time and I/O bandwidth with unnecessary SQL
+               UPDATEs)
+  * LP#910855 (navtopology doesn't avoid multiple instances)
+  * LP#911684 (radius accounting log crashes when searching)
+  * LP#911786 (servicemon stops sending events)
+
+
 Version 3.10.0
 (released 16 Dec 2011)
 
