@@ -76,7 +76,7 @@ class PacketV4(object):
         self.packet = packet
 
     def _construct_header(self, checksum=ICMP_CHECKSUM):
-        return struct.pack('bbHHh', ICMP_TYPE, ICMP_CODE, checksum,
+        return struct.pack('BBHHH', ICMP_TYPE, ICMP_CODE, checksum,
                            ICMP_ID, ICMP_SEQ_NR+self.id)
 
 
@@ -84,7 +84,7 @@ class PacketV4(object):
         """Unpacks data from raw packet into this instance"""
         self.packet = packet
         self.header = self.packet[20:28]
-        _type, code, chksum, _id, seqnr = struct.unpack("bbHHh", self.header)
+        _type, code, chksum, _id, seqnr = struct.unpack("BBHHH", self.header)
         self.id = seqnr
         self.payload = self.packet[36:73]
 
@@ -92,14 +92,14 @@ class PacketV6(PacketV4):
     """An ICMPv6 packet"""
 
     def _construct_header(self, checksum=ICMP_CHECKSUM):
-        return struct.pack('BbHHh', ICMP_TYPE_IP6, ICMP_CODE, checksum,
+        return struct.pack('BBHHH', ICMP_TYPE_IP6, ICMP_CODE, checksum,
                            ICMP_ID, ICMP_SEQ_NR+self.id)
 
 
     def unpack(self, packet):
         self.packet = packet
         self.header = self.packet[0:8]
-        _type, code, chksum, _id, seqnr = struct.unpack("bbHHh", self.header)
+        _type, code, chksum, _id, seqnr = struct.unpack("BBHHH", self.header)
         self.id = seqnr
         self.payload = self.packet[16:53]
 
