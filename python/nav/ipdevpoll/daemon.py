@@ -48,8 +48,10 @@ class IPDevPollProcess(object):
     def run(self):
         """Loads plugins, and initiates polling schedules."""
         # We need to react to SIGHUP and SIGTERM
-        signal.signal(signal.SIGHUP, self.sighup_handler)
+        if not self.options.foreground:
+            signal.signal(signal.SIGHUP, self.sighup_handler)
         signal.signal(signal.SIGTERM, self.sigterm_handler)
+        signal.signal(signal.SIGINT, self.sigterm_handler)
 
         plugins.import_plugins()
         # NOTE: This is locally imported because it will in turn import
@@ -73,7 +75,7 @@ class IPDevPollProcess(object):
 
     def sigterm_handler(self, signum, frame):
         """Cleanly shuts down logging system and the reactor."""
-        self._logger.warn("SIGTERM received: Shutting down")
+        self._logger.warn("%s received: Shutting down", signame(signum))
         self._shutdown_start_time = time.time()
         reactor.callFromThread(reactor.stop)
 
@@ -99,30 +101,35 @@ class CommandProcessor(object):
     def parse_options(self):
         parser = self.make_option_parser()
         (options, args) = parser.parse_args()
+        if options.logstderr and not options.foreground:
+            parser.error('-s is only valid if running in foreground')
+
         return options, args
 
     def make_option_parser(self):
         """Sets up and returns a command line option parser."""
         parser = OptionParser(version="NAV " + buildconf.VERSION)
-        parser.add_option("-c", "--config", dest="configfile",
-                          help="read configuration from FILE", metavar="FILE")
-        parser.add_option("-l", "--logconfig", dest="logconfigfile",
-                          help="read logging configuration from FILE",
-                          metavar="FILE")
+        parser.add_option(
+            "-f", "--foreground", action="store_true", dest="foreground",
+            help="run in foreground instead of daemonizing")
+        parser.add_option(
+            "-s", "--log-stderr", action="store_true", dest="logstderr",
+            help="log to stderr instead of log file")
         return parser
 
     def run(self):
-        self.init_logging()
+        self.init_logging(self.options.logstderr)
         self._logger = logging.getLogger('nav.ipdevpoll')
         self._logger.info("--- Starting ipdevpolld ---")
-        self.exit_if_already_running()
-        self.daemonize()
-        nav.logs.reopen_log_files()
-        self._logger.info("ipdevpolld now running in the background")
+        if not self.options.foreground:
+            self.exit_if_already_running()
+            self.daemonize()
+            nav.logs.reopen_log_files()
+            self._logger.info("ipdevpolld now running in the background")
 
         self.start_ipdevpoll()
 
-    def init_logging(self):
+    def init_logging(self, stderr_only=False):
         """Initializes ipdevpoll logging for the current process."""
         formatter = ContextFormatter()
 
@@ -135,19 +142,22 @@ class CommandProcessor(object):
 
         nav.logs.set_log_levels()
 
-        # Now try to load config and output logs to the configured file
-        # instead.
-        from nav.ipdevpoll import config
-        logfile_name = config.ipdevpoll_conf.get('ipdevpoll', 'logfile')
-        if logfile_name[0] not in './':
-            logfile_name = os.path.join(nav.buildconf.localstatedir,
-                                        'log', logfile_name)
+        if not stderr_only:
+            # Now try to load config and output logs to the configured file
+            # instead.
+            from nav.ipdevpoll import config
+            logfile_name = config.ipdevpoll_conf.get('ipdevpoll', 'logfile')
+            if logfile_name[0] not in './':
+                logfile_name = os.path.join(nav.buildconf.localstatedir,
+                                            'log', logfile_name)
 
-        file_handler = logging.FileHandler(logfile_name, 'a')
-        file_handler.setFormatter(formatter)
+            file_handler = logging.FileHandler(logfile_name, 'a')
+            file_handler.setFormatter(formatter)
 
-        root_logger.addHandler(file_handler)
-        root_logger.removeHandler(stderr_handler)
+            root_logger.addHandler(file_handler)
+            root_logger.removeHandler(stderr_handler)
+            nav.daemon.redirect_std_fds(
+                stderr=nav.logs.get_logfile_from_logger())
 
     def exit_if_already_running(self):
         # Check if already running
@@ -168,6 +178,13 @@ class CommandProcessor(object):
     def start_ipdevpoll(self):
         process = IPDevPollProcess(self.options, self.args)
         process.run()
+
+
+def signame(signum):
+    """Looks up signal name from signal number"""
+    lookup = dict((num, name) for name, num in vars(signal).items()
+                  if name.startswith('SIG'))
+    return lookup.get(signum, signum)
 
 def main():
     """Main execution function"""
