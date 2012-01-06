@@ -247,9 +247,10 @@ class JobScheduler(object):
         self.active_schedulers.add(self)
 
     @classmethod
-    def initialize_from_config_and_run(cls):
+    def initialize_from_config_and_run(cls, onlyjob=None):
         descriptors = config.get_jobs()
-        schedulers = [JobScheduler(d) for d in descriptors]
+        schedulers = [JobScheduler(d) for d in descriptors
+                      if not onlyjob or (d.name == onlyjob)]
         for scheduler in schedulers:
             scheduler.run()
 

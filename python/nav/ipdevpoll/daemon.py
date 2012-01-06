@@ -61,7 +61,8 @@ class IPDevPollProcess(object):
         # every log statement.
         from .schedule import JobScheduler
 
-        reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run)
+        reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
+                                self.options.onlyjob)
         reactor.addSystemEventTrigger("after", "shutdown", self.shutdown)
         reactor.run(installSignalHandlers=0)
 
@@ -122,6 +123,8 @@ class CommandProcessor(object):
         opt("-p", "--list-plugins", action="callback",
             callback=self.list_plugins,
             help="load and print a list of configured plugins")
+        opt("-J", action="store", dest="onlyjob", choices=self.joblist(),
+            metavar="JOBNAME", help="run only JOBNAME in this process")
         return parser
 
     def run(self):
@@ -186,6 +189,11 @@ class CommandProcessor(object):
         process = IPDevPollProcess(self.options, self.args)
         process.run()
 
+
+    def joblist(self):
+        from nav.ipdevpoll.config import get_jobs
+        jobs = sorted(job.name for job in get_jobs())
+        return jobs
 
     def list_jobs(self, *args, **kwargs):
         from nav.ipdevpoll.config import get_jobs
