@@ -41,13 +41,33 @@ daemon() {
     fi
 }
 
+# wait for up to 10 seconds for process do die before resorting to SIGKILL
+killwait() {
+    local pid=$1
+    local timeout=10 # wait max 10 seconds
+    if kill $pid; then
+        local counter=0
+        while test "$counter" -lt "$timeout" && checkpid $pid 2>&1; do
+            sleep 1
+            counter=$((counter+1))
+        done
+        checkpid $pid && kill -9 $pid || true
+    else
+        return 1
+    fi
+}
+
+# Set this to killwait in your script to wait the for process to go away
+KILLER=/bin/kill
+
 killproc() {
-    pid=`pidofproc $1`
+    local pid=`pidofproc $1`
     if [ -z "$pid" ] ; then
         return 1
     fi
+
     if checkpid $pid 2>&1; then
-        if kill $pid; then
+        if $KILLER $pid; then
             echo -n "Ok"
             return 0
         else
