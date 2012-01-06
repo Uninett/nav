@@ -44,6 +44,7 @@ class IPDevPollProcess(object):
         self.options = options
         self.args = args
         self._logger = logging.getLogger('nav.ipdevpoll')
+        self._shutdown_start_time = 0
 
     def run(self):
         """Loads plugins, and initiates polling schedules."""
@@ -66,7 +67,7 @@ class IPDevPollProcess(object):
         reactor.addSystemEventTrigger("after", "shutdown", self.shutdown)
         reactor.run(installSignalHandlers=0)
 
-    def sighup_handler(self, signum, frame):
+    def sighup_handler(self, _signum, _frame):
         """Reopens log files."""
         self._logger.info("SIGHUP received; reopening log files")
         nav.logs.reopen_log_files()
@@ -74,13 +75,14 @@ class IPDevPollProcess(object):
             stderr=nav.logs.get_logfile_from_logger())
         self._logger.info("Log files reopened.")
 
-    def sigterm_handler(self, signum, frame):
+    def sigterm_handler(self, signum, _frame):
         """Cleanly shuts down logging system and the reactor."""
         self._logger.warn("%s received: Shutting down", signame(signum))
         self._shutdown_start_time = time.time()
         reactor.callFromThread(reactor.stop)
 
     def shutdown(self):
+        """Initiates a shutdown sequence"""
         self._log_shutdown_time()
         logging.shutdown()
 
@@ -100,6 +102,7 @@ class CommandProcessor(object):
         self._logger = None
 
     def parse_options(self):
+        """Parses the command line options"""
         parser = self.make_option_parser()
         (options, args) = parser.parse_args()
         if options.logstderr and not options.foreground:
@@ -118,16 +121,17 @@ class CommandProcessor(object):
             help="run in foreground instead of daemonizing")
         opt("-s", "--log-stderr", action="store_true", dest="logstderr",
             help="log to stderr instead of log file")
-        opt("-j", "--list-jobs", action="callback", callback=self.list_jobs,
+        opt("-j", "--list-jobs", action="callback", callback=self._list_jobs,
             help="print a list of configured jobs and exit")
         opt("-p", "--list-plugins", action="callback",
-            callback=self.list_plugins,
+            callback=self._list_plugins,
             help="load and print a list of configured plugins")
-        opt("-J", action="store", dest="onlyjob", choices=self.joblist(),
+        opt("-J", action="store", dest="onlyjob", choices=self._joblist(),
             metavar="JOBNAME", help="run only JOBNAME in this process")
         return parser
 
     def run(self):
+        """Runs an ipdevpoll process"""
         self.init_logging(self.options.logstderr)
         self._logger = logging.getLogger('nav.ipdevpoll')
         self._logger.info("--- Starting ipdevpolld ---")
@@ -139,7 +143,8 @@ class CommandProcessor(object):
 
         self.start_ipdevpoll()
 
-    def init_logging(self, stderr_only=False):
+    @staticmethod
+    def init_logging(stderr_only=False):
         """Initializes ipdevpoll logging for the current process."""
         formatter = ContextFormatter()
 
@@ -170,7 +175,7 @@ class CommandProcessor(object):
                 stderr=nav.logs.get_logfile_from_logger())
 
     def exit_if_already_running(self):
-        # Check if already running
+        """Exits the process if another ipdevpoll daemon is already running"""
         try:
             nav.daemon.justme(self.pidfile)
         except nav.daemon.DaemonError, error:
@@ -178,6 +183,7 @@ class CommandProcessor(object):
             sys.exit(1)
 
     def daemonize(self):
+        """Puts the ipdevpoll process in the background"""
         try:
             nav.daemon.daemonize(self.pidfile,
                                  stderr=nav.logs.get_logfile_from_logger())
@@ -186,22 +192,25 @@ class CommandProcessor(object):
             sys.exit(1)
 
     def start_ipdevpoll(self):
+        """Creates an ipdevpoll process and runs it"""
         process = IPDevPollProcess(self.options, self.args)
         process.run()
 
-
-    def joblist(self):
+    @staticmethod
+    def _joblist():
         from nav.ipdevpoll.config import get_jobs
         jobs = sorted(job.name for job in get_jobs())
         return jobs
 
-    def list_jobs(self, *args, **kwargs):
+    @staticmethod
+    def _list_jobs(*_args, **_kwargs):
         from nav.ipdevpoll.config import get_jobs
         jobs = sorted(job.name for job in get_jobs())
         print '\n'.join(jobs)
         sys.exit()
 
-    def list_plugins(self, *args, **kwargs):
+    @staticmethod
+    def _list_plugins(*_args, **_kwargs):
         plugins.import_plugins()
         print '\n'.join(sorted(plugins.plugin_registry.keys()))
         sys.exit()
