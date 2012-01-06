@@ -112,17 +112,14 @@ class CommandProcessor(object):
             version="NAV " + buildconf.VERSION,
             epilog="This program runs SNMP polling jobs for IP devices "
             "monitored by NAV")
-        parser.add_option(
-            "-f", "--foreground", action="store_true", dest="foreground",
+        opt = parser.add_option
+        opt("-f", "--foreground", action="store_true", dest="foreground",
             help="run in foreground instead of daemonizing")
-        parser.add_option(
-            "-s", "--log-stderr", action="store_true", dest="logstderr",
+        opt("-s", "--log-stderr", action="store_true", dest="logstderr",
             help="log to stderr instead of log file")
-        parser.add_option(
-            "-j", "--list-jobs", action="callback", callback=self.list_jobs,
+        opt("-j", "--list-jobs", action="callback", callback=self.list_jobs,
             help="print a list of configured jobs and exit")
-        parser.add_option(
-            "-p", "--list-plugins", action="callback",
+        opt("-p", "--list-plugins", action="callback",
             callback=self.list_plugins,
             help="load and print a list of configured plugins")
         return parser
