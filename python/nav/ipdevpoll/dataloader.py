@@ -80,7 +80,7 @@ class NetboxLoader(dict):
         related = ('room__location', 'type__vendor',
                    'category', 'organization', 'device')
         queryset = manage.Netbox.objects.select_related(*related).filter(
-            read_only__isnull=False, up='y')
+            read_only__isnull=False, up='y').exclude(read_only='')
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
 

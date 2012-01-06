@@ -12,6 +12,7 @@ SNMPTRAPD=${bindir}/snmptrapd.py
 
 [ -x $SNMPTRAPD ] || exit 2
 
+KILLER=killwait
 case "$1" in
 	start)
 		# Start daemons (it will switch to an unprivileged user itself)
