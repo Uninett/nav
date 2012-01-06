@@ -108,13 +108,23 @@ class CommandProcessor(object):
 
     def make_option_parser(self):
         """Sets up and returns a command line option parser."""
-        parser = OptionParser(version="NAV " + buildconf.VERSION)
+        parser = OptionParser(
+            version="NAV " + buildconf.VERSION,
+            epilog="This program runs SNMP polling jobs for IP devices "
+            "monitored by NAV")
         parser.add_option(
             "-f", "--foreground", action="store_true", dest="foreground",
             help="run in foreground instead of daemonizing")
         parser.add_option(
             "-s", "--log-stderr", action="store_true", dest="logstderr",
             help="log to stderr instead of log file")
+        parser.add_option(
+            "-j", "--list-jobs", action="callback", callback=self.list_jobs,
+            help="print a list of configured jobs and exit")
+        parser.add_option(
+            "-p", "--list-plugins", action="callback",
+            callback=self.list_plugins,
+            help="load and print a list of configured plugins")
         return parser
 
     def run(self):
@@ -179,6 +189,17 @@ class CommandProcessor(object):
         process = IPDevPollProcess(self.options, self.args)
         process.run()
 
+
+    def list_jobs(self, *args, **kwargs):
+        from nav.ipdevpoll.config import get_jobs
+        jobs = sorted(job.name for job in get_jobs())
+        print '\n'.join(jobs)
+        sys.exit()
+
+    def list_plugins(self, *args, **kwargs):
+        plugins.import_plugins()
+        print '\n'.join(sorted(plugins.plugin_registry.keys()))
+        sys.exit()
 
 def signame(signum):
     """Looks up signal name from signal number"""
