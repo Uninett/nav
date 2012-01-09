@@ -352,6 +352,7 @@ class JobHandler(object):
 
     def perform_save(self):
         start_time = time.time()
+        manager = None
         try:
             if self._queue_logger.getEffectiveLevel() <= logging.DEBUG:
                 self._queue_logger.debug(pprint.pformat(self.storage_queue))
@@ -373,7 +374,7 @@ class JobHandler(object):
         except Exception:
             self._logger.exception("Caught exception during save. "
                                    "Last manager = %s. Last model = %s",
-                                   manager, manager.cls)
+                                   manager, getattr(manager, 'cls', None))
             import django.db
             if django.db.connection.queries:
                 self._logger.error("The last query was: %s",
