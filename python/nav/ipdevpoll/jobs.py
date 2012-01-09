@@ -27,7 +27,7 @@ from twisted.internet.error import TimeoutError
 
 from nav import toposort
 
-from nav.ipdevpoll import get_context_logger
+from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from . import storage, shadows
 from .plugins import plugin_registry
@@ -63,6 +63,9 @@ class JobHandler(object):
     information for the job.
 
     """
+    _logger = ContextLogger()
+    _queue_logger = ContextLogger(suffix='queue')
+    _timing_logger = ContextLogger(suffix='timings')
 
     def __init__(self, name, netbox, plugins=None):
         self.name = name
@@ -71,12 +74,6 @@ class JobHandler(object):
 
         instance_name = (self.name, "(%s)" % netbox.sysname)
         instance_queue_name = ("queue",) + instance_name
-        self.log_context = dict(job=self.name, sysname=self.netbox.sysname)
-        self._logger = get_context_logger(self, **self.log_context)
-        self._queue_logger = get_context_logger(self._logger.name + '.queue',
-                                                **self.log_context)
-        self._timing_logger = get_context_logger(self._logger.name + ".timings",
-                                                 **self.log_context)
 
         self.plugins = plugins or []
         self._logger.debug("Job %r initialized with plugins: %r",
@@ -126,8 +123,7 @@ class JobHandler(object):
             if plugin_class.can_handle(self.netbox):
                 plugin = plugin_class(self.netbox, agent=self.agent,
                                       containers=self.containers,
-                                      config=ipdevpoll_conf,
-                                      context=self.log_context)
+                                      config=ipdevpoll_conf)
                 plugins.append(plugin)
             else:
                 self._logger.debug("Plugin %s wouldn't handle %s",
@@ -395,8 +391,7 @@ class JobHandler(object):
         """
         for shadow_class in sorted_shadow_classes:
             if shadow_class in self.containers:
-                manager = shadow_class.manager(shadow_class, self.containers,
-                                               log_context=self.log_context)
+                manager = shadow_class.manager(shadow_class, self.containers)
                 self.storage_queue.append(manager)
 
     def container_factory(self, container_class, key):

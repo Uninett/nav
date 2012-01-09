@@ -46,7 +46,7 @@ from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.models import manage
-from nav.ipdevpoll import Plugin, get_class_logger
+from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.db import autocommit
 
@@ -159,7 +159,7 @@ class Arp(Plugin):
 
     @classmethod
     def _update_prefix_cache_with_result(cls, prefixes):
-        get_class_logger(cls).debug(
+        cls._logger.debug(
             "Populating prefix cache with %d prefixes", len(prefixes))
 
         prefixes = [(IP(p['net_address']), p['id']) for p in prefixes]

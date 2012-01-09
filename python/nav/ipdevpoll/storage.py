@@ -52,7 +52,7 @@ class MetaShadow(type):
         for fname in field_names:
             setattr(mcs, fname, None)
 
-        setattr(mcs, '_logger', ipdevpoll.get_class_logger(mcs))
+        setattr(mcs, '_logger', ipdevpoll.ContextLogger())
         MetaShadow.shadowed_classes[shadowclass] = mcs
 
 class DefaultManager(object):
@@ -61,7 +61,9 @@ class DefaultManager(object):
     Mostly uses helper methods in shadow classes to perform its work.
 
     """
-    def __init__(self, cls, containers, log_context=None):
+    _logger = ipdevpoll.ContextLogger()
+
+    def __init__(self, cls, containers):
         """Creates a storage manager.
 
         :param cls: The Shadow subclass this instance will work with.
@@ -70,10 +72,6 @@ class DefaultManager(object):
         """
         self.cls = cls
         self.containers = containers
-        if log_context:
-            self._logger = ipdevpoll.get_context_logger(self, **log_context)
-        else:
-            self._logger = ipdevpoll.get_class_logger(self.__class__)
 
     def prepare(self):
         """Prepares managed shadows in containers"""
