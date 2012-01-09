@@ -21,26 +21,6 @@ import inspect
 
 from nav.loggeradapter import LoggerAdapter
 
-
-def get_context_logger(instance, **kwargs):
-    """Returns a LoggerAdapter with the given context."""
-    if isinstance(instance, basestring):
-        logger = logging.getLogger(instance)
-    else:
-        logger = get_class_logger(instance.__class__)
-
-    return LoggerAdapter(logger, extra=kwargs)
-
-def get_class_logger(cls):
-    """Return a logger instance for a given class object.
-
-    The logger object is named after the fully qualified class name of
-    the cls class.
-
-    """
-    full_class_name = "%s.%s" % (cls.__module__, cls.__name__)
-    return logging.getLogger(full_class_name.lower())
-
 class ContextFormatter(Formatter):
     """A log formatter that will add context data if available in the record.
 

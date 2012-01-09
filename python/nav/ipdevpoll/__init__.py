@@ -26,7 +26,6 @@ Modules:
   snmpoid -- snmpoid based poll run scheduling
 
 """
-from .log import get_context_logger, get_class_logger
 from .log import ContextLogger, ContextFormatter
 
 class Plugin(object):
