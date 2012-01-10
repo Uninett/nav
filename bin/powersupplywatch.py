@@ -92,7 +92,7 @@ VENDOR_FAN_STATES = {
                                 CISCO_FAN_STATE_WARNING: 'w',
                                 },
                 VENDOR_HP: {
-                                CISCO_FAN_STATE_WARNING: 'n',
+                                HP_FAN_STATE_FAILED: 'n',
                                 HP_FAN_STATE_REMOVED: 'u',
                                 HP_FAN_STATE_OFF: 'u',
                                 HP_FAN_STATE_UNDERSPEED: 'w',
