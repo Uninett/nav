@@ -14,7 +14,7 @@ NAV documentation contents
 
     intro/install
     intro/getting-started
-    subsystems/index
+    reference/index
     glossary
     
 Indices, glossary and tables
