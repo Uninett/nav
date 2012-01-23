@@ -1,3 +1,5 @@
+htmldocfiles := $(shell test -e html && find html/ -type f)
+
 nobase_dist_doc_DATA = \
 	$(wildcard cricket/cricket-config/Defaults cricket/cricket-config/*/Defaults cricket/cricket-config/*/*/Defaults) \
 	cricket/README \
@@ -5,7 +7,8 @@ nobase_dist_doc_DATA = \
 	cricket/public_html/cricket.css \
 	$(wildcard mailin/alertmsg.d/*) \
 	$(wildcard intro/*.txt) \
-	$(wildcard subsystems/*.txt)
+	$(wildcard reference/*.txt) \
+	$(htmldocfiles)
 
 # Makefile for Sphinx documentation
 #
@@ -39,10 +42,12 @@ help:
 	@echo "  doctest   to run all doctests embedded in the documentation (if enabled)"
 
 clean-local:
-	-rm -rf $(BUILDDIR)/*
+	rm -rf $(BUILDDIR)
+	rm -f html
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	test -e html || ln -s $(BUILDDIR)/html html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
