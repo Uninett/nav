@@ -195,5 +195,5 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
         result.extend(self._get_fanstate_sensor_params(fanstate_sensors))
         result.extend(self._get_powersupply_sensor_params(powersupply_sensors))
 
-        self.logger.debug('get_all_sensors: result=%s' % result)
+        self._logger.debug('get_all_sensors: result=%s', result)
         defer.returnValue(result)

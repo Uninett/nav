@@ -1,3 +1,100 @@
+Version 3.10.1
+(released 05 Jan 2012)
+
+ Bugfixes:
+
+  * LP#903096 (Ampersand in organization id crashes ipdevinfo)
+  * LP#904605 (netboxinfo subcat column links to a failing page)
+  * LP#906763 (SyntaxError in powersupplywatch.py on Python < 2.6)
+  * LP#906845 (Status on front page shows device on maintenance as down)
+  * LP#906850 (Alert Profiles NoReverseMatch error under Django 1.3)
+  * LP#907193 (COMMIT/ROLLBACK error after deleting device (Django 1.3))
+  * LP#907204 (seeddb crashes while adding an already existing switch)
+  * LP#907741 (NAV 3.10 pping inaccurately reports multitudes of devices as down
+               when pinging self)
+  * LP#907772 (navtopology crashes with TypeError)
+  * LP#910849 (ipdevpoll wastes time and I/O bandwidth with unnecessary SQL
+               UPDATEs)
+  * LP#910855 (navtopology doesn't avoid multiple instances)
+  * LP#911684 (radius accounting log crashes when searching)
+  * LP#911786 (servicemon stops sending events)
+
+
+Version 3.10.0
+(released 16 Dec 2011)
+
+ User-visible features and improvements:
+
+  * VLAN subtopology detection has been rewritten to Python. The old
+    networkDiscovery Java program is now deprecated.
+
+  * Alerts when SNMP agents stop responding.
+
+  * Alerts on power failure SNMP traps from UPS units. UPS-MIB (RFC 1628) and
+    proprietary MIBs from Eaton Corporation, APC and MGE are supported.
+
+  * Configurable port link status monitoring and alerting in ipdevpoll,
+    independent of SNMP trap configuration.
+
+  * Alerts on redundant power supply and fan failures on Cisco and HP devices.
+
+  * Statistics from all environment sensors (such as temperature, humidity,
+    light, sound, etc.) detectable through either ENTITY-SENSOR-MIB (RFC
+    3433), CISCO-ENVMON-MIB or IT-WATCHDOGS-MIB (IT Watchdogs WeatherGoose)
+    are now collected via Cricket.
+
+  * pping can now ping IPv6 hosts.
+
+  * ipdevinfo and Machine Tracker now perform bulk DNS lookups in parallel,
+    improving page load times when DNS is slow.
+
+ Bugfixes:
+
+  * LP#744940 (geomap should default to a sensible start map)
+  * LP#894727 (No server software versions since NAV 3.5)
+
+
+Version 3.9.4
+(released 16 Dec 2011)
+
+ Bugfixes:
+
+  * LP#898992 (ipdevinfo displays all ports as blocking whereas stpblock report
+               confirms that they're not)
+  * LP#900723 (No SW version on Cisco 4506E L3 switch)
+  * LP#900779 (smsd crashes when discarding non-dispatchable messages with non-
+               ASCII chars)
+  * LP#901623 (mcc does not update maximum threshold value for interfaces)
+  * LP#903128 (servicemon/pping opens a new connection on any database error)
+  * LP#903681 (room report should include position)
+  * LP#904178 (smsd removes permanently failed dispatchers even when it should
+               ignore permanent failures)
+
+Version 3.9.3
+(released 01 Dec 2011)
+
+ Improvements:
+
+  * Using the `-d` option with cleanrrds.py will now also remove references to
+    stale availability and response time RRD files from NAV's database.  This
+    should help against the "Availability: N/A" issue seen by some in
+    ipdevinfo, whereas bugfixes to pping should prevent it from creating new
+    entries while leaving stale ones in the future.
+
+ Bugfixes:
+
+  * LP#586334 (HTTPS service checker doesn't work with Python 2.6)
+  * LP#744958 (ranked stats config file should default to mbit/s)
+  * LP#888056 (MacWatch GUI crashes if the input of the MAC address is invalid)
+  * LP#891542 (Add option to make smsd ignore "permanent" dispatch errors)
+  * LP#891568 (logengine cron mail complains: global name 'ENOENT' is not
+               defined)
+  * LP#893591 (pping crashes when rrd files already exist)
+  * LP#897175 (ipdevpoll stops polling a device whose type is yet unregistered)
+  * LP#897194 (NameError when adding IP device in SeedDB)
+  * LP#898128 (Trying to seed - when going to USAGE crash)
+
+
 Version 3.9.2
 (released 17 Nov 2011)
 

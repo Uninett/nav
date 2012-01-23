@@ -118,6 +118,7 @@ def main(args):
         'maxdelay': '3600',
         'retrylimit': '5',
         'retrylimitaction': 'ignore',
+        'exit_on_permanent_error': 'yes',
         'autocancel': '0',
         'loglevel': 'INFO',
         'mailwarnlevel': 'ERROR',
@@ -144,11 +145,10 @@ def main(args):
         'retrylimitaction': retrylimitaction
     }
 
-
     username = config['main']['username']
     autocancel = config['main']['autocancel']
-    loglevel = eval('logging.' + config['main']['loglevel'])
-    mailwarnlevel = eval('logging.' + config['main']['mailwarnlevel'])
+    loglevel = logging.getLevelName(config['main']['loglevel'])
+    mailwarnlevel = logging.getLevelName(config['main']['mailwarnlevel'])
     mailserver = config['main']['mailserver']
     mailaddr = config['main']['mailaddr']
 
@@ -286,7 +286,7 @@ def main(args):
                 (sms, sent, ignored, smsid) = dh.sendsms(user, msgs)
             except PermanentDispatcherError, error:
                 logger.critical("Sending failed permanently. Exiting. (%s)",
-                    error)
+                                error)
                 sys.exit(1)
             except DispatcherError, error:
                 try:
@@ -400,9 +400,9 @@ def backoffaction(error, retrylimitaction):
             (failed, numbmsg))
 
         for index, msg in enumerate(msgs):
-            print msg.keys
-            error_message += u"\n%s: \"%s\" --> %s" % \
-                (index+1, msg['msg'], msg['name'])
+            error_message += u"\n%s: \"%s\" --> %s" % (
+                index+1,
+                msg['msg'].decode('utf-8'), msg['name'].decode('utf-8'))
 
         error_message += u"\nError message: %s" % error
         logger.critical(error_message.encode('utf-8'))

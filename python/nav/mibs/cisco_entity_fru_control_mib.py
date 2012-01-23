@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Copyright 2008 - 2011 (C) UNINETT AS
 #
@@ -14,15 +15,24 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
+A class that collects the oids for fan- and psu-sensors,- and their
+corresponding fan- and psu-statuses.
+
+The class is specific for CISCO netboxes and use the
+CISCO-ENTITY-FRU-CONTROL-MIB to collect sensor-oids and read statuses.
 """
+
 from twisted.internet import defer
 
-from nav.mibs import reduce_index
 from nav.mibs import mibretriever
 
 from nav.mibs.entity_mib import EntityTable
 
 class CiscoEntityFruControlMib(mibretriever.MibRetriever):
+    """
+    A class that collects the oids for fan- and psu-sensors,- and their
+    corresponding fan and psu-status.
+    """
     from nav.smidumps.cisco_entity_fru_control_mib import MIB as mib
 
     def __init__(self, agent_proxy):

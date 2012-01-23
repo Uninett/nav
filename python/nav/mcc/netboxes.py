@@ -31,6 +31,7 @@ def make_config(config):
     for dirname in dirnames:
         create_subtree_config(configroot, dirname, views)
 
+    return True
 
 def create_subtree_config(configroot, dirname, views):
     """ Create config for this directory """

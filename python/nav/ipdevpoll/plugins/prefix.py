@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -124,6 +123,9 @@ class Prefix(Plugin):
 
             prefix = self.containers.factory(net_prefix, shadows.Prefix)
             prefix.net_address = str(net_prefix)
+            # Host masks aren't included when IPy converts to string
+            if '/' not in prefix.net_address:
+                prefix.net_address += "/%s"  % net_prefix.prefixlen()
             port_prefix.prefix = prefix
 
             # Always associate prefix with a VLAN record, but set a

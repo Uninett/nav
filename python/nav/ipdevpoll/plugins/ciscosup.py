@@ -14,13 +14,22 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Assigns Supervisor software revision to chassis device on Cisco devices"""
+import re
 
 from nav.ipdevpoll import Plugin, shadows
 
+SUPERVISOR_PATTERNS = [
+    re.compile(r'supervisor', re.I),
+    re.compile(r'\bSup\b'),
+    re.compile(r'WS-SUP'),
+    ]
+
 class CiscoSup(Plugin):
+    """Assigns Cisco Supervisor software revision to chassis"""
     @classmethod
     def can_handle(cls, netbox):
-        return netbox.type.vendor.id.lower() == 'cisco'
+        """Handles Cisco devices and any device whose type hasn't been found"""
+        return netbox.type is None or netbox.type.vendor.id.lower() == 'cisco'
 
     def handle(self):
         netbox = self.containers.factory(None, shadows.Netbox)
@@ -39,11 +48,15 @@ class CiscoSup(Plugin):
         if shadows.Module not in self.containers:
             return
         modules = self.containers[shadows.Module].values()
+        return find_supervisor(modules)
 
-        for module in modules:
-            if 'supervisor' in module.description.lower():
-                return module
+def find_supervisor(modules):
+    """Finds and returns the supervisor module from a list of modules.
 
+    Returns None if a supervisor module wasn't found.
+
+    """
+    for pattern in SUPERVISOR_PATTERNS:
         for module in modules:
-            if 'WS-SUP' in module.description:
+            if pattern.search(module.description):
                 return module

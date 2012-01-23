@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -29,7 +28,7 @@ from twisted.internet.defer import Deferred, maybeDeferred
 from nav import ipdevpoll
 from . import shadows, config, signals
 from .dataloader import NetboxLoader
-from .jobs import JobHandler, AbortedJobError
+from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
 from nav.tableformat import SimpleTableFormatter
 
 from nav.ipdevpoll.utils import log_unhandled_failure
@@ -45,13 +44,12 @@ class NetboxJobScheduler(object):
     """
     job_counters = {}
     job_queues = {}
+    _logger = ipdevpoll.ContextLogger()
 
     def __init__(self, job, netbox):
         self.job = job
         self.netbox = netbox
-        self._logger = ipdevpoll.get_context_logger(self,
-                                                    job=self.job.name,
-                                                    sysname=netbox.sysname)
+        self._log_context = dict(job=job.name, sysname=netbox.sysname)
         self.cancelled = False
         self.job_handler = None
         self._deferred = Deferred()
@@ -111,7 +109,6 @@ class NetboxJobScheduler(object):
         except Exception:
             self._log_unhandled_error(Failure())
             self.reschedule(60)
-            self._log_time_to_next_run()
             return
 
         self.job_handler = job_handler
@@ -131,17 +128,41 @@ class NetboxJobScheduler(object):
 
     def _reschedule_on_success(self, result):
         """Reschedules the next normal run of this job."""
-        time_passed = time.time() - self._last_job_started_at
-        delay = max(0, self.job.interval - time_passed)
+        delay = max(0, self.job.interval - self.get_runtime())
         self.reschedule(delay)
+        self._log_finished_job(True)
         return result
 
     def _reschedule_on_failure(self, failure):
         """Examines the job failure and reschedules the job if needed."""
-        failure.trap(AbortedJobError)
-        # FIXME: Should be configurable per. job
-        delay = randint(5*60, 10*60) # within 5-10 minutes
+        if failure.check(SuggestedReschedule):
+            delay = int(failure.value.delay)
+        else:
+            delay = randint(5*60, 10*60) # within 5-10 minutes
         self.reschedule(delay)
+        self._log_finished_job(False)
+        failure.trap(AbortedJobError)
+
+    def _log_finished_job(self, success=True):
+        status = "completed" if success else "failed"
+        runtime = datetime.timedelta(seconds=self.get_runtime())
+        next_time = self.get_time_to_next_run()
+        if next_time:
+            self._logger.info("%s in %s. next run in %s",
+                              status, runtime,
+                              datetime.timedelta(seconds=next_time))
+        else:
+            self._logger.info("%s in %s. no next run scheduled",
+                              status, runtime)
+
+    def get_runtime(self):
+        """Returns the number of seconds passed since the start of last job"""
+        return time.time() - self._last_job_started_at
+
+    def get_time_to_next_run(self):
+        """Returns the number of seconds until the next job starts"""
+        if self._next_call.active():
+            return self._next_call.getTime() - time.time()
 
     def reschedule(self, delay):
         """Reschedules the next run of of this job"""
@@ -151,8 +172,8 @@ class NetboxJobScheduler(object):
 
         next_time = datetime.datetime.now() + datetime.timedelta(seconds=delay)
 
-        self._logger.info("Next %r job for %s will be in %d seconds (%s)",
-                          self.job.name, self.netbox.sysname, delay, next_time)
+        self._logger.debug("Next %r job for %s will be in %d seconds (%s)",
+                           self.job.name, self.netbox.sysname, delay, next_time)
 
         if self._next_call.active():
             self._next_call.reset(delay)
@@ -214,20 +235,22 @@ class JobScheduler(object):
     job_logging_loop = None
     netbox_reload_interval = 2*60.0 # seconds
     netbox_reload_loop = None
+    _logger = ipdevpoll.ContextLogger()
 
     def __init__(self, job):
         """Initializes a job schedule from the job descriptor."""
-        self._logger = ipdevpoll.get_context_logger(self, job=job.name)
+        self._log_context = dict(job=job.name)
         self.job = job
-        self.netboxes = NetboxLoader(context=dict(job=job.name))
+        self.netboxes = NetboxLoader()
         self.active_netboxes = {}
 
         self.active_schedulers.add(self)
 
     @classmethod
-    def initialize_from_config_and_run(cls):
+    def initialize_from_config_and_run(cls, onlyjob=None):
         descriptors = config.get_jobs()
-        schedulers = [JobScheduler(d) for d in descriptors]
+        schedulers = [JobScheduler(d) for d in descriptors
+                      if not onlyjob or (d.name == onlyjob)]
         for scheduler in schedulers:
             scheduler.run()
 

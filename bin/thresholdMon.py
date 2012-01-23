@@ -32,112 +32,142 @@ import re
 import time
 import sys
 import optparse
+import logging
 
 # import NAV libraries
+import nav.buildconf
 from nav.event import Event
 from nav.rrd import presenter
 from nav.models.rrd import RrdFile, RrdDataSource
 
+LOG_FILE = nav.buildconf.localstatedir + "/log/thresholdMon.log"
+
 pres = presenter.presentation()
 
-start = int(time.time())
-date = time.ctime()
+# Script started
+start = time.time()
 
 # Globals
+# Exceptions, values that will give 2 alerts if enables
 exceptions = ['cpu5min', 'c5000BandwidthMax']
+# Default log-level, correspond to INFO
 log_level = 2
+# Extra slack in calculations
 downmodifier = 20
+logger = None
 
-def log_it(level, msg):
-    """ Just a simple logger to stderr"""
-    if log_level >= level:
-        print >> sys.stdout, msg
 
 def set_state(dsid, descr, state):
-    """ A simple method to set state in the rrd_datasource table"""
-    log_it(2, "Setting %s to %s" %(descr, state))
+    """
+    A simple method to set state in the rrd_datasource table
+    """
+    logger.info("Setting %s to %s" % (descr, state))
     if isinstance(dsid, str) or isinstance(dsid, unicode):
         if dsid.isdigit():
             dsid = int(dsid)
         else:
-            print >> sys.stderr, 'dsid is an illegal type: %s' % dsid
+            logger.error('dsid is an illegal type: %s' % dsid)
             return
     rrd_datasource = None
-    try :
+    try:
         rrd_datasource = RrdDataSource.objects.get(pk=dsid)
     except Exception, get_ex:
-        print >> sys.stderr, get_ex
+        logger.error('%s' % get_ex)
         return
 
-    rrd_datasource.thresholdstate = state
-    try :
+    rrd_datasource.threshold_state = state
+    try:
         rrd_datasource.save()
     except Exception, save_ex:
-        print >> sys.stderr, save_ex
+        logger.error('%s' % save_ex)
 
-def make_event(presobject, var, val, subid, fileid, state):
-    """Makes the event ready for sending and updates the rrd_datasource
-       table with the correct information
-       calls sendEvent with correct values"""
+
+def make_event(var, val, subid, fileid, state):
+    """
+    Makes the event ready for sending and updates the rrd_datasource
+    table with the correct information
+    calls sendEvent with correct values
+    """
     if isinstance(fileid, str) or isinstance(fileid, unicode):
         if fileid.isdigit():
             fileid = int(fileid)
         else:
-            print >> sys.stderr, 'fileid is an illegal type: %s' % fileid
+            logger.error('fileid is an illegal type: %s' % fileid)
             return
     rrd_file = None
-    try :
+    try:
         rrd_file = RrdFile.objects.get(pk=fileid)
     except Exception, get_ex:
-        print >> sys.stderr, get_ex
+        logger.error('%s' % get_ex)
         return
-  
+
     netboxid = rrd_file.netbox.id
     sysname = rrd_file.netbox.sysname
     ip = rrd_file.netbox.ip
 
     if netboxid:
-        log_it(2, "thresholdalert regarding %s (%s)" %(sysname, ip))
+        logger.info("thresholdalert regarding %s (%s)" % (sysname, ip))
     if state == 'active':
-        log_it(2, "Threshold on %s surpassed." %var)
+        logger.info("Threshold on %s surpassed." % var)
         set_state(subid, var, state)
         send_event(var, val, netboxid, state, subid)
     elif state == 'inactive':
-        log_it(2, "%s has calmed down." %var)
+        logger.info("%s has calmed down." % var)
         set_state(subid, var, state)
         send_event(var, val, netboxid, state, subid)
     elif state == 'stillactive':
-        log_it(2, "Alert on %s is still active." %var)
+        logger.info("Alert on %s is still active." % var)
     else:
-        log_it(2, "No such state (%s)" % state)
+        logger.info("No such state (%s)" % state)
 
 
-def send_event (var, val, netboxid, state, subid):
-    """Updates the correct tables for sending the event"""
+def send_event(var, val, netboxid, state, subid):
+    """
+    Updates the correct tables for sending the event
+    """
     if state == 'active':
         state = 's'
     else:
         state = 'e'
 
-    log_it(1, "sending event")
+    logger.debug("sending event")
 
-    the_event = Event(source='thresholdMon', target='eventEngine', 
-                netboxid=netboxid, subid=subid, 
+    the_event = Event(source='thresholdMon', target='eventEngine',
+                netboxid=netboxid, subid=subid,
                 eventtypeid='thresholdState', state=state)
     the_event[var] = val
+    the_event['threshold'] = val
 
     try:
         the_event.post()
     except Exception, post_ex:
-        print >> sys.stderr, post_ex
+        logger.error('%s' % post_ex)
 
+
+def _init_logger():
+    """
+    Creates a logger for this script, obviously... ;)
+    """
+    global logger
+    filehandler = logging.FileHandler(LOG_FILE)
+    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] ' \
+                                  '[%(name)s] L%(lineno)d %(message)s')
+    filehandler.setFormatter(formatter)
+
+    logger = logging.getLogger('thresholdMon')
+    logger.addHandler(filehandler)
+    loglevel = logging.ERROR - (log_level * 10)
+    logger.setLevel(loglevel)
 
 ##################################################
 # Done with functions, let the games begin!
 ##################################################
 
+
 def main(argv):
-    """ Main """
+    """
+    Main
+    """
     global log_level
     # First we get options from the commandline
     usage = "usage: %prog [-h|--help] [-l LEVEL|--log=LEVEL]"
@@ -148,10 +178,10 @@ def main(argv):
     if options.level in range(1, 4):
         log_level = options.level
     else:
-        log_it(2, "No such loglevel: %d, using loglevel %d" %
+        print >> sys.stderr, ("No such loglevel: %d, using loglevel %d" %
                 (options.level, log_level))
-    
-    log_it(1, "Starting thresholdMon at %s" % date)
+    _init_logger()
+    logger.info('Starting thresholdMon')
     # For each rrd_datasource, fetch the value and compare
     # it to the max-value.  Threshold can be an empty string.
     for rrd_datasource in RrdDataSource.objects.filter(
@@ -165,40 +195,41 @@ def main(argv):
         delimiter = rrd_datasource.delimiter
         thresholdstate = rrd_datasource.threshold_state
 
-        log_it(3, "-- NEW DATASOURCE (%s) --" % rrd_datasourceid)
+        logger.debug("-- NEW DATASOURCE (%s) --" % rrd_datasourceid)
         surpassed = 0
 
         # These values are silly. They just show how much the maximum value
         # ever in the life of the unit has been, which is totally useless to
         # the thresholdMonitor
         if exceptions.count(descr):
-            log_it(3, "%s is in exceptions" % descr)
+            logger.debug("%s is in exceptions" % descr)
             continue
 
         if threshold_max:
             threshold_max = int(threshold_max)
-        log_it(3, "Adding datasource %s" % rrd_datasourceid)
+        logger.debug("Adding datasource %s" % rrd_datasourceid)
         # Getting the value from the database
         pres.removeAllDs()
         try:
             pres.addDs(rrd_datasourceid)
         except TypeError:
-            log_it(3, "Error could not add ds, continuing (%s,%s,%s)" %
+            logger.error("Error could not add ds, continuing (%s,%s,%s)" %
                     (rrd_datasourceid))
             continue
 
-        
-        # We look at values over the 15 last minutes. 
+        # We look at values over the 15 last minutes.
         pres.fromTime = '-15min'
 
-        log_it(3, "Getting data from %s (%s)" % (rrd_datasourceid, descr))
+        logger.debug("Getting data from %s (%s)" % (rrd_datasourceid, descr))
         if pres.average():
             value = pres.average().pop()
-            log_it(3, "Value returned = %s" % value)
+            logger.debug("Value returned = %s" % value)
         else:
-            log_it(3, "No value returned")
+            logger.debug("No value returned")
             continue
 
+        # Save unmodified threshold for logging and alerts
+        orig_threshold = threshold
         # Checking if it is percent or a normal value we are comparing
         is_percent = re.compile("%$").search(threshold)
         threshold = re.sub('%$', '', threshold.strip())
@@ -212,48 +243,54 @@ def main(argv):
                 threshold = threshold - downmodifier
             elif delimiter == '<':
                 threshold = threshold + downmodifier
-            
-        log_it(3, "Threshold is %s" % threshold)
 
         if is_percent:
-            if delimiter == '>' and (value / threshold_max  * 100) > threshold:
-                surpassed = 1
-            elif delimiter == '<' and (value / threshold_max * 100) < threshold:
-                surpassed = 1
+            logger.debug('Threshold is set as %s%%' % threshold)
+            if delimiter == '>':
+                if ((value / threshold_max) * 100) > threshold:
+                    surpassed = 1
+            elif delimiter == '<':
+                if ((value / threshold_max) * 100) < threshold:
+                    surpassed = 1
         else:
+            logger.debug("Threshold is %s" % threshold)
             if delimiter == '<' and value < threshold:
                 surpassed = 1
             elif delimiter == '>' and value > threshold:
                 surpassed = 1
-        
 
-        if surpassed and thresholdstate == 'inactive':
-            log_it(2, "--------------------")
-            log_it(2, "Threshold surpassed (%s,%s,%s ds:%s)" %
-                    (value, threshold, threshold_max, rrd_datasourceid))
+        if surpassed and (thresholdstate == 'inactive' or not thresholdstate):
+            logger.info("--------------------")
+            logger.info("Threshold surpassed (%s,%s,%s ds:%s)" %
+                    (value, orig_threshold, threshold_max, rrd_datasourceid))
             # must send danger-event
-            make_event(pres, descr, threshold, rrd_datasourceid, rrd_fileid, 
+            make_event(descr, orig_threshold, rrd_datasourceid, rrd_fileid,
                       'active')
         elif surpassed and thresholdstate == 'active':
-            log_it(2, "--------------------")
-            log_it(2, "Threshold still surpassed. (%s,%s,%s ds:%s)" %
-                    (value, threshold, threshold_max, rrd_datasourceid))
-            make_event(pres, descr, threshold, rrd_datasourceid, rrd_fileid,
+            logger.info("--------------------")
+            logger.info("Threshold still surpassed. (%s,%s,%s ds:%s)" %
+                    (value, orig_threshold, threshold_max, rrd_datasourceid))
+            make_event(descr, orig_threshold, rrd_datasourceid, rrd_fileid,
                       'stillactive')
-        elif thresholdstate == 'active':
-            log_it(2, "--------------------")
-            log_it(2, "Threshold below value (%s,%s,%s ds:%s)" %
-                    (value, threshold, threshold_max, rrd_datasourceid))
+        elif not surpassed and thresholdstate == 'active':
+            logger.info("--------------------")
+            logger.info("Threshold below value (%s,%s,%s ds:%s)" %
+                    (value, orig_threshold, threshold_max, rrd_datasourceid))
             # Must send nodanger-event
-            make_event(pres, descr, threshold, rrd_datasourceid, rrd_fileid, 
+            make_event(descr, orig_threshold, rrd_datasourceid, rrd_fileid,
                   'inactive')
+        elif not surpassed and (thresholdstate == 'inactive'
+                                        or not thresholdstate):
+            logger.debug("Threshold not surpassed (%s,%s,%s)" %
+                    (value, orig_threshold, threshold_max))
         else:
-            log_it(3, "Threshold not surpassed (%s,%s,%s)" %
-                    (value, threshold, threshold_max))
+            logger.warn('This should not happen: surpassed = %d' +
+                        '; thresholdstate = %s' % (surpassed, thresholdstate))
 
-    end = int(time.time())
-    log_it(2, "%s executed in %s seconds." %(argv[0], end-start))
-    log_it(2, "------------------------------------------------------------------\n\n")
+    end = time.time()
+    logger.info("%s executed in %.2f seconds." % (argv[0], end - start))
+    logger.info('-----------------------------------------------' +
+                '-------------------\n\n')
 
 if __name__ == '__main__':
     main(sys.argv)

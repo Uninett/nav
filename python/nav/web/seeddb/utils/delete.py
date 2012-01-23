@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,6 +16,8 @@
 
 """Functions for deleting objects from seeddb.
 """
+import logging
+LOGGER = logging.getLogger(__name__)
 
 from django.db import connection, transaction, IntegrityError
 from django.core.urlresolvers import reverse
@@ -63,6 +64,7 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None):
             new_message(request._req, msg, Messages.ERROR)
         except Exception, ex:
             # Something else went wrong
+            LOGGER.exception("Unhandled exception during delete: %r", request)
             msg = "Error: %s" % ex
             new_message(request._req, msg, Messages.ERROR)
         else:
@@ -111,7 +113,7 @@ def dependencies(queryset, whitelist):
 
     return related_objects
 
-@transaction.commit_manually
+@transaction.commit_on_success
 def qs_delete(queryset):
     """Deletes objects from the database.
 
@@ -131,11 +133,6 @@ def qs_delete(queryset):
     }
     try:
         cursor.execute(sql, (pk_list,))
-    except:
-        # Something went wrong, rollback and re-raise exception
-        transaction.rollback()
-        raise
-    else:
-        transaction.commit()
-        # FIXME Right return value?
-        return cursor.rowcount
+    finally:
+        transaction.set_dirty()
+    return cursor.rowcount

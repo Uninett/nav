@@ -7,4 +7,4 @@ set normal:
 	/switch-ports
 	/router-interfaces
 	/servers
-
+	/sensors

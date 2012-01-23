@@ -33,8 +33,6 @@ interfering with the daemon's asynchronous operations.
 
 """
 
-import logging
-
 from twisted.internet import threads
 
 from nav.models import manage
@@ -50,14 +48,14 @@ class NetboxLoader(dict):
     values are shadows.Netbox objects.
 
     """
+    _logger = ipdevpoll.ContextLogger()
 
-    def __init__(self, context=None):
+    def __init__(self):
         super(NetboxLoader, self).__init__()
         self.peak_count = 0
-        if context:
-            self._logger = ipdevpoll.get_context_logger(self, **context)
-        else:
-            self._logger = ipdevpoll.get_class_logger(self.__class__)
+        # touch _logger to initialize logging context right away
+        # pylint: disable=W0104
+        self._logger
 
     @autocommit
     def load_all_s(self):
@@ -80,7 +78,7 @@ class NetboxLoader(dict):
         related = ('room__location', 'type__vendor',
                    'category', 'organization', 'device')
         queryset = manage.Netbox.objects.select_related(*related).filter(
-            read_only__isnull=False, up='y')
+            read_only__isnull=False, up='y').exclude(read_only='')
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
 

@@ -36,6 +36,8 @@ import sys
 import os
 import os.path
 import getopt
+import textwrap
+
 try:
     from nav.startstop import ServiceRegistry, CommandFailedError
 except ImportError:
@@ -144,9 +146,12 @@ def action_iterator(query_list, action, ok_string, fail_string):
 
 def c_info(query_list):
     def helper(service):
-        print "%s (%s): %s" % (service.name,
-                               service.__class__.__name__,
-                               service.info)
+        kind = service.__class__.__name__
+        if kind.endswith("Service"):
+            kind = kind[:-7].lower()
+        output = "%-18s %8s: %s" % (service.name, "(%s)" % kind, service.info)
+        print '\n'.join(textwrap.wrap(output, width=79,
+                                      subsequent_indent=" "*29))
     service_iterator(query_list, helper)
 
 def c_list(query_list):

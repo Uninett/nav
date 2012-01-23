@@ -17,7 +17,7 @@ There are multiple copyright holders to NAV code.  The major copyright holders
 are:
 
 * Copyright 1999-2010 Norwegian University of Science and Technology
-* Copyright 2002-2011 UNINETT AS
+* Copyright 2002-2012 UNINETT AS
 * Copyright 2007-2010 University of Tromsø
 
 See individual source files for more detailed copyright notices.

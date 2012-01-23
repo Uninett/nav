@@ -68,13 +68,15 @@ def find_corresponding_netbox(ipaddr):
     cursor = getConnection('default').cursor()
     try:
         query = "SELECT netboxid FROM netbox WHERE ip = %s"
-        _logger.debug(query)
         cursor.execute(query, (ipaddr,))
         row = cursor.fetchone()
-        return row[0]
+        if row:
+            return row[0]
 
     except Exception:
         _logger.exception("Unexpected error when querying database")
+    finally:
+        _logger.debug("Query was: %s", cursor.query)
 
 def get_interface_details(netboxid, ifindex):
     """Get interfaceid, deviceid, modulename, ifname, ifalias for interface"""

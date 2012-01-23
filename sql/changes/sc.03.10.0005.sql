@@ -1,0 +1,27 @@
+-- Fix sequence owners to account for problems encountered in Django 1.3:
+ALTER SEQUENCE eventqvar_id_seq OWNED BY manage.eventqvar.id;
+ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY profiles.accountgroup_accounts.id;
+ALTER SEQUENCE accountproperty_id_seq OWNED BY profiles.accountproperty.id;
+ALTER SEQUENCE alertsender_id_seq OWNED BY profiles.alertsender.id;
+ALTER SEQUENCE alertprofile_id_seq OWNED BY profiles.alertprofile.id;
+ALTER SEQUENCE alertaddress_id_seq OWNED BY profiles.alertaddress.id;
+ALTER SEQUENCE timeperiod_id_seq OWNED BY profiles.timeperiod.id;
+ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY profiles.filtergroup_group_permission.id;
+ALTER SEQUENCE filtergroup_id_seq OWNED BY profiles.filtergroup.id;
+ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY profiles.filtergroupcontent.id;
+ALTER SEQUENCE expression_id_seq OWNED BY profiles.expression.id;
+ALTER SEQUENCE filter_id_seq OWNED BY profiles.filter.id;
+ALTER SEQUENCE operator_operator_id_seq OWNED BY profiles.operator.operator_id;
+ALTER SEQUENCE operator_id_seq OWNED BY profiles.operator.id;
+ALTER SEQUENCE matchfield_id_seq OWNED BY profiles.matchfield.id;
+ALTER SEQUENCE alertsubscription_id_seq OWNED BY profiles.alertsubscription.id;
+ALTER SEQUENCE accountnavbar_id_seq OWNED BY profiles.accountnavbar.id;
+ALTER SEQUENCE navbarlink_id_seq OWNED BY profiles.navbarlink.id;
+ALTER SEQUENCE accountorg_id_seq OWNED BY profiles.accountorg.id;
+ALTER SEQUENCE account_id_seq OWNED BY profiles.account.id;
+ALTER SEQUENCE accountgroup_id_seq OWNED BY profiles.accountgroup.id;
+ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY profiles.accountgroupprivilege.id;
+ALTER SEQUENCE privilege_id_seq OWNED BY profiles.privilege.privilegeid;
+ALTER SEQUENCE statuspreference_organization_id_seq OWNED BY profiles.statuspreference_organization.id;
+ALTER SEQUENCE statuspreference_id_seq OWNED BY profiles.statuspreference.id;
+ALTER SEQUENCE statuspreference_category_id_seq OWNED BY profiles.statuspreference_category.id;

@@ -26,12 +26,7 @@ Modules:
   snmpoid -- snmpoid based poll run scheduling
 
 """
-
-import logging
-from logging import Formatter
-
-from nav.errors import GeneralException
-from nav.loggeradapter import LoggerAdapter
+from .log import ContextLogger, ContextFormatter
 
 class Plugin(object):
 
@@ -40,15 +35,16 @@ class Plugin(object):
     Do *NOT* create instances of the base class.
 
     """
+    _logger = ContextLogger()
 
-    def __init__(self, netbox, agent, containers, config=None, context=None):
+    def __init__(self, netbox, agent, containers, config=None):
         self.netbox = netbox
         self.agent = agent
         self.containers = containers
         self.config = config
-        if not context:
-            context = dict(sysname=self.netbox.sysname)
-        self._logger = get_context_logger(self, **context)
+        # touch _logger to initialize logging context right away
+        # pylint: disable=W0104
+        self._logger
 
     def __str__(self):
         return '%s(%s)' % (self.full_name(), repr(self.netbox.sysname))
@@ -87,57 +83,3 @@ class Plugin(object):
         """Return the full module and class name of this instance."""
         return "%s.%s" % (self.__class__.__module__,
                           self.__class__.__name__)
-
-
-def get_context_logger(instance, **kwargs):
-    """Returns a LoggerAdapter with the given context."""
-    if isinstance(instance, basestring):
-        logger = logging.getLogger(instance)
-    else:
-        logger = get_class_logger(instance.__class__)
-
-    return LoggerAdapter(logger, extra=kwargs)
-
-def get_class_logger(cls):
-    """Return a logger instance for a given class object.
-
-    The logger object is named after the fully qualified class name of
-    the cls class.
-
-    """
-    full_class_name = "%s.%s" % (cls.__module__, cls.__name__)
-    return logging.getLogger(full_class_name.lower())
-
-class ContextFormatter(Formatter):
-    """A log formatter that will add context data if available in the record.
-
-    Only recognizes the attributes 'job' and 'sysname' as context data.
-
-    """
-    prefix = 'nav.ipdevpoll.'
-
-    def __init__(self):
-        self._normal_fmt = "%(asctime)s [%(levelname)s %(name)s] %(message)s"
-        self._context_fmt = ("%(asctime)s [%(levelname)s "
-                             "%(name)s] [%(context)s] %(message)s")
-        Formatter.__init__(self, self._normal_fmt)
-
-    def format(self, record):
-        """Overridden to choose format based on record contents."""
-        self._set_context(record)
-        self._strip_logger_prefix(record)
-        return Formatter.format(self, record)
-
-    def _set_context(self, record):
-        context = [getattr(record, attr)
-                   for attr in ('job', 'sysname')
-                   if hasattr(record, attr)]
-        if context:
-            record.__dict__['context'] = ' '.join(context)
-            self._fmt = self._context_fmt
-        else:
-            self._fmt = self._normal_fmt
-
-    def _strip_logger_prefix(self, record):
-        if record.name.startswith(self.prefix):
-            record.name = record.name[len(self.prefix):]

@@ -223,6 +223,8 @@ def removeFractions(timestamp):
     
     if match(r'.+\d\.\d+', ts):
         formattedTime = sub(r'\.\d+', '', ts)
+    else:
+        formattedTime = ts
     
     return formattedTime
 

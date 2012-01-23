@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2008, 2011 UNINETT AS
+# Copyright (C) 2008, 2011, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -20,6 +20,7 @@ import os
 import re
 from optparse import OptionParser
 import subprocess
+from textwrap import wrap
 
 import psycopg2
 
@@ -27,7 +28,7 @@ from nav.db import get_connection_parameters, get_connection_string
 
 def main():
     """Main program"""
-    (options, args) = parse_args()
+    (options, _args) = parse_args()
 
     verify_password_is_configured()
 
@@ -35,7 +36,7 @@ def main():
         create_database()
 
     sql_dir = os.path.dirname(sys.argv[0])
-    sync = Synchronizer(sql_dir)
+    sync = Synchronizer(sql_dir, options.apply_out_of_order_changes)
     try:
         sync.connect()
     except psycopg2.OperationalError, err:
@@ -59,9 +60,14 @@ def parse_args():
     parser.add_option("-c", "--create",
                       action="store_true", dest="create_database",
                       help="Create NAV database")
+    parser.add_option("-o", "--out-of-order", default=False,
+                      action="store_true", dest="apply_out_of_order_changes",
+                      help="Apply missing schema changes even when they are "
+                      "older than the newest applied change")
     return parser.parse_args()
 
 def verify_password_is_configured():
+    """Verifies that a password has been configured in db.conf"""
     opts = ConnectionParameters.from_config()
     if not opts.password:
         die("No password configured for %s user in db.conf" % opts.user)
@@ -194,11 +200,13 @@ class Synchronizer(object):
         (None, 'indexes.sql'),
         ]
 
-    def __init__(self, sql_dir):
+    def __init__(self, sql_dir, apply_out_of_order_changes=False):
         self.sql_dir = sql_dir
         self.connection = None
         self.cursor = None
         self.connect_options = ConnectionParameters.from_config()
+        self.apply_out_of_order_changes = apply_out_of_order_changes
+        self.finder = ChangeScriptFinder(self.sql_dir)
 
     def connect(self):
         """Connects the synchronizer to the NAV configured database."""
@@ -295,31 +303,73 @@ class Synchronizer(object):
 
     def apply_changes(self):
         """Finds and applies outstanding schema change scripts."""
-        (major, minor, point) = self.get_last_applied_change()
-        finder = ChangeScriptFinder(self.sql_dir)
-        new_scripts = finder.get_updates_since(major, minor, point)
+        applied = self.get_all_applied_changes()
+        newest = applied[-1]
+        missing = self.finder.get_missing_changes(applied)
 
-        if new_scripts:
+        old_versions = [m for m in missing if m < newest]
+        new_versions = [m for m in missing if m > newest]
+
+        if old_versions:
+            if self.apply_out_of_order_changes:
+                print "Applying outstanding schema changes out of order"
+                self.apply_versions(old_versions)
+            else:
+                print "\n".join(wrap(
+                        "There are outstanding schema changes older than the "
+                        "newest applied one.  The ordering of schema changes "
+                        "may be significant, so I'm not applying these changes "
+                        "unless you force me with the -o option:"))
+                print
+                self.print_script_list(old_versions)
+                if new_versions:
+                    print "\nOutstanding new schema changes:\n"
+                    self.print_script_list(new_versions)
+                sys.exit(2)
+
+        if new_versions:
             print "Applying outstanding schema changes"
-            for (version, script) in new_scripts:
-                self.apply_change_script(version, script)
+            self.apply_versions(new_versions)
 
-        else:
+        if not old_versions and not new_versions:
             print "No outstanding schema changes."
 
-    def get_last_applied_change(self):
-        """Returns the (major, minor, point) of the latest logged change"""
+    def print_script_list(self, versions):
+        """Prints a list of found change scripts based on a list of versions"""
+        available = self.finder.as_dict()
+        for version in versions:
+            print available.get(version, version)
+
+    def apply_versions(self, versions):
+        """Applies the change scripts for a list of versions"""
+        available = self.finder.as_dict()
+        for version in versions:
+            script = available[version]
+            self.apply_change_script(version, script)
+
+    def get_newest_applied_change(self):
+        """Returns the (major, minor, point) of the newest logged change"""
+        return self.get_all_applied_changes()[-1]
+
+    def get_first_applied_change(self):
+        """Returns the (major, minor, point) of the first logged change"""
+        return self.get_all_applied_changes()[0]
+
+    def get_all_applied_changes(self):
+        """Returns a list of the (major, minor, point) of all logged changes,
+        ordered from oldest to newest.
+
+        """
         if self.is_legacy_database():
-            return -1, -1, -1
+            return [(-1, -1, -1)]
 
         self.cursor.execute(
             """
             SELECT major, minor, point
             FROM schema_change_log
-            ORDER BY date_applied DESC
-            LIMIT 1
+            ORDER BY major ASC, minor ASC, point ASC
             """)
-        return self.cursor.fetchone()
+        return self.cursor.fetchall()
 
     def apply_change_script(self, version, script):
         """Applies a specific change script."""
@@ -351,7 +401,7 @@ class Synchronizer(object):
         try:
             self.cursor.execute(sql)
         except (psycopg2.DataError, psycopg2.ProgrammingError), err:
-            print err
+            print str(err) or type(err).__name__
             sys.exit(2)
         else:
             print "OK"
@@ -373,17 +423,29 @@ class ChangeScriptFinder(list):
                    if self.script_pattern.match(f)]
         self[:] = scripts
 
-    def get_updates_since(self, major, minor, point):
-        """Returns a list of schema change scripts available since (major,
-        minor,point).
+    def get_missing_changes(self, versions):
+        """Returns a list of available schema changes that are missing from
+        the versions list.
 
-        The list consists of (version, script_file) tuples, and is sorted by
-        version numbers.
+        Version scripts older than the oldest version in the versions lists
+        will not be considered.
 
         """
-        scripts = [(self.script_to_version(s), s) for s in self]
-        return sorted([(version, s) for (version, s) in scripts
-                       if version > (major, minor, point)])
+        applied = sorted(versions)
+        oldest = applied[0]
+        scripts = self.as_dict()
+        available = sorted(ver for ver in scripts.keys() if ver >= oldest)
+
+        return sorted(set(available).difference(applied))
+
+    def as_dict(self):
+        """Returns the contents of the script list as a dictionary.
+
+        :returns: {(major, minor, point): 'scriptfile'}
+
+        """
+        return dict((self.script_to_version(script), script)
+                    for script in self)
 
     @classmethod
     def script_to_version(cls, filename):

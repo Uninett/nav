@@ -18,9 +18,6 @@
  * geomap.js: Shows a map with a network information overlay.
  */
 
-// Initial position and zoom level (if none provided in the URL):
-var lat=63.4141131037476;
-var lon=10.4059409151806;
 var zoom=6;
 
 // Variables holding the objects created by init:
@@ -93,13 +90,13 @@ function init(mapElementId, url) {
     themap.addControl(posControl);
     posControl.activate();
 
-    var lonLat = new OpenLayers.LonLat(lon, lat).transform(themap.displayProjection, themap.getProjectionObject());
-    themap.setCenter(lonLat, zoom, false);
-    
     if (parameters.bbox) {
 	var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
 	requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
 	themap.zoomToExtent(requestedBounds);
+    } else {
+	nav.geomapBBox.transform(themap.displayProjection, themap.getProjectionObject());
+	themap.zoomToExtent(nav.geomapBBox);
     }
 
     try {

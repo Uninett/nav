@@ -30,6 +30,8 @@ python/nav/buildconf.py
 etc/webfront/webfront.conf
 etc/apache/apache.conf
 etc/logger.conf
+etc/pping.conf
+etc/servicemon.conf
 
 # Compiled Cheetah templates
 python/nav/web/templates/*.py

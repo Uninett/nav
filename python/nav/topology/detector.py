@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,20 +13,18 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""NAV network topology detection program.
-
-Currently, this will only detect the layer 2 topology.  VLAN topology
-detection is still done by the Java-based networkDiscovery program; this
-functionality will later be moved to this program.
-"""
+"""NAV network topology detection program"""
 
 from optparse import OptionParser
 from functools import wraps
 import inspect
 import logging
+import sys
 import os
+import atexit
 
 from nav import buildconf
+from nav import daemon
 from nav.debug import log_stacktrace, log_last_django_query
 from nav.topology.layer2 import update_layer2_topology
 from nav.topology.analyze import AdjacencyReducer, build_candidate_graph_from_db
@@ -34,6 +32,7 @@ from nav.topology.vlan import VlanGraphAnalyzer, VlanTopologyUpdater
 
 LOGFILE_NAME = 'navtopology.log'
 LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
+PIDFILE_PATH = os.path.join(buildconf.localstatedir, 'run', 'navtopology.pid')
 
 
 def main():
@@ -42,9 +41,17 @@ def main():
     (options, _args) = parser.parse_args()
 
     init_logging()
-    do_layer2_detection()
+    if options.l2 or options.vlan:
+        # protect against multiple invocations of long-running jobs
+        verify_singleton()
+    if options.l2:
+        do_layer2_detection()
     if options.vlan:
-        do_vlan_detection()
+        if options.include_vlans:
+            vlans = [int(v) for v in options.include_vlans]
+        else:
+            vlans = []
+        do_vlan_detection(vlans)
 
 def make_option_parser():
     """Sets up and returns a command line option parser."""
@@ -54,8 +61,13 @@ def make_option_parser():
                      "database")
         )
 
+    parser.add_option("--l2", action="store_true", dest="l2",
+                      help="Detect physical topology")
     parser.add_option("--vlan", action="store_true", dest="vlan",
-                      help="Also detect vlan subtopologies")
+                      help="Detect vlan subtopologies")
+    parser.add_option("-i", dest="include_vlans", default="",
+                      metavar="vlan[,...]",
+                      help="Only analyze the VLANs included in this list")
     return parser
 
 def init_logging():
@@ -96,12 +108,31 @@ def do_layer2_detection():
     update_layer2_topology(links)
 
 @with_exception_logging
-def do_vlan_detection():
+def do_vlan_detection(vlans):
     analyzer = VlanGraphAnalyzer()
-    analyzer.analyze_all()
+    if vlans:
+        analyzer.analyze_vlans_by_id(vlans)
+    else:
+        analyzer.analyze_all()
     ifc_vlan_map = analyzer.add_access_port_vlans()
     update = VlanTopologyUpdater(ifc_vlan_map)
     update()
+
+def verify_singleton():
+    """Verifies that we are the single running navtopology process.
+
+    If a navtopology process is already running, we exit this process.
+
+    """
+
+    try:
+        daemon.justme(PIDFILE_PATH)
+    except daemon.AlreadyRunningError, error:
+        print >> sys.stderr, "navtopology is already running (%d)" % error.pid
+        sys.exit(1)
+
+    daemon.writepidfile(PIDFILE_PATH)
+    atexit.register(daemon.daemonexit, PIDFILE_PATH)
 
 if __name__ == '__main__':
     main()
