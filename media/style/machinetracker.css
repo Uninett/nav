@@ -6,3 +6,11 @@
 .infobox {
 		margin-bottom: 1em;
 }
+
+.errorbox {
+padding:10px; 
+margin-bottom:10px; 
+background-color:#ed6a6a;
+border:1px solid #999;
+}
+

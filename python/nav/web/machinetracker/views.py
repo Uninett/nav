@@ -63,6 +63,8 @@ def ip_do_search(request):
     tracker = None
     form_data = {}
     row_count = 0
+    from_ip = None
+    to_ip = None
 
     if form.is_valid():
         ip_input = form.cleaned_data['ip_range']
@@ -178,11 +180,19 @@ def ip_do_search(request):
 
         row_count = sum(len(mac_ip_pair) for mac_ip_pair in tracker.values())
 
+    # If the form was valid, but we found no results, display error message
+    display_no_results = False
+    if form.is_valid() and not row_count:
+        display_no_results = True
+
     info_dict = {
         'form': form,
         'form_data': form_data,
         'ip_tracker': tracker,
         'ip_tracker_count': row_count,
+        'subnet_start': unicode(from_ip),
+        'subnet_end': unicode(to_ip),
+        'display_no_results': display_no_results,
     }
     info_dict.update(IP_DEFAULTS)
     return render_to_response(

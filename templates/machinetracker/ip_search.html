@@ -16,20 +16,23 @@
         </table>
     </form>
 </div>
-
+{% if display_no_results %}
+    <div class="errorbox">
+        <p>Your search did not give any results. ({{ subnet_start }}-{{ subnet_end }})</p>
+    </div>
+{% endif %}
 {% if ip_tracker %}
 <div class="results">
     {% include "machinetracker/ip_tracker.html" %}
 </div>
 {% else %}
-<p>Your search did not give any results.</p>
 <div class="infobox">
     <h4>Valid Search terms</h4>
     <ul>
         <li>Single IP addresses</li>
-        <li>Ranges like 10.0.0.0-10.0.1.255, 10.0.0.0-255 or 2001:701::0000-FFF.</li>
+        <li>Ranges like 10.0.0.0-10.0.1.255, 10.0.0.0-255 or 2001:701::AAA-FFF.</li>
         <li>CIDR addresses like 129.241.105.0/24.</li>
-        <li>Single addresses with a CIDR slash, 129.241.105.0/ will return subnet based on what info NAV's database have.
+        <li>Single addresses with a CIDR slash, 129.241.105.0/ will add subnet mask based on prefixes collected by NAV.</li>
     </ul>
     <h4>Accuracy of the Results</h4>
     <ul>
