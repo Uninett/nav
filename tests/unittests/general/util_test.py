@@ -15,6 +15,8 @@
 import unittest
 
 from nav import util
+from nav.util import IPRange
+from IPy import IP
 
 class UtilTestCase(unittest.TestCase):
     """Test various functions in the util module"""
@@ -59,3 +61,63 @@ class UtilTestCase(unittest.TestCase):
         for ip in invalid_ips:
             self.assertFalse(util.isValidIP(ip),
                              msg="%s should be invalid" % ip)
+
+class IPRangeTests(unittest.TestCase):
+    def test_ipv4_range_length_should_be_correct(self):
+        i = IPRange(IP('10.0.42.0'), IP('10.0.42.127'))
+        self.assertEquals(len(i), 128)
+
+    def test_ipv6_range_length_should_be_correct(self):
+        i = IPRange(IP('fe80:700:1::'), IP('fe80:700:1::f'))
+        self.assertEquals(len(i), 16)
+
+    def test_indexed_access_should_work(self):
+        i = IPRange(IP('10.0.42.0'), IP('10.0.42.127'))
+        self.assertEquals(i[5], IP('10.0.42.5'))
+
+    def test_out_of_bounds_positive_index_should_raise(self):
+        i = IPRange(IP('10.0.42.0'), IP('10.0.42.127'))
+        self.assertRaises(IndexError, lambda x: i[x], 129)
+
+    def test_out_of_bounds_negative_index_should_raise(self):
+        i = IPRange(IP('10.0.42.0'), IP('10.0.42.127'))
+        self.assertRaises(IndexError, lambda x: i[x], -129)
+
+class IPRangeStringTests(unittest.TestCase):
+    def test_simple_ipv4_range_should_parse(self):
+        i = IPRange.from_string('10.0.42.0-10.0.42.63')
+        self.assertEquals(i[0], IP('10.0.42.0'))
+        self.assertEquals(i[-1], IP('10.0.42.63'))
+
+    def test_simple_ipv6_range_should_parse(self):
+        i = IPRange.from_string('fe80:700:1::-fe80:700:1::f')
+        self.assertEquals(i[0], IP('fe80:700:1::'))
+        self.assertEquals(i[-1], IP('fe80:700:1::f'))
+
+    def test_assembled_ipv4_range_should_parse(self):
+        i = IPRange.from_string('10.0.42.0-127')
+        self.assertEquals(i[0], IP('10.0.42.0'))
+        self.assertEquals(i[-1], IP('10.0.42.127'))
+
+    def test_assembled_ipv6_range_should_parse(self):
+        i = IPRange.from_string('fe80:700:1::aaa-fff')
+        self.assertEquals(i[0], IP('fe80:700:1::aaa'))
+        self.assertEquals(i[-1], IP('fe80:700:1::fff'))
+
+    def test_ipv4_subnet_should_parse(self):
+        i = IPRange.from_string('10.0.99.0/24')
+        self.assertEquals(i[0], IP('10.0.99.0'))
+        self.assertEquals(i[-1], IP('10.0.99.255'))
+
+    def test_ipv4_short_subnet_should_parse(self):
+        i = IPRange.from_string('10.0.99/24')
+        self.assertEquals(i[0], IP('10.0.99.0'))
+        self.assertEquals(i[-1], IP('10.0.99.255'))
+
+    def test_ipv4_with_unspecified_mask_should_parse(self):
+        i = IPRange.from_string('192.168.63/')
+        self.assertTrue(len(i) > 1)
+
+    def test_ipv6_with_unspecified_mask_should_parse(self):
+        i = IPRange.from_string('fe80:800:1::/')
+        self.assertTrue(i.len() > 1)
