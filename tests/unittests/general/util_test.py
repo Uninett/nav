@@ -121,3 +121,22 @@ class IPRangeStringTests(unittest.TestCase):
     def test_ipv6_with_unspecified_mask_should_parse(self):
         i = IPRange.from_string('fe80:800:1::/')
         self.assertTrue(i.len() > 1)
+
+    def test_range_with_no_end_should_raise(self):
+        self.assertRaises(ValueError, IPRange.from_string, '10.0.42.0-')
+
+    def test_garbage_range_should_raise(self):
+        self.assertRaises(ValueError, IPRange.from_string, 'blapp')
+
+    def test_empty_range_should_raise(self):
+        self.assertRaises(ValueError, IPRange.from_string, '')
+
+    def test_invalid_netmask_should_raise(self):
+        self.assertRaises(ValueError, IPRange.from_string, '10.0.0.0/2000')
+
+    def test_multi_range_should_raise(self):
+        self.assertRaises(ValueError,
+                          IPRange.from_string, '10.0.0.0-10.0.1.0-42')
+
+    def test_multi_mask_should_raise(self):
+        self.assertRaises(ValueError, IPRange.from_string, '10.0.0.0/8/24')
