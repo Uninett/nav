@@ -22,7 +22,9 @@ if [ -d "$VIRTENV" ]; then
     echo "**> virtualenv exists"
 else
     echo "**> creating virtualenv"
-    virtualenv "$VIRTENV"
+    opt=
+    test -n "$PYTHON_VER" && opt="-p python$PYTHON_VER"
+    virtualenv $opt "$VIRTENV"
 fi
 . "$VIRTENV/bin/activate"
 easy_install pip || exit 1
