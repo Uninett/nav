@@ -23,7 +23,7 @@ from twisted.internet.defer import returnValue
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import AlertHistory
-from nav.ipdevpoll import Plugin, get_class_logger
+from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.snmp import AgentProxy
 from nav.ipdevpoll.jobs import SuggestedReschedule
 
@@ -43,8 +43,8 @@ class SnmpCheck(Plugin):
         super(SnmpCheck, self).__init__(*args, **kwargs)
         if SnmpCheck.down_set is None:
             SnmpCheck.down_set = get_snmp_agent_down_set()
-            get_class_logger(SnmpCheck).debug("initially down: %r",
-                                              SnmpCheck.down_set)
+            SnmpCheck._logger.debug("initially down: %r",
+                                    SnmpCheck.down_set)
 
     @classmethod
     def can_handle(cls, netbox):

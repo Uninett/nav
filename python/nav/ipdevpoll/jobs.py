@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -27,7 +27,7 @@ from twisted.internet.error import TimeoutError
 
 from nav import toposort
 
-from nav.ipdevpoll import get_context_logger
+from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from . import storage, shadows
 from .plugins import plugin_registry
@@ -63,6 +63,9 @@ class JobHandler(object):
     information for the job.
 
     """
+    _logger = ContextLogger()
+    _queue_logger = ContextLogger(suffix='queue')
+    _timing_logger = ContextLogger(suffix='timings')
 
     def __init__(self, name, netbox, plugins=None):
         self.name = name
@@ -71,12 +74,6 @@ class JobHandler(object):
 
         instance_name = (self.name, "(%s)" % netbox.sysname)
         instance_queue_name = ("queue",) + instance_name
-        self.log_context = dict(job=self.name, sysname=self.netbox.sysname)
-        self._logger = get_context_logger(self, **self.log_context)
-        self._queue_logger = get_context_logger(self._logger.name + '.queue',
-                                                **self.log_context)
-        self._timing_logger = get_context_logger(self._logger.name + ".timings",
-                                                 **self.log_context)
 
         self.plugins = plugins or []
         self._logger.debug("Job %r initialized with plugins: %r",
@@ -126,8 +123,7 @@ class JobHandler(object):
             if plugin_class.can_handle(self.netbox):
                 plugin = plugin_class(self.netbox, agent=self.agent,
                                       containers=self.containers,
-                                      config=ipdevpoll_conf,
-                                      context=self.log_context)
+                                      config=ipdevpoll_conf)
                 plugins.append(plugin)
             else:
                 self._logger.debug("Plugin %s wouldn't handle %s",
@@ -189,12 +185,12 @@ class JobHandler(object):
             self._destroy_agentproxy()
             return defer.succeed(None)
 
-        self._logger.info("Starting job %r for %s",
-                          self.name, self.netbox.sysname)
+        self._logger.debug("Starting job %r for %s",
+                           self.name, self.netbox.sysname)
 
         def wrap_up_job(result):
-            self._logger.info("Job %s for %s done.", self.name,
-                              self.netbox.sysname)
+            self._logger.debug("Job %s for %s done.", self.name,
+                               self.netbox.sysname)
             self._log_timings()
             return result
 
@@ -311,11 +307,11 @@ class JobHandler(object):
         @db.autocommit
         @db.cleanup_django_debug_after
         def complete_save_cycle():
+            # Traverse all the classes in the container repository and
+            # generate the storage queue
+            self.populate_storage_queue()
             # Prepare all shadow objects for storage.
             self.prepare_containers_for_save()
-            # Traverse all the objects in the storage container and generate
-            # the storage queue
-            self.populate_storage_queue()
             # Actually save to the database
             result = self.perform_save()
             self.log_timed_result(result, "Storing to database complete")
@@ -326,31 +322,25 @@ class JobHandler(object):
         return df
 
     def prepare_containers_for_save(self):
-        """Execute the prepare_for_save-method on all shadow classes with known
-        instances.
-
-        """
-        for cls in self.containers.keys():
+        """Runs every queued manager's prepare routine"""
+        for manager in self.storage_queue:
             self.raise_if_cancelled()
-            cls.prepare_for_save(self.containers)
+            manager.prepare()
 
     def cleanup_containers_after_save(self):
-        """Execute the cleanup_after_save-method on all shadow classes with
-        known instances.
-
-        """
-        self._logger.debug("Running cleanup routines for %d classes (%r)",
-                           len(self.containers), self.containers.keys())
+        """Runs every queued manager's cleanup routine"""
+        self._logger.debug("Running cleanup routines for %d managers",
+                           len(self.storage_queue), self.storage_queue)
         try:
-            for cls in self.containers.keys():
+            for manager in self.storage_queue:
                 self.raise_if_cancelled()
-                cls.cleanup_after_save(self.containers)
+                manager.cleanup()
         except AbortedJobError:
             raise
         except Exception:
             self._logger.exception("Caught exception during cleanup. "
-                                  "Last class = %s",
-                                  cls.__name__)
+                                   "Last manager = %r",
+                                   manager)
             import django.db
             if django.db.connection.queries:
                 self._logger.error("The last query was: %s",
@@ -362,17 +352,14 @@ class JobHandler(object):
 
     def perform_save(self):
         start_time = time.time()
-        obj_model = None
+        manager = None
         try:
-            self.storage_queue.reverse()
             if self._queue_logger.getEffectiveLevel() <= logging.DEBUG:
-                self._queue_logger.debug(pprint.pformat(
-                        [(id(o), o) for o in self.storage_queue]))
+                self._queue_logger.debug(pprint.pformat(self.storage_queue))
 
-            while self.storage_queue:
+            for manager in self.storage_queue:
                 self.raise_if_cancelled()
-                obj = self.storage_queue.pop()
-                obj.save(self.containers)
+                manager.save()
 
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0
@@ -386,8 +373,8 @@ class JobHandler(object):
             raise
         except Exception:
             self._logger.exception("Caught exception during save. "
-                                   "Last object = %s. Last model: %s",
-                                   obj, obj_model)
+                                   "Last manager = %s. Last model = %s",
+                                   manager, getattr(manager, 'cls', None))
             import django.db
             if django.db.connection.queries:
                 self._logger.error("The last query was: %s",
@@ -405,8 +392,8 @@ class JobHandler(object):
         """
         for shadow_class in sorted_shadow_classes:
             if shadow_class in self.containers:
-                shadows = set(self.containers[shadow_class].values())
-                self.storage_queue.extend(shadows)
+                manager = shadow_class.manager(shadow_class, self.containers)
+                self.storage_queue.append(manager)
 
     def container_factory(self, container_class, key):
         """Container factory function"""

@@ -34,7 +34,7 @@ import logging
 import operator
 from twisted.internet import defer, reactor
 
-from nav.ipdevpoll import get_context_logger, get_class_logger
+from nav.ipdevpoll import ContextLogger
 from nav.errors import GeneralException
 from nav.oids import OID
 
@@ -245,8 +245,6 @@ class MibRetrieverMaker(type):
 
         MibRetrieverMaker.modules[ mib['moduleName'] ] = cls
 
-        cls.logger = get_class_logger(cls)
-
     # following is a collection of helper methods to modify the
     # MIB-aware retriever class that is being created.
 
@@ -316,12 +314,15 @@ class MibRetriever(object):
     """Base class for functioning MIB retriever classes."""
     mib = None
     __metaclass__ = MibRetrieverMaker
+    _logger = ContextLogger()
 
     def __init__(self, agent_proxy):
         """Create a new instance tied to an AgentProxy instance."""
         super(MibRetriever, self).__init__()
         self.agent_proxy = agent_proxy
-        self._logger = get_context_logger(self, sysname=agent_proxy.ip)
+        # touch _logger to initialize logging context right away
+        # pylint: disable=W0104
+        self._logger
 
     def retrieve_column(self, column_name):
         """Retrieve the contents of a single MIB table column.

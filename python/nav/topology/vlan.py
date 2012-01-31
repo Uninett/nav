@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -244,12 +244,17 @@ class RoutedVlanTopologyAnalyzer(object):
 
     def _log_block(self, next_edge):
         source, _dest, source_ifc = next_edge
-        dest, _source, dest_ifc = self._find_reverse_edge(next_edge)
-        _LOGGER.info("at least one of %s (%s) <-> %s (%s) is blocked "
-                     "on VLAN %s",
-                     source.sysname, source_ifc.ifname,
-                     dest.sysname, dest_ifc.ifname,
-                     self.vlan.vlan)
+        reverse_edge = self._find_reverse_edge(next_edge)
+        if reverse_edge:
+            dest, _source, dest_ifc = reverse_edge
+            _LOGGER.info("at least one of %s (%s) <-> %s (%s) is blocked "
+                         "on VLAN %s",
+                         source.sysname, source_ifc.ifname,
+                         dest.sysname, dest_ifc.ifname,
+                         self.vlan.vlan)
+        else:
+            _LOGGER.info("%s (%s) is blocked on VLAN %s",
+                         source.sysname, source_ifc.ifname, self.vlan.vlan)
 
     def _mark_both_ends_as_blocked(self, edge):
         _source, _dest, source_ifc = edge

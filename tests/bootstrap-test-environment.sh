@@ -38,7 +38,7 @@ make install || exit 1
 export PYTHONPATH="$BUILDDIR/lib/python"
 
 # Update db config
-sed -i'' -e "s/^db_nav\s*=\s*nav/db_nav=$PGDATABASE/" "$BUILDDIR/etc/db.conf"
+sed -i'' -e "s,^db_nav\s*=\s*nav,db_nav=$PGDATABASE," "$BUILDDIR/etc/db.conf"
 sed -i'' -e "s/^script_default\s*=\s*nav/script_default=$PGUSER/" "$BUILDDIR/etc/db.conf"
 sed -i'' -e "s/^userpw_nav\s*=.*/userpw_$PGUSER=$PGPASSWORD/" "$BUILDDIR/etc/db.conf"
 if [ -n "$PGHOST" ]; then sed -i'' -e "s/^dbhost\s*=\s*localhost/dbhost=$PGHOST/" "$BUILDDIR/etc/db.conf"; fi

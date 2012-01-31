@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -52,8 +52,51 @@ class MetaShadow(type):
         for fname in field_names:
             setattr(mcs, fname, None)
 
-        setattr(mcs, '_logger', ipdevpoll.get_class_logger(mcs))
+        setattr(mcs, '_logger', ipdevpoll.ContextLogger())
         MetaShadow.shadowed_classes[shadowclass] = mcs
+
+class DefaultManager(object):
+    """The default storage manager used by all shadow classes.
+
+    Mostly uses helper methods in shadow classes to perform its work.
+
+    """
+    _logger = ipdevpoll.ContextLogger()
+
+    def __init__(self, cls, containers):
+        """Creates a storage manager.
+
+        :param cls: The Shadow subclass this instance will work with.
+        :param containers: A ContainerRepository instance.
+
+        """
+        self.cls = cls
+        self.containers = containers
+
+    def prepare(self):
+        """Prepares managed shadows in containers"""
+        self.cls.prepare_for_save(self.containers)
+
+    def save(self):
+        """Saves managed shadows in containers"""
+        for obj in self.get_managed():
+            obj.save(self.containers)
+
+    def cleanup(self):
+        """Runs any necessary cleanup hooks after save is done"""
+        self.cls.cleanup_after_save(self.containers)
+
+    def get_managed(self):
+        """Returns the list of container objects managed by this instance"""
+        if self.cls in self.containers:
+            return self.containers[self.cls].values()
+        else:
+            return []
+
+    def __repr__(self):
+        return "%s(%r, %r(...))" % (self.__class__.__name__,
+                                    self.cls,
+                                    self.containers.__class__.__name__)
 
 class Shadow(object):
     """Base class to shadow Django model classes.
@@ -77,6 +120,7 @@ class Shadow(object):
     """
     __metaclass__ = MetaShadow
     __lookups__ = []
+    manager = DefaultManager
 
     def __init__(self, *args, **kwargs):
         """Initialize a shadow container.
@@ -275,11 +319,13 @@ class Shadow(object):
         setattr(self, pkey.name, value)
 
     def get_existing_model(self, containers=None):
-        """Return an existing live Django model object.
+        """Returns the Django model instance represented by this shadow
+        instance.
 
-        If the object represented by this shadow already exists in the
-        database, this method will return it from the database.  If
-        such an object doesn't exist, the None value will be returned.
+        If not set explicitly via the set_existing_model() call, this method
+        will synchronously query the database to find the object. If a
+        matching object cannot be found in the database, None is returned.
+
         """
         if hasattr(self, '_cached_existing_model') and \
                 self._cached_existing_model:
@@ -349,6 +395,18 @@ class Shadow(object):
                     self._cached_existing_model = model
                     return model
 
+    def set_existing_model(self, django_object):
+        """Explicitly sets the existing Django model instance this shadow
+        instance represents.
+
+        """
+        if not isinstance(django_object, self.__shadowclass__):
+            raise TypeError('Expected a %s object: %r' % (
+                    self.__shadowclass__.__name__, django_object))
+        pkey = self.get_primary_key_attribute()
+        setattr(self, pkey.name, getattr(django_object, pkey.name))
+        self._cached_existing_model = django_object
+
     @classmethod
     def prepare_for_save(cls, containers):
         """This method is run in a separate thread before saving containers,
@@ -403,18 +461,13 @@ class Shadow(object):
 
     def save(self, containers):
         """Saves this container to the database synchronously"""
-        obj = self.convert_to_model(containers)
-        if self.delete and obj:
-            obj.delete()
+        existing = self.get_existing_model(containers)
+        if self.delete and existing:
+            existing.delete()
+        elif existing:
+            self.update(containers)
         else:
-            try:
-                # Skip if object exists in database and no fields
-                # are touched
-                if (getattr(self, self.get_primary_key().name) and
-                    not self.get_touched()):
-                    return
-            except AttributeError:
-                pass
+            obj = self.convert_to_model(containers)
             if obj:
                 obj.save()
                 # In case we saved a new object, store a reference to
@@ -424,6 +477,43 @@ class Shadow(object):
                 if not self.get_primary_key():
                     self.set_primary_key(obj.pk)
                 self._touched.clear()
+
+    def update(self, containers):
+        """Updates the existing object in the database (synchronously) with
+        only the changed attributes of this shadow.
+
+        If none of the touched attributes of this instance are different from
+        the existing object, no update is executed.
+
+        """
+        existing = self.get_existing_model(containers)
+        diff = self.get_diff_attrs(existing)
+        if diff:
+            obj = self.convert_to_model(containers)
+            update = dict((attr, getattr(obj, attr))
+                          for attr in diff)
+            pkey = self.get_primary_key_attribute().name
+            filtr = {pkey: getattr(obj, pkey)}
+            myself = self.__shadowclass__.objects.filter(**filtr)
+            myself.update(**update)
+            self._touched.clear()
+
+
+    def get_diff_attrs(self, other):
+        """Returns a list of the names of the touched attributes on self whose
+        values are are different from the corresponding attributes on other.
+
+        """
+        def _is_different(attr):
+            myvalue = getattr(self, attr)
+            if isinstance(myvalue, Shadow):
+                attr = "%s_id" % attr
+                myvalue = myvalue.id
+            else:
+                return hasattr(other, attr) and myvalue != getattr(other, attr)
+
+        return [a for a in self.get_touched()
+                if _is_different(a)]
 
 def shadowify(model):
     """Return a properly shadowed version of a Django model object.

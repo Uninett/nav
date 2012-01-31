@@ -11,6 +11,7 @@ BIN=@bindir@/servicemon.py
 
 [ -x $BIN ] || exit 1
 
+KILLER=killwait
 # See how we were called.
 case "$1" in
 	start)

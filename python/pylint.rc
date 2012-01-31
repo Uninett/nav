@@ -45,7 +45,7 @@ disable=W0142,W0232
 output-format=parseable
 
 # Include message's id in output
-include-ids=no
+include-ids=yes
 
 # Put messages in a separate file for each module / package specified on the
 # command line instead of printing them on stdout. Reports (if any) will be
@@ -163,7 +163,7 @@ zope=yes
 
 # List of members which are set dynamically and missed by pylint inference
 # system, and so shouldn't trigger E0201 when accessed.
-generated-members=REQUEST,acl_users,aq_parent
+generated-members=REQUEST,acl_users,aq_parent,objects
 
 
 [SIMILARITIES]

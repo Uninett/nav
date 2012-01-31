@@ -1,7 +1,6 @@
-#! /usr/bin/env python
-# encoding: utf-8
+#!/usr/bin/env python
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -93,7 +92,7 @@ VENDOR_FAN_STATES = {
                                 CISCO_FAN_STATE_WARNING: 'w',
                                 },
                 VENDOR_HP: {
-                                CISCO_FAN_STATE_WARNING: 'n',
+                                HP_FAN_STATE_FAILED: 'n',
                                 HP_FAN_STATE_REMOVED: 'u',
                                 HP_FAN_STATE_OFF: 'u',
                                 HP_FAN_STATE_UNDERSPEED: 'w',
@@ -205,9 +204,10 @@ def read_hostsfile(filename):
     hosts_file = None
     try:
         hosts_file = open(filename, 'r')
-    except IOError as (errno, strerror):
-        err_str = "I/O error ({0}): " + filename + " ({1})"
-        print >> sys.stderr, err_str.format(errno, strerror)
+    except IOError, error:
+        err_str = "I/O error (%s): %s (%s)" % (
+            error.errno, filename, error.strerror)
+        print >> sys.stderr, err_str
         logger.error(err_str)
         sys.exit(2)
     for line in hosts_file:
