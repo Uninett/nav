@@ -6,21 +6,26 @@
 {% endblock %}
 
 {% block content %}
+{% if not task_form %}
 <form action="" method="post">
 {{ quickselect }}
 {% for key, identifiers in selected.items %}
-    {% ifnotequal key "location" %}
     {% for id in identifiers %}
 <input type="hidden" name="{{ key }}" value="{{ id }}" />
     {% endfor %}
-    {% endifnotequal %}
 {% endfor %}
 </form>
+{% endif %}
 
 {% if components %}
+<form action="" method="post">
 <ul>
 {% for comp in components %}
     <li>
+        <input type="hidden" name="{{ comp.type }}" value="{{ comp.id }}" />
+        {% if not task_form  %}
+        <input type="checkbox" name="remove_{{ comp.type }}" value="{{ comp.id }}" />
+        {% endif %}
         {{ comp.title|capfirst }}:
     {% for elem in comp.trail %}
         {% if elem.url %}
@@ -35,13 +40,20 @@
     </li>
 {% endfor %}
 </ul>
+{% if task_form %}
+<table class="listtable vertitable">
+    {{ task_form }}
+    <tr>
+        <th></th>
+        <td><input type="submit" name="save" value="Save task" /></td>
+    </tr>
+</table>
+{% else %}
+<p><input type="submit" name="remove" value="Remove selected" /></p>
+<p><input type="submit" name="form" value="Next" /></p>
+{% endif %}
+</form>
 {% else %}
     (none)
 {% endif %}
-
-<form action="" method="post">
-<table class="listtable vertitable">
-{{ task_form }}
-</table>
-</form>
 {% endblock %}

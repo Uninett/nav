@@ -23,144 +23,127 @@ from django.core.urlresolvers import reverse
 from django.utils.html import conditional_escape
 from django.db import connection
 
-def components_for_task(task_id):
-    # Raw SQL, as doing this in the Django ORM is not that easy, and would
-    # probably be harder to read.
-    cursor = connection.cursor()
-    cursor.execute("""SELECT key, value,
-            COALESCE(location.locationid, room.roomid, netbox.netboxid::varchar, service.serviceid::varchar) AS info_found,
-            location.locationid, location.descr AS locationdescr,
-            room.roomid, room.descr AS roomdescr,
-            netbox.netboxid, netbox.sysname, netbox.ip,
-            service.serviceid, service.handler
-        FROM maint_component
-        LEFT OUTER JOIN service ON (key = 'service' AND value = service.serviceid::varchar)
-        LEFT OUTER JOIN netbox ON (
-            key = 'netbox' AND value = netbox.netboxid::varchar OR
-            key = 'service' AND service.netboxid = netbox.netboxid
-        )
-        LEFT OUTER JOIN room ON (
-            key = 'room' AND value = room.roomid OR
-            (key = 'netbox' OR key = 'service') AND netbox.roomid = room.roomid
-        )
-        LEFT OUTER JOIN location ON (
-            key = 'location' AND value = location.locationid OR
-            key <> 'location' AND room.locationid = location.locationid
-        )
-        WHERE maint_taskid = %s""", (task_id,))
-    return [
-        dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()
-    ]
+from nav.models.manage import Netbox, Room, Location
+from nav.models.service import Service
 
-def components_for_keys(keys):
-    # Raw SQL, as doing this in the Django ORM is not that easy, and would
-    # probably be harder to read.
-    cursor = connection.cursor()
-    cursor.execute("""SELECT 'service' AS key, service.serviceid::varchar AS value,
-        COALESCE(service.serviceid::varchar) AS info_found,
-        location.locationid, location.descr AS locationdescr,
-        room.roomid, room.descr AS roomdescr,
-        netbox.netboxid, netbox.sysname, netbox.ip,
-        service.serviceid, service.handler
-        FROM service
-        INNER JOIN netbox USING (netboxid)
-        INNER JOIN room USING (roomid)
-        INNER JOIN location USING (locationid)
-        WHERE serviceid = ANY (%s::int[])
+PRIMARY_KEY_INTEGER = ('netbox', 'service')
 
-        UNION
+FIELD_KEYS = {
+    'service': {
+        'netbox': 'netbox__',
+        'room': 'netbox__room__',
+        'location': 'netbox__room__location__',
+    },
+    'netbox': {
+        'netbox': '',
+        'room': 'room__',
+        'location': 'room__location__',
+    },
+    'room': {
+        'room': '',
+        'location': 'location__',
+    },
+    'location': {
+        'location': '',
+    }
+}
 
-        SELECT 'netbox' AS key, netbox.netboxid::varchar AS value,
-        COALESCE(netbox.netboxid::varchar) AS info_found,
-        location.locationid, location.descr AS locationdescr,
-        room.roomid, room.descr AS roomdescr,
-        netbox.netboxid, netbox.sysname, netbox.ip,
-        NULL AS serviceid, NULL AS handler
-        FROM netbox
-        INNER JOIN room USING (roomid)
-        INNER JOIN location USING (locationid)
-        WHERE
-        netboxid = ANY (%s::int[])
+def get_component_keys_from_post(post):
+    remove = {}
+    raw_component_keys = {
+        'service': post.getlist('service'),
+        'netbox': post.getlist('netbox'),
+        'room': post.getlist('room'),
+        'location': post.getlist('location'),
+    }
+    raw_component_keys['location'].extend(post.getlist('loc'))
+    if 'remove' in post:
+        remove = {
+            'service': post.getlist('remove_service'),
+            'netbox': post.getlist('remove_netbox'),
+            'room': post.getlist('remove_room'),
+            'location': post.getlist('remove_location'),
+        }
+    component_keys = {'service': [], 'netbox': [], 'room': [], 'location': []}
+    for key in raw_component_keys:
+        for value in raw_component_keys[key]:
+            if not remove or value not in remove[key]:
+                if key in PRIMARY_KEY_INTEGER:
+                    value = int(value)
+                if value not in component_keys[key]:
+                    component_keys[key].append(value)
+    return component_keys
 
-        UNION
+def components_for_keys(component_keys):
+    component_data = {}
+    component_data['service'] = Service.objects.filter(id__in=component_keys['service']).values(
+        'id', 'handler', 'netbox__id', 'netbox__sysname', 'netbox__ip',
+        'netbox__room__id', 'netbox__room__description',
+        'netbox__room__location__id', 'netbox__room__location__description')
+    component_data['netbox'] = Netbox.objects.filter(id__in=component_keys['netbox']).values(
+        'id', 'sysname', 'ip', 'room__id', 'room__description',
+        'room__location__id', 'room__location__description')
+    component_data['room'] = Room.objects.filter(id__in=component_keys['room']).values(
+        'id', 'description', 'location__id', 'location__description')
+    component_data['location'] = Location.objects.filter(id__in=component_keys['location']).values(
+        'id', 'description')
+    return component_data
 
-        SELECT 'room' AS key, room.roomid AS value,
-        COALESCE(room.roomid) AS info_found,
-        location.locationid, location.descr AS locationdescr,
-        room.roomid, room.descr AS roomdescr,
-        NULL AS netboxid, NULL AS sysname, NULL AS ip,
-        NULL AS serviceid, NULL AS handler
-        FROM room
-        INNER JOIN location USING (locationid)
-        WHERE
-        room.roomid = ANY (%s)
-
-        UNION
-
-        SELECT 'location' AS key, location.locationid AS value,
-        COALESCE(location.locationid) AS info_found,
-        location.locationid, location.descr AS locationdescr,
-        NULL as roomid, NULL as roomdescr, NULL AS netboxid, NULL AS sysname, NULL AS ip, NULL AS serviceid, NULL AS handler
-        FROM location
-        WHERE locationid = ANY (%s)""", (
-            keys['service'],
-            keys['netbox'],
-            keys['room'],
-            keys['location']
-        ))
-    return [
-        dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()
-    ]
-
-def task_component_trails(components):
+def task_component_trails(component_keys, components):
     trails = []
-    for comp in components:
-        title = comp['key']
+    for key in component_keys:
+        title = key
         if title == 'netbox':
             title = 'IP Device'
-        trail = []
-        if not comp['info_found']:
-            trail.append({
-                'url': None,
-                'title': None,
-                'name': "ID %s (Details not available)" % comp['value'],
+        for pkey in component_keys[key]:
+            trail = []
+            try:
+                comp = components[key][pkey]
+            except KeyError:
+                trail.append({
+                    'url': None,
+                    'title': None,
+                    'name': "ID %s (Details not available)" % pkey,
+                })
+            else:
+                if key in ('location', 'room', 'netbox', 'service'):
+                    location_id = comp[FIELD_KEYS[key]['location'] + "id"]
+                    location_description = comp[FIELD_KEYS[key]['location'] + "description"]
+                    trail.append({
+                        'url': reverse('report-room-location', args=[location_id]),
+                        'title': location_description,
+                        'name': location_id,
+                    })
+                if key in ('room', 'netbox', 'service'):
+                    room_id = comp[FIELD_KEYS[key]['room'] + "id"]
+                    room_description = comp[FIELD_KEYS[key]['room'] + "description"]
+                    trail.append({
+                        'url': reverse('report-netbox-room', args=[room_id]),
+                        'title': room_description,
+                        'name': room_id,
+                    })
+                if key in ('netbox', 'service'):
+                    netbox_sysname = comp[FIELD_KEYS[key]['netbox'] + "sysname"]
+                    netbox_ip = comp[FIELD_KEYS[key]['netbox'] + "ip"]
+                    trail.append({
+                        'url': reverse('ipdevinfo-details-by-name', args=[netbox_sysname]),
+                        'title': netbox_ip,
+                        'name': netbox_sysname,
+                    })
+                if key == 'service':
+                    trail.append({
+                        'url': None,
+                        'title': None,
+                        'name': comp['handler'],
+                    })
+            trails.append({
+                'id': pkey,
+                'type': key,
+                'title': title,
+                'trail': trail,
             })
-        else:
-            if comp['key'] in ('location', 'room', 'netbox', 'service'):
-                trail.append({
-                    'url': reverse('report-room-location', args=[comp['locationid']]),
-                    'title': comp['locationdescr'],
-                    'name': comp['locationid'],
-                })
-            if comp['key'] in ('room', 'netbox', 'service'):
-                trail.append({
-                    'url': reverse('report-netbox-room', args=[comp['roomid']]),
-                    'title': comp['roomdescr'],
-                    'name': comp['roomid'],
-                })
-            if comp['key'] in ('netbox', 'service'):
-                trail.append({
-                    'url': reverse('ipdevinfo-details-by-name', args=[comp['sysname']]),
-                    'title': comp['ip'],
-                    'name': comp['sysname'],
-                })
-            if comp['key'] == 'service':
-                trail.append({
-                    'url': None,
-                    'title': None,
-                    'name': comp['handler'],
-                })
-            if comp['key'] == 'module':
-                trail.append({
-                    'url': None,
-                    'title': None,
-                    'name': "(Warning: Modules can no longer be a maintenance component.)",
-                })
-        trails.append({
-            'title': title,
-            'trail': trail,
-        })
     return trails
+
 
 class MaintenanceCalendar(HTMLCalendar):
     def __init__(self, tasks):

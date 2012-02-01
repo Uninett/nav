@@ -26,13 +26,17 @@ from django.http import HttpResponseRedirect, Http404
 from django.utils.safestring import mark_safe
 
 from nav.django.utils import get_account
+from nav.models.manage import Netbox, Room, Location
+from nav.models.service import Service
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 
-from nav.web.maintenance.utils import components_for_task, components_for_keys, task_component_trails
+from nav.web.maintenance.utils import components_for_keys, task_component_trails
+from nav.web.maintenance.utils import get_component_keys_from_post, PRIMARY_KEY_INTEGER
 from nav.web.maintenance.utils import MaintenanceCalendar
 from nav.web.maintenance.forms import MaintenanceTaskForm
+
 
 def calendar(request, year=None, month=None):
     if not year:
@@ -99,8 +103,26 @@ def historic(request):
 
 def view(request, task_id):
     task = get_object_or_404(MaintenanceTask, pk=task_id)
-    components = components_for_task(task_id)
-    component_trail = task_component_trails(components)
+
+    maint_components = MaintenanceComponent.objects.filter(
+        maintenance_task=task.id).values_list('key', 'value')
+
+    component_keys = {'service': [], 'netbox': [], 'room': [], 'location': []}
+    for key, value in maint_components:
+        if key in PRIMARY_KEY_INTEGER:
+            value = int(value)
+        component_keys[key].append(value)
+
+    component_data = components_for_keys(component_keys)
+    components = {}
+    for key in component_data:
+        for component in component_data[key]:
+            pkey = component['id']
+            if key not in components:
+                components[key] = {}
+            components[key][pkey] = component
+
+    component_trail = task_component_trails(component_keys, components)
     return render_to_response(
         'maintenance/details.html',
         {
@@ -134,31 +156,34 @@ def cancel(request, task_id):
         )
 
 def new_task(request):
-    task_form = MaintenanceTaskForm()
     quickselect = QuickSelect(service=True)
     component_trail = None
-    qs_res = None
+    component_keys = None
+    task_form = None
     if request.method == 'POST':
-        qs_res = {
-            'service': request.POST.getlist('service'),
-            'netbox': request.POST.getlist('netbox'),
-            'room': request.POST.getlist('room'),
-            'location': request.POST.getlist('loc'),
-            'loc': request.POST.getlist('loc'),
-        }
-        components = components_for_keys(qs_res)
-        component_trail = task_component_trails(components)
-#        locations = Location.objects.filter(pk__in=qs_res['location'])
-#        rooms = Location.objects.filter(pk__in=qs_res['room'])
-#        netboxes = Netbox.objects.filter(pk__in=qs_res['netbox'])
-#        services = Service.objects.filter(pk__in=qs_res['service'])
+        if 'form' in request.POST:
+            task_form = MaintenanceTaskForm()
+        if 'save' in request.POST:
+            task_form = MaintenanceTaskForm(request.POST)
+
+        component_keys = get_component_keys_from_post(request.POST)
+        component_data = components_for_keys(component_keys)
+        components = {}
+        for key in component_data:
+            for component in component_data[key]:
+                pkey = component['id']
+                if key not in components:
+                    components[key] = {}
+                components[key][pkey] = component
+
+        component_trail = task_component_trails(component_keys, components)
     return render_to_response(
         'maintenance/new_task.html',
         {
             'task_form': task_form,
             'quickselect': mark_safe(quickselect),
             'components': component_trail,
-            'selected': qs_res,
+            'selected': component_keys,
         },
         RequestContext(request)
     )
