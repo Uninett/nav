@@ -16,9 +16,10 @@
 
 import nav.maintenance
 
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.db.models import Count
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
@@ -155,17 +156,18 @@ def cancel(request, task_id):
             RequestContext(request)
         )
 
+@transaction.commit_on_success()
 def new_task(request):
+    account = get_account(request)
     quickselect = QuickSelect(service=True)
     component_trail = None
     component_keys = None
-    task_form = None
+    initial = {
+        'start_time': datetime.today().strftime("%Y-%m-%d %H:%M"),
+        'end_time': (datetime.today() + timedelta(weeks=1)).strftime("%Y-%m-%d %H:%M")
+    }
+    task_form = MaintenanceTaskForm(initial=initial)
     if request.method == 'POST':
-        if 'form' in request.POST:
-            task_form = MaintenanceTaskForm()
-        if 'save' in request.POST:
-            task_form = MaintenanceTaskForm(request.POST)
-
         component_keys = get_component_keys_from_post(request.POST)
         component_data = components_for_keys(component_keys)
         components = {}
@@ -175,8 +177,34 @@ def new_task(request):
                 if key not in components:
                     components[key] = {}
                 components[key][pkey] = component
-
         component_trail = task_component_trails(component_keys, components)
+
+        if 'save' in request.POST:
+            task_form = MaintenanceTaskForm(request.POST)
+            if task_form.is_valid():
+                start_time = task_form.cleaned_data['start_time']
+                end_time = task_form.cleaned_data['end_time']
+                state = MaintenanceTask.STATE_SCHEDULED
+                if start_time < datetime.now() and end_time <= datetime.now():
+                    state = MaintenanceTask.STATE_SCHEDULED
+
+                task = MaintenanceTask(
+                    start_time=task_form.cleaned_data['start_time'],
+                    end_time=task_form.cleaned_data['end_time'],
+                    description=task_form.cleaned_data['description'],
+                    state=state,
+                    author=account.login)
+                task.save()
+                for key in component_data:
+                    for component in component_data[key]:
+                        task_component = MaintenanceComponent(
+                            maintenance_task=task,
+                            key=key,
+                            value="%s" % component['id'])
+                        task_component.save()
+        else:
+            task_form = MaintenanceTaskForm(initial=request.POST)
+
     return render_to_response(
         'maintenance/new_task.html',
         {
