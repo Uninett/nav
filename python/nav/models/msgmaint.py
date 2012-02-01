@@ -48,12 +48,23 @@ class MaintenanceTask(models.Model):
     """From MetaNAV: The maintenance task created in the maintenance task
     tool."""
 
+    STATE_SCHEDULED = 'scheduled'
+    STATE_ACTIVE = 'active'
+    STATE_PASSED = 'passed'
+    STATE_CANCELED = 'canceled'
+    STATES = (
+        (STATE_SCHEDULED, 'Scheduled'),
+        (STATE_ACTIVE, 'Active'),
+        (STATE_PASSED, 'Passed'),
+        (STATE_CANCELED, 'Canceled'),
+    )
+
     id = models.AutoField(db_column='maint_taskid', primary_key=True)
     start_time = models.DateTimeField(db_column='maint_start')
     end_time = models.DateTimeField(db_column='maint_end')
     description = models.TextField()
     author = VarcharField()
-    state = VarcharField()
+    state = VarcharField(choices=STATES)
 
     class Meta:
         db_table = 'maint_task'
