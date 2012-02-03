@@ -883,11 +883,8 @@ public class QueryBoks extends Thread
 					for (Iterator vlanIt = macVlan.iterator(); vlanIt.hasNext();) {
 						String[] s = (String[])vlanIt.next();
 						String mac = decimalToHexMac(s[0]);
-						if (mac.length() != 12) {
-							Log.d("PROCESS_MAC", "Wrong length: " + s[0] + " vs " + mac);
-						}
-						//Log.d("MAC_ENTRY", "Found mac: " + mac + " portIndex: " + s[1] + "("+ boksIdName.get(macBoksId.get(mac)) +")");
-							
+						mac = verifyMacLength(mac);
+
 						// Sjekk om MAC adressen vi har funnet er dem samme som den for enheten vi spør
 						// Dette skjer på C35* enhetene.
 						if (netboxid.equals(macBoksId.get(mac))) continue;
@@ -937,6 +934,28 @@ public class QueryBoks extends Thread
 
 		Log.d("MAC_ENTRY", "MACs found on " + activeVlanCnt + " / " + vlanSet.size() + " VLANs, units on " + unitVlanCnt + ".");
 		return l;
+	}
+
+	/**
+	 * Verifies that a decoded mac address is exactly 12 digits.
+	 * If longer than 12 digits, the leading digits are stripped
+	 * and the remainder is returned.  Otherwise the address is
+	 * returned unchanged.
+	 *
+	 * @param mac A hexadecimal MAC address
+	 * @return A hexadecimal MAC address of maxium 12 digits.
+	 */
+	protected static String verifyMacLength(String mac) {
+		if (mac.length() != 12) {
+			if (mac.length() > 12) {
+				String newmac = mac.substring(mac.length()-12, mac.length());
+				Log.d("PROCESS_MAC", "Wrong length: " + mac + " (stripping leading digits = " + newmac + ")");
+				mac = newmac;
+			} else {
+				Log.d("PROCESS_MAC", "Wrong length: " + mac);
+			}
+		}
+		return mac;
 	}
 
 
