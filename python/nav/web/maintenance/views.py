@@ -40,15 +40,32 @@ from nav.web.maintenance.utils import MaintenanceCalendar, NAVPATH, TITLE
 from nav.web.maintenance.forms import MaintenanceTaskForm
 
 def calendar(request, year=None, month=None):
-    if not year:
+    try:
+        year = int(request.GET.get('year'))
+        month = int(request.GET.get('month'))
+        this_month_start = date(year, month, 1)
+    except (TypeError, ValueError):
         year = date.today().year
-    if not month:
         month = date.today().month
-    this_month = date(year, month, 1)
-    next_month = date(year, month + 1, 1)
+        this_month_start = date(year, month, 1)
+
+    next_month = month + 1
+    next_year = year
+    if next_month > 12:
+        next_year = year + 1
+        next_month = 1
+
+    prev_month = month - 1
+    prev_year = year
+    if prev_month < 1:
+        prev_year = year - 1
+        prev_month = 12
+
+    prev_month_start = date(prev_year, prev_month, 1)
+    next_month_start = date(next_year, next_month, 1)
     tasks = MaintenanceTask.objects.filter(
-        start_time__gt=this_month,
-        start_time__lt=next_month
+        start_time__gt=this_month_start,
+        start_time__lt=next_month_start,
     )
     calendar = MaintenanceCalendar(tasks).formatmonth(year, month)
     return render_to_response(
@@ -58,6 +75,10 @@ def calendar(request, year=None, month=None):
             'navpath': NAVPATH,
             'title': TITLE,
             'calendar': mark_safe(calendar),
+            'prev_month': prev_month_start,
+            'this_month': this_month_start,
+            'next_month': next_month_start,
+            'curr_month': datetime.today(),
         },
         RequestContext(request)
     )

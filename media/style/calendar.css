@@ -49,3 +49,11 @@ div.calendar tr.weekheader th {
 	padding: 5px;
 	padding-bottom: 0;
 }
+
+div.calendar .calendar_controls a {
+}
+div.calendar .calendar_controls form {
+	display: inline !important;
+}
+div.calendar .calendar_controls input {
+}
