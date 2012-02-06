@@ -16,7 +16,7 @@
 
 from calendar import HTMLCalendar
 from itertools import groupby
-from datetime import date
+from datetime import date, datetime
 from time import strftime
 
 from django.core.urlresolvers import reverse
@@ -25,6 +25,7 @@ from django.db import connection
 
 from nav.models.manage import Netbox, Room, Location
 from nav.models.service import Service
+from nav.models.msgmaint import MaintenanceTask
 
 PRIMARY_KEY_INTEGER = ('netbox', 'service')
 
@@ -47,6 +48,29 @@ FIELD_KEYS = {
         'location': '',
     }
 }
+
+NAVPATH = [
+    ('Home', '/'),
+    ('Maintenance', '/maintenance/'),
+]
+
+TITLE = "NAV - Maintenance"
+
+
+def infodict_by_state(task):
+    if task.state == MaintenanceTask.STATE_SCHEDULED and task.start_time > datetime.now():
+        state = 'planned'
+        navpath = NAVPATH + [('Planned tasks', reverse('maintenance-planned'))]
+    elif task.state in (MaintenanceTask.STATE_PASSED, MaintenanceTask.STATE_CANCELED):
+        state = 'historic'
+        navpath = NAVPATH + [('Historic tasks', reverse('maintenance-historic'))]
+    else:
+        state = 'active'
+        navpath = NAVPATH + [('Active tasks', reverse('maintenance-active'))]
+    return {
+        'active': {state: True},
+        'navpath': navpath,
+    }
 
 def get_component_keys(post):
     remove = {}
@@ -88,6 +112,16 @@ def components_for_keys(component_keys):
     component_data['location'] = Location.objects.filter(id__in=component_keys['location']).values(
         'id', 'description')
     return component_data
+
+def structure_component_data(component_data):
+    components = {}
+    for key in component_data:
+        for component in component_data[key]:
+            pkey = component['id']
+            if key not in components:
+                components[key] = {}
+            components[key][pkey] = component
+    return components
 
 def task_component_trails(component_keys, components):
     trails = []

@@ -35,9 +35,9 @@ from nav.web.quickselect import QuickSelect
 
 from nav.web.maintenance.utils import components_for_keys, task_component_trails
 from nav.web.maintenance.utils import get_component_keys, PRIMARY_KEY_INTEGER
-from nav.web.maintenance.utils import MaintenanceCalendar
+from nav.web.maintenance.utils import structure_component_data, infodict_by_state
+from nav.web.maintenance.utils import MaintenanceCalendar, NAVPATH, TITLE
 from nav.web.maintenance.forms import MaintenanceTaskForm
-
 
 def calendar(request, year=None, month=None):
     if not year:
@@ -55,6 +55,8 @@ def calendar(request, year=None, month=None):
         'maintenance/calendar.html',
         {
             'active': {'calendar': True},
+            'navpath': NAVPATH,
+            'title': TITLE,
             'calendar': mark_safe(calendar),
         },
         RequestContext(request)
@@ -69,6 +71,8 @@ def active(request):
         'maintenance/list.html',
         {
             'active': {'active': True},
+            'navpath': NAVPATH + [('Active tasks', '')],
+            'title': TITLE + " - Active tasks",
             'tasks': tasks,
         },
         RequestContext(request)
@@ -84,6 +88,8 @@ def planned(request):
         'maintenance/list.html',
         {
             'active': {'planned': True},
+            'navpath': NAVPATH + [('Planned tasks', '')],
+            'title': TITLE + " - Planned tasks",
             'tasks': tasks,
         },
         RequestContext(request)
@@ -97,6 +103,8 @@ def historic(request):
         'maintenance/list.html',
         {
             'active': {'historic': True},
+            'navpath': NAVPATH + [('Historic tasks', '')],
+            'title': TITLE + " - Historic tasks",
             'tasks': tasks,
         },
         RequestContext(request)
@@ -104,7 +112,6 @@ def historic(request):
 
 def view(request, task_id):
     task = get_object_or_404(MaintenanceTask, pk=task_id)
-
     maint_components = MaintenanceComponent.objects.filter(
         maintenance_task=task.id).values_list('key', 'value')
 
@@ -115,18 +122,16 @@ def view(request, task_id):
         component_keys[key].append(value)
 
     component_data = components_for_keys(component_keys)
-    components = {}
-    for key in component_data:
-        for component in component_data[key]:
-            pkey = component['id']
-            if key not in components:
-                components[key] = {}
-            components[key][pkey] = component
-
+    components = structure_component_data(component_data)
     component_trail = task_component_trails(component_keys, components)
+
+    infodict = infodict_by_state(task)
     return render_to_response(
         'maintenance/details.html',
         {
+            'active': infodict['active'],
+            'navpath': infodict['navpath'],
+            'title': TITLE + " - Task \"%s\"" % task.description,
             'task': task,
             'components': component_trail,
         },
@@ -148,9 +153,13 @@ def cancel(request, task_id):
         url = reverse('maintenance-view', args=[task_id])
         return HttpResponseRedirect(reverse('maintenance-view', args=[task_id]))
     else:
+        infodict = infodict_by_state(task)
         return render_to_response(
             'maintenance/cancel.html',
             {
+                'active': infodict['active'],
+                'navpath': infodict['navpath'],
+                'title': TITLE + " - Cancel task",
                 'task': task,
             },
             RequestContext(request)
@@ -187,13 +196,7 @@ def new_task(request, task_id=None):
 
     if component_keys:
         component_data = components_for_keys(component_keys)
-        components = {}
-        for key in component_data:
-            for component in component_data[key]:
-                pkey = component['id']
-                if key not in components:
-                    components[key] = {}
-                components[key][pkey] = component
+        components = structure_component_data(component_data)
         component_trail = task_component_trails(component_keys, components)
 
     if request.method == 'POST':
