@@ -390,7 +390,7 @@ public class NetboxInfo {
 					valIt.remove();
 
 					String[] set = {
-						"val", Database.addSlashes(newVal)
+						"val", newVal
 					};
 					String[] where = {
 						"netboxinfoid", netboxinfoid
@@ -478,15 +478,15 @@ public class NetboxInfo {
 
 	// Does not check for errors
 	private static int removeNoError(String netboxid, String key, String var) throws SQLException {
-		String k = (key == null || key.length() == 0) ? "key IS NULL" : "key = '"+Database.addSlashes(key)+"'";
+		String k = (key == null || key.length() == 0) ? "key IS NULL" : "key = E'"+Database.addSlashes(key)+"'";
 
-		String q = "DELETE FROM netboxinfo WHERE netboxid = '"+netboxid+"' AND " + k + " AND var = '"+Database.addSlashes(var)+"'";
+		String q = "DELETE FROM netboxinfo WHERE netboxid = '"+netboxid+"' AND " + k + " AND var = E'"+Database.addSlashes(var)+"'";
 		return Database.update(q);
 	}
 
 	private static ResultSet getVals(String netboxid, String key, String var) throws SQLException {
-		String k = (key == null || key.length() == 0) ? "key IS NULL" : "key = '"+Database.addSlashes(key)+"'";
-		String v = (var == null) ? "" : " AND var = '" + Database.addSlashes(var) + "'";
+		String k = (key == null || key.length() == 0) ? "key IS NULL" : "key = E'"+Database.addSlashes(key)+"'";
+		String v = (var == null) ? "" : " AND var = E'" + Database.addSlashes(var) + "'";
 		String v2 = (var == null) ? ", var" : "";
 
 		String q = "SELECT netboxinfoid, val" + v2 + " FROM netboxinfo WHERE netboxid = '"+netboxid+"' AND " + k + v + " ORDER BY val";
@@ -502,7 +502,7 @@ public class NetboxInfo {
 				"netboxid", netboxid,
 				"key", key,
 				"var", var,
-				"val", Database.addSlashes(val)
+				"val", val
 			};
 			
 			Database.insert("netboxinfo", ins);

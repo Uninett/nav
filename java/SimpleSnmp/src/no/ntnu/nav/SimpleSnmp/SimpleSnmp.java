@@ -31,6 +31,7 @@ import java.net.*;
 //import uk.co.westhawk.snmp.pdu.*;
 
 import snmp.*;
+import no.ntnu.nav.logger.Log;
 
 /**
  * <p> Class for quering devices via SNMP. The aim of this class is to
@@ -681,6 +682,16 @@ public class SimpleSnmp
 							SNMPObjectIdentifier snmpOID = (SNMPObjectIdentifier)pair.getSNMPObjectAt(0);
 							nextoid = snmpOID.toString();
 							if (!nextoid.startsWith(baseOid) || nextoid.equals(baseOid)) break;
+
+							if (var.size() > 0) {
+								SNMPSequence lastpair = (SNMPSequence) var.getSNMPObjectAt(var.size()-1);
+								SNMPObjectIdentifier lastoid = (SNMPObjectIdentifier)lastpair.getSNMPObjectAt(0);
+								// ensure we're not walking backwards, like some demented SNMP agents do
+								if (lastoid.equals(snmpOID) || maxOID(snmpOID, lastoid) != snmpOID) {
+									Log.d("SNMP", "agent had us go backwards from " + lastoid.toString() + " to " + snmpOID.toString());
+									break;
+								}
+							}
 							
 							var.addSNMPObject(pair);
 						}
@@ -694,6 +705,16 @@ public class SimpleSnmp
 							SNMPSequence pair = (SNMPSequence)snmpobj;
 							SNMPObjectIdentifier snmpOID = (SNMPObjectIdentifier)pair.getSNMPObjectAt(0);
 							nextoid = snmpOID.toString();
+
+							if (var.size() > 0) {
+								SNMPSequence lastpair = (SNMPSequence) var.getSNMPObjectAt(var.size()-1);
+								SNMPObjectIdentifier lastoid = (SNMPObjectIdentifier)lastpair.getSNMPObjectAt(0);
+								// ensure we're not walking backwards, like some demented SNMP agents do
+								if (lastoid.equals(snmpOID) || maxOID(snmpOID, lastoid) != snmpOID) {
+									Log.d("SNMP", "agent had us go backwards from " + lastoid.toString() + " to " + snmpOID.toString());
+									break;
+								}
+							}
 
 							var.addSNMPObject(pair);
 						}
@@ -756,6 +777,30 @@ public class SimpleSnmp
 		}
 		getCnt = 0;
 		return l;
+	}
+
+	/**
+	 * Returns the "highest" value of two SNMP oids.
+	 *
+	 * @param oid1 An SNMP oid.
+	 * @param oid2 An SNMP oid.
+	 * @return The highest of oid1 and oid2
+	 */
+	public static SNMPObjectIdentifier maxOID(SNMPObjectIdentifier oid1, SNMPObjectIdentifier oid2) {
+		long[] array1 = (long[]) oid1.getValue();
+		long[] array2 = (long[]) oid2.getValue();
+
+		int size = Math.min(array1.length, array2.length);
+		for (int i=0; i<size; i++) {
+			if (array1[i] > array2[i]) return oid1;
+			if (array1[i] < array2[i]) return oid2;
+		}
+		// if we got here, one is a prefix of the other, let's hope it's obj2.
+		if (array1.length > array2.length) {
+			return oid1;
+		} else {
+			return oid2;
+		}
 	}
 
 	private String toHexString(byte[] bytes) {
