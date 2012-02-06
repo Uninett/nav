@@ -171,6 +171,9 @@ def new_task(request, task_id=None):
     quickselect = QuickSelect(service=True)
     component_trail = None
     component_keys = None
+    task = None
+    num_components = 0
+
     if task_id:
         task = get_object_or_404(MaintenanceTask, pk=task_id)
         initial = {
@@ -198,11 +201,13 @@ def new_task(request, task_id=None):
         component_data = components_for_keys(component_keys)
         components = structure_component_data(component_data)
         component_trail = task_component_trails(component_keys, components)
+        num_components += len(component_data['service']) + len(component_data['netbox'])
+        num_components += len(component_data['room']) + len(component_data['location'])
 
     if request.method == 'POST':
         if 'save' in request.POST:
             task_form = MaintenanceTaskForm(request.POST)
-            if task_form.is_valid():
+            if task_form.is_valid() and num_components > 0:
                 start_time = task_form.cleaned_data['start_time']
                 end_time = task_form.cleaned_data['end_time']
                 state = MaintenanceTask.STATE_SCHEDULED
@@ -230,7 +235,10 @@ def new_task(request, task_id=None):
                             key=key,
                             value="%s" % component['id'])
                         task_component.save()
-            return HttpResponseRedirect(reverse('maintenance-view', args=[new_task.id]))
+                return HttpResponseRedirect(reverse('maintenance-view', args=[new_task.id]))
+            if num_components <= 0:
+                new_message(request._req,
+                    "No components selected.", Messages.ERROR)
         else:
             task_form = MaintenanceTaskForm(initial=request.POST)
 
