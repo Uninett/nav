@@ -242,10 +242,20 @@ def new_task(request, task_id=None):
         else:
             task_form = MaintenanceTaskForm(initial=request.POST)
 
+    if task:
+        navpath = NAVPATH + [('Edit', '')]
+        title = TITLE + " - Editing \"%s\"" % task.description
+    else:
+        navpath = NAVPATH + [('New', '')]
+        title = TITLE + " - New task"
     return render_to_response(
         'maintenance/new_task.html',
         {
+            'active': {'new': True},
+            'navpath': navpath,
+            'title': title,
             'task_form': task_form,
+            'task_id': task_id,
             'quickselect': mark_safe(quickselect),
             'components': component_trail,
             'selected': component_keys,

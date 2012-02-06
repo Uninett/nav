@@ -28,9 +28,15 @@
         <li class="{{ active.historic|yesno:"tabactive," }}">
             <a href="{% url maintenance-historic %}">Historic</a>
         </li>
+        {% if active.new and task_id %}
+        <li class="tabactive">
+            <a href="{% url maintenance-edit task_id %}">Edit</a>
+        </li>
+        {% else  %}
         <li class="{{ active.new|yesno:"tabactive," }}">
             <a href="{% url maintenance-new %}">New</a>
         </li>
+        {% endif %}
     </ul>
 </div>
 
