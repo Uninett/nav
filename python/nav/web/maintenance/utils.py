@@ -48,7 +48,7 @@ FIELD_KEYS = {
     }
 }
 
-def get_component_keys_from_post(post):
+def get_component_keys(post):
     remove = {}
     raw_component_keys = {
         'service': post.getlist('service'),
