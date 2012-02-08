@@ -158,10 +158,6 @@ def view(request, task_id):
 
 def cancel(request, task_id):
     account = get_account(request)
-    if account.is_default_account():
-        #FIXME redirect
-        raise Exception("Oh noes")
-
     task = get_object_or_404(MaintenanceTask, pk=task_id)
     if request.method == 'POST':
         task.state = 'canceled'
