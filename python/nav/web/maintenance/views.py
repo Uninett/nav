@@ -14,8 +14,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import nav.maintenance
-
 from datetime import datetime, date, timedelta
 
 from django.core.urlresolvers import reverse
@@ -100,7 +98,6 @@ def active(request):
     )
 
 def planned(request):
-    tasks = nav.maintenance.getTasks('maint_start > now() AND maint_end > NOW()')
     tasks = MaintenanceTask.objects.filter(
         start_time__gt=datetime.now(),
         end_time__gt=datetime.now()
