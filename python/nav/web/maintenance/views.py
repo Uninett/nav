@@ -249,7 +249,7 @@ def edit(request, task_id=None):
                             value="%s" % component['id'])
                         task_component.save()
                 new_message(request._req,
-                    "Saved task %s" % task.description, Messages.SUCCESS)
+                    "Saved task %s" % new_task.description, Messages.SUCCESS)
                 return HttpResponseRedirect(reverse('maintenance-view', args=[new_task.id]))
             if num_components <= 0:
                 new_message(request._req,
