@@ -16,7 +16,7 @@
 
 from calendar import HTMLCalendar
 from itertools import groupby
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from time import strftime
 
 from django.core.urlresolvers import reverse
@@ -55,6 +55,19 @@ NAVPATH = [
 
 TITLE = "NAV - Maintenance"
 
+def task_form_initial(task=None):
+    if task:
+        initial = {
+            'start_time': task.start_time,
+            'end_time': task.end_time,
+            'description': task.description,
+        }
+    else:
+        initial = {
+            'start_time': datetime.today().strftime("%Y-%m-%d %H:%M"),
+            'end_time': (datetime.today() + timedelta(weeks=1)).strftime("%Y-%m-%d %H:%M")
+        }
+    return initial
 
 def infodict_by_state(task):
     if task.state == MaintenanceTask.STATE_SCHEDULED and task.start_time > datetime.now():

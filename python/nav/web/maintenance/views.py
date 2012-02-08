@@ -31,7 +31,8 @@ from nav.web.quickselect import QuickSelect
 
 from nav.web.maintenance.utils import components_for_keys, task_component_trails
 from nav.web.maintenance.utils import get_component_keys, PRIMARY_KEY_INTEGER
-from nav.web.maintenance.utils import structure_component_data, infodict_by_state
+from nav.web.maintenance.utils import structure_component_data
+from nav.web.maintenance.utils import task_form_initial, infodict_by_state
 from nav.web.maintenance.utils import MaintenanceCalendar, NAVPATH, TITLE
 from nav.web.maintenance.forms import MaintenanceTaskForm
 
@@ -189,17 +190,7 @@ def edit(request, task_id=None):
 
     if task_id:
         task = get_object_or_404(MaintenanceTask, pk=task_id)
-        initial = {
-            'start_time': task.start_time,
-            'end_time': task.end_time,
-            'description': task.description,
-        }
-    else:
-        initial = {
-            'start_time': datetime.today().strftime("%Y-%m-%d %H:%M"),
-            'end_time': (datetime.today() + timedelta(weeks=1)).strftime("%Y-%m-%d %H:%M")
-        }
-    task_form = MaintenanceTaskForm(initial=initial)
+    task_form = MaintenanceTaskForm(initial=task_form_initial(task))
 
     if request.method == 'POST':
         component_keys = get_component_keys(request.POST)
