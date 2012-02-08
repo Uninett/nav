@@ -21,7 +21,6 @@ from time import strftime
 
 from django.core.urlresolvers import reverse
 from django.utils.html import conditional_escape
-from django.db import connection
 
 from nav.models.manage import Netbox, Room, Location
 from nav.models.service import Service
@@ -60,10 +59,14 @@ TITLE = "NAV - Maintenance"
 def infodict_by_state(task):
     if task.state == MaintenanceTask.STATE_SCHEDULED and task.start_time > datetime.now():
         state = 'planned'
-        navpath = NAVPATH + [('Planned tasks', reverse('maintenance-planned'))]
+        navpath = NAVPATH + [
+            ('Planned tasks', reverse('maintenance-planned'))
+        ]
     elif task.state in (MaintenanceTask.STATE_PASSED, MaintenanceTask.STATE_CANCELED):
         state = 'historic'
-        navpath = NAVPATH + [('Historic tasks', reverse('maintenance-historic'))]
+        navpath = NAVPATH + [
+            ('Historic tasks', reverse('maintenance-historic'))
+        ]
     else:
         state = 'active'
         navpath = NAVPATH + [('Active tasks', reverse('maintenance-active'))]
@@ -100,17 +103,25 @@ def get_component_keys(post):
 
 def components_for_keys(component_keys):
     component_data = {}
-    component_data['service'] = Service.objects.filter(id__in=component_keys['service']).values(
-        'id', 'handler', 'netbox__id', 'netbox__sysname', 'netbox__ip',
-        'netbox__room__id', 'netbox__room__description',
-        'netbox__room__location__id', 'netbox__room__location__description')
-    component_data['netbox'] = Netbox.objects.filter(id__in=component_keys['netbox']).values(
-        'id', 'sysname', 'ip', 'room__id', 'room__description',
-        'room__location__id', 'room__location__description')
-    component_data['room'] = Room.objects.filter(id__in=component_keys['room']).values(
-        'id', 'description', 'location__id', 'location__description')
-    component_data['location'] = Location.objects.filter(id__in=component_keys['location']).values(
-        'id', 'description')
+    component_data['service'] = Service.objects.filter(
+            id__in=component_keys['service']
+        ).values(
+            'id', 'handler', 'netbox__id', 'netbox__sysname', 'netbox__ip',
+            'netbox__room__id', 'netbox__room__description',
+            'netbox__room__location__id', 'netbox__room__location__description')
+    component_data['netbox'] = Netbox.objects.filter(
+            id__in=component_keys['netbox']
+        ).values(
+            'id', 'sysname', 'ip', 'room__id', 'room__description',
+            'room__location__id', 'room__location__description')
+    component_data['room'] = Room.objects.filter(
+            id__in=component_keys['room']
+        ).values(
+            'id', 'description', 'location__id', 'location__description')
+    component_data['location'] = Location.objects.filter(
+            id__in=component_keys['location']
+        ).values(
+            'id', 'description')
     return component_data
 
 def structure_component_data(component_data):
@@ -197,9 +208,11 @@ class MaintenanceCalendar(HTMLCalendar):
                     desc = task.description
                     if len(desc) > 16:
                         desc = desc[:16]
+                    details_url = reverse('maintenance-view', args=[task.id])
+                    formated_time = strftime('%H:%M', task.start_time.timetuple())
                     content.append("<li>")
-                    content.append("%s " % strftime('%H:%M', task.start_time.timetuple()))
-                    content.append('<a href="%s">' % reverse('maintenance-view', args=[task.id]))
+                    content.append("%s " % formated_time)
+                    content.append('<a href="%s">' % details_url)
                     content.append(conditional_escape(desc))
                     content.append("</a>")
                     content.append("</li>")
@@ -218,7 +231,8 @@ class MaintenanceCalendar(HTMLCalendar):
 
     def group_by_start(self, tasks):
         field = lambda task: task.start_time.date()
-        return dict([(start_time, list(items)) for start_time, items in groupby(tasks, field)])
+        grouped = groupby(tasks, field)
+        return dict([(start, list(items)) for start, items in grouped])
 
     def day_cell(self, css_class, content):
         return '<td class="%s">%s</td>' % (css_class, content)
