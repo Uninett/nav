@@ -13,3 +13,8 @@ class BridgeMib(mibretriever.MibRetriever):
         """
         df = self.retrieve_column('dot1dBasePortIfIndex')
         return df.addCallback(reduce_index)
+
+class MultiBridgeMib(BridgeMib, mibretriever.MultiMibMixIn):
+    def get_baseport_ifindex_map(self):
+        method = super(MultiBridgeMib, self).get_baseport_ifindex_map
+        return self._multiquery(method)
