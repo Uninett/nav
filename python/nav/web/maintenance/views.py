@@ -21,12 +21,10 @@ from django.db import transaction, connection
 from django.db.models import Count
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 
 from nav.django.utils import get_account
-from nav.models.manage import Netbox, Room, Location
-from nav.models.service import Service
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
@@ -65,14 +63,14 @@ def calendar(request, year=None, month=None):
         start_time__gt=this_month_start,
         start_time__lt=next_month_start,
     )
-    calendar = MaintenanceCalendar(tasks).formatmonth(year, month)
+    cal = MaintenanceCalendar(tasks).formatmonth(year, month)
     return render_to_response(
         'maintenance/calendar.html',
         {
             'active': {'calendar': True},
             'navpath': NAVPATH,
             'title': TITLE,
-            'calendar': mark_safe(calendar),
+            'calendar': mark_safe(cal),
             'prev_month': prev_month_start,
             'this_month': this_month_start,
             'next_month': next_month_start,
@@ -157,14 +155,12 @@ def view(request, task_id):
     )
 
 def cancel(request, task_id):
-    account = get_account(request)
     task = get_object_or_404(MaintenanceTask, pk=task_id)
     if request.method == 'POST':
         task.state = 'canceled'
         task.save()
         new_message(request._req,
             "This task is now cancelled.", Messages.SUCCESS)
-        url = reverse('maintenance-view', args=[task_id])
         return HttpResponseRedirect(reverse('maintenance-view', args=[task_id]))
     else:
         infodict = infodict_by_state(task)
