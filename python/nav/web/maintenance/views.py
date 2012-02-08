@@ -241,7 +241,7 @@ def new_task(request, task_id=None):
                 if task:
                     cursor = connection.cursor()
                     cursor.execute("DELETE FROM maint_component WHERE maint_taskid = %s", (new_task.id,))
-                    transaction.commit_unless_managed()
+                    transaction.set_dirty()
                 for key in component_data:
                     for component in component_data[key]:
                         task_component = MaintenanceComponent(
