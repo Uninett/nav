@@ -225,12 +225,15 @@ class MibRetrieverMaker(type):
         try:
             mib = dct['mib']
         except KeyError, error:
-            raise AttributeError("No mib attribute in class %s" % name)
+            try:
+                mib = bases[0].mib
+            except AttributeError:
+                raise AttributeError("No mib attribute in class %s" % name)
 
         super(MibRetrieverMaker, cls).__init__(name, bases, dct)
 
-        if name == 'MibRetriever' and mib is None:
-            # This is the base retriever class, which is meant to be abstract
+        if mib is None:
+            # This may be the MibRetriever base class or a MixIn of some sort
             return
 
         # modify mib data to slightly optimize later OID manipulation
