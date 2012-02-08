@@ -479,7 +479,7 @@ class ModuleSection(_Section):
             },
             tables=['module'],
             where=[
-                'alerthist.subid = module.moduleid::text',
+                'alerthist.deviceid = module.deviceid',
                 'module.up IN %s',
             ],
             params=[tuple(self.states)]
