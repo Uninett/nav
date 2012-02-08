@@ -443,7 +443,8 @@ class MibRetriever(object):
         deferred.addCallback(resultFormatter)
         return deferred
 
-    def translate_result(self, result):
+    @classmethod
+    def translate_result(cls, result):
         """Translate result values to pythonic values according to object
         syntax.
 
@@ -455,8 +456,8 @@ class MibRetriever(object):
         """
         for row in result.values():
             for column in row.keys():
-                if column in self.nodes:
-                    row[column] = self.nodes[column].to_python(row[column])
+                if column in cls.nodes:
+                    row[column] = cls.nodes[column].to_python(row[column])
         return result
 
 def convert_oids(mib):
