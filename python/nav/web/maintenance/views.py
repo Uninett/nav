@@ -249,6 +249,8 @@ def new_task(request, task_id=None):
                             key=key,
                             value="%s" % component['id'])
                         task_component.save()
+                new_message(request._req,
+                    "Saved task %s" % task.description, Messages.SUCCESS)
                 return HttpResponseRedirect(reverse('maintenance-view', args=[new_task.id]))
             if num_components <= 0:
                 new_message(request._req,
