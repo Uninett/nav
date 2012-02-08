@@ -30,6 +30,24 @@ class BridgeMib(mibretriever.MibRetriever):
             port = row['dot1dTpFdbPort']
             result.append((mac, port))
         defer.returnValue(result)
+
+    @defer.inlineCallbacks
+    def get_stp_blocking_ports(self):
+        """Retrieves a list of numbers of STP blocking ports"""
+        states = yield self.__get_stp_port_states()
+        blocked = [port for port, state in states if state == 'blocking']
+        defer.returnValue(blocked)
+
+    @defer.inlineCallbacks
+    def get_stp_port_states(self):
+        """Retrieves the spanning tree port states of the device."""
+        states = yield self.retrieve_columns(['dot1dStpPortState'])
+        states = reduce_index(self.translate_result(states))
+        result = [(k, v['dot1dStpPortState']) for k, v in states.items()]
+        defer.returnValue(result)
+
+    __get_stp_port_states = get_stp_port_states
+
 class MultiBridgeMib(BridgeMib, mibretriever.MultiMibMixIn):
     def get_baseport_ifindex_map(self):
         method = super(MultiBridgeMib, self).get_baseport_ifindex_map
@@ -38,3 +56,26 @@ class MultiBridgeMib(BridgeMib, mibretriever.MultiMibMixIn):
     def get_forwarding_database(self):
         method = super(MultiBridgeMib, self).get_forwarding_database
         return self._multiquery(method)
+
+    def get_stp_blocking_ports(self):
+        def _integrator(results):
+            endresult = []
+            for descr, ports in results:
+                for port in ports:
+                    endresult.append((port, descr))
+            return endresult
+
+        method = super(MultiBridgeMib, self).get_stp_blocking_ports
+        return self._multiquery(method, integrator=_integrator)
+
+    def get_stp_port_states(self):
+        def _integrator(results):
+            endresult = []
+            for descr, result in results:
+                for port, state in result:
+                    endresult.append((port, descr, state))
+            return endresult
+
+        method = super(MultiBridgeMib, self).get_stp_port_states
+        return self._multiquery(method, integrator=_integrator)
+
