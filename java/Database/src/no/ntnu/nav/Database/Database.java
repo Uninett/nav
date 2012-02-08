@@ -977,7 +977,7 @@ public class Database
 				}
 
 				if (fnutt) {
-					query += "'" + addSlashesStrict(fieldValues[i]) + "'";
+					query += "E'" + addSlashesStrict(fieldValues[i]) + "'";
 				} else {
 					query += fieldValues[i];
 				}
@@ -1031,7 +1031,7 @@ public class Database
 				}
 
 				if (fnutt) {
-					query += fieldValues[i] + "=" + "'" + addSlashesStrict(fieldValues[i+1]) + "'";
+					query += fieldValues[i] + "=" + "E'" + addSlashesStrict(fieldValues[i+1]) + "'";
 				} else {
 					query += fieldValues[i] + "=" + fieldValues[i+1];
 				}
@@ -1043,7 +1043,7 @@ public class Database
 		for (int i = 0; i < keyFieldValues.length; i += 2) {
 			if (i != 0) query += " AND ";
 
-			query += keyFieldValues[i] + "='" + addSlashesStrict(keyFieldValues[i+1]) + "'";
+			query += keyFieldValues[i] + " = E'" + addSlashesStrict(keyFieldValues[i+1]) + "'";
 		}
 		return update(query);
 	}

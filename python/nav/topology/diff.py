@@ -83,7 +83,7 @@ def printdiffs():
                   else '')))
 
     output.sort()
-    return '\n'.join(output)
+    print '\n'.join(output)
 
 if __name__ == '__main__':
     printdiffs()

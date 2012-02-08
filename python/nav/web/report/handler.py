@@ -55,7 +55,48 @@ config_file_package = os.path.join(nav.path.sysconfdir, "report/report.conf")
 config_file_local = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
+def fix_report_urlpath(func):
+    """Decorates report's mod_python handler to fix strange URLs.
 
+    report is very picky about URLs, and there is no URL magic helping us
+    anywhere in mod_python.  Only the following path patterns allow hyperlinks
+    within reports to function properly:
+
+    * /report/
+    * /report/(?P<report_name>)
+
+    I.e. the report front page path must always end in a slash, while any
+    report page must never end in a slash.  This works some redirect magic on
+    requests with non-conforming paths. Looking forward to replace this crazy
+    voodoo with Django's sweet URL magic!
+
+    """
+    from functools import wraps
+    import logging
+    from urlparse import urlparse, ParseResult
+    logger = logging.getLogger(__name__)
+    multislash = re.compile(r'/+')
+
+    @wraps(func)
+    def _wrapper(req, *args, **kwargs):
+        url = urlparse(req.unparsed_uri)
+        elements = [e for e in multislash.split(url.path) if e]
+        if len(elements) > 1:
+            path = '/%s/%s' % (elements[0], elements[-1])
+        else:
+            path = '/%s/' % elements[0]
+
+        if path != url.path:
+            url = ParseResult(url.scheme, url.netloc, path,
+                              url.params, url.query, url.fragment)
+            logger.warning("fixing broken url: %r -> %r",
+                           req.unparsed_uri, url.geturl())
+            redirect(req, url.geturl())
+        return func(req, *args, **kwargs)
+
+    return _wrapper
+
+@fix_report_urlpath
 @encoded_output
 def handler(req):
 
