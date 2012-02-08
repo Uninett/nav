@@ -566,11 +566,11 @@ class AcctSearchQuery(SQLQuery):
         if searchtype == "iprange":
             if searchstring.find('%'):
                 if re.search('/32', searchstring):
-                    self.query += (" %s = INET(%%s) OR %s = INET(%%s)" %
+                    self.query += (" (%s = INET(%%s) OR %s = INET(%%s))" %
                                    ('framedipaddress', 'nasipaddress'))
                     self.parameters += (searchstring[:-3], searchstring[:-3])
                 else:
-                    self.query += (" %s << INET(%%s) OR %s = INET(%%s)" %
+                    self.query += (" (%s << INET(%%s) OR %s = INET(%%s))" %
                                    ('framedipaddress', 'nasipaddress'))
                     self.parameters += (searchstring, searchstring)
 

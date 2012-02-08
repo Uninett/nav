@@ -175,6 +175,7 @@ class Module(Shadow):
         event.target_id = 'eventEngine'
         event.device = django_module.device
         event.netbox = django_module.netbox
+        event.subid = unicode(django_module.id)
         event.event_type_id = 'moduleState'
         return event
 
