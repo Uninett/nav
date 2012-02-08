@@ -83,6 +83,7 @@ def active(request):
     tasks = MaintenanceTask.objects.filter(
         start_time__lt=datetime.now(),
         end_time__gt=datetime.now()
+    ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
         'maintenance/list.html',
@@ -99,6 +100,7 @@ def planned(request):
     tasks = MaintenanceTask.objects.filter(
         start_time__gt=datetime.now(),
         end_time__gt=datetime.now()
+    ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
         'maintenance/list.html',
@@ -114,6 +116,7 @@ def planned(request):
 def historic(request):
     tasks = MaintenanceTask.objects.filter(
         end_time__lt=datetime.now()
+    ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
         'maintenance/list.html',
