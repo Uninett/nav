@@ -176,7 +176,7 @@ def cancel(request, task_id):
         )
 
 @transaction.commit_on_success()
-def new_task(request, task_id=None):
+def edit(request, task_id=None):
     account = get_account(request)
     quickselect = QuickSelect(service=True)
     component_trail = None
