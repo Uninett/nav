@@ -139,7 +139,7 @@ class _Section(object):
         url = reverse('devicehistory-view')
         url += "?type=%s" % self.devicehistory_type
         url += "&group_by=datetime"
-        
+
         if not self.prefs.all_organizations:
             for org in self.organizations:
                 url += "&org=%s" % org
@@ -147,8 +147,8 @@ class _Section(object):
             for cat in self.categories:
                 url += "&cat=%s" % cat
 
-        # If custom orgs and cats, use AND search        
-        if not self.prefs.all_categories and not self.prefs.all_organizations:    
+        # If custom orgs and cats, use AND search
+        if not self.prefs.all_categories and not self.prefs.all_organizations:
             url += "&mode=and"
 
         return url
@@ -479,7 +479,7 @@ class ModuleSection(_Section):
             },
             tables=['module'],
             where=[
-                'alerthist.subid = module.moduleid::text',
+                'alerthist.deviceid = module.deviceid',
                 'module.up IN %s',
             ],
             params=[tuple(self.states)]
