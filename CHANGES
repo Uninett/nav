@@ -1,3 +1,29 @@
+Version 3.10.2
+(released 09 Feb 2012)
+
+ Bugfixes:
+
+  * LP#258298 (Service alerts aren't closed on service deletion)
+  * LP#392022 (Incorrect IPv4 net address prefix link in Subnet matrix)
+  * LP#744930 (vlan report for closed vlans is empty)
+  * LP#744933 (IP range searches in radius accounting tool ignores timestamp)
+  * LP#912210 (pping crashes when its PID is >= 32768)
+  * LP#912219 (Network explorer incomplete domain names)
+  * LP#920882 (moduleDown alerts reference affected module only as "$module")
+  * LP#920886 (Status page doesn't show modules down)
+  * LP#922566 (SQL syntax errors from getBoksMacs on PostgreSQL 9.1)
+  * LP#922586 (Cisco 1900 switches cause getBoksMacs SNMP walks to go into
+               infinite loops)
+  * LP#922616 (report system behaves badly if accessed without a trailing slash
+               in url)
+  * LP#923641 (Fan outage on HP devices never reported)
+  * LP#925928 (HP Virtual Connect Ethernet modules report crazy MAC addresses,
+               making getBoksMacs spew SQL errors)
+  * LP#925956 (link from organization report to prefix report crashes report
+               page)
+  * LP#928754 (Installing database on PostgreSQL 9 fails)
+
+
 Version 3.10.1
 (released 05 Jan 2012)
 
