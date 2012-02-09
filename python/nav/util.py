@@ -18,8 +18,11 @@
 
 import os
 import stat
-import IPy
+import datetime
+from functools import wraps
 from itertools import chain
+
+import IPy
 
 def gradient(start, stop, steps):
     """Create and return a sequence of steps representing an integer
@@ -283,3 +286,27 @@ class IPRange(object):
 
         """
         return '24'
+
+# pylint: disable=C0103,R0903
+class cachedfor(object):
+    """Decorates a function with no arguments to cache its result for a period
+    of time.
+
+    """
+    def __init__(self, max_age):
+        self.max_age = max_age
+        self.value = None
+        self.func = None
+        self.updated = datetime.datetime.min
+
+    def __call__(self, func):
+        self.func = func
+        @wraps(func)
+        def _wrapper():
+            age = datetime.datetime.now() - self.updated
+            if age >= self.max_age:
+                self.value = self.func()
+                self.updated = datetime.datetime.now()
+            return self.value
+
+        return _wrapper
