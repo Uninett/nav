@@ -16,6 +16,7 @@ Version 3.10.2
                infinite loops)
   * LP#922616 (report system behaves badly if accessed without a trailing slash
                in url)
+  * LP#923641 (Fan outage on HP devices never reported)
   * LP#925928 (HP Virtual Connect Ethernet modules report crazy MAC addresses,
                making getBoksMacs spew SQL errors)
   * LP#925956 (link from organization report to prefix report crashes report
