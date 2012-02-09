@@ -130,7 +130,10 @@ class NetboxJobScheduler(object):
         """Reschedules the next normal run of this job."""
         delay = max(0, self.job.interval - self.get_runtime())
         self.reschedule(delay)
-        self._log_finished_job(True)
+        if result:
+            self._log_finished_job(True)
+        else:
+            self._logger.debug("job did nothing")
         return result
 
     def _reschedule_on_failure(self, failure):

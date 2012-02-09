@@ -177,13 +177,19 @@ class JobHandler(object):
         return next_plugin()
 
     def run(self):
-        """Starts a polling job for netbox and returns a Deferred."""
+        """Starts a polling job for netbox.
+
+        :returns: A Deferred, whose result will be True when the job did
+                  something, or False when the job did nothing (i.e. no
+                  plugins ran).
+
+        """
         self._create_agentproxy()
         plugins = self.find_plugins()
         self._reset_timers()
         if not plugins:
             self._destroy_agentproxy()
-            return defer.succeed(None)
+            return defer.succeed(False)
 
         self._logger.debug("Starting job %r for %s",
                            self.name, self.netbox.sysname)
@@ -192,7 +198,7 @@ class JobHandler(object):
             self._logger.debug("Job %s for %s done.", self.name,
                                self.netbox.sysname)
             self._log_timings()
-            return result
+            return True
 
         def plugin_failure(failure):
             self._log_timings()
