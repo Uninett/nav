@@ -24,9 +24,6 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
 class LinkState(Plugin):
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
 
     def handle(self):
         self.ifmib = IfMib(self.agent)

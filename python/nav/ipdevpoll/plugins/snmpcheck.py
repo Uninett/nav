@@ -46,10 +46,6 @@ class SnmpCheck(Plugin):
             SnmpCheck._logger.debug("initially down: %r",
                                     SnmpCheck.down_set)
 
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
-
     @defer.inlineCallbacks
     def handle(self):
         self._logger.debug("snmp version from db: %s", self.netbox.snmp_version)

@@ -42,11 +42,6 @@ class Dot1q(Plugin):
     baseports = {}
     pvids = {}
 
-    @classmethod
-    def can_handle(cls, netbox):
-        """This plugin handles netboxes"""
-        return True
-
     def __init__(self, *args, **kwargs):
         super(Dot1q, self).__init__(*args, **kwargs)
         self.bridgemib = BridgeMib(self.agent)

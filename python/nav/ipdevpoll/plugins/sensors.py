@@ -88,11 +88,6 @@ class MIBFactory(object):
 class Sensors(Plugin):
     """ Plugin that detect sensors in netboxes."""
 
-    @classmethod
-    def can_handle(cls, netbox):
-        """Handles all types of netboxes"""
-        return True
-
     @defer.inlineCallbacks
     def handle(self):
         """Collect sensors and feed them in to persistent store."""

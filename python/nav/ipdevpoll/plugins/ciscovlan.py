@@ -33,11 +33,6 @@ from nav.ipdevpoll import shadows
 class CiscoVlan(Plugin):
     """Collect 802.1q info from CISCO-VTP-MIB and CISCO-VLAN-MEMBERSHIP-MIB."""
 
-    @classmethod
-    def can_handle(cls, netbox):
-        """This plugin handles netboxes"""
-        return True
-
     @defer.inlineCallbacks
     def handle(self):
         """Plugin entrypoint"""

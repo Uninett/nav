@@ -39,10 +39,6 @@ from nav.ipdevpoll import shadows
 class Modules(Plugin):
     """Plugin to collect module and chassis data from devices"""
 
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
-
     def __init__(self, *args, **kwargs):
         super(Modules, self).__init__(*args, **kwargs)
         self.alias_mapping = {}

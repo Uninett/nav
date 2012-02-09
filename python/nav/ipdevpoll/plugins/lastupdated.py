@@ -22,10 +22,6 @@ from nav.ipdevpoll import shadows
 import time
 
 class LastUpdated(Plugin):
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
-
     def handle(self):
         self._logger.debug("Updating lastupdated timestamp")
 

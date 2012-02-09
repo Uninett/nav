@@ -32,10 +32,6 @@ class InvalidResponseError(Exception):
     pass
 
 class TypeOid(Plugin):
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
-
     def handle(self):
         """Collects sysObjectID and looks for type changes."""
         self._logger.debug("Collecting sysObjectId")

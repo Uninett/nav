@@ -30,10 +30,6 @@ from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
 
 class Interfaces(Plugin):
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
-
     def handle(self):
         self._logger.debug("Collecting interface data")
         self.ifmib = IfMib(self.agent)

@@ -34,10 +34,6 @@ class Bridge(Plugin):
         super(Bridge, self).__init__(*args, **kwargs)
         self.entity = EntityMib(self.agent)
 
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
-
     @defer.inlineCallbacks
     def handle(self):
         instances = yield self.entity.retrieve_alternate_bridge_mibs()

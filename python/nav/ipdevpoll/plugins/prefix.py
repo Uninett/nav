@@ -57,13 +57,6 @@ class Prefix(Plugin):
     equipment.
     """
     @classmethod
-    def can_handle(cls, netbox):
-        """
-        This plugin handles netboxes
-        """
-        return True
-
-    @classmethod
     def on_plugin_load(cls):
         from nav.ipdevpoll.config import ipdevpoll_conf
         cls.ignored_prefixes = get_ignored_prefixes(ipdevpoll_conf)

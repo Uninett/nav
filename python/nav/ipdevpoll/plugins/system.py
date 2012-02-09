@@ -32,10 +32,6 @@ PATTERNS = [
 class System(Plugin):
     """Collects sysDescr and parses a software version from it"""
 
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
-
     @inlineCallbacks
     def handle(self):
         snmpv2_mib = Snmpv2Mib(self.agent)
