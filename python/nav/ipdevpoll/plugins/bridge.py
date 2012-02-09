@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2009-2011 UNINETT AS
 #
@@ -22,134 +21,36 @@ BRIDGE-MIB instances if they are listed as logical entities in
 ENTITY-MIB.
 
 """
+from twisted.internet import defer
 
-from nav.mibs.bridge_mib import BridgeMib
+from nav.mibs.bridge_mib import MultiBridgeMib
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
-from nav.ipdevpoll.utils import fire_eventually
-from nav.ipdevpoll.snmp import AgentProxy
 
 class Bridge(Plugin):
+    "Finds interfaces in L2/switchport mode"
+    def __init__(self, *args, **kwargs):
+        super(Bridge, self).__init__(*args, **kwargs)
+        self.entity = EntityMib(self.agent)
+
     @classmethod
     def can_handle(cls, netbox):
         return True
 
+    @defer.inlineCallbacks
     def handle(self):
-        self._logger.debug("Collecting bridge data")
-        self.entity = EntityMib(self.agent)
-        self.baseports = {}
+        instances = yield self.entity.retrieve_alternate_bridge_mibs()
+        bridge = MultiBridgeMib(self.agent, instances)
+        baseports = yield bridge.get_baseport_ifindex_map()
+        defer.returnValue(self._set_port_numbers(baseports))
 
-        df = self.entity.retrieve_alternate_bridge_mibs()
-        df.addCallback(self._prune_bridge_mib_list)
-        df.addCallback(self._query_baseports)
+    def _set_port_numbers(self, baseports):
+        "Processes a dictionary of {portnumber: ifindex} mappings"
 
-        return df
+        self._logger.debug("Found %d base (switch) ports: %r",
+                           len(baseports), baseports)
 
-    def _get_alternate_agent(self, community):
-        """Create an alternative Agent Proxy for our host.
-
-        Return value is an AgentProxy object created with the same
-        parameters as the controlling job handler's AgentProxy, but
-        with a different community.
-
-        """
-        old_agent = self.agent
-        agent = AgentProxy(
-            old_agent.ip, old_agent.port,
-            community=community,
-            snmpVersion = old_agent.snmpVersion)
-        if hasattr(old_agent, 'protocol'):
-            agent.protocol = old_agent.protocol
-
-        return agent
-
-    def _prune_bridge_mib_list(self, result):
-        """Prune the list of alternate bridge mib instances.
-
-        Any instance with a previously known community is removed from
-        the result list.
-
-        """
-        self._logger.debug("Alternate BRIDGE-MIB instances: %r", result)
-
-        seen_communities = set(self.agent.community)
-        new_result = []
-
-        for descr, community in result:
-            if community not in seen_communities:
-                new_result.append((descr, community))
-                seen_communities.add(community)
-
-        return new_result
-        
-
-    def _query_baseports(self, bridgemibs):
-        """Set up a chain to query each of the known BRIDGE-MIB instances."""
-
-        self._logger.debug("Querying the following alternative instances: %r",
-                          [b[0] for b in bridgemibs])
-
-        # Set up a bunch of instances to poll
-        instances = [ (self.agent, None) ]
-        for descr, community in bridgemibs:
-            agent = self._get_alternate_agent(community)
-            instances.append((agent, descr))
-
-        instances = iter(instances)
-        df = self._query_next_instance(None, instances)
-        return df
-
-    def _query_next_instance(self, result, instances):
-        """Callback to be chained for each BRIDGE-MIB instance to query.
-
-        This callback does the actual retrieval of the baseport list
-        for a single BRIDGE-MIB instance, adds the intermediate
-        results to the final set of baseports, and chains itself to
-        collect from the next instance.
-
-        """
-        # Append any new result to the set of existing results
-        if result:
-            if not self.baseports:
-                self.baseports = result
-            else:
-                self.baseports.update(result)
-
-        try:
-            agent, descr = instances.next()
-            self._logger.debug("Now querying %r", descr)
-        except StopIteration:
-            return self._set_port_numbers(self.baseports)
-
-        # Add the next bridge mib instance to the chain
-        bridgemib = BridgeMib(agent)
-        if agent is not self.agent:
-            agent.open()
-        def _close_agent(result):
-            if agent is not self.agent:
-                agent.close()
-            return result
-        df = bridgemib.retrieve_column('dot1dBasePortIfIndex')
-        df.addBoth(_close_agent)
-        df.addCallback(self._query_next_instance, instances)
-        df.addCallback(lambda thing: fire_eventually(thing))
-        return df
-
-    def _set_port_numbers(self, result):
-        """Process the list of collected base ports and set port numbers."""
-
-        self._logger.debug("Found %d base (switch) ports: %r", 
-                           len(result),
-                           [portnum[0] for portnum in result.keys()])
-
-        # Now save stuff to containers and pass the list of containers
-        # to the next callback
-        for portnum, ifindex in result.items():
-            # The index is a single integer
-            portnum = portnum[0]
+        for portnum, ifindex in baseports.items():
             interface = self.containers.factory(ifindex, shadows.Interface)
             interface.baseport = portnum
-
-        return result
-    
