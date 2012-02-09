@@ -56,14 +56,20 @@ class Plugin(object):
         """Handle plugin business, return a deferred."""
         raise NotImplementedError
 
+    # this is an API, so netbox goes unused in the base class:
+    # pylint: disable=W0613
     @classmethod
     def can_handle(cls, netbox):
-        """Verify whether this plugin can/wants to handle polling for this
+        """Verifies whether this plugin can/wants to handle polling for this
         netbox instance at this time.
 
-        Returns a boolean value.
+        The base implementation always returns True; plugins must override
+        this method if they do not handle everything thrown at them at all
+        times.
+
+        :returns: A boolean value.
         """
-        raise NotImplementedError
+        return True
 
     @classmethod
     def on_plugin_load(cls):
