@@ -21,6 +21,7 @@ from twisted.internet import defer, threads
 
 from nav.util import cachedfor
 from nav.mibs.bridge_mib import MultiBridgeMib
+from nav.mibs.qbridge_mib import QBridgeMib
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
@@ -39,25 +40,37 @@ class Cam(Plugin):
     TODO: Actually save data to containers.
 
     """
+    bridge = None
     fdb = None
     monitored = None
+    dot1d_instances = None
+    baseports = None
     linkports = None
     accessports = None
 
     @defer.inlineCallbacks
     def handle(self):
-        self.fdb = yield self._get_mac_port_mapping()
+        """Gets forwarding tables from Q-BRIDGE-MIB. It that fails, reverts to
+        BRIDGE-MIB, with optional community string indexing on Cisco.
+
+        """
+        fdb = yield self._get_dot1q_mac_port_mapping()
+        self._log_fdb_stats("Q-BRIDGE-MIB", fdb)
+
+        if not fdb:
+            fdb = yield self._get_dot1d_mac_port_mapping()
+            self._log_fdb_stats("BRIDGE-MIB", fdb)
+
+        self.fdb = fdb
+
         self.monitored = yield threads.deferToThread(get_netbox_macs)
-        self._log_fdb_stats()
         self._classify_ports()
 
     @defer.inlineCallbacks
-    def _get_mac_port_mapping(self):
-        entity = EntityMib(self.agent)
-        instances = yield entity.retrieve_alternate_bridge_mibs()
-        bridge = MultiBridgeMib(self.agent, instances)
+    def _get_dot1d_mac_port_mapping(self):
+        bridge = yield self._get_bridge()
         fdb = yield bridge.get_forwarding_database()
-        baseports = yield bridge.get_baseport_ifindex_map()
+        baseports = yield self._get_baseports()
 
         mapping = defaultdict(set)
         for mac, port in fdb.items():
@@ -67,10 +80,45 @@ class Cam(Plugin):
 
         defer.returnValue(dict(mapping))
 
-    def _log_fdb_stats(self):
-        mac_count = sum(len(v) for v in self.fdb.values())
-        self._logger.debug("%d MAC addresses found on %d ports",
-                           mac_count, len(self.fdb))
+    @defer.inlineCallbacks
+    def _get_dot1q_mac_port_mapping(self):
+        qbridge = QBridgeMib(self.agent)
+        fdb = yield qbridge.get_forwarding_database()
+        baseports = yield self._get_baseports()
+
+        mapping = defaultdict(set)
+        for mac, port in fdb:
+            if port in baseports:
+                ifindex = baseports[port]
+                mapping[ifindex].add(mac)
+
+        defer.returnValue(dict(mapping))
+
+    @defer.inlineCallbacks
+    def _get_baseports(self):
+        if not self.baseports:
+            bridge = yield self._get_bridge()
+            self.baseports = yield bridge.get_baseport_ifindex_map()
+        defer.returnValue(self.baseports)
+
+    @defer.inlineCallbacks
+    def _get_bridge(self):
+        if not self.bridge:
+            instances = yield self._get_dot1d_instances()
+            self.bridge = MultiBridgeMib(self.agent, instances)
+        defer.returnValue(self.bridge)
+
+    @defer.inlineCallbacks
+    def _get_dot1d_instances(self):
+        if not self.dot1d_instances:
+            entity = EntityMib(self.agent)
+            self.dot1d_instances = yield entity.retrieve_alternate_bridge_mibs()
+        defer.returnValue(self.dot1d_instances)
+
+    def _log_fdb_stats(self, prefix, fdb):
+        mac_count = sum(len(v) for v in fdb.values())
+        self._logger.debug("%s: %d MAC addresses found on %d ports",
+                           prefix, mac_count, len(fdb))
 
     def _classify_ports(self):
         self.linkports = dict((port, macs) for port, macs in self.fdb.items()
