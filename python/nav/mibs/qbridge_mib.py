@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a Q-BRIDGE-MIB MibRetriever and associated functionality."""
+from twisted.internet import defer
 
 import nav.bitvector
 from nav.mibs import mibretriever, reduce_index
@@ -80,6 +81,23 @@ class QBridgeMib(mibretriever.MibRetriever):
         df.addCallback(reduce_index)
         return df.addCallback(convert_data_to_portlist)
 
+    @defer.inlineCallbacks
+    def get_forwarding_database(self):
+        "Retrieves the forwarding databases of the device"
+        columns = yield self.retrieve_columns(['dot1qTpFdbPort',
+                                               'dot1qTpFdbStatus'])
+        columns = self.translate_result(columns)
+        learned = (row for row in columns.values()
+                   if row['dot1qTpFdbStatus'] == 'learned')
+        result = []
+        for row in learned:
+            index = row[0]
+            _fdb_id = index[0]
+            mac = index[1:]
+            mac =  ':'.join("%02x" % o for o in mac)
+            port = row['dot1qTpFdbPort']
+            result.append((mac, port))
+        defer.returnValue(result)
 
 def filter_newest_current_entries(dot1qvlancurrenttable):
     """Filters a result from the dot1qVlanCurrentTable, removing the
