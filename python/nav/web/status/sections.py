@@ -205,6 +205,7 @@ class NetboxSection(_Section):
         return AlertHistory.objects.filter(
             event_type=MAINTENANCE_STATE,
             end_time__gt=datetime.max,
+            netbox__isnull=False,
         ).values('netbox').query
 
     def _alerttype(self):
