@@ -172,7 +172,7 @@ class NetboxSection(_Section):
         ).filter(
             ~Q(netbox__in=maintenance),
             Q(netbox__up='n') | Q(netbox__up='s'),
-            alert_type__in=alert_types,
+            alert_type__name__in=alert_types,
             end_time__gt=datetime.max,
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
@@ -217,10 +217,7 @@ class NetboxSection(_Section):
         if 's' in self.states:
             states.append('boxShadow')
 
-        return AlertType.objects.filter(
-            event_type__id=BOX_STATE,
-            name__in=states
-        ).values('pk').query
+        return states
 
 class NetboxMaintenanceSection(_Section):
     columns =  [
