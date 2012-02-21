@@ -25,6 +25,7 @@ from nav.mibs.qbridge_mib import QBridgeMib
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
+from nav.ipdevpoll import utils
 
 class Cam(Plugin):
     """Finds entries from switches' forwarding tables.
@@ -111,8 +112,7 @@ class Cam(Plugin):
     @defer.inlineCallbacks
     def _get_dot1d_instances(self):
         if not self.dot1d_instances:
-            entity = EntityMib(self.agent)
-            self.dot1d_instances = yield entity.retrieve_alternate_bridge_mibs()
+            self.dot1d_instances = yield utils.get_dot1d_instances(self.agent)
         defer.returnValue(self.dot1d_instances)
 
     def _log_fdb_stats(self, prefix, fdb):
