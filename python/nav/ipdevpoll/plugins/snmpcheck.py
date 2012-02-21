@@ -24,6 +24,7 @@ from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import AlertHistory
 from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import shadows
 from nav.ipdevpoll.snmp import AgentProxy
 from nav.ipdevpoll.jobs import SuggestedReschedule
 
@@ -56,6 +57,7 @@ class SnmpCheck(Plugin):
             raise SuggestedReschedule(60)
         else:
             yield self._mark_as_up()
+            self._set_version(is_ok)
 
     @defer.inlineCallbacks
     def _do_check(self):
@@ -65,8 +67,8 @@ class SnmpCheck(Plugin):
         returnValue(is_ok)
 
     @defer.inlineCallbacks
-    def _check_version(self, version):
-        version = 'v%s' % version
+    def _check_version(self, version_number):
+        version = 'v%s' % version_number
         if self.agent.snmpVersion != version:
             agent = self._get_alternate_agent(version)
         else:
@@ -83,7 +85,7 @@ class SnmpCheck(Plugin):
                 agent.close()
 
         self._logger.debug("SNMP response: %r", result)
-        returnValue(bool(result))
+        returnValue(bool(result) and version_number)
 
 
     def _get_alternate_agent(self, version):
@@ -146,6 +148,13 @@ class SnmpCheck(Plugin):
         event.netbox_id = self.netbox.id
         event.event_type_id = 'snmpAgentState'
         return event
+
+    def _set_version(self, version):
+        if version in (1, 2):
+            self._logger.debug("storing snmp_version=%s", version)
+            netbox = self.containers.get(None, shadows.Netbox)
+            netbox.snmp_version = version
+
 
 @commit_on_success
 def get_snmp_agent_down_set():

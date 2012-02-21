@@ -509,8 +509,7 @@ class Shadow(object):
             if isinstance(myvalue, Shadow):
                 attr = "%s_id" % attr
                 myvalue = myvalue.id
-            else:
-                return hasattr(other, attr) and myvalue != getattr(other, attr)
+            return hasattr(other, attr) and myvalue != getattr(other, attr)
 
         return [a for a in self.get_touched()
                 if _is_different(a)]
