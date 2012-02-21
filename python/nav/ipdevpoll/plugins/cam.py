@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"ipdevpoll plugin to collect switch forwarding tables"
+"ipdevpoll plugin to collect switch forwarding tables and STP blocking ports"
 from collections import defaultdict
 from datetime import timedelta
 
@@ -28,9 +28,9 @@ from nav.ipdevpoll import shadows
 from nav.ipdevpoll import utils
 
 class Cam(Plugin):
-    """Finds entries from switches' forwarding tables.
+    """Collects switches' forwarding tables and port STP states.
 
-    For each port it finds data from, a decision is made:
+    For each port it finds forwarding data from, a decision is made:
 
     1. If the port reports any MAC address belonging to any NAV-monitored
        equipment, it is considered a topological port and one or more entries
@@ -48,6 +48,7 @@ class Cam(Plugin):
     baseports = None
     linkports = None
     accessports = None
+    blocking = None
 
     @defer.inlineCallbacks
     def handle(self):
@@ -66,6 +67,8 @@ class Cam(Plugin):
 
         self.monitored = yield threads.deferToThread(get_netbox_macs)
         self._classify_ports()
+
+        self.blocking = yield self._get_dot1d_stp_blocking()
 
     @defer.inlineCallbacks
     def _get_dot1d_mac_port_mapping(self):
@@ -129,6 +132,23 @@ class Cam(Plugin):
 
         self._logger.debug("up/downlinks: %r", sorted(self.linkports.keys()))
         self._logger.debug("access ports: %r", sorted(self.accessports.keys()))
+
+    @defer.inlineCallbacks
+    def _get_dot1d_stp_blocking(self):
+        bridge = yield self._get_bridge()
+        blocking = yield bridge.get_stp_blocking_ports()
+        baseports = yield self._get_baseports()
+        translated = [(baseports[port], vlan) for port, vlan in blocking
+                     if port in baseports]
+        if translated:
+            self._log_blocking_ports(translated)
+        defer.returnValue(translated)
+
+    def _log_blocking_ports(self, blocking):
+        ifc_count = len(set(ifc for ifc, vlan in blocking))
+        vlan_count = len(set(vlan for ifc, vlan in blocking))
+        self._logger.debug("found %d STP blocking ports on %d vlans: %r",
+                           ifc_count, vlan_count, blocking)
 
 
 @cachedfor(timedelta(minutes=5))
