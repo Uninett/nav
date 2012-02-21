@@ -20,6 +20,7 @@ import logging
 
 from IPy import IP
 
+from twisted.internet import defer
 from twisted.internet.defer import Deferred
 from twisted.internet import reactor
 
@@ -106,3 +107,24 @@ def log_unhandled_failure(logger, failure, msg, *args, **kwargs):
     args = args + (traceback,)
 
     logger.error(msg + "\n%s", *args, **kwargs)
+
+@defer.inlineCallbacks
+def get_dot1d_instances(agentproxy):
+    """Gets a list of alternative BRIDGE-MIB instances from an agent.
+
+    First
+
+    :returns: A list of [(description, community), ...] for each alternate
+              BRIDGE-MIB instance.
+
+    """
+    from nav.mibs.cisco_vtp_mib import CiscoVTPMib
+    from nav.mibs.entity_mib import EntityMib
+
+    for mibclass in (EntityMib, CiscoVTPMib):
+        mib = mibclass(agentproxy)
+        instances = yield mib.retrieve_alternate_bridge_mibs()
+        if instances:
+            defer.returnValue(instances)
+    defer.returnValue(instances)
+
