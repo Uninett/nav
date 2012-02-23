@@ -24,7 +24,8 @@ therefore be run in the threadpool instead of the main reactor thread.
 """
 import re
 from datetime import timedelta
-from nav.util import cachedfor
+import threading
+from nav.util import cachedfor, synchronized
 
 from nav.models import manage
 from django.db.models import Q
@@ -34,6 +35,7 @@ from nav.mibs.lldp_mib import IdSubtypes
 from nav.ipdevpoll.log import ContextLogger
 from nav.ipdevpoll import shadows
 
+@synchronized(threading.Lock())
 @cachedfor(timedelta(minutes=5))
 def get_netbox_macs():
     "Returns a dict of (mac, netboxid) mappings of NAV-monitored devices"
