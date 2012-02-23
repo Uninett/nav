@@ -109,6 +109,16 @@ def log_unhandled_failure(logger, failure, msg, *args, **kwargs):
     logger.error(msg + "\n%s", *args, **kwargs)
 
 @defer.inlineCallbacks
+def get_multibridgemib(agentproxy):
+    """Returns a MultiBridgeMib retriever pre-populated with instances from
+    get_dot1d_instances()
+
+    """
+    from nav.mibs.bridge_mib import MultiBridgeMib
+    instances = yield get_dot1d_instances(agentproxy)
+    defer.returnValue(MultiBridgeMib(agentproxy, instances))
+
+@defer.inlineCallbacks
 def get_dot1d_instances(agentproxy):
     """Gets a list of alternative BRIDGE-MIB instances from an agent.
 
