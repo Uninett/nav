@@ -29,6 +29,8 @@ from nav.util import cachedfor
 from nav.models import manage
 from django.db.models import Q
 
+from nav.mibs.lldp_mib import IdSubtypes
+
 from nav.ipdevpoll.log import ContextLogger
 from nav.ipdevpoll import shadows
 
@@ -164,3 +166,59 @@ class CDPNeighbor(Neighbor):
     def _identify_interface(self):
         return self._interface_from_name(self.record.deviceport)
 
+
+class LLDPNeighbor(Neighbor):
+    "Parses an LLDP tuple from nav.mibs.lldp_mib to identify a neighbor"
+
+    def _identify_netbox(self):
+        chassid = self.record.chassis_id
+        if chassid:
+            lookup = None
+            if isinstance(chassid, IdSubtypes.macAddress):
+                lookup = self._netbox_from_mac
+            elif isinstance(chassid, IdSubtypes.networkAddress):
+                lookup = self._netbox_from_ip
+            elif isinstance(chassid, IdSubtypes.local):
+                lookup = self._netbox_from_sysname
+
+            if lookup:
+                netbox = lookup(str(chassid))
+
+        if not netbox and self.record.sysname:
+            netbox = self._netbox_from_sysname(self.record.sysname)
+
+        return netbox
+
+    @classmethod
+    def _netbox_from_mac(cls, mac):
+        mac_map = get_netbox_macs()
+        if mac in mac_map:
+            return cls._netbox_query(Q(id=mac_map[mac]))
+
+    def _identify_interface(self):
+        portid = self.record.port_id
+        if self.netbox and portid:
+            lookup = None
+            if isinstance(portid, (IdSubtypes.interfaceAlias,
+                                   IdSubtypes.interfaceName,
+                                   IdSubtypes.local)):
+                lookup = self._interface_from_name
+            elif isinstance(portid, (IdSubtypes.macAddress)):
+                lookup = self._interface_from_mac
+            elif isinstance(portid, (IdSubtypes.networkAddress)):
+                lookup = self._interface_from_ip
+
+            if lookup:
+                return lookup(str(portid))
+
+    def _interface_from_mac(self, mac):
+        assert mac
+        query = Q(netbox__id=self.netbox.id,
+                  ifphysaddress=mac)
+        return self._interface_query(query)
+
+    def _interface_from_ip(self, ip):
+        assert ip
+        query = Q(netbox__id=self.netbox.id,
+                  gwportprefix__gw_ip=ip)
+        return self._interface_query(query)
