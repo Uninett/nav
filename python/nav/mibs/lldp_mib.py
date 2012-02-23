@@ -20,7 +20,8 @@ from IPy import IP
 from twisted.internet import defer
 
 from nav.namedtuple import namedtuple
-import mibretriever
+from nav.mibs import mibretriever
+from nav.ipdevpoll.utils import get_multibridgemib
 
 class LLDPMib(mibretriever.MibRetriever):
     "A MibRetriever for handling LLDP-MIB"
@@ -30,7 +31,12 @@ class LLDPMib(mibretriever.MibRetriever):
     def get_remote_table(self):
         "Returns the contents of the lldpRemTable"
         table = yield self._retrieve_rem_table()
-        result = [self._rem_entry_to_neighbor(row)
+        if table:
+            baseports = yield self._get_baseport_map()
+        else:
+            baseports = {}
+
+        result = [self._rem_entry_to_neighbor(row, baseports)
                   for row in table.values()]
         defer.returnValue(result)
 
@@ -44,9 +50,23 @@ class LLDPMib(mibretriever.MibRetriever):
                 'lldpRemSysName',
                 ]).addCallback(self.translate_result)
 
+    @defer.inlineCallbacks
+    def _get_baseport_map(self):
+        bridge = yield get_multibridgemib(self.agent_proxy)
+        baseports = yield bridge.get_baseport_ifindex_map()
+        defer.returnValue(baseports)
+
     @staticmethod
-    def _rem_entry_to_neighbor(row):
+    def _rem_entry_to_neighbor(row, baseports):
         _timemark, local_portnum, _index = row[0]
+
+        # according to LLDP-MIB, lldpPortNumber is a baseport number on 802.1d
+        # and 802.1q devices, otherwise it is an InterfaceIndex. The baseport
+        # map is only found on 1D and 1Q devices, so we remap the
+        # lldpPortNumber to an InterfaceIndex if we got an actual baseport map
+        if local_portnum in baseports:
+            local_portnum = baseports[local_portnum]
+
         chassis_id = IdSubtypes.get(row['lldpRemChassisIdSubtype'],
                                     row['lldpRemChassisId'])
         port_id = IdSubtypes.get(row['lldpRemPortIdSubtype'],
