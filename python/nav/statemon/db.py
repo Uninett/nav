@@ -38,24 +38,7 @@ from service import Service
 from debug import debug
 
 from nav.db import get_connection_string
-
-def synchronized(lock):
-    """Synchronization decorator.
-
-    Since there is only one database connection, we need to serialize access
-    to it so multiple threads won't interfere with each others transactions.
-
-    """
-    def _decorator(func):
-        @wraps(func)
-        def _wrapper(*args, **kwargs):
-            lock.acquire()
-            try:
-                return func(*args, **kwargs)
-            finally:
-                lock.release()
-        return _wrapper
-    return _decorator
+from nav.util import synchronized
 
 def db():
     if _db._instance is None:

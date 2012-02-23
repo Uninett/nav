@@ -310,3 +310,24 @@ class cachedfor(object):
             return self.value
 
         return _wrapper
+
+def synchronized(lock):
+    """Synchronization decorator.
+
+    Decorates a function to ensure it can only run in a single thread at a
+    time.
+
+    :param lock: A threading.Lock object.
+
+    """
+    def _decorator(func):
+        @wraps(func)
+        def _wrapper(*args, **kwargs):
+            lock.acquire()
+            try:
+                return func(*args, **kwargs)
+            finally:
+                lock.release()
+        return _wrapper
+    return _decorator
+
