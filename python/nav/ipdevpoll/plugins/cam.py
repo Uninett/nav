@@ -15,17 +15,16 @@
 #
 "ipdevpoll plugin to collect switch forwarding tables and STP blocking ports"
 from collections import defaultdict
-from datetime import timedelta
 
 from twisted.internet import defer, threads
 
-from nav.util import cachedfor
 from nav.mibs.bridge_mib import MultiBridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib
 from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll import utils
+from nav.ipdevpoll.neighbor import get_netbox_macs
 
 class Cam(Plugin):
     """Collects switches' forwarding tables and port STP states.
@@ -151,11 +150,3 @@ class Cam(Plugin):
                            ifc_count, vlan_count, blocking)
 
 
-@cachedfor(timedelta(minutes=5))
-def get_netbox_macs():
-    "Returns a dict of (mac, netboxid) mappings of NAV-monitored devices"
-    from django.db import connection
-    cursor = connection.cursor()
-    cursor.execute('SELECT mac, netboxid FROM netboxmac')
-    netbox_macs = dict(cursor.fetchall())
-    return netbox_macs
