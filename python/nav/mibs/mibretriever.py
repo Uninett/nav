@@ -33,6 +33,7 @@ this to allow asynchronous data retrieval.
 import logging
 import operator
 from twisted.internet import defer, reactor
+from twisted.internet.error import TimeoutError
 
 from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.utils import fire_eventually
@@ -533,7 +534,8 @@ class MultiMibMixIn(MibRetriever):
                 agent.open()
             self.agent_proxy = agent
             try:
-                one_result = yield method(*args, **kwargs)
+                one_result = yield method(
+                    *args, **kwargs).addErrback(self.__timeout_handler, descr)
             finally:
                 if agent is not self._base_agent:
                     agent.close()
@@ -541,6 +543,21 @@ class MultiMibMixIn(MibRetriever):
             results.append((descr, one_result))
             yield lambda thing: fire_eventually(thing)
         defer.returnValue(integrator(results))
+
+    def __timeout_handler(self, failure, descr):
+        """Handles timeouts while processing alternate MIB instances.
+
+        Under the premise that we may have an incorrect community string for a
+        MIB instance, we don't want to derail the entire process of collecting
+        from all instances, so we ignore timeouts for anything but the primary
+        (base) instance.
+
+        """
+        if self.agent_proxy is not self._base_agent:
+            failure.trap(TimeoutError, defer.TimeoutError)
+            self._logger.debug("ignoring timeout from %r", descr)
+            return None
+        return failure
 
     @staticmethod
     def _dictintegrator(results):
@@ -554,7 +571,8 @@ class MultiMibMixIn(MibRetriever):
         """
         merged_dict = {}
         for instance, result in results:
-            merged_dict.update(result)
+            if result is not None:
+                merged_dict.update(result)
         return merged_dict
 
     def _make_agents(self):
