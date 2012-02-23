@@ -61,8 +61,9 @@ class MultiBridgeMib(BridgeMib, mibretriever.MultiMibMixIn):
         def _integrator(results):
             endresult = []
             for descr, ports in results:
-                for port in ports:
-                    endresult.append((port, descr))
+                if ports is not None:
+                    for port in ports:
+                        endresult.append((port, descr))
             return endresult
 
         method = super(MultiBridgeMib, self).get_stp_blocking_ports
@@ -72,8 +73,9 @@ class MultiBridgeMib(BridgeMib, mibretriever.MultiMibMixIn):
         def _integrator(results):
             endresult = []
             for descr, result in results:
-                for port, state in result:
-                    endresult.append((port, descr, state))
+                if result is not None:
+                    for port, state in result:
+                        endresult.append((port, descr, state))
             return endresult
 
         method = super(MultiBridgeMib, self).get_stp_port_states
