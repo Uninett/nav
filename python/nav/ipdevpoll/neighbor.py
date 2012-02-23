@@ -51,6 +51,15 @@ class Neighbor(object):
     _logger = ContextLogger()
 
     def __init__(self, record):
+        """Given a supported neighbor record, tries to identify the remote
+        device and port among the ones registered in NAV's database.
+
+        If a neighbor can be identified, the identified attribute is set to
+        True.  The netbox and interface attributes will represent the
+        identified items.  The record provided to the constructor is saved in
+        the record instance attribute.
+
+        """
         self.record = record
         self.netbox = self._identify_netbox()
         self.interface = self._identify_interface()
@@ -142,12 +151,12 @@ class Neighbor(object):
                 or self._interface_query(ifname)
                 or self._interface_query(ifalias))
 
-    @staticmethod
-    def _interface_query(query):
+    def _interface_query(self, query):
         assert query
+        netbox = Q(netbox__id=self.netbox.id)
         try:
             ifc = manage.Interface.objects.values(
-                'id', 'ifname', 'ifdescr').get(query)
+                'id', 'ifname', 'ifdescr').get(netbox & query)
         except manage.Interface.DoesNotExist:
             return None
 
@@ -215,12 +224,8 @@ class LLDPNeighbor(Neighbor):
 
     def _interface_from_mac(self, mac):
         assert mac
-        query = Q(netbox__id=self.netbox.id,
-                  ifphysaddress=mac)
-        return self._interface_query(query)
+        return self._interface_query(Q(ifphysaddress=mac))
 
     def _interface_from_ip(self, ip):
         assert ip
-        query = Q(netbox__id=self.netbox.id,
-                  gwportprefix__gw_ip=ip)
-        return self._interface_query(query)
+        return self._interface_query(Q(gwportprefix__gw_ip=ip))
