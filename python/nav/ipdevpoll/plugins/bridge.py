@@ -23,21 +23,16 @@ ENTITY-MIB.
 """
 from twisted.internet import defer
 
-from nav.mibs.bridge_mib import MultiBridgeMib
-from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
+from nav.ipdevpoll.utils import get_multibridgemib
 
 class Bridge(Plugin):
     "Finds interfaces in L2/switchport mode"
-    def __init__(self, *args, **kwargs):
-        super(Bridge, self).__init__(*args, **kwargs)
-        self.entity = EntityMib(self.agent)
 
     @defer.inlineCallbacks
     def handle(self):
-        instances = yield self.entity.retrieve_alternate_bridge_mibs()
-        bridge = MultiBridgeMib(self.agent, instances)
+        bridge = yield get_multibridgemib(self.agent)
         baseports = yield bridge.get_baseport_ifindex_map()
         defer.returnValue(self._set_port_numbers(baseports))
 
@@ -49,4 +44,5 @@ class Bridge(Plugin):
 
         for portnum, ifindex in baseports.items():
             interface = self.containers.factory(ifindex, shadows.Interface)
+            interface.ifindex = ifindex
             interface.baseport = portnum
