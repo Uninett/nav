@@ -80,8 +80,12 @@ class ContextLogger(object):
     log_attr = '_logger_object'
 
     def __init__(self, suffix=None, context_vars=None):
+        if suffix:
+            self.log_attr = "%s_%s" % (self.log_attr, suffix)
+
         self.suffix = suffix
         self.context_vars = context_vars
+
 
     def __get__(self, obj, owner=None):
         target = owner if obj is None else obj
