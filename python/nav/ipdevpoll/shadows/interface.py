@@ -298,4 +298,5 @@ def ifnames(ifcs):
     objects.
 
     """
-    return ', '.join(sorted((ifc.ifname for ifc in ifcs), key=natsort.split))
+    return ', '.join(sorted((ifc.ifname or 'None' for ifc in ifcs),
+                            key=natsort.split))
