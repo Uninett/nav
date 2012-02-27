@@ -23,20 +23,6 @@ from nav.web.status.forms import NetboxMaintenanceForm, ServiceForm
 from nav.web.status.forms import ServiceMaintenanceForm, ModuleForm
 from nav.web.status.forms import ThresholdForm
 
-def get_form_for_section(type):
-    if type == StatusPreference.SECTION_THRESHOLD:
-        return ThresholdForm
-    elif type == StatusPreference.SECTION_NETBOX_MAINTENANCE:
-        return NetboxMaintenanceForm
-    elif type == StatusPreference.SECTION_MODULE:
-        return ModuleForm
-    elif type == StatusPreference.SECTION_SERVICE:
-        return ServiceForm
-    elif type == StatusPreference.SECTION_SERVICE_MAINTENANCE:
-        return ServiceMaintenanceForm
-    else:
-        return NetboxForm
-
 def extract_post(post):
     '''Some browser don't support buttons with names and values, so we have to
     use input type="submit" instead.

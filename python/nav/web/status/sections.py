@@ -31,16 +31,18 @@ from nav.models.manage import Netbox, Module, Category, Organization
 
 from nav.web import servicecheckers
 
+from nav.web.status.forms import SectionForm, NetboxForm
+from nav.web.status.forms import NetboxMaintenanceForm, ServiceForm
+from nav.web.status.forms import ServiceMaintenanceForm, ModuleForm
+from nav.web.status.forms import ThresholdForm
+
 MAINTENANCE_STATE = 'maintenanceState'
 BOX_STATE = 'boxState'
 SERVICE_STATE = 'serviceState'
 MODULE_STATE = 'moduleState'
 THRESHOLD_STATE = 'thresholdState'
 
-
-def get_user_sections(account):
-    '''Fetches all status sections for account in one swoop.
-    '''
+def get_section_model(section_type):
     # Dispatch table
     dtable = {
         StatusPreference.SECTION_NETBOX: NetboxSection,
@@ -50,7 +52,12 @@ def get_user_sections(account):
         StatusPreference.SECTION_SERVICE_MAINTENANCE: ServiceMaintenanceSection,
         StatusPreference.SECTION_THRESHOLD: ThresholdSection,
     }
+    return dtable[section_type]
 
+
+def get_user_sections(account):
+    '''Fetches all status sections for account in one swoop.
+    '''
     sections = []
     preferences = StatusPreference.objects.filter(
         account=account
@@ -96,7 +103,8 @@ def get_user_sections(account):
             pref.all_organizations = True
 
     for pref in preferences:
-        section = dtable[pref.type](prefs=pref)
+        section_model = get_section_model(pref.type)
+        section = section_model(prefs=pref)
         section.fetch_history()
         sections.append(section)
 
@@ -120,6 +128,10 @@ class _Section(object):
     history = []
     type_title = ''
     devicehistory_type = ''
+
+    @staticmethod
+    def form_class():
+        return SectionForm
 
     def __init__(self, prefs=None):
         self.prefs = prefs
@@ -162,6 +174,10 @@ class NetboxSection(_Section):
         '',
     ]
     devicehistory_type = 'a_3'
+
+    @staticmethod
+    def form_class():
+        return NetboxForm
 
     def fetch_history(self):
         maintenance = self._maintenance()
@@ -228,6 +244,10 @@ class NetboxMaintenanceSection(_Section):
         '',
     ]
     devicehistory_type = 'e_maintenanceState'
+
+    @staticmethod
+    def form_class():
+        return NetboxMaintenanceForm
 
     def fetch_history(self):
         maintenance = self._maintenance()
@@ -306,6 +326,10 @@ class ServiceSection(_Section):
         '',
     ]
     devicehistory_type = 'e_serviceState'
+
+    @staticmethod
+    def form_class():
+        return ServiceForm
 
     def __init__(self, prefs=None):
         super(ServiceSection, self).__init__(prefs=prefs)
@@ -387,6 +411,10 @@ class ServiceSection(_Section):
 class ServiceMaintenanceSection(ServiceSection):
     devicehistory_type = 'e_maintenanceState'
 
+    @staticmethod
+    def form_class():
+        return ServiceMaintenanceForm
+
     def fetch_history(self):
         maintenance = AlertHistoryVariable.objects.select_related(
             'alert_history', 'alert_history__netbox'
@@ -460,6 +488,10 @@ class ModuleSection(_Section):
     ]
     devicehistory_type = 'a_8'
 
+    @staticmethod
+    def form_class():
+        return ModuleForm
+
     def fetch_history(self):
         module_history = AlertHistory.objects.select_related(
             'netbox', 'device'
@@ -520,6 +552,10 @@ class ThresholdSection(_Section):
         '',
     ]
     devicehistory_type = 'a_14'
+
+    @staticmethod
+    def form_class():
+        return ThresholdForm
 
     def fetch_history(self):
         thresholds = AlertHistory.objects.select_related(
