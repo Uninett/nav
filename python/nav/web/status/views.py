@@ -18,7 +18,7 @@
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 
 from nav.django.utils import get_account
 from nav.models.profiles import StatusPreference
@@ -84,36 +84,10 @@ def edit_preferences(request, section_id):
         return save_preferences(request)
 
     account = get_account(request)
-    try:
-        status_prefs = StatusPreference.objects.get(
-            id=section_id,
-            account=account,
-        )
-    except StatusPreference.DoesNotExist:
-        # FIXME Maybe send a message as well?
-        return HttpResponseRedirect(reverse('status-preferences'))
-
-    data = {
-        'id': status_prefs.id,
-        'name': status_prefs.name,
-        'type': status_prefs.type,
-        'organizations': list(status_prefs.organizations.values_list(
-                'id', flat=True)) or [''],
-    }
-    if status_prefs.type == StatusPreference.SECTION_THRESHOLD:
-        data['categories'] = list(section.categories.values_list(
-                'id', flat=True)) or ['']
-    elif status_prefs.type in SERVICE_SECTIONS:
-        data['services'] = status_prefs.services.split(",") or ['']
-        data['states'] = status_prefs.states.split(",")
-    else:
-        data['categories'] = list(status_prefs.categories.values_list(
-                'id', flat=True)) or ['']
-        data['states'] = status_prefs.states.split(",")
+    status_prefs = get_object_or_404(StatusPreference, id=section_id, account=account)
 
     section_model = get_section_model(status_prefs.type)
-    form_model = section_model.form_class()
-    form = form_model(data)
+    form = section_model.form(status_prefs)
 
     return render_to_response(
         'status/edit_preferences.html',

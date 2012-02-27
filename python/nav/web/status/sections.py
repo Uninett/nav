@@ -129,10 +129,6 @@ class _Section(object):
     type_title = ''
     devicehistory_type = ''
 
-    @staticmethod
-    def form_class():
-        return SectionForm
-
     def __init__(self, prefs=None):
         self.prefs = prefs
         self.categories = self.prefs.fetched_categories
@@ -165,6 +161,30 @@ class _Section(object):
 
         return url
 
+    @staticmethod
+    def form_class():
+        return SectionForm
+
+    @staticmethod
+    def form_data(status_prefs):
+        data = {
+            'id': status_prefs.id,
+            'name': status_prefs.name,
+            'type': status_prefs.type,
+            'organizations': list(status_prefs.organizations.values_list(
+                    'id', flat=True)) or [''],
+        }
+        data['categories'] = list(status_prefs.categories.values_list(
+                'id', flat=True)) or ['']
+        data['states'] = status_prefs.states.split(",")
+        return data
+
+    @classmethod
+    def form(cls, status_prefs):
+        form_model = cls.form_class()
+        data = cls.form_data(status_prefs)
+        return form_model(data)
+
 class NetboxSection(_Section):
     columns =  [
         'Sysname',
@@ -178,6 +198,7 @@ class NetboxSection(_Section):
     @staticmethod
     def form_class():
         return NetboxForm
+
 
     def fetch_history(self):
         maintenance = self._maintenance()
@@ -330,6 +351,19 @@ class ServiceSection(_Section):
     @staticmethod
     def form_class():
         return ServiceForm
+
+    @staticmethod
+    def form_data(status_prefs):
+        data = {
+            'id': status_prefs.id,
+            'name': status_prefs.name,
+            'type': status_prefs.type,
+            'organizations': list(status_prefs.organizations.values_list(
+                    'id', flat=True)) or [''],
+        }
+        data['services'] = status_prefs.services.split(",") or ['']
+        data['states'] = status_prefs.states.split(",")
+        return data
 
     def __init__(self, prefs=None):
         super(ServiceSection, self).__init__(prefs=prefs)
@@ -556,6 +590,19 @@ class ThresholdSection(_Section):
     @staticmethod
     def form_class():
         return ThresholdForm
+
+    @staticmethod
+    def form_data(status_prefs):
+        data = {
+            'id': status_prefs.id,
+            'name': status_prefs.name,
+            'type': status_prefs.type,
+            'organizations': list(status_prefs.organizations.values_list(
+                    'id', flat=True)) or [''],
+        }
+        data['categories'] = list(status_prefs.categories.values_list(
+                'id', flat=True)) or ['']
+        return data
 
     def fetch_history(self):
         thresholds = AlertHistory.objects.select_related(
