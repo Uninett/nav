@@ -138,6 +138,11 @@ class Cam(Plugin):
         bridge = yield self._get_bridge()
         blocking = yield bridge.get_stp_blocking_ports()
         baseports = yield self._get_baseports()
+
+        # Ensure processing of blocking states in DB, even if we found no
+        # current blocking ports:
+        self.containers.add(shadows.SwPortBlocked)
+
         translated = [(baseports[port], vlan) for port, vlan in blocking
                      if port in baseports]
         if translated:
