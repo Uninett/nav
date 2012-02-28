@@ -36,6 +36,7 @@ from nav.ipdevpoll import db
 
 from .netbox import Netbox
 from .interface import Interface
+from .swportblocked import SwPortBlocked
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
