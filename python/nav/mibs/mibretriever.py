@@ -577,7 +577,7 @@ class MultiMibMixIn(MibRetriever):
 
     def _make_agents(self):
         "Generates a series of alternate AgentProxy instances"
-        instances = self._prune_instances()
+        instances = list(self._prune_instances())
         if not instances:
             # The un-indexed BRIDGE-MIB instance represents the default
             # VLAN. We only check this un-indexed instance if no alternate
