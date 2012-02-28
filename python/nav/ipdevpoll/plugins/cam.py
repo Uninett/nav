@@ -19,6 +19,7 @@ from collections import defaultdict
 
 from twisted.internet import defer, threads
 
+from nav.util import splitby
 from nav.mibs.bridge_mib import MultiBridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib
 from nav.mibs.entity_mib import EntityMib
@@ -124,11 +125,13 @@ class Cam(Plugin):
                            prefix, mac_count, len(fdb))
 
     def _classify_ports(self):
-        self.linkports = dict((port, macs) for port, macs in self.fdb.items()
-                              if any(m in self.monitored for m in macs))
+        def _is_linkport(portmacs):
+            _port, macs = portmacs
+            return any(mac in self.monitored for mac in macs)
 
-        self.accessports = dict((port, macs) for port, macs in self.fdb.items()
-                                if port not in self.linkports)
+        linkports, accessports = splitby(_is_linkport, self.fdb.items())
+        self.linkports = dict(linkports)
+        self.accessports = dict(accessports)
 
         self._logger.debug("up/downlinks: %r", sorted(self.linkports.keys()))
         self._logger.debug("access ports: %r", sorted(self.accessports.keys()))
