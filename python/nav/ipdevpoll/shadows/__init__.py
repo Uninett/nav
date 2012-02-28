@@ -37,6 +37,7 @@ from nav.ipdevpoll import db
 from .netbox import Netbox
 from .interface import Interface
 from .swportblocked import SwPortBlocked
+from .cam import Cam
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
@@ -527,10 +528,6 @@ class Arp(Shadow):
         if attrs:
             myself = manage.Arp.objects.filter(id=self.id)
             myself.update(**attrs)
-
-class Cam(Shadow):
-    __shadowclass__ = manage.Cam
-    __lookups__ = [('netbox', 'ifindex', 'mac', 'miss_count')]
 
 class SwPortAllowedVlan(Shadow):
     __shadowclass__ = manage.SwPortAllowedVlan
