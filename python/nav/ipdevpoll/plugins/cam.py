@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 "ipdevpoll plugin to collect switch forwarding tables and STP blocking ports"
+import re
 from collections import defaultdict
 
 from twisted.internet import defer, threads
@@ -141,6 +142,7 @@ class Cam(Plugin):
                      if port in baseports]
         if translated:
             self._log_blocking_ports(translated)
+            self._store_blocking_ports(translated)
         defer.returnValue(translated)
 
     def _log_blocking_ports(self, blocking):
@@ -149,4 +151,16 @@ class Cam(Plugin):
         self._logger.debug("found %d STP blocking ports on %d vlans: %r",
                            ifc_count, vlan_count, blocking)
 
+    VLAN_PATTERN = re.compile('(vlan)?(?P<vlan>[0-9]+)', re.IGNORECASE)
+    def _store_blocking_ports(self, blocking):
+        for ifindex, vlan in blocking:
+            match = self.VLAN_PATTERN.match(vlan)
+            vlan = int(match.group('vlan'))
 
+            ifc = self.containers.factory(ifindex, shadows.Interface)
+            ifc.ifindex = ifindex
+
+            block = self.containers.factory((ifindex, vlan),
+                                            shadows.SwPortBlocked)
+            block.interface = ifc
+            block.vlan = vlan
