@@ -113,9 +113,9 @@ class CamManager(DefaultManager):
 
     def _fix_missing_vars(self):
         for cam in self.get_managed():
-            self._fix_missing_vars_for(cam)
+            self._fix_missing_vars_for(cam, now=datetime.datetime.now())
 
-    def _fix_missing_vars_for(self, cam):
+    def _fix_missing_vars_for(self, cam, now):
         if not cam.netbox:
             cam.netbox = self.netbox
         if not cam.end_time:
@@ -124,7 +124,7 @@ class CamManager(DefaultManager):
 
         if cam in self._new:
             if not cam.start_time:
-                cam.start_time = datetime.datetime.now()
+                cam.start_time = now
             cam.sysname = self.netbox.sysname
             cam.port = self._get_port_for(cam.ifindex)
 
