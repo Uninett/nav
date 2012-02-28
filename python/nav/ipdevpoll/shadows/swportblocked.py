@@ -52,8 +52,14 @@ class SwPortBlockedManager(DefaultManager):
         return self._db_blocks.get(key, None)
 
     def cleanup(self):
-        "remove blocking states that weren't found"
-        pass # TODO IMPLEMENT ME
+        "remove blocking states that weren't found anymore"
+        matched_existing = set(self._found_existing_map.values())
+        gone = [b for b in self._db_blocks.values()
+                if b not in matched_existing]
+        if gone:
+            self._logger.debug("removing stp blocking states: %r", gone)
+            manage.SwPortBlocked.objects.filter(
+                id__in=[b.id for b in gone]).delete()
 
 class SwPortBlocked(Shadow):
     __shadowclass__ =  manage.SwPortBlocked
