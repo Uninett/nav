@@ -20,7 +20,7 @@ import os
 import stat
 import datetime
 from functools import wraps
-from itertools import chain
+from itertools import chain, tee
 
 import IPy
 
@@ -152,6 +152,15 @@ def mergedicts(*dicts):
     return dict((k, [d.get(k, None) for d in dicts])
                 for k in keys)
 
+def splitby(predicate, iterable):
+    """Splits an iterable in two iterables, based on a predicate.
+
+    :returns: A tuple of two iterables: (true_iter, false_iter)
+
+    """
+    predicated = ((v, predicate(v)) for v in iterable)
+    iter1, iter2 = tee(predicated)
+    return (v for (v, p) in iter1 if p), (v for (v, p) in iter2 if not p)
 
 class IPRange(object):
     """An IP range representation.
