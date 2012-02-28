@@ -761,11 +761,11 @@ class SwPortAllowedVlan(models.Model):
         return u'Allowed vlans for swport %s' % self.interface
 
 class SwPortBlocked(models.Model):
-    """From MetaNAV: This table defines the spanning tree blocked ports for a
-    given vlan for a given switch port."""
+    """This table defines the spanning tree blocked ports for a given vlan for
+    a given switch port."""
 
-    interface = models.ForeignKey('Interface', db_column='interfaceid',
-                                  primary_key=True)
+    id = models.AutoField(db_column='swportblockedid', primary_key=True)
+    interface = models.ForeignKey('Interface', db_column='interfaceid')
     vlan = models.IntegerField()
 
     class Meta:
@@ -773,7 +773,7 @@ class SwPortBlocked(models.Model):
         unique_together = (('interface', 'vlan'),) # Primary key
 
     def __unicode__(self):
-        return '%d, at swport %s' % (self.vlan, self.swport)
+        return '%d, at %s' % (self.vlan, self.interface)
 
 class SwPortToNetbox(models.Model):
     """From MetaNAV: A help table used in the process of building the physical
