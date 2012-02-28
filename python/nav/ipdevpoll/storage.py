@@ -575,6 +575,21 @@ class ContainerRepository(dict):
 
         return obj
 
+    def add(self, container_class):
+        """Ensures there is a reference to container_class in repository.
+
+        Even though no containers of this class are added to the repository,
+        the reference to the class will cause its manager to run save-time
+        processing.
+
+        """
+        if not issubclass(container_class, Shadow):
+            raise ValueError("%s is not a shadow container class" %
+                             container_class)
+
+        if container_class not in self:
+            self[container_class] = {}
+
     def get(self, key, container_class):
         """Returns the container_class object associated with key, or None if
         no such object was found.
