@@ -68,6 +68,7 @@ class Cam(Plugin):
 
         self.monitored = yield threads.deferToThread(get_netbox_macs)
         self._classify_ports()
+        self._store_cam_records()
 
         self.blocking = yield self._get_dot1d_stp_blocking()
 
@@ -135,6 +136,14 @@ class Cam(Plugin):
 
         self._logger.debug("up/downlinks: %r", sorted(self.linkports.keys()))
         self._logger.debug("access ports: %r", sorted(self.accessports.keys()))
+
+    def _store_cam_records(self):
+        for port in self.accessports:
+            macs = self.fdb.get(port, [])
+            for mac in macs:
+                cam = self.containers.factory((port, mac), shadows.Cam)
+                cam.ifindex = port
+                cam.mac = mac
 
     @defer.inlineCallbacks
     def _get_dot1d_stp_blocking(self):
