@@ -44,6 +44,7 @@ reclaimed by resetting end_time to infinity.
 
 """
 import datetime
+import logging
 
 from nav.models import manage
 from django.db.models import Q
@@ -95,14 +96,20 @@ class CamManager(DefaultManager):
                              for key in missing)
 
     def _log_stats(self):
+        if not self._logger.isEnabledFor(logging.DEBUG):
+            return
+        reclaimable_count = len([cam for cam in self._previously_open.values()
+                                 if cam.end_time < INFINITY])
         known_count = len([cam for cam in self.get_managed()
                            if cam.get_existing_model()])
         new_count = len([cam for cam in self.get_managed()
                          if not cam.get_existing_model()])
         missing_count = len(self._missing)
-        self._logger.debug("existing=%d found=%d / known=%d new=%d missing=%d",
-                           len(self._previously_open), len(self._now_open),
-                           known_count, new_count, missing_count)
+        self._logger.debug(
+            "existing=%d (reclaimable=%d) / "
+            "found=%d (known=%d new=%d missing=%d)",
+            len(self._previously_open), reclaimable_count, len(self._now_open),
+            known_count, new_count, missing_count)
 
     def _fix_missing_vars(self):
         for cam in self.get_managed():
