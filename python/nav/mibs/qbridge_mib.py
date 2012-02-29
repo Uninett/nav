@@ -124,10 +124,12 @@ class PortList(str):
     """
 
     def __sub__(self, other):
-        new_ints = [ord(char) - ord(other[index]) 
+        # pad other with zeros if it happens to be shorter than self
+        padded_other = other.ljust(len(self), '\x00')
+        new_ints = [ord(char) - ord(padded_other[index])
                     for index, char in enumerate(self)]
         return PortList(''.join(chr(i) for i in new_ints))
-    
+
     def get_ports(self):
         """Return a list of port numbers represented by this PortList."""
         vector = nav.bitvector.BitVector(self)
