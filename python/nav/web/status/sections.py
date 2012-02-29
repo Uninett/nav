@@ -34,7 +34,7 @@ from nav.web import servicecheckers
 from nav.web.status.forms import SectionForm, NetboxForm
 from nav.web.status.forms import NetboxMaintenanceForm, ServiceForm
 from nav.web.status.forms import ServiceMaintenanceForm, ModuleForm
-from nav.web.status.forms import ThresholdForm
+from nav.web.status.forms import ThresholdForm, LinkStateForm
 
 MAINTENANCE_STATE = 'maintenanceState'
 BOX_STATE = 'boxState'
@@ -51,6 +51,7 @@ def get_section_model(section_type):
         StatusPreference.SECTION_SERVICE: ServiceSection,
         StatusPreference.SECTION_SERVICE_MAINTENANCE: ServiceMaintenanceSection,
         StatusPreference.SECTION_THRESHOLD: ThresholdSection,
+        StatusPreference.SECTION_LINKSTATE: LinkStateSection,
     }
     return dtable[section_type]
 
@@ -648,6 +649,64 @@ class ThresholdSection(_Section):
                     reverse('devicehistory-view') +\
                     '?netbox=%(id)s&type=a_14&group_by=datetime' % {
                         'id': t.netbox.id,
+                    }
+                ),
+            )
+            history.append(row)
+        self.history = history
+
+class LinkStateSection(_Section):
+    columns =  [
+        'Sysname',
+        'IP',
+        'Interface',
+        'Down since',
+        'Downtime',
+        '',
+    ]
+    devicehistory_type = 'a_3'
+
+    @staticmethod
+    def form_class():
+        return LinkStateForm
+
+    def fetch_history(self):
+        netbox_history = AlertHistory.objects.select_related(
+            'netbox'
+        ).filter(
+            event_type='linkState',
+            end_time__gt=datetime.max,
+            netbox__category__in=self.categories,
+            netbox__organization__in=self.organizations,
+        ).extra(
+            select={
+                'downtime': 'NOW() - start_time',
+                'interfaceid': 'interface.interfaceid',
+                'ifname': 'interface.ifname',
+            },
+            where=['subid = interfaceid::text'],
+            tables=['interface']
+        ).order_by('-start_time', 'end_time')
+
+        history = []
+        for h in netbox_history:
+            row = (
+                (
+                    h.netbox.sysname,
+                    reverse('ipdevinfo-details-by-name', args=[h.netbox.sysname])
+                ),
+                (h.netbox.ip, None),
+                (
+                    h.ifname,
+                    reverse('ipdevinfo-interface-details', args=[h.netbox.sysname, h.interfaceid])
+                ),
+                (h.start_time, None),
+                (h.downtime, None),
+                (
+                    'history',
+                    reverse('devicehistory-view') +\
+                    '?netbox=%(id)s&type=a_3&group_by=datetime' % {
+                        'id': h.netbox.id,
                     }
                 ),
             )

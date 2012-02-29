@@ -78,6 +78,10 @@ class ModuleForm(NetboxForm):
 class ThresholdForm(SectionForm):
     categories = forms.MultipleChoiceField(choices=_category_choices())
 
+class LinkStateForm(SectionForm):
+    categories = forms.MultipleChoiceField(choices=_category_choices())
+    states = forms.MultipleChoiceField(choices=_state_choices())
+
 class AddSectionForm(forms.Form):
     section = forms.ChoiceField(
         choices=StatusPreference.SECTION_CHOICES,
