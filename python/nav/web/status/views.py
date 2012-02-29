@@ -151,7 +151,7 @@ def save_preferences(request):
 
         section.name = form.cleaned_data['name']
         section.account = account
-        if type != StatusPreference.SECTION_THRESHOLD:
+        if type not in (StatusPreference.SECTION_THRESHOLD, StatusPreference.SECTION_SNMPAGENT):
             section.states = ",".join(form.cleaned_data['states'])
         if type in SERVICE_SECTIONS:
             section.services = ",".join(form.cleaned_data['services'])

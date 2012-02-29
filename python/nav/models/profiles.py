@@ -1151,6 +1151,7 @@ class StatusPreference(models.Model):
     SECTION_SERVICE_MAINTENANCE = 'service_maintenance'
     SECTION_THRESHOLD = 'threshold'
     SECTION_LINKSTATE = 'linkstate'
+    SECTION_SNMPAGENT = 'snmpagent'
 
     SECTION_CHOICES = (
         (SECTION_NETBOX, 'IP Devices down'),
@@ -1160,6 +1161,7 @@ class StatusPreference(models.Model):
         (SECTION_SERVICE_MAINTENANCE, 'Services on maintenance'),
         (SECTION_THRESHOLD, 'Thresholds exceeded'),
         (SECTION_LINKSTATE, 'Link inactive'),
+        (SECTION_SNMPAGENT, 'SNMP Agent down'),
     )
 
     name = models.TextField()

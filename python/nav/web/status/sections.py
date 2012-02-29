@@ -34,7 +34,7 @@ from nav.web import servicecheckers
 from nav.web.status.forms import SectionForm, NetboxForm
 from nav.web.status.forms import NetboxMaintenanceForm, ServiceForm
 from nav.web.status.forms import ServiceMaintenanceForm, ModuleForm
-from nav.web.status.forms import ThresholdForm, LinkStateForm
+from nav.web.status.forms import ThresholdForm, LinkStateForm, SNMPAgentForm
 
 MAINTENANCE_STATE = 'maintenanceState'
 BOX_STATE = 'boxState'
@@ -52,6 +52,7 @@ def get_section_model(section_type):
         StatusPreference.SECTION_SERVICE_MAINTENANCE: ServiceMaintenanceSection,
         StatusPreference.SECTION_THRESHOLD: ThresholdSection,
         StatusPreference.SECTION_LINKSTATE: LinkStateSection,
+        StatusPreference.SECTION_SNMPAGENT: SNMPAgentSection,
     }
     return dtable[section_type]
 
@@ -700,6 +701,68 @@ class LinkStateSection(_Section):
                     h.ifname,
                     reverse('ipdevinfo-interface-details', args=[h.netbox.sysname, h.interfaceid])
                 ),
+                (h.start_time, None),
+                (h.downtime, None),
+                (
+                    'history',
+                    reverse('devicehistory-view') +\
+                    '?netbox=%(id)s&type=a_3&group_by=datetime' % {
+                        'id': h.netbox.id,
+                    }
+                ),
+            )
+            history.append(row)
+        self.history = history
+
+class SNMPAgentSection(_Section):
+    columns =  [
+        'Sysname',
+        'IP',
+        'Down since',
+        'Downtime',
+        '',
+    ]
+    devicehistory_type = 'a_3'
+
+    @staticmethod
+    def form_class():
+        return SNMPAgentForm
+
+    @staticmethod
+    def form_data(status_prefs):
+        data = {
+            'id': status_prefs.id,
+            'name': status_prefs.name,
+            'type': status_prefs.type,
+            'organizations': list(status_prefs.organizations.values_list(
+                    'id', flat=True)) or [''],
+        }
+        data['categories'] = list(status_prefs.categories.values_list(
+                'id', flat=True)) or ['']
+        return data
+
+    def fetch_history(self):
+        netbox_history = AlertHistory.objects.select_related(
+            'netbox'
+        ).filter(
+            event_type='snmpAgentState',
+            end_time__gt=datetime.max,
+            netbox__category__in=self.categories,
+            netbox__organization__in=self.organizations,
+        ).extra(
+            select={
+                'downtime': 'NOW() - start_time',
+            }
+        ).order_by('-start_time', 'end_time')
+
+        history = []
+        for h in netbox_history:
+            row = (
+                (
+                    h.netbox.sysname,
+                    reverse('ipdevinfo-details-by-name', args=[h.netbox.sysname])
+                ),
+                (h.netbox.ip, None),
                 (h.start_time, None),
                 (h.downtime, None),
                 (
