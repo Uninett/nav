@@ -23,6 +23,7 @@ from nav.util import splitby
 from nav.mibs.bridge_mib import MultiBridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib
 from nav.mibs.entity_mib import EntityMib
+from nav.mibs.if_mib import IfMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll import utils
@@ -158,9 +159,19 @@ class Cam(Plugin):
         translated = [(baseports[port], vlan) for port, vlan in blocking
                      if port in baseports]
         if translated:
+            # get all existing ifindexes to ensure non-blocking ports aren't
+            # marked as gone by the InterfaceManager
+            yield self._get_interfaces()
             self._log_blocking_ports(translated)
             self._store_blocking_ports(translated)
         defer.returnValue(translated)
+
+    @defer.inlineCallbacks
+    def _get_interfaces(self):
+        indexes = yield IfMib(self.agent).get_ifindexes()
+        for ifindex in indexes:
+            ifc = self.containers.factory(ifindex, shadows.Interface)
+            ifc.ifindex = ifindex
 
     def _log_blocking_ports(self, blocking):
         ifc_count = len(set(ifc for ifc, vlan in blocking))
