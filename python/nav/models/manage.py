@@ -796,6 +796,31 @@ class SwPortToNetbox(models.Model):
     def __unicode__(self):
         return u'%d, %s' % (self.ifindex, self.netbox)
 
+class AdjacencyCandidate(models.Model):
+    """A candidate for netbox/interface adjacency.
+
+    Used in the process of building the physical topology of the
+    network. AdjacencyCandidate defines a candidate for next hop physical
+    neighbor.
+
+    """
+    id = models.AutoField(db_column='adjacency_candidateid', primary_key=True)
+    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    interface = models.ForeignKey('Interface', db_column='interfaceid')
+    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid')
+    to_interface = models.ForeignKey('Interface', db_column='to_interfaceid',
+                                     null=True)
+    source = VarcharField()
+    miss_count = models.IntegerField(db_column='misscnt', default=0)
+
+    class Meta:
+        db_table = 'adjacency_candidate'
+        unique_together = (('netbox', 'interface', 'to_netbox', 'source'),)
+
+    def __unicode__(self):
+        return u'%s:%s candidate %s:%s' % (self.netbox, self.interface,
+                                           self.to_netbox, self.to_interface)
+
 class NetboxVtpVlan(models.Model):
     """From MetaNAV: A help table that contains the vtp vlan database of a
     switch. For certain cisco switches cam information is gathered using a
