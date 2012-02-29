@@ -47,3 +47,9 @@ class IfMib(mibretriever.MibRetriever):
         result = dict((index, (row['ifName'], row['ifDescr']))
                       for index, row in table.items())
         defer.returnValue(result)
+
+    @defer.inlineCallbacks
+    def get_ifindexes(self):
+        "Retrieves a list of current ifIndexes"
+        indexes = yield self.retrieve_column('ifIndex')
+        defer.returnValue(indexes.values())
