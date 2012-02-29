@@ -265,7 +265,7 @@ class Interface(Shadow):
         self._verify_operstatus_change(django_object)
 
     def _verify_operstatus_change(self, stored):
-        if self.ifoperstatus != stored.ifoperstatus:
+        if self.ifoperstatus and self.ifoperstatus != stored.ifoperstatus:
             self.ifoperstatus_change = (stored.ifoperstatus, self.ifoperstatus)
         else:
             self.ifoperstatus_change = None
@@ -273,6 +273,7 @@ class Interface(Shadow):
     def prepare(self, containers):
         self._set_netbox_if_unset(containers)
         self._set_ifindex_if_unset(containers)
+        self.gone_since = None
 
     def _set_netbox_if_unset(self, containers):
         """Sets this Interface's netbox reference if unset by plugins."""
