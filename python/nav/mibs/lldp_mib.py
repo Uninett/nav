@@ -21,7 +21,7 @@ from twisted.internet import defer
 
 from nav.namedtuple import namedtuple
 from nav.mibs import mibretriever
-from nav.ipdevpoll.utils import get_multibridgemib
+from nav.ipdevpoll.utils import get_multibridgemib, binary_mac_to_hex
 
 class LLDPMib(mibretriever.MibRetriever):
     "A MibRetriever for handling LLDP-MIB"
@@ -95,7 +95,7 @@ class MacAddress(IdType):
     def __new__(cls, *args, **kwargs):
         arg = args[0]
         if isinstance(arg, basestring):
-            arg = ':'.join("%02x" % ord(x) for x in arg)
+            arg = binary_mac_to_hex(arg)
         elif isinstance(arg, cls):
             return arg
         return IdType.__new__(cls, arg)

@@ -26,7 +26,8 @@ class BridgeMib(mibretriever.MibRetriever):
                    if row['dot1dTpFdbStatus'] == 'learned')
         result = []
         for row in learned:
-            mac =  ':'.join(["%02x" % o for o in row[0]])
+            mac = row[0]
+            mac =  ':'.join("%02x" % o for o in mac[-6:])
             port = row['dot1dTpFdbPort']
             result.append((mac, port))
         defer.returnValue(result)
