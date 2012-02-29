@@ -45,15 +45,15 @@ def fire_eventually(result):
 def binary_mac_to_hex(binary_mac):
     """Converts a binary string MAC address to hex string.
 
-    Only the first 6 octets will be converted, any more will be
-    ignored. If the address contains less than 6 octets, the result will be
+    If the binary string exceeds 6 octets, only the last 6 octets are
+    converted. If the string contains less than 6 octets the result will be
     padded with leading zeros.
 
     """
+    MAX_LENGTH = 6
     if binary_mac:
-        if len(binary_mac) < 6:
-            binary_mac = "\x00" * (6 - len(binary_mac)) + binary_mac
-        return ":".join("%02x" % ord(x) for x in binary_mac[:6])
+        binary_mac = binary_mac[-6:].rjust(MAX_LENGTH, '\x00')
+        return ":".join("%02x" % ord(x) for x in binary_mac)
 
 def truncate_mac(mac):
     """Takes a MAC address on the form xx:xx:xx... of any length and returns
