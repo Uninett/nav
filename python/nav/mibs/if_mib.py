@@ -34,3 +34,16 @@ class IfMib(mibretriever.MibRetriever):
         df.addCallback(reduce_index)
         if_table = yield df
         defer.returnValue(if_table)
+
+    @defer.inlineCallbacks
+    def get_ifnames(self):
+        """Retrieves ifName and ifDescr for all interfaces.
+
+        :returns: A dictionary like { ifindex: (ifName, ifDescr), ...}
+
+        """
+        table = yield self.retrieve_columns(
+            ['ifName', 'ifDescr']).addCallback(reduce_index)
+        result = dict((index, (row['ifName'], row['ifDescr']))
+                      for index, row in table.items())
+        defer.returnValue(result)
