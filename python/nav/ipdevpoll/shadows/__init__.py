@@ -38,6 +38,7 @@ from .netbox import Netbox
 from .interface import Interface
 from .swportblocked import SwPortBlocked
 from .cam import Cam
+from .adjacency import AdjacencyCandidate
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
