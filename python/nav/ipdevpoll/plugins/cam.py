@@ -22,7 +22,6 @@ from twisted.internet import defer, threads
 from nav.util import splitby
 from nav.mibs.bridge_mib import MultiBridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib
-from nav.mibs.entity_mib import EntityMib
 from nav.mibs.if_mib import IfMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
@@ -36,11 +35,9 @@ class Cam(Plugin):
 
     1. If the port reports any MAC address belonging to any NAV-monitored
        equipment, it is considered a topological port and one or more entries
-       in the topological neighbor candidates table is made.
+       in the adjacency candidate table is made.
 
     2. Otherwise, the found forwarding entries are stored in NAV's cam table.
-
-    TODO: Actually save data to containers.
 
     """
     bridge = None
@@ -67,9 +64,14 @@ class Cam(Plugin):
 
         self.fdb = fdb
 
+        # get all existing ifindexes to ensure ports we don't touch aren't
+        # marked as gone by the InterfaceManager
+        yield self._get_interfaces()
+
         self.monitored = yield threads.deferToThread(get_netbox_macs)
         self._classify_ports()
         self._store_cam_records()
+        self._store_adjacency_candidates()
 
         self.blocking = yield self._get_dot1d_stp_blocking()
 
@@ -146,6 +148,54 @@ class Cam(Plugin):
                 cam.ifindex = port
                 cam.mac = mac
 
+    def _store_adjacency_candidates(self):
+        for port in self.linkports:
+            macs = self.fdb.get(port, None) or set()
+            macs = macs.intersection(self.monitored)
+            if macs:
+                self._logger.debug(
+                    "%r sees the following monitored mac addresses: %r",
+                    port, macs)
+                candidates = [self.monitored[mac] for mac in macs]
+                self._make_candidates(port, candidates)
+
+    def _make_candidates(self, port, candidates):
+        for netboxid in candidates:
+            otherbox = self._factory_netbox(netboxid)
+            ifc = self._factory_interface(port)
+
+            candidate = self._factory_candidate(port, netboxid)
+            candidate.interface = ifc
+            candidate.to_netbox = otherbox
+            candidate.source = 'cam'
+
+    def _factory_netbox(self, netboxid):
+        netbox = self.containers.factory(netboxid, shadows.Netbox)
+        netbox.id = netboxid
+        return netbox
+
+    def _factory_interface(self, ifindex):
+        ifc = self.containers.factory(ifindex, shadows.Interface)
+        ifc.netbox = self.netbox
+        ifc.ifindex = ifindex
+        return ifc
+
+    def _factory_candidate(self, port, candidate):
+        candidate = self.containers.factory((port, candidate, None),
+                                            shadows.AdjacencyCandidate)
+        candidate.netbox = self.netbox
+        return candidate
+
+
+    #
+    # STP blocking related methods
+    #
+    # Currently, these are here just because we don't want to send multiple
+    # duplicate queries to find multiple BRIDGE-MIB instances etc.  When SNMP
+    # response caching is properly implemented, this should be extracted into
+    # a separate plugin.
+    #
+
     @defer.inlineCallbacks
     def _get_dot1d_stp_blocking(self):
         bridge = yield self._get_bridge()
@@ -159,9 +209,6 @@ class Cam(Plugin):
         translated = [(baseports[port], vlan) for port, vlan in blocking
                      if port in baseports]
         if translated:
-            # get all existing ifindexes to ensure non-blocking ports aren't
-            # marked as gone by the InterfaceManager
-            yield self._get_interfaces()
             self._log_blocking_ports(translated)
             self._store_blocking_ports(translated)
         defer.returnValue(translated)
