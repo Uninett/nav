@@ -1,3 +1,13 @@
+Version 3.10.3
+(released 01 Mar 2012)
+
+ Bugfixes:
+
+  * LP#906849 (Status page does not show current IP devices down)
+  * LP#936926 (mcc registers sensors RRD files in wrong directory)
+  * LP#937622 (a device's supported snmp version is never updated)
+  * LP#937677 (type, device and various other attributes aren't updated)
+
 Version 3.10.2
 (released 09 Feb 2012)
 
