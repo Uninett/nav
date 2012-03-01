@@ -24,9 +24,48 @@ MAX_MISS_COUNT = 3
 class AdjacencyManager(DefaultManager):
     "Manages AdjacencyCandidate records"
 
+    _existing = None
+    _missing = None
+
     def __init__(self, *args, **kwargs):
         super(AdjacencyManager, self).__init__(*args, **kwargs)
         self.netbox = self.containers.get(None, Netbox)
+
+    def prepare(self):
+        self._load_existing()
+        self._map_existing()
+
+    def _load_existing(self):
+        candidates = manage.AdjacencyCandidate.objects.filter(
+            netbox__id=self.netbox.id)
+        self._existing = dict((candidate_key(c), c) for c in candidates)
+
+    def _map_existing(self):
+        found = dict((candidate_key(c), c) for c in self.get_managed())
+        for key, cand in found.items():
+            if key in self._existing:
+                cand.set_existing_model(self._existing[key])
+                # always reset miss_count of found records
+                cand.miss_count = 0
+
+        missing = set(self._existing.keys()).difference(found)
+        self._missing = [self._existing[key] for key in missing]
+
+    def cleanup(self):
+        self._handle_missing()
+        self._delete_expired()
+
+    def _handle_missing(self):
+        for cand in self._missing:
+            db_cand = manage.AdjacencyCandidate.objects.filter(id=cand.id)
+            db_cand.update(miss_count=cand.miss_count+1)
+
+    def _delete_expired(self):
+        expired = manage.AdjacencyCandidate.objects.filter(
+            netbox__id=self.netbox.id,
+            miss_count__gte=MAX_MISS_COUNT)
+        expired.delete()
+
 
 # pylint: disable=C0111
 class AdjacencyCandidate(Shadow):
@@ -36,3 +75,17 @@ class AdjacencyCandidate(Shadow):
     def get_existing_model(self, containers=None):
         "Returns only a cached object, if available"
         return getattr(self, '_cached_existing_model', None)
+
+def candidate_key(cand):
+    "return a (hopefully) unique dict key for a candidate object"
+    # all this getattr yaking is trying to reduce the number of db fetches
+    return ((getattr(cand, 'interface_id', None)
+             or cand.interface and cand.interface.id),
+
+            (getattr(cand, 'to_netbox_id', None)
+             or cand.to_netbox and cand.to_netbox.id),
+
+            (getattr(cand, 'to_interface_id', None)
+             or cand.to_interface and cand.to_interface.id),
+
+            cand.source)
