@@ -149,6 +149,7 @@ class Cam(Plugin):
                 cam.mac = mac
 
     def _store_adjacency_candidates(self):
+        shadows.AdjacencyCandidate.sentinel(self.containers, 'cam')
         for port in self.linkports:
             macs = self.fdb.get(port, None) or set()
             macs = macs.intersection(self.monitored)
