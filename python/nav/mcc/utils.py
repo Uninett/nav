@@ -351,12 +351,12 @@ def create_targettype_config(netbox, targetoids, views):
 def create_target_config(netbox):
     """ Create Cricket config for this netbox """
     displayname = convert_unicode_to_latin1(netbox.sysname)
+    typename = encode_and_escape(netbox.type.name if netbox.type else '')
     if netbox.room.description:
-        typename = encode_and_escape(netbox.type.name if netbox.type else '')
         descr = encode_and_escape(netbox.room.description)
         shortdesc = ", ".join([typename, descr])
     else:
-        shortdesc = encode_and_escape(netbox.type.name)
+        shortdesc = typename
 
     LOGGER.info("Writing target %s" % netbox.sysname)
     config = [
