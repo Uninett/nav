@@ -21,6 +21,8 @@ from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
 from nav.ipdevpoll.neighbor import CDPNeighbor
 
+SOURCE = 'cdp'
+
 class CDP(Plugin):
     """Finds neighboring devices from a device's CDP cache.
 
@@ -44,7 +46,7 @@ class CDP(Plugin):
 
     def _process_cache(self):
         "Tries to synchronously identify CDP cache entries in NAV's database"
-        shadows.AdjacencyCandidate.sentinel(self.containers, 'cdp')
+        shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
 
         neighbors = [CDPNeighbor(cdp) for cdp in self.cache]
         identified = [n for n in neighbors if n.identified]
@@ -59,10 +61,10 @@ class CDP(Plugin):
         ifc = self.containers.factory(ifindex, shadows.Interface)
         ifc.ifindex = ifindex
 
-        key = (ifindex, neighbor.netbox.id, neighbor.interface.id, 'cdp')
+        key = (ifindex, neighbor.netbox.id, neighbor.interface.id, SOURCE)
         cand = self.containers.factory(key, shadows.AdjacencyCandidate)
         cand.netbox = self.netbox
         cand.interface = ifc
         cand.to_netbox = neighbor.netbox
         cand.to_interface = neighbor.interface
-        cand.source = 'cdp'
+        cand.source = SOURCE
