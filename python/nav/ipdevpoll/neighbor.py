@@ -183,6 +183,7 @@ class LLDPNeighbor(Neighbor):
 
     def _identify_netbox(self):
         chassid = self.record.chassis_id
+        netbox = None
         if chassid:
             lookup = None
             if isinstance(chassid, IdSubtypes.macAddress):
