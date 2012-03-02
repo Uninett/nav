@@ -139,12 +139,12 @@ def candidate_key(cand):
     "return a (hopefully) unique dict key for a candidate object"
     # all this getattr yaking is trying to reduce the number of db fetches
     return ((getattr(cand, 'interface_id', None)
-             or cand.interface and cand.interface.id),
+             or (cand.interface and cand.interface.id)),
 
             (getattr(cand, 'to_netbox_id', None)
-             or cand.to_netbox and cand.to_netbox.id),
+             or (cand.to_netbox and cand.to_netbox.id)),
 
             (getattr(cand, 'to_interface_id', None)
-             or cand.to_interface and cand.to_interface.id),
+             or (cand.to_interface and cand.to_interface.id)),
 
             cand.source)
