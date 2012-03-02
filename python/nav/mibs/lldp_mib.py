@@ -78,7 +78,7 @@ class LLDPMib(mibretriever.MibRetriever):
 
 # pylint: disable=C0103
 LLDPNeighbor = namedtuple("LLDPNeighbor",
-                          "local_port chassis_id port_id port_desc sysname")
+                          "ifindex chassis_id port_id port_desc sysname")
 
 #
 # A bunch of classes to define and help parse the various subtypes of remote
