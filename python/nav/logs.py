@@ -48,6 +48,19 @@ def set_log_levels():
             level = logging.INFO
         logger.setLevel(level)
 
+def reset_log_levels(level=logging.WARNING):
+    """Resets the log level of all loggers.
+
+    The root logger's level is set to `level`, while other existing loggers in
+    the hierarchy are reset to NOTSET.
+
+    """
+    root = logging.getLogger('')
+    root.setLevel(level)
+    all_loggers = root.manager.loggerDict.values()
+    for logger in all_loggers:
+        if hasattr(logger, 'setLevel'):
+            logger.setLevel(logging.NOTSET)
 
 def reopen_log_files():
     """
