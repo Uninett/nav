@@ -17,7 +17,7 @@
 from twisted.internet import defer
 from twisted.internet.threads import deferToThread
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
 from nav.ipdevpoll.neighbor import CDPNeighbor
 
@@ -29,7 +29,6 @@ class CDP(Plugin):
     neighboring device will be noted as an unrecognized neighbor to this
     device.
 
-    TODO: Actually fill some containers to store to db
     """
     cache = None
     neighbors = None
@@ -45,9 +44,25 @@ class CDP(Plugin):
 
     def _process_cache(self):
         "Tries to synchronously identify CDP cache entries in NAV's database"
+        shadows.AdjacencyCandidate.sentinel(self.containers, 'cdp')
+
         neighbors = [CDPNeighbor(cdp) for cdp in self.cache]
         identified = [n for n in neighbors if n.identified]
         for neigh in identified:
             self._logger.debug("identified neighbor %r from %r",
                                (neigh.netbox, neigh.interface), neigh.record)
+            self._store_candidate(neigh)
         self.neighbors = neighbors
+
+    def _store_candidate(self, neighbor):
+        ifindex = neighbor.record.ifindex
+        ifc = self.containers.factory(ifindex, shadows.Interface)
+        ifc.ifindex = ifindex
+
+        key = (ifindex, neighbor.netbox.id, neighbor.interface.id, 'cdp')
+        cand = self.containers.factory(key, shadows.AdjacencyCandidate)
+        cand.netbox = self.netbox
+        cand.interface = ifc
+        cand.to_netbox = neighbor.netbox
+        cand.to_interface = neighbor.interface
+        cand.source = 'cdp'
