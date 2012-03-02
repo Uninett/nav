@@ -182,7 +182,7 @@ class Cam(Plugin):
         return ifc
 
     def _factory_candidate(self, port, candidate):
-        candidate = self.containers.factory((port, candidate, None),
+        candidate = self.containers.factory((port, candidate, None, 'cam'),
                                             shadows.AdjacencyCandidate)
         candidate.netbox = self.netbox
         return candidate
