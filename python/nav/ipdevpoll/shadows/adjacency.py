@@ -83,6 +83,10 @@ class AdjacencyManager(DefaultManager):
         missing = set(self._existing.keys()).difference(found)
         self._missing = [self._existing[key] for key in missing]
 
+        self._logger.debug("existing: %r", self._existing)
+        self._logger.debug("missing: %r", self._missing)
+        self._logger.debug("sources: %r", self._sources)
+
     def cleanup(self):
         self._handle_missing()
         self._delete_expired()
