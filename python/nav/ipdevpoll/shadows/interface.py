@@ -254,11 +254,22 @@ class Interface(Shadow):
                  value=django_ifc.ifalias or '').save()
 
     def get_existing_model(self, containers=None):
-        """Returns the set existing Django model instance, without attempting
-        to lookup ourselves in the db.
+        """Returns the existing Django ORM object represented by this object.
+
+        Will return the cached existing model if set.  If not, will use the
+        primary key, if set, for database lookup.
 
         """
-        return self._cached_existing_model
+        if self._cached_existing_model:
+            return self._cached_existing_model
+        elif self.id:
+            try:
+                ifc = manage.Interface.objects.get(id=self.id)
+            except manage.Interface.DoesNotExist:
+                return None
+            else:
+                self._cached_existing_model = ifc
+                return ifc
 
     def set_existing_model(self, django_object):
         super(Interface, self).set_existing_model(django_object)
