@@ -33,6 +33,7 @@ from . import storage, shadows
 from .plugins import plugin_registry
 from nav.ipdevpoll import db
 from .utils import log_unhandled_failure
+from .snmp.common import snmp_parameter_factory
 
 _logger = logging.getLogger(__name__)
 ports = cycle([snmpprotocol.port() for i in range(50)])
@@ -97,6 +98,7 @@ class JobHandler(object):
             community = self.netbox.read_only,
             snmpVersion = 'v%s' % self.netbox.snmp_version,
             protocol = port.protocol,
+            snmp_parameters = snmp_parameter_factory(self.netbox)
         )
         self.agent.open()
         self._logger.debug("AgentProxy created for %s: %s",
