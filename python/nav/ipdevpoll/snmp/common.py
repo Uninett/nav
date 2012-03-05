@@ -72,8 +72,6 @@ def snmp_parameter_factory(host=None):
     section = 'snmp'
 
     from nav.ipdevpoll.config import ipdevpoll_conf as config
-    if config.has_section(section):
-        return SNMP_DEFAULTS
     params = SNMP_DEFAULTS._asdict()
 
     for var, getter in [('max-repetitions', config.getint),
