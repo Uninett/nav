@@ -330,7 +330,7 @@ class Shadow(object):
                 # Ensure we only have django models
                 for key, val in kwargs.items():
                     if issubclass(val.__class__, Shadow):
-                        kwargs[key] = val.convert_to_model(containers)
+                        kwargs[key] = val.get_existing_model(containers)
                 try:
                     model = self.__shadowclass__.objects.get(**kwargs)
                 except self.__shadowclass__.DoesNotExist:
