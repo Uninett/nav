@@ -23,6 +23,8 @@ import inspect
 from pynetsnmp import twistedsnmp
 from pynetsnmp.twistedsnmp import snmpprotocol
 
+from . import common
+
 def pynetsnmp_limits_results():
     """Returns True if the available pynetsnmp version limits the number of
     results of getTable operations.
@@ -39,7 +41,7 @@ def pynetsnmp_limits_results():
         args = inspect.getargspec(TableRetriever.__init__)[0]
         return 'limit' in args
 
-class AgentProxy(twistedsnmp.AgentProxy):
+class AgentProxy(common.AgentProxyMixIn, twistedsnmp.AgentProxy):
     """pynetsnmp AgentProxy derivative to adjust the silly 1000 value
     limit imposed in getTable calls"""
 
@@ -47,4 +49,4 @@ class AgentProxy(twistedsnmp.AgentProxy):
         def getTable(self, *args, **kwargs):
             if 'limit' not in kwargs:
                 kwargs['limit'] = sys.maxint
-            return twistedsnmp.AgentProxy.getTable(self, *args, **kwargs)
+            return super(AgentProxy, self).getTable(self, *args, **kwargs)
