@@ -103,8 +103,10 @@ class NetboxLoader(dict):
 
         self.peak_count = max(self.peak_count, len(self))
 
-        self._logger.info(
-            "Loaded %d netboxes from database "
+        anything_changed = len(new_ids) or len(lost_ids) or len(changed_ids)
+        log = self._logger.info if anything_changed else self._logger.debug
+
+        log("Loaded %d netboxes from database "
             "(%d new, %d removed, %d changed, %d peak)",
             len(netbox_dict), len(new_ids), len(lost_ids), len(changed_ids),
             self.peak_count
