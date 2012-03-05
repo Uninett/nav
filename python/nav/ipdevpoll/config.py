@@ -30,6 +30,10 @@ _ipdevpoll_conf_defaults = """
 [ipdevpoll]
 logfile = ipdevpolld.log
 
+[snmp]
+timeout = 1.5
+max-repetitions = 50
+
 [plugins]
 
 [jobs]
