@@ -359,7 +359,7 @@ class MibRetriever(object):
 
             return formatted_result
 
-        deferred = self.agent_proxy.getTable([ str(node.oid) ], maxRepetitions=50)
+        deferred = self.agent_proxy.getTable([ str(node.oid) ])
         deferred.addCallback(resultFormatter)
         return deferred
 
@@ -443,8 +443,7 @@ class MibRetriever(object):
             return formatted_result
 
 
-        deferred = self.agent_proxy.getTable([str(table.table.oid)],
-                                             maxRepetitions=50)
+        deferred = self.agent_proxy.getTable([str(table.table.oid)])
         deferred.addCallback(resultFormatter)
         return deferred
 
