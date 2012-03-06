@@ -20,7 +20,7 @@ from twisted.internet import defer, threads
 
 from nav.mibs.lldp_mib import LLDPMib
 from nav.ipdevpoll import Plugin, shadows
-from nav.ipdevpoll.neighbor import LLDPNeighbor
+from nav.ipdevpoll.neighbor import LLDPNeighbor, filter_duplicate_neighbors
 
 SOURCE = 'lldp'
 
@@ -53,7 +53,13 @@ class LLDP(Plugin):
         for neigh in identified:
             self._logger.debug("identified neighbor %r from %r",
                                (neigh.netbox, neigh.interface), neigh.record)
+        filtered = list(filter_duplicate_neighbors(identified))
+        delta = len(identified) - len(filtered)
+        if delta:
+            self._logger.debug("filtered out %d duplicate LLDP entries", delta)
+        for neigh in filtered:
             self._store_candidate(neigh)
+
         self.neighbors = neighbors
 
     def _store_candidate(self, neighbor):
