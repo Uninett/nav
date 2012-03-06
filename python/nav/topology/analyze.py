@@ -39,6 +39,9 @@ Port nodes can have outgoing edges to other Port nodes, or to Netbox nodes
 """
 # pylint: disable=R0903
 
+from itertools import groupby
+from operator import attrgetter
+
 import networkx as nx
 from nav.models.manage import AdjacencyCandidate
 
@@ -277,6 +280,7 @@ def build_candidate_graph_from_db():
     """
     acs = AdjacencyCandidate.objects.select_related(
         'netbox', 'interface', 'to_netbox', 'to_interface')
+    acs = _filter_by_source(acs)
 
     graph = nx.DiGraph(name="network adjacency candidates")
 
@@ -301,3 +305,27 @@ def build_candidate_graph_from_db():
 
     return graph
 
+CDP = 'cdp'
+LLDP = 'lldp'
+
+def _filter_by_source(all_candidates):
+    """Filters candidates from list based on their source.
+
+    For each interface, LLDP is preferred over CDP, CDP is preferred over
+    anything else.
+
+    """
+    key = attrgetter('interface.id')
+    all_candidates = sorted(all_candidates, key=key)
+    by_ifc = groupby(all_candidates, key)
+
+    for _ifc, candidates in by_ifc:
+        candidates = list(candidates)
+        sources = set(c.source for c in candidates)
+        if LLDP in sources:
+            candidates = (c for c in candidates if c.source == LLDP)
+        elif CDP in sources:
+            candidates = (c for c in candidates if c.source == CDP)
+
+        for candidate in candidates:
+            yield candidate
