@@ -21,6 +21,7 @@ from twisted.internet import defer, threads
 from nav.mibs.lldp_mib import LLDPMib
 from nav.ipdevpoll import Plugin, shadows
 from nav.ipdevpoll.neighbor import LLDPNeighbor, filter_duplicate_neighbors
+from nav.ipdevpoll.db import autocommit
 
 SOURCE = 'lldp'
 
@@ -44,6 +45,7 @@ class LLDP(Plugin):
             self._logger.debug("LLDP neighbors:\n %s", pformat(self.remote))
         yield threads.deferToThread(self._process_remote)
 
+    @autocommit
     def _process_remote(self):
         "Tries to synchronously identify LLDP entries in NAV's database"
         shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)

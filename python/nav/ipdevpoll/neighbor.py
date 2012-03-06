@@ -35,9 +35,11 @@ from nav.mibs.lldp_mib import IdSubtypes
 
 from nav.ipdevpoll.log import ContextLogger
 from nav.ipdevpoll import shadows
+from nav.ipdevpoll.db import autocommit
 
 @synchronized(threading.Lock())
 @cachedfor(timedelta(minutes=5))
+@autocommit
 def get_netbox_macs():
     "Returns a dict of (mac, netboxid) mappings of NAV-monitored devices"
     from django.db import connection

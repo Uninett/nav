@@ -20,6 +20,7 @@ from twisted.internet.threads import deferToThread
 from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
 from nav.ipdevpoll.neighbor import CDPNeighbor
+from nav.ipdevpoll.db import autocommit
 
 SOURCE = 'cdp'
 
@@ -44,6 +45,7 @@ class CDP(Plugin):
             self.cache = cache
             yield deferToThread(self._process_cache)
 
+    @autocommit
     def _process_cache(self):
         "Tries to synchronously identify CDP cache entries in NAV's database"
         shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
