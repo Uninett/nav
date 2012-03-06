@@ -25,6 +25,7 @@ therefore be run in the threadpool instead of the main reactor thread.
 import re
 from datetime import timedelta
 import threading
+from itertools import groupby
 from nav.util import cachedfor, synchronized
 
 from nav.models import manage
@@ -156,11 +157,13 @@ class Neighbor(object):
         netbox = Q(netbox__id=self.netbox.id)
         try:
             ifc = manage.Interface.objects.values(
-                'id', 'ifname', 'ifdescr').get(netbox & query)
+                'id', 'ifname', 'ifdescr', 'iftype').get(netbox & query)
         except manage.Interface.DoesNotExist:
             return None
 
-        return shadows.Interface(**ifc)
+        ifc = shadows.Interface(**ifc)
+        ifc.netbox = self.netbox
+        return ifc
 
 class CDPNeighbor(Neighbor):
     "Parses a CDP tuple from nav.mibs.cisco_cdp_mib to identify a neighbor"
@@ -230,3 +233,57 @@ class LLDPNeighbor(Neighbor):
     def _interface_from_ip(self, ip):
         assert ip
         return self._interface_query(Q(gwportprefix__gw_ip=ip))
+
+def filter_duplicate_neighbors(nborlist):
+    """Filters out duplicate neighbors on a port.
+
+    If the duplicates are all subinterfaces of a single master interface, the
+    returned Neighbor object's interface attribute will be set to the master
+    interface (if one could be found in the db).
+
+    """
+    def _keyfunc(nbor):
+        return nbor.record.ifindex
+
+    grouped = groupby(sorted(nborlist, key=_keyfunc), _keyfunc)
+    for _key, group in grouped:
+        group = list(group)
+        if len(group) > 1:
+            yield _reduce_to_single_neighbor(group)
+        else:
+            yield group[0]
+
+IFTYPE_L2VLAN = 135
+def _reduce_to_single_neighbor(nborlist):
+    target_boxes = set(nbor.netbox.id for nbor in nborlist)
+    same_netbox = len(target_boxes) == 1
+    if same_netbox:
+        are_all_subifcs = all(nbor.interface.iftype == IFTYPE_L2VLAN
+                              for nbor in nborlist)
+        if are_all_subifcs:
+            pick = nborlist[0]
+            ifc = _get_parent_interface(pick.interface)
+            pick.interface = ifc
+            return pick
+    # nuts. Just return one of the records on random, basically
+    return nborlist[0]
+
+SUBIF_PATTERN = re.compile(r'(?P<basename>.*)\.(?P<subname>[0-9]+)$')
+def _get_parent_interface(ifc):
+    # NAV doesn't yet store data from ifStackTable in the database, so we can
+    # only guess at the parent interface based on naming conventions (used by
+    # Cisco).
+    match = SUBIF_PATTERN.match(ifc.ifname)
+    if match:
+        basename = match.group('basename')
+        try:
+            parent = manage.Interface.objects.values(
+                'id', 'ifname', 'ifdescr', 'iftype').get(
+                netbox__id=ifc.netbox.id, ifname=basename)
+        except manage.Interface.DoesNotExist:
+            pass
+        else:
+            parent = shadows.Interface(**parent)
+            parent.netbox = ifc.netbox
+            return parent
+    return ifc
