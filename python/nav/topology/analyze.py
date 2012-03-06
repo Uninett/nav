@@ -40,7 +40,7 @@ Port nodes can have outgoing edges to other Port nodes, or to Netbox nodes
 # pylint: disable=R0903
 
 import networkx as nx
-from nav.models.manage import SwPortToNetbox, Interface
+from nav.models.manage import AdjacencyCandidate
 
 # Data classes
 
@@ -275,8 +275,8 @@ def build_candidate_graph_from_db():
     table.
 
     """
-    acs = SwPortToNetbox.objects.select_related(
-        'netbox', 'to_netbox', 'to_interface')
+    acs = AdjacencyCandidate.objects.select_related(
+        'netbox', 'interface', 'to_netbox', 'to_interface')
 
     graph = nx.DiGraph(name="network adjacency candidates")
 
@@ -290,14 +290,8 @@ def build_candidate_graph_from_db():
             dest_node = Box(cand.to_netbox.id)
             dest_node.name = cand.to_netbox.sysname
 
-        try:
-            from_interface = Interface.objects.get(
-                netbox__id=cand.netbox.id, ifindex=cand.ifindex)
-        except Interface.DoesNotExist:
-            continue
-
-        port = Port((cand.netbox.id, from_interface.id))
-        port.name = "%s (%s)" % (cand.netbox.sysname, from_interface.ifname)
+        port = Port((cand.netbox.id, cand.interface.id))
+        port.name = "%s (%s)" % (cand.netbox.sysname, cand.interface.ifname)
         netbox = Box(cand.netbox.id)
         netbox.name = cand.netbox.sysname
 
