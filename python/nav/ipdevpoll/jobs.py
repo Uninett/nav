@@ -25,8 +25,6 @@ from itertools import cycle
 from twisted.internet import defer, threads, reactor
 from twisted.internet.error import TimeoutError
 
-from nav import toposort
-
 from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from . import storage, shadows
@@ -398,10 +396,9 @@ class JobHandler(object):
         according to the dependency (topological) order of their classes.
 
         """
-        for shadow_class in sorted_shadow_classes:
-            if shadow_class in self.containers:
-                manager = shadow_class.manager(shadow_class, self.containers)
-                self.storage_queue.append(manager)
+        for shadow_class in self.containers.sortedkeys():
+            manager = shadow_class.manager(shadow_class, self.containers)
+            self.storage_queue.append(manager)
 
     def container_factory(self, container_class, key):
         """Container factory function"""
@@ -419,20 +416,3 @@ class JobHandler(object):
 
         """
         return len([o for o in gc.get_objects() if isinstance(o, cls)])
-
-def get_shadow_sort_order():
-    """Return a topologically sorted list of shadow classes."""
-    def get_dependencies(shadow_class):
-        return shadow_class.get_dependencies()
-
-    shadow_classes = storage.MetaShadow.shadowed_classes.values()
-    graph = toposort.build_graph(shadow_classes, get_dependencies)
-    sorted_classes = toposort.topological_sort(graph)
-    return sorted_classes
-
-
-# As this module is loaded, we want to build a list of shadow classes
-# sorted in topological order.  This only needs to be done once.  The
-# list is used to find the correct order in which to store shadow
-# objects at the end of a job.
-sorted_shadow_classes = get_shadow_sort_order()

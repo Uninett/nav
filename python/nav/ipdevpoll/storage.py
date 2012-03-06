@@ -17,6 +17,7 @@
 
 import django.db.models
 
+from nav import toposort
 from nav import ipdevpoll
 from nav.ipdevpoll import db
 
@@ -604,4 +605,20 @@ class ContainerRepository(dict):
         orig = super(ContainerRepository, self).__repr__()
         return "ContainerRepository(%s)" % orig
 
+    def sortedkeys(self):
+        """Returns the shadow class keys sorted topologically according to
+        dependencies, starting with the class with the fewest dependencies.
 
+        """
+        order = get_shadow_sort_order()
+        return [cls for cls in order if cls in self]
+
+def get_shadow_sort_order():
+    """Return a topologically sorted list of shadow classes."""
+    def _get_dependencies(shadow_class):
+        return shadow_class.get_dependencies()
+
+    shadow_classes = MetaShadow.shadowed_classes.values()
+    graph = toposort.build_graph(shadow_classes, _get_dependencies)
+    sorted_classes = toposort.topological_sort(graph)
+    return sorted_classes
