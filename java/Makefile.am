@@ -19,8 +19,7 @@ subdirs = \
 
 EDITFILES = \
 	build.properties \
-	eventEngine/eventEngine.sh \
-	getBoksMacs/getBoksMacs.sh
+	eventEngine/eventEngine.sh
 
 # We build our own classpath, to resolve interdependencies between the java modules.
 CLASSPATH = $(shell for x in $(subdirs); do echo -n "$$PWD/$${x}/build:"; done ; echo -n $$CLASSPATH)
