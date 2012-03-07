@@ -775,27 +775,6 @@ class SwPortBlocked(models.Model):
     def __unicode__(self):
         return '%d, at %s' % (self.vlan, self.interface)
 
-class SwPortToNetbox(models.Model):
-    """From MetaNAV: A help table used in the process of building the physical
-    topology of the network. swp_netbox defines the candidates for next hop
-    physical neighborship."""
-
-    id = models.AutoField(db_column='swp_netboxid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    ifindex = models.IntegerField()
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
-        related_name='candidate_for_next_hop_set')
-    to_interface = models.ForeignKey('Interface', db_column='to_interfaceid',
-        null=True, related_name='candidate_for_next_hop_set')
-    miss_count = models.IntegerField(db_column='misscnt', default=0)
-
-    class Meta:
-        db_table = 'swp_netbox'
-        unique_together = (('netbox', 'ifindex', 'to_netbox'),)
-
-    def __unicode__(self):
-        return u'%d, %s' % (self.ifindex, self.netbox)
-
 class AdjacencyCandidate(models.Model):
     """A candidate for netbox/interface adjacency.
 
