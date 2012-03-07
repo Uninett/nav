@@ -28,7 +28,7 @@ from nav.models.manage import Arp, Cam
 
 from nav import asyncdns
 
-from nav.web.machinetracker import forms
+from nav.web.machinetracker import forms, iprange
 from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict
 from nav.web.machinetracker.utils import process_ip_row, track_mac, get_prefix_info
 from nav.web.machinetracker.utils import min_max_mac, ProcessInput
@@ -67,63 +67,14 @@ def ip_do_search(request):
     to_ip = None
 
     if form.is_valid():
-        ip_input = form.cleaned_data['ip_range']
+        ip_range = form.cleaned_data['ip_range']
         dns = form.cleaned_data['dns']
         active = form.cleaned_data['active']
         inactive = form.cleaned_data['inactive']
         days = form.cleaned_data['days']
         form_data = form.cleaned_data
-       
-        # Check if input is range
-        if '-' in ip_input:
-            ip_input_list = ip_input.split('-')
-            from_ip_string = ip_input_list[0]
-            try:
-                if IP(from_ip_string)._ipversion == 6:
-                    int(ip_input_list[1], 16) #Error check
-                    postfix = ip_input_list[1]
-                    original_ip = from_ip_string.rsplit(":", 1)
-                    to_ip_string = ":".join([original_ip[0], postfix])
-                else:
-                    int(ip_input_list[1]) # Error check
-                    postfix = ip_input_list[1]
-                    original_ip = from_ip_string.rsplit(".", 1)
-                    to_ip_string = ".".join([original_ip[0], postfix])
-
-            except ValueError:
-                to_ip_string = ip_input_list[1]
-                
-            from_ip, to_ip = from_to_ip(from_ip_string, to_ip_string)
-
-        # Check if input is CIDR
-        elif '/' in ip_input:
-            cidr = ip_input.split("/")
-            from_ip_string = IP.strNormal(IP(cidr[0]))
-
-            # If no netmask, get prefix for address
-            if not cidr[1]:
-                try:
-                    prefix = get_prefix_info(from_ip_string)
-                    prefix_address = prefix.net_address
-                    prefix_cidr = prefix_address.split("/")
-                    prefix_address = IP(prefix_cidr[0])
-                    prefix_subnet = prefix_address.make_net(prefix_cidr[1])
-                    from_ip = prefix_subnet[0]
-                    to_ip = prefix_subnet[-1]
-                except AttributeError:
-                    # If no prefix was found, just display the address
-                    from_ip, to_ip = from_to_ip(cidr[0], "")
-                        
-            # If netmask, get the subnet
-            else:    
-                ip_address = IP(cidr[0])
-                subnet = ip_address.make_net(cidr[1])
-                from_ip = subnet[0]
-                to_ip = subnet[-1]
-                
-        # Else it is a single address
-        else:
-            from_ip, to_ip = from_to_ip(ip_input, "")
+        
+        from_ip, to_ip = (ip_range[0], ip_range[-1])
 
         if (to_ip.int()-from_ip.int()) > ADDRESS_LIMIT:
             inactive = False
@@ -173,7 +124,7 @@ def ip_do_search(request):
                 row = {'ip': ip}
                 if dns:
                     if not isinstance(dns_lookups[ip], Exception):
-                        row['dns_lookup'] = dns_lookups[ip]
+                        row['dns_lookup'] = dns_lookups[ip].pop()
                     else:
                         row['dns_lookup'] = ""
                 tracker[(ip, "")] = [row]
