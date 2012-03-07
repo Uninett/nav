@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011,2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,11 +16,11 @@
 """Reduction of network adjacency candidates graph.
 
 This module uses NetworkX to facilitate reduction of NAV's network adjacency
-candidates graph (loaded from the swp_netbox table) into a proper physical
-topology graph.
+candidates graph (loaded from the adjacency_candidate table) into a proper
+physical topology graph.
 
-The swp_netbox table can be loaded as a directed graph, from which
-reduction can take place.
+The adjacency_candidate_netbox table can be loaded as a directed graph, from
+which reduction can take place.
 
 The graph can be analyzed and reduced by using the AdjacencyReducer class.
 
