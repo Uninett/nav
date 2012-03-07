@@ -1,3 +1,17 @@
+Version 3.11.0
+(tentative release 08 Mar 2012)
+
+ User-visible features and improvements:
+
+  * LLDP support for improved topology detection.
+
+  * getBoksMacs replaced by ipdevpoll plugins in `topo` job.
+
+  * Q-BRIDGE-MIB now also used when collecting switch forwarding tables,
+    meaning improved machine tracking data for switch vendors like HP, Juniper
+    and Alcatel.
+
+
 Version 3.10.3
 (released 01 Mar 2012)
 
