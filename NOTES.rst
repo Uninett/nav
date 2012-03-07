@@ -12,13 +12,40 @@ release notes of the in-between versions before reading any further.
 Known problems
 ==============
 
-The latest TwistedSNMP version (0.3.13) contains a bug that manifests in table
-retrieval operations.  Timeouts and retries aren't handled properly, and this
-may cause slow or otherwise busy devices to be bombarded with requests from
-NAV.  The `contrib/patches` directory contains a patch for TwistedSNMP that
-solves this problem.  The patch has been submitted upstream, but not yet
-accepted into a new release.  Alternatively, you can install `pynetsnmp` for
-improved performance.
+The recommended SNMP library for use with ipdevpoll is `pynetsnmp`.  If you
+choose to go with the original TwistedSNMP, the latest version (0.3.13)
+contains a bug that manifests in table retrieval operations.  Timeouts and
+retries aren't handled properly, and this may cause slow or otherwise busy
+devices to be bombarded with requests from NAV.  The `contrib/patches`
+directory contains a patch for TwistedSNMP that solves this problem.  The
+patch has been submitted upstream, but not yet accepted into a new release.
+
+NAV 3.11
+========
+
+To see the overview of scheduled features and reported bugs on the 3.11 series
+of NAV, please go to https://launchpad.net/nav/3.11 .
+
+Dependency changes
+------------------
+
+- `JavaSNMP` is no longer a dependency and can be removed. There is also
+  therefore no longer any need to export a `CLASS_PATH` variable before
+  building NAV from source.
+
+Topology source data
+--------------------
+
+The getBoksMacs Java program has been replaced by a set of ipdevpoll plugins,
+configured to run under the `topo` job in 15 minute intervals. This job will
+collect switch forwarding tables (CAM), STP blocking status, CDP (Cisco
+Discovery Protocol) neighbor information and also LLDP (Link Layer Discovery
+Protocol) neighbor information.
+
+The navtopology program will now prefer LLDP source information over CDP and
+CDP source information over CAM source information when building NAV's
+topology.
+
 
 NAV 3.10
 ========
