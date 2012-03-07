@@ -11,7 +11,6 @@ subdirs = \
 	Database \
 	Event \
 	eventEngine \
-	getBoksMacs \
 	Logger \
 	NetboxInfo \
 	SimpleSnmp \
@@ -41,7 +40,6 @@ ConfigParser:
 Database: Logger
 Event: Database Logger
 eventEngine: ConfigParser Database Event Logger
-getBoksMacs: ConfigParser Database Event Logger NetboxInfo SimpleSnmp
 Logger: ConfigParser Util
 NetboxInfo: Database Event Logger
 SimpleSnmp: Database Logger
