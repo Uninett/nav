@@ -274,7 +274,7 @@ class AdjacencyReducer(AdjacencyAnalyzer):
 
 def build_candidate_graph_from_db():
     """Builds and returns a DiGraph conforming to the requirements of an
-    AdjacencyAnalyzer, based on data found in the swp_netbox database
+    AdjacencyAnalyzer, based on data found in the adjacency_candidate database
     table.
 
     """
