@@ -13,7 +13,6 @@ subdirs = \
 	eventEngine \
 	Logger \
 	NetboxInfo \
-	SimpleSnmp \
 	Netmap
 
 EDITFILES = \
@@ -42,7 +41,6 @@ Event: Database Logger
 eventEngine: ConfigParser Database Event Logger
 Logger: ConfigParser Util
 NetboxInfo: Database Event Logger
-SimpleSnmp: Database Logger
 Util:
 
 .lastbuild:
