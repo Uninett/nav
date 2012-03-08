@@ -18,6 +18,7 @@ from pprint import pformat
 
 from twisted.internet import defer, threads
 
+from nav.models import manage
 from nav.mibs.lldp_mib import LLDPMib
 from nav.ipdevpoll import Plugin, shadows
 from nav.ipdevpoll.neighbor import LLDPNeighbor, filter_duplicate_neighbors
@@ -36,6 +37,16 @@ class LLDP(Plugin):
     """
     remote = None
     neighbors = None
+
+    @classmethod
+    def can_handle(cls, netbox):
+        return threads.deferToThread(cls._has_interfaces, netbox)
+
+    @classmethod
+    @autocommit
+    def _has_interfaces(cls, netbox):
+        return manage.Interface.objects.filter(
+            netbox__id=netbox.id).count() > 0
 
     @defer.inlineCallbacks
     def handle(self):

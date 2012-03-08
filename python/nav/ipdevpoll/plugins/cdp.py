@@ -17,6 +17,7 @@
 from twisted.internet import defer
 from twisted.internet.threads import deferToThread
 
+from nav.models import manage
 from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
 from nav.ipdevpoll.neighbor import CDPNeighbor
@@ -35,6 +36,16 @@ class CDP(Plugin):
     """
     cache = None
     neighbors = None
+
+    @classmethod
+    def can_handle(cls, netbox):
+        return deferToThread(cls._has_interfaces, netbox)
+
+    @classmethod
+    @autocommit
+    def _has_interfaces(cls, netbox):
+        return manage.Interface.objects.filter(
+            netbox__id=netbox.id).count() > 0
 
     @defer.inlineCallbacks
     def handle(self):

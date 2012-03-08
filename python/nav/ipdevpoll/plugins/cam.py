@@ -19,6 +19,7 @@ from collections import defaultdict
 
 from twisted.internet import defer, threads
 
+from nav.models import manage
 from nav.util import splitby
 from nav.mibs.bridge_mib import MultiBridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib
@@ -27,6 +28,7 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll import utils
 from nav.ipdevpoll.neighbor import get_netbox_macs
+from nav.ipdevpoll.db import autocommit
 
 class Cam(Plugin):
     """Collects switches' forwarding tables and port STP states.
@@ -48,6 +50,16 @@ class Cam(Plugin):
     linkports = None
     accessports = None
     blocking = None
+
+    @classmethod
+    def can_handle(cls, netbox):
+        return threads.deferToThread(cls._has_interfaces, netbox)
+
+    @classmethod
+    @autocommit
+    def _has_interfaces(cls, netbox):
+        return manage.Interface.objects.filter(
+            netbox__id=netbox.id).count() > 0
 
     @defer.inlineCallbacks
     def handle(self):
