@@ -46,6 +46,9 @@ The navtopology program will now prefer LLDP source information over CDP and
 CDP source information over CAM source information when building NAV's
 topology.
 
+Unrecognized neighbors from CDP or LLDP are _not_ stored yet by NAV 3.11.0,
+but this will be reimplemented in the 3.11 series.
+
 
 NAV 3.10
 ========
