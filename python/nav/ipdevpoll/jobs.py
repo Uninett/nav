@@ -107,6 +107,7 @@ class JobHandler(object):
             self.agent.close()
         self.agent = None
 
+    @defer.inlineCallbacks
     def find_plugins(self):
         """Populate the internal plugin list with plugin class instances."""
         from nav.ipdevpoll.config import ipdevpoll_conf
@@ -120,7 +121,9 @@ class JobHandler(object):
             plugin_class = plugin_registry[plugin_name]
 
             # Check if plugin wants to handle the netbox at all
-            if plugin_class.can_handle(self.netbox):
+            can_handle = yield defer.maybeDeferred(
+                plugin_class.can_handle, self.netbox)
+            if can_handle:
                 plugin = plugin_class(self.netbox, agent=self.agent,
                                       containers=self.containers,
                                       config=ipdevpoll_conf)
@@ -131,12 +134,12 @@ class JobHandler(object):
 
         if not plugins:
             self._logger.debug("No plugins for this job")
-            return
+            defer.returnValue(None)
 
         self._logger.debug("Plugins to call: %s",
                            ",".join([p.name() for p in plugins]))
 
-        return plugins
+        defer.returnValue(plugins)
 
     def _iterate_plugins(self, plugins):
         """Iterates plugins."""
@@ -176,6 +179,7 @@ class JobHandler(object):
 
         return next_plugin()
 
+    @defer.inlineCallbacks
     def run(self):
         """Starts a polling job for netbox.
 
@@ -185,11 +189,11 @@ class JobHandler(object):
 
         """
         self._create_agentproxy()
-        plugins = self.find_plugins()
+        plugins = yield self.find_plugins()
         self._reset_timers()
         if not plugins:
             self._destroy_agentproxy()
-            return defer.succeed(False)
+            defer.returnValue(False)
 
         self._logger.debug("Starting job %r for %s",
                            self.name, self.netbox.sysname)
@@ -248,7 +252,8 @@ class JobHandler(object):
         df.addCallback(save)
         df.addErrback(log_abort)
         df.addBoth(cleanup)
-        return df
+        yield df
+        defer.returnValue(True)
 
     def cancel(self):
         """Cancels a running job.
