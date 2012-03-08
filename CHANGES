@@ -1,3 +1,10 @@
+Version 3.10.4
+(released 08 Mar 2012)
+
+ Bugfixes:
+
+  * LP#947080 (Netbox attributes aren't updated when modules are found)
+
 Version 3.10.3
 (released 01 Mar 2012)
 
