@@ -11,6 +11,21 @@ Version 3.11.0
     meaning improved machine tracking data for switch vendors like HP, Juniper
     and Alcatel.
 
+  * The Machine Tracker's IP search form has consolidated the `To` and `From`
+    IP address search fields into a single `IP Range` search field with
+    extended search syntax for ranges of IP addresses.  See LP#643544 for
+    details.
+
+  * ipdevpoll can now be made to run single job configurations from
+    ipdevpoll.conf, to run in the foreground, and to log to stderr instead of
+    its log file.
+
+  * ipdevpoll will reset its log levels from logging.conf upon receiving a
+    SIGHUP signal.
+
+  * ipdevpoll will log the currently active polling jobs upon receiving a
+    SIGUSR1 signal.
+
 
 Version 3.10.3
 (released 01 Mar 2012)
