@@ -28,7 +28,7 @@ from nav.models.manage import Arp, Cam
 
 from nav import asyncdns
 
-from nav.web.machinetracker import forms
+from nav.web.machinetracker import forms, iprange
 from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict
 from nav.web.machinetracker.utils import process_ip_row, track_mac, get_prefix_info
 from nav.web.machinetracker.utils import min_max_mac, ProcessInput
@@ -45,7 +45,7 @@ ADDRESS_LIMIT = 4096 # Value for when inactive gets disabled
 
 
 def ip_search(request):
-    if request.GET.has_key('from_ip') or request.GET.has_key('prefixid'):
+    if request.GET.has_key('ip_range') or request.GET.has_key('prefixid'):
         return ip_do_search(request)
     info_dict = {
         'form': forms.IpTrackerForm(),
@@ -63,39 +63,18 @@ def ip_do_search(request):
     tracker = None
     form_data = {}
     row_count = 0
+    from_ip = None
+    to_ip = None
+
     if form.is_valid():
-        from_ip_string = form.cleaned_data['from_ip']
-        to_ip_string = form.cleaned_data['to_ip']
+        ip_range = form.cleaned_data['ip_range']
         dns = form.cleaned_data['dns']
         active = form.cleaned_data['active']
         inactive = form.cleaned_data['inactive']
         days = form.cleaned_data['days']
         form_data = form.cleaned_data
-         
-        cidr = from_ip_string.split("/")
-        from_ip_string = cidr[0]
-
-        # Check if input is CIDR
-        try:
-            # If no netmask, get prefix for address
-            if not cidr[1]:
-                prefix = get_prefix_info(from_ip_string)
-                prefix_address = prefix.net_address
-                prefix_cidr = prefix_address.split("/")
-                prefix_address = IP(prefix_cidr[0])
-                prefix_subnet = prefix_address.make_net(prefix_cidr[1])
-                from_ip = prefix_subnet[0]
-                to_ip = prefix_subnet[-1]
-
-            # If netmask, get the subnet
-            else:    
-                ip_address = IP(cidr[0])
-                subnet = ip_address.make_net(cidr[1])
-                from_ip = subnet[0]
-                to_ip = subnet[-1]
         
-        except:
-            from_ip, to_ip = from_to_ip(from_ip_string, to_ip_string)
+        from_ip, to_ip = (ip_range[0], ip_range[-1])
 
         if (to_ip.int()-from_ip.int()) > ADDRESS_LIMIT:
             inactive = False
@@ -145,18 +124,26 @@ def ip_do_search(request):
                 row = {'ip': ip}
                 if dns:
                     if not isinstance(dns_lookups[ip], Exception):
-                        row['dns_lookup'] = dns_lookups[ip]
+                        row['dns_lookup'] = dns_lookups[ip].pop()
                     else:
                         row['dns_lookup'] = ""
                 tracker[(ip, "")] = [row]
 
         row_count = sum(len(mac_ip_pair) for mac_ip_pair in tracker.values())
 
+    # If the form was valid, but we found no results, display error message
+    display_no_results = False
+    if form.is_valid() and not row_count:
+        display_no_results = True
+
     info_dict = {
         'form': form,
         'form_data': form_data,
         'ip_tracker': tracker,
         'ip_tracker_count': row_count,
+        'subnet_start': unicode(from_ip),
+        'subnet_end': unicode(to_ip),
+        'display_no_results': display_no_results,
     }
     info_dict.update(IP_DEFAULTS)
     return render_to_response(
