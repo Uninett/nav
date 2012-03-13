@@ -29,7 +29,10 @@ class CiscoSup(Plugin):
     @classmethod
     def can_handle(cls, netbox):
         """Handles Cisco devices and any device whose type hasn't been found"""
-        return netbox.type is None or netbox.type.vendor.id.lower() == 'cisco'
+        daddy_says_ok = super(CiscoSup, cls).can_handle(netbox)
+        return (daddy_says_ok and
+                (netbox.type is None or
+                 netbox.type.vendor.id.lower() == 'cisco'))
 
     def handle(self):
         netbox = self.containers.factory(None, shadows.Netbox)

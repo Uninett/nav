@@ -63,13 +63,13 @@ class Plugin(object):
         """Verifies whether this plugin can/wants to handle polling for this
         netbox instance at this time.
 
-        The base implementation always returns True; plugins must override
-        this method if they do not handle everything thrown at them at all
-        times.
+        The base implementation returns True as long as the Netbox' SNMP agent
+        is not known to be down and it has a configured SNMP community;
+        plugins must override this method if their requirements are different.
 
         :returns: A boolean value.
         """
-        return True
+        return getattr(netbox, 'snmp_up', True) and bool(netbox.read_only)
 
     @classmethod
     def on_plugin_load(cls):

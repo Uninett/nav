@@ -90,6 +90,10 @@ class JobHandler(object):
         if self.agent:
             self._destroy_agentproxy()
 
+        if not self.netbox.read_only:
+            self.agent = None
+            return
+
         port = ports.next()
         self.agent = AgentProxy(
             self.netbox.ip, 161,
