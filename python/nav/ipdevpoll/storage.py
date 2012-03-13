@@ -217,14 +217,13 @@ class Shadow(object):
                         value, attr)
         return super(Shadow, self).__setattr__(attr, value)
 
-    @staticmethod
-    def is_shadowy_attribute(attr):
+    @classmethod
+    def is_shadowy_attribute(cls, attr):
         """Returns True if attr is the name of an attribute from the
         corresponding Model class.
 
         """
-        return attr not in ('delete', 'update_only') and \
-            not attr.startswith('_')
+        return attr in cls._fields
 
     def copy(self, other):
         """Copies the attributes of another instance (shallow)"""
