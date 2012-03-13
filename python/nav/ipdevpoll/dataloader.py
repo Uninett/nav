@@ -77,8 +77,14 @@ class NetboxLoader(dict):
         """
         related = ('room__location', 'type__vendor',
                    'category', 'organization', 'device')
-        queryset = manage.Netbox.objects.select_related(*related).filter(
-            read_only__isnull=False, up='y').exclude(read_only='')
+        snmp_up_query = """SELECT COUNT(*) = 0
+                           FROM alerthist
+                           WHERE alerthist.netboxid = netbox.netboxid
+                             AND eventtypeid='snmpAgentState'
+                             AND end_time >= 'infinity' """
+        queryset = (manage.Netbox.objects.select_related(*related).
+                    filter(up='y').
+                    extra(select={'snmp_up': snmp_up_query}))
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
 
@@ -127,11 +133,12 @@ def is_netbox_changed(netbox1, netbox2):
     if netbox1.id != netbox2.id:
         raise Exception("netbox1 and netbox2 do not represent the same netbox")
 
-    for attr in ('ip', 
-                 'type', 
-                 'read_only', 
-                 'snmp_version', 
+    for attr in ('ip',
+                 'type',
+                 'read_only',
+                 'snmp_version',
                  'device',
+                 'snmp_up',
                  ):
         if getattr(netbox1, attr) != getattr(netbox2, attr):
             return True
