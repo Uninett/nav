@@ -52,3 +52,19 @@ class IfMib(mibretriever.MibRetriever):
         "Retrieves a list of current ifIndexes"
         indexes = yield self.retrieve_column('ifIndex')
         defer.returnValue(indexes.values())
+
+    @defer.inlineCallbacks
+    def get_admin_status(self):
+        """Retrieves ifAdminStatus for all interfaces.
+
+        :returns: A dictionary like { ifindex: ifAdminStatusfName, ...}
+
+        """
+        df = self.retrieve_columns(['ifAdminStatus'])
+        df.addCallback(self.translate_result)
+        df.addCallback(reduce_index)
+        status = yield df
+
+        result = dict((index, row['ifAdminStatus'])
+                      for index, row in status.items())
+        defer.returnValue(result)
