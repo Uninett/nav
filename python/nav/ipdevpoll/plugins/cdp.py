@@ -38,8 +38,11 @@ class CDP(Plugin):
     neighbors = None
 
     @classmethod
+    @defer.inlineCallbacks
     def can_handle(cls, netbox):
-        return deferToThread(cls._has_interfaces, netbox)
+        daddy_says_ok = super(CDP, cls).can_handle(netbox)
+        has_ifcs = yield deferToThread(cls._has_interfaces, netbox)
+        defer.returnValue(has_ifcs and daddy_says_ok)
 
     @classmethod
     @autocommit

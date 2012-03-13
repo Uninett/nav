@@ -40,6 +40,10 @@ class SnmpCheck(Plugin):
     """
     down_set = None
 
+    @classmethod
+    def can_handle(cls, netbox):
+        return bool(netbox.read_only)
+
     def __init__(self, *args, **kwargs):
         super(SnmpCheck, self).__init__(*args, **kwargs)
         if SnmpCheck.down_set is None:

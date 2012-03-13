@@ -34,6 +34,11 @@ _resolvers = cycle([client.Resolver('/etc/resolv.conf') for i in range(3)])
 class DnsName(Plugin):
     """Performs reverse DNS lookup on netbox IP address"""
 
+    @classmethod
+    def can_handle(self, netbox):
+        "Handles anything, anytime, since we don't query the netbox directly"
+        return True
+
     def handle(self):
         ip = IP(self.netbox.ip)
         self._logger.debug("Doing DNS PTR lookup for %s", ip.reverseName())

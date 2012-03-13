@@ -59,7 +59,8 @@ class Arp(Plugin):
     @classmethod
     def can_handle(cls, netbox):
         """This will only be useful on layer 3 devices, i.e. GW/GSW devices."""
-        return netbox.category.id in ('GW', 'GSW')
+        daddy_says_ok = super(Arp, cls).can_handle(netbox)
+        return daddy_says_ok and netbox.category.id in ('GW', 'GSW')
 
     @defer.inlineCallbacks
     def handle(self):

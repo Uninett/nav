@@ -39,8 +39,11 @@ class LLDP(Plugin):
     neighbors = None
 
     @classmethod
+    @defer.inlineCallbacks
     def can_handle(cls, netbox):
-        return threads.deferToThread(cls._has_interfaces, netbox)
+        daddy_says_ok = super(LLDP, cls).can_handle(netbox)
+        has_ifcs = yield threads.deferToThread(cls._has_interfaces, netbox)
+        defer.returnValue(has_ifcs and daddy_says_ok)
 
     @classmethod
     @autocommit
