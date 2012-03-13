@@ -79,6 +79,5 @@ def snmp_parameter_factory(host=None):
         if config.has_option(section, var):
             key = var.replace('-', '_')
             params[key] = getter(section, var)
-    print params
 
     return SNMPParameters(**params)
