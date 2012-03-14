@@ -65,6 +65,7 @@ class JobHandler(object):
     _logger = ContextLogger()
     _queue_logger = ContextLogger(suffix='queue')
     _timing_logger = ContextLogger(suffix='timings')
+    _start_time = datetime.datetime.min
 
     def __init__(self, name, netbox, plugins=None):
         self.name = name
