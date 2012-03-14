@@ -136,7 +136,8 @@ class Neighbor(object):
         """Tries to find an Interface in NAV's database for the already
         identified netbox.
 
-        The ifName, ifDescr and ifAlias attributes are searched for name.
+        The ifName, ifDescr, ifAlias, and optionally, baseport attributes are
+        searched for name.
 
         :returns: A shadows.Interface object representing the interface, or None
                   if no corresponding interface was found.
@@ -145,14 +146,15 @@ class Neighbor(object):
         if not (self.netbox and name):
             return
 
-        netbox = Q(netbox__id=self.netbox.id)
-        ifdescr = netbox & Q(ifdescr=name)
-        ifname = netbox & Q(ifname=name)
-        ifalias = netbox & Q(ifalias=name)
+        queries = [Q(ifdescr=name), Q(ifname=name), Q(ifalias=name)]
+        if name.isdigit():
+            queries.append(Q(baseport=int(name)))
 
-        return (self._interface_query(ifdescr)
-                or self._interface_query(ifname)
-                or self._interface_query(ifalias))
+        netbox = Q(netbox__id=self.netbox.id)
+        for query in queries:
+            ifc = self._interface_query(netbox & query)
+            if ifc:
+                return ifc
 
     def _interface_query(self, query):
         assert query
