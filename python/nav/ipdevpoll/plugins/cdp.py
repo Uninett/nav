@@ -77,7 +77,8 @@ class CDP(Plugin):
         ifc = self.containers.factory(ifindex, shadows.Interface)
         ifc.ifindex = ifindex
 
-        key = (ifindex, neighbor.netbox.id, neighbor.interface.id, SOURCE)
+        key = (ifindex, neighbor.netbox.id,
+               neighbor.interface and neighbor.interface.id or None, SOURCE)
         cand = self.containers.factory(key, shadows.AdjacencyCandidate)
         cand.netbox = self.netbox
         cand.interface = ifc
