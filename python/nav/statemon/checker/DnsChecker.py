@@ -66,7 +66,7 @@ class DnsChecker(AbstractChecker):
 
             if not timeout and answer == 1:
                 return Event.UP, "Ok"
-            elif not timeout and answer == 1:
+            elif not timeout and answer == 0:
                 return Event.UP, "No record found, request=%s" % request
             else:
                 return Event.DOWN, "Timeout while requesting %s" % request
