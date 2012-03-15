@@ -50,6 +50,7 @@ class Cam(Plugin):
     linkports = None
     accessports = None
     blocking = None
+    my_macs = None
 
     @classmethod
     @defer.inlineCallbacks
@@ -84,6 +85,8 @@ class Cam(Plugin):
         yield self._get_interfaces()
 
         self.monitored = yield threads.deferToThread(get_netbox_macs)
+        self.my_macs = set(mac for mac, netboxid in self.monitored.items()
+                           if netboxid == self.netbox.id)
         self._classify_ports()
         self._store_cam_records()
         self._store_adjacency_candidates()
@@ -146,7 +149,8 @@ class Cam(Plugin):
     def _classify_ports(self):
         def _is_linkport(portmacs):
             _port, macs = portmacs
-            return any(mac in self.monitored for mac in macs)
+            return any(mac in self.monitored and mac not in self.my_macs
+                       for mac in macs)
 
         linkports, accessports = splitby(_is_linkport, self.fdb.items())
         self.linkports = dict(linkports)
@@ -167,7 +171,7 @@ class Cam(Plugin):
         shadows.AdjacencyCandidate.sentinel(self.containers, 'cam')
         for port in self.linkports:
             macs = self.fdb.get(port, None) or set()
-            macs = macs.intersection(self.monitored)
+            macs = macs.intersection(self.monitored).difference(self.my_macs)
             if macs:
                 self._logger.debug(
                     "%r sees the following monitored mac addresses: %r",

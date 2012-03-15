@@ -20,7 +20,7 @@ from twisted.internet.threads import deferToThread
 from nav.models import manage
 from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
-from nav.ipdevpoll.neighbor import CDPNeighbor
+from nav.ipdevpoll.neighbor import CDPNeighbor, filter_duplicate_neighbors
 from nav.ipdevpoll.db import autocommit
 
 SOURCE = 'cdp'
@@ -69,7 +69,14 @@ class CDP(Plugin):
         for neigh in identified:
             self._logger.debug("identified neighbor %r from %r",
                                (neigh.netbox, neigh.interface), neigh.record)
+
+        filtered = list(filter_duplicate_neighbors(identified))
+        delta = len(identified) - len(filtered)
+        if delta:
+            self._logger.debug("filtered out %d duplicate CDP entries", delta)
+        for neigh in filtered:
             self._store_candidate(neigh)
+
         self.neighbors = neighbors
 
     def _store_candidate(self, neighbor):
