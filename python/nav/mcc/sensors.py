@@ -25,7 +25,8 @@ def make_config(globalconfig):
 
     LOGGER.info("Creating config for %s in %s" % (dirname, path_to_directory))
 
-    for netbox in Netbox.objects.all():
+    boxes = Netbox.objects.exclude(read_only__isnull=True).exclude(read_only='')
+    for netbox in boxes:
         containers = create_netbox_config(netbox, path_to_directory)
         if containers:
             dbutils.updatedb(path_to_rrdfiles, containers)
