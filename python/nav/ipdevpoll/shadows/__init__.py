@@ -269,6 +269,13 @@ class Usage(Shadow):
 class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
 
+    def save(self, containers):
+        pfx = self._get_my_prefixes(containers)
+        if pfx:
+            super(Vlan, self).save(containers)
+        else:
+            self._logger.debug("no associated prefixes, not saving: %r", self)
+
     def _get_my_prefixes(self, containers):
         """Get a list of Prefix shadow objects that point to this Vlan."""
         if Prefix in containers:
