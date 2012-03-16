@@ -25,6 +25,8 @@ from twisted.internet import defer
 from nav.mibs.if_mib import IfMib
 from nav.mibs.cisco_vtp_mib import CiscoVTPMib
 from nav.mibs.cisco_vlan_membership_mib import CiscoVlanMembershipMib
+from nav.mibs.cisco_vlan_iftable_relationship_mib \
+    import CiscoVlanIftableRelationshipMib
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
@@ -38,16 +40,24 @@ class CiscoVlan(Plugin):
     def handle(self):
         ciscovtp = CiscoVTPMib(self.agent)
         ciscovm = CiscoVlanMembershipMib(self.agent)
+        ciscovlanif = CiscoVlanIftableRelationshipMib(self.agent)
 
         enabled_vlans = yield ciscovtp.get_trunk_enabled_vlans(
             as_bitvector=True)
         native_vlans = yield ciscovtp.get_trunk_native_vlans()
         vlan_membership = yield ciscovm.get_vlan_membership()
+        vlan_ifindex = yield ciscovlanif.get_routed_vlan_ifindexes()
 
-        if vlan_membership or native_vlans or enabled_vlans:
+        if vlan_membership or native_vlans or enabled_vlans or vlan_ifindex:
+            self._logger.debug("vlan_membership: %r", vlan_membership)
+            self._logger.debug("native_vlans: %r", native_vlans)
+            self._logger.debug("enabled_vlans: %r", enabled_vlans)
+            self._logger.debug("vlan_ifindex: %r", vlan_ifindex)
+
             self._valid_ifindexes = yield self._get_ifindexes()
             self._store_access_ports(vlan_membership)
             self._store_trunk_ports(native_vlans, enabled_vlans)
+            self._store_vlan_ifc_relationships(vlan_ifindex)
 
     @defer.inlineCallbacks
     def _get_ifindexes(self):
@@ -89,3 +99,14 @@ class CiscoVlan(Plugin):
                                               shadows.SwPortAllowedVlan)
             allowed.interface = interface
             allowed.hex_string = vector.to_hex()
+
+    def _store_vlan_ifc_relationships(self, routed_vlans):
+        for route in routed_vlans:
+            ifc = self.containers.factory(route.virtual, shadows.Interface)
+            ifc.vlan = route.vlan
+            vlan = self.containers.factory(route.virtual, shadows.Vlan)
+            vlan.vlan = route.vlan
+            if route.physical:
+                phys_ifc = self.containers.factory(route.physical,
+                                                   shadows.Interface)
+                phys_ifc.trunk = True
