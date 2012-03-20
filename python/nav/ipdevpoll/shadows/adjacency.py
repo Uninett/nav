@@ -82,7 +82,8 @@ class AdjacencyManager(DefaultManager):
                 self._sources.add(cand.source)
 
         missing = set(self._existing.keys()).difference(found)
-        self._missing = [self._existing[key] for key in missing]
+        self._missing = [self._existing[key] for key in missing
+                         if self._existing[key].source in self._sources]
 
         self._logger.debug("existing: %r", self._existing)
         self._logger.debug("missing: %r", self._missing)
