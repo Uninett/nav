@@ -150,10 +150,13 @@ class NetboxJobScheduler(object):
         status = "completed" if success else "failed"
         runtime = datetime.timedelta(seconds=self.get_runtime())
         next_time = self.get_time_to_next_run()
-        if next_time:
-            self._logger.info("%s in %s. next run in %s",
-                              status, runtime,
-                              datetime.timedelta(seconds=next_time))
+        if next_time is not None:
+            if next_time <= 0:
+                delta = "right now"
+            else:
+                delta = "in %s" % datetime.timedelta(seconds=next_time)
+            self._logger.info("%s in %s. next run %s.",
+                              status, runtime, delta)
         else:
             self._logger.info("%s in %s. no next run scheduled",
                               status, runtime)
