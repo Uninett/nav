@@ -70,7 +70,7 @@
 		{% else %}
 			<img src="/images/networkexplorer/end.gif" class="tree-navigators" alt=""/>
 		{% endif %}
-			<a target="_blank" href="/ipdevinfo/{{router}}">{{router}}</a>
+			<a target="_blank" href="{% url ipdevinfo-details-by-name router.sysname %}">{{router}}</a>
 		</dd>
 	{% endfor %}
 	</dl>

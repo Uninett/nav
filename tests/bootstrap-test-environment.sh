@@ -22,7 +22,9 @@ if [ -d "$VIRTENV" ]; then
     echo "**> virtualenv exists"
 else
     echo "**> creating virtualenv"
-    virtualenv "$VIRTENV"
+    opt=
+    test -n "$PYTHON_VER" && opt="-p python$PYTHON_VER"
+    virtualenv $opt "$VIRTENV"
 fi
 . "$VIRTENV/bin/activate"
 easy_install pip || exit 1
@@ -42,6 +44,7 @@ sed -i'' -e "s,^db_nav\s*=\s*nav,db_nav=$PGDATABASE," "$BUILDDIR/etc/db.conf"
 sed -i'' -e "s/^script_default\s*=\s*nav/script_default=$PGUSER/" "$BUILDDIR/etc/db.conf"
 sed -i'' -e "s/^userpw_nav\s*=.*/userpw_$PGUSER=$PGPASSWORD/" "$BUILDDIR/etc/db.conf"
 if [ -n "$PGHOST" ]; then sed -i'' -e "s/^dbhost\s*=\s*localhost/dbhost=$PGHOST/" "$BUILDDIR/etc/db.conf"; fi
+if [ -n "$PGPORT" ]; then sed -i'' -e "s/^dbport\s*=.*/dbport=$PGPORT/" "$BUILDDIR/etc/db.conf"; fi
 
 # Remove existing DB, if any, and create new one
 dropdb $PGDATABASE || true

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -254,18 +254,29 @@ class Interface(Shadow):
                  value=django_ifc.ifalias or '').save()
 
     def get_existing_model(self, containers=None):
-        """Returns the set existing Django model instance, without attempting
-        to lookup ourselves in the db.
+        """Returns the existing Django ORM object represented by this object.
+
+        Will return the cached existing model if set.  If not, will use the
+        primary key, if set, for database lookup.
 
         """
-        return self._cached_existing_model
+        if self._cached_existing_model:
+            return self._cached_existing_model
+        elif self.id:
+            try:
+                ifc = manage.Interface.objects.get(id=self.id)
+            except manage.Interface.DoesNotExist:
+                return None
+            else:
+                self._cached_existing_model = ifc
+                return ifc
 
     def set_existing_model(self, django_object):
         super(Interface, self).set_existing_model(django_object)
         self._verify_operstatus_change(django_object)
 
     def _verify_operstatus_change(self, stored):
-        if self.ifoperstatus != stored.ifoperstatus:
+        if self.ifoperstatus and self.ifoperstatus != stored.ifoperstatus:
             self.ifoperstatus_change = (stored.ifoperstatus, self.ifoperstatus)
         else:
             self.ifoperstatus_change = None
@@ -273,6 +284,7 @@ class Interface(Shadow):
     def prepare(self, containers):
         self._set_netbox_if_unset(containers)
         self._set_ifindex_if_unset(containers)
+        self.gone_since = None
 
     def _set_netbox_if_unset(self, containers):
         """Sets this Interface's netbox reference if unset by plugins."""
@@ -298,4 +310,5 @@ def ifnames(ifcs):
     objects.
 
     """
-    return ', '.join(sorted((ifc.ifname for ifc in ifcs), key=natsort.split))
+    return ', '.join(sorted((ifc.ifname or 'None' for ifc in ifcs),
+                            key=natsort.split))

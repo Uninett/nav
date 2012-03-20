@@ -19,6 +19,8 @@ LoggingAdapter class, ripped from the Python 2.6 std library.
 This class is copied here because NAV wants to use also in Python 2.5.
 """
 
+# we are mimicing the logging API, can't help but use non-standard names.
+# pylint: disable=C0103
 class LoggerAdapter:
     """
     An adapter for loggers which makes it easier to specify contextual
@@ -77,6 +79,14 @@ class LoggerAdapter:
         msg, kwargs = self.process(msg, kwargs)
         self.logger.warning(msg, *args, **kwargs)
 
+    def warn(self, msg, *args, **kwargs):
+        """
+        Delegate a warning call to the underlying logger, after adding
+        contextual information from this adapter instance.
+        """
+        msg, kwargs = self.process(msg, kwargs)
+        self.logger.warn(msg, *args, **kwargs)
+
     def error(self, msg, *args, **kwargs):
         """
         Delegate an error call to the underlying logger, after adding
@@ -111,4 +121,9 @@ class LoggerAdapter:
         self.logger.log(level, msg, *args, **kwargs)
 
     def getEffectiveLevel(self):
+        "Get the effective level for this logger."
         return self.logger.getEffectiveLevel()
+
+    def isEnabledFor(self, level):
+        "Is this logger enabled for level 'level'?"
+        return self.logger.isEnabledFor(level)

@@ -36,6 +36,9 @@ from nav.ipdevpoll import db
 
 from .netbox import Netbox
 from .interface import Interface
+from .swportblocked import SwPortBlocked
+from .cam import Cam
+from .adjacency import AdjacencyCandidate, UnrecognizedNeighbor
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
@@ -175,6 +178,7 @@ class Module(Shadow):
         event.target_id = 'eventEngine'
         event.device = django_module.device
         event.netbox = django_module.netbox
+        event.subid = unicode(django_module.id)
         event.event_type_id = 'moduleState'
         return event
 
@@ -264,6 +268,13 @@ class Usage(Shadow):
 
 class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
+
+    def save(self, containers):
+        pfx = self._get_my_prefixes(containers)
+        if pfx:
+            super(Vlan, self).save(containers)
+        else:
+            self._logger.debug("no associated prefixes, not saving: %r", self)
 
     def _get_my_prefixes(self, containers):
         """Get a list of Prefix shadow objects that point to this Vlan."""
@@ -525,10 +536,6 @@ class Arp(Shadow):
         if attrs:
             myself = manage.Arp.objects.filter(id=self.id)
             myself.update(**attrs)
-
-class Cam(Shadow):
-    __shadowclass__ = manage.Cam
-    __lookups__ = [('netbox', 'ifindex', 'mac', 'miss_count')]
 
 class SwPortAllowedVlan(Shadow):
     __shadowclass__ = manage.SwPortAllowedVlan

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -56,14 +56,20 @@ class Plugin(object):
         """Handle plugin business, return a deferred."""
         raise NotImplementedError
 
+    # this is an API, so netbox goes unused in the base class:
+    # pylint: disable=W0613
     @classmethod
     def can_handle(cls, netbox):
-        """Verify whether this plugin can/wants to handle polling for this
+        """Verifies whether this plugin can/wants to handle polling for this
         netbox instance at this time.
 
-        Returns a boolean value.
+        The base implementation returns True as long as the Netbox' SNMP agent
+        is not known to be down and it has a configured SNMP community;
+        plugins must override this method if their requirements are different.
+
+        :returns: A boolean value.
         """
-        raise NotImplementedError
+        return getattr(netbox, 'snmp_up', True) and bool(netbox.read_only)
 
     @classmethod
     def on_plugin_load(cls):

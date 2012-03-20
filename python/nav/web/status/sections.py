@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -139,7 +139,7 @@ class _Section(object):
         url = reverse('devicehistory-view')
         url += "?type=%s" % self.devicehistory_type
         url += "&group_by=datetime"
-        
+
         if not self.prefs.all_organizations:
             for org in self.organizations:
                 url += "&org=%s" % org
@@ -147,8 +147,8 @@ class _Section(object):
             for cat in self.categories:
                 url += "&cat=%s" % cat
 
-        # If custom orgs and cats, use AND search        
-        if not self.prefs.all_categories and not self.prefs.all_organizations:    
+        # If custom orgs and cats, use AND search
+        if not self.prefs.all_categories and not self.prefs.all_organizations:
             url += "&mode=and"
 
         return url
@@ -172,7 +172,7 @@ class NetboxSection(_Section):
         ).filter(
             ~Q(netbox__in=maintenance),
             Q(netbox__up='n') | Q(netbox__up='s'),
-            alert_type__in=alert_types,
+            alert_type__name__in=alert_types,
             end_time__gt=datetime.max,
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
@@ -205,6 +205,7 @@ class NetboxSection(_Section):
         return AlertHistory.objects.filter(
             event_type=MAINTENANCE_STATE,
             end_time__gt=datetime.max,
+            netbox__isnull=False,
         ).values('netbox').query
 
     def _alerttype(self):
@@ -216,10 +217,7 @@ class NetboxSection(_Section):
         if 's' in self.states:
             states.append('boxShadow')
 
-        return AlertType.objects.filter(
-            event_type__id=BOX_STATE,
-            name__in=states
-        ).values('pk').query
+        return states
 
 class NetboxMaintenanceSection(_Section):
     columns =  [
@@ -479,7 +477,7 @@ class ModuleSection(_Section):
             },
             tables=['module'],
             where=[
-                'alerthist.subid = module.moduleid::text',
+                'alerthist.deviceid = module.deviceid',
                 'module.up IN %s',
             ],
             params=[tuple(self.states)]

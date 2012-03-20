@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -29,6 +29,10 @@ _logger = logging.getLogger(__name__)
 _ipdevpoll_conf_defaults = """
 [ipdevpoll]
 logfile = ipdevpolld.log
+
+[snmp]
+timeout = 1.5
+max-repetitions = 50
 
 [plugins]
 

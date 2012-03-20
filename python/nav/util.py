@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2005 Norwegian University of Science and Technology
-# Copyright (C) 2007, 2011 UNINETT AS
+# Copyright (C) 2007, 2011, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,8 +18,11 @@
 
 import os
 import stat
+import datetime
+from functools import wraps
+from itertools import chain, tee
+
 import IPy
-from itertools import chain
 
 def gradient(start, stop, steps):
     """Create and return a sequence of steps representing an integer
@@ -149,6 +152,15 @@ def mergedicts(*dicts):
     return dict((k, [d.get(k, None) for d in dicts])
                 for k in keys)
 
+def splitby(predicate, iterable):
+    """Splits an iterable in two iterables, based on a predicate.
+
+    :returns: A tuple of two iterables: (true_iter, false_iter)
+
+    """
+    predicated = ((v, predicate(v)) for v in iterable)
+    iter1, iter2 = tee(predicated)
+    return (v for (v, p) in iter1 if p), (v for (v, p) in iter2 if not p)
 
 class IPRange(object):
     """An IP range representation.
@@ -283,3 +295,48 @@ class IPRange(object):
 
         """
         return '24'
+
+# pylint: disable=C0103,R0903
+class cachedfor(object):
+    """Decorates a function with no arguments to cache its result for a period
+    of time.
+
+    """
+    def __init__(self, max_age):
+        self.max_age = max_age
+        self.value = None
+        self.func = None
+        self.updated = datetime.datetime.min
+
+    def __call__(self, func):
+        self.func = func
+        @wraps(func)
+        def _wrapper():
+            age = datetime.datetime.now() - self.updated
+            if age >= self.max_age:
+                self.value = self.func()
+                self.updated = datetime.datetime.now()
+            return self.value
+
+        return _wrapper
+
+def synchronized(lock):
+    """Synchronization decorator.
+
+    Decorates a function to ensure it can only run in a single thread at a
+    time.
+
+    :param lock: A threading.Lock object.
+
+    """
+    def _decorator(func):
+        @wraps(func)
+        def _wrapper(*args, **kwargs):
+            lock.acquire()
+            try:
+                return func(*args, **kwargs)
+            finally:
+                lock.release()
+        return _wrapper
+    return _decorator
+

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011,2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -24,7 +24,9 @@ from twisted.internet import defer, reactor
 from twisted.python.failure import Failure
 from twistedsnmp import snmpprotocol, agentproxy
 
-class AgentProxy(agentproxy.AgentProxy):
+from . import common
+
+class AgentProxy(common.AgentProxyMixIn, agentproxy.AgentProxy):
     """TwistedSNMP AgentProxy derivative to add API compatibility
     with pynetsnmp's AgentProxy's open/close methods.
 

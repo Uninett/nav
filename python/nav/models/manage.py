@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007-2011 UNINETT AS
+# Copyright (C) 2007-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -761,11 +761,11 @@ class SwPortAllowedVlan(models.Model):
         return u'Allowed vlans for swport %s' % self.interface
 
 class SwPortBlocked(models.Model):
-    """From MetaNAV: This table defines the spanning tree blocked ports for a
-    given vlan for a given switch port."""
+    """This table defines the spanning tree blocked ports for a given vlan for
+    a given switch port."""
 
-    interface = models.ForeignKey('Interface', db_column='interfaceid',
-                                  primary_key=True)
+    id = models.AutoField(db_column='swportblockedid', primary_key=True)
+    interface = models.ForeignKey('Interface', db_column='interfaceid')
     vlan = models.IntegerField()
 
     class Meta:
@@ -773,28 +773,33 @@ class SwPortBlocked(models.Model):
         unique_together = (('interface', 'vlan'),) # Primary key
 
     def __unicode__(self):
-        return '%d, at swport %s' % (self.vlan, self.swport)
+        return '%d, at %s' % (self.vlan, self.interface)
 
-class SwPortToNetbox(models.Model):
-    """From MetaNAV: A help table used in the process of building the physical
-    topology of the network. swp_netbox defines the candidates for next hop
-    physical neighborship."""
+class AdjacencyCandidate(models.Model):
+    """A candidate for netbox/interface adjacency.
 
-    id = models.AutoField(db_column='swp_netboxid', primary_key=True)
+    Used in the process of building the physical topology of the
+    network. AdjacencyCandidate defines a candidate for next hop physical
+    neighbor.
+
+    """
+    id = models.AutoField(db_column='adjacency_candidateid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    ifindex = models.IntegerField()
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
-        related_name='candidate_for_next_hop_set')
+    interface = models.ForeignKey('Interface', db_column='interfaceid')
+    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid')
     to_interface = models.ForeignKey('Interface', db_column='to_interfaceid',
-        null=True, related_name='candidate_for_next_hop_set')
+                                     null=True)
+    source = VarcharField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
 
     class Meta:
-        db_table = 'swp_netbox'
-        unique_together = (('netbox', 'ifindex', 'to_netbox'),)
+        db_table = 'adjacency_candidate'
+        unique_together = (('netbox', 'interface', 'to_netbox', 'source'),)
 
     def __unicode__(self):
-        return u'%d, %s' % (self.ifindex, self.netbox)
+        return u'%s:%s %s candidate %s:%s' % (self.netbox, self.interface,
+                                              self.source,
+                                              self.to_netbox, self.to_interface)
 
 class NetboxVtpVlan(models.Model):
     """From MetaNAV: A help table that contains the vtp vlan database of a
@@ -1136,3 +1141,21 @@ class PowerSupplyOrFan(models.Model):
 
     class Meta:
         db_table = 'powersupply_or_fan'
+
+class UnrecognizedNeighbor(models.Model):
+    id = models.AutoField(primary_key=True)
+    netbox = models.ForeignKey(Netbox, db_column='netboxid')
+    interface = models.ForeignKey('Interface', db_column='interfaceid')
+    remote_id = VarcharField()
+    remote_name = VarcharField()
+    source = VarcharField()
+    since = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'unrecognized_neighbor'
+
+    def __unicode__(self):
+        return u'%s:%s %s neighbor %s (%s)' % (
+            self.netbox.sysname, self.interface.ifname,
+            self.source,
+            self.remote_id, self.remote_name)

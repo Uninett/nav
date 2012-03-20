@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -35,10 +35,8 @@ class DnsName(Plugin):
     """Performs reverse DNS lookup on netbox IP address"""
 
     @classmethod
-    def can_handle(cls, netbox):
-        """Return true for all netboxes, as this plugin doesn't require SNMP
-        support.
-        """
+    def can_handle(self, netbox):
+        "Handles anything, anytime, since we don't query the netbox directly"
         return True
 
     def handle(self):

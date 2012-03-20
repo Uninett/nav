@@ -52,6 +52,7 @@ def main():
         else:
             vlans = []
         do_vlan_detection(vlans)
+        delete_unused_vlans()
 
 def make_option_parser():
     """Sets up and returns a command line option parser."""
@@ -117,6 +118,13 @@ def do_vlan_detection(vlans):
     ifc_vlan_map = analyzer.add_access_port_vlans()
     update = VlanTopologyUpdater(ifc_vlan_map)
     update()
+
+@with_exception_logging
+def delete_unused_vlans():
+    "Deletes vlans unassociated with prefixes or switch ports"
+    from nav.models.manage import Vlan
+    unused = Vlan.objects.filter(prefix__isnull=True, swportvlan__isnull=True)
+    unused.delete()
 
 def verify_singleton():
     """Verifies that we are the single running navtopology process.

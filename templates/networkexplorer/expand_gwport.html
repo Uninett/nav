@@ -12,7 +12,7 @@
    <img src="/images/networkexplorer/vertical-bound.gif">
 	{% endif %}
 {% endif %}
-<a href="/ipdevinfo/{{ vlan.interface.netbox.sysname }}">{{ vlan.swport.module.netbox.sysname }}</a> [{{ vlan.interface.ifname }}]
+<a href="{% url ipdevinfo-details-by-name vlan.interface.netbox.sysname %}">{{ vlan.swport.module.netbox.sysname }}</a> [{{ vlan.interface.ifname }}]
 {% if vlan.interface.connected_to_switch %}
   {% if vlan.interface.to_netbox %}
     {% if vlan.interface.trunk %}
@@ -20,7 +20,7 @@
     {% else %}
       <abbr title="non-trunk port">→</abbr>
     {% endif %}
-    <a name="switch-{{ vlan.interface.to_netbox.id }}-{{vlan.vlan.id}}" href="/ipdevinfo/{{ vlan.interface.to_netbox }}" target="_blank">{{ vlan.interface.to_netbox }}</a>
+    <a name="switch-{{ vlan.interface.to_netbox.id }}-{{vlan.vlan.id}}" href="{% url ipdevinfo-details-by-name vlan.interface.to_netbox.sysname %}" target="_blank">{{ vlan.interface.to_netbox }}</a>
   {% else %}
     {% if vlan.interface.to_interface %}
         {% if vlan.interface.trunk %}
@@ -28,7 +28,7 @@
 	{% else %}
 	  <abbr title="non-trunk port">→</abbr>
 	{% endif %}
-	  <a name="switch-{{ vlan.interface.to_interface.netbox.id }}-{{vlan.vlan.id}}" href="/ipdevinfo/{{ vlan.interface.to_interface.netbox }}" target="_blank">{{ vlan.interface.to_interface.netbox }}</a> [{{vlan.interface.to_interface.ifname}}]
+	  <a name="switch-{{ vlan.interface.to_interface.netbox.id }}-{{vlan.vlan.id}}" href="{% url ipdevinfo-details-by-name vlan.interface.to_interface.netbox.sysname %}" target="_blank">{{ vlan.interface.to_interface.netbox }}</a> [{{vlan.interface.to_interface.ifname}}]
     {% else %}
         ({{ vlan.interface.ifalias }})
         {% if vlan.interface.trunk %}
@@ -43,7 +43,7 @@
     {% else %}
       <abbr title="non-trunk port">→</abbr>
     {% endif %}
-    <a href="/ipdevinfo/{{ vlan.interface.to_netbox }}" target="_blank">{{ vlan.interface.to_netbox }}</a>
+    <a href="{% url ipdevinfo-details-by-name vlan.interface.to_netbox.sysname %}" target="_blank">{{ vlan.interface.to_netbox }}</a>
   {% else %}
     {% if vlan.interface.to_interface %}
         {% if vlan.interface.trunk %}
@@ -51,7 +51,7 @@
 	{% else %}
 	  <abbr title="non-trunk port">→</abbr>
 	{% endif %}
-	<a href="/ipdevinfo/{{ vlan.interface.to_interface.netbox }}" target="_blank">{{ vlan.interface.to_interface.netbox }}</a>
+	<a href="{% url ipdevinfo-details-by-name vlan.interface.to_interface.netbox.sysname %}" target="_blank">{{ vlan.interface.to_interface.netbox }}</a>
 	[{{ vlan.interface.to_interface.ifname }}]
     {% else %}
         ({{ vlan.interface.ifalias }})

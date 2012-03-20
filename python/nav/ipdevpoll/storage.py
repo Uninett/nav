@@ -17,6 +17,7 @@
 
 import django.db.models
 
+from nav import toposort
 from nav import ipdevpoll
 from nav.ipdevpoll import db
 
@@ -216,14 +217,13 @@ class Shadow(object):
                         value, attr)
         return super(Shadow, self).__setattr__(attr, value)
 
-    @staticmethod
-    def is_shadowy_attribute(attr):
+    @classmethod
+    def is_shadowy_attribute(cls, attr):
         """Returns True if attr is the name of an attribute from the
         corresponding Model class.
 
         """
-        return attr not in ('delete', 'update_only') and \
-            not attr.startswith('_')
+        return attr in cls._fields
 
     def copy(self, other):
         """Copies the attributes of another instance (shallow)"""
@@ -374,7 +374,7 @@ class Shadow(object):
                 # Ensure we only have django models
                 for key, val in kwargs.items():
                     if issubclass(val.__class__, Shadow):
-                        kwargs[key] = val.convert_to_model(containers)
+                        kwargs[key] = val.get_existing_model(containers)
                 try:
                     model = self.__shadowclass__.objects.get(**kwargs)
                 except self.__shadowclass__.DoesNotExist:
@@ -509,8 +509,7 @@ class Shadow(object):
             if isinstance(myvalue, Shadow):
                 attr = "%s_id" % attr
                 myvalue = myvalue.id
-            else:
-                return hasattr(other, attr) and myvalue != getattr(other, attr)
+            return hasattr(other, attr) and myvalue != getattr(other, attr)
 
         return [a for a in self.get_touched()
                 if _is_different(a)]
@@ -576,6 +575,21 @@ class ContainerRepository(dict):
 
         return obj
 
+    def add(self, container_class):
+        """Ensures there is a reference to container_class in repository.
+
+        Even though no containers of this class are added to the repository,
+        the reference to the class will cause its manager to run save-time
+        processing.
+
+        """
+        if not issubclass(container_class, Shadow):
+            raise ValueError("%s is not a shadow container class" %
+                             container_class)
+
+        if container_class not in self:
+            self[container_class] = {}
+
     def get(self, key, container_class):
         """Returns the container_class object associated with key, or None if
         no such object was found.
@@ -590,4 +604,20 @@ class ContainerRepository(dict):
         orig = super(ContainerRepository, self).__repr__()
         return "ContainerRepository(%s)" % orig
 
+    def sortedkeys(self):
+        """Returns the shadow class keys sorted topologically according to
+        dependencies, starting with the class with the fewest dependencies.
 
+        """
+        order = get_shadow_sort_order()
+        return [cls for cls in order if cls in self]
+
+def get_shadow_sort_order():
+    """Return a topologically sorted list of shadow classes."""
+    def _get_dependencies(shadow_class):
+        return shadow_class.get_dependencies()
+
+    shadow_classes = MetaShadow.shadowed_classes.values()
+    graph = toposort.build_graph(shadow_classes, _get_dependencies)
+    sorted_classes = toposort.topological_sort(graph)
+    return sorted_classes

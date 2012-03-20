@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -23,6 +23,17 @@ from nav.ipdevpoll import db
 class Netbox(Shadow):
     __shadowclass__ = manage.Netbox
     __lookups__ = ['sysname', 'ip']
+
+    def __init__(self, *args, **kwargs):
+        super(Netbox, self).__init__(*args, **kwargs)
+        if args:
+            obj = args[0]
+            self.snmp_up = getattr(obj, 'snmp_up', None)
+
+    def copy(self, other):
+        super(Netbox, self).copy(other)
+        if hasattr(other, 'snmp_up'):
+            self.snmp_up = other.snmp_up
 
     def prepare(self, containers):
         """Attempts to solve serial number conflicts before savetime.

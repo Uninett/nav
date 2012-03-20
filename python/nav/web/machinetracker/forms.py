@@ -19,23 +19,14 @@
 
 import re
 from IPy import IP
-
+from nav.web.machinetracker import iprange
 from django import forms
 from django.forms.util import ErrorList
 
-def _check_ip(ip):
-    if ip:
-        try:
-            ip = ip.split('/')
-            ip = ip[0]
-            IP(ip)
-        except ValueError:
-            raise forms.ValidationError(u"Invalid IP address")
 
 class IpTrackerForm(forms.Form):
     # IPAddressField only supports IPv4 as of Django 1.1
-    from_ip = forms.CharField()
-    to_ip = forms.CharField(required=False)
+    ip_range = forms.CharField()
     active = forms.BooleanField(required=False, initial=True)
     inactive = forms.BooleanField(required=False)
     dns = forms.BooleanField(required=False, initial=False)
@@ -53,15 +44,13 @@ class IpTrackerForm(forms.Form):
             del data['inactive']
         return data
 
-    def clean_from_ip(self):
-        ip = self.cleaned_data['from_ip']
-        _check_ip(ip)
-        return ip
-
-    def clean_to_ip(self):
-        ip = self.cleaned_data['to_ip']
-        _check_ip(ip)
-        return ip
+    def clean_ip_range(self):
+        data = str(self.cleaned_data['ip_range'])
+        try:
+            data = iprange.MachinetrackerIPRange.from_string(data)
+        except ValueError, e:
+            raise forms.ValidationError("Invalid syntax: %s" % e)
+        return data
 
 class MacTrackerForm(forms.Form):
     mac = forms.CharField()

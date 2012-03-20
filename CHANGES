@@ -1,3 +1,75 @@
+Version 3.11.0
+(released 08 Mar 2012)
+
+ User-visible features and improvements:
+
+  * LLDP support for improved topology detection.
+
+  * getBoksMacs replaced by ipdevpoll plugins in `topo` job.
+
+  * Q-BRIDGE-MIB now also used when collecting switch forwarding tables,
+    meaning improved machine tracking data for switch vendors like HP, Juniper
+    and Alcatel.
+
+  * The Machine Tracker's IP search form has consolidated the `To` and `From`
+    IP address search fields into a single `IP Range` search field with
+    extended search syntax for ranges of IP addresses.  See LP#643544 for
+    details.
+
+  * ipdevpoll can now be made to run single job configurations from
+    ipdevpoll.conf, to run in the foreground, and to log to stderr instead of
+    its log file.
+
+  * ipdevpoll will reset its log levels from logging.conf upon receiving a
+    SIGHUP signal.
+
+  * ipdevpoll will log the currently active polling jobs upon receiving a
+    SIGUSR1 signal.
+
+
+Version 3.10.4
+(released 08 Mar 2012)
+
+ Bugfixes:
+
+  * LP#947080 (Netbox attributes aren't updated when modules are found)
+
+Version 3.10.3
+(released 01 Mar 2012)
+
+ Bugfixes:
+
+  * LP#906849 (Status page does not show current IP devices down)
+  * LP#936926 (mcc registers sensors RRD files in wrong directory)
+  * LP#937622 (a device's supported snmp version is never updated)
+  * LP#937677 (type, device and various other attributes aren't updated)
+
+Version 3.10.2
+(released 09 Feb 2012)
+
+ Bugfixes:
+
+  * LP#258298 (Service alerts aren't closed on service deletion)
+  * LP#392022 (Incorrect IPv4 net address prefix link in Subnet matrix)
+  * LP#744930 (vlan report for closed vlans is empty)
+  * LP#744933 (IP range searches in radius accounting tool ignores timestamp)
+  * LP#912210 (pping crashes when its PID is >= 32768)
+  * LP#912219 (Network explorer incomplete domain names)
+  * LP#920882 (moduleDown alerts reference affected module only as "$module")
+  * LP#920886 (Status page doesn't show modules down)
+  * LP#922566 (SQL syntax errors from getBoksMacs on PostgreSQL 9.1)
+  * LP#922586 (Cisco 1900 switches cause getBoksMacs SNMP walks to go into
+               infinite loops)
+  * LP#922616 (report system behaves badly if accessed without a trailing slash
+               in url)
+  * LP#923641 (Fan outage on HP devices never reported)
+  * LP#925928 (HP Virtual Connect Ethernet modules report crazy MAC addresses,
+               making getBoksMacs spew SQL errors)
+  * LP#925956 (link from organization report to prefix report crashes report
+               page)
+  * LP#928754 (Installing database on PostgreSQL 9 fails)
+
+
 Version 3.10.1
 (released 05 Jan 2012)
 

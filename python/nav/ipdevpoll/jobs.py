@@ -25,14 +25,13 @@ from itertools import cycle
 from twisted.internet import defer, threads, reactor
 from twisted.internet.error import TimeoutError
 
-from nav import toposort
-
 from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from . import storage, shadows
 from .plugins import plugin_registry
 from nav.ipdevpoll import db
 from .utils import log_unhandled_failure
+from .snmp.common import snmp_parameter_factory
 
 _logger = logging.getLogger(__name__)
 ports = cycle([snmpprotocol.port() for i in range(50)])
@@ -66,6 +65,7 @@ class JobHandler(object):
     _logger = ContextLogger()
     _queue_logger = ContextLogger(suffix='queue')
     _timing_logger = ContextLogger(suffix='timings')
+    _start_time = datetime.datetime.min
 
     def __init__(self, name, netbox, plugins=None):
         self.name = name
@@ -91,12 +91,17 @@ class JobHandler(object):
         if self.agent:
             self._destroy_agentproxy()
 
+        if not self.netbox.read_only:
+            self.agent = None
+            return
+
         port = ports.next()
         self.agent = AgentProxy(
             self.netbox.ip, 161,
             community = self.netbox.read_only,
             snmpVersion = 'v%s' % self.netbox.snmp_version,
             protocol = port.protocol,
+            snmp_parameters = snmp_parameter_factory(self.netbox)
         )
         self.agent.open()
         self._logger.debug("AgentProxy created for %s: %s",
@@ -107,6 +112,7 @@ class JobHandler(object):
             self.agent.close()
         self.agent = None
 
+    @defer.inlineCallbacks
     def find_plugins(self):
         """Populate the internal plugin list with plugin class instances."""
         from nav.ipdevpoll.config import ipdevpoll_conf
@@ -120,7 +126,9 @@ class JobHandler(object):
             plugin_class = plugin_registry[plugin_name]
 
             # Check if plugin wants to handle the netbox at all
-            if plugin_class.can_handle(self.netbox):
+            can_handle = yield defer.maybeDeferred(
+                plugin_class.can_handle, self.netbox)
+            if can_handle:
                 plugin = plugin_class(self.netbox, agent=self.agent,
                                       containers=self.containers,
                                       config=ipdevpoll_conf)
@@ -131,12 +139,12 @@ class JobHandler(object):
 
         if not plugins:
             self._logger.debug("No plugins for this job")
-            return
+            defer.returnValue(None)
 
         self._logger.debug("Plugins to call: %s",
                            ",".join([p.name() for p in plugins]))
 
-        return plugins
+        defer.returnValue(plugins)
 
     def _iterate_plugins(self, plugins):
         """Iterates plugins."""
@@ -176,14 +184,21 @@ class JobHandler(object):
 
         return next_plugin()
 
+    @defer.inlineCallbacks
     def run(self):
-        """Starts a polling job for netbox and returns a Deferred."""
+        """Starts a polling job for netbox.
+
+        :returns: A Deferred, whose result will be True when the job did
+                  something, or False when the job did nothing (i.e. no
+                  plugins ran).
+
+        """
         self._create_agentproxy()
-        plugins = self.find_plugins()
+        plugins = yield self.find_plugins()
         self._reset_timers()
         if not plugins:
             self._destroy_agentproxy()
-            return defer.succeed(None)
+            defer.returnValue(False)
 
         self._logger.debug("Starting job %r for %s",
                            self.name, self.netbox.sysname)
@@ -192,7 +207,7 @@ class JobHandler(object):
             self._logger.debug("Job %s for %s done.", self.name,
                                self.netbox.sysname)
             self._log_timings()
-            return result
+            return True
 
         def plugin_failure(failure):
             self._log_timings()
@@ -242,7 +257,8 @@ class JobHandler(object):
         df.addCallback(save)
         df.addErrback(log_abort)
         df.addBoth(cleanup)
-        return df
+        yield df
+        defer.returnValue(True)
 
     def cancel(self):
         """Cancels a running job.
@@ -390,10 +406,9 @@ class JobHandler(object):
         according to the dependency (topological) order of their classes.
 
         """
-        for shadow_class in sorted_shadow_classes:
-            if shadow_class in self.containers:
-                manager = shadow_class.manager(shadow_class, self.containers)
-                self.storage_queue.append(manager)
+        for shadow_class in self.containers.sortedkeys():
+            manager = shadow_class.manager(shadow_class, self.containers)
+            self.storage_queue.append(manager)
 
     def container_factory(self, container_class, key):
         """Container factory function"""
@@ -411,20 +426,3 @@ class JobHandler(object):
 
         """
         return len([o for o in gc.get_objects() if isinstance(o, cls)])
-
-def get_shadow_sort_order():
-    """Return a topologically sorted list of shadow classes."""
-    def get_dependencies(shadow_class):
-        return shadow_class.get_dependencies()
-
-    shadow_classes = storage.MetaShadow.shadowed_classes.values()
-    graph = toposort.build_graph(shadow_classes, get_dependencies)
-    sorted_classes = toposort.topological_sort(graph)
-    return sorted_classes
-
-
-# As this module is loaded, we want to build a list of shadow classes
-# sorted in topological order.  This only needs to be done once.  The
-# list is used to find the correct order in which to store shadow
-# objects at the end of a job.
-sorted_shadow_classes = get_shadow_sort_order()

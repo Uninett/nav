@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -33,8 +33,10 @@ this to allow asynchronous data retrieval.
 import logging
 import operator
 from twisted.internet import defer, reactor
+from twisted.internet.error import TimeoutError
 
 from nav.ipdevpoll import ContextLogger
+from nav.ipdevpoll.utils import fire_eventually
 from nav.errors import GeneralException
 from nav.oids import OID
 
@@ -225,12 +227,15 @@ class MibRetrieverMaker(type):
         try:
             mib = dct['mib']
         except KeyError, error:
-            raise AttributeError("No mib attribute in class %s" % name)
+            try:
+                mib = bases[0].mib
+            except AttributeError:
+                raise AttributeError("No mib attribute in class %s" % name)
 
         super(MibRetrieverMaker, cls).__init__(name, bases, dct)
 
-        if name == 'MibRetriever' and mib is None:
-            # This is the base retriever class, which is meant to be abstract
+        if mib is None:
+            # This may be the MibRetriever base class or a MixIn of some sort
             return
 
         # modify mib data to slightly optimize later OID manipulation
@@ -354,7 +359,7 @@ class MibRetriever(object):
 
             return formatted_result
 
-        deferred = self.agent_proxy.getTable([ str(node.oid) ], maxRepetitions=50)
+        deferred = self.agent_proxy.getTable([ str(node.oid) ])
         deferred.addCallback(resultFormatter)
         return deferred
 
@@ -438,12 +443,12 @@ class MibRetriever(object):
             return formatted_result
 
 
-        deferred = self.agent_proxy.getTable([str(table.table.oid)],
-                                             maxRepetitions=50)
+        deferred = self.agent_proxy.getTable([str(table.table.oid)])
         deferred.addCallback(resultFormatter)
         return deferred
 
-    def translate_result(self, result):
+    @classmethod
+    def translate_result(cls, result):
         """Translate result values to pythonic values according to object
         syntax.
 
@@ -455,9 +460,164 @@ class MibRetriever(object):
         """
         for row in result.values():
             for column in row.keys():
-                if column in self.nodes:
-                    row[column] = self.nodes[column].to_python(row[column])
+                if column in cls.nodes:
+                    row[column] = cls.nodes[column].to_python(row[column])
         return result
+
+class MultiMibMixIn(MibRetriever):
+    """Queries and chains the results of multiple MIB instances using
+    community indexing.
+
+    Useful for Cisco devices, whose SNMP agents employ multiple BRIDGE-MIB
+    instances, one for each active VLAN, each indexable via a modified SNMP
+    community.
+
+    Add the mixin to the list of base classes of a MibRetriever descendant
+    class, and override any querying method that should work across multiple
+    instances.  The overriden method should use a call to self._multiquery().
+
+    """
+
+    def __init__(self, agent_proxy, instances):
+        """Initializes a MultiBridgeQuery to perform SNMP requests on multiple
+        BRIDGE-MIB instances on the same host/IP.
+
+        :param agent_proxy: The base AgentProxy to use for communication. An
+                            AgentProxy for each additional BRIDGE-MIB instance
+                            will be created based on the properties of this
+                            one.
+
+        :param instances: A sequence of tuples describing the MIB instances to
+                          query, like [(description, community), ...], where
+                          description is any object that can be used to
+                          identify an instance, and community is the alternate
+                          MIB instance's SNMP read-community.
+
+        """
+        super(MultiMibMixIn, self).__init__(agent_proxy)
+        self._base_agent = agent_proxy
+        self.instances = instances
+
+
+    @defer.inlineCallbacks
+    def _multiquery(self, method, *args, **kwargs):
+        """Runs method once for each known MIB instance.
+
+        The internal AgentProxy will be temporarily replaced with one
+        representing the current MIB instance for each iteration.
+
+        :param integrator: A function that can take a list of (description,
+                           result) tuples. description is the object
+                           associated with an instance, as supplied to the
+                           class constructor; result is the actual result
+                           value of the call to method.
+
+                           If omitted, the default integrator function is
+                           self._dictintegrator().
+
+        :returns: A deferred whose result is the return value of the
+                  integrator.
+
+        """
+        agents = self._make_agents()
+        if 'integrator' in kwargs:
+            integrator = kwargs['integrator']
+            del kwargs['integrator']
+        else:
+            integrator = self._dictintegrator
+        results = []
+
+        for agent, descr in agents:
+            self._logger.debug("now querying %r", descr)
+            if agent is not self._base_agent:
+                agent.open()
+            self.agent_proxy = agent
+            try:
+                one_result = yield method(
+                    *args, **kwargs).addErrback(self.__timeout_handler, descr)
+            finally:
+                if agent is not self._base_agent:
+                    agent.close()
+                self.agent_proxy = self._base_agent
+            results.append((descr, one_result))
+            yield lambda thing: fire_eventually(thing)
+        defer.returnValue(integrator(results))
+
+    def __timeout_handler(self, failure, descr):
+        """Handles timeouts while processing alternate MIB instances.
+
+        Under the premise that we may have an incorrect community string for a
+        MIB instance, we don't want to derail the entire process of collecting
+        from all instances, so we ignore timeouts for anything but the primary
+        (base) instance.
+
+        """
+        if self.agent_proxy is not self._base_agent:
+            failure.trap(TimeoutError, defer.TimeoutError)
+            self._logger.debug("ignoring timeout from %r", descr)
+            return None
+        return failure
+
+    @staticmethod
+    def _dictintegrator(results):
+        """Merges dictionary results from a _multiquery() call.
+
+        If a key appears in multiple result dictionaries, the value from the
+        last procesed dictionary will overwrite the value from any previous
+        result dictionaries with the same key.  If this is not desirable you
+        need to write a custom result integrator.
+
+        """
+        merged_dict = {}
+        for instance, result in results:
+            if result is not None:
+                merged_dict.update(result)
+        return merged_dict
+
+    def _make_agents(self):
+        "Generates a series of alternate AgentProxy instances"
+        instances = list(self._prune_instances())
+        if not instances:
+            # The un-indexed BRIDGE-MIB instance represents the default
+            # VLAN. We only check this un-indexed instance if no alternate
+            # instances were found, otherwise some results will be duplicated.
+            yield (self._base_agent, None)
+        for descr, community in instances:
+            agent = self._get_alternate_agent(community)
+            yield (agent, descr)
+
+    def _prune_instances(self):
+        """"Prunes instances with duplicate community strings from the
+        instance list, as these cannot possibly represent individual MIB
+        instances in the queried devices.
+
+        """
+        seen_communities = set(self._base_agent.community)
+
+        for descr, community in self.instances:
+            if community not in seen_communities:
+                seen_communities.add(community)
+                yield (descr, community)
+
+    def _get_alternate_agent(self, community):
+        """Create an alternate AgentProxy using a different community.
+
+        :returns: An instance of the same class as the AgentProxy object given
+                  to __init__().  Every main attribute will be copied from the
+                  original AgentProxy, except for the community string, which
+                  will be taken from the MIB instance list..
+
+        """
+        agent = self._base_agent
+        alt_agent = agent.__class__(
+            agent.ip,
+            agent.port,
+            community=community,
+            snmpVersion = agent.snmpVersion)
+        if hasattr(agent, 'protocol'):
+            alt_agent.protocol = agent.protocol
+
+        return alt_agent
 
 def convert_oids(mib):
     """Convert a mib data structure's oid strings to OID objects.

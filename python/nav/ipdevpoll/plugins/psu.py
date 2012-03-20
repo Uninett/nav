@@ -59,11 +59,6 @@ class PowerSupplyUnit(Plugin):
         elif self.vendor_id == VENDOR_HP:
             self.entity_fru_control = HpEntityFruControlMib(self.agent)
 
-    @classmethod
-    def can_handle(cls, netbox):
-        """Return always True"""
-        return True
-
     def _get_lowest_index(self, values):
         """Return the lowest index in the list of dicts.  Index is placed at
         key 0 in the dicts"""

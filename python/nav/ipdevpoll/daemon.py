@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -53,6 +53,7 @@ class IPDevPollProcess(object):
             signal.signal(signal.SIGHUP, self.sighup_handler)
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
+        signal.signal(signal.SIGUSR1, self.sigusr1_handler)
 
         plugins.import_plugins()
         # NOTE: This is locally imported because it will in turn import
@@ -73,13 +74,21 @@ class IPDevPollProcess(object):
         nav.logs.reopen_log_files()
         nav.daemon.redirect_std_fds(
             stderr=nav.logs.get_logfile_from_logger())
-        self._logger.info("Log files reopened.")
+        nav.logs.reset_log_levels()
+        nav.logs.set_log_levels()
+        self._logger.info("Log files reopened, log levels reloaded.")
 
     def sigterm_handler(self, signum, _frame):
         """Cleanly shuts down logging system and the reactor."""
         self._logger.warn("%s received: Shutting down", signame(signum))
         self._shutdown_start_time = time.time()
         reactor.callFromThread(reactor.stop)
+
+    def sigusr1_handler(self, _signum, _frame):
+        "Log list of active jobs on SIGUSR1"
+        self._logger.info("SIGUSR1 received: Logging active jobs")
+        from nav.ipdevpoll.schedule import JobScheduler
+        JobScheduler.log_active_jobs(logging.INFO)
 
     def shutdown(self):
         """Initiates a shutdown sequence"""

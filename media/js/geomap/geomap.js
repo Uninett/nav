@@ -39,10 +39,9 @@ var mapFullscreen = false;
 /*
  * Called when the web page which should show the map is loaded.
  *
- * Creates a map with two different OpenStreetMap base layers (Mapnik
- * and Osmarender), as well as a layer showing networks (with data
- * from url).  The map is placed in the HTML element with
- * mapElementId as id.
+ * Creates a map with the OpenStreetMap Mapnik base layer, as well as a layer
+ * showing networks (with data from url).  The map is placed in the HTML
+ * element with mapElementId as id.
  *
  * Arguments:
  *
@@ -72,8 +71,6 @@ function init(mapElementId, url) {
 
     mapnikLayer = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
     themap.addLayer(mapnikLayer);
-    osmaLayer = new OpenLayers.Layer.OSM.Osmarender("Osmarender");
-    themap.addLayer(osmaLayer);
 
     netLayer = new NetworkLayer(
 	'Networks', url,

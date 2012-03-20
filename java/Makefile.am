@@ -11,18 +11,13 @@ subdirs = \
 	Database \
 	Event \
 	eventEngine \
-	getBoksMacs \
-	networkDiscovery \
 	Logger \
 	NetboxInfo \
-	SimpleSnmp \
 	Netmap
 
 EDITFILES = \
 	build.properties \
-	eventEngine/eventEngine.sh \
-	getBoksMacs/getBoksMacs.sh \
-	networkDiscovery/network-discovery
+	eventEngine/eventEngine.sh
 
 # We build our own classpath, to resolve interdependencies between the java modules.
 CLASSPATH = $(shell for x in $(subdirs); do echo -n "$$PWD/$${x}/build:"; done ; echo -n $$CLASSPATH)
@@ -44,11 +39,8 @@ ConfigParser:
 Database: Logger
 Event: Database Logger
 eventEngine: ConfigParser Database Event Logger
-getBoksMacs: ConfigParser Database Event Logger NetboxInfo SimpleSnmp
-networkDiscovery: ConfigParser Database Event Logger NetboxInfo
 Logger: ConfigParser Util
 NetboxInfo: Database Event Logger
-SimpleSnmp: Database Logger
 Util:
 
 .lastbuild:
@@ -92,5 +84,4 @@ install-data-local: installdirs
 
 installdirs:
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/eventEngine
-	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/networkDiscovery
 

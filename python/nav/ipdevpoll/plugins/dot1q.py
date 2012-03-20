@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -41,11 +41,6 @@ class Dot1q(Plugin):
     """Collect 802.1q info from BRIDGE and Q-BRIDGE MIBs."""
     baseports = {}
     pvids = {}
-
-    @classmethod
-    def can_handle(cls, netbox):
-        """This plugin handles netboxes"""
-        return True
 
     def __init__(self, *args, **kwargs):
         super(Dot1q, self).__init__(*args, **kwargs)

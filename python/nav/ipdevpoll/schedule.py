@@ -130,7 +130,10 @@ class NetboxJobScheduler(object):
         """Reschedules the next normal run of this job."""
         delay = max(0, self.job.interval - self.get_runtime())
         self.reschedule(delay)
-        self._log_finished_job(True)
+        if result:
+            self._log_finished_job(True)
+        else:
+            self._logger.debug("job did nothing")
         return result
 
     def _reschedule_on_failure(self, failure):
@@ -147,10 +150,13 @@ class NetboxJobScheduler(object):
         status = "completed" if success else "failed"
         runtime = datetime.timedelta(seconds=self.get_runtime())
         next_time = self.get_time_to_next_run()
-        if next_time:
-            self._logger.info("%s in %s. next run in %s",
-                              status, runtime,
-                              datetime.timedelta(seconds=next_time))
+        if next_time is not None:
+            if next_time <= 0:
+                delta = "right now"
+            else:
+                delta = "in %s" % datetime.timedelta(seconds=next_time)
+            self._logger.info("%s in %s. next run %s.",
+                              status, runtime, delta)
         else:
             self._logger.info("%s in %s. no next run scheduled",
                               status, runtime)
@@ -288,7 +294,7 @@ class JobScheduler(object):
 
     def _setup_active_job_logging(self):
         if self.__class__.job_logging_loop is None:
-            loop = task.LoopingCall(self.__class__._log_active_jobs)
+            loop = task.LoopingCall(self.__class__.log_active_jobs)
             self.__class__.job_logging_loop = loop
             loop.start(interval=5*60.0, now=False)
 
@@ -324,7 +330,7 @@ class JobScheduler(object):
         del self.active_netboxes[netbox_id]
 
     @classmethod
-    def _log_active_jobs(cls):
+    def log_active_jobs(cls, level=logging.DEBUG):
         """Debug logs a list of running job handlers.
 
         The handlers will be sorted by descending runtime.
@@ -341,8 +347,10 @@ class JobScheduler(object):
 
         logger = logging.getLogger("%s.joblist" % __name__)
         if jobs:
-            logger.debug("currently active jobs (%d):\n%s",
-                         len(jobs), table_formatter)
+            logger.log(level,
+                       "currently active jobs (%d):\n%s",
+                       len(jobs), table_formatter)
         else:
-            logger.debug("no active jobs (%d JobHandlers)",
-                         JobHandler.get_instance_count())
+            logger.log(level,
+                       "no active jobs (%d JobHandlers)",
+                       JobHandler.get_instance_count())
