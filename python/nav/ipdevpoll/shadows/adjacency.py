@@ -45,6 +45,7 @@ is None, and whose source attribute is a non-empty string.
 
 from nav.models import manage
 from nav.ipdevpoll.storage import Shadow, DefaultManager
+from nav.ipdevpoll.utils import is_invalid_utf8
 from .netbox import Netbox
 
 MAX_MISS_COUNT = 3
@@ -149,3 +150,66 @@ def candidate_key(cand):
              or (cand.to_netbox and cand.to_netbox.id)),
 
             cand.source)
+
+
+class UnrecognizedNeighborManager(DefaultManager):
+    "Managed UnrecognizedNeighbor entries"
+    existing = None
+    found = None
+    sources = None
+
+    def __init__(self, *args, **kwargs):
+        super(UnrecognizedNeighborManager, self).__init__(*args, **kwargs)
+        self.netbox = self.containers.get(None, Netbox)
+
+    def prepare(self):
+        for record in self.get_managed():
+            record.prepare()
+
+        self._find_candidate_sources()
+        self._load_and_map_existing()
+
+    def _find_candidate_sources(self):
+        if AdjacencyCandidate not in self.containers:
+            return
+        candidates = self.containers[AdjacencyCandidate].values()
+        self.sources = set(c.source for c in candidates if c.source)
+
+    def _load_and_map_existing(self):
+        existing = manage.UnrecognizedNeighbor.objects.filter(
+            netbox__id=self.netbox.id).select_related('interface')
+        self.existing = dict((self.make_key(e), e) for e in existing)
+        self.found = dict((self.make_key(m), m) for m in self.get_managed())
+
+        matched = set(self.found).intersection(self.existing)
+        for key in matched:
+            self.found[key].set_existing_model(self.existing[key])
+
+    @staticmethod
+    def make_key(obj):
+        return (obj.interface.id, obj.remote_id, obj.source)
+
+    def cleanup(self):
+        missing = set(self.existing).difference(self.found)
+        missing = (self.existing[key] for key in missing)
+        deleteable = [m for m in missing if m.source in self.sources]
+        if deleteable:
+            self._logger.debug("deleting %d missing records: %r",
+                               len(deleteable), deleteable)
+            manage.UnrecognizedNeighbor.objects.filter(
+                id__in=[d.id for d in deleteable]).delete()
+
+# pylint: disable=C0111,W0201,E0203
+class UnrecognizedNeighbor(Shadow):
+    __shadowclass__ = manage.UnrecognizedNeighbor
+    __lookups__ = [('netbox', 'interface', 'remote_id')]
+    manager = UnrecognizedNeighborManager
+
+    def prepare(self, _=None):
+        if self.remote_name and is_invalid_utf8(self.remote_name):
+            self._logger.debug("converting invalid remote_name: %r",
+                               self.remote_name)
+            self.remote_name = repr(self.remote_name)
+        elif not self.remote_name:
+            self.remote_name = ''
+

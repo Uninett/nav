@@ -65,7 +65,15 @@ class LLDP(Plugin):
         shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
 
         neighbors = [LLDPNeighbor(lldp) for lldp in self.remote]
-        identified = [n for n in neighbors if n.identified]
+
+        self._process_identified(
+            [n for n in neighbors if n.identified])
+        self._process_unidentified(
+            [n.record for n in neighbors if not n.identified])
+
+        self.neighbors = neighbors
+
+    def _process_identified(self, identified):
         for neigh in identified:
             self._logger.debug("identified neighbor %r from %r",
                                (neigh.netbox, neigh.interface), neigh.record)
@@ -75,8 +83,6 @@ class LLDP(Plugin):
             self._logger.debug("filtered out %d duplicate LLDP entries", delta)
         for neigh in filtered:
             self._store_candidate(neigh)
-
-        self.neighbors = neighbors
 
     def _store_candidate(self, neighbor):
         ifindex = neighbor.record.ifindex
@@ -92,3 +98,20 @@ class LLDP(Plugin):
         cand.to_netbox = neighbor.netbox
         cand.to_interface = neighbor.interface
         cand.source = SOURCE
+
+    def _process_unidentified(self, unidentified):
+        for record in unidentified:
+            self._store_unidentified(record)
+
+    def _store_unidentified(self, record):
+        ifc = self.containers.factory(record.ifindex, shadows.Interface)
+        ifc.ifindex = record.ifindex
+
+        key = (record.ifindex, record.chassis_id, SOURCE)
+        neighbor = self.containers.factory(
+            key, shadows.UnrecognizedNeighbor)
+        neighbor.netbox = self.netbox
+        neighbor.interface = ifc
+        neighbor.remote_id = unicode(record.chassis_id)
+        neighbor.remote_name = record.sysname
+        neighbor.source = SOURCE
