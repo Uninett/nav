@@ -797,8 +797,9 @@ class AdjacencyCandidate(models.Model):
         unique_together = (('netbox', 'interface', 'to_netbox', 'source'),)
 
     def __unicode__(self):
-        return u'%s:%s candidate %s:%s' % (self.netbox, self.interface,
-                                           self.to_netbox, self.to_interface)
+        return u'%s:%s %s candidate %s:%s' % (self.netbox, self.interface,
+                                              self.source,
+                                              self.to_netbox, self.to_interface)
 
 class NetboxVtpVlan(models.Model):
     """From MetaNAV: A help table that contains the vtp vlan database of a
