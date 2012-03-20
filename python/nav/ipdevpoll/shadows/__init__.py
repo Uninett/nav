@@ -38,7 +38,7 @@ from .netbox import Netbox
 from .interface import Interface
 from .swportblocked import SwPortBlocked
 from .cam import Cam
-from .adjacency import AdjacencyCandidate
+from .adjacency import AdjacencyCandidate, UnrecognizedNeighbor
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
@@ -268,6 +268,13 @@ class Usage(Shadow):
 
 class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
+
+    def save(self, containers):
+        pfx = self._get_my_prefixes(containers)
+        if pfx:
+            super(Vlan, self).save(containers)
+        else:
+            self._logger.debug("no associated prefixes, not saving: %r", self)
 
     def _get_my_prefixes(self, containers):
         """Get a list of Prefix shadow objects that point to this Vlan."""

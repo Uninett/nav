@@ -170,7 +170,8 @@ def main(args):
         except DatabaseError, e:
             logger.error('Database error, closing the DB connection just in case:\n%s' % e)
             logger.debug('', exc_info=True)
-            logger.debug(connection.queries[-1]['sql'])
+            if connection.queries:
+                logger.debug(connection.queries[-1]['sql'])
             connection.close()
 
         except Exception, e:

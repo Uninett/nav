@@ -797,8 +797,9 @@ class AdjacencyCandidate(models.Model):
         unique_together = (('netbox', 'interface', 'to_netbox', 'source'),)
 
     def __unicode__(self):
-        return u'%s:%s candidate %s:%s' % (self.netbox, self.interface,
-                                           self.to_netbox, self.to_interface)
+        return u'%s:%s %s candidate %s:%s' % (self.netbox, self.interface,
+                                              self.source,
+                                              self.to_netbox, self.to_interface)
 
 class NetboxVtpVlan(models.Model):
     """From MetaNAV: A help table that contains the vtp vlan database of a
@@ -1140,3 +1141,21 @@ class PowerSupplyOrFan(models.Model):
 
     class Meta:
         db_table = 'powersupply_or_fan'
+
+class UnrecognizedNeighbor(models.Model):
+    id = models.AutoField(primary_key=True)
+    netbox = models.ForeignKey(Netbox, db_column='netboxid')
+    interface = models.ForeignKey('Interface', db_column='interfaceid')
+    remote_id = VarcharField()
+    remote_name = VarcharField()
+    source = VarcharField()
+    since = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'unrecognized_neighbor'
+
+    def __unicode__(self):
+        return u'%s:%s %s neighbor %s (%s)' % (
+            self.netbox.sysname, self.interface.ifname,
+            self.source,
+            self.remote_id, self.remote_name)

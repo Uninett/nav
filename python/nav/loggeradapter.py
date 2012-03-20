@@ -79,6 +79,14 @@ class LoggerAdapter:
         msg, kwargs = self.process(msg, kwargs)
         self.logger.warning(msg, *args, **kwargs)
 
+    def warn(self, msg, *args, **kwargs):
+        """
+        Delegate a warning call to the underlying logger, after adding
+        contextual information from this adapter instance.
+        """
+        msg, kwargs = self.process(msg, kwargs)
+        self.logger.warn(msg, *args, **kwargs)
+
     def error(self, msg, *args, **kwargs):
         """
         Delegate an error call to the underlying logger, after adding
