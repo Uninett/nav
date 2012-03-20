@@ -1140,3 +1140,21 @@ class PowerSupplyOrFan(models.Model):
 
     class Meta:
         db_table = 'powersupply_or_fan'
+
+class UnrecognizedNeighbor(models.Model):
+    id = models.AutoField(primary_key=True)
+    netbox = models.ForeignKey(Netbox, db_column='netboxid')
+    interface = models.ForeignKey('Interface', db_column='interfaceid')
+    remote_id = VarcharField()
+    remote_name = VarcharField()
+    source = VarcharField()
+    since = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'unrecognized_neighbor'
+
+    def __unicode__(self):
+        return u'%s:%s %s neighbor %s (%s)' % (
+            self.netbox.sysname, self.interface.ifname,
+            self.source,
+            self.remote_id, self.remote_name)
