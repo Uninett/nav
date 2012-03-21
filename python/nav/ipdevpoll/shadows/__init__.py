@@ -59,14 +59,15 @@ class NetboxType(Shadow):
         an enterprise ID, while the remaining elements will describe the type
         specific to the vendor.
 
+        :returns: A long integer if the type has a valid enterprise id, None
+                  otherwise.
+
         """
         prefix = u"1.3.6.1.4.1."
         if self.sysobjectid.startswith(prefix):
             specific = self.sysobjectid[len(prefix):]
             enterprise = specific.split('.')[0]
             return long(enterprise)
-        else:
-            raise ValueError("%r is not a valid sysObjectID" % self.sysobjectid)
 
 class NetboxInfo(Shadow):
     __shadowclass__ = manage.NetboxInfo
