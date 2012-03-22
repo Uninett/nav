@@ -250,7 +250,7 @@ class Cam(Plugin):
     def _store_blocking_ports(self, blocking):
         for ifindex, vlan in blocking:
             match = self.VLAN_PATTERN.match(vlan)
-            vlan = int(match.group('vlan'))
+            vlan = int(match.group('vlan')) if match else None
 
             ifc = self.containers.factory(ifindex, shadows.Interface)
             ifc.ifindex = ifindex

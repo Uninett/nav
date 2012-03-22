@@ -27,6 +27,7 @@ from twisted.internet.error import TimeoutError
 
 from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
+from nav.ipdevpoll.snmp.common import SnmpError
 from . import storage, shadows
 from .plugins import plugin_registry
 from nav.ipdevpoll import db
@@ -103,9 +104,16 @@ class JobHandler(object):
             protocol = port.protocol,
             snmp_parameters = snmp_parameter_factory(self.netbox)
         )
-        self.agent.open()
-        self._logger.debug("AgentProxy created for %s: %s",
-                           self.netbox.sysname, self.agent)
+        try:
+            self.agent.open()
+        except SnmpError, error:
+            count = self.agent.count_open_sessions()
+            self._logger.error("%s (%d currently open SNMP sessions)",
+                               error, count)
+            raise AbortedJobError("Cannot open SNMP session", cause=error)
+        else:
+            self._logger.debug("AgentProxy created for %s: %s",
+                               self.netbox.sysname, self.agent)
 
     def _destroy_agentproxy(self):
         if self.agent:

@@ -51,7 +51,12 @@ class Ipv6Mib(mibretriever.MibRetriever):
         # working mechanism in the ip_mib module.
         ipv6_type = 2
         length = 16
-        converted_oid = (ipv6_type, length) + oid
+        if len(oid) == 17 and oid[0] == length:
+            # need to work around some devices that don't implement the
+            # IPV6-TC properly
+            converted_oid = (ipv6_type,) + oid
+        else:
+            converted_oid = (ipv6_type, length) + oid
         return ip_mib.IpMib.inetaddress_to_ip(converted_oid)
 
 

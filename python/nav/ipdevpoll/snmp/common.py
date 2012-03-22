@@ -81,3 +81,6 @@ def snmp_parameter_factory(host=None):
             params[key] = getter(section, var)
 
     return SNMPParameters(**params)
+
+class SnmpError(Exception):
+    pass

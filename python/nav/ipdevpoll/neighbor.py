@@ -173,6 +173,7 @@ class CDPNeighbor(Neighbor):
     "Parses a CDP tuple from nav.mibs.cisco_cdp_mib to identify a neighbor"
 
     def _identify_netbox(self):
+        netbox = None
         if self.record.ip:
             netbox = self._netbox_from_ip(self.record.ip)
 
