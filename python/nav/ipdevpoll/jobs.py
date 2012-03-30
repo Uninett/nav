@@ -107,9 +107,12 @@ class JobHandler(object):
         try:
             self.agent.open()
         except SnmpError, error:
-            count = self.agent.count_open_sessions()
-            self._logger.error("%s (%d currently open SNMP sessions)",
-                               error, count)
+            self.agent.close()
+            session_count = self.agent.count_open_sessions()
+            job_count = self.get_instance_count()
+            self._logger.error(
+                "%s (%d currently open SNMP sessions, %d job handlers)",
+                error, session_count, job_count)
             raise AbortedJobError("Cannot open SNMP session", cause=error)
         else:
             self._logger.debug("AgentProxy created for %s: %s",
