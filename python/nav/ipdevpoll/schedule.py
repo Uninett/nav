@@ -27,6 +27,7 @@ from twisted.internet import task, threads, reactor
 from twisted.internet.defer import Deferred, maybeDeferred
 
 from nav import ipdevpoll
+from nav.ipdevpoll.snmp import SnmpError, AgentProxy
 from . import shadows, config, signals
 from .dataloader import NetboxLoader
 from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
@@ -127,6 +128,7 @@ class NetboxJobScheduler(object):
         self._last_job_started_at = time.time()
 
         deferred = maybeDeferred(job_handler.run)
+        deferred.addErrback(self._adjust_intensity_on_snmperror)
         deferred.addCallbacks(self._reschedule_on_success,
                               self._reschedule_on_failure)
         deferred.addErrback(self._log_unhandled_error)
@@ -136,6 +138,18 @@ class NetboxJobScheduler(object):
 
     def is_running(self):
         return self.job_handler is not None
+
+    @classmethod
+    def _adjust_intensity_on_snmperror(cls, failure):
+        if (failure.check(AbortedJobError)
+            and isinstance(failure.value.cause, SnmpError)):
+
+            open_sessions = AgentProxy.count_open_sessions()
+            new_limit = int(ceil(open_sessions * 0.90))
+            if new_limit < cls.global_intensity:
+                cls._logger.warning("Setting global intensity limit to %d",
+                                    new_limit)
+                cls.global_intensity = new_limit
 
     def _reschedule_on_success(self, result):
         """Reschedules the next normal run of this job."""
