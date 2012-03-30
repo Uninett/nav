@@ -28,3 +28,5 @@ except ImportError:
 
 else:
     from nav.ipdevpoll.snmp.pynetsnmp import AgentProxy, snmpprotocol
+
+from .common import SnmpError
