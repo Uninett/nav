@@ -214,3 +214,6 @@ class UnrecognizedNeighbor(Shadow):
                 setattr(self, attr, repr(getattr(self, attr)))
             elif not getattr(self, attr):
                 setattr(self, attr, '')
+            else:
+                value = getattr(self, attr)
+                setattr(self, attr, unicode(value, 'utf-8'))
