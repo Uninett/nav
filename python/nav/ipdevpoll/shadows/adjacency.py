@@ -207,10 +207,10 @@ class UnrecognizedNeighbor(Shadow):
     manager = UnrecognizedNeighborManager
 
     def prepare(self, _=None):
-        if self.remote_name and is_invalid_utf8(self.remote_name):
-            self._logger.debug("converting invalid remote_name: %r",
-                               self.remote_name)
-            self.remote_name = repr(self.remote_name)
-        elif not self.remote_name:
-            self.remote_name = ''
-
+        for attr in ('remote_id', 'remote_name'):
+            if getattr(self, attr) and is_invalid_utf8(getattr(self, attr)):
+                self._logger.debug("converting invalid %s: %r",
+                                   attr, getattr(self, attr))
+                setattr(self, attr, repr(getattr(self, attr)))
+            elif not getattr(self, attr):
+                setattr(self, attr, '')
