@@ -549,6 +549,8 @@ class SnmpOid(Shadow):
 class NetboxSnmpOid(Shadow):
     __shadowclass__ = oid.NetboxSnmpOid
 
+NetboxSnmpOid._fields.append('snmp_oid_id')
+
 class Sensor(Shadow):
     __shadowclass__ = manage.Sensor
     __lookups__ = [('netbox', 'internal_name', 'mib')]
