@@ -381,8 +381,7 @@ class JobHandler(object):
         start_time = time.time()
         manager = None
         try:
-            if self._queue_logger.getEffectiveLevel() <= logging.DEBUG:
-                self._queue_logger.debug(pprint.pformat(self.storage_queue))
+            self._log_containers("containers before save")
 
             for manager in self.storage_queue:
                 self.raise_if_cancelled()
@@ -391,9 +390,7 @@ class JobHandler(object):
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0
 
-            if self._queue_logger.getEffectiveLevel() <= logging.DEBUG:
-                self._queue_logger.debug("containers after save: %s",
-                                         pprint.pformat(self.containers))
+            self._log_containers("containers after save")
 
             return total_time
         except AbortedJobError:
@@ -407,6 +404,14 @@ class JobHandler(object):
                 self._logger.error("The last query was: %s",
                                    django.db.connection.queries[-1])
             raise
+
+    def _log_containers(self, prefix=None):
+        log = self._queue_logger
+        if not log.isEnabledFor(logging.DEBUG):
+            return
+        log.debug("%s%s",
+                  prefix and "%s: " % prefix,
+                  pprint.pformat(dict(self.containers)))
 
     def populate_storage_queue(self):
         """Naive population of the storage queue.
