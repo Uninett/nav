@@ -56,6 +56,7 @@ public class BoxState implements EventHandler, EventCallback
 		alertWaitTime = getConfigInt(cp, "alertWaitTime", 240);
 		moduleWarningWaitTime = getConfigInt(cp, "moduleWarningWaitTime", 60);
 		moduleAlertWaitTime = getConfigInt(cp, "moduleAlertWaitTime", 240);
+		linkAlertWaitTime = getConfigInt(cp, "linkAlertWaitTime", 60);
 	}
 
 	private int getConfigInt(ConfigParser cp, String key, int defaultValue) {
@@ -200,7 +201,7 @@ public class BoxState implements EventHandler, EventCallback
 				}
 				Log.i("HANDLE", netbox.getSysname() + " port going down: " + port);
 				port.down();
-				addToQ(netbox, port, eventtype, alertWaitTime, 0, e);
+				addToQ(netbox, port, eventtype, linkAlertWaitTime, 0, e);
 
 			}
 			else if (e.getState() == Event.STATE_END) {
@@ -538,6 +539,7 @@ public class BoxState implements EventHandler, EventCallback
 	private int alertWaitTime;
 	private int moduleWarningWaitTime;
 	private int moduleAlertWaitTime;
+	private int linkAlertWaitTime;
 
 	private class SendAlertDescr {
 		public Device device;
