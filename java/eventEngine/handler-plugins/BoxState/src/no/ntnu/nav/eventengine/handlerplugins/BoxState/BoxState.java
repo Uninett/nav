@@ -31,7 +31,7 @@ public class BoxState implements EventHandler, EventCallback
 		Log.d("HANDLE", "Event: " + e);
 
 		setWaitTimes(cp);
-		
+
 		String eventtype = e.getEventtypeid();
 
 		if (eventtype.equals("boxState")) {
@@ -176,14 +176,14 @@ public class BoxState implements EventHandler, EventCallback
 		int netboxDeviceId = Box.boxidToDeviceid(e.getNetboxid());
 		Device device = ddb.getDevice(netboxDeviceId);
 		if (device instanceof Netel) {
-			if (!device.isUp()) {
+			Netel netbox = (Netel) device;
+			if (!netbox.isUp()) {
 				// Ignore event since box itself is down
-				Log.d("HANDLE", "Box " + device + " is down, ignoring " + eventtype + " ("+e.getDeviceid()+")");
+				Log.d("HANDLE", "Box " + netbox.getSysname() + " is down, ignoring " + eventtype + " ("+e.getDeviceid()+")");
 				e.dispose();
 				return false;
 			}
 
-			Netel netbox = (Netel) device;
 			int interfaceid = Integer.parseInt(e.getSubid());
 			Port port = netbox.getPort(interfaceid);
 			if (port == null) {
@@ -192,39 +192,44 @@ public class BoxState implements EventHandler, EventCallback
 				return false;
 			}
 
-			String alertType = "";
 			if (e.getState() == Event.STATE_START) {
-				if (!port.isUp()) {
+				if (!port.isUp() || isInQ(netbox, port, eventtype)) {
 					Log.d("HANDLE", "Ignoring duplicate down event for link");
 					e.dispose();
 					return false;
 				}
 				Log.i("HANDLE", netbox.getSysname() + " port going down: " + port);
 				port.down();
-				alertType = "linkDown";
+				addToQ(netbox, port, eventtype, alertWaitTime, 0, e);
+
 			}
 			else if (e.getState() == Event.STATE_END) {
 				Alert a = ddb.getDownAlert(e);
 				if (a == null) {
+					SendAlertDescr sad = removeFromQ(netbox, port, eventtype);
+					if (sad != null) {
+						Log.i("HANDLE", "Ignoring transient link state change");
+						sad.event.dispose();
+						e.dispose();
+						return false;
+					}
 					Log.d("HANDLE", "Ignoring link up event as no down event was found!");
 					e.dispose();
 					return false;
 				}
 				Log.i("HANDLE", netbox.getSysname() + " port going up: " + port);
 				port.up();
-				alertType = "linkUp";
+				Alert alert = ddb.alertFactory(e, "linkUp");
+				alert.addEvent(e);
+				alert.addVars(getPortVarMap(netbox, port));
+
+				Log.d("HANDLE", "Posting linkState (linkUp) alert");
+				try {
+					ddb.postAlert(alert);
+				} catch (PostAlertException exp) {
+					Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
+				}
 			}
-
-			Alert alert = ddb.alertFactory(e, alertType);
-			alert.addEvent(e);
-
-			Log.d("HANDLE", "Posting linkState ("+alertType+") alert");
-			try {
-				ddb.postAlert(alert);
-			} catch (PostAlertException exp) {
-				Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
-			}
-
 		} else {
 			Log.e("HANDLE", "no such device, ignoring event: " + netboxDeviceId);
 			e.dispose();
@@ -343,10 +348,47 @@ public class BoxState implements EventHandler, EventCallback
 		while ((sad = removeHeadQ()) != null) {
 			Box b = null;
 			if (sad.device instanceof Box) {
-				b = (Box) sad.device;						
+				b = (Box) sad.device;
 			}
 
-			if (b != null && !b.isUp()) {
+			if (b!= null && sad.port != null) {
+				Log.d("CALLBACK", "Link down: " + b.getSysname() + " " + sad.port);
+				Event e = sad.event;
+				if (e == null) {
+					Log.w("CALLBACK", "Port " + b.getSysname() + ":" + sad.port + " is down, but no start event found!");
+					continue;
+				}
+
+				if (!b.isUp()) {
+					// Ignore linkDown when box is down
+					Log.d("CALLBACK", "Ignoring link down (" + sad.port + "), as the box is down (" + b.getSysname() +")");
+					continue;
+				}
+
+				// Create alert
+				Alert a = ddb.alertFactory(e);
+				a.setState(Event.STATE_START);
+				a.setAlerttype("linkDown");
+				a.addVars(getPortVarMap(b, sad.port));
+
+				a.addEvent(e);
+
+				Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Added linkDown alert: " + a);
+
+				if (b.onMaintenance()) {
+					// Do not post to alertq if box is on maintenace, only register in alerthist
+					Log.d("HANDLE", "Not posting linkDown alert to alertq as the box is on maintenance");
+					a.setPostAlertq(false);
+				}
+
+				// Post the alert
+				try {
+					ddb.postAlert(a);
+				} catch (PostAlertException exp) {
+					Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting linkDown alert, PostAlertException: " + exp.getMessage());
+				}
+
+			} else if (b != null && !b.isUp()) {
 				Log.d("CALLBACK", "Box down: " + b.getSysname());
 
 				// The box iself is down, this means we don't report modules down if any
@@ -395,7 +437,7 @@ public class BoxState implements EventHandler, EventCallback
 					// Schedule the real down event
 					sad.sentWarning = true;
 					addToQ(sad, sad.alertWait);
-				
+
 				} else {
 					// Delete 'down' event when alert is posted
 					a.addEvent(e);
@@ -428,14 +470,14 @@ public class BoxState implements EventHandler, EventCallback
 					} else {
 						Log.d("CALLBACK", "Module down on: " + b.getSysname() + ", " + m.getModule());
 					}
-					
+
 					// Find the down event
 					Event e = sad.event;
 					if (e == null) {
 						Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", m + " ("+m.getDeviceid()+") is down, but no start event found!");
 						continue;
 					}
-						
+
 					// Create alert
 					Alert a = ddb.alertFactory(e);
 
@@ -461,7 +503,7 @@ public class BoxState implements EventHandler, EventCallback
 						Log.d("HANDLE", "Not posting moduleDown alert to alertq as the box is on maintenance");
 						a.setPostAlertq(false);
 					}
-						
+
 					// Post the alert
 					try {
 						ddb.postAlert(a);
@@ -474,6 +516,19 @@ public class BoxState implements EventHandler, EventCallback
 		}
 		checkScheduleCallback(ddb);
 		Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Alert processing done, processed " + processCnt + ", queue size " + deviceQ.size());
+	}
+
+	private HashMap getPortVarMap(Box box, Port port) {
+		try {
+			ResultSet rs = Database.query("SELECT * FROM interface WHERE netboxid = " + box.getBoxid() + " AND ifindex=" + port.getIfindex());
+			ResultSetMetaData rsmd = rs.getMetaData();
+			if (rs.next()) {
+				return Database.getHashFromResultSet(rs, rsmd);
+			}
+		} catch (SQLException exp) {
+			Log.w("BOX_STATE_EVENTHANDLER", "SQLException when fetching data from interface("+box.getBoxid() + ":" + port.getIfindex()+"): " + exp.getMessage());
+		}
+		return new HashMap();
 	}
 
 	// Queue handling code
@@ -565,7 +620,7 @@ public class BoxState implements EventHandler, EventCallback
 
 		Long t = (Long) deviceQ.firstKey();
 		if (t.longValue() > System.currentTimeMillis()) return null;
-		List l = (List) deviceQ.get(t);		
+		List l = (List) deviceQ.get(t);
 		SendAlertDescr sad = (SendAlertDescr) l.remove(l.size()-1);
 		if (l.isEmpty()) deviceQ.remove(t);
 		qMap.remove(qKey(sad.device, sad.eventtype));
@@ -577,7 +632,7 @@ public class BoxState implements EventHandler, EventCallback
 	private void addToQ(Device d, Port p, String eventtype, long warningTime, long alertTime, Event e) {
 		addToQ(new SendAlertDescr(d, p, eventtype, alertTime, e), warningTime);
 	}
-		
+
 	private boolean isInQ(Device device, String eventtype) {
 		return qMap.containsKey(qKey(device, eventtype));
 	}
