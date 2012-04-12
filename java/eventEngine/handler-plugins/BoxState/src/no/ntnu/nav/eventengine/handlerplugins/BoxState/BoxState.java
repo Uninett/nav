@@ -58,32 +58,7 @@ public class BoxState implements EventHandler, EventCallback
 			if (!handleModuleState(ddb, e, moduleWarningWaitTime,
 					moduleAlertWaitTime, eventtype)) return;
 		} else if (eventtype.equals("boxRestart")) {
-			// Simply post on alertq
-			Device d = ddb.getDevice(e.getDeviceid());
-			if (d == null) {
-				Log.w("HANDLE", "Box with deviceid="+e.getDeviceid()+" not found (boxRestart)!");
-				e.dispose();
-				return;
-			}
-
-			String alerttype = e.getVar("alerttype");
-			Alert a = ddb.alertFactory(e, alerttype);
-			a.addEvent(e);
-
-			if (d instanceof Box) {
-				Box b = (Box)d;
-				if (b.onMaintenance()) {
-					// Do not post to alertq if box is on maintenace
-					a.setPostAlertq(false);
-				}
-			}
-
-			Log.d("HANDLE", "Posting boxRestart ("+alerttype+") alert");
-			try {
-				ddb.postAlert(a);
-			} catch (PostAlertException exp) {
-				Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
-			}
+			handleBoxRestart(ddb, e);
 			return;
 		}
 
@@ -91,6 +66,36 @@ public class BoxState implements EventHandler, EventCallback
 
 		Log.d("HANDLE", "Finished handling event, queue size="+deviceQ.size() + " callback: " + ddb.isScheduledCallback(this));
 
+	}
+
+	private void handleBoxRestart(DeviceDB ddb, Event e) {
+		// Simply post on alertq
+		Device d = ddb.getDevice(e.getDeviceid());
+		if (d == null) {
+			Log.w("HANDLE", "Box with deviceid="+e.getDeviceid()+" not found (boxRestart)!");
+			e.dispose();
+			return;
+		}
+
+		String alerttype = e.getVar("alerttype");
+		Alert a = ddb.alertFactory(e, alerttype);
+		a.addEvent(e);
+
+		if (d instanceof Box) {
+			Box b = (Box)d;
+			if (b.onMaintenance()) {
+				// Do not post to alertq if box is on maintenace
+				a.setPostAlertq(false);
+			}
+		}
+
+		Log.d("HANDLE", "Posting boxRestart ("+alerttype+") alert");
+		try {
+			ddb.postAlert(a);
+		} catch (PostAlertException exp) {
+			Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
+		}
+		return;
 	}
 
 	private boolean handleModuleState(DeviceDB ddb, Event e,
