@@ -52,23 +52,18 @@ public class BoxState implements EventHandler, EventCallback
 	}
 
 	private void setWaitTimes(ConfigParser cp) {
-		warningWaitTime = 60;
-		alertWaitTime = 240;		
-		try {
-			warningWaitTime = Integer.parseInt(cp.get("warningWaitTime"));
-		} catch (Exception exp) { }
-		try {
-			alertWaitTime = Integer.parseInt(cp.get("alertWaitTime"));
-		} catch (Exception exp) { }
+		warningWaitTime = getConfigInt(cp, "warningWaitTime", 60);
+		alertWaitTime = getConfigInt(cp, "alertWaitTime", 240);
+		moduleWarningWaitTime = getConfigInt(cp, "moduleWarningWaitTime", 60);
+		moduleAlertWaitTime = getConfigInt(cp, "moduleAlertWaitTime", 240);
+	}
 
-		moduleWarningWaitTime = 60;
-		moduleAlertWaitTime = 240;		
+	private int getConfigInt(ConfigParser cp, String key, int defaultValue) {
 		try {
-			moduleWarningWaitTime = Integer.parseInt(cp.get("moduleWarningWaitTime"));
-		} catch (Exception exp) { }
-		try {
-			moduleAlertWaitTime = Integer.parseInt(cp.get("moduleAlertWaitTime"));
-		} catch (Exception exp) { }
+			return Integer.parseInt(cp.get(key));
+		} catch (Exception exp) {
+			return defaultValue;
+		}
 	}
 
 	private void handleBoxRestart(DeviceDB ddb, Event e) {
