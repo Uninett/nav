@@ -22,7 +22,7 @@ public class BoxState implements EventHandler, EventCallback
 
 	public String[] handleEventTypes()
 	{
-		return new String[] { "boxState", "moduleState", "linkState", "boxRestart" };
+		return new String[] { "boxState", "moduleState", "linkState", "boxRestart", "snmpAgentState" };
 	}
 
 	public void handle(DeviceDB ddb, Event e, ConfigParser cp)
@@ -36,6 +36,8 @@ public class BoxState implements EventHandler, EventCallback
 
 		if (eventtype.equals("boxState")) {
 			if (!handleBoxState(ddb, e, eventtype)) return;
+		} else if (eventtype.equals("snmpAgentState")) {
+			if (!handleSnmpAgentState(ddb, e, eventtype)) return;
 		} else if (eventtype.equals("moduleState")) {
 			if (!handleModuleState(ddb, e, eventtype)) return;
 		} else if (eventtype.equals("linkState")) {
@@ -57,6 +59,7 @@ public class BoxState implements EventHandler, EventCallback
 		moduleWarningWaitTime = getConfigInt(cp, "moduleWarningWaitTime", 60);
 		moduleAlertWaitTime = getConfigInt(cp, "moduleAlertWaitTime", 240);
 		linkAlertWaitTime = getConfigInt(cp, "linkAlertWaitTime", 60);
+		snmpAlertWaitTime = getConfigInt(cp, "snmpAlertWaitTime", 240);
 	}
 
 	private int getConfigInt(ConfigParser cp, String key, int defaultValue) {
@@ -327,6 +330,90 @@ public class BoxState implements EventHandler, EventCallback
 		return true;
 	}
 
+	private boolean handleSnmpAgentState(DeviceDB ddb, Event e, String eventtype) {
+		Device d = ddb.getDevice(e.getDeviceid());
+		if (d == null) {
+			Log.w("HANDLE", "Box with deviceid="+e.getDeviceid()+" not found! (snmpAgentState)");
+			return false;
+		}
+
+		if (d instanceof Box) {
+			Box b = (Box)d;
+
+			if (e.getState() == Event.STATE_START) {
+				if (isInQ(b, eventtype)) {
+					Log.d("HANDLE", "Ignoring duplicate snmpAgentDown event for box " + b.getSysname());
+					e.dispose();
+					return false;
+				} else if (!b.isUp()) {
+					Log.d("HANDLE", "Ignoring snmpAgentDown event as box " + b.getSysname() + " is down");
+					e.dispose();
+					return false;
+				}
+				addToQ(b, eventtype, snmpAlertWaitTime, 0, e);
+
+			} else if (e.getState() == Event.STATE_END) {
+				// Get the down alert
+				Alert a = ddb.getDownAlert(e);
+
+				// Check if the deviceid has changed
+				if (a == null && !isInQ(b, eventtype)) {
+					try {
+						ResultSet rs = Database.query("SELECT alerthistid,deviceid FROM alerthist WHERE netboxid='"+e.getNetboxid()+"' AND end_time='infinity' AND eventtypeid='snmpAgentState'");
+						if (rs.next()) {
+							Alert oldevent = (Alert)e;
+							oldevent.setDeviceid(rs.getInt("deviceid"));
+							a = ddb.getDownAlert(e);
+
+							Log.d("HANDLE", "Deviceid changed for end event, deviceid="+rs.getString("deviceid") + " for netboxid: " + e.getNetboxid());
+						} else {
+							Log.d("HANDLE", "Ignoring snmpAgentUp event as no down event was found!");
+						}
+					} catch (SQLException exp) {
+						Log.w("BOX_STATE_EVENTHANDLER", "SQLException when checking for open snmpAgentDown event in alerthist, netboxid " + e.getNetboxid());
+					}
+				}
+
+				if (a == null) {
+					// The down event could be in the queue
+					SendAlertDescr sad = removeFromQ(b, eventtype);
+					if (sad == null) {
+						// No down alert, but we mark the box up just in case
+						e.dispose();
+						Log.d("HANDLE", "No down event found, disposing up event");
+					} else {
+						// For now ignore transient events
+						sad.event.dispose();
+						e.dispose();
+						Log.d("HANDLE", "Ignoring transient snmpAgentState");
+					}
+				} else {
+					Log.d("HANDLE", "SNMP Agent coming up");
+
+					// Post alert
+					a = ddb.alertFactory(e, "snmpAgentUp");
+					a.addEvent(e);
+
+					if (b.onMaintenance()) {
+						// Do not post to alertq if box is on maintenace
+						Log.d("HANDLE", "Not posting alert to alertq as the box is on maintenance");
+						a.setPostAlertq(false);
+					}
+
+					try {
+						ddb.postAlert(a);
+					} catch (PostAlertException exp) {
+						Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
+					}
+
+					// Clean up
+					removeFromQ(b, eventtype);
+				}
+			}
+		}
+		return true;
+	}
+
 	private void checkScheduleCallback(DeviceDB ddb) {
  		if (!isEmptyQ()) {
 			long wait = waitTimeQ();
@@ -351,7 +438,6 @@ public class BoxState implements EventHandler, EventCallback
 			if (sad.device instanceof Box) {
 				b = (Box) sad.device;
 			}
-
 			if (b!= null && sad.port != null) {
 				Log.d("CALLBACK", "Link down: " + b.getSysname() + " " + sad.port);
 				Event e = sad.event;
@@ -389,6 +475,39 @@ public class BoxState implements EventHandler, EventCallback
 					Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting linkDown alert, PostAlertException: " + exp.getMessage());
 				}
 
+			} else if (b != null && sad.eventtype.equals("snmpAgentState")) {
+				Log.d("CALLBACK", "SNMP Agent down: " + b.getSysname());
+				Event e = sad.event;
+				if (e == null) {
+					Log.w("CALLBACK", "SNMP Agent on " + b.getSysname() + " is down, but no start event found!");
+					continue;
+				}
+
+				if (b.getStatus() != Box.STATUS_UP) {
+					Log.w("CALLBACK", "Box " + b.getSysname() + " isn't up, ignoring snmpAgentState event");
+					e.dispose();
+					continue;
+				}
+
+				// Create alert
+				Alert a = ddb.alertFactory(e);
+				a.addEvent(e);
+				a.setAlerttype("snmpAgentDown");
+
+				Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Added alert: " + a);
+
+				if (b.onMaintenance()) {
+					// Do not post to alertq if box is on maintenace
+					Log.d("HANDLE", "Not posting snmpAgentDown alert to alertq as the box is on maintenance");
+					a.setPostAlertq(false);
+				}
+
+				// Post the alert
+				try {
+					ddb.postAlert(a);
+				} catch (PostAlertException exp) {
+					Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting snmpAgentDown alert, PostAlertException: " + exp.getMessage());
+				}
 			} else if (b != null && !b.isUp()) {
 				Log.d("CALLBACK", "Box down: " + b.getSysname());
 
@@ -540,6 +659,7 @@ public class BoxState implements EventHandler, EventCallback
 	private int moduleWarningWaitTime;
 	private int moduleAlertWaitTime;
 	private int linkAlertWaitTime;
+	private int snmpAlertWaitTime;
 
 	private class SendAlertDescr {
 		public Device device;
