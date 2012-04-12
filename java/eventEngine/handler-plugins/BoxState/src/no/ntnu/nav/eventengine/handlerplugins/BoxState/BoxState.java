@@ -55,92 +55,8 @@ public class BoxState implements EventHandler, EventCallback
 		if (eventtype.equals("boxState")) {
 			if (!handleBoxState(ddb, e, warningWaitTime, alertWaitTime, eventtype)) return;
 		} else if (eventtype.equals("moduleState") || eventtype.equals("linkState")) {
-			// Get parent netbox
-			int parentDeviceid = Box.boxidToDeviceid(e.getNetboxid());
-			Device d = ddb.getDevice(parentDeviceid);
-			if (d instanceof Netel) {
-				if (!d.isUp()) {
-					// Ignore event since box itself is down
-					Log.d("HANDLE", "Box " + d + " is down, ignoring " + eventtype + " ("+e.getDeviceid()+")");
-					e.dispose();
-					return;
-				}
-
-				Netel parent = (Netel)d;
-				Module m = parent.getModule(e.getDeviceid());
-				if (m == null) {
-					Log.d("HANDLE", "Module " + e.getDeviceid() + " not found on box " + d);
-					ddb.updateFromDB();
-					m = parent.getModule(e.getDeviceid());
-					if (m == null) {
-						Log.d("HANDLE", "Module " + e.getDeviceid() + " not found on box after updateFromDB " + d);
-						System.err.println("Module " + e.getDeviceid() + " not found on box after updateFromDB" + d);
-						e.dispose();
-						return;
-					}
-				}
-				if (eventtype.equals("linkState")) {
-					Port p = m.getPort(Integer.parseInt(e.getSubid()));
-					if (p == null) {
-						Log.d("HANDLE", "Port ifindex="+e.getSubid()+" in module="+m.getModule()+" not found!");
-						return;
-					}
-					if (e.getState() == Event.STATE_START) p.down();
-					else if (e.getState() == Event.STATE_END) p.up();
-					e.dispose();
-
-					Log.d("HANDLE", "Port: " + p);
-				} else {
-					if (e.getState() == Event.STATE_START) {
-						if (!m.isUp() && isInQ(m, eventtype)) {
-							Log.d("HANDLE", "Ignoring duplicate down event for Module");
-							e.dispose();
-							return;
-						}
-						Log.d("HANDLE", "Module going down (" + m.getDeviceid()+")");
-						m.down();
-						addToQ(m, eventtype, moduleWarningWaitTime, moduleAlertWaitTime - moduleWarningWaitTime, e);
-					} else if (e.getState() == Event.STATE_END) {
-						// Get the down alert
-						Alert a = ddb.getDownAlert(e);
-						if (a == null) {
-							// The down event could be in the queue
-							SendAlertDescr sad = removeFromQ(m, eventtype);
-							if (sad == null) {
-								Log.d("HANDLE", "Ignoring module up event as no down event was found!");
-								e.dispose();
-								return;
-							}
-							// For now ignore transient events
-							sad.event.dispose();
-							e.dispose();
-							Log.d("HANDLE", "Ignoring transient moduleState");
-						} else {
-							Log.d("HANDLE", "Module going up");
-
-							// Post alert
-							a = ddb.alertFactory(e, "moduleUp");
-							a.addEvent(e);
-
-							if (parent != null && parent.onMaintenance()) {
-								// Do not post to alertq if box is on maintenace
-								a.setPostAlertq(false);
-							}
-
-							try {
-								ddb.postAlert(a);
-							} catch (PostAlertException exp) {
-								Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
-							}
-
-							// Clean up
-							removeFromQ(m, eventtype);
-						}
-						m.up();
-					}
-					//outld("BoxState  Module: " + m);
-				}
-			}
+			if (!handleModuleState(ddb, e, moduleWarningWaitTime,
+					moduleAlertWaitTime, eventtype)) return;
 		} else if (eventtype.equals("boxRestart")) {
 			// Simply post on alertq
 			Device d = ddb.getDevice(e.getDeviceid());
@@ -175,6 +91,96 @@ public class BoxState implements EventHandler, EventCallback
 
 		Log.d("HANDLE", "Finished handling event, queue size="+deviceQ.size() + " callback: " + ddb.isScheduledCallback(this));
 
+	}
+
+	private boolean handleModuleState(DeviceDB ddb, Event e,
+			int moduleWarningWaitTime, int moduleAlertWaitTime, String eventtype) {
+		// Get parent netbox
+		int parentDeviceid = Box.boxidToDeviceid(e.getNetboxid());
+		Device d = ddb.getDevice(parentDeviceid);
+		if (d instanceof Netel) {
+			if (!d.isUp()) {
+				// Ignore event since box itself is down
+				Log.d("HANDLE", "Box " + d + " is down, ignoring " + eventtype + " ("+e.getDeviceid()+")");
+				e.dispose();
+				return false;
+			}
+
+			Netel parent = (Netel)d;
+			Module m = parent.getModule(e.getDeviceid());
+			if (m == null) {
+				Log.d("HANDLE", "Module " + e.getDeviceid() + " not found on box " + d);
+				ddb.updateFromDB();
+				m = parent.getModule(e.getDeviceid());
+				if (m == null) {
+					Log.d("HANDLE", "Module " + e.getDeviceid() + " not found on box after updateFromDB " + d);
+					System.err.println("Module " + e.getDeviceid() + " not found on box after updateFromDB" + d);
+					e.dispose();
+					return false;
+				}
+			}
+			if (eventtype.equals("linkState")) {
+				Port p = m.getPort(Integer.parseInt(e.getSubid()));
+				if (p == null) {
+					Log.d("HANDLE", "Port ifindex="+e.getSubid()+" in module="+m.getModule()+" not found!");
+					return false;
+				}
+				if (e.getState() == Event.STATE_START) p.down();
+				else if (e.getState() == Event.STATE_END) p.up();
+				e.dispose();
+
+				Log.d("HANDLE", "Port: " + p);
+			} else {
+				if (e.getState() == Event.STATE_START) {
+					if (!m.isUp() && isInQ(m, eventtype)) {
+						Log.d("HANDLE", "Ignoring duplicate down event for Module");
+						e.dispose();
+						return false;
+					}
+					Log.d("HANDLE", "Module going down (" + m.getDeviceid()+")");
+					m.down();
+					addToQ(m, eventtype, moduleWarningWaitTime, moduleAlertWaitTime - moduleWarningWaitTime, e);
+				} else if (e.getState() == Event.STATE_END) {
+					// Get the down alert
+					Alert a = ddb.getDownAlert(e);
+					if (a == null) {
+						// The down event could be in the queue
+						SendAlertDescr sad = removeFromQ(m, eventtype);
+						if (sad == null) {
+							Log.d("HANDLE", "Ignoring module up event as no down event was found!");
+							e.dispose();
+							return false;
+						}
+						// For now ignore transient events
+						sad.event.dispose();
+						e.dispose();
+						Log.d("HANDLE", "Ignoring transient moduleState");
+					} else {
+						Log.d("HANDLE", "Module going up");
+
+						// Post alert
+						a = ddb.alertFactory(e, "moduleUp");
+						a.addEvent(e);
+
+						if (parent != null && parent.onMaintenance()) {
+							// Do not post to alertq if box is on maintenace
+							a.setPostAlertq(false);
+						}
+
+						try {
+							ddb.postAlert(a);
+						} catch (PostAlertException exp) {
+							Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
+						}
+
+						// Clean up
+						removeFromQ(m, eventtype);
+					}
+					m.up();
+				}
+			}
+		}
+		return true;
 	}
 
 	private boolean handleBoxState(DeviceDB ddb, Event e, int warningWaitTime,
