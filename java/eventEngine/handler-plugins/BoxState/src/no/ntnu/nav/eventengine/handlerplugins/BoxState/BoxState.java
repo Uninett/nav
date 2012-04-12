@@ -32,31 +32,14 @@ public class BoxState implements EventHandler, EventCallback
 		Log.setDefaultSubsystem("BOX_STATE_EVENTHANDLER");
 		Log.d("HANDLE", "Event: " + e);
 
-		int warningWaitTime = 60;
-		int alertWaitTime = 240;		
-		try {
-			warningWaitTime = Integer.parseInt(cp.get("warningWaitTime"));
-		} catch (Exception exp) { }
-		try {
-			alertWaitTime = Integer.parseInt(cp.get("alertWaitTime"));
-		} catch (Exception exp) { }
-
-		int moduleWarningWaitTime = 60;
-		int moduleAlertWaitTime = 240;		
-		try {
-			moduleWarningWaitTime = Integer.parseInt(cp.get("moduleWarningWaitTime"));
-		} catch (Exception exp) { }
-		try {
-			moduleAlertWaitTime = Integer.parseInt(cp.get("moduleAlertWaitTime"));
-		} catch (Exception exp) { }
+		setWaitTimes(cp);
 		
 		String eventtype = e.getEventtypeid();
 
 		if (eventtype.equals("boxState")) {
-			if (!handleBoxState(ddb, e, warningWaitTime, alertWaitTime, eventtype)) return;
+			if (!handleBoxState(ddb, e, eventtype)) return;
 		} else if (eventtype.equals("moduleState") || eventtype.equals("linkState")) {
-			if (!handleModuleState(ddb, e, moduleWarningWaitTime,
-					moduleAlertWaitTime, eventtype)) return;
+			if (!handleModuleState(ddb, e, eventtype)) return;
 		} else if (eventtype.equals("boxRestart")) {
 			handleBoxRestart(ddb, e);
 			return;
@@ -66,6 +49,26 @@ public class BoxState implements EventHandler, EventCallback
 
 		Log.d("HANDLE", "Finished handling event, queue size="+deviceQ.size() + " callback: " + ddb.isScheduledCallback(this));
 
+	}
+
+	private void setWaitTimes(ConfigParser cp) {
+		warningWaitTime = 60;
+		alertWaitTime = 240;		
+		try {
+			warningWaitTime = Integer.parseInt(cp.get("warningWaitTime"));
+		} catch (Exception exp) { }
+		try {
+			alertWaitTime = Integer.parseInt(cp.get("alertWaitTime"));
+		} catch (Exception exp) { }
+
+		moduleWarningWaitTime = 60;
+		moduleAlertWaitTime = 240;		
+		try {
+			moduleWarningWaitTime = Integer.parseInt(cp.get("moduleWarningWaitTime"));
+		} catch (Exception exp) { }
+		try {
+			moduleAlertWaitTime = Integer.parseInt(cp.get("moduleAlertWaitTime"));
+		} catch (Exception exp) { }
 	}
 
 	private void handleBoxRestart(DeviceDB ddb, Event e) {
@@ -98,8 +101,7 @@ public class BoxState implements EventHandler, EventCallback
 		return;
 	}
 
-	private boolean handleModuleState(DeviceDB ddb, Event e,
-			int moduleWarningWaitTime, int moduleAlertWaitTime, String eventtype) {
+	private boolean handleModuleState(DeviceDB ddb, Event e, String eventtype) {
 		// Get parent netbox
 		int parentDeviceid = Box.boxidToDeviceid(e.getNetboxid());
 		Device d = ddb.getDevice(parentDeviceid);
@@ -188,8 +190,7 @@ public class BoxState implements EventHandler, EventCallback
 		return true;
 	}
 
-	private boolean handleBoxState(DeviceDB ddb, Event e, int warningWaitTime,
-			int alertWaitTime, String eventtype) {
+	private boolean handleBoxState(DeviceDB ddb, Event e, String eventtype) {
 		Device d = ddb.getDevice(e.getDeviceid());
 		if (d == null) {
 			Log.w("HANDLE", "Box with deviceid="+e.getDeviceid()+" not found! (boxState)");
@@ -436,6 +437,10 @@ public class BoxState implements EventHandler, EventCallback
 	// Queue handling code
 	private SortedMap deviceQ = new TreeMap();
 	private Map qMap = new HashMap();
+	private int warningWaitTime;
+	private int alertWaitTime;
+	private int moduleWarningWaitTime;
+	private int moduleAlertWaitTime;
 
 	private class SendAlertDescr {
 		public Device device;
