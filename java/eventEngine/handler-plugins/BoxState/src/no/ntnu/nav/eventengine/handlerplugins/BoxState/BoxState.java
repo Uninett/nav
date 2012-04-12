@@ -22,9 +22,7 @@ public class BoxState implements EventHandler, EventCallback
 
 	public String[] handleEventTypes()
 	{
-		// FIXME: Temporarily disabled handling of linkState events, as it is broken
-		// The INFO plugin will dispatch the alerts, but no update of the swport table is done.
-		return new String[] { "boxState", "moduleState", "boxRestart" };
+		return new String[] { "boxState", "moduleState", "linkState", "boxRestart" };
 	}
 
 	public void handle(DeviceDB ddb, Event e, ConfigParser cp)
@@ -38,8 +36,10 @@ public class BoxState implements EventHandler, EventCallback
 
 		if (eventtype.equals("boxState")) {
 			if (!handleBoxState(ddb, e, eventtype)) return;
-		} else if (eventtype.equals("moduleState") || eventtype.equals("linkState")) {
+		} else if (eventtype.equals("moduleState")) {
 			if (!handleModuleState(ddb, e, eventtype)) return;
+		} else if (eventtype.equals("linkState")) {
+			if (!handleLinkState(ddb, e, eventtype)) return;
 		} else if (eventtype.equals("boxRestart")) {
 			handleBoxRestart(ddb, e);
 			return;
@@ -121,66 +121,86 @@ public class BoxState implements EventHandler, EventCallback
 					return false;
 				}
 			}
-			if (eventtype.equals("linkState")) {
-				Port p = m.getPort(Integer.parseInt(e.getSubid()));
-				if (p == null) {
-					Log.d("HANDLE", "Port ifindex="+e.getSubid()+" in module="+m.getModule()+" not found!");
+			if (e.getState() == Event.STATE_START) {
+				if (!m.isUp() && isInQ(m, eventtype)) {
+					Log.d("HANDLE", "Ignoring duplicate down event for Module");
+					e.dispose();
 					return false;
 				}
-				if (e.getState() == Event.STATE_START) p.down();
-				else if (e.getState() == Event.STATE_END) p.up();
-				e.dispose();
-
-				Log.d("HANDLE", "Port: " + p);
-			} else {
-				if (e.getState() == Event.STATE_START) {
-					if (!m.isUp() && isInQ(m, eventtype)) {
-						Log.d("HANDLE", "Ignoring duplicate down event for Module");
+				Log.d("HANDLE", "Module going down (" + m.getDeviceid()+")");
+				m.down();
+				addToQ(m, eventtype, moduleWarningWaitTime, moduleAlertWaitTime - moduleWarningWaitTime, e);
+			} else if (e.getState() == Event.STATE_END) {
+				// Get the down alert
+				Alert a = ddb.getDownAlert(e);
+				if (a == null) {
+					// The down event could be in the queue
+					SendAlertDescr sad = removeFromQ(m, eventtype);
+					if (sad == null) {
+						Log.d("HANDLE", "Ignoring module up event as no down event was found!");
 						e.dispose();
 						return false;
 					}
-					Log.d("HANDLE", "Module going down (" + m.getDeviceid()+")");
-					m.down();
-					addToQ(m, eventtype, moduleWarningWaitTime, moduleAlertWaitTime - moduleWarningWaitTime, e);
-				} else if (e.getState() == Event.STATE_END) {
-					// Get the down alert
-					Alert a = ddb.getDownAlert(e);
-					if (a == null) {
-						// The down event could be in the queue
-						SendAlertDescr sad = removeFromQ(m, eventtype);
-						if (sad == null) {
-							Log.d("HANDLE", "Ignoring module up event as no down event was found!");
-							e.dispose();
-							return false;
-						}
-						// For now ignore transient events
-						sad.event.dispose();
-						e.dispose();
-						Log.d("HANDLE", "Ignoring transient moduleState");
-					} else {
-						Log.d("HANDLE", "Module going up");
+					// For now ignore transient events
+					sad.event.dispose();
+					e.dispose();
+					Log.d("HANDLE", "Ignoring transient moduleState");
+				} else {
+					Log.d("HANDLE", "Module going up");
 
-						// Post alert
-						a = ddb.alertFactory(e, "moduleUp");
-						a.addEvent(e);
+					// Post alert
+					a = ddb.alertFactory(e, "moduleUp");
+					a.addEvent(e);
 
-						if (parent != null && parent.onMaintenance()) {
-							// Do not post to alertq if box is on maintenace
-							a.setPostAlertq(false);
-						}
-
-						try {
-							ddb.postAlert(a);
-						} catch (PostAlertException exp) {
-							Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
-						}
-
-						// Clean up
-						removeFromQ(m, eventtype);
+					if (parent != null && parent.onMaintenance()) {
+						// Do not post to alertq if box is on maintenace
+						a.setPostAlertq(false);
 					}
-					m.up();
+
+					try {
+						ddb.postAlert(a);
+					} catch (PostAlertException exp) {
+						Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
+					}
+
+					// Clean up
+					removeFromQ(m, eventtype);
 				}
+				m.up();
 			}
+		}
+		return true;
+	}
+
+	private boolean handleLinkState(DeviceDB ddb, Event e, String eventtype) {
+		int netboxDeviceId = Box.boxidToDeviceid(e.getNetboxid());
+		Device device = ddb.getDevice(netboxDeviceId);
+		if (device instanceof Netel) {
+			if (!device.isUp()) {
+				// Ignore event since box itself is down
+				Log.d("HANDLE", "Box " + device + " is down, ignoring " + eventtype + " ("+e.getDeviceid()+")");
+				e.dispose();
+				return false;
+			}
+
+			Netel netbox = (Netel) device;
+			int interfaceid = Integer.parseInt(e.getSubid());
+			Port port = netbox.getPort(interfaceid);
+			if (port == null) {
+				Log.e("HANDLE", "interfaceid " + interfaceid + " referenced in linkState event not found on box " + device);
+				e.dispose();
+				return false;
+			}
+
+			if (e.getState() == Event.STATE_START) {
+				Log.i("HANDLE", "port going down: " + port);
+				port.down();
+			}
+			else if (e.getState() == Event.STATE_END) {
+				Log.i("HANDLE", "port going up: " + port);
+				port.up();
+			}
+			e.dispose();
 		}
 		return true;
 	}

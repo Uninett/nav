@@ -305,4 +305,29 @@ public class Netel extends Box
 		//System.err.println(s);
 	}
 
+	public Port getPort(int interfaceid) {
+		Log.d("BOX_DEVICEPLUGIN", "GET_PORT", "Fetching port w/interfaceid=" + interfaceid);
+		try {
+			ResultSet rs = Database.query(
+					"SELECT " +
+					"  netbox.deviceid AS parent_deviceid, " +
+					"  '' AS name, " +
+					"  ifindex, " +
+					"  baseport AS port, " +
+					"  to_netboxid, " +
+					"  vlan.vlan, " +
+					"  direction " +
+					"FROM interface " +
+					"JOIN netbox USING (netboxid) " +
+					"LEFT JOIN swportvlan USING (interfaceid) " +
+					"LEFT JOIN vlan USING (vlanid) " +
+					"WHERE interfaceid=" + interfaceid +" AND netboxid="+boxid);
+			if (rs.next()) {
+				Port p = new Port(rs);
+				return p;
+			}
+		} catch (SQLException e) { }
+		return null;
+	}
+
 }
