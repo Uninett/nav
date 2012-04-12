@@ -263,8 +263,10 @@ def _reduce_to_single_neighbor(nborlist):
     target_boxes = set(nbor.netbox.id for nbor in nborlist)
     same_netbox = len(target_boxes) == 1
     if same_netbox:
-        are_all_subifcs = all(nbor.interface.iftype == IFTYPE_L2VLAN
-                              for nbor in nborlist)
+        are_all_subifcs = all(
+            nbor.interface and nbor.interface.iftype == IFTYPE_L2VLAN
+            for nbor in nborlist)
+
         if are_all_subifcs:
             pick = nborlist[0]
             ifc = _get_parent_interface(pick.interface)
