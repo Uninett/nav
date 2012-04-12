@@ -102,17 +102,17 @@ class Neighbor(object):
 
         """
         match = cls.ID_PATTERN.search(sysname)
-        sysname = match.group('sysname').lower()
+        sysname = match.group('sysname')
         assert sysname
         try:
             sysname.decode('ascii')
         except UnicodeDecodeError:
             return None
-        query = Q(sysname=sysname)
+        query = Q(sysname__iexact=sysname)
 
         is_fqdn = '.' in sysname
         if not is_fqdn:
-            query = query | Q(sysname__startswith=sysname + '.')
+            query = query | Q(sysname__istartswith=sysname + '.')
 
         return cls._netbox_query(query)
 
