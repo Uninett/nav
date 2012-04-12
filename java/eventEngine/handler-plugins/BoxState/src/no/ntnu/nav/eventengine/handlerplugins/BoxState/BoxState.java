@@ -53,91 +53,7 @@ public class BoxState implements EventHandler, EventCallback
 		String eventtype = e.getEventtypeid();
 
 		if (eventtype.equals("boxState")) {
-			Device d = ddb.getDevice(e.getDeviceid());
-			if (d == null) {
-				Log.w("HANDLE", "Box with deviceid="+e.getDeviceid()+" not found! (boxState)");
-				return;
-			}
-
-			if (d instanceof Box) {
-				Box b = (Box)d;
-
-				if (e.getState() == Event.STATE_START) {
-					if (!b.isUp() && isInQ(b, eventtype)) {
-						Log.d("HANDLE", "Ignoring duplicate down event for Box");
-						e.dispose();
-						return;
-					}
-					Log.d("HANDLE", "Box going down: " + b);
-					b.down();
-					addToQ(b, eventtype, warningWaitTime, alertWaitTime - warningWaitTime, e);
-
-				} else if (e.getState() == Event.STATE_END) {
-					// Get the down alert
-					Alert a = ddb.getDownAlert(e);
-
-					// Check if the deviceid has changed
-					if (a == null && !isInQ(b, eventtype)) {
-						try {
-							ResultSet rs = Database.query("SELECT alerthistid,deviceid FROM alerthist WHERE netboxid='"+e.getNetboxid()+"' AND end_time='infinity' AND eventtypeid='boxState'");
-							if (rs.next()) {
-								Alert oldevent = (Alert)e;
-								oldevent.setDeviceid(rs.getInt("deviceid"));
-								a = ddb.getDownAlert(e);
-
-								// Close it and mark box up
-								//Database.update("UPDATE alerthist SET end_time=NOW() WHERE alerthistid='"+rs.getString("alerthistid")+"'");
-								Log.d("HANDLE", "Deviceid changed for end event, deviceid="+rs.getString("deviceid") + " for netboxid: " + e.getNetboxid());
-							} else {
-								Log.d("HANDLE", "Ignoring box up event as no down event was found!");
-							}
-						} catch (SQLException exp) {
-							Log.w("BOX_STATE_EVENTHANDLER", "SQLException when checking for open down event in alerthist, netboxid " + e.getNetboxid());
-						}
-					}
-
-					if (a == null) {
-						// The down event could be in the queue
-						SendAlertDescr sad = removeFromQ(b, eventtype);
-						if (sad == null) {
-							// No down alert, but we mark the box up just in case
-							e.dispose();
-							Log.d("HANDLE", "No down event found, disposing up event");
-						} else {
-							// For now ignore transient events
-							sad.event.dispose();
-							e.dispose();
-							Log.d("HANDLE", "Ignoring transient boxState");
-						}
-					} else {
-						Log.d("HANDLE", "Box going up");
-
-						// Post alert
-						a = ddb.alertFactory(e, "boxUp");
-						if (b.getStatus() == Box.STATUS_SHADOW) {
-							a.setAlerttype("boxSunny");
-							a.setSeverity(Math.max(e.getSeverity()-SHADOW_SEVERITY_DEDUCTION,0));
-						}
-						a.addEvent(e);
-
-						if (b.onMaintenance()) {
-							// Do not post to alertq if box is on maintenace
-							Log.d("HANDLE", "Not posting alert to alertq as the box is on maintenance");
-							a.setPostAlertq(false);
-						}
-
-						try {
-							ddb.postAlert(a);
-						} catch (PostAlertException exp) {
-							Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
-						}
-
-						// Clean up
-						removeFromQ(b, eventtype);
-					}
-					b.up();
-				}
-			}
+			if (!handleBoxState(ddb, e, warningWaitTime, alertWaitTime, eventtype)) return;
 		} else if (eventtype.equals("moduleState") || eventtype.equals("linkState")) {
 			// Get parent netbox
 			int parentDeviceid = Box.boxidToDeviceid(e.getNetboxid());
@@ -259,6 +175,96 @@ public class BoxState implements EventHandler, EventCallback
 
 		Log.d("HANDLE", "Finished handling event, queue size="+deviceQ.size() + " callback: " + ddb.isScheduledCallback(this));
 
+	}
+
+	private boolean handleBoxState(DeviceDB ddb, Event e, int warningWaitTime,
+			int alertWaitTime, String eventtype) {
+		Device d = ddb.getDevice(e.getDeviceid());
+		if (d == null) {
+			Log.w("HANDLE", "Box with deviceid="+e.getDeviceid()+" not found! (boxState)");
+			return false;
+		}
+
+		if (d instanceof Box) {
+			Box b = (Box)d;
+
+			if (e.getState() == Event.STATE_START) {
+				if (!b.isUp() && isInQ(b, eventtype)) {
+					Log.d("HANDLE", "Ignoring duplicate down event for Box");
+					e.dispose();
+					return false;
+				}
+				Log.d("HANDLE", "Box going down: " + b);
+				b.down();
+				addToQ(b, eventtype, warningWaitTime, alertWaitTime - warningWaitTime, e);
+
+			} else if (e.getState() == Event.STATE_END) {
+				// Get the down alert
+				Alert a = ddb.getDownAlert(e);
+
+				// Check if the deviceid has changed
+				if (a == null && !isInQ(b, eventtype)) {
+					try {
+						ResultSet rs = Database.query("SELECT alerthistid,deviceid FROM alerthist WHERE netboxid='"+e.getNetboxid()+"' AND end_time='infinity' AND eventtypeid='boxState'");
+						if (rs.next()) {
+							Alert oldevent = (Alert)e;
+							oldevent.setDeviceid(rs.getInt("deviceid"));
+							a = ddb.getDownAlert(e);
+
+							// Close it and mark box up
+							//Database.update("UPDATE alerthist SET end_time=NOW() WHERE alerthistid='"+rs.getString("alerthistid")+"'");
+							Log.d("HANDLE", "Deviceid changed for end event, deviceid="+rs.getString("deviceid") + " for netboxid: " + e.getNetboxid());
+						} else {
+							Log.d("HANDLE", "Ignoring box up event as no down event was found!");
+						}
+					} catch (SQLException exp) {
+						Log.w("BOX_STATE_EVENTHANDLER", "SQLException when checking for open down event in alerthist, netboxid " + e.getNetboxid());
+					}
+				}
+
+				if (a == null) {
+					// The down event could be in the queue
+					SendAlertDescr sad = removeFromQ(b, eventtype);
+					if (sad == null) {
+						// No down alert, but we mark the box up just in case
+						e.dispose();
+						Log.d("HANDLE", "No down event found, disposing up event");
+					} else {
+						// For now ignore transient events
+						sad.event.dispose();
+						e.dispose();
+						Log.d("HANDLE", "Ignoring transient boxState");
+					}
+				} else {
+					Log.d("HANDLE", "Box going up");
+
+					// Post alert
+					a = ddb.alertFactory(e, "boxUp");
+					if (b.getStatus() == Box.STATUS_SHADOW) {
+						a.setAlerttype("boxSunny");
+						a.setSeverity(Math.max(e.getSeverity()-SHADOW_SEVERITY_DEDUCTION,0));
+					}
+					a.addEvent(e);
+
+					if (b.onMaintenance()) {
+						// Do not post to alertq if box is on maintenace
+						Log.d("HANDLE", "Not posting alert to alertq as the box is on maintenance");
+						a.setPostAlertq(false);
+					}
+
+					try {
+						ddb.postAlert(a);
+					} catch (PostAlertException exp) {
+						Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
+					}
+
+					// Clean up
+					removeFromQ(b, eventtype);
+				}
+				b.up();
+			}
+		}
+		return true;
 	}
 
 	private void checkScheduleCallback(DeviceDB ddb) {
