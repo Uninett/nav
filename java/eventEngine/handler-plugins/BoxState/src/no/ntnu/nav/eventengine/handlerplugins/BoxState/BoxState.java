@@ -486,6 +486,7 @@ public class BoxState implements EventHandler, EventCallback
 
 	private class SendAlertDescr {
 		public Device device;
+		public Port port;
 		public String eventtype;
 		public boolean sentWarning;
 		public long alertWait;
@@ -495,8 +496,17 @@ public class BoxState implements EventHandler, EventCallback
 			this(d, type, 0, null);
 		}
 
+		public SendAlertDescr(Device d, Port p, String type) {
+			this(d, p, type, 0, null);
+		}
+
 		public SendAlertDescr(Device d, String type, long wait, Event e) {
+			this(d, null, type, wait, e);
+		}
+
+		public SendAlertDescr(Device d, Port p, String type, long wait, Event e) {
 			device = d;
+			port = p;
 			eventtype = type;
 			sentWarning = false;
 			alertWait = wait;
@@ -506,13 +516,16 @@ public class BoxState implements EventHandler, EventCallback
 		public boolean equals(Object o) {
 			if (o instanceof SendAlertDescr) {
 				SendAlertDescr sad = (SendAlertDescr)o;
-				return device.getDeviceid() == sad.device.getDeviceid() && eventtype.equals(sad.eventtype);
+				boolean isSameDevice = device.getDeviceid() == sad.device.getDeviceid();
+				boolean isSameEventType = eventtype.equals(sad.eventtype);
+				boolean isSamePort = port == sad.port || (port != null && sad.port != null && port.getIfindex() == sad.port.getIfindex());
+				return isSameDevice && isSameEventType && isSamePort;
 			}
 			return false;
 		}
 
 		public String toString() {
-			return "Dev: " + device.getDeviceid() + " type: " + eventtype + " w: " + sentWarning + " alertWait: " + alertWait;
+			return "Dev: " + device.getDeviceid() + " port: " + port + " type: " + eventtype + " w: " + sentWarning + " alertWait: " + alertWait;
 		}
 	}
 
@@ -530,13 +543,17 @@ public class BoxState implements EventHandler, EventCallback
 		Long t = new Long(System.currentTimeMillis() + time * 1000);
 		if ( (l=(List)deviceQ.get(t)) == null) deviceQ.put(t, l = new ArrayList());
 		l.add(sad);
-		qMap.put(sad.device.getDeviceidI()+":"+sad.eventtype, t);
+		qMap.put(qKey(sad.device, sad.port, sad.eventtype), t);
 	}
 	private SendAlertDescr removeFromQ(Device d, String eventtype) {
-		Long t = (Long) qMap.remove(d.getDeviceidI()+":"+eventtype);
+		return removeFromQ(d, null, eventtype);
+	}
+	private SendAlertDescr removeFromQ(Device d, Port p, String eventtype) {
+		Long t = (Long) qMap.remove(qKey(d, p, eventtype));
 		if (t == null) return null;
 		List l = (List) deviceQ.get(t);
-		int idx = l.indexOf(new SendAlertDescr(d, eventtype));
+		if (l == null) return null;
+		int idx = l.indexOf(new SendAlertDescr(d, p, eventtype));
 		SendAlertDescr sad = (SendAlertDescr) l.get(idx);
 		l.remove(idx);
 		if (l.isEmpty()) deviceQ.remove(t);
@@ -551,15 +568,28 @@ public class BoxState implements EventHandler, EventCallback
 		List l = (List) deviceQ.get(t);		
 		SendAlertDescr sad = (SendAlertDescr) l.remove(l.size()-1);
 		if (l.isEmpty()) deviceQ.remove(t);
-		qMap.remove(sad.device.getDeviceidI()+":"+sad.eventtype);
+		qMap.remove(qKey(sad.device, sad.eventtype));
 		return sad;
 	}
 	private void addToQ(Device d, String eventtype, long warningTime, long alertTime, Event e) {
-		addToQ(new SendAlertDescr(d, eventtype, alertTime, e), warningTime);
+		addToQ(d, null, eventtype, warningTime, alertTime, e);
+	}
+	private void addToQ(Device d, Port p, String eventtype, long warningTime, long alertTime, Event e) {
+		addToQ(new SendAlertDescr(d, p, eventtype, alertTime, e), warningTime);
 	}
 		
 	private boolean isInQ(Device device, String eventtype) {
-		return qMap.containsKey(device.getDeviceidI() + ":" + eventtype);
+		return qMap.containsKey(qKey(device, eventtype));
+	}
+	private boolean isInQ(Device device, Port p, String eventtype) {
+		return qMap.containsKey(qKey(device, p, eventtype));
 	}
 
+	private String qKey(Device device, String eventType) {
+		return qKey(device, null, eventType);
+	}
+	private String qKey(Device device, Port p, String eventType) {
+		String portKey = p != null ? "" + p.getIfindexI() : "";
+		return device.getDeviceidI() + ":" + portKey + ":" + eventType;
+	}
 }
