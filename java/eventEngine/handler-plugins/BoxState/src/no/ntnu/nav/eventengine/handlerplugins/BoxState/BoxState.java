@@ -192,14 +192,41 @@ public class BoxState implements EventHandler, EventCallback
 				return false;
 			}
 
+			String alertType = "";
 			if (e.getState() == Event.STATE_START) {
-				Log.i("HANDLE", "port going down: " + port);
+				if (!port.isUp()) {
+					Log.d("HANDLE", "Ignoring duplicate down event for link");
+					e.dispose();
+					return false;
+				}
+				Log.i("HANDLE", netbox.getSysname() + " port going down: " + port);
 				port.down();
+				alertType = "linkDown";
 			}
 			else if (e.getState() == Event.STATE_END) {
-				Log.i("HANDLE", "port going up: " + port);
+				Alert a = ddb.getDownAlert(e);
+				if (a == null) {
+					Log.d("HANDLE", "Ignoring link up event as no down event was found!");
+					e.dispose();
+					return false;
+				}
+				Log.i("HANDLE", netbox.getSysname() + " port going up: " + port);
 				port.up();
+				alertType = "linkUp";
 			}
+
+			Alert alert = ddb.alertFactory(e, alertType);
+			alert.addEvent(e);
+
+			Log.d("HANDLE", "Posting linkState ("+alertType+") alert");
+			try {
+				ddb.postAlert(alert);
+			} catch (PostAlertException exp) {
+				Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
+			}
+
+		} else {
+			Log.e("HANDLE", "no such device, ignoring event: " + netboxDeviceId);
 			e.dispose();
 		}
 		return true;
