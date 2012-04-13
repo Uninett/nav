@@ -41,6 +41,8 @@ BOX_STATE = 'boxState'
 SERVICE_STATE = 'serviceState'
 MODULE_STATE = 'moduleState'
 THRESHOLD_STATE = 'thresholdState'
+LINK_STATE = 'linkState'
+SNMP_STATE = 'snmpAgentState'
 
 def get_section_model(section_type):
     # Dispatch table
@@ -676,7 +678,7 @@ class LinkStateSection(_Section):
         netbox_history = AlertHistory.objects.select_related(
             'netbox'
         ).filter(
-            event_type='linkState',
+            event_type=LINK_STATE,
             end_time__gt=datetime.max,
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
@@ -746,7 +748,7 @@ class SNMPAgentSection(_Section):
         netbox_history = AlertHistory.objects.select_related(
             'netbox'
         ).filter(
-            event_type='snmpAgentState',
+            event_type=SNMP_STATE,
             end_time__gt=datetime.max,
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
