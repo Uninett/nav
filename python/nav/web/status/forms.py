@@ -80,7 +80,6 @@ class ThresholdForm(SectionForm):
 
 class LinkStateForm(SectionForm):
     categories = forms.MultipleChoiceField(choices=_category_choices())
-    states = forms.MultipleChoiceField(choices=_state_choices())
 
 class SNMPAgentForm(SectionForm):
     categories = forms.MultipleChoiceField(choices=_category_choices())
