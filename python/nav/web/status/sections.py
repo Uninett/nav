@@ -218,7 +218,7 @@ class NetboxSection(_Section):
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
         ).extra(
-            select={'downtime': 'NOW() - start_time'}
+            select={'downtime': "date_trunc('second', NOW() - start_time)"}
         ).order_by('-start_time', 'end_time')
 
         history = []
@@ -332,7 +332,7 @@ class NetboxMaintenanceSection(_Section):
             end_time__gt=datetime.max,
             event_type=BOX_STATE,
         ).extra(
-            select={'downtime': 'NOW() - start_time'}
+            select={'downtime': "date_trunc('second', NOW() - start_time)"}
         ).order_by('-start_time').values(
             'netbox', 'start_time', 'downtime'
         )
@@ -391,7 +391,7 @@ class ServiceSection(_Section):
             netbox__organization__in=self.organizations,
         ).extra(
             select={
-                'downtime': 'NOW() - start_time',
+                'downtime': "date_trunc('second', NOW() - start_time)",
                 'handler': 'service.handler',
             },
             tables=['service'],
@@ -462,7 +462,7 @@ class ServiceMaintenanceSection(ServiceSection):
             variable='maint_taskid',
         ).extra(
             select={
-                'downtime': 'NOW() - start_time',
+                'downtime': "date_trunc('second', NOW() - start_time)",
                 'handler': 'service.handler',
                 'up': 'service.up',
             },
@@ -474,7 +474,7 @@ class ServiceMaintenanceSection(ServiceSection):
             end_time__gt=datetime.max,
             event_type=SERVICE_STATE,
         ).extra(
-            select={'downtime': 'NOW() - start_time'}
+            select={'downtime': "date_trunc('second', NOW() - start_time)"}
         ).values('netbox', 'start_time', 'downtime')
 
         service_down = {}
@@ -541,7 +541,7 @@ class ModuleSection(_Section):
             netbox__category__in=self.categories,
         ).extra(
             select={
-                'downtime': 'NOW() - start_time',
+                'downtime': "date_trunc('second', NOW() - start_time)",
                 'module_id': 'module.moduleid',
                 'module_name': 'module.name',
             },
@@ -619,7 +619,7 @@ class ThresholdSection(_Section):
             netbox__category__in=self.categories,
         ).extra(
             select={
-                'downtime': 'NOW() - start_time',
+                'downtime': "date_trunc('second', NOW() - start_time)",
                 'rrd_description': 'rrd_datasource.descr',
                 'rrd_units': 'rrd_datasource.units',
                 'rrd_threshold': 'rrd_datasource.threshold',
@@ -684,7 +684,7 @@ class LinkStateSection(_Section):
             netbox__organization__in=self.organizations,
         ).extra(
             select={
-                'downtime': 'NOW() - start_time',
+                'downtime': "date_trunc('second', NOW() - start_time)",
                 'interfaceid': 'interface.interfaceid',
                 'ifname': 'interface.ifname',
             },
@@ -754,7 +754,7 @@ class SNMPAgentSection(_Section):
             netbox__organization__in=self.organizations,
         ).extra(
             select={
-                'downtime': 'NOW() - start_time',
+                'downtime': "date_trunc('second', NOW() - start_time)",
             }
         ).order_by('-start_time', 'end_time')
 
