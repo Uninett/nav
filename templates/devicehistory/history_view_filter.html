@@ -20,9 +20,9 @@
                 {% endifequal %}
                 {% endif %}>All {{ e }}</option>
             {% for a in alert_types %}
-                <option value="a_{{ a.id }}" 
+                <option value="a_{{ a.name }}" 
                 {% if selected_types.alert %}
-                {% ifequal selected_types.alert a.id %}
+                {% ifequal selected_types.alert a.name %}
                     selected="selected"
                 {% endifequal %}
                 {% endif %}>{{ a.name }}</option>
