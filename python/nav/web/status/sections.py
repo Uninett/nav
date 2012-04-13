@@ -195,7 +195,7 @@ class NetboxSection(_Section):
         'Downtime',
         '',
     ]
-    devicehistory_type = 'a_3'
+    devicehistory_type = 'a_boxDown'
 
     @staticmethod
     def form_class():
@@ -231,8 +231,8 @@ class NetboxSection(_Section):
                 (h.downtime, None),
                 (
                     'history',
-                    reverse('devicehistory-view') +\
-                    '?netbox=%(id)s&type=a_3&group_by=datetime' % {
+                    reverse('devicehistory-view') +
+                    '?netbox=%(id)s&type=a_boxDown&group_by=datetime' % {
                         'id': h.netbox.id,
                     }
                 ),
@@ -522,7 +522,7 @@ class ModuleSection(_Section):
         'Downtime',
         '',
     ]
-    devicehistory_type = 'a_8'
+    devicehistory_type = 'a_moduleDown'
 
     @staticmethod
     def form_class():
@@ -570,8 +570,8 @@ class ModuleSection(_Section):
                 (module.downtime, None),
                 (
                     'history',
-                    reverse('devicehistory-view') +\
-                    '?module=%(id)s&type=a_8&group_by=datetime' % {
+                    reverse('devicehistory-view') +
+                    '?module=%(id)s&type=a_moduleDown&group_by=datetime' % {
                         'id': module.module_id,
                     }
                 ),
@@ -587,7 +587,7 @@ class ThresholdSection(_Section):
         'Time exceeded',
         '',
     ]
-    devicehistory_type = 'a_14'
+    devicehistory_type = 'a_exceededThreshold'
 
     @staticmethod
     def form_class():
@@ -647,8 +647,9 @@ class ThresholdSection(_Section):
                 (t.downtime, None),
                 (
                     'history',
-                    reverse('devicehistory-view') +\
-                    '?netbox=%(id)s&type=a_14&group_by=datetime' % {
+                    reverse('devicehistory-view') +
+                    '?netbox=%(id)s&type=a_exceededThreshold'
+                    '&group_by=datetime' % {
                         'id': t.netbox.id,
                     }
                 ),
@@ -665,7 +666,7 @@ class LinkStateSection(_Section):
         'Downtime',
         '',
     ]
-    devicehistory_type = 'a_3'
+    devicehistory_type = 'a_linkDown'
 
     @staticmethod
     def form_class():
@@ -706,7 +707,7 @@ class LinkStateSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?netbox=%(id)s&type=a_3&group_by=datetime' % {
+                    '?netbox=%(id)s&type=a_linkDown&group_by=datetime' % {
                         'id': h.netbox.id,
                     }
                 ),
@@ -722,7 +723,7 @@ class SNMPAgentSection(_Section):
         'Downtime',
         '',
     ]
-    devicehistory_type = 'a_3'
+    devicehistory_type = 'a_snmpAgentDown'
 
     @staticmethod
     def form_class():
@@ -768,7 +769,7 @@ class SNMPAgentSection(_Section):
                 (
                     'history',
                     reverse('devicehistory-view') +\
-                    '?netbox=%(id)s&type=a_3&group_by=datetime' % {
+                    '?netbox=%(id)s&type=a_snmpAgentDown&group_by=datetime' % {
                         'id': h.netbox.id,
                     }
                 ),
