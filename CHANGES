@@ -1,3 +1,21 @@
+Version 3.11.2
+(released 12 Apr 2012)
+
+ Bugfixes:
+
+  * LP#939429 (throttle linkState events)
+  * LP#962939 (navtopology crashes when router trunks exist)
+  * LP#965972 (neighbor identification via sysname is case sensitive)
+  * LP#968917 (ipdevpoll UnicodeDecodeError when storing unidentified LLDP
+               neighbors)
+  * LP#969069 (ipdevpoll.log fills up with snmp_open errors)
+  * LP#972211 (Switch ports not discovered on Gbe2c switches)
+  * LP#972363 (statically configured bridge forwarding entries aren't collected
+               for machine tracking)
+  * LP#972442 (ipdevpoll profiling job crashes with IntegrityError)
+  * LP#979737 (throttle snmpAgentState events)
+  * LP#979791 (ipdevpoll LLDP plugin crash with AttributeError)
+
 Version 3.11.1
 (released 22 Mar 2012)
 

@@ -81,7 +81,7 @@ class SwPortBlocked(Shadow):
     def save(self, containers):
         "refuses to save if vlan is not set; logs an error instead"
         if not self.vlan:
-            self._logger.error(
+            self._logger.debug(
                 "missing vlan value for STP block, ignoring: %r", self)
         else:
             super(SwPortBlocked, self).save(containers)

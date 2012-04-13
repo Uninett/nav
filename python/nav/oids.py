@@ -73,6 +73,14 @@ class OID(tuple):
         else:
             return self
 
+def get_enterprise_id(sysobjectid):
+    "Returns the enterprise ID number from a sysObjectID"
+    if not sysobjectid:
+        return
+    enterprises = OID('.1.3.6.1.4.1')
+    sysobj = OID(sysobjectid)
+    if enterprises.is_a_prefix_of(sysobj):
+        return sysobj[len(enterprises)]
 
 def _test():
     import doctest

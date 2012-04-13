@@ -112,6 +112,6 @@ class LLDP(Plugin):
             key, shadows.UnrecognizedNeighbor)
         neighbor.netbox = self.netbox
         neighbor.interface = ifc
-        neighbor.remote_id = unicode(record.chassis_id)
+        neighbor.remote_id = record.chassis_id
         neighbor.remote_name = record.sysname
         neighbor.source = SOURCE

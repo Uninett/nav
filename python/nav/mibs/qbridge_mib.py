@@ -87,10 +87,10 @@ class QBridgeMib(mibretriever.MibRetriever):
         columns = yield self.retrieve_columns(['dot1qTpFdbPort',
                                                'dot1qTpFdbStatus'])
         columns = self.translate_result(columns)
-        learned = (row for row in columns.values()
-                   if row['dot1qTpFdbStatus'] == 'learned')
+        valid = (row for row in columns.values()
+                 if row['dot1qTpFdbStatus'] not in ('self', 'invalid'))
         result = []
-        for row in learned:
+        for row in valid:
             index = row[0]
             _fdb_id = index[0]
             mac = index[1:]
