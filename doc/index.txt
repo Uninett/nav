@@ -31,8 +31,8 @@ First steps
 ===========
 
 .. NOTE:: NAV's Sphinx-based documentation is still in the process of being
-   built and structured.  Until this process is complete, most of the existing
-   documentation can be found on NAV's `wiki pages`_.
+   built and structured.  If there's something you can't find here, you should
+   check with NAV's `wiki pages`_.
 
 * **From scratch:**
   :doc:`Overview <overview>` |
