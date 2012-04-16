@@ -12,6 +12,7 @@ NAV documentation contents
 .. toctree::
     :maxdepth: 3
 
+    overview
     intro/install
     intro/getting-started
     reference/index
