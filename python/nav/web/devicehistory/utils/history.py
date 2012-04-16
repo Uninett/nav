@@ -54,11 +54,9 @@ GROUPINGS = {
 def get_selected_types(type):
     selected_types = {'event': None, 'alert': None}
     if type and type.find('_') != -1:
-        splitted = type.split('_')
-        if splitted[0] == 'e':
-            selected_types['event'] = splitted[1]
-        else:
-            selected_types['alert'] = int(splitted[1])
+        kind, name = type.split('_')
+        kind = 'event' if kind == 'e' else 'alert'
+        selected_types[kind] = name
     return selected_types
 
 def check_empty_selection(selection):
@@ -76,7 +74,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
         if selected_types['event']:
             type_filter.append(Q(event_type=selected_types['event']))
         if selected_types['alert']:
-            type_filter.append(Q(alert_type=selected_types['alert']))
+            type_filter.append(Q(alert_type__name=selected_types['alert']))
         return type_filter
 
     def make_selection_filter(and_mode=False):
