@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2008, 2011 UNINETT AS
+# Copyright (C) 2008, 2011, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -87,12 +87,7 @@ def create_database():
                  check_call, ["createdb",
                               "--owner=%s" % nav_opts.user,
                               "--encoding=utf-8", nav_opts.dbname])
-
-    trap_and_die(
-        subprocess.CalledProcessError,
-        "Failed installing PL/pgSQL language in database %s" % nav_opts.dbname,
-        check_call,
-        ["createlang", "plpgsql", nav_opts.dbname])
+    install_pl_pgsql(nav_opts.dbname)
 
 def user_exists(username):
     """Returns True if a database user exists.
@@ -133,6 +128,22 @@ def create_user(username, password):
                  ["psql", "--quiet", "-c",
                   "ALTER USER %s WITH PASSWORD '%s';" % (username, password),
                   "template1"])
+
+def install_pl_pgsql(dbname):
+    "Installs PL/pgSQL to dbname if not already present"
+    process = trap_and_die(
+        subprocess.CalledProcessError,
+        "Failed checking for PL/pgSQL language in database %s" % dbname,
+        popen, ["createlang", "-l", dbname],
+        stdout=subprocess.PIPE)
+
+    output = process.communicate()[0]
+    if 'plpgsql' not in output.lower():
+        trap_and_die(
+            subprocess.CalledProcessError,
+            "Failed installing PL/pgSQL language in database %s" % dbname,
+            check_call,
+            ["createlang", "plpgsql", dbname])
 
 NO_SUCH_FILE = 2
 NO_PERMISSION = 13
@@ -218,8 +229,8 @@ class Synchronizer(object):
 
     def synchronize(self):
         """Begins the synchronization process."""
-        self.verify_search_path()
         self.verify_namespaces()
+        self.verify_search_path()
 
         if self.is_empty_database():
             print "Your database appears empty"

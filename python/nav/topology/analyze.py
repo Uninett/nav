@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011,2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,11 +16,11 @@
 """Reduction of network adjacency candidates graph.
 
 This module uses NetworkX to facilitate reduction of NAV's network adjacency
-candidates graph (loaded from the swp_netbox table) into a proper physical
-topology graph.
+candidates graph (loaded from the adjacency_candidate table) into a proper
+physical topology graph.
 
-The swp_netbox table can be loaded as a directed graph, from which
-reduction can take place.
+The adjacency_candidate_netbox table can be loaded as a directed graph, from
+which reduction can take place.
 
 The graph can be analyzed and reduced by using the AdjacencyReducer class.
 
@@ -39,8 +39,11 @@ Port nodes can have outgoing edges to other Port nodes, or to Netbox nodes
 """
 # pylint: disable=R0903
 
+from itertools import groupby
+from operator import attrgetter
+
 import networkx as nx
-from nav.models.manage import SwPortToNetbox, Interface
+from nav.models.manage import AdjacencyCandidate
 
 # Data classes
 
@@ -271,12 +274,13 @@ class AdjacencyReducer(AdjacencyAnalyzer):
 
 def build_candidate_graph_from_db():
     """Builds and returns a DiGraph conforming to the requirements of an
-    AdjacencyAnalyzer, based on data found in the swp_netbox database
+    AdjacencyAnalyzer, based on data found in the adjacency_candidate database
     table.
 
     """
-    acs = SwPortToNetbox.objects.select_related(
-        'netbox', 'to_netbox', 'to_interface')
+    acs = AdjacencyCandidate.objects.select_related(
+        'netbox', 'interface', 'to_netbox', 'to_interface')
+    acs = _filter_by_source(acs)
 
     graph = nx.DiGraph(name="network adjacency candidates")
 
@@ -290,14 +294,8 @@ def build_candidate_graph_from_db():
             dest_node = Box(cand.to_netbox.id)
             dest_node.name = cand.to_netbox.sysname
 
-        try:
-            from_interface = Interface.objects.get(
-                netbox__id=cand.netbox.id, ifindex=cand.ifindex)
-        except Interface.DoesNotExist:
-            continue
-
-        port = Port((cand.netbox.id, from_interface.id))
-        port.name = "%s (%s)" % (cand.netbox.sysname, from_interface.ifname)
+        port = Port((cand.netbox.id, cand.interface.id))
+        port.name = "%s (%s)" % (cand.netbox.sysname, cand.interface.ifname)
         netbox = Box(cand.netbox.id)
         netbox.name = cand.netbox.sysname
 
@@ -307,3 +305,27 @@ def build_candidate_graph_from_db():
 
     return graph
 
+CDP = 'cdp'
+LLDP = 'lldp'
+
+def _filter_by_source(all_candidates):
+    """Filters candidates from list based on their source.
+
+    For each interface, LLDP is preferred over CDP, CDP is preferred over
+    anything else.
+
+    """
+    key = attrgetter('interface.id')
+    all_candidates = sorted(all_candidates, key=key)
+    by_ifc = groupby(all_candidates, key)
+
+    for _ifc, candidates in by_ifc:
+        candidates = list(candidates)
+        sources = set(c.source for c in candidates)
+        if LLDP in sources:
+            candidates = (c for c in candidates if c.source == LLDP)
+        elif CDP in sources:
+            candidates = (c for c in candidates if c.source == CDP)
+
+        for candidate in candidates:
+            yield candidate

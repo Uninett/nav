@@ -44,7 +44,8 @@ class OidProfiler(Plugin):
     @classmethod
     def can_handle(cls, netbox):
         """We only handle boxes whose profiles are not up to date"""
-        return not netbox.up_to_date
+        daddy_says_ok = super(OidProfiler, cls).can_handle(netbox)
+        return daddy_says_ok and not netbox.up_to_date
 
     def handle(self):
         return get_all_snmpoids().addCallback(self._query_oids)

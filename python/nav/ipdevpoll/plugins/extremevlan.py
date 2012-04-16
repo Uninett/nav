@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011,2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -32,11 +32,6 @@ from .dot1q import vlan_list_to_hex
 
 class ExtremeVlan(Plugin):
     """Collects 802.1q info from EXTREME-VLAN-MIB and BRIDGE-MIB"""
-
-    @classmethod
-    def can_handle(cls, netbox):
-        """This plugin handles netboxes"""
-        return True
 
     def __init__(self, *args, **kwargs):
         super(ExtremeVlan, self).__init__(*args, **kwargs)

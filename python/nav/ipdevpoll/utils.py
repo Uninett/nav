@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -20,8 +20,11 @@ import logging
 
 from IPy import IP
 
+from twisted.internet import defer
 from twisted.internet.defer import Deferred
 from twisted.internet import reactor
+
+from nav.oids import get_enterprise_id
 
 _logger = logging.getLogger(__name__)
 
@@ -44,15 +47,15 @@ def fire_eventually(result):
 def binary_mac_to_hex(binary_mac):
     """Converts a binary string MAC address to hex string.
 
-    Only the first 6 octets will be converted, any more will be
-    ignored. If the address contains less than 6 octets, the result will be
+    If the binary string exceeds 6 octets, only the last 6 octets are
+    converted. If the string contains less than 6 octets the result will be
     padded with leading zeros.
 
     """
+    MAX_LENGTH = 6
     if binary_mac:
-        if len(binary_mac) < 6:
-            binary_mac = "\x00" * (6 - len(binary_mac)) + binary_mac
-        return ":".join("%02x" % ord(x) for x in binary_mac[:6])
+        binary_mac = binary_mac[-6:].rjust(MAX_LENGTH, '\x00')
+        return ":".join("%02x" % ord(x) for x in binary_mac)
 
 def truncate_mac(mac):
     """Takes a MAC address on the form xx:xx:xx... of any length and returns
@@ -106,3 +109,39 @@ def log_unhandled_failure(logger, failure, msg, *args, **kwargs):
     args = args + (traceback,)
 
     logger.error(msg + "\n%s", *args, **kwargs)
+
+@defer.inlineCallbacks
+def get_multibridgemib(agentproxy):
+    """Returns a MultiBridgeMib retriever pre-populated with instances from
+    get_dot1d_instances()
+
+    """
+    from nav.mibs.bridge_mib import MultiBridgeMib
+    instances = yield get_dot1d_instances(agentproxy)
+    defer.returnValue(MultiBridgeMib(agentproxy, instances))
+
+@defer.inlineCallbacks
+def get_dot1d_instances(agentproxy):
+    """Gets a list of alternative BRIDGE-MIB instances from a Cisco agent.
+
+    First
+
+    :returns: A list of [(description, community), ...] for each alternate
+              BRIDGE-MIB instance.
+
+    """
+    from nav.mibs.snmpv2_mib import Snmpv2Mib
+    from nav.mibs.cisco_vtp_mib import CiscoVTPMib
+    from nav.mibs.entity_mib import EntityMib
+
+    cisco = 9
+    enterprise_id = yield (Snmpv2Mib(agentproxy).get_sysObjectID().
+                           addCallback(get_enterprise_id))
+    if enterprise_id == cisco:
+        for mibclass in (CiscoVTPMib, EntityMib):
+            mib = mibclass(agentproxy)
+            instances = yield mib.retrieve_alternate_bridge_mibs()
+            if instances:
+                defer.returnValue(instances)
+    defer.returnValue([])
+

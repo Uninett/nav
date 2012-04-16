@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -38,10 +38,6 @@ from nav.ipdevpoll import shadows
 
 class Modules(Plugin):
     """Plugin to collect module and chassis data from devices"""
-
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
 
     def __init__(self, *args, **kwargs):
         super(Modules, self).__init__(*args, **kwargs)
@@ -124,10 +120,10 @@ class Modules(Plugin):
     def _process_chassis(self, entities):
         chassis = entities.get_chassis()
         if not chassis:
-            self._logger.info('No chassis found')
+            self._logger.debug('No chassis found')
             return
         elif len(chassis) > 1:
-            self._logger.info('Found multiple chassis')
+            self._logger.debug('Found multiple chassis')
 
         # We don't really know how to handle a multiple chassis
         # situation.  Best effort is to use the first one in the list.

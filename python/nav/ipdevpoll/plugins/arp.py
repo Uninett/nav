@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -46,7 +46,7 @@ from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.models import manage
-from nav.ipdevpoll import Plugin, get_class_logger
+from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.db import autocommit
 
@@ -59,7 +59,8 @@ class Arp(Plugin):
     @classmethod
     def can_handle(cls, netbox):
         """This will only be useful on layer 3 devices, i.e. GW/GSW devices."""
-        return netbox.category.id in ('GW', 'GSW')
+        daddy_says_ok = super(Arp, cls).can_handle(netbox)
+        return daddy_says_ok and netbox.category.id in ('GW', 'GSW')
 
     @defer.inlineCallbacks
     def handle(self):
@@ -159,7 +160,7 @@ class Arp(Plugin):
 
     @classmethod
     def _update_prefix_cache_with_result(cls, prefixes):
-        get_class_logger(cls).debug(
+        cls._logger.debug(
             "Populating prefix cache with %d prefixes", len(prefixes))
 
         prefixes = [(IP(p['net_address']), p['id']) for p in prefixes]

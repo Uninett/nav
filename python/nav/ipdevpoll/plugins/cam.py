@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008, 2009 UNINETT AS
+# Copyright (C) 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,269 +13,249 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Dynamic CAM record collecting with and without community string indexing.
-"""
-from itertools import cycle
-from datetime import datetime
+"ipdevpoll plugin to collect switch forwarding tables and STP blocking ports"
+import re
+from collections import defaultdict
 
 from twisted.internet import defer, threads
-from twisted.internet.error import TimeoutError
-from twisted.python.failure import Failure
-from twistedsnmp import snmpprotocol, agentproxy
 
-from nav.mibs.if_mib import IfMib
-from nav.mibs.bridge_mib import BridgeMib
-from nav.ipdevpoll import Plugin 
-from nav.ipdevpoll import storage, shadows
-from nav.ipdevpoll.utils import binary_mac_to_hex
 from nav.models import manage
-
-MAX_MISS_COUNT = 3
+from nav.util import splitby
+from nav.mibs.bridge_mib import MultiBridgeMib
+from nav.mibs.qbridge_mib import QBridgeMib
+from nav.mibs.if_mib import IfMib
+from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import shadows
+from nav.ipdevpoll import utils
+from nav.ipdevpoll.neighbor import get_netbox_macs
+from nav.ipdevpoll.db import autocommit
 
 class Cam(Plugin):
-    """Collects dynamic CAM records"""
+    """Collects switches' forwarding tables and port STP states.
 
-    def __init__(self, *args, **kwargs):
-        super(Cam, self).__init__(*args, **kwargs)
-        self.cam = {}
-        self.existing_cam = {}
-        self.result = {}
+    For each port it finds forwarding data from, a decision is made:
+
+    1. If the port reports any MAC address belonging to any NAV-monitored
+       equipment, it is considered a topological port and one or more entries
+       in the adjacency candidate table is made.
+
+    2. Otherwise, the found forwarding entries are stored in NAV's cam table.
+
+    """
+    bridge = None
+    fdb = None
+    monitored = None
+    dot1d_instances = None
+    baseports = None
+    linkports = None
+    accessports = None
+    blocking = None
+    my_macs = None
 
     @classmethod
+    @defer.inlineCallbacks
     def can_handle(cls, netbox):
-        return True
+        daddy_says_ok = super(Cam, cls).can_handle(netbox)
+        has_ifcs = yield threads.deferToThread(cls._has_interfaces, netbox)
+        defer.returnValue(has_ifcs and daddy_says_ok)
 
-    @defer.deferredGenerator
+    @classmethod
+    @autocommit
+    def _has_interfaces(cls, netbox):
+        return manage.Interface.objects.filter(
+            netbox__id=netbox.id).count() > 0
+
+    @defer.inlineCallbacks
     def handle(self):
-        self._logger.debug("Collecting CAM logs")
+        """Gets forwarding tables from Q-BRIDGE-MIB. It that fails, reverts to
+        BRIDGE-MIB, with optional community string indexing on Cisco.
 
-        bridge_mib = BridgeMib(self.agent)
-        if_mib = IfMib(self.agent)
-
-        # If cs_at_vlan is False we can skip community string indexing.
-        # If it's None we try community string indexing, since we can't really
-        # know for sure if it's supported or not.
-        if self.netbox.type.cs_at_vlan == False:
-            vlans = []
-        else:
-            dw = defer.waitForDeferred(
-                self._get_vlans())
-            yield dw
-            vlans = dw.getResult()
-
-        if len(vlans) > 0:
-            # Try polling mac/port data with community string indexing
-            agents = CommunityIndexAgentProxy(self.netbox)
-            for vlan in vlans:
-                agent = agents.agent_for_vlan(vlan)
-                vlan_bridge_mib = BridgeMib(agent)
-                dw = defer.waitForDeferred(self._fetch_macs(vlan_bridge_mib))
-                yield dw
-
-                try:
-                    num = dw.getResult()
-                except (TimeoutError, defer.TimeoutError):
-                    self._logger.debug("Timeout on vlan %d" % vlan)
-                else:
-                    self._logger.debug("Found %d macs on vlan %d" % (num, vlan))
-
-        if len(self.result) == 0 or len(vlans) == 0:
-            # No result or no vlans, poll mac/port data without community
-            # string indexing
-            self._logger.debug("Trying to fetch cam without community index")
-            dw = defer.waitForDeferred(self._fetch_macs(bridge_mib))
-            yield dw
-            num = dw.getResult()
-            self._logger.debug("Found %d macs for netbox" % num)
-
-        # Fetch interface to port descriptions
-        dw = defer.waitForDeferred(
-            if_mib.retrieve_column('ifName'))
-        yield dw
-        ifname_result = dw.getResult()
-        self._process_cam(ifname_result)
-
-        # Get all existing cam records
-        dw = defer.waitForDeferred(threads.deferToThread(
-            self._fetch_cam))
-        yield dw
-        self.existing_cam = dw.getResult()
-
-        self._store()
-        self._timeout_cam()
-
-        yield True
-
-    def _store(self):
-        """Store found cam data.
-
-        If we find a record that already exist in the database, but has a miss
-        count, we reset the miss count and end time.
         """
-        for key, row in self.cam.items():
-            cam = self.containers.factory(key, shadows.Cam)
+        fdb = yield self._get_dot1q_mac_port_mapping()
+        self._log_fdb_stats("Q-BRIDGE-MIB", fdb)
 
-            if key in self.existing_cam:
-                if self.existing_cam[key].miss_count > 0:
-                    self._logger.debug(
-                        "Resetting miss count and end time on ifindex %s/mac %s" % (
-                            self.existing_cam[key].ifindex,
-                            self.existing_cam[key].mac,
-                    ))
-                cam.id = self.existing_cam[key].id
+        if not fdb:
+            fdb = yield self._get_dot1d_mac_port_mapping()
+            self._log_fdb_stats("BRIDGE-MIB", fdb)
 
-            cam.netbox = self.netbox
-            cam.sysname = self.netbox.sysname
-            cam.ifindex = row['ifindex']
-            # cam.module
-            cam.port = row['port']
-            cam.mac = row['mac']
-            cam.end_time = datetime.max
-            cam.miss_count = 0
+        self.fdb = fdb
 
-    def _timeout_cam(self):
-        """Compares existing cam records in the database to what was found
-        during this polling run.
+        # get all existing ifindexes to ensure ports we don't touch aren't
+        # marked as gone by the InterfaceManager
+        yield self._get_interfaces()
 
-        Records that are no longer found will get their miss count increased
-        untill they reach the maximum miss count. They are then considered
-        closed.
-        """
-        for key, row in self.existing_cam.items():
-            if key not in self.cam:
-                cam = self.containers.factory(key, shadows.Cam)
-                cam.id = row.id
-                if row.miss_count == 0:
-                    cam.miss_count = 1
-                    cam.end_time = datetime.now()
-                    self._logger.debug(
-                        "ifindex %s/mac %s is no longer found, miss count 1" % (
-                        row.ifindex, row.mac
-                    ))
-                elif row.miss_count >= MAX_MISS_COUNT:
-                    cam.miss_count = None
-                    message = "ifindex %s/mac %s reached maximum miss count" % (
-                        row.ifindex, row.mac
-                    )
-                    message += " and is considered gone."
-                    self._logger.debug(message)
-                else:
-                    cam.miss_count = row.miss_count + 1
-                    self._logger.debug(
-                        "ifindex %s/mac %s miss count is %d" % (
-                        row.ifindex, row.mac, cam.miss_count
-                    ))
+        self.monitored = yield threads.deferToThread(get_netbox_macs)
+        self.my_macs = set(mac for mac, netboxid in self.monitored.items()
+                           if netboxid == self.netbox.id)
+        self._classify_ports()
+        self._store_cam_records()
+        self._store_adjacency_candidates()
 
-    @defer.deferredGenerator
-    def _fetch_macs(self, bridge_mib):
-        """Polls cam data.
+        self.blocking = yield self._get_dot1d_stp_blocking()
 
-        Uses the given bridge_mib.
+    @defer.inlineCallbacks
+    def _get_dot1d_mac_port_mapping(self):
+        bridge = yield self._get_bridge()
+        fdb = yield bridge.get_forwarding_database()
+        baseports = yield self._get_baseports()
 
-        Sets self.result to a dictionary indexed by ifindex. Values are a list
-        of macs.
+        mapping = defaultdict(set)
+        for mac, port in fdb.items():
+            if port in baseports:
+                ifindex = baseports[port]
+                mapping[ifindex].add(mac)
 
-        Returns number of found macs.
-        """
+        defer.returnValue(dict(mapping))
 
-        def process_mac_result(mac_result):
-            result = {}
-            for index, row in mac_result.items():
-                mac = binary_mac_to_hex(row['dot1dTpFdbAddress'])
-                port = row['dot1dTpFdbPort']
-                if port not in result:
-                    result[port] = []
-                result[port].append(mac)
-            return result
+    @defer.inlineCallbacks
+    def _get_dot1q_mac_port_mapping(self):
+        qbridge = QBridgeMib(self.agent)
+        fdb = yield qbridge.get_forwarding_database()
+        baseports = yield self._get_baseports()
 
-        df = bridge_mib.retrieve_columns([
-                'dot1dTpFdbAddress',
-                'dot1dTpFdbPort',
-            ])
-        dw = defer.waitForDeferred(df)
-        yield dw
-        result = dw.getResult()
-        mac_result = process_mac_result(dw.getResult())
-        num = len(result)
+        mapping = defaultdict(set)
+        for mac, port in fdb:
+            if port in baseports:
+                ifindex = baseports[port]
+                mapping[ifindex].add(mac)
 
-        df = bridge_mib.retrieve_column('dot1dBasePortIfIndex')
-        dw = defer.waitForDeferred(df)
-        yield dw
-        result = dw.getResult()
+        defer.returnValue(dict(mapping))
 
-        for (port,), ifindex in result.items():
-            if ifindex not in self.result:
-                self.result[ifindex] = []
-            self.result[ifindex] = mac_result.get(port, [])
+    @defer.inlineCallbacks
+    def _get_baseports(self):
+        if not self.baseports:
+            bridge = yield self._get_bridge()
+            self.baseports = yield bridge.get_baseport_ifindex_map()
+        defer.returnValue(self.baseports)
 
-        yield num
+    @defer.inlineCallbacks
+    def _get_bridge(self):
+        if not self.bridge:
+            instances = yield self._get_dot1d_instances()
+            self.bridge = MultiBridgeMib(self.agent, instances)
+        defer.returnValue(self.bridge)
 
-    def _process_cam(self, ifname_result):
-        """Combines self.result with ifname_result.
-        Sets self.cam to a dictionary where the keys are netbox id, ifindex and
-        mac.
-        """
-        for (ifindex,), portname in ifname_result.items():
-            if ifindex in self.result:
-                macs = self.result[ifindex]
-                for mac in macs:
-                    key = (self.netbox.id, ifindex, mac)
-                    self.cam[key] = {
-                        'ifindex': ifindex,
-                        'module': None,
-                        'port': portname,
-                        'mac': mac,
-                    }
+    @defer.inlineCallbacks
+    def _get_dot1d_instances(self):
+        if not self.dot1d_instances:
+            self.dot1d_instances = yield utils.get_dot1d_instances(self.agent)
+        defer.returnValue(self.dot1d_instances)
 
-    def _get_vlans(self):
-        """Fetches all vlans from the database.
-        """
-        queryset = manage.Interface.objects.filter(
-                netbox__id=self.netbox.id
-            )
-        interfaces = storage.shadowify_queryset(queryset)
+    def _log_fdb_stats(self, prefix, fdb):
+        mac_count = sum(len(v) for v in fdb.values())
+        self._logger.debug("%s: %d MAC addresses found on %d ports",
+                           prefix, mac_count, len(fdb))
 
-        vlans = []
-        for interface in interfaces:
-            if interface.vlan and interface.vlan not in vlans:
-                vlans.append(interface.vlan)
+    def _classify_ports(self):
+        def _is_linkport(portmacs):
+            _port, macs = portmacs
+            return any(mac in self.monitored and mac not in self.my_macs
+                       for mac in macs)
 
-        return defer.succeed(vlans)
+        linkports, accessports = splitby(_is_linkport, self.fdb.items())
+        self.linkports = dict(linkports)
+        self.accessports = dict(accessports)
 
-    def _fetch_cam(self):
-        """Fetches all cam data from the database.
-        Returns a dictionary where the keys are tuples of netbox id, if index
-        and mac.
-        """
-        queryset = manage.Cam.objects.filter(
-                netbox__id=self.netbox.id,
-                miss_count__isnull=False,
-            )
-        shadow = storage.shadowify_queryset_and_commit(queryset)
+        self._logger.debug("up/downlinks: %r", sorted(self.linkports.keys()))
+        self._logger.debug("access ports: %r", sorted(self.accessports.keys()))
 
-        result = {}
-        for row in shadow:
-            key = (row.netbox.id, row.ifindex, row.mac)
-            result[key] = row
-        return result
+    def _store_cam_records(self):
+        for port in self.accessports:
+            macs = self.fdb.get(port, [])
+            for mac in macs:
+                cam = self.containers.factory((port, mac), shadows.Cam)
+                cam.ifindex = port
+                cam.mac = mac
 
-class CommunityIndexAgentProxy(object):
-    """Makes agent proxies with community string indexing"""
+    def _store_adjacency_candidates(self):
+        shadows.AdjacencyCandidate.sentinel(self.containers, 'cam')
+        for port in self.linkports:
+            macs = self.fdb.get(port, None) or set()
+            macs = macs.intersection(self.monitored).difference(self.my_macs)
+            if macs:
+                self._logger.debug(
+                    "%r sees the following monitored mac addresses: %r",
+                    port, macs)
+                candidates = [self.monitored[mac] for mac in macs]
+                self._make_candidates(port, candidates)
 
-    def __init__(self, netbox):
-        self.netbox = netbox
-        self.ports = cycle([snmpprotocol.port() for i in range(10)])
+    def _make_candidates(self, port, candidates):
+        for netboxid in candidates:
+            otherbox = self._factory_netbox(netboxid)
+            ifc = self._factory_interface(port)
 
-    def agent_for_vlan(self, vlan):
-        """Returns a new agent proxy with community string index set to the
-        given vlan.
-        """
-        community = "%s@%s" % (self.netbox.read_only, vlan)
-        port = self.ports.next()
-        agent = agentproxy.AgentProxy(
-            self.netbox.ip, 161,
-            community=community,
-            snmpVersion='v%s' % self.netbox.snmp_version,
-            protocol=port.protocol,
-        )
-        return agent
+            candidate = self._factory_candidate(port, netboxid)
+            candidate.interface = ifc
+            candidate.to_netbox = otherbox
+            candidate.source = 'cam'
+
+    def _factory_netbox(self, netboxid):
+        netbox = self.containers.factory(netboxid, shadows.Netbox)
+        netbox.id = netboxid
+        return netbox
+
+    def _factory_interface(self, ifindex):
+        ifc = self.containers.factory(ifindex, shadows.Interface)
+        ifc.netbox = self.netbox
+        ifc.ifindex = ifindex
+        return ifc
+
+    def _factory_candidate(self, port, candidate):
+        candidate = self.containers.factory((port, candidate, None, 'cam'),
+                                            shadows.AdjacencyCandidate)
+        candidate.netbox = self.netbox
+        return candidate
+
+
+    #
+    # STP blocking related methods
+    #
+    # Currently, these are here just because we don't want to send multiple
+    # duplicate queries to find multiple BRIDGE-MIB instances etc.  When SNMP
+    # response caching is properly implemented, this should be extracted into
+    # a separate plugin.
+    #
+
+    @defer.inlineCallbacks
+    def _get_dot1d_stp_blocking(self):
+        bridge = yield self._get_bridge()
+        blocking = yield bridge.get_stp_blocking_ports()
+        baseports = yield self._get_baseports()
+
+        # Ensure processing of blocking states in DB, even if we found no
+        # current blocking ports:
+        self.containers.add(shadows.SwPortBlocked)
+
+        translated = [(baseports[port], vlan) for port, vlan in blocking
+                     if port in baseports]
+        if translated:
+            self._log_blocking_ports(translated)
+            self._store_blocking_ports(translated)
+        defer.returnValue(translated)
+
+    @defer.inlineCallbacks
+    def _get_interfaces(self):
+        indexes = yield IfMib(self.agent).get_ifindexes()
+        for ifindex in indexes:
+            ifc = self.containers.factory(ifindex, shadows.Interface)
+            ifc.ifindex = ifindex
+
+    def _log_blocking_ports(self, blocking):
+        ifc_count = len(set(ifc for ifc, vlan in blocking))
+        vlan_count = len(set(vlan for ifc, vlan in blocking))
+        self._logger.debug("found %d STP blocking ports on %d vlans: %r",
+                           ifc_count, vlan_count, blocking)
+
+    VLAN_PATTERN = re.compile('(vlan)?(?P<vlan>[0-9]+)', re.IGNORECASE)
+    def _store_blocking_ports(self, blocking):
+        for ifindex, vlan in blocking:
+            match = self.VLAN_PATTERN.match(vlan)
+            vlan = int(match.group('vlan')) if match else None
+
+            ifc = self.containers.factory(ifindex, shadows.Interface)
+            ifc.ifindex = ifindex
+
+            block = self.containers.factory((ifindex, vlan),
+                                            shadows.SwPortBlocked)
+            block.interface = ifc
+            block.vlan = vlan

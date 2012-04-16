@@ -1,3 +1,155 @@
+Version 3.11.2
+(released 12 Apr 2012)
+
+ Bugfixes:
+
+  * LP#939429 (throttle linkState events)
+  * LP#962939 (navtopology crashes when router trunks exist)
+  * LP#965972 (neighbor identification via sysname is case sensitive)
+  * LP#968917 (ipdevpoll UnicodeDecodeError when storing unidentified LLDP
+               neighbors)
+  * LP#969069 (ipdevpoll.log fills up with snmp_open errors)
+  * LP#972211 (Switch ports not discovered on Gbe2c switches)
+  * LP#972363 (statically configured bridge forwarding entries aren't collected
+               for machine tracking)
+  * LP#972442 (ipdevpoll profiling job crashes with IntegrityError)
+  * LP#979737 (throttle snmpAgentState events)
+  * LP#979791 (ipdevpoll LLDP plugin crash with AttributeError)
+
+Version 3.11.1
+(released 22 Mar 2012)
+
+ User-visible features and improvements:
+
+  * Unrecognized neighbors report is now back, with improved information and
+    populated with source data from both CDP and LLDP.
+
+  * Running out of available file descriptors while opening SNMP sockets is
+    logged more informatively.
+
+  * ipdevpoll will not run jobs unnecessarily for devices whose SNMP agents
+    are known to be down.
+
+ Bugfixes:
+
+  * LP#890142 (sysname is not updated from DNS for non-SNMP devices)
+  * LP#953967 (Don't store router port addresses for shutdown ports)
+  * LP#954766 (CDP plugin crashes with AttributeError on some devices)
+  * LP#955087 (Geomap fails to draw map after OpenStreetMap shut down tiles@home
+               server)
+  * LP#955789 (sc.03.11.0004.sql fails on PostgreSQL 9)
+  * LP#955808 (navtopology ValueError: need more than 1 value to unpack)
+  * LP#955861 (ipdevpoll topo job IntegrityError)
+  * LP#956772 (navtopology doesn't delete unused vlan records)
+  * LP#956904 (ipdevpoll creates unusable Vlan records)
+  * LP#956910 (ipdevpoll is unable to detect cisco router trunks properly)
+  * LP#956955 (mcc.py creates sensors configuration for netboxes that have no
+               SNMP community)
+  * LP#959081 (Error in IP filter causes AlertEngine to crash)
+  * LP#959156 (ipdevpoll AttributeError: LoggerAdapter instance has no attribute
+               'warn')
+  * LP#961123 (ipdevpoll topo job UnboundLocalError in neighbor processing)
+  * LP#961206 (Non-conformance to IPV6-TC in IPV6-MIB causes inventory job
+               crash)
+  * LP#961238 (ipdevpoll topo job crash when storing blocked ports for some
+               Procurve switches)
+  * LP#961566 (FieldDoesNotExist error in ipdevpoll: ifoperstatus_change)
+  * LP#961573 (ipdevpoll ValueError: u'1.3' is not a valid sysObjectID)
+
+Version 3.11.0
+(released 08 Mar 2012)
+
+ User-visible features and improvements:
+
+  * LLDP support for improved topology detection.
+
+  * getBoksMacs replaced by ipdevpoll plugins in `topo` job.
+
+  * Q-BRIDGE-MIB now also used when collecting switch forwarding tables,
+    meaning improved machine tracking data for switch vendors like HP, Juniper
+    and Alcatel.
+
+  * The Machine Tracker's IP search form has consolidated the `To` and `From`
+    IP address search fields into a single `IP Range` search field with
+    extended search syntax for ranges of IP addresses.  See LP#643544 for
+    details.
+
+  * ipdevpoll can now be made to run single job configurations from
+    ipdevpoll.conf, to run in the foreground, and to log to stderr instead of
+    its log file.
+
+  * ipdevpoll will reset its log levels from logging.conf upon receiving a
+    SIGHUP signal.
+
+  * ipdevpoll will log the currently active polling jobs upon receiving a
+    SIGUSR1 signal.
+
+
+Version 3.10.4
+(released 08 Mar 2012)
+
+ Bugfixes:
+
+  * LP#947080 (Netbox attributes aren't updated when modules are found)
+
+Version 3.10.3
+(released 01 Mar 2012)
+
+ Bugfixes:
+
+  * LP#906849 (Status page does not show current IP devices down)
+  * LP#936926 (mcc registers sensors RRD files in wrong directory)
+  * LP#937622 (a device's supported snmp version is never updated)
+  * LP#937677 (type, device and various other attributes aren't updated)
+
+Version 3.10.2
+(released 09 Feb 2012)
+
+ Bugfixes:
+
+  * LP#258298 (Service alerts aren't closed on service deletion)
+  * LP#392022 (Incorrect IPv4 net address prefix link in Subnet matrix)
+  * LP#744930 (vlan report for closed vlans is empty)
+  * LP#744933 (IP range searches in radius accounting tool ignores timestamp)
+  * LP#912210 (pping crashes when its PID is >= 32768)
+  * LP#912219 (Network explorer incomplete domain names)
+  * LP#920882 (moduleDown alerts reference affected module only as "$module")
+  * LP#920886 (Status page doesn't show modules down)
+  * LP#922566 (SQL syntax errors from getBoksMacs on PostgreSQL 9.1)
+  * LP#922586 (Cisco 1900 switches cause getBoksMacs SNMP walks to go into
+               infinite loops)
+  * LP#922616 (report system behaves badly if accessed without a trailing slash
+               in url)
+  * LP#923641 (Fan outage on HP devices never reported)
+  * LP#925928 (HP Virtual Connect Ethernet modules report crazy MAC addresses,
+               making getBoksMacs spew SQL errors)
+  * LP#925956 (link from organization report to prefix report crashes report
+               page)
+  * LP#928754 (Installing database on PostgreSQL 9 fails)
+
+
+Version 3.10.1
+(released 05 Jan 2012)
+
+ Bugfixes:
+
+  * LP#903096 (Ampersand in organization id crashes ipdevinfo)
+  * LP#904605 (netboxinfo subcat column links to a failing page)
+  * LP#906763 (SyntaxError in powersupplywatch.py on Python < 2.6)
+  * LP#906845 (Status on front page shows device on maintenance as down)
+  * LP#906850 (Alert Profiles NoReverseMatch error under Django 1.3)
+  * LP#907193 (COMMIT/ROLLBACK error after deleting device (Django 1.3))
+  * LP#907204 (seeddb crashes while adding an already existing switch)
+  * LP#907741 (NAV 3.10 pping inaccurately reports multitudes of devices as down
+               when pinging self)
+  * LP#907772 (navtopology crashes with TypeError)
+  * LP#910849 (ipdevpoll wastes time and I/O bandwidth with unnecessary SQL
+               UPDATEs)
+  * LP#910855 (navtopology doesn't avoid multiple instances)
+  * LP#911684 (radius accounting log crashes when searching)
+  * LP#911786 (servicemon stops sending events)
+
+
 Version 3.10.0
 (released 16 Dec 2011)
 

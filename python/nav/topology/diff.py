@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -83,7 +83,7 @@ def printdiffs():
                   else '')))
 
     output.sort()
-    return '\n'.join(output)
+    print '\n'.join(output)
 
 if __name__ == '__main__':
     printdiffs()

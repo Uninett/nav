@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,10 +18,12 @@
 This package contains plugins submodules as distributed with NAV.
 
 """
-
+import inspect
 import logging
 
 from nav.errors import GeneralException
+
+from nav.ipdevpoll import Plugin
 
 _logger = logging.getLogger(__name__)
 plugin_registry = {}
@@ -32,7 +34,6 @@ class PluginImportError(GeneralException):
 def import_plugins():
     """Import all configured plugins into the plugin registry."""
     from nav.ipdevpoll.config import ipdevpoll_conf
-    global plugin_registry
 
     plugin_counter = 0
     for alias in ipdevpoll_conf.options('plugins'):
@@ -45,19 +46,47 @@ def import_plugins():
 
 
 def import_plugin(config, alias):
-    global plugin_registry
+    """Attempts to import the plugin aliased to alias in config.
+
+    If alias is set, but the config doesn't contain the full name of the
+    plugin class, the module and class will be searched for in the
+    nav.ipdevpoll.plugins package.
+
+    """
     full_class_name = config.get('plugins', alias)
-    module_name = '.'.join(full_class_name.split('.')[:-1])
-    class_name = full_class_name.split('.')[-1]
+    if full_class_name:
+        module_name = '.'.join(full_class_name.split('.')[:-1])
+        class_name = full_class_name.split('.')[-1]
+    else:
+        module_name = 'nav.ipdevpoll.plugins.%s' % alias
+        class_name = None
 
     _logger.debug('Importing plugin %s=%s', alias, full_class_name)
     try:
         module_ = __import__(module_name, globals(), locals(),
                              [module_name])
-        class_ = getattr(module_, class_name)
+        if class_name:
+            class_ = getattr(module_, class_name)
+        else:
+            class_ = get_plugin_from_module(module_)
     except (ImportError, AttributeError), error:
         _logger.exception("Failed to import plugin %s", full_class_name)
         raise PluginImportError(error)
 
     plugin_registry[alias] = class_
     class_.on_plugin_load()
+
+
+def get_plugin_from_module(module_):
+    """Tries to find a Plugin subclass in module_ and returns it"""
+    def _predicate(thing):
+        return (inspect.isclass(thing) and issubclass(thing, Plugin)
+                and inspect.getmodule(thing) == module_)
+
+    members = inspect.getmembers(module_, _predicate)
+    if members:
+        name, value = members[0]
+        _logger.debug('found plugin class %s in %s', name, module_)
+        return value
+    else:
+        raise AttributeError("no plugin class defined in module %r", module_)

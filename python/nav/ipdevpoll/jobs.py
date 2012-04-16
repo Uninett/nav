@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -25,14 +25,14 @@ from itertools import cycle
 from twisted.internet import defer, threads, reactor
 from twisted.internet.error import TimeoutError
 
-from nav import toposort
-
-from nav.ipdevpoll import get_context_logger
+from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
+from nav.ipdevpoll.snmp.common import SnmpError
 from . import storage, shadows
 from .plugins import plugin_registry
 from nav.ipdevpoll import db
 from .utils import log_unhandled_failure
+from .snmp.common import snmp_parameter_factory
 
 _logger = logging.getLogger(__name__)
 ports = cycle([snmpprotocol.port() for i in range(50)])
@@ -63,6 +63,10 @@ class JobHandler(object):
     information for the job.
 
     """
+    _logger = ContextLogger()
+    _queue_logger = ContextLogger(suffix='queue')
+    _timing_logger = ContextLogger(suffix='timings')
+    _start_time = datetime.datetime.min
 
     def __init__(self, name, netbox, plugins=None):
         self.name = name
@@ -71,12 +75,6 @@ class JobHandler(object):
 
         instance_name = (self.name, "(%s)" % netbox.sysname)
         instance_queue_name = ("queue",) + instance_name
-        self.log_context = dict(job=self.name, sysname=self.netbox.sysname)
-        self._logger = get_context_logger(self, **self.log_context)
-        self._queue_logger = get_context_logger(self._logger.name + '.queue',
-                                                **self.log_context)
-        self._timing_logger = get_context_logger(self._logger.name + ".timings",
-                                                 **self.log_context)
 
         self.plugins = plugins or []
         self._logger.debug("Job %r initialized with plugins: %r",
@@ -94,22 +92,38 @@ class JobHandler(object):
         if self.agent:
             self._destroy_agentproxy()
 
+        if not self.netbox.read_only:
+            self.agent = None
+            return
+
         port = ports.next()
         self.agent = AgentProxy(
             self.netbox.ip, 161,
             community = self.netbox.read_only,
             snmpVersion = 'v%s' % self.netbox.snmp_version,
             protocol = port.protocol,
+            snmp_parameters = snmp_parameter_factory(self.netbox)
         )
-        self.agent.open()
-        self._logger.debug("AgentProxy created for %s: %s",
-                           self.netbox.sysname, self.agent)
+        try:
+            self.agent.open()
+        except SnmpError, error:
+            self.agent.close()
+            session_count = self.agent.count_open_sessions()
+            job_count = self.get_instance_count()
+            self._logger.error(
+                "%s (%d currently open SNMP sessions, %d job handlers)",
+                error, session_count, job_count)
+            raise AbortedJobError("Cannot open SNMP session", cause=error)
+        else:
+            self._logger.debug("AgentProxy created for %s: %s",
+                               self.netbox.sysname, self.agent)
 
     def _destroy_agentproxy(self):
         if self.agent:
             self.agent.close()
         self.agent = None
 
+    @defer.inlineCallbacks
     def find_plugins(self):
         """Populate the internal plugin list with plugin class instances."""
         from nav.ipdevpoll.config import ipdevpoll_conf
@@ -123,11 +137,12 @@ class JobHandler(object):
             plugin_class = plugin_registry[plugin_name]
 
             # Check if plugin wants to handle the netbox at all
-            if plugin_class.can_handle(self.netbox):
+            can_handle = yield defer.maybeDeferred(
+                plugin_class.can_handle, self.netbox)
+            if can_handle:
                 plugin = plugin_class(self.netbox, agent=self.agent,
                                       containers=self.containers,
-                                      config=ipdevpoll_conf,
-                                      context=self.log_context)
+                                      config=ipdevpoll_conf)
                 plugins.append(plugin)
             else:
                 self._logger.debug("Plugin %s wouldn't handle %s",
@@ -135,12 +150,12 @@ class JobHandler(object):
 
         if not plugins:
             self._logger.debug("No plugins for this job")
-            return
+            defer.returnValue(None)
 
         self._logger.debug("Plugins to call: %s",
                            ",".join([p.name() for p in plugins]))
 
-        return plugins
+        defer.returnValue(plugins)
 
     def _iterate_plugins(self, plugins):
         """Iterates plugins."""
@@ -180,23 +195,30 @@ class JobHandler(object):
 
         return next_plugin()
 
+    @defer.inlineCallbacks
     def run(self):
-        """Starts a polling job for netbox and returns a Deferred."""
+        """Starts a polling job for netbox.
+
+        :returns: A Deferred, whose result will be True when the job did
+                  something, or False when the job did nothing (i.e. no
+                  plugins ran).
+
+        """
         self._create_agentproxy()
-        plugins = self.find_plugins()
+        plugins = yield self.find_plugins()
         self._reset_timers()
         if not plugins:
             self._destroy_agentproxy()
-            return defer.succeed(None)
+            defer.returnValue(False)
 
-        self._logger.info("Starting job %r for %s",
-                          self.name, self.netbox.sysname)
+        self._logger.debug("Starting job %r for %s",
+                           self.name, self.netbox.sysname)
 
         def wrap_up_job(result):
-            self._logger.info("Job %s for %s done.", self.name,
-                              self.netbox.sysname)
+            self._logger.debug("Job %s for %s done.", self.name,
+                               self.netbox.sysname)
             self._log_timings()
-            return result
+            return True
 
         def plugin_failure(failure):
             self._log_timings()
@@ -246,7 +268,8 @@ class JobHandler(object):
         df.addCallback(save)
         df.addErrback(log_abort)
         df.addBoth(cleanup)
-        return df
+        yield df
+        defer.returnValue(True)
 
     def cancel(self):
         """Cancels a running job.
@@ -311,11 +334,11 @@ class JobHandler(object):
         @db.autocommit
         @db.cleanup_django_debug_after
         def complete_save_cycle():
+            # Traverse all the classes in the container repository and
+            # generate the storage queue
+            self.populate_storage_queue()
             # Prepare all shadow objects for storage.
             self.prepare_containers_for_save()
-            # Traverse all the objects in the storage container and generate
-            # the storage queue
-            self.populate_storage_queue()
             # Actually save to the database
             result = self.perform_save()
             self.log_timed_result(result, "Storing to database complete")
@@ -326,31 +349,25 @@ class JobHandler(object):
         return df
 
     def prepare_containers_for_save(self):
-        """Execute the prepare_for_save-method on all shadow classes with known
-        instances.
-
-        """
-        for cls in self.containers.keys():
+        """Runs every queued manager's prepare routine"""
+        for manager in self.storage_queue:
             self.raise_if_cancelled()
-            cls.prepare_for_save(self.containers)
+            manager.prepare()
 
     def cleanup_containers_after_save(self):
-        """Execute the cleanup_after_save-method on all shadow classes with
-        known instances.
-
-        """
-        self._logger.debug("Running cleanup routines for %d classes (%r)",
-                           len(self.containers), self.containers.keys())
+        """Runs every queued manager's cleanup routine"""
+        self._logger.debug("Running cleanup routines for %d managers",
+                           len(self.storage_queue), self.storage_queue)
         try:
-            for cls in self.containers.keys():
+            for manager in self.storage_queue:
                 self.raise_if_cancelled()
-                cls.cleanup_after_save(self.containers)
+                manager.cleanup()
         except AbortedJobError:
             raise
         except Exception:
             self._logger.exception("Caught exception during cleanup. "
-                                  "Last class = %s",
-                                  cls.__name__)
+                                   "Last manager = %r",
+                                   manager)
             import django.db
             if django.db.connection.queries:
                 self._logger.error("The last query was: %s",
@@ -362,37 +379,39 @@ class JobHandler(object):
 
     def perform_save(self):
         start_time = time.time()
-        obj_model = None
+        manager = None
         try:
-            self.storage_queue.reverse()
-            if self._queue_logger.getEffectiveLevel() <= logging.DEBUG:
-                self._queue_logger.debug(pprint.pformat(
-                        [(id(o), o) for o in self.storage_queue]))
+            self._log_containers("containers before save")
 
-            while self.storage_queue:
+            for manager in self.storage_queue:
                 self.raise_if_cancelled()
-                obj = self.storage_queue.pop()
-                obj.save(self.containers)
+                manager.save()
 
             end_time = time.time()
             total_time = (end_time - start_time) * 1000.0
 
-            if self._queue_logger.getEffectiveLevel() <= logging.DEBUG:
-                self._queue_logger.debug("containers after save: %s",
-                                         pprint.pformat(self.containers))
+            self._log_containers("containers after save")
 
             return total_time
         except AbortedJobError:
             raise
         except Exception:
             self._logger.exception("Caught exception during save. "
-                                   "Last object = %s. Last model: %s",
-                                   obj, obj_model)
+                                   "Last manager = %s. Last model = %s",
+                                   manager, getattr(manager, 'cls', None))
             import django.db
             if django.db.connection.queries:
                 self._logger.error("The last query was: %s",
                                    django.db.connection.queries[-1])
             raise
+
+    def _log_containers(self, prefix=None):
+        log = self._queue_logger
+        if not log.isEnabledFor(logging.DEBUG):
+            return
+        log.debug("%s%s",
+                  prefix and "%s: " % prefix,
+                  pprint.pformat(dict(self.containers)))
 
     def populate_storage_queue(self):
         """Naive population of the storage queue.
@@ -403,10 +422,9 @@ class JobHandler(object):
         according to the dependency (topological) order of their classes.
 
         """
-        for shadow_class in sorted_shadow_classes:
-            if shadow_class in self.containers:
-                shadows = set(self.containers[shadow_class].values())
-                self.storage_queue.extend(shadows)
+        for shadow_class in self.containers.sortedkeys():
+            manager = shadow_class.manager(shadow_class, self.containers)
+            self.storage_queue.append(manager)
 
     def container_factory(self, container_class, key):
         """Container factory function"""
@@ -424,20 +442,3 @@ class JobHandler(object):
 
         """
         return len([o for o in gc.get_objects() if isinstance(o, cls)])
-
-def get_shadow_sort_order():
-    """Return a topologically sorted list of shadow classes."""
-    def get_dependencies(shadow_class):
-        return shadow_class.get_dependencies()
-
-    shadow_classes = storage.MetaShadow.shadowed_classes.values()
-    graph = toposort.build_graph(shadow_classes, get_dependencies)
-    sorted_classes = toposort.topological_sort(graph)
-    return sorted_classes
-
-
-# As this module is loaded, we want to build a list of shadow classes
-# sorted in topological order.  This only needs to be done once.  The
-# list is used to find the correct order in which to store shadow
-# objects at the end of a job.
-sorted_shadow_classes = get_shadow_sort_order()

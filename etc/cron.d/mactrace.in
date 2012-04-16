@@ -1,3 +1,2 @@
-## info: Collects cam data from switches
-NUM_THREADS=24
-11,26,41,56 * * * *      @bindir@/getBoksMacs.sh $NUM_THREADS; @bindir@/macwatch.py
+## info: Checks NAV's cam log for watched MAC addresses
+11,26,41,56 * * * *      @bindir@/macwatch.py

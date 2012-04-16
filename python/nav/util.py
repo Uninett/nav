@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2005 Norwegian University of Science and Technology
-# Copyright (C) 2007, 2011 UNINETT AS
+# Copyright (C) 2007, 2011, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,8 +18,11 @@
 
 import os
 import stat
+import datetime
+from functools import wraps
+from itertools import chain, tee
+
 import IPy
-from itertools import chain
 
 def gradient(start, stop, steps):
     """Create and return a sequence of steps representing an integer
@@ -148,4 +151,192 @@ def mergedicts(*dicts):
     keys = chain(*dicts)
     return dict((k, [d.get(k, None) for d in dicts])
                 for k in keys)
+
+def splitby(predicate, iterable):
+    """Splits an iterable in two iterables, based on a predicate.
+
+    :returns: A tuple of two iterables: (true_iter, false_iter)
+
+    """
+    predicated = ((v, predicate(v)) for v in iterable)
+    iter1, iter2 = tee(predicated)
+    return (v for (v, p) in iter1 if p), (v for (v, p) in iter2 if not p)
+
+class IPRange(object):
+    """An IP range representation.
+
+    An IPRange object is both iterable and indexable. All addresses are
+    calculated on the fly based on the range endpoints, ensuring memory
+    efficiency.
+
+    Use the from_string() factory method to create a range object from a
+    string representation.
+
+    """
+
+    def __init__(self, start, stop):
+        """Creates an IP range representation including both the start and
+        stop endpoints.
+
+        """
+        start = IPy.IP(start)
+        stop = IPy.IP(stop)
+        self._min = min(start, stop)
+        self._max = max(start, stop)
+
+    def __repr__(self):
+        return "%s(%r, %r)" % (self.__class__.__name__,
+                               self._min, self._max)
+
+    def __contains__(self, item):
+        return item >= self._min and item <= self._max
+
+    def __len__(self):
+        return self._max.int() - self._min.int() + 1
+
+    def len(self):
+        """Returns the length of the range.
+
+        When working with IPv6, this may actually be preferable to
+        len(iprange), as huge prefixes may cause an OverflowError when using
+        the standard Python len() protocol.
+
+        """
+        return self.__len__()
+
+    def __iter__(self):
+        count = self.len()
+        for offset in xrange(0, count):
+            yield IPy.IP(self._min.int()+offset)
+
+    def __getitem__(self, index):
+        if index >= self.len() or index < -self.len():
+            raise IndexError('index out of range')
+        if index >= 0:
+            return IPy.IP(self._min.int()+index)
+        else:
+            return IPy.IP(self._max.int()+index+1)
+
+    @classmethod
+    def from_string(cls, rangestring):
+        """Creates an IP range representation from a string.
+
+        Examples:
+
+        >>> IPRange.from_string('10.0.1.20-10.0.1.30')
+        IPRange(IP('10.0.1.20'), IP('10.0.1.30'))
+        >>> IPRange.from_string('10.0.1.0/24')
+        IPRange(IP('10.0.1.0'), IP('10.0.1.255'))
+        >>> IPRange.from_string('fe80:700::aaa-fff')
+        IPRange(IP('fe80:700::aaa'), IP('fe80:700::fff'))
+
+        """
+
+        start, stop = cls._parse(rangestring.strip())
+        return cls(start, stop)
+
+    @classmethod
+    def _parse(cls, rangestring):
+        if '-' in rangestring:
+            return cls._parse_as_range(rangestring)
+        elif '/' in rangestring:
+            return cls._parse_as_network(rangestring)
+        else:
+            addr = IPy.IP(rangestring)
+            return (addr, addr)
+
+    @classmethod
+    def _parse_as_range(cls, rangestring):
+        try:
+            from_ip, to_ip = rangestring.split('-')
+        except ValueError:
+            raise ValueError("multiple ranges found")
+
+        try:
+            from_ip, to_ip = cls._assemble_range(from_ip, to_ip)
+        except ValueError:
+            from_ip = IPy.IP(from_ip)
+            to_ip = IPy.IP(to_ip)
+
+        return (from_ip, to_ip)
+
+    @staticmethod
+    def _assemble_range(from_ip, to_ip):
+        """Parses 10.0.42.0-62 as 10.0.42.0-10.0.42.62, raising a ValueError
+        if not possible.
+
+        """
+        ip1 = IPy.IP(from_ip)
+        sep = ":" if ip1.version() == 6 else "."
+        prefix, _suffix = from_ip.rsplit(sep, 1)
+        assembled = sep.join([prefix, to_ip])
+        ip2 = IPy.IP(assembled)
+        return (ip1, ip2)
+
+    @classmethod
+    def _parse_as_network(cls, rangestring):
+        try:
+            network, mask = rangestring.split('/')
+        except ValueError:
+            raise ValueError("multiple network masks found")
+        if not mask:
+            mask = cls.get_mask_for_network(network)
+
+        iprange = IPy.IP(network).make_net(mask)
+        return (iprange[0], iprange[-1])
+
+    # pylint: disable=W0613
+    @classmethod
+    def get_mask_for_network(cls, network):
+        """Returns a suitable mask for the given network address.
+
+        Defaults to a 24 bit mask. Override this to do other magic, like look
+        up a matching prefix from the NAV database.
+
+        """
+        return '24'
+
+# pylint: disable=C0103,R0903
+class cachedfor(object):
+    """Decorates a function with no arguments to cache its result for a period
+    of time.
+
+    """
+    def __init__(self, max_age):
+        self.max_age = max_age
+        self.value = None
+        self.func = None
+        self.updated = datetime.datetime.min
+
+    def __call__(self, func):
+        self.func = func
+        @wraps(func)
+        def _wrapper():
+            age = datetime.datetime.now() - self.updated
+            if age >= self.max_age:
+                self.value = self.func()
+                self.updated = datetime.datetime.now()
+            return self.value
+
+        return _wrapper
+
+def synchronized(lock):
+    """Synchronization decorator.
+
+    Decorates a function to ensure it can only run in a single thread at a
+    time.
+
+    :param lock: A threading.Lock object.
+
+    """
+    def _decorator(func):
+        @wraps(func)
+        def _wrapper(*args, **kwargs):
+            lock.acquire()
+            try:
+                return func(*args, **kwargs)
+            finally:
+                lock.release()
+        return _wrapper
+    return _decorator
 

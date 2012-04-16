@@ -64,3 +64,33 @@ class CiscoVTPMib(mibretriever.MibRetriever):
                        for index, row in trunkports.items()
                        if row['vlanTrunkPortDynamicStatus'] == 'trunking'])
         yield result
+
+    @defer.inlineCallbacks
+    def get_vlan_states(self):
+        "Retrieves the state of each VLAN on the device"
+        states = yield self.retrieve_columns(
+            ['vtpVlanState']).addCallback(self.translate_result)
+
+        result = dict((vlan, row['vtpVlanState'])
+                      for (_domain, vlan), row in states.items())
+        defer.returnValue(result)
+
+    @defer.inlineCallbacks
+    def get_operational_vlans(self):
+        "Retrieves a set of operational VLANs on this device"
+        states = yield self.get_vlan_states()
+        defer.returnValue(set(vlan for vlan, state in states.items()
+                              if state == 'operational'))
+
+    @defer.inlineCallbacks
+    def retrieve_alternate_bridge_mibs(self):
+        """Retrieve a list of alternate bridge mib instances.
+
+        :returns: A list of (descr, community) tuples for each operational
+                  VLAN on this device.
+
+        """
+        vlans = yield self.get_operational_vlans()
+        community = self.agent_proxy.community
+        defer.returnValue([("vlan%s" % vlan, "%s@%s" % (community, vlan))
+                           for vlan in vlans])

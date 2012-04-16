@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -33,8 +33,6 @@ interfering with the daemon's asynchronous operations.
 
 """
 
-import logging
-
 from twisted.internet import threads
 
 from nav.models import manage
@@ -50,14 +48,14 @@ class NetboxLoader(dict):
     values are shadows.Netbox objects.
 
     """
+    _logger = ipdevpoll.ContextLogger()
 
-    def __init__(self, context=None):
+    def __init__(self):
         super(NetboxLoader, self).__init__()
         self.peak_count = 0
-        if context:
-            self._logger = ipdevpoll.get_context_logger(self, **context)
-        else:
-            self._logger = ipdevpoll.get_class_logger(self.__class__)
+        # touch _logger to initialize logging context right away
+        # pylint: disable=W0104
+        self._logger
 
     @autocommit
     def load_all_s(self):
@@ -79,8 +77,14 @@ class NetboxLoader(dict):
         """
         related = ('room__location', 'type__vendor',
                    'category', 'organization', 'device')
-        queryset = manage.Netbox.objects.select_related(*related).filter(
-            read_only__isnull=False, up='y')
+        snmp_up_query = """SELECT COUNT(*) = 0
+                           FROM alerthist
+                           WHERE alerthist.netboxid = netbox.netboxid
+                             AND eventtypeid='snmpAgentState'
+                             AND end_time >= 'infinity' """
+        queryset = (manage.Netbox.objects.select_related(*related).
+                    filter(up='y').
+                    extra(select={'snmp_up': snmp_up_query}))
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
 
@@ -105,8 +109,10 @@ class NetboxLoader(dict):
 
         self.peak_count = max(self.peak_count, len(self))
 
-        self._logger.info(
-            "Loaded %d netboxes from database "
+        anything_changed = len(new_ids) or len(lost_ids) or len(changed_ids)
+        log = self._logger.info if anything_changed else self._logger.debug
+
+        log("Loaded %d netboxes from database "
             "(%d new, %d removed, %d changed, %d peak)",
             len(netbox_dict), len(new_ids), len(lost_ids), len(changed_ids),
             self.peak_count
@@ -127,11 +133,12 @@ def is_netbox_changed(netbox1, netbox2):
     if netbox1.id != netbox2.id:
         raise Exception("netbox1 and netbox2 do not represent the same netbox")
 
-    for attr in ('ip', 
-                 'type', 
-                 'read_only', 
-                 'snmp_version', 
+    for attr in ('ip',
+                 'type',
+                 'read_only',
+                 'snmp_version',
                  'device',
+                 'snmp_up',
                  ):
         if getattr(netbox1, attr) != getattr(netbox2, attr):
             return True

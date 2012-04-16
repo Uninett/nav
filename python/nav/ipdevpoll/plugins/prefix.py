@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -58,13 +57,6 @@ class Prefix(Plugin):
     equipment.
     """
     @classmethod
-    def can_handle(cls, netbox):
-        """
-        This plugin handles netboxes
-        """
-        return True
-
-    @classmethod
     def on_plugin_load(cls):
         from nav.ipdevpoll.config import ipdevpoll_conf
         cls.ignored_prefixes = get_ignored_prefixes(ipdevpoll_conf)
@@ -99,13 +91,27 @@ class Prefix(Plugin):
                                new_addresses)
             addresses.update(new_addresses)
 
+        adminup_ifcs = yield self._get_adminup_ifcs()
         for ifindex, ip, prefix in addresses:
+            if ifindex not in adminup_ifcs:
+                self._logger.debug(
+                    "ignoring collected address %s on admDown ifindex %s",
+                    ip, ifindex)
+                continue
             if self._prefix_should_be_ignored(prefix):
                 self._logger.debug("ignoring prefix %s as configured", prefix)
                 continue
             self.create_containers(netbox, ifindex, prefix, ip,
                                    vlan_interfaces)
 
+
+    @defer.inlineCallbacks
+    def _get_adminup_ifcs(self):
+        ifmib = IfMib(self.agent)
+        statuses = yield ifmib.get_admin_status()
+        result = set(ifindex for ifindex, status in statuses.items()
+                     if status == 'up')
+        defer.returnValue(result)
 
     def create_containers(self, netbox, ifindex, net_prefix, ip,
                           vlan_interfaces):
@@ -124,6 +130,9 @@ class Prefix(Plugin):
 
             prefix = self.containers.factory(net_prefix, shadows.Prefix)
             prefix.net_address = str(net_prefix)
+            # Host masks aren't included when IPy converts to string
+            if '/' not in prefix.net_address:
+                prefix.net_address += "/%s"  % net_prefix.prefixlen()
             port_prefix.prefix = prefix
 
             # Always associate prefix with a VLAN record, but set a

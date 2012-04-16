@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010, 2011 UNINETT AS
+# Copyright (C) 2010-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,10 +22,6 @@ from nav.ipdevpoll import shadows
 import time
 
 class LastUpdated(Plugin):
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
-
     def handle(self):
         self._logger.debug("Updating lastupdated timestamp")
 

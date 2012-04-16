@@ -45,7 +45,7 @@ disable=W0142,W0232
 output-format=parseable
 
 # Include message's id in output
-include-ids=no
+include-ids=yes
 
 # Put messages in a separate file for each module / package specified on the
 # command line instead of printing them on stdout. Reports (if any) will be
@@ -155,7 +155,7 @@ ignore-mixin-members=yes
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).
-ignored-classes=twisted.internet.reactor,Meta,Account,Arp,Cam,Category,Device,GwPortPrefix,Interface,Location,Module,NetType,Netbox,NetboxInfo,NetboxCategory,NetboxSnmpOid,NetboxType,Organization,Prefix,Room,Shadow,SnmpOid,SwPortAllowedVlan,SwPortVlan,SwPortBlocked,Usage,Vendor,Vlan,CharField,OneToOneField,ForeignKey,Filter,Subcategory,EventType,Memory,AlertQueue,AlertType,Memory,AccountGroup,AlertProfile,AlertSubscription,Expression,Operator,AccountAlertQueue,AlertSender,AccountProperty,AlertAddress,TimePeriod,AlertPreference,MatchField,FilterGroup,FilterGroupContent,AccountNavbar,AlertHistory,AlertHistoryMessage,AlertHistoryVariable,Cabling,EventQueue,EventQueueVar,Message,NavbarLink,Patch,Privilege,RrdDataSource,SMSQueue,Service,ServiceProperty,StatusPreference,StatusPreferenceCategory,StatusPreferenceOrganization,Subsystem,SwPortToNetbox,RrdFile
+ignored-classes=twisted.internet.reactor,Meta,Account,Arp,Cam,Category,Device,GwPortPrefix,Interface,Location,Module,NetType,Netbox,NetboxInfo,NetboxCategory,NetboxSnmpOid,NetboxType,Organization,Prefix,Room,Shadow,SnmpOid,SwPortAllowedVlan,SwPortVlan,SwPortBlocked,Usage,Vendor,Vlan,CharField,OneToOneField,ForeignKey,Filter,Subcategory,EventType,Memory,AlertQueue,AlertType,Memory,AccountGroup,AlertProfile,AlertSubscription,Expression,Operator,AccountAlertQueue,AlertSender,AccountProperty,AlertAddress,TimePeriod,AlertPreference,MatchField,FilterGroup,FilterGroupContent,AccountNavbar,AlertHistory,AlertHistoryMessage,AlertHistoryVariable,Cabling,EventQueue,EventQueueVar,Message,NavbarLink,Patch,Privilege,RrdDataSource,SMSQueue,Service,ServiceProperty,StatusPreference,StatusPreferenceCategory,StatusPreferenceOrganization,Subsystem,RrdFile,AdjacencyCandidate,UnrecognizedNeighbor
 
 # When zope mode is activated, add a predefined set of Zope acquired attributes
 # to generated-members.
@@ -163,7 +163,7 @@ zope=yes
 
 # List of members which are set dynamically and missed by pylint inference
 # system, and so shouldn't trigger E0201 when accessed.
-generated-members=REQUEST,acl_users,aq_parent
+generated-members=REQUEST,acl_users,aq_parent,objects
 
 
 [SIMILARITIES]

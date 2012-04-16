@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -32,10 +32,6 @@ class InvalidResponseError(Exception):
     pass
 
 class TypeOid(Plugin):
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
-
     def handle(self):
         """Collects sysObjectID and looks for type changes."""
         self._logger.debug("Collecting sysObjectId")

@@ -39,22 +39,22 @@ class ReportEncodingTest(ModPythonTestCase):
         self.handler_outputs_no_unicode("/report/")
 
     def test_matrix_no_unicode_output(self):
-        self.handler_outputs_no_unicode("/report/matrix/")
+        self.handler_outputs_no_unicode("/report/matrix")
 
     def test_reportlist_no_unicode_output(self):
-        self.handler_outputs_no_unicode("/report/reportlist/")
+        self.handler_outputs_no_unicode("/report/reportlist")
 
     def test_netbox_report_no_unicode_output(self):
-        self.handler_outputs_no_unicode("/report/netbox/")
+        self.handler_outputs_no_unicode("/report/netbox")
 
     def test_org_report_no_unicode_output(self):
-        self.handler_outputs_no_unicode("/report/org/")
+        self.handler_outputs_no_unicode("/report/org")
 
     def test_location_report_no_unicode_output(self):
-        self.handler_outputs_no_unicode("/report/location/")
+        self.handler_outputs_no_unicode("/report/location")
 
     def test_room_report_no_unicode_output(self):
-        self.handler_outputs_no_unicode("/report/room/")
+        self.handler_outputs_no_unicode("/report/room")
 
     def test_admin_name_present_in_output(self):
         buffer = StringIO()

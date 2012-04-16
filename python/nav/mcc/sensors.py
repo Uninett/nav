@@ -20,14 +20,16 @@ def make_config(globalconfig):
 
     dirname = "sensors"
     configroot = find_config_root(globalconfig)
+    path_to_rrdfiles = join(utils.get_datadir(configroot), dirname)
     path_to_directory = join(configroot, dirname)
 
     LOGGER.info("Creating config for %s in %s" % (dirname, path_to_directory))
 
-    for netbox in Netbox.objects.all():
+    boxes = Netbox.objects.exclude(read_only__isnull=True).exclude(read_only='')
+    for netbox in boxes:
         containers = create_netbox_config(netbox, path_to_directory)
         if containers:
-            dbutils.updatedb(path_to_directory, containers)
+            dbutils.updatedb(path_to_rrdfiles, containers)
 
     return True
 
@@ -94,7 +96,8 @@ def create_sensor_config(sensor, counter):
 def create_container(sensor):
     """ Create container for storing in database """
     container = utils.RRDcontainer(str(sensor.id) + ".rrd", sensor.netbox.id,
-                                   sensor.netbox.sysname)
+                                   sensor.netbox.sysname, key="sensor",
+                                   value=sensor.id)
     container.datasources = [("ds0", "sensor", "GAUGE")]
     return container
 

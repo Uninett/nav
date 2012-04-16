@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -21,12 +20,14 @@ import datetime
 import time
 from operator import itemgetter
 from random import randint
+from math import ceil
 
 from twisted.python.failure import Failure
 from twisted.internet import task, threads, reactor
 from twisted.internet.defer import Deferred, maybeDeferred
 
 from nav import ipdevpoll
+from nav.ipdevpoll.snmp import SnmpError, AgentProxy
 from . import shadows, config, signals
 from .dataloader import NetboxLoader
 from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
@@ -35,6 +36,7 @@ from nav.tableformat import SimpleTableFormatter
 from nav.ipdevpoll.utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
+MAX_CONCURRENT_JOBS = 1000
 
 class NetboxJobScheduler(object):
     """Netbox job schedule handler.
@@ -45,13 +47,15 @@ class NetboxJobScheduler(object):
     """
     job_counters = {}
     job_queues = {}
+    global_job_queue = []
+    global_intensity = MAX_CONCURRENT_JOBS
+    _logger = ipdevpoll.ContextLogger()
 
     def __init__(self, job, netbox):
         self.job = job
         self.netbox = netbox
-        self._logger = ipdevpoll.get_context_logger(self,
-                                                    job=self.job.name,
-                                                    sysname=netbox.sysname)
+        self._log_context = dict(job=job.name, sysname=netbox.sysname)
+        self._logger
         self.cancelled = False
         self.job_handler = None
         self._deferred = Deferred()
@@ -99,9 +103,15 @@ class NetboxJobScheduler(object):
             return
 
         if self.is_job_limit_reached():
-            self._logger.debug("intensity limit for %r reached - waiting to "
+            self._logger.debug("intensity limit reached for %s - waiting to "
                                "run for %s", self.job.name, self.netbox.sysname)
-            self.queue_myself()
+            self.queue_myself(self.get_job_queue())
+            return
+
+        if self.is_global_limit_reached():
+            self._logger.debug("global intensity limit reached - waiting to "
+                               "run for %s", self.netbox.sysname)
+            self.queue_myself(self.global_job_queue)
             return
 
         # We're ok to start a polling run.
@@ -111,7 +121,6 @@ class NetboxJobScheduler(object):
         except Exception:
             self._log_unhandled_error(Failure())
             self.reschedule(60)
-            self._log_time_to_next_run()
             return
 
         self.job_handler = job_handler
@@ -119,6 +128,7 @@ class NetboxJobScheduler(object):
         self._last_job_started_at = time.time()
 
         deferred = maybeDeferred(job_handler.run)
+        deferred.addErrback(self._adjust_intensity_on_snmperror)
         deferred.addCallbacks(self._reschedule_on_success,
                               self._reschedule_on_failure)
         deferred.addErrback(self._log_unhandled_error)
@@ -129,21 +139,61 @@ class NetboxJobScheduler(object):
     def is_running(self):
         return self.job_handler is not None
 
+    @classmethod
+    def _adjust_intensity_on_snmperror(cls, failure):
+        if (failure.check(AbortedJobError)
+            and isinstance(failure.value.cause, SnmpError)):
+
+            open_sessions = AgentProxy.count_open_sessions()
+            new_limit = int(ceil(open_sessions * 0.90))
+            if new_limit < cls.global_intensity:
+                cls._logger.warning("Setting global intensity limit to %d",
+                                    new_limit)
+                cls.global_intensity = new_limit
+
     def _reschedule_on_success(self, result):
         """Reschedules the next normal run of this job."""
-        time_passed = time.time() - self._last_job_started_at
-        delay = max(0, self.job.interval - time_passed)
+        delay = max(0, self.job.interval - self.get_runtime())
         self.reschedule(delay)
+        if result:
+            self._log_finished_job(True)
+        else:
+            self._logger.debug("job did nothing")
         return result
 
     def _reschedule_on_failure(self, failure):
         """Examines the job failure and reschedules the job if needed."""
-        failure.trap(AbortedJobError)
         if failure.check(SuggestedReschedule):
             delay = int(failure.value.delay)
         else:
             delay = randint(5*60, 10*60) # within 5-10 minutes
         self.reschedule(delay)
+        self._log_finished_job(False)
+        failure.trap(AbortedJobError)
+
+    def _log_finished_job(self, success=True):
+        status = "completed" if success else "failed"
+        runtime = datetime.timedelta(seconds=self.get_runtime())
+        next_time = self.get_time_to_next_run()
+        if next_time is not None:
+            if next_time <= 0:
+                delta = "right now"
+            else:
+                delta = "in %s" % datetime.timedelta(seconds=next_time)
+            self._logger.info("%s in %s. next run %s.",
+                              status, runtime, delta)
+        else:
+            self._logger.info("%s in %s. no next run scheduled",
+                              status, runtime)
+
+    def get_runtime(self):
+        """Returns the number of seconds passed since the start of last job"""
+        return time.time() - self._last_job_started_at
+
+    def get_time_to_next_run(self):
+        """Returns the number of seconds until the next job starts"""
+        if self._next_call.active():
+            return self._next_call.getTime() - time.time()
 
     def reschedule(self, delay):
         """Reschedules the next run of of this job"""
@@ -153,8 +203,8 @@ class NetboxJobScheduler(object):
 
         next_time = datetime.datetime.now() + datetime.timedelta(seconds=delay)
 
-        self._logger.info("Next %r job for %s will be in %d seconds (%s)",
-                          self.job.name, self.netbox.sysname, delay, next_time)
+        self._logger.debug("Next %r job for %s will be in %d seconds (%s)",
+                           self.job.name, self.netbox.sysname, delay, next_time)
 
         if self._next_call.active():
             self._next_call.reset(delay)
@@ -173,6 +223,7 @@ class NetboxJobScheduler(object):
             self.job_handler = None
             self.uncount_job()
             self.unqueue_next_job()
+            self.unqueue_next_global_job()
         return result
 
     def count_job(self):
@@ -189,22 +240,40 @@ class NetboxJobScheduler(object):
         return self.__class__.job_counters.get(self.job.name, 0)
 
     def is_job_limit_reached(self):
-        """Returns True if the number of jobs >= the intensity setting.
-
-        Only jobs of the same name as this one is considered.
-
-        """
+        "Returns True if the number of jobs >= the job intensity limit"
         return (self.job.intensity > 0 and
                 self.get_job_count() >= self.job.intensity)
 
-    def queue_myself(self):
-        self.get_job_queue().append(self)
+    @classmethod
+    def is_global_limit_reached(cls):
+        "Returns True if the global number of jobs >= global intensity limit"
+        return cls.get_global_job_count() >= cls.global_intensity
+
+    @classmethod
+    def get_global_job_count(cls):
+        if cls.job_counters:
+            return sum(cls.job_counters.values())
+        else:
+            return 0
+
+    def queue_myself(self, queue):
+        queue.append(self)
 
     def unqueue_next_job(self):
+        "Unqueues the next waiting job"
         queue = self.get_job_queue()
-        if not self.is_job_limit_reached() and len(queue) > 0:
+        if queue and not self.is_job_limit_reached():
             handler = queue.pop(0)
             return handler.start()
+
+    @classmethod
+    def unqueue_next_global_job(cls):
+        "Unqueues the next job waiting because of the global intensity setting"
+        if not cls.is_global_limit_reached():
+            for index, handler in enumerate(cls.global_job_queue):
+                if not handler.is_job_limit_reached():
+                    del cls.global_job_queue[index]
+                    return handler.start()
 
     def get_job_queue(self):
         if self.job.name not in self.job_queues:
@@ -216,20 +285,22 @@ class JobScheduler(object):
     job_logging_loop = None
     netbox_reload_interval = 2*60.0 # seconds
     netbox_reload_loop = None
+    _logger = ipdevpoll.ContextLogger()
 
     def __init__(self, job):
         """Initializes a job schedule from the job descriptor."""
-        self._logger = ipdevpoll.get_context_logger(self, job=job.name)
+        self._log_context = dict(job=job.name)
         self.job = job
-        self.netboxes = NetboxLoader(context=dict(job=job.name))
+        self.netboxes = NetboxLoader()
         self.active_netboxes = {}
 
         self.active_schedulers.add(self)
 
     @classmethod
-    def initialize_from_config_and_run(cls):
+    def initialize_from_config_and_run(cls, onlyjob=None):
         descriptors = config.get_jobs()
-        schedulers = [JobScheduler(d) for d in descriptors]
+        schedulers = [JobScheduler(d) for d in descriptors
+                      if not onlyjob or (d.name == onlyjob)]
         for scheduler in schedulers:
             scheduler.run()
 
@@ -267,7 +338,7 @@ class JobScheduler(object):
 
     def _setup_active_job_logging(self):
         if self.__class__.job_logging_loop is None:
-            loop = task.LoopingCall(self.__class__._log_active_jobs)
+            loop = task.LoopingCall(self.__class__.log_active_jobs)
             self.__class__.job_logging_loop = loop
             loop.start(interval=5*60.0, now=False)
 
@@ -303,7 +374,7 @@ class JobScheduler(object):
         del self.active_netboxes[netbox_id]
 
     @classmethod
-    def _log_active_jobs(cls):
+    def log_active_jobs(cls, level=logging.DEBUG):
         """Debug logs a list of running job handlers.
 
         The handlers will be sorted by descending runtime.
@@ -320,8 +391,10 @@ class JobScheduler(object):
 
         logger = logging.getLogger("%s.joblist" % __name__)
         if jobs:
-            logger.debug("currently active jobs (%d):\n%s",
-                         len(jobs), table_formatter)
+            logger.log(level,
+                       "currently active jobs (%d):\n%s",
+                       len(jobs), table_formatter)
         else:
-            logger.debug("no active jobs (%d JobHandlers)",
-                         JobHandler.get_instance_count())
+            logger.log(level,
+                       "no active jobs (%d JobHandlers)",
+                       JobHandler.get_instance_count())

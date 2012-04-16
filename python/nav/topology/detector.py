@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,9 +19,12 @@ from optparse import OptionParser
 from functools import wraps
 import inspect
 import logging
+import sys
 import os
+import atexit
 
 from nav import buildconf
+from nav import daemon
 from nav.debug import log_stacktrace, log_last_django_query
 from nav.topology.layer2 import update_layer2_topology
 from nav.topology.analyze import AdjacencyReducer, build_candidate_graph_from_db
@@ -29,6 +32,7 @@ from nav.topology.vlan import VlanGraphAnalyzer, VlanTopologyUpdater
 
 LOGFILE_NAME = 'navtopology.log'
 LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
+PIDFILE_PATH = os.path.join(buildconf.localstatedir, 'run', 'navtopology.pid')
 
 
 def main():
@@ -37,6 +41,9 @@ def main():
     (options, _args) = parser.parse_args()
 
     init_logging()
+    if options.l2 or options.vlan:
+        # protect against multiple invocations of long-running jobs
+        verify_singleton()
     if options.l2:
         do_layer2_detection()
     if options.vlan:
@@ -45,6 +52,7 @@ def main():
         else:
             vlans = []
         do_vlan_detection(vlans)
+        delete_unused_vlans()
 
 def make_option_parser():
     """Sets up and returns a command line option parser."""
@@ -110,6 +118,29 @@ def do_vlan_detection(vlans):
     ifc_vlan_map = analyzer.add_access_port_vlans()
     update = VlanTopologyUpdater(ifc_vlan_map)
     update()
+
+@with_exception_logging
+def delete_unused_vlans():
+    "Deletes vlans unassociated with prefixes or switch ports"
+    from nav.models.manage import Vlan
+    unused = Vlan.objects.filter(prefix__isnull=True, swportvlan__isnull=True)
+    unused.delete()
+
+def verify_singleton():
+    """Verifies that we are the single running navtopology process.
+
+    If a navtopology process is already running, we exit this process.
+
+    """
+
+    try:
+        daemon.justme(PIDFILE_PATH)
+    except daemon.AlreadyRunningError, error:
+        print >> sys.stderr, "navtopology is already running (%d)" % error.pid
+        sys.exit(1)
+
+    daemon.writepidfile(PIDFILE_PATH)
+    atexit.register(daemon.daemonexit, PIDFILE_PATH)
 
 if __name__ == '__main__':
     main()

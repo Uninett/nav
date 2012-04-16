@@ -1,0 +1,117 @@
+#
+# Copyright (C) 2012 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+"ipdevpoll plugin to collect CDP (Cisco Discovery Protocol) information"
+from twisted.internet import defer
+from twisted.internet.threads import deferToThread
+
+from nav.models import manage
+from nav.ipdevpoll import Plugin, shadows
+from nav.mibs.cisco_cdp_mib import CiscoCDPMib
+from nav.ipdevpoll.neighbor import CDPNeighbor, filter_duplicate_neighbors
+from nav.ipdevpoll.db import autocommit
+
+SOURCE = 'cdp'
+
+class CDP(Plugin):
+    """Finds neighboring devices from a device's CDP cache.
+
+    If the neighbor can be identified as something monitored by NAV, a
+    topology adjacency candidate will be registered. Otherwise, the
+    neighboring device will be noted as an unrecognized neighbor to this
+    device.
+
+    """
+    cache = None
+    neighbors = None
+
+    @classmethod
+    @defer.inlineCallbacks
+    def can_handle(cls, netbox):
+        daddy_says_ok = super(CDP, cls).can_handle(netbox)
+        has_ifcs = yield deferToThread(cls._has_interfaces, netbox)
+        defer.returnValue(has_ifcs and daddy_says_ok)
+
+    @classmethod
+    @autocommit
+    def _has_interfaces(cls, netbox):
+        return manage.Interface.objects.filter(
+            netbox__id=netbox.id).count() > 0
+
+    @defer.inlineCallbacks
+    def handle(self):
+        cdp = CiscoCDPMib(self.agent)
+        cache = yield cdp.get_cdp_neighbors()
+        if cache:
+            self._logger.debug("found CDP cache data: %r", cache)
+            self.cache = cache
+            yield deferToThread(self._process_cache)
+
+    @autocommit
+    def _process_cache(self):
+        "Tries to synchronously identify CDP cache entries in NAV's database"
+        shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
+
+        neighbors = [CDPNeighbor(cdp) for cdp in self.cache]
+
+        self._process_identified(
+            [n for n in neighbors if n.identified])
+        self._process_unidentified(
+            [n.record for n in neighbors if not n.identified])
+
+        self.neighbors = neighbors
+
+    def _process_identified(self, identified):
+        for neigh in identified:
+            self._logger.debug("identified neighbor %r from %r",
+                               (neigh.netbox, neigh.interface), neigh.record)
+
+        filtered = list(filter_duplicate_neighbors(identified))
+        delta = len(identified) - len(filtered)
+        if delta:
+            self._logger.debug("filtered out %d duplicate CDP entries", delta)
+        for neigh in filtered:
+            self._store_candidate(neigh)
+
+    def _store_candidate(self, neighbor):
+        ifindex = neighbor.record.ifindex
+        ifc = self.containers.factory(ifindex, shadows.Interface)
+        ifc.ifindex = ifindex
+
+        key = (ifindex, neighbor.netbox.id,
+               neighbor.interface and neighbor.interface.id or None, SOURCE)
+        cand = self.containers.factory(key, shadows.AdjacencyCandidate)
+        cand.netbox = self.netbox
+        cand.interface = ifc
+        cand.to_netbox = neighbor.netbox
+        cand.to_interface = neighbor.interface
+        cand.source = SOURCE
+
+    def _process_unidentified(self, unidentified):
+        for record in unidentified:
+            self._store_unidentified(record)
+
+    def _store_unidentified(self, record):
+        ifc = self.containers.factory(record.ifindex, shadows.Interface)
+        ifc.ifindex = record.ifindex
+
+        key = (record.ifindex, record.ip, SOURCE)
+        neighbor = self.containers.factory(
+            key, shadows.UnrecognizedNeighbor)
+        neighbor.netbox = self.netbox
+        neighbor.interface = ifc
+        neighbor.remote_id = unicode(record.ip)
+        neighbor.remote_name = record.deviceid
+        neighbor.source = SOURCE

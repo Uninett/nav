@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -23,8 +22,11 @@ this plugin.
 
 from twisted.internet import defer
 
+from nav.mibs.if_mib import IfMib
 from nav.mibs.cisco_vtp_mib import CiscoVTPMib
 from nav.mibs.cisco_vlan_membership_mib import CiscoVlanMembershipMib
+from nav.mibs.cisco_vlan_iftable_relationship_mib \
+    import CiscoVlanIftableRelationshipMib
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
@@ -32,33 +34,45 @@ from nav.ipdevpoll import shadows
 
 class CiscoVlan(Plugin):
     """Collect 802.1q info from CISCO-VTP-MIB and CISCO-VLAN-MEMBERSHIP-MIB."""
-
-    @classmethod
-    def can_handle(cls, netbox):
-        """This plugin handles netboxes"""
-        return True
+    _valid_ifindexes = ()
 
     @defer.inlineCallbacks
     def handle(self):
-        """Plugin entrypoint"""
+        ciscovtp = CiscoVTPMib(self.agent)
+        ciscovm = CiscoVlanMembershipMib(self.agent)
+        ciscovlanif = CiscoVlanIftableRelationshipMib(self.agent)
 
-        self._logger.debug("Collecting Cisco-proprietary 802.1q VLAN information")
-
-        self.ciscovtp = CiscoVTPMib(self.agent)
-        self.ciscovm = CiscoVlanMembershipMib(self.agent)
-
-        enabled_vlans = yield self.ciscovtp.get_trunk_enabled_vlans(
+        enabled_vlans = yield ciscovtp.get_trunk_enabled_vlans(
             as_bitvector=True)
-        native_vlans = yield self.ciscovtp.get_trunk_native_vlans()
-        vlan_membership = yield self.ciscovm.get_vlan_membership()
+        native_vlans = yield ciscovtp.get_trunk_native_vlans()
+        vlan_membership = yield ciscovm.get_vlan_membership()
+        vlan_ifindex = yield ciscovlanif.get_routed_vlan_ifindexes()
 
-        self._store_access_ports(vlan_membership)
-        self._store_trunk_ports(native_vlans, enabled_vlans)
+        if vlan_membership or native_vlans or enabled_vlans or vlan_ifindex:
+            self._logger.debug("vlan_membership: %r", vlan_membership)
+            self._logger.debug("native_vlans: %r", native_vlans)
+            self._logger.debug("enabled_vlans: %r", enabled_vlans)
+            self._logger.debug("vlan_ifindex: %r", vlan_ifindex)
 
+            self._valid_ifindexes = yield self._get_ifindexes()
+            self._store_access_ports(vlan_membership)
+            self._store_trunk_ports(native_vlans, enabled_vlans)
+            self._store_vlan_ifc_relationships(vlan_ifindex)
+
+    @defer.inlineCallbacks
+    def _get_ifindexes(self):
+        ifmib = IfMib(self.agent)
+        indexes = yield ifmib.get_ifindexes()
+        defer.returnValue(set(indexes))
 
     def _store_access_ports(self, vlan_membership):
         """Store vlan memberships for all ports."""
         for ifindex, vlan in vlan_membership.items():
+            if ifindex not in self._valid_ifindexes:
+                self._logger.debug("ignoring info for invalid ifindex %s",
+                                   ifindex)
+                continue
+
             interface = self.containers.factory(ifindex, shadows.Interface)
             interface.trunk = False
             interface.vlan = vlan
@@ -67,6 +81,11 @@ class CiscoVlan(Plugin):
     def _store_trunk_ports(self, native_vlans, enabled_vlans):
         """Store the set of enabled vlans for each trunk port."""
         for ifindex, vector in enabled_vlans.items():
+            if ifindex not in self._valid_ifindexes:
+                self._logger.debug("ignoring info for invalid ifindex %s",
+                                   ifindex)
+                continue
+
             interface = self.containers.factory(ifindex, shadows.Interface)
             interface.trunk = True
             if ifindex in native_vlans:
@@ -80,3 +99,14 @@ class CiscoVlan(Plugin):
                                               shadows.SwPortAllowedVlan)
             allowed.interface = interface
             allowed.hex_string = vector.to_hex()
+
+    def _store_vlan_ifc_relationships(self, routed_vlans):
+        for route in routed_vlans:
+            ifc = self.containers.factory(route.virtual, shadows.Interface)
+            ifc.vlan = route.vlan
+            vlan = self.containers.factory(route.virtual, shadows.Vlan)
+            vlan.vlan = route.vlan
+            if route.physical:
+                phys_ifc = self.containers.factory(route.physical,
+                                                   shadows.Interface)
+                phys_ifc.trunk = True

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011,2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -20,8 +20,10 @@ from __future__ import absolute_import
 import sys
 import inspect
 
-from pynetsnmp import twistedsnmp
+from pynetsnmp import twistedsnmp, netsnmp
 from pynetsnmp.twistedsnmp import snmpprotocol
+
+from . import common
 
 def pynetsnmp_limits_results():
     """Returns True if the available pynetsnmp version limits the number of
@@ -39,7 +41,7 @@ def pynetsnmp_limits_results():
         args = inspect.getargspec(TableRetriever.__init__)[0]
         return 'limit' in args
 
-class AgentProxy(twistedsnmp.AgentProxy):
+class AgentProxy(common.AgentProxyMixIn, twistedsnmp.AgentProxy):
     """pynetsnmp AgentProxy derivative to adjust the silly 1000 value
     limit imposed in getTable calls"""
 
@@ -47,4 +49,20 @@ class AgentProxy(twistedsnmp.AgentProxy):
         def getTable(self, *args, **kwargs):
             if 'limit' not in kwargs:
                 kwargs['limit'] = sys.maxint
-            return twistedsnmp.AgentProxy.getTable(self, *args, **kwargs)
+            return super(AgentProxy, self).getTable(self, *args, **kwargs)
+
+    def open(self):
+        try:
+            super(AgentProxy, self).open()
+        except netsnmp.SnmpError, error:
+            raise common.SnmpError(
+                "could not open session for %s:%s, maybe too many open file "
+                "descriptors?" % (self.ip, self.port))
+
+    @classmethod
+    def count_open_sessions(cls):
+        "Returns a count of the number of open SNMP sessions in this process"
+        import gc
+        mykind = (o for o in gc.get_objects() if isinstance(o, cls))
+        open_sessions = [o for o in mykind if getattr(o.session, 'sess', None)]
+        return len(open_sessions)

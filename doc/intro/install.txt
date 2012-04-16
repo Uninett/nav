@@ -19,7 +19,6 @@ To build NAV, you need at least the following:
  * ant
  * Python >= 2.5.0
  * Java 2 SDK >= 1.5.0
- * JavaSnmp >= 1.4 (A.K.A Drexel SNMP)
  * Cheetah Templates >= 2.0rc7
 
 Runtime requirements
@@ -39,7 +38,6 @@ To run NAV, these software packages are required:
 The following Java librares are required:
 
  * PostgreSQL JDBC driver
- * JavaSnmp >= 1.4 (A.K.A Drexel SNMP)
 
 The following python modules are required:
 
@@ -80,17 +78,10 @@ If you wish to use the Jabber plugin for alertengine, the python module `xmpp`
 is required.
 
 
-Installation
-============
+Installing NAV
+==============
 
-To install NAV, first find where the JavaSNMP (from drexel.edu) library is
-installed on your system.  On Debian it will be located as
-``/usr/share/java/libsnmp-1.4.jar``.  This library needs to be available on the
-Java compiler's classpath before you begin the build::
-
-  export CLASSPATH=/usr/share/java/libsnmp-1.4.jar
-
-Then build and install NAV::
+To build and install NAV::
 
   ./configure CRICKETDIR=/path/to/cricket/binaries
   make
@@ -165,12 +156,10 @@ import nav without a hitch::
 Making the necessary Java libraries available to NAV
 ----------------------------------------------------
 
-The fastest way is to symlink the PostgreSQL JDBC driver and the JavaSNMP
-libraries to NAV's java library directory::
+The fastest way is to symlink the PostgreSQL JDBC driver library to NAV's java
+library directory::
 
-  cd /usr/local/nav/lib/java
-  sudo ln -s /usr/share/java/postgresql.jar
-  sudo ln -s /usr/share/java/libsnmp-1.4.jar
+  sudo ln -s /usr/share/java/postgresql.jar /usr/local/nav/lib/java/
 
 Configuring Apache
 ------------------

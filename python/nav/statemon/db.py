@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2002 Norwegian University of Science and Technology
-# Copyright (C) 2010 UNINETT AS
+# Copyright (C) 2010, 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -26,16 +26,19 @@ import threading
 import checkermap
 import psycopg2
 from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION
+from psycopg2.errorcodes import lookup as pg_err_lookup
 import Queue
 import time
 import atexit
 import traceback
+from functools import wraps
 
 from event import Event
 from service import Service
 from debug import debug
 
 from nav.db import get_connection_string
+from nav.util import synchronized
 
 def db():
     if _db._instance is None:
@@ -49,6 +52,7 @@ class dbError(Exception):
 class UnknownRRDFileError(Exception):
     pass
 
+_queryLock = threading.Lock()
 class _db(threading.Thread):
     _instance = None
     def __init__(self):
@@ -63,7 +67,7 @@ class _db(threading.Thread):
         try:
             conn_str = get_connection_string(script_name='servicemon')
             self.db = psycopg2.connect(conn_str)
-            atexit.register(self.db.close)
+            atexit.register(self.close)
 
             debug("Successfully (re)connected to NAVdb")
             # Set transaction isolation level to READ COMMITTED
@@ -75,7 +79,8 @@ class _db(threading.Thread):
 
     def close(self):
         try:
-            self.db.close()
+            if self.db:
+                self.db.close()
         except psycopg2.InterfaceError:
             # ignore "already-closed" type errors
             pass
@@ -98,6 +103,9 @@ class _db(threading.Thread):
                     debug("Rolling back aborted transaction...", 2)
                     self.db.rollback()
                 else:
+                    debug("PostgreSQL reported an internal error I don't know "
+                          "how to handle: %s (code=%s)" % (
+                            pg_err_lookup(err.pgcode), err.pgcode), 2)
                     raise
         except Exception, err:
             debug(str(err), 2)
@@ -122,6 +130,7 @@ class _db(threading.Thread):
                 self.newEvent(event)
                 time.sleep(5)
 
+    @synchronized(_queryLock)
     def query(self, statement, values=None, commit=1):
         cursor = None
         try:
@@ -142,6 +151,7 @@ class _db(threading.Thread):
                     debug("Failed to rollback", 2)
             raise dbError()
 
+    @synchronized(_queryLock)
     def execute(self, statement, values=None, commit=1):
         cursor = None
         try:

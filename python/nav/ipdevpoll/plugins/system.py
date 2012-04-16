@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011,2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -31,10 +31,6 @@ PATTERNS = [
 
 class System(Plugin):
     """Collects sysDescr and parses a software version from it"""
-
-    @classmethod
-    def can_handle(cls, netbox):
-        return True
 
     @inlineCallbacks
     def handle(self):
