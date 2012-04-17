@@ -271,9 +271,19 @@ class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
 
     def save(self, containers):
-        pfx = self._get_my_prefixes(containers)
-        if pfx:
-            super(Vlan, self).save(containers)
+        prefixes = self._get_my_prefixes(containers)
+        if prefixes:
+            mdl = self.get_existing_model(containers)
+            if mdl and mdl.net_type_id == 'scope':
+                self._logger.warning(
+                    "some interface claims to be on a scope prefix, not "
+                    "changing vlan details. attached prefixes: %r",
+                    [pfx.net_address for pfx in prefixes])
+                for pfx in prefixes:
+                    pfx.vlan = mdl
+                return
+            else:
+                super(Vlan, self).save(containers)
         else:
             self._logger.debug("no associated prefixes, not saving: %r", self)
 
