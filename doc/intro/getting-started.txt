@@ -2,18 +2,21 @@
  Getting started with NAV
 ==========================
 
-This guide assumes NAV is installed in `/usr/local/nav` and that your
-web interface is reachable at http://example.org/ .
+This tutorial will show you how to start monitoring devices with your brand
+new NAV installation.
 
-Configuring NAV
-===============
+The tutorial assumes NAV is installed in `/usr/local/nav` and that your web
+interface is reachable at http://example.org/ .
 
-All configuration files are located below `/usr/local/nav/etc/`.
-Default configuration files are placed here on your first install.
-Most of these are documented with comments, so check each config file
-to see if there are any defaults you'd like to change.
+Minimal configuration
+=====================
 
-We recommend you at least change these two options in `nav.conf`
+All configuration files are located below `/usr/local/nav/etc/`.  Default
+configuration files are placed here on your first install.  Most of these are
+documented with comments, so if you want to get advanced you can check each
+config file to see if there are any defaults you'd like to change.
+
+We recommend you at least change the following two options in `nav.conf`
 before running NAV:
 
 `ADMIN_MAIL`
@@ -36,11 +39,11 @@ processes can be controlled using the nav command
 
 The backend processes consist of some daemon processes, and some cron
 jobs.  Running `nav start` will start all the daemon processes in the
-background, and install all the cron jobs in the navcron user's
+background, and install all the cron jobs in the `navcron` user's
 crontab.
 
-The `nav start` command should be set up to be run at system boot
-time.
+Depending on your OS of choice, you should configure it to run `nav start` on
+boot.
 
 
 Logging in to the web interface
@@ -50,25 +53,61 @@ When browsing the web interface at http://example.org/ you will see
 the front page of NAV.  This is openly accessible to anonymous users
 by default.  
 
-To log in as an administrator, click the `Login` link and enter the
-username 'admin' and the password 'admin'.  Then click the `Userinfo`
-link and change the adminstrator's password to something more
-sensible.
+To log in for the first time, click the `Login` link on the upper right of the
+page, and enter the username "admin" and the default password "admin".  Then
+click the `Userinfo` link in the grey navigation bar and change the
+adminstrator's password to something more sensible.
 
-
-Managing accounts, groups and privileges in the web interface
-=============================================================
-
-All this is accomplished through the Useradmin panel, which should be
-linked from the navigation bar of the admin user. 
-
-Adding any user to the "NAV Administrators" group will give that user
-the same level of privileges as the admin user itself.  It is
-recommended to have personal accounts, even for administrators.
 
 Seeding your database
 =====================
 
-NAV will *not* autodiscover your network.  You need to use the
-SeedDB tool (found in the Toolbox) to seed the database with IP
-addresses and SNMP communities to monitor.
+NAV will *not* autodiscover the routers and switches of your network.  You
+need to use the `SeedDB` tool to enter IP addresses to monitor.  The `SeedDB`
+tool is listed on NAV's `Toolbox` page, reachable from the grey navigation
+bar.
+
+Adding your first device to NAV
+-------------------------------
+
+The `SeedDB` tool enables to you add and edit a multitude of information in
+the NAV database, but the essential bit here is the `IP Device`.  Begin, for
+example, by adding one of your switches:
+
+1. Click the `IP device` tab and then the sub-tab `Add new IP device`
+2. Fill out your switch's IP address in the `IP` field, and, for now, select
+   `myroom` and `myorg` in the room and organization drop-downs.
+3. Select `SW` in the category dropdown.  Don't worry, we'll explain the
+   categories later.
+4. Put your switch's SNMP community in the `Read only` field and click the
+   `Continue` button.
+
+NAV will now verify that this IP address responds to SNMP (v2c or v1) queries
+using the entered community.  If possible, it will try to detect the device's
+type (from its `sysObjectID` value) and serial number.
+
+If SNMP connectivity was verified, SeeDB will display a summary of the
+information you entered and the information it retrieved from the device.  If
+you want to, you can also enter some free-form text about the function the
+device serves in the `Function` field.
+
+Click on `Save` to finalize your entry of this device into NAV's database.
+
+
+Verifying that collection is working
+------------------------------------
+
+Within two minutes, NAV's SNMP collection engine should launch a job to poll
+your newly added device for information.  They grey navigation bar features a
+search field; search for your newly entered device's IP address or DNS name to
+show its `IP Device Info` page.
+
+The `IP Device Info` page will try to display every bit of pertinent
+information about a monitored device.  For now, the key information here is
+the `Last updated` field of the top-left detail panel.  Keep reloading the
+page until its value changes from `N/A` into a meaningful timestamp.
+
+.. NOTE:: If no new information appears on this page within three minutes
+          after adding your switch to NAV, you may need to start
+          troubleshooting NAV's log files.
+
