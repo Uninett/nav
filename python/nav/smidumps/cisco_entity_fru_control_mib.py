@@ -34,6 +34,27 @@ FRUs include assemblies such as power supplies, fans,
 processor modules, interface modules, etc.""",
         "revisions" : (
             {
+                "date" : "2011-03-18 00:00",
+                "description" :
+                    """Added FRUCoolingUnit Textual Convention.
+Added psRedundantSingleInput(7) to Textual
+Convention PowerRedundancyType.
+
+Added the following groups:
+    cefcFRUPowerRealTimeStatusGroup
+    cefcFRUPowerCapabilityGroup
+    cefcFRUCoolingUnitGroup
+    cefcFRUFanCoolingUnitGroup
+
+Deprecated cefcCoolingGroup and replaced with
+cefcCoolingGroup2 and cefcFanCoolingGroup.""",
+            },
+            {
+                "date" : "2010-12-10 00:00",
+                "description" :
+                    """Added cefcMIBModuleLocalSwitchingGroup.""",
+            },
+            {
                 "date" : "2008-10-08 00:00",
                 "description" :
                     """Added two new enumeration values
@@ -268,13 +289,18 @@ Added cefcMgmtNotificationsGroup.""",
                 "nodetype" : "namednumber",
                 "number" : "6"
             },
+            "psRedundantSingleInput" : {
+                "nodetype" : "namednumber",
+                "number" : "7"
+            },
             "description" :
                 """power supply redundancy modes.  valid values are:
 
 notsupported(1): Read-only operational state, indicates
-    that the requested administrative state (redundant(2)
-    , combined(3), psRedundant(5) or inPwrSrcRedundant(6))
-    is not supported by the system.
+    that the requested administrative state (redundant(2),
+    combined(3), psRedundant(5), inPwrSrcRedundant(6)
+    or psRedundantSingleInput(7)) is not supported
+    by the system.
 
 redundant(2): A single power supply output can power
     the entire system, although there are more than
@@ -311,7 +337,15 @@ inPwrSrcRedundant(6): Only the input power redundancy
     such as output power redundancy, are disabled.
 
     This value is only supported by the systems which
-    support input power redundancy.""",
+    support input power redundancy.
+
+ psRedundantSingleInput(7): Only the power redundancy with
+    single input is enabled in the systems which support
+    multiple levels of redundancy.  All other types of
+    redundancy, such as output power redundancy, are disabled.
+
+    This value is only supported by the systems which
+    support power redundancy with single input.""",
         },
         "PowerAdminType" : {
             "basetype" : "Enumeration",
@@ -872,6 +906,23 @@ When objects are defined which use this type, the
 description of the object identifies both of the
 reference epochs.""",
         },
+        "FRUCoolingUnit" : {
+            "basetype" : "Enumeration",
+            "status" : "current",
+            "cfm" : {
+                "nodetype" : "namednumber",
+                "number" : "1"
+            },
+            "watts" : {
+                "nodetype" : "namednumber",
+                "number" : "2"
+            },
+            "description" :
+                """The unit for the cooling capacity and requirement.
+
+cfm(1)    Cubic feet per minute
+watts(2)  Watts""",
+        },
     }, # typedefs
 
     "nodes" : {
@@ -1118,6 +1169,42 @@ table.""",
             "description" :
                 """Current supplied by the FRU (positive values)
 or current required to operate the FRU (negative values).""",
+        }, # column
+        "cefcFRUPowerCapability" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.1.1.2.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Bits",
+                    "realTimeCurrent" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """This object indicates the set of supported power capabilities
+of the FRU.
+
+realTimeCurrent(0) -
+    cefcFRURealTimeCurrent is supported by the FRU.""",
+        }, # column
+        "cefcFRURealTimeCurrent" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.1.1.2.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"CISCO-ENTITY-FRU-CONTROL-MIB", "name" : "FRUCurrentType"},
+            },
+            "access" : "readonly",
+            "description" :
+                """This object indicates the realtime value of current supplied
+by the FRU (positive values) or the realtime value of current
+drawn by the FRU (negative values).""",
         }, # column
         "cefcMaxDefaultInLinePower" : {
             "nodetype" : "scalar",
@@ -1502,6 +1589,69 @@ for the intelligent module.
 The type of this address is 
 determined by the value of the object 
 cefcIntelliModuleIPAddrType.""",
+        }, # column
+        "cefcModuleLocalSwitchingTable" : {
+            "nodetype" : "table",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.1.2.3",
+            "status" : "current",
+            "description" :
+                """This table sparsely augments the cefcModuleTable
+(i.e., every row in this table corresponds to a row in
+the cefcModuleTable but not necessarily vice-versa).
+
+A cefcModuleLocalSwitchingTable entry lists the
+information specific to local switching capable
+modules which cannot be provided by the
+cefcModuleTable.""",
+        }, # table
+        "cefcModuleLocalSwitchingEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.1.2.3.1",
+            "status" : "current",
+            "linkage" : [
+                "entPhysicalIndex",
+            ],
+            "description" :
+                """A cefcModuleLocalSwitchingTable entry lists the
+information specific to a local switching capable
+module which cannot be provided by this module's
+corresponding instance in the cefcModuleTable.
+Only a module which is capable of local switching
+has its entry here.
+
+An entry of this table is created if a module which
+is capable of local switching is detected by the
+managed system.
+
+An entry of this table is deleted if the
+removal of this module.""",
+        }, # row
+        "cefcModuleLocalSwitchingMode" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.1.2.3.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "enabled" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "disabled" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """This object specifies the mode of local switching.
+
+enabled(1)  - local switching is enabled.
+disabled(2) - local switching is disabled.""",
         }, # column
         "cefcMIBNotificationEnables" : {
             "nodetype" : "node",
@@ -1906,11 +2056,25 @@ entry is deleted in ENTITY-MIB entPhysicalTable.""",
                 "type" : { "module" :"", "name" : "Unsigned32"},
             },
             "access" : "readonly",
-            "units" : "cfm",
             "description" :
-                """The maximum cooling capacity in the unit of CFM
-that could be provided for any slot in this 
-chassis.""",
+                """The maximum cooling capacity that could be provided
+for any slot in this chassis.
+
+The default unit of the cooling capacity is 'cfm', if
+cefcChassisPerSlotCoolingUnit is not supported.""",
+        }, # column
+        "cefcChassisPerSlotCoolingUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.1.7.1.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"CISCO-ENTITY-FRU-CONTROL-MIB", "name" : "FRUCoolingUnit"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unit of the maximum cooling capacity for any slot
+in this chassis.""",
         }, # column
         "cefcFanCoolingTable" : {
             "nodetype" : "table",
@@ -1952,10 +2116,23 @@ entry is deleted in ENTITY-MIB entPhysicalTable.""",
                 "type" : { "module" :"", "name" : "Unsigned32"},
             },
             "access" : "readonly",
-            "units" : "cfm",
             "description" :
-                """The cooling capacity in the unit of CFM
-that is provided by this fan.""",
+                """The cooling capacity that is provided by this fan.
+
+The default unit of the fan cooling capacity is 'cfm',
+if cefcFanCoolingCapacityUnit is not supported.""",
+        }, # column
+        "cefcFanCoolingCapacityUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.1.7.2.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"CISCO-ENTITY-FRU-CONTROL-MIB", "name" : "FRUCoolingUnit"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unit of the fan cooling capacity.""",
         }, # column
         "cefcModuleCoolingTable" : {
             "nodetype" : "table",
@@ -1995,10 +2172,25 @@ removal.""",
                 "type" : { "module" :"", "name" : "Unsigned32"},
             },
             "access" : "readonly",
-            "units" : "cfm",
             "description" :
-                """The cooling requirement in the unit of CFM
-of the module and its daughter cards.""",
+                """The cooling requirement of the module and its daughter
+cards.
+
+The default unit of the module cooling requirement is
+'cfm', if cefcModuleCoolingUnit is not supported.""",
+        }, # column
+        "cefcModuleCoolingUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.1.7.3.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"CISCO-ENTITY-FRU-CONTROL-MIB", "name" : "FRUCoolingUnit"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unit of the cooling requirement of the module and its
+daughter cards.""",
         }, # column
         "cefcFanCoolingCapTable" : {
             "nodetype" : "table",
@@ -2081,11 +2273,12 @@ mode of the fan.""",
                 "type" : { "module" :"", "name" : "Unsigned32"},
             },
             "access" : "readonly",
-            "units" : "cfm",
             "description" :
-                """The cooling capacity in the unit of CFM
-that could be provided when the fan is 
-operating in this mode.""",
+                """The cooling capacity that could be provided
+when the fan is operating in this mode.
+
+The default unit of the cooling capacity is 'cfm',
+if cefcFanCoolingCapCapacityUnit is not supported.""",
         }, # column
         "cefcFanCoolingCapCurrent" : {
             "nodetype" : "column",
@@ -2098,6 +2291,19 @@ operating in this mode.""",
             "access" : "readonly",
             "description" :
                 """The power consumption of the fan when operating in
+in this mode.""",
+        }, # column
+        "cefcFanCoolingCapCapacityUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.1.7.4.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"CISCO-ENTITY-FRU-CONTROL-MIB", "name" : "FRUCoolingUnit"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unit of the fan cooling capacity when operating
 in this mode.""",
         }, # column
         "cefcConnector" : {
@@ -2707,7 +2913,7 @@ power capacity information""",
             "nodetype" : "group",
             "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
             "oid" : "1.3.6.1.4.1.9.9.117.3.2.17",
-            "status" : "current",
+            "status" : "deprecated",
             "members" : {
                 "cefcChassisPerSlotCoolingCap" : {
                     "nodetype" : "member",
@@ -2822,6 +3028,123 @@ redundancy.""",
                     "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
                 },
                 "cefcFanCoolingCapCurrent" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+            }, # members
+            "description" :
+                """The collection of objects provide the cooling
+capacity modes and properties of the fans.""",
+        }, # group
+        "cefcMIBModuleLocalSwitchingGroup" : {
+            "nodetype" : "group",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.3.2.24",
+            "status" : "current",
+            "members" : {
+                "cefcModuleLocalSwitchingMode" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+            }, # members
+            "description" :
+                """The collection of objects which show information of the
+local switching status of modules.""",
+        }, # group
+        "cefcFRUPowerRealTimeStatusGroup" : {
+            "nodetype" : "group",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.3.2.25",
+            "status" : "current",
+            "members" : {
+                "cefcFRURealTimeCurrent" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+            }, # members
+            "description" :
+                """The collection of objects provide the power-related
+realtime information of the manageable entities.""",
+        }, # group
+        "cefcFRUPowerCapabilityGroup" : {
+            "nodetype" : "group",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.3.2.26",
+            "status" : "current",
+            "members" : {
+                "cefcFRUPowerCapability" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+            }, # members
+            "description" :
+                """The collection of objects provide the power-related
+capability information of the manageable entities.""",
+        }, # group
+        "cefcFRUCoolingUnitGroup" : {
+            "nodetype" : "group",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.3.2.27",
+            "status" : "current",
+            "members" : {
+                "cefcChassisPerSlotCoolingUnit" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+                "cefcModuleCoolingUnit" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+            }, # members
+            "description" :
+                """The collection of objects provide the cooling unit
+information of the manageable entities.""",
+        }, # group
+        "cefcFRUFanCoolingUnitGroup" : {
+            "nodetype" : "group",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.3.2.28",
+            "status" : "current",
+            "members" : {
+                "cefcFanCoolingCapacityUnit" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+                "cefcFanCoolingCapCapacityUnit" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+            }, # members
+            "description" :
+                """The collection of objects provide the cooling unit
+information of the manageable fan entities.""",
+        }, # group
+        "cefcCoolingGroup2" : {
+            "nodetype" : "group",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.3.2.29",
+            "status" : "current",
+            "members" : {
+                "cefcChassisPerSlotCoolingCap" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+                "cefcModuleCooling" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+            }, # members
+            "description" :
+                """The collection of objects which are used to get the
+cooling capacity or requirement information.""",
+        }, # group
+        "cefcFanCoolingGroup" : {
+            "nodetype" : "group",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.3.2.30",
+            "status" : "current",
+            "members" : {
+                "cefcFanCoolingCapacity" : {
                     "nodetype" : "member",
                     "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
                 },
@@ -3498,7 +3821,7 @@ support IPv4 addresses.""",
             "nodetype" : "compliance",
             "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
             "oid" : "1.3.6.1.4.1.9.9.117.3.1.8",
-            "status" : "current",
+            "status" : "deprecated",
             "description" :
                 """An Entity-MIB implementation can implement this group to
 provide FRU power status and control.""",
@@ -3644,7 +3967,7 @@ the power supply output capacity changes.""",
                     "description" :
                         """This group is mandatory for devices which
 have the capability to populate inline power
-usage infrmation.""",
+usage information.""",
                 },
                 "cefcMIBPowerRedundancyInfoGroup" : {
                     "nodetype" : "optional",
@@ -3653,7 +3976,7 @@ usage infrmation.""",
                         """This group is mandatory for devices which
 have the capability to populate the reason
 why the redundancy of the power supplies cannot
-be achived.""",
+be achieved.""",
                 },
                 "cefcFanCoolingCapGroup" : {
                     "nodetype" : "optional",
@@ -3684,6 +4007,272 @@ and properties of the fans in the system.""",
                         """Write access is not required.""",
                 },
                 "cefcFRUDrawnInlineCurrent" : {
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "access" : "readonly",
+                    "description" :
+                        """Write access is not required.""",
+                },
+                "cefcIntelliModuleIPAddrType" : {
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "syntax" : {
+                        "type" :                         {
+                            "basetype" : "Enumeration",
+                            "parent module" : {
+                                "name" : "INET-ADDRESS-MIB",
+                                "type" : "InetAddressType",
+                            },
+                            "ipv4" : {
+                                "nodetype" : "namednumber",
+                                "number" : "1"
+                            },
+                        },
+                    }, # syntax
+                    "description" :
+                        """An implementation is only required to
+support IPv4 addresses.""",
+                },
+            }, # refinements
+
+        }, # compliance
+        "cefcMIBPowerCompliance9" : {
+            "nodetype" : "compliance",
+            "moduleName" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.117.3.1.9",
+            "status" : "current",
+            "description" :
+                """An Entity-MIB implementation can implement this group to
+provide FRU power status and control.""",
+            "requires" : {
+                "cefcMIBPowerModeGroup" : {
+                    "nodetype" : "mandatory",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+                "cefcMgmtNotificationsGroup" : {
+                    "nodetype" : "mandatory",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB"
+                },
+                "cefcMIBPowerFRUControlGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """The cefcMIBPowerFRUControlGroup must be implemented
+for FRUs that have power control""",
+                },
+                "cefcMIBModuleGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """The cefcMIBModuleGroup must be implemented for
+FRUs that are of module type.""",
+                },
+                "cefcMIBInLinePowerControlGroupRev1" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """The cefcMIBInLinePowerControlGroup must be
+implemented for FRUs that have inline power control""",
+                },
+                "cefcMIBNotificationEnablesGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """The cefcMIBNotificationEnablesGroup must be
+implemented for FRUs that have notification""",
+                },
+                "cefcModuleGroupRev1" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """The cefcModuleGroupRev1 is not mandatory for
+agents with FRUs that are of module type.""",
+                },
+                "cefcMIBPowerFRUValueGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """The cefcMIBPowerFRUValueGroup must be implemented for
+power supply FRUs that have variable output""",
+                },
+                "cefcMIBFanTrayStatusGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """The cefcMIBFanTrayStatusGroup must be implemented
+in all systems which can detect the status of Fan
+Tray FRUs.""",
+                },
+                "cefcMIBPhysicalGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """The collection of objects which show information of
+the Physical Entity.""",
+                },
+                "cefcMgmtNotificationsGroup2" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """The implementation of this group of notifications
+is optional.""",
+                },
+                "cefcMIBPowerOperModeGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """The cefcMIBPowerOperModeGroup must be
+implemented for the device which supports
+power supply operational modes.""",
+                },
+                "cefcModuleExtGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """Implementation of cefcModuleExtGroup is
+optional.""",
+                },
+                "cefcIntelliModuleGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """Implementation of cefcModuleAddrGroup is
+optional.""",
+                },
+                "cefcPowerCapacityGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+have the capability to populate power capacity
+information.""",
+                },
+                "cefcConnectorRatingGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+have the capability to populate power
+connector rating and module power total
+consumption information.""",
+                },
+                "cefcMIBNotificationEnablesGroup2" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+support the SNMP notification to notify
+the power supply output capacity changes.""",
+                },
+                "cefcMgmtNotificationsGroup3" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+support the SNMP notification to notify
+the power supply output capacity changes.""",
+                },
+                "cefcMIBInLinePowerCurrentGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+have the capability to populate inline power
+usage information.""",
+                },
+                "cefcMIBPowerRedundancyInfoGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+have the capability to populate the reason
+why the redundancy of the power supplies cannot
+be achived.""",
+                },
+                "cefcFanCoolingCapGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+can provide the cooling capacity modes 
+and properties of the fans in the system.""",
+                },
+                "cefcMIBModuleLocalSwitchingGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+support modules with local switching
+functionality.""",
+                },
+                "cefcFRUPowerRealTimeStatusGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+support power related realtime status.""",
+                },
+                "cefcFRUPowerCapabilityGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+support power related capability information.""",
+                },
+                "cefcFRUCoolingUnitGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+support the cooling unit information.""",
+                },
+                "cefcFRUFanCoolingUnitGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+support the fan capacity cooling unit information.""",
+                },
+                "cefcCoolingGroup2" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+support the chassis cooling capacity and module
+cooling requirement.""",
+                },
+                "cefcFanCoolingGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "description" :
+                        """This group is mandatory for devices which
+support the fan cooling capacity information.""",
+                },
+            }, # requires
+            "refinements" : {
+                "cefcFRUTotalSystemCurrent" : {
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "access" : "readonly",
+                    "description" :
+                        """Write access is not required.""",
+                },
+                "cefcFRUDrawnSystemCurrent" : {
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "access" : "readonly",
+                    "description" :
+                        """Write access is not required.""",
+                },
+                "cefcFRUTotalInlineCurrent" : {
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "access" : "readonly",
+                    "description" :
+                        """Write access is not required.""",
+                },
+                "cefcFRUDrawnInlineCurrent" : {
+                    "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
+                    "access" : "readonly",
+                    "description" :
+                        """Write access is not required.""",
+                },
+                "cefcModuleLocalSwitchingMode" : {
                     "module" : "CISCO-ENTITY-FRU-CONTROL-MIB",
                     "access" : "readonly",
                     "description" :

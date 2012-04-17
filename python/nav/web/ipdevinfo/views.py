@@ -33,6 +33,7 @@ from nav.models.rrd import RrdFile, RrdDataSource
 from nav.models.service import Service
 
 from nav import asyncdns
+from nav.util import is_valid_ip
 
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
@@ -57,18 +58,15 @@ def search(request):
         query = search_form.cleaned_data['query'].strip().lower()
 
         # IPv4, v6 or hostname?
-        try:
-            ip_version = IPy.parseAddress(query)[1]
-        except ValueError:
-            ip_version = None
+        ip = is_valid_ip(query)
 
         # Find matches to query
-        if ip_version is not None:
-            netboxes = Netbox.objects.filter(ip=query)
+        if ip:
+            netboxes = Netbox.objects.filter(ip=ip)
             if len(netboxes) == 0:
                 # Could not find IP device, redirect to host detail view
                 return HttpResponseRedirect(reverse('ipdevinfo-details-by-addr',
-                        kwargs={'addr': query}))
+                        kwargs={'addr': ip}))
         elif re.match('^[a-z0-9-]+(\.[a-z0-9-]+)*$', query) is not None:
             # Check perfect match first
             filter = Q(sysname=query)
