@@ -249,8 +249,9 @@ class Cam(Plugin):
     VLAN_PATTERN = re.compile('(vlan)?(?P<vlan>[0-9]+)', re.IGNORECASE)
     def _store_blocking_ports(self, blocking):
         for ifindex, vlan in blocking:
-            match = self.VLAN_PATTERN.match(vlan)
-            vlan = int(match.group('vlan')) if match else None
+            if vlan:
+                match = self.VLAN_PATTERN.match(vlan)
+                vlan = int(match.group('vlan')) if match else None
 
             ifc = self.containers.factory(ifindex, shadows.Interface)
             ifc.ifindex = ifindex
