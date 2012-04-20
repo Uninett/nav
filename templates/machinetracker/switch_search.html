@@ -7,7 +7,11 @@
         <table class="listtable">
             <caption>Switch search</caption>
             <tbody>
-                {{ form }}
+                <tr><th><label for="id_switch">Switch:</label></th><td>{{ form.switch }}</td></tr>
+                <tr><th><label for="id_module">Module:</label></th><td>{{ form.module }}</td></tr>
+                <tr><th><label for="id_port">Port:</label></th><td>{{ form.port }}</td></tr>
+                <tr><th><label for="id_hide">Hide historic data:</label></th><td><input id="id_hide" type="checkbox" name="days" value="-1" onclick="document.getElementById('id_days').disabled = this.checked;" /></td></tr>
+                <tr><th><label for="id_days">Days:</label></th><td><input id="id_days" type="text" name="days" value="7" size="3" /></td></tr>
                 <tr>
                     <th></th>
                     <td><input type="submit" value="Search" /></td>

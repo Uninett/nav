@@ -7,7 +7,22 @@
         <table class="listtable">
             <caption>MAC search</caption>
             <tbody>
-                {{ form }}
+            <tr>
+                <th><label for="id_mac">Mac:</label></th>
+                <td>{{ form.mac }}</td>
+            </tr>
+            <tr>
+                <th><label for="id_dns">Dns:</label></th>
+                <td>{{ form.dns }}</td>
+            </tr>
+            <tr>
+                <th><label for="id_hide">Hide historic data:</label></th>
+                <td><input type="checkbox" id="id_hide" name="days" value="-1" onclick="document.getElementById('id_days').disabled = this.checked;" /></td>
+            </tr>
+            <tr>
+                <th><label for="id_days">Days:</label></th>
+                <td><input type="text" id="id_days" name="days" size="3" value="7" /></td>
+            </tr>
                 <tr>
                     <th></th>
                     <td><input type="submit" value="Search" /></td>
