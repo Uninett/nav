@@ -1,13 +1,38 @@
 {% extends "machinetracker/base.html" %}
 
 {% block content %}
+<script type="text/javascript">
 
+</script>
 <div id="search_form">
     <form action="{% url machinetracker-ip %}" method="get">
         <table class="listtable">
             <caption>IP search</caption>
             <tbody>
-                {{ form }}
+                <tr>
+                    <th><label for="id_ip_range">Ip range:</label></th>
+                    <td>{{ form.ip_range }}</td>
+                </tr>
+                <tr>
+                    <th><label for="id_active">Active:</label></th>
+                    <td>{{ form.active }}</td>
+                </tr>
+                <tr>
+                    <th><label for="id_inactive">Inactive:</label></th>
+                    <td>{{ form.inactive }}</td>
+                </tr>
+                <tr>
+                    <th><label for="id_dns">DNS:</label></th>
+                    <td>{{ form.dns }}</td>
+                </tr>
+                <tr>
+                    <th><label for="id_hide">Hide historic data:</label></th>
+                    <td><input id="id_hide" name="days" type="checkbox" value="-1" onclick="document.getElementById('id_days').disabled = this.checked;" /></td>
+                </tr>
+                <tr>
+                    <th><label for="id_days">Days:</label></th>
+                    <td><input id="id_days" type="text" name="days" value="7" size="3" /></td>
+                </tr>
                 <tr>
                     <th></th>
                     <td><input type="submit" value="Search" /></td>
