@@ -62,7 +62,7 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
 	    node: {
 		fillColor: '${color}',
 		strokeColor: 'black',
-		strokeWidth: 0,
+		strokeWidth: 1,
 		pointRadius: '${size}',
 		graphicZIndex: 2
 	    },
