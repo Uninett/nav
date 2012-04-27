@@ -5,18 +5,19 @@
 This tutorial will show you how to start monitoring devices with your brand
 new NAV installation.
 
-The tutorial assumes NAV is installed in `/usr/local/nav` and that your web
-interface is reachable at http://example.org/ .
+The tutorial will refer to the web interface as |URL| - replace
+this with whatever hostname you have configured for your NAV server.
+
 
 Minimal configuration
 =====================
 
-All configuration files are located below `/usr/local/nav/etc/`.  Default
-configuration files are placed here on your first install.  Most of these are
-documented with comments, so if you want to get advanced you can check each
-config file to see if there are any defaults you'd like to change.
+All configuration files are located below |sysconfdir|.  Default configuration
+files are placed here on your first install.  Most of these are documented
+with comments, so if you want to get advanced you can check each config file
+to see if there are any defaults you'd like to change.
 
-We recommend you at least change the following two options in `nav.conf`
+We recommend you at least change the following two options in :file:`nav.conf`
 before running NAV:
 
 `ADMIN_MAIL`
@@ -34,24 +35,22 @@ Starting NAV
 
 NAV has two parts; one web frontend, and a backend consisting of
 multiple processes.  While Apache serves the frontend, the backend
-processes can be controlled using the nav command
-(`/usr/local/nav/bin/nav`).
+processes can be controlled using the :program:`nav` command
+(located in |bindir|).
 
-The backend processes consist of some daemon processes, and some cron
-jobs.  Running `nav start` will start all the daemon processes in the
-background, and install all the cron jobs in the `navcron` user's
-crontab.
+The backend processes consist of some daemon processes, and some cron jobs.
+Running :kbd:`nav start` will start all the daemon processes in the
+background, and install all the cron jobs in the `navcron` user's crontab.
 
-Depending on your OS of choice, you should configure it to run `nav start` on
-boot.
+Depending on your OS of choice, you should configure it to run :kbd:`nav
+start` on boot.
 
 
 Logging in to the web interface
 ===============================
 
-When browsing the web interface at http://example.org/ you will see
-the front page of NAV.  This is openly accessible to anonymous users
-by default.  
+When browsing the web interface at |URL| you will see the front page of NAV.
+This is openly accessible to anonymous users by default.
 
 To log in for the first time, click the `Login` link on the upper right of the
 page, and enter the username "admin" and the default password "admin".  Then
@@ -82,6 +81,8 @@ example, by adding one of your switches:
 4. Put your switch's SNMP community in the `Read only` field and click the
    `Continue` button.
 
+.. image:: seeddb-add-ipdevice.png
+
 NAV will now verify that this IP address responds to SNMP (v2c or v1) queries
 using the entered community.  If possible, it will try to detect the device's
 type (from its `sysObjectID` value) and serial number.
@@ -111,3 +112,4 @@ page until its value changes from `N/A` into a meaningful timestamp.
           after adding your switch to NAV, you may need to start
           troubleshooting NAV's log files.
 
+.. |URL| replace:: http://example.org/
