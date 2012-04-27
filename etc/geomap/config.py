@@ -35,11 +35,11 @@ def variant(normal, "Normal"):
     def indicator(node, color, "CPU load"):
         if is_nan(load):
             ("#666666", "No statistics")
-        if load < 0.5:
+        if load < 50:
             ("#8AE234", "0--0.5")
-        if load < 1:
+        if load < 100:
             ("#FCE94F", "0.5--1")
-        if True:
+        if load >= 100:
             ("#CC0000", "> 1")
 
     def indicator(node, size, "# netboxes"):
@@ -83,11 +83,11 @@ def variant(open, "Open"):
     def indicator(node, color, "CPU load"):
         if is_nan(load):
             ("#666666", "No statistics")
-        if load < 0.5:
+        if load < 50:
             ("#8AE234", "0--0.5")
-        if load < 1:
+        if load < 100:
             ("#FCE94F", "0.5--1")
-        if True:
+        if load >= 100:
             ("#CC0000", "> 1")
 
     def indicator(node, size, "# netboxes"):
