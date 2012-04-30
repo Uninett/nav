@@ -14,7 +14,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Class with common functions inherited/overrided by other dispatchers."""
+"""Dispatch handling for smsd"""
 
 import logging
 import sys
@@ -84,7 +84,12 @@ class DispatcherHandler(object):
                   "or all dispatchers failed permanently."
 
     def importbyname(self, name):
-        """Import module given by name."""
+        """Imports Python module given by name.
+
+        :param name: a module name.
+        :returns: a module object.
+
+        """
         mod = __import__(name)
         components = name.split('.')
         for comp in components[1:]:
@@ -95,19 +100,22 @@ class DispatcherHandler(object):
         """
         Formats and sends with help of the wanted dispatcher.
 
-        Arguments:
-            ``phone'' is the phone number the messages are to be dispatched to.
-            ``msgs'' is a list of messages ordered with the most severe first.
-            Each message is a tuple with ID, text and severity of the message.
+        :param phone: the phone number the messages are to be dispatched to.
+        :param msgs: a list of messages ordered with the most severe first.
+                     Each message is a tuple with ID, text and severity of the
+                     message.
 
-        Returns four values:
-            The formatted SMS.
-            A list of IDs of sent messages.
-            A list of IDs of ignored messages.
-            An integer which is the sending ID if available or 0 otherwise.
+        :returns: A tuple of four values:
 
-        Raises a DispatcherError if it doesn't find a working dispatcher and
-        succeeds in sending the SMS.
+                  * The formatted SMS.
+                  * A list of IDs of sent messages.
+                  * A list of IDs of ignored messages.
+                  * An integer which is the sending ID if available or 0
+                    otherwise.
+
+        :raises: :exc:`DispatcherError` if it doesn't find a working
+                 dispatcher and succeeds in sending the SMS.
+
         """
 
         for i, (dispatchername, dispatcher) in enumerate(self.dispatchers):
@@ -168,20 +176,22 @@ class Dispatcher(object):
         self.ignlen = 15
 
     def formatsms(self, msgs):
-        """
-        Format a SMS from one or more messages.
+        """Formats a single SMS from one or more messages.
 
-        ``msgs'' is a list of messages ordered with the most severe first. Each
-        message is a tuple with ID, text and severity of the message.
+        Attempts to squeeze as many messages into the 160-characters that an
+        SMS is limited to.
 
-        Returns a tuple with the SMS, a list of IDs of sent messages and a list
-        of IDs of ignored messages.
+        :param msgs: a list of messages ordered with the most severe
+                     first. Each message is a tuple with ID, text and severity
+                     of the message.
 
-        Pseudo code:
-        If one message
-            SMS = message
-        If multiple messages
-            SMS = as many msgs as possible + how many was ignored
+        :returns: a 3-value tuple containing:
+
+                  * the formatted text of the SMS
+                  * a list of IDs of the messages that fit into the single SMS
+                  * if list of IDs of the message that didn't fit in the SMS
+                    and were subsequently ignored
+
         """
 
         # Copies so we can modify them without wreaking the next SMS
@@ -238,20 +248,23 @@ class Dispatcher(object):
         return (sms, sent, ignored)
 
     def sendsms(self, phone, msgs):
-        """
-        Empty shell for the sendsms method implemented by subclasses.
+        """Sends messages as an SMS to a phone number.
 
-        Arguments:
-            ``phone'' is the phone number the messages are to be dispatched to.
-            ``msgs'' is a list of messages ordered with the most severe first.
-            Each message is a tuple with ID, text and severity of the message.
+        This method must be overridden by implementers to have any effect.
 
-        Returns five values:
-            The formatted SMS.
-            A list of IDs of sent messages.
-            A list of IDs of ignored messages.
-            A boolean which is true for success and false for failure.
-            An integer which is the sending ID if available or 0 otherwise.
+        :param phone: the phone number the messages are to be dispatched to.
+        :param msgs: a list of messages ordered with the most severe first.
+                     Each list element is a tuple with ``(ID, text, severity)``
+
+        :returns: a tuple containing 5 values:
+
+                  * The formatted SMS.
+                  * A list of IDs of sent messages.
+                  * A list of IDs of ignored messages.
+                  * A boolean which is true for success and false for failure.
+                  * An integer which is the sending ID if available or 0
+                    otherwise.
+
         """
 
         # Format SMS
