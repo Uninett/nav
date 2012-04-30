@@ -2,6 +2,8 @@
 Checklist for releasing a new NAV version
 =========================================
 
+.. highlight:: sh
+
 CI status check
 ---------------
 

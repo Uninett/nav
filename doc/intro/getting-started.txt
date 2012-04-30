@@ -87,7 +87,7 @@ NAV will now verify that this IP address responds to SNMP (v2c or v1) queries
 using the entered community.  If possible, it will try to detect the device's
 type (from its `sysObjectID` value) and serial number.
 
-If SNMP connectivity was verified, SeeDB will display a summary of the
+If SNMP connectivity was verified, SeedDB will display a summary of the
 information you entered and the information it retrieved from the device.  If
 you want to, you can also enter some free-form text about the function the
 device serves in the `Function` field.
@@ -99,7 +99,7 @@ Verifying that collection is working
 ------------------------------------
 
 Within two minutes, NAV's SNMP collection engine should launch a job to poll
-your newly added device for information.  They grey navigation bar features a
+your newly added device for information.  The grey navigation bar features a
 search field; search for your newly entered device's IP address or DNS name to
 show its `IP Device Info` page.
 
