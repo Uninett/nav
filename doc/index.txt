@@ -38,3 +38,6 @@ First steps
   :doc:`Overview <overview>` |
   :doc:`Installation <intro/install>` |
   :doc:`Getting started <intro/getting-started>`
+
+* **For developers:**
+  :doc:`Making a new release <release-procedure>`
