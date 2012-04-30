@@ -54,7 +54,7 @@ The following python modules are required:
  * :mod:`rrd` (from the rrdtool distribution)
  * :mod:`simplejson`
  * :mod:`twisted` >= 8.1
- * :mod:`twisted-snmp` >= 0.3 | :mod:`pynetsnmp`
+ * :mod:`twistedsnmp` >= 0.3 | :mod:`pynetsnmp`
 
 The following python modules are optional:
 
@@ -63,12 +63,12 @@ The following python modules are optional:
 :mod:`psycopg2` should be at least version 2.0.8: Earlier versions have bugs
 that may cause some NAV programs to crash.
 
-The :mod:`pynetsnmp` module is preferred over :mod:`twisted-snmp` for SNMP
+The :mod:`pynetsnmp` module is preferred over :mod:`twistedsnmp` for SNMP
 communication.  The former is a Python binding to the well-known NetSNMP C
 library, whereas the latter is a pure-Python SNMP
-implementation. :mod:`twisted-snmp` also has a known, unfixed bug with table
+implementation. :mod:`twistedsnmp` also has a known, unfixed bug with table
 retrievals on slow SNMP agents. If, for some reason, you are forced to resort
-to using :mod:`twisted-snmp`, the :file:`contrib/patches` directory contains a
+to using :mod:`twistedsnmp`, the :file:`contrib/patches` directory contains a
 recommended patch for this problem.
 
 
