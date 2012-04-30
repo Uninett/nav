@@ -22,6 +22,7 @@ To build NAV, you need at least the following:
  * Python >= 2.5.0
  * Java 2 SDK >= 1.5.0
  * Cheetah Templates >= 2.0rc7
+ * Sphinx >= 1.0 (for building this documentation)
 
 Runtime requirements
 --------------------
