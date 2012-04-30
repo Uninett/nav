@@ -1153,7 +1153,7 @@ def sms_list(request):
         'active': {'sms': True},
         'page_link': reverse('alertprofiles-sms'),
         'order_by': order_by,
-        'natpath': BASE_PATH+[('SMS', None)],
+        'navpath': BASE_PATH+[('My SMS', None)],
         'title': 'NAV - Alert profiles',
     }
     return object_list(
