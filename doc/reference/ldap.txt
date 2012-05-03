@@ -129,17 +129,17 @@ to do authenticated binds against the LDAP tree when users log in.
 
 **When the user does not exist in the local NAVdb**
 
-* NAV attempts to bind to ``<name_attr>=<username>,<basedn>``.
+* NAV attempts to authenticate the user with LDAP, according to its config.
 * If successful, it creates a local account in NAVdb for this user. The user's
-  full name is retrieved from LDAP, and a hashed copy of the password is
-  stored in the database.
+  full name is retrieved from LDAP, and a salted hashed copy of the password
+  is stored in the database.D
 * If unsuccessful, the login attempt is rejected.
 * If the LDAP server did not answer, the login attempt is rejected, and an
   LDAP error is displayed.
 
 **When the user exists in the local NAVdb, and has previously been retrieved from the LDAP server**
 
-* NAV attempts to bind to ``<name_attr>=<username>,<basedn>``
+* NAV attempts to authenticate the user with LDAP, according to its config.
 * If successful, it updates the local account in NAVdb with the user's
   full name and a hashed copy of the supplied password.
 * If unsuccessful, the login attempt is rejected.
