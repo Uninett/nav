@@ -229,7 +229,12 @@ class LLDPNeighbor(Neighbor):
                 lookup = self._interface_from_ip
 
             if lookup:
-                return lookup(str(portid))
+                try:
+                    return lookup(str(portid))
+                except manage.Interface.MultipleObjectsReturned:
+                    portdesc = self.record.port_desc
+                    if portdesc:
+                        return self._interface_from_name(str(portdesc))
 
     def _interface_from_mac(self, mac):
         assert mac
