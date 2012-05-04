@@ -22,6 +22,7 @@ from mod_python import apache, util
 import datetime
 
 from django.http import HttpResponse
+from django.shortcuts import redirect
 
 import nav.db
 import nav.messages
@@ -43,7 +44,7 @@ def handler(req):
 
     # Initialize form
     keep_blank_values = True
-    req.form = util.FieldStorage(req, keep_blank_values)
+    req.REQUEST = util.FieldStorage(req, keep_blank_values)
 
     # Get arguments
     args = URI(req.unparsed_uri)
@@ -97,14 +98,12 @@ def handler(req):
 
 ### View functions ###
 def rss(req):
-    args = URI(req.unparsed_uri)
-
     page = MessagesFeedTemplate()
     page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
 
-    page.channeltitle = 'NAV Message Feed from ' + req.hostname
+    page.channeltitle = 'NAV Message Feed from ' + req.META['HTTP_HOST']
     page.channeldesc = page.channeltitle
-    page.channellink = 'http://' + req.hostname + args.path
+    page.channellink = 'http://' + req.META['HTTP_HOST'] + req.path
     page.channellang = 'en-us'
     page.channelttl = '60'
 
@@ -112,18 +111,13 @@ def rss(req):
     for i, msg in enumerate(page.msgs):
         if msg['publish_start'] > page.pubDate:
             page.pubDate = msg['publish_start']
-        page.msgs[i]['link'] = 'http://' + req.hostname \
+        page.msgs[i]['link'] = 'http://' + req.META['HTTP_HOST'] \
             + '/messages/view?id=' + str(page.msgs[i]['messageid'])
         page.msgs[i]['guid'] = page.msgs[i]['link']
     if page.pubDate == 0:
         page.pubDate = datetime.datetime.now()
 
-    # Done, output the page
-    #req.content_type = 'text/xml'
-    #req.send_http_header()
-    #req.write(page.respond())
-    #return apache.OK
-    return HttpReponse(page.respond, mimetype='text/xml')
+    return HttpResponse(page.respond, mimetype='text/xml')
 
 def planned(req):
     section = get_section(req)
@@ -148,7 +142,7 @@ def view(req):
     page = MessagesDetailsTemplate()
     page.title = 'Message'
     menu_dict = {'link': 'view', 'text': 'View', 'admin': False}
-    msgid = int(args.get('id'))
+    msgid = int(req.REQUEST.get('id'))
     page.msgs = nav.messages.getMsg(msgid)
 
     return push_menu_and_output(req, page, section, menu_dict)
@@ -175,7 +169,7 @@ def new(req):
     page.tasks = nav.maintenance.getTasks('maint_end > now()')
     page.errors = []
     
-    page.submit = req.form.has_key('submit')
+    page.submit = req.REQUEST.has_key('submit')
     if page.submit:
         return submit_form(req, page, section)
     
@@ -192,10 +186,10 @@ def edit(req):
 
     menu_dict = {'link': 'edit', 'text': 'Edit', 'admin': True}
 
-    if not args.get('id'):
+    if not req.REQUEST.get('id'):
         page.errors.append('Message ID in request is not a digit.')
     else:
-        msgid = int(args.get('id'))
+        msgid = int(req.REQUEST.get('id'))
         msg = nav.messages.getMsg(msgid)[0]
 
         page.edit_messageid = msgid
@@ -229,7 +223,7 @@ def edit(req):
         else:
             page.maint_tasks = []
     
-    page.submit = req.form.has_key('submit')
+    page.submit = req.REQUEST.has_key('submit')
     if page.submit:
         return submit_form(req, page, section, menu_dict)
 
@@ -243,10 +237,10 @@ def followup(req):
     page.tasks = nav.maintenance.getTasks('maint_end > now()')
     page.errors = []
     page.current = 'new' # Just to mark the menu tab
-    if not args.get('id'):
+    if not req.REQUEST.get('id'):
         page.errors.append('Message ID in request is not a digit.')
     else:
-        msgid = int(args.get('id'))
+        msgid = int(req.REQUEST.get('id'))
         page.replaces_messageid = msgid
 
         msg = nav.messages.getMsg(msgid)[0]
@@ -265,7 +259,7 @@ def followup(req):
         page.end_hour = int(msg['publish_end'].strftime('%H'))
         page.end_min = int(msg['publish_end'].strftime('%M'))
 
-    page.submit = req.form.has_key('submit')
+    page.submit = req.REQUEST.has_key('submit')
     if page.submit:
         return submit_form(req, page, section)
 
@@ -308,11 +302,6 @@ def push_menu_and_output(req, page, section, menu_dict=None):
     if not page.hasVar('submittext'):
         page.submittext = page.title
 
-    # Done, output the page
-    #req.content_type = 'text/html'
-    #req.send_http_header()
-    #req.write(page.respond())
-    #return apache.OK
     return HttpResponse(page.respond())
 
 def submit_form(req, page, section, menu_dict=None):
@@ -326,64 +315,64 @@ def submit_form(req, page, section, menu_dict=None):
         menu.append(menu_dict)
 
     # Form submitted
-    page.submit = req.form.has_key('submit')
+    page.submit = req.REQUEST.has_key('submit')
     if page.submit:
         # Get and control form data
-        if req.form.has_key('title') and req.form['title']:
-            title = req.form['title']
+        if req.REQUEST.has_key('title') and req.REQUEST['title']:
+            title = req.REQUEST['title']
             page.formtitle = title
         else:
             page.errors.append('You did not supply a title.')
 
         # Descriptions
-        if req.form.has_key('description') and req.form['description']:
-            description = req.form['description']
+        if req.REQUEST.has_key('description') and req.REQUEST['description']:
+            description = req.REQUEST['description']
             page.description = description
         else:
             page.errors.append('You did not supply a description.')
 
-        if req.form.has_key('tech_description') and len(req.form['tech_description']) > 0:
-            tech_description = req.form['tech_description']
+        if req.REQUEST.has_key('tech_description') and len(req.REQUEST['tech_description']) > 0:
+            tech_description = req.REQUEST['tech_description']
             page.tech_description = tech_description
         else:
             tech_description = False
 
         # Publish times
-        if (req.form.has_key('start_year') and req.form['start_year']
-            and req.form.has_key('start_month') and req.form['start_month']
-            and req.form.has_key('start_day') and req.form['start_day']
-            and req.form.has_key('start_hour') and req.form['start_hour']
-            and req.form.has_key('start_min') and req.form['start_min']):
+        if (req.REQUEST.has_key('start_year') and req.REQUEST['start_year']
+            and req.REQUEST.has_key('start_month') and req.REQUEST['start_month']
+            and req.REQUEST.has_key('start_day') and req.REQUEST['start_day']
+            and req.REQUEST.has_key('start_hour') and req.REQUEST['start_hour']
+            and req.REQUEST.has_key('start_min') and req.REQUEST['start_min']):
             publish_start = '%4d-%02d-%02d %02d:%02d' % (
-                int(req.form['start_year']), int(req.form['start_month']),
-                int(req.form['start_day']), int(req.form['start_hour']),
-                int(req.form['start_min']))
+                int(req.REQUEST['start_year']), int(req.REQUEST['start_month']),
+                int(req.REQUEST['start_day']), int(req.REQUEST['start_hour']),
+                int(req.REQUEST['start_min']))
             publish_start = time.strptime(publish_start, '%Y-%m-%d %H:%M')
 
-            page.start_year = int(req.form['start_year'])
-            page.start_month = int(req.form['start_month'])
-            page.start_day = int(req.form['start_day'])
-            page.start_hour = int(req.form['start_hour'])
-            page.start_min = int(req.form['start_min'])
+            page.start_year = int(req.REQUEST['start_year'])
+            page.start_month = int(req.REQUEST['start_month'])
+            page.start_day = int(req.REQUEST['start_day'])
+            page.start_hour = int(req.REQUEST['start_hour'])
+            page.start_min = int(req.REQUEST['start_min'])
         else:
             publish_start = time.localtime()
         
-        if (req.form.has_key('end_year') and req.form['end_year']
-            and req.form.has_key('end_month') and req.form['end_month']
-            and req.form.has_key('end_day') and req.form['end_day']
-            and req.form.has_key('end_hour') and req.form['end_hour']
-            and req.form.has_key('end_min') and req.form['end_min']):
+        if (req.REQUEST.has_key('end_year') and req.REQUEST['end_year']
+            and req.REQUEST.has_key('end_month') and req.REQUEST['end_month']
+            and req.REQUEST.has_key('end_day') and req.REQUEST['end_day']
+            and req.REQUEST.has_key('end_hour') and req.REQUEST['end_hour']
+            and req.REQUEST.has_key('end_min') and req.REQUEST['end_min']):
             publish_end = '%4d-%02d-%02d %02d:%02d' % (
-                int(req.form['end_year']), int(req.form['end_month']),
-                int(req.form['end_day']), int(req.form['end_hour']),
-                int(req.form['end_min']))
+                int(req.REQUEST['end_year']), int(req.REQUEST['end_month']),
+                int(req.REQUEST['end_day']), int(req.REQUEST['end_hour']),
+                int(req.REQUEST['end_min']))
             publish_end = time.strptime(publish_end, '%Y-%m-%d %H:%M')
 
-            page.end_year = int(req.form['end_year'])
-            page.end_month = int(req.form['end_month'])
-            page.end_day = int(req.form['end_day'])
-            page.end_hour = int(req.form['end_hour'])
-            page.end_min = int(req.form['end_min'])
+            page.end_year = int(req.REQUEST['end_year'])
+            page.end_month = int(req.REQUEST['end_month'])
+            page.end_day = int(req.REQUEST['end_day'])
+            page.end_hour = int(req.REQUEST['end_hour'])
+            page.end_min = int(req.REQUEST['end_min'])
         else:
             publish_end = time.localtime(int(time.time()) + 7*24*60*60)
 
@@ -392,8 +381,8 @@ def submit_form(req, page, section, menu_dict=None):
                 + 'message will never be published.')
         
         # Maintenance tasks
-        if req.form.has_key('maint_tasks'):
-            maint_tasks = req.form['maint_tasks']
+        if req.REQUEST.has_key('maint_tasks'):
+            maint_tasks = req.REQUEST['maint_tasks']
             if type(maint_tasks) is not list:
                 maint_tasks = [maint_tasks]
             try:
@@ -405,23 +394,23 @@ def submit_form(req, page, section, menu_dict=None):
             maint_tasks = []
 
         # Followup
-        if req.form.has_key('replaces_messageid') \
-            and req.form['replaces_messageid']:
-            replaces_messageid = int(req.form['replaces_messageid'])
+        if req.REQUEST.has_key('replaces_messageid') \
+            and req.REQUEST['replaces_messageid']:
+            replaces_messageid = int(req.REQUEST['replaces_messageid'])
             page.replaces_messageid = replaces_messageid
         else:
             replaces_messageid = False
 
         # Get ID of message edited
         if section == 'edit':
-            if req.form.has_key('edit_messageid') \
-                and req.form['edit_messageid']:
-                edit_messageid = int(req.form['edit_messageid'])
+            if req.REQUEST.has_key('edit_messageid') \
+                and req.REQUEST['edit_messageid']:
+                edit_messageid = int(req.REQUEST['edit_messageid'])
             else:
                 page.errors.append('ID of edited message is missing.')
 
         # Get session data
-        author = get_account(req)
+        author = req._req.session['user']['login']
 
         # If any data not okay, form is showed with list of errors on top.
         # There is no need to do anything further here.
@@ -447,17 +436,7 @@ def submit_form(req, page, section, menu_dict=None):
             for taskid in maint_tasks:
                 nav.messages.setMsgTask(msgid, int(taskid))
 
-            # Expire replaced messages
-            # If a msg is "unreplaced" it will still be expired
-            #if replaces_messageid:
-            #    nav.messages.expireMsg(replaces_messageid)
-
-            # Redirect to view?id=$newid and exit
-            #req.headers_out['location'] = 'view?id=' + str(msgid)
-            #req.status = apache.HTTP_MOVED_TEMPORARILY
-            #req.send_http_header()
-            #return apache.OK
-            return redirect('view?id=' + str(msgid))
+            return redirect('/messages/view?id=' + str(msgid))
 
 def get_section(args):
     """ Help method """

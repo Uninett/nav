@@ -26,30 +26,30 @@ urlpatterns = patterns('',
     url(r'^$', active,
         name='messages-active'),
 
-    url(r'^active/$', active,
+    url(r'^active$', active,
         name='messages-active'),
 
-    url(r'^rss/$', rss,
+    url(r'^rss$', rss,
         name='messages-rss'),
 
-    url(r'^historic/$', historic,
+    url(r'^historic$', historic,
         name='messages-historic'),
 
-    url(r'^new/$', new,
+    url(r'^new$', new,
         name='messages-new'),
 
-    url(r'^edit/$', edit,
+    url(r'^edit$', edit,
         name='messages-edit'),
 
-    url(r'^followup/$', followup,
+    url(r'^followup$', followup,
         name='messages-followup'),
 
-    url(r'^planned/$', planned,
+    url(r'^planned$', planned,
         name='messages-planned'),
 
-    url(r'^view/$', view,
+    url(r'^view$', view,
         name='messages-view'),
 
-    url(r'^expire/$', expire,
+    url(r'^expire$', expire,
         name='messages-expire'),
     )
