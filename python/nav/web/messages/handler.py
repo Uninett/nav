@@ -21,6 +21,8 @@ import time
 from mod_python import apache, util
 import datetime
 
+from django.http import HttpResponse
+
 import nav.db
 import nav.messages
 import nav.maintenance
@@ -30,6 +32,7 @@ from nav.web.templates.MessagesDetailsTemplate import MessagesDetailsTemplate
 from nav.web.templates.MessagesNewTemplate import MessagesNewTemplate
 from nav.web.templates.MessagesFeedTemplate import MessagesFeedTemplate
 from nav.web.encoding import encoded_output
+from nav.django.utils import get_account
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
@@ -116,14 +119,14 @@ def rss(req):
         page.pubDate = datetime.datetime.now()
 
     # Done, output the page
-    req.content_type = 'text/xml'
-    req.send_http_header()
-    req.write(page.respond())
-    return apache.OK
+    #req.content_type = 'text/xml'
+    #req.send_http_header()
+    #req.write(page.respond())
+    #return apache.OK
+    return HttpReponse(page.respond, mimetype='text/xml')
 
 def planned(req):
-    args = URI(req.unparsed_uri)
-    section = get_section(args)
+    section = get_section(req)
 
     page = MessagesListTemplate()
     page.title = 'Planned Messages'
@@ -131,8 +134,7 @@ def planned(req):
     return push_menu_and_output(req, page, section)
 
 def historic(req):
-    args = URI(req.unparsed_uri)
-    section = get_section(args)
+    section = get_section(req)
 
     page = MessagesListTemplate()
     page.title = 'Historic Messages'
@@ -141,8 +143,7 @@ def historic(req):
     return push_menu_and_output(req, page, section)
 
 def view(req):
-    args = URI(req.unparsed_uri)
-    section = get_section(args)
+    section = get_section(req)
 
     page = MessagesDetailsTemplate()
     page.title = 'Message'
@@ -153,8 +154,7 @@ def view(req):
     return push_menu_and_output(req, page, section, menu_dict)
 
 def expire(req):
-    args = URI(req.unparsed_uri)
-    section = get_section(args)
+    section = get_section(req)
 
     page = MessagesDetailsTemplate()
     page.title = 'Expire message'
@@ -168,8 +168,7 @@ def expire(req):
     return push_menu_and_output(req, page, section, menu_dict)
 
 def new(req):
-    args = URI(req.unparsed_uri)
-    section = get_section(args)
+    section = get_section(req)
 
     page = MessagesNewTemplate()
     page.title = 'Create New Message'
@@ -183,8 +182,7 @@ def new(req):
     return push_menu_and_output(req, page, section)
 
 def edit(req):
-    args = URI(req.unparsed_uri)
-    section = get_section(args)
+    section = get_section(req)
 
     page = MessagesNewTemplate()
     page.title = 'Edit Message'
@@ -238,8 +236,7 @@ def edit(req):
     return push_menu_and_output(req, page, section, menu_dict)
 
 def followup(req):
-    args = URI(req.unparsed_uri)
-    section = get_section(args)
+    section = get_section(req)
 
     page = MessagesNewTemplate()
     page.title = 'Create New Message'
@@ -275,8 +272,7 @@ def followup(req):
     return push_menu_and_output(req, page, section)
 
 def active(req):
-    args = URI(req.unparsed_uri)
-    section = get_section(args)
+    section = get_section(req)
 
     page = MessagesListTemplate()
     page.title = 'Active Messages'
@@ -288,10 +284,12 @@ def active(req):
 def push_menu_and_output(req, page, section, menu_dict=None):
     """ User login, menu building and returns the view """
     # Check if user is logged in
-    if req.session['user']['id'] != 0:
+    account = get_account(req)
+    if account.has_perm(None, None):
         page.authorized = True
     else:
         page.authorized = False
+
 
     menu = []
     menu.append({'link': 'active', 'text': 'Active', 'admin': False})
@@ -311,10 +309,11 @@ def push_menu_and_output(req, page, section, menu_dict=None):
         page.submittext = page.title
 
     # Done, output the page
-    req.content_type = 'text/html'
-    req.send_http_header()
-    req.write(page.respond())
-    return apache.OK
+    #req.content_type = 'text/html'
+    #req.send_http_header()
+    #req.write(page.respond())
+    #return apache.OK
+    return HttpResponse(page.respond())
 
 def submit_form(req, page, section, menu_dict=None):
     """ Form submission """    
@@ -422,7 +421,7 @@ def submit_form(req, page, section, menu_dict=None):
                 page.errors.append('ID of edited message is missing.')
 
         # Get session data
-        author = req.session['user']['login']
+        author = get_account(req)
 
         # If any data not okay, form is showed with list of errors on top.
         # There is no need to do anything further here.
@@ -454,10 +453,11 @@ def submit_form(req, page, section, menu_dict=None):
             #    nav.messages.expireMsg(replaces_messageid)
 
             # Redirect to view?id=$newid and exit
-            req.headers_out['location'] = 'view?id=' + str(msgid)
-            req.status = apache.HTTP_MOVED_TEMPORARILY
-            req.send_http_header()
-            return apache.OK
+            #req.headers_out['location'] = 'view?id=' + str(msgid)
+            #req.status = apache.HTTP_MOVED_TEMPORARILY
+            #req.send_http_header()
+            #return apache.OK
+            return redirect('view?id=' + str(msgid))
 
 def get_section(args):
     """ Help method """

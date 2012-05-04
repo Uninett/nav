@@ -26,6 +26,9 @@ urlpatterns = patterns('',
     url(r'^$', active,
         name='messages-active'),
 
+    url(r'^active/$', active,
+        name='messages-active'),
+
     url(r'^rss/$', rss,
         name='messages-rss'),
 
