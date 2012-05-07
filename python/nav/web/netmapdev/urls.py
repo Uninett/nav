@@ -17,20 +17,8 @@
 
 from django.conf.urls.defaults import url, patterns
 
-from nav.web.netmapdev.views import index, output_graph_data, category_list
-from nav.web.netmapdev.views import linktype_list, save_positions
-
 # The patterns are relative to the base URL of the subsystem
-urlpatterns = patterns('',
-    url(r'^$', index,
-        name='netmapdev-index'),
 
-    url(r'^server$', output_graph_data,
-        name='netmapdev-graphdata'),
-    url(r'^catids$', category_list,
-        name='netmapdev-category-list'),
-    url(r'^linktypes$', linktype_list,
-        name='netmapdev-linktype-list'),
-    url(r'^position$', save_positions,
-        name='netmapdev-save-positions'),
+urlpatterns = patterns('nav.web.netmapdev.views',
+    url(r'^$', 'index', name='netmapdev-index'),
 )
