@@ -218,18 +218,19 @@ and pid files::
 Integrating Cricket with NAV
 ----------------------------
 
-NAV will automatically create a cricket configuration tree and keep it synced
-based on the information retrieved from the monitored devices.
+NAV will automatically create a :program:`Cricket` configuration tree and keep
+it synced based on the information retrieved from the monitored devices.
 
-The initial, empty cricket configuration tree that NAV will work on should be
+The initial, empty Cricket configuration tree that NAV will work on should be
 copied from the documentation directory.  The config directory must be
 writeable by the navcron user if config updates are to take place::
 
   sudo cp -r /usr/local/nav/doc/cricket/cricket-config /usr/local/nav/etc/
   sudo chown -R navcron:nav /usr/local/nav/etc/cricket-config
 
-Now you need to locate your cricket-conf.pl file and edit it to tell cricket
-where to locate the configuration tree that NAV keeps.  Make sure that:
+Now you need to locate your :file:`cricket-conf.pl` file and edit it to tell
+cricket where to locate the configuration tree that NAV keeps.  Make sure
+that it contains the following:
 
 .. code-block:: perl
 
@@ -264,8 +265,8 @@ so far::
 
   sudo -u navcron cricket-compile
 
-NAV's ``mcc.py`` program will generate a new version of the configuration tree
-every night around 5 am.  You kan manually update the configuration once
+NAV's :program:`mcc` program will generate a new version of the configuration
+tree every night around 5 am.  You kan manually update the configuration once
 you've seeded a bunch of devices into NAV and NAV has found their interfaces,
 instead of waiting till 5 am, by issuing the command::
 

@@ -1,3 +1,31 @@
+Version 3.11.3
+(released 03 May 2012)
+
+ Bugfixes:
+
+  * LP#912217 (Breadcrumb path missing from Alert Profiles My SMS view)
+  * LP#912763 (Alert Profile filter form cannot display more than 300 rooms)
+  * LP#929375 (Status page needs an "SNMP Agents Down" listing)
+  * LP#929376 (Status page needs a "Links Down" listing)
+  * LP#955794 (geomap variant normal, does not finish loading map, and shows no
+               rooms or links)
+  * LP#961221 (Maintenance task cancel action still visible on cancelled tasks)
+  * LP#961996 (Geomap CPU load indication is always red)
+  * LP#962087 (IP-hostname search in toolbar translates all numbers as IP-
+               addresses)
+  * LP#962093 (Report CSV export crashes on non-ASCII data)
+  * LP#962146 (Faulty SNMP agent implementations crash SeedDB)
+  * LP#965147 (Want clickable "function" column in Reports)
+  * LP#965149 (Invalid link to function in Server report)
+  * LP#966063 (prefix report, missing argument to machinetracker)
+  * LP#966072 (invalid link in Usage report)
+  * LP#978618 (KeyError in ipdevpoll psu plugin)
+  * LP#979754 (scope prefix is overwritten by lan prefix)
+  * LP#983737 (ipdevpoll cam plugin TypeError crash)
+  * LP#991714 (Requiring group membership makes LDAP authentication crash for
+               first time users)
+  * LP#993932 (ipdevpoll LLDP plugin MultipleObjectsReturned exception)
+
 Version 3.11.2
 (released 12 Apr 2012)
 
