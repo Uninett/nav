@@ -5,12 +5,12 @@ Check milestone (for the next release) in Launchpad (https://launchpad.net/nav)
   - Are all bugs fixed?
   - Unfixed bugs must be retargeted/untargeted to make the release deadline?
 
-Check hudson (metanav.ntnu.no/hudson)
+Check hudson (nav.uninett.no/hudson)
   - Are there any red/yellow lights on the branch to be releases?
   - Red light means that we can not release
 
 Check out the release branch from the mercurial
-   hg clone http://metanav.uninett.no/hg/series/3.9.x
+   hg clone http://nav.uninett.no/hg/series/3.9.x
 
 OBS OBS: when you do 'hg clone', your working copy will be on the
 default branch. Update to correct branch by doing:

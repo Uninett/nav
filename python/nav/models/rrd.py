@@ -24,7 +24,7 @@ from nav.models.manage import Netbox, Interface
 from nav.models.fields import VarcharField, LegacyGenericForeignKey
 
 class RrdFile(models.Model):
-    """From MetaNAV: The rrd_file contains meta information on all RRD files
+    """From NAV Wiki: The rrd_file contains meta information on all RRD files
     that NAV uses. Each RRD file has statistics for a certain netbox."""
 
     id = models.AutoField(db_column='rrd_fileid', primary_key=True)
@@ -47,7 +47,7 @@ class RrdFile(models.Model):
         return u'%s/%s' % (self.path, self.filename)
 
 class RrdDataSource(models.Model):
-    """From MetaNAV: An rrd_file consists of a set of data sources defined in
+    """From NAV Wiki: An rrd_file consists of a set of data sources defined in
     this table. A data source is a data set, i.e. outOctets for a given switch
     port on a given switch."""
 

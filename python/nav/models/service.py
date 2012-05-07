@@ -22,7 +22,7 @@ from nav.models.manage import Netbox
 from nav.models.fields import VarcharField
 
 class Service(models.Model):
-    """From MetaNAV: The service table defines the services on a netbox that
+    """From NAV Wiki: The service table defines the services on a netbox that
     serviceMon monitors."""
 
     UP_UP = 'y'
@@ -99,7 +99,7 @@ class Service(models.Model):
         return result
 
 class ServiceProperty(models.Model):
-    """From MetaNAV: Each service may have an additional set of attributes.
+    """From NAV Wiki: Each service may have an additional set of attributes.
     They are defined here."""
 
     id = models.AutoField(primary_key=True) # Serial for faking a primary key
