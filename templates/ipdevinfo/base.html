@@ -6,15 +6,16 @@
 {% endblock %}
 
 {% block base_header_title %}
-NAV - IP Device Info
+NAV - {% if title %}{{ title }}{% else %}IP Device Info{% endif %}
 {% endblock %}
 
 {% block base_header_navpath %}
 <a href="/">Home</a> > <a href="/ipdevinfo/">IP Device Info</a>
+{% if title %}> <a href="{{ path }}">{{ title }}</a>{% endif %}
 {% endblock %}
 
 {% block base_content %}
-<h2>IP Device Info</h2>
+<h2>{% if title %}{{ title }}{% else %}IP Device Info{% endif %}</h2>
 
 <div id="ipdevinfosearch">
 <form action="{% url ipdevinfo-search %}" method="get">
