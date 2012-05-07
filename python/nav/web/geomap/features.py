@@ -146,7 +146,7 @@ def compile_template_with_filters(template_string, filters):
     filters should be a dictionary mapping filter names to functions.
 
     [1]: http://docs.djangoproject.com/en/dev/howto/custom-template-tags/
-    [2]: http://metanav.uninett.no/devel:django_introduction#settings
+    [2]: http://nav.uninett.no/devel:django_introduction#settings
     [3]: http://code.djangoproject.com/browser/django/trunk/django/template/__init__.py
 
     """

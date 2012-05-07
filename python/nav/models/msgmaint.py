@@ -21,7 +21,7 @@ from django.db import models
 from nav.models.fields import VarcharField
 
 class Message(models.Model):
-    """From MetaNAV: The table contains the messages registered in the messages
+    """From NAV Wiki: The table contains the messages registered in the messages
     tool. Each message has a timeframe for when it is published on the NAV main
     page."""
 
@@ -45,7 +45,7 @@ class Message(models.Model):
         return u'"%s" by %s' % (self.title, self.author)
 
 class MaintenanceTask(models.Model):
-    """From MetaNAV: The maintenance task created in the maintenance task
+    """From NAV Wiki: The maintenance task created in the maintenance task
     tool."""
 
     id = models.AutoField(db_column='maint_taskid', primary_key=True)
@@ -62,7 +62,7 @@ class MaintenanceTask(models.Model):
         return u'"%s" by %s' % (self.description, self.author)
 
 class MaintenanceComponent(models.Model):
-    """From MetaNAV: The components that are put on maintenance in the
+    """From NAV Wiki: The components that are put on maintenance in the
     maintenance tool."""
 
     id = models.AutoField(primary_key=True) # Serial for faking primary key
@@ -79,7 +79,7 @@ class MaintenanceComponent(models.Model):
         return u'%s=%s' % (self.key, self.value)
 
 class MessageToMaintenanceTask(models.Model):
-    """From MetaNAV: The connection between messages and related maintenance
+    """From NAV Wiki: The connection between messages and related maintenance
     tasks."""
 
     id = models.AutoField(primary_key=True) # Serial for faking primary key

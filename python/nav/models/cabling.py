@@ -22,7 +22,7 @@ from nav.models.manage import Room, Interface
 from nav.models.fields import VarcharField
 
 class Cabling(models.Model):
-    """From MetaNAV: The cabling table documents the cabling from the wiring
+    """From NAV Wiki: The cabling table documents the cabling from the wiring
     closet's jack number to the end user's room number."""
 
     id = models.AutoField(db_column='cablingid', primary_key=True)
@@ -41,7 +41,7 @@ class Cabling(models.Model):
         return u'jack %s, in room %s' % (self.jack, self.room.id)
 
 class Patch(models.Model):
-    """From MetaNAV: The patch table documents the cross connect from switch
+    """From NAV Wiki: The patch table documents the cross connect from switch
     port to jack."""
 
     id = models.AutoField(db_column='patchid', primary_key=True)
