@@ -1,7 +1,6 @@
 
-.search {
+#searchForm {
 	float: left;
-	clear: both;
 }
 .networktree {
 	clear: both;
@@ -50,3 +49,14 @@ dt dt dt {
     font-weight: bold;
 }
 
+.info {
+    clear: right;
+    border: solid 1px #DEDEDE;
+    background: #EFEFEF;
+    color: #222222;
+    display: block;
+    float: left;
+    margin: 0.5em;
+    padding: 4px;
+    text-align: center;
+}
