@@ -343,6 +343,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         {
             'host_info': host_info,
             'netbox': netbox,
+            'title': netbox.sysname if netbox else host_info['host'],
             'alert_info': alert_info,
             'port_view': port_view,
             'activity_interval_form': activity_interval_form,

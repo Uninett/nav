@@ -28,11 +28,13 @@ import time
 from optparse import OptionParser
 
 from twisted.internet import reactor
+from twisted.internet.defer import maybeDeferred
 
 from nav import buildconf
 import nav.daemon
 import nav.logs
-import nav.models.manage
+from nav.models import manage
+from django.db.models import Q
 
 from . import plugins
 from nav.ipdevpoll import ContextFormatter
@@ -56,17 +58,43 @@ class IPDevPollProcess(object):
         signal.signal(signal.SIGUSR1, self.sigusr1_handler)
 
         plugins.import_plugins()
+        if not self.options.netbox:
+            self.setup_scheduling()
+        else:
+            self.setup_single_job()
+
+        reactor.addSystemEventTrigger("after", "shutdown", self.shutdown)
+        reactor.run(installSignalHandlers=0)
+
+    def setup_scheduling(self):
+        "Sets up regular job scheduling according to config"
         # NOTE: This is locally imported because it will in turn import
         # twistedsnmp. Twistedsnmp is stupid enough to call
         # logging.basicConfig().  If imported before our own loginit, this
         # causes us to have two StreamHandlers on the root logger, duplicating
         # every log statement.
         from .schedule import JobScheduler
-
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
                                 self.options.onlyjob)
-        reactor.addSystemEventTrigger("after", "shutdown", self.shutdown)
-        reactor.run(installSignalHandlers=0)
+
+    def setup_single_job(self):
+        "Sets up a single job run with exit when done"
+        from .jobs import JobHandler
+        from . import config
+
+        def _run_job():
+            descriptors = dict((d.name, d) for d in config.get_jobs())
+            job = descriptors[self.options.onlyjob]
+            self._log_context = dict(job=job.name,
+                                     sysname=self.options.netbox.sysname)
+            job_handler = JobHandler(job.name, self.options.netbox,
+                                     plugins=job.plugins)
+            deferred = maybeDeferred(job_handler.run)
+            deferred.addCallbacks(lambda x: reactor.stop())
+
+        self._logger.info("Running single %r job for %s",
+                          self.options.onlyjob, self.options.netbox)
+        reactor.callWhenRunning(_run_job)
 
     def sighup_handler(self, _signum, _frame):
         """Reopens log files."""
@@ -96,9 +124,10 @@ class IPDevPollProcess(object):
         logging.shutdown()
 
     def _log_shutdown_time(self):
-        sequence_time = time.time() - self._shutdown_start_time
-        self._logger.warn("Shutdown sequence completed in %.02f seconds",
-                          sequence_time)
+        if self._shutdown_start_time > 0:
+            sequence_time = time.time() - self._shutdown_start_time
+            self._logger.warn("Shutdown sequence completed in %.02f seconds",
+                              sequence_time)
 
 
 class CommandProcessor(object):
@@ -116,6 +145,8 @@ class CommandProcessor(object):
         (options, args) = parser.parse_args()
         if options.logstderr and not options.foreground:
             parser.error('-s is only valid if running in foreground')
+        if options.netbox and not options.onlyjob:
+            parser.error('specifying a netbox requires the -J option')
 
         return options, args
 
@@ -137,6 +168,9 @@ class CommandProcessor(object):
             help="load and print a list of configured plugins")
         opt("-J", action="store", dest="onlyjob", choices=self._joblist(),
             metavar="JOBNAME", help="run only JOBNAME in this process")
+        opt("-n", "--netbox", action="callback", nargs=1, type="string",
+            callback=self._find_netbox, metavar="NETBOX",
+            help="Run JOBNAME once for NETBOX. Also implies -f and -s options.")
         return parser
 
     def run(self):
@@ -223,6 +257,25 @@ class CommandProcessor(object):
         plugins.import_plugins()
         print '\n'.join(sorted(plugins.plugin_registry.keys()))
         sys.exit()
+
+    @staticmethod
+    def _find_netbox(_option, opt, value, parser):
+        if not value:
+            parser.error("%s argument must be non-empty" % opt)
+        matches = manage.Netbox.objects.filter(
+            Q(sysname__startswith=value) | Q(ip=value)).order_by('sysname')
+        if len(matches) == 1:
+            parser.values.netbox = matches[0]
+            parser.values.foreground = True
+            parser.values.logstderr = True
+            return
+        elif len(matches) > 1:
+            print "matched more than one netbox:"
+            print '\n'.join("%s (%s)" % (n.sysname, n.ip) for n in matches)
+        else:
+            print "no netboxes match %r" % value
+
+        sys.exit(1)
 
 def signame(signum):
     """Looks up signal name from signal number"""
