@@ -1,0 +1,85 @@
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns
+             http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd
+http://graphml.graphdrawing.org/xmlns">
+
+    <key id="sysname" for="node" attr.name="sysname" attr.type="string"/>
+    <key id="ip" for="node" attr.name="ip" attr.type="string"/>
+    <key id="image" for="node" attr.name="image" attr.type="string"/>
+    <key id="category" for="node" attr.name="category" attr.type="string"/>
+    <key id="type" for="node" attr.name="type" attr.type="string"/>
+    <key id="cpuload" for="node" attr.name="cpuload" attr.type="string"/>
+    <key id="room" for="node" attr.name="room" attr.type="string"/>
+    <key id="location" for="node" attr.name="location" attr.type="string"/>
+    <key id="uptime" for="node" attr.name="uptime" attr.type="string"/>
+    <key id="up" for="node" attr.name="up" attr.type="string"/>
+    <key id="position" for="node" attr.name="position" attr.type="string"/>
+    <key id="link_load_in" for="edge" attr.name="link_load_in" attr.type="string"/>
+    <key id="link_load_out" for="edge" attr.name="link_load_out" attr.type="string"/>
+    <key id="link_capacity" for="edge" attr.name="link_capacity" attr.type="string"/>
+    <key id="from_interface" for="edge" attr.name="from_interface" attr.type="string"/>
+    <key id="to_interface" for="edge" attr.name="to_interface" attr.type="string"/>
+    <key id="from_sysname" for="edge" attr.name="from_sysname" attr.type="string"/>
+    <key id="to_sysname" for="edge" attr.name="to_sysname" attr.type="string"/>
+    <key id="from_portid" for="edge" attr.name="from_portid" attr.type="string"/>
+    <key id="to_portid" for="edge" attr.name="to_portid" attr.type="string"/>
+    <key id="nettype" for="edge" attr.name="nettype" attr.type="string"/>
+    <key id="netident" for="edge" attr.name="netident" attr.type="string"/>
+    <key id="layer" for="edge" attr.name="layer" attr.type="string"/>
+    <key id="vlan" for="edge" attr.name="vlan" attr.type="string"/>
+    <key id="ipdevinfolink" for="edge" attr.name="ipdevinfolink" attr.type="string"/>
+    <key id="ipdevinfolink" for="node" attr.name="ipdevinfolink" attr.type="string"/>
+
+    <graph id="main" edgedefault="directed">
+        {% for box in netboxes %}
+
+        <node id="{{box.id}}">
+            <data key="sysname">{{box.get_short_sysname}}</data>
+            <data key="ip">{{box.ip}}</data>
+            <data key="category">{{box.category.id}}</data>
+            <data key="type">{{box.descr}}</data>
+            <data key="room">{{box.room}}</data>
+            <data key="up">{{box.up}}</data>
+            <data key="location">{{box.room.location}}</data>
+            <data key="cpuload">{{box.load}}</data>
+            <data key="ipdevinfolink">{{box.get_absolute_url}}</data>
+            <data key="image">media/{{box.category.id}}.png</data>
+            {% if box.xpos and box.ypos %}
+            <data key="position">{{box.xpos}} x {{box.ypos}}</data>
+            {% endif %}
+        </node>
+        {% endfor %}
+
+        {% for netbox_from,netbox_to,interface in connections %}
+            <edge id="{{ forloop.counter}}" source="{{netbox_from.id}}" target="{{netbox_to.id}}">
+                <data key="link_capacity">{{interface.speed}}</data>
+
+                <data key="link_load_in">-1</data>
+                <data key="link_load_out">-1</data>
+
+                <data key="from_interface">{{interface.ifname}}</data>
+                <data key="to_interface">{{interface.to_interface.ifname}}</data>
+                <data key="from_sysname">{{netbox_from.get_short_sysname}}</data>
+                <data key="to_sysname">{{netbox_to.get_short_sysname}}</data>
+
+                <data key="from_portid">{{interface.id}}</data>
+                <data key="to_portid">{{interface.to_interface.id}}</data>
+
+                <data key="layer">{{layer}}</data>
+                <data key="vlan">{{interface.get_vlan_numbers}}</data>
+                <data key="ipdevinfolink">{{interface.get_absolute_url}}</data>
+
+
+                <data key="nettype">demo</data>
+                <data key="netident">omed</data>
+            </edge>
+        {% endfor %}
+
+
+
+
+
+
+    </graph>
+</graphml>

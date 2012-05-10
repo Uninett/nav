@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2007 UNINETT AS
+# Copyright (C) 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,43 +13,18 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from nav.topology import vlan
 
-import sys
+def layer2_graph():
+    layer2_graph = vlan.build_layer2_graph()
 
-class unbuffered:
-    """Utility class for writing to stderr easily"""
-    def write(self, data):
-        sys.stderr.write(data)
-        sys.stderr.write("\n")
-        sys.stderr.flush()
+    netboxes = layer2_graph.nodes()
 
-class Connection:
-    """Class to represent a link between two netboxes"""
-    def __init__(self, from_netboxid = None, to_netboxid = None,
-                 capacity = None, load = (0, 0)):
-        self.from_netboxid = from_netboxid
-        self.to_netboxid = to_netboxid
-        self.capacity = capacity
-        self.load = load
+    connections = []
 
-class Netbox:
-    """Class to represent a netbox. Contains all the info about the netbox"""
+    for node, neighbours_dict in layer2_graph.adjacency_iter():
+        for neighbour, keydict in neighbours_dict.items():
+            for key, eattr in keydict.items():
+                connections.append([node, neighbour, key]) # [from_netbox, to_netbox, to_interface]
 
-    def __init__(self, netboxid = None, sysname = "Unknown", ip = "Unknown",
-                       category = None, room = "unknown", location = "unknown",
-                       up = None, connections = None):
-        self.netboxid = netboxid
-        self.sysname = sysname
-        self.ip = ip
-        self.category = category
-        self.room = room
-        self.location = location
-        self.up = up
-        if not connections:
-            self.connections = []
-        else:
-            self.connections = connections
-
-    def __str__(self):
-        return "%s: %s (%s) -> %s" % (self.netboxid, self.sysname, self.ip, str(self.connections))
-
+    return (netboxes, connections)

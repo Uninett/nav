@@ -15,7 +15,6 @@
 #
 """Netmap mod_python handler"""
 
-import nav.db
 import psycopg2.extras
 
 from django.template import RequestContext
@@ -24,40 +23,81 @@ from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.core.urlresolvers import reverse
+from django.core.serializers import serialize
+from django.utils import simplejson
 
 from nav.django.shortcuts import render_to_response
-from nav.django.utils import get_account
 
-from nav.web.netmap.datacollector import getData
+from nav.topology import vlan
+from nav.topology.d3_js import *
 
-from nav.web.templates.GraphML import GraphML
+from nav.web.netmapdev.common import layer2_graph
 from nav.web.templates.Netmapdev import Netmapdev
 
 
 def index(request):
-    """The main Netmap view, embedding the Java applet"""
-    #page = Netmapdev()
-    #page.sessionID = _get_session_cookie(req)
-    #base_url = req.build_absolute_uri()
-    #page.baseURL = base_url[:-1]
-    #account = get_account(req)
-    #if account.has_perm(None, None):
-    #    page.is_admin = "True"
-    #else:
-    #    page.is_admin = "False"
+    return graph_layer2_view2(request)
 
+
+def demo(request):
+    """d3js force-layout graph demo."""
     return render_to_response(Netmapdev,
-                              'netmapdev/index.html',
-                              { },
-                              RequestContext(request),
-                              path=[('Home', '/'),
-                                    ('Netmapdev', None)])
+        'netmapdev/demo.html',
+            {
+        },
+        RequestContext(request),
+        path=[('Home', '/'),
+            ('Netmapdev', None)])
 
 
+def graph_layer2_view1(request):
+    return render_to_response(Netmapdev,
+        'netmapdev/index.html',
+            {'data': 'd3js/layer2',
+             },
+        RequestContext(request),
+        path=[('Home', '/'),
+            ('Netmapdev', None)])
 
 
-class HttpResponseUnauthorized(HttpResponse):
-    """A HttpResponse defaulting to a 401 UNAUTHORIZED status code"""
-    def __init__(self):
-        super(HttpResponseUnauthorized, self).__init__()
-        self.status_code = 401
+def graph_layer2_view2(request):
+    return render_to_response(Netmapdev,
+        'netmapdev/force_direct.html',
+            {'data': 'd3js/layer2',
+             },
+        RequestContext(request),
+        path=[('Home', '/'),
+            ('Netmapdev', None)])
+
+
+# data views, graphml
+
+def graphml_layer2(request):
+    """Layer2 network topology representation in graphml format."""
+
+    netboxes, connections = layer2_graph()
+
+    response = render_to_response(Netmapdev,
+        'netmapdev/graphml.html',
+            {'netboxes': netboxes,
+             'connections': connections,
+             'layer': 2,
+             },
+        RequestContext(request),
+        path=[
+            ('Home', '/'),
+            ('Netmapdev', None)
+        ],
+    )
+    response['Content-Type'] = 'application/xml; charset=utf-8'
+    return response
+
+# data views, d3js
+
+def d3js_layer2(request):
+    """
+    Layer2 network topology representation in d3js force-direct graph layout
+    http://mbostock.github.com/d3/ex/force.html
+    """
+    return HttpResponse(simplejson.dumps(d3_js.d3_json(vlan.build_layer2_graph())))
+
