@@ -37,7 +37,7 @@ STATE_CHOICES = (
 )
 
 class Subsystem(models.Model):
-    """From MetaNAV: Defines the subsystems that post or receives an event."""
+    """From NAV Wiki: Defines the subsystems that post or receives an event."""
 
     name = VarcharField(primary_key=True)
     description = VarcharField(db_column='descr')
@@ -52,7 +52,7 @@ class Subsystem(models.Model):
 ### Event system
 
 class EventQueue(models.Model):
-    """From MetaNAV: The event queue. Additional data in eventqvar. Different
+    """From NAV Wiki: The event queue. Additional data in eventqvar. Different
     subsystem (specified in source) post events on the event queue. Normally
     event engine is the target and will take the event off the event queue and
     process it.  getDeviceData are in some cases the target."""
@@ -85,7 +85,7 @@ class EventQueue(models.Model):
             self.source, self.target, self.get_state_display())
 
 class EventType(models.Model):
-    """From MetaNAV: Defines event types."""
+    """From NAV Wiki: Defines event types."""
 
     STATEFUL_TRUE = 'y'
     STATEFUL_FALSE = 'n'
@@ -106,7 +106,7 @@ class EventType(models.Model):
         return self.id
 
 class EventQueueVar(models.Model):
-    """From MetaNAV: Defines additional (key,value) tuples that follow
+    """From NAV Wiki: Defines additional (key,value) tuples that follow
     events."""
 
     event_queue = models.ForeignKey('EventQueue', db_column='eventqid',
@@ -125,7 +125,7 @@ class EventQueueVar(models.Model):
 ### Alert system
 
 class AlertQueue(models.Model):
-    """From MetaNAV: The alert queue. Additional data in alertqvar and
+    """From NAV Wiki: The alert queue. Additional data in alertqvar and
     alertmsg. Event engine posts alerts on the alert queue (and in addition on
     the alerthist table). Alert engine will process the data on the alert queue
     and send alerts to users based on their alert profiles. When all signed up
@@ -162,7 +162,7 @@ class AlertQueue(models.Model):
             self.source, self.get_state_display(), self.severity)
 
 class AlertType(models.Model):
-    """From MetaNAV: Defines the alert types. An event type may have many alert
+    """From NAV Wiki: Defines the alert types. An event type may have many alert
     types."""
 
     id = models.AutoField(db_column='alerttypeid', primary_key=True)
@@ -178,7 +178,7 @@ class AlertType(models.Model):
         return u'%s, of event type %s' % (self.name, self.event_type)
 
 class AlertQueueMessage(models.Model):
-    """From MetaNAV: Event engine will, based on alertmsg.conf, preformat the
+    """From NAV Wiki: Event engine will, based on alertmsg.conf, preformat the
     alarm messages, one message for each configured alert channel (email, sms),
     one message for each configured language. The data are stored in the
     alertmsg table."""
@@ -198,7 +198,7 @@ class AlertQueueMessage(models.Model):
         return u'%s message in language %s' % (self.type, self.language)
 
 class AlertQueueVariable(models.Model):
-    """From MetaNAV: Defines additional (key,value) tuples that follow alert.
+    """From NAV Wiki: Defines additional (key,value) tuples that follow alert.
     Note: the eventqvar tuples are passed along to the alertqvar table so that
     the variables may be used in alert profiles."""
 
@@ -216,7 +216,7 @@ class AlertQueueVariable(models.Model):
         return u'%s=%s' % (self.variable, self.value)
 
 class AlertHistory(models.Model):
-    """From MetaNAV: The alert history. Simular to the alert queue with one
+    """From NAV Wiki: The alert history. Simular to the alert queue with one
     important distinction; alert history stores stateful events as one row,
     with the start and end time of the event."""
 
@@ -272,7 +272,7 @@ class AlertHistory(models.Model):
             return None
 
 class AlertHistoryMessage(models.Model):
-    """From MetaNAV: To have a history of the formatted messages too, they are
+    """From NAV Wiki: To have a history of the formatted messages too, they are
     stored in alerthistmsg."""
 
     STATE_STATELESS = STATE_STATELESS
@@ -297,7 +297,7 @@ class AlertHistoryMessage(models.Model):
         return u'%s message in language %s' % (self.type, self.language)
 
 class AlertHistoryVariable(models.Model):
-    """From MetaNAV: Defines additional (key,value) tuples that follow the
+    """From NAV Wiki: Defines additional (key,value) tuples that follow the
     alerthist record."""
 
     STATE_STATELESS = STATE_STATELESS

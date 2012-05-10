@@ -36,7 +36,7 @@ from nav.models.fields import CIDRField
 ### Netbox-related models
 
 class Netbox(models.Model):
-    """From MetaNAV: The netbox table is the heart of the heart so to speak,
+    """From NAV Wiki: The netbox table is the heart of the heart so to speak,
     the most central table of them all. The netbox tables contains information
     on all IP devices that NAV manages with adhering information and
     relations."""
@@ -244,7 +244,7 @@ class Netbox(models.Model):
             ).order_by('description')
 
 class NetboxInfo(models.Model):
-    """From MetaNAV: The netboxinfo table is the place to store additional info
+    """From NAV Wiki: The netboxinfo table is the place to store additional info
     on a netbox."""
 
     id = models.AutoField(db_column='netboxinfoid', primary_key=True)
@@ -284,7 +284,7 @@ class NetboxPrefix(models.Model):
         raise Exception("Cannot save to a view.")
 
 class Device(models.Model):
-    """From MetaNAV: The device table contains all physical devices in the
+    """From NAV Wiki: The device table contains all physical devices in the
     network. As opposed to the netbox table, the device table focuses on the
     physical box with its serial number. The device may appear as different net
     boxes or may appear in different modules throughout its lifetime."""
@@ -303,7 +303,7 @@ class Device(models.Model):
         return self.serial or ''
 
 class Module(models.Model):
-    """From MetaNAV: The module table defines modules. A module is a part of a
+    """From NAV Wiki: The module table defines modules. A module is a part of a
     netbox of category GW, SW and GSW. A module has ports; i.e router ports
     and/or switch ports. A module is also a physical device with a serial
     number."""
@@ -372,7 +372,7 @@ class Module(models.Model):
         return sorted_ports
 
 class Memory(models.Model):
-    """From MetaNAV: The mem table describes the memory (memory and nvram) of a
+    """From NAV Wiki: The mem table describes the memory (memory and nvram) of a
     netbox."""
 
     id = models.AutoField(db_column='memid', primary_key=True)
@@ -393,7 +393,7 @@ class Memory(models.Model):
             return self.type
 
 class Room(models.Model):
-    """From MetaNAV: The room table defines a wiring closes / network room /
+    """From NAV Wiki: The room table defines a wiring closes / network room /
     server room."""
 
     id = models.CharField(db_column='roomid', max_length=30, primary_key=True)
@@ -413,7 +413,7 @@ class Room(models.Model):
         return u'%s (%s)' % (self.id, self.description)
 
 class Location(models.Model):
-    """From MetaNAV: The location table defines a group of rooms; i.e. a
+    """From NAV Wiki: The location table defines a group of rooms; i.e. a
     campus."""
 
     id = models.CharField(db_column='locationid',
@@ -428,7 +428,7 @@ class Location(models.Model):
         return u'%s (%s)' % (self.id, self.description)
 
 class Organization(models.Model):
-    """From MetaNAV: The org table defines an organization which is in charge
+    """From NAV Wiki: The org table defines an organization which is in charge
     of a given netbox and is the user of a given prefix."""
 
     id = models.CharField(db_column='orgid', max_length=30, primary_key=True)
@@ -446,7 +446,7 @@ class Organization(models.Model):
         return u'%s (%s)' % (self.id, self.description)
 
 class Category(models.Model):
-    """From MetaNAV: The cat table defines the categories of a netbox
+    """From NAV Wiki: The cat table defines the categories of a netbox
     (GW,GSW,SW,EDGE,WLAN,SRV,OTHER)."""
 
     id = models.CharField(db_column='catid', max_length=8, primary_key=True)
@@ -486,7 +486,7 @@ class Category(models.Model):
         return self.id == 'OTHER'
 
 class Subcategory(models.Model):
-    """From MetaNAV: The subcat table defines subcategories within a category.
+    """From NAV Wiki: The subcat table defines subcategories within a category.
     A category may have many subcategories. A subcategory belong to one and
     only one category."""
 
@@ -504,7 +504,7 @@ class Subcategory(models.Model):
             return self.id
 
 class NetboxCategory(models.Model):
-    """From MetaNAV: A netbox may be in many subcategories. This relation is
+    """From NAV Wiki: A netbox may be in many subcategories. This relation is
     defined here."""
 
     # TODO: This should be a ManyToMany-field in Netbox, but at this time
@@ -522,7 +522,7 @@ class NetboxCategory(models.Model):
         return u'%s in category %s' % (self.netbox, self.category)
 
 class NetboxType(models.Model):
-    """From MetaNAV: The type table defines the type of a netbox, the
+    """From NAV Wiki: The type table defines the type of a netbox, the
     sysobjectid being the unique identifier."""
 
     id = models.AutoField(db_column='typeid', primary_key=True)
@@ -563,7 +563,7 @@ class NetboxType(models.Model):
 ### Device management
 
 class Vendor(models.Model):
-    """From MetaNAV: The vendor table defines vendors. A type is of a vendor. A
+    """From NAV Wiki: The vendor table defines vendors. A type is of a vendor. A
     product is of a vendor."""
 
     id = models.CharField(db_column='vendorid', max_length=15, primary_key=True)
@@ -578,7 +578,7 @@ class Vendor(models.Model):
 ### Router/topology
 
 class GwPortPrefix(models.Model):
-    """From MetaNAV: The gwportprefix table defines the router port IP
+    """From NAV Wiki: The gwportprefix table defines the router port IP
     addresses, one or more. HSRP is also supported."""
 
     interface = models.ForeignKey('Interface', db_column='interfaceid')
@@ -593,7 +593,7 @@ class GwPortPrefix(models.Model):
         return self.gw_ip
 
 class Prefix(models.Model):
-    """From MetaNAV: The prefix table stores IP prefixes."""
+    """From NAV Wiki: The prefix table stores IP prefixes."""
 
     id = models.AutoField(db_column='prefixid', primary_key=True)
     net_address = CIDRField(db_column='netaddr', unique=True)
@@ -614,7 +614,7 @@ class Prefix(models.Model):
         return ip.prefixlen()
 
 class Vlan(models.Model):
-    """From MetaNAV: The vlan table defines the IP broadcast domain / vlan. A
+    """From NAV Wiki: The vlan table defines the IP broadcast domain / vlan. A
     broadcast domain often has a vlan value, it may consist of many IP
     prefixes, it is of a network type, it is used by an organization (org) and
     has a user group (usage) within the org."""
@@ -642,7 +642,7 @@ class Vlan(models.Model):
         return result
 
 class NetType(models.Model):
-    """From MetaNAV: The nettype table defines network type;lan, core, link,
+    """From NAV Wiki: The nettype table defines network type;lan, core, link,
     elink, loopback, closed, static, reserved, scope. The network types are
     predefined in NAV and may not be altered."""
 
@@ -657,7 +657,7 @@ class NetType(models.Model):
         return self.id
 
 class Usage(models.Model):
-    """From MetaNAV: The usage table defines the user group (student, staff
+    """From NAV Wiki: The usage table defines the user group (student, staff
     etc). Usage categories are maintained in the edit database tool."""
 
     id = models.CharField(db_column='usageid',
@@ -671,7 +671,7 @@ class Usage(models.Model):
         return u'%s (%s)' % (self.id, self.description)
 
 class Arp(models.Model):
-    """From MetaNAV: The arp table contains (ip, mac, time start, time end)."""
+    """From NAV Wiki: The arp table contains (ip, mac, time start, time end)."""
 
     id = models.AutoField(db_column='arpid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
@@ -693,7 +693,7 @@ class Arp(models.Model):
 ### Switch/topology
 
 class SwPortVlan(models.Model):
-    """From MetaNAV: The swportvlan table defines the vlan values on all switch
+    """From NAV Wiki: The swportvlan table defines the vlan values on all switch
     ports. dot1q trunk ports typically have several rows in this table."""
 
     DIRECTION_UNDEFINED = 'x'
@@ -802,7 +802,7 @@ class AdjacencyCandidate(models.Model):
                                               self.to_netbox, self.to_interface)
 
 class NetboxVtpVlan(models.Model):
-    """From MetaNAV: A help table that contains the vtp vlan database of a
+    """From NAV Wiki: A help table that contains the vtp vlan database of a
     switch. For certain cisco switches cam information is gathered using a
     community@vlan string. It is then necessary to know all vlans that are
     active on a switch. The vtp vlan table is an extra source of
@@ -820,7 +820,7 @@ class NetboxVtpVlan(models.Model):
         return u'%d, at %s' % (self.vtp_vlan, self.netbox)
 
 class Cam(models.Model):
-    """From MetaNAV: The cam table defines (swport, mac, time start, time
+    """From NAV Wiki: The cam table defines (swport, mac, time start, time
     end)"""
 
     id = models.AutoField(db_column='camid', primary_key=True)
