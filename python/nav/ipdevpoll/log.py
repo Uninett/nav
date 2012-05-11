@@ -29,9 +29,11 @@ class ContextFormatter(Formatter):
     """
     prefix = 'nav.ipdevpoll.'
 
-    def __init__(self):
-        self._normal_fmt = "%(asctime)s [%(levelname)s %(name)s] %(message)s"
-        self._context_fmt = ("%(asctime)s [%(levelname)s "
+    def __init__(self, pidlog=False):
+        pidlog = "[%(process)s] " if pidlog else ""
+        self._normal_fmt = ("%(asctime)s " + pidlog +
+                            "[%(levelname)s %(name)s] %(message)s")
+        self._context_fmt = ("%(asctime)s " + pidlog + "[%(levelname)s "
                              "%(name)s] [%(context)s] %(message)s")
         Formatter.__init__(self, self._normal_fmt)
 
