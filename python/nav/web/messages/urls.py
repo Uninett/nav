@@ -16,9 +16,9 @@
 
 from django.conf.urls.defaults import url, patterns
 
-from nav.web.messages.handler import rss, active, historic
-from nav.web.messages.handler import new, edit, followup
-from nav.web.messages.handler import planned, view, expire
+from nav.web.messages.views import rss, active, historic
+from nav.web.messages.views import new, edit, followup
+from nav.web.messages.views import planned, view, expire
 
 urlpatterns = patterns('',
 

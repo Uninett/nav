@@ -18,83 +18,19 @@ mod_python handler for the Messages subsystem.
 """
 
 import time
-from mod_python import apache, util
 import datetime
 
 from django.http import HttpResponse
 from django.shortcuts import redirect
 
-import nav.db
 import nav.messages
 import nav.maintenance
-from nav.web.URI import URI
 from nav.web.templates.MessagesListTemplate import MessagesListTemplate
 from nav.web.templates.MessagesDetailsTemplate import MessagesDetailsTemplate
 from nav.web.templates.MessagesNewTemplate import MessagesNewTemplate
 from nav.web.templates.MessagesFeedTemplate import MessagesFeedTemplate
 from nav.web.encoding import encoded_output
 from nav.django.utils import get_account
-
-dbconn = nav.db.getConnection('webfront', 'manage')
-db = dbconn.cursor()
-
-@encoded_output
-def handler(req):
-    """Handler for the Messages subsystem."""
-
-    # Initialize form
-    keep_blank_values = True
-    req.REQUEST = util.FieldStorage(req, keep_blank_values)
-
-    # Get arguments
-    args = URI(req.unparsed_uri)
-
-    # Get section
-    if len(args.path.split('/')[-1]):
-        section = args.path.split('/')[-1]
-    else:
-        section = 'active'
- 
-    # Create initial menu, more is appended depending on context
-    menu = []
-    menu.append({'link': 'active', 'text': 'Active', 'admin': False})
-    menu.append({'link': 'planned', 'text': 'Planned', 'admin': False})
-    menu.append({'link': 'historic', 'text': 'Historic', 'admin': False})
-
-    ### SECTIONS
-    # RSS 2.0 feed
-    if section == 'rss':
-        return rss(req)
-
-    # Planned messages (not yet reached publishing time)
-    elif section == 'planned':
-        return planned(req)
-
-    # Historic and replaced messages
-    elif section == 'historic':
-       return historic(req) 
-
-    # View a message
-    elif section == 'view' and args.get('id'):
-      return view(req)
-
-    # Expire a message
-    elif section == 'expire' and args.get('id'):
-        return expire(req)        
-
-    # New, followup and edit message
-    elif section == 'new':
-        return new(req)
-
-    elif section == 'edit':
-        return edit(req)
-
-    elif section == 'followup':
-        return followup(req)
-    
-    # Default: Show active messages (public messages)
-    else:
-        return active(req)
 
 ### View functions ###
 def rss(req):
@@ -117,7 +53,7 @@ def rss(req):
     if page.pubDate == 0:
         page.pubDate = datetime.datetime.now()
 
-    return HttpResponse(page.respond, mimetype='text/xml')
+    return HttpResponse(page.respond(), mimetype='application/xml')
 
 def planned(req):
     section = get_section(req)
