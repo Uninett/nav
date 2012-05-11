@@ -49,6 +49,7 @@ li.sms_message {
 }
 
 li.sms_message .expand_link {
+        cursor: pointer;
 	margin-left: 20px;
 	display: block;
 	float: right;
