@@ -175,6 +175,7 @@ def mac_do_search(request):
         'ip_tracker': None,
         'mac_tracker_count': 0,
         'ip_tracker_count': 0,
+        'disable_ip_context' : True,
     }
     if form.is_valid():
         mac = form.cleaned_data['mac']
