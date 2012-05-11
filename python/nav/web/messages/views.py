@@ -13,9 +13,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-mod_python handler for the Messages subsystem.
-"""
 
 import time
 import datetime
@@ -32,7 +29,6 @@ from nav.web.templates.MessagesFeedTemplate import MessagesFeedTemplate
 from nav.web.encoding import encoded_output
 from nav.django.utils import get_account
 
-### View functions ###
 def rss(req):
     page = MessagesFeedTemplate()
     page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
@@ -61,7 +57,7 @@ def planned(req):
     page = MessagesListTemplate()
     page.title = 'Planned Messages'
     page.msgs = nav.messages.getMsgs('publish_start > now() AND publish_end > now() AND replaced_by IS NULL')
-    return push_menu_and_output(req, page, section)
+    return build_menu_and_return(req, page, section)
 
 def historic(req):
     section = get_section(req)
@@ -70,7 +66,7 @@ def historic(req):
     page.title = 'Historic Messages'
     page.msgs = nav.messages.getMsgs('publish_end < now() OR replaced_by IS NOT NULL', 'publish_end DESC')
 
-    return push_menu_and_output(req, page, section)
+    return build_menu_and_return(req, page, section)
 
 def view(req):
     section = get_section(req)
@@ -81,7 +77,7 @@ def view(req):
     msgid = int(req.REQUEST.get('id'))
     page.msgs = nav.messages.getMsg(msgid)
 
-    return push_menu_and_output(req, page, section, menu_dict)
+    return build_menu_and_return(req, page, section, menu_dict)
 
 def expire(req):
     section = get_section(req)
@@ -95,7 +91,7 @@ def expire(req):
     page.infomsgs.append('The following message was expired.')
     page.msgs = nav.messages.getMsg(msgid)
 
-    return push_menu_and_output(req, page, section, menu_dict)
+    return build_menu_and_return(req, page, section, menu_dict)
 
 def new(req):
     section = get_section(req)
@@ -109,7 +105,7 @@ def new(req):
     if page.submit:
         return submit_form(req, page, section)
     
-    return push_menu_and_output(req, page, section)
+    return build_menu_and_return(req, page, section)
 
 def edit(req):
     section = get_section(req)
@@ -163,7 +159,7 @@ def edit(req):
     if page.submit:
         return submit_form(req, page, section, menu_dict)
 
-    return push_menu_and_output(req, page, section, menu_dict)
+    return build_menu_and_return(req, page, section, menu_dict)
 
 def followup(req):
     section = get_section(req)
@@ -199,7 +195,7 @@ def followup(req):
     if page.submit:
         return submit_form(req, page, section)
 
-    return push_menu_and_output(req, page, section)
+    return build_menu_and_return(req, page, section)
 
 def active(req):
     section = get_section(req)
@@ -208,18 +204,17 @@ def active(req):
     page.title = 'Active Messages'
     page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
 
-    return push_menu_and_output(req, page, section)
+    return build_menu_and_return(req, page, section)
 
 ### Helpers ###
-def push_menu_and_output(req, page, section, menu_dict=None):
-    """ User login, menu building and returns the view """
+def build_menu_and_return(req, page, section, menu_dict=None):
+    """ User login, menu building and return with HttpResponse object """
     # Check if user is logged in
     account = get_account(req)
     if account.has_perm(None, None):
         page.authorized = True
     else:
         page.authorized = False
-
 
     menu = []
     menu.append({'link': 'active', 'text': 'Active', 'admin': False})
@@ -241,7 +236,7 @@ def push_menu_and_output(req, page, section, menu_dict=None):
     return HttpResponse(page.respond())
 
 def submit_form(req, page, section, menu_dict=None):
-    """ Form submission """    
+    """ Form submission which redirects to view of submitted data """    
     menu = []
     menu.append({'link': 'active', 'text': 'Active', 'admin': False})
     menu.append({'link': 'planned', 'text': 'Planned', 'admin': False})
@@ -375,11 +370,9 @@ def submit_form(req, page, section, menu_dict=None):
             return redirect('/messages/view?id=' + str(msgid))
 
 def get_section(args):
-    """ Help method """
+    """ Helper to get section you are in. Ex: 'active' """
     # Get section
     if len(args.path.split('/')[-1]):
         return args.path.split('/')[-1]
 
     return 'active'
-
-
