@@ -47,24 +47,29 @@ class IPDevPollProcess(object):
         self.args = args
         self._logger = logging.getLogger('nav.ipdevpoll')
         self._shutdown_start_time = 0
+        self._procmon = None
 
     def run(self):
         """Loads plugins, and initiates polling schedules."""
-        # We need to react to SIGHUP and SIGTERM
+        reactor.callWhenRunning(self.install_sighandlers)
+
+        if self.options.netbox:
+            self.setup_single_job()
+        elif self.options.multiprocess:
+            self.setup_multiprocess()
+        else:
+            self.setup_scheduling()
+
+        reactor.addSystemEventTrigger("after", "shutdown", self.shutdown)
+        reactor.run()
+
+    def install_sighandlers(self):
+        "Installs ipdevpoll's own signal handlers"
         if not self.options.foreground:
             signal.signal(signal.SIGHUP, self.sighup_handler)
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGUSR1, self.sigusr1_handler)
-
-        plugins.import_plugins()
-        if not self.options.netbox:
-            self.setup_scheduling()
-        else:
-            self.setup_single_job()
-
-        reactor.addSystemEventTrigger("after", "shutdown", self.shutdown)
-        reactor.run(installSignalHandlers=0)
 
     def setup_scheduling(self):
         "Sets up regular job scheduling according to config"
@@ -74,6 +79,7 @@ class IPDevPollProcess(object):
         # causes us to have two StreamHandlers on the root logger, duplicating
         # every log statement.
         from .schedule import JobScheduler
+        plugins.import_plugins()
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
                                 self.options.onlyjob)
 
@@ -92,9 +98,14 @@ class IPDevPollProcess(object):
             deferred = maybeDeferred(job_handler.run)
             deferred.addCallbacks(lambda x: reactor.stop())
 
+        plugins.import_plugins()
         self._logger.info("Running single %r job for %s",
                           self.options.onlyjob, self.options.netbox)
         reactor.callWhenRunning(_run_job)
+
+    def setup_multiprocess(self):
+        from . import control
+        self._procmon = control.run_as_multiprocess()
 
     def sighup_handler(self, _signum, _frame):
         """Reopens log files."""
@@ -110,6 +121,8 @@ class IPDevPollProcess(object):
         """Cleanly shuts down logging system and the reactor."""
         self._logger.warn("%s received: Shutting down", signame(signum))
         self._shutdown_start_time = time.time()
+        if self._procmon:
+            reactor.callFromThread(self._procmon.stopService)
         reactor.callFromThread(reactor.stop)
 
     def sigusr1_handler(self, _signum, _frame):
@@ -147,6 +160,8 @@ class CommandProcessor(object):
             parser.error('-s is only valid if running in foreground')
         if options.netbox and not options.onlyjob:
             parser.error('specifying a netbox requires the -J option')
+        if options.multiprocess:
+            options.pidlog = True
 
         return options, args
 
@@ -171,13 +186,26 @@ class CommandProcessor(object):
         opt("-n", "--netbox", action="callback", nargs=1, type="string",
             callback=self._find_netbox, metavar="NETBOX",
             help="Run JOBNAME once for NETBOX. Also implies -f and -s options.")
+        opt("-m", "--multiprocess", action="store_true", dest="multiprocess",
+            help="Run ipdevpoll in a multiprocess setup")
+        opt("-P", "--pidlog", action="store_true", dest="pidlog",
+            help="Include process ID in every log line")
         return parser
 
     def run(self):
         """Runs an ipdevpoll process"""
         self.init_logging(self.options.logstderr)
         self._logger = logging.getLogger('nav.ipdevpoll')
-        self._logger.info("--- Starting ipdevpolld ---")
+
+        if self.options.multiprocess:
+            self._logger.info("--- Starting ipdevpolld multiprocess master ---")
+        elif self.options.onlyjob:
+            self._logger.info("--- Starting ipdevpolld %s ---",
+                              self.options.onlyjob)
+        else:
+            self._logger.info("--- Starting ipdevpolld ---")
+
+
         if not self.options.foreground:
             self.exit_if_already_running()
             self.daemonize()
@@ -186,10 +214,9 @@ class CommandProcessor(object):
 
         self.start_ipdevpoll()
 
-    @staticmethod
-    def init_logging(stderr_only=False):
+    def init_logging(self, stderr_only=False):
         """Initializes ipdevpoll logging for the current process."""
-        formatter = ContextFormatter()
+        formatter = ContextFormatter(self.options.pidlog)
 
         # First initialize logging to stderr.
         stderr_handler = logging.StreamHandler(sys.stderr)
