@@ -97,8 +97,9 @@ def track_mac(keys, resultset, dns):
         resultset   - a QuerySet
         dns         - should we lookup the hostname?
     """
-    ips_to_lookup = [row['ip'] for row in resultset]
-    dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
+    if dns:
+        ips_to_lookup = [row['ip'] for row in resultset]
+        dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
 
     tracker = SortedDict()
     for row in resultset:
