@@ -24,6 +24,7 @@ from IPy import IP
 
 from django.utils.datastructures import SortedDict
 
+from nav import asyncdns
 from nav.models.manage import Prefix
 
 _cached_hostname = {}
@@ -96,12 +97,18 @@ def track_mac(keys, resultset, dns):
         resultset   - a QuerySet
         dns         - should we lookup the hostname?
     """
+    ips_to_lookup = [row['ip'] for row in resultset]
+    dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
+
     tracker = SortedDict()
     for row in resultset:
         if row['end_time'] > datetime.now():
             row['still_active'] = "Still active"
         if dns:
-            row['dns_lookup'] = hostname(row['ip'])
+            if not isinstance(dns_lookups[row['ip']], Exception):
+                row['dns_lookup'] = dns_lookups[row['ip']].pop()
+            else:
+                row['dns_lookup'] = ""
         if 'module' not in row or not row['module']:
             row['module'] = ''
         if 'port' not in row or not row['port']:
