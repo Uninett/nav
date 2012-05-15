@@ -37,6 +37,7 @@ To run NAV, these software packages are required:
  * Cheetah Templates >= 2.0rc7
  * Java 2 SDK >= 1.5.0
  * Python >= 2.5.0
+ * dhcping (only needed if using DHCP service monitor)
 
 The following Java librares are required:
 
