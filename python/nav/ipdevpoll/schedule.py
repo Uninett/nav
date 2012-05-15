@@ -150,6 +150,7 @@ class NetboxJobScheduler(object):
                 cls._logger.warning("Setting global intensity limit to %d",
                                     new_limit)
                 cls.global_intensity = new_limit
+        return failure
 
     def _reschedule_on_success(self, result):
         """Reschedules the next normal run of this job."""
