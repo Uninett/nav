@@ -98,7 +98,7 @@ def create_container(sensor):
     container = utils.RRDcontainer(str(sensor.id) + ".rrd", sensor.netbox.id,
                                    sensor.netbox.sysname, key="sensor",
                                    value=sensor.id)
-    container.datasources = [("ds0", "sensor", "GAUGE")]
+    container.datasources = [("ds0", sensor.human_readable, "GAUGE")]
     return container
 
 
