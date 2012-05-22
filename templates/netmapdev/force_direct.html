@@ -271,7 +271,7 @@ $(function () {
                 .append("svg:image")
                 .attr("class", "circle node")
                 .attr("xlink:href", function (d) {
-                    return "http://stud-1201:8888/images/netmap/"+ d.data.category + ".png";
+                    return "http://stud-1201:8888/images/netmap/"+ d.data.category.toLowerCase() + ".png";
                 })
                 .attr("x", "-16px")
                 .attr("y", "-16px")
@@ -414,7 +414,7 @@ $(function () {
                             "<dt>IP</dt>" +
                             "<dd>"+node.data.ip+"</dd>" +
                             "<dt>Category</dt>" +
-                            "<dd style='background: url(\/images\/netmap\/"+node.data.category+".png) no-repeat; background-size: 32px 32px; padding-left: 35px; min-height: 32px; height: 32px'>"+node.data.category+"</dd>" +
+                            "<dd style='background: url(\/images\/netmap\/"+node.data.category.toLowerCase()+".png) no-repeat; background-size: 32px 32px; padding-left: 35px; min-height: 32px; height: 32px'>"+node.data.category+"</dd>" +
                             "<dt>Type</dt>" +
                             "<dd>"+node.data.type+"</dd>" +
                             "<dt>Room</dt>" +
