@@ -1,0 +1,45 @@
+{% extends "info/room/base.html" %}
+
+{% block base_header_title %}
+NAV - Roomview {% if room.id %}- {{ room.id }}{% endif %}
+{% endblock %}
+
+{% block roominfo %}
+
+<div id="roominfo">
+  {{ room.location.description }} - 
+  {{ room.description }}
+</div>
+
+<div id="netboxes">
+  {% for netbox in netboxes %}
+
+  <table class="vertitable netbox">
+
+    <caption>{{ netbox.sysname }}</caption>
+
+    <thead>
+      <tr>
+	<th>Name</th>
+	<th>Portname</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for interface in netbox.interfaces %}
+      <tr>
+	<td>{{ interface.ifname }}</td>
+	<td>{{ interface.ifalias }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+
+  {% endfor %}
+
+</div>
+
+
+{% endblock %}
+
