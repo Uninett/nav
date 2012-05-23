@@ -23,17 +23,19 @@
 
     <thead>
         <tr>
-            <th>#</th>
             <th>Room</th>
+            <th>#Netboxes</th>
         </tr>
     </thead>
 
     <tbody>
         {% for room in rooms %}
         <tr>
-            <td>{{ forloop.counter }}</td>
             <td>
                 <a href="{% url room-info room.id %}">{{ room }}</a>
+            </td>
+            <td>
+                {{ room.netbox_set.count }}
             </td>
         </tr>
         {% endfor %}
