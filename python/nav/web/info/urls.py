@@ -15,10 +15,11 @@
 #
 """Django URL configuration"""
 
-from django.conf.urls.defaults import patterns, include
+from django.conf.urls.defaults import patterns, include, url
+from nav.web.info.views import index
 
-def get_urlpatterns():
-    urlpatterns = patterns('',
-        (r'^info/', include('nav.web.info.urls')),
-    )
-    return urlpatterns
+urlpatterns = patterns('',
+    url(r'^$', index),
+    url(r'^room/', include('nav.web.info.room.urls')),
+)
+

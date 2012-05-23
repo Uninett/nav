@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 UNINETT AS
+# Copyright (C) 2007-2008 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,12 +13,12 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Django URL configuration"""
 
-from django.conf.urls.defaults import patterns, include
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 
-def get_urlpatterns():
-    urlpatterns = patterns('',
-        (r'^info/', include('nav.web.info.urls')),
+def index(request):
+    return render_to_response("info/base.html",
+            {},
+        context_instance=RequestContext(request)
     )
-    return urlpatterns
