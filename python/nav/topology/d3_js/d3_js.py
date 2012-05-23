@@ -31,7 +31,7 @@ from shutil import copyfile
 from networkx.utils import _get_fh
 import networkx as nx
 from nav.topology.d3_js.d3_js_files import *
-from nav.web.netmapdev.common import node_to_json
+from nav.web.netmapdev.common import node_to_json, edge_to_json
 import json
 import re
 
@@ -129,7 +129,7 @@ def d3_json(G, group=None):
 	# Build up edge dictionary in JSON format
 	json_edges = list()
 	for j, k, w in graph_edges:
-		e = {'source' : j, 'target' : k}
+		e = {'source' : j, 'target' : k, 'data': edge_to_json(node_labels[j][1], node_labels[k][1])}
 		if any(map(lambda k: k=='weight', w.keys())):
 			e['value'] = w['weight']
 		else:

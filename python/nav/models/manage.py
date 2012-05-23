@@ -186,7 +186,7 @@ class Netbox(models.Model):
         return result
 
     def get_uplinks(self):
-        """Returns a list of uplinks on this netbox."""
+        """Returns a list of uplinks on this netbox. Requires valid vlan."""
         result = []
 
         for iface in self.connected_to_interface.all():
@@ -196,6 +196,17 @@ class Netbox(models.Model):
                     'other': iface,
                     'this': iface.to_interface,
                 })
+
+        return result
+
+    def get_uplinks_regarding_of_vlan(self):
+        result = []
+
+        for iface in self.connected_to_interface.all():
+            result.append({
+                'other': iface,
+                'this': iface.to_interface,
+            })
 
         return result
 

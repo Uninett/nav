@@ -29,6 +29,7 @@ from nav.topology.d3_js import d3_json
 from nav.web.netmapdev.common import layer2_graph
 from nav.web.templates.Netmapdev import Netmapdev
 
+import networkx as nx
 
 def index(request):
     return graph_layer2_view2(request)
@@ -106,5 +107,5 @@ def d3js_layer2(request):
     return HttpResponse(simplejson.dumps(json_layer2()))
 
 def json_layer2():
-    graph = vlan.build_layer2_graph()
+    graph = vlan.build_layer2_graph().to_undirected()
     return d3_json(graph, None)

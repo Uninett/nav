@@ -62,6 +62,48 @@ STATUS_IMAGE_MAP = {
     Netbox.UP_UP: 'green.png',
     Netbox.UP_SHADOW: 'yellow.png',
 }
+
+
+def edge_fetch_uplink(netbox_from, netbox_to):
+    def uplinks(uplinks, uplink_node):
+        interface_link = None
+        if uplinks:
+            for uplink in uplinks:
+                if uplink['other']:
+                    if uplink['other'].netbox == uplink_node:
+                        interface_link = {'other': 'N/A', 'thiss': 'N/A'}
+                        interface_link['other'] = str(uplink['other'].ifname) + ' at ' + str(uplink['other'].netbox.sysname)
+                        if uplink['this']:
+                            interface_link['thiss'] = str(uplink['this'].ifname) + ' at ' + str(uplink['this'].netbox.sysname)
+                        break
+        return interface_link
+
+    interface_link = uplinks(netbox_from.get_uplinks_regarding_of_vlan(), netbox_to)
+
+    if not interface_link:
+        # try to fetch uplink from opposite side. (graph is undirected, so might be that the edge is drawn from UPLINK to DOWNLINK.
+        interface_link = uplinks(netbox_to.get_uplinks_regarding_of_vlan(), netbox_from)
+
+    return interface_link
+
+def edge_to_json(netbox_from, netbox_to):
+    # fetch uplinks
+    interface_link = edge_fetch_uplink(netbox_from, netbox_to)
+
+
+
+
+
+
+    # jsonify null's.
+    if not interface_link:
+        interface_link = 'null' # found no uplinks, json null.
+
+    return {
+        'uplink': interface_link,
+    }
+
+
 def get_status_image_link(status):
     try:
         return STATUS_IMAGE_MAP[status]
