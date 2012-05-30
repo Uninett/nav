@@ -33,7 +33,7 @@ from twisted.internet import defer
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
-from nav.mibs.entity_mib import EntityMib
+from nav.mibs.entity_mib import EntityMib, EntityTable
 
 from nav.mibs.cisco_entity_fru_control_mib import CiscoEntityFruControlMib
 from nav.mibs.hp_entity_fru_control_mib import HpEntityFruControlMib
@@ -116,7 +116,9 @@ class PowerSupplyUnit(Plugin):
         """Collect PSUs and FANs,- their corresponding statuses and store
         in database"""
         self._logger.debug("Collecting PSUs and FANs")
-        entity_table = yield self.entity_mib.get_entity_physical_table()
+
+        entity_table = yield self.entity_mib.get_useful_physical_table_columns()
+        entity_table = EntityTable(entity_table)
         psus_and_fans = self._get_psus_and_fans(entity_table)
         if psus_and_fans:
             for psu_or_fan in psus_and_fans:
