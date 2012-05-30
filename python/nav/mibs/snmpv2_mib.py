@@ -12,11 +12,12 @@ class Snmpv2Mib(mibretriever.MibRetriever):
         some agents  (Weathergoose).
 
         """
-        oid = self.nodes[var].oid + OID('0')
+        oid = self.nodes[var].oid
+        direct_oid = oid + OID('0')
 
         def format_get_result(result):
-            if oid in result:
-                return result[oid]
+            if direct_oid in result:
+                return result[direct_oid]
 
         def format_getnext_result(result):
             if result and hasattr(result, 'values'):
@@ -28,12 +29,12 @@ class Snmpv2Mib(mibretriever.MibRetriever):
             return dict((OID(k), v) for k, v in result.items())
 
         def use_get(failure):
-            df = self.agent_proxy.get([str(oid)])
+            df = self.agent_proxy.get([str(direct_oid)])
             df.addCallback(format_result_keys)
             df.addCallback(format_get_result)
             return df
 
-        df = self.retrieve_column(var)
+        df = self.agent_proxy.walk(str(oid))
         df.addCallback(format_getnext_result)
         df.addErrback(use_get)
         return df
