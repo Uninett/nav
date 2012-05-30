@@ -66,6 +66,24 @@ class EntityMib(mibretriever.MibRetriever):
         phy_sensor_table = yield self._get_named_table('entPhysicalTable')
         defer.returnValue(phy_sensor_table)
 
+    @defer.inlineCallbacks
+    def get_useful_physical_table_columns(self):
+        "Retrieves the most useful columns of the entPhysicalTable"
+        columns = yield self.retrieve_columns([
+                'entPhysicalDescr',
+                'entPhysicalContainedIn',
+                'entPhysicalClass',
+                'entPhysicalName',
+                'entPhysicalHardwareRev',
+                'entPhysicalFirmwareRev',
+                'entPhysicalSoftwareRev',
+                'entPhysicalSerialNum',
+                'entPhysicalModelName',
+                'entPhysicalIsFRU',
+                ])
+        defer.returnValue(self.translate_result(columns))
+
+
 class EntityTable(dict):
     """Represent the contents of the entPhysicalTable as a dictionary"""
     def __init__(self, mibresult):

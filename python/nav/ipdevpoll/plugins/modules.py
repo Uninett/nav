@@ -48,9 +48,7 @@ class Modules(Plugin):
         self._logger.debug("Collecting ENTITY-MIB module data")
         entitymib = EntityMib(self.agent)
 
-        df = entitymib.retrieve_table('entPhysicalTable')
-        df.addCallback(entitymib.translate_result)
-        physical_table = yield df
+        physical_table = yield entitymib.get_useful_physical_table_columns()
 
         alias_mapping = yield entitymib.retrieve_column(
             'entAliasMappingIdentifier')
