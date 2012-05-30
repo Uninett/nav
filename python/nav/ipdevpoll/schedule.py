@@ -360,7 +360,9 @@ class JobScheduler(object):
             self.cancel_netbox_scheduler(netbox_id)
 
         # Schedule new and changed boxes
-        for netbox_id in new_ids.union(changed_ids):
+        new_and_changed = sorted(new_ids.union(changed_ids),
+                                 key=lambda x: self.netboxes[x].last_updated)
+        for netbox_id in new_and_changed:
             self.add_netbox_scheduler(netbox_id)
 
     def add_netbox_scheduler(self, netbox_id):
