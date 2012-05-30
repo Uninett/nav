@@ -55,7 +55,8 @@ class NetboxJobScheduler(object):
         self.job = job
         self.netbox = netbox
         self._log_context = dict(job=job.name, sysname=netbox.sysname)
-        self._logger
+        self._logger.debug("initializing %r job scheduling for %s",
+                           job.name, netbox.sysname)
         self.cancelled = False
         self.job_handler = None
         self._deferred = Deferred()
@@ -181,7 +182,8 @@ class NetboxJobScheduler(object):
                 delta = "right now"
             else:
                 delta = "in %s" % datetime.timedelta(seconds=next_time)
-            self._logger.info("%s in %s. next run %s.",
+            self._logger.info("%s for %s %s in %s. next run %s.",
+                              self.job.name, self.netbox.sysname,
                               status, runtime, delta)
         else:
             self._logger.info("%s in %s. no next run scheduled",
