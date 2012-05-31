@@ -30,6 +30,7 @@ from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 from nav.mibs.entity_mib import EntityMib
+from nav.mibs.snmpv2_mib import Snmpv2Mib
 
 class IpMibTests(unittest.TestCase):
     def test_ipv4_syntax_with_length_should_be_parsed_correctly(self):
@@ -96,6 +97,21 @@ class EntityMibTests(unittest.TestCase):
         self.assertTrue(df.called)
         if isinstance(df.result, failure.Failure):
             df.result.raiseException()
+
+class Snmpv2MibTests(unittest.TestCase):
+    def test_simple_uptime_deviation_should_be_correct(self):
+        first_uptime =  (1338372778.0, 10000L)
+        second_uptime = (1338372900.0, 22200L)
+        dev = Snmpv2Mib.get_uptime_deviation(first_uptime, second_uptime)
+        self.assertTrue(abs(dev) < 0.5,
+                        msg="deviation is higher than 0.5: %r" % dev)
+
+    def test_wrapped_uptime_deviation_should_be_correct(self):
+        first_uptime =  (1338372778.0, 4294967196L)
+        second_uptime = (1338372900.0, 12100L)
+        dev = Snmpv2Mib.get_uptime_deviation(first_uptime, second_uptime)
+        self.assertTrue(abs(dev) < 0.5,
+                        msg="deviation is higher than 0.5: %r" % dev)
 
 if __name__ == '__main__':
     unittest.main()

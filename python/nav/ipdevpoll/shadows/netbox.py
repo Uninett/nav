@@ -29,11 +29,13 @@ class Netbox(Shadow):
         if args:
             obj = args[0]
             self.snmp_up = getattr(obj, 'snmp_up', None)
+            self.last_updated = getattr(obj, 'last_updated', None)
 
     def copy(self, other):
         super(Netbox, self).copy(other)
-        if hasattr(other, 'snmp_up'):
-            self.snmp_up = other.snmp_up
+        for attr in ('snmp_up', 'last_updated'):
+            if hasattr(other, attr):
+                setattr(self, attr, getattr(other, attr))
 
     def prepare(self, containers):
         """Attempts to solve serial number conflicts before savetime.
@@ -94,5 +96,6 @@ class Netbox(Shadow):
 
         netbox.module_set.all().delete()
         netbox.interface_set.all().delete()
+        netbox.info_set.filter(key='poll_times').delete()
 
 

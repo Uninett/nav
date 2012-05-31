@@ -80,8 +80,10 @@ def get_netbox_types(vendor=None):
 
 def index(request):
     """Initial page for searching """
-    descriptions = RrdDataSource.objects.values(
-                        'description').distinct().order_by('description')
+    descriptions = RrdDataSource.objects.exclude(
+        rrd_file__key='sensor', rrd_file__key__isnull=False).values(
+        'description').distinct().order_by('description')
+
     thresholds = []
     for descr in descriptions:
         thresholds.append(descr.get('description',''))
