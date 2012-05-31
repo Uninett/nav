@@ -61,9 +61,9 @@ def calendar(request, year=None, month=None):
     prev_month_start = date(prev_year, prev_month, 1)
     next_month_start = date(next_year, next_month, 1)
     tasks = MaintenanceTask.objects.filter(
-        start_time__gt=this_month_start,
+        end_time__gt=this_month_start,
         start_time__lt=next_month_start,
-    )
+    ).order_by('start_time')
     cal = MaintenanceCalendar(tasks).formatmonth(year, month)
     return render_to_response(
         'maintenance/calendar.html',
@@ -180,7 +180,7 @@ def cancel(request, task_id):
         )
 
 @transaction.commit_on_success()
-def edit(request, task_id=None):
+def edit(request, task_id=None, start_time=None):
     account = get_account(request)
     quickselect = QuickSelect(service=True)
     component_trail = None
@@ -190,7 +190,7 @@ def edit(request, task_id=None):
 
     if task_id:
         task = get_object_or_404(MaintenanceTask, pk=task_id)
-    task_form = MaintenanceTaskForm(initial=task_form_initial(task))
+    task_form = MaintenanceTaskForm(initial=task_form_initial(task, start_time))
 
     if request.method == 'POST':
         component_keys = get_component_keys(request.POST)
