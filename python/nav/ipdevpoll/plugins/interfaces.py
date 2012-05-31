@@ -20,20 +20,106 @@ The plugin uses IF-MIB to retrieve generic interface data, and
 EtherLike-MIB to retrieve duplex status for ethernet interfaces.
 
 """
+import cPickle as pickle
+
+from twisted.internet import defer, threads
 
 from nav.mibs import reduce_index
+from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.mibs.if_mib import IfMib
 from nav.mibs.etherlike_mib import EtherLikeMib
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
+from nav.ipdevpoll import db
 from nav.ipdevpoll.utils import binary_mac_to_hex
 
+from nav.models import manage
+
+INFO_KEY_NAME = 'poll_times'
+INFO_VAR_NAME = 'interfaces'
+
 class Interfaces(Plugin):
-    def handle(self):
-        self._logger.debug("Collecting interface data")
+    "Collects comprehensive information about device's network interfaces"
+    def __init__(self, *args, **kwargs):
+        super(Interfaces, self).__init__(*args, **kwargs)
+        self.snmpv2mib = Snmpv2Mib(self.agent)
         self.ifmib = IfMib(self.agent)
         self.etherlikemib = EtherLikeMib(self.agent)
+        self.times = None
+
+    @defer.inlineCallbacks
+    def handle(self):
+        self._logger.debug("Collecting interface data")
+        need_to_collect = yield self._need_to_collect()
+        if need_to_collect:
+            df = self._get_iftable_columns()
+            df.addCallback(self._retrieve_duplex)
+            df.addCallback(self._process_interfaces)
+            df.addCallback(self._get_stack_status)
+            yield df
+            shadows.Interface.add_sentinel(self.containers)
+
+        self._save_times(self.times)
+
+    @defer.inlineCallbacks
+    def _need_to_collect(self):
+        old_times = yield self._load_times()
+        new_times = yield self._retrieve_times()
+        self.times = new_times
+
+        if not old_times:
+            self._logger.debug("don't seem to have collected ifTable before")
+            defer.returnValue(True)
+
+        old_uptime, old_lastchange = old_times
+        new_uptime, new_lastchange = new_times
+        uptime_deviation = self.snmpv2mib.get_uptime_deviation(old_uptime,
+                                                               new_uptime)
+        if old_lastchange != new_lastchange:
+            self._logger.debug("ifTableLastChange has changed since last run")
+            defer.returnValue(True)
+        elif abs(uptime_deviation) > 60:
+            self._logger.debug("sysUpTime deviation detected, possible reboot")
+            defer.returnValue(True)
+        else:
+            self._logger.debug("ifTable appears unchanged since last run")
+            defer.returnValue(False)
+
+    @defer.inlineCallbacks
+    def _load_times(self):
+        "Loads existing timestamps from db"
+        @db.autocommit
+        def _unpickle():
+            try:
+                info = manage.NetboxInfo.objects.get(
+                    netbox__id=self.netbox.id,
+                    key=INFO_KEY_NAME, variable=INFO_VAR_NAME)
+            except manage.NetboxInfo.DoesNotExist:
+                return None
+            try:
+                return pickle.loads(str(info.value))
+            except Exception:
+                return None
+
+        times = yield threads.deferToThread(_unpickle)
+        defer.returnValue(times)
+
+    @defer.inlineCallbacks
+    def _retrieve_times(self):
+        result = yield defer.DeferredList([
+                self.snmpv2mib.get_gmtime_and_uptime(),
+                self.ifmib.get_if_table_last_change(),
+                ])
+        tup = []
+        for success, value in result:
+            if success:
+                tup.append(value)
+            else:
+                value.raiseException()
+        defer.returnValue(tuple(tup))
+
+    def _get_iftable_columns(self):
         df = self.ifmib.retrieve_columns([
                 'ifDescr',
                 'ifType',
@@ -46,13 +132,9 @@ class Interfaces(Plugin):
                 'ifConnectorPresent',
                 'ifAlias',
                 ])
-        df.addCallback(reduce_index)
-        df.addCallback(self._retrieve_duplex)
-        df.addCallback(self._got_interfaces)
-        df.addCallback(self._get_stack_status)
-        return df
+        return df.addCallback(reduce_index)
 
-    def _got_interfaces(self, result):
+    def _process_interfaces(self, result):
         """Process the list of collected interfaces."""
 
         self._logger.debug("Found %d interfaces", len(result))
@@ -157,6 +239,16 @@ class Interfaces(Plugin):
         deferred = self.etherlikemib.get_duplex()
         deferred.addCallback(update_result)
         return deferred
+
+    def _save_times(self, times):
+        netbox = self.containers.factory(None, shadows.Netbox)
+        info = self.containers.factory((INFO_KEY_NAME, INFO_VAR_NAME),
+                                       shadows.NetboxInfo)
+        info.netbox = netbox
+        info.key = INFO_KEY_NAME
+        info.variable = INFO_VAR_NAME
+        info.value = pickle.dumps(times)
+
 
 def decode_to_unicode(string):
     if string is None:
