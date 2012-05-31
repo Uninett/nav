@@ -54,6 +54,18 @@ class EntityMib(mibretriever.MibRetriever):
         return df
 
     @defer.inlineCallbacks
+    def get_last_change_time(self):
+        """Retrieves the sysUpTime value of the last time any of the
+        ENTITY-MIB tables changed.
+
+        """
+        oid = self.nodes['entLastChangeTime'].oid
+        result = yield self.agent_proxy.walk(str(oid))
+        for key, value in result:
+            if oid.is_a_prefix_of(key):
+                defer.returnValue(value)
+
+    @defer.inlineCallbacks
     def _get_named_table(self, table_name):
         df = self.retrieve_table(table_name)
         df.addCallback(self.translate_result)
