@@ -42,8 +42,15 @@ class InterfaceManager(DefaultManager):
     def __init__(self, *args, **kwargs):
         super(InterfaceManager, self).__init__(*args, **kwargs)
         self.netbox = self.containers.get(None, Netbox)
+        self.handle_missing = False
 
     def prepare(self):
+        if self.sentinel in self.containers[Interface]:
+            self.handle_missing = True
+            self._logger.debug("full interface table collected; "
+                               "will handle missing ones during cleanup")
+            del self.containers[Interface][self.sentinel]
+
         self._load_existing_objects()
         for ifc in self.get_managed():
             ifc.prepare(self.containers)
@@ -123,8 +130,9 @@ class InterfaceManager(DefaultManager):
 
     def cleanup(self):
         """Cleans up Interface data."""
-        self._mark_missing_interfaces()
-        self._delete_missing_interfaces()
+        if self.handle_missing:
+            self._mark_missing_interfaces()
+            self._delete_missing_interfaces()
         self._generate_linkstate_events()
 
     @db.commit_on_success
@@ -298,6 +306,16 @@ class Interface(Shadow):
             if self in interfaces:
                 self.ifindex = interfaces[self]
 
+    @classmethod
+    def add_sentinel(cls, containers):
+        """Adds an Interface sentinel to a ContainerRepository, signifying
+        that a full interface collection has taken place and that handling of
+        missing interfaces can be safely performed by the manager.
+
+        """
+        containers[cls][cls.sentinel] = cls.sentinel
+
+InterfaceManager.sentinel = Interface.sentinel = Interface()
 
 def mapby(items, *attrs):
     """Maps items by attributes"""
