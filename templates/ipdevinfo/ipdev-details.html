@@ -1,4 +1,5 @@
 {% extends "ipdevinfo/base.html" %}
+{% load smart_if %}
 
 {% block content %}
 
@@ -240,18 +241,26 @@
         <td>
             {% with netbox.get_rrd_data_sources as dss %}
                 {% if dss|length %}
-                    <table>
+                    <table class="datasources">
                     <tr>
                         <th>Data source</th>
                         <th>Threshold</th>
                     <tr>
                     {% for ds in dss %}
-                    <tr>
+                    <tr {% if forloop.counter > 10 %}class="hidden"{% endif %}>
                         <td><a href="{{ ds.get_absolute_url }}">
                             {{ ds.description }}</a></td>
                         <td><a href="{% url threshold-netbox netbox.id %}">{% if ds.threshold %}{{ ds.threshold }}{% else %}not configured{% endif %}</a></td>
                     </tr>
                     {% endfor %}
+		    {% if dss|length > 10 %}
+		    <tr class="toggle-datasources">
+		      <td colspan="2">
+			<span class="hellip">&hellip;</span>
+			<span class="infotext">Show all</span>
+		      </td>
+		    </tr>
+		    {% endif %}
                     </table>
                 {% else %}
                     N/A

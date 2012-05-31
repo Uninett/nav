@@ -54,6 +54,18 @@ class EntityMib(mibretriever.MibRetriever):
         return df
 
     @defer.inlineCallbacks
+    def get_last_change_time(self):
+        """Retrieves the sysUpTime value of the last time any of the
+        ENTITY-MIB tables changed.
+
+        """
+        oid = self.nodes['entLastChangeTime'].oid
+        result = yield self.agent_proxy.walk(str(oid))
+        for key, value in result:
+            if oid.is_a_prefix_of(key):
+                defer.returnValue(value)
+
+    @defer.inlineCallbacks
     def _get_named_table(self, table_name):
         df = self.retrieve_table(table_name)
         df.addCallback(self.translate_result)
@@ -65,6 +77,24 @@ class EntityMib(mibretriever.MibRetriever):
     def get_entity_physical_table(self):
         phy_sensor_table = yield self._get_named_table('entPhysicalTable')
         defer.returnValue(phy_sensor_table)
+
+    @defer.inlineCallbacks
+    def get_useful_physical_table_columns(self):
+        "Retrieves the most useful columns of the entPhysicalTable"
+        columns = yield self.retrieve_columns([
+                'entPhysicalDescr',
+                'entPhysicalContainedIn',
+                'entPhysicalClass',
+                'entPhysicalName',
+                'entPhysicalHardwareRev',
+                'entPhysicalFirmwareRev',
+                'entPhysicalSoftwareRev',
+                'entPhysicalSerialNum',
+                'entPhysicalModelName',
+                'entPhysicalIsFRU',
+                ])
+        defer.returnValue(self.translate_result(columns))
+
 
 class EntityTable(dict):
     """Represent the contents of the entPhysicalTable as a dictionary"""

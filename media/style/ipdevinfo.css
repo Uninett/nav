@@ -153,3 +153,26 @@ hr.floatclear {
 	background: #fee090;
 	color: black;
 }
+
+.hidden {
+    display: none;
+}
+
+.toggle-datasources td:hover {
+    background-color: #EEE;
+    cursor: pointer;
+}
+
+.toggle-datasources td .hellip {
+    float: left;
+}
+
+.toggle-datasources td .infotext {
+    color: #888;
+    display: block;
+    font-size: 0.8em;
+    line-height: 1.4em;
+    margin: auto;
+    text-align: center;
+    width: 100px;
+}

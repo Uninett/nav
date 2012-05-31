@@ -19,7 +19,6 @@ Uses information from EXTREME-VLAN-MIB and BRIDGE-MIB.
 
 """
 
-from twisted.internet import defer, error
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.mibs.extreme_vlan_mib import ExtremeVlanMib
@@ -30,6 +29,8 @@ from nav.ipdevpoll import shadows
 
 from .dot1q import vlan_list_to_hex
 
+VENDORID_EXTREMENETWORKS = 1916
+
 class ExtremeVlan(Plugin):
     """Collects 802.1q info from EXTREME-VLAN-MIB and BRIDGE-MIB"""
 
@@ -38,6 +39,15 @@ class ExtremeVlan(Plugin):
         self.extremevlan = ExtremeVlanMib(self.agent)
         self.bridge = BridgeMib(self.agent)
         self.baseport_ifindex = {}
+
+    @classmethod
+    def can_handle(cls, netbox):
+        daddy_says_ok = super(ExtremeVlan, cls).can_handle(netbox)
+        if netbox.type:
+            vendor_id = netbox.type.get_enterprise_id()
+            if vendor_id != VENDORID_EXTREMENETWORKS:
+                return False
+        return daddy_says_ok
 
     def handle(self):
         self._logger.debug(
