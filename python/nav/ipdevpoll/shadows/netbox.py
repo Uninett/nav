@@ -96,5 +96,6 @@ class Netbox(Shadow):
 
         netbox.module_set.all().delete()
         netbox.interface_set.all().delete()
+        netbox.info_set.filter(key='poll_times').delete()
 
 
