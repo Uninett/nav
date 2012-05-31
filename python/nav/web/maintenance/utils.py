@@ -55,7 +55,7 @@ NAVPATH = [
 
 TITLE = "NAV - Maintenance"
 
-def task_form_initial(task=None):
+def task_form_initial(task=None, start_time=None):
     if task:
         initial = {
             'start_time': task.start_time,
@@ -63,9 +63,14 @@ def task_form_initial(task=None):
             'description': task.description,
         }
     else:
+        if start_time:
+            start_time = datetime.strptime(start_time, "%Y-%m-%d")
+        else:
+            start_time = datetime.today()
+        end_time = start_time + timedelta(weeks=1)
         initial = {
-            'start_time': datetime.today().strftime("%Y-%m-%d %H:%M"),
-            'end_time': (datetime.today() + timedelta(weeks=1)).strftime("%Y-%m-%d %H:%M")
+            'start_time': start_time.strftime("%Y-%m-%d %H:%M"),
+            'end_time': end_time.strftime("%Y-%m-%d %H:%M"),
         }
     return initial
 
@@ -204,35 +209,25 @@ def task_component_trails(component_keys, components):
 
 
 class MaintenanceCalendar(HTMLCalendar):
+    START = 'start'
+    END = 'end'
+    CONTINUED = 'continued'
+    CONTINUED_MONTH = 'continued_month'
+
     def __init__(self, tasks):
         super(MaintenanceCalendar, self).__init__(0)
-        self.tasks = self.group_by_start(tasks)
+        self.tasks = self.group_span(tasks)
+        self.bg_cache = {}
+        self.bg_num = 0
 
-    def formatday(self, day, weekday):
-        if day != 0:
-            this_day = date(self.year, self.month, day)
-            css = self.cssclasses[weekday]
-            if date.today() == this_day:
-                css += " today"
-            if this_day in self.tasks:
-                css += " task"
-                content = ["<ul>"]
-                for task in self.tasks[this_day]:
-                    desc = task.description
-                    if len(desc) > 16:
-                        desc = desc[:16]
-                    details_url = reverse('maintenance-view', args=[task.id])
-                    formated_time = strftime('%H:%M', task.start_time.timetuple())
-                    content.append("<li>")
-                    content.append("%s " % formated_time)
-                    content.append('<a href="%s">' % details_url)
-                    content.append(conditional_escape(desc))
-                    content.append("</a>")
-                    content.append("</li>")
-                content.append("</ul>")
-                return self.day_cell(css, "%d %s" % (day, ''.join(content)))
-            return self.day_cell(css, day)
-        return self.day_cell('noday', '&nbsp;')
+    def bg_color(self, key):
+        if key in self.bg_cache:
+            return self.bg_cache[key]
+        self.bg_num += 1
+        if self.bg_num > 5:
+            self.bg_num = 1
+        self.bg_cache[key] = "bg%ilight" % self.bg_num
+        return self.bg_cache[key]
 
     def formatweekheader(self):
         header = super(MaintenanceCalendar, self).formatweekheader()
@@ -242,10 +237,88 @@ class MaintenanceCalendar(HTMLCalendar):
         self.year, self.month = year, month
         return super(MaintenanceCalendar, self).formatmonth(year, month)
 
-    def group_by_start(self, tasks):
-        field = lambda task: task.start_time.date()
-        grouped = groupby(tasks, field)
-        return dict([(start, list(items)) for start, items in grouped])
+    def formatday(self, day, weekday):
+        def format_task(task_dict):
+            content = []
+            group = task_dict['grouping']
+            task = task_dict['task']
+            desc = task.description
+            if len(desc) >= 25:
+                desc = desc[:20] + "(...)"
+            formated_start = strftime('%H:%M', task.start_time.timetuple())
+            formated_end = strftime('%H:%M', task.end_time.timetuple())
+            content.append('<li class="%s">' % group)
+            content.append('<a class="task_%(id)s %(color)s" href="%(url)s">' % {
+                'id': task.pk,
+                'color': self.bg_color(task.pk),
+                'url': reverse('maintenance-view', args=[task.pk]),
+            })
+            if group == self.CONTINUED_MONTH:
+                content.append("... ")
+                content.append(conditional_escape(desc))
+            elif group == self.START:
+                content.append("%s " % formated_start)
+                content.append(conditional_escape(desc))
+            elif group == self.END:
+                content.append('<span>%s</span>' % formated_end)
+            else:
+                content.append('&nbsp;')
+            content.append("</a>")
+            return ''.join(content)
+
+        if day != 0:
+            this_day = date(self.year, self.month, day)
+            css = self.cssclasses[weekday]
+            dayurl = '<a href="%s">%d</a>' % (reverse('maintenance-new-date', args=[this_day]), day)
+            if date.today() == this_day:
+                css += " today"
+            if this_day in self.tasks:
+                css += " task"
+                content = ["<ul>"]
+                for index in self.tasks[this_day]:
+                    task_dict = self.tasks[this_day][index]
+                    if task_dict:
+                        content.append(format_task(task_dict))
+                    else:
+                        content.append("<li>&nbsp;")
+                    content.append("</li>")
+                content.append("</ul>")
+                return self.day_cell(css, "%s %s" % (dayurl, ''.join(content)))
+            return self.day_cell(css, dayurl)
+        return self.day_cell('noday', '&nbsp;')
+
+    def group_span(self, tasks):
+        grouped = {}
+        task_index = {}
+        for task in tasks:
+            day = task.start_time.date()
+            while day <= task.end_time.date():
+                if not day in grouped:
+                    grouped[day] = {}
+                if task.pk in task_index:
+                    index = task_index[task.pk]
+                    for ii in xrange(index):
+                        if ii not in grouped[day]:
+                            grouped[day][ii] = None
+                else:
+                    index = len(grouped[day])
+                    for ii in xrange(index):
+                        if ii not in grouped[day] or not grouped[day][ii]:
+                            index = ii
+                            break
+                    task_index[task.pk] = index
+
+                grouping = self.CONTINUED
+                if task.start_time.month < day.month and day.day == 1:
+                    grouping = self.CONTINUED_MONTH
+                elif day == task.start_time.date():
+                    grouping = self.START
+                elif day == task.end_time.date():
+                    grouping = self.END
+
+                grouped[day][index] = {'task': task, 'grouping': grouping}
+                day += timedelta(days=1)
+        return grouped
 
     def day_cell(self, css_class, content):
         return '<td class="%s">%s</td>' % (css_class, content)
