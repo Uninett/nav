@@ -31,10 +31,20 @@ from nav.mibs.cisco_vlan_iftable_relationship_mib \
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
+VENDORID_CISCO = 9
 
 class CiscoVlan(Plugin):
     """Collect 802.1q info from CISCO-VTP-MIB and CISCO-VLAN-MEMBERSHIP-MIB."""
     _valid_ifindexes = ()
+
+    @classmethod
+    def can_handle(cls, netbox):
+        daddy_says_ok = super(CiscoVlan, cls).can_handle(netbox)
+        if netbox.type:
+            vendor_id = netbox.type.get_enterprise_id()
+            if vendor_id != VENDORID_CISCO:
+                return False
+        return daddy_says_ok
 
     @defer.inlineCallbacks
     def handle(self):
