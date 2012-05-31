@@ -18,7 +18,7 @@ from datetime import datetime, date, timedelta
 
 from django.core.urlresolvers import reverse
 from django.db import transaction, connection
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect
@@ -83,7 +83,8 @@ def calendar(request, year=None, month=None):
 def active(request):
     tasks = MaintenanceTask.objects.filter(
         start_time__lt=datetime.now(),
-        end_time__gt=datetime.now()
+        end_time__gt=datetime.now(),
+        state__in=(MaintenanceTask.STATE_SCHEDULED, MaintenanceTask.STATE_ACTIVE),
     ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
@@ -100,7 +101,8 @@ def active(request):
 def planned(request):
     tasks = MaintenanceTask.objects.filter(
         start_time__gt=datetime.now(),
-        end_time__gt=datetime.now()
+        end_time__gt=datetime.now(),
+        state__in=(MaintenanceTask.STATE_SCHEDULED, MaintenanceTask.STATE_ACTIVE),
     ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
@@ -116,7 +118,8 @@ def planned(request):
 
 def historic(request):
     tasks = MaintenanceTask.objects.filter(
-        end_time__lt=datetime.now()
+        Q(end_time__lt=datetime.now()) |
+        Q(state__in=(MaintenanceTask.STATE_CANCELED, MaintenanceTask.STATE_PASSED))
     ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
