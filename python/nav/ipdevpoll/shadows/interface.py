@@ -51,9 +51,9 @@ class InterfaceManager(DefaultManager):
                                "will handle missing ones during cleanup")
             del self.containers[Interface][self.sentinel]
 
-        self._load_existing_objects()
         for ifc in self.get_managed():
             ifc.prepare(self.containers)
+        self._load_existing_objects()
         self._resolve_changed_ifindexes()
 
     def _load_existing_objects(self):
