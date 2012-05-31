@@ -1,6 +1,7 @@
 -- netmap_view
 CREATE TABLE profiles.netmap_view (
-  id VARCHAR PRIMARY KEY,
+  viewid VARCHAR PRIMARY KEY,
+  owner INT4 NOT NULL REFERENCES account ON UPDATE CASCADE ON DELETE CASCADE,
   title VARCHAR NOT NULL,
   link_types VARCHAR NOT NULL,
   categories VARCHAR NOT NULL,
@@ -10,9 +11,9 @@ CREATE TABLE profiles.netmap_view (
 );
 COMMENT ON TABLE netmap_view IS 'Stored views with settings for NetMap';
 
-CREATE TABLE profiels.netmap_view_nodeposition (
+CREATE TABLE profiles.netmap_view_nodeposition (
   viewid VARCHAR NOT NULL REFERENCES netmap_view ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   x INT4 NOT NULL,
-  y INT4 NOT NULL,
+  y INT4 NOT NULL
 );
