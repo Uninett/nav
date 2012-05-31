@@ -138,7 +138,7 @@ def get_dot1d_instances(agentproxy):
     enterprise_id = yield (Snmpv2Mib(agentproxy).get_sysObjectID().
                            addCallback(get_enterprise_id))
     if enterprise_id == cisco:
-        for mibclass in (CiscoVTPMib, EntityMib):
+        for mibclass in (EntityMib, CiscoVTPMib):
             mib = mibclass(agentproxy)
             instances = yield mib.retrieve_alternate_bridge_mibs()
             if instances:
