@@ -23,6 +23,8 @@ import os
 from datetime import datetime
 import re
 # To stay compatible with both python 2.4 and 2.6:
+from nav.django.forms import MultiSelectField
+
 try:
     from hashlib import md5
 except ImportError:
@@ -1206,3 +1208,29 @@ class StatusPreferenceCategory(models.Model):
 
     class Meta:
         db_table = u'statuspreference_category'
+
+LINK_TYPES = (1, 'Layer 2'),\
+(2, 'Layer 2 with VLAN'),\
+(3, 'Layer 3')
+
+class NetmapView(models.Model):
+    """Properties for a specific view in Netmap"""
+    viewid = models.CharField(max_length=20, primary_key=True)
+    title = models.TextField()
+    link_types = MultiSelectField(max_length=250, blank=False, choices=LINK_TYPES)
+    categories = models.ForeignKey('Category')
+    zoom = models.CharField(max_length=255) # picke x,y,scale (translate(x,y) , scale(scale)
+    last_modified = models.DateTimeField(auto_now_add=True)
+    is_public = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = u'netmap_view'
+
+class NetmapViewNodePosition(models.Model):
+    viewid = models.ForeignKey('NetmapView', db_column='viewid')
+    netbox = models.ForeignKey('Netbox', db_column='netboxid', related_name='node_position_set')
+    x = models.IntegerField()
+    y = models.IntegerField()
+
+    class Meta:
+        db_table = u'netmap_view_nodeposition'

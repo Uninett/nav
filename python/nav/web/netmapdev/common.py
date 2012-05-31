@@ -13,8 +13,10 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from django.core.files.storage import FileSystemStorage
 from nav.models.manage import Netbox
 from nav.topology import vlan
+import rrdtool
 
 def layer2_graph():
     layer2_graph = vlan.build_layer2_graph()
@@ -71,10 +73,7 @@ def edge_fetch_uplink(netbox_from, netbox_to):
             for uplink in uplinks:
                 if uplink['other']:
                     if uplink['other'].netbox == uplink_node:
-                        interface_link = {'other': 'N/A', 'thiss': 'N/A'}
-                        interface_link['other'] = str(uplink['other'].ifname) + ' at ' + str(uplink['other'].netbox.sysname)
-                        if uplink['this']:
-                            interface_link['thiss'] = str(uplink['this'].ifname) + ' at ' + str(uplink['this'].netbox.sysname)
+                        interface_link = {'other': uplink['other'], 'thiss': uplink['this']}
                         break
         return interface_link
 
@@ -86,23 +85,161 @@ def edge_fetch_uplink(netbox_from, netbox_to):
 
     return interface_link
 
+TRAFFIC_META = {
+    'tib': 1099511627776,
+    'gib': 1073741824,
+    'mib': 1048576,
+    'kib': 1024,
+    'tb': 1000000000000,
+    'gb': 1000000000,
+    'mb': 1000000,
+    'kb': 1000
+}
+
+def convert_bits_to_si(bits):
+    """ SI Units, http://en.wikipedia.org/wiki/SI_prefix
+    """
+    if bits >= TRAFFIC_META['tb']:
+        return '%.2fTbps' % (bits / TRAFFIC_META['tb'])
+    elif bits >= TRAFFIC_META['gb']:
+        return '%.2fGbps' % (bits / TRAFFIC_META['gb'])
+    elif bits >= TRAFFIC_META['mb']:
+        return '%.2fMbps' % (bits / TRAFFIC_META['mb'])
+    elif bits >= TRAFFIC_META['kb']:
+        return '%.2fKbps' % (bits / TRAFFIC_META['kb'])
+    return '%.2fbps' % bits
+
+"""IEEE 1541"""
+
+def _rrd_info(source):
+    # Check if RRD file exists , rrdviewer/views.py , refactor.
+    fs = FileSystemStorage(location=source.rrd_file.path)
+    if fs.exists(source.rrd_file.get_file_path()):
+        try:
+            data = rrdtool.fetch(str(source.rrd_file.get_file_path()), 'AVERAGE', '-s -15min')
+            data = data[2][-2][data[1].index(source.name)] # -2 is last and most fresh entry of averages in the last 15minutes. (assuming 5min entry points)
+            return { 'name': source.name, 'description': source.description, 'raw': data}
+        except:
+            return { 'name': source.name, 'description': source.description, 'raw': None}
+
+    return { 'name': source.name, 'description': source.description, 'raw': None}
+
 def edge_to_json(netbox_from, netbox_to):
+    link_speed = None
+    tip_inspect_link = False
+
     # fetch uplinks
     interface_link = edge_fetch_uplink(netbox_from, netbox_to)
 
+    inspect = 'thiss'
+
+    if interface_link:
+        if interface_link['thiss'] and interface_link['other'] and\
+           interface_link['thiss'].speed != interface_link['other'].speed:
+            tip_inspect_link = True
+            link_speed = "Not same on both sides!"
+        else:
+            if interface_link['thiss']:
+                link_speed = interface_link['thiss'].speed
+            else:
+                link_speed = interface_link['other'].speed
+                inspect = 'other'
 
 
+    traffic = {}
+    # , u'ifInErrors', u'ifInUcastPkts', u'ifOutErrors', u'ifOutUcastPkts'
+    valid_traffic_sources = (u'ifHCInOctets', u'ifHCOutOctets', u'ifInOctets', u'ifOutOctets')
+    if interface_link:
+        for rrd_source in interface_link[inspect].get_rrd_data_sources():
+            if rrd_source.description in valid_traffic_sources and rrd_source.description not in traffic:
+                traffic[rrd_source.description] = _rrd_info(rrd_source)
 
+    traffic['inOctets'] = None
+    traffic['outOctets'] = None
 
+    if 'ifHCInOctets' in traffic:
+        traffic['inOctets'] = traffic['ifHCInOctets']
+        traffic['outOctets'] = traffic['ifHCOutOctets']
+    elif 'ifInOctets' in traffic:
+        traffic['inOctets'] = traffic['ifInOctets']
+        traffic['outOctets'] = traffic['ifOutOctets']
 
-    # jsonify null's.
+    traffic['inOctets_css'] = get_traffic_rgb(traffic['inOctets']['raw'], link_speed) if traffic['inOctets']\
+        and traffic['inOctets']['raw'] else 'N/A'
+    traffic['outOctets_css'] = get_traffic_rgb(traffic['outOctets']['raw'], link_speed) if traffic['outOctets']\
+        and traffic['inOctets']['raw'] else 'N/A'
+
+    # jsonify
     if not interface_link:
         interface_link = 'null' # found no uplinks, json null.
+    else:
+        interface_link['thiss'] = str(interface_link['thiss'].ifname) + ' at ' \
+        + str(interface_link['thiss'].netbox.sysname) if interface_link['thiss'] else 'N/A'
+
+        interface_link['other'] = str(interface_link['other'].ifname) + ' at ' \
+        + str(interface_link['other'].netbox.sysname) if interface_link['other'] else 'N/A'
+
 
     return {
         'uplink': interface_link,
+        'link_speed': link_speed,
+        'tip_inspect_link': tip_inspect_link,
+        'traffic': traffic,
     }
 
+def get_traffic_rgb(octets, capacity):
+    """Traffic load color
+
+     :param traffic: octets pr second (bytes a second)
+     :param capacity: capacity on link in mbps. (ie 1Gbit = 1000 mbps)
+    """
+    MEGABITS_TO_BITS = 1000000
+
+    avrage_traffic = (float(octets) * 8)  # from octets (bytes) to bits
+
+    traffic_in_percent = avrage_traffic/(capacity*MEGABITS_TO_BITS)
+
+    if traffic_in_percent>100 or traffic_in_percent<0:
+       traffic_in_percent = 100 # set to red, this indicates something is odd
+
+    step_constant = 194.00/100.00 # range(42,236) = 194 steps with nice colors from traffic_gradient_map()
+
+    color_map_index = int(traffic_in_percent*step_constant)
+    if color_map_index>=194:
+        color_map_index=193
+
+    rgb = traffic_gradient_map()[color_map_index]
+
+    return int(rgb[0]),int(rgb[1]),int(rgb[2])
+
+GRADIENT_MAP_INTENSITY = 2.0
+def traffic_gradient_map():
+    """Traffic load gradient map from green, yellow and red."""
+
+    data = []
+    for y in reversed(range(42,236)):
+        data.append(_traffic_gradient(GRADIENT_MAP_INTENSITY*(y-236.0) / (42.0-237)))
+    return data
+
+def _traffic_gradient(intensity):
+    """
+    A beautiful gradient to show traffic load, based on nettkart.pl in TG tech:server goodiebag ^^
+
+    0 = green
+    1 = yellow
+    2 = red
+    3 = white
+    4 = black
+    """
+    gamma = float(1.0/1.90)
+    if (intensity > 3.0):
+        return (255 * ((4.0 - intensity) ** gamma), 255 * ((4.0 - intensity) ** gamma), 255 * ((4.0 - intensity) ** gamma))
+    elif (intensity > 2.0):
+        return (255, 255 * ((intensity - 2.0) ** gamma), 255 * ((intensity - 2.0) ** gamma))
+    elif (intensity > 1.0):
+        return (255, 255 * ((2.0 - intensity) ** gamma), 0)
+    else:
+        return (255 * (intensity ** gamma), 255, 0)
 
 def get_status_image_link(status):
     try:

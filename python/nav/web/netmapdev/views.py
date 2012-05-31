@@ -26,7 +26,7 @@ from nav.django.shortcuts import render_to_response
 from nav.topology import vlan
 from nav.topology.d3_js import d3_json
 
-from nav.web.netmapdev.common import layer2_graph
+from nav.web.netmapdev.common import layer2_graph, traffic_gradient_map
 from nav.web.templates.Netmapdev import Netmapdev
 
 import networkx as nx
@@ -95,6 +95,9 @@ def graphml_layer2(request):
         ],
     )
     response['Content-Type'] = 'application/xml; charset=utf-8'
+    response['Cache-Control'] = 'no-cache'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
     return response
 
 # data views, d3js
@@ -104,8 +107,22 @@ def d3js_layer2(request):
     Layer2 network topology representation in d3js force-direct graph layout
     http://mbostock.github.com/d3/ex/force.html
     """
-    return HttpResponse(simplejson.dumps(json_layer2()))
+    json = json_layer2()
+    json['colormap']=traffic_gradient_map()
+    response = HttpResponse(simplejson.dumps(json))
+    response['Content-Type'] = 'application/json; charset=utf-8'
+    response['Cache-Control'] = 'no-cache'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
+    return response
+
 
 def json_layer2():
     graph = vlan.build_layer2_graph().to_undirected()
     return d3_json(graph, None)
+
+
+def traffic_load_gradient(request):
+    response = HttpResponse(simplejson.dumps(traffic_gradient_map()))
+    response['Content-Type'] = 'application/json; charset=utf-8'
+    return response

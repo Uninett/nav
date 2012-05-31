@@ -43,8 +43,24 @@
         stroke-width: 1.5px;
     }
 
-    line {
-        stroke: #999;
+
+    line.speed0-100 {
+        stroke-width: 1px;
+    }
+    line.speed100-512 {
+        stroke-width: 1.5px;
+    }
+    line.speed512-2048 {
+        stroke-width: 3px;
+    }
+    line.speed2048-4096 {
+        stroke-width: 4.5px;
+    }
+    line.speed4096 {
+        stroke-width: 6px;
+    }
+    line.warning_inspect {
+        stroke: red
     }
 
     path.link {
@@ -188,6 +204,8 @@
                 </li>
 
             </ul>
+            <div id="loadbar-chart">
+            </div>
         </div>
         <div class="span8">
             <h2>force_direct.html</h2>
@@ -212,7 +230,66 @@
 </div>
 
 <script type="text/javascript">
+String.prototype.format = function() {
+    var args = arguments;
+    return this.replace(/{(\d+)}/g, function(match, number) {
+        return typeof args[number] != 'undefined'
+                ? args[number]
+                : match
+                ;
+    });
+};
+
+function drawTrafficGradientSidebar(gradient) {
+    var chart = $('#loadbar-chart')[0],
+            w = 100,
+            h = 196*2,
+            r = 6,
+            fill = d3.scale.category20(),
+            trans=[0,0],
+            scale=1;
+
+    var svg = d3.select("#loadbar-chart")
+            .append("svg:svg")
+            .attr("width", w)
+            .attr("height", h)
+
+    svg.selectAll("rect").data(gradient)
+            .enter()
+            .append("svg:rect")
+            .attr("width", "100")
+            .attr("height", "2")
+            .attr("style", function (d) {
+
+                return 'fill:rgb('+parseInt(d[0])+','+parseInt(d[1])+','+parseInt(d[2])+');stroke-width:1;'
+            })
+            .attr('y', function (d,i) { return i*2 })
+}
+
 $(function () {
+
+    var TRAFFIC_META = {
+        'tib': 1099511627776,
+        'gib': 1073741824,
+        'mib': 1048576,
+        'kib': 1024,
+        'tb': 1000000000000,
+        'gb': 1000000000,
+        'mb': 1000000,
+        'kb': 1000
+    }
+
+    // SI Units, http://en.wikipedia.org/wiki/SI_prefix
+    function convert_bits_to_si(bits) {
+        if (bits >= TRAFFIC_META['tb']) { return '{0}Tbps'.format(Math.round(((bits / TRAFFIC_META['tb'])*100)/100)) }
+        else if (bits >= TRAFFIC_META['gb']) { return '{0}Gbps'.format(Math.round(((bits / TRAFFIC_META['gb'])*100)/100)) }
+        else if (bits >= TRAFFIC_META['mb']) { return '{0}Mbps'.format(Math.round(((bits / TRAFFIC_META['mb'])*100)/100)) }
+        else if (bits >= TRAFFIC_META['kb']) { return '{0}Kbps'.format(Math.round(((bits / TRAFFIC_META['kb'])*100)/100)) }
+        return '{0}b/s'.format(Math.round((bits*100)/100))
+    }
+
+
+
     var chart = $('#chart')[0],
             w = chart.offsetWidth,
             h = screen.height-500,
@@ -230,6 +307,7 @@ $(function () {
             .call(d3.behavior.zoom().on("zoom", redraw))
             .append('svg:g')
     ;
+
     svg
             .append('svg:rect')
             .attr('width', w)
@@ -241,7 +319,7 @@ $(function () {
     function redraw() {
         trans=d3.event.translate;
         scale=d3.event.scale;
-        console.log("redraw(trans: "+trans+" , scale: "+scale+ ")");
+        //console.log("redraw(trans: "+trans+" , scale: "+scale+ ")");
 
         svg.attr("transform",
                 "translate(" + trans + ")"
@@ -249,25 +327,86 @@ $(function () {
     }
 
     var draw = function(json) {
+
+        a = json.nodes[Math.floor((Math.random()*json.nodes.length))]
+        b = json.nodes[Math.floor((Math.random()*json.nodes.length))]
+        a.fixed = true;
+        a.x = 50;
+        a.y = 50;
+        b.fixed = true;
+        b.x = 800;
+        b.y = 800;
+
+
         var force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([w, h])
                     .nodes(json.nodes).links(json.links).on("tick", tick).start();
 
-        var link = svg.selectAll("line").data(json.links).enter().append("svg:line");
+        //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
+        var s_link = svg.selectAll("g line").data(json.links)
+
+        s_link.enter().append("svg:g").attr("class", "link").forEach(function (d,i) {
+
+            var gradient = s_link
+                    .append("svg:linearGradient")
+                    .attr("id", function(d,i) { return 'linkload'+i; })
+                    .attr('x1', '0%')
+                    .attr('y1', '0%')
+                    .attr('x2', '0%')
+                    .attr('y2', '100%');
+            gradient
+                    .append("svg:stop")
+                    .attr('offset', '0%')
+                    .attr('style', function(d) {
+                        if (d.data.traffic.inOctets_css) return 'stop-color:rgb('+d.data.traffic.inOctets_css+');stop-opacity:1'
+                        else return 'stop-color:rgb(0,0,0);stop-opacity:1'
+                    });
+            gradient
+                    .append("svg:stop")
+                    .attr('offset', '50%')
+                    .attr('style', function(d) {
+                        if (d.data.traffic.inOctets_css) return 'stop-color:rgb('+d.data.traffic.inOctets_css+');stop-opacity:1'
+                        else return 'stop-color:rgb(0,0,0);stop-opacity:1'
+                    });
+            gradient
+                    .append("svg:stop")
+                    .attr('offset', '51%')
+                    .attr('style', function(d) {
+                        if (d.data.traffic.outOctets_css) return 'stop-color:rgb('+d.data.traffic.outOctets_css+');stop-opacity:1'
+                        else return 'stop-color:rgb(0,0,0);stop-opacity:1'
+
+                    });
+            gradient
+                    .append("svg:stop")
+                    .attr('offset', '100%')
+                    .attr('style', function(d) {
+                        if (d.data.traffic.outOctets_css) return 'stop-color:rgb('+d.data.traffic.outOctets_css+');stop-opacity:1'
+                        else return 'stop-color:rgb(0,0,0);stop-opacity:1'
+                    });
+            s_link.append("svg:line")
+                    .attr("class", function(d,i) {
+                        var speed = d.data.link_speed;
+                        var classes = "";
+                        if(speed<=100){ classes = 'speed0-100' }
+                        else if(speed>100 && speed<=512){ classes = 'speed100-512' }
+                        else if(speed>512 && speed<=2048){ classes = 'speed512-2048' }
+                        else if(speed>2048 && speed<=4096){ classes = 'speed2048-4096'}
+                        else if(speed>4096){ classes = 'speed4096'}
+                        else { classes = 'speedunknown'}
+                        if (d.data.tip_inspect_link) { classes=classes+" warning_inspect"}
+                        return classes;
+
+                    })
+                    .attr('stroke', function(d,i) { return 'url(#linkload'+i+')'})
+                    .on("mouseover", function(d) { return link_popup(d) })
+                    .on("mouseout", function(d) { return link_popout(d) });
+        });
+
+        var link = svg.selectAll("g.link line")
 
         var node_s = svg.selectAll("g circle").data(json.nodes);
 
-        /*node_s.enter().append("svg:g")
-         .append("svg:circle")
-         .attr("r", r - .75)
-         .classed("node", "node")
-         .style("fill",function (d) {
-         return fill(d.group);
-         })
-         .style("stroke",function (d) {
-         return d3.rgb(fill(d.group)).darker();
-         })
-         ;*/
         node_s.enter().append("svg:g")
+                .attr("class", "node")
                 .append("svg:image")
                 .attr("class", "circle node")
                 .attr("xlink:href", function (d) {
@@ -289,7 +428,7 @@ $(function () {
                         return d.name
                     })
         });
-        var node = svg.selectAll("g");
+        var node = svg.selectAll("g.node");
         node
                 .call(force.drag)
                 .on("mouseover", function(d) { return node_mouseOver(d) })
@@ -312,10 +451,6 @@ $(function () {
                 return "translate(" + d.x + "," + d.y + ")";
             });
 
-            /*text.attr("transform", function (d) {
-             return "translate(" + d.x + "," + d.y + ")";
-             });*/
-
             link
                     .attr("x1",function (d) { return d.source.x;})
                     .attr("y1",function (d) { return d.source.y;})
@@ -337,7 +472,8 @@ $(function () {
 
 
         function node_mouseOver(d) {
-            mover(d);
+            console.log(d);
+            mover({'title':d.name, 'description':'', 'css_description_width': 200});
             fade(d, 0.1);
         }
 
@@ -376,12 +512,31 @@ $(function () {
 
         }
 
+        function link_popup(d) {
+            console.log(d)
+                mover({
+                    'title':'link',
+                    'description': d.data.uplink.thiss + " -> " + d.data.uplink.other +
+                            '<br />'+ d.data.link_speed +
+                            '<br />In: '+ convert_bits_to_si(d.data.traffic['inOctets'].raw) + " raw["+ d.data.traffic['inOctets'].raw+"]"+
+                            '<br />In: '+ convert_bits_to_si(d.data.traffic['outOctets'].raw) + " raw["+ d.data.traffic['outOctets'].raw+"]"
+                    ,
+                    'css_description_width': 400
+                });
+
+        }
+
+        function link_popout(d) {
+            mout(d);
+        }
+
         function mover(d) {
+            console.log('mover!');
             $("#pop-up").fadeOut(100,function () {
                 // Popup content
-                $("#pop-up-title").html("M: "+ d.name);
+                $("#pop-up-title").html(d.title);
                 $("#pop-img").html("23");
-                $("#pop-desc").html("M+T: text text test");
+                $("#pop-desc").html(d.description).css({'width':d.css_description_width});
 
                 // Popup position
 
@@ -399,6 +554,11 @@ $(function () {
         function mout(d) {
             $("#pop-up").fadeOut(50);
             //d3.select(this).attr("fill","url(#ten1)");
+        }
+
+        function link_onClick(link) {
+            //return link_popup();
+            //console.log(link.data.uplink.this + " -> " + link.data.uplink.other);
         }
 
         function node_onClick(node) {
@@ -432,10 +592,39 @@ $(function () {
 
     }
 
-
-    d3.json('http://stud-1201:8888/netmapdev/data/d3js/layer2', function(load) {
-        draw(load);
+    $.ajax({
+        url: 'http://stud-1201:8888/netmapdev/data/d3js/layer2'
+        ,success: function(data) {
+            draw(data);
+        },
+        cache: false,
+        dataType: 'json',
+        mimeType: 'application/json',
+        headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Expires': -1
+        }
     });
+
+    $.ajax({
+        url: 'http://stud-1201:8888/netmapdev/data/traffic_load_gradient'
+        ,success: function(data) {
+            drawTrafficGradientSidebar(data);
+        },
+        cache: false,
+        dataType: 'json',
+        mimeType: 'application/json',
+        headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Expires': -1
+        }
+    });
+
+    //d3.json('http://stud-1201:8888/netmapdev/data/d3js/layer2?c='+new Date().getTime(), function(load) {
+    //    draw(load);
+    //});
 });
 
 
