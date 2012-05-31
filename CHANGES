@@ -1,3 +1,41 @@
+Version 3.11.4
+(released 31 May 2012)
+
+ Bugfixes:
+
+  * LP#644155 (Network Explorer never returns response to some searches)
+  * LP#912276 (Device History Request-URI Too Large)
+  * LP#996955 (All sensor stats are named "Sensor", and clutter the ipdevinfo
+               view)
+  * LP#997008 (Failed ipdevpoll jobs aren't properly rescheduled)
+  * LP#997606 (add option to run each ipdevpoll job type in separate process)
+  * LP#997980 (bad MAC for IPv6 addresses from Catalyst 6500)
+  * LP#999606 (dhcping is not documented as requirement for DHCP service
+               monitor)
+
+ Various performance-related improvements:
+
+  * Internal caching of collected SNMP variables pr. ipdevpoll SNMP session.
+
+  * Various tweaks to avoid producing unnecessary SNMP queries.
+
+  * Added database indexes for some potentially slow and frequently used
+    queries.
+
+  * Added ipdevpolld multiprocess option to run each job type as separate
+    subprocess (enabling this will consume up to 60 PostgreSQL connections, be
+    warned!)
+
+  * An -n option was added to ipdevpolld. Used in combination with the -J
+    option, ipdevpoll will run a single job for a single netbox as a
+    foreground process.
+
+  * When new jobs are added to the internal ipdevpoll job queues, boxes are
+    prioritized in ascending order of last update time.  I.e. ipdevpoll will
+    run jobs first for boxes that are new or haven't completed an inventory
+    job in a long time.
+
+
 Version 3.11.3
 (released 03 May 2012)
 
