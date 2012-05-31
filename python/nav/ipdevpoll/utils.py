@@ -24,6 +24,8 @@ from twisted.internet import defer
 from twisted.internet.defer import Deferred
 from twisted.internet import reactor
 
+from nav.oids import get_enterprise_id
+
 _logger = logging.getLogger(__name__)
 
 def fire_eventually(result):
@@ -120,7 +122,7 @@ def get_multibridgemib(agentproxy):
 
 @defer.inlineCallbacks
 def get_dot1d_instances(agentproxy):
-    """Gets a list of alternative BRIDGE-MIB instances from an agent.
+    """Gets a list of alternative BRIDGE-MIB instances from a Cisco agent.
 
     First
 
@@ -128,13 +130,18 @@ def get_dot1d_instances(agentproxy):
               BRIDGE-MIB instance.
 
     """
+    from nav.mibs.snmpv2_mib import Snmpv2Mib
     from nav.mibs.cisco_vtp_mib import CiscoVTPMib
     from nav.mibs.entity_mib import EntityMib
 
-    for mibclass in (EntityMib, CiscoVTPMib):
-        mib = mibclass(agentproxy)
-        instances = yield mib.retrieve_alternate_bridge_mibs()
-        if instances:
-            defer.returnValue(instances)
-    defer.returnValue(instances)
+    cisco = 9
+    enterprise_id = yield (Snmpv2Mib(agentproxy).get_sysObjectID().
+                           addCallback(get_enterprise_id))
+    if enterprise_id == cisco:
+        for mibclass in (CiscoVTPMib, EntityMib):
+            mib = mibclass(agentproxy)
+            instances = yield mib.retrieve_alternate_bridge_mibs()
+            if instances:
+                defer.returnValue(instances)
+    defer.returnValue([])
 

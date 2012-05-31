@@ -76,7 +76,9 @@ def write_json(obj):
     json_escapes = [('\\', '\\\\'),
                     ('"', '\\"'),
                     ('\n', '\\n'),
-                    ('\r', '\\r')]
+                    ('\r', '\\r'),
+                    ('\t', '\\t'),
+                    ]
 
     if isinstance(obj, list):
         return '[' + ', '.join(map(write_json, obj)) + ']'

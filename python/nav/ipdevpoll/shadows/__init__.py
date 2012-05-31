@@ -59,14 +59,15 @@ class NetboxType(Shadow):
         an enterprise ID, while the remaining elements will describe the type
         specific to the vendor.
 
+        :returns: A long integer if the type has a valid enterprise id, None
+                  otherwise.
+
         """
         prefix = u"1.3.6.1.4.1."
         if self.sysobjectid.startswith(prefix):
             specific = self.sysobjectid[len(prefix):]
             enterprise = specific.split('.')[0]
             return long(enterprise)
-        else:
-            raise ValueError("%r is not a valid sysObjectID" % self.sysobjectid)
 
 class NetboxInfo(Shadow):
     __shadowclass__ = manage.NetboxInfo
@@ -270,9 +271,19 @@ class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
 
     def save(self, containers):
-        pfx = self._get_my_prefixes(containers)
-        if pfx:
-            super(Vlan, self).save(containers)
+        prefixes = self._get_my_prefixes(containers)
+        if prefixes:
+            mdl = self.get_existing_model(containers)
+            if mdl and mdl.net_type_id == 'scope':
+                self._logger.warning(
+                    "some interface claims to be on a scope prefix, not "
+                    "changing vlan details. attached prefixes: %r",
+                    [pfx.net_address for pfx in prefixes])
+                for pfx in prefixes:
+                    pfx.vlan = mdl
+                return
+            else:
+                super(Vlan, self).save(containers)
         else:
             self._logger.debug("no associated prefixes, not saving: %r", self)
 
@@ -547,6 +558,8 @@ class SnmpOid(Shadow):
 
 class NetboxSnmpOid(Shadow):
     __shadowclass__ = oid.NetboxSnmpOid
+
+NetboxSnmpOid._fields.append('snmp_oid_id')
 
 class Sensor(Shadow):
     __shadowclass__ = manage.Sensor

@@ -102,17 +102,17 @@ class Neighbor(object):
 
         """
         match = cls.ID_PATTERN.search(sysname)
-        sysname = match.group('sysname').lower()
+        sysname = match.group('sysname')
         assert sysname
         try:
             sysname.decode('ascii')
         except UnicodeDecodeError:
             return None
-        query = Q(sysname=sysname)
+        query = Q(sysname__iexact=sysname)
 
         is_fqdn = '.' in sysname
         if not is_fqdn:
-            query = query | Q(sysname__startswith=sysname + '.')
+            query = query | Q(sysname__istartswith=sysname + '.')
 
         return cls._netbox_query(query)
 
@@ -173,6 +173,7 @@ class CDPNeighbor(Neighbor):
     "Parses a CDP tuple from nav.mibs.cisco_cdp_mib to identify a neighbor"
 
     def _identify_netbox(self):
+        netbox = None
         if self.record.ip:
             netbox = self._netbox_from_ip(self.record.ip)
 
@@ -228,7 +229,12 @@ class LLDPNeighbor(Neighbor):
                 lookup = self._interface_from_ip
 
             if lookup:
-                return lookup(str(portid))
+                try:
+                    return lookup(str(portid))
+                except manage.Interface.MultipleObjectsReturned:
+                    portdesc = self.record.port_desc
+                    if portdesc:
+                        return self._interface_from_name(str(portdesc))
 
     def _interface_from_mac(self, mac):
         assert mac
@@ -262,8 +268,10 @@ def _reduce_to_single_neighbor(nborlist):
     target_boxes = set(nbor.netbox.id for nbor in nborlist)
     same_netbox = len(target_boxes) == 1
     if same_netbox:
-        are_all_subifcs = all(nbor.interface.iftype == IFTYPE_L2VLAN
-                              for nbor in nborlist)
+        are_all_subifcs = all(
+            nbor.interface and nbor.interface.iftype == IFTYPE_L2VLAN
+            for nbor in nborlist)
+
         if are_all_subifcs:
             pick = nborlist[0]
             ifc = _get_parent_interface(pick.interface)

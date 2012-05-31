@@ -31,16 +31,20 @@ from nav.models.manage import Netbox, Module, Category, Organization
 
 from nav.web import servicecheckers
 
+from nav.web.status.forms import SectionForm, NetboxForm
+from nav.web.status.forms import NetboxMaintenanceForm, ServiceForm
+from nav.web.status.forms import ServiceMaintenanceForm, ModuleForm
+from nav.web.status.forms import ThresholdForm, LinkStateForm, SNMPAgentForm
+
 MAINTENANCE_STATE = 'maintenanceState'
 BOX_STATE = 'boxState'
 SERVICE_STATE = 'serviceState'
 MODULE_STATE = 'moduleState'
 THRESHOLD_STATE = 'thresholdState'
+LINK_STATE = 'linkState'
+SNMP_STATE = 'snmpAgentState'
 
-
-def get_user_sections(account):
-    '''Fetches all status sections for account in one swoop.
-    '''
+def get_section_model(section_type):
     # Dispatch table
     dtable = {
         StatusPreference.SECTION_NETBOX: NetboxSection,
@@ -49,8 +53,15 @@ def get_user_sections(account):
         StatusPreference.SECTION_SERVICE: ServiceSection,
         StatusPreference.SECTION_SERVICE_MAINTENANCE: ServiceMaintenanceSection,
         StatusPreference.SECTION_THRESHOLD: ThresholdSection,
+        StatusPreference.SECTION_LINKSTATE: LinkStateSection,
+        StatusPreference.SECTION_SNMPAGENT: SNMPAgentSection,
     }
+    return dtable[section_type]
 
+
+def get_user_sections(account):
+    '''Fetches all status sections for account in one swoop.
+    '''
     sections = []
     preferences = StatusPreference.objects.filter(
         account=account
@@ -96,7 +107,8 @@ def get_user_sections(account):
             pref.all_organizations = True
 
     for pref in preferences:
-        section = dtable[pref.type](prefs=pref)
+        section_model = get_section_model(pref.type)
+        section = section_model(prefs=pref)
         section.fetch_history()
         sections.append(section)
 
@@ -153,6 +165,30 @@ class _Section(object):
 
         return url
 
+    @staticmethod
+    def form_class():
+        return SectionForm
+
+    @staticmethod
+    def form_data(status_prefs):
+        data = {
+            'id': status_prefs.id,
+            'name': status_prefs.name,
+            'type': status_prefs.type,
+            'organizations': list(status_prefs.organizations.values_list(
+                    'id', flat=True)) or [''],
+        }
+        data['categories'] = list(status_prefs.categories.values_list(
+                'id', flat=True)) or ['']
+        data['states'] = status_prefs.states.split(",")
+        return data
+
+    @classmethod
+    def form(cls, status_prefs):
+        form_model = cls.form_class()
+        data = cls.form_data(status_prefs)
+        return form_model(data)
+
 class NetboxSection(_Section):
     columns =  [
         'Sysname',
@@ -161,7 +197,12 @@ class NetboxSection(_Section):
         'Downtime',
         '',
     ]
-    devicehistory_type = 'a_3'
+    devicehistory_type = 'a_boxDown'
+
+    @staticmethod
+    def form_class():
+        return NetboxForm
+
 
     def fetch_history(self):
         maintenance = self._maintenance()
@@ -177,7 +218,7 @@ class NetboxSection(_Section):
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
         ).extra(
-            select={'downtime': 'NOW() - start_time'}
+            select={'downtime': "date_trunc('second', NOW() - start_time)"}
         ).order_by('-start_time', 'end_time')
 
         history = []
@@ -192,8 +233,8 @@ class NetboxSection(_Section):
                 (h.downtime, None),
                 (
                     'history',
-                    reverse('devicehistory-view') +\
-                    '?netbox=%(id)s&type=a_3&group_by=datetime' % {
+                    reverse('devicehistory-view') +
+                    '?netbox=%(id)s&type=a_boxDown&group_by=datetime' % {
                         'id': h.netbox.id,
                     }
                 ),
@@ -228,6 +269,10 @@ class NetboxMaintenanceSection(_Section):
         '',
     ]
     devicehistory_type = 'e_maintenanceState'
+
+    @staticmethod
+    def form_class():
+        return NetboxMaintenanceForm
 
     def fetch_history(self):
         maintenance = self._maintenance()
@@ -287,7 +332,7 @@ class NetboxMaintenanceSection(_Section):
             end_time__gt=datetime.max,
             event_type=BOX_STATE,
         ).extra(
-            select={'downtime': 'NOW() - start_time'}
+            select={'downtime': "date_trunc('second', NOW() - start_time)"}
         ).order_by('-start_time').values(
             'netbox', 'start_time', 'downtime'
         )
@@ -306,6 +351,23 @@ class ServiceSection(_Section):
         '',
     ]
     devicehistory_type = 'e_serviceState'
+
+    @staticmethod
+    def form_class():
+        return ServiceForm
+
+    @staticmethod
+    def form_data(status_prefs):
+        data = {
+            'id': status_prefs.id,
+            'name': status_prefs.name,
+            'type': status_prefs.type,
+            'organizations': list(status_prefs.organizations.values_list(
+                    'id', flat=True)) or [''],
+        }
+        data['services'] = status_prefs.services.split(",") or ['']
+        data['states'] = status_prefs.states.split(",")
+        return data
 
     def __init__(self, prefs=None):
         super(ServiceSection, self).__init__(prefs=prefs)
@@ -329,7 +391,7 @@ class ServiceSection(_Section):
             netbox__organization__in=self.organizations,
         ).extra(
             select={
-                'downtime': 'NOW() - start_time',
+                'downtime': "date_trunc('second', NOW() - start_time)",
                 'handler': 'service.handler',
             },
             tables=['service'],
@@ -387,6 +449,10 @@ class ServiceSection(_Section):
 class ServiceMaintenanceSection(ServiceSection):
     devicehistory_type = 'e_maintenanceState'
 
+    @staticmethod
+    def form_class():
+        return ServiceMaintenanceForm
+
     def fetch_history(self):
         maintenance = AlertHistoryVariable.objects.select_related(
             'alert_history', 'alert_history__netbox'
@@ -396,7 +462,7 @@ class ServiceMaintenanceSection(ServiceSection):
             variable='maint_taskid',
         ).extra(
             select={
-                'downtime': 'NOW() - start_time',
+                'downtime': "date_trunc('second', NOW() - start_time)",
                 'handler': 'service.handler',
                 'up': 'service.up',
             },
@@ -408,7 +474,7 @@ class ServiceMaintenanceSection(ServiceSection):
             end_time__gt=datetime.max,
             event_type=SERVICE_STATE,
         ).extra(
-            select={'downtime': 'NOW() - start_time'}
+            select={'downtime': "date_trunc('second', NOW() - start_time)"}
         ).values('netbox', 'start_time', 'downtime')
 
         service_down = {}
@@ -458,7 +524,11 @@ class ModuleSection(_Section):
         'Downtime',
         '',
     ]
-    devicehistory_type = 'a_8'
+    devicehistory_type = 'a_moduleDown'
+
+    @staticmethod
+    def form_class():
+        return ModuleForm
 
     def fetch_history(self):
         module_history = AlertHistory.objects.select_related(
@@ -471,7 +541,7 @@ class ModuleSection(_Section):
             netbox__category__in=self.categories,
         ).extra(
             select={
-                'downtime': 'NOW() - start_time',
+                'downtime': "date_trunc('second', NOW() - start_time)",
                 'module_id': 'module.moduleid',
                 'module_name': 'module.name',
             },
@@ -502,8 +572,8 @@ class ModuleSection(_Section):
                 (module.downtime, None),
                 (
                     'history',
-                    reverse('devicehistory-view') +\
-                    '?module=%(id)s&type=a_8&group_by=datetime' % {
+                    reverse('devicehistory-view') +
+                    '?module=%(id)s&type=a_moduleDown&group_by=datetime' % {
                         'id': module.module_id,
                     }
                 ),
@@ -519,7 +589,24 @@ class ThresholdSection(_Section):
         'Time exceeded',
         '',
     ]
-    devicehistory_type = 'a_14'
+    devicehistory_type = 'a_exceededThreshold'
+
+    @staticmethod
+    def form_class():
+        return ThresholdForm
+
+    @staticmethod
+    def form_data(status_prefs):
+        data = {
+            'id': status_prefs.id,
+            'name': status_prefs.name,
+            'type': status_prefs.type,
+            'organizations': list(status_prefs.organizations.values_list(
+                    'id', flat=True)) or [''],
+        }
+        data['categories'] = list(status_prefs.categories.values_list(
+                'id', flat=True)) or ['']
+        return data
 
     def fetch_history(self):
         thresholds = AlertHistory.objects.select_related(
@@ -532,7 +619,7 @@ class ThresholdSection(_Section):
             netbox__category__in=self.categories,
         ).extra(
             select={
-                'downtime': 'NOW() - start_time',
+                'downtime': "date_trunc('second', NOW() - start_time)",
                 'rrd_description': 'rrd_datasource.descr',
                 'rrd_units': 'rrd_datasource.units',
                 'rrd_threshold': 'rrd_datasource.threshold',
@@ -562,9 +649,130 @@ class ThresholdSection(_Section):
                 (t.downtime, None),
                 (
                     'history',
-                    reverse('devicehistory-view') +\
-                    '?netbox=%(id)s&type=a_14&group_by=datetime' % {
+                    reverse('devicehistory-view') +
+                    '?netbox=%(id)s&type=a_exceededThreshold'
+                    '&group_by=datetime' % {
                         'id': t.netbox.id,
+                    }
+                ),
+            )
+            history.append(row)
+        self.history = history
+
+class LinkStateSection(_Section):
+    columns =  [
+        'Sysname',
+        'IP',
+        'Interface',
+        'Down since',
+        'Downtime',
+        '',
+    ]
+    devicehistory_type = 'a_linkDown'
+
+    @staticmethod
+    def form_class():
+        return LinkStateForm
+
+    def fetch_history(self):
+        netbox_history = AlertHistory.objects.select_related(
+            'netbox'
+        ).filter(
+            event_type=LINK_STATE,
+            end_time__gt=datetime.max,
+            netbox__category__in=self.categories,
+            netbox__organization__in=self.organizations,
+        ).extra(
+            select={
+                'downtime': "date_trunc('second', NOW() - start_time)",
+                'interfaceid': 'interface.interfaceid',
+                'ifname': 'interface.ifname',
+            },
+            where=['subid = interfaceid::text'],
+            tables=['interface']
+        ).order_by('-start_time', 'end_time')
+
+        history = []
+        for h in netbox_history:
+            row = (
+                (
+                    h.netbox.sysname,
+                    reverse('ipdevinfo-details-by-name', args=[h.netbox.sysname])
+                ),
+                (h.netbox.ip, None),
+                (
+                    h.ifname,
+                    reverse('ipdevinfo-interface-details', args=[h.netbox.sysname, h.interfaceid])
+                ),
+                (h.start_time, None),
+                (h.downtime, None),
+                (
+                    'history',
+                    reverse('devicehistory-view') +\
+                    '?netbox=%(id)s&type=a_linkDown&group_by=datetime' % {
+                        'id': h.netbox.id,
+                    }
+                ),
+            )
+            history.append(row)
+        self.history = history
+
+class SNMPAgentSection(_Section):
+    columns =  [
+        'Sysname',
+        'IP',
+        'Down since',
+        'Downtime',
+        '',
+    ]
+    devicehistory_type = 'a_snmpAgentDown'
+
+    @staticmethod
+    def form_class():
+        return SNMPAgentForm
+
+    @staticmethod
+    def form_data(status_prefs):
+        data = {
+            'id': status_prefs.id,
+            'name': status_prefs.name,
+            'type': status_prefs.type,
+            'organizations': list(status_prefs.organizations.values_list(
+                    'id', flat=True)) or [''],
+        }
+        data['categories'] = list(status_prefs.categories.values_list(
+                'id', flat=True)) or ['']
+        return data
+
+    def fetch_history(self):
+        netbox_history = AlertHistory.objects.select_related(
+            'netbox'
+        ).filter(
+            event_type=SNMP_STATE,
+            end_time__gt=datetime.max,
+            netbox__category__in=self.categories,
+            netbox__organization__in=self.organizations,
+        ).extra(
+            select={
+                'downtime': "date_trunc('second', NOW() - start_time)",
+            }
+        ).order_by('-start_time', 'end_time')
+
+        history = []
+        for h in netbox_history:
+            row = (
+                (
+                    h.netbox.sysname,
+                    reverse('ipdevinfo-details-by-name', args=[h.netbox.sysname])
+                ),
+                (h.netbox.ip, None),
+                (h.start_time, None),
+                (h.downtime, None),
+                (
+                    'history',
+                    reverse('devicehistory-view') +\
+                    '?netbox=%(id)s&type=a_snmpAgentDown&group_by=datetime' % {
+                        'id': h.netbox.id,
                     }
                 ),
             )

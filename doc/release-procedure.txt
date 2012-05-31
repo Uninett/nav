@@ -1,54 +1,93 @@
-Checklist for creating a new stable release for NAV
-===================================================
+=========================================
+Checklist for releasing a new NAV version
+=========================================
 
-Check milestone (for the next release) in Launchpad (https://launchpad.net/nav)
-  - Are all bugs fixed?
-  - Unfixed bugs must be retargeted/untargeted to make the release deadline?
+.. highlight:: sh
 
-Check hudson (metanav.ntnu.no/hudson)
-  - Are there any red/yellow lights on the branch to be releases?
-  - Red light means that we can not release
+CI status check
+---------------
 
-Check out the release branch from the mercurial
-   hg clone http://metanav.uninett.no/hg/series/3.9.x
+* Verify that the `stable` jobs in Jenkins, at
+  http://nav.uninett.no/jenkins , are all green.
+* If any tests are failing, these must be resolved before moving forward.
 
-OBS OBS: when you do 'hg clone', your working copy will be on the
-default branch. Update to correct branch by doing:
-   hg up 3.9.x
 
-To update your working copy later do
-   hg pull
+Review milestone for next release in Launchpad
+----------------------------------------------
 
-To view branches, do 
-   hg glog | less
+* Check the list of bugs targeted to the upcoming milestone at
+  https://launchpad.net/nav .
+* Do all the targeted bugs have a status of `Fix Committed`?
+* Unless any unfixed bugs are showstoppers, untarget them from this milestone
+  to remove clutter.
 
-Compare changesets with bugs from Launchpad
-  hg log-r 3.9.0: tip-v |. / tools / buglog.py
-  Update CHANGES with the new fixes, check that all the bugs are resolved
+Getting the code
+----------------
 
-Commit 
-  hg commit-m 'Update changelog for the upcoming 3.9.1 release'
+* Start by cloning the official stable branch (or use `hg pull` to update your
+  existing clone)::
 
-  hg tag 3.9.1
+    hg clone https://metanav.uninett.no/hg/stable
+    cd stable
+    hg up tip
 
-Go back to the version that we just tagged
-  hg up 3.9.1
+* Verify that the current checkout is on the named branch for the currently
+  supported stable release, it should be named according to the M.N.x pattern,
+  e.g. `3.11.x` for the 3.11 series::
 
-Create tar ball
-  ./dist.sh-r 3.9.1
+    hg branch
 
-Sign the tar-ball
+Updating changelog and release notes
+------------------------------------
 
-Go to the LaunchPad, create release
+* Generate a list of referenced bugfixes from the changelog since the last
+  release::
 
-Download the tar-ball and sign
+    hg log -v -r <LASTRELEASE>:tip | ./tools/buglog.py
 
-Update the shared repo
-  hg push
+* Add a new entry to the CHANGES file for for the new release and paste the
+  list produced by the above command.
 
-Update the wiki with new version number (two places, frontpage and
-downloads)
+* Verify that all the bugs in this list are in the list of bugs targeted to
+  the Launchpad milestone, and vice versa.  Any differences need to be
+  resolved manually.
 
-Send email to nav-users
+* Once the CHANGES file has been properly updated, commit it, tag the new
+  release and push changes back to the official repository::
 
-Set topic on IRC
+    hg commit -m 'Update changelog for the upcoming X.Y.Z release'
+    hg tag X.Y.Z
+    hg push
+
+
+Rolling and uploading a new distribution tarball
+------------------------------------------------
+
+* Update to the newly created tag and create a distribution tarball::
+
+    hg up X.Y.Z
+    ./dist.sh -r X.Y.Z
+
+* Create a detached PGP signature of the created tarball::
+
+    gpg --detach-sign nav-X.Y.X.tar.gz
+
+* Browse the Launchpad milestone page and create a new release from the
+  milestone.
+* Upload the tarball and the detached signature to the release page.
+* Set the `Fix Released` status on all bug reports targeted to the new
+  release.
+
+Announcing the release
+----------------------
+
+* Update the MetaNAV wiki with new version numbers:
+
+  - on the front page
+  - on the `Downloads` page
+
+* Change the topic of the #nav freenode IRC channel to reference the new
+  release + Launchpad URL.
+
+* Send email announcement to nav-users. Use previous release announcements as
+  your template.

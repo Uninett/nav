@@ -54,19 +54,10 @@ GROUPINGS = {
 def get_selected_types(type):
     selected_types = {'event': None, 'alert': None}
     if type and type.find('_') != -1:
-        splitted = type.split('_')
-        if splitted[0] == 'e':
-            selected_types['event'] = splitted[1]
-        else:
-            selected_types['alert'] = int(splitted[1])
+        kind, name = type.split('_')
+        kind = 'event' if kind == 'e' else 'alert'
+        selected_types[kind] = name
     return selected_types
-
-def check_empty_selection(selection):
-    all_arguments = ('location', 'room', 'netbox', 'module', 'organization',
-                     'category')
-    if all(not selection[arg] for arg in all_arguments):
-        selection['netbox'] = Netbox.objects.values_list('id', flat=True)
-    return selection
 
 def fetch_history(selection, from_date, to_date, selected_types=[], order_by=None):
     def type_query_filter(selected_types):
@@ -76,13 +67,13 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
         if selected_types['event']:
             type_filter.append(Q(event_type=selected_types['event']))
         if selected_types['alert']:
-            type_filter.append(Q(alert_type=selected_types['alert']))
+            type_filter.append(Q(alert_type__name=selected_types['alert']))
         return type_filter
 
     def make_selection_filter(and_mode=False):
         dicts = ({'%s__in' % (arg if arg != 'netbox' else 'id'): selection[arg]}
                  for arg in ('netbox', 'room', 'location', 'organization',
-                             'category')
+                             'category', 'module')
                  if selection[arg])
         filters = [Q(**d) for d in dicts]
 
@@ -107,12 +98,8 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
         netbox = netbox.filter(selection_filter)
 
     # Find device ids that belongs to
-    #   - selected netboxes (redundant?)
     #   - selected devices
-    device = Device.objects.filter(
-        Q(netbox__in=selection['netbox']) |
-        Q(module__in=selection['module'])
-    )
+    device = Device.objects.filter(module__in=selection['module'])
 
     # Find alert history that belongs to the netbox and device ids we found in
     # the previous two queries.
@@ -189,6 +176,10 @@ def describe_search_params(selection):
                        ('category', Category)):
         if arg in selection and selection[arg]:
             data[arg] = _get_data_to_search_terms(selection, arg, model)
+
+    # Special case with netboxes
+    if 'netbox' not in data:
+        data['netbox'] = ["All netboxes selected."]
 
     return data
 

@@ -1,3 +1,89 @@
+Version 3.11.3
+(released 03 May 2012)
+
+ Bugfixes:
+
+  * LP#912217 (Breadcrumb path missing from Alert Profiles My SMS view)
+  * LP#912763 (Alert Profile filter form cannot display more than 300 rooms)
+  * LP#929375 (Status page needs an "SNMP Agents Down" listing)
+  * LP#929376 (Status page needs a "Links Down" listing)
+  * LP#955794 (geomap variant normal, does not finish loading map, and shows no
+               rooms or links)
+  * LP#961221 (Maintenance task cancel action still visible on cancelled tasks)
+  * LP#961996 (Geomap CPU load indication is always red)
+  * LP#962087 (IP-hostname search in toolbar translates all numbers as IP-
+               addresses)
+  * LP#962093 (Report CSV export crashes on non-ASCII data)
+  * LP#962146 (Faulty SNMP agent implementations crash SeedDB)
+  * LP#965147 (Want clickable "function" column in Reports)
+  * LP#965149 (Invalid link to function in Server report)
+  * LP#966063 (prefix report, missing argument to machinetracker)
+  * LP#966072 (invalid link in Usage report)
+  * LP#978618 (KeyError in ipdevpoll psu plugin)
+  * LP#979754 (scope prefix is overwritten by lan prefix)
+  * LP#983737 (ipdevpoll cam plugin TypeError crash)
+  * LP#991714 (Requiring group membership makes LDAP authentication crash for
+               first time users)
+  * LP#993932 (ipdevpoll LLDP plugin MultipleObjectsReturned exception)
+
+Version 3.11.2
+(released 12 Apr 2012)
+
+ Bugfixes:
+
+  * LP#939429 (throttle linkState events)
+  * LP#962939 (navtopology crashes when router trunks exist)
+  * LP#965972 (neighbor identification via sysname is case sensitive)
+  * LP#968917 (ipdevpoll UnicodeDecodeError when storing unidentified LLDP
+               neighbors)
+  * LP#969069 (ipdevpoll.log fills up with snmp_open errors)
+  * LP#972211 (Switch ports not discovered on Gbe2c switches)
+  * LP#972363 (statically configured bridge forwarding entries aren't collected
+               for machine tracking)
+  * LP#972442 (ipdevpoll profiling job crashes with IntegrityError)
+  * LP#979737 (throttle snmpAgentState events)
+  * LP#979791 (ipdevpoll LLDP plugin crash with AttributeError)
+
+Version 3.11.1
+(released 22 Mar 2012)
+
+ User-visible features and improvements:
+
+  * Unrecognized neighbors report is now back, with improved information and
+    populated with source data from both CDP and LLDP.
+
+  * Running out of available file descriptors while opening SNMP sockets is
+    logged more informatively.
+
+  * ipdevpoll will not run jobs unnecessarily for devices whose SNMP agents
+    are known to be down.
+
+ Bugfixes:
+
+  * LP#890142 (sysname is not updated from DNS for non-SNMP devices)
+  * LP#953967 (Don't store router port addresses for shutdown ports)
+  * LP#954766 (CDP plugin crashes with AttributeError on some devices)
+  * LP#955087 (Geomap fails to draw map after OpenStreetMap shut down tiles@home
+               server)
+  * LP#955789 (sc.03.11.0004.sql fails on PostgreSQL 9)
+  * LP#955808 (navtopology ValueError: need more than 1 value to unpack)
+  * LP#955861 (ipdevpoll topo job IntegrityError)
+  * LP#956772 (navtopology doesn't delete unused vlan records)
+  * LP#956904 (ipdevpoll creates unusable Vlan records)
+  * LP#956910 (ipdevpoll is unable to detect cisco router trunks properly)
+  * LP#956955 (mcc.py creates sensors configuration for netboxes that have no
+               SNMP community)
+  * LP#959081 (Error in IP filter causes AlertEngine to crash)
+  * LP#959156 (ipdevpoll AttributeError: LoggerAdapter instance has no attribute
+               'warn')
+  * LP#961123 (ipdevpoll topo job UnboundLocalError in neighbor processing)
+  * LP#961206 (Non-conformance to IPV6-TC in IPV6-MIB causes inventory job
+               crash)
+  * LP#961238 (ipdevpoll topo job crash when storing blocked ports for some
+               Procurve switches)
+  * LP#961566 (FieldDoesNotExist error in ipdevpoll: ifoperstatus_change)
+  * LP#961573 (ipdevpoll ValueError: u'1.3' is not a valid sysObjectID)
+
 Version 3.11.0
 (released 08 Mar 2012)
 

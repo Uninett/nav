@@ -20,7 +20,7 @@ from __future__ import absolute_import
 import sys
 import inspect
 
-from pynetsnmp import twistedsnmp
+from pynetsnmp import twistedsnmp, netsnmp
 from pynetsnmp.twistedsnmp import snmpprotocol
 
 from . import common
@@ -50,3 +50,19 @@ class AgentProxy(common.AgentProxyMixIn, twistedsnmp.AgentProxy):
             if 'limit' not in kwargs:
                 kwargs['limit'] = sys.maxint
             return super(AgentProxy, self).getTable(self, *args, **kwargs)
+
+    def open(self):
+        try:
+            super(AgentProxy, self).open()
+        except netsnmp.SnmpError, error:
+            raise common.SnmpError(
+                "could not open session for %s:%s, maybe too many open file "
+                "descriptors?" % (self.ip, self.port))
+
+    @classmethod
+    def count_open_sessions(cls):
+        "Returns a count of the number of open SNMP sessions in this process"
+        import gc
+        mykind = (o for o in gc.get_objects() if isinstance(o, cls))
+        open_sessions = [o for o in mykind if getattr(o.session, 'sess', None)]
+        return len(open_sessions)

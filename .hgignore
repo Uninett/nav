@@ -14,6 +14,8 @@ syntax: glob
 */javadoc/*
 package.html
 */build/*
+doc/_build
+doc/html
 
 # All sorts of filed generated from .in templates.
 java/build.properties

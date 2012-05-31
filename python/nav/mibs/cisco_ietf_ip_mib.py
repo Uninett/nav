@@ -89,4 +89,13 @@ class CiscoIetfIpMib(IpMib):
         addresses = waiter.getResult()
 
         yield addresses
-        
+
+    @staticmethod
+    def _binary_mac_to_hex(mac):
+        """Overrides parent implementation to work around a Cisco IOS issue
+        with lengths of reported MAC addresses.
+
+        """
+        if mac and len(mac) > 6:
+            mac = mac[:6]
+        return IpMib._binary_mac_to_hex(mac)

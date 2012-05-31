@@ -137,8 +137,8 @@ class IpMib(mibretriever.MibRetriever):
             ifindex = row_index[0]
             inet_address = row_index[1:]
             ip = self.inetaddress_to_ip(inet_address)
-            mac = binary_mac_to_hex(phys_address)
-            
+            mac = self._binary_mac_to_hex(phys_address)
+
             row = (ifindex, ip, mac)
             mappings.add(row)
         self._logger.debug("ip/mac pairs: Got %d rows from %s",
@@ -159,7 +159,7 @@ class IpMib(mibretriever.MibRetriever):
             ip_address = row_index[1:]
             ip_address_string = ".".join([str(i) for i in ip_address])
             ip = IP(ip_address_string)
-            mac = binary_mac_to_hex(phys_address)
+            mac = self._binary_mac_to_hex(phys_address)
 
             row = (ifindex, ip, mac)
             mappings.add(row)
@@ -167,6 +167,10 @@ class IpMib(mibretriever.MibRetriever):
                            len(ipv4_phys_addrs), column)
         yield mappings
 
+    @staticmethod
+    def _binary_mac_to_hex(mac):
+        "Converts a binary MAC address representation to a hexstring"
+        return binary_mac_to_hex(mac)
 
     @inlineCallbacks
     def get_ifindex_ip_mac_mappings(self):

@@ -1,10 +1,10 @@
 SUBDIRS = java \
-	doc \
 	etc \
 	sql \
 	templates \
 	python \
 	bin \
+	doc \
 	media
 
 EXTRA_DIST = version.m4

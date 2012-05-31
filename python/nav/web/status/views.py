@@ -18,17 +18,17 @@
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 
 from nav.django.utils import get_account
 from nav.models.profiles import StatusPreference
 from nav.models.manage import Organization, Category
 from nav.web.message import Messages, new_message
 
-from nav.web.status.sections import get_user_sections
+from nav.web.status.sections import get_user_sections, get_section_model
 from nav.web.status.forms import AddSectionForm
 from nav.web.status.utils import extract_post, order_status_preferences
-from nav.web.status.utils import make_default_preferences, get_form_for_section
+from nav.web.status.utils import make_default_preferences
 
 SERVICE_SECTIONS = (
     StatusPreference.SECTION_SERVICE,
@@ -84,41 +84,17 @@ def edit_preferences(request, section_id):
         return save_preferences(request)
 
     account = get_account(request)
-    try:
-        section = StatusPreference.objects.get(
-            id=section_id,
-            account=account,
-        )
-    except StatusPreference.DoesNotExist:
-        # FIXME Maybe send a message as well?
-        return HttpResponseRedirect(reverse('status-preferences'))
+    status_prefs = get_object_or_404(StatusPreference, id=section_id, account=account)
 
-    data = {
-        'id': section.id,
-        'name': section.name,
-        'type': section.type,
-        'organizations': list(section.organizations.values_list(
-                'id', flat=True)) or [''],
-    }
-    if section.type == StatusPreference.SECTION_THRESHOLD:
-        data['categories'] = list(section.categories.values_list(
-                'id', flat=True)) or ['']
-    elif section.type in SERVICE_SECTIONS:
-        data['services'] = section.services.split(",") or ['']
-        data['states'] = section.states.split(",")
-    else:
-        data['categories'] = list(section.categories.values_list(
-                'id', flat=True)) or ['']
-        data['states'] = section.states.split(",")
-    form_model = get_form_for_section(section.type)
-    form = form_model(data)
+    section_model = get_section_model(status_prefs.type)
+    form = section_model.form(status_prefs)
 
     return render_to_response(
         'status/edit_preferences.html',
         {
             'active': {'preferences': True},
-            'name': section.name,
-            'type': section.readable_type(),
+            'name': status_prefs.name,
+            'type': status_prefs.readable_type(),
             'section_form': form,
             'title': 'NAV - Edit status preference section',
             'navpath': [('Home', '/'), ('Status', '')],
@@ -135,7 +111,9 @@ def add_section(request):
     section_type = request.POST.get('section', None)
     name = StatusPreference.lookup_readable_type(section_type)
     initial = {'name': name, 'type': section_type}
-    form_model = get_form_for_section(section_type)
+
+    section_model = get_section_model(section_type)
+    form_model = section_model.form_class()
     form = form_model(initial=initial)
 
     return render_to_response(
@@ -157,7 +135,8 @@ def save_preferences(request):
     account = get_account(request)
 
     type = request.POST.get('type', None)
-    form_model = get_form_for_section(type)
+    section_model = get_section_model(type)
+    form_model = section_model.form_class()
     form = form_model(request.POST)
 
     if type and form.is_valid():
@@ -172,7 +151,7 @@ def save_preferences(request):
 
         section.name = form.cleaned_data['name']
         section.account = account
-        if type != StatusPreference.SECTION_THRESHOLD:
+        if 'states' in form.cleaned_data:
             section.states = ",".join(form.cleaned_data['states'])
         if type in SERVICE_SECTIONS:
             section.services = ",".join(form.cleaned_data['services'])

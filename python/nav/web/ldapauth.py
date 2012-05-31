@@ -146,7 +146,7 @@ def authenticate(login, password):
         if user.is_group_member(group_dn):
             _logger.info("%s is verified to be a member of %s",
                         login, group_dn)
-            return True
+            return user
         else:
             _logger.warning("Could NOT verify %s as a member of %s",
                            login, group_dn)

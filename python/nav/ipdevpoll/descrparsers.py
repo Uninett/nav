@@ -50,7 +50,7 @@ def parse_ntnu_convention(sysname, ifalias):
     """Parses router port description, using NTNU conventions.
     
     The conventions are documented at
-    http://metanav.uninett.no/subnetsandvlans
+    http://nav.uninett.no/subnetsandvlans
     
     """
     # Strip leading and trailing whitespace from each part individually

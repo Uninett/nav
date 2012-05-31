@@ -31,6 +31,8 @@ class SwPortBlockedManager(DefaultManager):
         self.netbox = self.containers.get(None, Netbox)
 
     def prepare(self):
+        for block in self.get_managed():
+            block.prepare(self.containers)
         self._load_and_map_existing_objects()
 
     def _load_and_map_existing_objects(self):
@@ -61,6 +63,7 @@ class SwPortBlockedManager(DefaultManager):
             manage.SwPortBlocked.objects.filter(
                 id__in=[b.id for b in gone]).delete()
 
+# pylint: disable=W0201,E0203,C0111
 class SwPortBlocked(Shadow):
     __shadowclass__ =  manage.SwPortBlocked
     manager = SwPortBlockedManager
@@ -68,3 +71,17 @@ class SwPortBlocked(Shadow):
     def get_existing_model(self, containers=None):
         "Returns only a cached object, if available"
         return getattr(self, '_cached_existing_model', None)
+
+    def prepare(self, containers):
+        "sets the vlan attribute from the interface if missing"
+        if self.interface and not self.vlan:
+            ifc = self.interface.get_existing_model(containers)
+            self.vlan = ifc.vlan
+
+    def save(self, containers):
+        "refuses to save if vlan is not set; logs an error instead"
+        if not self.vlan:
+            self._logger.debug(
+                "missing vlan value for STP block, ignoring: %r", self)
+        else:
+            super(SwPortBlocked, self).save(containers)

@@ -22,10 +22,10 @@ class BridgeMib(mibretriever.MibRetriever):
         columns = yield self.retrieve_columns(['dot1dTpFdbPort',
                                                'dot1dTpFdbStatus'])
         columns = self.translate_result(columns)
-        learned = (row for row in columns.values()
-                   if row['dot1dTpFdbStatus'] == 'learned')
+        valid = (row for row in columns.values()
+                 if row['dot1dTpFdbStatus'] not in ('self', 'invalid'))
         result = []
-        for row in learned:
+        for row in valid:
             mac = row[0]
             mac =  ':'.join("%02x" % o for o in mac[-6:])
             port = row['dot1dTpFdbPort']

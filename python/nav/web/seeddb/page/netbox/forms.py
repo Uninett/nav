@@ -79,14 +79,14 @@ class NetboxForm(forms.Form):
         if ro_community and ip:
             try:
                 self._check_ro_community(ip, ro_community, cat)
-            except ROCommunityException, ex:
+            except SNMPException, ex:
                 self._errors['read_only'] = self.error_class(ex.message)
                 del cleaned_data['read_only']
 
         if rw_community and ip:
             try:
                 self._check_rw_community(ip, rw_community)
-            except RWCommunityException, ex:
+            except SNMPException, ex:
                 self._errors['read_write'] = self.error_class(ex.message)
                 del cleaned_data['read_write']
 
@@ -102,8 +102,21 @@ class NetboxForm(forms.Form):
             raise IPExistsException(msg)
 
     def _check_ro_community(self, ip, ro_community, cat):
-        sysobjectid = '1.3.6.1.2.1.1.2.0'
-        version = self.get_snmp_version(ip, ro_community)
+        non_req_message = (
+            "SNMP is not required for this category, if you don't "
+            "need SNMP please leave the 'Read only' field empty.")
+
+        try:
+            version = self.get_snmp_version(ip, ro_community)
+        except Exception, error:
+            msg = ("Unhandled exception occurred during SNMP "
+                   "communication: %s." % error)
+            if cat and not cat.req_snmp:
+                msg = (msg, non_req_message)
+            else:
+                msg = (msg,)
+            raise SNMPException(msg)
+
         if not version:
             if cat and cat.req_snmp:
                 msg = (
@@ -112,8 +125,7 @@ class NetboxForm(forms.Form):
             else:
                 msg = (
                     "No SNMP response on read only community.",
-                    "SNMP is not required for this category, if you don't "
-                    "need SNMP please leave the 'Read only' field empty.")
+                    non_req_message)
             raise ROCommunityException(msg)
         else:
             self.snmp_version = version
@@ -134,7 +146,7 @@ class NetboxForm(forms.Form):
                 snmp = Snmp(ip, community, '2c')
                 snmp.get(sysobjectid)
                 snmp_version = '2c'
-            except TimeOutException:
+            except Exception:
                 snmp = Snmp(ip, community, '1')
                 snmp.get(sysobjectid)
                 snmp_version = '1'
@@ -226,7 +238,10 @@ def get_netbox_subcategory_form(category, netbox_id=None, post_data=None):
     else:
         return None
 
-class SNMPCommunityException(Exception):
+class SNMPException(Exception):
+    pass
+
+class SNMPCommunityException(SNMPException):
     pass
 
 class ROCommunityException(SNMPCommunityException):

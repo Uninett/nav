@@ -1,0 +1,27 @@
+.. _contents:
+
+==========================
+NAV documentation contents
+==========================
+
+.. toctree::
+    :hidden:
+
+    index
+
+.. toctree::
+    :maxdepth: 3
+
+    overview
+    intro/install
+    intro/getting-started
+    reference/index
+    glossary
+    
+Indices, glossary and tables
+============================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`glossary`
+

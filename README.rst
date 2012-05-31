@@ -5,8 +5,8 @@
 This is NAV - Network Administration Visualized - an advanced software suite
 to monitor large computer networks.
 
-Project page: https://launchpad.net/nav
-Project wiki: http://metanav.uninett.no/
+:Project page: https://launchpad.net/nav
+:Project wiki: http://nav.uninett.no/
 
 License
 -------

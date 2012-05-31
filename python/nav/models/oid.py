@@ -22,7 +22,7 @@ from nav.models.manage import Netbox
 from nav.models.fields import VarcharField
 
 class SnmpOid(models.Model):
-    """From MetaNAV: The snmpoid table defines all OIDs used during snmp data
+    """From NAV Wiki: The snmpoid table defines all OIDs used during snmp data
     gathering and/or Cricket data collection."""
 
     id = models.AutoField(db_column='snmpoidid', primary_key=True)
@@ -46,7 +46,7 @@ class SnmpOid(models.Model):
         return u'%s, at OID %s' % (self.oid_key, self.snmp_oid)
 
 class NetboxSnmpOid(models.Model):
-    """From MetaNAV: The netboxsnmpoid table defines which netboxes answers to
+    """From NAV Wiki: The netboxsnmpoid table defines which netboxes answers to
     which snmpoids."""
 
     id = models.AutoField(primary_key=True)
