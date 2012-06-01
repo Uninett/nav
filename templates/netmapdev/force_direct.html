@@ -518,8 +518,8 @@ $(function () {
                     'title':'link',
                     'description': d.data.uplink.thiss + " -> " + d.data.uplink.other +
                             '<br />'+ d.data.link_speed +
-                            '<br />In: '+ convert_bits_to_si(d.data.traffic['inOctets'].raw) + " raw["+ d.data.traffic['inOctets'].raw+"]"+
-                            '<br />In: '+ convert_bits_to_si(d.data.traffic['outOctets'].raw) + " raw["+ d.data.traffic['outOctets'].raw+"]"
+                            '<br />In: '+ convert_bits_to_si(d.data.traffic['inOctets'].raw*8) + " raw["+ d.data.traffic['inOctets'].raw+"]"+
+                            '<br />In: '+ convert_bits_to_si(d.data.traffic['outOctets'].raw*8) + " raw["+ d.data.traffic['outOctets'].raw+"]"
                     ,
                     'css_description_width': 400
                 });

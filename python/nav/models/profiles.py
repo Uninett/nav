@@ -1219,17 +1219,35 @@ class NetmapView(models.Model):
     owner = models.ForeignKey('Account', db_column='accountid'),
     title = models.TextField()
     link_types = MultiSelectField(max_length=250, blank=False, choices=LINK_TYPES)
-    categories = models.ForeignKey('Category', db_column='catid')
     zoom = models.CharField(max_length=255) # picke x,y,scale (translate(x,y) , scale(scale)
     last_modified = models.DateTimeField(auto_now_add=True)
     is_public = models.BooleanField(default=False)
 
+    def __unicode__(self):
+        return u'%s (%s)' % (self.viewid, self.title)
+
     class Meta:
         db_table = u'netmap_view'
 
+class NetmapViewCategories(models.Model):
+    id = models.AutoField(primary_key=True) # Serial for faking a primary key
+    view = models.ForeignKey(NetmapView, db_column='viewid', related_name='categories_set')
+    category = models.ForeignKey(Category, db_column='catid', related_name='netmapview_set')
+
+    def __unicode__(self):
+        return u'%s in category %s' % (self.view, self.category)
+
+    class Meta:
+        db_table = u'netmap_view_categories'
+        unique_together = (('view', 'category'),) # Primary key
+
+
+
+
 class NetmapViewNodePosition(models.Model):
-    viewid = models.ForeignKey('NetmapView', db_column='viewid')
-    netbox = models.ForeignKey('Netbox', db_column='netboxid', related_name='node_position_set')
+    id = models.AutoField(primary_key=True) # Serial for faking a primary key
+    viewid = models.ForeignKey(NetmapView, db_column='viewid', related_name='node_position_set')
+    netbox = models.ForeignKey(Netbox, db_column='netboxid', related_name='node_position_set')
     x = models.IntegerField()
     y = models.IntegerField()
 
