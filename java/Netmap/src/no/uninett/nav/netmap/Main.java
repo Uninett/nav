@@ -428,10 +428,13 @@ public class Main extends JPrefuseApplet {
 
     /*
      * Returns a textual representation of bits/s
+     * @param bandwidth Bytes pr second
      */
     static public String bwToString(String bandwidth){
         try {
             Double bw = Double.parseDouble(bandwidth);
+            bw = bw*8; // convert bytes/octets to bits
+
             if (bw > 1000000000){
                 return String.format("%.2f", (bw/1000000000)) + "Gbit/s";
             }

@@ -51,8 +51,8 @@ public class NetmapEdgeRender extends EdgeRenderer {
 			}
 			if (net_load_in != -1 && net_load_out != -1) {
 
-				double out_percent = net_load_out / (capacity*1000000);
-				double in_percent = net_load_in / (capacity*1000000);
+				double out_percent = (net_load_out*8) / (capacity*1000000);
+				double in_percent = (net_load_in*8) / (capacity*1000000);
 				if (Main.getUseRelativeSpeeds().isSelected()) {
 					if (out_percent < 0.3) {
 						out_color = low_load_color;
