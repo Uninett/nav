@@ -1,4 +1,4 @@
-# use glob syntax.
+ # use glob syntax.
 syntax: glob
 
 *.class
@@ -9,7 +9,7 @@ syntax: glob
 *~
 .*
 *.bak
-*.iml # Jetbrains (pycharm,idea) project files.
+*.iml # JetBrains (PyCharm/IDEA) project files
 *.rrd
 
 # Generated javadoc and build dirs
