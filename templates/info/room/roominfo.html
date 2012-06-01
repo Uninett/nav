@@ -7,8 +7,12 @@ NAV - Roomview {% if room.id %}- {{ room.id }}{% endif %}
 {% block roominfo %}
 
 <div id="roominfo">
-  {{ room.location.description }} - 
+  {{ room.location.description }} -
+  {% if room.description %}
   {{ room.description }}
+  {% else %}
+  {{ room.id }}
+  {% endif %}
 </div>
 
 <div id="netboxes">
