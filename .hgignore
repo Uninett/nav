@@ -9,6 +9,7 @@ syntax: glob
 *~
 .*
 *.bak
+*.iml # JetBrains (PyCharm/IDEA) project files
 
 # Generated javadoc and build dirs
 */javadoc/*
