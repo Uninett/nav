@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
+#pylint: disable-all
 """
 d3_js.py
 
