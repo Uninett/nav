@@ -39,7 +39,7 @@ def rss(req):
     page.channellang = 'en-us'
     page.channelttl = '60'
 
-    page.pubDate = datetime.datetime.min
+    page.pubDate = datetime.datetime(year=1900, month=1, day=1)
     for i, msg in enumerate(page.msgs):
         if msg['publish_start'] > page.pubDate:
             page.pubDate = msg['publish_start']
