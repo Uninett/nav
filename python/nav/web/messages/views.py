@@ -17,8 +17,7 @@
 import time
 import datetime
 
-from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.http import HttpResponse, HttpResponseRedirect
 
 import nav.messages
 import nav.maintenance
@@ -367,7 +366,7 @@ def submit_form(req, page, section, menu_dict=None):
             for taskid in maint_tasks:
                 nav.messages.setMsgTask(msgid, int(taskid))
 
-            return redirect('/messages/view?id=' + str(msgid))
+            return HttpResponseRedirect('/messages/view?id=' + str(msgid))
 
 def get_section(args):
     """ Helper to get section you are in. Ex: 'active' """
