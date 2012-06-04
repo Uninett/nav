@@ -86,7 +86,7 @@ def expire(req):
     page.title = 'Expire message'
     menu_dict = {'link': 'expire', 'text': 'Expire', 'admin': True}
     page.infomsgs = []
-    msgid = int(args.get('id'))
+    msgid = int(req.REQUEST.get('id'))
     nav.messages.expireMsg(msgid)
     page.infomsgs.append('The following message was expired.')
     page.msgs = nav.messages.getMsg(msgid)
