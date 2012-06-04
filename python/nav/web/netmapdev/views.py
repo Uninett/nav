@@ -126,3 +126,9 @@ def traffic_load_gradient(request):
     response = HttpResponse(simplejson.dumps(traffic_gradient_map()))
     response['Content-Type'] = 'application/json; charset=utf-8'
     return response
+
+def show_view(request, view_id):
+    return HttpResponse(view_id)
+
+def save_view_metadata(request, view_id):
+    return HttpResponse(view_id)
