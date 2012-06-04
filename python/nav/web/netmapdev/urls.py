@@ -29,5 +29,8 @@ urlpatterns = patterns('nav.web.netmapdev.views',
     url(r'^data/graphml/layer2$', graphml_layer2, name='netmapdev-data-graphml-layer2'),
     url(r'^data/d3js/layer2$', d3js_layer2, name='netmapdev-data-d3js-layer2'),
     url(r'^data/traffic_load_gradient', traffic_load_gradient, name='netmapdev-data-traffic_load_gradient'),
+    url(r'^v/(?P<viewId>[\w\d\]+)$', show_view, name='netmapdev-showview'),
+    url(r'^v/(?P<viewId>[\w\d\]+)/save$', save_view_metadata,
+        name='netmapdev-save_view_metadata'),
     url(r'^demo$', demo, name='netmapdev-demo'),
 )
