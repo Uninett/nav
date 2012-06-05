@@ -67,7 +67,7 @@ def search(request):
                 # Could not find IP device, redirect to host detail view
                 return HttpResponseRedirect(reverse('ipdevinfo-details-by-addr',
                         kwargs={'addr': ip}))
-        elif re.match('^[a-z0-9-]+(\.[a-z0-9-]+)*$', query) is not None:
+        elif is_valid_hostname(query):
             # Check perfect match first
             filter = Q(sysname=query)
             if settings.DOMAIN_SUFFIX is not None:
@@ -98,6 +98,10 @@ def search(request):
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
+
+def is_valid_hostname(hostname):
+    return re.match('^[a-z0-9-]+(\.[a-z0-9-]+)*$', hostname) is not None
+
 
 def ipdev_details(request, name=None, addr=None, netbox_id=None):
     """Show detailed view of one IP device"""
