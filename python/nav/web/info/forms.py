@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2012 UNINETT AS
 #
@@ -13,12 +14,9 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Django URL configuration"""
 
-from django.conf.urls.defaults import patterns, include, url
-from nav.web.info.views import index
+from django import forms
 
-urlpatterns = patterns('',
-    url(r'^$', index, name="info-search"),
-    url(r'^room/', include('nav.web.info.room.urls')),
-)
+class SearchForm(forms.Form):
+    query = forms.CharField(max_length=100, label='Search')
+
