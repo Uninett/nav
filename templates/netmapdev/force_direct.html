@@ -222,6 +222,7 @@
             </div>
         </div>
         <div class="span3">
+            <a id="save_view_id" href="javascript:save_view()" >save view</a>
             <div id="nodeinfo">
                 foo - bar
             </div>
@@ -230,6 +231,23 @@
 </div>
 
 <script type="text/javascript">
+
+function postwith (to,p) {
+    var myForm = document.createElement("form");
+    myForm.method="post" ;
+    myForm.action = to ;
+    for (var k in p) {
+        var myInput = document.createElement("input") ;
+        myInput.setAttribute("name", k) ;
+        myInput.setAttribute("value", p[k]);
+        myForm.appendChild(myInput) ;
+    }
+    document.body.appendChild(myForm) ;
+    myForm.submit() ;
+    document.body.removeChild(myForm) ;
+}
+
+
 String.prototype.format = function() {
     var args = arguments;
     return this.replace(/{(\d+)}/g, function(match, number) {
@@ -266,6 +284,24 @@ function drawTrafficGradientSidebar(gradient) {
             .attr('y', function (d,i) { return i*2 })
 }
 
+function save_view() {
+    fixed_nodes = []
+
+
+    for (i in json.nodes) {
+
+
+        if (json.nodes[i].fixed === true) {
+            fixed_nodes.push(json.nodes[i]);
+        }
+    }
+
+    postwith("/netmapdev/v/default/save", {
+        'fixed_nodes' : JSON.stringify(fixed_nodes)
+    });
+
+}
+
 $(function () {
 
     var TRAFFIC_META = {
@@ -299,21 +335,21 @@ $(function () {
             scale=1;
 
     var svg = d3.select("#chart")
-            .append("svg:svg")
-            .attr("width", w)
-            .attr("height", h)
-            .attr("pointer-events", "all")
-            .append('svg:g')
-            .call(d3.behavior.zoom().on("zoom", redraw))
-            .append('svg:g')
-    ;
+                    .append("svg:svg")
+                    .attr("width", w)
+                    .attr("height", h)
+                    .attr("pointer-events", "all")
+                    .append('svg:g')
+                    .call(d3.behavior.zoom().on("zoom", redraw))
+                    .append('svg:g')
+            ;
 
     svg
             .append('svg:rect')
             .attr('width', w)
             .attr('height', h)
             .attr('fill', 'white');
-            ;
+    ;
 
 
     function redraw() {
@@ -326,20 +362,33 @@ $(function () {
                         + " scale(" + scale + ")");
     }
 
-    var draw = function(json) {
+    json = {}
+    var draw = function(data) {
+        json = data
 
-        a = json.nodes[Math.floor((Math.random()*json.nodes.length))]
-        b = json.nodes[Math.floor((Math.random()*json.nodes.length))]
-        a.fixed = true;
-        a.x = 50;
-        a.y = 50;
-        b.fixed = true;
-        b.x = 800;
-        b.y = 800;
+        /*index_a = Math.floor((Math.random()*json.nodes.length))
+         a = json.nodes[index_a]
+         b = json.nodes[Math.floor((Math.random()*json.nodes.length))]
+         a.fixed = true;
+         a.x = 50;
+         a.y = 50;
+         b.fixed = true;
+         b.x = 800;
+         b.y = 800;*/
+
+        for (i in json.nodes) {
+            if (json.nodes[i].data.position) {
+                console.log(json.nodes[i]);
+                json.nodes[i].x = json.nodes[i].data.position.x;
+                json.nodes[i].y = json.nodes[i].data.position.y;
+                json.nodes[i].fixed = true;
+                console.log(json.nodes[i].data)
+            }
+        }
 
 
         var force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([w, h])
-                    .nodes(json.nodes).links(json.links).on("tick", tick).start();
+                .nodes(json.nodes).links(json.links).on("tick", tick).start();
 
         //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
         var s_link = svg.selectAll("g line").data(json.links)
@@ -404,6 +453,15 @@ $(function () {
         var link = svg.selectAll("g.link line")
 
         var node_s = svg.selectAll("g circle").data(json.nodes);
+        //var drag = d3.behavior.drag()
+        //      .origin(Object)
+        //.call(d3.behavior.zoom().on("zoom", redraw))
+        var node_drag =
+                d3.behavior.drag()
+                        .on("dragstart", dragstart)
+                        .on("drag", dragmove)
+                        .on("dragend", dragend);
+
 
         node_s.enter().append("svg:g")
                 .attr("class", "node")
@@ -429,22 +487,20 @@ $(function () {
                     })
         });
         var node = svg.selectAll("g.node");
+
         node
-                .call(force.drag)
+                .call(node_drag)
                 .on("mouseover", function(d) { return node_mouseOver(d) })
                 .on("mouseout", function(d) { return node_mouseOut(d) })
                 .on("click", node_onClick)
         ;
         /*node.selectAll("circle").append("title").text(function (d) {
-            return d.name;
-        });*/
-
-
-
-
+         return d.name;
+         });*/
 
 
         function tick() {
+
 
             //console.log(node);
             node.attr("transform", function (d) {
@@ -458,6 +514,9 @@ $(function () {
                     .attr("y2", function (d) { return d.target.y;}
             );
 
+            //node.call( function (d,i) { return node_drag(d,i) });
+
+
 
         }
 
@@ -470,9 +529,26 @@ $(function () {
             return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index] || a.index == b.index;
         }
 
+        function dragstart(d, i) {
+            force.stop()
+        }
+
+        function dragmove(d, i) {
+            d.px += d3.event.dx;
+            d.py += d3.event.dy;
+            d.x += d3.event.dx;
+            d.y += d3.event.dy;
+            tick();
+        }
+
+        function dragend(d, i) {
+            console.log("dragend: " + d.data.sysname);
+            d.fixed = true;
+            tick();
+            force.resume();
+        }
 
         function node_mouseOver(d) {
-            console.log(d);
             mover({'title':d.name, 'description':'', 'css_description_width': 200});
             fade(d, 0.1);
         }
@@ -483,46 +559,46 @@ $(function () {
         }
 
         function fade(d, opacity) {
-                node.style("stroke-opacity", function (o) {
-                    thisOpacity = isConnected(d, o) ? 1 : opacity;
-                    this.setAttribute('fill-opacity', thisOpacity);
-                    this.setAttribute('opacity', thisOpacity);
+            node.style("stroke-opacity", function (o) {
+                thisOpacity = isConnected(d, o) ? 1 : opacity;
+                this.setAttribute('fill-opacity', thisOpacity);
+                this.setAttribute('opacity', thisOpacity);
 
-                    circle = (this.firstElementChild || this.children[0] || {})
+                circle = (this.firstElementChild || this.children[0] || {})
 
-                    text = (this.childNodes[1] || {})
+                text = (this.childNodes[1] || {})
 
-                    v = circle.textContent
-                    if (d.name == v) {
-                        circle.setAttribute("style", "fill: red");
-                        text.setAttribute("style", "fill: red");
-                    } else {
-                        circle.setAttribute('style', "fill: " + fill(d.group));
-                        text.setAttribute('style', "fill: #000");
-                    }
-
-
-                    return thisOpacity;
-                });
+                v = circle.textContent
+                if (d.name == v) {
+                    circle.setAttribute("style", "fill: red");
+                    text.setAttribute("style", "fill: red");
+                } else {
+                    circle.setAttribute('style', "fill: " + fill(d.group));
+                    text.setAttribute('style', "fill: #000");
+                }
 
 
-                link.style("stroke-opacity", function (o) {
-                    return o.source === d || o.target === d ? 1 : opacity;
-                });
+                return thisOpacity;
+            });
+
+
+            link.style("stroke-opacity", function (o) {
+                return o.source === d || o.target === d ? 1 : opacity;
+            });
 
         }
 
         function link_popup(d) {
-            console.log(d)
-                mover({
-                    'title':'link',
-                    'description': d.data.uplink.thiss + " -> " + d.data.uplink.other +
-                            '<br />'+ d.data.link_speed +
-                            '<br />In: '+ convert_bits_to_si(d.data.traffic['inOctets'].raw*8) + " raw["+ d.data.traffic['inOctets'].raw+"]"+
-                            '<br />In: '+ convert_bits_to_si(d.data.traffic['outOctets'].raw*8) + " raw["+ d.data.traffic['outOctets'].raw+"]"
-                    ,
-                    'css_description_width': 400
-                });
+            //console.log(d)
+            mover({
+                'title':'link',
+                'description': d.data.uplink.thiss + " -> " + d.data.uplink.other +
+                        '<br />'+ d.data.link_speed +
+                        '<br />In: '+ convert_bits_to_si(d.data.traffic['inOctets'].raw*8) + " raw["+ d.data.traffic['inOctets'].raw+"]"+
+                        '<br />In: '+ convert_bits_to_si(d.data.traffic['outOctets'].raw*8) + " raw["+ d.data.traffic['outOctets'].raw+"]"
+                ,
+                'css_description_width': 400
+            });
 
         }
 
@@ -531,7 +607,7 @@ $(function () {
         }
 
         function mover(d) {
-            console.log('mover!');
+            //console.log('mover!');
             $("#pop-up").fadeOut(100,function () {
                 // Popup content
                 $("#pop-up-title").html(d.title);
@@ -540,8 +616,8 @@ $(function () {
 
                 // Popup position
 
-                console.log(scale);
-                console.log(trans);
+                //console.log(scale);
+                //console.log(trans);
 
                 var popLeft = (d.x*scale)+trans[0]-10;//lE.cL[0] + 20;
                 var popTop = (d.y*scale)+trans[1]+70;//lE.cL[1] + 70;
@@ -586,14 +662,22 @@ $(function () {
         }
 
         /*svg.style("opacity", 1e-6)
-                .transition()
-                .duration(1000)
-                .style("opacity", 1);*/
+         .transition()
+         .duration(1000)
+         .style("opacity", 1);*/
 
     }
 
+
+    view_id = $("#netmapview_id").text().trim();
+
+    dataUrl = 'http://stud-1201:8888/netmapdev/data/d3js/layer2'
+    if (view_id) {
+        dataUrl = dataUrl+"/"+view_id
+    }
+    console.log(dataUrl);
     $.ajax({
-        url: 'http://stud-1201:8888/netmapdev/data/d3js/layer2'
+        url: dataUrl
         ,success: function(data) {
             draw(data);
         },
@@ -626,7 +710,6 @@ $(function () {
     //    draw(load);
     //});
 });
-
 
 
 

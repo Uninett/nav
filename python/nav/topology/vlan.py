@@ -336,9 +336,11 @@ class VlanTopologyUpdater(object):
         SwPortVlan.objects.exclude(interface__in=touched).delete()
 
 
-def build_layer2_graph():
+def build_layer2_graph(view=None):
     """Builds a graph representation of the layer 2 topology stored in the NAV
     database.
+
+    :param view A netmap view (nav.models.profiles.netmapview),to add meta data
 
     :returns: A MultiDiGraph of Netbox nodes, edges annotated with Interface
               model objects.
@@ -352,6 +354,16 @@ def build_layer2_graph():
     for link in links:
         dest = link.to_interface.netbox if link.to_interface else link.to_netbox
         graph.add_edge(link.netbox, dest, key=link)
+
+    if view:
+        node_set = view.node_position_set.all()
+        a= node_set[0].x
+        b= node_set[1].x
+
+        for node in graph.nodes(data=True):
+            tmp = [x for x in node_set if x.netbox == node[0]]
+            if tmp:
+                node[1]['metadata'] = tmp[0]
 
     return graph
 

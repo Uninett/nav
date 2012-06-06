@@ -16,20 +16,34 @@
 """Netmap mod_python handler"""
 
 import psycopg2.extras
+import datetime
+import logging
+from django.core.urlresolvers import reverse
+from django.shortcuts import get_object_or_404
 
 from django.template import RequestContext
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden, \
+    HttpResponseRedirect
 from django.utils import simplejson
+from nav.models.manage import Netbox
+
+from nav.models.profiles import Account, NetmapView, NetmapViewNodePosition
 
 from nav.django.shortcuts import render_to_response
+from nav.django.utils import get_account
+
 
 from nav.topology import vlan
 from nav.topology.d3_js import d3_json
 
 from nav.web.netmapdev.common import layer2_graph, traffic_gradient_map
+from nav.web.netmapdev.forms import ViewSaveForm
 from nav.web.templates.Netmapdev import Netmapdev
 
 import networkx as nx
+
+logger = logging.getLogger('nav.web.netmapdev.views')
+
 
 def index(request):
     return graph_layer2_view2(request)
@@ -56,10 +70,11 @@ def graph_layer2_view1(request):
             ('Netmapdev', None)])
 
 
-def graph_layer2_view2(request):
+def graph_layer2_view2(request, view=None):
     return render_to_response(Netmapdev,
         'netmapdev/force_direct.html',
             {'data': 'd3js/layer2',
+             'view': view,
              },
         RequestContext(request),
         path=[('Home', '/'),
@@ -102,11 +117,25 @@ def graphml_layer2(request):
 
 # data views, d3js
 
-def d3js_layer2(request):
+def d3js_layer2(request, view_id=None):
     """
     Layer2 network topology representation in d3js force-direct graph layout
     http://mbostock.github.com/d3/ex/force.html
     """
+    if view_id:
+        view = get_object_or_404(NetmapView, pk=view_id)
+        if view.is_public or (session_user == view.owner):
+            json = json_layer2(view)
+            json['colormap']=traffic_gradient_map()
+            response = HttpResponse(simplejson.dumps(json))
+            response['Content-Type'] = 'application/json; charset=utf-8'
+            response['Cache-Control'] = 'no-cache'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
+            return response
+        else:
+            return HttpResponseForbidden()
+
     json = json_layer2()
     json['colormap']=traffic_gradient_map()
     response = HttpResponse(simplejson.dumps(json))
@@ -116,9 +145,8 @@ def d3js_layer2(request):
     response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
     return response
 
-
-def json_layer2():
-    graph = vlan.build_layer2_graph().to_undirected()
+def json_layer2(view=None):
+    graph = vlan.build_layer2_graph(view).to_undirected()
     return d3_json(graph, None)
 
 
@@ -128,7 +156,62 @@ def traffic_load_gradient(request):
     return response
 
 def show_view(request, view_id):
+    view =  get_object_or_404(NetmapView, pk=view_id)
+    session_user = get_account(request)
+
+    if view.is_public or (session_user == view.owner):
+        # render right view with properties from netmapview,
+        # netmapview categories etc.
+
+        return graph_layer2_view2(request, view) #
+    else:
+        return graph_layer2_view2(request) # default view
     return HttpResponse(view_id)
 
 def save_view_metadata(request, view_id):
-    return HttpResponse(view_id)
+    view =  get_object_or_404(NetmapView, pk=view_id)
+    session_user = get_account(request)
+
+
+
+    if session_user == view.owner and request.method == 'POST':
+        form = ViewSaveForm(request.POST)
+
+        if form.is_valid():
+            if form.cleaned_data['title']:
+                view.title = form.cleaned_data['title']
+            if form.cleaned_data['link_types']:
+                view.link_types = form.cleaned_data['link_types']
+            if form.cleaned_data['zoom']:
+                view.zoom = form.cleaned_data['zoom']
+            if form.cleaned_data['is_public']:
+                view.is_public= form.cleaned_data['is_public']
+            view.last_modified = datetime.datetime.now()
+            if form.cleaned_data['fixed_nodes']:
+                fixed_nodes = simplejson.loads(form
+                                               .cleaned_data['fixed_nodes'])
+
+                NetmapViewNodePosition.objects.filter(viewid=view.pk).delete()
+                for i in fixed_nodes:
+                    a_node = i
+
+                    view = NetmapView.objects.get(pk=view.pk)
+                    netbox = Netbox.objects.get(pk=a_node['data']['id'])
+
+                    NetmapViewNodePosition.objects.create(
+                        viewid=view,
+                        netbox=netbox,
+                        x=a_node['x'],
+                        y=a_node['y'])
+
+            logger.debug('updating view metadata: %s' % view)
+
+            view.save()
+
+            return HttpResponseRedirect(reverse(show_view,
+                args=[view.pk]))
+        return HttpResponseBadRequest()
+
+
+    else:
+        return HttpResponseForbidden()

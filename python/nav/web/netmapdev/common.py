@@ -35,7 +35,7 @@ def layer2_graph():
     return (netboxes, connections)
 
 
-def node_to_json(node):
+def node_to_json(node, metadata=None):
     """Filter our metadata for a node in JSON-format
 
     Used for showing metadata in NetMap with D3
@@ -44,13 +44,20 @@ def node_to_json(node):
     :returns: metadata for a node
     """
 
+
     last_updated = node.last_updated()
     if last_updated:
         last_updated = last_updated.strftime("%Y-%m-%d %H:%M:%S")
     else:
         last_updated = 'not available'
 
+    position = {'x': metadata.x, 'y': metadata.y} if metadata else None
+
+
+
+
     return {
+        'id': str(node.pk),
         'sysname': str(node.sysname),
         'ip': node.ip,
         'category': str(node.category_id),
@@ -60,6 +67,7 @@ def node_to_json(node):
         'up_image': get_status_image_link(node.up),
         'ipdevinfo_link': node.get_absolute_url(),
         'last_updated': last_updated,
+        'position': position
         }
 
 STATUS_IMAGE_MAP = {

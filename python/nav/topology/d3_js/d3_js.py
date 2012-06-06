@@ -120,7 +120,7 @@ def d3_json(G, group=None):
 	
 	# Build up node dictionary in JSON format
 	if group is None:
-		graph_json = {'nodes': map(lambda n: {'name': str(node_labels[n][1]), 'group' : 0, 'data': node_to_json(node_labels[n][1])}, xrange(len(node_labels)))}
+		graph_json = {'nodes': map(lambda n: {'name': str(node_labels[n][1]), 'group' : 0, 'data': node_to_json(node_labels[n][1], graph_nodes[n][1]['metadata'] if 'metadata' in graph_nodes[n][1] else None)}, xrange(len(node_labels)))}
 	else:
 		try:
 			graph_json = {'nodes' : map(lambda n: {'name': str(node_labels[n][1]), 'group' : graph_nodes[n][1][group], 'data': node_to_json(node_labels[n][1])}, xrange(len(node_labels)))}
