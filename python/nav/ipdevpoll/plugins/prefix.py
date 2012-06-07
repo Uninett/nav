@@ -73,6 +73,7 @@ class Prefix(Plugin):
         # Retrieve interface names and keep those who match a VLAN
         # naming pattern
         vlan_interfaces = yield self.get_vlan_interfaces()
+        ifc_aliases = yield self._get_ifc_aliases()
 
         # Traverse address tables from IP-MIB, IPV6-MIB and
         # CISCO-IETF-IP-MIB in that order.
@@ -102,8 +103,10 @@ class Prefix(Plugin):
                 self._logger.debug("ignoring prefix %s as configured", prefix)
                 continue
             self.create_containers(netbox, ifindex, prefix, ip,
-                                   vlan_interfaces)
+                                   vlan_interfaces, ifc_aliases)
 
+    def _get_ifc_aliases(self):
+        return IfMib(self.agent).get_ifaliases()
 
     @defer.inlineCallbacks
     def _get_adminup_ifcs(self):
@@ -114,12 +117,14 @@ class Prefix(Plugin):
         defer.returnValue(result)
 
     def create_containers(self, netbox, ifindex, net_prefix, ip,
-                          vlan_interfaces):
+                          vlan_interfaces, ifc_aliases=None):
         """
         Utitilty method for creating the shadow-objects
         """
         interface = self.containers.factory(ifindex, shadows.Interface)
         interface.ifindex = ifindex
+        if ifc_aliases and ifc_aliases.get(ifindex, None):
+            interface.ifalias = ifc_aliases[ifindex]
         interface.netbox = netbox
 
         # No use in adding the GwPortPrefix unless we actually found a prefix
