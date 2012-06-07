@@ -57,6 +57,17 @@ class IfMib(mibretriever.MibRetriever):
         defer.returnValue(result)
 
     @defer.inlineCallbacks
+    def get_ifaliases(self):
+        """Retrieves ifAlias value for all interfaces.
+
+        :returns: A dictionary like { ifindex: ifAlias, ... }
+
+        """
+        aliases = yield self.retrieve_column(
+            'ifAlias').addCallback(reduce_index)
+        defer.returnValue(aliases)
+
+    @defer.inlineCallbacks
     def get_ifindexes(self):
         "Retrieves a list of current ifIndexes"
         indexes = yield self.retrieve_column('ifIndex')
