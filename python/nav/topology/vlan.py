@@ -357,8 +357,6 @@ def build_layer2_graph(view=None):
 
     if view:
         node_set = view.node_position_set.all()
-        a= node_set[0].x
-        b= node_set[1].x
 
         for node in graph.nodes(data=True):
             tmp = [x for x in node_set if x.netbox == node[0]]
