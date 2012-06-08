@@ -67,34 +67,64 @@ $(function () {
     $("#save_view").click(function() {
        var view_id = $('select#dropdown_view_id :selected').val();
         if (view_id == "-1") {
-            $('#modal_new_view').modal('toggle');
+            //$('#modal_new_view').modal('toggle');
+            $('#modal_new_view').dialog();
         } else {
             spinner_save_view.spin(document.getElementById("save_view_spinner"));
-            save_view(view_id, {},
-                    function() { // success
-                        alert("view saved!");
-                        spinner_save_view.stop();
-                    },
-                    function() { // error
-                        show_error("Error while saving view");
-                        spinner_save_view.stop();
-                    }
-            );
+
+            $('<div style="background: #c0c0c0"></div>').appendTo($
+                    ('#chart_header'))
+                    .html('<div style="background:#c0c0c0;color: blue"><h6>Yes updating,no for new view</h6></div>')
+                    .dialog({
+                        modal: true, title: 'Delete message', zIndex: 10000, autoOpen: true,
+                        width: 'auto', modal: true, resizable: false,
+                        buttons: {
+                            Yes: function () {
+                                // $(obj).removeAttr('onclick');
+                                // $(obj).parents('.Parent').remove();
+                                save_view(view_id, {},
+                                        function() { // success
+                                            alert("view saved!");
+                                            spinner_save_view.stop();
+                                        },
+                                        function() { // error
+                                            show_error("Error while saving view");
+                                            spinner_save_view.stop();
+                                        }
+                                );
+                                $(this).dialog("close");
+                            },
+                            No: function () {
+                                $(this).dialog("close");
+                                $('#modal_new_view').dialog();
+                            }
+                        },
+                        close: function (event, ui) {
+                            $(this).remove();
+                        }
+                    });
         }
        return false;
     });
 
     $("#save_new_view").click(function() {
         spinner.spin(document.getElementById("modal_new_view"));
+
         data = {
             'title': $('input#new_view_title').val(),
             'description': $('textarea#new_view_description').val(),
             'is_public': (!!($('input#new_view_is_public').val() == "on"))
         }
         save_view(null, data,
-                function(response) { // success
+                function(response, textstatus,jqXHR) { // success
                     console.log(response);
-                    alert("view saved!");
+                    console.log("view saved! page refresh required due to " +
+                            "alpha-test");
+                    var view_id = jqXHR.getResponseHeader("x-nav-viewid")
+                            || null
+
+                    window.location = "/netmapdev/v/{0}".format(view_id);
+
                     spinner.stop();
                 },
                 function(response) { // error

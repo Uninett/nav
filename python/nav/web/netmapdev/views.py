@@ -76,9 +76,9 @@ def graph_layer2_view2(request, user=None, view=None):
         .order_by('-is_public')
 
 
-
-    return render_to_response(Netmapdev,
-        'netmapdev/force_direct.html',
+    # 'netmapdev/force_direct.html',
+    response = render_to_response(Netmapdev,
+        'netmapdev/view.html',
             {'data': 'd3js/layer2',
              'current_view': view,
              'views': views,
@@ -86,6 +86,9 @@ def graph_layer2_view2(request, user=None, view=None):
         RequestContext(request),
         path=[('Home', '/'),
             ('Netmapdev', None)])
+    if view:
+        response['x-nav-viewid'] = view.pk
+    return response
 
 def graph_layer2_view3(request):
     return render_to_response(Netmapdev,
@@ -139,6 +142,7 @@ def d3js_layer2(request, view_id=None):
             response['Cache-Control'] = 'no-cache'
             response['Pragma'] = 'no-cache'
             response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
+            response['x-nav-viewid'] = view_id
             return response
         else:
             return HttpResponseForbidden()
@@ -218,14 +222,14 @@ def save_new_view(request):
                     x=a_node['x'],
                     y=a_node['y'])
 
-            response = HttpResponse(simplejson.dumps({
-                'current_view': view,
-                'views': _get_views(session_user),
-            }))
-            response['Content-Type'] = 'application/json; charset=utf-8'
-            return response
-            #return HttpResponseRedirect(reverse(show_view,
-            #    args=[view.pk]))
+            #response = HttpResponse(simplejson.dumps({
+            #    'current_view': view,
+            #    'views': _get_views(session_user),
+            #}))
+            #response['Content-Type'] = 'application/json; charset=utf-8'
+            #return response
+            return HttpResponseRedirect(reverse(show_view,
+                args=[view.pk]))
     return HttpResponseBadRequest()
 
 
@@ -269,14 +273,14 @@ def save_view_metadata(request, view_id):
 
             view.save()
 
-            response = HttpResponse(simplejson.dumps({
-                'current_view': view,
-                'views': _get_views(session_user),
-                }))
-            response['Content-Type'] = 'application/json; charset=utf-8'
-            return response
-            #return HttpResponseRedirect(reverse(show_view,
-            #    args=[view.pk]))
+            #response = HttpResponse(simplejson.dumps({
+            #    'current_view': view,
+            #    'views': _get_views(session_user),
+            #    }))
+            #response['Content-Type'] = 'application/json; charset=utf-8'
+            #return response
+            return HttpResponseRedirect(reverse(show_view,
+                args=[view.pk]))
         return HttpResponseBadRequest()
 
 

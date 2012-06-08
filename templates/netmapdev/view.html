@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+    <script type="text/javascript" src="/js/d3.v2.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js"></script>
+    <script type="text/javascript" src="/js/jquery-ui-1.8.21.custom.min.js"></script>
+    <link rel="stylesheet" href="/style/jquery.tooltip.css" />
+    <script type="text/javascript" src="/js/spin.min.js"></script>
+
+{% endblock %}
+
+
+{% block base_content %}
+
+    <h2>Netmap</h2>
+
+    <style media="screen" type="text/css">
+            /* <!-- */
+            /* General styles */
+        body {
+            margin:0;
+            padding:0;
+            border:0;			/* This removes the border around the viewport in old versions of IE */
+            width:100%;
+            background:#fff;
+            min-width:600px;    /* Minimum width of layout - remove line if not required */
+            /* The min-width property does not work in old versions of Internet Explorer */
+            font-size:90%;
+        }
+        a {
+            color:#369;
+        }
+        a:hover {
+            color:#fff;
+            background:#369;
+            text-decoration:none;
+        }
+        h1, h2, h3 {
+            margin:.8em 0 .2em 0;
+            padding:0;
+        }
+        p {
+            margin:.4em 0 .8em 0;
+            padding:0;
+        }
+        img {
+            margin:10px 0 5px;
+        }
+            /* Header styles */
+        #header {
+            clear:both;
+            float:left;
+            width:100%;
+        }
+        #header {
+            border-bottom:1px solid #000;
+        }
+        #header p,
+        #header h1,
+        #header h2 {
+            padding:.4em 15px 0 15px;
+            margin:0;
+        }
+        #header ul {
+            clear:left;
+            float:left;
+            width:100%;
+            list-style:none;
+            margin:10px 0 0 0;
+            padding:0;
+        }
+        #header ul li {
+            display:inline;
+            list-style:none;
+            margin:0;
+            padding:0;
+        }
+        #header ul li a {
+            display:block;
+            float:left;
+            margin:0 0 0 1px;
+            padding:3px 10px;
+            text-align:center;
+            background:#eee;
+            color:#000;
+            text-decoration:none;
+            position:relative;
+            left:15px;
+            line-height:1.3em;
+        }
+        #header ul li a:hover {
+            background:#369;
+            color:#fff;
+        }
+        #header ul li a.active,
+        #header ul li a.active:hover {
+            color:#fff;
+            background:#000;
+            font-weight:bold;
+        }
+        #header ul li a span {
+            display:block;
+        }
+            /* 'widths' sub menu */
+        #layoutdims {
+            clear:both;
+            background:#eee;
+            border-top:4px solid #000;
+            margin:0;
+            padding:6px 15px !important;
+            text-align:right;
+        }
+            /* column container */
+        .colmask {
+            position:relative;		/* This fixes the IE7 overflow hidden bug and stops the layout jumping out of place */
+            clear:both;
+            float:left;
+            width:100%;				/* width of whole page */
+            overflow:hidden;		/* This chops off any overhanging divs */
+        }
+            /* holy grail 3 column settings */
+        .holygrail {
+            background:#ff9;    	/* Right column background colour */
+        }
+        .holygrail .colmid {
+            float:left;
+            width:200%;
+            margin-left:-200px; 	/* Width of right column */
+            position:relative;
+            right:100%;
+            background:#fff;    	/* Centre column background colour */
+        }
+        .holygrail .colleft {
+            float:left;
+            width:100%;
+            margin-left:-50%;
+            position:relative;
+            left:400px;         	/* Left column width + right column width */
+            background:#FFD8B7;    	/* Left column background colour */
+        }
+        .holygrail .col1wrap {
+            float:left;
+            width:50%;
+            position:relative;
+            right:200px;        	/* Width of left column */
+            padding-bottom:1em; 	/* Centre column bottom padding. Leave it out if it's zero */
+        }
+        .holygrail .col1 {
+            margin:0 215px;     	/* Centre column side padding:
+                            	Left padding = left column width + centre column left padding width
+                            	Right padding = right column width + centre column right padding width */
+            position:relative;
+            left:200%;
+            overflow:hidden;
+        }
+        .holygrail .col2 {
+            float:left;
+            float:right;			/* This overrides the float:left above */
+            width:170px;        	/* Width of left column content (left column width minus left and right padding) */
+            position:relative;
+            right:15px;         	/* Width of the left-had side padding on the left column */
+        }
+        .holygrail .col3 {
+            float:left;
+            float:right;			/* This overrides the float:left above */
+            width:170px;        	/* Width of right column content (right column width minus left and right padding) */
+            margin-right:45px;  	/* Width of right column right-hand padding + left column left and right padding */
+            position:relative;
+            left:50%;
+        }
+            /* Footer styles */
+        #footer {
+            clear:both;
+            float:left;
+            width:100%;
+            border-top:1px solid #000;
+        }
+        #footer p {
+            padding:10px;
+            margin:0;
+        }
+            /* --> */
+    </style>
+    <!--[if lt IE 7]>
+    <style media="screen" type="text/css">
+    .col1 {
+	    width:100%;
+	}
+    </style>
+    <![endif]-->
+
+
+    <style type="text/css" rel="stylesheet">
+
+        #save_view_spinner {
+            margin-left: 10px;
+            margin-bottom:2px;
+            display: inline-block;
+        }
+
+        .netmap-node-status {
+            float: left;
+        }
+        .netmap-node-menu {
+            margin: 0 0 10px 0;
+            list-style-type: none;
+        }
+        .netmap-node-menu li {
+            margin: 0;
+            display: inline;
+        }
+        .netmap-node-category {
+
+        }
+
+        circle {
+            stroke-width: 1.5px;
+        }
+
+
+        line.speed0-100 {
+            stroke-width: 1px;
+        }
+        line.speed100-512 {
+            stroke-width: 1.5px;
+        }
+        line.speed512-2048 {
+            stroke-width: 3px;
+        }
+        line.speed2048-4096 {
+            stroke-width: 4.5px;
+        }
+        line.speed4096 {
+            stroke-width: 6px;
+        }
+        line.warning_inspect {
+            stroke: red
+        }
+
+        path.link {
+            fill: none;
+            stroke: #666;
+            stroke-width: 2px;
+        }
+
+        marker#licensing {
+            fill: lightgreen;
+        }
+
+        path.link.licensing {
+            stroke: lightgreen;
+        }
+
+        path.link.resolved {
+            stroke-dasharray: 0, 2 1;
+        }
+
+        circle {
+            fill: #ccc;
+            stroke: #333;
+            stroke-width: 3px;
+        }
+
+        circle.node {
+            stroke-opacity: 1;
+        }
+
+        .node.fade {
+            stroke-opacity: 0.1;
+        }
+
+        text {
+            font: 14px sans-serif;
+            pointer-events: none;
+            background: #c0c0c0;
+        }
+
+        text.node {
+            font: 12pt sans-serif;
+        }
+
+        text.shadow {
+            stroke: #fff;
+            stroke-width: 4px;
+        }
+
+        #tooltip.pretty {
+            font-family: Arial;
+            border: none;
+            width: 210px;
+            padding:20px;
+            height: 135px;
+            opacity: 0.8;
+            background: url('/images/shadow.png');
+        }
+        #tooltip.pretty h3 {
+            margin-bottom: 0.75em;
+            font-size: 12pt;
+            width: 220px;
+            text-align: center;
+        }
+        #tooltip.pretty div { width: 220px; text-align: left; }
+
+        #tooltip.fancy {
+            background: url('/images/shadow2.png');
+            padding-top: 5em;
+            height: 100px;
+        }
+
+            /*
+            http://bl.ocks.org/2514276
+            https://groups.google.com/group/d3-js/browse_thread/thread/29ddd76c646f5921/de483e446abf4d39?lnk=gst&q=zoom#de483e446abf4d39
+            */
+
+
+        div#pop-up {
+            display: none;
+            position:absolute;
+            color: white;
+            font-size: 14px;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 10px 5px 10px;
+            -moz-border-radius: 8px 8px;
+            border-radius: 8px 8px;
+        }
+        div#pop-up-title {
+            font-size: 15px;
+            width:200px;
+            margin-bottom: 4px;
+            font-weight: bolder;
+        }
+        div#pop-up-content {
+            font-size: 12px;
+        }
+        div#pop-desc {
+            width: 100px;
+        }
+        div#pop-img {
+            font-size: 30px;
+            font-weight: bolder;
+        }
+    </style>
+
+    <div class="colmask holygrail">
+        <div class="colmid">
+            <div class="colleft">
+                <div class="col1wrap">
+                    <div class="col1">
+                        <!-- Column 1 start -->
+                        <h2>{{ current_view.title }}</h2>
+                        <div id="netmapview_id" style="display:none">
+                            {{ current_view.viewid }}
+                        </div>
+                        <div id="chart_header"></div>
+                        <div id="loading_chart"></div>
+                        <div id="chart">
+
+                            <div id="pop-up">
+                                <div id="pop-up-title"></div>
+                                <div id="pop-up-content">
+                                    <table> <tr>
+                                        <td><div id="pop-img"></div></td>
+                                        <td><div id="pop-desc"></div></td>
+                                    </tr> </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Column 1 end -->
+                    </div>
+                </div>
+                <div class="col2">
+                    <!-- Column 2 start -->
+                    <ul class="nav nav-list">
+                        <li class="nav-header">
+                            Link types
+                        </li>
+                        <li class="active">
+                            <a href="#">2</a>
+                        </li>
+                        <li>
+                            <a href="#">2 (vlan)</a>
+                        </li>
+                        <li>
+                            <a href="#">3</a>
+                        </li>
+
+                        <li class="nav-header">
+                            Categories
+                        </li>
+                        <li class="active">
+                            <a href="#">SW</a>
+                        </li>
+                        <li>
+                            <a href="#">2 (vlan)</a>
+                        </li>
+                        <li>
+                            <a href="#">3</a>
+                        </li>
+
+                    </ul>
+                    <div id="loadbar-chart">
+                    </div>
+                    <!-- Column 2 end -->
+                </div>
+                <div class="col3">
+                    <!-- Column 3 start -->
+                    <form class="well form-inline" action="#">
+                        <fieldset>
+                            <div id="form_view" class="control-group">
+                                <label class="control-label"
+                                       for="input01">Views</label>
+                                <select id="dropdown_view_id">
+                                    <option value="-1">Unsaved / New
+                                        view</option>
+                                    {% for view in views %}
+                                        {%  if view.viewid == current_view.viewid %}
+                                            <option selected="selected" value="{{ view.viewid }}">
+                                                {% else %}
+                                            <option value="{{ view.viewid }}">
+                                        {% endif %}
+                                    {{ view.title }}
+                                    </option>
+                                    {% endfor %}
+
+                                </select>
+                                <button id="save_view" type="submit"
+                                        class="btn">Save</button>
+                                <div id="save_view_spinner"></div>
+                            </div>
+                        </fieldset>
+                    </form>
+                    <a id="save_view_id" href="javascript:save_view()" >save view</a>
+                    <div id="nodeinfo">
+                        foo - bar
+                    </div>
+                    <!-- Column 3 end -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade hide" style="display:none;background: #c0c0c0;
+    color: blue;"
+         id="modal_new_view">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h3>Save new view as</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal" action="#">
+                <fieldset>
+                    <div class="control-group">
+                        <label class="control-label"
+                               for="new_view_title">Title</label>
+                        <div class="controls">
+                            <input type="text" class="input"
+                                   id="new_view_title" />
+                            <p class="help-block">Title shown in
+                                dropdown list</p>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label"
+                               for="new_view_description">Description</label>
+                        <div class="controls">
+                            <textarea class="input-xlarge"
+                                      id="new_view_description"
+                                      rows="5"></textarea>
+                            <p class="help-block">Shows in sidebar after you
+                                have selected
+                                the view</p>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label"
+                               for="new_view_is_public">Is public?</label>
+                        <div class="controls">
+                            <input type="checkbox" class="checkbox"
+                                   id="new_view_is_public""></textarea>
+                            <p class="help-block">Makes view available for
+                                everyone</p>
+                        </div>
+                    </div>
+
+                </fieldset>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="btn" data-dismiss="modal">Close</a>
+            <a id="save_new_view" href="#" class="btn btn-primary">Save
+                changes</a>
+        </div>
+    </div>
+
+
+    <script type="text/javascript" src="/js/netmap.js"></script>
+
+{% endblock %}
