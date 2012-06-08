@@ -19,6 +19,19 @@ from django import forms
 from nav.django.forms import MultiSelectFormField
 from nav.models.profiles import LINK_TYPES
 
+class NewViewSaveForm(forms.Form):
+    title = forms.CharField(label='Title', required=True)
+    link_types = MultiSelectFormField(choices=LINK_TYPES,
+        label='Link types:', required=True)
+    zoom = forms.CharField(max_length=255, label='Zoom', required=True)
+    is_public = forms.BooleanField(label='Is public?', initial=False)
+    fixed_nodes = forms.CharField(required=False)
+
+    def clean(self):
+        if (self._errors):
+            return
+        return self.cleaned_data
+
 class ViewSaveForm(forms.Form):
     title = forms.CharField(label='Title', required=False)
     link_types = MultiSelectFormField(choices=LINK_TYPES,

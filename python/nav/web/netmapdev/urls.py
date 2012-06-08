@@ -19,7 +19,8 @@ from django.conf.urls.defaults import url, patterns
 
 from nav.web.netmapdev.views import demo, d3js_layer2, graphml_layer2, index, \
     graph_layer2_view2, graph_layer2_view1, \
-    graph_layer2_view3, traffic_load_gradient, show_view, save_view_metadata
+    graph_layer2_view3, traffic_load_gradient, show_view, save_view_metadata,\
+    save_new_view, get_views
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('nav.web.netmapdev.views',
@@ -34,12 +35,14 @@ urlpatterns = patterns('nav.web.netmapdev.views',
         name='netmapdev-data-graphml-layer2'),
     url(r'^data/d3js/layer2$', d3js_layer2,
         name='netmapdev-data-d3js-layer2'),
-    url(r'^data/d3js/layer2/(?P<view_id>[\w\d]+)$', d3js_layer2,
+    url(r'^data/d3js/layer2/(?P<view_id>[\d]+)$', d3js_layer2,
         name='netmapdev-data-d3js-layer2'),
     url(r'^data/traffic_load_gradient', traffic_load_gradient,
         name='netmapdev-data-traffic_load_gradient'),
-    url(r'^v/(?P<view_id>[\w\d]+)$', show_view, name='netmapdev-showview'),
-    url(r'^v/(?P<view_id>[\w\d]+)/save$', save_view_metadata,
+    url(r'^v/(?P<view_id>[\d]+)$', show_view, name='netmapdev-showview'),
+    url(r'^v/(?P<view_id>[\d]+)/save$', save_view_metadata,
         name='netmapdev-save_view_metadata'),
+    url(r'^newview$', save_new_view, name='netmapdev-save_new_view'),
+    url(r'^data/views', get_views, name='netmapdev-get_views'),
     url(r'^demo$', demo, name='netmapdev-demo'),
 )

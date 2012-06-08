@@ -13,6 +13,7 @@
 
 
 <script type="text/javascript" src="http://d3js.org/d3.v2.js"></script>
+<script type="text/javascript" src="http://stud-1201:8888/js/spin.min.js"></script>
 
 {% endblock %}
 
@@ -23,6 +24,11 @@
 
 <style type="text/css" rel="stylesheet">
 
+    #save_view_spinner {
+        margin-left: 10px;
+        margin-bottom:2px;
+        display: inline-block;
+    }
 
     .netmap-node-status {
         float: left;
@@ -208,11 +214,14 @@
             </div>
         </div>
         <div class="span8">
-            <h2>{{ view.title }}</h2>
+            <h2>{{ current_view.title }}</h2>
             <div id="netmapview_id" style="display:none">
-                {{ view.viewid }}
+                {{ current_view.viewid }}
             </div>
+            <div id="chart_header"></div>
+            <div id="loading_chart"></div>
             <div id="chart">
+
                 <div id="pop-up">
                     <div id="pop-up-title"></div>
                     <div id="pop-up-content">
@@ -225,12 +234,88 @@
             </div>
         </div>
         <div class="span3">
+            <form class="well form-inline" action="#">
+                <fieldset>
+                    <div id="form_view" class="control-group">
+                        <label class="control-label"
+                               for="input01">Views</label>
+                            <select id="dropdown_view_id">
+                                    <option value="-1">Unsaved / New
+                                        view</option>
+                                {% for view in views %}
+                                    {%  if view.viewid == current_view.viewid %}
+                                        <option selected="selected" value="{{ view.viewid }}">
+                                    {% else %}
+                                        <option value="{{ view.viewid }}">
+                                    {% endif %}
+                                        {{ view.title }}
+                                    </option>
+                                {% endfor %}
+
+                            </select>
+                            <button id="save_view" type="submit"
+                                    class="btn">Save</button>
+                            <div id="save_view_spinner"></div>
+                    </div>
+                </fieldset>
+            </form>
             <a id="save_view_id" href="javascript:save_view()" >save view</a>
             <div id="nodeinfo">
                 foo - bar
             </div>
         </div>
     </div>
+</div>
+
+<div class="modal fade hide" id="modal_new_view">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h3>Save new view as</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal" action="#">
+                <fieldset>
+                    <div class="control-group">
+                        <label class="control-label"
+                               for="new_view_title">Title</label>
+                        <div class="controls">
+                            <input type="text" class="input"
+                                   id="new_view_title" />
+                                   <p class="help-block">Title shown in
+                                       dropdown list</p>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label"
+                               for="new_view_description">Description</label>
+                        <div class="controls">
+                            <textarea class="input-xlarge"
+                                   id="new_view_description"
+                                   rows="5"></textarea>
+                            <p class="help-block">Shows in sidebar after you
+                                have selected
+                                the view</p>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label"
+                               for="new_view_is_public">Is public?</label>
+                        <div class="controls">
+                            <input type="checkbox" class="checkbox"
+                                      id="new_view_is_public""></textarea>
+                            <p class="help-block">Makes view available for
+                                everyone</p>
+                        </div>
+                    </div>
+
+                </fieldset>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="btn" data-dismiss="modal">Close</a>
+            <a id="save_new_view" href="#" class="btn btn-primary">Save
+                changes</a>
+        </div>
 </div>
 
 <script type="text/javascript" src="/js/netmap.js"></script>

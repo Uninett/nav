@@ -1215,8 +1215,8 @@ LINK_TYPES = (1, 'Layer 2'),\
 
 class NetmapView(models.Model):
     """Properties for a specific view in Netmap"""
-    viewid = models.CharField(max_length=20, primary_key=True)
-    owner = models.ForeignKey('Account', db_column='owner')
+    viewid = models.AutoField(primary_key=True)
+    owner = models.ForeignKey(Account, db_column='owner')
     title = models.TextField()
     link_types = MultiSelectField(max_length=250, blank=False, choices=LINK_TYPES)
     zoom = models.CharField(max_length=255) # picke x,y,scale (translate(x,y) , scale(scale)

@@ -19,11 +19,12 @@ import psycopg2.extras
 import datetime
 import logging
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseForbidden, \
-    HttpResponseRedirect
+    HttpResponseRedirect, HttpResponseBadRequest
 from django.utils import simplejson
 from nav.models.manage import Netbox
 
@@ -37,7 +38,7 @@ from nav.topology import vlan
 from nav.topology.d3_js import d3_json
 
 from nav.web.netmapdev.common import layer2_graph, traffic_gradient_map
-from nav.web.netmapdev.forms import ViewSaveForm
+from nav.web.netmapdev.forms import ViewSaveForm, NewViewSaveForm
 from nav.web.templates.Netmapdev import Netmapdev
 
 import networkx as nx
@@ -46,7 +47,7 @@ logger = logging.getLogger('nav.web.netmapdev.views')
 
 
 def index(request):
-    return graph_layer2_view2(request)
+    return graph_layer2_view2(request, get_account(request) )
 
 
 def demo(request):
@@ -70,11 +71,17 @@ def graph_layer2_view1(request):
             ('Netmapdev', None)])
 
 
-def graph_layer2_view2(request, view=None):
+def graph_layer2_view2(request, user=None, view=None):
+    views = NetmapView.objects.filter(Q(is_public=True) | Q(owner=user.id))\
+        .order_by('-is_public')
+
+
+
     return render_to_response(Netmapdev,
         'netmapdev/force_direct.html',
             {'data': 'd3js/layer2',
-             'view': view,
+             'current_view': view,
+             'views': views,
              },
         RequestContext(request),
         path=[('Home', '/'),
@@ -155,6 +162,18 @@ def traffic_load_gradient(request):
     response['Content-Type'] = 'application/json; charset=utf-8'
     return response
 
+def _get_views(session_user):
+    views = NetmapView.objects.filter(Q(is_public=True) | Q(owner=session_user.id))\
+        .order_by('-is_public')
+    return views
+
+def get_views(request):
+    session_user = get_account(request)
+
+    response = HttpResponse(simplejson.dumps(_get_views(session_user)))
+    response['Content-Type'] = 'application/json; charset=utf-8'
+    return response
+
 def show_view(request, view_id):
     view =  get_object_or_404(NetmapView, pk=view_id)
     session_user = get_account(request)
@@ -163,10 +182,52 @@ def show_view(request, view_id):
         # render right view with properties from netmapview,
         # netmapview categories etc.
 
-        return graph_layer2_view2(request, view) #
+        return graph_layer2_view2(request, session_user, view) #
     else:
-        return graph_layer2_view2(request) # default view
+        return graph_layer2_view2(request, session_user) # default view
     return HttpResponse(view_id)
+
+def save_new_view(request):
+    if request.method == 'POST':
+        form = NewViewSaveForm(request.POST)
+
+        session_user = get_account(request)
+
+        if form.is_valid():
+            view = NetmapView()
+            view.owner = session_user
+            view.title = form.cleaned_data['title']
+            view.link_types = form.cleaned_data['link_types']
+            view.zoom = form.cleaned_data['zoom']
+            view.is_public= form.cleaned_data['is_public']
+            view.last_modified = datetime.datetime.now()
+            if form.cleaned_data['fixed_nodes']:
+                fixed_nodes = simplejson.loads(form
+                                               .cleaned_data['fixed_nodes'])
+            view.save()
+
+            for i in fixed_nodes:
+                a_node = i
+
+                view = NetmapView.objects.get(pk=view.pk)
+                netbox = Netbox.objects.get(pk=a_node['data']['id'])
+
+                NetmapViewNodePosition.objects.create(
+                    viewid=view,
+                    netbox=netbox,
+                    x=a_node['x'],
+                    y=a_node['y'])
+
+            response = HttpResponse(simplejson.dumps({
+                'current_view': view,
+                'views': _get_views(session_user),
+            }))
+            response['Content-Type'] = 'application/json; charset=utf-8'
+            return response
+            #return HttpResponseRedirect(reverse(show_view,
+            #    args=[view.pk]))
+    return HttpResponseBadRequest()
+
 
 def save_view_metadata(request, view_id):
     view =  get_object_or_404(NetmapView, pk=view_id)
@@ -208,8 +269,14 @@ def save_view_metadata(request, view_id):
 
             view.save()
 
-            return HttpResponseRedirect(reverse(show_view,
-                args=[view.pk]))
+            response = HttpResponse(simplejson.dumps({
+                'current_view': view,
+                'views': _get_views(session_user),
+                }))
+            response['Content-Type'] = 'application/json; charset=utf-8'
+            return response
+            #return HttpResponseRedirect(reverse(show_view,
+            #    args=[view.pk]))
         return HttpResponseBadRequest()
 
 
