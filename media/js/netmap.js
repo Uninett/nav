@@ -50,25 +50,61 @@ function drawTrafficGradientSidebar(gradient) {
         .attr('y', function (d,i) { return i*2 })
 }
 
-function save_view() {
-    fixed_nodes = []
 
-
-    for (i in json.nodes) {
-
-
-        if (json.nodes[i].fixed === true) {
-            fixed_nodes.push(json.nodes[i]);
-        }
-    }
-
-    postwith("/netmapdev/v/default/save", {
-        'fixed_nodes' : JSON.stringify(fixed_nodes)
-    });
-
-}
 
 $(function () {
+
+    $("#dropdown_view_id").change(function() {
+        var state = $('select#dropdown_view_id :selected').val();
+        if(state == "") state="-1";
+        if (state != "-1") {
+            load_view(state, true);
+        }
+        return false;
+    });
+
+    // handles save button in sidebar for updating/creatina new view
+    $("#save_view").click(function() {
+       var view_id = $('select#dropdown_view_id :selected').val();
+        if (view_id == "-1") {
+            $('#modal_new_view').modal('toggle');
+        } else {
+            spinner_save_view.spin(document.getElementById("save_view_spinner"));
+            save_view(view_id, {},
+                    function() { // success
+                        alert("view saved!");
+                        spinner_save_view.stop();
+                    },
+                    function() { // error
+                        show_error("Error while saving view");
+                        spinner_save_view.stop();
+                    }
+            );
+        }
+       return false;
+    });
+
+    $("#save_new_view").click(function() {
+        spinner.spin(document.getElementById("modal_new_view"));
+        data = {
+            'title': $('input#new_view_title').val(),
+            'description': $('textarea#new_view_description').val(),
+            'is_public': (!!($('input#new_view_is_public').val() == "on"))
+        }
+        save_view(null, data,
+                function(response) { // success
+                    console.log(response);
+                    alert("view saved!");
+                    spinner.stop();
+                },
+                function(response) { // error
+                    console.log(response);
+                    show_error_message(response.responseText);
+                    spinner.stop();
+                }
+        );
+        return false;
+    })
 
     var TRAFFIC_META = {
         'tib': 1099511627776,
@@ -81,6 +117,37 @@ $(function () {
         'kb': 1000
     }
 
+    function save_view(view_id, data, on_success, on_error) {
+        fixed_nodes = []
+
+
+        for (i in json.nodes) {
+            if (json.nodes[i].fixed === true) {
+                fixed_nodes.push(json.nodes[i]);
+            }
+        }
+
+        data['fixed_nodes'] = JSON.stringify(fixed_nodes);
+        data['link_types'] = "2";
+        data['zoom'] = [trans, scale].join(";");
+
+        post_url = '/netmapdev/newview';
+        if (view_id) {
+            post_url = "/netmapdev/v/{0}/save".format(view_id);;
+        }
+        $.ajax({
+            type: 'POST',
+            url: post_url,
+            data: data,
+            success: on_success,
+            error: on_error
+        });
+        /*postwith("/netmapdev/v/default/save", {
+         'fixed_nodes' : JSON.stringify(fixed_nodes)
+         });*/
+
+    }
+
     // SI Units, http://en.wikipedia.org/wiki/SI_prefix
     function convert_bits_to_si(bits) {
         if (bits >= TRAFFIC_META['tb']) { return '{0}Tbps'.format(Math.round(((bits / TRAFFIC_META['tb'])*100)/100)) }
@@ -90,32 +157,104 @@ $(function () {
         return '{0}b/s'.format(Math.round((bits*100)/100))
     }
 
+    var chart, svg, spinner, spinner_save_view, trans, scale;
+    var spinner_opts = {
+        lines: 11, // The number of lines to draw
+        length: 11, // The length of each line
+        width: 11, // The line thickness
+        radius: 39, // The radius of the inner circle
+        rotate: 58, // The rotation offset
+        color: '#000', // #rgb or #rrggbb
+        speed: 1.1, // Rounds per second
+        trail: 39, // Afterglow percentage
+        shadow: false, // Whether to render a shadow
+        hwaccel: false, // Whether to use hardware acceleration
+        className: 'spinner', // The CSS class to assign to the spinner
+        zIndex: 2e9, // The z-index (defaults to 2000000000)
+        top: 'auto', // Top position relative to parent in px
+        left: 'auto' // Left position relative to parent in px
+    };
+    var spinner_save_view_opts = {
+            lines: 11, // The number of lines to draw
+            length: 5, // The length of each line
+            width: 2, // The line thickness
+            radius: 4, // The radius of the inner circle
+            rotate: 58, // The rotation offset
+            color: '#000', // #rgb or #rrggbb
+            speed: 1.1, // Rounds per second
+            trail: 39, // Afterglow percentage
+            shadow: false, // Whether to render a shadow
+            hwaccel: false, // Whether to use hardware acceleration
+            className: 'spinner', // The CSS class to assign to the spinner
+            zIndex: 2e9, // The z-index (defaults to 2000000000)
+            top: 'auto', // Top position relative to parent in px
+            left: 'auto' // Left position relative to parent in px
+    };
+    var target = document.getElementById('loading_chart');
+    spinner = new Spinner(spinner_opts)
+    spinner_save_view = new Spinner(spinner_save_view_opts);
 
+    function load_view(view_id) {
+        spinner.spin(target)
 
-    var chart = $('#chart')[0],
-        w = chart.offsetWidth,
-        h = screen.height-500,
-        r = 6,
-        fill = d3.scale.category20(),
-        trans=[0,0],
-        scale=1;
+        load_data(view_id);
 
-    var svg = d3.select("#chart")
-            .append("svg:svg")
-            .attr("width", w)
-            .attr("height", h)
-            .attr("pointer-events", "all")
-            .append('svg:g')
-            .call(d3.behavior.zoom().on("zoom", redraw))
-            .append('svg:g')
+        chart = $('#chart')[0],
+                w = chart.offsetWidth,
+                h = screen.height-500,
+                r = 6,
+                fill = d3.scale.category20(),
+                trans=[0,0],
+                scale=1;
+
+        if (svg) { $('#svg-netmap').remove(); }
+
+        svg = d3.select("#chart")
+                        .append("svg:svg")
+                        .attr('id', 'svg-netmap')
+                        .attr("width", w)
+                        .attr("height", h)
+                        .attr("pointer-events", "all")
+                        .append('svg:g')
+                        .call(d3.behavior.zoom().on("zoom", redraw))
+                        .append('svg:g')
+                ;
+
+        svg
+                .append('svg:rect')
+                .attr('width', w)
+                .attr('height', h)
+                .attr('fill', 'white');
         ;
+    }
 
-    svg
-        .append('svg:rect')
-        .attr('width', w)
-        .attr('height', h)
-        .attr('fill', 'white');
-    ;
+    function show_error_message(data) {
+
+        var html="<div id='alert_message' class='alert alert-error " +
+                "alert-block'>"
+                +"<a class='close' data-dismiss='alert' href='#'>×</a>"
+                +"<h4 class='alert-heading'>Error!</h4>"
+                +"<p id='alert_message_content'>"+data+"</p>"
+                +"</div>";
+        $('#chart_header').append(html);
+        spinner.stop();
+    }
+
+    function show_error(data_url) {
+        var message = "Unable to load data from: <a href='"+data_url+"'>"
+                +data_url+"</a><br />Please visit link,"
+                +"copy stacktrace and file a bug on LaunchPad";
+        var html="<div id='alert_message' class='alert alert-error " +
+                "alert-block'>"
+            +"<a class='close' data-dismiss='alert' href='#'>×</a>"
+            +"<h4 class='alert-heading'>Error!</h4>"
+            +"<p id='alert_message_content'>"+message+"</p>"
+        +"</div>";
+
+        $('#chart_header').append(html);
+
+        spinner.stop();
+    }
 
 
     function redraw() {
@@ -263,6 +402,8 @@ $(function () {
         /*node.selectAll("circle").append("title").text(function (d) {
          return d.name;
          });*/
+
+        spinner.stop();
 
 
         function tick() {
@@ -436,26 +577,31 @@ $(function () {
 
 
     view_id = $("#netmapview_id").text().trim();
+    load_view(view_id);
 
-    dataUrl = 'http://stud-1201:8888/netmapdev/data/d3js/layer2'
-    if (view_id) {
-        dataUrl = dataUrl+"/"+view_id
-    }
-    console.log(dataUrl);
-    $.ajax({
-        url: dataUrl
-        ,success: function(data) {
-            draw(data);
-        },
-        cache: false,
-        dataType: 'json',
-        mimeType: 'application/json',
-        headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-            'Expires': -1
+    function load_data(view_id) {
+        dataUrl = 'http://stud-1201:8888/netmapdev/data/d3js/layer2'
+        if (view_id) {
+            dataUrl = dataUrl+"/"+view_id
         }
-    });
+        console.log(dataUrl);
+        $.ajax({
+            url: dataUrl
+            ,success: function(data) {
+                draw(data);
+            },
+            error: function (foo) { show_error(dataUrl) },
+            cache: false,
+            dataType: 'json',
+            mimeType: 'application/json',
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Expires': -1
+            }
+        });
+    }
+
 
     $.ajax({
         url: 'http://stud-1201:8888/netmapdev/data/traffic_load_gradient'
