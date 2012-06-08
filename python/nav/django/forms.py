@@ -33,6 +33,7 @@ class CIDRField(forms.CharField):
         else:
             return super(CIDRField, self).clean(value)
 
+
 class PointField(forms.CharField):
     widget = widgets.PointInput
 
@@ -41,6 +42,7 @@ class PointField(forms.CharField):
             return super(PointField, self).clean(value)
         raise forms.ValidationError(
             "Invalid format. Point field format is '(x,y)'.")
+
 
 class MultiSelectFormField(forms.MultipleChoiceField):
     """ Snippet from http://djangosnippets.org/snippets/2753/"""
@@ -54,8 +56,10 @@ class MultiSelectFormField(forms.MultipleChoiceField):
         if not value and self.required:
             raise forms.ValidationError(self.error_messages['required'])
             # if value and self.max_choices and len(value) > self.max_choices:
-        #     raise forms.ValidationError('You must select a maximum of %s choice%s.'
-        #             % (apnumber(self.max_choices), pluralize(self.max_choices)))
+        #     raise forms.ValidationError('You must select a maximum of %s
+        # choice%s.'
+        #             % (apnumber(self.max_choices),
+        # pluralize(self.max_choices)))
         return value
 
 
@@ -75,7 +79,8 @@ class MultiSelectField(models.Field):
 
     def formfield(self, **kwargs):
         # don't call super, as that overrides default widget if it has choices
-        defaults = {'required': not self.blank, 'label': capfirst(self.verbose_name),
+        defaults = {'required': not self.blank,
+                    'label': capfirst(self.verbose_name),
                     'help_text': self.help_text, 'choices': self.choices}
         if self.has_default():
             defaults['initial'] = self.get_default()
@@ -99,14 +104,20 @@ class MultiSelectField(models.Field):
     def contribute_to_class(self, cls, name):
         super(MultiSelectField, self).contribute_to_class(cls, name)
         if self.choices:
-            func = lambda self, fieldname = name, choicedict = dict(self.choices): ",".join([choicedict.get(value, value) for value in getattr(self, fieldname)])
+            func = lambda self, fieldname=name,\
+                          choicedict=dict(self.choices): ",".join(
+                [choicedict.get(value, value) for value in
+                 getattr(self, fieldname)])
             setattr(cls, 'get_%s_display' % self.name, func)
 
     def validate(self, value, model_instance):
         arr_choices = self.get_choices_selected(self.get_choices_default())
         for opt_select in value:
-            if (int(opt_select) not in arr_choices):  # the int() here is for comparing with integer choices
-                raise exceptions.ValidationError(self.error_messages['invalid_choice'] % value)
+            if (int(
+                opt_select) not in arr_choices):  # the int() here is for
+                # comparing with integer choices
+                raise exceptions.ValidationError(
+                    self.error_messages['invalid_choice'] % value)
         return
 
     def get_choices_selected(self, arr_choices=''):
@@ -121,7 +132,7 @@ class MultiSelectField(models.Field):
         value = self._get_val_from_obj(obj)
         return self.get_db_prep_value(value)
 
-
-# needed for South compatibility ( Snippet from http://djangosnippets.org/snippets/2753/ )
+## todo: when using south, requires the two next lines for
+## MultiSelectFormField and MultiSelectField to work with south:
 #from south.modelsinspector import add_introspection_rules
 #add_introspection_rules([], ["^coop\.utils\.fields\.MultiSelectField"])
