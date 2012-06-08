@@ -28,18 +28,13 @@ entity and an interface from IF-MIB is kept.  For each mapping found,
 the interface will have its module set to be whatever the ancestor
 module of the physical entity is.
 """
-import cPickle as pickle
-
-from twisted.internet import defer, threads
+from twisted.internet import defer
 
 from nav.oids import OID
 from nav.mibs.entity_mib import EntityMib, EntityTable
-from nav.mibs.snmpv2_mib import Snmpv2Mib
-from nav.ipdevpoll import Plugin, shadows, db
+from nav.ipdevpoll import Plugin, shadows
+from nav.ipdevpoll.timestamps import TimestampChecker
 
-from nav.models import manage
-
-INFO_KEY_NAME = 'poll_times'
 INFO_VAR_NAME = 'modules'
 
 class Modules(Plugin):
@@ -49,8 +44,8 @@ class Modules(Plugin):
         super(Modules, self).__init__(*args, **kwargs)
         self.alias_mapping = {}
         self.entitymib = EntityMib(self.agent)
-        self.snmpv2mib = Snmpv2Mib(self.agent)
-        self.times = None
+        self.stampcheck = TimestampChecker(self.agent, self.containers,
+                                           INFO_VAR_NAME)
 
     @defer.inlineCallbacks
     def handle(self):
@@ -64,64 +59,15 @@ class Modules(Plugin):
                 'entAliasMappingIdentifier')
             self.alias_mapping = self._process_alias_mapping(alias_mapping)
             self._process_entities(physical_table)
-        self._save_times(self.times)
+        self.stampcheck.save()
 
     @defer.inlineCallbacks
     def _need_to_collect(self):
-        old_times = yield self._load_times()
-        new_times = yield self._retrieve_times()
-        self.times = new_times
+        yield self.stampcheck.load()
+        yield self.stampcheck.collect([self.entitymib.get_last_change_time()])
 
-        if not old_times:
-            self._logger.debug("don't seem to have collected entities before")
-            defer.returnValue(True)
-
-        old_uptime, old_lastchange = old_times
-        new_uptime, new_lastchange = new_times
-        uptime_deviation = self.snmpv2mib.get_uptime_deviation(old_uptime,
-                                                               new_uptime)
-        if old_lastchange != new_lastchange:
-            self._logger.debug("entLastChangeTime has changed since last run")
-            defer.returnValue(True)
-        elif abs(uptime_deviation) > 60:
-            self._logger.debug("sysUpTime deviation detected, possible reboot")
-            defer.returnValue(True)
-        else:
-            self._logger.debug("entity tables appear unchanged since last run")
-            defer.returnValue(False)
-
-    @defer.inlineCallbacks
-    def _load_times(self):
-        "Loads existing timestamps from db"
-        @db.autocommit
-        def _unpickle():
-            try:
-                info = manage.NetboxInfo.objects.get(
-                    netbox__id=self.netbox.id,
-                    key=INFO_KEY_NAME, variable=INFO_VAR_NAME)
-            except manage.NetboxInfo.DoesNotExist:
-                return None
-            try:
-                return pickle.loads(str(info.value))
-            except Exception:
-                return None
-
-        times = yield threads.deferToThread(_unpickle)
-        defer.returnValue(times)
-
-    @defer.inlineCallbacks
-    def _retrieve_times(self):
-        result = yield defer.DeferredList([
-                self.snmpv2mib.get_gmtime_and_uptime(),
-                self.entitymib.get_last_change_time(),
-                ])
-        tup = []
-        for success, value in result:
-            if success:
-                tup.append(value)
-            else:
-                value.raiseException()
-        defer.returnValue(tuple(tup))
+        result = yield self.stampcheck.is_changed()
+        defer.returnValue(result)
 
     def _device_from_entity(self, ent, chassis=False):
         serial_column = 'entPhysicalSerialNum'
@@ -253,11 +199,3 @@ class Modules(Plugin):
         self._logger.debug("alias mapping: %r", mapping)
         return mapping
 
-    def _save_times(self, times):
-        netbox = self.containers.factory(None, shadows.Netbox)
-        info = self.containers.factory((INFO_KEY_NAME, INFO_VAR_NAME),
-                                       shadows.NetboxInfo)
-        info.netbox = netbox
-        info.key = INFO_KEY_NAME
-        info.variable = INFO_VAR_NAME
-        info.value = pickle.dumps(times)
