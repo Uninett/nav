@@ -254,6 +254,9 @@ ORDER BY from_sysname, sysname, interface_swport.speed DESC
         """
     db_cursor.execute(query)
     netboxes = [dict(row) for row in db_cursor.fetchall()]
+    #print (netboxes,connections)
+    #print netboxes
+    print netboxes
     for netbox in netboxes:
         for key, value in netbox.items():
             if isinstance(value, basestring):

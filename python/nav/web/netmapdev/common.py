@@ -268,8 +268,9 @@ def traffic_gradient_map():
 
 def _traffic_gradient(intensity):
     """
-    A beautiful gradient to show traffic load,
-    based on nettkart.pl in TG tech:server goodiebag ^^
+    A beautiful gradient to show traffic load.
+    Based on nettkart.pl in TG tech:server goodiebag ^^
+    public domain from ftp.gathering.org
 
     0 = green
     1 = yellow

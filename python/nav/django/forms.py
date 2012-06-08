@@ -45,7 +45,25 @@ class PointField(forms.CharField):
 
 
 class MultiSelectFormField(forms.MultipleChoiceField):
-    """ Snippet from http://djangosnippets.org/snippets/2753/"""
+    """
+    Usually you want to store multiple choices as a manytomany link to
+    another table. Sometimes however it is useful to store them in the model
+    itself. This field implements a model field and an accompanying
+    formfield to store multiple choices as a comma-separated list of
+    values, using the normal CHOICES attribute.
+
+    You'll need to set maxlength long enough to cope with the maximum number of
+    choices, plus a comma for each.
+
+    The normal get_FOO_display() method returns a comma-delimited string of the
+    expanded values of the selected choices.
+
+    The formfield takes an optional max_choices parameter to validate a maximum
+    number of choices.
+
+    original author, Daniel Roseman, public domain
+    Snippet from http://djangosnippets.org/snippets/2753/
+    """
     widget = forms.CheckboxSelectMultiple
 
     def __init__(self, *args, **kwargs):
@@ -64,7 +82,26 @@ class MultiSelectFormField(forms.MultipleChoiceField):
 
 
 class MultiSelectField(models.Field):
-    """ Snippet from http://djangosnippets.org/snippets/2753/"""
+    """
+    Usually you want to store multiple choices as a manytomany link to
+    another table. Sometimes however it is useful to store them in the model
+    itself. This field implements a model field and an accompanying
+    formfield to store multiple choices as a comma-separated list of
+    values, using the normal CHOICES attribute.
+
+    You'll need to set maxlength long enough to cope with the maximum number of
+    choices, plus a comma for each.
+
+    The normal get_FOO_display() method returns a comma-delimited string of the
+    expanded values of the selected choices.
+
+    The formfield takes an optional max_choices parameter to validate a maximum
+    number of choices.
+
+    original author, Daniel Roseman, public domain
+    Snippet from http://djangosnippets.org/snippets/2753/
+    """
+
     __metaclass__ = models.SubfieldBase
 
     def get_internal_type(self):
@@ -132,7 +169,7 @@ class MultiSelectField(models.Field):
         value = self._get_val_from_obj(obj)
         return self.get_db_prep_value(value)
 
-## todo: when using south, requires the two next lines for
-## MultiSelectFormField and MultiSelectField to work with south:
-#from south.modelsinspector import add_introspection_rules
-#add_introspection_rules([], ["^coop\.utils\.fields\.MultiSelectField"])
+        ## todo: when using south, requires the two next lines for
+        ## MultiSelectFormField and MultiSelectField to work with south:
+        #from south.modelsinspector import add_introspection_rules
+        #add_introspection_rules([], ["^coop\.utils\.fields\.MultiSelectField"])

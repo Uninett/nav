@@ -39,7 +39,9 @@ import re
 """
 comment norangshol:
  is_string_like and make_str taken from https://github.com/drewconway/networkx
- networkx.utils
+ networkx.utils , available under BSD license.
+
+ modified to include metadata for nodes if metadata is specified in graph
 """
 
 
