@@ -313,7 +313,7 @@ class Interface(Shadow):
         missing interfaces can be safely performed by the manager.
 
         """
-        containers[cls][cls.sentinel] = cls.sentinel
+        containers.setdefault(cls, {})[cls.sentinel] = cls.sentinel
 
 InterfaceManager.sentinel = Interface.sentinel = Interface()
 
