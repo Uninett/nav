@@ -283,6 +283,11 @@ class Vlan(Shadow):
                     pfx.vlan = mdl
                 return
             else:
+                if (self.organization
+                    and not self.organization.get_existing_model()):
+                    self._logger.warning("ignoring unknown organization id %r",
+                                         self.organization.id)
+                    self.organization = None
                 super(Vlan, self).save(containers)
         else:
             self._logger.debug("no associated prefixes, not saving: %r", self)

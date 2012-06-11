@@ -61,7 +61,7 @@ class EntityMib(mibretriever.MibRetriever):
         """
         oid = self.nodes['entLastChangeTime'].oid
         result = yield self.agent_proxy.walk(str(oid))
-        for key, value in result:
+        for key, value in result.items():
             if oid.is_a_prefix_of(key):
                 defer.returnValue(value)
 
