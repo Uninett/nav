@@ -54,6 +54,38 @@ function drawTrafficGradientSidebar(gradient) {
 
 $(function () {
 
+    // Initial Setup
+    // -------------
+
+    // Netmap model
+    /*Netmap = Backbone.Model.extend({
+       defaults: {
+           title: 'No title set...',
+           link_types: [2],
+           zoom: { trans: [0, 0], scale: 1},
+           nodes: [],
+           links: [],
+           is_public: false
+       } ,
+       initalize: function(){
+
+       }
+    });
+
+    // Views
+
+    NetmapView = Backbone.View.extend({
+       initalize: function() {
+            this.render();
+       },
+       render: function() {
+           // Compile template
+           var template = _.template($)
+       }
+    });*/
+
+
+
     $("#dropdown_view_id").change(function() {
         var state = $('select#dropdown_view_id :selected').val();
         if(state == "") state="-1";
@@ -76,7 +108,8 @@ $(function () {
                     ('#chart_header'))
                     .html('<div style="background:#c0c0c0;color: blue"><h6>Yes updating,no for new view</h6></div>')
                     .dialog({
-                        modal: true, title: 'Delete message', zIndex: 10000, autoOpen: true,
+                        modal: true, title: 'Update or save as new view?', zIndex: 10000,
+                        autoOpen: true,
                         width: 'auto', modal: true, resizable: false,
                         buttons: {
                             Yes: function () {
@@ -220,7 +253,7 @@ $(function () {
             top: 'auto', // Top position relative to parent in px
             left: 'auto' // Left position relative to parent in px
     };
-    var target = document.getElementById('loading_chart');
+    var target = document.getElementById('chart');
     spinner = new Spinner(spinner_opts)
     spinner_save_view = new Spinner(spinner_save_view_opts);
 

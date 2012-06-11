@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
+    <script type="text/javascript" src="/js/underscore.js"></script>
+    <script type="text/javascript" src="/js/backbone.js"></script>
     <script type="text/javascript" src="/js/d3.v2.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js"></script>
     <script type="text/javascript" src="/js/jquery-ui-1.8.21.custom.min.js"></script>
     <link rel="stylesheet" href="/style/jquery.tooltip.css" />
+    <link rel="stylesheet" href="/style/jqueryui/ui-lightness/jquery-ui-1.8.21.custom.css" />
     <script type="text/javascript" src="/js/spin.min.js"></script>
 
 {% endblock %}
@@ -120,7 +123,7 @@
         }
             /* holy grail 3 column settings */
         .holygrail {
-            background:#ff9;    	/* Right column background colour */
+            background:#EEE;    	/* Right column background colour */
         }
         .holygrail .colmid {
             float:left;
@@ -136,7 +139,7 @@
             margin-left:-50%;
             position:relative;
             left:400px;         	/* Left column width + right column width */
-            background:#FFD8B7;    	/* Left column background colour */
+            background:#EEE;    	/* Left column background colour */
         }
         .holygrail .col1wrap {
             float:left;
@@ -408,7 +411,7 @@
                         <fieldset>
                             <div id="form_view" class="control-group">
                                 <label class="control-label"
-                                       for="input01">Views</label>
+                                       for="dropdown_view_id">Views</label>
                                 <select id="dropdown_view_id">
                                     <option value="-1">Unsaved / New
                                         view</option>
@@ -429,9 +432,8 @@
                             </div>
                         </fieldset>
                     </form>
-                    <a id="save_view_id" href="javascript:save_view()" >save view</a>
                     <div id="nodeinfo">
-                        foo - bar
+                        <p>Disclaimer: #insert 1994-under-construction.gif</p>
                     </div>
                     <!-- Column 3 end -->
                 </div>
@@ -492,6 +494,34 @@
         </div>
     </div>
 
+    <script type="text/template" id="select_save_view_container">
+        <form class="well form-inline" action="#">
+            <fieldset>
+                <div id="form_view" class="control-group">
+                    <label class="control-label"
+                           for="dropdown_view_id">Views</label>
+                    <select id="dropdown_view_id">
+                        <option value="-1">Unsaved / New
+                            view</option>
+                        {% for view in views %}
+                            {%  if view.viewid == current_view.viewid %}
+                                <option selected="selected" value="{{ view.viewid }}">
+                                    {% else %}
+                                <option value="{{ view.viewid }}">
+                            {% endif %}
+                        {{ view.title }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                    <button id="save_view" type="submit"
+                            class="btn">Save</button>
+                    <div id="save_view_spinner"></div>
+                </div>
+            </fieldset>
+        </form>
+
+    </script>
 
     <script type="text/javascript" src="/js/netmap.js"></script>
 
