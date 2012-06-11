@@ -436,7 +436,7 @@ $(function () {
             .append("svg:image")
             .attr("class", "circle node")
             .attr("xlink:href", function (d) {
-                return "http://stud-1201:8888/images/netmap/"+ d.data.category.toLowerCase() + ".png";
+                return "/images/netmap/"+ d.data.category.toLowerCase() + ".png";
             })
             .attr("x", "-16px")
             .attr("y", "-16px")
@@ -643,7 +643,7 @@ $(function () {
     load_view(view_id);
 
     function load_data(view_id) {
-        dataUrl = 'http://stud-1201:8888/netmapdev/data/d3js/layer2'
+        dataUrl = '/netmapdev/data/d3js/layer2'
         if (view_id) {
             dataUrl = dataUrl+"/"+view_id
         }
@@ -667,7 +667,7 @@ $(function () {
 
 
     $.ajax({
-        url: 'http://stud-1201:8888/netmapdev/data/traffic_load_gradient'
+        url: '/netmapdev/data/traffic_load_gradient'
         ,success: function(data) {
             drawTrafficGradientSidebar(data);
         },
@@ -681,7 +681,7 @@ $(function () {
         }
     });
 
-    //d3.json('http://stud-1201:8888/netmapdev/data/d3js/layer2?c='+new Date().getTime(), function(load) {
+    //d3.json('/netmapdev/data/d3js/layer2?c='+new Date().getTime(), function(load) {
     //    draw(load);
     //});
 });
