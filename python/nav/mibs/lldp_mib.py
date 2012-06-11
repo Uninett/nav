@@ -28,6 +28,18 @@ class LLDPMib(mibretriever.MibRetriever):
     from nav.smidumps.lldp_mib import MIB as mib
 
     @defer.inlineCallbacks
+    def get_remote_last_change(self):
+        """Retrieves the sysUpTime value of the last time the lldpRemTable was
+        changed.
+
+        """
+        oid = self.nodes['lldpStatsRemTablesLastChangeTime'].oid
+        result = yield self.agent_proxy.walk(str(oid))
+        for key, value in result.items():
+            if oid.is_a_prefix_of(key):
+                defer.returnValue(value)
+
+    @defer.inlineCallbacks
     def get_remote_table(self):
         "Returns the contents of the lldpRemTable"
         table = yield self._retrieve_rem_table()
