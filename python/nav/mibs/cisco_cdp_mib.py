@@ -30,17 +30,12 @@ class CiscoCDPMib(mibretriever.MibRetriever):
     "A MibRetriever for handling CISCO-CDP-MIB"
     from nav.smidumps.cisco_cdp_mib import MIB as mib
 
-    @defer.inlineCallbacks
     def get_neighbors_last_change(self):
         """Retrieves the sysUpTime value of the last time the cdp neighbors
         table was changed.
 
         """
-        oid = self.nodes['cdpGlobalLastChange'].oid
-        result = yield self.agent_proxy.walk(str(oid))
-        for key, value in result.items():
-            if oid.is_a_prefix_of(key):
-                defer.returnValue(value)
+        return self.get_next('cdpGlobalLastChange')
 
     @defer.inlineCallbacks
     def get_cdp_neighbors(self):
