@@ -15,6 +15,7 @@
 #
 
 
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -29,6 +30,8 @@ def index(request):
     """
     searchproviders = []
 
+    navpath = [('Home', '/'), ('Info', reverse('info-search'))]
+
     if "query" in request.GET:
         form = SearchForm(request.GET, auto_id=False)
         if form.is_valid():
@@ -40,7 +43,8 @@ def index(request):
 
     return render_to_response("info/base.html",
             {"form": form,
-             "searchproviders": searchproviders},
+             "searchproviders": searchproviders,
+             "navpath": navpath},
         context_instance=RequestContext(request)
     )
 

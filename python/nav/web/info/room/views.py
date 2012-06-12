@@ -1,3 +1,21 @@
+#
+# Copyright (C) 2012 (SD -311000) UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+
+
+from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -13,6 +31,8 @@ def search(request):
     """
     Controller for searching for rooms
     """
+    navpath = [('Home', '/'), ('Info', reverse('info-search')), ('Room', reverse('room-search'))]
+
     rooms = Room.objects.none()
 
     if "query" in request.GET:
@@ -26,7 +46,8 @@ def search(request):
 
     return render_to_response("info/room/base.html",
                               {"searchform": searchform,
-                               "rooms": rooms},
+                               "rooms": rooms,
+                               "navpath": navpath},
                               context_instance=RequestContext(request))
 
 
@@ -61,6 +82,8 @@ def roominfo(request, roomid):
 
     netboxes = filter_netboxes(room).order_by("category", "sysname")
 
+    navpath = [('Home', '/'), ('Info', reverse('info-search')), ('Room', reverse('room-search')), (room.id,)]
+
     # Filter interfaces on iftype
     for netbox in netboxes:
         netbox.interfaces = netbox.interface_set.filter(iftype=6).order_by("ifindex")
@@ -68,7 +91,8 @@ def roominfo(request, roomid):
     return render_to_response("info/room/roominfo.html",
                               {"room": room,
                                "all_netboxes": all_netboxes,
-                               "netboxes": netboxes},
+                               "netboxes": netboxes,
+                               "navpath": navpath},
                               context_instance=RequestContext(request))
 
 
