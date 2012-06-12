@@ -6,21 +6,66 @@ NAV - Roomview {% if room.id %}- {{ room.id }}{% endif %}
 
 {% block roominfo %}
 
-<div id="roominfo">
-  {{ room.location.description }} -
-  {% if room.description %}
-  {{ room.description }}
-  {% else %}
-  {{ room.id }}
-  {% endif %}
-</div>
+<table id="roominfo" class="listtable">
+    <caption>Roominfo</caption>
+    <thead>
+        <tr>
+            <th>Location</th>
+            <th>Description</th>
+            <th>opt1</th>
+            <th>opt2</th>
+            <th>opt3</th>
+            <th>opt4</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><a href="/report/location?locationid={{ room.location.id }}">{{ room.location.description }}</a></td>
+            <td>{{ room.description }}</td>
+            <td>{{ room.optional_1 }}</td>
+            <td>{{ room.optional_2 }}</td>
+            <td>{{ room.optional_3 }}</td>
+            <td>{{ room.optional_4 }}</td>
+        </tr>
+    </tbody>
+</table>
+
+
+<table id="deviceinfo" class="listtable">
+    <caption>Netboxes</caption>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>IP-address</th>
+            <th>Category</th>
+            <th>Type</th>
+            <th>Organization</th>
+            <th>Up</th>
+            <th>Availability (week)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for netbox in all_netboxes %}
+        <tr>
+            <td><a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a></td>
+            <td>{{ netbox.ip }}</td>
+            <td><a href="/report/netbox?catid={{ netbox.category.id }}">{{ netbox.category.id }}</a></td>
+            <td><a href="/report/netbox?typeid={{ netbox.type.id }}">{{ netbox.type.name }}</a></td>
+            <td><a href="/report/netbox?orgid={{ netbox.organization.id }}">{{ netbox.organization.description }}</a></td>
+            <td><img src="/images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}"></td>
+            <td class="numeric">{{ netbox.availability }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 
 <div id="netboxes">
   {% for netbox in netboxes %}
 
   <table class="vertitable netbox">
 
-    <caption>{{ netbox.sysname }}</caption>
+    <caption><a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a> {% if netbox.type.name %} - {{ netbox.type.name }} {% endif %}</caption>
 
     <thead>
       <tr>

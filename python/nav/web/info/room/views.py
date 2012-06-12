@@ -56,8 +56,10 @@ def roominfo(request, roomid):
     Controller for displaying roominfo
     """
     room = Room.objects.get(id=roomid)
-    netboxes = filter_netboxes(room)
-    netboxes.order_by("category", "sysname")
+    all_netboxes = room.netbox_set.order_by("sysname")
+    add_availability(all_netboxes)
+
+    netboxes = filter_netboxes(room).order_by("category", "sysname")
 
     # Filter interfaces on iftype
     for netbox in netboxes:
@@ -65,6 +67,20 @@ def roominfo(request, roomid):
 
     return render_to_response("info/room/roominfo.html",
                               {"room": room,
+                               "all_netboxes": all_netboxes,
                                "netboxes": netboxes},
                               context_instance=RequestContext(request))
+
+
+def add_availability(netboxes):
+    """
+    Add easy to access availabilty for the netboxes
+    """
+    for netbox in netboxes:
+        avail = netbox.get_availability()
+        netbox.availability = "N/A"
+        try:
+            netbox.availability = "%.2f%%" % avail["availability"]["week"]
+        except Exception:
+            pass
 
