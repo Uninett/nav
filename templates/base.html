@@ -69,9 +69,8 @@ Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently logged in as 
                 </td>
                 <td class="spacer"></td>
                 <td class="entry">
-                    <form action="/ipdevinfo/" method="get">
-		        <label for="ipquery" style="display: none;">IP or hostname</label>
-                        <input type="text" id="ipquery" name="query" maxlength="100" size="12" value="IP or hostname" onclick="this.value = (this.value == 'IP or hostname' ? '' : this.value )" />
+                    <form action="/info/" method="get">
+                        <input id="query" type="text" name="query" maxlength="100" size="12" />
                         <button type="submit">Search</button>
                     </form>
                 </td>
