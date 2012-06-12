@@ -7,55 +7,50 @@
 {% block base_content %}
 <h2>Roomview {% if room %} for {{ room.id }} {% endif %}</h2>
 
-{% block roominfo %}
+    {% block roominfo %}
 
-<form action="{% url room-search %}" method="post">
-<p>{{ searchform.query }} <button type="submit">Search</button></p>
-</form>
-
-
-{% ifequal request.method "POST" %}
-
-{% if rooms %}
-<table class="listtable">
-    <caption>{{ rooms|length }} result{{ rooms|pluralize:",s" }}
-        for "{{ searchform.data.query }}"
-    </caption>
-
-    <thead>
-        <tr>
-            <th>Room</th>
-            <th>Description</th>
-            <th>#Netboxes</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        {% for room in rooms %}
-        <tr>
-            <td>
-                <a href="{% url room-info room.id %}">{{ room.id }}</a>
-            </td>
-            <td>
-                {{ room.description }}
-            </td>
-            <td>
-                {{ room.netboxes.count }}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-{% else %}
-
-<p class="messages">No room found</p>
-
-{% endif %}
-
-{% endifequal %}
+    <form action="{% url room-search %}" method="get">
+    <p>{{ searchform.query }} <button type="submit">Search</button></p>
+    </form>
 
 
-{% endblock %}
+    {% if searchform.is_bound %}
+        {% if rooms %}
+            <table class="listtable">
+                <caption>{{ rooms|length }} result{{ rooms|pluralize:",s" }}
+                    for "{{ searchform.data.query }}"
+                </caption>
+
+                <thead>
+                    <tr>
+                        <th>Room</th>
+                        <th>Description</th>
+                        <th>#Netboxes</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for room in rooms %}
+                    <tr>
+                        <td>
+                            <a href="{% url room-info room.id %}">{{ room.id }}</a>
+                        </td>
+                        <td>
+                            {{ room.description }}
+                        </td>
+                        <td>
+                            {{ room.netboxes.count }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="messages">No room found</p>
+        {% endif %}
+
+    {% endif %}
+
+    {% endblock %}
 
 {% endblock %}
