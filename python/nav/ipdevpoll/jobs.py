@@ -241,7 +241,7 @@ class JobHandler(object):
             if failure.check(AbortedJobError):
                 self._logger.error("Job %r for %s aborted: %s",
                                    self.name, self.netbox.sysname,
-                                   failure.value.cause)
+                                   failure.value)
             return failure
 
         def save(result):
