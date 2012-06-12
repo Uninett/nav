@@ -15,16 +15,16 @@ def search(request):
     """
     rooms = Room.objects.none()
 
-    if request.method == "GET":
-        searchform = SearchForm()
-    elif request.method == "POST":
-        searchform = SearchForm(request.POST, auto_id=False)
+    if "query" in request.GET:
+        searchform = SearchForm(request.GET, auto_id=False)
         if searchform.is_valid():
             rooms = process_searchform(searchform)
             for room in rooms:
                 room.netboxes = filter_netboxes(room)
+    else:
+        searchform = SearchForm()
 
-    return render_to_response("info/room/base.html", 
+    return render_to_response("info/room/base.html",
                               {"searchform": searchform,
                                "rooms": rooms},
                               context_instance=RequestContext(request))
