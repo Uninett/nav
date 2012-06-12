@@ -5,7 +5,7 @@
 {% endblock%}
 
 {% block base_content %}
-<h2>Roomview {% if room %} for {{ room.id }} {% endif %}</h2>
+<h2>{% if room %} Roomview for {{ room.id }} {% else %}Roomsearch{% endif %}</h2>
 
     {% block roominfo %}
 
