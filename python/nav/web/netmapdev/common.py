@@ -173,7 +173,7 @@ def edge_to_json(netbox_from, netbox_to):
         if interface_link['thiss'] and interface_link['other'] and\
            interface_link['thiss'].speed != interface_link['other'].speed:
             tip_inspect_link = True
-            link_speed = "Not same on both sides!"
+            link_speed = None
         else:
             if interface_link['thiss']:
                 link_speed = interface_link['thiss'].speed
@@ -219,6 +219,8 @@ def edge_to_json(netbox_from, netbox_to):
         interface_link['other'] = str(interface_link['other'].ifname) + ' at '\
         + str(interface_link['other'].netbox.sysname) if interface_link[
                                                          'other'] else 'N/A'
+    if not link_speed:
+        link_speed = "Interface link speed is not the same between the nodes!"
 
     return {
         'uplink': interface_link,
@@ -228,17 +230,23 @@ def edge_to_json(netbox_from, netbox_to):
         }
 
 
-def get_traffic_rgb(octets, capacity):
+def get_traffic_rgb(octets, capacity=None):
     """Traffic load color
+    Red color if capacity is not defined. Normally indicates an error
+    ex. link_speed on interfaces between nodes are not equal!
 
      :param traffic: octets pr second (bytes a second)
      :param capacity: capacity on link in mbps. (ie 1Gbit = 1000 mbps)
     """
+
+    if not capacity:
+        return 255,255,0
+
     MEGABITS_TO_BITS = 1000000
 
-    avrage_traffic = (float(octets) * 8)  # from octets (bytes) to bits
+    average_traffic = (float(octets) * 8)  # from octets (bytes) to bits
 
-    traffic_in_percent = avrage_traffic / (capacity * MEGABITS_TO_BITS)
+    traffic_in_percent = average_traffic / (capacity * MEGABITS_TO_BITS)
 
     if traffic_in_percent > 100 or traffic_in_percent < 0:
         traffic_in_percent = 100 # set to red, this indicates something is odd
