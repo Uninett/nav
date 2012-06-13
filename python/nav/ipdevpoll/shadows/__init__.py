@@ -306,6 +306,13 @@ class Vlan(Shadow):
                     self._logger.warning("ignoring unknown organization id %r",
                                          self.organization.id)
                     self.organization = None
+
+                if (self.usage
+                    and not self.usage.get_existing_model()):
+                    self._logger.warning("ignoring unknown usage id %r",
+                                         self.usage.id)
+                    self.usage = None
+
                 super(Vlan, self).save(containers)
         else:
             self._logger.debug("no associated prefixes, not saving: %r", self)
