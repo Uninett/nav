@@ -80,20 +80,31 @@ def roominfo(request, roomid):
     all_netboxes = room.netbox_set.order_by("sysname")
     add_availability(all_netboxes)
 
-    netboxes = filter_netboxes(room).order_by("category", "sysname")
-
     navpath = [('Home', '/'), ('Info', reverse('info-search')), ('Room', reverse('room-search')), (room.id,)]
+
+    return render_to_response("info/room/roominfo.html",
+                              {"room": room,
+                               "all_netboxes": all_netboxes,
+                               "navpath": navpath},
+                              context_instance=RequestContext(request))
+
+
+def netboxes(request, roomid):
+    """
+    Controller for displaying the netboxes in the tabbed view
+    """
+    room = Room.objects.get(id=roomid)
+    netboxes = filter_netboxes(room).order_by("category", "sysname")
 
     # Filter interfaces on iftype
     for netbox in netboxes:
         netbox.interfaces = netbox.interface_set.filter(iftype=6).order_by("ifindex")
 
-    return render_to_response("info/room/roominfo.html",
-                              {"room": room,
-                               "all_netboxes": all_netboxes,
-                               "netboxes": netboxes,
-                               "navpath": navpath},
-                              context_instance=RequestContext(request))
+    return render_to_response("info/room/netboxview.html",
+            {"room": room,
+             "netboxes": netboxes},
+        context_instance=RequestContext(request))
+
 
 
 def add_availability(netboxes):
