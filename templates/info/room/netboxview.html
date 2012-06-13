@@ -9,6 +9,7 @@
         <tr>
             <th>Name</th>
             <th>Portname</th>
+            <th>Vlan</th>
         </tr>
         </thead>
 
@@ -17,6 +18,11 @@
         <tr>
             <td>{{ interface.ifname }}</td>
             <td>{{ interface.ifalias }}</td>
+            <td>
+                {% if interface.trunk %}Trunk{% else %}
+                    {% if interface.vlan %}{{ interface.vlan }}{% endif %}
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
         </tbody>
