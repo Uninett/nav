@@ -81,4 +81,7 @@ def has_only_one_result(searchproviders):
     """
     Check if searchproviders has one and only one result
     """
-    return len(searchproviders) == 1 and len(searchproviders[0].results) == 1
+    results = 0
+    for provider in searchproviders:
+        results += len(provider.results)
+    return results == 1
