@@ -24,13 +24,13 @@ class SearchResult():
     """
     Container for searchresults
     """
-    def __init__(self, text, href, inst):
+    def __init__(self, text, href, inst=None):
         self.text = text
         self.href = href
         self.inst = inst
 
 
-class SearchProvider():
+class SearchProvider(object):
     """
     Searchprovider interface
     """
