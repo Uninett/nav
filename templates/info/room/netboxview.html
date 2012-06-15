@@ -1,33 +1,33 @@
 <div id="netboxes">
     {% for netbox in netboxes %}
 
-    <table class="vertitable netbox">
+        <table class="vertitable netbox">
 
-        <caption><a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a> {% if netbox.type.name %} - {{ netbox.type.name }} {% endif %}</caption>
+            <caption><a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a> {% if netbox.type.name %} - {{ netbox.type.name }} {% endif %}</caption>
 
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Portname</th>
-            <th>Vlan</th>
-        </tr>
-        </thead>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Portname</th>
+                <th>Vlan</th>
+            </tr>
+            </thead>
 
-        <tbody>
-        {% for interface in netbox.interfaces %}
-        <tr>
-            <td>{{ interface.ifname }}</td>
-            <td>{{ interface.ifalias }}</td>
-            <td>
-                {% if interface.trunk %}Trunk{% else %}
-                    {% if interface.vlan %}{{ interface.vlan }}{% endif %}
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
+            <tbody>
+            {% for interface in netbox.interfaces %}
+                <tr>
+                    <td>{{ interface.ifname }}</td>
+                    <td>{{ interface.ifalias }}</td>
+                    <td>
+                        {% if interface.trunk %}Trunk{% else %}
+                            {% if interface.vlan %}{{ interface.vlan }}{% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
 
-    </table>
+        </table>
 
     {% endfor %}
 

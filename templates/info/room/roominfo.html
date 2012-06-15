@@ -1,21 +1,21 @@
 {% extends "info/room/base.html" %}
 
 {% block base_header_title %}
-NAV - Roomview {% if room.id %}- {{ room.id }}{% endif %}
+    NAV - Roomview {% if room.id %}- {{ room.id }}{% endif %}
 {% endblock %}
 
 {% block roominfo %}
 
-<div id="infotabs">
-    <ul>
-        <li><a href="#roominfo">Room info</a></li>
-        <li><a href="#deviceinfo">Device info</a></li>
-        <li><a href="{% url room-info-netboxes room.id %}">Netbox interfaces</a></li>
-    </ul>
+    <div id="infotabs">
+        <ul>
+            <li><a href="#roominfo">Room info</a></li>
+            <li><a href="#deviceinfo">Device info</a></li>
+            <li><a href="{% url room-info-netboxes room.id %}">Netbox interfaces</a></li>
+        </ul>
 
-    <table id="roominfo" class="listtable">
-        <caption>Roominfo</caption>
-        <thead>
+        <table id="roominfo" class="listtable">
+            <caption>Roominfo</caption>
+            <thead>
             <tr>
                 <th>Location</th>
                 <th>Description</th>
@@ -24,8 +24,8 @@ NAV - Roomview {% if room.id %}- {{ room.id }}{% endif %}
                 <th>opt3</th>
                 <th>opt4</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             <tr>
                 <td><a href="/report/location?locationid={{ room.location.id }}">{{ room.location.description }}</a></td>
                 <td>{{ room.description }}</td>
@@ -34,13 +34,13 @@ NAV - Roomview {% if room.id %}- {{ room.id }}{% endif %}
                 <td>{{ room.optional_3 }}</td>
                 <td>{{ room.optional_4 }}</td>
             </tr>
-        </tbody>
-    </table>
+            </tbody>
+        </table>
 
 
-    <table id="deviceinfo" class="listtable">
-        <caption>Netboxes</caption>
-        <thead>
+        <table id="deviceinfo" class="listtable">
+            <caption>Netboxes</caption>
+            <thead>
             <tr>
                 <th>Name</th>
                 <th>IP-address</th>
@@ -50,23 +50,23 @@ NAV - Roomview {% if room.id %}- {{ room.id }}{% endif %}
                 <th>Up</th>
                 <th>Availability (week)</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             {% for netbox in all_netboxes %}
-            <tr>
-                <td><a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a></td>
-                <td>{{ netbox.ip }}</td>
-                <td><a href="/report/netbox?catid={{ netbox.category.id }}">{{ netbox.category.id }}</a></td>
-                <td><a href="/report/netbox?typeid={{ netbox.type.id }}">{{ netbox.type.name }}</a></td>
-                <td><a href="/report/netbox?orgid={{ netbox.organization.id }}">{{ netbox.organization.description }}</a></td>
-                <td><img src="/images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}"></td>
-                <td class="numeric">{{ netbox.availability }}</td>
-            </tr>
+                <tr>
+                    <td><a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a></td>
+                    <td>{{ netbox.ip }}</td>
+                    <td><a href="/report/netbox?catid={{ netbox.category.id }}">{{ netbox.category.id }}</a></td>
+                    <td><a href="/report/netbox?typeid={{ netbox.type.id }}">{{ netbox.type.name }}</a></td>
+                    <td><a href="/report/netbox?orgid={{ netbox.organization.id }}">{{ netbox.organization.description }}</a></td>
+                    <td><img src="/images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}"></td>
+                    <td class="numeric">{{ netbox.availability }}</td>
+                </tr>
             {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
 
-</div>
+    </div>
 
 {% endblock %}
 
