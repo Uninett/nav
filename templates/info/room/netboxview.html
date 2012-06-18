@@ -19,7 +19,7 @@
                     <td>{{ interface.ifname }}</td>
                     <td>{{ interface.ifalias }}</td>
                     <td>
-                        {% if interface.trunk %}Trunk{% else %}
+                        {% if interface.trunk %}<span title="{{ interface.get_trunkvlans_as_range }}">Trunk</span>{% else %}
                             {% if interface.vlan %}{{ interface.vlan }}{% endif %}
                         {% endif %}
                     </td>
