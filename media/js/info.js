@@ -2,12 +2,20 @@
 /* Create js namespace for info page */
 var infopage = {};
 
-infopage.tabselected = false;
-
 /* Add tabs to roomview content */
 infopage.add_roomview_tabs = function() {
     var tabconfig = {
-        cache: true // cache loaded pages
+        cache: true, // cache loaded pages
+        ajaxOptions: {
+            beforeSend: function(req) {
+                req.setRequestHeader('X-NAV-AJAX', 'true');
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status == 401) {
+                    window.location = '/index/login/?origin=' + window.location.href;
+                }
+            }
+        }
     };
     var tabs = $('#infotabs').tabs(tabconfig);
 };

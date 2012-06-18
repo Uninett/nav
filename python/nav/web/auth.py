@@ -33,7 +33,11 @@ def redirectToLogin(req):
     Takes the supplied request and redirects it to the NAV login page.
     """
     from nav import web
-    web.redirect(req,
+    if 'X-NAV-AJAX' in req.headers_in:
+        from mod_python import apache
+        raise apache.SERVER_RETURN, 401
+    else:
+        web.redirect(req,
                  '/index/login?origin=%s' % urllib.quote(req.unparsed_uri),
                  temporary=True)
 
