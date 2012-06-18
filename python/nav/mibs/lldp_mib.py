@@ -27,6 +27,13 @@ class LLDPMib(mibretriever.MibRetriever):
     "A MibRetriever for handling LLDP-MIB"
     from nav.smidumps.lldp_mib import MIB as mib
 
+    def get_remote_last_change(self):
+        """Retrieves the sysUpTime value of the last time the lldpRemTable was
+        changed.
+
+        """
+        return self.get_next('lldpStatsRemTablesLastChangeTime')
+
     @defer.inlineCallbacks
     def get_remote_table(self):
         "Returns the contents of the lldpRemTable"

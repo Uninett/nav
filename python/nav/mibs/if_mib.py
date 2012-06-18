@@ -26,14 +26,9 @@ from nav.mibs.entity_mib import EntityTable
 class IfMib(mibretriever.MibRetriever):
     from nav.smidumps.if_mib import MIB as mib
 
-    @defer.inlineCallbacks
     def get_if_table_last_change(self):
         "Retrieves the sysUpTime value of the last time ifTable changed"
-        oid = self.nodes['ifTableLastChange'].oid
-        result = yield self.agent_proxy.walk(str(oid))
-        for key, value in result.items():
-            if oid.is_a_prefix_of(key):
-                defer.returnValue(value)
+        return self.get_next('ifTableLastChange')
 
     @defer.inlineCallbacks
     def get_if_table(self):

@@ -30,6 +30,13 @@ class CiscoCDPMib(mibretriever.MibRetriever):
     "A MibRetriever for handling CISCO-CDP-MIB"
     from nav.smidumps.cisco_cdp_mib import MIB as mib
 
+    def get_neighbors_last_change(self):
+        """Retrieves the sysUpTime value of the last time the cdp neighbors
+        table was changed.
+
+        """
+        return self.get_next('cdpGlobalLastChange')
+
     @defer.inlineCallbacks
     def get_cdp_neighbors(self):
         "Returns a list of CDPNeighbor objects from the device's cdpCacheTable"

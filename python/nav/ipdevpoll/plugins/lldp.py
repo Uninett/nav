@@ -23,7 +23,9 @@ from nav.mibs.lldp_mib import LLDPMib
 from nav.ipdevpoll import Plugin, shadows
 from nav.ipdevpoll.neighbor import LLDPNeighbor, filter_duplicate_neighbors
 from nav.ipdevpoll.db import autocommit
+from nav.ipdevpoll.timestamps import TimestampChecker
 
+INFO_VAR_NAME = 'lldp'
 SOURCE = 'lldp'
 
 class LLDP(Plugin):
@@ -54,10 +56,24 @@ class LLDP(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         mib = LLDPMib(self.agent)
-        self.remote = yield mib.get_remote_table()
-        if self.remote:
-            self._logger.debug("LLDP neighbors:\n %s", pformat(self.remote))
-        yield threads.deferToThread(self._process_remote)
+        stampcheck = yield self._stampcheck(mib)
+        need_to_collect = yield stampcheck.is_changed()
+        if need_to_collect:
+            self.remote = yield mib.get_remote_table()
+            if self.remote:
+                self._logger.debug("LLDP neighbors:\n %s", pformat(self.remote))
+            yield threads.deferToThread(self._process_remote)
+
+        stampcheck.save()
+
+    @defer.inlineCallbacks
+    def _stampcheck(self, mib):
+        stampcheck = TimestampChecker(self.agent, self.containers,
+                                      INFO_VAR_NAME)
+        yield stampcheck.load()
+        yield stampcheck.collect([mib.get_remote_last_change()])
+
+        defer.returnValue(stampcheck)
 
     @autocommit
     def _process_remote(self):

@@ -42,7 +42,7 @@ from IPy import IP
 
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
-from nav.mibs.ip_mib import IpMib
+from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
@@ -86,6 +86,7 @@ class Prefix(Plugin):
             # response outside our scope when it has no proprietary MIB support
             if mib != ipmib:
                 df.addErrback(self._ignore_timeout, set())
+            df.addErrback(self._ignore_index_exceptions, mib)
             new_addresses = yield df
             self._logger.debug("Found %d addresses in %s: %r",
                                len(new_addresses), mib.mib['moduleName'],
@@ -107,6 +108,13 @@ class Prefix(Plugin):
 
     def _get_ifc_aliases(self):
         return IfMib(self.agent).get_ifaliases()
+
+    def _ignore_index_exceptions(self, failure, mib):
+        failure.trap(IndexToIpException)
+        self._logger.warning("device has strange SNMP implementation of %s; "
+                             "ignoring retrieved IP address data: %s",
+                             mib.mib['moduleName'], failure.getErrorMessage())
+        return set()
 
     @defer.inlineCallbacks
     def _get_adminup_ifcs(self):

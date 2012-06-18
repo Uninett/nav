@@ -22,7 +22,9 @@ from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
 from nav.ipdevpoll.neighbor import CDPNeighbor, filter_duplicate_neighbors
 from nav.ipdevpoll.db import autocommit
+from nav.ipdevpoll.timestamps import TimestampChecker
 
+INFO_VAR_NAME = 'cdp'
 SOURCE = 'cdp'
 
 class CDP(Plugin):
@@ -53,11 +55,25 @@ class CDP(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         cdp = CiscoCDPMib(self.agent)
-        cache = yield cdp.get_cdp_neighbors()
-        if cache:
-            self._logger.debug("found CDP cache data: %r", cache)
-            self.cache = cache
-            yield deferToThread(self._process_cache)
+        stampcheck = yield self._stampcheck(cdp)
+        need_to_collect = yield stampcheck.is_changed()
+        if need_to_collect:
+            cache = yield cdp.get_cdp_neighbors()
+            if cache:
+                self._logger.debug("found CDP cache data: %r", cache)
+                self.cache = cache
+                yield deferToThread(self._process_cache)
+
+        stampcheck.save()
+
+    @defer.inlineCallbacks
+    def _stampcheck(self, mib):
+        stampcheck = TimestampChecker(self.agent, self.containers,
+                                      INFO_VAR_NAME)
+        yield stampcheck.load()
+        yield stampcheck.collect([mib.get_neighbors_last_change()])
+
+        defer.returnValue(stampcheck)
 
     @autocommit
     def _process_cache(self):
