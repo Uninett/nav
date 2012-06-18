@@ -6,6 +6,7 @@ var infopage = {};
 infopage.add_roomview_tabs = function() {
     var tabconfig = {
         cache: true, // cache loaded pages
+        spinner: '<img src="/images/main/process-working.gif">',
         ajaxOptions: {
             beforeSend: function(req) {
                 req.setRequestHeader('X-NAV-AJAX', 'true');
@@ -14,6 +15,9 @@ infopage.add_roomview_tabs = function() {
                 if (xhr.status == 401) {
                     window.location = '/index/login/?origin=' + window.location.href;
                 }
+            },
+            complete: function() {
+                $('.tab-spinner').hide();
             }
         }
     };
