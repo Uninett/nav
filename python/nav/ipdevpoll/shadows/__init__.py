@@ -29,7 +29,7 @@ from django.db.models import Q
 from nav.models import manage, oid
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 
-from nav.ipdevpoll.storage import Shadow
+from nav.ipdevpoll.storage import MetaShadow, Shadow
 from nav.ipdevpoll import descrparsers
 from nav.ipdevpoll import utils
 from nav.ipdevpoll import db
@@ -72,6 +72,24 @@ class NetboxType(Shadow):
 class NetboxInfo(Shadow):
     __shadowclass__ = manage.NetboxInfo
     __lookups__ = [('netbox', 'key', 'variable')]
+
+    @classmethod
+    def get_dependencies(cls):
+        """Fakes a dependency to all Shadow subclasses.
+
+        We do this to ensure NetboxInfo is always the last table to be updated
+        by a job.
+
+        Often, this table is used to store timestamps of successful jobs, but
+        with no other real dependencies than Netbox it would be saved before
+        most of the other container objects are saved. Since not all the data
+        is stored in a single transaction, storing timestamps in NetboxInfo
+        may indicate a success where there was in reality a failure due to a
+        database problem that occurred after NetboxInfo was updated.
+
+        """
+
+        return MetaShadow.shadowed_classes.values()
 
 class Vendor(Shadow):
     __shadowclass__ = manage.Vendor
@@ -288,6 +306,13 @@ class Vlan(Shadow):
                     self._logger.warning("ignoring unknown organization id %r",
                                          self.organization.id)
                     self.organization = None
+
+                if (self.usage
+                    and not self.usage.get_existing_model()):
+                    self._logger.warning("ignoring unknown usage id %r",
+                                         self.usage.id)
+                    self.usage = None
+
                 super(Vlan, self).save(containers)
         else:
             self._logger.debug("no associated prefixes, not saving: %r", self)

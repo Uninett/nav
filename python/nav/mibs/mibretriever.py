@@ -329,6 +329,16 @@ class MibRetriever(object):
         # pylint: disable=W0104
         self._logger
 
+    @defer.inlineCallbacks
+    def get_next(self, object_name):
+        oid = self.nodes[object_name].oid
+        result = yield self.agent_proxy.walk(str(oid))
+        if hasattr(result, 'items'):
+            result = result.items()
+        for key, value in result:
+            if oid.is_a_prefix_of(key):
+                defer.returnValue(value)
+
     def retrieve_column(self, column_name):
         """Retrieve the contents of a single MIB table column.
 
