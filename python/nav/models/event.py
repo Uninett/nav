@@ -84,6 +84,33 @@ class EventQueue(models.Model):
         return u'Source %s, target %s, state %s' % (
             self.source, self.target, self.get_state_display())
 
+    def getvardict(self):
+        "Returns the variables attached to this event as a dict"
+        return dict((var.variable, var.value)
+                    for var in self.variables.all())
+
+    def setvars(self, **vardict):
+        "Sets the variables attached to this event"
+        return self.setvardict(vardict)
+
+    def setvardict(self, vardict):
+        "Sets the variables attached to this event"
+        if vardict:
+            removed = self.variables.exclude(variable__in=vardict.keys())
+            removed.delete()
+        varmap = dict((v.variable, v) for v in self.variables.all())
+        for key, value in vardict.items():
+            if key in varmap:
+                if varmap[key].value != value:
+                    varmap[key] = value
+                    varmap[key].save()
+            else:
+                var = EventQueueVar(event_queue=self,
+                                    variable=key, value=value)
+                var.save()
+
+
+
 class EventType(models.Model):
     """From NAV Wiki: Defines event types."""
 
