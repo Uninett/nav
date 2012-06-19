@@ -19,6 +19,7 @@ from __future__ import absolute_import
 import os
 
 class UnsupportedEvent(ValueError):
+    "Event of unsupported type was passed to a handler"
     pass
 
 class EventHandler(object):
