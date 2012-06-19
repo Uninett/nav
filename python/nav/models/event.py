@@ -81,8 +81,9 @@ class EventQueue(models.Model):
         db_table = 'eventq'
 
     def __unicode__(self):
-        return u'Source %s, target %s, state %s' % (
-            self.source, self.target, self.get_state_display())
+        return u", ".join(
+            u"%s=%r" % (attr, getattr(self, attr))
+            for attr in ('event_type_id', 'source_id', 'target_id', 'state'))
 
     def getvardict(self):
         "Returns the variables attached to this event as a dict"
