@@ -15,6 +15,9 @@
 #
 "event engine plugin handling"
 
+from __future__ import absolute_import
+import os
+
 class UnsupportedEvent(ValueError):
     pass
 
@@ -43,3 +46,35 @@ class EventHandler(object):
     def handle(self):
         "Handles the attached event"
         raise NotImplementedError
+
+    @classmethod
+    def load_and_find_subclasses(cls, package_names=None):
+        """Loads all modules from the listed packages and subsequently returns
+        list of all defined subclasses of EventHandler.
+
+        """
+        if not package_names:
+            from . import plugins
+            package_names = [plugins.__name__]
+
+        for name in package_names:
+            _load_all_modules_in_package(name)
+        # hey mr. pylint, every class has __subclasses__, you idiot!
+        # pylint: disable=E1101
+        return cls.__subclasses__()
+
+
+def _load_all_modules_in_package(package_name):
+    modnames = ('%s.%s' % (package_name, mod)
+                for mod in _find_package_modules(package_name))
+    for name in modnames:
+        __import__(name, fromlist=['*'])
+
+def _find_package_modules(package_name):
+    extensions = ('.py', '.pyc')
+    package = __import__(package_name, fromlist=['*'])
+    directory = os.path.dirname(package.__file__)
+    files = (os.path.splitext(f) for f in os.listdir(directory)
+             if not f.startswith('.') and not f.startswith('_'))
+    modnames = set(name for name, ext in files if ext in extensions)
+    return list(modnames)
