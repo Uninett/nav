@@ -67,6 +67,7 @@ class EventEngine(object):
 
     def start(self):
         "Starts the event engine"
+        self._logger.debug("starting event engine")
         self._listen()
         self._load_new_events_and_reschedule()
         self.scheduler.run()
@@ -105,4 +106,8 @@ class EventEngine(object):
             self._logger.info("found %d new events in queue db", len(events))
             self.last_event_id = events[-1].id
             for event in events:
-                event.delete()
+                self.handle_event(event)
+
+    def handle_event(self, event):
+        self._logger.debug("handling %r", event)
+        event.delete()
