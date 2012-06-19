@@ -23,4 +23,5 @@ class BoxStateHandler(EventHandler):
 
     def handle(self):
         "TODO: Actually do something with these events"
+        self._logger.debug("doing nothing with %r", self.event)
         pass

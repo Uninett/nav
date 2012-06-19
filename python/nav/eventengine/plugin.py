@@ -17,6 +17,7 @@
 
 from __future__ import absolute_import
 import os
+import logging
 
 class UnsupportedEvent(ValueError):
     "Event of unsupported type was passed to a handler"
@@ -43,6 +44,8 @@ class EventHandler(object):
             raise UnsupportedEvent("%s can't handle %s" % (
                     self.__class__.__name__, event.event_type_id))
         self.event = event
+        self._logger = logging.getLogger("%s.%s" % (self.__class__.__module__,
+                                                    self.__class__.__name__))
 
     def handle(self):
         "Handles the attached event"
