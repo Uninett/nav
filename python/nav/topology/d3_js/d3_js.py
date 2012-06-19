@@ -39,6 +39,7 @@ from nav.web.netmapdev.common import node_to_json, edge_to_json,\
     attach_rrd_data_to_edges
 import json
 import re
+import logging
 
 """
 comment norangshol:
@@ -47,6 +48,8 @@ comment norangshol:
 
  modified to include metadata for nodes if metadata is specified in graph
 """
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def is_string_like(obj): # from John Hunter, types-free version
@@ -120,13 +123,14 @@ def d3_json(G, group=None):
        {'group': 2, 'nodeName': 2},
        {'group': 3, 'nodeName': 3}]}
      """
+    _LOGGER.debug("netmap:d3_json() start")
     ints_graph = nx.convert_node_labels_to_integers(G, discard_old_labels=False)
     graph_nodes = ints_graph.nodes(data=True)
     graph_edges = ints_graph.edges(data=True)
 
     node_labels = [(b, a) for (a, b) in ints_graph.node_labels.items()]
     node_labels.sort()
-
+    _LOGGER.debug("netmap:d3_json() basic done")
     # Build up node dictionary in JSON format
     if group is None:
         graph_json = {'nodes': map(
@@ -146,7 +150,7 @@ def d3_json(G, group=None):
         except KeyError:
             raise nx.NetworkXError(
                 "The graph had no node attribute for '" + group + "'")
-
+    _LOGGER.debug("netmap:d3_json() nodes done")
     # Build up edge dictionary in JSON format
     json_edges = list()
     for j, k, w in graph_edges:
@@ -157,9 +161,9 @@ def d3_json(G, group=None):
         else:
             e['value'] = 1
         json_edges.append(e)
-
+    _LOGGER.debug("netmap:d3_json() edges done")
     json_edges = attach_rrd_data_to_edges(graph_edges, json_edges)
-
+    _LOGGER.debug("netmap:d3_json() edges_fake_rrd done")
     graph_json['links'] = json_edges
 
     return graph_json

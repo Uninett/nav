@@ -21,7 +21,9 @@ from nav.rrd import presenter
 from nav.topology import vlan
 import nav.rrd.presenter
 import rrdtool
+import logging
 from django.utils import simplejson
+_LOGGER = logging.getLogger(__name__)
 
 def build_netmap_layer2_graph(view=None):
     """
@@ -33,14 +35,15 @@ def build_netmap_layer2_graph(view=None):
     :return NetworkX MultiDiGraph with attached metadata for edges and nodes
             (obs! metadata has direction metadata added!)
     """
-
+    _LOGGER.debug("build_netmap_layer2_graph() start")
     topology_without_metadata = vlan.build_layer2_graph(('to_interface__netbox',))
+    _LOGGER.debug("build_netmap_layer2_graph() topology graph done")
     graph = nx.MultiDiGraph()
     # Make a copy of the graph, and add edge meta data
     for n, nbrdict, key in topology_without_metadata.edges_iter(keys=True):
         graph.add_edge(n, nbrdict, key=key,
             metadata=edge_metadata(key.netbox, key, nbrdict, key.to_interface))
-
+    _LOGGER.debug("build_netmap_layer2_graph() graph copy with metadata done")
     if view:
         node_set = view.node_position_set.all()
 
@@ -48,7 +51,7 @@ def build_netmap_layer2_graph(view=None):
             tmp = [x for x in node_set if x.netbox == node[0]]
             if tmp:
                 node[1]['metadata'] = tmp[0]
-
+    _LOGGER.debug("build_netmap_layer2_graph() view positions and graph done")
     return graph
 
 def layer2_graph():
