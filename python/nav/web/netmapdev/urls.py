@@ -20,7 +20,7 @@ from django.conf.urls.defaults import url, patterns
 from nav.web.netmapdev.views import demo, d3js_layer2, graphml_layer2, index, \
     graph_layer2_view2, graph_layer2_view1, \
     graph_layer2_view3, traffic_load_gradient, show_view, save_view_metadata,\
-    save_new_view, get_views
+    save_new_view, get_views, test_traffic_foo
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('nav.web.netmapdev.views',
@@ -45,4 +45,5 @@ urlpatterns = patterns('nav.web.netmapdev.views',
     url(r'^newview$', save_new_view, name='netmapdev-save_new_view'),
     url(r'^data/views', get_views, name='netmapdev-get_views'),
     url(r'^demo$', demo, name='netmapdev-demo'),
+    url(r'^data/rrd$', test_traffic_foo, name='netmapdev-rrd')
 )

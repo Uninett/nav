@@ -151,14 +151,15 @@ def d3_json(G, group=None):
     json_edges = list()
     for j, k, w in graph_edges:
         e = {'source': j, 'target': k,
-             'data': edge_to_json(node_labels[j][1], node_labels[k][1])}
+             'data': edge_to_json(w['metadata'])}
         if any(map(lambda k: k == 'weight', w.keys())):
             e['value'] = w['weight']
         else:
             e['value'] = 1
         json_edges.append(e)
 
-    json_edges['data']['traffic'] = attach_rrd_data_to_edges(graph_edges)
+    json_edges = attach_rrd_data_to_edges(graph_edges, json_edges)
+
     graph_json['links'] = json_edges
 
     return graph_json

@@ -37,7 +37,8 @@ from nav.django.utils import get_account
 from nav.topology import vlan
 from nav.topology.d3_js import d3_json
 
-from nav.web.netmapdev.common import layer2_graph, traffic_gradient_map
+from nav.web.netmapdev.common import layer2_graph, traffic_gradient_map, \
+    edge_to_json, attach_rrd_data_to_edges, build_netmap_layer2_graph
 from nav.web.netmapdev.forms import ViewSaveForm, NewViewSaveForm
 from nav.web.templates.Netmapdev import Netmapdev
 
@@ -157,9 +158,30 @@ def d3js_layer2(request, view_id=None):
     return response
 
 def json_layer2(view=None):
-    graph = vlan.build_layer2_graph(view).to_undirected()
+    graph = nx.Graph(build_netmap_layer2_graph(view))
     return d3_json(graph, None)
 
+def test_traffic_foo(request):
+    graph = build_netmap_layer2_graph()
+
+    ints_graph = nx.convert_node_labels_to_integers(graph, discard_old_labels=False)
+    graph_nodes = ints_graph.nodes(data=True)
+    graph_edges = ints_graph.edges(data=True)
+
+    json_edges = list()
+    for j, k, w in graph_edges:
+        e = {'source': j, 'target': k,
+             'data': edge_to_json(w['metadata']), 'value': 1}
+        json_edges.append(e)
+
+    json_edges  = attach_rrd_data_to_edges(graph_edges, json_edges, True)
+
+    response = HttpResponse(simplejson.dumps(json_edges))
+    response['Content-Type'] = 'application/json; charset=utf-8'
+    response['Cache-Control'] = 'no-cache'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
+    return response
 
 def traffic_load_gradient(request):
     response = HttpResponse(simplejson.dumps(traffic_gradient_map()))

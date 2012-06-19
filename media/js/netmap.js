@@ -272,22 +272,22 @@ $(function () {
 
         if (svg) { $('#svg-netmap').remove(); }
 
-        svg = d3.select("#chart")
-                        .append("svg:svg")
-                        .attr('id', 'svg-netmap')
-                        .attr("width", w)
-                        .attr("height", h)
-                        .attr("pointer-events", "all")
-                        .append('svg:g')
-                        .call(d3.behavior.zoom().on("zoom", redraw))
-                        .append('svg:g')
-                ;
 
-        svg
-                .append('svg:rect')
-                .attr('width', w)
-                .attr('height', h)
-                .attr('fill', 'white');
+        var root_chart = d3.select("#chart")
+            .append("svg:svg")
+            .attr('id', 'svg-netmap')
+            .attr("width", w)
+            .attr("height", h)
+            .attr("pointer-events", "all")
+        root_chart
+            .append('svg:rect')
+            .attr('width', w)
+            .attr('height', h)
+            .attr('fill', 'white')
+            .call(d3.behavior.zoom().on("zoom", redraw));
+        svg = root_chart .append('svg:g')
+            //.call(d3.behavior.zoom().on("zoom", redraw))
+            .append('svg:g')
         ;
     }
 
@@ -559,13 +559,27 @@ $(function () {
         }
 
         function link_popup(d) {
-            //console.log(d)
+            var inOctets,outOctets,inOctetsRaw,outOctetsRaw = "N/A"
+
+            if (d.data.traffic['inOctets'] != null) {
+                inOctets = convert_bits_to_si(d.data.traffic['inOctets'].raw*8)
+                inOctetsRaw = d.data.traffic['inOctets'].raw
+            } else {
+                inOctets = inOctetsRaw = 'N/A'
+            }
+            if (d.data.traffic['outOctets'] != null) {
+                outOctets = convert_bits_to_si(d.data.traffic['outOctets'].raw*8)
+                outOctetsRaw = d.data.traffic['inOctets'].raw
+            } else {
+               outOctets = outOctetsRaw = 'N/A'
+            }
+
             mover({
                 'title':'link',
-                'description': d.data.uplink.thiss + " -> " + d.data.uplink.other +
+                'description': d.data.uplink.thiss.interface + " -> " + d.data.uplink.other.interface +
                     '<br />'+ d.data.link_speed +
-                    '<br />In: '+ convert_bits_to_si(d.data.traffic['inOctets'].raw*8) + " raw["+ d.data.traffic['inOctets'].raw+"]"+
-                    '<br />In: '+ convert_bits_to_si(d.data.traffic['outOctets'].raw*8) + " raw["+ d.data.traffic['outOctets'].raw+"]"
+                    '<br />In: '+ inOctets + " raw["+ inOctetsRaw+"]"+
+                    '<br />Out: '+ outOctets + " raw["+ outOctetsRaw+"]"
                 ,
                 'css_description_width': 400
             });

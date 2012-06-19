@@ -14,9 +14,42 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 from django.core.files.storage import FileSystemStorage
+from django.core.urlresolvers import reverse
+import networkx as nx
 from nav.models.manage import Netbox
+from nav.rrd import presenter
 from nav.topology import vlan
+import nav.rrd.presenter
 import rrdtool
+from django.utils import simplejson
+
+def build_netmap_layer2_graph(view=None):
+    """
+    Builds a netmap layer 2 graph, based on nav's build_layer2_graph method.
+
+
+    :param view A NetMapView for getting node positions according to saved netmap view.
+
+    :return NetworkX MultiDiGraph with attached metadata for edges and nodes
+            (obs! metadata has direction metadata added!)
+    """
+
+    topology_without_metadata = vlan.build_layer2_graph(('to_interface__netbox',))
+    graph = nx.MultiDiGraph()
+    # Make a copy of the graph, and add edge meta data
+    for n, nbrdict, key in topology_without_metadata.edges_iter(keys=True):
+        graph.add_edge(n, nbrdict, key=key,
+            metadata=edge_metadata(key.netbox, key, nbrdict, key.to_interface))
+
+    if view:
+        node_set = view.node_position_set.all()
+
+        for node in graph.nodes(data=True):
+            tmp = [x for x in node_set if x.netbox == node[0]]
+            if tmp:
+                node[1]['metadata'] = tmp[0]
+
+    return graph
 
 def layer2_graph():
     """Layer2 graph"""
@@ -44,66 +77,23 @@ def node_to_json(node, metadata=None):
     :returns: metadata for a node
     """
 
-
-    last_updated = node.last_updated()
-    if last_updated:
-        last_updated = last_updated.strftime("%Y-%m-%d %H:%M:%S")
-    else:
-        last_updated = 'not available'
-
     position = {'x': metadata.x, 'y': metadata.y} if metadata else None
-
-
-
-
     return {
-        'id': str(node.pk),
-        'sysname': str(node.sysname),
-        'ip': node.ip,
-        'category': str(node.category_id),
-        'type': str(node.type),
-        'room': str(node.room),
-        'up': str(node.up),
-        'up_image': get_status_image_link(node.up),
-        'ipdevinfo_link': node.get_absolute_url(),
-        'last_updated': last_updated,
-        'position': position
-        }
+            'id': str(node.pk),
+            'sysname': str(node.sysname),
+            'category': str(node.category_id),
+            'ip': node.ip,
+            'ipdevinfo_link': reverse('ipdevinfo-details-by-name', args=[node.sysname]),
+            'position': position,
+            'up': str(node.up),
+            'up_image': get_status_image_link(node.up),
+            }
 
 STATUS_IMAGE_MAP = {
     Netbox.UP_DOWN: 'red.png',
     Netbox.UP_UP: 'green.png',
     Netbox.UP_SHADOW: 'yellow.png',
     }
-
-# todo what happens if an edge has multiple interface links?  ie port-channel
-def edge_fetch_uplink(netbox_from, netbox_to):
-    """ find uplink(s?) between the two given nodes
-        :param netbox_from from node
-        :param netbox_to to node
-    """
-    def uplinks(uplinks, uplink_node):
-        """ helper method for finding right uplink to uplink_node """
-        interface_link = None
-        if uplinks:
-            for uplink in uplinks:
-                if uplink['other']:
-                    if uplink['other'].netbox == uplink_node:
-                        interface_link = {'other': uplink['other'],
-                                          'thiss': uplink['this']}
-                        break
-        return interface_link
-
-    interface_link = uplinks(netbox_from.get_uplinks_regarding_of_vlan(),
-        netbox_to)
-
-    if not interface_link:
-        # try to fetch uplink from opposite side. (graph is undirected,
-        # so might be that the edge is drawn from UPLINK to DOWNLINK.
-        interface_link = uplinks(netbox_to.get_uplinks_regarding_of_vlan(),
-            netbox_from)
-
-    return interface_link
 
 TRAFFIC_META = {
     'tib': 1099511627776,
@@ -158,77 +148,163 @@ def _rrd_info(source):
 
     return {'name': source.name, 'description': source.description, 'raw': None}
 
+def __rrd_info2(source):
+    a = presenter.presentation()
+    a.addDs(source.pk)
+    return { 'name': source.name, 'description': source.description, 'raw': a.average()[0]}
 
-def edge_to_json(netbox_from, netbox_to):
-    """converts edge information to json"""
-    link_speed = None
+
+def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface):
+    """
+    :param thiss_netbox This netbox (edge from)
+    :param thiss_interface This netbox's interface (edge from)
+    :param other_netbox Other netbox (edge_to)
+    :param other_interface Other netbox's interface (edge_to)
+    """
+    error = {}
     tip_inspect_link = False
 
-    # fetch uplinks
-    interface_link = edge_fetch_uplink(netbox_from, netbox_to)
+    uplink = {'thiss': {'netbox': thiss_netbox, 'interface': thiss_interface},
+         'other': {'netbox': other_netbox,
+                   'interface': other_interface}}
 
-    inspect = 'thiss'
-
-    if interface_link:
-        if interface_link['thiss'] and interface_link['other'] and\
-           interface_link['thiss'].speed != interface_link['other'].speed:
-            tip_inspect_link = True
-            link_speed = None
+    if thiss_interface and other_interface and thiss_interface.speed != other_interface.speed:
+        tip_inspect_link = True
+        link_speed = None
+        error['link_speed'] = 'Interface link speed not the same between the nodes'
+    else:
+        if thiss_interface:
+            link_speed = thiss_interface.speed
         else:
-            if interface_link['thiss']:
-                link_speed = interface_link['thiss'].speed
-            else:
-                link_speed = interface_link['other'].speed
-                inspect = 'other'
+            link_speed = other_interface.speed
 
-    traffic = {}
+
+    return {
+            'uplink': uplink,
+            'tip_inspect_link': tip_inspect_link,
+            'link_speed': link_speed,
+            'error': error,
+    }
+
+def edge_to_json(metadata):
+    """converts edge information to json"""
+
+    uplink = metadata['uplink']
+    link_speed = metadata['link_speed']
+    tip_inspect_link = metadata['tip_inspect_link']
+    error = metadata['error']
+
+    # jsonify
+    if not uplink:
+        uplink_json = 'null' # found no uplinks, json null.
+    else:
+        uplink_json = {}
+
+        if uplink['thiss']['interface']:
+            uplink_json.update(
+                    {'thiss': {'interface': "{0} at {1}".format(
+                    str(uplink['thiss']['interface'].ifname),
+                    str(uplink['thiss']['interface'].netbox.sysname)
+                )}}
+            )
+        else: uplink_json.update({'thiss': {'interface': 'N/A'}})
+
+        if uplink['other']['interface']:
+            uplink_json.update(
+                    {'other': {'interface': "{0} at {1}".format(
+                    str(uplink['other']['interface'].ifname),
+                    str(uplink['other']['interface'].netbox.sysname)
+                )}}
+            )
+        else: uplink_json.update({'other': {'interface': 'N/A'}})
+
+    if 'link_speed' in error.keys():
+        link_speed = error['link_speed']
+    elif not link_speed:
+        link_speed = "N/A"
+
+    return {
+        'uplink': uplink_json,
+        'link_speed': link_speed,
+        'tip_inspect_link': tip_inspect_link,
+        }
+
+
+def attach_rrd_data_to_edges(edges, json=None, debug=False):
+    """ called from d3_js to attach rrd_data after it has attached other
+    edge metadata by using edge_to_json
+
+    :param edges tupple (source,target,edge,value)
+    """
+    from nav.models.rrd import RrdDataSource
+
+    datasources = RrdDataSource.objects.filter(rrd_file__key='interface').select_related('rrd_file')
+
+    datasource_loookup = {}
+    for data in datasources:
+        interface = int(data.rrd_file.value)
+        if interface in datasource_loookup:
+            datasource_loookup[interface].append(data)
+        else:
+            datasource_loookup.update( {interface: [data] } )
+
     # , u'ifInErrors', u'ifInUcastPkts', u'ifOutErrors', u'ifOutUcastPkts'
     valid_traffic_sources = (
         u'ifHCInOctets', u'ifHCOutOctets', u'ifInOctets', u'ifOutOctets')
-    if interface_link:
-        for rrd_source in interface_link[inspect].get_rrd_data_sources():
-            if rrd_source.description in valid_traffic_sources and\
-               rrd_source.description not in traffic:
-                traffic[rrd_source.description] = _rrd_info(rrd_source)
 
-    traffic['inOctets'] = None
-    traffic['outOctets'] = None
+    edge_meta = []
 
-    if 'ifHCInOctets' in traffic:
-        traffic['inOctets'] = traffic['ifHCInOctets']
-        traffic['outOctets'] = traffic['ifHCOutOctets']
-    elif 'ifInOctets' in traffic:
-        traffic['inOctets'] = traffic['ifInOctets']
-        traffic['outOctets'] = traffic['ifOutOctets']
+    for j, k, w in edges:
+        #e = {'source': j, 'target': k,
+        #     'data': data,}
+        metadata = w['metadata']
+        traffic = {}
 
-    traffic['inOctets_css'] = get_traffic_rgb(traffic['inOctets']['raw'],
-        link_speed) if traffic['inOctets'] and traffic['inOctets'][
-                                               'raw'] else 'N/A'
-    traffic['outOctets_css'] = get_traffic_rgb(traffic['outOctets']['raw'],
-        link_speed) if traffic['outOctets'] and traffic['inOctets'][
-                                                'raw'] else 'N/A'
+        if metadata['uplink']['thiss']['interface'].pk in datasource_loookup:
+            datasources_for_interface = datasource_loookup[metadata['uplink']['thiss']['interface'].pk]
+            for rrd_source in datasources_for_interface:
+                if rrd_source.description in valid_traffic_sources and\
+                    rrd_source.description not in traffic:
+                    if debug:
+                        traffic[rrd_source.description] = __rrd_info2(rrd_source)
+                    break
 
-    # jsonify
-    if not interface_link:
-        interface_link = 'null' # found no uplinks, json null.
-    else:
-        interface_link['thiss'] = str(interface_link['thiss'].ifname) + ' at '\
-        + str(interface_link['thiss'].netbox.sysname) if interface_link[
-                                                         'thiss'] else 'N/A'
 
-        interface_link['other'] = str(interface_link['other'].ifname) + ' at '\
-        + str(interface_link['other'].netbox.sysname) if interface_link[
-                                                         'other'] else 'N/A'
-    if not link_speed:
-        link_speed = "Interface link speed is not the same between the nodes!"
+        traffic['inOctets'] = None
+        traffic['outOctets'] = None
 
-    return {
-        'uplink': interface_link,
-        'link_speed': link_speed,
-        'tip_inspect_link': tip_inspect_link,
-        'traffic': traffic,
-        }
+        if 'ifInOctets' in traffic:
+            traffic['inOctets'] = traffic['ifInOctets']
+        if 'ifOutOctets' in traffic:
+            traffic['outOctets'] = traffic['ifOutOctets']
 
+        # Overwrite traffic inOctets and outOctets
+        # if 64 bit counters are present
+        if 'ifHCInOctets' in traffic:
+            traffic['inOctets'] = traffic['ifHCInOctets']
+
+        if 'ifHCOutOctets' in traffic:
+            traffic['outOctets'] = traffic['ifHCOutOctets']
+
+
+
+        traffic['inOctets_css'] = get_traffic_rgb(traffic['inOctets']['raw'],
+            metadata['link_speed']) if traffic['inOctets'] and traffic['inOctets'][
+                                                   'raw'] else 'N/A'
+        traffic['outOctets_css'] = get_traffic_rgb(traffic['outOctets']['raw'],
+            metadata['link_speed']) if traffic['outOctets'] and traffic['inOctets'][
+                                                    'raw'] else 'N/A'
+
+
+        for json_edge in json:
+
+            if json_edge['source'] == j and json_edge['target'] == k:
+                json_edge['data'].update({'traffic':traffic})
+                break
+        #edge_meta.append({'source':j, 'target':k, 'data': traffic})
+
+    return json
+    #return edge_meta
 
 def get_traffic_rgb(octets, capacity=None):
     """Traffic load color
