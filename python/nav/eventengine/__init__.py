@@ -30,6 +30,7 @@ import logging
 from nav.models.event import EventQueue as Event
 from django.db import connection
 from nav.ipdevpoll.db import commit_on_success
+from nav.eventengine.plugin import EventHandler
 
 class EventEngine(object):
     """Event processing engine.
@@ -47,6 +48,11 @@ class EventEngine(object):
         self.scheduler = sched.scheduler(time.time, self._notifysleep)
         self.target = target
         self.last_event_id = 0
+        self.handlers = EventHandler.load_and_find_subclasses()
+        self._logger.debug("found %d event handler%s: %r",
+                           len(self.handlers),
+                           's' if len(self.handlers) > 1 else '',
+                           self.handlers)
 
     def _notifysleep(self, delay):
         """Sleeps up to delay number of seconds, but will schedule an
@@ -109,5 +115,11 @@ class EventEngine(object):
                 self.handle_event(event)
 
     def handle_event(self, event):
+        "Handles a single event"
         self._logger.debug("handling %r", event)
-        event.delete()
+        queue = [cls(event) for cls in self.handlers
+                 if cls.can_handle(event)]
+        for handler in queue:
+            self._logger.debug("giving event to %s", handler.__class__.__name__)
+            result = handler.handle()
+
