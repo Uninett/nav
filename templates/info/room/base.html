@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+    <link href="/style/info_room.css" type="text/css" rel="stylesheet">
+    <link href="/style/jqueryui/jquery-ui-1.8.21.custom.css" type="text/css"
+          rel="stylesheet">
+    <script src="/js/jquery-1.4.4.min.js" type="text/javascript"></script>
+    <script src="/js/jquery-ui-1.8.21.custom.min.js"
+            type="text/javascript"></script>
+    <script src="/js/info.js"></script>
+{% endblock %}
+
+{% block base_content %}
+    <h2>{% if room %} Room view for {{ room.id }} {% else %}
+        Room search{% endif %}</h2>
+
+    {% block roominfo %}
+
+        <form action="{% url room-search %}" method="get">
+            <p>{{ searchform.query }}
+                <button type="submit">Search</button>
+            </p>
+        </form>
+
+        {% if searchform.is_bound %}
+            {% if rooms %}
+                <table class="listtable">
+                    <caption>{{ rooms|length }} result{{ rooms|pluralize:",s" }}
+                        for "{{ searchform.data.query }}"
+                    </caption>
+
+                    <thead>
+                    <tr>
+                        <th>Room</th>
+                        <th>Description</th>
+                        <th>#Netboxes</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for room in rooms %}
+                        <tr>
+                            <td>
+                                <a href="{% url room-info room.id %}">{{ room.id }}</a>
+                            </td>
+                            <td>
+                                {{ room.description }}
+                            </td>
+                            <td>
+                                {{ room.netboxes.count }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="messages">No room found</p>
+            {% endif %}
+
+        {% endif %}
+
+    {% endblock %}
+
+{% endblock %}
+
