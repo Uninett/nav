@@ -22,11 +22,14 @@ other developers.
 Quick example:
 
 >>> a = presenter.presentation() # instansiate presentation object
->>> a.addDs(454)                 # Add rrd_datasourceid nr. 454 from rrd_datasource table, returns the default legend
+>>> a.addDs(454)                 # Add rrd_datasourceid nr. 454 from
+rrd_datasource table, returns the default legend
 'brev.stud - imap responsetime'
->>> a.timeLast('week')           # We are interested in the data from a week ago and until today
+>>> a.timeLast('week')           # We are interested in the data from a week
+ago and until today
 >>> a.average()
-[0.0064152292421062644]          # imap responed with an average of 6milli.. hmm, whats the unit?
+[0.0064152292421062644]          # imap responed with an average of 6milli..
+hmm, whats the unit?
 >>> a.units()
 ['s']                            # Ah. seconds, 6 ms then.
 >>> a.addDs(427)                 # Add another datasource
@@ -35,7 +38,9 @@ Quick example:
 [1.0, 0.0028113913067105887]
 >>> a.title = 'My Graph'         # You can set the title to what you want
 >>> a.graphUrl()
-'http://isbre.itea.ntnu.no/rrd/rrdBrowser/graph?id=348552316' # Returns a link to an image representing the two datasources. This link is valid for about ten minutes
+'http://isbre.itea.ntnu.no/rrd/rrdBrowser/graph?id=348552316' # Returns a
+link to an image representing the two datasources. This link is valid for
+about ten minutes
 """
 
 configfile = 'rrdviewer/rrdviewer.conf'
