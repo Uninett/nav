@@ -13,14 +13,14 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""Viev functions for the roominfo subsystem"""
 
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from nav.models.manage import Room, Netbox
+from nav.models.manage import Room
 from nav.web.info.room.forms import SearchForm
 
 
@@ -28,10 +28,9 @@ CATEGORIES = ("GW", "GSW", "SW")
 
 
 def search(request):
-    """
-    Controller for searching for rooms
-    """
-    navpath = [('Home', '/'), ('Info', reverse('info-search')), ('Room', reverse('room-search'))]
+    """Controller for searching for rooms"""
+    navpath = [('Home', '/'), ('Info', reverse('info-search')),
+        ('Room', reverse('room-search'))]
 
     rooms = Room.objects.none()
 
@@ -52,9 +51,7 @@ def search(request):
 
 
 def process_searchform(form):
-    """
-    Find and return rooms based on searchform
-    """
+    """Find and return rooms based on searchform"""
     query = form.cleaned_data['query']
     if query is None:
         return Room.objects.all()
@@ -66,21 +63,18 @@ def process_searchform(form):
 
 
 def filter_netboxes(room):
-    """
-    Filter netboxes based on interesting categories
-    """
+    """Filter netboxes based on interesting categories"""
     return room.netbox_set.filter(category__in=CATEGORIES)
 
 
 def roominfo(request, roomid):
-    """
-    Controller for displaying roominfo
-    """
+    """Controller for displaying roominfo"""
     room = Room.objects.get(id=roomid)
     all_netboxes = room.netbox_set.order_by("sysname")
     add_availability(all_netboxes)
 
-    navpath = [('Home', '/'), ('Info', reverse('info-search')), ('Room', reverse('room-search')), (room.id,)]
+    navpath = [('Home', '/'), ('Info', reverse('info-search')),
+        ('Room', reverse('room-search')), (room.id,)]
 
     return render_to_response("info/room/roominfo.html",
                               {"room": room,
@@ -89,33 +83,34 @@ def roominfo(request, roomid):
                               context_instance=RequestContext(request))
 
 
-def netboxes(request, roomid):
-    """
-    Controller for displaying the netboxes in the tabbed view
-    """
+def render_netboxes(request, roomid):
+    """Controller for displaying the netboxes in the tabbed view"""
     room = Room.objects.get(id=roomid)
     netboxes = filter_netboxes(room).order_by("category", "sysname")
 
-    # Filter interfaces on iftype
+    cam_query = {'last_cam': """SELECT end_time
+                            FROM cam
+                            WHERE cam.netboxid=interface.netboxid
+                              AND cam.ifindex = interface.ifindex
+                            ORDER BY end_time DESC
+                            LIMIT 1"""}
+
+    # Filter interfaces on iftype and add fast last_cam lookup
     for netbox in netboxes:
-        netbox.interfaces = netbox.interface_set.filter(iftype=6).order_by("ifindex")
+        netbox.interfaces = netbox.interface_set.filter(
+            iftype=6).order_by("ifindex").extra(select=cam_query)
 
     return render_to_response("info/room/netboxview.html",
-            {"room": room,
-             "netboxes": netboxes},
+            {"netboxes": netboxes},
         context_instance=RequestContext(request))
 
 
-
 def add_availability(netboxes):
-    """
-    Add easy to access availabilty for the netboxes
-    """
+    """Add week availabilty for the netboxes"""
     for netbox in netboxes:
         avail = netbox.get_availability()
         netbox.availability = "N/A"
         try:
             netbox.availability = "%.2f%%" % avail["availability"]["week"]
-        except Exception:
+        except KeyError:
             pass
-

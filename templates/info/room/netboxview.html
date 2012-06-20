@@ -23,15 +23,21 @@
                     <td>{{ interface.ifname }}</td>
                     <td>{{ interface.ifalias }}</td>
                     <td class="center">
-                        <img title="Link status (green=link, red=no link)" src="/images/lys/{% if interface.ifoperstatus == interface.OPER_UP  %}green.png{% else %}red.png{% endif %}">
+                        <img title="Link status (green=link, red=no link)" src="/images/lys/{% if interface.ifoperstatus == interface.OPER_UP  %}green.png{% else %}red.png{% endif %}" />
                     </td>
                     <td class="numeric">
                         {% if interface.trunk %}<span class="interfacetrunk" title="Allowed vlans: {{ interface.get_trunkvlans_as_range }}">Trunk</span>{% else %}
                             {% if interface.vlan %}{{ interface.vlan }}{% endif %}
                         {% endif %}
                     </td>
-                    <td>
-                        {{ interface.get_active_time|time_since }}
+                    <td {% if not interface.last_cam|is_max_timestamp %}
+                            title="{{ interface.last_cam|date:"Y-m-d H:i" }}"
+                        {% endif %}
+                            class="numeric {% if interface.last_cam|is_max_timestamp %}activenow{% endif %}">
+
+                        {% if not interface.trunk %}
+                            {{ interface.last_cam|time_since }}
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}

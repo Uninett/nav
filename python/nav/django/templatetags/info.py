@@ -1,28 +1,36 @@
+"""Template tags used in info subsystem"""
 from django import template
-from datetime import date
+from datetime import datetime
+from django.utils.timesince import timesince
 
 register = template.Library()
 
 @register.filter
-def time_since(delta):
-    """ Convert a timedelta to human readable format """
-    minute = 60
-    hour = 60 * minute
+def time_since(timestamp):
+    """Convert a timestamp to human readable time since"""
 
-    if delta is None:
-        return ""
+    lookup = {'minute': 'min',
+              'hour': 'hr',
+              'week': 'wk',
+              'month': 'mo',
+              'year': 'yr'}
 
-    if delta.days > 365:
-        return "More than a year ago"
-    elif delta.days > 0:
-        return "%s days ago" % delta.days
-    elif delta.seconds > hour:
-        # Round to nearest hour
-        return "%s hours ago" % int(round((float(delta.seconds) / hour)))
-    elif delta.seconds > 60:
-        # Round to nearest minute
-        return "%s minutes ago" % int(round((float(delta.seconds) / minute)))
-    elif delta.seconds > 0:
-        return "%s seconds ago" % delta.seconds
+    if timestamp is None:
+        return "Never"
+
+    if timestamp == datetime.max or timesince(timestamp) == "0 minutes":
+        return "Now"
     else:
-        return "Active now"
+        text = timesince(timestamp)
+        for key in lookup.keys():
+            text = text.replace(key, lookup[key])
+
+        return text
+
+@register.filter
+def is_max_timestamp(timestamp):
+    """Check if timestamp is max"""
+    if timestamp == datetime.max:
+        return True
+    else:
+        return False
