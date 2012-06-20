@@ -573,11 +573,14 @@ class Page:
        
 
         
-def graph(req, id):
-    conf = nav.config.readConfig(CONFIG_FILE)
-    filename = conf['file_prefix'] + id + conf['file_suffix']
-    req.content_type  = 'image/gif'
-    req.send_http_header()
-    f = open(filename)
-    req.write(f.read())
-    f.close()
+def graph(request, id):
+    """ Renders a graph request from mod_python
+    :param id id of stored graph to render
+    """
+    config = nav.config.readConfig(CONFIG_FILE)
+    filename = config['file_prefix'] + id + config['file_suffix']
+    request.content_type  = 'image/gif'
+    request.send_http_header()
+    file = open(filename)
+    request.write(file.read())
+    file.close()
