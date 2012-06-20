@@ -42,6 +42,7 @@ class EventEngine(object):
     # too often, since we rely on PostgreSQL notification when new events are
     # inserted into the queue.
     CHECK_INTERVAL = 30
+    PLUGIN_TASKS_PRIORITY = 1
     _logger = logging.getLogger(__name__)
 
     def __init__(self, target="eventEngine"):
@@ -126,3 +127,11 @@ class EventEngine(object):
         if event.id:
             self._logger.debug("event wasn't disposed of, "
                                "maybe held for later processing?")
+
+    def schedule(self, delay, action, args=()):
+        return self._scheduler.enter(delay, self.PLUGIN_TASKS_PRIORITY,
+                                     action, args)
+
+    def cancel(self, task):
+        self._scheduler.cancel(task)
+
