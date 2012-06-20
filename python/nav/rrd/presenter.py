@@ -84,7 +84,8 @@ class RrdFile:
         rrd_file_path = path.join(self.path, self.filename)
         return rrd_file_path
 
-class datasource:
+# pylint: disable=R0902
+class DataSource:
     """ Class representing a datasource.
     Can perform simple calculations on the datasource"""
 
@@ -95,29 +96,33 @@ class datasource:
                        "where rrd_datasourceid=%s" % rrd_datasourceid)
         result = cursor.fetchone()
         self.name     = result['name']
-        self.descr    = result['descr']
-        self.dstype   = result['dstype']
+        self.description    = result['descr']
+        self.datasource_type   = result['dstype']
         self.units    = result['units']
         self.rrd_datasourceid = result['rrd_datasourceid']
         self.linetype = linetype
         self.rrd_fileobj = RrdFile(result['rrd_fileid'])
         self.sysname = self.rrd_fileobj.sysname
-        self.legend = '%s - %s' % (self.rrd_fileobj.sysname, self.descr)
+        self.legend = '%s - %s' % (self.rrd_fileobj.sysname, self.description)
         cursor.close()
 
-    def getId(self):
+    def get_id(self):
+        """Retrieves the data source id"""
         return self.rrd_datasourceid
     
     def __eq__(self, obj):
         return obj.rrd_datasourceid == self.rrd_datasourceid
     
     def __str__(self):
-        return "%s - %s" % (self.name, self.descr)
+        return "%s - %s" % (self.name, self.description)
 
     def __repr__(self):
-        return "%s - %s" % (self.name, self.descr)
+        return "%s - %s" % (self.name, self.description)
 
-    def fullPath(self):
+    def full_path(self):
+        """ Retreives full file system path for RRD file associated with
+        Datasource
+        """
         return self.rrd_fileobj.full_path()
     
 
@@ -140,7 +145,7 @@ class presentation:
         repr = {}
         repr['datasources'] = []
         for ds in self.datasources:
-            repr['datasources'].append(ds.getId())
+            repr['datasources'].append(ds.get_id())
         repr['timeframe'] = self.timeframe
         return repr
         
@@ -161,7 +166,7 @@ class presentation:
 
     def addDs(self, ds_id):
         """Adds a datasource to the presentation, returns the default legend"""
-        ds = datasource(ds_id)
+        ds = DataSource(ds_id)
         self.datasources.append(ds)
         return ds.legend
 
@@ -336,7 +341,7 @@ class presentation:
     
     def removeDs(self, ds_id):
         """Removes the datasource specified by rrd_datasourceid"""
-        ds = datasource(ds_id)
+        ds = DataSource(ds_id)
         self.datasources.remove(ds)
 
     def setYAxis(self, y):
