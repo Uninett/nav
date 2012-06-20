@@ -233,46 +233,72 @@ def edge_to_json(metadata):
         }
 
 
-def attach_rrd_data_to_edges(edges, json=None, debug=False):
+def _get_datasource_lookup(graph):
+    edges_iter = graph.edges_iter(data=True)
+
+    interfaces = set()
+    for _, _, w in edges_iter:
+        w = w['metadata']
+        if 'uplink' in w:
+            if w['uplink']['thiss']['interface']:
+                interfaces.add(w['uplink']['thiss']['interface'].pk)
+
+            if w['uplink']['other']['interface']:
+                interfaces.add(w['uplink']['other']['interface'].pk)
+
+    _LOGGER.debug(
+        "netmap:attach_rrd_data_to_edges() datasource id filter list done")
+
+    from nav.models.rrd import RrdDataSource
+
+    datasources = RrdDataSource.objects.filter(
+        rrd_file__key='interface').select_related('rrd_file').filter(
+        id__in=interfaces)
+
+    _LOGGER.debug("netmap:attach_rrd_data_to_edges() Datasources fetched done")
+
+    lookup_dict = {}
+    for data in datasources:
+        interface = int(data.rrd_file.value)
+        if interface in lookup_dict:
+            lookup_dict[interface].append(data)
+        else:
+            lookup_dict.update({interface: [data]})
+
+    _LOGGER.debug(
+        "netmap:attach_rrd_data_to_edges() Datasources rearranged in dict")
+
+    return lookup_dict
+
+
+def attach_rrd_data_to_edges(graph, json=None, debug=False):
     """ called from d3_js to attach rrd_data after it has attached other
     edge metadata by using edge_to_json
 
-    :param edges tupple (source,target,edge,value)
+    :param graph A network x graph matching d3_js graph format.
     """
-    from nav.models.rrd import RrdDataSource
 
-    datasources = RrdDataSource.objects.filter(rrd_file__key='interface').select_related('rrd_file')
-    _LOGGER.debug("netmap:attach_rrd_data_to_edges() Datasources fetched done")
-
-    datasource_loookup = {}
-    for data in datasources:
-        interface = int(data.rrd_file.value)
-        if interface in datasource_loookup:
-            datasource_loookup[interface].append(data)
-        else:
-            datasource_loookup.update( {interface: [data] } )
-
-    _LOGGER.debug("netmap:attach_rrd_data_to_edges() Datasources rearranged in dict")
+    datasource_lookup = _get_datasource_lookup(graph)
 
     # , u'ifInErrors', u'ifInUcastPkts', u'ifOutErrors', u'ifOutUcastPkts'
     valid_traffic_sources = (
         u'ifHCInOctets', u'ifHCOutOctets', u'ifInOctets', u'ifOutOctets')
 
-    edge_meta = []
-
-    for j, k, w in edges:
-        #e = {'source': j, 'target': k,
-        #     'data': data,}
+    edges_iter = graph.edges_iter(data=True)
+    for j, k, w in edges_iter:
         metadata = w['metadata']
         traffic = {}
 
-        if metadata['uplink']['thiss']['interface'].pk in datasource_loookup:
-            datasources_for_interface = datasource_loookup[metadata['uplink']['thiss']['interface'].pk]
+        if metadata['uplink']['thiss']['interface'].pk in datasource_lookup:
+            datasources_for_interface = datasource_lookup[
+                                        metadata['uplink']['thiss'][
+                                        'interface'].pk]
             for rrd_source in datasources_for_interface:
                 if rrd_source.description in valid_traffic_sources and\
-                    rrd_source.description not in traffic:
+                   rrd_source.description not in traffic:
                     if debug:
-                        traffic[rrd_source.description] = __rrd_info2(rrd_source)
+                        traffic[rrd_source.description] = __rrd_info2(
+                            rrd_source)
                     break
 
 
@@ -295,11 +321,11 @@ def attach_rrd_data_to_edges(edges, json=None, debug=False):
 
 
         traffic['inOctets_css'] = get_traffic_rgb(traffic['inOctets']['raw'],
-            metadata['link_speed']) if traffic['inOctets'] and traffic['inOctets'][
-                                                   'raw'] else 'N/A'
+            metadata['link_speed']) if traffic['inOctets'] and\
+                                       traffic['inOctets']['raw'] else 'N/A'
         traffic['outOctets_css'] = get_traffic_rgb(traffic['outOctets']['raw'],
-            metadata['link_speed']) if traffic['outOctets'] and traffic['inOctets'][
-                                                    'raw'] else 'N/A'
+            metadata['link_speed']) if traffic['outOctets'] and\
+                                       traffic['inOctets']['raw'] else 'N/A'
 
 
         for json_edge in json:
@@ -307,9 +333,7 @@ def attach_rrd_data_to_edges(edges, json=None, debug=False):
             if json_edge['source'] == j and json_edge['target'] == k:
                 json_edge['data'].update({'traffic':traffic})
                 break
-        #edge_meta.append({'source':j, 'target':k, 'data': traffic})
     return json
-    #return edge_meta
 
 def get_traffic_rgb(octets, capacity=None):
     """Traffic load color
