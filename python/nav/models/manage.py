@@ -25,6 +25,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
+from itertools import count, groupby
 
 from nav.bitvector import BitVector
 import nav.natsort
@@ -999,6 +1000,26 @@ class Interface(models.Model):
         elif self.ifadminstatus == self.ADM_DOWN:
             return "Disabled"
         return "Inactive"
+
+    def get_trunkvlans_as_range(self):
+        """
+        Converts the list of allowed vlans on trunk to a string of ranges.
+        Ex: [1, 2, 3, 4, 7, 8, 10] -> "1-4,7-8,10"
+        """
+        def as_range(iterable):
+            l = list(iterable)
+            if len(l) > 1:
+                return '{0}-{1}'.format(l[0], l[-1])
+            else:
+                return '{0}'.format(l[0])
+
+        if self.trunk:
+            return ",".join(as_range(y) for x,y in groupby(
+                self.swportallowedvlan.get_allowed_vlans(),
+                lambda n, c=count(): n-next(c))
+            )
+        else:
+            return ""
 
 
 class IanaIftype(models.Model):
