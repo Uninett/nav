@@ -154,6 +154,8 @@ def _rrd_info(source):
     return {'name': source.name, 'description': source.description, 'raw': None}
 
 def __rrd_info2(source):
+    # todo : what to do if rrd source is not where it should be? Will return 0
+    # if it can't find RRD file for example
     a = presenter.presentation()
     a.addDs(source.pk)
     return {'name': source.name, 'description': source.description,
@@ -213,18 +215,18 @@ def edge_to_json(metadata):
                     {'thiss': {'interface': "{0} at {1}".format(
                     str(uplink['thiss']['interface'].ifname),
                     str(uplink['thiss']['interface'].netbox.sysname)
-                )}}
+                ), 'netbox': uplink['thiss']['netbox'].sysname}}
             )
-        else: uplink_json.update({'thiss': {'interface': 'N/A'}})
+        else: uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
 
         if uplink['other']['interface']:
             uplink_json.update(
                     {'other': {'interface': "{0} at {1}".format(
                     str(uplink['other']['interface'].ifname),
                     str(uplink['other']['interface'].netbox.sysname)
-                )}}
+                ), 'netbox': uplink['other']['netbox'].sysname}}
             )
-        else: uplink_json.update({'other': {'interface': 'N/A'}})
+        else: uplink_json.update({'other': {'interface': 'N/A', 'netbox': 'N/A'}})
 
     if 'link_speed' in error.keys():
         link_speed = error['link_speed']
@@ -258,8 +260,7 @@ def _get_datasource_lookup(graph):
 
     datasources = RrdDataSource.objects.filter(
         rrd_file__key='interface').select_related('rrd_file').filter(
-        id__in=interfaces)
-
+        rrd_file__value__in=interfaces)
     _LOGGER.debug("netmap:attach_rrd_data_to_edges() Datasources fetched done")
 
     lookup_dict = {}

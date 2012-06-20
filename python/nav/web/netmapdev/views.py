@@ -173,7 +173,7 @@ def test_traffic_foo(request):
              'data': edge_to_json(w['metadata']), 'value': 1}
         json_edges.append(e)
     _LOGGER.debug("netmap:test_traffic_foo() edges done - starting RRD")
-    json_edges  = attach_rrd_data_to_edges(graph, json_edges, True)
+    json_edges  = attach_rrd_data_to_edges(ints_graph, json_edges, True)
     _LOGGER.debug("netmap:test_traffic_foo() rrd done")
     response = HttpResponse(simplejson.dumps(json_edges))
     response['Content-Type'] = 'application/json; charset=utf-8'
