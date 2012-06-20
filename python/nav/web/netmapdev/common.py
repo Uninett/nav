@@ -19,12 +19,12 @@ import networkx as nx
 from nav.models.manage import Netbox
 from nav.rrd import presenter
 from nav.topology import vlan
-import nav.rrd.presenter
 import rrdtool
 import logging
-from django.utils import simplejson
+
 _LOGGER = logging.getLogger(__name__)
 
+# pylint: disable=C0103
 def build_netmap_layer2_graph(view=None):
     """
     Builds a netmap layer 2 graph, based on nav's build_layer2_graph method.
@@ -36,7 +36,8 @@ def build_netmap_layer2_graph(view=None):
             (obs! metadata has direction metadata added!)
     """
     _LOGGER.debug("build_netmap_layer2_graph() start")
-    topology_without_metadata = vlan.build_layer2_graph(('to_interface__netbox',))
+    topology_without_metadata = vlan.build_layer2_graph(
+        ('to_interface__netbox',))
     _LOGGER.debug("build_netmap_layer2_graph() topology graph done")
     graph = nx.MultiDiGraph()
     # Make a copy of the graph, and add edge meta data
@@ -86,7 +87,8 @@ def node_to_json(node, metadata=None):
             'sysname': str(node.sysname),
             'category': str(node.category_id),
             'ip': node.ip,
-            'ipdevinfo_link': reverse('ipdevinfo-details-by-name', args=[node.sysname]),
+            'ipdevinfo_link': reverse('ipdevinfo-details-by-name',
+                args=[node.sysname]),
             'position': position,
             'up': str(node.up),
             'up_image': get_status_image_link(node.up),
@@ -154,7 +156,8 @@ def _rrd_info(source):
 def __rrd_info2(source):
     a = presenter.presentation()
     a.addDs(source.pk)
-    return { 'name': source.name, 'description': source.description, 'raw': a.average()[0]}
+    return {'name': source.name, 'description': source.description,
+            'raw': a.average()[0]}
 
 
 def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface):
@@ -171,10 +174,12 @@ def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface):
          'other': {'netbox': other_netbox,
                    'interface': other_interface}}
 
-    if thiss_interface and other_interface and thiss_interface.speed != other_interface.speed:
+    if thiss_interface and other_interface and thiss_interface.speed != \
+                                               other_interface.speed:
         tip_inspect_link = True
         link_speed = None
-        error['link_speed'] = 'Interface link speed not the same between the nodes'
+        error[
+        'link_speed'] = 'Interface link speed not the same between the nodes'
     else:
         if thiss_interface:
             link_speed = thiss_interface.speed
@@ -345,7 +350,7 @@ def get_traffic_rgb(octets, capacity=None):
     """
 
     if not capacity:
-        return 255,255,0
+        return 255, 255, 0
 
     MEGABITS_TO_BITS = 1000000
 
