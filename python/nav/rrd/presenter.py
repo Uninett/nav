@@ -43,7 +43,7 @@ link to an image representing the two datasources. This link is valid for
 about ten minutes
 """
 
-configfile = 'rrdviewer/rrdviewer.conf'
+CONFIG_FILE = 'rrdviewer/rrdviewer.conf'
 import nav.db
 import nav.config
 import time
@@ -56,7 +56,7 @@ import operator
 from os import path
 import psycopg2.extras
 
-unitmap = {'s'   : 'Seconds',
+UNIT_MAP = {'s'   : 'Seconds',
            '%'   : 'Percent',
            '100%': 'Percent',
            }
@@ -487,13 +487,13 @@ class presentation:
             units = uniq(units)
             unitStrings = []
             for unit in units:
-                unitStrings.append(unitmap.get(unit, unit))
+                unitStrings.append(UNIT_MAP.get(unit, unit))
             params.insert(1, '/'.join(unitStrings))
         id = self.genImage(*params)
         return '/rrd/image=%s/' % str(id)
 
     def genImage (self, *rrd_params):
-        conf = nav.config.readConfig(configfile)
+        conf = nav.config.readConfig(CONFIG_FILE)
         id = str(random.randint(1, 10**9))
         imagefilename = conf['file_prefix'] + id + conf['file_suffix']
         rrd_params = (imagefilename,) + rrd_params
@@ -550,7 +550,7 @@ class page:
 
         
 def graph(req, id):
-    conf = nav.config.readConfig(configfile)
+    conf = nav.config.readConfig(CONFIG_FILE)
     filename = conf['file_prefix'] + id + conf['file_suffix']
     req.content_type  = 'image/gif'
     req.send_http_header()
