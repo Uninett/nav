@@ -39,11 +39,12 @@ class EventHandler(object):
         return (event.event_type_id in cls.handled_types
                 if cls.handled_types else True)
 
-    def __init__(self, event):
+    def __init__(self, event, engine):
         if not self.can_handle(event):
             raise UnsupportedEvent("%s can't handle %s" % (
                     self.__class__.__name__, event.event_type_id))
         self.event = event
+        self.engine = engine
         self._logger = logging.getLogger("%s.%s" % (self.__class__.__module__,
                                                     self.__class__.__name__))
 

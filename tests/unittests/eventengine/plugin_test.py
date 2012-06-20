@@ -16,12 +16,12 @@ def test_handler_should_raise_on_unsupported_event():
     with pytest.raises(UnsupportedEvent):
         event = Mock()
         event.event_type_id = 'something'
-        _BoxStateHandler(event)
+        _BoxStateHandler(event, None)
 
 def test_handler_should_construct_fine_on_supported_event():
     event = Mock()
     event.event_type_id = 'boxState'
-    assert _BoxStateHandler(event)
+    assert _BoxStateHandler(event, None)
 
 def test_find_package_modules_is_list():
     modules = _find_package_modules('nav.eventengine.plugins')
