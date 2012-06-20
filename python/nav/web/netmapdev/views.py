@@ -166,16 +166,14 @@ def test_traffic_foo(request):
     graph = build_netmap_layer2_graph()
     _LOGGER.debug("netmap:test_traffic_foo() graph done")
     ints_graph = nx.convert_node_labels_to_integers(graph, discard_old_labels=False)
-    graph_nodes = ints_graph.nodes(data=True)
-    graph_edges = ints_graph.edges(data=True)
     _LOGGER.debug("netmap:test_traffic_foo() base convert done")
     json_edges = list()
-    for j, k, w in graph_edges:
+    for j, k, w in ints_graph.edges_iter(data=True):
         e = {'source': j, 'target': k,
              'data': edge_to_json(w['metadata']), 'value': 1}
         json_edges.append(e)
     _LOGGER.debug("netmap:test_traffic_foo() edges done - starting RRD")
-    json_edges  = attach_rrd_data_to_edges(graph_edges, json_edges, True)
+    json_edges  = attach_rrd_data_to_edges(graph, json_edges, True)
     _LOGGER.debug("netmap:test_traffic_foo() rrd done")
     response = HttpResponse(simplejson.dumps(json_edges))
     response['Content-Type'] = 'application/json; charset=utf-8'
