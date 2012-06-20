@@ -54,7 +54,7 @@ def rrd_details(request, rrddatasource_id, time_frame='week'):
         presenter_page = None
     else:
         # Play along with the very legacy nav.rrd.presenter
-        presenter_page = presenter.page()
+        presenter_page = presenter.Page()
         presentation = presenter.Presentation(
             time_frame=time_frame, datasource=rrddatasource.id)
         presenter_page.presentations.append(presentation)

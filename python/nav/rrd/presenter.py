@@ -530,34 +530,39 @@ class Presentation:
         return id
 
 
-class page:
+# pylint: disable=W0622
+class Page:
+    """Page represents multiple Presentation's"""
     def __init__(self, repr=None):
         """
         repr must be a dict as created by serialize()
         """
         self.presentations = []
-        self.timeframe = "day"
+        self.time_frame = "day"
         self.name = ''
-        self.timeframeIndex = 1
+        self.time_frame_index = 1
         if repr:
-            self.deSerialize(repr)
+            self.de_serialize(repr)
 
-    def deSerialize(self, repr):
+    def de_serialize(self, repr):
+        """De serializes a Page in dict format"""
         if type(repr) != dict:
             return
         presentations = repr['presentations']
-        self.timeframe = repr['timeframe']
-        for pres in presentations:
-            newPres = Presentation(time_frame=self.timeframe)
-            for ds in pres['datasources']:
-                newPres.add_datasource(ds)
-            self.presentations.append(newPres)
+        self.time_frame = repr['timeframe']
+        for presentation in presentations:
+            new_presentation = Presentation(time_frame=self.time_frame)
+            for datasource in presentation['datasources']:
+                new_presentation.add_datasource(datasource)
+            self.presentations.append(new_presentation)
+
     def serialize(self):
+        """Serializes a Page in dict format"""
         repr = {}
         repr['presentations'] = []
         for i in self.presentations:
             repr['presentations'].append(i.serialize())
-        repr['timeframe'] = self.timeframe
+        repr['timeframe'] = self.time_frame
         repr['name'] = self.name
         return repr
     def __repr__(self):
