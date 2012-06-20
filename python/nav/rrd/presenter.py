@@ -42,6 +42,7 @@ hmm, whats the unit?
 link to an image representing the two datasources. This link is valid for
 about ten minutes
 """
+# pylint: disable=W0611
 
 CONFIG_FILE = 'rrdviewer/rrdviewer.conf'
 import nav.db
