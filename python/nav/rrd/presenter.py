@@ -61,8 +61,9 @@ UNIT_MAP = {'s'   : 'Seconds',
            '100%': 'Percent',
            }
 
+# pylint: disable=R0903
 class RrdFile:
-    """Class representing an rrd-file"""
+    """Class representing an RRD file"""
     def __init__(self, rrd_fileid):
         cursor = nav.db.getConnection('rrdpresenter').cursor(
             cursor_factory=psycopg2.extras.DictCursor)
@@ -77,7 +78,9 @@ class RrdFile:
         self.subsystem = result['subsystem']
         self.sysname   = result['sysname']
         
-    def fullPath(self):
+    def full_path(self):
+        """ Retreives full file system path for the RRD file
+        """
         rrd_file_path = path.join(self.path, self.filename)
         return rrd_file_path
 
@@ -115,7 +118,7 @@ class datasource:
         return "%s - %s" % (self.name, self.descr)
 
     def fullPath(self):
-        return self.rrd_fileobj.fullPath()
+        return self.rrd_fileobj.full_path()
     
 
 class presentation:
@@ -176,7 +179,7 @@ class presentation:
         returnList = []
         for datasource in self.datasources:
             try:
-                raw = rrdtool.fetch(str(datasource.fullPath()),
+                raw = rrdtool.fetch(str(datasource.full_path()),
                                     'AVERAGE','-s ' + str(self.fromTime),
                                     '-e ' + str(self.toTime))
 
@@ -247,7 +250,7 @@ class presentation:
             # datasource.name.
 
             rrddef = str("DEF:%s=%s:%s:AVERAGE" % (datasource.name,
-                                                   datasource.fullPath(),
+                                                   datasource.full_path(),
                                                    datasource.name)
                          )
             rrdprint = str("PRINT:%s:AVERAGE:%%lf" % (datasource.name))
@@ -404,7 +407,7 @@ class presentation:
             #         8:'#440000'}
             rrd_variable = 'avg'+str(index)
             rrd_max_variable = 'max'+str(index)
-            rrd_filename = ds.fullPath()
+            rrd_filename = ds.full_path()
             rrd_datasourcename = ds.name
             linetype = ds.linetype
             linetype_max = 'LINE1'
