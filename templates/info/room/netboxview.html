@@ -1,3 +1,5 @@
+{% load info %}
+
 <div id="netboxes">
     {% for netbox in netboxes %}
 
@@ -9,7 +11,9 @@
             <tr>
                 <th>Name</th>
                 <th>Portname</th>
+                <th>Status</th>
                 <th>Vlan</th>
+                <th>Last active</th>
             </tr>
             </thead>
 
@@ -18,10 +22,16 @@
                 <tr>
                     <td>{{ interface.ifname }}</td>
                     <td>{{ interface.ifalias }}</td>
-                    <td>
-                        {% if interface.trunk %}<span title="{{ interface.get_trunkvlans_as_range }}">Trunk</span>{% else %}
+                    <td class="center">
+                        <img title="Link status (green=link, red=no link)" src="/images/lys/{% if interface.ifoperstatus == interface.OPER_UP  %}green.png{% else %}red.png{% endif %}">
+                    </td>
+                    <td class="numeric">
+                        {% if interface.trunk %}<span class="interfacetrunk" title="Allowed vlans: {{ interface.get_trunkvlans_as_range }}">Trunk</span>{% else %}
                             {% if interface.vlan %}{{ interface.vlan }}{% endif %}
                         {% endif %}
+                    </td>
+                    <td>
+                        {{ interface.get_active_time|time_since }}
                     </td>
                 </tr>
             {% endfor %}

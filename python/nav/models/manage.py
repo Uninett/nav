@@ -951,7 +951,7 @@ class Interface(models.Model):
         return self.netbox.cam_set.filter(ifindex=self.ifindex).latest(
             'end_time')
 
-    def get_active_time(self, interval):
+    def get_active_time(self, interval=600):
         """
         Time since last CAM activity on port, looking at CAM entries
         for the last ``interval'' days.
@@ -1015,7 +1015,7 @@ class Interface(models.Model):
 
         if self.trunk:
             return ",".join(as_range(y) for x,y in groupby(
-                self.swportallowedvlan.get_allowed_vlans(),
+                sorted(self.swportallowedvlan.get_allowed_vlans()),
                 lambda n, c=count(): n-next(c))
             )
         else:

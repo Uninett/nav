@@ -2,3 +2,11 @@
     display: inline-block;
     vertical-align: top;
 }
+
+.netbox td.center {
+    text-align: center;
+}
+
+.netbox .interfacetrunk {
+    cursor: pointer;
+}
