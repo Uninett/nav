@@ -115,6 +115,15 @@ class EventEngine(object):
             for event in events:
                 self.handle_event(event)
 
+            self._log_task_queue()
+
+    def _log_task_queue(self):
+        modified_queue = [
+            e for e in self._scheduler.queue
+            if e.action != self._load_new_events_and_reschedule]
+        if modified_queue:
+            self._logger.debug("task queue: %r", modified_queue)
+
     def handle_event(self, event):
         "Handles a single event"
         self._logger.debug("handling %r", event)
