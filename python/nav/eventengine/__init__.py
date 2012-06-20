@@ -45,7 +45,7 @@ class EventEngine(object):
     _logger = logging.getLogger(__name__)
 
     def __init__(self, target="eventEngine"):
-        self.scheduler = sched.scheduler(time.time, self._notifysleep)
+        self._scheduler = sched.scheduler(time.time, self._notifysleep)
         self.target = target
         self.last_event_id = 0
         self.handlers = EventHandler.load_and_find_subclasses()
@@ -73,10 +73,10 @@ class EventEngine(object):
 
     def start(self):
         "Starts the event engine"
-        self._logger.debug("starting event engine")
+        self._logger.info("--- starting event engine ---")
         self._listen()
         self._load_new_events_and_reschedule()
-        self.scheduler.run()
+        self._scheduler.run()
 
     @staticmethod
     @commit_on_success
@@ -98,7 +98,7 @@ class EventEngine(object):
         if not action:
             action = self.load_new_events
 
-        self.scheduler.enter(delay, 0, action, ())
+        self._scheduler.enter(delay, 0, action, ())
 
     @commit_on_success
     def load_new_events(self):
@@ -123,3 +123,6 @@ class EventEngine(object):
             self._logger.debug("giving event to %s", handler.__class__.__name__)
             result = handler.handle()
 
+        if event.id:
+            self._logger.debug("event wasn't disposed of, "
+                               "maybe held for later processing?")
