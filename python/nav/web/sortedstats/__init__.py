@@ -203,7 +203,7 @@ def get_rrd_values(dslist, valuelist, fromtime):
     skip = 0
 
     # Let the presenter-module fetch value from the rrd-file
-    pres = nav.rrd.presenter.presentation()
+    pres = nav.rrd.presenter.Presentation()
     filenames = []
 
     logger = logging.getLogger(__name__)
@@ -217,12 +217,12 @@ def get_rrd_values(dslist, valuelist, fromtime):
 
         logger.debug("Got %s, %s from list" %(filename, dsid))
 
-        pres.addDs(dsid)
+        pres.add_datasource(dsid)
 
         filename = filename.replace(".rrd", "")
         filenames.append(filename)
 
-    pres.timeLast(fromtime)
+    pres.time_last(fromtime)
 
     try:
         values = pres.average()

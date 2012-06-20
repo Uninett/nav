@@ -140,9 +140,9 @@ class Netbox(models.Model):
         def average(rds, time_frame):
             """Calculates the average value within a time_frame."""
             from nav.rrd import presenter
-            rrd = presenter.presentation()
-            rrd.timeLast(time_frame)
-            rrd.addDs(rds.id)
+            rrd = presenter.Presentation()
+            rrd.time_last(time_frame)
+            rrd.add_datasource(rds.id)
             value = rrd.average(onErrorReturn=None, onNanReturn=None)
             if not value:
                 return None

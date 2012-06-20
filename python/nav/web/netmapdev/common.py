@@ -156,8 +156,8 @@ def _rrd_info(source):
 def __rrd_info2(source):
     # todo : what to do if rrd source is not where it should be? Will return 0
     # if it can't find RRD file for example
-    a = presenter.presentation()
-    a.addDs(source.pk)
+    a = presenter.Presentation()
+    a.add_datasource(source.pk)
     return {'name': source.name, 'description': source.description,
             'raw': a.average()[0]}
 

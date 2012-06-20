@@ -282,9 +282,9 @@ def get_rrd_link_load(rrd_datasourceid):
     if not rrd_datasourceid:
         return -1
     try:
-        rrd_presenter = presenter.presentation()
-        rrd_presenter.addDs(rrd_datasourceid)
-        rrd_presenter.timeLast('min', '10')
+        rrd_presenter = presenter.Presentation()
+        rrd_presenter.add_datasource(rrd_datasourceid)
+        rrd_presenter.time_last('min', '10')
         return rrd_presenter.average()[0]
     except:
         return -1

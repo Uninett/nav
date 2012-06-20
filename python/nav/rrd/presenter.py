@@ -126,19 +126,23 @@ class DataSource:
         return self.rrd_fileobj.full_path()
     
 
-class presentation:
-    def __init__(self, tf='day', ds=''):
+class Presentation:
+    """
+    Presentation can contain several data sources and helps to fetch
+    average, sum, max ie from all your data sources
+    """
+    def __init__(self, tf='day', datasource=''):
         self.datasources = []
         self.none = None
         self.graphHeight = 150
         self.graphWidth  = 500
         self.title = ''
-        self.timeLast(tf)
+        self.time_last(tf)
         self.timeframe = tf
         self.showmax = 0
         self.yaxis = 0
-        if ds != '':
-            self.addDs(ds)
+        if datasource != '':
+            self.add_datasource(datasource)
         
 
     def serialize(self):
@@ -164,7 +168,7 @@ class presentation:
         return units
         
 
-    def addDs(self, ds_id):
+    def add_datasource(self, ds_id):
         """Adds a datasource to the presentation, returns the default legend"""
         ds = DataSource(ds_id)
         self.datasources.append(ds)
@@ -176,7 +180,7 @@ class presentation:
     def __repr__(self):
         return str(self.datasources)
 
-    def fetchValid(self):
+    def fetch_valid(self):
         """Return the raw rrd-data as a list of dictionaries
         {'start':starttime in unixtime,
         'stop':stoptime in unixtime,
@@ -219,7 +223,7 @@ class presentation:
     def sum(self):
         """Returns the sum of the valid  rrd-data"""
         sumList = []
-        dataList = self.fetchValid()        
+        dataList = self.fetch_valid()
         for data in dataList:
             sum = 0
             for i in data['data']:
@@ -230,7 +234,7 @@ class presentation:
     def max(self):
         """Returns the local maxima of the valid rrd-data"""
         maxList = []
-        for presentation in self.fetchValid():
+        for presentation in self.fetch_valid():
             maxList.append(max(presentation['data']))
         return maxList
 
@@ -284,18 +288,18 @@ class presentation:
     def min(self):
         """Returns the local minima of the valid rrd-data"""
         minList = []
-        for presentation in self.fetchValid():
+        for presentation in self.fetch_valid():
             minList.append(min(presentation['data']))
         return minList
 
         
-    def validPoints(self):
+    def valid_points(self):
         """Returns list of [number of points,number of invalid points,
         invalid/number of points]
 
         """
         valid = []
-        a = self.fetchValid()
+        a = self.fetch_valid()
         for i in a:
             ret = [len(i['data'])]
             ret.append(i['data'].count(self.none))
@@ -303,7 +307,7 @@ class presentation:
             valid.append(ret)
         return valid
             
-    def timeLast(self, timeframe='day', value=1):
+    def time_last(self, timeframe='day', value=1):
         """Sets the timeframe of the presentation
         Currently valid timeframes: year,month,week,hour,day,minute"""
         self.toTime = 'now'
@@ -335,19 +339,19 @@ class presentation:
             self.fromTime = 'now-%smin' % value
             self._timeFrame = 'minute'
              
-    def removeAllDs(self):
+    def remove_all_datasources(self):
         """Removes all datasources from the presentation object"""
         self.datasources = []
     
-    def removeDs(self, ds_id):
+    def remove_datasource(self, ds_id):
         """Removes the datasource specified by rrd_datasourceid"""
         ds = DataSource(ds_id)
         self.datasources.remove(ds)
 
-    def setYAxis(self, y):
+    def set_y_axis(self, y):
         self.yaxis = y
     
-    def graphUrl(self):
+    def graph_url(self):
         """Generates an url to a image representing the current presentation"""
         url = 'graph.py'
         index = 0
@@ -497,10 +501,10 @@ class presentation:
             for unit in units:
                 unitStrings.append(UNIT_MAP.get(unit, unit))
             params.insert(1, '/'.join(unitStrings))
-        id = self.genImage(*params)
+        id = self.generate_image(*params)
         return '/rrd/image=%s/' % str(id)
 
-    def genImage (self, *rrd_params):
+    def generate_image (self, *rrd_params):
         conf = nav.config.readConfig(CONFIG_FILE)
         id = str(random.randint(1, 10**9))
         imagefilename = conf['file_prefix'] + id + conf['file_suffix']
@@ -537,9 +541,9 @@ class page:
         presentations = repr['presentations']
         self.timeframe = repr['timeframe']
         for pres in presentations:
-            newPres = presentation(tf=self.timeframe)
+            newPres = Presentation(tf=self.timeframe)
             for ds in pres['datasources']:
-                newPres.addDs(ds)
+                newPres.add_datasource(ds)
             self.presentations.append(newPres)
     def serialize(self):
         repr = {}
