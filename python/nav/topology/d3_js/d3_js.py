@@ -153,7 +153,7 @@ def d3_json(G, group=None):
     _LOGGER.debug("netmap:d3_json() nodes done")
     # Build up edge dictionary in JSON format
     json_edges = list()
-    for j, k, w in graph_edges:
+    for j, k, w in ints_graph.edges_iter(data=True):
         e = {'source': j, 'target': k,
              'data': edge_to_json(w['metadata'])}
         if any(map(lambda k: k == 'weight', w.keys())):
@@ -162,7 +162,7 @@ def d3_json(G, group=None):
             e['value'] = 1
         json_edges.append(e)
     _LOGGER.debug("netmap:d3_json() edges done")
-    json_edges = attach_rrd_data_to_edges(graph_edges, json_edges)
+    json_edges = attach_rrd_data_to_edges(ints_graph, json_edges)
     _LOGGER.debug("netmap:d3_json() edges_fake_rrd done")
     graph_json['links'] = json_edges
 
