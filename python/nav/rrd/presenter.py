@@ -56,7 +56,7 @@ unitmap = {'s'   : 'Seconds',
            '100%': 'Percent',
            }
 
-class rrd_file:
+class RrdFile:
     """Class representing an rrd-file"""
     def __init__(self, rrd_fileid):
         cursor = nav.db.getConnection('rrdpresenter').cursor(
@@ -92,7 +92,7 @@ class datasource:
         self.units    = result['units']
         self.rrd_datasourceid = result['rrd_datasourceid']
         self.linetype = linetype
-        self.rrd_fileobj = rrd_file(result['rrd_fileid'])
+        self.rrd_fileobj = RrdFile(result['rrd_fileid'])
         self.sysname = self.rrd_fileobj.sysname
         self.legend = '%s - %s' % (self.rrd_fileobj.sysname, self.descr)
         cursor.close()
