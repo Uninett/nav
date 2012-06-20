@@ -242,6 +242,7 @@ def attach_rrd_data_to_edges(edges, json=None, debug=False):
     from nav.models.rrd import RrdDataSource
 
     datasources = RrdDataSource.objects.filter(rrd_file__key='interface').select_related('rrd_file')
+    _LOGGER.debug("netmap:attach_rrd_data_to_edges() Datasources fetched done")
 
     datasource_loookup = {}
     for data in datasources:
@@ -250,6 +251,8 @@ def attach_rrd_data_to_edges(edges, json=None, debug=False):
             datasource_loookup[interface].append(data)
         else:
             datasource_loookup.update( {interface: [data] } )
+
+    _LOGGER.debug("netmap:attach_rrd_data_to_edges() Datasources rearranged in dict")
 
     # , u'ifInErrors', u'ifInUcastPkts', u'ifOutErrors', u'ifOutUcastPkts'
     valid_traffic_sources = (
@@ -305,7 +308,6 @@ def attach_rrd_data_to_edges(edges, json=None, debug=False):
                 json_edge['data'].update({'traffic':traffic})
                 break
         #edge_meta.append({'source':j, 'target':k, 'data': traffic})
-
     return json
     #return edge_meta
 
