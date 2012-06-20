@@ -218,7 +218,7 @@ def main(argv):
             continue
 
         # We look at values over the 15 last minutes.
-        pres.fromTime = '-15min'
+        pres.from_time = '-15min'
 
         logger.debug("Getting data from %s (%s)" % (rrd_datasourceid, descr))
         if pres.average():

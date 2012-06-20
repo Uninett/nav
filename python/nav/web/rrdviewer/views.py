@@ -56,7 +56,7 @@ def rrd_details(request, rrddatasource_id, time_frame='week'):
         # Play along with the very legacy nav.rrd.presenter
         presenter_page = presenter.page()
         presentation = presenter.Presentation(
-            tf=time_frame, datasource=rrddatasource.id)
+            time_frame=time_frame, datasource=rrddatasource.id)
         presenter_page.presentations.append(presentation)
 
     return render_to_response(

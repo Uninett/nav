@@ -57,7 +57,7 @@ class Service(models.Model):
             rrd = presenter.Presentation()
             rrd.time_last(time_frame)
             rrd.add_datasource(rds.id)
-            value = rrd.average(onErrorReturn=None, onNanReturn=None)
+            value = rrd.average(on_error_return=None, on_nan_return=None)
             if not value:
                 return None
             else:
