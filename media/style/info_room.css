@@ -10,3 +10,7 @@
 .netbox .interfacetrunk {
     cursor: pointer;
 }
+
+.netbox .activenow {
+    color: #aaaaaa;
+}
