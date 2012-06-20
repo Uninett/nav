@@ -118,7 +118,7 @@ class EventEngine(object):
     def handle_event(self, event):
         "Handles a single event"
         self._logger.debug("handling %r", event)
-        queue = [cls(event) for cls in self.handlers
+        queue = [cls(event, self) for cls in self.handlers
                  if cls.can_handle(event)]
         for handler in queue:
             self._logger.debug("giving event to %s", handler.__class__.__name__)
