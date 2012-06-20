@@ -44,7 +44,7 @@ from nav.web.templates.Netmapdev import Netmapdev
 
 import networkx as nx
 
-logger = logging.getLogger('nav.web.netmapdev.views')
+_LOGGER = logging.getLogger('nav.web.netmapdev.views')
 
 
 def index(request):
