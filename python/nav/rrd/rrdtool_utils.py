@@ -209,10 +209,14 @@ def add_datasource(xml_file, datasource_value):
             datasource_clone = element.cloneNode(True)
             datasource_clone.getElementsByTagName(
                 'name')[0].firstChild.data = ' ds%s ' % datasource_value
-            datasource_clone.getElementsByTagName('min')[0].firstChild.data = ' NaN '
-            datasource_clone.getElementsByTagName('max')[0].firstChild.data = ' NaN '
-            datasource_clone.getElementsByTagName('last_ds')[0].firstChild.data = ' NaN '
-            datasource_clone.getElementsByTagName('value')[0].firstChild.data = ' NaN '
+            datasource_clone.getElementsByTagName('min')[
+            0].firstChild.data = ' NaN '
+            datasource_clone.getElementsByTagName('max')[
+            0].firstChild.data = ' NaN '
+            datasource_clone.getElementsByTagName('last_ds')[
+            0].firstChild.data = ' NaN '
+            datasource_clone.getElementsByTagName('value')[
+            0].firstChild.data = ' NaN '
             datasource_clone.getElementsByTagName(
                 'unknown_sec')[0].firstChild.data = ' 0 '
             break
@@ -234,7 +238,8 @@ def add_datasource(xml_file, datasource_value):
             if counter == datasource_value:
                 text_node = xml_file.createTextNode('\n\n\t')
                 xml_file.documentElement.insertBefore(datasource_clone, node)
-                xml_file.documentElement.insertBefore(text_node, datasource_clone)
+                xml_file.documentElement.insertBefore(text_node,
+                    datasource_clone)
                 break
     else: 
         # Insert the datasource before the original datasource with
@@ -242,13 +247,16 @@ def add_datasource(xml_file, datasource_value):
         inserted = False
         for element in xml_file.documentElement.childNodes:
             if element.nodeName == 'ds':
-                rrd_datasource_name = element.getElementsByTagName('name')[0].firstChild.data
-                current_value = int(re.search('ds(\d+)', rrd_datasource_name).groups()[0])
+                rrd_datasource_name = element.getElementsByTagName('name')[
+                                      0].firstChild.data
+                current_value = int(
+                    re.search('ds(\d+)', rrd_datasource_name).groups()[0])
                 # Check if this is the datasource to be replaced.
                 if current_value == datasource_value and not inserted:
                     text_node = xml_file.createTextNode('\n\n\t')
                     xml_file.documentElement.insertBefore(text_node, element)
-                    xml_file.documentElement.insertBefore(datasource_clone, text_node)
+                    xml_file.documentElement.insertBefore(datasource_clone,
+                        text_node)
                     inserted = True
                     continue
                 # Increment the rest of the datasources by one.
@@ -264,7 +272,8 @@ def add_datasource(xml_file, datasource_value):
             'primary_value')[0].firstChild.data = ' NaN '
         datasource_clone.getElementsByTagName(
             'secondary_value')[0].firstChild.data = ' NaN '
-        datasource_clone.getElementsByTagName('value')[0].firstChild.data = ' NaN '
+        datasource_clone.getElementsByTagName('value')[
+        0].firstChild.data = ' NaN '
         datasource_clone.getElementsByTagName(
             'unknown_datapoints')[0].firstChild.data = ' 0 '
         
@@ -276,7 +285,8 @@ def add_datasource(xml_file, datasource_value):
             cdp.appendChild(text_node)
         else:
             text_node = xml_file.createTextNode('\n\t\t\t')
-            cdp.insertBefore(text_node, cdp.getElementsByTagName('ds')[datasource_value])
+            cdp.insertBefore(text_node,
+                cdp.getElementsByTagName('ds')[datasource_value])
             cdp.insertBefore(datasource_clone, text_node)
 
     # Add columns for all rows in each database
@@ -287,7 +297,8 @@ def add_datasource(xml_file, datasource_value):
         if datasource_value >= datasources:
             row.appendChild(vclone)
         else:
-            row.insertBefore(vclone, row.getElementsByTagName('v')[datasource_value])
+            row.insertBefore(vclone,
+                row.getElementsByTagName('v')[datasource_value])
 
     return xml_file
 
@@ -309,8 +320,10 @@ def remove_datasource(xml_file, datasource_value):
     # Rename the other datasource elements to match sequence
     for node in xml_file.documentElement.childNodes:
         if node.nodeName == 'ds':
-            datasource_name = node.getElementsByTagName('name')[0].firstChild.data
-            datasource_number = int(re.search("(\d+)", datasource_name).groups()[0])
+            datasource_name = node.getElementsByTagName('name')[
+                              0].firstChild.data
+            datasource_number = int(
+                re.search("(\d+)", datasource_name).groups()[0])
             if datasource_number >= datasource_value:
                 # Subtract one and pray.
                 datasource_number -= 1
