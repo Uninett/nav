@@ -66,7 +66,7 @@ UNIT_MAP = {'s': 'Seconds',
 # pylint: disable=R0903
 
 
-class RrdFile:
+class RrdFile(object):
     """Class representing an RRD file"""
 
     def __init__(self, rrd_fileid):
@@ -90,7 +90,7 @@ class RrdFile:
         return rrd_file_path
 
 
-class DataSource:
+class DataSource(object):
     """ Class representing a datasource.
 
     Can perform simple calculations on the datasource """
@@ -136,7 +136,7 @@ class DataSource:
 
 
 # pylint: disable=W0201
-class Presentation:
+class Presentation(object):
     """ Presentation class containing data sources
 
     can contain several data sources and helps to fetch
@@ -539,7 +539,7 @@ class Presentation:
 
 
 # pylint: disable=W0622
-class Page:
+class Page(object):
     """Page represents multiple Presentation's"""
 
     def __init__(self, repr=None):
