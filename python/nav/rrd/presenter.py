@@ -45,7 +45,6 @@ Quick example:
                                  # the two datasources. This link is valid
                                  # for about ten minutes
 """
-# pylint: disable=W0611
 
 CONFIG_FILE = 'rrdviewer/rrdviewer.conf'
 import nav.db
@@ -55,43 +54,49 @@ import rrdtool
 import random
 import glob
 import os
-import warnings
-import operator
 from os import path
 import psycopg2.extras
 
-UNIT_MAP = {'s'   : 'Seconds',
-           '%'   : 'Percent',
-           '100%': 'Percent',
-           }
+UNIT_MAP = {'s': 'Seconds',
+            '%': 'Percent',
+            '100%': 'Percent',
+            }
 
+# ignore class has too few public methods
 # pylint: disable=R0903
+
+
 class RrdFile:
     """Class representing an RRD file"""
+
     def __init__(self, rrd_fileid):
         cursor = nav.db.getConnection('rrdpresenter').cursor(
             cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute("select * from rrd_file natural join netbox "
                        "where rrd_fileid=%s" % rrd_fileid)
         result = cursor.fetchone()
-        self.path      = result['path']
-        self.filename  = result['filename']
-        self.netboxid  = result['netboxid']
-        self.key       = result['key']
-        self.value     = result['value']
+        self.path = result['path']
+        self.filename = result['filename']
+        self.netboxid = result['netboxid']
+        self.key = result['key']
+        self.value = result['value']
         self.subsystem = result['subsystem']
-        self.sysname   = result['sysname']
-        
+        self.sysname = result['sysname']
+
     def full_path(self):
         """ Retreives full file system path for the RRD file
         """
         rrd_file_path = path.join(self.path, self.filename)
         return rrd_file_path
 
-# pylint: disable=R0902
+
 class DataSource:
     """ Class representing a datasource.
-    Can perform simple calculations on the datasource"""
+
+    Can perform simple calculations on the datasource """
+
+    # ignore class has too many instance attributes
+    # pylint: disable=R0902
 
     def __init__(self, rrd_datasourceid, linetype='LINE2'):
         cursor = nav.db.getConnection('rrdpresenter').cursor(
@@ -99,10 +104,10 @@ class DataSource:
         cursor.execute("select * from rrd_datasource "
                        "where rrd_datasourceid=%s" % rrd_datasourceid)
         result = cursor.fetchone()
-        self.name     = result['name']
-        self.description    = result['descr']
-        self.datasource_type   = result['dstype']
-        self.units    = result['units']
+        self.name = result['name']
+        self.description = result['descr']
+        self.datasource_type = result['dstype']
+        self.units = result['units']
         self.rrd_datasourceid = result['rrd_datasourceid']
         self.linetype = linetype
         self.rrd_fileobj = RrdFile(result['rrd_fileid'])
@@ -113,10 +118,10 @@ class DataSource:
     def get_id(self):
         """Retrieves the data source id"""
         return self.rrd_datasourceid
-    
+
     def __eq__(self, obj):
         return obj.rrd_datasourceid == self.rrd_datasourceid
-    
+
     def __str__(self):
         return "%s - %s" % (self.name, self.description)
 
@@ -128,19 +133,20 @@ class DataSource:
         Datasource
         """
         return self.rrd_fileobj.full_path()
-    
+
 
 # pylint: disable=W0201
 class Presentation:
-    """
-    Presentation can contain several data sources and helps to fetch
-    average, sum, max ie from all your data sources
-    """
+    """ Presentation class containing data sources
+
+    can contain several data sources and helps to fetch
+    average, sum, max ie from all your data sources """
+
     def __init__(self, time_frame='day', datasource=''):
         self.datasources = []
         self.none = None
         self.graph_height = 150
-        self.graph_width  = 500
+        self.graph_width = 500
         self.title = ''
         self.time_last(time_frame)
         self.time_frame = time_frame
@@ -158,7 +164,6 @@ class Presentation:
             repr['datasources'].append(datasource.get_id())
         repr['timeframe'] = self.time_frame
         return repr
-        
 
     def units(self):
         """Returns the units of the rrd_datasources contained in the
@@ -169,7 +174,6 @@ class Presentation:
         for i in self.datasources:
             units.append(i.units)
         return units
-        
 
     def add_datasource(self, datasource_id):
         """Adds a datasource to the presentation, returns the default legend"""
@@ -192,15 +196,15 @@ class Presentation:
         for datasource in self.datasources:
             try:
                 raw = rrdtool.fetch(str(datasource.full_path()),
-                                    'AVERAGE','-s ' + str(self.from_time),
-                                    '-e ' + str(self.to_time))
+                    'AVERAGE', '-s ' + str(self.from_time),
+                    '-e ' + str(self.to_time))
 
                 return_dict = {}
-                return_dict['start']  = raw[0][0]
-                return_dict['stop']   = raw[0][1]
+                return_dict['start'] = raw[0][0]
+                return_dict['stop'] = raw[0][1]
                 return_dict['deltaT'] = raw[0][2]
-            
-                row = list(raw [1]).index(datasource.name)
+
+                row = list(raw[1]).index(datasource.name)
                 invalid = 0
                 data = []
 
@@ -233,7 +237,7 @@ class Presentation:
                 sum += i
             sum_list.append(sum)
         return sum_list
-    
+
     def max(self):
         """Returns the local maxima of the valid rrd-data"""
         max_list = []
@@ -261,10 +265,10 @@ class Presentation:
             # needs to be the same in the DEF and PRINT. We use
             # datasource.name.
 
-            rrd_define = str("DEF:%s=%s:%s:AVERAGE" % (datasource.name,
-                                                   datasource.full_path(),
-                                                   datasource.name)
-                         )
+            rrd_define = str("DEF:%s=%s:%s:AVERAGE" % (
+                datasource.name,
+                datasource.full_path(),
+                datasource.name))
             rrd_print = str("PRINT:%s:AVERAGE:%%lf" % (datasource.name))
 
             try:
@@ -272,7 +276,7 @@ class Presentation:
                 # element is a list of values. We fetch only one
                 # value, hence the rrd_tuple[2][0]
                 rrd_tuple = rrdtool.graph('/dev/null', rrd_start, rrd_end,
-                                         rrd_define, rrd_print)
+                    rrd_define, rrd_print)
                 rrd_value = rrd_tuple[2][0]
                 # This works ok with nan aswell.
                 real_value = float(rrd_value)
@@ -287,7 +291,6 @@ class Presentation:
 
         return rrd_values
 
-
     def min(self):
         """Returns the local minima of the valid rrd-data"""
         min_list = []
@@ -295,7 +298,6 @@ class Presentation:
             min_list.append(min(presentation['data']))
         return min_list
 
-        
     def valid_points(self):
         """Returns list of [number of points,number of invalid points,
         invalid/number of points]
@@ -306,18 +308,18 @@ class Presentation:
         for i in raw_rrd_list:
             ret = [len(i['data'])]
             ret.append(i['data'].count(self.none))
-            ret.append(ret[1]/float(ret[0]))
+            ret.append(ret[1] / float(ret[0]))
             valid.append(ret)
         return valid
-            
+
     def time_last(self, time_frame='day', value=1):
         """Sets the timeframe of the presentation
         Currently valid timeframes: year,month,week,hour,day,minute"""
         self.to_time = 'now'
-        if time_frame   == 'year':
+        if time_frame == 'year':
             self.from_time = 'now-%sY' % value
             self._time_frame = 'year'
-            
+
         elif time_frame == 'month':
             self.from_time = 'now-%sm' % value
             self._time_frame = 'month'
@@ -325,39 +327,38 @@ class Presentation:
         elif time_frame == 'week':
             self.from_time = 'now-%sw' % value
             self._time_frame = 'week'
-            
+
         elif time_frame == 'day':
             self.from_time = 'now-%sd' % value
             self._time_frame = 'day'
-            
+
         elif time_frame == 'hour':
             self.from_time = 'now-%sh' % value
             self._time_frame = 'hour'
-            
+
         elif time_frame == 'day':
             self.from_time = 'now-%sd' % value
             self._time_frame = 'day'
-        
+
         else:
             self.from_time = 'now-%smin' % value
             self._time_frame = 'minute'
-             
+
     def remove_all_datasources(self):
         """Removes all datasources from the presentation object"""
         self.datasources = []
-    
+
     def remove_datasource(self, datasource_id):
         """Removes the datasource specified by rrd_datasourceid"""
         datasource = DataSource(datasource_id)
         self.datasources.remove(datasource)
 
-
+    # Yes we want to use the variable y
     # pylint: disable=C0103
     def set_y_axis(self, y):
         """ set y axis"""
         self.y_axis = y
 
-    # pylint: disable=R0914,R0912,W0612
     def graph_url(self):
         """Generates an url to a image representing the current presentation"""
         url = 'graph.py'
@@ -376,41 +377,41 @@ class Presentation:
         if self.y_axis:
             params.append('--rigid')  # Rigid boundry mode
             params.append('--upper-limit')
-            params.append(str(self.y_axis)) # allows 'zooming'
-        units = []    
-       
-        for datasource in self.datasources:
-            color_max = {0:'#6b69e1',
-                         1:'#007F00',
-                         2:'#7F0000',
-                         3:'#007F7F',
-                         4:'#7F7F00'
-                         ,5:'#7F007F'
-                         ,6:'#000022'
-                         ,7:'#002200'
-                         ,8:'#220000'}            
+            params.append(str(self.y_axis))  # allows 'zooming'
+        units = []
 
-            color = {0:"#00cc00",
-                     1:"#0000ff",
-                     2:"#ff0000",
-                     3:"#00ffff",
-                     4:"#ff00ff",
-                     5:"#ffff00",
-                     6:"#cc0000",
-                     7:"#0000cc",
-                     8:"#0080C0",
-                     9:"#8080C0",
-                     10:"#FF0080",
-                     11:"#800080",
-                     12:"#0000A0",
-                     13:"#408080",
-                     14:"#808000",
-                     15:"#000000",
-                     16:"#00FF00",
-                     17:"#0080FF",
-                     18:"#FF8000",
-                     19:"#800000",
-                     20:"#FB31FB"}
+        for datasource in self.datasources:
+            color_max = {0: '#6b69e1',
+                         1: '#007F00',
+                         2: '#7F0000',
+                         3: '#007F7F',
+                         4: '#7F7F00',
+                         5: '#7F007F',
+                         6: '#000022',
+                         7: '#002200',
+                         8: '#220000'}
+
+            color = {0: "#00cc00",
+                     1: "#0000ff",
+                     2: "#ff0000",
+                     3: "#00ffff",
+                     4: "#ff00ff",
+                     5: "#ffff00",
+                     6: "#cc0000",
+                     7: "#0000cc",
+                     8: "#0080C0",
+                     9: "#8080C0",
+                     10: "#FF0080",
+                     11: "#800080",
+                     12: "#0000A0",
+                     13: "#408080",
+                     14: "#808000",
+                     15: "#000000",
+                     16: "#00FF00",
+                     17: "#0080FF",
+                     18: "#FF8000",
+                     19: "#800000",
+                     20: "#FB31FB"}
 
             #color = {0:'#0F0CFF',
             #         1:'#00FF00',
@@ -421,8 +422,8 @@ class Presentation:
             #         6:'#000044',
             #         7:'#004400',
             #         8:'#440000'}
-            rrd_variable = 'avg'+str(index)
-            rrd_max_variable = 'max'+str(index)
+            rrd_variable = 'avg' + str(index)
+            rrd_max_variable = 'max' + str(index)
             rrd_filename = datasource.full_path()
             rrd_datasourcename = datasource.name
             linetype = datasource.linetype
@@ -435,7 +436,7 @@ class Presentation:
                        rrd_datasourcename + ':AVERAGE']
             # Define virtuals to possibly do some percentage magical
             # flipping
-            virtual = 'CDEF:v_'+rrd_variable+'='
+            virtual = 'CDEF:v_' + rrd_variable + '='
             if datasource.units and datasource.units.startswith('-'):
                 # availability is flipped up-side down, revert
                 # and show as percentage
@@ -447,7 +448,7 @@ class Presentation:
                 virtual += rrd_variable
             if datasource.units and datasource.units.endswith("%"):
                 # percent, check if we have to do some scaling...
-                scaling_factor = datasource.units[:-1] # strip %
+                scaling_factor = datasource.units[:-1]  # strip %
                 if scaling_factor.startswith('-'):
                     scaling_factor = scaling_factor[1:]
                 try:
@@ -455,7 +456,7 @@ class Presentation:
                     virtual += ',100,*'
                 except ValueError:
                     pass
-                
+
             params += [virtual]
             params += [linetype + ':v_' + rrd_variable +
                        color[index % len(color)] + ':' + '' + legend + '']
@@ -467,8 +468,8 @@ class Presentation:
                           for i in range(len(a.get('rra')))]):
                 legend += ' - MAX'
                 params += ['DEF:' + rrd_max_variable + '=' + rrd_filename +
-                           ':' + rrd_datasourcename+':MAX']
-                virtual = 'CDEF:v_'+rrd_max_variable+'='
+                           ':' + rrd_datasourcename + ':MAX']
+                virtual = 'CDEF:v_' + rrd_max_variable + '='
                 if datasource.units and datasource.units.startswith('-'):
                     # begins with -
                     # availability is flipped up-side down, revert
@@ -479,7 +480,7 @@ class Presentation:
 
                 if datasource.units and datasource.units.endswith("%"):
                     # percent, check if we have to do some scaling...
-                    scaling_factor = datasource.units[:-1] # strip %
+                    scaling_factor = datasource.units[:-1]  # strip %
                     if scaling_factor.startswith('-'):
                         scaling_factor = scaling_factor[1:]
                     try:
@@ -487,22 +488,24 @@ class Presentation:
                         virtual += ',100,*'
                     except ValueError:
                         pass
-            
+
                 params += [virtual]
                 params += [linetype_max + ':v_' + rrd_max_variable +
                            color_max[index] + ':' + '' + legend + '']
-                
+
             index += 1
-            
+
         if index == 0:
             params += ["COMMENT:''"]
         if units:
-            params.insert(0,'-v')
+            params.insert(0, '-v')
+
             def uniq(list):
                 """Join together with / if there is several different units"""
                 a = {}
                 return [x for x in list
-                        if not a.has_key(x) and a.setdefault(x,True)]
+                        if not a.has_key(x) and a.setdefault(x, True)]
+
             units = uniq(units)
             unit_strings = []
             for unit in units:
@@ -511,22 +514,23 @@ class Presentation:
         id = self.generate_image(*params)
         return '/rrd/image=%s/' % str(id)
 
-    # pylint: disable=R0201,W0702,W0612
-    def generate_image (self, *rrd_params):
+    # ignore no exception type(s) specified
+    # pylint: disable=W0702
+    def generate_image(self, *rrd_params):
         """ generates a image using rrdtool of given data sources in
          a Presenter() instance
         """
         config = nav.config.readConfig(CONFIG_FILE)
-        id = str(random.randint(1, 10**9))
+        id = str(random.randint(1, 10 ** 9))
         image_filename = config['file_prefix'] + id + config['file_suffix']
         rrd_params = (image_filename,) + rrd_params
         try:
             size = rrdtool.graph(*[str(s) for s in rrd_params])
         except rrdtool.error:
             pass
-        deadline = 60*10
+        deadline = 60 * 10
         for i in glob.glob(config['file_prefix'] + '*'):
-            if os.path.getmtime(i) <  (time.time() - deadline):
+            if os.path.getmtime(i) < (time.time() - deadline):
                 try:
                     os.unlink(i)
                 except:
@@ -537,6 +541,7 @@ class Presentation:
 # pylint: disable=W0622
 class Page:
     """Page represents multiple Presentation's"""
+
     def __init__(self, repr=None):
         """
         repr must be a dict as created by serialize()
@@ -569,21 +574,21 @@ class Page:
         repr['timeframe'] = self.time_frame
         repr['name'] = self.name
         return repr
+
     def __repr__(self):
         return self.name
 
     def __str__(self):
         return self.name
-       
 
-        
+
 def graph(request, id):
     """ Renders a graph request from mod_python
     :param id id of stored graph to render
     """
     config = nav.config.readConfig(CONFIG_FILE)
     filename = config['file_prefix'] + id + config['file_suffix']
-    request.content_type  = 'image/gif'
+    request.content_type = 'image/gif'
     request.send_http_header()
     file = open(filename)
     request.write(file.read())
