@@ -141,7 +141,7 @@ class Presentation:
         self.title = ''
         self.time_last(time_frame)
         self.time_frame = time_frame
-        self.showmax = 0
+        self.show_max = 0
         self.y_axis = 0
         if datasource != '':
             self.add_datasource(datasource)
@@ -444,11 +444,11 @@ class Presentation:
                 virtual += rrd_variable
             if datasource.units and datasource.units.endswith("%"):
                 # percent, check if we have to do some scaling...
-                scalingfactor = datasource.units[:-1] # strip %
-                if scalingfactor.startswith('-'):
-                    scalingfactor = scalingfactor[1:]
+                scaling_factor = datasource.units[:-1] # strip %
+                if scaling_factor.startswith('-'):
+                    scaling_factor = scaling_factor[1:]
                 try:
-                    int(scalingfactor)
+                    int(scaling_factor)
                     virtual += ',100,*'
                 except ValueError:
                     pass
@@ -459,7 +459,7 @@ class Presentation:
 
             a = rrdtool.info(str(rrd_filename))
             # HVA I HELVETE SKJER HER!?!?!??!?!
-            if (self.showmax and
+            if (self.show_max and
                 'MAX' in [a.get('rra')[i].get('cf')
                           for i in range(len(a.get('rra')))]):
                 legend += ' - MAX'
@@ -476,11 +476,11 @@ class Presentation:
 
                 if datasource.units and datasource.units.endswith("%"):
                     # percent, check if we have to do some scaling...
-                    scalingfactor = datasource.units[:-1] # strip %
-                    if scalingfactor.startswith('-'):
-                        scalingfactor = scalingfactor[1:]
+                    scaling_factor = datasource.units[:-1] # strip %
+                    if scaling_factor.startswith('-'):
+                        scaling_factor = scaling_factor[1:]
                     try:
-                        int(scalingfactor)
+                        int(scaling_factor)
                         virtual += ',100,*'
                     except ValueError:
                         pass
@@ -513,16 +513,16 @@ class Presentation:
         """ generates a image using rrdtool of given data sources in
          a Presenter() instance
         """
-        conf = nav.config.readConfig(CONFIG_FILE)
+        config = nav.config.readConfig(CONFIG_FILE)
         id = str(random.randint(1, 10**9))
-        imagefilename = conf['file_prefix'] + id + conf['file_suffix']
-        rrd_params = (imagefilename,) + rrd_params
+        image_filename = config['file_prefix'] + id + config['file_suffix']
+        rrd_params = (image_filename,) + rrd_params
         try:
             size = rrdtool.graph(*[str(s) for s in rrd_params])
         except rrdtool.error:
             pass
         deadline = 60*10
-        for i in glob.glob(conf['file_prefix'] + '*'):
+        for i in glob.glob(config['file_prefix'] + '*'):
             if os.path.getmtime(i) <  (time.time() - deadline):
                 try:
                     os.unlink(i)
