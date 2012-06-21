@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# pylint: disable=C0111
 
 import os
 import re
@@ -30,7 +29,6 @@ class FileNotRRDError(GeneralException):
     pass
 
 
-# pylint: disable=R0912,R0914,W0612
 def add_datasource(rrd_file):
     """ Takes as input the full path to an rrdfile and tries to add a
     datasource to that file. The default values of the heartbeat, type and so
