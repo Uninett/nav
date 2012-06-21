@@ -35,7 +35,7 @@ def redirectToLogin(req):
     from nav import web
     if 'X-NAV-AJAX' in req.headers_in:
         from mod_python import apache
-        raise apache.SERVER_RETURN, 401
+        raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
     else:
         web.redirect(req,
                  '/index/login?origin=%s' % urllib.quote(req.unparsed_uri),
