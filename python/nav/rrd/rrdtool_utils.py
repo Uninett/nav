@@ -13,7 +13,6 @@ from xml.dom.minidom import parseString
 """
 Heavily depending on that the datasources are named ds0, ds1 and so forth.
 Supports rrdtool up to and including version 1.3.
-Author: John-Magne Bredal <john.m.bredal@ntnu.no>
 
 TODO:
 - Able to remove more than one datasource.
@@ -65,59 +64,59 @@ def main(options, args):
     Handle the options.
     """
     if not options.rrdfile:
-        print "You must specify a rrdfile."
+        print "You must specify a rrd_file."
         return
 
-    rrdfile = options.rrdfile
+    rrd_file = options.rrdfile
 
     if options.info:
-        rrd_info(rrdfile)
+        rrd_info(rrd_file)
     elif options.removeds:
         try:
-            edit_datasource(rrdfile, options.removeds, 'remove')
+            edit_datasource(rrd_file, options.removeds, 'remove')
         except Exception, e:
             print e
     elif options.add:
         try:
-            edit_datasource(rrdfile, options.add, 'add')
+            edit_datasource(rrd_file, options.add, 'add')
         except Exception, e:
             print e        
     else:
         print "You need to specify what to do with the file (-h)."
         
     
-def rrd_info(rrdfile, raw=False):
+def rrd_info(rrd_file, raw=False):
     """ 
     Intended use is from shell. If you want the whole dict returned by
     rrdtool.info, set raw to true.
     """
-    fileinfo = rrdtool.info(rrdfile)
+    file_info = rrdtool.info(rrd_file)
     
     if raw: 
-        return fileinfo
+        return file_info
     
-    if not fileinfo.has_key('ds'):
+    if not file_info.has_key('ds'):
         #=======================================================================
         # In version 1.3 the output from info is totally different. We just 
         # print a key/value output.
         #=======================================================================
-        for key in sorted(fileinfo.keys()):
-            print "%s: %s" % (key, fileinfo[key])
+        for key in sorted(file_info.keys()):
+            print "%s: %s" % (key, file_info[key])
         return
 
-    print "%s last updated %s" % (fileinfo['filename'],
-                                 time.ctime(fileinfo['last_update']))
+    print "%s last updated %s" % (file_info['filename'],
+                                 time.ctime(file_info['last_update']))
     print "Datasources (datasource: datasourcename):"
-    for ds in sorted(fileinfo['ds'].items()):
+    for ds in sorted(file_info['ds'].items()):
         print "  %s: %s" % (ds[0], ds[1]['ds_name'])
 
-    print "RRA's (Step = %s):" % (fileinfo['step'])
+    print "RRA's (Step = %s):" % (file_info['step'])
 
-    for rra in fileinfo['rra']:
+    for rra in file_info['rra']:
         print "  %s: %s/%s" % (rra['cf'], rra['pdp_per_row'], rra['rows'])
 
 
-def edit_datasource(rrdfile, name, action):
+def edit_datasource(rrd_file, name, action):
     """
     Attempt to add or remove a datasource by dumping the rrdfile to
     xml and adding or removing the elements matching the datasource
@@ -130,61 +129,61 @@ def edit_datasource(rrdfile, name, action):
       x is a number.
     """
 
-    tempdir = tempfile.gettempdir()
-    restorefile = join(tempdir, 'rrdtool_utils_restore.xml')
+    temp_dir = tempfile.gettempdir()
+    restore_file = join(temp_dir, 'rrdtool_utils_restore.xml')
 
     # Check if file exists
-    if not os.access(rrdfile, os.F_OK):
-        raise FileDoesNotExistException(rrdfile)
+    if not os.access(rrd_file, os.F_OK):
+        raise FileDoesNotExistException(rrd_file)
     
     # Check if file is writable
-    if not os.access(rrdfile, os.W_OK):
-        raise FileNotWritableException(rrdfile)
+    if not os.access(rrd_file, os.W_OK):
+        raise FileNotWritableException(rrd_file)
 
     # Check if we can write to /tmp
     try:
-        f = open(restorefile, 'w')
+        f = open(restore_file, 'w')
     except Exception, e:
-        raise CannotWriteToTmpException(restorefile)
+        raise CannotWriteToTmpException(restore_file)
 
     # Dump rrd to xml
     try:
-        output = Popen(['rrdtool', 'dump', rrdfile], 
+        output = Popen(['rrdtool', 'dump', rrd_file],
                        stdout=PIPE).communicate()[0]
     except OSError, oserror:
         raise ErrorRunningRRDToolException(oserror)
 
     # Read xml-file
-    xmlfile = parseString(output)
+    xml_file = parseString(output)
     
     # Find index of datasource
     m = re.search('ds(\d+)', name)
     if m:
-        dsvalue = int(m.groups()[0])
+        rrd_datasource_value = int(m.groups()[0])
     else:
         raise InvalidDatasourceNameException(name)
 
     # Add or delete datasource based on input parameter
     if action == 'add':
-        xmlfile = add_datasource(xmlfile, dsvalue)
+        xml_file = add_datasource(xml_file, rrd_datasource_value)
     elif action == 'remove':
-        xmlfile = remove_datasource(xmlfile, dsvalue)
+        xml_file = remove_datasource(xml_file, rrd_datasource_value)
 
     # rrdtool restore needs a file to restore from
-    f = open(restorefile, 'w')
-    xmlfile.writexml(f)
+    f = open(restore_file, 'w')
+    xml_file.writexml(f)
     f.close()
 
     # Create backup file before restoring
-    output = Popen(['cp', '-b', rrdfile, rrdfile + '.bak'],
+    output = Popen(['cp', '-b', rrd_file, rrd_file + '.bak'],
                    stdout=PIPE).communicate()[0]
 
     # Restore xml-file to rrd (force overwrite)
-    output = Popen(['rrdtool', 'restore', restorefile, rrdfile, '-f'],
+    output = Popen(['rrdtool', 'restore', restore_file, rrd_file, '-f'],
                    stdout=PIPE).communicate()[0]
 
     # Remove restore file
-    os.remove(restorefile)
+    os.remove(restore_file)
 
 
 def add_datasource(xmlfile, dsvalue):
