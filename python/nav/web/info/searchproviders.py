@@ -14,26 +14,19 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+""" Module containing different searchproviders used for searching in NAV """
+
+from collections import namedtuple
 from django.core.urlresolvers import reverse
 
 from nav.models.manage import Room, Netbox
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
 
-class SearchResult():
-    """
-    Container for searchresults
-    """
-    def __init__(self, text, href, inst=None):
-        self.text = text
-        self.href = href
-        self.inst = inst
-
+SearchResult = namedtuple("SearchResult", ['text', 'href', 'inst'])
 
 class SearchProvider(object):
-    """
-    Searchprovider interface
-    """
+    """Searchprovider interface"""
     name = "SearchProvider"
 
     def __init__(self, query=""):
@@ -47,9 +40,7 @@ class SearchProvider(object):
 
 
 class RoomSearchProvider(SearchProvider):
-    """
-    Searchprovider for rooms
-    """
+    """Searchprovider for rooms"""
     name = "Rooms"
 
     def fetch_results(self):
@@ -60,9 +51,7 @@ class RoomSearchProvider(SearchProvider):
 
 
 class NetboxSearchProvider(SearchProvider):
-    """
-    Searchprovider for netboxes
-    """
+    """Searchprovider for netboxes"""
     name = "Netboxes"
 
     def fetch_results(self):
@@ -79,8 +68,8 @@ class NetboxSearchProvider(SearchProvider):
 
 
 class FallbackSearchProvider(SearchProvider):
-    """
-    Fallback searchprovider if no results are found.
+    """Fallback searchprovider if no results are found.
+
     Two cases:
     1 - if ip, send to ipdevinfos name lookup
     2 - if valid text based on ipdevinfos regexp, send to ipdevinfo
