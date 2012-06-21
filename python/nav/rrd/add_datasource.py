@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# pylint: disable=C0111
 
 import os
 import re
@@ -9,9 +10,9 @@ from xml.dom import minidom
 from nav import natsort
 from nav.errors import GeneralException
 
+
 TMPPATH = '/tmp' # Path for storing temporary files
 
-__author__ = "John-Magne Bredal <john.m.bredal@ntnu.no>"
 
 
 class FileNotFoundError(GeneralException):
@@ -29,7 +30,8 @@ class FileNotRRDError(GeneralException):
     pass
 
 
-def add_datasource(rrdfile):
+# pylint: disable=R0912,R0914,W0612
+def add_datasource(rrd_file):
     """ Takes as input the full path to an rrdfile and tries to add a
     datasource to that file. The default values of the heartbeat, type and so
     on are used.
@@ -39,67 +41,67 @@ def add_datasource(rrdfile):
     NB: Works for RRDtool 1.2.x up to 1.3.1
     """
 
-    if not os.path.isfile(rrdfile):
-        raise FileNotFoundError(rrdfile)
+    if not os.path.isfile(rrd_file):
+        raise FileNotFoundError(rrd_file)
 
-    if not os.access(rrdfile, os.W_OK):
-        raise FileNotWritableError(rrdfile)
+    if not os.access(rrd_file, os.W_OK):
+        raise FileNotWritableError(rrd_file)
 
-    def addOneToMatch(obj):
+    def add_one_to_match(obj):
         """ Add one to a regexp match object """
         return str(int(obj.group()) + 1)
 
     # Get headerinfo for the datasources. We assume every option except the
     # type and name is the same for the new one.
     try:
-        rrdheader = rrdtool.info(rrdfile)
-    except Exception, e:
-        raise FileNotRRDError(rrdfile)
+        rrd_header = rrdtool.info(rrd_file)
+    except Exception:
+        raise FileNotRRDError(rrd_file)
     
-    rrddsinfo = rrdheader['ds']['ds0']
+    rrd_datasource_info = rrd_header['ds']['ds0']
 
     # Find last datasource in file to set correct name for the new one. A bit
     # cricket-specific as we assume the ds_name is equal to ds<number>
-    lastdatasource = sorted(rrdheader['ds'].keys(), natsort.natcmp)[-1]
-    newdatasource = re.sub('(\d+)', addOneToMatch, lastdatasource)
+    last_datasource = sorted(rrd_header['ds'].keys(), natsort.natcmp)[-1]
+    new_datasource = re.sub('(\d+)', add_one_to_match, last_datasource)
 
     # We have all the data we are to insert, lets parse the xml and insert new
     # data.
-    xmlfile = dump_rrd_to_xml(rrdfile)
-    xml = minidom.parseString(xmlfile)
+    xml_file = dump_rrd_to_xml(rrd_file)
+    xml = minidom.parseString(xml_file)
 
     # Find all ds-elements, effectively saving the last one
-    lastds = [n for n in xml.documentElement.childNodes
+    last_datasource_in_rrd = [n for n in xml.documentElement.childNodes
               if n.nodeType == n.ELEMENT_NODE and n.nodeName == 'ds'][-1]
 
     # If we have a last ds-element, use that to create a clone, replace values
     # in the clone and insert it into the xml document
-    if lastds:
+    if last_datasource_in_rrd:
         # clone this element, replace values in clone with the ones we want
-        clone = lastds.cloneNode(deep=True)
+        clone = last_datasource_in_rrd.cloneNode(deep=True)
 
-        for e in clone.childNodes:
-            if e.nodeType == e.ELEMENT_NODE:
-                if e.nodeName == 'name':
-                    text = xml.createTextNode(newdatasource)
-                    e.replaceChild(text, e.firstChild)
-                elif e.nodeName == 'value':
+        for node in clone.childNodes:
+            if node.nodeType == node.ELEMENT_NODE:
+                if node.nodeName == 'name':
+                    text = xml.createTextNode(new_datasource)
+                    node.replaceChild(text, node.firstChild)
+                elif node.nodeName == 'value':
                     text = xml.createTextNode('0.0000000000e+00')
-                    e.replaceChild(text, e.firstChild)
-                elif e.nodeName == 'last_ds':
+                    node.replaceChild(text, node.firstChild)
+                elif node.nodeName == 'last_ds':
                     text = xml.createTextNode('UNKN')
-                    e.replaceChild(text, e.firstChild)
-                elif e.nodeName == 'unknown_sec':
+                    node.replaceChild(text, node.firstChild)
+                elif node.nodeName == 'unknown_sec':
                     text = xml.createTextNode('0')
-                    e.replaceChild(text, e.firstChild)
+                    node.replaceChild(text, node.firstChild)
 
         # find next sibling, insert clone before next sibling
-        nextsibling = lastds.nextSibling
-        xml.documentElement.insertBefore(clone, nextsibling)
+        next_sibling = last_datasource_in_rrd.nextSibling
+        xml.documentElement.insertBefore(clone, next_sibling)
 
     # Find all cdp_prep elements and add childelement to them
     for element in xml.getElementsByTagName('cdp_prep'):
-        ds = xml.createElement('ds')
+        rrd_datasource = xml.createElement('ds')
 
         pvalue = xml.createElement('primary_value')
         pvalue.appendChild(xml.createTextNode('0.0000000000e+00'))
@@ -113,12 +115,12 @@ def add_datasource(rrdfile):
         unknown = xml.createElement('unknown_datapoints')
         unknown.appendChild(xml.createTextNode('0'))
 
-        ds.appendChild(pvalue)
-        ds.appendChild(svalue)
-        ds.appendChild(value)
-        ds.appendChild(unknown)
+        rrd_datasource.appendChild(pvalue)
+        rrd_datasource.appendChild(svalue)
+        rrd_datasource.appendChild(value)
+        rrd_datasource.appendChild(unknown)
 
-        element.appendChild(ds)
+        element.appendChild(rrd_datasource)
 
     # Append a value-node to each row-node
     for element in xml.getElementsByTagName('row'):
@@ -126,21 +128,21 @@ def add_datasource(rrdfile):
         value.appendChild(xml.createTextNode('NaN'))
         element.appendChild(value)
 
-    # Write xmlfile to disk as rrdrestore demands a file
-    tmppath = os.path.join(TMPPATH, 'adddatasource.xml')
-    f = open(tmppath, 'w')
-    f.write(xml.toxml())
-    f.close()
+    # Write xml_file to disk as rrdrestore demands a file
+    tmp_path = os.path.join(TMPPATH, 'adddatasource.xml')
+    filehandle = open(tmp_path, 'w')
+    filehandle.write(xml.toxml())
+    filehandle.close()
 
-    output = rrd_restore(tmppath, rrdfile)
+    output = rrd_restore(tmp_path, rrd_file)
 
     return output
 
 
-def dump_rrd_to_xml(file):
+def dump_rrd_to_xml(filename):
     """ Try to dump the file given to xml using rrddump """
 
-    output = Popen(["rrdtool", "dump", file], stdout=PIPE).communicate()[0]
+    output = Popen(["rrdtool", "dump", filename], stdout=PIPE).communicate()[0]
 
     return output
 
