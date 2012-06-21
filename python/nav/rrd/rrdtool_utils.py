@@ -292,41 +292,41 @@ def add_datasource(xml_file, datasource_value):
     return xml_file
 
 
-def remove_datasource(xmlfile, dsvalue):
+def remove_datasource(xml_file, datasource_value):
     """
     Edit xml-file to remove all elements regarding the datasource
     value given as input.
     """
     # Check if index is out of bounds
-    datasources = find_number_of_datasources(xmlfile)
-    if dsvalue >= datasources:
-        raise OutofBoundsException(dsvalue, datasources)
+    datasources = find_number_of_datasources(xml_file)
+    if datasource_value >= datasources:
+        raise OutofBoundsException(datasource_value, datasources)
 
     # Remove datasource element
-    xmlfile.documentElement.removeChild(
-        xmlfile.documentElement.getElementsByTagName('ds')[dsvalue])
+    xml_file.documentElement.removeChild(
+        xml_file.documentElement.getElementsByTagName('ds')[datasource_value])
 
     # Rename the other datasource elements to match sequence
-    for node in xmlfile.documentElement.childNodes:
+    for node in xml_file.documentElement.childNodes:
         if node.nodeName == 'ds':
-            dsname = node.getElementsByTagName('name')[0].firstChild.data
-            dsnumber = int(re.search("(\d+)", dsname).groups()[0])
-            if dsnumber >= dsvalue:
+            datasource_name = node.getElementsByTagName('name')[0].firstChild.data
+            datasource_number = int(re.search("(\d+)", datasource_name).groups()[0])
+            if datasource_number >= datasource_value:
                 # Subtract one and pray.
-                dsnumber -= 1
+                datasource_number -= 1
                 node.getElementsByTagName(
-                    'name')[0].firstChild.data = " ds%s " % dsnumber
+                    'name')[0].firstChild.data = " ds%s " % datasource_number
             
     # Remove all ds-elements from all cdp-preps
-    for cdp in xmlfile.getElementsByTagName('cdp_prep'):
-        cdp.removeChild(cdp.getElementsByTagName('ds')[dsvalue])
+    for cdp in xml_file.getElementsByTagName('cdp_prep'):
+        cdp.removeChild(cdp.getElementsByTagName('ds')[datasource_value])
 
     # Remove v-element from all rows in all database-elements
-    for db in xmlfile.getElementsByTagName('database'):
-        for row in db.getElementsByTagName('row'):
-            row.removeChild(row.getElementsByTagName('v')[dsvalue])
+    for database in xml_file.getElementsByTagName('database'):
+        for row in database.getElementsByTagName('row'):
+            row.removeChild(row.getElementsByTagName('v')[datasource_value])
 
-    return xmlfile
+    return xml_file
 
 
 def find_number_of_datasources(xmlfile):
