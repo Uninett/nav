@@ -93,21 +93,21 @@ def main(options, args):
         try:
             edit_datasource(rrd_file, options.add, 'add')
         except Exception, e:
-            print e        
+            print e
     else:
         print "You need to specify what to do with the file (-h)."
-        
-    
+
+
 def rrd_info(rrd_file, raw=False):
     """ 
     Intended use is from shell. If you want the whole dict returned by
     rrdtool.info, set raw to true.
     """
     file_info = rrdtool.info(rrd_file)
-    
-    if raw: 
+
+    if raw:
         return file_info
-    
+
     if not file_info.has_key('ds'):
         #=======================================================================
         # In version 1.3 the output from info is totally different. We just 
@@ -148,7 +148,7 @@ def edit_datasource(rrd_file, name, action):
     # Check if file exists
     if not os.access(rrd_file, os.F_OK):
         raise FileDoesNotExistException(rrd_file)
-    
+
     # Check if file is writable
     if not os.access(rrd_file, os.W_OK):
         raise FileNotWritableException(rrd_file)
@@ -168,7 +168,7 @@ def edit_datasource(rrd_file, name, action):
 
     # Read xml-file
     xml_file = parseString(output)
-    
+
     # Find index of datasource
     is_match = re.search('ds(\d+)', name)
     if is_match:
@@ -241,7 +241,7 @@ def add_datasource(xml_file, datasource_value):
                 xml_file.documentElement.insertBefore(text_node,
                     datasource_clone)
                 break
-    else: 
+    else:
         # Insert the datasource before the original datasource with
         # the same name, effectively skewing all the others one up.
         inserted = False
@@ -263,11 +263,12 @@ def add_datasource(xml_file, datasource_value):
                 if current_value >= datasource_value:
                     element.getElementsByTagName('name')[0].firstChild.data = \
                         " ds%s " % (current_value + 1)
-                    
+
     # Add cdp_prep
-    for cdp in xml_file.getElementsByTagName('cdp_prep'):
+    for consolidated_data_point in xml_file.getElementsByTagName('cdp_prep'):
         # Clone first element, modify clone
-        datasource_clone = cdp.getElementsByTagName('ds')[0].cloneNode(True)
+        datasource_clone = consolidated_data_point.getElementsByTagName('ds')[
+                           0].cloneNode(True)
         datasource_clone.getElementsByTagName(
             'primary_value')[0].firstChild.data = ' NaN '
         datasource_clone.getElementsByTagName(
@@ -276,18 +277,19 @@ def add_datasource(xml_file, datasource_value):
         0].firstChild.data = ' NaN '
         datasource_clone.getElementsByTagName(
             'unknown_datapoints')[0].firstChild.data = ' 0 '
-        
+
         if datasource_value >= datasources:
             # Modify last textnode for prettymaking
-            cdp.lastChild.data = "\n\t\t\t"
+            consolidated_data_point.lastChild.data = "\n\t\t\t"
             text_node = xml_file.createTextNode('\n\t\t')
-            cdp.appendChild(datasource_clone)
-            cdp.appendChild(text_node)
+            consolidated_data_point.appendChild(datasource_clone)
+            consolidated_data_point.appendChild(text_node)
         else:
             text_node = xml_file.createTextNode('\n\t\t\t')
-            cdp.insertBefore(text_node,
-                cdp.getElementsByTagName('ds')[datasource_value])
-            cdp.insertBefore(datasource_clone, text_node)
+            consolidated_data_point.insertBefore(text_node,
+                consolidated_data_point.getElementsByTagName('ds')[
+                datasource_value])
+            consolidated_data_point.insertBefore(datasource_clone, text_node)
 
     # Add columns for all rows in each database
     for row in xml_file.getElementsByTagName('row'):
@@ -329,7 +331,7 @@ def remove_datasource(xml_file, datasource_value):
                 datasource_number -= 1
                 node.getElementsByTagName(
                     'name')[0].firstChild.data = " ds%s " % datasource_number
-            
+
     # Remove all ds-elements from all cdp-preps
     for cdp in xml_file.getElementsByTagName('cdp_prep'):
         cdp.removeChild(cdp.getElementsByTagName('ds')[datasource_value])
@@ -352,7 +354,7 @@ def find_number_of_datasources(xmlfile):
             number_of_datasources += 1
 
     return number_of_datasources
-    
+
 
 if __name__ == '__main__':
     """
