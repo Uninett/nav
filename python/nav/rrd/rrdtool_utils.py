@@ -21,40 +21,53 @@ TODO:
 """
 
 class FileDoesNotExistException(Exception):
+    """ File does not exist exception """
+
     def __init__(self, filename):
         self.filename = filename
     def __str__(self):
         return "%s does not exist." % self.filename
 
 class FileNotWritableException(Exception):
+    """ File not writable exception """
+
     def __init__(self, filename):
         self.filename = filename
     def __str__(self):
         return "%s is not writable." % self.filename
 
 class InvalidDatasourceNameException(Exception):
-    def __init__(self, dsname):
-        self.dsname = dsname
+    """ Invalid data source name exception """
+
+    def __init__(self, datasource_name):
+        self.datasource_name = datasource_name
     def __str__(self):
-        return "%s is not a valid datasourcename." % self.dsname
+        return "%s is not a valid datasourcename." % self.datasource_name
 
 class OutofBoundsException(Exception):
-    def __init__(self, dsname, numds):
-        self.dsname = dsname
-        self.numds = numds
+    """ Out of bounds exception """
+
+    def __init__(self, datasource_name, number_datasources):
+        self.datasource_name = datasource_name
+        self.number_datasources = number_datasources
     def __str__(self):
         return ("Datasource %s is out of bounds. File has only %s datasources "
-                "(0-%s)." % (self.dsname, self.numds, self.numds - 1))
+                "(0-%s)." % (self.datasource_name, self.number_datasources,
+                             self.number_datasources - 1))
 
 class CannotWriteToTmpException(Exception):
-    def __init__(self, restorefile):
-        self.restorefile = restorefile
+    """ Cannot write to tmp exception """
+
+    def __init__(self, restore_file):
+        self.restorefile = restore_file
     def __str__(self):
         return "Cannot write to /tmp - this is needed to restore the rrd file."
 
 class ErrorRunningRRDToolException(Exception):
-    def __init__(self, errormessage):
-        self.errormessage = errormessage
+    """ Error running RRDTool exception """
+
+    def __init__(self, error_message):
+        self.errormessage = error_message
     def __str__(self):
         return "Error running rrdtool: %s" % self.errormessage
 
@@ -107,8 +120,8 @@ def rrd_info(rrd_file, raw=False):
     print "%s last updated %s" % (file_info['filename'],
                                  time.ctime(file_info['last_update']))
     print "Datasources (datasource: datasourcename):"
-    for ds in sorted(file_info['ds'].items()):
-        print "  %s: %s" % (ds[0], ds[1]['ds_name'])
+    for datasource in sorted(file_info['ds'].items()):
+        print "  %s: %s" % (datasource[0], datasource[1]['ds_name'])
 
     print "RRA's (Step = %s):" % (file_info['step'])
 
@@ -142,8 +155,8 @@ def edit_datasource(rrd_file, name, action):
 
     # Check if we can write to /tmp
     try:
-        f = open(restore_file, 'w')
-    except Exception, e:
+        filehandle = open(restore_file, 'w')
+    except Exception:
         raise CannotWriteToTmpException(restore_file)
 
     # Dump rrd to xml
@@ -157,9 +170,9 @@ def edit_datasource(rrd_file, name, action):
     xml_file = parseString(output)
     
     # Find index of datasource
-    m = re.search('ds(\d+)', name)
-    if m:
-        rrd_datasource_value = int(m.groups()[0])
+    is_match = re.search('ds(\d+)', name)
+    if is_match:
+        rrd_datasource_value = int(is_match.groups()[0])
     else:
         raise InvalidDatasourceNameException(name)
 
@@ -170,9 +183,9 @@ def edit_datasource(rrd_file, name, action):
         xml_file = remove_datasource(xml_file, rrd_datasource_value)
 
     # rrdtool restore needs a file to restore from
-    f = open(restore_file, 'w')
-    xml_file.writexml(f)
-    f.close()
+    filehandle = open(restore_file, 'w')
+    xml_file.writexml(filehandle)
+    filehandle.close()
 
     # Create backup file before restoring
     output = Popen(['cp', '-b', rrd_file, rrd_file + '.bak'],
@@ -186,97 +199,97 @@ def edit_datasource(rrd_file, name, action):
     os.remove(restore_file)
 
 
-def add_datasource(xmlfile, dsvalue):
+def add_datasource(xml_file, datasource_value):
     # I do quite some prettymaking here with the textnodes. It is not
     # certain that this is needed, and it clutters the code a bit.
 
     # Find first available datasource, clone and modify it.
-    for element in xmlfile.documentElement.childNodes:
+    for element in xml_file.documentElement.childNodes:
         if element.nodeName == 'ds':
-            dsclone = element.cloneNode(True)
-            dsclone.getElementsByTagName(
-                'name')[0].firstChild.data = ' ds%s ' % dsvalue
-            dsclone.getElementsByTagName('min')[0].firstChild.data = ' NaN '
-            dsclone.getElementsByTagName('max')[0].firstChild.data = ' NaN '
-            dsclone.getElementsByTagName('last_ds')[0].firstChild.data = ' NaN '
-            dsclone.getElementsByTagName('value')[0].firstChild.data = ' NaN '
-            dsclone.getElementsByTagName(
+            datasource_clone = element.cloneNode(True)
+            datasource_clone.getElementsByTagName(
+                'name')[0].firstChild.data = ' ds%s ' % datasource_value
+            datasource_clone.getElementsByTagName('min')[0].firstChild.data = ' NaN '
+            datasource_clone.getElementsByTagName('max')[0].firstChild.data = ' NaN '
+            datasource_clone.getElementsByTagName('last_ds')[0].firstChild.data = ' NaN '
+            datasource_clone.getElementsByTagName('value')[0].firstChild.data = ' NaN '
+            datasource_clone.getElementsByTagName(
                 'unknown_sec')[0].firstChild.data = ' 0 '
             break
 
     # Set dsvalue to max allowed value if it to be appended
-    datasources = find_number_of_datasources(xmlfile)
-    if dsvalue >= datasources:
+    datasources = find_number_of_datasources(xml_file)
+    if datasource_value >= datasources:
         # We cannot use append as this is not the last element (and
         # rrdrestore slapped me hard for saying it didn't matter).
         # Walk through all ds-elements and insert after the last one.
-        dsvalue = datasources # max value
-        dsclone.getElementsByTagName(
-            'name')[0].firstChild.data = ' ds%s ' % dsvalue
+        datasource_value = datasources # max value
+        datasource_clone.getElementsByTagName(
+            'name')[0].firstChild.data = ' ds%s ' % datasource_value
         counter = 0
-        for e in xmlfile.documentElement.childNodes:
-            if e.nodeName == 'ds':
+        for node in xml_file.documentElement.childNodes:
+            if node.nodeName == 'ds':
                 counter += 1
                 continue
-            if counter == dsvalue:
-                textnode = xmlfile.createTextNode('\n\n\t')
-                xmlfile.documentElement.insertBefore(dsclone, e)
-                xmlfile.documentElement.insertBefore(textnode, dsclone)
+            if counter == datasource_value:
+                text_node = xml_file.createTextNode('\n\n\t')
+                xml_file.documentElement.insertBefore(datasource_clone, node)
+                xml_file.documentElement.insertBefore(text_node, datasource_clone)
                 break
     else: 
         # Insert the datasource before the original datasource with
         # the same name, effectively skewing all the others one up.
         inserted = False
-        for element in xmlfile.documentElement.childNodes:
+        for element in xml_file.documentElement.childNodes:
             if element.nodeName == 'ds':
-                dsname = element.getElementsByTagName('name')[0].firstChild.data
-                currentvalue = int(re.search('ds(\d+)', dsname).groups()[0])
+                rrd_datasource_name = element.getElementsByTagName('name')[0].firstChild.data
+                current_value = int(re.search('ds(\d+)', rrd_datasource_name).groups()[0])
                 # Check if this is the datasource to be replaced.
-                if currentvalue == dsvalue and not inserted:
-                    textnode = xmlfile.createTextNode('\n\n\t')
-                    xmlfile.documentElement.insertBefore(textnode, element)
-                    xmlfile.documentElement.insertBefore(dsclone, textnode)
+                if current_value == datasource_value and not inserted:
+                    text_node = xml_file.createTextNode('\n\n\t')
+                    xml_file.documentElement.insertBefore(text_node, element)
+                    xml_file.documentElement.insertBefore(datasource_clone, text_node)
                     inserted = True
                     continue
                 # Increment the rest of the datasources by one.
-                if currentvalue >= dsvalue:
+                if current_value >= datasource_value:
                     element.getElementsByTagName('name')[0].firstChild.data = \
-                        " ds%s " % (currentvalue + 1)
+                        " ds%s " % (current_value + 1)
                     
     # Add cdp_prep
-    for cdp in xmlfile.getElementsByTagName('cdp_prep'):
+    for cdp in xml_file.getElementsByTagName('cdp_prep'):
         # Clone first element, modify clone
-        dsclone = cdp.getElementsByTagName('ds')[0].cloneNode(True)
-        dsclone.getElementsByTagName(
+        datasource_clone = cdp.getElementsByTagName('ds')[0].cloneNode(True)
+        datasource_clone.getElementsByTagName(
             'primary_value')[0].firstChild.data = ' NaN '
-        dsclone.getElementsByTagName(
+        datasource_clone.getElementsByTagName(
             'secondary_value')[0].firstChild.data = ' NaN '
-        dsclone.getElementsByTagName('value')[0].firstChild.data = ' NaN '
-        dsclone.getElementsByTagName(
+        datasource_clone.getElementsByTagName('value')[0].firstChild.data = ' NaN '
+        datasource_clone.getElementsByTagName(
             'unknown_datapoints')[0].firstChild.data = ' 0 '
         
-        if dsvalue >= datasources:
+        if datasource_value >= datasources:
             # Modify last textnode for prettymaking
             cdp.lastChild.data = "\n\t\t\t"
-            textnode = xmlfile.createTextNode('\n\t\t')
-            cdp.appendChild(dsclone)
-            cdp.appendChild(textnode)
+            text_node = xml_file.createTextNode('\n\t\t')
+            cdp.appendChild(datasource_clone)
+            cdp.appendChild(text_node)
         else:
-            textnode = xmlfile.createTextNode('\n\t\t\t')
-            cdp.insertBefore(textnode, cdp.getElementsByTagName('ds')[dsvalue])
-            cdp.insertBefore(dsclone, textnode)
+            text_node = xml_file.createTextNode('\n\t\t\t')
+            cdp.insertBefore(text_node, cdp.getElementsByTagName('ds')[datasource_value])
+            cdp.insertBefore(datasource_clone, text_node)
 
     # Add columns for all rows in each database
-    for row in xmlfile.getElementsByTagName('row'):
+    for row in xml_file.getElementsByTagName('row'):
         # Clone first element, modify clone
         vclone = row.getElementsByTagName('v')[0].cloneNode(True)
         vclone.firstChild.data = ' NaN '
-        if dsvalue >= datasources:
+        if datasource_value >= datasources:
             row.appendChild(vclone)
         else:
-            row.insertBefore(vclone, row.getElementsByTagName('v')[dsvalue])
+            row.insertBefore(vclone, row.getElementsByTagName('v')[datasource_value])
 
-    return xmlfile
+    return xml_file
 
 
 def remove_datasource(xmlfile, dsvalue):
