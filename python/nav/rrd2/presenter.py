@@ -75,7 +75,7 @@ class Presentation(object):
     average, sum, max ie from all your data sources """
 
     def __init__(self, time_frame='day', datasource=None):
-        self.datasources = []
+        self.datasources = set()
         self.none = None
         self.graph_height = 150
         self.graph_width = 500
@@ -115,14 +115,14 @@ class Presentation(object):
             except ValueError, error:
                 _LOGGER.warning(error)
 
-                self.datasources.remove(
-                    [remove_datasource for remove_datasource in transaction if
-                     remove_datasource in self.datasources])
+                [self.datasources.remove(remove_datasource) for
+                 remove_datasource in transaction if
+                 remove_datasource in self.datasources]
 
                 raise error
 
         elif type(datasource) == RrdDataSource:
-            self.datasources.append(datasource)
+            self.datasources.add(datasource)
 
         else:
             raise ValueError(
@@ -144,7 +144,7 @@ class Presentation(object):
         return_list = []
         for datasource in self.datasources:
             try:
-                raw = rrdtool.fetch(str(datasource.full_path()),
+                raw = rrdtool.fetch(str(datasource.rrd_file.get_file_path()),
                     'AVERAGE', '-s ' + str(self.from_time),
                     '-e ' + str(self.to_time))
 
@@ -216,7 +216,7 @@ class Presentation(object):
 
             rrd_define = str("DEF:%s=%s:%s:AVERAGE" % (
                 datasource.name,
-                datasource.full_path(),
+                datasource.rrd_file.get_file_path(),
                 datasource.name))
             rrd_print = str("PRINT:%s:AVERAGE:%%lf" % (datasource.name))
 
@@ -295,7 +295,7 @@ class Presentation(object):
 
     def remove_all_datasources(self):
         """Removes all datasources from the presentation object"""
-        self.datasources = []
+        self.datasources = set()
 
     def remove_datasource(self, datasource):
         """Removes the datasource specified by rrd_datasourceid"""

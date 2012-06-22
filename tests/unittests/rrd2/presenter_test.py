@@ -1,32 +1,9 @@
 import unittest
-from nav.models.rrd import RrdDataSource, RrdFile
-from nav.rrd2 import presenter
 
-class PresenterTests(unittest.TestCase):
+from presenter_testcase import PresenterTestCase
+
+class PresenterTests(PresenterTestCase):
     """A collection of unit tests testing the Presenter class"""
-
-    def setUp(self):
-        self.presentation = presenter.Presentation()
-
-        self.test_data = []
-        for i in xrange(0, 10):
-            self.test_data.append(self._create_datasource(i))
-
-    def _create_datasource(self, number):
-        rrd_file = RrdFile()
-        rrd_file.id = str(number + 200)
-        #rrd_file.netbox
-
-        rrd_datasource = RrdDataSource()
-        rrd_datasource.name = "ds" + str(number)
-        rrd_datasource.id = str(number + 100)
-        rrd_datasource.rrd_file = rrd_file
-        rrd_datasource.description = "ifHCInOctets"
-        rrd_datasource.type = "DERIVE"
-        rrd_datasource.units = "bytes"
-        rrd_datasource.threshold = 131072000
-
-        return rrd_datasource
 
     def test_add_invalid_single_item_datasources(self):
         self.assertRaises(ValueError, self.presentation.add_datasource,
@@ -42,12 +19,12 @@ class PresenterTests(unittest.TestCase):
         self.assertRaises(ValueError, self.presentation.add_datasource, [-1])
         self.assertEquals(0, len(self.presentation.datasources))
 
-        self.assertRaises(ValueError, self.presentation.add_datasource(
-            [self.test_data[0], 1]))
+        self.assertRaises(ValueError, self.presentation.add_datasource,
+            [self.test_data[0], 1])
         self.assertEquals(0, len(self.presentation.datasources))
 
-        self.assertRaises(ValueError, self.presentation.add_datasource(
-            [-2, self.test_data[0]]))
+        self.assertRaises(ValueError, self.presentation.add_datasource,
+            [-2, self.test_data[0]])
         self.assertEquals(0, len(self.presentation.datasources))
 
 
@@ -77,6 +54,11 @@ class PresenterTests(unittest.TestCase):
         self.presentation.add_datasource(self.test_data[5:])
         self.assertEquals(9, len(self.presentation.datasources))
 
+    def test_add_duplicate_entry(self):
+        self.presentation.add_datasource(self.test_data[0])
+        self.presentation.add_datasource(self.test_data[0])
+        self.assertEquals(1, len(self.presentation.datasources))
+
 
     def test_remove_datasource(self):
         rrd_datasource_2 = self._create_datasource(2)
@@ -92,6 +74,15 @@ class PresenterTests(unittest.TestCase):
         self.assertEquals('ds1', self.presentation.datasources[0].name)
         self.assertEquals('ds3', self.presentation.datasources[1].name)
 
+    def test_delete_all_datasources(self):
+        self.presentation.remove_all_datasources()
+        self.assertEquals(0, len(self.presentation.datasources))
+
+        self.presentation.datasources = self.test_data
+        self.assertEquals(10, len(self.presentation.datasources))
+
+        self.presentation.remove_all_datasources()
+        self.assertEquals(0, len(self.presentation.datasources))
 
 if __name__ == '__main__':
     unittest.main()
