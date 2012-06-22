@@ -1,16 +1,24 @@
-.netbox {
+#netboxes .netbox {
+    border-collapse: collapse;
     display: inline-block;
+    margin-right: 3em;
     vertical-align: top;
 }
 
-.netbox td.center {
+#netboxes .netbox tr td {
+    background-color: #CCDDDD;
+    padding: 0.2em;
+    font-size: 0.9em;
+}
+
+#netboxes .netbox td.center {
     text-align: center;
 }
 
-.netbox .interfacetrunk {
+#netboxes .netbox .interfacetrunk {
     cursor: pointer;
 }
 
-.netbox .activenow {
-    color: #aaaaaa;
+#netboxes .netbox .activenow {
+    color: #808080;
 }
