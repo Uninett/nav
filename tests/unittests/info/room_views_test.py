@@ -24,11 +24,11 @@ from nav.web.info.room.views import add_availability
 
 
 class RoomViewsTest(unittest.TestCase):
-    """ Testclass for helper functions in roominfo's views module """
+    """Testclass for helper functions in roominfo's views module"""
     # pylint: disable=R0904
 
     def setUp(self):
-        """ Test setup """
+        """Test setup"""
 
         netbox1 = Netbox()
         netbox1.get_availability = MagicMock(
@@ -43,7 +43,7 @@ class RoomViewsTest(unittest.TestCase):
         self.netboxes = [netbox1, netbox2]
 
     def test_add_availability(self):
-        """ Tests for the add_availability function """
+        """Tests for the add_availability function"""
         # pylint: disable=E1101
 
         add_availability(self.netboxes)
