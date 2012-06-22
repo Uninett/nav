@@ -87,15 +87,6 @@ class Presentation(object):
         if datasource:
             self.add_datasource(datasource)
 
-    def serialize(self):
-        """Serializes Presentation class to a dict"""
-        repr = {}
-        repr['datasources'] = []
-        for datasource in self.datasources:
-            repr['datasources'].append(datasource.get_id())
-        repr['timeframe'] = self.time_frame
-        return repr
-
     def units(self):
         """Returns the units of the rrd_datasources contained in the
         presentation object
@@ -130,12 +121,6 @@ class Presentation(object):
 
         #return datasource.legend
 
-    def __str__(self):
-        return str(self.datasources)
-
-    def __repr__(self):
-        return str(self.datasources)
-
     def fetch_valid(self):
         """Return the raw rrd-data as a list of dictionaries
         {'start':starttime in unixtime,
@@ -147,7 +132,6 @@ class Presentation(object):
                 raw = rrdtool.fetch(str(datasource.rrd_file.get_file_path()),
                     'AVERAGE', '-s ' + str(self.from_time),
                     '-e ' + str(self.to_time))
-
                 return_dict = {}
                 return_dict['start'] = raw[0][0]
                 return_dict['stop'] = raw[0][1]
@@ -191,7 +175,11 @@ class Presentation(object):
         """Returns the local maxima of the valid rrd-data"""
         max_list = []
         for presentation in self.fetch_valid():
-            max_list.append(max(presentation['data']))
+            data = presentation['data']
+            if data:
+                max_list.append(max(data))
+            else:
+                max_list.append(float('-nan'))
         return max_list
 
     def average(self, on_error_return=0, on_nan_return=0):
@@ -484,60 +472,3 @@ class Presentation(object):
                 except:
                     pass
         return id
-
-
-# pylint: disable=W0622
-class Page(object):
-    """Page represents multiple Presentation's"""
-
-    def __init__(self, repr=None):
-        """
-        repr must be a dict as created by serialize()
-        """
-        self.presentations = []
-        self.time_frame = "day"
-        self.name = ''
-        self.time_frame_index = 1
-        if repr:
-            self.de_serialize(repr)
-
-    def de_serialize(self, repr):
-        """De serializes a Page in dict format"""
-        if type(repr) != dict:
-            return
-        presentations = repr['presentations']
-        self.time_frame = repr['timeframe']
-        for presentation in presentations:
-            new_presentation = Presentation(time_frame=self.time_frame)
-            for datasource in presentation['datasources']:
-                new_presentation.add_datasource(datasource)
-            self.presentations.append(new_presentation)
-
-    def serialize(self):
-        """Serializes a Page in dict format"""
-        repr = {}
-        repr['presentations'] = []
-        for i in self.presentations:
-            repr['presentations'].append(i.serialize())
-        repr['timeframe'] = self.time_frame
-        repr['name'] = self.name
-        return repr
-
-    def __repr__(self):
-        return self.name
-
-    def __str__(self):
-        return self.name
-
-
-def graph(request, id):
-    """ Renders a graph request from mod_python
-    :param id id of stored graph to render
-    """
-    config = nav.config.readConfig(CONFIG_FILE)
-    filename = config['file_prefix'] + id + config['file_suffix']
-    request.content_type = 'image/gif'
-    request.send_http_header()
-    file = open(filename)
-    request.write(file.read())
-    file.close()

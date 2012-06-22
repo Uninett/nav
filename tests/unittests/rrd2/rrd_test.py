@@ -2,6 +2,8 @@ import unittest
 import subprocess
 
 from django.core.files.storage import FileSystemStorage
+import math
+from nav.rrd2 import presenter
 from presenter_testcase import PresenterTestCase
 
 class RrdTests(PresenterTestCase):
@@ -34,11 +36,47 @@ class RrdTests(PresenterTestCase):
         expected_average = 0
         self.assertEquals(expected_average, result[0])
 
+    def test_read_average_valid_value(self):
+        self.presentation = presenter.Presentation(time_frame='year')
+        self.presentation.add_datasource(self.test_data[0])
+        result = self.presentation.average()
+        self.assertEquals(1, len(result))
+        print result
+
+        self.assertEquals(list, type(result))
+
+        expected_average = 2362807.2610499999
+        self.assertEquals(expected_average, result[0])
+
     def test_read_max(self):
         self.presentation.add_datasource(datasource=self.test_data[0])
         result = self.presentation.max()
+        self.assertTrue(math.isnan(result[0]))
 
-        self.assertEquals(0, result)
+    def test_read_max_valid_value(self):
+        self.presentation = presenter.Presentation(time_frame='year')
+        self.presentation.add_datasource(datasource=self.test_data[0])
+        result = self.presentation.max()
+
+        expected_max = 11861200.312999999
+        self.assertEquals(expected_max, result[0])
+
+    def test_read_min(self):
+        self.assertTrue(False)
+
+    def test_read_min_valid_value(self):
+        self.assertTrue(False)
+
+    def test_read_sum(self):
+        self.assertTrue(False)
+
+    def test_read_sum_valid_value(self):
+        self.assertTrue(False)
+
+    def test_valid_points(self):
+        self.assertTrue(False)
+
+
 
 
 
