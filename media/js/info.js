@@ -71,9 +71,9 @@ infopage.add_table_sorter = function() {
         bPaginate: false,
         bSort: true,
         aoColumns: [
-            {'sType': 'natural', 'asSorting': ['asc']},
+            {'sType': 'natural'},
             {'sType': 'string'},
-            {'sType': 'alt-string', 'asSorting': ['desc', 'asc']},
+            {'sType': 'alt-string'},
             {'sType': 'natural'},
             {'sType': 'title-date'}
         ],

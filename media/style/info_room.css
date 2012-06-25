@@ -27,3 +27,20 @@
 #netboxes .netbox .activenow {
     color: #808080;
 }
+
+/* Sorting indicators */
+#netboxes .netbox thead th {
+    padding-right: 16px;
+}
+
+#netboxes .netbox thead th.sorting_asc {
+    background: url('/images/datatables/sort_asc.png') no-repeat right center;
+}
+
+#netboxes .netbox thead th.sorting_desc {
+    background: url('/images/datatables/sort_desc.png') no-repeat right center;
+}
+
+#netboxes .netbox thead th.sorting {
+    background: url('/images/datatables/sort_both.png') no-repeat right center;
+}

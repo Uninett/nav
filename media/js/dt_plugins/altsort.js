@@ -4,10 +4,10 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
     },
 
     "alt-string-asc": function( a, b ) {
-        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
     },
 
     "alt-string-desc": function(a,b) {
-        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
     }
 } );
