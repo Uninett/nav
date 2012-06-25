@@ -45,7 +45,7 @@ class RrdTests(PresenterTestCase):
 
         self.assertEquals(list, type(result))
 
-        expected_average = 2362807.2610499999
+        expected_average = 2372285.2512119999
         self.assertEquals(expected_average, result[0])
 
     def test_read_max(self):
@@ -62,19 +62,51 @@ class RrdTests(PresenterTestCase):
         self.assertEquals(expected_max, result[0])
 
     def test_read_min(self):
-        self.assertTrue(False)
+        self.presentation.add_datasource(datasource=self.test_data[0])
+        result = self.presentation.min()
+
+        self.assertTrue(math.isnan(result[0]))
+
 
     def test_read_min_valid_value(self):
-        self.assertTrue(False)
+        self.presentation = presenter.Presentation(time_frame='year')
+        self.presentation.add_datasource(datasource=self.test_data[0])
+        result = self.presentation.min()
+
+        expected_min = 902148.62742000003
+
+        self.assertEquals(expected_min, result[0])
 
     def test_read_sum(self):
-        self.assertTrue(False)
+        self.presentation.add_datasource(datasource=self.test_data[0])
+        result = self.presentation.min()
+
+        self.assertTrue(math.isnan(result[0]))
 
     def test_read_sum_valid_value(self):
-        self.assertTrue(False)
+        self.presentation = presenter.Presentation(time_frame='year')
+        self.presentation.add_datasource(datasource=self.test_data[0])
+        result = self.presentation.sum()
+
+        expected_sum = 856394975.68765986
+
+        self.assertEquals(expected_sum, result[0])
 
     def test_valid_points(self):
-        self.assertTrue(False)
+        self.presentation.add_datasource(datasource=self.test_data[0])
+        result = self.presentation.valid_points()
+
+        self.assertEquals(1, len(result[0]))
+        self.assertTrue(result[0][0] is None)
+
+    def test_valid_points_valid_value(self):
+        self.presentation = presenter.Presentation(time_frame='year')
+        self.presentation.add_datasource(datasource=self.test_data[0])
+
+        result = self.presentation.valid_points()
+
+        self.assertEquals(1, len(result))
+        self.assertEquals([[361, 0, 0.0]], result)
 
 
 

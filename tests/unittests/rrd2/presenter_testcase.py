@@ -7,7 +7,9 @@ from nav.rrd2 import presenter
 class PresenterTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.presentation = presenter.Presentation()
+        self.demo_to_time = '2012-03-25'
+
+        self.presentation = presenter.Presentation(to_time=self.demo_to_time)
 
         self.path = os.path.dirname(inspect.getfile(inspect.currentframe()))
 

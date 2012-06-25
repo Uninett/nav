@@ -74,8 +74,9 @@ class Presentation(object):
     can contain several data sources and helps to fetch
     average, sum, max ie from all your data sources """
 
-    def __init__(self, time_frame='day', datasource=None):
+    def __init__(self, time_frame='day', to_time='now', datasource=None):
         self.datasources = set()
+        self.to_time = to_time
         self.none = None
         self.graph_height = 150
         self.graph_width = 500
@@ -84,6 +85,7 @@ class Presentation(object):
         self.time_frame = time_frame
         self.show_max = 0
         self.y_axis = 0
+
         if datasource:
             self.add_datasource(datasource)
 
@@ -232,53 +234,66 @@ class Presentation(object):
         """Returns the local minima of the valid rrd-data"""
         min_list = []
         for presentation in self.fetch_valid():
-            min_list.append(min(presentation['data']))
+            data = presentation['data']
+            if data:
+                min_list.append(min(presentation['data']))
+            else:
+                min_list.append(float('-nan'))
         return min_list
 
     def valid_points(self):
         """Returns list of [number of points,number of invalid points,
         invalid/number of points]
 
+        if first item is None, no valid data at all
         """
+
         valid = []
         raw_rrd_list = self.fetch_valid()
         for i in raw_rrd_list:
-            ret = [len(i['data'])]
-            ret.append(i['data'].count(self.none))
-            ret.append(ret[1] / float(ret[0]))
+            data = i['data']
+            print len(i['data'])
+            if data:
+                ret = [len(i['data'])]
+                print ret
+                ret.append(i['data'].count(self.none))
+                ret.append(ret[1] / float(ret[0]))
+            else:
+                ret = [None]
+
             valid.append(ret)
         return valid
 
     def time_last(self, time_frame='day', value=1):
         """Sets the timeframe of the presentation
         Currently valid timeframes: year,month,week,hour,day,minute"""
-        self.to_time = 'now'
+
         if time_frame == 'year':
-            self.from_time = 'now-%sY' % value
+            self.from_time = '%s-%sY' % (self.to_time, value)
             self._time_frame = 'year'
 
         elif time_frame == 'month':
-            self.from_time = 'now-%sm' % value
+            self.from_time = '%s-%sm' % (self.to_time, value)
             self._time_frame = 'month'
 
         elif time_frame == 'week':
-            self.from_time = 'now-%sw' % value
+            self.from_time = '%s-%sw' % (self.to_time, value)
             self._time_frame = 'week'
 
         elif time_frame == 'day':
-            self.from_time = 'now-%sd' % value
+            self.from_time = '%s-%sd' % (self.to_time, value)
             self._time_frame = 'day'
 
         elif time_frame == 'hour':
-            self.from_time = 'now-%sh' % value
+            self.from_time = '%s-%sh' % (self.to_time, value)
             self._time_frame = 'hour'
 
         elif time_frame == 'day':
-            self.from_time = 'now-%sd' % value
+            self.from_time = '%s-%sd' % (self.to_time, value)
             self._time_frame = 'day'
 
         else:
-            self.from_time = 'now-%smin' % value
+            self.from_time = '%s-%smin' % (self.to_time, value)
             self._time_frame = 'minute'
 
     def remove_all_datasources(self):
