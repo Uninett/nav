@@ -17,7 +17,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import reverse
 import networkx as nx
 from nav.models.manage import Netbox
-from nav.rrd import presenter
+from nav.rrd2 import presenter
 from nav.topology import vlan
 import rrdtool
 import logging
@@ -157,7 +157,7 @@ def __rrd_info2(source):
     # todo : what to do if rrd source is not where it should be? Will return 0
     # if it can't find RRD file for example
     a = presenter.Presentation()
-    a.add_datasource(source.pk)
+    a.add_datasource(source)
     return {'name': source.name, 'description': source.description,
             'raw': a.average()[0]}
 
