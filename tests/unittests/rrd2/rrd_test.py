@@ -41,7 +41,6 @@ class RrdTests(PresenterTestCase):
         self.presentation.add_datasource(self.test_data[0])
         result = self.presentation.average()
         self.assertEquals(1, len(result))
-        print result
 
         self.assertEquals(list, type(result))
 
