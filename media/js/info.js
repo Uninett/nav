@@ -1,4 +1,3 @@
-
 /* Create js namespace for info page */
 var infopage = {};
 
@@ -18,12 +17,12 @@ infopage.add_roomview_tabs = function() {
             },
             complete: function() {
                 $('.tab-spinner').hide();
+                infopage.add_table_sorter();
             }
         }
     };
     var tabs = $('#infotabs').tabs(tabconfig);
 };
-
 
 /* Add navigation (bookmark and history) to tabs */
 infopage.add_navigation = function() {
@@ -60,6 +59,31 @@ infopage.add_navigation = function() {
         }
     }
 
+};
+
+/* Add sorting on table row clicks */
+infopage.add_table_sorter = function() {
+    var dt_config = {
+        bAutoWidth: false,
+        bFilter: false,
+        bInfo: false,
+        bLengthChange: false,
+        bPaginate: false,
+        bSort: true,
+        aoColumns: [
+            {'sType': 'natural', 'asSorting': ['asc']},
+            {'sType': 'string'},
+            {'sType': 'alt-string', 'asSorting': ['desc', 'asc']},
+            {'sType': 'natural'},
+            {'sType': 'title-date'}
+        ]
+    };
+    var tables = $('table.netbox');
+    if ($(tables)) {
+        $(tables).each(function(index, table){
+            $(table).dataTable(dt_config);
+        });
+    }
 };
 
 
