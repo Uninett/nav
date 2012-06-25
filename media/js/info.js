@@ -66,7 +66,7 @@ infopage.add_table_sorter = function() {
     var dt_config = {
         bAutoWidth: false,
         bFilter: true,
-        bInfo: false,
+        bInfo: true,
         bLengthChange: false,
         bPaginate: false,
         bSort: true,
@@ -76,9 +76,21 @@ infopage.add_table_sorter = function() {
             {'sType': 'alt-string', 'asSorting': ['desc', 'asc']},
             {'sType': 'natural'},
             {'sType': 'title-date'}
-        ]
+        ],
+        fnInfoCallback: format_filter_text
     };
+
     $('table.netbox').dataTable(dt_config);
+
+    function format_filter_text(oSettings, iStart, iEnd, iMax, iTotal, sPre) {
+        if (iEnd == iMax) {
+            return "Showing " + iMax + " entries.";
+        } else {
+            var entrytext = iEnd == 1 ? "entry" : "entries";
+            return "Showing " + iEnd + " " + entrytext + " (filtered from " + iMax + " entries).";
+        }
+    }
+
 };
 
 
@@ -89,5 +101,3 @@ $(document).ready(function(){
         infopage.add_navigation();
     }
 });
-
-

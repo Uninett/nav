@@ -1,11 +1,13 @@
 #netboxes .dataTables_wrapper {
     display: inline-block;
+    margin-bottom: 1em;
     margin-right: 3em;
     vertical-align: top;
 }
 
 #netboxes .netbox {
     border-collapse: collapse;
+    margin-bottom: 0.5em;
 }
 
 #netboxes .netbox tr td {
