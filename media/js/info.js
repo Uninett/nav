@@ -65,7 +65,7 @@ infopage.add_navigation = function() {
 infopage.add_table_sorter = function() {
     var dt_config = {
         bAutoWidth: false,
-        bFilter: false,
+        bFilter: true,
         bInfo: false,
         bLengthChange: false,
         bPaginate: false,
@@ -78,12 +78,7 @@ infopage.add_table_sorter = function() {
             {'sType': 'title-date'}
         ]
     };
-    var tables = $('table.netbox');
-    if ($(tables)) {
-        $(tables).each(function(index, table){
-            $(table).dataTable(dt_config);
-        });
-    }
+    $('table.netbox').dataTable(dt_config);
 };
 
 
