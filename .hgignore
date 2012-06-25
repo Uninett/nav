@@ -10,6 +10,7 @@ syntax: glob
 .*
 *.bak
 *.iml # Jetbrains (pycharm,idea) project files.
+*.rrd
 
 # Generated javadoc and build dirs
 */javadoc/*
