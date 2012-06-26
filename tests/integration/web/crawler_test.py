@@ -40,7 +40,7 @@ BLACKLISTED_PATHS = [
 ]
 
 if not HOST_URL:
-    pytest.skip("Missing environment variable TARGETURL (ADMINUSERNAME, ADMINPASSWORD) , skipping crawler tests!")
+    pytest.skip(msg="Missing environment variable TARGETURL (ADMINUSERNAME, ADMINPASSWORD) , skipping crawler tests!")
 
 socket.setdefaulttimeout(5)
 
