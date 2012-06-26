@@ -240,6 +240,13 @@ def edge_to_json(metadata):
         }
 
 
+def _get_datasources(interfaces):
+    from nav.models.rrd import RrdDataSource
+    return RrdDataSource.objects.filter(
+        rrd_file__key='interface').select_related('rrd_file').filter(
+        rrd_file__value__in=interfaces)
+
+
 def _get_datasource_lookup(graph):
     edges_iter = graph.edges_iter(data=True)
 
@@ -256,11 +263,8 @@ def _get_datasource_lookup(graph):
     _LOGGER.debug(
         "netmap:attach_rrd_data_to_edges() datasource id filter list done")
 
-    from nav.models.rrd import RrdDataSource
+    datasources = _get_datasources(interfaces)
 
-    datasources = RrdDataSource.objects.filter(
-        rrd_file__key='interface').select_related('rrd_file').filter(
-        rrd_file__value__in=interfaces)
     _LOGGER.debug("netmap:attach_rrd_data_to_edges() Datasources fetched done")
 
     lookup_dict = {}
