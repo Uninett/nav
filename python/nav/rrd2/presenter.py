@@ -243,10 +243,8 @@ class Presentation(object):
         raw_rrd_list = self.fetch_valid()
         for i in raw_rrd_list:
             data = i['data']
-            print len(i['data'])
             if data:
                 ret = [len(i['data'])]
-                print ret
                 ret.append(i['data'].count(self.none))
                 ret.append(ret[1] / float(ret[0]))
             else:

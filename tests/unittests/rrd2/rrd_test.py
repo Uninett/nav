@@ -14,9 +14,9 @@ class RrdTests(PresenterTestCase):
 
         filesystem = FileSystemStorage(location=self.path)
         if not filesystem.exists('demo.rrd'):
-            self._setup_rrd_file(path)
+            self._setup_rrd_file(self.path)
             print "[i] created demo.rrd architecture dependent dependency for "\
-                  "unit tests based on %s/rrd.xml" % path
+                  "unit tests based on %s/rrd.xml" % self.path
 
 
     def _setup_rrd_file(self, path):
@@ -37,7 +37,7 @@ class RrdTests(PresenterTestCase):
         self.assertEquals(expected_average, result[0])
 
     def test_read_average_valid_value(self):
-        self.presentation = presenter.Presentation(time_frame='year')
+        self.presentation = presenter.Presentation(time_frame='year', to_time=self.demo_to_time)
         self.presentation.add_datasource(self.test_data[0])
         result = self.presentation.average()
         self.assertEquals(1, len(result))
@@ -53,7 +53,7 @@ class RrdTests(PresenterTestCase):
         self.assertTrue(math.isnan(result[0]))
 
     def test_read_max_valid_value(self):
-        self.presentation = presenter.Presentation(time_frame='year')
+        self.presentation = presenter.Presentation(time_frame='year', to_time=self.demo_to_time)
         self.presentation.add_datasource(datasource=self.test_data[0])
         result = self.presentation.max()
 
@@ -68,7 +68,7 @@ class RrdTests(PresenterTestCase):
 
 
     def test_read_min_valid_value(self):
-        self.presentation = presenter.Presentation(time_frame='year')
+        self.presentation = presenter.Presentation(time_frame='year', to_time=self.demo_to_time)
         self.presentation.add_datasource(datasource=self.test_data[0])
         result = self.presentation.min()
 
@@ -83,7 +83,7 @@ class RrdTests(PresenterTestCase):
         self.assertTrue(math.isnan(result[0]))
 
     def test_read_sum_valid_value(self):
-        self.presentation = presenter.Presentation(time_frame='year')
+        self.presentation = presenter.Presentation(time_frame='year', to_time=self.demo_to_time)
         self.presentation.add_datasource(datasource=self.test_data[0])
         result = self.presentation.sum()
 
@@ -99,7 +99,7 @@ class RrdTests(PresenterTestCase):
         self.assertTrue(result[0][0] is None)
 
     def test_valid_points_valid_value(self):
-        self.presentation = presenter.Presentation(time_frame='year')
+        self.presentation = presenter.Presentation(time_frame='year', to_time=self.demo_to_time)
         self.presentation.add_datasource(datasource=self.test_data[0])
 
         result = self.presentation.valid_points()
