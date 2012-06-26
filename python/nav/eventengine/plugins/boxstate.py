@@ -42,6 +42,7 @@ class BoxStateHandler(EventHandler):
             self._logger.info(
                 "%s is already down, ignoring duplicate down event",
                 event.netbox)
+            event.delete()
         else:
             self._logger.info("%s is not responding to ping requests; "
                               "holding possibly transient event",
@@ -59,7 +60,7 @@ class BoxStateHandler(EventHandler):
             self._logger.info("%s is back up", event.netbox)
             event.netbox.up = event.netbox.UP_UP
             event.netbox.save()
-            waiter = self._is_already_waiting()
+            waiter = self._get_waiting()
             if waiter:
                 self._logger.info("ignoring transient down state for %s",
                                   self.event.netbox)
@@ -68,23 +69,27 @@ class BoxStateHandler(EventHandler):
         event.delete()
 
     def _is_duplicate(self):
-        return (self.event.netbox.up != self.event.netbox.UP_UP
-                and self._is_already_waiting())
+        return (self._box_already_has_down_state()
+                or self._get_waiting())
 
-    def _is_already_waiting(self):
+    def _box_already_has_down_state(self):
+        return self.event.netbox.get_unresolved_alerts('boxState').count() > 0
+
+    def _get_waiting(self):
         return self.waiting_for_resolve.get(self.event.netbox, False)
 
     def _make_down_warning(self):
         self._logger.info("%s boxDownWarning not posted", self.event.netbox)
         self.task = self.engine.schedule(
             max(ALERT_WAIT_TIME-WARNING_WAIT_TIME, 0),
-            self._make_down_state)
+            self._make_down_alert)
 
-    def _make_down_state(self):
+    def _make_down_alert(self):
         self._logger.info("%s boxDown final alert not posted",
                           self.event.netbox)
         del self.waiting_for_resolve[self.event.netbox]
         self.task = None
+        self.event.delete()
 
     def schedule(self, delay, action):
         "Schedules a callback and makes a note of it in a class variable"
