@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load info %}
+
 {% block base_header_additional_head %}
     <link rel="stylesheet" type="text/css" href="/style/info.css"/>
 {% endblock %}
@@ -18,22 +20,42 @@
 
     {% if form.is_bound %}
         {% if searchproviders %}
+
             {% for searchprovider in searchproviders %}
                 {% if searchprovider.results %}
+
                     <table class="searchprovider vertitable">
                         <caption>{{ searchprovider.name }}</caption>
+
+                        <thead>
+                        <tr>
+                            {% for key in searchprovider.keys %}
+                                <th>{% filter capfirst|split:'.'|join:" " %}{{ key }}{% endfilter %}</th>
+                            {% endfor %}
+                        </tr>
+                        </thead>
+
                         <tbody>
                         {% for result in searchprovider.results %}
                             <tr>
-                                <td>
-                                    <a href="{{ result.href }}">{{ result.text }}</a>
-                                </td>
+                                {% for key in searchprovider.keys %}
+                                    <td>
+                                        {% if key == searchprovider.link %}
+                                            <a href="{{ result.href }}">{{ result.inst|get_attr:key }}</a>
+                                        {% else %}
+                                            {{ result.inst|get_attr:key }}
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
                             </tr>
                         {% endfor %}
                         </tbody>
+
                     </table>
+
                 {% endif %}
             {% endfor %}
+
         {% else %}
             <p class="messages">No results for "{{ form.data.query }}"</p>
         {% endif %}

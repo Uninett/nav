@@ -27,8 +27,15 @@ from nav.web.ipdevinfo.views import is_valid_hostname
 SearchResult = namedtuple("SearchResult", ['text', 'href', 'inst'])
 
 class SearchProvider(object):
-    """Searchprovider interface"""
+    """Searchprovider interface
+
+    name: displayed as table caption
+    keys: object attrs to display as cell content
+    link: attr to create a link on
+    """
     name = "SearchProvider"
+    keys = ['id']
+    link = 'id'
 
     def __init__(self, query=""):
         self.results = []
@@ -43,6 +50,8 @@ class SearchProvider(object):
 class RoomSearchProvider(SearchProvider):
     """Searchprovider for rooms"""
     name = "Rooms"
+    keys = ['id', 'description']
+    link = 'id'
 
     def fetch_results(self):
         results = Room.objects.filter(id__icontains=self.query).order_by("id")
@@ -54,6 +63,8 @@ class RoomSearchProvider(SearchProvider):
 class NetboxSearchProvider(SearchProvider):
     """Searchprovider for netboxes"""
     name = "Netboxes"
+    keys = ['sysname']
+    link = 'sysname'
 
     def fetch_results(self):
         if is_valid_ip(self.query):
@@ -71,12 +82,15 @@ class NetboxSearchProvider(SearchProvider):
 class InterfaceSearchProvider(SearchProvider):
     """Searchprovider for interfaces"""
     name = "Interfaces"
+    keys = ['netbox.sysname', 'ifname', 'ifalias']
+    link = 'ifname'
 
     def fetch_results(self):
         results = Interface.objects.filter(
             Q(ifalias__icontains=self.query) |
             Q(ifname__icontains=self.query)
-        )
+        ).order_by('netbox__sysname', 'ifindex')
+
         for result in results:
             self.results.append(
                 SearchResult(
