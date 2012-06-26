@@ -28,7 +28,7 @@ class ViewsTest(unittest.TestCase):
     def setUp(self):
         """ Test setup """
 
-        searchresult = SearchResult('test', 'test')
+        searchresult = SearchResult('test', 'test', None)
         self.searchprovider0 = SearchProvider()
         self.searchprovider1 = SearchProvider()
         self.searchprovider2 = SearchProvider()

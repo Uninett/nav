@@ -114,3 +114,5 @@ def add_availability(netboxes):
             netbox.availability = "%.2f%%" % avail["availability"]["week"]
         except KeyError:
             pass
+        except TypeError:
+            pass
