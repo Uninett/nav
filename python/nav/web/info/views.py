@@ -21,7 +21,8 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 from nav.web.info.forms import SearchForm
-from nav.web.info.searchproviders import RoomSearchProvider, NetboxSearchProvider, FallbackSearchProvider
+from nav.web.info.searchproviders import RoomSearchProvider, \
+    NetboxSearchProvider, FallbackSearchProvider, InterfaceSearchProvider
 
 
 def index(request):
@@ -55,7 +56,8 @@ def process_form(form):
     """
     query = form.cleaned_data['query']
 
-    searchproviders = [RoomSearchProvider(query), NetboxSearchProvider(query)]
+    searchproviders = [RoomSearchProvider(query), NetboxSearchProvider(query),
+                       InterfaceSearchProvider(query)]
     providers_with_result = has_results(searchproviders)
     if not providers_with_result:
         fallback = FallbackSearchProvider(query)

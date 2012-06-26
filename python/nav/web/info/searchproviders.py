@@ -18,8 +18,9 @@
 
 from collections import namedtuple
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 
-from nav.models.manage import Room, Netbox
+from nav.models.manage import Room, Netbox, Interface
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
 
@@ -65,6 +66,28 @@ class NetboxSearchProvider(SearchProvider):
             self.results.append(SearchResult(result.sysname,
                 reverse('ipdevinfo-details-by-name',
                     kwargs={'name': result.sysname}), result))
+
+
+class InterfaceSearchProvider(SearchProvider):
+    """Searchprovider for interfaces"""
+    name = "Interfaces"
+
+    def fetch_results(self):
+        results = Interface.objects.filter(
+            Q(ifalias__icontains=self.query) |
+            Q(ifname__icontains=self.query)
+        )
+        for result in results:
+            self.results.append(
+                SearchResult(
+                    result,
+                    reverse('ipdevinfo-interface-details', kwargs={
+                        'netbox_sysname': result.netbox.sysname,
+                        'port_id': result.id
+                    }),
+                    result
+                )
+            )
 
 
 class FallbackSearchProvider(SearchProvider):
