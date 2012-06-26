@@ -10,14 +10,15 @@ additional test.
 from lxml.html import fromstring
 import os
 import socket
+import pytest
 import tidy
 import urllib
 import urllib2
 import urlparse
 
-HOST_URL = os.environ['TARGETURL']
+HOST_URL = os.environ.get('TARGETURL', None)
 USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
-PASSWORD = os.environ['ADMINPASSWORD']
+PASSWORD = os.environ.get('ADMINPASSWORD', 'admin')
 
 TIDY_OPTIONS = {
     'doctype': 'strict',
@@ -37,6 +38,9 @@ BLACKLISTED_PATHS = [
     '/cricket',
     '/index/logout',
 ]
+
+if not HOST_URL:
+    pytest.skip("Missing environment variable TARGETURL (ADMINUSERNAME, ADMINPASSWORD) , skipping crawler tests!")
 
 socket.setdefaulttimeout(5)
 
