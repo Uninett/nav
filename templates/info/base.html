@@ -1,40 +1,44 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-<link rel="stylesheet" type="text/css" href="/style/info.css" />
+    <link rel="stylesheet" type="text/css" href="/style/info.css"/>
 {% endblock %}
 
 
 
 {% block base_content %}
 
-<h2>Info</h2>
+    <h2>Info</h2>
 
-<form action="{% url info-search %}" method="get">
-    <p>{{ form.query }} <button type="submit">Search</button></p>
-</form>
+    <form action="{% url info-search %}" method="get">
+        <p>{{ form.query }}
+            <button type="submit">Search</button>
+        </p>
+    </form>
 
-{% if form.is_bound %}
-    {% if searchproviders %}
-        {% for searchprovider in searchproviders %}
-            {% if searchprovider.results %}
-            <table class="searchprovider vertitable">
-                <caption>{{ searchprovider.name }}</caption>
-                <tbody>
-                {% for result in searchprovider.results %}
-                <tr>
-                    <td><a href="{{ result.href }}">{{ result.text }}</a></td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            {% endif %}
-        {% endfor %}
-    {% else %}
-        <p class="messages">No results for "{{ form.data.query }}"</p>
+    {% if form.is_bound %}
+        {% if searchproviders %}
+            {% for searchprovider in searchproviders %}
+                {% if searchprovider.results %}
+                    <table class="searchprovider vertitable">
+                        <caption>{{ searchprovider.name }}</caption>
+                        <tbody>
+                        {% for result in searchprovider.results %}
+                            <tr>
+                                <td>
+                                    <a href="{{ result.href }}">{{ result.text }}</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p class="messages">No results for "{{ form.data.query }}"</p>
+        {% endif %}
     {% endif %}
-{% endif %}
 
-<div class="float-clear"></div>
+    <div class="float-clear"></div>
 
 {% endblock %}
