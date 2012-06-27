@@ -50,18 +50,18 @@ class TemplateTagsTest(unittest.TestCase):
 
     def test_get_attr_basic_lookup(self):
         """Test template filter for getting attributes from objects"""
-        self.assertIsInstance(get_attr(self.dummy, 'test'), str)
-        self.assertIsInstance(
+        self.assertTrue(isinstance(get_attr(self.dummy, 'test'), str))
+        self.assertTrue(isinstance(
             get_attr(self.dummy, 'dummyobject'),
-            AnotherDummyObject
+            AnotherDummyObject)
         )
         self.assertEqual(get_attr(self.dummy, 'tes'), "")
 
     def test_get_attr_chained_lookup(self):
         """Test template filter for getting attributes from objects"""
-        self.assertIsInstance(
+        self.assertTrue(isinstance(
             get_attr(self.dummy, 'dummyobject.test'),
-            str
+            str)
         )
 
     def test_get_attr_chained_lookup_error(self):
@@ -73,16 +73,16 @@ class TemplateTagsTest(unittest.TestCase):
 
     def test_find_attr_basic_lookup(self):
         """Test helper function for getting attributes from objects"""
-        self.assertIsInstance(
+        self.assertTrue(isinstance(
             find_attr(self.dummy, ['dummyobject']),
-            AnotherDummyObject
+            AnotherDummyObject)
         )
 
     def test_find_attr_chained_lookup(self):
         """Test helper function for getting attributes from objects"""
-        self.assertIsInstance(
+        self.assertTrue(isinstance(
             find_attr(self.dummy, ['dummyobject', 'test']),
-            str
+            str)
         )
 
     def test_find_attr_error_lookup(self):
