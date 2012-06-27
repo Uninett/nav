@@ -29,8 +29,8 @@
 
                         <thead>
                         <tr>
-                            {% for header in searchprovider.headers %}
-                                <th>{{ searchprovider.headertext|lookup:header }}</th>
+                            {% for header, getter in searchprovider.headers %}
+                                <th>{{ header }}</th>
                             {% endfor %}
                         </tr>
                         </thead>
@@ -38,13 +38,15 @@
                         <tbody>
                         {% for result in searchprovider.results %}
                             <tr>
-                                {% for key in searchprovider.headers %}
+                                {% for header, getter in searchprovider.headers %}
                                     <td>
-                                        {% if key == searchprovider.link %}
-                                            <a href="{{ result.href }}">{{ result.inst|get_attr:key }}</a>
-                                        {% else %}
-                                            {{ result.inst|get_attr:key }}
-                                        {% endif %}
+                                        {% if header == searchprovider.link %}
+                                            <a href="{{ result.href }}">
+                                        {% endif  %}
+                                        {{ getter|run:result.inst }}
+                                        {% if header == searchprovider.link %}
+                                            </a>
+                                        {% endif  %}
                                     </td>
                                 {% endfor %}
                             </tr>

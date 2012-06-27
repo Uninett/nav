@@ -37,32 +37,8 @@ def is_max_timestamp(timestamp):
 
 
 @register.filter
-def get_attr(value, arg):
-    """Lookup attribute on object
-
-    value: an object instance - i.e. interface
-    arg: i.e. id
-
-    Supports chaining (arg = netbox.sysname)
-    If nothing is found, return empty string
-    """
-    if arg.count('.'):
-        return find_attr(value, arg.split('.'))
-    else:
-        return getattr(value, arg, "")
-
-
-def find_attr(obj, attrlist):
-    """Recursive search for attributes in attrlist"""
-    try:
-        attr = getattr(obj, attrlist[0])
-    except AttributeError:
-        return ""
-
-    if len(attrlist) > 1:
-        return find_attr(attr, attrlist[1:])
-    else:
-        return attr
+def run(function, arg):
+    return function(arg)
 
 
 @register.filter

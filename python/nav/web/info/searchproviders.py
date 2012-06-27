@@ -20,6 +20,7 @@
 from collections import namedtuple
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from operator import attrgetter
 
 from nav.models.manage import Room, Netbox, Interface
 from nav.util import is_valid_ip
@@ -53,9 +54,11 @@ class SearchProvider(object):
 class RoomSearchProvider(SearchProvider):
     """Searchprovider for rooms"""
     name = "Rooms"
-    headers = ['id', 'description']
-    headertext = {'id': 'Roomid', 'description': 'Description'}
-    link = 'id'
+    headers = [
+        ('Roomid', attrgetter('id')),
+        ('Description', attrgetter('description'))
+    ]
+    link = 'Roomid'
 
     def fetch_results(self):
         results = Room.objects.filter(id__icontains=self.query).order_by("id")
@@ -69,9 +72,8 @@ class RoomSearchProvider(SearchProvider):
 class NetboxSearchProvider(SearchProvider):
     """Searchprovider for netboxes"""
     name = "Netboxes"
-    headers = ['sysname']
-    headertext = {'sysname': 'Sysname'}
-    link = 'sysname'
+    headers = [('Sysname', attrgetter('sysname'))]
+    link = 'Sysname'
 
     def fetch_results(self):
         if is_valid_ip(self.query):
@@ -91,10 +93,12 @@ class NetboxSearchProvider(SearchProvider):
 class InterfaceSearchProvider(SearchProvider):
     """Searchprovider for interfaces"""
     name = "Interfaces"
-    headers = ['netbox.sysname', 'ifname', 'ifalias']
-    headertext = {'netbox.sysname': 'Netbox', 'ifname': 'Interface',
-                  'ifalias': 'Alias'}
-    link = 'ifname'
+    headers = [
+        ('Netbox', attrgetter('netbox.sysname')),
+        ('Interface', attrgetter('ifname')),
+        ('Alias', attrgetter('ifalias')),
+    ]
+    link = 'Interface'
 
     def fetch_results(self):
         results = Interface.objects.filter(
