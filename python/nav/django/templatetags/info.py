@@ -9,7 +9,7 @@ register = template.Library()
 def time_since(timestamp):
     """Convert a timestamp to human readable time since"""
 
-    lookup = {'minute': 'min',
+    mapping = {'minute': 'min',
               'hour': 'hr',
               'week': 'wk',
               'month': 'mo',
@@ -22,8 +22,8 @@ def time_since(timestamp):
         return "Now"
     else:
         text = timesince(timestamp)
-        for key in lookup.keys():
-            text = text.replace(key, lookup[key])
+        for key in mapping.keys():
+            text = text.replace(key, mapping[key])
 
         return text
 
@@ -69,5 +69,3 @@ def find_attr(obj, attrlist):
 def lookup(value, key):
     """Lookup key in a dictionary"""
     return value.get(key, value)
-
-
