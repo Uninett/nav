@@ -30,17 +30,17 @@
 
 /* Sorting indicators */
 #netboxes .netbox thead th {
-    padding-right: 16px;
+    padding: 0.1em 16px 0.1em 0.5em;
 }
 
 #netboxes .netbox thead th.sorting_asc {
-    background: url('/images/datatables/sort_asc.png') no-repeat right center;
+    background: url('/images/datatables/sort_asc.png') no-repeat right center #EEEEEE;
 }
 
 #netboxes .netbox thead th.sorting_desc {
-    background: url('/images/datatables/sort_desc.png') no-repeat right center;
+    background: url('/images/datatables/sort_desc.png') no-repeat right center #EEEEEE ;
 }
 
 #netboxes .netbox thead th.sorting {
-    background: url('/images/datatables/sort_both.png') no-repeat right center;
+    background: url('/images/datatables/sort_both.png') no-repeat right center #EEEEEE ;
 }
