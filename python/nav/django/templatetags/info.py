@@ -38,6 +38,7 @@ def is_max_timestamp(timestamp):
 
 @register.filter
 def run(function, arg):
+    """Run a function with given argument"""
     return function(arg)
 
 
