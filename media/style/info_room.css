@@ -5,42 +5,43 @@
     vertical-align: top;
 }
 
-#netboxes .netbox {
+table.compact {
     border-collapse: collapse;
     margin-bottom: 0.5em;
-}
-
-#netboxes .netbox tr td {
-    background-color: #CCDDEE;
-    padding: 0.2em;
     font-size: 0.9em;
 }
 
-#netboxes .netbox td.center {
+table.cluttered tr td {
+    background-color: #CCDDEE;
+    padding: 0.2em;
+
+}
+
+.center-content {
     text-align: center;
 }
 
-#netboxes .netbox .interfacetrunk {
+.pointer {
     cursor: pointer;
 }
 
-#netboxes .netbox .activenow {
-    color: #808080;
+.brighten {
+    color: #777;
 }
 
 /* Sorting indicators */
-#netboxes .netbox thead th {
+table.vertitable tr th {
     padding: 0.1em 16px 0.1em 0.5em;
 }
 
-#netboxes .netbox thead th.sorting_asc {
+table.vertitable tr th.sorting_asc {
     background: url('/images/datatables/sort_asc.png') no-repeat right center #EEEEEE;
 }
 
-#netboxes .netbox thead th.sorting_desc {
+table.vertitable tr th.sorting_desc {
     background: url('/images/datatables/sort_desc.png') no-repeat right center #EEEEEE ;
 }
 
-#netboxes .netbox thead th.sorting {
+table.vertitable tr th.sorting {
     background: url('/images/datatables/sort_both.png') no-repeat right center #EEEEEE ;
 }
