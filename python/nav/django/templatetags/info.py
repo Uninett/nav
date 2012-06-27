@@ -66,6 +66,8 @@ def find_attr(obj, attrlist):
 
 
 @register.filter
-def split(value, char):
-    """Splits the value on char"""
-    return value.split(char)
+def lookup(value, key):
+    """Lookup key in a dictionary"""
+    return value.get(key, value)
+
+

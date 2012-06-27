@@ -29,8 +29,8 @@
 
                         <thead>
                         <tr>
-                            {% for key in searchprovider.keys %}
-                                <th>{% filter capfirst|split:'.'|join:" " %}{{ key }}{% endfilter %}</th>
+                            {% for header in searchprovider.headers %}
+                                <th>{{ searchprovider.headertext|lookup:header }}</th>
                             {% endfor %}
                         </tr>
                         </thead>
@@ -38,7 +38,7 @@
                         <tbody>
                         {% for result in searchprovider.results %}
                             <tr>
-                                {% for key in searchprovider.keys %}
+                                {% for key in searchprovider.headers %}
                                     <td>
                                         {% if key == searchprovider.link %}
                                             <a href="{{ result.href }}">{{ result.inst|get_attr:key }}</a>
