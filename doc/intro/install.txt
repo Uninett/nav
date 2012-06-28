@@ -19,7 +19,7 @@ To build NAV, you need at least the following:
  * automake
  * autoconf
  * ant
- * Python >= 2.5.0
+ * Python >= 2.6.0
  * Java 2 SDK >= 1.5.0
  * Cheetah Templates >= 2.0rc7
  * Sphinx >= 1.0 (for building this documentation)
@@ -36,7 +36,7 @@ To run NAV, these software packages are required:
  * rrdtool
  * Cheetah Templates >= 2.0rc7
  * Java 2 SDK >= 1.5.0
- * Python >= 2.5.0
+ * Python >= 2.6.0
  * dhcping (only needed if using DHCP service monitor)
 
 The following Java librares are required:
@@ -45,7 +45,7 @@ The following Java librares are required:
 
 The following python modules are required:
 
- * :mod:`django` >= 1.0
+ * :mod:`django` >= 1.2
  * :mod:`IPy`
  * :mod:`ldap`
  * :mod:`networkx` >= 1.0

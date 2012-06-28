@@ -14,7 +14,29 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 "common AgentProxy mixin"
+from functools import wraps
+from twisted.internet.defer import succeed
+
 from nav.namedtuple import namedtuple
+
+def cache_for_session(func):
+    "Decorateor for AgentProxyMixIn.getTable to cache responses"
+    def _wrapper(*args, **kwargs):
+        self, oids = args[0], args[2]
+        cache = getattr(self, '_result_cache')
+        key = tuple(oids)
+        if key not in cache:
+            df = func(*args, **kwargs)
+            df.addCallback(_cache_result, cache, key)
+            return df
+        else:
+            return succeed(cache[key])
+
+    return wraps(func)(_wrapper)
+
+def _cache_result(result, cache, key):
+    cache[key] = result
+    return result
 
 # pylint: disable=R0903
 class AgentProxyMixIn(object):
@@ -38,6 +60,7 @@ class AgentProxyMixIn(object):
             del kwargs['snmp_parameters']
         else:
             self.snmp_parameters = SNMP_DEFAULTS
+        self._result_cache = {}
 
         super(AgentProxyMixIn, self).__init__(*args, **kwargs)
         # If we're mixed in with a pure twistedsnmp AgentProxy, the timeout
@@ -47,13 +70,13 @@ class AgentProxyMixIn(object):
 
     # hey, we're mimicking someone else's API here, never mind the bollocks:
     # pylint: disable=C0111,C0103
+    @cache_for_session
     def getTable(self, *args, **kwargs):
         kwargs['maxRepetitions'] = self.snmp_parameters.max_repetitions
         if args[0] is self:
             # now this is just plain weird!
             args = args[1:]
         return super(AgentProxyMixIn, self).getTable(*args, **kwargs)
-
 
 # pylint: disable=C0103
 SNMPParameters = namedtuple('SNMPParameters',

@@ -18,7 +18,7 @@
 
 import unittest
 
-from mock import MagicMock
+from mock import Mock
 from nav.models.manage import Netbox
 from nav.web.info.room.views import add_availability
 
@@ -31,12 +31,12 @@ class RoomViewsTest(unittest.TestCase):
         """Test setup"""
 
         netbox1 = Netbox()
-        netbox1.get_availability = MagicMock(
+        netbox1.get_availability = Mock(
             return_value = {'availability': {'day': None,
                                              'month': 100.0,
                                              'week': 100.0}})
         netbox2 = Netbox()
-        netbox2.get_availability = MagicMock(
+        netbox2.get_availability = Mock(
             return_value = {'availability': {'day': None,
                                              'month': 100.0,
                                              'week': None}})

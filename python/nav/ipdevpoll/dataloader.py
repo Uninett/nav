@@ -82,9 +82,14 @@ class NetboxLoader(dict):
                            WHERE alerthist.netboxid = netbox.netboxid
                              AND eventtypeid='snmpAgentState'
                              AND end_time >= 'infinity' """
+        last_updated_query = """SELECT val::BIGINT AS last_updated
+                                FROM netboxinfo
+                                WHERE netboxinfo.netboxid = netbox.netboxid
+                                  AND key IS NULL AND var='lastUpdated' """
         queryset = (manage.Netbox.objects.select_related(*related).
                     filter(up='y').
-                    extra(select={'snmp_up': snmp_up_query}))
+                    extra(select={'snmp_up': snmp_up_query,
+                                  'last_updated': last_updated_query}))
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
 

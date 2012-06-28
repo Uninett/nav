@@ -20,6 +20,7 @@ The plugin uses IF-MIB to retrieve generic interface data, and
 EtherLike-MIB to retrieve duplex status for ethernet interfaces.
 
 """
+from twisted.internet import defer
 
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
@@ -28,12 +29,42 @@ from nav.mibs.etherlike_mib import EtherLikeMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
+from nav.ipdevpoll.timestamps import TimestampChecker
+
+INFO_VAR_NAME = 'interfaces'
 
 class Interfaces(Plugin):
-    def handle(self):
-        self._logger.debug("Collecting interface data")
+    "Collects comprehensive information about device's network interfaces"
+    def __init__(self, *args, **kwargs):
+        super(Interfaces, self).__init__(*args, **kwargs)
         self.ifmib = IfMib(self.agent)
         self.etherlikemib = EtherLikeMib(self.agent)
+        self.stampcheck = TimestampChecker(self.agent, self.containers,
+                                           INFO_VAR_NAME)
+
+    @defer.inlineCallbacks
+    def handle(self):
+        self._logger.debug("Collecting interface data")
+        need_to_collect = yield self._need_to_collect()
+        if need_to_collect:
+            df = self._get_iftable_columns()
+            df.addCallback(self._retrieve_duplex)
+            df.addCallback(self._process_interfaces)
+            df.addCallback(self._get_stack_status)
+            yield df
+            shadows.Interface.add_sentinel(self.containers)
+
+        self.stampcheck.save()
+
+    @defer.inlineCallbacks
+    def _need_to_collect(self):
+        yield self.stampcheck.load()
+        yield self.stampcheck.collect([self.ifmib.get_if_table_last_change()])
+
+        result = yield self.stampcheck.is_changed()
+        defer.returnValue(result)
+
+    def _get_iftable_columns(self):
         df = self.ifmib.retrieve_columns([
                 'ifDescr',
                 'ifType',
@@ -46,13 +77,9 @@ class Interfaces(Plugin):
                 'ifConnectorPresent',
                 'ifAlias',
                 ])
-        df.addCallback(reduce_index)
-        df.addCallback(self._retrieve_duplex)
-        df.addCallback(self._got_interfaces)
-        df.addCallback(self._get_stack_status)
-        return df
+        return df.addCallback(reduce_index)
 
-    def _got_interfaces(self, result):
+    def _process_interfaces(self, result):
         """Process the list of collected interfaces."""
 
         self._logger.debug("Found %d interfaces", len(result))
@@ -157,6 +184,7 @@ class Interfaces(Plugin):
         deferred = self.etherlikemib.get_duplex()
         deferred.addCallback(update_result)
         return deferred
+
 
 def decode_to_unicode(string):
     if string is None:

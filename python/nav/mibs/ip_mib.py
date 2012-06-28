@@ -213,10 +213,15 @@ class IpMib(mibretriever.MibRetriever):
             ip = IP(ip_address_string)
             ifindex = row[ifindex_column]
             netmask = row[netmask_column]
-            prefix = ip.make_net(netmask)
-
-            new_row = (ifindex, ip, prefix)
-            addresses.add(new_row)
+            try:
+                prefix = ip.make_net(netmask)
+            except ValueError, err:
+                self._logger.warning(
+                    "ignoring IP address %s due to invalid netmask %s (%s)",
+                    ip, netmask, err)
+            else:
+                new_row = (ifindex, ip, prefix)
+                addresses.add(new_row)
         self._logger.debug("interface addresses: Got %d rows from %s",
                            len(address_rows), ifindex_column)
         yield addresses

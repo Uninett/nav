@@ -26,6 +26,10 @@ from nav.mibs.entity_mib import EntityTable
 class IfMib(mibretriever.MibRetriever):
     from nav.smidumps.if_mib import MIB as mib
 
+    def get_if_table_last_change(self):
+        "Retrieves the sysUpTime value of the last time ifTable changed"
+        return self.get_next('ifTableLastChange')
+
     @defer.inlineCallbacks
     def get_if_table(self):
         df = self.retrieve_table('ifTable')
@@ -46,6 +50,17 @@ class IfMib(mibretriever.MibRetriever):
         result = dict((index, (row['ifName'], row['ifDescr']))
                       for index, row in table.items())
         defer.returnValue(result)
+
+    @defer.inlineCallbacks
+    def get_ifaliases(self):
+        """Retrieves ifAlias value for all interfaces.
+
+        :returns: A dictionary like { ifindex: ifAlias, ... }
+
+        """
+        aliases = yield self.retrieve_column(
+            'ifAlias').addCallback(reduce_index)
+        defer.returnValue(aliases)
 
     @defer.inlineCallbacks
     def get_ifindexes(self):

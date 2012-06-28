@@ -42,12 +42,32 @@ class InterfaceManager(DefaultManager):
     def __init__(self, *args, **kwargs):
         super(InterfaceManager, self).__init__(*args, **kwargs)
         self.netbox = self.containers.get(None, Netbox)
+        self.handle_missing = False
 
     def prepare(self):
-        self._load_existing_objects()
+        if self.sentinel in self.containers[Interface]:
+            self.handle_missing = True
+            self._logger.debug("full interface table collected; "
+                               "will handle missing ones during cleanup")
+            del self.containers[Interface][self.sentinel]
+            self._reset_baseport_numbers()
+
         for ifc in self.get_managed():
             ifc.prepare(self.containers)
+        self._load_existing_objects()
         self._resolve_changed_ifindexes()
+
+    def _reset_baseport_numbers(self):
+        """Explicitly sets baseport to None for interfaces where it wasn't
+        touched.
+
+        This is qto ensure that switch ports that have been deconfigured as such
+        won't keep their switch port status in NAV.
+
+        """
+        for ifc in self.get_managed():
+            if not ifc.baseport:
+                ifc.baseport = None
 
     def _load_existing_objects(self):
         db_ifcs = manage.Interface.objects.filter(
@@ -123,8 +143,9 @@ class InterfaceManager(DefaultManager):
 
     def cleanup(self):
         """Cleans up Interface data."""
-        self._mark_missing_interfaces()
-        self._delete_missing_interfaces()
+        if self.handle_missing:
+            self._mark_missing_interfaces()
+            self._delete_missing_interfaces()
         self._generate_linkstate_events()
 
     @db.commit_on_success
@@ -298,6 +319,16 @@ class Interface(Shadow):
             if self in interfaces:
                 self.ifindex = interfaces[self]
 
+    @classmethod
+    def add_sentinel(cls, containers):
+        """Adds an Interface sentinel to a ContainerRepository, signifying
+        that a full interface collection has taken place and that handling of
+        missing interfaces can be safely performed by the manager.
+
+        """
+        containers.setdefault(cls, {})[cls.sentinel] = cls.sentinel
+
+InterfaceManager.sentinel = Interface.sentinel = Interface()
 
 def mapby(items, *attrs):
     """Maps items by attributes"""

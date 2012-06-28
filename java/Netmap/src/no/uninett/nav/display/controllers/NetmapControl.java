@@ -69,14 +69,14 @@ public class NetmapControl extends ControlAdapter {
 					   ));
 	    } else if (item.isInGroup("graph.edges")){
 		    Double cap = -1.0;
-		    Double in = -1.0;
-		    Double out = -1.0;
+		    Double in_procent = -1.0;
+		    Double out_procent = -1.0;
 		    try {
 		    	cap = Double.parseDouble(item.getString("link_capacity"));
-			in = Double.parseDouble(item.getString("link_load_in"));
-			out = Double.parseDouble(item.getString("link_load_out"));
-			in = in / (cap*1000000);
-			out = out / (cap*1000000);
+			in_procent = Double.parseDouble(item.getString("link_load_in"));
+			out_procent = Double.parseDouble(item.getString("link_load_out"));
+			in_procent = ((in_procent*8) / (cap*1000000))*100;
+			out_procent = ((out_procent*8) / (cap*1000000))*100;
 			} catch (Exception exception){}
 		    t.add(new linkTooltip(
 					    item.getString("from_sysname") + " -> " + item.getString("to_sysname"),
@@ -84,8 +84,8 @@ public class NetmapControl extends ControlAdapter {
 					    item.getString("netident"),
 					    item.getString("nettype"),
 					    item.getString("link_capacity"),
-					    "In: " + Main.bwToString(item.getString("link_load_in")) + "  (" + String.format("%.1f", in) +"%) " +
-					    "Out: " + Main.bwToString(item.getString("link_load_out")) + "  (" + String.format("%.1f", out) + "%)",
+					    "In: " + Main.bwToString(item.getString("link_load_in")) + "  (" + String.format("%.1f", in_procent) +"%) " +
+					    "Out: " + Main.bwToString(item.getString("link_load_out")) + "  (" + String.format("%.1f", out_procent) + "%)",
                         item.getString("ipdevinfolink")
 					 ));
 	    }

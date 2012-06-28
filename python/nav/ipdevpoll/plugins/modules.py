@@ -28,13 +28,14 @@ entity and an interface from IF-MIB is kept.  For each mapping found,
 the interface will have its module set to be whatever the ancestor
 module of the physical entity is.
 """
-
 from twisted.internet import defer
 
 from nav.oids import OID
 from nav.mibs.entity_mib import EntityMib, EntityTable
-from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import shadows
+from nav.ipdevpoll import Plugin, shadows
+from nav.ipdevpoll.timestamps import TimestampChecker
+
+INFO_VAR_NAME = 'modules'
 
 class Modules(Plugin):
     """Plugin to collect module and chassis data from devices"""
@@ -42,21 +43,31 @@ class Modules(Plugin):
     def __init__(self, *args, **kwargs):
         super(Modules, self).__init__(*args, **kwargs)
         self.alias_mapping = {}
+        self.entitymib = EntityMib(self.agent)
+        self.stampcheck = TimestampChecker(self.agent, self.containers,
+                                           INFO_VAR_NAME)
 
     @defer.inlineCallbacks
     def handle(self):
         self._logger.debug("Collecting ENTITY-MIB module data")
-        entitymib = EntityMib(self.agent)
+        need_to_collect = yield self._need_to_collect()
+        if need_to_collect:
+            physical_table = (
+                yield self.entitymib.get_useful_physical_table_columns())
 
-        df = entitymib.retrieve_table('entPhysicalTable')
-        df.addCallback(entitymib.translate_result)
-        physical_table = yield df
+            alias_mapping = yield self.entitymib.retrieve_column(
+                'entAliasMappingIdentifier')
+            self.alias_mapping = self._process_alias_mapping(alias_mapping)
+            self._process_entities(physical_table)
+        self.stampcheck.save()
 
-        alias_mapping = yield entitymib.retrieve_column(
-            'entAliasMappingIdentifier')
-        self.alias_mapping = self._process_alias_mapping(alias_mapping)
-        self._process_entities(physical_table)
+    @defer.inlineCallbacks
+    def _need_to_collect(self):
+        yield self.stampcheck.load()
+        yield self.stampcheck.collect([self.entitymib.get_last_change_time()])
 
+        result = yield self.stampcheck.is_changed()
+        defer.returnValue(result)
 
     def _device_from_entity(self, ent, chassis=False):
         serial_column = 'entPhysicalSerialNum'
@@ -187,5 +198,4 @@ class Modules(Plugin):
 
         self._logger.debug("alias mapping: %r", mapping)
         return mapping
-
 

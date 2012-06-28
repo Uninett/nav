@@ -51,6 +51,62 @@ class Subsystem(models.Model):
 #######################################################################
 ### Event system
 
+class VariableMap(object):
+    """Descriptor for simplified dict-like access to the variable map tables
+    associated with EventQueue, AlertQueue and AlertHistory.
+
+    NOTE: Updating the dictionary will not save it, the attribute must be
+    assigned a dict value for a db update to take place.
+
+    """
+    def __init__(self, variables='variables'):
+        self.variables = variables
+        self.cachename = "_cached_%s" % variables
+
+    def __get__(self, obj, obj_type=None):
+        if obj is None:
+            return self
+
+        if hasattr(obj, self.cachename):
+            return getattr(obj, self.cachename)
+        else:
+            variables = getattr(obj, self.variables)
+            varmap = dict((var.variable, var.value)
+                          for var in variables.all())
+            setattr(obj, self.cachename, varmap)
+            return varmap
+
+    def __set__(self, obj, vardict):
+        if obj is None:
+            raise AttributeError("can only be set on instances")
+
+        if not hasattr(vardict, 'items'):
+            raise ValueError("value must be a dict")
+
+        variables = getattr(obj, self.variables)
+        _rel_manager = getattr(obj.__class__, self.variables)
+        var_model = _rel_manager.related.model
+        related_field = _rel_manager.related.field.name
+        if vardict:
+            removed = variables.exclude(variable__in=vardict.keys())
+            removed.delete()
+        varmap = dict((v.variable, v) for v in variables.all())
+        for key, value in vardict.items():
+            if key in varmap:
+                if varmap[key].value != value:
+                    varmap[key] = value
+                    varmap[key].save()
+            else:
+                variable = var_model(**{
+                        related_field: obj,
+                        'variable': key,
+                        'value': value,
+                        })
+                variable.save()
+
+        setattr(obj, self.cachename, vardict)
+
+
 class EventQueue(models.Model):
     """From NAV Wiki: The event queue. Additional data in eventqvar. Different
     subsystem (specified in source) post events on the event queue. Normally
@@ -77,12 +133,16 @@ class EventQueue(models.Model):
     value = models.IntegerField(default=100)
     severity = models.IntegerField(default=50)
 
+    varmap = VariableMap()
+
     class Meta:
         db_table = 'eventq'
 
     def __unicode__(self):
-        return u'Source %s, target %s, state %s' % (
-            self.source, self.target, self.get_state_display())
+        return u", ".join(
+            u"%s=%r" % (attr, getattr(self, attr))
+            for attr in ('event_type_id', 'source_id', 'target_id', 'state'))
+
 
 class EventType(models.Model):
     """From NAV Wiki: Defines event types."""
@@ -153,6 +213,8 @@ class AlertQueue(models.Model):
 
     history = models.ForeignKey('AlertHistory', null=True, blank=True,
                                 db_column='alerthistid')
+
+    varmap = VariableMap()
 
     class Meta:
         db_table = 'alertq'
@@ -233,6 +295,8 @@ class AlertHistory(models.Model):
     value = models.IntegerField()
     severity = models.IntegerField()
 
+    varmap = VariableMap()
+
     class Meta:
         db_table = 'alerthist'
 
@@ -306,7 +370,8 @@ class AlertHistoryVariable(models.Model):
     STATE_CHOICES = STATE_CHOICES
 
     id = models.AutoField(primary_key=True)
-    alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid')
+    alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid',
+                                      related_name='variables')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
         default=STATE_STATELESS)
     variable = VarcharField(db_column='var')

@@ -244,6 +244,14 @@ class Netbox(models.Model):
                     rrd_file__key__in=('swport', 'gwport', 'interface'))
             ).order_by('description')
 
+    def get_unresolved_alerts(self, kind=None):
+        "Returns a queryset of unresolved alert states"
+        unresolved = self.alerthistory_set.filter(end_time__gte=dt.datetime.max)
+        if kind:
+            return unresolved.filter(event_type__id=kind)
+        else:
+            return unresolved
+
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place to store additional info
     on a netbox."""

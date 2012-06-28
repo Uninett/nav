@@ -42,7 +42,7 @@ from IPy import IP
 
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
-from nav.mibs.ip_mib import IpMib
+from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
@@ -73,6 +73,7 @@ class Prefix(Plugin):
         # Retrieve interface names and keep those who match a VLAN
         # naming pattern
         vlan_interfaces = yield self.get_vlan_interfaces()
+        ifc_aliases = yield self._get_ifc_aliases()
 
         # Traverse address tables from IP-MIB, IPV6-MIB and
         # CISCO-IETF-IP-MIB in that order.
@@ -85,6 +86,7 @@ class Prefix(Plugin):
             # response outside our scope when it has no proprietary MIB support
             if mib != ipmib:
                 df.addErrback(self._ignore_timeout, set())
+            df.addErrback(self._ignore_index_exceptions, mib)
             new_addresses = yield df
             self._logger.debug("Found %d addresses in %s: %r",
                                len(new_addresses), mib.mib['moduleName'],
@@ -102,8 +104,17 @@ class Prefix(Plugin):
                 self._logger.debug("ignoring prefix %s as configured", prefix)
                 continue
             self.create_containers(netbox, ifindex, prefix, ip,
-                                   vlan_interfaces)
+                                   vlan_interfaces, ifc_aliases)
 
+    def _get_ifc_aliases(self):
+        return IfMib(self.agent).get_ifaliases()
+
+    def _ignore_index_exceptions(self, failure, mib):
+        failure.trap(IndexToIpException)
+        self._logger.warning("device has strange SNMP implementation of %s; "
+                             "ignoring retrieved IP address data: %s",
+                             mib.mib['moduleName'], failure.getErrorMessage())
+        return set()
 
     @defer.inlineCallbacks
     def _get_adminup_ifcs(self):
@@ -114,12 +125,14 @@ class Prefix(Plugin):
         defer.returnValue(result)
 
     def create_containers(self, netbox, ifindex, net_prefix, ip,
-                          vlan_interfaces):
+                          vlan_interfaces, ifc_aliases=None):
         """
         Utitilty method for creating the shadow-objects
         """
         interface = self.containers.factory(ifindex, shadows.Interface)
         interface.ifindex = ifindex
+        if ifc_aliases and ifc_aliases.get(ifindex, None):
+            interface.ifalias = ifc_aliases[ifindex]
         interface.netbox = netbox
 
         # No use in adding the GwPortPrefix unless we actually found a prefix
