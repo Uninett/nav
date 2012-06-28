@@ -1,3 +1,27 @@
+Version 3.11.5
+(released 21 June 2012)
+
+Bugfixes
+
+  * LP#722561  (Netmap:incorrect link load info)
+  * LP#1009002 (Unknown orgid parsed from router port description causes
+                ipdevpoll inventory job to fail)
+  * LP#1010013 (KeyError in ipdevpoll interfaces plugin on devices that have no
+                network interfaces)
+  * LP#1010018 (IndexToIpException in ipdevpoll Prefix plugin)
+  * LP#1012001 (ipdevpoll inventory job fails on WeatherGoose device)
+  * LP#1012032 (ipdevpoll inventory job crashes on devices reporting invalid IP
+                address netmasks)
+  * LP#1012034 (Unknown usageid parsed from router port description causes
+                ipdevpoll inventory job to fail)
+
+ Various performance-related improvements:
+
+  * More tweaks to avoid producing unnecessary SNMP queries.
+
+  * Switch port detection on Cisco equipment has been improved
+
+
 Version 3.11.4
 (released 31 May 2012)
 

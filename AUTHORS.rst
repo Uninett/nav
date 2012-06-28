@@ -13,7 +13,7 @@ Currently active contributors/maintainers
   producing documentation and offering keen insight into the problem
   domain.
 
-* John-Magne Bredal <john.m.bredal at ntnu.no>
+* John-Magne Bredal <john.m.bredal at uninett.no>
   Joined in 2000, and is instrumental in anything related to Cricket,
   end user detentions (Arnold), threshold monitoring and snmp trap
   processing.
@@ -26,11 +26,6 @@ Currently active contributors/maintainers
 
 * Morten Werner Forsbring <werner at debian.org>
   Packaging NAV for Debian since 2004.
-
-* Magnus Motzfeldt Eide <magnus.eide at uninett.no>
-  Joined in 2008, and began rewriting the old PHP-based Alert Profiles
-  interface in Python/Django.  General code maintenance and rewrites, such as
-  the Django-ified SeedDB tool.
 
 * Trond Kandal <trond.kandal at ntnu.no>
   Wrote PortAdmin with John-Magne.
@@ -46,9 +41,18 @@ Currently active contributors/maintainers
   support in pping and asynchronous DNS lookups in ipdevinfo & the Machine
   Tracker, as well as fixing various bugs.
 
+* Roy Sindre Norangshol <norangshol at uninett.no>
+  Joined in May 2012 to rewrite Netmap from a Java applet to a JavaScript
+  implementation based on D3.js.
 
 Other contributors and previous maintainers
 -------------------------------------------
+* Magnus Motzfeldt Eide <magnus.eide at uninett.no>
+  Active 2008-2012. Rewrote the old PHP-based Alert Profiles interface in
+  Python/Django.  General code maintenance and rewrites of mod_python based
+  systems to Django, and was also involved in the early development of
+  ipdevpoll.
+
 * Marius Halden <marius.halden at gmail.com>
 
 * Matej Gregr <igregr at fit.vutbr.cz>
