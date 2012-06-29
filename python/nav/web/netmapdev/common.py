@@ -309,7 +309,6 @@ def attach_rrd_data_to_edges(graph, json=None, debug=False):
                     if debug:
                         traffic[rrd_source.description] = __rrd_info2(
                             rrd_source)
-                    break
 
 
         traffic['inOctets'] = None

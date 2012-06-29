@@ -569,7 +569,7 @@ $(function () {
             }
             if (d.data.traffic['outOctets'] != null) {
                 outOctets = convert_bits_to_si(d.data.traffic['outOctets'].raw*8)
-                outOctetsRaw = d.data.traffic['inOctets'].raw
+                outOctetsRaw = d.data.traffic['outOctets'].raw
             } else {
                outOctets = outOctetsRaw = 'N/A'
             }
