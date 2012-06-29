@@ -77,7 +77,7 @@ def start_config_creation(dirname, configroot):
 
 
 def create_interface_config(netbox, targetdir, dirname, datasources):
-    """Create config for this router and store it in targetdir
+    """Create config for this netbox and store it in targetdir
 
     returns: a list of containers
     """
@@ -94,7 +94,7 @@ def create_interface_config(netbox, targetdir, dirname, datasources):
         LOGGER.info("No interfaces found for %s" % netbox.sysname)
         return []
 
-    # Create default target config for this router
+    # Create default target config for this netbox
     stringbuilder.extend(create_default_target(netbox, snmp_version))
 
     containers = []
@@ -253,5 +253,3 @@ def read_defaults_file(filepath):
     except IOError, error:
         LOGGER.error("Could not open %s: %s" % (filename, error))
         return []
-
-
