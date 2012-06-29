@@ -247,6 +247,23 @@ def encode_and_escape(string):
     return string
 
 
+def find_and_remove_old_config(configpath, dirs):
+    """Find dirs in configpath not in dirs and remove config from them"""
+    subdirs = find_subdirs(configpath)
+    remove_old_config(list(set(subdirs) - set(dirs)))
+
+
+def find_subdirs(fullpath):
+    """Find sub directories in path"""
+    subdirs = []
+    for d in os.listdir(fullpath):
+        subdir = join(fullpath, d)
+        if os.path.isdir(subdir):
+            subdirs.append(subdir)
+
+    return subdirs
+
+
 def remove_old_config(dirs):
     """
     Input is a list of directories. Remove those if they contain nothing but

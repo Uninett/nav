@@ -1,4 +1,4 @@
 pytest>=2.0.0
-mock>=0.6
+mock>=0.8
 pylint>=0.25
 sphinx>=1.0
