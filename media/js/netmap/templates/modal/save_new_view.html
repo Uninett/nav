@@ -1,0 +1,55 @@
+<div class="modal fade hide" style="display:none;background: #c0c0c0;color: blue;" id="modal_new_view">
+    <div class="modal-header">
+        <h3>Save new view as</h3>
+    </div>
+    <div class="modal-body">
+        <form class="form-horizontal" action="#">
+            <fieldset>
+                <div class="control-group">
+                    <label class="control-label"
+                           for="new_view_title">Title</label>
+
+                    <div class="controls">
+                        <input type="text" class="input"
+                               id="new_view_title" value="{{title}}" />
+
+                        <p class="help-block">Title shown in
+                            dropdown list</p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label"
+                           for="new_view_description">Description</label>
+
+                    <div class="controls">
+                        <textarea class="input-xlarge" id="new_view_description" rows="5"></textarea>
+
+                        <p class="help-block">Shows in sidebar after you
+                            have selected
+                            the view</p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label"
+                           for="new_view_is_public">Is public?</label>
+
+                    <div class="controls">
+                        <input type="checkbox" class="checkbox"
+                               {{#if is_public}}
+                               checked
+                               {{/if}}
+                               id="new_view_is_public"/>
+                        <p class="help-block">Makes view available for
+                            everyone</p>
+                    </div>
+                </div>
+
+            </fieldset>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Close</a>
+        <a id="save_new_view" href="#" class="btn btn-primary">Save
+            changes</a>
+    </div>
+</div>
