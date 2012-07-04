@@ -79,7 +79,7 @@ def graph_layer2_view2(request, user=None, view=None):
 
     # 'netmapdev/force_direct.html',
     response = render_to_response(Netmapdev,
-        'netmapdev/view.html',
+        'netmapdev/backbone.html',
             {'data': 'd3js/layer2',
              'current_view': view,
              'views': views,
@@ -127,6 +127,29 @@ def graphml_layer2(request):
     return response
 
 # data views, d3js
+
+def get_netmap(request, view_id):
+    view = get_object_or_404(NetmapView, pk=view_id)
+    if view.is_public or (session_user == view.owner):
+        json = view.to_json_dict()
+        response = HttpResponse(simplejson.dumps(json))
+        response['Content-Type'] = 'application/json; charset=utf-8'
+        response['Cache-Control'] = 'no-cache'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
+        response['x-nav-viewid'] = view_id
+        return response
+    else:
+        return HttpResponseForbidden()
+
+def get_netmaps(request):
+    session_user = get_account(request)
+
+    netmap_views = _get_views(session_user)
+    json_views =[]
+    [json_views.append(view.to_json_dict()) for view in netmap_views]
+    return HttpResponse(simplejson.dumps(json_views))
+
 
 def d3js_layer2(request, view_id=None):
     """

@@ -1226,8 +1226,22 @@ class NetmapView(models.Model):
     def __unicode__(self):
         return u'%s (%s)' % (self.viewid, self.title)
 
+    def to_json_dict(self):
+        return {
+            'viewid': self.viewid,
+            'owner': self.owner.id,
+            'title': self.title,
+            'link_types': self.link_types,
+            'zoom': self.zoom,
+            'last_modified': str(self.last_modified),
+            'is_public': str(self.is_public)
+        }
+
+
     class Meta:
         db_table = u'netmap_view'
+
+
 
 class NetmapViewCategories(models.Model):
     id = models.AutoField(primary_key=True) # Serial for faking a primary key
