@@ -1,10 +1,6 @@
 from unittest import TestCase
-from minimock import Mock, restore
+from mock import patch, Mock
 
-# Ensure that we don't actually touch the database while unit testing
-import nav.db
-nav.db.getConnection = Mock('nav.db.getConnection',
-                            returns=Mock('psycopg2.Connection'))
 from nav.snmptrapd.handlers import weathergoose as wg
 
 class WeatherGoose1ClassTest(TestCase):
@@ -22,14 +18,12 @@ class WeatherGoose1ClassTest(TestCase):
             'cmClimateTempCTRAP')
 
     def test_init_should_raise_on_invalid_oid(self):
-        trap = Mock('trap')
-        trap.snmpTrapOID = '5'
+        trap = Mock(snmpTrapOID = '5')
         self.assertRaises(Exception, wg.WeatherGoose1, trap, None, None, None)
 
 class WeatherGoose1TrapTest(TestCase):
     def setUp(self):
-        trap = Mock('trap')
-        trap.snmpTrapOID = '.1.3.6.1.4.1.17373.0.10205'
+        trap = Mock(snmpTrapOID = '.1.3.6.1.4.1.17373.0.10205')
         TRIP_TYPE_HIGH = 2
         self.goosename = 'cleese'
         self.temperature = 32
@@ -43,10 +37,11 @@ class WeatherGoose1TrapTest(TestCase):
             def post(self):
                 pass
 
-        nav.event.Event = Mock('nav.event.Event', returns_func=Event)
+        self.event = patch('nav.event.Event', side_effect=Event)
+        self.event.start()
 
     def tearDown(self):
-        restore()
+        self.event.stop()
 
     def test_init_should_parse_trap_without_error(self):
         self.assertTrue(wg.WeatherGoose1(self.trap, None, None, None))

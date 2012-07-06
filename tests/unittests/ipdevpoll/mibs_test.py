@@ -21,7 +21,7 @@ from IPy import IP
 from twisted.internet import defer
 from twisted.python import failure
 
-from minimock import Mock
+from mock import Mock
 
 os.environ['PYSNMP_API_VERSION'] = 'v3'
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'

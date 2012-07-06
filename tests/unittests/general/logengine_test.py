@@ -1,4 +1,4 @@
-from minimock import Mock
+from mock import Mock
 from unittest import TestCase
 import random
 import logging

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from minimock import Mock
+from mock import Mock
 
 from nav.ipdevpoll.plugins.ciscosup import find_supervisor
 

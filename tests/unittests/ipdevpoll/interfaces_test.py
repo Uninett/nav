@@ -1,5 +1,5 @@
 from unittest import TestCase
-from minimock import Mock
+from mock import Mock
 
 from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.plugins.interfaces import Interfaces, decode_to_unicode
