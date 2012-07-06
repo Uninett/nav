@@ -1,4 +1,13 @@
 from unittest import TestCase
+# mock/patch/hack/workaround: gammudispatcher normally requires gammu to be
+# installed, but we're only testing functionality from the module that is not
+# dependent on this. If there is no gammu module, we fake it so we can import
+# gammudispather without failures.
+try:
+    import gammu
+except ImportError:
+    import sys
+    gammu = sys.modules['gammu'] = type(sys)('gammu')
 from nav.smsd.gammudispatcher import decode_sms_to_unicode
 
 class EncodingTests(TestCase):
