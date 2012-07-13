@@ -22,13 +22,14 @@ from twisted.internet import defer
 from twisted.python import failure
 
 from minimock import Mock
+from nav.mibs.cisco_hsrp_mib import CiscoHSRPMib
 
 os.environ['PYSNMP_API_VERSION'] = 'v3'
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
+from nav.oids import OID
 from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
-from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 from nav.mibs.entity_mib import EntityMib
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 
@@ -112,6 +113,21 @@ class Snmpv2MibTests(unittest.TestCase):
         dev = Snmpv2Mib.get_uptime_deviation(first_uptime, second_uptime)
         self.assertTrue(abs(dev) < 0.5,
                         msg="deviation is higher than 0.5: %r" % dev)
+
+class CiscoHSRPMibTests(unittest.TestCase):
+    def test_virtual_address_map(self):
+        class MockedMib(CiscoHSRPMib):
+            def retrieve_column(self, column):
+                return defer.succeed({
+                    OID('.153.1'): '10.0.1.1',
+                    OID('.155.1'): '10.0.42.1',
+                    })
+
+        mib = MockedMib(None)
+        df = mib.get_virtual_addresses()
+        self.assertTrue(df.called)
+        self.assertIn((IP('10.0.1.1'), 153), df.result.items())
+        self.assertIn((IP('10.0.42.1'), 155), df.result.items())
 
 if __name__ == '__main__':
     unittest.main()
