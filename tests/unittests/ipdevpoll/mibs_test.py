@@ -126,8 +126,8 @@ class CiscoHSRPMibTests(unittest.TestCase):
         mib = MockedMib(None)
         df = mib.get_virtual_addresses()
         self.assertTrue(df.called)
-        self.assertIn((IP('10.0.1.1'), 153), df.result.items())
-        self.assertIn((IP('10.0.42.1'), 155), df.result.items())
+        self.assertTrue((IP('10.0.1.1'), 153) in df.result.items())
+        self.assertTrue((IP('10.0.42.1'), 155) in df.result.items())
 
 if __name__ == '__main__':
     unittest.main()
