@@ -1,46 +1,48 @@
 define([
-    'jQuery',
-    'Underscore',
-    'Backbone',
-    'Handlebars',
-    'Netmap',
+    'jquery',
+    'underscore',
+    'backbone',
+    'handlebars',
+    'netmapextras',
     // Pull in the Collection module from above
-    'text!templates/draw_netmap.html'
-], function ($, _, Backbone, Handlebars, NetmapHelpers, netmapTemplate ) {
+    'views/netbox_info',
+    'text!templates/draw_map.html'
+], function ($, _, Backbone, Handlebars, NetmapExtras, NetboxInfoView, netmapTemplate ) {
 
     var drawNetmapView = Backbone.View.extend({
         tagName: "div",
         id: "chart",
         initialize: function () {
+            this.model = this.options.context_selected_map.graph;
 
-
-        //console.log(NetmapHelpers.convert_bits_to_si);
             this.$el.append(netmapTemplate);
-
-
-            //this.collection = postsCollection;
-            //this.collection.bind("add", this.exampleBind);
-            //this.collection.bind("destroy", this.close, this);
-            /*this.collection = postsCollection.add({ id:1, title: "Twitter"});
-             this.collection = postsCollection.add({ id:2, title: "Facebook"});
-             this.collection = postsCollection.add({ id:3, title: "Myspace", score: 20});*/
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
+
+            this.context_selected_map = this.options.context_selected_map;
+            this.sidebar = this.options.view_netbox_info;
+
+            this.w = this.options.cssWidth;
+            this.h = screen.height-500;
+
+            // swap .on with .bind for jQuery<1.7
+            $(window).on("resize.app", _.bind(this.resize, this));
         },
-        exampleBind: function (model) {
-            //console.log(model);
+        resize: function () {
+            var self = this;
+            self.w = this.$el.width();
+            self.h = this.$el.height();
+            (this.$el).find('#svg-netmap').attr('width', self.w);
+            (this.$el).find('#svg-netmap').attr('height', self.h);
+            (this.$el).find('#svg-netmap rect').attr('width', self.w);
+            (this.$el).find('#svg-netmap rect').attr('height', self.h);
         },
-
-
-
-
         render: function () {
 
-            var chart, svg, trans, scale;
+            var chart, svg, trans, scale, self;
+            self = this;
 
             chart = this.$el[0],
-                w = 800, // todo get size!
-                h = screen.height-500,
                 r = 6,
                 fill = d3.scale.category20(),
                 trans=[0,0],
@@ -52,13 +54,13 @@ define([
             var root_chart = d3.select(this.el)
                 .append("svg:svg")
                 .attr('id', 'svg-netmap')
-                .attr("width", w)
-                .attr("height", h)
+                .attr("width", self.w)
+                .attr("height", self.h)
                 .attr("pointer-events", "all");
             root_chart
                 .append('svg:rect')
-                .attr('width', w)
-                .attr('height', h)
+                .attr('width', self.w)
+                .attr('height', self.h)
                 .attr('fill', 'white')
                 .call(d3.behavior.zoom().on("zoom", redraw));
             svg = root_chart .append('svg:g')
@@ -79,18 +81,83 @@ define([
             var draw = function (data) {
                 json = data;
 
-                for (var i in json.nodes) {
-                    if (json.nodes[i].data.position) {
-                        console.log(json.nodes[i]);
-                        json.nodes[i].x = json.nodes[i].data.position.x;
-                        json.nodes[i].y = json.nodes[i].data.position.y;
-                        json.nodes[i].fixed = true;
+                // translate and scale to saved settings
+                if (!self.context_selected_map.map.isNew() && self.context_selected_map.map.attributes.zoom !== undefined) {
+                    var tmp = self.context_selected_map.map.attributes.zoom.split(";");
+
+                    trans = tmp[0].split(",");
+                    scale = tmp[1];
+                    svg.attr("transform",
+                        "translate(" + trans + ") scale(" + scale + ")");
+
+                } else {
+                    // adjust scale and translated according to how many nodes
+                    // we're trying to draw
+
+                    scale = 1 / Math.log(json.nodes.length);
+                    svg.attr("transform", "scale({0})".format(scale));
+                }
+
+                // FILTERS ON CATEGORIES ---- EXTRA METHOD PLEASE
+                // FILTERS ON CATEGORIES ---- EXTRA METHOD PLEASE
+
+                //if (!self.selected_netmap.isNew() && self.selected_netmap.attributes.)
+
+                var selected_categories = ['edge', 'gsw', 'gw', 'other', 'srv', 'sw', 'wlan'];
+                //var selected_categories = ['sw'];
+
+                // can't remove nodes YET, will screw up stupid linksLinkedByIndex!
+                // If you don't want to remap links >=index_you_delete by -1 for every
+                // delete ...
+                var filter_nodes_indexes = [];
+                var filter_links = [];
+
+
+                for (var i = 0; i < json.nodes.length; i++) {
+                    var node = json.nodes[i];
+                    if (node !== null) {
+                        if (node.data.position !== null) {
+
+                            console.log(node);
+                            node.x = node.data.position.x;
+                            node.y = node.data.position.y;
+                            node.fixed = true;
+                        }
+
+                        for (var k = 0; k < selected_categories.length; k++) {
+                            var selected_category = selected_categories[k];
+                            if (selected_category.toLowerCase() === node.data.category.toLowerCase()) {
+
+                                filter_nodes_indexes.push(i);
+                                //json.nodes.splice(i, 1);
+                                //console.log("removing "+ node.name);
+                            }
+                        }
+                    } else {
+                        console.log("THIS IS A BUG");
+                        console.log(i);
                     }
                 }
 
 
-                var force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([w, h])
-                    .nodes(json.nodes).links(json.links).on("tick", tick).start();
+                for (var i = 0; i < json.links.length; i++) {
+                    var link = json.links[i];
+                    for (var j = 0; j < filter_nodes_indexes.length; j++) {
+                        var node_index = filter_nodes_indexes[j];
+                        // should it include ONLY filters, ie:
+                        // filter is GSW, should it allow link from SW to GSW? or only links between
+                        // selected filters?
+                        if (link.source === node_index || link.target === node_index) {
+                            filter_links.push(link);
+                        }
+                    }
+                }
+
+                // FILTERS ON CATEGORIES ---- EXTRACT METHOD PLEASE
+                // FILTERS ON CATEGORIES ---- EXTRACT METHOD PLEASE
+
+                var force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h])
+                    .nodes(json.nodes).links(filter_links).on("tick", tick).start();
 
                 //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
                 var s_link = svg.selectAll("g line").data(json.links)
@@ -296,13 +363,13 @@ define([
                     var inOctets,outOctets,inOctetsRaw,outOctetsRaw = "N/A"
 
                     if (d.data.traffic['inOctets'] != null) {
-                        inOctets = convert_bits_to_si(d.data.traffic['inOctets'].raw*8)
+                        inOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['inOctets'].raw*8)
                         inOctetsRaw = d.data.traffic['inOctets'].raw
                     } else {
                         inOctets = inOctetsRaw = 'N/A'
                     }
                     if (d.data.traffic['outOctets'] != null) {
-                        outOctets = convert_bits_to_si(d.data.traffic['outOctets'].raw*8)
+                        outOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['outOctets'].raw*8)
                         outOctetsRaw = d.data.traffic['outOctets'].raw
                     } else {
                         outOctets = outOctetsRaw = 'N/A'
@@ -326,11 +393,11 @@ define([
 
                 function mover(d) {
                     //console.log('mover!');
-                    $("#pop-up").fadeOut(100,function () {
+                    self.$("#pop-up").fadeOut(100,function () {
                         // Popup content
-                        $("#pop-up-title").html(d.title);
-                        $("#pop-img").html("23");
-                        $("#pop-desc").html(d.description).css({'width':d.css_description_width});
+                        self.$("#pop-up-title").html(d.title);
+                        self.$("#pop-img").html("23");
+                        self.$("#pop-desc").html(d.description).css({'width':d.css_description_width});
 
                         // Popup position
 
@@ -339,8 +406,8 @@ define([
 
                         var popLeft = (d.x*scale)+trans[0]-10;//lE.cL[0] + 20;
                         var popTop = (d.y*scale)+trans[1]+70;//lE.cL[1] + 70;
-                        $("#pop-up").css({"left":popLeft,"top":popTop});
-                        $("#pop-up").fadeIn(100);
+                        self.$("#pop-up").css({"left":popLeft,"top":popTop});
+                        self.$("#pop-up").fadeIn(100);
                     });
 
                 }
@@ -350,52 +417,31 @@ define([
                     //d3.select(this).attr("fill","url(#ten1)");
                 }
 
-                function link_onClick(link) {
-                    //return link_popup();
-                    //console.log(link.data.uplink.this + " -> " + link.data.uplink.other);
-                }
-
                 function node_onClick(node) {
-                    $("#nodeinfo").html(
-                        "<span><img src='/images/lys/"+node.data.up_image+"' alt='"+node.data.up+"' class='netmap-node-status' />" +
-                            "<h2>"+node.data.sysname+"</h2></span>" +
-                            "<p>Last updated: "+node.data.last_updated + "</p>" +
-                            "<ul class='netmap-node-menu'>" +
-                            "<li>[<a href='"+node.data.ipdevinfo_link+"'>infodevinfo</a>]</li>" +
-                            "<li>[<a href='#'>geomap</a>]</li>" +
-                            "</ul>" +
-                            "<dl>" +
-                            "<dt>IP</dt>" +
-                            "<dd>"+node.data.ip+"</dd>" +
-                            "<dt>Category</dt>" +
-                            "<dd style='background: url(\/images\/netmap\/"+node.data.category.toLowerCase()+".png) no-repeat; background-size: 32px 32px; padding-left: 35px; min-height: 32px; height: 32px'>"+node.data.category+"</dd>" +
-                            "<dt>Type</dt>" +
-                            "<dd>"+node.data.type+"</dd>" +
-                            "<dt>Room</dt>" +
-                            "<dd>"+node.data.room+"</dd>" +
-                            "</dl>"
 
-
-                    );
+                    //var netbox_info = new NetboxInfoView({node: node});
+                    self.sidebar.node = node;
+                    self.sidebar.render();
+                    //self.sidebar.html(netbox_info.render().el);
                 }
 
                 /*svg.style("opacity", 1e-6)
                  .transition()
-                 .duration(1000)
+                 .duration(10000)
                  .style("opacity", 1);*/
 
             }
 
             draw(this.model.toJSON());
 
-
             console.log(this.$el);
 
             return this;
         },
         close:function () {
-            $(this.el).unbind();
-            $(this.el).remove();
+            $(window).off("resize.app");
+            this.$el.unbind();
+            this.$el.remove();
         }
     });
     return drawNetmapView;
