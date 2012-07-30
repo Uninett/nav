@@ -1,0 +1,20 @@
+
+    <span><img src='/images/lys/{{node.data.up_image}}' alt='{{node.data.up}}' class='netmap-node-status'/>
+    <h2>{{node.data.sysname}}</h2></span>
+    <p>Last updated: {{node.data.last_updated}}</p>
+    <ul class='netmap-node-menu'>
+        <li>[<a href='{{node.data.ipdevinfo_link}}'>infodevinfo</a>]</li>
+        <li>[<a href='#'>geomap</a>]</li>
+    </ul>
+    <dl>
+        <dt>IP</dt>
+        <dd>{{node.data.ip}}</dd>
+        <dt>Category</dt>
+        <dd style='background: url(\/images\/netmap\/{{{toLowerCase node.data.category}}}.png) no-repeat; background-size: 32px 32px; padding-left: 35px; min-height: 32px; height: 32px'>
+            {{node.data.category}}
+        </dd>
+        <dt>Type</dt>
+        <dd>{{node.data.type}}</dd>
+        <dt>Room</dt>
+        <dd>{{node.data.room}}</dd>
+    </dl>
