@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="/style/netmap.css" media="screen" type="text/css" />
     <link rel="stylesheet" href="/style/jqueryui/jquery-ui-1.8.21.custom.css" type="text/css" />
     <script type="text/javascript" data-main="/js/netmap/main" src="/js/netmap/libs/require/require.js"></script>
+    <!-- check out https://github.com/jrburke/jqueryui-amd -->
 {% endblock %}
 
 
@@ -40,36 +41,9 @@
 
                     </div>
                 </div>
-                <div class="col2">
+                <div class="col2" id="netmap_left_sidebar">
                     <!-- Column 2 start -->
-                    <ul class="nav nav-list">
-                        <li class="nav-header">
-                            Link types
-                        </li>
-                        <li class="active">
-                            <a href="#">2</a>
-                        </li>
-                        <li>
-                            <a href="#">2 (vlan)</a>
-                        </li>
-                        <li>
-                            <a href="#">3</a>
-                        </li>
-
-                        <li class="nav-header">
-                            Categories
-                        </li>
-                        <li class="active">
-                            <a href="#">SW</a>
-                        </li>
-                        <li>
-                            <a href="#">2 (vlan)</a>
-                        </li>
-                        <li>
-                            <a href="#">3</a>
-                        </li>
-
-                    </ul>
+                    <span>Navigation</span>
                     <div id="loadbar-chart">
                     </div>
                     <!-- Column 2 end -->
@@ -77,6 +51,8 @@
                 <div class="col3" id="netmap_infopanel">
                     <!-- Column 3 start -->
                     <!-- Column 3 end -->
+                    <div id="list_views"></div>
+                    <div id="nodeinfo"></div>
                 </div>
             </div>
         </div>
