@@ -1,10 +1,10 @@
-define(['order!libs/jquery/jquery-full', 'order!libs/underscore/underscore-full', 'order!libs/handlebars/handlebars-full', 'order!libs/backbone/backbone-full'],
-    function(){
-        var libs= {
+/*define(['libs/jquery/jquery-full', 'libs/underscore/underscore-full', 'libs/handlebars/handlebars-full', 'libs/backbone/backbone-full'],
+    function() {
+        return {
             Backbone: Backbone.noConflict(),
             _: _.noConflict(),
             $: jQuery.noConflict(),
             Handlebars: Handlebars
         };
-        return libs;
-    });
+    }
+);*/
