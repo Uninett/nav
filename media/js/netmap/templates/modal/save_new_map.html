@@ -3,7 +3,11 @@
         <h3>Save new view as</h3>
     </div>
     <div class="modal-body">
-        <form class="form-horizontal" action="#">
+        {{#if is_new}}
+            <form class="form-horizontal" action="#/netmap">
+        {{else}}
+            <form class="form-horizontal" action="#/netmap/{{model.viewid}}">
+        {{/if}}
             <fieldset>
                 <div class="control-group">
                     <label class="control-label"
@@ -11,7 +15,7 @@
 
                     <div class="controls">
                         <input type="text" class="input"
-                               id="new_view_title" value="{{title}}" />
+                               id="new_view_title" value="{{model.title}}" />
 
                         <p class="help-block">Title shown in
                             dropdown list</p>
@@ -35,7 +39,7 @@
 
                     <div class="controls">
                         <input type="checkbox" class="checkbox"
-                               {{#if is_public}}
+                               {{#if model.is_public}}
                                checked
                                {{/if}}
                                id="new_view_is_public"/>
@@ -49,7 +53,13 @@
     </div>
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a id="save_new_view" href="#" class="btn btn-primary">Save
+        {{#if is_new}}
+            <a id="save_new_view" href="#/netmap" class="btn btn-primary">Save
             changes</a>
+        {{else}}
+            <a id="save_new_view" href="#/netmap/{{model.viewid}}" class="btn btn-primary">Save
+            changes</a>
+        {{/if}}
+
     </div>
 </div>
