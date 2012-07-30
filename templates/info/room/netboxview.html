@@ -1,6 +1,11 @@
 {% load info %}
 
 <div id="netboxes">
+
+    <div id="global-search" class="hidden">
+        Global search: <input id="netbox-global-search" type="text" />
+    </div>
+
     {% for netbox in netboxes %}
 
         <table class="vertitable netbox compact cluttered">

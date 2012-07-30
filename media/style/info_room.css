@@ -1,3 +1,7 @@
+#global-search {
+    margin: 0 1em 1em 0;
+}
+
 #netboxes .dataTables_wrapper {
     display: inline-block;
     margin-bottom: 1em;
@@ -27,6 +31,10 @@ table.cluttered tr td {
 
 .brighten {
     color: #777;
+}
+
+.hidden {
+    display: none;
 }
 
 /* Sorting indicators */

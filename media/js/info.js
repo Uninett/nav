@@ -18,6 +18,7 @@ infopage.add_roomview_tabs = function() {
             complete: function() {
                 $('.tab-spinner').hide();
                 infopage.add_table_sorter();
+                infopage.add_global_filter();
             }
         }
     };
@@ -93,6 +94,22 @@ infopage.add_table_sorter = function() {
 
 };
 
+/* Add global filtering to the tables */
+infopage.add_global_filter = function() {
+    var tables = $.fn.dataTable.fnTables();
+    if (tables.length > 1) {
+        $('#global-search').show();
+        $('#netbox-global-search').keyup(apply_global_filter);
+    }
+
+    function apply_global_filter(event) {
+        var filter = event.currentTarget.value;
+        for (var i=0; i<tables.length; i++) {
+            $(tables[i]).dataTable().fnFilter(filter);
+        }
+    }
+
+};
 
 /* Run javascript at document ready */
 $(document).ready(function(){
