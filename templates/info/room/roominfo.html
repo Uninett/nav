@@ -47,6 +47,8 @@
                 <th>Category</th>
                 <th>Type</th>
                 <th>Organization</th>
+                <th>#swp</th>
+                <th>#gwp</th>
                 <th>Up</th>
                 <th>Availability (week)</th>
             </tr>
@@ -59,6 +61,8 @@
                     <td><a href="/report/netbox?catid={{ netbox.category.id }}">{{ netbox.category.id }}</a></td>
                     <td><a href="/report/netbox?typeid={{ netbox.type.id }}">{{ netbox.type.name }}</a></td>
                     <td><a href="/report/netbox?orgid={{ netbox.organization.id }}">{{ netbox.organization.description }}</a></td>
+                    <td><a href="/report/swport?netboxid={{ netbox.id }}">{{ netbox.get_swports|length }}</a></td>
+                    <td><a href="/report/gwport?netboxid={{ netbox.id }}">{{ netbox.get_gwports|length }}</a></td>
                     <td><img src="/images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}"></td>
                     <td class="numeric">{{ netbox.availability }}</td>
                 </tr>
