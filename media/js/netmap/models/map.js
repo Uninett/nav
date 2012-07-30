@@ -1,14 +1,15 @@
 define([
-    'Underscore',
-    'Backbone'
+    'underscore',
+    'backbone'
 ], function (_, Backbone) {
     var netmapModel = Backbone.Model.extend({
         idAttribute: "viewid",
         defaults: {
-            timeStamp: new Date()
+            timeStamp: new Date(),
+            title: "Unsaved view",
+            is_public: true,
         },
         initialize: function () {
-
         },
         url: function () {
             var base = 'api/netmap';
