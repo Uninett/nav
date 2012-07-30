@@ -41,7 +41,7 @@
                             class="numeric {% if interface.last_cam|is_max_timestamp %}brighten{% endif %}">
 
                         {% if not interface.trunk %}
-                            {{ interface.last_cam|time_since }}
+                            {{ interface.last_cam|days_since }}
                             <span class="ui-helper-hidden" title="{% firstof interface.last_cam 'Never' %}"></span>
                         {% endif %}
 

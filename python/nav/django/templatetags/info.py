@@ -1,6 +1,6 @@
 """Template tags used in info subsystem"""
 from django import template
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.utils.timesince import timesince
 
 register = template.Library()
@@ -26,6 +26,23 @@ def time_since(timestamp):
             text = text.replace(key, mapping[key])
 
         return text
+
+
+@register.filter
+def days_since(timestamp):
+    """Convert a timestamp to human readable time using days"""
+    if timestamp is None:
+        return "Never"
+
+    if timestamp == datetime.max or timesince(timestamp) == "0 minutes":
+        return "Now"
+    elif timestamp.date() == datetime.now().date():
+        return "Today"
+    elif timestamp.date() == datetime.now().date() - timedelta(days=1):
+        return "Yesterday"
+    else:
+        return "%s days" % (datetime.now().date() - timestamp.date()).days
+
 
 @register.filter
 def is_max_timestamp(timestamp):
