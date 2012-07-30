@@ -1,7 +1,7 @@
 define([
-    'jQuery',
-    'Underscore',
-    'Backbone',
+    'jquery',
+    'underscore',
+    'backbone',
     'models/graph'
 ], function ($, _, Backbone, netmapModel) {
     var graphCollection = Backbone.Collection.extend({
