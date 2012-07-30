@@ -1,107 +1,126 @@
 
 define([
-    'jQuery',
-    'Underscore',
-    'Backbone',
-    'collections/netmap',
-    'models/netmap',
+    'jquery',
+    'underscore',
+    'backbone',
+    'collections/map',
+    'models/map',
     'models/graph',
-    'views/draw_netmap',
-    'views/list_netmap',
-    'views/modal/save_new_view'
+    'views/netbox_info',
+    'views/draw_map',
+    'views/list_maps',
+    'views/navigation'
     /*'views/users/list'*/
-], function ($, _, Backbone, NetmapCollection, NetmapModel, GraphModel, DrawNetmapView, ListNetmapView, SaveNetmapView) {
+], function ($, _, Backbone, MapCollection, MapModel, GraphModel, NetboxInfoView, DrawNetmapView, ListNetmapView, NavigationView) {
 
-    var netmaps;
-    var selected_netmap;
+    var collection_maps;
+    var context_selected_map = {};
+
+    var view_choose_map;
+
 
 
     var AppRouter = Backbone.Router.extend({
+
         routes: {
-            '': 'showDefaultNetmap',
-            // Define some URL routes
-            'netmaps': 'listNetmaps',
-            //'netmap/new': 'show_save_netmap_view',
-            'netmap/:netmap_id': 'showNetmap',
-            'dummy': 'dummy'
-            /*'/users': 'showUsers',
-
-             // Default
-             '*actions': 'defaultAction'*/
+            'netmap/:map_id': 'showNetmap',
+            '': 'loadPage'
         },
-        listNetmaps: function () {
+
+        showNetmap: function(map_id) {
+
+            context_selected_map.id = parseInt(map_id);
+            this.loadPage();
+        },
+        loadPage: function () {
             var self = this;
+            // is "colelction_maps" set?
 
-            if (netmaps === undefined) {
-                netmaps = new NetmapCollection();
-
-                netmaps.fetch({
+            if (collection_maps === undefined) {
+                collection_maps = new MapCollection();
+                collection_maps.fetch({
                     success: function () {
-
-                        self.postListView = new ListNetmapView({collection: netmaps, options: {'selected_netmap': self.selected_netmap} });
-                        $('#netmap_infopanel').html(self.postListView.render().el);
+                        self.checkContextMapId();
                     }
                 });
-            }
-            if (self.postListView) {
-                $('#netmap_infopanel').html(self.postListView.render().el);
+            } else {
+                self.checkContextMapId();
             }
 
-            //drawNetmap(this.selected_netmap);
 
         },
-        showDefaultNetmap: function () {
-            // todo: add logic for fetching default netmap
-            this.showNetmap();
-        },
-        showNetmap: function(netmap_id) {
+        checkContextMapId: function () {
             var self = this;
 
-            if (netmaps) {
-                self.selected_netmap = netmaps.get(netmap_id);
-                if (self.list_netmap_view) {
-                    self.list_netmap_view.close();
-                }
-                self.drawNetmap(self.selected_netmap);
+            if (context_selected_map.id !== undefined) {
+                self.loadMap(collection_maps.get(context_selected_map.id));
             } else {
-
-                this.selected_netmap = new NetmapModel({id: netmap_id});
-
-                self.selected_netmap.fetch({
-                    success: function () {
-                        self.drawNetmap(self.selected_netmap);
-                    }
-                });
+                self.checkDefaultMapSetByAdministrator();
             }
-
-            this.listNetmaps();
 
         },
-        drawNetmap: function () {
-            "use strict";
+        checkDefaultMapSetByAdministrator: function () {
+            var self = this;
+            // todo add a map the administrator can set to be default view
+            // for every page request not containing a map id
+
+            context_selected_map.map = new MapModel();
+            self.loadUi();
+        },
+        loadMap: function (model) {
+            var self = this;
+            context_selected_map.map = model;
+            self.loadUi();
+        },
+        loadUi: function () {
             var self = this;
 
-            var graph;
-            if (selected_netmap !== undefined) {
-                graph = new GraphModel({id: selected_netmap.id});
+            /*if (view_choose_map !== undefined) {
+                view_choose_map.close(); //
+            } else {*/
+            view_choose_map = new ListNetmapView({collection: collection_maps, context_selected_map: context_selected_map});
+            //}
+            self.loadGraph();
+            self.loadNavigation();
+        },
+        loadNavigation: function () {
+            // draw navigation view!
+
+            view_navigation = new NavigationView({model: context_selected_map.map});
+            $('#netmap_left_sidebar').html(view_navigation.render().el);
+        },
+        loadGraph: function () {
+            var self = this;
+            console.log("====" + "map_id");
+            console.log(context_selected_map.id);
+            console.log("====/" + "map_id");
+            if (context_selected_map.id !== undefined) {
+                context_selected_map.graph = new GraphModel({id: context_selected_map.id });
             } else {
-                graph = new GraphModel();
+                context_selected_map.graph = new GraphModel();
             }
-            graph.fetch({
-                success: function() {
-                    self.list_netmap_view = new DrawNetmapView({model: graph });
-                    $('#netmap_main_view').html(self.list_netmap_view.render().el);
+            context_selected_map.graph.fetch({
+                success: function () {
+                    self.drawPage();
                 }
             });
         },
-        dummy: function () {
-            //netmaps.getByCid("c2").set({title: 'foobar'});
-            netmaps.get(1).set({title: 'fooobar'});
-        },
-        show_save_netmap_view: function () {
-            "use strict";
+        drawPage: function () {
             var self = this;
-            self.save_netmap_view = new SaveNetmapView({model: selected_netmap});
+
+
+            self.view_netbox_info = new NetboxInfoView({el: $('#nodeinfo')});
+
+            // graph is now set in context_selected-map, we can render map!
+            $('#netmap_infopanel #list_views').html(view_choose_map.render().el);
+
+            if (self.view_map !== undefined) {
+                self.view_map.close();
+            }
+
+            self.view_map = new DrawNetmapView({context_selected_map: context_selected_map, view_netbox_info: self.view_netbox_info, cssWidth: $('#netmap_main_view').width()});
+            $('#netmap_main_view').html(self.view_map.render().el);
+
         }
 
     });
@@ -109,6 +128,11 @@ define([
     var initialize = function () {
         var app_router = new AppRouter;
 
+        _.extend(context_selected_map, Backbone.Events);
+        context_selected_map.on('reattach', function (new_selected_map) {
+            context_selected_map = new_selected_map;
+            app_router.loadUi();
+        });
         //var postListView = new postListView();
         //var showPostView = new showPostView();
 
