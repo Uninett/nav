@@ -1,8 +1,8 @@
 define([
-    'jQuery',
-    'Underscore',
-    'Backbone',
-    'models/netmap'
+    'jquery',
+    'underscore',
+    'backbone',
+    'models/map'
 ], function ($, _, Backbone, netmapModel) {
     var netmapCollection = Backbone.Collection.extend({
         model: netmapModel,
