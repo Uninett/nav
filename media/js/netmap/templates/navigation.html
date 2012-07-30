@@ -1,0 +1,52 @@
+{{#ifequal 1 model.viewid}}class="active"{{/ifequal}}
+
+
+    <h3>Layer</h3>
+    <a id="toggle_view">Hide/Show view</a>
+
+    {{#eachkeys model.link_types}}
+        <div class="squaredTwo">
+            <input name="link_types" type="radio"  value="None" id="layer_{{this.key}}" {{#if this.value}} checked{{/if}} />
+            <label for="layer_{{this.key}}">{{this.key}}</label>
+        </div>
+
+    {{/eachkeys}}
+
+
+    <!-- dummy for now -->
+    <h3>Categories</h3>
+
+    <div class="squaredTwo">
+        <input type="checkbox" value="None" id="category_edge" checked />
+        <label for="category_edge">EDGE</label>
+    </div>
+
+    <div class="squaredTwo">
+        <input type="checkbox" value="None" id="category_gsw" checked/>
+        <label for="category_gsw">GSW</label>
+    </div>
+    <div class="squaredTwo">
+        <input type="checkbox" value="None" id="category_gw" checked />
+        <label for="category_gw">GW</label>
+    </div>
+    <div class="squaredTwo">
+        <input type="checkbox" value="None" id="category_other" checked />
+        <label for="category_other">OTHER</label>
+    </div>
+
+    <div class="squaredTwo">
+        <input type="checkbox" value="None" id="category_srv" checked />
+        <label for="category_srv">SRV</label>
+    </div>
+
+    <div class="squaredTwo">
+        <input type="checkbox" value="None" id="category_sw" checked />
+        <label for="category_sw">SW</label>
+    </div>
+
+    <div class="squaredTwo">
+        <input type="checkbox" value="None" id="category_wlan" checked />
+        <label for="category_wlan">WLAN</label>
+    </div>
+
+
