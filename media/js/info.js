@@ -3,33 +3,43 @@
     /* Run javascript at document ready */
     $(document).ready(function(){
         if ($('#infotabs')) {
-            add_roomview_tabs();
+            add_tabs();
             add_navigation();
         }
     });
 
     /* Add tabs to roomview content */
-    function add_roomview_tabs() {
+    function add_tabs() {
         var tabconfig = {
             cache: true, // cache loaded pages
             spinner: '<img src="/images/main/process-working.gif">',
             ajaxOptions: {
-                beforeSend: function(req) {
-                    req.setRequestHeader('X-NAV-AJAX', 'true');
-                },
-                error: function(xhr, status, error) {
-                    if (xhr.status == 401) {
-                        window.location = '/index/login/?origin=' + window.location.href;
-                    }
-                },
-                complete: function() {
-                    $('.tab-spinner').hide();
-                    enrich_tables();
-                    add_global_filter();
-                }
+                beforeSend: request_before_send,
+                error: request_error,
+                success: request_success,
+                complete: request_complete
             }
         };
         var tabs = $('#infotabs').tabs(tabconfig);
+    }
+
+    function request_before_send(req) {
+        req.setRequestHeader('X-NAV-AJAX', 'true');
+    }
+
+    function request_error(xhr, status, error) {
+        if (xhr.status == 401) {
+            window.location = '/index/login/?origin=' + window.location.href;
+        }
+    }
+
+    function request_success() {
+        enrich_tables();
+        add_global_filter();
+    }
+
+    function request_complete() {
+        $('.tab-spinner').hide();
     }
 
     /* Add navigation (bookmark and history) to tabs */
@@ -119,31 +129,28 @@
 
     }
 
-
     /* Add specific filter on last seen */
-    /*
      function add_filter_last_seen() {
-     $.fn.dataTableExt.afnFiltering.push(filter_last_seen);
+         $.fn.dataTableExt.afnFiltering.push(filter_last_seen);
 
-     function filter_last_seen(oSettings, aData, iDataIndex) {
-     var days = parseInt($('#last-seen').value) || 2;
+         function filter_last_seen(oSettings, aData, iDataIndex) {
+             var days = parseInt($('#last-seen').value) || 2;
 
-     // Get date from row
-     var date = extract_date(aData[4]);
+             // Get date from row
+             var date = extract_date(aData[4]);
 
-     // Find days since date
+             // Find days since date
 
-     // Compare with days given
+             // Compare with days given
 
-     return true;
+             return true;
+         }
+
+         function extract_date(cell) {
+             return new Date('2012-07-29 20:00');
+         }
+
      }
-
-     function extract_date(cell) {
-     return new Date('2012-07-29 20:00');
-     }
-
-     };
-     */
 
 
 })();
