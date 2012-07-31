@@ -14,7 +14,13 @@ define([
         },
         initialize: function () {
             console.log("foodsfsdfbar");
+            this.isContentVisible = true;
+
+
             this.template = Handlebars.compile(netmapTemplate);
+
+            // Registers Handlebars helpers
+
             Handlebars.registerHelper('eachkeys', function(context, options) {
                 var fn = options.fn, inverse = options.inverse;
                 var ret = "";
@@ -39,6 +45,8 @@ define([
                     return elseFn();
                 }
             });
+
+            // Bindings
 
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
@@ -68,8 +76,32 @@ define([
 
             return this;
         },
-        toggleView: function () {
-          this.$el.fadeOut('fast');
+        toggleView: function (e) {
+            var $helper = $(this.$el.parent());
+            var $helper_content = $(".inner_wrap", this.$el);
+
+            var margin;
+
+            if (!this.isContentVisible) {
+                margin = 170;
+
+                $helper_content.fadeIn('fast');
+                $helper.animate({'width': "{0}px".format(margin-40) }, 400);
+
+                $("a#toggle_view", this.$el).html("&lt;&lt;");
+
+            } else {
+                margin = 30;
+                $helper.animate({'width': "{0}px".format(12) }, 400);
+                $helper_content.fadeOut('fast');
+
+                $("a#toggle_view", this.$el).html("&gt;&gt;");
+
+            }
+
+            $("#netmap_main_view").animate({'margin-left': "{0}px".format(margin)}, 400);
+
+            this.isContentVisible = !this.isContentVisible;
         },
 
         close:function () {

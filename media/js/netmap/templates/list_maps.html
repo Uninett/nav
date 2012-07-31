@@ -1,25 +1,33 @@
-<form class="well form-inline" action="#">
-    <fieldset>
-        <div id="form_view" class="control-group">
-            <label class="control-label"
-                   for="dropdown_view_id">Views</label>
-            <a class="save_view" id="save_new_view" title="Save new view"><img src="/images/threshold/plus-button.png" /></a>
-            <select id="dropdown_view_id">
-                {{#if context_selected_map}}
-                    <option value="{{context_selected_map.viewid}}" selected="selected">{{context_selected_map.title}}</option>
-                {{/if}}
-                {{#maps}}
+<a id="toggle_view">&gt;&gt;</a>
+<div class="inner_wrap">
+    <form class="well form-inline" action="#">
+        <fieldset>
+            <div id="form_view" class="control-group">
+                <label class="control-label"
+                       for="dropdown_view_id">Views</label>
+                <a class="save_view" id="save_new_view" title="Save new view"><img src="/images/threshold/plus-button.png"/></a>
+                <select id="dropdown_view_id">
+                    {{#if context_selected_map}}
+                    <option value="{{context_selected_map.viewid}}" selected="selected">
+                        {{context_selected_map.title}}
+                    </option>
+                    {{/if}}
+                    {{#maps}}
                     <option value="{{viewid}} ">{{title}}</option>
-                {{/maps}}
+                    {{/maps}}
 
 
-            </select>
-            <p>{{context_selected_map.viewid}}</p>
-            <p>fooo</p>
-            <button id="save_view"
-                    class="btn save_view">Save</button>
-            <div id="save_view_spinner"></div>
-        </div>
-    </fieldset>
-</form>
-<div id="save_new_view_form"></div>
+                </select>
+
+                <p>{{context_selected_map.viewid}}</p>
+
+                <p>fooo</p>
+                <button id="save_view"
+                        class="btn save_view">Save
+                </button>
+                <div id="save_view_spinner"></div>
+            </div>
+        </fieldset>
+    </form>
+    <div id="save_new_view_form"></div>
+</div>

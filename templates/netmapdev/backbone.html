@@ -10,52 +10,34 @@
 
 
 {% block base_content %}
+    <div class="clear" style="padding-top: 10px"></div>
+    <div id="netmap_wrapper">
 
-    <h2>Netmap backbone</h2>
+        <div id="netmap_main_view">
 
-    <!--[if lt IE 7]>
-    <style media="screen" type="text/css">
-    .col1 {
-	    width:100%;
-	}
-    </style>
-    <![endif]-->
-
-    <div class="colmask holygrail">
-        <div class="colmid">
-            <div class="colleft">
-                <div class="col1wrap">
-                    <div class="col1" id="netmap_main_view">
-                        <!-- Column 1 start -->
-                        <h2>{{ current_view.title }}</h2>
-                        <div id="netmapview_id" style="display:none">
-                            {{ current_view.viewid }}
-                        </div>
-                        <div id="chart_header"></div>
-                        <div id="loading_chart"></div>
-                        <!--<div id="chart">
+            <h2>{{ current_view.title }}</h2>
 
 
-                        </div>-->
-                        <!-- Column 1 end -->
-
-                    </div>
-                </div>
-                <div class="col2" id="netmap_left_sidebar">
-                    <!-- Column 2 start -->
-                    <span>Navigation</span>
-                    <div id="loadbar-chart">
-                    </div>
-                    <!-- Column 2 end -->
-                </div>
-                <div class="col3" id="netmap_infopanel">
-                    <!-- Column 3 start -->
-                    <!-- Column 3 end -->
-                    <div id="list_views"></div>
-                    <div id="nodeinfo"></div>
-                </div>
+            <div id="netmapview_id" style="display:none">
+                {{ current_view.viewid }}
             </div>
+            <div id="chart_header"></div>
+            <div id="loading_chart"></div>
+
+        </div>
+        <div id="netmap_left_sidebar">
+
+            <span>Navigation</span>
+
+            <div id="loadbar-chart">
+            </div>
+
+        </div>
+        <div id="netmap_infopanel">
+
+            <div id="list_views"></div>
+            <div id="nodeinfo"></div>
         </div>
     </div>
-
+    <div class="clear"></div>
 {% endblock %}

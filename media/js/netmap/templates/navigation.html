@@ -1,8 +1,9 @@
-{{#ifequal 1 model.viewid}}class="active"{{/ifequal}}
+<a id="toggle_view" style="float: right;">&lt;&lt;</a>
+<div class="inner_wrap">
+    {{#ifequal 1 model.viewid}}class="active"{{/ifequal}}
 
 
     <h3>Layer</h3>
-    <a id="toggle_view">Hide/Show view</a>
 
     {{#eachkeys model.link_types}}
         <div class="squaredTwo">
@@ -48,5 +49,5 @@
         <input type="checkbox" value="None" id="category_wlan" checked />
         <label for="category_wlan">WLAN</label>
     </div>
-
+</div>
 

@@ -18,9 +18,11 @@ define([
         events: {
                 "click #save_view": "show_save_view",
                 "click #save_new_view": "new_show_save_view",
-                "change #dropdown_view_id": "changed_view"
+                "change #dropdown_view_id": "changed_view",
+                'click #toggle_view' : 'toggleView'
         },
         initialize: function () {
+            this.isContentVisible = true;
 
             this.template = Handlebars.compile(netmapTemplate);
 
@@ -101,7 +103,35 @@ define([
                 }
             })*/
         },
+        toggleView: function (e) {
+            //debugger;
+            var $helper = $(this.$el.parent().parent());
+            var $helper_content = $(".inner_wrap", this.$el);
 
+            var margin;
+
+            if (!this.isContentVisible) {
+                margin = 210;
+
+                $("a#toggle_view", this.$el).html("&gt;&gt;");
+
+                $helper_content.fadeIn('fast');
+                $helper.animate({'width': "{0}px".format(margin - 40) }, 400);
+
+
+            } else {
+                margin = 30;
+                $("a#toggle_view", this.$el).html("&lt;&lt;");
+
+                $helper_content.fadeOut('fast');
+                $helper.animate({'width': "{0}px".format(12) }, 400);
+
+            }
+
+            $("#netmap_main_view").animate({'margin-right': "{0}px".format(margin)}, 400);
+
+            this.isContentVisible = !this.isContentVisible;
+        },
         render: function () {
             var context = {};
             context.maps = this.collection.toJSON();
