@@ -33,10 +33,6 @@ table.cluttered tr td {
     color: #777;
 }
 
-.hidden {
-    display: none;
-}
-
 /* Sorting indicators */
 table.vertitable tr th {
     padding: 0.1em 16px 0.1em 0.5em;
