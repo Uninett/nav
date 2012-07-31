@@ -35,7 +35,8 @@
 
     function request_success() {
         enrich_tables();
-        add_global_filter();
+        add_filters();
+        add_last_seen_filter();
     }
 
     function request_complete() {
@@ -113,15 +114,20 @@
     }
 
     /* Add global filtering to the tables */
-    function add_global_filter() {
+    function add_filters() {
         var tables = $.fn.dataTable.fnTables();
+
+        // Add global search filter
         if (tables.length > 1) {
             $('#global-search').show();
-            $('#netbox-global-search').keyup(apply_global_filter);
+            $('#netbox-global-search').keyup(do_global_filter);
         }
 
-        function apply_global_filter(event) {
-            var filter = event.currentTarget.value;
+        // Add filter on last seen
+        $('#last-seen').keyup(do_global_filter);
+
+        function do_global_filter(event) {
+            var filter = $('#netbox-global-search').val();
             for (var i=0; i<tables.length; i++) {
                 $(tables[i]).dataTable().fnFilter(filter);
             }
@@ -130,24 +136,33 @@
     }
 
     /* Add specific filter on last seen */
-     function add_filter_last_seen() {
+     function add_last_seen_filter() {
          $.fn.dataTableExt.afnFiltering.push(filter_last_seen);
 
          function filter_last_seen(oSettings, aData, iDataIndex) {
-             var days = parseInt($('#last-seen').value) || 2;
+             var days = parseInt($('#last-seen').val());
 
-             // Get date from row
-             var date = extract_date(aData[4]);
-
-             // Find days since date
-
-             // Compare with days given
-
-             return true;
+             if (days) {
+                 var rowdate = extract_date(aData[4]);
+                 return (!is_trunk(aData[3]) && daysince(rowdate) >= days);
+             } else {
+                 return true;
+             }
          }
 
          function extract_date(cell) {
-             return new Date('2012-07-29 20:00');
+             return new Date(cell.match(/\d{4}-\d{2}-\d{2}/));
+         }
+
+         function daysince(date) {
+             var one_day = 1000 * 60 * 60 * 24;
+             var now = new Date();
+             var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+             return Math.round((today - date) / one_day);
+         }
+
+         function is_trunk(cell) {
+             return /trunk/i.test(cell);
          }
 
      }
