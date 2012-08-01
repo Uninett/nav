@@ -1,3 +1,5 @@
+var NAV = this.NAV || {};
+
 (function(){
 
     /* Run javascript at document ready */
@@ -138,34 +140,56 @@
     /* Add specific filter on last seen */
      function add_last_seen_filter() {
          $.fn.dataTableExt.afnFiltering.push(filter_last_seen);
-
-         function filter_last_seen(oSettings, aData, iDataIndex) {
-             var days = parseInt($('#last-seen').val());
-
-             if (days) {
-                 var rowdate = extract_date(aData[4]);
-                 return (!is_trunk(aData[3]) && daysince(rowdate) >= days);
-             } else {
-                 return true;
-             }
-         }
-
-         function extract_date(cell) {
-             return new Date(cell.match(/\d{4}-\d{2}-\d{2}/));
-         }
-
-         function daysince(date) {
-             var one_day = 1000 * 60 * 60 * 24;
-             var now = new Date();
-             var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-             return Math.round((today - date) / one_day);
-         }
-
-         function is_trunk(cell) {
-             return /trunk/i.test(cell);
-         }
-
      }
 
+    /* Filter used by DataTable to filter based on last seen */
+    function filter_last_seen(oSettings, aData, iDataIndex) {
+        var days = parseInt($('#last-seen').val());
+
+        if (days) {
+            var rowdate = extract_date(aData[4]);
+            return (!is_trunk(aData[3]) && daysince(rowdate) >= days);
+        } else {
+            return true;
+        }
+    }
+
+    /*
+     * Extract these to some kind of util class?
+     */
+
+    /* Extract date without time from string */
+    function extract_date(cell) {
+        var match = cell.match(/\d{4}-\d{2}-\d{2}/);
+        if (match) {
+            return new Date(match[0]);
+        } else {
+            return new Date('1970-01-01');
+        }
+    }
+
+
+    /* Find days since input date */
+    function daysince(date) {
+        var one_day = 1000 * 60 * 60 * 24;
+        var now = new Date();
+        var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        var reset_date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        return Math.round((today - reset_date) / one_day);
+    }
+
+
+    /* Find if cell is trunk or not */
+    function is_trunk(cell) {
+        return /trunk/i.test(cell);
+    }
+
+    /* Make these functions available for testing */
+    NAV.info = {
+        is_trunk: is_trunk,
+        daysince: daysince,
+        extract_date: extract_date,
+        filter_last_seen: filter_last_seen
+    };
 
 })();
