@@ -50,3 +50,7 @@ table.vertitable tr th.sorting {
     float: left;
     margin: 0 1em 1em 0;
 }
+
+#downloadify {
+    padding-top: 5px;
+}

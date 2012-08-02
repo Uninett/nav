@@ -32,6 +32,8 @@ var NAV = this.NAV || {};
     function request_error(xhr, status, error) {
         if (xhr.status == 401) {
             window.location = '/index/login/?origin=' + window.location.href;
+        } else {
+            $('<div class="messages error">Could not load netbox interfaces</div>').appendTo('#ui-tabs-1');
         }
     }
 
@@ -39,6 +41,7 @@ var NAV = this.NAV || {};
         enrich_tables();
         add_filters();
         add_last_seen_filter();
+        add_csv_download();
     }
 
     function request_complete() {
@@ -171,6 +174,7 @@ var NAV = this.NAV || {};
 
     /* Find days since input date */
     function daysince(date) {
+
         var one_day = 1000 * 60 * 60 * 24;
         var now = new Date();
         var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -182,6 +186,47 @@ var NAV = this.NAV || {};
     /* Find if cell is trunk or not */
     function is_trunk(cell) {
         return /trunk/i.test(cell);
+    }
+
+    function add_csv_download() {
+        var config = {
+            filename: 'interfaces.csv',
+            data: create_csv,
+            transparent: false,
+            swf: '/js/downloadify.swf',
+            downloadImage: '/images/roominfo/csv.png',
+            width: 41,
+            height: 13,
+            append: false
+        };
+        $('#downloadify').downloadify(config);
+    }
+
+    /* Todo: TEST */
+    function create_csv() {
+        var content = [];
+
+        $('#netboxes table.netbox').each(function(index, table){
+            $(table).find('tbody tr').each(function(index, row){
+                var rowdata = format_rowdata(row);
+                content.push(rowdata.join(','));
+            });
+        });
+
+        return content.join('\n');
+    }
+
+    /* Todo: TEST */
+    function format_rowdata(row) {
+        var rowdata = [];
+        $(row).find('td').each(function(index, cell){
+            if (index == 2) {
+                rowdata.push($(cell).find('img').attr('alt'));
+            } else {
+                rowdata.push(cell.innerText);
+            }
+        });
+        return rowdata;
     }
 
     /* Make these functions available for testing */
