@@ -7,9 +7,9 @@ config["My tests"] = {
         "jquery-1.4.4.min.js",
         "jquery.dataTables.min.js",
         "jquery-ui-1.8.21.custom.min.js",
-        "info.js",
+	"info/*"
     ],
     tests: [
-        "test/*-test.js"
+	"test/*/*-test.js"
     ]
 }

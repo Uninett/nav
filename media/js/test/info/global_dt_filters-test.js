@@ -1,5 +1,5 @@
-(function(info){
-    buster.testCase("Info", {
+(function(plugin){
+    buster.testCase("Global DT Filters", {
         setUp: function(){
             this.trunk_cell =
                 '<td class="numeric ">' +
@@ -11,15 +11,15 @@
         },
         "is trunk": {
             "should match trunk string": function() {
-                assert(info.is_trunk(this.trunk_cell));
+                assert(plugin.is_trunk(this.trunk_cell));
             },
 
             "should match case insensitive": function() {
-                assert(info.is_trunk('trunk'));
+                assert(plugin.is_trunk('trunk'));
             },
 
             "should not match not trunk string": function() {
-                refute(info.is_trunk('trun'));
+                refute(plugin.is_trunk('trun'));
             }
         },
 
@@ -27,23 +27,23 @@
             "correctly from string": function() {
                 var d = new Date('2008-02-04');
                 assert.equals(
-                    info.extract_date('asdajkl2008-02-04 12:12:12').getTime(),
+                    plugin.extract_date('asdajkl2008-02-04 12:12:12').getTime(),
                     d.getTime());
             },
 
             "with no date in string should return oldest date": function() {
                 var d = new Date('1970-01-01');
                 assert.equals(
-                    info.extract_date('asdajkl').getFullYear(),
+                    plugin.extract_date('asdajkl').getFullYear(),
                     d.getFullYear());
             }
-        },
+            },
 
         "day since": {
             "yesterday is 1 day since today": function() {
                 var today = new Date();
                 var yesterday = new Date(today.getTime() - 86400000);
-                assert.equals(info.daysince(yesterday), 1);
+                assert.equals(plugin.daysince(yesterday), 1);
             }
         },
 
@@ -52,7 +52,7 @@
                 this.last_seen_input = document.createElement("div");
                 document.body.appendChild(this.last_seen_input);
                 this.last_seen_input.innerHTML = '' +
-                    '<input id="last-seen" type="text" size="3" />';
+                    '<input id="last_seen" type="text" size="3" />';
                 this.input = this.last_seen_input.getElementsByTagName('input')[0];
                 this.data = ['', '', '',
                     this.vlan_cell,
@@ -60,15 +60,15 @@
                     '']
             },
             "with no value should return true": function() {
-                assert(info.filter_last_seen('', this.data, ''));
+                assert(plugin.filter_last_seen('', this.data, ''));
             },
             "with value greater than cellvalue should return false": function() {
                 this.input.value = 10000;
-                refute(info.filter_last_seen('', this.data, ''));
+                refute(plugin.filter_last_seen('', this.data, ''));
             },
             "with value less than cellvalue should return true": function() {
                 this.input.value = 3;
-                assert(info.filter_last_seen('', this.data, ''));
+                assert(plugin.filter_last_seen('', this.data, ''));
             },
             "on trunk": {
                 setUp: function() {
@@ -76,14 +76,14 @@
                 },
                 "with value should return false": function() {
                     this.input.value = 3;
-                    refute(info.filter_last_seen('', this.data, ''));
+                    refute(plugin.filter_last_seen('', this.data, ''));
                 },
                 "without value should return true": function() {
                     this.input.value = '';
-                    assert(info.filter_last_seen('', this.data, ''));
+                    assert(plugin.filter_last_seen('', this.data, ''));
                 }
             }
         }
 
     });
-})(NAV.info);
+})(NAV.global_dt_filters);
