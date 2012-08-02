@@ -20,6 +20,7 @@ require.config({
         //Underscore: 'libs/underscore/underscore',
         handlebars: 'libs/handlebars/handlebars',
         backbone: 'libs/backbone/backbone',
+        backbone_eventbroker: 'libs/backbone/backbone-eventbroker',
         //Backbone: 'libs/backbone/backbone',
         /*text: 'libs/require/text',
          order: 'libs/require/order',*/

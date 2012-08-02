@@ -2,6 +2,7 @@ define([
     'jquery',
     'underscore',
     'backbone',
+    'backbone_eventbroker',
     'handlebars',
     'netmapextras',
     'models/map',
@@ -9,18 +10,20 @@ define([
     'views/modal/save_new_map',
     'text!templates/list_maps.html'
 
-], function ($, _, Backbone, Handlebars, NetmapExtras, MapModel, GraphModel, SaveDialogView, netmapTemplate) {
+], function ($, _, Backbone, BackboneEventbroker, Handlebars, NetmapExtras, MapModel, GraphModel, SaveDialogView, netmapTemplate) {
 
     var ListNetmapView = Backbone.View.extend({
         tagName: "div",
         id: "choose_netview",
 
+        broker: Backbone.EventBroker,
         events: {
                 "click #save_view": "show_save_view",
                 "click #save_new_view": "new_show_save_view",
                 "change #dropdown_view_id": "changed_view",
                 'click #toggle_view' : 'toggleView'
         },
+
         initialize: function () {
             this.isContentVisible = true;
 
@@ -31,6 +34,7 @@ define([
             this.collection.bind("change", this.render, this);
             this.collection.bind("destroy", this.close, this);
             this.options.context_selected_map.map.bind("change", this.render, this);
+
         },
         showSaveModal:     function (netmapModel) {
             var self = this;
@@ -91,7 +95,8 @@ define([
                 success: function (model) {
                     self.options.context_selected_map.graph = model;
                     //self.render();
-                    self.options.context_selected_map.trigger('reattach', self.options.context_selected_map);
+                    self.broker.trigger('map:context_selected_map', self.options.context_selected_map);
+                    //self.options.context_selected_map.trigger('reattach', self.options.context_selected_map);
                 }
             });
             /*self.options.context_selected_map.map.fetch({
@@ -104,35 +109,36 @@ define([
             })*/
         },
         toggleView: function (e) {
-            //debugger;
+            this.isContentVisible = !this.isContentVisible;
+            var margin = this.alignView();
+
+            this.broker.trigger('map:resize:animate', {marginRight: margin});
+        },
+        alignView: function () {
             var $helper = $(this.$el.parent().parent());
             var $helper_content = $(".inner_wrap", this.$el);
 
             var margin;
 
             if (!this.isContentVisible) {
+                margin = 30;
+                $("a#toggle_view", this.$el).html("&lt;&lt;");
+
+                $helper_content.fadeOut('fast');
+                $helper.animate({'width': "{0}px".format(12) }, 400);
+            } else {
                 margin = 210;
 
                 $("a#toggle_view", this.$el).html("&gt;&gt;");
 
                 $helper_content.fadeIn('fast');
                 $helper.animate({'width': "{0}px".format(margin - 40) }, 400);
-
-
-            } else {
-                margin = 30;
-                $("a#toggle_view", this.$el).html("&lt;&lt;");
-
-                $helper_content.fadeOut('fast');
-                $helper.animate({'width': "{0}px".format(12) }, 400);
-
             }
-
-            $("#netmap_main_view").animate({'margin-right': "{0}px".format(margin)}, 400);
-
-            this.isContentVisible = !this.isContentVisible;
+            return margin;
+            //$("#netmap_main_view").animate({'margin-right': "{0}px".format(margin)}, 400);
         },
         render: function () {
+            var self = this;
             var context = {};
             context.maps = this.collection.toJSON();
 
@@ -142,6 +148,9 @@ define([
             var out = this.template(context);
 
             this.$el.html(out);
+
+            self.alignView();
+
             return this;
         },
         close:function () {

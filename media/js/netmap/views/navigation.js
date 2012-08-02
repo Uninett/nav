@@ -2,13 +2,15 @@ define([
     'jquery',
     'underscore',
     'backbone',
+    'backbone_eventbroker',
     'handlebars',
     'netmapextras',
     'text!templates/navigation.html'
 
-], function ($, _, Backbone, Handlebars, NetmapHelpers, netmapTemplate) {
+], function ($, _, Backbone, BackboneEventbroker, Handlebars, NetmapHelpers, netmapTemplate) {
 
     var NavigationView = Backbone.View.extend({
+        broker: Backbone.EventBroker,
         events: {
                 'click #toggle_view' : 'toggleView'
         },
@@ -74,15 +76,24 @@ define([
             var out = this.template({ model: context});
             this.$el.html(out);
 
+            self.alignView();
+
             return this;
         },
-        toggleView: function (e) {
+        alignView: function () {
             var $helper = $(this.$el.parent());
             var $helper_content = $(".inner_wrap", this.$el);
 
             var margin;
 
             if (!this.isContentVisible) {
+                margin = 30;
+                $helper.animate({'width': "{0}px".format(12) }, 400);
+                $helper_content.fadeOut('fast');
+
+                $("a#toggle_view", this.$el).html("&gt;&gt;");
+
+            } else {
                 margin = 170;
 
                 $helper_content.fadeIn('fast');
@@ -90,18 +101,16 @@ define([
 
                 $("a#toggle_view", this.$el).html("&lt;&lt;");
 
-            } else {
-                margin = 30;
-                $helper.animate({'width': "{0}px".format(12) }, 400);
-                $helper_content.fadeOut('fast');
-
-                $("a#toggle_view", this.$el).html("&gt;&gt;");
-
             }
 
-            $("#netmap_main_view").animate({'margin-left': "{0}px".format(margin)}, 400);
+            return margin;
+            //$("#netmap_main_view").animate({'margin-left': "{0}px".format(margin)}, 400);
 
+        },
+        toggleView: function (e) {
             this.isContentVisible = !this.isContentVisible;
+            var margin = this.alignView();
+            this.broker.trigger('map:resize:animate', {marginLeft: margin});
         },
 
         close:function () {

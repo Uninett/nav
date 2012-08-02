@@ -3,6 +3,7 @@ define([
     'jquery',
     'underscore',
     'backbone',
+    'backbone_eventbroker',
     'collections/map',
     'models/map',
     'models/graph',
@@ -11,16 +12,26 @@ define([
     'views/list_maps',
     'views/navigation'
     /*'views/users/list'*/
-], function ($, _, Backbone, MapCollection, MapModel, GraphModel, NetboxInfoView, DrawNetmapView, ListNetmapView, NavigationView) {
+], function ($, _, Backbone, BackboneEventbroker, MapCollection, MapModel, GraphModel, NetboxInfoView, DrawNetmapView, ListNetmapView, NavigationView) {
 
     var collection_maps;
     var context_selected_map = {};
 
     var view_choose_map;
 
-
-
+    var BrokerRouter = {
+        interests: {
+            'map:context_selected_map': 'update_selected_map'
+        },
+        update_selected_map: function (new_context) {
+            console.log("foofoofofofofofofoofdsfkljsdfsd");
+        }
+    };
     var AppRouter = Backbone.Router.extend({
+        broker: Backbone.EventBroker,
+        initialize: function () {
+            this.broker.register(BrokerRouter);
+        },
 
         routes: {
             'netmap/:map_id': 'showNetmap',
@@ -126,13 +137,16 @@ define([
     });
 
     var initialize = function () {
+        var self = this;
         var app_router = new AppRouter;
 
-        _.extend(context_selected_map, Backbone.Events);
+
+
+        /*_.extend(context_selected_map, Backbone.Events);
         context_selected_map.on('reattach', function (new_selected_map) {
             context_selected_map = new_selected_map;
             app_router.loadUi();
-        });
+        });*/
         //var postListView = new postListView();
         //var showPostView = new showPostView();
 

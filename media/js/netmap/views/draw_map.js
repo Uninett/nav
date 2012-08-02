@@ -2,17 +2,25 @@ define([
     'jquery',
     'underscore',
     'backbone',
+    'backbone_eventbroker',
     'handlebars',
     'netmapextras',
     // Pull in the Collection module from above
     'views/netbox_info',
     'text!templates/draw_map.html'
-], function ($, _, Backbone, Handlebars, NetmapExtras, NetboxInfoView, netmapTemplate ) {
+], function ($, _, Backbone, BackboneEventbroker, Handlebars, NetmapExtras, NetboxInfoView, netmapTemplate ) {
 
     var drawNetmapView = Backbone.View.extend({
         tagName: "div",
         id: "chart",
+
+        broker: Backbone.EventBroker,
+        interests: {
+            'map:resize:animate': 'resizeAnimate'
+        },
         initialize: function () {
+            this.broker.register(this);
+
             this.model = this.options.context_selected_map.graph;
 
             this.$el.append(netmapTemplate);
@@ -23,19 +31,57 @@ define([
             this.sidebar = this.options.view_netbox_info;
 
             this.w = this.options.cssWidth;
-            this.h = screen.height-500;
-
+            this.h = screen.height - 500;
+            this.trans = [0,0];
+            this.scale = 1;
+            this.zoom = d3.behavior.zoom();
             // swap .on with .bind for jQuery<1.7
             $(window).on("resize.app", _.bind(this.resize, this));
+
+
+            /*_.extend(this.context_selected_map, Backbone.Events);
+            this.context_selected_map.on('reattach', function (new_selected_map) {
+                this.context_selected_map = new_selected_map;
+                app_router.loadUi();
+            });*/
+
         },
-        resize: function () {
+        resizeAnimate: function (margin) {
             var self = this;
-            self.w = this.$el.width();
-            self.h = this.$el.height();
-            (this.$el).find('#svg-netmap').attr('width', self.w);
-            (this.$el).find('#svg-netmap').attr('height', self.h);
-            (this.$el).find('#svg-netmap rect').attr('width', self.w);
-            (this.$el).find('#svg-netmap rect').attr('height', self.h);
+
+            var marginRight = margin.marginRight;
+            var marginLeft = margin.marginLeft;
+
+            // parent is $("#netmap_main_view"), required due to 3col collapse
+            // layout. This breaks container principle, but it's django
+            // who renders backbone.html template.
+            this.$el.parent().animate({
+                    'margin-right': "{0}px".format(marginRight),
+                    'margin-left': "{0}px".format(marginLeft)
+                },
+                {   duration: 400,
+                    step:     function () {
+                        self.resize(self.$el.width() - 100);
+                    },
+                    complete: function () {
+                        self.resize(self.$el.width());
+                    }
+                });
+            //$("#netmap_main_view").animate({'margin-left': "{0}px".format(margin)}, 400);
+        },
+        resize: function (width) {
+            if (!isNaN(width)) {
+                this.w = width;
+            } else {
+                this.w = this.$el.width();
+            }
+            this.h = this.$el.height();
+
+            (this.$el).find('#svg-netmap').attr('width', this.w);
+            (this.$el).find('#svg-netmap').attr('height', this.h);
+            (this.$el).find('#svg-netmap rect').attr('width', this.w);
+            (this.$el).find('#svg-netmap rect').attr('height', this.h);
+
         },
         render: function () {
 
@@ -44,12 +90,12 @@ define([
 
             chart = this.$el[0],
                 r = 6,
-                fill = d3.scale.category20(),
-                trans=[0,0],
-                scale=1;
+                fill = d3.scale.category20();
+
 
             if (svg) { this.$('#svg-netmap').remove(); }
 
+            self.zoom = d3.behavior.zoom();
 
             var root_chart = d3.select(this.el)
                 .append("svg:svg")
@@ -62,22 +108,32 @@ define([
                 .attr('width', self.w)
                 .attr('height', self.h)
                 .attr('fill', 'white')
-                .call(d3.behavior.zoom().on("zoom", redraw));
+                .call(self.zoom.on("zoom", redraw));
             svg = root_chart .append('svg:g')
                 //.call(d3.behavior.zoom().on("zoom", redraw))
                 .append('svg:g')
             ;
 
-            function redraw() {
-                trans=d3.event.translate;
-                scale=d3.event.scale;
-                //console.log("redraw(trans: "+trans+" , scale: "+scale+ ")");
 
+            function redraw() {
+                self.trans=d3.event.translate;
+                self.scale=d3.event.scale;
                 svg.attr("transform",
-                    "translate(" + trans + ") scale(" + scale + ")");
+                    "translate(" + self.trans + ") scale(" + self.scale + ")");
             }
 
             //json = {}
+            function validateTranslateScaleValues() {
+                if (isNaN(self.scale)) {
+                    console.log("[Netmap][WARNING] Received invalid scale, use default scaling: {0}".format(self.scale));
+                    self.scale = 1 / Math.log(json.nodes.length);
+                }
+                if (self.trans.length !== 2 || isNaN(self.trans[0]) || isNaN(self.trans[1])) {
+                    console.log("[Netmap][WARNING] Received invalid translate values, centering graph: {0}".format(self.trans));
+                    self.trans = [(-self.w/2)*(self.scale-1), (-self.h/2)*(self.scale-1)];
+                }
+            }
+
             var draw = function (data) {
                 json = data;
 
@@ -85,18 +141,37 @@ define([
                 if (!self.context_selected_map.map.isNew() && self.context_selected_map.map.attributes.zoom !== undefined) {
                     var tmp = self.context_selected_map.map.attributes.zoom.split(";");
 
-                    trans = tmp[0].split(",");
-                    scale = tmp[1];
+                    self.trans = tmp[0].split(",");
+                    self.scale = tmp[1];
+                    validateTranslateScaleValues();
+                    self.zoom.translate(self.trans);
+                    self.zoom.scale(self.scale);
+
                     svg.attr("transform",
-                        "translate(" + trans + ") scale(" + scale + ")");
+                        "translate(" + self.trans + ") scale(" + self.scale + ")");
 
                 } else {
                     // adjust scale and translated according to how many nodes
                     // we're trying to draw
 
-                    scale = 1 / Math.log(json.nodes.length);
-                    svg.attr("transform", "scale({0})".format(scale));
+                    // Guess a good estimated scaling factor
+                    self.scale = 1 / Math.log(json.nodes.length);
+
+                    // translate ( -centerX*(factor-1) , -centerY*(factor-1) ) scale(factor)
+                    // Example: SVG view pot 800x600, center is 400,300
+                    // Reduce 30%, translate( -400*(0.7-1), -300*(0.7-1) ) scale(0.7)
+                    self.trans = [(-self.w/2)*(self.scale-1), (-self.h/2)*(self.scale-1)];
+
+                    validateTranslateScaleValues();
+                    self.zoom.scale(self.scale);
+                    self.zoom.translate(self.trans);
+
+                    svg.attr("transform",
+                        "translate(" + self.trans + ") scale(" + self.scale + ")");
+
                 }
+
+                //svg.attr("transform", "translate({0}) scale({1})".format(self.zoom.trans, self.zoom.scale));
 
                 // FILTERS ON CATEGORIES ---- EXTRA METHOD PLEASE
                 // FILTERS ON CATEGORIES ---- EXTRA METHOD PLEASE
@@ -301,7 +376,7 @@ define([
                 }
 
                 function dragstart(d, i) {
-                    force.stop()
+                    force.stop();
                 }
 
                 function dragmove(d, i) {
@@ -404,8 +479,8 @@ define([
                         //console.log(scale);
                         //console.log(trans);
 
-                        var popLeft = (d.x*scale)+trans[0]-10;//lE.cL[0] + 20;
-                        var popTop = (d.y*scale)+trans[1]+70;//lE.cL[1] + 70;
+                        var popLeft = (d.x*self.scale)+self.trans[0]-10;//lE.cL[0] + 20;
+                        var popTop = (d.y*self.scale)+self.trans[1]+70;//lE.cL[1] + 70;
                         self.$("#pop-up").css({"left":popLeft,"top":popTop});
                         self.$("#pop-up").fadeIn(100);
                     });
