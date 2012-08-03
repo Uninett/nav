@@ -1,4 +1,4 @@
-(function (converter) {
+require(['info/table_info_converter'], function (converter) {
     buster.testCase("table info converter", {
         setUp:function () {
             this.wrapper = $('<div></div>');
@@ -26,4 +26,5 @@
             assert.equals(result, [1, 2, 3, 4, 5]);
         }
     });
-})(NAV.table_info_converter);
+});
+

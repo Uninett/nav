@@ -1,9 +1,14 @@
-var NAV = this.NAV || {};
-
-(function(){
-
+require([
+    'info/tab_navigation',
+    'info/global_dt_filters',
+    'info/table_info_converter',
+    'jquery-1.4.4.min',
+    'jquery-ui-1.8.21.custom.min',
+    'jquery.dataTables.min',
+    'downloadify.min'
+], function (tab_navigation, global_dt_filters, table_info_converter) {
     /* Run javascript at document ready */
-    $(document).ready(function(){
+    $(document).ready(function () {
         if ($('#infotabs')) {
             add_tabs();
             add_navigation();
@@ -11,7 +16,7 @@ var NAV = this.NAV || {};
     });
 
     /* Add tabs to roomview content */
-    function add_tabs() {
+    function add_tabs() {
         var tabconfig = {
             cache: true, // cache loaded pages
             spinner: '<img src="/images/main/process-working.gif">',
@@ -23,6 +28,7 @@ var NAV = this.NAV || {};
             }
         };
         var tabs = $('#infotabs').tabs(tabconfig);
+        $('#infotabs').show();
     }
 
     function request_before_send(req) {
@@ -50,7 +56,7 @@ var NAV = this.NAV || {};
     /* Add navigation to jQuery ui tabs */
     function add_navigation() {
         var wrapper = $('#infotabs');
-        NAV.tab_navigation.add(wrapper);
+        tab_navigation.add(wrapper);
     }
 
     /* Enrich tables with dataTables module */
@@ -98,7 +104,7 @@ var NAV = this.NAV || {};
         ];
 
         try {
-            NAV.global_dt_filters.add_filters(primary_node, tables, filters);
+            global_dt_filters.add_filters(primary_node, tables, filters);
         } catch (error) {
             console.log(error.message);
         }
@@ -109,8 +115,8 @@ var NAV = this.NAV || {};
 
         var config = {
             filename: 'interfaces.csv',
-            data: function() {
-                return NAV.table_info_converter.create_csv(tables);
+            data: function () {
+                return table_info_converter.create_csv(tables);
             },
             transparent: false,
             swf: '/js/downloadify.swf',
@@ -121,5 +127,4 @@ var NAV = this.NAV || {};
         };
         $('#downloadify').downloadify(config);
     }
-
-})();
+});

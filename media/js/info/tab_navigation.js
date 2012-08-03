@@ -1,21 +1,18 @@
-var NAV = this.NAV || {};
-
-(function(){
-
+define(['jquery-ui-1.8.21.custom.min'], function () {
     /* Add navigation to jQuery ui tabs */
     function add_navigation(wrapper) {
         /* Mark selected tab on page load */
         select_tab_on_load();
 
         /* Set hash mark with index when a tab is selected */
-        $(wrapper).bind('tabsselect', function(event, ui) {
+        $(wrapper).bind('tabsselect', function (event, ui) {
             if (ui.index != 0 || window.location.hash) {
                 window.location.hash = ui.index;
             }
         });
 
         /* On hash change, navigate to the tab indicated in hash mark */
-        $(window).bind('hashchange', function(event) {
+        $(window).bind('hashchange', function (event) {
             navigate();
         });
 
@@ -39,8 +36,7 @@ var NAV = this.NAV || {};
     }
 
 
-    NAV.tab_navigation = {
+    return {
         add: add_navigation
     }
-
-})();
+});

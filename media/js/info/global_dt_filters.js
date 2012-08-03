@@ -1,7 +1,4 @@
-var NAV = this.NAV || {};
-
-(function(){
-
+define(['jquery.dataTables.min'], function () {
     /*
      * Primary filter is the main filter run on all tables
      * Secondary filters are run together with the primary filter
@@ -33,7 +30,7 @@ var NAV = this.NAV || {};
 
     function do_primary_filter() {
         var filter = $(primary_node).val();
-        for (var i=0; i<tables.length; i++) {
+        for (var i = 0; i < tables.length; i++) {
             $(tables[i]).dataTable().fnFilter(filter);
         }
     }
@@ -47,7 +44,7 @@ var NAV = this.NAV || {};
      *    - node (optional): node to attach keylistener
      */
     function add_secondary_filters(filters_to_enable) {
-        for (var i=0; i<filters_to_enable.length; i++) {
+        for (var i = 0; i < filters_to_enable.length; i++) {
             var filter_config = filters_to_enable[i];
 
             if (!filter_config.name) {
@@ -121,7 +118,7 @@ var NAV = this.NAV || {};
     }
 
 
-    NAV.global_dt_filters = {
+    return {
         add_filters: add_filters,
         filter_last_seen: filter_last_seen,
         extract_date: extract_date,
@@ -129,4 +126,5 @@ var NAV = this.NAV || {};
         is_trunk: is_trunk
     };
 
-})();
+});
+

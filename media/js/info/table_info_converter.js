@@ -1,6 +1,4 @@
-var NAV = NAV || {};
-
-(function(){
+define(['jquery-1.4.4.min'], function () {
 
     /*
      * Return a textstring representing the table as csv suitable for
@@ -9,8 +7,8 @@ var NAV = NAV || {};
     function create_csv(tables) {
         var content = [];
 
-        $(tables).each(function(index, table){
-            $(table).find('tbody tr').each(function(index, row){
+        $(tables).each(function (index, table) {
+            $(table).find('tbody tr').each(function (index, row) {
                 var rowdata = format_rowdata(row);
                 content.push(rowdata.join(','));
             });
@@ -25,7 +23,7 @@ var NAV = NAV || {};
      */
     function format_rowdata(row) {
         var rowdata = [];
-        $(row).find('td').each(function(index, cell){
+        $(row).find('td').each(function (index, cell) {
             if (index == 2) {
                 rowdata.push($(cell).find('img').attr('alt'));
             } else {
@@ -35,9 +33,10 @@ var NAV = NAV || {};
         return rowdata;
     }
 
-    NAV.table_info_converter = {
+
+    return {
         create_csv: create_csv,
         format_rowdata: format_rowdata
     };
 
-})();
+});
