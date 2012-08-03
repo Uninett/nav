@@ -18,7 +18,7 @@
 import logging
 import networkx as nx
 
-from nav.models.manage import GwPortPrefix, Interface, SwPortVlan, SwPortBlocked
+from nav.models.manage import GwPortPrefix, Interface, SwPortVlan, SwPortBlocked, Prefix
 
 from django.db.models import Q
 from django.db import transaction
@@ -359,6 +359,32 @@ def build_layer2_graph(related_extra=None):
         graph.add_edge(links[i].netbox, dest, key=links[i])
 
     return graph
+
+def build_layer3_graph(related_extra=None):
+    """Build a graph representation of the layer 3 topology stored in the NAV
+    database.
+
+    :param related_extra Additional selection_related fields
+
+    : returns: A MultiDiGraph of Netbox nodes, edges annotated with Interface
+               model objects.
+    """
+    graph = nx.MultiDiGraph(name="Layer 3 topology")
+
+    select_related = ('interface__netbox', 'interface__to_netbox', 'interface__to_interface', 'interface__to_interface__netbox')
+    if related_extra:
+        select_related = select_related+related_extra
+
+    networks = Prefix.objects.filter(vlan__net_type__in=('link', 'elink', 'core'))
+
+    router_ports = GwPortPrefix.objects.filter(prefix__in=networks, interface__netbox__category__in=('GW','GSW')).select_related(*select_related)
+
+    for gwpp in router_ports:
+        dest = gwpp.interface.to_interface.netbox if gwpp.interface.to_interface else gwpp.interface.to_netbox
+        graph.add_edge(gwpp.interface.netbox, dest, key=gwpp)
+
+    return graph
+
 
 def get_active_addresses_of_routed_vlans():
     """Gets a single router port address for each routed VLAN.
