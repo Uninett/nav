@@ -1218,7 +1218,7 @@ class NetmapView(models.Model):
     viewid = models.AutoField(primary_key=True)
     owner = models.ForeignKey(Account, db_column='owner')
     title = models.TextField()
-    link_types = MultiSelectField(max_length=250, blank=False, choices=LINK_TYPES)
+    topology = models.CharField(choices=LINK_TYPES)
     zoom = models.CharField(max_length=255) # picke x,y,scale (translate(x,y) , scale(scale)
     last_modified = models.DateTimeField(auto_now_add=True)
     is_public = models.BooleanField(default=False)
