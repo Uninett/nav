@@ -191,8 +191,7 @@ define([
                 for (var i = 0; i < json.nodes.length; i++) {
                     var node = json.nodes[i];
                     if (node !== null) {
-                        if (node.data.position !== null) {
-
+                        if (node.data.position) {
                             console.log(node);
                             node.x = node.data.position.x;
                             node.y = node.data.position.y;

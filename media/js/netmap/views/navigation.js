@@ -12,7 +12,8 @@ define([
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
         events: {
-                'click #toggle_view' : 'toggleView'
+            'click #toggle_view':      'toggleView',
+            'click input[type=radio]': 'onRadioLayerClick'
         },
         initialize: function () {
             console.log("foodsfsdfbar");
@@ -107,6 +108,13 @@ define([
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
             this.broker.trigger('map:resize:animate', {marginLeft: margin});
+        },
+        onRadioLayerClick: function (e) {
+            e.stopPropagation();
+
+            this.model.set({topology: NetmapHelpers.topology_link_to_id($(e.currentTarget).val())});
+            this.broker.trigger('map:topology_change', this.model.get('topology'));
+            //NetmapHelpers.topology_link_to_id($e.currentTarget).val());
         },
 
         close:function () {

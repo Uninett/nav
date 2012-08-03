@@ -12,6 +12,29 @@ define([], function () {
         'mb':  1000000,
         'kb':  1000
     };
+    var _TOPOLOGIES = {
+        1: 'Layer 2',
+        2: 'Layer 2 with VLAN',
+        3: 'Layer 3'
+    };
+
+    var _LINKS_TOPOLOGIES = {
+        1: 'layer2',
+        2: 'layer2vlan',
+        3: 'layer3'
+    };
+
+    // http://stackoverflow.com/questions/1970175/getting-json-key-from-value-or-inverting-json-data
+    function swapJsonKeyValues(input) {
+        var one, output = {};
+        for (one in input) {
+            if (input.hasOwnProperty(one)) {
+                output[input[one]] = one;
+            }
+        }
+        return output;
+    }
+    var _LINKS_TOPOLOGIES_REVERSE = swapJsonKeyValues(_LINKS_TOPOLOGIES);
 
     var publicMethods = {
         // SI Units, http://en.wikipedia.org/wiki/SI_prefix
@@ -43,13 +66,10 @@ define([], function () {
             return '{0}b/s'.format(Math.round((bits * 100) / 100));
         },
         topology_id_to_topology_link: function (topology_id) {
-            if (topology_id == 1) {
-                return 'layer2';
-            } else if (topology_id == 2) {
-                return 'layer2vlan';
-            } else if (topology_id == 3) {
-                return 'layer3';
-            }
+            return _LINKS_TOPOLOGIES[topology_id];
+        },
+        topology_link_to_id: function (topology_link) {
+            return _LINKS_TOPOLOGIES_REVERSE[topology_link];
         }
 
     };

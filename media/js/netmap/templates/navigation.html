@@ -7,7 +7,7 @@
 
     {{#eachkeys model.link_types}}
         <div class="squaredTwo">
-            <input name="topology" type="radio" value="None" id="layer_{{this.key}}" {{#if this.value}} checked{{/if}} />
+            <input name="topology" type="radio" value="{{this.key}}" id="layer_{{this.key}}" {{#if this.value}} checked{{/if}} />
             <label for="layer_{{this.key}}">{{this.key}}</label>
         </div>
 

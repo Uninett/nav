@@ -19,24 +19,28 @@ define([
 
     var view_choose_map;
 
-    var BrokerRouter = {
-        interests: {
-            'map:context_selected_map': 'update_selected_map'
-        },
-        update_selected_map: function (new_context) {
-            console.log("foofoofofofofofofoofdsfkljsdfsd");
-        }
-    };
     var AppRouter = Backbone.Router.extend({
         broker: Backbone.EventBroker,
         initialize: function () {
-            this.broker.register(BrokerRouter);
+            this.broker.register(this);
         },
-
         routes: {
             'netmap/:map_id': 'showNetmap',
             '': 'loadPage'
         },
+        interests: {
+            'map:context_selected_map': 'update_selected_map',
+            'map:topology_change': 'map_topology_change'
+        },
+        update_selected_map: function (new_context) {
+            console.log("foofoofofofofofofoofdsfkljsdfsd");
+        },
+        map_topology_change: function (topology_id) {
+            console.log("topology_change " + topology_id);
+            this.loadGraph();
+        },
+
+        // Routes below here
 
         showNetmap: function(map_id) {
             context_selected_map.id = parseInt(map_id);
@@ -137,7 +141,7 @@ define([
 
     var initialize = function () {
         var self = this;
-        var app_router = new AppRouter;
+        this.app_router = new AppRouter;
 
 
 
