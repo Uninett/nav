@@ -39,7 +39,6 @@ define([
         },
 
         showNetmap: function(map_id) {
-
             context_selected_map.id = parseInt(map_id);
             this.loadPage();
         },
@@ -75,7 +74,7 @@ define([
             // todo add a map the administrator can set to be default view
             // for every page request not containing a map id
 
-            context_selected_map.map = new MapModel();
+            context_selected_map.map = new MapModel({topology: 1});
             self.loadUi();
         },
         loadMap: function (model) {
@@ -108,7 +107,7 @@ define([
             if (context_selected_map.id !== undefined) {
                 context_selected_map.graph = new GraphModel({id: context_selected_map.id });
             } else {
-                context_selected_map.graph = new GraphModel();
+                context_selected_map.graph = new GraphModel({topology: context_selected_map.map.attributes.topology});
             }
             context_selected_map.graph.fetch({
                 success: function () {

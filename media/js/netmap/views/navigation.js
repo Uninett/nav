@@ -59,19 +59,15 @@ define([
 
             var context = {
                 'link_types': {
-                    '2':  false,
-                    '2v': false,
-                    '3':  false
+                    'layer2':  false,
+                    'layer2vlan': false,
+                    'layer3':  false
                 },
                 'categories' : ['SW', 'R']
             };
             // Might be a new view, so no link_types is selected!
-            if (this.model.attributes.link_types !== undefined) {
-                for (var i = 0; i < this.model.attributes.link_types.length; i++) {
-                    var selected_linktype = this.model.attributes.link_types[i];
-                    context.link_types[selected_linktype] = true;
-                }
-            } // default to layer2 maybe?
+
+            context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
 
             var out = this.template({ model: context});
             this.$el.html(out);

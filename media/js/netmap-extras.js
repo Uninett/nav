@@ -41,6 +41,15 @@ define([], function () {
             }
 
             return '{0}b/s'.format(Math.round((bits * 100) / 100));
+        },
+        topology_id_to_topology_link: function (topology_id) {
+            if (topology_id == 1) {
+                return 'layer2';
+            } else if (topology_id == 2) {
+                return 'layer2vlan';
+            } else if (topology_id == 3) {
+                return 'layer3';
+            }
         }
 
     };

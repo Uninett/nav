@@ -8,6 +8,8 @@ define([
             timeStamp: new Date(),
             title: "Unsaved view",
             is_public: true,
+            // see nav.models.profiles TOPOLOGY_TYPES , 1 == layer 2 topology
+            topology: 1
         },
         initialize: function () {
         },
