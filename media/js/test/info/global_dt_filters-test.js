@@ -1,4 +1,4 @@
-require(['info/global_dt_filters'], function (plugin) {
+define(['src/info/global_dt_filters'], function (plugin) {
     buster.testCase("Global DT Filters", {
         setUp: function () {
             this.trunk_cell = '<td class="numeric ">' + '<span class="pointer" title="Allowed vlans: 21,40,130">Trunk</span>' + '</td>';

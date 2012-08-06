@@ -4,16 +4,16 @@ config["My tests"] = {
     rootPath: "../",
     environment: "browser", // or "node"
     libs: [
+        "require.js",
         "jquery-1.4.4.min.js",
         "jquery.dataTables.min.js",
-        "jquery-ui-1.8.21.custom.min.js",
-    	"require.js"
+        "jquery-ui-1.8.21.custom.min.js"
     ],
     sources: [
-	"info/*"
+        "src/info/*.js"
     ],
     tests: [
-	"test/*/*-test.js"
+        "test/*/*-test.js"
     ],
     extensions: [
         require("buster-amd")

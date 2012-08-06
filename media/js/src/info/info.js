@@ -119,7 +119,7 @@ require([
                 return table_info_converter.create_csv(tables);
             },
             transparent: false,
-            swf: '/js/downloadify.swf',
+            swf: '/js/extras/downloadify.swf',
             downloadImage: '/images/roominfo/csv.png',
             width: 41,
             height: 13,

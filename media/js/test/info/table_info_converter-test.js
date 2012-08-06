@@ -1,4 +1,4 @@
-require(['info/table_info_converter'], function (converter) {
+define(['src/info/table_info_converter'], function (converter) {
     buster.testCase("table info converter", {
         setUp:function () {
             this.wrapper = $('<div></div>');
