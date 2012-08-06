@@ -37,14 +37,6 @@ define([
             this.zoom = d3.behavior.zoom();
             // swap .on with .bind for jQuery<1.7
             $(window).on("resize.app", _.bind(this.resize, this));
-
-
-            /*_.extend(this.context_selected_map, Backbone.Events);
-            this.context_selected_map.on('reattach', function (new_selected_map) {
-                this.context_selected_map = new_selected_map;
-                app_router.loadUi();
-            });*/
-
         },
         resizeAnimate: function (margin) {
             var self = this;
