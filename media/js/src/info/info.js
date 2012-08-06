@@ -1,7 +1,7 @@
 require([
-    'info/tab_navigation',
-    'info/global_dt_filters',
-    'info/table_info_converter',
+    'src/info/tab_navigation',
+    'src/info/global_dt_filters',
+    'src/info/table_info_converter',
     'jquery-1.4.4.min',
     'jquery-ui-1.8.21.custom.min',
     'jquery.dataTables.min',

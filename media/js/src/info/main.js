@@ -1,9 +1,5 @@
 require.config({
     baseUrl: "/js",
-    paths: {
-        dt_plugins: 'src/dt_plugins',
-        info: 'src/info'
-    },
     shim: {
         'jquery-ui-1.8.21.custom.min': ['jquery-1.4.4.min'],
         'jquery.dataTables.min': ['jquery-1.4.4.min'],
@@ -17,12 +13,12 @@ require(
         "jquery.dataTables.min",
         "swfobject",
         "downloadify.min",
-        "dt_plugins/natsort",
-        "dt_plugins/altsort",
-        "dt_plugins/date_title_sort",
-        "info/tab_navigation",
-        "info/global_dt_filters",
-        "info/table_info_converter",
-        "info/info"
+        "src/dt_plugins/natsort",
+        "src/dt_plugins/altsort",
+        "src/dt_plugins/date_title_sort",
+        "src/info/tab_navigation",
+        "src/info/global_dt_filters",
+        "src/info/table_info_converter",
+        "src/info/info"
     ]
 );
