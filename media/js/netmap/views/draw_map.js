@@ -165,68 +165,15 @@ define([
 
                 //svg.attr("transform", "translate({0}) scale({1})".format(self.zoom.trans, self.zoom.scale));
 
-                // FILTERS ON CATEGORIES ---- EXTRA METHOD PLEASE
-                // FILTERS ON CATEGORIES ---- EXTRA METHOD PLEASE
-
-                //if (!self.selected_netmap.isNew() && self.selected_netmap.attributes.)
-
-                var selected_categories = ['edge', 'gsw', 'gw', 'other', 'srv', 'sw', 'wlan'];
-                //var selected_categories = ['sw'];
-
-                // can't remove nodes YET, will screw up stupid linksLinkedByIndex!
-                // If you don't want to remap links >=index_you_delete by -1 for every
-                // delete ...
-                var filter_nodes_indexes = [];
-                var filter_links = [];
-
-
-                for (var i = 0; i < json.nodes.length; i++) {
-                    var node = json.nodes[i];
-                    if (node !== null) {
-                        if (node.data.position) {
-                            console.log(node);
-                            node.x = node.data.position.x;
-                            node.y = node.data.position.y;
-                            node.fixed = true;
-                        }
-
-                        for (var k = 0; k < selected_categories.length; k++) {
-                            var selected_category = selected_categories[k];
-                            if (selected_category.toLowerCase() === node.data.category.toLowerCase()) {
-
-                                filter_nodes_indexes.push(i);
-                                //json.nodes.splice(i, 1);
-                                //console.log("removing "+ node.name);
-                            }
-                        }
-                    } else {
-                        console.log("THIS IS A BUG");
-                        console.log(i);
-                    }
-                }
-
-
-                for (var i = 0; i < json.links.length; i++) {
-                    var link = json.links[i];
-                    for (var j = 0; j < filter_nodes_indexes.length; j++) {
-                        var node_index = filter_nodes_indexes[j];
-                        // should it include ONLY filters, ie:
-                        // filter is GSW, should it allow link from SW to GSW? or only links between
-                        // selected filters?
-                        if (link.source === node_index || link.target === node_index) {
-                            filter_links.push(link);
-                        }
-                    }
-                }
 
                 // FILTERS ON CATEGORIES ---- EXTRACT METHOD PLEASE
                 // FILTERS ON CATEGORIES ---- EXTRACT METHOD PLEASE
 
                 var force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h])
-                    .nodes(json.nodes).links(filter_links).on("tick", tick).start();
+                    .nodes(json.nodes).links(json.links).on("tick", tick).start();
 
                 //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
-                var s_link = svg.selectAll("g line").data(json.links)
+                var s_link = svg.selectAll("g line").data(json.links);
 
                 s_link.enter().append("svg:g").attr("class", "link").forEach(function (d,i) {
 
@@ -498,6 +445,105 @@ define([
 
             }
 
+            function categoryFilter(data, selected_categories) {
+                var json = data;
+                //if (!self.selected_netmap.isNew() && self.selected_netmap.attributes.)
+
+                //var selected_categories = ['other','sw'];
+
+                // can't remove nodes YET, will screw up stupid linksLinkedByIndex!
+                // If you don't want to remap links >=index_you_delete by -1 for every
+                // delete ...
+
+                var filter_links = [];
+
+
+                function filterNodes() {
+                    var result = [];
+                    for (var i = 0; i < json.nodes.length; i++) {
+                        var node = json.nodes[i];
+                        if (node !== null) {
+                            if (node.data.position) {
+                                console.log(node);
+                                node.x = node.data.position.x;
+                                node.y = node.data.position.y;
+                                node.fixed = true;
+                            }
+
+                            for (var k = 0; k < selected_categories.length; k++) {
+                                var selected_category = selected_categories[k];
+                                if (selected_category.toLowerCase() === node.data.category.toLowerCase()) {
+
+                                    result.push(i);
+                                    //json.nodes.splice(i, 1);
+                                    //console.log("removing "+ node.name);
+                                }
+                            }
+                        } else {
+                            console.log("THIS IS A BUG");
+                            console.log(i);
+                        }
+                    }
+                    return result;
+                }
+
+                var filter_nodes_indexes = filterNodes();
+
+                /**
+                 * Create new d3_json format:
+                 *
+                 *
+                 * add new node
+                 *   add links related to node matching CRITERIA with new index
+                 *   run thru already added links & update indexes
+                 *
+                 *
+                 */
+                function filterLinks () {
+                    var result = [];
+
+                    function isMatchingCriteria () {
+                        var sourceMatch = false;
+                        var targetMatch = false;
+
+                        for (var z = 0; z < selected_categories.length; z++) {
+                            var selected_category = selected_categories[z];
+                            if (json.nodes[link.source].data.category.toLowerCase() === selected_category) {
+                                sourceMatch = true;
+                            }
+                            if (json.nodes[link.target].data.category.toLowerCase() === selected_category) {
+                                targetMatch = true;
+                            }
+                        }
+                        return sourceMatch && targetMatch;
+
+                    }
+
+                    for (var x = 0; x < filter_nodes_indexes.length; x++) {
+                        var node_index = filter_nodes_indexes[x];
+                        for (var i = 0; i < json.links.length; i++) {
+                            var link = json.links[i];
+                            if (link.source === node_index || link.target === node_index) {
+                                if (isMatchingCriteria(link)) {
+                                    result.push(link);
+                                }
+                            }
+                        }
+
+                    }
+
+                    return result;
+                }
+                filter_links = filterLinks();
+
+                return filter_links;
+            }
+
+
+            //var selected_categories = context_selected_map.map.
+            var selected_categories = ['edge', 'gsw', 'gw', 'other', 'srv', 'sw', 'wlan'];
+
+            this.model.attributes.links = categoryFilter(this.model.toJSON(), selected_categories);
             draw(this.model.toJSON());
 
             console.log(this.$el);
