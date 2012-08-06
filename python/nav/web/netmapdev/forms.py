@@ -16,6 +16,7 @@
 #
 
 from django import forms
+from django.utils import simplejson
 from nav.django.forms import MultiSelectFormField
 from nav.models.profiles import LINK_TYPES
 
@@ -25,7 +26,7 @@ class NewViewSaveForm(forms.Form):
         label='Link types:', required=True)
     zoom = forms.CharField(max_length=255, label='Zoom', required=True)
     is_public = forms.BooleanField(label='Is public?', initial=False)
-    fixed_nodes = forms.CharField(required=False)
+    nodes = forms.CharField(required=False)
 
     def clean(self):
         if (self._errors):
@@ -40,10 +41,5 @@ class ViewSaveForm(forms.Form):
     query = forms.CharField(max_length=100, label='IP or hostname',
         required=False)
     is_public = forms.BooleanField(label='Is public?', required=False)
-    fixed_nodes = forms.CharField(required=False)
-
-    def clean(self):
-        if (self._errors):
-            return
-        return self.cleaned_data
+    nodes = forms.CharField(required=False)
 

@@ -1209,6 +1209,8 @@ class StatusPreferenceCategory(models.Model):
     class Meta:
         db_table = u'statuspreference_category'
 
+
+# Make sure you update netmap-extras.js too if you change this! ;-)
 LINK_TYPES = (1, 'Layer 2'),\
 (2, 'Layer 2 with VLAN'),\
 (3, 'Layer 3')
