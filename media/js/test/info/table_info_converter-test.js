@@ -9,7 +9,7 @@ require(['src/info/table_info_converter'], function (converter) {
             var cell1 = $('<td></td>').html('1');
             var cell2 = $('<td></td>').html('2');
             var cell3 = $('<td></td>').html('<img alt="3"/>');
-            var cell4 = $('<td></td>').html('4');
+            var cell4 = $('<td></td>').html(' 4 ');
             var cell5 = $('<td></td>').html('5');
             $(row).append(cell1, cell2, cell3, cell4, cell5);
 
