@@ -1,4 +1,4 @@
-define(['jquery-1.4.4.min'], function () {
+define(['libs/jquery-1.4.4.min'], function () {
 
     /*
      * Return a textstring representing the table as csv suitable for

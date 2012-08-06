@@ -1,4 +1,4 @@
-define(['jquery.dataTables.min'], function () {
+define(['libs/jquery.dataTables.min'], function () {
     jQuery.extend(jQuery.fn.dataTableExt.oSort, {
         "alt-string-pre": function (a) {
             return a.match(/alt="(.*?)"/)[1].toLowerCase();

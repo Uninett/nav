@@ -1,4 +1,4 @@
-define(['jquery-ui-1.8.21.custom.min'], function () {
+define(['libs/jquery-ui-1.8.21.custom.min'], function () {
     /* Add navigation to jQuery ui tabs */
     function add_navigation(wrapper) {
         /* Mark selected tab on page load */

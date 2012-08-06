@@ -1,4 +1,4 @@
-define(['jquery.dataTables.min'], function () {
+define(['libs/jquery.dataTables.min'], function () {
     /* Custom sort on date in title - created for NAV */
     jQuery.extend(jQuery.fn.dataTableExt.oSort, {
         "title-date-pre": function (a) {

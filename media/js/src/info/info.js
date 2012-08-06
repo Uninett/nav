@@ -2,10 +2,10 @@ require([
     'src/info/tab_navigation',
     'src/info/global_dt_filters',
     'src/info/table_info_converter',
-    'jquery-1.4.4.min',
-    'jquery-ui-1.8.21.custom.min',
-    'jquery.dataTables.min',
-    'downloadify.min'
+    'libs/jquery-1.4.4.min',
+    'libs/jquery-ui-1.8.21.custom.min',
+    'libs/jquery.dataTables.min',
+    'libs/downloadify.min'
 ], function (tab_navigation, global_dt_filters, table_info_converter) {
     /* Run javascript at document ready */
     $(document).ready(function () {

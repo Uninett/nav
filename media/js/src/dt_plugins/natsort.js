@@ -1,4 +1,4 @@
-define(['jquery.dataTables.min'], function(){
+define(['libs/jquery.dataTables.min'], function(){
     (function() {
 
         /*

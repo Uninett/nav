@@ -4,10 +4,10 @@ config["My tests"] = {
     rootPath: "../",
     environment: "browser", // or "node"
     libs: [
-        "require.js",
-        "jquery-1.4.4.min.js",
-        "jquery.dataTables.min.js",
-        "jquery-ui-1.8.21.custom.min.js"
+        "libs/require.js",
+        "libs/jquery-1.4.4.min.js",
+        "libs/jquery.dataTables.min.js",
+        "libs/jquery-ui-1.8.21.custom.min.js"
     ],
     sources: [
         "src/info/*.js"
