@@ -1233,7 +1233,7 @@ class NetmapView(models.Model):
             'viewid': self.viewid,
             'owner': self.owner.id,
             'title': self.title,
-            'link_types': self.link_types,
+            'topology': self.topology,
             'zoom': self.zoom,
             'last_modified': str(self.last_modified),
             'is_public': str(self.is_public)
