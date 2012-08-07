@@ -16,7 +16,8 @@ define([
 
         broker: Backbone.EventBroker,
         interests: {
-            'map:resize:animate': 'resizeAnimate'
+            'map:resize:animate': 'resizeAnimate',
+            'map:redraw': 'render'
         },
         initialize: function () {
             this.broker.register(this);
@@ -79,32 +80,37 @@ define([
 
             var chart, svg, trans, scale, self;
             self = this;
+            svg = self.svg;
 
             chart = this.$el[0],
                 r = 6,
                 fill = d3.scale.category20();
 
 
-            if (svg) { this.$('#svg-netmap').remove(); }
 
             self.zoom = d3.behavior.zoom();
 
-            var root_chart = d3.select(this.el)
-                .append("svg:svg")
-                .attr('id', 'svg-netmap')
-                .attr("width", self.w)
-                .attr("height", self.h)
-                .attr("pointer-events", "all");
-            root_chart
-                .append('svg:rect')
-                .attr('width', self.w)
-                .attr('height', self.h)
-                .attr('fill', 'white')
-                .call(self.zoom.on("zoom", redraw));
-            svg = root_chart .append('svg:g')
-                //.call(d3.behavior.zoom().on("zoom", redraw))
-                .append('svg:g')
-            ;
+            if (svg === undefined) {
+
+                var root_chart = d3.select(this.el)
+                    .append("svg:svg")
+                    .attr('id', 'svg-netmap')
+                    .attr("width", self.w)
+                    .attr("height", self.h)
+                    .attr("pointer-events", "all");
+                root_chart
+                    .append('svg:rect')
+                    .attr('width', self.w)
+                    .attr('height', self.h)
+                    .attr('fill', 'white')
+                    .call(self.zoom.on("zoom", redraw));
+                svg = root_chart .append('svg:g')
+                    //.call(d3.behavior.zoom().on("zoom", redraw))
+                    .append('svg:g')
+                ;
+                this.svg = svg;
+                console.log("Creating SVG vis");
+            }
 
 
             function redraw() {
@@ -169,7 +175,7 @@ define([
                 // FILTERS ON CATEGORIES ---- EXTRACT METHOD PLEASE
                 // FILTERS ON CATEGORIES ---- EXTRACT METHOD PLEASE
 
-                var force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h])
+                self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h])
                     .nodes(json.nodes).links(json.links).on("tick", tick).start();
 
                 //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
@@ -314,7 +320,7 @@ define([
                 }
 
                 function dragstart(d, i) {
-                    force.stop();
+                    self.force.stop();
                 }
 
                 function dragmove(d, i) {
@@ -329,7 +335,7 @@ define([
                     console.log("dragend: " + d.data.sysname);
                     d.fixed = true;
                     tick();
-                    force.resume();
+                    self.force.resume();
                 }
 
                 function node_mouseOver(d) {
@@ -469,16 +475,26 @@ define([
                                 node.y = node.data.position.y;
                                 node.fixed = true;
                             }
-
+                            isNodeMatchingFilter = false;
                             for (var k = 0; k < selected_categories.length; k++) {
                                 var selected_category = selected_categories[k];
                                 if (selected_category.toLowerCase() === node.data.category.toLowerCase()) {
-
-                                    result.push(i);
-                                    //json.nodes.splice(i, 1);
-                                    //console.log("removing "+ node.name);
+                                    isNodeMatchingFilter = true;
+                                    break;
+                                    // remove? need to reorder index crap..
                                 }
                             }
+                            if (isNodeMatchingFilter) {
+                                result.push(i);
+                            } else if (!node.fixed) {
+                                // reset it's coordinates if position is not fixed
+                                // and it doesn't match filter.
+
+                                /*node.x = 0;
+                                node.y = 0;*/
+
+                            }
+
                         } else {
                             console.log("THIS IS A BUG");
                             console.log(i);
@@ -505,13 +521,16 @@ define([
                     function isMatchingCriteria () {
                         var sourceMatch = false;
                         var targetMatch = false;
+                        var source,target;
+                        source = (link.source.index !== undefined ? link.source.index : link.source);
+                        target = (link.target.index !== undefined ? link.target.index : link.target);
 
                         for (var z = 0; z < selected_categories.length; z++) {
-                            var selected_category = selected_categories[z];
-                            if (json.nodes[link.source].data.category.toLowerCase() === selected_category) {
+                            var selected_category = selected_categories[z].toLowerCase();
+                            if (json.nodes[source].data.category.toLowerCase() === selected_category) {
                                 sourceMatch = true;
                             }
-                            if (json.nodes[link.target].data.category.toLowerCase() === selected_category) {
+                            if (json.nodes[target].data.category.toLowerCase() === selected_category) {
                                 targetMatch = true;
                             }
                         }
@@ -519,11 +538,16 @@ define([
 
                     }
 
+                    console.log(filter_nodes_indexes);
                     for (var x = 0; x < filter_nodes_indexes.length; x++) {
                         var node_index = filter_nodes_indexes[x];
                         for (var i = 0; i < json.links.length; i++) {
                             var link = json.links[i];
-                            if (link.source === node_index || link.target === node_index) {
+                            var source,target;
+                            source = (link.source.index !== undefined ? link.source.index : link.source);
+                            target = (link.target.index !== undefined ? link.target.index : link.target);
+
+                            if (source === node_index || target === node_index) {
                                 if (isMatchingCriteria(link)) {
                                     result.push(link);
                                 }
@@ -531,7 +555,6 @@ define([
                         }
 
                     }
-
                     return result;
                 }
                 filter_links = filterLinks();
@@ -541,7 +564,12 @@ define([
 
 
             //var selected_categories = context_selected_map.map.
-            var selected_categories = ['edge', 'gsw', 'gw', 'other', 'srv', 'sw', 'wlan'];
+            //var selected_categories = ['gsw', 'sw'];
+            if (self.force !== undefined) {
+                self.force.stop();
+            }
+
+            var selected_categories = self.context_selected_map.map.attributes.categories;
 
             this.model.attributes.links = categoryFilter(this.model.toJSON(), selected_categories);
             draw(this.model.toJSON());

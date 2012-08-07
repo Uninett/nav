@@ -13,7 +13,8 @@ define([
         broker: Backbone.EventBroker,
         events: {
             'click #toggle_view':      'toggleView',
-            'click input[type=radio]': 'onRadioLayerClick'
+            'click input[type=radio]': 'onRadioLayerClick',
+            'click input[type=checkbox]': 'onCheckboxLayerClick'
         },
         initialize: function () {
             console.log("foodsfsdfbar");
@@ -64,9 +65,23 @@ define([
                     'layer2vlan': false,
                     'layer3':  false
                 },
-                'categories' : ['SW', 'R']
+                // eew, should get available categories from app context somehow
+                // ie, load categories list on app start..
+                'categories': {
+                    'GSW':   false,
+                    'GW':    false,
+                    'SW':    false,
+                    'OTHER': false,
+                    'WLAN':  false,
+                    'SRV':   false,
+                    'EDGE':  false
+                }
             };
-            // Might be a new view, so no link_types is selected!
+
+            for (var i = 0; i < this.model.attributes.categories.length; i++) {
+                var category = this.model.attributes.categories[i];
+                context.categories[category] = true;
+            }
 
             context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
 
@@ -115,6 +130,24 @@ define([
             this.model.set({topology: NetmapHelpers.topology_link_to_id($(e.currentTarget).val())});
             this.broker.trigger('map:topology_change', this.model.get('topology'));
             //NetmapHelpers.topology_link_to_id($e.currentTarget).val());
+        },
+        onCheckboxLayerClick: function (e) {
+            // jQuery<=1.6
+            var categories = this.model.get('categories');
+            if (!$(e.currentTarget).prop('checked')) {
+                for (var i = 0; i < categories.length; i++) {
+                    var category = categories[i];
+                    if (category.toLowerCase() === $(e.currentTarget).val().toLowerCase()) {
+                        categories.splice(i, 1);
+                        break;
+                    }
+                }
+            } else {
+                categories.push($(e.currentTarget).val());
+            }
+            this.model.set({ categories: categories});
+
+            this.broker.trigger('map:redraw');
         },
 
         close:function () {

@@ -31,13 +31,13 @@ from django.utils import simplejson
 import networkx as nx
 from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
-from nav.models.manage import Netbox
-from nav.models.profiles import NetmapView, NetmapViewNodePosition
+from nav.models.manage import Netbox, Category
+from nav.models.profiles import NetmapView, NetmapViewNodePosition, \
+    NetmapViewCategories
 from nav.netmap.topology import build_netmap_layer3_graph, \
     build_netmap_layer2_graph
 from nav.topology.d3_js.d3_js import d3_json
 from nav.web.netmapdev.common import traffic_gradient_map, layer2_graph
-from nav.web.netmapdev.forms import ViewSaveForm, NewViewSaveForm
 from nav.web.templates import Netmapdev
 
 _LOGGER = logging.getLogger('nav.web.netmapdev')
@@ -83,6 +83,23 @@ def _update_map_node_positions(fixed_nodes, view):
             y=a_node['y'])
 
 
+def _update_map_categories(categories, view):
+    """ todo django 1.4
+    https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
+    https://docs.djangoproject.com/en/dev/releases/1.4/
+    https://code.djangoproject.com/ticket/7596
+    """
+    NetmapViewCategories.objects.filter(view=view.pk).delete()
+    for category in categories:
+
+        category_model = Category.objects.get(pk=category)
+
+        NetmapViewCategories.objects.create(
+            view=view,
+            category=category_model)
+
+
+
 def update_map(request, map_id):
     view = get_object_or_404(NetmapView, pk=map_id)
     session_user = get_account(request)
@@ -99,14 +116,16 @@ def update_map(request, map_id):
 
         view.title = data['title']
 
-        view.link_types = data['link_types']
+        view.topology = data['topology']
 
-        view.zoom = data['zoom']
+        #view.zoom = data['zoom']
 
         view.is_public = data['is_public']
 
         view.last_modified = datetime.datetime.now()
         fixed_nodes = data['nodes']
+
+        _update_map_categories(data['categories'], view)
 
         _update_map_node_positions(fixed_nodes, view)
 
@@ -130,14 +149,16 @@ def create_map(request):
     view = NetmapView()
     view.title = data['title']
     view.owner = session_user
-    if 'link_tyes' in data:
-        view.link_types = data['link_types']
+    #if 'link_tyes' in data:
+    #    view.link_types = data['link_types']
+    view.topology = data['topology']
     #view.zoom = data['zoom']
     view.is_public = data['is_public']
     view.last_modified = datetime.datetime.now()
     fixed_nodes = data['nodes']
     view.save()
 
+    _update_map_categories(data['categories'], view)
     _update_map_node_positions(fixed_nodes, view)
 
     _LOGGER.debug('creating view metadata: %s' % view)

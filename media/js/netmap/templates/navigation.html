@@ -17,37 +17,12 @@
     <!-- dummy for now -->
     <h3>Categories</h3>
 
-    <div class="squaredTwo">
-        <input type="checkbox" value="None" id="category_edge" checked />
-        <label for="category_edge">EDGE</label>
-    </div>
+    {{#eachkeys model.categories}}
+        <div class="squaredTwo">
+            <input type="checkbox" value="{{this.key}}" id="category_{{this.key}}" {{#if this.value}} checked{{/if}} />
+            <label for="category_{{this.key}}">{{this.key}}</label>
+        </div>
+    {{/eachkeys}}
 
-    <div class="squaredTwo">
-        <input type="checkbox" value="None" id="category_gsw" checked/>
-        <label for="category_gsw">GSW</label>
-    </div>
-    <div class="squaredTwo">
-        <input type="checkbox" value="None" id="category_gw" checked />
-        <label for="category_gw">GW</label>
-    </div>
-    <div class="squaredTwo">
-        <input type="checkbox" value="None" id="category_other" checked />
-        <label for="category_other">OTHER</label>
-    </div>
-
-    <div class="squaredTwo">
-        <input type="checkbox" value="None" id="category_srv" checked />
-        <label for="category_srv">SRV</label>
-    </div>
-
-    <div class="squaredTwo">
-        <input type="checkbox" value="None" id="category_sw" checked />
-        <label for="category_sw">SW</label>
-    </div>
-
-    <div class="squaredTwo">
-        <input type="checkbox" value="None" id="category_wlan" checked />
-        <label for="category_wlan">WLAN</label>
-    </div>
 </div>
 

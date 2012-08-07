@@ -1236,7 +1236,8 @@ class NetmapView(models.Model):
             'topology': self.topology,
             'zoom': self.zoom,
             'last_modified': str(self.last_modified),
-            'is_public': str(self.is_public)
+            'is_public': str(self.is_public),
+            'categories': [str(x.category.id) for x in self.categories_set.all()]
         }
 
 

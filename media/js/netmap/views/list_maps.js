@@ -33,8 +33,20 @@ define([
             this.collection.bind("reset", this.render, this);
             this.collection.bind("change", this.render, this);
             this.collection.bind("destroy", this.close, this);
-            this.options.context_selected_map.map.bind("change", this.render, this);
+            //debugger;
+            this.options.context_selected_map.map.bind("change", this.updateCollection, this);
 
+        },
+        updateCollection: function () {
+            if (this.options.context_selected_map.map.attributes.viewid !== undefined) {
+                var map = this.collection.get(this.options.context_selected_map.map.attributes.viewid)
+                if (map === undefined) {
+                    this.collection.add(this.options.context_selected_map.map);
+                    console.log("Added new map to collection");
+                    console.log(this.options.context_selected_map.map.isNew());
+                }
+            }
+            this.render();
         },
         showSaveModal:     function (netmapModel) {
             var self = this;
@@ -55,7 +67,7 @@ define([
             var self = this;
             console.log("YUPPP");
             self.options.context_selected_map.map = new MapModel();
-            self.options.context_selected_map.map.bind("change", this.render, this);
+            self.options.context_selected_map.map.bind("change", this.updateCollection, this);
 
             this.showSaveModal(self.context_selected_map);
         },
@@ -68,6 +80,9 @@ define([
         changed_view: function () {
             var self = this;
 
+            // todo: make an option to check for not loading categories from
+            //       a saved map but keep what is already chosen.
+            //var keep_categories = self.options.context_selected_map.map.attributes.categories;
 
             self.selected_id = parseInt(this.$("#dropdown_view_id :selected").val().trim());
             if (isNaN(self.selected_id)) {
@@ -78,7 +93,7 @@ define([
             } else {
                 self.options.context_selected_map.map = self.collection.get(self.selected_id);
             }
-
+            //self.options.context_selected_map.map.attributes.categories = keep_categories;
 
             if (!self.options.context_selected_map.map.isNew() && self.is_selected_view_really_changed(self.selected_id, self.options.context_selected_map.map)) {
                 Backbone.history.navigate("netmap/{0}".format(self.selected_id));
@@ -87,6 +102,7 @@ define([
         },
         loadMapFromContextId: function (map_id) {
             var self = this;
+            debugger;
             self.options.context_selected_map.map.unbind("change");
             self.options.context_selected_map.map = self.collection.get(map_id);
             //self.options.context_selected_map.map.bind("change", this.render, this);

@@ -9,7 +9,8 @@ define([
             title: "Unsaved view",
             is_public: true,
             // see nav.models.profiles TOPOLOGY_TYPES , 1 == layer 2 topology
-            topology: 1
+            topology: 1,
+            categories: ['GSW', 'GW', 'SW', 'EDGE', 'OTHER', 'WLAN', 'SRV']
         },
         initialize: function () {
         },

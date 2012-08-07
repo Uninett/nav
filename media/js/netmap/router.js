@@ -33,7 +33,7 @@ define([
             'map:topology_change': 'map_topology_change'
         },
         update_selected_map: function (new_context) {
-            console.log("foofoofofofofofofoofdsfkljsdfsd");
+            this.loadUi();
         },
         map_topology_change: function (topology_id) {
             console.log("topology_change " + topology_id);
@@ -66,8 +66,9 @@ define([
         checkContextMapId: function () {
             var self = this;
 
-            if (context_selected_map.id !== undefined) {
-                self.loadMap(collection_maps.get(context_selected_map.id));
+            if (context_selected_map.map !== undefined) {
+                debugger;
+                self.loadMap(collection_maps.get(context_selected_map.map.id));
             } else {
                 self.checkDefaultMapSetByAdministrator();
             }
@@ -109,7 +110,7 @@ define([
             console.log(context_selected_map.id);
             console.log("====/" + "map_id");
             if (context_selected_map.id !== undefined) {
-                context_selected_map.graph = new GraphModel({id: context_selected_map.id });
+                context_selected_map.graph = new GraphModel({id: context_selected_map.id, topology: context_selected_map.map.attributes.topology});
             } else {
                 context_selected_map.graph = new GraphModel({topology: context_selected_map.map.attributes.topology});
             }
@@ -134,7 +135,6 @@ define([
 
             self.view_map = new DrawNetmapView({context_selected_map: context_selected_map, view_netbox_info: self.view_netbox_info, cssWidth: $('#netmap_main_view').width()});
             $('#netmap_main_view').html(self.view_map.render().el);
-
         }
 
     });
@@ -143,6 +143,10 @@ define([
         var self = this;
         this.app_router = new AppRouter;
 
+        // Extend the View class to include a navigation method goTo
+        Backbone.View.goTo = function (loc) {
+            self.app_router.navigate(loc, true);
+        };
 
 
         /*_.extend(context_selected_map, Backbone.Events);

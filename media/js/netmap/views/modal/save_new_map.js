@@ -58,19 +58,26 @@ define([
             this.model.set({
                 title: self.$('#new_view_title').val().trim(),
                 is_public: (self.$('#new_view_is_public').attr('checked') ? true : false),
-                nodes: self.get_fixed_nodes()
+                nodes: self.get_fixed_nodes(),
+                //zoom: self.graph.zoom,
+                topology: self.model.attributes.topology,
+                categories: self.model.attributes.categories
             });
             console.log("====" + "savedata");
             console.log(this.model.attributes);
             console.log("====/" + "savedata");
             this.model.save(this.model.attributes, {
+                wait: true,
                 error: function () { alert("Error while saving view, try again"); },
                 success: function (model, response) {
-                    //debugger;
 
-                    //model.set({'viewid': response});
-                    //this.collection.add(model);
-                    Backbone.navigate("netmap/{0}".format(response));
+
+                    model.set({'viewid': response});
+                    //self.collection.add(model);
+
+
+                    Backbone.View.goTo("netmap/{0}".format(response));
+                    //Backbone.navigate("netmap/{0}".format(response));
                     //window.location = "#/netmap/{0}".format(response);
                 }
             });
