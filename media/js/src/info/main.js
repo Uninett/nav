@@ -16,9 +16,12 @@ require(
         "src/dt_plugins/natsort",
         "src/dt_plugins/altsort",
         "src/dt_plugins/date_title_sort",
+        "src/dt_plugins/modulesort",
         "src/info/tab_navigation",
         "src/info/global_dt_filters",
         "src/info/table_info_converter",
         "src/info/info"
-    ]
+    ], function() {
+
+    }
 );

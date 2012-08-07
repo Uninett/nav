@@ -17,6 +17,7 @@ require([
 
     /* Add tabs to roomview content */
     function add_tabs() {
+        console.log('Adding tabs');
         var tabconfig = {
             cache: true, // cache loaded pages
             spinner: '<img src="/images/main/process-working.gif">',
@@ -36,6 +37,7 @@ require([
     }
 
     function request_error(xhr, status, error) {
+        console.error('Request error');
         if (xhr.status == 401) {
             window.location = '/index/login/?origin=' + window.location.href;
         } else {
@@ -44,6 +46,7 @@ require([
     }
 
     function request_success() {
+        console.log('Request success');
         enrich_tables();
         add_filters();
         add_csv_download();
@@ -55,12 +58,14 @@ require([
 
     /* Add navigation to jQuery ui tabs */
     function add_navigation() {
+        console.log('Adding navigation');
         var wrapper = $('#infotabs');
         tab_navigation.add(wrapper);
     }
 
     /* Enrich tables with dataTables module */
     function enrich_tables() {
+        console.log('Enriching tables');
         var dt_config = {
             bAutoWidth: false,
             bFilter: true,
@@ -69,7 +74,7 @@ require([
             bPaginate: false,
             bSort: true,
             aoColumns: [
-                {'sType': 'natural'},
+                {'sType': 'module'},
                 {'sType': 'string'},
                 {'sType': 'alt-string'},
                 {'sType': 'natural'},
@@ -94,6 +99,7 @@ require([
 
     /* Add global filtering to the tables */
     function add_filters() {
+        console.log('Adding filters');
         var tables = $.fn.dataTable.fnTables();
         var primary_node = $('#netbox-global-search');
         var filters = [
@@ -111,6 +117,7 @@ require([
     }
 
     function add_csv_download() {
+        console.log('Adding csv download');
         var tables = $('#netboxes table.netbox');
 
         var config = {

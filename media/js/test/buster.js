@@ -10,7 +10,8 @@ config["My tests"] = {
         "libs/jquery-ui-1.8.21.custom.min.js"
     ],
     sources: [
-        "src/info/*.js"
+        "src/info/*.js",
+        "src/dt_plugins/*.js"
     ],
     tests: [
         "test/*/*-test.js"
