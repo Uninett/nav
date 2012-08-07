@@ -25,6 +25,10 @@ table.cluttered tr td {
     cursor: pointer;
 }
 
+.help {
+    cursor: help;
+}
+
 .brighten {
     color: #777;
 }
