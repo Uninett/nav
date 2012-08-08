@@ -9,8 +9,12 @@ define(['libs/jquery.dataTables.min'], function () {
 
     var filters = {
         last_seen: {
-            runner: filter_last_seen,
-            node: '#last_seen'
+            name: 'Last Seen',
+            runner: filter_last_seen
+        },
+        vlan: {
+            name: 'Vlan',
+            runner: filter_vlan
         }
     };
 
@@ -29,12 +33,22 @@ define(['libs/jquery.dataTables.min'], function () {
     }
 
     function do_primary_filter() {
-        var filter = $(primary_node).val();
+        var filter = remove_keywords($(primary_node).val());
         for (var i = 0; i < tables.length; i++) {
             $(tables[i]).dataTable().fnFilter(filter);
         }
     }
 
+    function remove_keywords(input) {
+        var words = input.split(' ');
+        var notkeywords = [];
+        for (var i=0; i<words.length; i++) {
+            if (words[i].slice(0, 1) != '$') {
+                notkeywords.push(words[i])
+            }
+        }
+        return notkeywords.join(' ');
+    }
 
     /*
      * Add all secondary filters
@@ -45,29 +59,19 @@ define(['libs/jquery.dataTables.min'], function () {
      */
     function add_secondary_filters(filters_to_enable) {
         for (var i = 0; i < filters_to_enable.length; i++) {
-            var filter_config = filters_to_enable[i];
+            var filter = filters_to_enable[i];
 
-            if (!filter_config.name) {
-                throw Error('filter config did not have name');
+            if (!filters[filter]) {
+                throw Error('filter ' + filter + ' does not exist.')
             }
 
-            if (!filters[filter_config.name]) {
-                throw Error('filter ' + filter_config.name + ' does not exist.')
-            }
-
-            var config = filters[filter_config.name];
-
-            if (filter_config.node) {
-                config.node = filter_config.node;
-            }
-
-            register_filter(config)
+            register_filter(filters[filter])
         }
     }
 
     /* Attach keylistener and register filter to datatable plugin */
     function register_filter(config) {
-        $(config.node).keyup(do_primary_filter);
+        console.log('Applying filter ' + config.name);
         $.fn.dataTableExt.afnFiltering.push(config.runner);
     }
 
@@ -77,19 +81,36 @@ define(['libs/jquery.dataTables.min'], function () {
 
     /* Filter on row 4 and 5 */
     function filter_last_seen(oSettings, aData, iDataIndex) {
-        var days = parseInt($(filters.last_seen.node).val());
-
+        var days = get_keyword(/\$days:\w+/);
         if (days) {
             var rowdate = extract_date(aData[4]);
             return (!is_trunk(aData[3]) && daysince(rowdate) >= days);
-        } else {
-            return true;
         }
+        return true;
+    }
+
+
+    /* Filter on vlan */
+    function filter_vlan(oSettings, aData, iDataIndex) {
+        var vlan = get_keyword(/\$vlan:\w+/);
+        if (vlan) {
+            return vlan == aData[3];
+        }
+        return true;
     }
 
     /*
      * Helper functions
      */
+
+    function get_keyword(regexp) {
+        var input = $(primary_node).val();
+        var keyword = input.match(regexp);
+        if (keyword) {
+            return keyword[0].split(':')[1];
+        }
+        return '';
+    }
 
     /* Extract date without time from string */
     function extract_date(cell) {
@@ -121,6 +142,7 @@ define(['libs/jquery.dataTables.min'], function () {
     return {
         add_filters: add_filters,
         filter_last_seen: filter_last_seen,
+        filter_vlan: filter_vlan,
         extract_date: extract_date,
         daysince: daysince,
         is_trunk: is_trunk

@@ -52,7 +52,11 @@ table.vertitable tr th.sorting {
 
 .input-filter {
     float: left;
-    margin: 0 1em 1em 0;
+    margin: 1em 1em 1em 0;
+}
+
+.input-filter input {
+    width: 300px;
 }
 
 #downloadify {

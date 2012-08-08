@@ -2,12 +2,10 @@
 
 <div id="netboxes">
 
-    <div id="global-search" class="input-filter">
-        Global search: <input id="netbox-global-search" type="text" />
-    </div>
+    <h3>{{ room.id }}: {{ netboxes|length }} netbox{{ netboxes|pluralize:"es" }}</h3>
 
-    <div class="input-filter">
-        Not used last <input id="last-seen" type="text" size="3" /> days
+    <div id="global-search" class="input-filter">
+        Search: <input id="netbox-global-search" type="text" />
     </div>
 
     <div id="downloadify" class="input-filter">

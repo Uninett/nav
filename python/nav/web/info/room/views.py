@@ -101,7 +101,8 @@ def render_netboxes(request, roomid):
             iftype=6).order_by("ifindex").extra(select=cam_query)
 
     return render_to_response("info/room/netboxview.html",
-            {"netboxes": netboxes},
+            {"netboxes": netboxes,
+             "room": room},
         context_instance=RequestContext(request))
 
 

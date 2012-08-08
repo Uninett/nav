@@ -3,7 +3,7 @@ require.config({
     shim: {
         'libs/jquery-ui-1.8.21.custom.min': ['libs/jquery-1.4.4.min'],
         'libs/jquery.dataTables.min': ['libs/jquery-1.4.4.min'],
-        'libs/downloadify.min': ['libs/swfobject']
+        'libs/downloadify.min': ['libs/jquery-1.4.4.min', 'libs/swfobject']
     }
 });
 require(
@@ -18,8 +18,8 @@ require(
         "libs/jquery-1.4.4.min",
         "libs/jquery-ui-1.8.21.custom.min",
         "libs/jquery.dataTables.min",
-        "libs/swfobject",
-        "libs/downloadify.min"
+        "libs/downloadify.min",
+        "libs/swfobject"
     ],
     function(tab_navigation, global_dt_filters, table_info_converter) {
         /* Run javascript at document ready */
@@ -95,6 +95,7 @@ require(
                     {'sType': 'natural'},
                     {'sType': 'title-date'}
                 ],
+                sDom: '<"H"i>t<"F">',
                 fnInfoCallback: format_filter_text
             };
 
@@ -117,12 +118,7 @@ require(
             console.log('Adding filters');
             var tables = $.fn.dataTable.fnTables();
             var primary_node = $('#netbox-global-search');
-            var filters = [
-                {
-                    name: 'last_seen',
-                    node: $('#last-seen')
-                }
-            ];
+            var filters = ['last_seen', 'vlan'];
 
             try {
                 global_dt_filters.add_filters(primary_node, tables, filters);
