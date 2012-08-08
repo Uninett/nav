@@ -62,3 +62,9 @@ table.vertitable tr th.sorting {
 #downloadify {
     padding-top: 5px;
 }
+
+.helperdialog div {
+    background-color: #EEE;
+    padding: 1em;
+    margin: 1em 0;
+}

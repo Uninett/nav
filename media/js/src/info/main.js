@@ -65,6 +65,7 @@ require(
             enrich_tables();
             add_filters();
             add_csv_download();
+            add_helper_dialog();
         }
 
         function request_complete() {
@@ -145,5 +146,18 @@ require(
             };
             $('#downloadify').downloadify(config);
         }
+
+        function add_helper_dialog() {
+            console.log('Adding helper dialog');
+            var dialog = $('#searchhelptext').dialog({
+                autoOpen: false,
+                title: 'Search help',
+                width: 500
+            });
+            $('#searchhelp').click(function () {
+                dialog.dialog('open');
+            });
+        }
+
     }
 );

@@ -5,7 +5,7 @@
     <h3>{{ room.id }}: {{ netboxes|length }} netbox{{ netboxes|pluralize:"es" }}</h3>
 
     <div id="global-search" class="input-filter">
-        Search: <input id="netbox-global-search" type="text" />
+        Search <img id="searchhelp" src="/images/helpers/question.png" /> <input id="netbox-global-search" type="text" />
     </div>
 
     <div id="downloadify" class="input-filter">
@@ -61,5 +61,23 @@
         </table>
 
     {% endfor %}
+
+    <div id="searchhelptext" class="helperdialog">
+        <div>
+            The searchtext matches the whole row including some of the html. You can for instance search for "down" to see all interfaces with status down.
+        </div>
+
+        <div>
+            To improve the filtering you can use predefined keywords to more accurately filter what you want to see. The following keywords are currently available:
+            <ul>
+                <li>$vlan - Ex: $vlan:130 - Only show interfaces with vlan 130</li>
+                <li>$days - Ex: $days:5 - Only show rows where last active is 5 days or more</li>
+            </ul>
+        </div>
+
+        <div>
+            You can combine the filters if you want to. <kbd>fa1/2 $days:5 $vlan:10</kbd> is a valid filter.
+        </div>
+    </div>
 
 </div>
