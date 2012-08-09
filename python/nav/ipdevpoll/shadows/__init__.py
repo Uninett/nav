@@ -253,6 +253,10 @@ class Device(Shadow):
     __shadowclass__ = manage.Device
     __lookups__ = ['serial']
 
+    def prepare(self, containers):
+        self._fix_binary_garbage()
+        self._find_existing_netbox_device(containers)
+
     def _fix_binary_garbage(self):
         """Fixes version strings that appear as binary garbage."""
 
@@ -266,9 +270,24 @@ class Device(Shadow):
                                   attr, value)
                 setattr(self, attr, repr(value))
         self.clear_cached_objects()
-        
-    def prepare(self, containers):
-        self._fix_binary_garbage()
+
+    def _find_existing_netbox_device(self, containers):
+        """Ensures that we re-use the existing Device record for a Netbox when
+        the job didn't collect a serial number for the chassis.
+
+        """
+        if 'serial' in self.get_touched():
+            return
+
+        netbox = containers.get(None, Netbox)
+        if netbox and netbox.device is self:
+            try:
+                device = manage.Device.objects.get(netbox__id=netbox.id)
+            except manage.Device.DoesNotExist:
+                return
+            else:
+                self.set_existing_model(device)
+
 
 class Location(Shadow):
     __shadowclass__ = manage.Location
