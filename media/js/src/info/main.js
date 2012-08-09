@@ -11,6 +11,7 @@ require(
         "src/info/tab_navigation",
         "src/info/global_dt_filters",
         "src/info/table_info_converter",
+        "src/info/mapper",
         "src/dt_plugins/natsort",
         "src/dt_plugins/altsort",
         "src/dt_plugins/date_title_sort",
@@ -21,12 +22,13 @@ require(
         "libs/downloadify.min",
         "libs/swfobject"
     ],
-    function(tab_navigation, global_dt_filters, table_info_converter) {
+    function(tab_navigation, global_dt_filters, table_info_converter, Mapper) {
         /* Run javascript at document ready */
         $(document).ready(function () {
             if ($('#infotabs')) {
                 add_tabs();
                 add_navigation();
+                add_streetmap();
             }
         });
 
@@ -78,6 +80,17 @@ require(
             var wrapper = $('#infotabs');
             tab_navigation.add(wrapper);
         }
+
+        function add_streetmap() {
+            var position_node = $('#roominfo td.position');
+            var position = position_node.text();
+            if (position) {
+                console.log('Adding streetmap');
+                var map = new Mapper('room_map', position);
+                map.createMap();
+            }
+        }
+
 
         /* Enrich tables with dataTables module */
         function enrich_tables() {

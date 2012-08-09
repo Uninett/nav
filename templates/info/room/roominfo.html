@@ -13,30 +13,36 @@
             <li><a href="{% url room-info-netboxes room.id %}">Netbox interfaces <span class="tab-spinner"></span></a></li>
         </ul>
 
-        <table id="roominfo" class="listtable">
-            <caption>Roominfo</caption>
-            <thead>
-            <tr>
-                <th>Location</th>
-                <th>Description</th>
-                <th>opt1</th>
-                <th>opt2</th>
-                <th>opt3</th>
-                <th>opt4</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td><a href="/report/location?locationid={{ room.location.id }}">{{ room.location.description }}</a></td>
-                <td>{{ room.description }}</td>
-                <td>{{ room.optional_1 }}</td>
-                <td>{{ room.optional_2 }}</td>
-                <td>{{ room.optional_3 }}</td>
-                <td>{{ room.optional_4 }}</td>
-            </tr>
-            </tbody>
-        </table>
+        <div id="roominfo">
+            <table id="roominfotable" class="listtable">
+                <caption>Roominfo</caption>
+                <thead>
+                <tr>
+                    <th>Location</th>
+                    <th>Description</th>
+                    <th>opt1</th>
+                    <th>opt2</th>
+                    <th>opt3</th>
+                    <th>opt4</th>
+                    <th>Position</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><a href="/report/location?locationid={{ room.location.id }}">{{ room.location.description }}</a></td>
+                    <td>{{ room.description }}</td>
+                    <td>{{ room.optional_1 }}</td>
+                    <td>{{ room.optional_2 }}</td>
+                    <td>{{ room.optional_3 }}</td>
+                    <td>{{ room.optional_4 }}</td>
+                    <td class="position">{% if room.position %}{{ room.position|join:', ' }}{% endif %}</td>
+                </tr>
+                </tbody>
+            </table>
 
+            <div id="room_map" style="height: 400px; width: 600px;"></div>
+
+        </div>
 
         <table id="deviceinfo" class="listtable">
             <caption>Netboxes</caption>
