@@ -8,13 +8,18 @@ define(['libs/jquery-1.4.4.min'], function () {
         var content = [];
 
         $(tables).each(function (index, table) {
+            var sysname = find_sysname(table);
             $(table).find('tbody tr').each(function (index, row) {
-                var rowdata = format_rowdata(row);
-                content.push(rowdata.join(','));
+                var rowdata = [sysname].concat(format_rowdata(row));
+                content.push(rowdata.join(';'));
             });
         });
 
         return content.join('\n');
+    }
+
+    function find_sysname(table) {
+        return $(table).find('caption a').text();
     }
 
     /*
@@ -41,6 +46,7 @@ define(['libs/jquery-1.4.4.min'], function () {
 
     return {
         create_csv: create_csv,
+        find_sysname: find_sysname,
         format_rowdata: format_rowdata
     };
 
