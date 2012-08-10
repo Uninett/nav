@@ -68,3 +68,8 @@ table.vertitable tr th.sorting {
     padding: 1em;
     margin: 1em 0;
 }
+
+.smallmap {
+    width: 600px;
+    height: 400px;
+}
