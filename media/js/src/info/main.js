@@ -86,7 +86,7 @@ require(
             var position = position_node.text();
             if (position) {
                 console.log('Adding streetmap');
-                var map = new Mapper('room_map', position);
+                var map = new Mapper('room_map', [position]);
                 map.createMap();
             }
         }

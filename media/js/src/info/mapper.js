@@ -1,10 +1,8 @@
 define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
 
-    function Mapper(node, position) {
+    function Mapper(node, positions) {
         this.node = node;
-        this.long = this.getLong(position);
-        this.lat = this.getLat(position);
-        this.position = this.calculatePosition();
+        this.positions = positions;
         this.zoom = 17;
         this.imagePath = '/images/openlayers/';
         this.markerImg = '/images/openlayers/marker.png';
@@ -20,14 +18,14 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
             this.map = new OpenLayers.Map(this.node, this.options);
             this.map.theme = this.themePath;
             this.map.addLayer(new OpenLayers.Layer.OSM());
-            this.map.setCenter(this.position, this.zoom);
+            this.map.setCenter(this.calculatePosition(this.positions[0]), this.zoom);
             //            this.addControls();
             this.addMarkers();
         },
-        calculatePosition: function () {
+        calculatePosition: function (position) {
             var proj4326 = new OpenLayers.Projection("EPSG:4326");
             var projmerc = new OpenLayers.Projection("EPSG:900913");
-            return new OpenLayers.LonLat(this.long, this.lat).transform(proj4326, projmerc)
+            return new OpenLayers.LonLat(this.getLong(position), this.getLat(position)).transform(proj4326, projmerc)
         },
         addControls: function () {
             this.map.addControl(new OpenLayers.Control.LayerSwitcher({'ascending': false}));
@@ -35,7 +33,9 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
         addMarkers: function () {
             this.markers = new OpenLayers.Layer.Markers('Markers');
             this.map.addLayer(this.markers);
-            this.addMarker(this.position);
+            for (var i = 0; i < this.positions.length; i++) {
+                this.addMarker(this.calculatePosition(this.positions[i]));
+            }
         },
         addMarker: function (position) {
             var icon = new OpenLayers.Icon(this.markerImg);
