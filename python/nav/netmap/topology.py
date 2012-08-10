@@ -115,7 +115,7 @@ def _attach_node_positions(graph, node_set):
         node_meta_dict = [x for x in node_set if x.netbox == node[0]]
 
         # Attached position meta data if map view has meta data on node in graph
-        if node_meta_dict and 'metadata' in node[1]:
+        if node_meta_dict:
             node[1]['metadata'] = node_meta_dict[0]
     return graph
 
