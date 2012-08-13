@@ -14,7 +14,8 @@ define([
         events: {
             'click #toggle_view':      'toggleView',
             'click input[type=radio]': 'onRadioLayerClick',
-            'click input[type=checkbox]': 'onCheckboxLayerClick'
+            'click input[name="categories[]"]': 'onCheckboxLayerClick',
+            'click input[name="filter_orphans"]': 'onFilterOrphansClick'
         },
         initialize: function () {
             console.log("foodsfsdfbar");
@@ -149,8 +150,14 @@ define([
 
             this.broker.trigger('map:redraw');
         },
+        onFilterOrphansClick: function (e) {
+            this.broker.trigger('map:redraw', {
+                filter_orphans: $(e.currentTarget).prop('checked')
+            });
+        },
 
         close:function () {
+            this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         }

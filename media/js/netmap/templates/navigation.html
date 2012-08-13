@@ -19,10 +19,16 @@
 
     {{#eachkeys model.categories}}
         <div class="squaredTwo">
-            <input type="checkbox" value="{{this.key}}" id="category_{{this.key}}" {{#if this.value}} checked{{/if}} />
+            <input type="checkbox" name="categories[]" value="{{this.key}}" id="category_{{this.key}}" {{#if this.value}} checked{{/if}} />
             <label for="category_{{this.key}}">{{this.key}}</label>
         </div>
     {{/eachkeys}}
+
+    <h3>Filter options</h3>
+    <div class="squaredTwo">
+        <input type="checkbox" name="filter_orphans" value="filter_orphans" id="filter_orphans" {{#if filter_orphans}} checked{{/if}} />
+        <label for="filter_orphans">Filter orphans (single instance nodes)</label>
+    </div>
 
 </div>
 

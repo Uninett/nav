@@ -14,9 +14,10 @@
     <div id="netmap_wrapper">
 
         <div id="netmap_main_view">
+            <!-- <h2>{{ current_view.title }}</h2> -->
+            <div id="searchbox"></div>
 
-            <h2>{{ current_view.title }}</h2>
-
+            <div id="chart"></div>
 
             <div id="netmapview_id" style="display:none">
                 {{ current_view.viewid }}
@@ -28,6 +29,8 @@
         <div id="netmap_left_sidebar">
 
             <span>Navigation</span>
+
+            <div id="map_filters"></div>
 
             <div id="loadbar-chart">
             </div>

@@ -17,7 +17,9 @@ define([
         broker: Backbone.EventBroker,
         interests: {
             'map:resize:animate': 'resizeAnimate',
-            'map:redraw': 'render'
+            'map:redraw': 'redraw',
+            'map:search': 'search',
+            'map:centerGraph': 'centerGraph'
         },
         initialize: function () {
             this.broker.register(this);
@@ -33,6 +35,12 @@ define([
 
             this.w = this.options.cssWidth;
             this.h = screen.height - 500;
+            this.force = d3.layout.force()
+                .gravity(0.5)
+                .distance(2000)
+                .charge(-100)
+                .size([self.w, self.h]);
+
             this.trans = [0,0];
             this.scale = 1;
             this.zoom = d3.behavior.zoom();
@@ -76,11 +84,66 @@ define([
             (this.$el).find('#svg-netmap rect').attr('height', this.h);
 
         },
+        search: function (query) {
+            this.searchQuery = {
+                query: query
+            };
+            this.force.stop();
+            // find related box
+            for (var i = 0; i < this.modelJson.nodes.length; i++) {
+                var node = this.modelJson.nodes[i];
+                if (node.data.sysname.search(query) != -1) {
+                    this.searchQuery.zoomTarget = node;
+                    break;
+                }
+            }
+            this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (self.scale - 1)];
+            //this.zoom.translate(this.trans);
+            this.svg.attr("transform",
+                "translate(" + this.trans + ") scale(" + this.scale + ")");
+
+            console.log("W,H: {0},{1} --- W/2,H/2: {2},{3}".format(this.w, this.h, this.w/2, this.h/2));
+            console.log("scale: {0}".format(this.scale));
+            console.log("Match found on {0} with coordinates: {1},{2}".format(this.searchQuery.zoomTarget.data.sysname, this.searchQuery.zoomTarget.x, this.searchQuery.zoomTarget.y));
+
+            console.log(this.trans);
+            //this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
+
+            //this.trans = [-((this.w/2)+this.searchQuery.zoomTarget.x) * (this.scale - 1), -((this.h/2)+this.searchQuery.zoomTarget.y) * (this.scale - 1)];
+            //console.log("translating: [{0}, {1}]".format(-(this.searchQuery.zoomTarget.x) * (this.scale - 1), -(this.searchQuery.zoomTarget.y) * (this.scale - 1)));
+            console.log("trnaslateing: {0},{1}".format( -(this.searchQuery.zoomTarget.x-(this.w/2))* (this.scale - 1), -(this.searchQuery.zoomTarget.y-(this.h/2))*(this.scale -1)));
+            this.trans = [ (this.searchQuery.zoomTarget.x-(this.w/2))* (this.scale - 1), (this.searchQuery.zoomTarget.y-(this.h/2))*(this.scale -1)];
+            //this.trans = [((-this.w / 2)+(-this.searchQuery.zoomTarget.x)) * (this.scale - 1), ((-this.h / 2) + (-this.searchQuery.zoomTarget.y)) * (this.scale - 1)];
+            console.log(this.trans);
+            //this.zoom.translate(this.trans);
+            //this.zoom.translate(this.trans);
+            this.svg.attr("transform",
+                "translate(" + this.trans + ") scale(" + this.scale + ")");
+        },
+        centerGraph: function () {
+            console.log("CENTER");
+            this.scale = 0.2;
+            this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
+            this.zoom.scale(this.scale);
+            this.zoom.translate(this.trans);
+            /*this.svg.attr("transform",
+                "translate(" + this.trans + ") scale(" + this.scale + ")");*/
+
+        },
+        redraw: function (options) {
+            if (options !== undefined) {
+                this.filter_orphans = options.filter_orphans;
+            }
+            this.force.stop();
+            (this.$el).find('#svg-netmap').remove();
+            /*this.$el.unbind();
+            this.$el.remove();*/
+            this.render();
+        },
         render: function () {
 
-            var chart, svg, trans, scale, self;
+            var chart, svg, trans, scale, self, restart;
             self = this;
-            svg = self.svg;
 
             chart = this.$el[0],
                 r = 6,
@@ -88,34 +151,60 @@ define([
 
 
 
-            self.zoom = d3.behavior.zoom();
 
-            if (svg === undefined) {
 
-                var root_chart = d3.select(this.el)
-                    .append("svg:svg")
-                    .attr('id', 'svg-netmap')
-                    .attr("width", self.w)
-                    .attr("height", self.h)
-                    .attr("pointer-events", "all");
-                root_chart
-                    .append('svg:rect')
-                    .attr('width', self.w)
-                    .attr('height', self.h)
-                    .attr('fill', 'white')
-                    .call(self.zoom.on("zoom", redraw));
-                svg = root_chart .append('svg:g')
-                    //.call(d3.behavior.zoom().on("zoom", redraw))
-                    .append('svg:g')
-                ;
-                this.svg = svg;
-                console.log("Creating SVG vis");
-            }
+            // clean up listners, crappy listners! :D
+            /*console.log("cleaning listernersnrsnres");
+             $(svg.selectAll("g.node")).unbind();*/
+            //debugger;
+            //$(d3.select("#svg-netmap")).unbind();
+            //d3.select((this.$el).find('#svg-netmap')).remove();
+            //this.$el.unbind();
+
+
+            //this.$el.unbind();
+            //d3.select(this.el).remove();
+            //debugger;
+            //debugger;
+
+
+//            if (svg === undefined) {
+
+
+            var root_chart = d3.select(this.el)
+                .append("svg:svg")
+                .attr('id', 'svg-netmap')
+                .attr("width", self.w).attr("height", self.h)
+                .attr("pointer-events", "all");
+            root_chart
+                .append('svg:rect')
+                .attr('width', self.w)
+                .attr('height', self.h)
+                .attr('fill', 'white')
+                .call(self.zoom.on("zoom", redraw));
+            svg = root_chart.append('svg:g')
+                //.call(d3.behavior.zoom().on("zoom", redraw))
+                .append('svg:g')
+            ;
+            this.svg = svg;
+            /*                if (self.force !== undefined) {
+             self.force.off("tick", null);
+             }
+             $(self.svg).unbind();
+             $(self.svg).remove();
+             self.svg = svg;
+
+
+             //console.log("Creating SVG vis");
+             }*/
 
 
             function redraw() {
-                self.trans=d3.event.translate;
-                self.scale=d3.event.scale;
+                self.trans = d3.event.translate;
+                self.scale = d3.event.scale;
+                self.context_selected_map.map.set({
+                    'zoom': self.trans + ";" + self.scale
+                }, {silent: true});
                 svg.attr("transform",
                     "translate(" + self.trans + ") scale(" + self.scale + ")");
             }
@@ -128,46 +217,15 @@ define([
                 }
                 if (self.trans.length !== 2 || isNaN(self.trans[0]) || isNaN(self.trans[1])) {
                     console.log("[Netmap][WARNING] Received invalid translate values, centering graph: {0}".format(self.trans));
-                    self.trans = [(-self.w/2)*(self.scale-1), (-self.h/2)*(self.scale-1)];
+                    self.trans = [(-self.w / 2) * (self.scale - 1), (-self.h / 2) * (self.scale - 1)];
                 }
             }
 
             var draw = function (data) {
                 json = data;
 
-                // translate and scale to saved settings
-                if (!self.context_selected_map.map.isNew() && self.context_selected_map.map.attributes.zoom !== undefined) {
-                    var tmp = self.context_selected_map.map.attributes.zoom.split(";");
-
-                    self.trans = tmp[0].split(",");
-                    self.scale = tmp[1];
-                    validateTranslateScaleValues();
-                    self.zoom.translate(self.trans);
-                    self.zoom.scale(self.scale);
-
-                    svg.attr("transform",
-                        "translate(" + self.trans + ") scale(" + self.scale + ")");
-
-                } else {
-                    // adjust scale and translated according to how many nodes
-                    // we're trying to draw
-
-                    // Guess a good estimated scaling factor
-                    self.scale = 1 / Math.log(json.nodes.length);
-
-                    // translate ( -centerX*(factor-1) , -centerY*(factor-1) ) scale(factor)
-                    // Example: SVG view pot 800x600, center is 400,300
-                    // Reduce 30%, translate( -400*(0.7-1), -300*(0.7-1) ) scale(0.7)
-                    self.trans = [(-self.w/2)*(self.scale-1), (-self.h/2)*(self.scale-1)];
-
-                    validateTranslateScaleValues();
-                    self.zoom.scale(self.scale);
-                    self.zoom.translate(self.trans);
-
-                    svg.attr("transform",
-                        "translate(" + self.trans + ") scale(" + self.scale + ")");
-
-                }
+                svg.attr("transform",
+                    "translate(" + self.trans + ") scale(" + self.scale + ")");
 
                 //svg.attr("transform", "translate({0}) scale({1})".format(self.zoom.trans, self.zoom.scale));
 
@@ -175,17 +233,19 @@ define([
                 // FILTERS ON CATEGORIES ---- EXTRACT METHOD PLEASE
                 // FILTERS ON CATEGORIES ---- EXTRACT METHOD PLEASE
 
-                self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h])
-                    .nodes(json.nodes).links(json.links).on("tick", tick).start();
+                self.force.nodes(json.nodes).links(json.links).on("tick", tick);
 
                 //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
-                var s_link = svg.selectAll("g line").data(json.links);
+                var s_link = svg.selectAll("g line").data(json.links, function (d) {
+                    return d.source.id + "-" + d.target.id;
+                });
 
-                s_link.enter().append("svg:g").attr("class", "link").forEach(function (d,i) {
-
+                s_link.enter().append("svg:g").attr("class", "link").forEach(function (d, i) {
                     var gradient = s_link
                         .append("svg:linearGradient")
-                        .attr("id", function(d,i) { return 'linkload'+i; })
+                        .attr("id", function (d, i) {
+                            return 'linkload' + i;
+                        })
                         .attr('x1', '0%')
                         .attr('y1', '0%')
                         .attr('x2', '0%')
@@ -193,57 +253,76 @@ define([
                     gradient
                         .append("svg:stop")
                         .attr('offset', '0%')
-                        .attr('style', function(d) {
-                            if (d.data.traffic.inOctets_css) return 'stop-color:rgb('+d.data.traffic.inOctets_css+');stop-opacity:1'
+                        .attr('style', function (d) {
+                            if (d.data.traffic.inOctets_css) return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'
                             else return 'stop-color:rgb(0,0,0);stop-opacity:1'
                         });
                     gradient
                         .append("svg:stop")
                         .attr('offset', '50%')
-                        .attr('style', function(d) {
-                            if (d.data.traffic.inOctets_css) return 'stop-color:rgb('+d.data.traffic.inOctets_css+');stop-opacity:1'
+                        .attr('style', function (d) {
+                            if (d.data.traffic.inOctets_css) return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'
                             else return 'stop-color:rgb(0,0,0);stop-opacity:1'
                         });
                     gradient
                         .append("svg:stop")
                         .attr('offset', '51%')
-                        .attr('style', function(d) {
-                            if (d.data.traffic.outOctets_css) return 'stop-color:rgb('+d.data.traffic.outOctets_css+');stop-opacity:1'
+                        .attr('style', function (d) {
+                            if (d.data.traffic.outOctets_css) return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'
                             else return 'stop-color:rgb(0,0,0);stop-opacity:1'
 
                         });
                     gradient
                         .append("svg:stop")
                         .attr('offset', '100%')
-                        .attr('style', function(d) {
-                            if (d.data.traffic.outOctets_css) return 'stop-color:rgb('+d.data.traffic.outOctets_css+');stop-opacity:1'
+                        .attr('style', function (d) {
+                            if (d.data.traffic.outOctets_css) return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'
                             else return 'stop-color:rgb(0,0,0);stop-opacity:1'
                         });
                     s_link.append("svg:line")
-                        .attr("class", function(d,i) {
+                        .attr("class", function (d, i) {
                             var speed = d.data.link_speed;
                             var classes = "";
-                            if(speed<=100){ classes = 'speed0-100' }
-                            else if(speed>100 && speed<=512){ classes = 'speed100-512' }
-                            else if(speed>512 && speed<=2048){ classes = 'speed512-2048' }
-                            else if(speed>2048 && speed<=4096){ classes = 'speed2048-4096'}
-                            else if(speed>4096){ classes = 'speed4096'}
-                            else { classes = 'speedunknown'}
-                            if (d.data.tip_inspect_link) { classes=classes+" warning_inspect"}
+                            if (speed <= 100) {
+                                classes = 'speed0-100';
+                            }
+                            else if (speed > 100 && speed <= 512) {
+                                classes = 'speed100-512';
+                            }
+                            else if (speed > 512 && speed <= 2048) {
+                                classes = 'speed512-2048';
+                            }
+                            else if (speed > 2048 && speed <= 4096) {
+                                classes = 'speed2048-4096';
+                            }
+                            else if (speed > 4096) {
+                                classes = 'speed4096';
+                            }
+                            else {
+                                classes = 'speedunknown';
+                            }
+                            if (d.data.tip_inspect_link) {
+                                classes = classes + " warning_inspect";
+                            }
                             return classes;
 
                         })
-                        .attr('stroke', function(d,i) { return 'url(#linkload'+i+')'})
-                        .on("mouseover", function(d) { return link_popup(d) })
-                        .on("mouseout", function(d) { return link_popout(d) });
+                        .attr('stroke', function (d, i) {
+                            return 'url(#linkload' + i + ')';
+                        })
+                        .on("click", function(d) { console.log(d); self.sidebar.data = d; self.sidebar.render(); });
+                    /*.on("mouseover", function(d) { return link_popup(d); }) // adds about 400 listners^n refresh :D
+                     .on("mouseout", function(d) { return link_popout(d); });*/
                 });
 
-                var link = svg.selectAll("g.link line")
+                var link = svg.selectAll("g.link line");
 
-                var node_s = svg.selectAll("g circle").data(json.nodes);
-                //var drag = d3.behavior.drag()
-                //      .origin(Object)
-                //.call(d3.behavior.zoom().on("zoom", redraw))
+                var node_s = svg.selectAll("g circle").data(json.nodes, function (d) {
+                    return d.data.sysname;
+                });
+                /*var drag = d3.behavior.drag()
+                      .origin(Object)
+                .call(d3.behavior.zoom().on("zoom", redraw))*/
                 var node_drag =
                     d3.behavior.drag()
                         .on("dragstart", dragstart)
@@ -256,7 +335,7 @@ define([
                     .append("svg:image")
                     .attr("class", "circle node")
                     .attr("xlink:href", function (d) {
-                        return "/images/netmap/"+ d.data.category.toLowerCase() + ".png";
+                        return "/images/netmap/" + d.data.category.toLowerCase() + ".png";
                     })
                     .attr("x", "-16px")
                     .attr("y", "-16px")
@@ -271,16 +350,22 @@ define([
                         .attr("fill", "#000000")
                         .attr("background", "#c0c0c0")
                         .text(function (d) {
-                            return d.name
-                        })
+                            return d.name;
+                        });
                 });
                 var node = svg.selectAll("g.node");
 
                 node
                     .call(node_drag)
-                    .on("mouseover", function(d) { return node_mouseOver(d) })
-                    .on("mouseout", function(d) { return node_mouseOut(d) })
                     .on("click", node_onClick)
+                    // doubleclick? http://jsfiddle.net/wfG6k/
+                    .on("mouseover", function (d) {
+                        return node_mouseOver(d);
+                    })
+                    .on("mouseout", function (d) {
+                        return node_mouseOut(d);
+                    })
+
                 ;
                 /*node.selectAll("circle").append("title").text(function (d) {
                  return d.name;
@@ -298,25 +383,23 @@ define([
                     });
 
                     link
-                        .attr("x1",function (d) { return d.source.x;})
-                        .attr("y1",function (d) { return d.source.y;})
-                        .attr("x2",function (d) { return d.target.x;})
-                        .attr("y2", function (d) { return d.target.y;}
+                        .attr("x1", function (d) {
+                            return d.source.x;
+                        })
+                        .attr("y1", function (d) {
+                            return d.source.y;
+                        })
+                        .attr("x2", function (d) {
+                            return d.target.x;
+                        })
+                        .attr("y2", function (d) {
+                            return d.target.y;
+                        }
                     );
 
                     //node.call( function (d,i) { return node_drag(d,i) });
 
 
-
-                }
-
-                var linkedByIndex = {};
-                json.links.forEach(function (d) {
-                    linkedByIndex[d.source.index + "," + d.target.index] = 1;
-                });
-
-                function isConnected(a, b) {
-                    return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index] || a.index == b.index;
                 }
 
                 function dragstart(d, i) {
@@ -339,16 +422,16 @@ define([
                 }
 
                 function node_mouseOver(d) {
-                    mover({'title':d.name, 'description':'', 'css_description_width': 200});
-                    fade(d, 0.1);
+                    mouseFocusInPopup({'title': d.name, 'description': '', 'css_description_width': 200});
+                    highlightNodeNeighbors(d, 0.1);
                 }
 
                 function node_mouseOut(d) {
-                    mout(d);
-                    fade(d, 1);
+                    mouseFocusOutPopup(d);
+                    highlightNodeNeighbors(d, 1);
                 }
 
-                function fade(d, opacity) {
+                function highlightNodeNeighbors(d, opacity) {
                     node.style("stroke-opacity", function (o) {
                         thisOpacity = isConnected(d, o) ? 1 : opacity;
                         this.setAttribute('fill-opacity', thisOpacity);
@@ -379,79 +462,168 @@ define([
                 }
 
                 function link_popup(d) {
-                    var inOctets,outOctets,inOctetsRaw,outOctetsRaw = "N/A"
+                    var inOctets, outOctets, inOctetsRaw, outOctetsRaw = "N/A"
 
                     if (d.data.traffic['inOctets'] != null) {
-                        inOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['inOctets'].raw*8)
+                        inOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['inOctets'].raw * 8)
                         inOctetsRaw = d.data.traffic['inOctets'].raw
                     } else {
                         inOctets = inOctetsRaw = 'N/A'
                     }
                     if (d.data.traffic['outOctets'] != null) {
-                        outOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['outOctets'].raw*8)
+                        outOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['outOctets'].raw * 8)
                         outOctetsRaw = d.data.traffic['outOctets'].raw
                     } else {
                         outOctets = outOctetsRaw = 'N/A'
                     }
 
-                    mover({
-                        'title':'link',
-                        'description': d.data.uplink.thiss.interface + " -> " + d.data.uplink.other.interface +
-                            '<br />'+ d.data.link_speed +
-                            '<br />In: '+ inOctets + " raw["+ inOctetsRaw+"]"+
-                            '<br />Out: '+ outOctets + " raw["+ outOctetsRaw+"]"
-                        ,
+                    mouseFocusInPopup({
+                        'title':                 'link',
+                        'description':           d.data.uplink.thiss.interface + " -> " + d.data.uplink.other.interface +
+                            '<br />' + d.data.link_speed +
+                            '<br />In: ' + inOctets + " raw[" + inOctetsRaw + "]" +
+                            '<br />Out: ' + outOctets + " raw[" + outOctetsRaw + "]",
                         'css_description_width': 400
                     });
 
                 }
 
                 function link_popout(d) {
-                    mout(d);
+                    mouseFocusOutPopup(d);
                 }
 
-                function mover(d) {
-                    //console.log('mover!');
-                    self.$("#pop-up").fadeOut(100,function () {
+                function mouseFocusInPopup(d) {
+                    //console.log('mouseFocusInPopup!');
+                    self.$("#pop-up").fadeOut(100, function () {
                         // Popup content
                         self.$("#pop-up-title").html(d.title);
                         self.$("#pop-img").html("23");
-                        self.$("#pop-desc").html(d.description).css({'width':d.css_description_width});
+                        self.$("#pop-desc").html(d.description).css({'width': d.css_description_width});
 
                         // Popup position
 
                         //console.log(scale);
                         //console.log(trans);
 
-                        var popLeft = (d.x*self.scale)+self.trans[0]-10;//lE.cL[0] + 20;
-                        var popTop = (d.y*self.scale)+self.trans[1]+70;//lE.cL[1] + 70;
-                        self.$("#pop-up").css({"left":popLeft,"top":popTop});
+                        var popLeft = (d.x * self.scale) + self.trans[0] - 10;//lE.cL[0] + 20;
+                        var popTop = (d.y * self.scale) + self.trans[1] + 70;//lE.cL[1] + 70;
+                        self.$("#pop-up").css({"left": popLeft, "top": popTop});
                         self.$("#pop-up").fadeIn(100);
                     });
 
                 }
 
-                function mout(d) {
+                function mouseFocusOutPopup(d) {
                     $("#pop-up").fadeOut(50);
                     //d3.select(this).attr("fill","url(#ten1)");
                 }
 
                 function node_onClick(node) {
-
                     //var netbox_info = new NetboxInfoView({node: node});
                     self.sidebar.node = node;
                     self.sidebar.render();
                     //self.sidebar.html(netbox_info.render().el);
                 }
 
+
+                self.force.stop();
+                node_s.exit().remove();
+                s_link.exit().remove();
+
+                if (json.links.length > 200) {
+                    debugger;
+                }
+                console.log("[Netmap][Debug] Nodes: {0}".format(json.nodes.length));
+                console.log("[Netmap][Debug] Edges: {0}".format(json.links.length));
+                self.force.start();
                 /*svg.style("opacity", 1e-6)
                  .transition()
                  .duration(10000)
                  .style("opacity", 1);*/
 
+            };
+
+
+            // http://stackoverflow.com/a/8683287/653233
+            // intersectionObjects() for the intersection of objects
+            // using your equality function of choice
+            function intersectionObjects2(a, b, areEqualFunction) {
+                var Result = [];
+
+                for(var i = 0; i < a.length; i++) {
+                    var aElement = a[i];
+                    var existsInB = _.any(b, function(bElement) { return areEqualFunction(bElement, aElement); });
+                    if(existsInB) {
+                        Result.push(aElement);
+                    }
+                }
+
+                return Result;
             }
 
-            function categoryFilter(data, selected_categories) {
+            function intersectionObjects() {
+                var Results = arguments[0];
+                var LastArgument = arguments[arguments.length - 1];
+                var ArrayCount = arguments.length;
+                var areEqualFunction = _.isEqual;
+
+                if(typeof LastArgument === "function") {
+                    areEqualFunction = LastArgument;
+                    ArrayCount--;
+                }
+
+                for(var i = 1; i < ArrayCount ; i++) {
+                    var array = arguments[i];
+                    Results = intersectionObjects2(Results, array, areEqualFunction);
+                    if(Results.length === 0) break;
+                }
+                return Results;
+            }
+
+            function filterNodes(json, selected_categories) {
+                var result = [];
+                for (var i = 0; i < json.nodes.length; i++) {
+                    var node = json.nodes[i];
+                    if (node !== null) {
+                        if (node.data.position) {
+                            console.log("node static");
+                            console.log(node);
+                            node.x = node.data.position.x;
+                            node.y = node.data.position.y;
+                            node.fixed = true;
+                        }
+                        isNodeMatchingFilter = false;
+                        for (var k = 0; k < selected_categories.length; k++) {
+                            var selected_category = selected_categories[k];
+                            if (selected_category.toLowerCase() === node.data.category.toLowerCase()) {
+                                isNodeMatchingFilter = true;
+                                break;
+                                // remove? need to reorder index crap..
+                            }
+                        }
+                        if (isNodeMatchingFilter) {
+                            result.push(node);
+                        } else if (!node.fixed) {
+                            // reset it's coordinates if position is not fixed
+                            // and it doesn't match filter.
+
+                            /*node.x = 0;
+                             node.y = 0;*/
+
+                        }
+
+                    } else {
+                        console.log("THIS IS A BUG");
+                        console.log(i);
+                    }
+                }
+                return result;
+            }
+
+
+
+
+            function categoryLinksFilter(data, filter_nodes, selected_categories) {
                 var json = data;
                 //if (!self.selected_netmap.isNew() && self.selected_netmap.attributes.)
 
@@ -461,49 +633,13 @@ define([
                 // If you don't want to remap links >=index_you_delete by -1 for every
                 // delete ...
 
+
                 var filter_links = [];
 
 
-                function filterNodes() {
-                    var result = [];
-                    for (var i = 0; i < json.nodes.length; i++) {
-                        var node = json.nodes[i];
-                        if (node !== null) {
-                            if (node.data.position) {
-                                console.log(node);
-                                node.x = node.data.position.x;
-                                node.y = node.data.position.y;
-                                node.fixed = true;
-                            }
-                            isNodeMatchingFilter = false;
-                            for (var k = 0; k < selected_categories.length; k++) {
-                                var selected_category = selected_categories[k];
-                                if (selected_category.toLowerCase() === node.data.category.toLowerCase()) {
-                                    isNodeMatchingFilter = true;
-                                    break;
-                                    // remove? need to reorder index crap..
-                                }
-                            }
-                            if (isNodeMatchingFilter) {
-                                result.push(i);
-                            } else if (!node.fixed) {
-                                // reset it's coordinates if position is not fixed
-                                // and it doesn't match filter.
 
-                                /*node.x = 0;
-                                node.y = 0;*/
 
-                            }
-
-                        } else {
-                            console.log("THIS IS A BUG");
-                            console.log(i);
-                        }
-                    }
-                    return result;
-                }
-
-                var filter_nodes_indexes = filterNodes();
+                var filter_nodes_indexes = filter_nodes;
 
                 /**
                  * Create new d3_json format:
@@ -515,22 +651,23 @@ define([
                  *
                  *
                  */
-                function filterLinks () {
+                function filterLinks() {
                     var result = [];
 
-                    function isMatchingCriteria () {
+                    function isMatchingCriteria() {
                         var sourceMatch = false;
                         var targetMatch = false;
-                        var source,target;
-                        source = (link.source.index !== undefined ? link.source.index : link.source);
-                        target = (link.target.index !== undefined ? link.target.index : link.target);
+                        var source, target;
+                        source = link.source;
+                        target = link.target;
+
 
                         for (var z = 0; z < selected_categories.length; z++) {
                             var selected_category = selected_categories[z].toLowerCase();
-                            if (json.nodes[source].data.category.toLowerCase() === selected_category) {
+                            if (source.data.category.toLowerCase() === selected_category) {
                                 sourceMatch = true;
                             }
-                            if (json.nodes[target].data.category.toLowerCase() === selected_category) {
+                            if (target.data.category.toLowerCase() === selected_category) {
                                 targetMatch = true;
                             }
                         }
@@ -539,15 +676,17 @@ define([
                     }
 
                     console.log(filter_nodes_indexes);
+                    console.log("START: " + json.links.length);
                     for (var x = 0; x < filter_nodes_indexes.length; x++) {
-                        var node_index = filter_nodes_indexes[x];
+                        var node = filter_nodes_indexes[x];
                         for (var i = 0; i < json.links.length; i++) {
                             var link = json.links[i];
-                            var source,target;
-                            source = (link.source.index !== undefined ? link.source.index : link.source);
-                            target = (link.target.index !== undefined ? link.target.index : link.target);
+                            var source, target;
+                            source = link.source;
+                            target = link.target;
 
-                            if (source === node_index || target === node_index) {
+                            if (target === node) {
+
                                 if (isMatchingCriteria(link)) {
                                     result.push(link);
                                 }
@@ -555,12 +694,15 @@ define([
                         }
 
                     }
+                    console.log("result : " + result.length);
                     return result;
                 }
+
                 filter_links = filterLinks();
 
                 return filter_links;
             }
+
 
 
             //var selected_categories = context_selected_map.map.
@@ -571,14 +713,112 @@ define([
 
             var selected_categories = self.context_selected_map.map.attributes.categories;
 
-            this.model.attributes.links = categoryFilter(this.model.toJSON(), selected_categories);
-            draw(this.model.toJSON());
+            self.modelJson = this.model.toJSON();
 
-            console.log(this.$el);
+            // map links to node objects in modelJson!
+            // (identifiers in links are node sysnames!)
+            for (var i = 0; i < self.modelJson.links.length; i++) {
+                var link = self.modelJson.links[i];
+                for (var j = 0; j < self.modelJson.nodes.length; j++) {
+                    var node = self.modelJson.nodes[j];
+                    if (node.data.sysname === link.target) {
+                        link.target = node;
+                    }
+                    if (node.data.sysname === link.source) {
+                        link.source = node;
+                    }
+                }
+            }
+
+
+            // Category filter, finds nodes to keep, filters em out and
+            // remaps links
+            var keepNodes = filterNodes(self.modelJson, selected_categories);
+            self.modelJson.nodes = intersectionObjects(
+                self.modelJson.nodes,
+                keepNodes,
+                function (a, b) {
+                    return a.data.sysname === b.data.sysname;
+                });
+            self.modelJson.links = categoryLinksFilter(self.modelJson, keepNodes, selected_categories);
+
+            var linkedByIndex = {};
+            self.modelJson.links.forEach(function (d) {
+                linkedByIndex[d.source.data.sysname + "," + d.target.data.sysname] = 1;
+            });
+
+            function isConnected(a, b) {
+                return linkedByIndex[a.data.sysname + "," + b.data.sysname] || linkedByIndex[b.data.sysname + "," + a.data.sysname] || a.data.sysname == b.data.sysname;
+            }
+
+            if (self.filter_orphans) {
+                console.log("Filtering orphans");
+                for (var i = 0; i < self.modelJson.nodes.length; i++) {
+                    var node = self.modelJson.nodes[i];
+
+                    var hasNeighbors = false;
+                    for (var j = 0; j < self.modelJson.links.length; j++) {
+                        var link = self.modelJson.links[j];
+                        if (link.source === node || link.target === node) {
+                            hasNeighbors = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasNeighbors) {
+                        self.modelJson.nodes.splice(i, 1);
+                        i--;
+                    }
+                }
+
+            }
+
+
+
+            function getMapOptions(nodesCount) {
+                // translate and scale to saved settings
+                if (!self.context_selected_map.map.isNew() && self.context_selected_map.map.attributes.zoom !== undefined) {
+                    var tmp = self.context_selected_map.map.attributes.zoom.split(";");
+                    self.trans = tmp[0].split(",");
+                    self.scale = tmp[1];
+                    validateTranslateScaleValues();
+                    self.zoom.translate(self.trans);
+                    self.zoom.scale(self.scale);
+
+                    svg.attr("transform",
+                        "translate(" + self.trans + ") scale(" + self.scale + ")");
+
+                } else {
+                    // adjust scale and translated according to how many nodes
+                    // we're trying to draw
+
+                    // Guess a good estimated scaling factor
+                    self.scale = 1 / Math.log(nodesCount);
+
+                    // translate ( -centerX*(factor-1) , -centerY*(factor-1) ) scale(factor)
+                    // Example: SVG view pot 800x600, center is 400,300
+                    // Reduce 30%, translate( -400*(0.7-1), -300*(0.7-1) ) scale(0.7)
+                    self.trans = [(-self.w / 2) * (self.scale - 1), (-self.h / 2) * (self.scale - 1)];
+
+                    validateTranslateScaleValues();
+                    self.zoom.scale(self.scale);
+                    self.zoom.translate(self.trans);
+
+
+                }
+                self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
+            }
+
+            getMapOptions(self.modelJson.nodes.length);
+            draw(self.modelJson);
+            redraw = false;
 
             return this;
         },
         close:function () {
+            this.force.stop();
+            context_selected_map = undefined;
+            this.broker.unregister(this);
             $(window).off("resize.app");
             this.$el.unbind();
             this.$el.remove();

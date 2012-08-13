@@ -10,9 +10,10 @@ define([
     'views/netbox_info',
     'views/draw_map',
     'views/list_maps',
-    'views/navigation'
+    'views/navigation',
+    'views/searchbox'
     /*'views/users/list'*/
-], function ($, _, Backbone, BackboneEventbroker, MapCollection, MapModel, GraphModel, NetboxInfoView, DrawNetmapView, ListNetmapView, NavigationView) {
+], function ($, _, Backbone, BackboneEventbroker, MapCollection, MapModel, GraphModel, NetboxInfoView, DrawNetmapView, ListNetmapView, NavigationView, SearchboxView) {
 
     var collection_maps;
     var context_selected_map = {};
@@ -37,12 +38,13 @@ define([
         },
         map_topology_change: function (topology_id) {
             console.log("topology_change " + topology_id);
-            this.loadGraph();
+            this.loadUi();
         },
 
         // Routes below here
 
         showNetmap: function(map_id) {
+            //console.log("showNetmap({0})".format(map_id));
             context_selected_map.id = parseInt(map_id);
             this.loadPage();
         },
@@ -66,9 +68,8 @@ define([
         checkContextMapId: function () {
             var self = this;
 
-            if (context_selected_map.map !== undefined) {
-                debugger;
-                self.loadMap(collection_maps.get(context_selected_map.map.id));
+            if (context_selected_map.id !== undefined) {
+                self.loadMap(collection_maps.get(context_selected_map.id));
             } else {
                 self.checkDefaultMapSetByAdministrator();
             }
@@ -101,14 +102,22 @@ define([
         loadNavigation: function () {
             // draw navigation view!
 
-            view_navigation = new NavigationView({model: context_selected_map.map});
-            $('#netmap_left_sidebar').html(view_navigation.render().el);
+            this.view_navigation = new NavigationView({model: context_selected_map.map});
+            $('#netmap_left_sidebar #map_filters').html(this.view_navigation.render().el);
+
+            this.view_searchbox = new SearchboxView();
+            $('#netmap_main_view #searchbox').html(this.view_searchbox.render().el);
         },
         loadGraph: function () {
             var self = this;
             console.log("====" + "map_id");
             console.log(context_selected_map.id);
             console.log("====/" + "map_id");
+
+            if (self.view_map !== undefined) {
+                self.view_map.close();
+            }
+
             if (context_selected_map.id !== undefined) {
                 context_selected_map.graph = new GraphModel({id: context_selected_map.id, topology: context_selected_map.map.attributes.topology});
             } else {
@@ -123,18 +132,17 @@ define([
         drawPage: function () {
             var self = this;
 
-
+            if (self.view_netbox_info !== undefined) {
+                self.view_netbox_info.close();
+            }
             self.view_netbox_info = new NetboxInfoView({el: $('#nodeinfo')});
 
             // graph is now set in context_selected-map, we can render map!
             $('#netmap_infopanel #list_views').html(view_choose_map.render().el);
 
-            if (self.view_map !== undefined) {
-                self.view_map.close();
-            }
 
             self.view_map = new DrawNetmapView({context_selected_map: context_selected_map, view_netbox_info: self.view_netbox_info, cssWidth: $('#netmap_main_view').width()});
-            $('#netmap_main_view').html(self.view_map.render().el);
+            $('#netmap_main_view #chart').html(self.view_map.render().el);
         }
 
     });
