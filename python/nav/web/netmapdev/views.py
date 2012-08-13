@@ -118,7 +118,7 @@ def update_map(request, map_id):
 
         view.topology = data['topology']
 
-        #view.zoom = data['zoom']
+        view.zoom = data['zoom']
 
         view.is_public = data['is_public']
 
@@ -152,7 +152,7 @@ def create_map(request):
     #if 'link_tyes' in data:
     #    view.link_types = data['link_types']
     view.topology = data['topology']
-    #view.zoom = data['zoom']
+    view.zoom = data['zoom']
     view.is_public = data['is_public']
     view.last_modified = datetime.datetime.now()
     fixed_nodes = data['nodes']
