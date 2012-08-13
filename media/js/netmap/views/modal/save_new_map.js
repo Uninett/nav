@@ -54,17 +54,17 @@ define([
 
             // make a copy
             //var copy = $.extend(true, {}, this.model);
-
             this.model.set({
                 title: self.$('#new_view_title').val().trim(),
                 is_public: (self.$('#new_view_is_public').attr('checked') ? true : false),
                 nodes: self.get_fixed_nodes(),
                 //zoom: self.graph.zoom,
                 topology: self.model.attributes.topology,
-                categories: self.model.attributes.categories
+                categories: self.model.attributes.categories,
+                zoom: self.model.attributes.zoom
             });
             console.log("====" + "savedata");
-            console.log(this.model.attributes);
+            console.log($.extend(true, {}, this.model.attributes));
             console.log("====/" + "savedata");
             this.model.save(this.model.attributes, {
                 wait: true,
