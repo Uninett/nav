@@ -145,7 +145,10 @@ def d3_json(G, group=None):
             graph_json = {'nodes': map(
                 lambda n: {'name': str(node_labels[n][1]),
                            'group': graph_nodes[n][1][group],
-                           'data': node_to_json(node_labels[n][1])},
+                           'data': node_to_json(node_labels[n][1],
+                               graph_nodes[n][1]['metadata'] if 'metadata' in
+                                                                graph_nodes[n][
+                                                                1] else None)},
                 xrange(len(node_labels)))}
         except KeyError:
             raise nx.NetworkXError(
@@ -154,7 +157,7 @@ def d3_json(G, group=None):
     # Build up edge dictionary in JSON format
     json_edges = list()
     for j, k, w in ints_graph.edges_iter(data=True):
-        e = {'source': j, 'target': k,
+        e = {'source': node_labels[j][1].sysname, 'target': node_labels[k][1].sysname,
              'data': edge_to_json(w['metadata']) if 'metadata' in w else {}}
         if any(map(lambda k: k == 'weight', w.keys())):
             e['value'] = w['weight']

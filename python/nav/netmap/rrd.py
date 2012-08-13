@@ -79,6 +79,8 @@ def attach_rrd_data_to_edges(graph, json=None, debug=False):
 
     :param graph A network x graph matching d3_js graph format
     """
+    node_labels = [(b, a) for (a, b) in graph.node_labels.items()]
+    node_labels.sort()
 
     datasource_lookup = _get_datasource_lookup(graph)
 
@@ -132,7 +134,7 @@ def attach_rrd_data_to_edges(graph, json=None, debug=False):
 
         for json_edge in json:
 
-            if json_edge['source'] == j and json_edge['target'] == k:
+            if json_edge['source'] == node_labels[j][1].sysname and json_edge['target'] == node_labels[k][1].sysname:
                 json_edge['data'].update({'traffic':traffic})
                 break
     return json
