@@ -1,79 +1,101 @@
 define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
 
+    /*
+     * Mapper creates an OpenStreetMap on the node given rooms from NAV
+     * A room needs a name and a position
+     */
     function Mapper(node, rooms) {
         this.node = node;
         this.rooms = rooms;
-        this.zoom = 17;
         this.imagePath = '/images/openlayers/';
-        this.markerImg = '/images/openlayers/marker.png';
+        this.markerImg = this.imagePath + 'marker.png';
         this.options = {
             theme: '/style/openlayers.css'
         };
-        // We use EPSG:4362 for coords. OSM uses EPSG:900913. Use this when
-        // converting
-        this.projection = new OpenLayers.Projection('EPSG:4326');
 
         OpenLayers.ImgPath = this.imagePath;
-    }
-
-    function roomClickHandler(feature) {
-        var roomname = feature.attributes.name;
-        window.location = '/info/room/' + roomname;
-
     }
 
     Mapper.prototype = {
         createMap: function () {
             this.map = new OpenLayers.Map(this.node, this.options);
             this.map.addLayer(new OpenLayers.Layer.OSM());
-            this.addMarkers();
-        },
-
-        addControls: function () {
-            this.map.addControl(new OpenLayers.Control.LayerSwitcher({'ascending': false}));
-        },
-
-        addMarkers: function () {
-            this.markers = new OpenLayers.Layer.Vector('Markers');
-            for (var i = 0; i < this.rooms.length; i++) {
-                this.markers.addFeatures(this.createMarker(this.rooms[i]));
-            }
-            this.map.addLayer(this.markers);
-            this.map.zoomToExtent(this.markers.getDataExtent());
-            this.addMarkerControl();
-        },
-
-        addMarkerControl: function() {
-            var selectControl = new OpenLayers.Control.SelectFeature(this.markers, {
-                onSelect: roomClickHandler
-            });
-            this.map.addControl(selectControl);
-            selectControl.activate();
-        },
-
-        createMarker: function (room) {
-            var point = new OpenLayers.Geometry.Point(this.getLong(room.position), this.getLat(room.position));
-            point.transform(this.projection, this.map.getProjectionObject());
-
-            return new OpenLayers.Feature.Vector(point, {
-                name: room.name
-            }, {
-                label: room.name,
-                externalGraphic: this.markerImg,
-                graphicHeight: 21,
-                graphicWidth: 16,
-                graphicYOffset: -28
-            });
-        },
-
-        getLat: function (position) {
-            return parseFloat(position.split(',')[0]);
-        },
-
-        getLong: function (position) {
-            return parseFloat(position.split(',')[1]);
+            var markers = addMarkers(this.rooms, this.map, this.markerImg);
+            addMarkerControl(markers, this.map);
+            addCoordinatePicker(this.map);
         }
     };
 
+    function addMarkers(rooms, map, image) {
+        var styleMap = new OpenLayers.StyleMap({
+            label: '${name}',
+            externalGraphic: image,
+            graphicHeight: 21,
+            graphicWidth: 16,
+            graphicYOffset: -28
+        });
+        var markers = new OpenLayers.Layer.Vector('Markers', {styleMap: styleMap});
+
+        for (var i = 0; i < rooms.length; i++) {
+            markers.addFeatures(createMarker(rooms[i], image));
+        }
+
+        map.addLayer(markers);
+        map.zoomToExtent(markers.getDataExtent());
+
+        return markers;
+    }
+
+    function createMarker(room, image) {
+        var point = new OpenLayers.Geometry.Point(getLong(room.position), getLat(room.position));
+        transform(point);
+
+        return new OpenLayers.Feature.Vector(point, {name: room.name});
+    }
+
+    function addMarkerControl(markers, map) {
+        var selectControl = new OpenLayers.Control.SelectFeature(markers, {
+            onSelect: roomClickHandler
+        });
+        map.addControl(selectControl);
+        selectControl.activate();
+    }
+
+    function addCoordinatePicker(map, inputnode) {
+        var node = inputnode || $('#coordinates');
+        if (node.length > 0) {
+            map.events.register('click', map, function (event) {
+                var lonlat = map.getLonLatFromViewPortPx(event.xy);
+                transform(lonlat, true);
+                node.html(lonlat.lat + ',' + lonlat.lon);
+            });
+            node.click(function(){
+                window.prompt('Ctrl-c + Enter', node.html());
+            });
+        }
+    }
+
+    function getLat(position) {
+        return parseFloat(position.split(',')[0]);
+    }
+
+    function getLong(position) {
+        return parseFloat(position.split(',')[1]);
+    }
+
+    function roomClickHandler(feature) {
+        var roomname = feature.attributes.name;
+        window.location = '/info/room/' + roomname;
+    }
+
+    function transform(obj, reverse) {
+        reverse = (typeof reverse !== "undefined");
+        // We use EPSG:4362 for coords. OSM uses EPSG:900913.
+        var EPSG4326 = new OpenLayers.Projection('EPSG:4326');
+        var EPSGMERC = new OpenLayers.Projection('EPSG:900913');
+        return reverse ? obj.transform(EPSGMERC, EPSG4326) : obj.transform(EPSG4326, EPSGMERC);
+    }
+
     return Mapper
+
 });
