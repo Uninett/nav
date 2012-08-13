@@ -88,7 +88,6 @@ define([
             this.searchQuery = {
                 query: query
             };
-            this.force.stop();
             // find related box
             for (var i = 0; i < this.modelJson.nodes.length; i++) {
                 var node = this.modelJson.nodes[i];
@@ -97,37 +96,18 @@ define([
                     break;
                 }
             }
-            this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (self.scale - 1)];
-            //this.zoom.translate(this.trans);
-            this.svg.attr("transform",
-                "translate(" + this.trans + ") scale(" + this.scale + ")");
-
-            console.log("W,H: {0},{1} --- W/2,H/2: {2},{3}".format(this.w, this.h, this.w/2, this.h/2));
-            console.log("scale: {0}".format(this.scale));
-            console.log("Match found on {0} with coordinates: {1},{2}".format(this.searchQuery.zoomTarget.data.sysname, this.searchQuery.zoomTarget.x, this.searchQuery.zoomTarget.y));
-
-            console.log(this.trans);
-            //this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
-
-            //this.trans = [-((this.w/2)+this.searchQuery.zoomTarget.x) * (this.scale - 1), -((this.h/2)+this.searchQuery.zoomTarget.y) * (this.scale - 1)];
-            //console.log("translating: [{0}, {1}]".format(-(this.searchQuery.zoomTarget.x) * (this.scale - 1), -(this.searchQuery.zoomTarget.y) * (this.scale - 1)));
-            console.log("trnaslateing: {0},{1}".format( -(this.searchQuery.zoomTarget.x-(this.w/2))* (this.scale - 1), -(this.searchQuery.zoomTarget.y-(this.h/2))*(this.scale -1)));
-            this.trans = [ (this.searchQuery.zoomTarget.x-(this.w/2))* (this.scale - 1), (this.searchQuery.zoomTarget.y-(this.h/2))*(this.scale -1)];
-            //this.trans = [((-this.w / 2)+(-this.searchQuery.zoomTarget.x)) * (this.scale - 1), ((-this.h / 2) + (-this.searchQuery.zoomTarget.y)) * (this.scale - 1)];
-            console.log(this.trans);
-            //this.zoom.translate(this.trans);
-            //this.zoom.translate(this.trans);
+            this.trans = [ (-(this.searchQuery.zoomTarget.x * this.scale) + (this.w / 2)), (-(this.searchQuery.zoomTarget.y * this.scale) + (this.h / 2))];
+            this.zoom.translate(this.trans);
             this.svg.attr("transform",
                 "translate(" + this.trans + ") scale(" + this.scale + ")");
         },
         centerGraph: function () {
-            console.log("CENTER");
-            this.scale = 0.2;
+            this.scale = 1/Math.log(this.modelJson.nodes.length);
             this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
             this.zoom.scale(this.scale);
             this.zoom.translate(this.trans);
-            /*this.svg.attr("transform",
-                "translate(" + this.trans + ") scale(" + this.scale + ")");*/
+            this.svg.attr("transform",
+                "translate(" + this.trans + ") scale(" + this.scale + ")");
 
         },
         redraw: function (options) {
@@ -533,6 +513,15 @@ define([
                 if (json.links.length > 200) {
                     debugger;
                 }
+
+
+                // coordinate helper box
+                /*svg
+                    .append('svg:rect')
+                    .attr('width', self.w)
+                    .attr('height', self.h)
+                    .attr('fill', 'd5d5d5');*/
+
                 console.log("[Netmap][Debug] Nodes: {0}".format(json.nodes.length));
                 console.log("[Netmap][Debug] Edges: {0}".format(json.links.length));
                 self.force.start();
