@@ -17,8 +17,10 @@
 
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.utils import simplejson
 
 from nav.models.manage import Room
 from nav.web.info.room.forms import SearchForm
@@ -81,6 +83,17 @@ def roominfo(request, roomid):
                                "all_netboxes": all_netboxes,
                                "navpath": navpath},
                               context_instance=RequestContext(request))
+
+
+def get_rooms_with_position(request):
+    rooms = Room.objects.filter(position__isnull=False)
+    positions = {'positions': []}
+    for room in rooms:
+        positions['positions'].append(",".join(
+            [str(pos) for pos in room.position]))
+
+    return HttpResponse(simplejson.dumps(positions),
+                        mimetype='application/json')
 
 
 def render_netboxes(request, roomid):

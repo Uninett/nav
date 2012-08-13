@@ -25,10 +25,14 @@ require(
     function(tab_navigation, global_dt_filters, table_info_converter, Mapper) {
         /* Run javascript at document ready */
         $(document).ready(function () {
-            if ($('#infotabs')) {
+            if ($('#infotabs').length != 0) {
                 add_tabs();
                 add_navigation();
                 add_streetmap();
+            }
+
+            if ($('#mapcontainer').length > 0) {
+                fetchRoomPositions();
             }
         });
 
@@ -169,6 +173,12 @@ require(
             });
             $('#searchhelp').click(function () {
                 dialog.dialog('open');
+            });
+        }
+
+        function fetchRoomPositions() {
+            $.getJSON('/info/room/positions/', function (data) {
+                new Mapper('mapcontainer', data.positions).createMap();
             });
         }
 

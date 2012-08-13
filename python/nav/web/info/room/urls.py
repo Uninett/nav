@@ -17,10 +17,12 @@
 
 
 from django.conf.urls.defaults import url, patterns
-from nav.web.info.room.views import search, roominfo, render_netboxes
+from nav.web.info.room.views import search, roominfo, render_netboxes, \
+    get_rooms_with_position
 
 urlpatterns = patterns('',
     url(r'^$', search, name='room-search'),
+    url(r'^positions/$', get_rooms_with_position, name='room-positions'),
     url(r'^(?P<roomid>[\w-]+)/$', roominfo, name='room-info'),
     url(r'^(?P<roomid>[\w-]+)/netboxes/', render_netboxes, name='room-info-netboxes'),
 )
