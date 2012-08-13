@@ -35,7 +35,9 @@
                     <td>{{ room.optional_2 }}</td>
                     <td>{{ room.optional_3 }}</td>
                     <td>{{ room.optional_4 }}</td>
-                    <td class="position">{% if room.position %}{{ room.position|join:', ' }}{% endif %}</td>
+                    <td class="position" data-roomname="{{ room.id }}">
+                        {% if room.position %}{{ room.position|join:', ' }}{% endif %}
+                    </td>
                 </tr>
                 </tbody>
             </table>

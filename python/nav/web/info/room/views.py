@@ -87,12 +87,15 @@ def roominfo(request, roomid):
 
 def get_rooms_with_position(request):
     rooms = Room.objects.filter(position__isnull=False)
-    positions = {'positions': []}
+    data = {'rooms': []}
     for room in rooms:
-        positions['positions'].append(",".join(
-            [str(pos) for pos in room.position]))
+        roomdata = {
+            'name': room.id,
+            'position': ",".join([str(pos) for pos in room.position])
+        }
+        data['rooms'].append(roomdata)
 
-    return HttpResponse(simplejson.dumps(positions),
+    return HttpResponse(simplejson.dumps(data),
                         mimetype='application/json')
 
 

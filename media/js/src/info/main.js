@@ -87,10 +87,14 @@ require(
 
         function add_streetmap() {
             var position_node = $('#roominfo td.position');
-            var position = position_node.text();
-            if (position) {
+            var roomname = $(position_node).attr('data-roomname');
+            var position = $(position_node).text().trim();
+            if (position != '') {
                 console.log('Adding streetmap');
-                var map = new Mapper('room_map', [position]);
+                var map = new Mapper('room_map', [{
+                    name: roomname,
+                    position: position
+                }]);
                 map.createMap();
             }
         }
@@ -178,7 +182,7 @@ require(
 
         function fetchRoomPositions() {
             $.getJSON('/info/room/positions/', function (data) {
-                new Mapper('mapcontainer', data.positions).createMap();
+                new Mapper('mapcontainer', data.rooms).createMap();
             });
         }
 
