@@ -396,6 +396,10 @@ div#top-bar + div#header {
     clear: right;
 }
 
+.hidden {
+    display: none;
+}
+
 /* Pagination */
 p.paginator a:link,
 p.paginator a:visited,
