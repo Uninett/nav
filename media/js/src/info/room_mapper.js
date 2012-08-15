@@ -2,13 +2,16 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
 
     /*
      * Mapper creates an OpenStreetMap on the node given rooms from NAV
-     * A room needs a name and a position
+     * A room needs a name, position and status
      */
-    function Mapper(node, rooms) {
+    function RoomMapper(node, rooms) {
         this.node = node;
         this.rooms = rooms;
         this.imagePath = '/images/openlayers/';
-        this.markerImg = this.imagePath + 'marker.png';
+        this.markerImages = {
+            faulty: this.imagePath + 'marker.png',
+            ok: this.imagePath + 'marker-green.png'
+        };
         this.options = {
             theme: '/style/openlayers.css'
         };
@@ -16,20 +19,24 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
         OpenLayers.ImgPath = this.imagePath;
     }
 
-    Mapper.prototype = {
+    RoomMapper.prototype = {
         createMap: function () {
+            if (this.rooms.length <= 0) {
+                console.log('Mapper: No rooms to put on map');
+                return;
+            }
             this.map = new OpenLayers.Map(this.node, this.options);
             this.map.addLayer(new OpenLayers.Layer.OSM());
-            var markers = addMarkers(this.rooms, this.map, this.markerImg);
+            var markers = addMarkers(this.rooms, this.map, this.markerImages);
             addMarkerControl(markers, this.map);
             addCoordinatePicker(this.map);
         }
     };
 
-    function addMarkers(rooms, map, image) {
+    function addMarkers(rooms, map, images) {
         var styleMap = new OpenLayers.StyleMap({
             label: '${name}',
-            externalGraphic: image,
+            externalGraphic: '${image}',
             graphicHeight: 21,
             graphicWidth: 16,
             graphicYOffset: -28
@@ -37,7 +44,10 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
         var markers = new OpenLayers.Layer.Vector('Markers', {styleMap: styleMap});
 
         for (var i = 0; i < rooms.length; i++) {
-            markers.addFeatures(createMarker(rooms[i], image));
+            if (!(rooms[i].position && rooms[i].name && rooms[i].status)) {
+                console.log('Room does not have needed members [position, name, status]')
+            }
+            markers.addFeatures(createMarker(rooms[i], images));
         }
 
         map.addLayer(markers);
@@ -46,11 +56,16 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
         return markers;
     }
 
-    function createMarker(room, image) {
+    function createMarker(room, images) {
         var point = new OpenLayers.Geometry.Point(getLong(room.position), getLat(room.position));
         transform(point);
 
-        return new OpenLayers.Feature.Vector(point, {name: room.name});
+        return new OpenLayers.Feature.Vector(point,
+            {
+                name: room.name,
+                image: images[room.status]
+            }
+        );
     }
 
     function addMarkerControl(markers, map) {
@@ -85,7 +100,7 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
 
     function roomClickHandler(feature) {
         var roomname = feature.attributes.name;
-        window.location = '/info/room/' + roomname;
+        window.location = '/info/room/' + roomname + '/#1';
     }
 
     function transform(obj, reverse) {
@@ -96,6 +111,6 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
         return reverse ? obj.transform(EPSGMERC, EPSG4326) : obj.transform(EPSG4326, EPSGMERC);
     }
 
-    return Mapper
+    return RoomMapper
 
 });

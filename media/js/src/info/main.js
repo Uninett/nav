@@ -11,7 +11,7 @@ require(
         "src/info/tab_navigation",
         "src/info/global_dt_filters",
         "src/info/table_info_converter",
-        "src/info/mapper",
+        "src/info/room_mapper",
         "src/dt_plugins/natsort",
         "src/dt_plugins/altsort",
         "src/dt_plugins/date_title_sort",
@@ -22,7 +22,7 @@ require(
         "libs/downloadify.min",
         "libs/swfobject"
     ],
-    function(tab_navigation, global_dt_filters, table_info_converter, Mapper) {
+    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper) {
         /* Run javascript at document ready */
         $(document).ready(function () {
             if ($('#infotabs').length != 0) {
@@ -88,15 +88,9 @@ require(
         function add_streetmap() {
             var position_node = $('#roominfo td.position');
             var roomname = $(position_node).attr('data-roomname');
-            var position = $(position_node).text().trim();
-            if (position != '') {
-                console.log('Adding streetmap');
-                var map = new Mapper('room_map', [{
-                    name: roomname,
-                    position: position
-                }]);
-                map.createMap();
-            }
+            $.getJSON('/info/room/positions/' + roomname, function (data) {
+                new RoomMapper('room_map', data.rooms).createMap();
+            });
         }
 
 
@@ -182,7 +176,7 @@ require(
 
         function fetchRoomPositions() {
             $.getJSON('/info/room/positions/', function (data) {
-                new Mapper('mapcontainer', data.rooms).createMap();
+                new RoomMapper('mapcontainer', data.rooms).createMap();
             });
         }
 

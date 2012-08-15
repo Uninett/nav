@@ -23,6 +23,7 @@ from nav.web.info.room.views import search, roominfo, render_netboxes, \
 urlpatterns = patterns('',
     url(r'^$', search, name='room-search'),
     url(r'^positions/$', get_rooms_with_position, name='room-positions'),
+    url(r'^positions/(?P<roomid>[\w-]+)/$', get_rooms_with_position, name='room-position'),
     url(r'^(?P<roomid>[\w-]+)/$', roominfo, name='room-info'),
     url(r'^(?P<roomid>[\w-]+)/netboxes/', render_netboxes, name='room-info-netboxes'),
 )
