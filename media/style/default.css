@@ -420,3 +420,19 @@ p.paginator .active {
 	border-color: #fff;
 	color: #F57900;
 }
+
+/* Map styles */
+
+.smallmap {
+    height: 400px;
+    width: 600px;
+}
+
+.bigmap {
+    height: 600px;
+    width: 900px;
+}
+
+.mapwrapper {
+    margin: 1em 0;
+}

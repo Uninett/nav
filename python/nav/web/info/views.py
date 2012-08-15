@@ -17,13 +17,14 @@
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 
 from nav.web.info.forms import SearchForm
 from nav.web.info.searchproviders import RoomSearchProvider, \
     NetboxSearchProvider, FallbackSearchProvider, InterfaceSearchProvider
 
+from random import choice
 
 def index(request):
     """
@@ -87,3 +88,15 @@ def has_only_one_result(searchproviders):
     for provider in searchproviders:
         results += len(provider.results)
     return results == 1
+
+
+def osm_map_redirecter(request, x, y, z):
+    """
+    A redirector for OpenStreetmap tiles
+    """
+    server = choice(['a', 'b', 'c'])
+    url = "http://%s.tile.openstreetmap.org/%s/%s/%s.png" % (
+        server, x, y, z)
+    return redirect(url, permanent=True)
+
+

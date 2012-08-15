@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 
+{% block base_header_additional_head %}
+    <script data-main="/js/src/webfront/main" src="/js/libs/require.js"></script>
+{% endblock %}
+
+
 {% block base_content %}
 
 <div class="boxes">
@@ -35,6 +40,10 @@
 
 <div class="welcome">
     {{ welcome|safe }}
+</div>
+
+<div class="mapwrapper">
+    <div id="room_map" class="smallmap"></div>
 </div>
 
 <table class="listtable">

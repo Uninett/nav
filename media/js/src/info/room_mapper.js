@@ -7,6 +7,7 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
     function RoomMapper(node, rooms) {
         this.node = node;
         this.rooms = rooms;
+        this.proxyurl = '/info/osm_map_redirect/${z}/${x}/${y}.png';
         this.imagePath = '/images/openlayers/';
         this.markerImages = {
             faulty: this.imagePath + 'marker.png',
@@ -26,7 +27,7 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
                 return;
             }
             this.map = new OpenLayers.Map(this.node, this.options);
-            this.map.addLayer(new OpenLayers.Layer.OSM());
+            this.map.addLayer(new OpenLayers.Layer.OSM("OSM", this.proxyurl));
             var markers = addMarkers(this.rooms, this.map, this.markerImages);
             addMarkerControl(markers, this.map);
             addCoordinatePicker(this.map);
