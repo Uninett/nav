@@ -48,6 +48,8 @@ def get_netbox_macs():
     netbox_macs = dict(cursor.fetchall())
     return netbox_macs
 
+INVALID_IPS = ('None', '0.0.0.0',)
+
 # pylint: disable=R0903
 class Neighbor(object):
     "Abstract base class for neigbor identification"
@@ -84,6 +86,8 @@ class Neighbor(object):
         """
         ip = unicode(ip)
         assert ip
+        if ip in INVALID_IPS:
+            return
         return (cls._netbox_query(Q(ip=ip)) or
                 cls._netbox_query(Q(interface__gwportprefix__gw_ip=ip)))
 
@@ -241,7 +245,10 @@ class LLDPNeighbor(Neighbor):
         return self._interface_query(Q(ifphysaddress=mac))
 
     def _interface_from_ip(self, ip):
+        ip = unicode(ip)
         assert ip
+        if ip in INVALID_IPS:
+            return
         return self._interface_query(Q(gwportprefix__gw_ip=ip))
 
 def filter_duplicate_neighbors(nborlist):
