@@ -865,6 +865,7 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/maintenance/(calendar|active|historic|planned|view)\\b');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/geomap$');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/geomap/open');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/ajax/open/?');
 
 -- Define minimum privileges for authenticated users
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap)/?');

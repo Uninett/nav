@@ -13,14 +13,25 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Django URL configuration"""
+"""
+Django URL configuration
 
+The purpose of location /ajax/open is to put all ajax-requests that should be
+available without logging in here so that we don't need more than one
+web_access key for this.
 
-from django.conf.urls.defaults import url, patterns
-from nav.web.info.room.views import search, roominfo, render_netboxes
+The developer should make sure that the data exposed is indeed suitable
+for open access.
+"""
 
+from django.conf.urls.defaults import patterns, url
+
+from nav.web.ajax.views import get_rooms_with_position
+
+# URL's that does not require authorization
 urlpatterns = patterns('',
-    url(r'^$', search, name='room-search'),
-    url(r'^(?P<roomid>[\w-]+)/$', roominfo, name='room-info'),
-    url(r'^(?P<roomid>[\w-]+)/netboxes/', render_netboxes, name='room-info-netboxes'),
+   url(r'^open/roommapper/rooms/$', get_rooms_with_position,
+       name='room-positions'),
+   url(r'^open/roommapper/rooms/(?P<roomid>[\w-]+)/$', get_rooms_with_position,
+       name='room-position'),
 )
