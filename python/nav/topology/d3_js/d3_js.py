@@ -158,7 +158,7 @@ def d3_json(G, group=None):
     json_edges = list()
     for j, k, w in ints_graph.edges_iter(data=True):
         e = {'source': node_labels[j][1].sysname, 'target': node_labels[k][1].sysname,
-             'data': edge_to_json(w['metadata']) if 'metadata' in w else {}}
+             'data': edge_to_json(w['metadata']) if 'metadata' in w else { 'traffic': {}}}
         if any(map(lambda k: k == 'weight', w.keys())):
             e['value'] = w['weight']
         else:
