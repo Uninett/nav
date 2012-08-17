@@ -25,9 +25,20 @@
     {{/eachkeys}}
 
     <h3>Filter options</h3>
+
     <div class="squaredTwo">
         <input type="checkbox" name="filter_orphans" value="filter_orphans" id="filter_orphans" {{#if filter_orphans}} checked{{/if}} />
         <label for="filter_orphans">Filter orphans (single instance nodes)</label>
+    </div>
+
+    <div class="squaredTwo">
+        <input type="checkbox" name="group_roomid" value="group_roomid" id="group_roomid" {{#if group_roomid}} checked{{/if}} />
+        <label for="group_roomid">Group rooms by color</label>
+    </div>
+
+    <div class="squaredTwo">
+        <input type="checkbox" name="freezeNodes" value="freezeNodes" id="freezeNodes" {{#if freezeNodes}} checked{{/if}} />
+        <label for="freezeNodes">Freeze all nodes</label>
     </div>
 
 </div>

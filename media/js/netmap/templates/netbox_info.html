@@ -17,4 +17,13 @@
         <dd>{{node.data.type}}</dd>
         <dt>Room</dt>
         <dd>{{node.data.room}}</dd>
+        <dt>Vlans</dt>
+        <dd>
+            {{#each node.data.vlans}}
+                <br />{{this}}
+            {{/each}}
+
+        </dd>
+
+        {{node.x}}, {{node.y}}
     </dl>

@@ -15,7 +15,9 @@ define([
             'click #toggle_view':      'toggleView',
             'click input[type=radio]': 'onRadioLayerClick',
             'click input[name="categories[]"]': 'onCheckboxLayerClick',
-            'click input[name="filter_orphans"]': 'onFilterOrphansClick'
+            'click input[name="filter_orphans"]': 'onFilterOrphansClick',
+            'click input[name="group_roomid"]': 'onGroupByRoomClick',
+            'click input[name="freezeNodes"]': 'onFreezeNodesClick'
         },
         initialize: function () {
             console.log("foodsfsdfbar");
@@ -63,7 +65,6 @@ define([
             var context = {
                 'link_types': {
                     'layer2':  false,
-                    'layer2vlan': false,
                     'layer3':  false
                 },
                 // eew, should get available categories from app context somehow
@@ -75,7 +76,11 @@ define([
                     'OTHER': false,
                     'WLAN':  false,
                     'SRV':   false,
-                    'EDGE':  false
+                    'EDGE':  false,
+                    'ELINK': false
+                },
+                'specific_filters': {
+                    'groupby_room': false
                 }
             };
 
@@ -155,7 +160,14 @@ define([
                 filter_orphans: $(e.currentTarget).prop('checked')
             });
         },
-
+        onGroupByRoomClick: function (e) {
+            this.broker.trigger('map:redraw', {
+                groupby_room: $(e.currentTarget).prop('checked')
+            });
+        },
+        onFreezeNodesClick: function (e) {
+            this.broker.trigger('map:freezeNodes', $(e.currentTarget).prop('checked'));
+        },
         close:function () {
             this.broker.unregister(this);
             $(this.el).unbind();

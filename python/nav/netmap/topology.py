@@ -15,12 +15,29 @@
 #
 import logging
 import networkx as nx
+from nav.models.manage import SwPortVlan, NetType
+from nav.netmap import stubs
 from nav.netmap.metadata import edge_metadata_layer3, edge_metadata
 from nav.topology import vlan
 
 
 _LOGGER = logging.getLogger(__name__)
 
+
+def _get_vlans_map(graph):
+    interface_id_list = list()
+    for n, nbrdict, key in graph.edges_iter(keys=True):
+        if key.vlan:
+            interface_id_list.append(key.id)
+
+    from collections import defaultdict
+    vlan_by_interface = defaultdict(list)
+    vlan_by_netbox = defaultdict(list)
+    for swpv in SwPortVlan.objects.filter(interface__in=list(interface_id_list)).select_related():
+        vlan_by_interface[swpv.interface].append(swpv.vlan.vlan)
+        vlan_by_netbox[swpv.interface.netbox].append(swpv.vlan.vlan)
+
+    return (vlan_by_interface, vlan_by_netbox)
 
 def build_netmap_layer2_graph(view=None):
     """
@@ -35,14 +52,24 @@ def build_netmap_layer2_graph(view=None):
     """
     _LOGGER.debug("build_netmap_layer2_graph() start")
     topology_without_metadata = vlan.build_layer2_graph(
-        ('to_interface__netbox',))
+        ('to_interface__netbox', 'to_interface__netbox__room', 'to_netbox__room', 'netbox__room',))
     _LOGGER.debug("build_netmap_layer2_graph() topology graph done")
+
+    vlan_by_interface, vlan_by_netbox = _get_vlans_map(topology_without_metadata)
+    _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
+
     graph = nx.MultiDiGraph()
     # Make a copy of the graph, and add edge meta data
     for n, nbrdict, key in topology_without_metadata.edges_iter(keys=True):
         graph.add_edge(n, nbrdict, key=key,
-            metadata=edge_metadata(key.netbox, key, nbrdict, key.to_interface))
+            metadata=edge_metadata(key.netbox, key, nbrdict, key.to_interface, vlan_by_interface))
+
     _LOGGER.debug("build_netmap_layer2_graph() graph copy with metadata done")
+
+    for node, data in graph.nodes_iter(data=True):
+        if vlan_by_netbox.has_key(node):
+            data['metadata'] = {'vlans': sorted(vlan_by_netbox.get(node)) }
+
     if view:
         graph = _attach_node_positions(graph, view.node_position_set.all())
     _LOGGER.debug("build_netmap_layer2_graph() view positions and graph done")
@@ -61,9 +88,10 @@ def build_netmap_layer3_graph(view=None):
             (obs! metadata has direction metadata added!)
     """
     _LOGGER.debug("build_netmap_layer3_graph() start")
-    topology_without_metadata = vlan.build_layer3_graph(
-        ('to_interface__netbox',))
+    topology_without_metadata = vlan.build_layer3_graph(('prefix__vlan__net_type',))
+    #    ('to_interface__netbox__room', 'netbox__room', 'to_interface__to_netbox__room', 'interface__to_netbox__rom' 'to_interface__netbox', 'prefix__vlan__net_type',))
     _LOGGER.debug("build_netmap_layer3_graph() topology graph done")
+
     graph = nx.MultiDiGraph()
     # Make a copy of the graph, and add edge meta data
     for n, nbrdict, key in topology_without_metadata.edges_iter(keys=True):
@@ -74,25 +102,27 @@ def build_netmap_layer3_graph(view=None):
 
     # Find who has neighbors that NAV doesn't know anything about
     nodes_with_no_metadata = []
-    for node in graph.nodes_iter():
-        neighbors = graph.neighbors(node)
-        if None in neighbors:
-            nodes_with_no_metadata.append(node)
 
+    elink_type = NetType.objects.get(id='elink')
+
+    for node, nbr, key in graph.edges_iter(keys=True):
+        if None in graph.neighbors(node) and not nbr and key.prefix.vlan.net_type==elink_type:
+            nodes_with_no_metadata.append((node, nbr, key))
 
     # remove the global None node and it's related edges if it is there
     if graph.has_node(None):
         graph.remove_node(None)
 
-        # Time to add each node's UNKNOWN_EXIT_ROUTE
-    i = 0
-    for node in nodes_with_no_metadata:
-        i += 1
-        #fictive_node = Netbox()
-        #fictive_node.sysname = node.sysname + ' EXTERNAL_EXIT_NODE'
-        # Add fictive shadow box for each node EXIT, default gw route?,
-        # undefined links?
-        #graph.add_edge(node, root, key='internett%s'%i)
+    # elink fictive nodes named by ifalias / UNINETT convention
+    for node, nbr, key in nodes_with_no_metadata:
+        fictive_node = stubs.Netbox()
+        if key.interface.ifalias:
+            fictive_node.sysname = key.interface.ifalias
+        else:
+            fictive_node.sysname = '%s (%s) missing ifalias' % (key.interface.netbox,  key.interface)
+        fictive_node.category_id = 'elink'
+        graph.add_edge(node, fictive_node, key=key)
+        graph.add_edge(fictive_node, node, key=key)
 
     if view:
         graph = _attach_node_positions(graph, view.node_position_set.all())

@@ -85,10 +85,3 @@ String.prototype.format = function () {
 
     });
 };
-
-
-
-
-
-
-

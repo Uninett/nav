@@ -16,6 +16,7 @@
 import logging
 from django.core.urlresolvers import reverse
 from nav.models.manage import GwPortPrefix
+from nav.netmap.stubs import Netbox
 from nav.web.netmapdev.common import get_status_image_link
 
 
@@ -30,18 +31,35 @@ def node_to_json(node, metadata=None):
     :param node A Netbox model
     :returns: metadata for a node
     """
+    position = None
+    vlans = None
+    if metadata:
+        if metadata.has_key('x') and metadata.has_key('y'):
+            position = {'x': metadata.x, 'y': metadata.y}
+        if metadata.has_key('vlans'):
+            vlans = metadata['vlans']
 
-    position = {'x': metadata.x, 'y': metadata.y} if metadata else None
-    return {
-        'id': str(node.pk),
-        'sysname': str(node.sysname),
-        'category': str(node.category_id),
-        'ip': node.ip,
-        'ipdevinfo_link': reverse('ipdevinfo-details-by-name',
-            args=[node.sysname]),
-        'position': position,
-        'up': str(node.up),
-        'up_image': get_status_image_link(node.up),
+    if isinstance(node, Netbox):
+        return {
+            'sysname': node.sysname,
+            'category': str(node.category_id),
+            'is_elink_node': True
+        }
+    else:
+        return {
+            'id': str(node.pk),
+            'sysname': str(node.sysname),
+            'category': str(node.category_id),
+            'ip': node.ip,
+            'ipdevinfo_link': reverse('ipdevinfo-details-by-name',
+                args=[node.sysname]),
+            'position': position,
+            'up': str(node.up),
+            'up_image': get_status_image_link(node.up),
+            'roomid': node.room.id,
+            'is_elink_node': False,
+            'vlans' : vlans
+            #'roomid': 'fooo',
         }
 
 
@@ -64,7 +82,8 @@ def edge_to_json(metadata):
                     {'thiss': {'interface': "{0} at {1}".format(
                     str(uplink['thiss']['interface'].ifname),
                     str(uplink['thiss']['interface'].netbox.sysname)
-                ), 'netbox': uplink['thiss']['netbox'].sysname}}
+                ), 'netbox': uplink['thiss']['netbox'].sysname,
+                               'vlans': uplink['thiss']['vlans']}}
             )
         else:
             uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
@@ -110,11 +129,11 @@ def edge_metadata_layer3(thiss_netbox, thiss_interface, other_netbox, other_inte
         other_interface = other_interface.interface
 
 
-    return edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface )
+    return edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface, None)
 
 
 
-def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface):
+def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface, vlans_by_interface):
     """
     Adds edge meta data with python types for given edge (layer2)
 
@@ -125,10 +144,20 @@ def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface):
     """
     error = {}
     tip_inspect_link = False
+    #vlans = thiss_interface.get_vlan_numbers()
+    vlans = None
 
-    uplink = {'thiss': {'netbox': thiss_netbox, 'interface': thiss_interface},
-         'other': {'netbox': other_netbox,
-                   'interface': other_interface}}
+    if vlans_by_interface and vlans_by_interface.has_key(thiss_interface):
+        vlans = sorted(vlans_by_interface.get(thiss_interface))
+
+    #vlans = thiss_interface.swportvlan_set.all()
+    #asdasd
+    #vlans = "foo"
+
+    #vlans = thiss_interface.get_vlan_numbers()
+    uplink = {'thiss': {'netbox': thiss_netbox, 'interface': thiss_interface, 'vlans': vlans},
+              'other': {'netbox': other_netbox,
+                        'interface': other_interface}}
 
     if thiss_interface and other_interface and thiss_interface.speed != \
                                                other_interface.speed:

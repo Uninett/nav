@@ -19,7 +19,8 @@ define([
             'map:resize:animate': 'resizeAnimate',
             'map:redraw': 'redraw',
             'map:search': 'search',
-            'map:centerGraph': 'centerGraph'
+            'map:centerGraph': 'centerGraph',
+            'map:freezeNodes': 'freezeNodes'
         },
         initialize: function () {
             this.broker.register(this);
@@ -30,6 +31,7 @@ define([
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
 
+            this.selected_node = null;
             this.context_selected_map = this.options.context_selected_map;
             this.sidebar = this.options.view_netbox_info;
 
@@ -56,9 +58,9 @@ define([
             // parent is $("#netmap_main_view"), required due to 3col collapse
             // layout. This breaks container principle, but it's django
             // who renders backbone.html template.
-            this.$el.parent().animate({
+            this.$el.parent().parent().animate({
                     'margin-right': "{0}px".format(marginRight),
-                    'margin-left': "{0}px".format(marginLeft)
+                    'margin-left':  "{0}px".format(marginLeft)
                 },
                 {   duration: 400,
                     step:     function () {
@@ -91,7 +93,7 @@ define([
             // find related box
             for (var i = 0; i < this.modelJson.nodes.length; i++) {
                 var node = this.modelJson.nodes[i];
-                if (node.data.sysname.search(query) != -1) {
+                if (node.data.sysname.search(query) !== -1) {
                     this.searchQuery.zoomTarget = node;
                     break;
                 }
@@ -110,10 +112,27 @@ define([
                 "translate(" + this.trans + ") scale(" + this.scale + ")");
 
         },
+        freezeNodes: function (isFreezing) {
+            if (isFreezing) {
+                this.force.stop();
+            } else {
+                this.force.resume();
+            }
+            /*for (var i = 0; i < this.modelJson.nodes.length; i++) {
+                var node = this.modelJson.nodes[i];
+                node.fixed = isFreezing;
+            }*/
+        },
         redraw: function (options) {
             if (options !== undefined) {
-                this.filter_orphans = options.filter_orphans;
+                if (options.filter_orphans !== undefined) {
+                    this.filter_orphans = options.filter_orphans;
+                }
+                if (options.groupby_room !== undefined) {
+                    this.groupby_room = options.groupby_room;
+                }
             }
+
             this.force.stop();
             (this.$el).find('#svg-netmap').remove();
             /*this.$el.unbind();
@@ -166,6 +185,7 @@ define([
                 //.call(d3.behavior.zoom().on("zoom", redraw))
                 .append('svg:g')
             ;
+            //root_chart.attr("opacity", 0.1);
             this.svg = svg;
             /*                if (self.force !== undefined) {
              self.force.off("tick", null);
@@ -290,7 +310,7 @@ define([
                         .attr('stroke', function (d, i) {
                             return 'url(#linkload' + i + ')';
                         })
-                        .on("click", function(d) { console.log(d); self.sidebar.data = d; self.sidebar.render(); });
+                        .on("click", function(d) { console.log(d); self.sidebar.data = d; self.sidebar.render(); })
                     /*.on("mouseover", function(d) { return link_popup(d); }) // adds about 400 listners^n refresh :D
                      .on("mouseout", function(d) { return link_popout(d); });*/
                 });
@@ -350,17 +370,48 @@ define([
                 /*node.selectAll("circle").append("title").text(function (d) {
                  return d.name;
                  });*/
+                var groupByRoom = function () {
+                    var groupByRoomId = self.modelJson.nodes.filter(function (d) {
+                        return d.data.roomid === self.selected_node.data.roomid
+                    });
 
+                    self.nodesInRoom = svg.selectAll("g circle").data(groupByRoomId, function (d) {
+                        return d.data.sysname;
+                    });
+
+                    self.nodesInRoom.enter()
+                        .append("svg:circle")
+                        .attr("class", "grouped_by_room")
+                        .attr("cx", function (d) {
+                            return d.px;
+                        })
+                        .attr("cy", function (d) {
+                            return d.py;
+                        })
+                        .attr("r", 34);
+                    self.nodesInRoom.exit().remove();
+                };
+                if (self.groupby_room && self.selected_node!==null) {
+                    groupByRoom();
+                }
                 //spinner.stop();
 
 
                 function tick() {
 
+                    /*if (self.force.alpha()<0.03) {
+                        root_chart.attr("opacity", 1);
+                    }*/
 
-                    //console.log(node);
                     node.attr("transform", function (d) {
                         return "translate(" + d.x + "," + d.y + ")";
                     });
+
+                    if (self.nodesInRoom !== undefined) {
+                        self.nodesInRoom
+                            .attr("cx", function (d) { return d.px;})
+                            .attr("cy", function (d) { return d.py;});
+                    }
 
                     link
                         .attr("x1", function (d) {
@@ -445,24 +496,27 @@ define([
                     var inOctets, outOctets, inOctetsRaw, outOctetsRaw = "N/A"
 
                     if (d.data.traffic['inOctets'] != null) {
-                        inOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['inOctets'].raw * 8)
-                        inOctetsRaw = d.data.traffic['inOctets'].raw
+                        inOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['inOctets'].raw * 8);
+                        inOctetsRaw = d.data.traffic['inOctets'].raw;
                     } else {
-                        inOctets = inOctetsRaw = 'N/A'
+                        inOctets = inOctetsRaw = 'N/A';
                     }
                     if (d.data.traffic['outOctets'] != null) {
-                        outOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['outOctets'].raw * 8)
-                        outOctetsRaw = d.data.traffic['outOctets'].raw
+                        outOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['outOctets'].raw * 8);
+                        outOctetsRaw = d.data.traffic['outOctets'].raw;
                     } else {
-                        outOctets = outOctetsRaw = 'N/A'
+                        outOctets = outOctetsRaw = 'N/A';
                     }
+
+                    var thiss_vlans = (d.data.uplink.thiss.vlans !== null ? d.data.uplink.thiss.vlans.join() : 'none');
 
                     mouseFocusInPopup({
                         'title':                 'link',
                         'description':           d.data.uplink.thiss.interface + " -> " + d.data.uplink.other.interface +
                             '<br />' + d.data.link_speed +
                             '<br />In: ' + inOctets + " raw[" + inOctetsRaw + "]" +
-                            '<br />Out: ' + outOctets + " raw[" + outOctetsRaw + "]",
+                            '<br />Out: ' + outOctets + " raw[" + outOctetsRaw + "]" +
+                            '<br />Vlans: ' + thiss_vlans,
                         'css_description_width': 400
                     });
 
@@ -500,8 +554,14 @@ define([
 
                 function node_onClick(node) {
                     //var netbox_info = new NetboxInfoView({node: node});
+                    self.selected_node = node;
                     self.sidebar.node = node;
                     self.sidebar.render();
+
+                    if (self.groupby_room) {
+                        groupByRoom();
+                    }
+
                     //self.sidebar.html(netbox_info.render().el);
                 }
 
@@ -509,11 +569,6 @@ define([
                 self.force.stop();
                 node_s.exit().remove();
                 s_link.exit().remove();
-
-                if (json.links.length > 200) {
-                    debugger;
-                }
-
 
                 // coordinate helper box
                 /*svg
@@ -575,8 +630,6 @@ define([
                     var node = json.nodes[i];
                     if (node !== null) {
                         if (node.data.position) {
-                            console.log("node static");
-                            console.log(node);
                             node.x = node.data.position.x;
                             node.y = node.data.position.y;
                             node.fixed = true;
