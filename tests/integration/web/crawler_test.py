@@ -21,7 +21,6 @@ PASSWORD = os.environ['ADMINPASSWORD']
 
 TIDY_OPTIONS = {
     'doctype': 'auto',
-    'drop-proprietary-attributes': 'yes',
     'output_xhtml': True,
     'input_encoding': 'utf8',
 }
