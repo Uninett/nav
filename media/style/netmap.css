@@ -349,6 +349,10 @@ circle {
 circle.node {
     stroke-opacity: 1;
 }
+circle.grouped_by_room {
+    stroke: red;
+    fill: transparent;
+}
 
 .node.fade {
     stroke-opacity: 0.1;
