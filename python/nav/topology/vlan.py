@@ -354,10 +354,9 @@ def build_layer2_graph(related_extra=None):
 
     links = Interface.objects.filter(to_netbox__isnull=False).select_related(*select_related)
 
-    for i in xrange(0, len(links)):
-        dest = links[i].to_interface.netbox if links[i].to_interface else links[i].to_netbox
-        graph.add_edge(links[i].netbox, dest, key=links[i])
-
+    for link in links:
+        dest = link.to_interface.netbox if link.to_interface else link.to_netbox
+        graph.add_edge(link.netbox, dest, key=link)
     return graph
 
 def build_layer3_graph(related_extra=None):
