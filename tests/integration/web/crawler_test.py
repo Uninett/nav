@@ -20,7 +20,8 @@ USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
 PASSWORD = os.environ['ADMINPASSWORD']
 
 TIDY_OPTIONS = {
-    'doctype': 'strict',
+    'doctype': 'auto',
+    'drop-proprietary-attributes': 'yes',
     'output_xhtml': True,
     'input_encoding': 'utf8',
 }
