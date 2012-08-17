@@ -27,7 +27,7 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
                 return;
             }
             this.map = new OpenLayers.Map(this.node, this.options);
-            this.map.addLayer(new OpenLayers.Layer.OSM("OSM", this.proxyurl));
+            this.map.addLayer(new OpenLayers.Layer.OSM("OpenStreetMap", this.proxyurl));
             var markers = addMarkers(this.rooms, this.map, this.markerImages);
             addMarkerControl(markers, this.map);
             addCoordinatePicker(this.map);
@@ -42,7 +42,7 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
             graphicWidth: 16,
             graphicYOffset: -28
         });
-        var markers = new OpenLayers.Layer.Vector('Markers', {styleMap: styleMap});
+        var markers = new OpenLayers.Layer.Vector('Rooms', {styleMap: styleMap});
 
         for (var i = 0; i < rooms.length; i++) {
             if (!(rooms[i].position && rooms[i].name && rooms[i].status)) {
