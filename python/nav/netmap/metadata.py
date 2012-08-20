@@ -39,7 +39,8 @@ def node_to_json(node, nx_metadata=None):
         if metadata.has_key('position'):
             position = {'x': metadata.position.x, 'y': metadata.position.y}
         if metadata.has_key('vlans'):
-            vlans = [{'vlan': x['vlan'], 'nav-vlan': x['nav-vlan']} for x in metadata['vlans']]
+            # nav_vlan_id == swpv.vlan.id
+            vlans = [{'vlan': swpv.vlan.vlan, 'nav-vlan': nav_vlan_id} for nav_vlan_id, swpv in metadata['vlans']]
 
     if isinstance(node, Netbox):
         return {
@@ -80,12 +81,16 @@ def edge_to_json(metadata):
         uplink_json = {}
 
         if uplink['thiss']['interface']:
+            vlans = None
+            if uplink['thiss'].has_key('vlans') and uplink['thiss']['vlans']:
+                vlans = [{'vlan': swpv.vlan.vlan, 'nav-vlan': swpv.vlan.id} for swpv in uplink['thiss']['vlans']]
+
             uplink_json.update(
                     {'thiss': {'interface': "{0} at {1}".format(
                     str(uplink['thiss']['interface'].ifname),
                     str(uplink['thiss']['interface'].netbox.sysname)
                 ), 'netbox': uplink['thiss']['netbox'].sysname,
-                               'vlans': uplink['thiss']['vlans']}}
+                               'vlans': vlans}}
             )
         else:
             uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
@@ -150,7 +155,7 @@ def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface, 
     vlans = None
 
     if vlans_by_interface and vlans_by_interface.has_key(thiss_interface):
-        vlans = sorted(vlans_by_interface.get(thiss_interface))
+        vlans = sorted(vlans_by_interface.get(thiss_interface), key=lambda x:x.vlan.vlan)
 
     #vlans = thiss_interface.swportvlan_set.all()
     #asdasd

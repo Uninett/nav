@@ -15,6 +15,7 @@
 #
 import logging
 import networkx as nx
+import operator
 from nav.models.manage import SwPortVlan, NetType
 from nav.netmap import stubs
 from nav.netmap.metadata import edge_metadata_layer3, edge_metadata
@@ -32,10 +33,12 @@ def _get_vlans_map(graph):
 
     from collections import defaultdict
     vlan_by_interface = defaultdict(list)
-    vlan_by_netbox = defaultdict(list)
+    vlan_by_netbox = defaultdict(dict)
     for swpv in SwPortVlan.objects.filter(interface__in=list(interface_id_list)).select_related():
-        vlan_by_interface[swpv.interface].append({'vlan': swpv.vlan.vlan, 'nav-vlan': swpv.id})
-        vlan_by_netbox[swpv.interface.netbox].append({'vlan': swpv.vlan.vlan, 'nav-vlan': swpv.id})
+        vlan_by_interface[swpv.interface].append(swpv)
+
+        # unique storing on internal nav vlan id
+        vlan_by_netbox[swpv.interface.netbox].update({swpv.vlan.id:swpv})
 
     return (vlan_by_interface, vlan_by_netbox)
 
@@ -68,7 +71,7 @@ def build_netmap_layer2_graph(view=None):
 
     for node, data in graph.nodes_iter(data=True):
         if vlan_by_netbox.has_key(node):
-            data['metadata'] = {'vlans': sorted(vlan_by_netbox.get(node), key=lambda k: k['vlan']) }
+            data['metadata'] = {'vlans': sorted(vlan_by_netbox.get(node).iteritems(), key=lambda x: x[1].vlan.vlan)}
 
     if view:
         graph = _attach_node_positions(graph, view.node_position_set.all())
