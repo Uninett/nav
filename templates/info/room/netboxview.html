@@ -5,11 +5,23 @@
     <h3>{{ room.id }}: {{ netboxes|length }} netbox{{ netboxes|pluralize:"es" }}</h3>
 
     <div id="global-search" class="input-filter">
-        Search <img id="searchhelp" src="/images/helpers/question.png" /> <input id="netbox-global-search" type="text" />
+        <div class="input-filter-desc">Search <img id="searchhelp" src="/images/helpers/question.png" /></div>
+        <input id="netbox-global-search" type="text" />
     </div>
 
-    <div id="downloadify" class="input-filter">
-        <span class="messages">You must have Flash 10 installed to download this file.</span>
+    <div id="vlanfilter" class="input-filter">
+        <div class="input-filter-desc">Vlan</div>
+        <input type="text">
+    </div>
+
+    <div id="lastseenfilter" class="input-filter">
+        <div class="input-filter-desc">Last Seen</div>
+        <input type="text">
+    </div>
+
+    <div class="input-filter">
+        <div class="input-filter-desc">Download CSV-file</div>
+        <span id="downloadify">You must have Flash 10 installed to download this file.</span>
     </div>
 
     <div class="float-clear"></div>
@@ -68,7 +80,11 @@
         </div>
 
         <div>
-            To improve the filtering you can use predefined keywords to more accurately filter what you want to see. The following keywords are currently available:
+            To improve the filtering you can use the other searchboxes that filters on specific rows.
+        </div>
+
+        <div>
+            You can also use predefined keywords in the main searchbox to filter what you want to see. The following keywords are currently available:
             <ul>
                 <li>$vlan - Ex: $vlan:130 - Only show interfaces with vlan 130</li>
                 <li>$days - Ex: $days:5 - Only show rows where last active is 5 days or more</li>
@@ -76,7 +92,7 @@
         </div>
 
         <div>
-            You can combine the filters if you want to. <kbd>fa1/2 $days:5 $vlan:10</kbd> is a valid filter.
+            You can combine the filters if you want to. <kbd>fa1/2 $days:5 $vlan:10</kbd> is a valid filter. Also combining keywords and searchboxes work, but keywords have presedence
         </div>
     </div>
 

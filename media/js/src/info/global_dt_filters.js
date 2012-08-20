@@ -10,10 +10,12 @@ define(['libs/jquery.dataTables.min'], function () {
     var filters = {
         last_seen: {
             name: 'Last Seen',
+            node: 'lastseenfilter',
             runner: filter_last_seen
         },
         vlan: {
             name: 'Vlan',
+            node: 'vlanfilter',
             runner: filter_vlan
         }
     };
@@ -73,6 +75,7 @@ define(['libs/jquery.dataTables.min'], function () {
     function register_filter(config) {
         console.log('Applying filter ' + config.name);
         $.fn.dataTableExt.afnFiltering.push(config.runner);
+        $('#' + config.node + ' input').keyup(do_primary_filter);
     }
 
     /*
@@ -81,7 +84,7 @@ define(['libs/jquery.dataTables.min'], function () {
 
     /* Filter on row 4 and 5 */
     function filter_last_seen(oSettings, aData, iDataIndex) {
-        var days = get_keyword(/\$days:\w+/);
+        var days = get_keyword(/\$days:\w+/) || getInputValue(filters.last_seen.node);
         if (days) {
             var rowdate = extract_date(aData[4]);
             return (!is_trunk(aData[3]) && daysince(rowdate) >= days);
@@ -92,7 +95,7 @@ define(['libs/jquery.dataTables.min'], function () {
 
     /* Filter on vlan */
     function filter_vlan(oSettings, aData, iDataIndex) {
-        var vlan = get_keyword(/\$vlan:\w+/);
+        var vlan = get_keyword(/\$vlan:\w+/) || getInputValue(filters.vlan.node);
         if (vlan) {
             return vlan == aData[3];
         }
@@ -102,7 +105,6 @@ define(['libs/jquery.dataTables.min'], function () {
     /*
      * Helper functions
      */
-
     function get_keyword(regexp) {
         var input = $(primary_node).val();
         var keyword = input.match(regexp);
@@ -110,6 +112,11 @@ define(['libs/jquery.dataTables.min'], function () {
             return keyword[0].split(':')[1];
         }
         return '';
+    }
+
+
+    function getInputValue(node) {
+        return $('#' + node).find('input').val();
     }
 
     /* Extract date without time from string */

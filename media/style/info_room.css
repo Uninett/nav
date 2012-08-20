@@ -56,7 +56,11 @@ table.vertitable tr th.sorting {
 }
 
 .input-filter input {
-    width: 300px;
+    width: 150px;
+}
+
+.input-filter .input-filter-desc {
+    font-style: italic;
 }
 
 #downloadify {
