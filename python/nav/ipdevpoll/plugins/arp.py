@@ -182,8 +182,8 @@ class Arp(Plugin):
         infinity = datetime.max
 
         for (ip, mac) in mappings:
-            if not mac:
-                continue # Some devices seem to return empty macs!
+            if not ip or not mac:
+                continue # Some devices seem to return empty results!
             arp = self.containers.factory((ip, mac), shadows.Arp)
             arp.netbox = netbox
             arp.sysname = self.netbox.sysname
@@ -229,6 +229,6 @@ def ipv6_address_in_mappings(mappings):
 
     """
     for _, ip, _ in mappings:
-        if ip.version() == 6:
+        if ip and ip.version() == 6:
             return True
     return False

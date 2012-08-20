@@ -36,7 +36,7 @@ from nav.tableformat import SimpleTableFormatter
 from nav.ipdevpoll.utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
-MAX_CONCURRENT_JOBS = 1000
+MAX_CONCURRENT_JOBS = 800
 
 class NetboxJobScheduler(object):
     """Netbox job schedule handler.
