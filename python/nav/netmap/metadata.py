@@ -23,7 +23,7 @@ from nav.web.netmapdev.common import get_status_image_link
 _LOGGER = logging.getLogger(__name__)
 
 
-def node_to_json(node, metadata=None):
+def node_to_json(node, nx_metadata=None):
     """Filter our metadata for a node in JSON-format
 
     Used for showing metadata in NetMap with D3
@@ -33,11 +33,13 @@ def node_to_json(node, metadata=None):
     """
     position = None
     vlans = None
+    metadata = nx_metadata['metadata'] if nx_metadata and nx_metadata.has_key('metadata') else None
+
     if metadata:
-        if metadata.has_key('x') and metadata.has_key('y'):
-            position = {'x': metadata.x, 'y': metadata.y}
+        if metadata.has_key('position'):
+            position = {'x': metadata.position.x, 'y': metadata.position.y}
         if metadata.has_key('vlans'):
-            vlans = metadata['vlans']
+            vlans = [{'vlan': x['vlan'], 'nav-vlan': x['nav-vlan']} for x in metadata['vlans']]
 
     if isinstance(node, Netbox):
         return {

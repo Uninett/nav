@@ -136,9 +136,7 @@ def d3_json(G, group=None):
         graph_json = {'nodes': map(
             lambda n: {'name': str(node_labels[n][1]), 'group': 0,
                        'data': node_to_json(node_labels[n][1],
-                           graph_nodes[n][1]['metadata'] if 'metadata' in
-                                                            graph_nodes[n][
-                                                            1] else None)},
+                           graph_nodes[n][1])},
             xrange(len(node_labels)))}
     else:
         try:
@@ -155,6 +153,7 @@ def d3_json(G, group=None):
                 "The graph had no node attribute for '" + group + "'")
     _LOGGER.debug("netmap:d3_json() nodes done")
     # Build up edge dictionary in JSON format
+
     json_edges = list()
     for j, k, w in ints_graph.edges_iter(data=True):
         e = {'source': node_labels[j][1].sysname, 'target': node_labels[k][1].sysname,

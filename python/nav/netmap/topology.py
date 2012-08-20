@@ -34,8 +34,8 @@ def _get_vlans_map(graph):
     vlan_by_interface = defaultdict(list)
     vlan_by_netbox = defaultdict(list)
     for swpv in SwPortVlan.objects.filter(interface__in=list(interface_id_list)).select_related():
-        vlan_by_interface[swpv.interface].append(swpv.vlan.vlan)
-        vlan_by_netbox[swpv.interface.netbox].append(swpv.vlan.vlan)
+        vlan_by_interface[swpv.interface].append({'vlan': swpv.vlan.vlan, 'nav-vlan': swpv.id})
+        vlan_by_netbox[swpv.interface.netbox].append({'vlan': swpv.vlan.vlan, 'nav-vlan': swpv.id})
 
     return (vlan_by_interface, vlan_by_netbox)
 
@@ -68,7 +68,7 @@ def build_netmap_layer2_graph(view=None):
 
     for node, data in graph.nodes_iter(data=True):
         if vlan_by_netbox.has_key(node):
-            data['metadata'] = {'vlans': sorted(vlan_by_netbox.get(node)) }
+            data['metadata'] = {'vlans': sorted(vlan_by_netbox.get(node), key=lambda k: k['vlan']) }
 
     if view:
         graph = _attach_node_positions(graph, view.node_position_set.all())
@@ -146,7 +146,11 @@ def _attach_node_positions(graph, node_set):
 
         # Attached position meta data if map view has meta data on node in graph
         if node_meta_dict:
-            node[1]['metadata'] = node_meta_dict[0]
+            if node[1]['metadata']:
+                # has vlan meta data, need to just update position data
+                node[1]['metadata'].update({'position': node_meta_dict[0]})
+            else:
+                node[1]['metadata'] = {'position': node_meta_dict[0]}
     return graph
 
 
