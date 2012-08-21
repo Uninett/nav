@@ -24,12 +24,12 @@ class MixedNetTypeTest(TestCase):
         with patch.object(self.vlan, '_get_router_count_for_prefix') as rcount:
             rcount.return_value = 2
             net_type = self.vlan._guesstimate_net_type(self.repo)
-            self.assertIsNotNone(net_type)
+            self.assertTrue(net_type is not None)
             self.assertEqual("link", net_type.id)
 
     def test_elink_net_with_big_ipv6_addr(self):
         with patch.object(self.vlan, '_get_router_count_for_prefix') as rcount:
             rcount.return_value = 1
             net_type = self.vlan._guesstimate_net_type(self.repo)
-            self.assertIsNotNone(net_type)
+            self.assertTrue(net_type is not None)
             self.assertEqual("elink", net_type.id)
