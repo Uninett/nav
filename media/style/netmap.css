@@ -354,6 +354,13 @@ circle.grouped_by_room {
     fill: transparent;
 }
 
+#node_info_vlan {
+    list-style-type: none;
+}
+#node_info_vlan li {
+    margin-left: 0;
+    padding-left: 0;
+}
 circle.grouped_by_vlan {
     stroke: orange;
     fill: transparent;

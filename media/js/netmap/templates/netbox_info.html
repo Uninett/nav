@@ -21,7 +21,7 @@
         <dd>
             <ul id="node_info_vlan">
             {{#each node.data.vlans}}
-                <li><a class="vlan" data-nav-vlan="{{this.nav_vlan}}">{{this.vlan}}</a></li>
+                <li><a class="vlan" data-nav-vlan="{{this.nav_vlan}}">{{this.vlan}} ({{this.net_ident}})</a></li>
             {{/each}}
             </ul>
 
