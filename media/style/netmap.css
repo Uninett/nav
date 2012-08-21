@@ -354,6 +354,17 @@ circle.grouped_by_room {
     fill: transparent;
 }
 
+circle.grouped_by_vlan {
+    stroke: orange;
+    fill: transparent;
+}
+line.grouped_by_vlan {
+    stroke: orange;
+    stroke-width: 12px;
+    stroke-opacity: 0.5;
+    stroke-dasharray: 0, 10 10;
+}
+
 .node.fade {
     stroke-opacity: 0.1;
 }

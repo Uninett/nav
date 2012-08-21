@@ -9,8 +9,11 @@ define([
 ], function ($, _, Backbone, Handlebars, NetmapHelpers, netmapTemplate) {
 
     var NetboxInfoView = Backbone.View.extend({
+        broker: Backbone.EventBroker,
+        events: {
+            "click .vlan": "showVlan"
+        },
         initialize: function () {
-
             this.template = Handlebars.compile(netmapTemplate);
             Handlebars.registerHelper('toLowerCase', function (value) {
                 return (value && typeof value === 'string') ? value.toLowerCase() : '';
@@ -26,7 +29,11 @@ define([
             this.$el.html(out);
             return this;
         },
-        close:function () {
+        showVlan: function (e) {
+            e.stopPropagation();
+            this.broker.trigger('map:show_vlan', $(e.currentTarget).data().navVlan);
+        },
+        close: function () {
             $(this.el).unbind();
             $(this.el).remove();
         }

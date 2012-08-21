@@ -40,7 +40,7 @@ def node_to_json(node, nx_metadata=None):
             position = {'x': metadata.position.x, 'y': metadata.position.y}
         if metadata.has_key('vlans'):
             # nav_vlan_id == swpv.vlan.id
-            vlans = [{'vlan': swpv.vlan.vlan, 'nav-vlan': nav_vlan_id} for nav_vlan_id, swpv in metadata['vlans']]
+            vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': nav_vlan_id} for nav_vlan_id, swpv in metadata['vlans']]
 
     if isinstance(node, Netbox):
         return {
@@ -83,7 +83,7 @@ def edge_to_json(metadata):
         if uplink['thiss']['interface']:
             vlans = None
             if uplink['thiss'].has_key('vlans') and uplink['thiss']['vlans']:
-                vlans = [{'vlan': swpv.vlan.vlan, 'nav-vlan': swpv.vlan.id} for swpv in uplink['thiss']['vlans']]
+                vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id} for swpv in uplink['thiss']['vlans']]
 
             uplink_json.update(
                     {'thiss': {'interface': "{0} at {1}".format(

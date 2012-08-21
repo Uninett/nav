@@ -20,7 +20,8 @@ define([
             'map:redraw': 'redraw',
             'map:search': 'search',
             'map:centerGraph': 'centerGraph',
-            'map:freezeNodes': 'freezeNodes'
+            'map:freezeNodes': 'freezeNodes',
+            'map:show_vlan': 'showVlan'
         },
         initialize: function () {
             this.broker.register(this);
@@ -32,6 +33,7 @@ define([
             this.model.bind("destroy", this.close, this);
 
             this.selected_node = null;
+            this.selected_vlan = null;
             this.context_selected_map = this.options.context_selected_map;
             this.sidebar = this.options.view_netbox_info;
 
@@ -102,6 +104,10 @@ define([
             this.zoom.translate(this.trans);
             this.svg.attr("transform",
                 "translate(" + this.trans + ") scale(" + this.scale + ")");
+        },
+        showVlan: function (nav_vlan_id) {
+            this.selected_vlan = nav_vlan_id;
+            this.redraw();
         },
         centerGraph: function () {
             this.scale = 1/Math.log(this.modelJson.nodes.length);
@@ -370,6 +376,67 @@ define([
                 /*node.selectAll("circle").append("title").text(function (d) {
                  return d.name;
                  });*/
+
+                var markVlan = function (selected_vlan) {
+                    if (!selected_vlan) {
+                        self.nodesInVlan.remove();
+                        self.linksInVlan.remove();
+                    }
+                    var markVlanNodes = self.modelJson.nodes.filter(function (d) {
+                        if (d.data.vlans !== undefined && d.data.vlans) {
+                            for (var i = 0; i < d.data.vlans.length; i++) {
+                                var vlan = d.data.vlans[i];
+                                if (vlan.nav_vlan === selected_vlan) {
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    });
+
+                    var markVlanLinks = self.modelJson.links.filter(function (d) {
+                        if (d.data.uplink.thiss.vlans !== undefined && d.data.uplink.thiss.vlans) {
+                            for (var i = 0; i < d.data.uplink.thiss.vlans.length; i++) {
+                                var vlan = d.data.uplink.thiss.vlans[i];
+                                if (vlan.nav_vlan === selected_vlan) {
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    });
+
+                    self.nodesInVlan = svg.selectAll("g circle").data(markVlanNodes, function (d) {
+                        return d.data.sysname;
+                    });
+
+                    self.linksInVlan = svg.selectAll("g links").data(markVlanLinks, function (d) {
+                       return d.source.id + "-" + d.target.id;
+                    });
+
+                    self.nodesInVlan.enter()
+                        .append("svg:circle")
+                        .attr("class", "grouped_by_vlan")
+                        .attr("cx", function (d) {
+                            return d.px;
+                        })
+                        .attr("cy", function (d) {
+                            return d.py;
+                        })
+                        .attr("r", 38);
+                    self.linksInVlan.enter()
+                        .append("svg:line")
+                        .attr("class", "grouped_by_vlan");
+
+                    self.nodesInVlan.exit().remove();
+                };
+
+                if (self.selected_vlan !== undefined && self.selected_vlan) {
+                    markVlan(self.selected_vlan);
+                }
+
+
+
                 var groupByRoom = function () {
                     var groupByRoomId = self.modelJson.nodes.filter(function (d) {
                         return d.data.roomid === self.selected_node.data.roomid
@@ -411,6 +478,17 @@ define([
                         self.nodesInRoom
                             .attr("cx", function (d) { return d.px;})
                             .attr("cy", function (d) { return d.py;});
+                    }
+
+                    if (self.selected_vlan) {
+                        self.nodesInVlan
+                            .attr("cx", function (d) { return d.px;})
+                            .attr("cy", function (d) { return d.py;});
+                        self.linksInVlan
+                            .attr("x1", function (d) { return d.source.x;})
+                            .attr("y1", function (d) { return d.source.y;})
+                            .attr("x2", function (d) { return d.target.x;})
+                            .attr("y2", function (d) { return d.target.y;});
                     }
 
                     link
@@ -560,6 +638,23 @@ define([
 
                     if (self.groupby_room) {
                         groupByRoom();
+                    }
+
+                    if (self.selected_vlan) {
+                        var foundVlan = false;
+                        if (node.data.vlans !== undefined && node.data.vlans) {
+                            for (var i = 0; i < node.data.vlans.length; i++) {
+                                var vlan = node.data.vlans[i];
+                                if (self.selected_vlan === vlan.nav_vlan) {
+                                    foundVlan = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!foundVlan) {
+                            self.selected_vlan = null;
+                            markVlan(self.selected_vlan);
+                        }
                     }
 
                     //self.sidebar.html(netbox_info.render().el);

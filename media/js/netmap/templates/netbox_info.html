@@ -19,9 +19,9 @@
         <dd>{{node.data.room}}</dd>
         <dt>Vlans</dt>
         <dd>
-            <ul>
+            <ul id="node_info_vlan">
             {{#each node.data.vlans}}
-                <li><a href="?vlan={{this.nav-vlan}}">{{this.vlan}}</a></li>
+                <li><a class="vlan" data-nav-vlan="{{this.nav_vlan}}">{{this.vlan}}</a></li>
             {{/each}}
             </ul>
 
