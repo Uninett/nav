@@ -37,7 +37,7 @@ def node_to_json(node, nx_metadata=None):
 
     if metadata:
         if metadata.has_key('position'):
-            position = {'x': metadata.position.x, 'y': metadata.position.y}
+            position = {'x': metadata['position'].x, 'y': metadata['position'].y}
         if metadata.has_key('vlans'):
             # nav_vlan_id == swpv.vlan.id
             vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': nav_vlan_id, 'net_ident': swpv.vlan.net_ident} for nav_vlan_id, swpv in metadata['vlans']]
