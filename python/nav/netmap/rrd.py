@@ -123,13 +123,14 @@ def attach_rrd_data_to_edges(graph, json=None, debug=False):
                 traffic['outOctets'] = traffic['ifHCOutOctets']
 
 
+        unknown_speed_css = (211,211,211) # light grey
 
         traffic['inOctets_css'] = get_traffic_rgb(traffic['inOctets']['raw'],
             metadata['link_speed']) if traffic['inOctets'] and\
-                                       traffic['inOctets']['raw'] else 'N/A'
+                                       traffic['inOctets']['raw'] else unknown_speed_css
         traffic['outOctets_css'] = get_traffic_rgb(traffic['outOctets']['raw'],
             metadata['link_speed']) if traffic['outOctets'] and\
-                                       traffic['inOctets']['raw'] else 'N/A'
+                                       traffic['inOctets']['raw'] else unknown_speed_css
 
 
         for json_edge in json:
