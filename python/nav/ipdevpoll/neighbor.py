@@ -37,16 +37,31 @@ from nav.ipdevpoll.log import ContextLogger
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.db import autocommit
 
+VRRP_MAC_PREFIXES = ('00:00:5e:00:01', '00:00:5e:00:02') # RFC5798
+IGNORED_MAC_PREFIXES = VRRP_MAC_PREFIXES
+
 @synchronized(threading.Lock())
 @cachedfor(timedelta(minutes=5))
 @autocommit
 def get_netbox_macs():
-    "Returns a dict of (mac, netboxid) mappings of NAV-monitored devices"
+    """Returns a dict of (mac, netboxid) mappings of NAV-monitored devices.
+
+    Special MAC address will be ignored, such as those reserved by VRRP.
+
+    """
     from django.db import connection
     cursor = connection.cursor()
     cursor.execute('SELECT mac, netboxid FROM netboxmac')
-    netbox_macs = dict(cursor.fetchall())
+    netbox_macs = dict((mac, netboxid) for (mac, netboxid) in cursor.fetchall()
+                       if not _mac_is_ignored(mac))
     return netbox_macs
+
+def _mac_is_ignored(mac):
+    for ignored in IGNORED_MAC_PREFIXES:
+        if mac.lower().startswith(ignored.lower()):
+            return True
+    return False
+
 
 INVALID_IPS = ('None', '0.0.0.0',)
 
