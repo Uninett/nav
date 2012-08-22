@@ -31,6 +31,7 @@ from shutil import copyfile
 from networkx.utils import _get_fh
 import networkx as nx
 from nav.topology.d3_js.d3_js_files import *
+from nav.web.netmapdev.common import node_to_json
 import json
 import re
 
@@ -118,10 +119,10 @@ def d3_json(G, group=None):
 	
 	# Build up node dictionary in JSON format
 	if group is None:
-		graph_json = {'nodes': map(lambda n: {'name': str(node_labels[n][1]), 'group' : 0}, xrange(len(node_labels)))}
+		graph_json = {'nodes': map(lambda n: {'name': str(node_labels[n][1]), 'group' : 0, 'data': node_to_json(node_labels[n][1])}, xrange(len(node_labels)))}
 	else:
 		try:
-			graph_json = {'nodes' : map(lambda n: {'name': str(node_labels[n][1]), 'group' : graph_nodes[n][1][group]}, xrange(len(node_labels)))}
+			graph_json = {'nodes' : map(lambda n: {'name': str(node_labels[n][1]), 'group' : graph_nodes[n][1][group], 'data': node_to_json(node_labels[n][1])}, xrange(len(node_labels)))}
 		except KeyError:
 			raise nx.NetworkXError("The graph had no node attribute for '"+group+"'")
 		

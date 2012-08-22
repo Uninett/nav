@@ -19,17 +19,12 @@ import psycopg2.extras
 
 from django.template import RequestContext
 from django.http import HttpResponse
-from django.http import HttpResponseForbidden
-from django.http import HttpResponseRedirect
-from django.http import Http404
-from django.core.urlresolvers import reverse
-from django.core.serializers import serialize
 from django.utils import simplejson
 
 from nav.django.shortcuts import render_to_response
 
 from nav.topology import vlan
-from nav.topology.d3_js import *
+from nav.topology.d3_js import d3_json
 
 from nav.web.netmapdev.common import layer2_graph
 from nav.web.templates.Netmapdev import Netmapdev
@@ -69,6 +64,15 @@ def graph_layer2_view2(request):
         path=[('Home', '/'),
             ('Netmapdev', None)])
 
+def graph_layer2_view3(request):
+    return render_to_response(Netmapdev,
+        'netmapdev/force_direct_2.html',
+            {'data': 'd3js/layer2',
+             },
+        RequestContext(request),
+        path=[('Home', '/'),
+            ('Netmapdev', None)])
+
 
 # data views, graphml
 
@@ -99,5 +103,8 @@ def d3js_layer2(request):
     Layer2 network topology representation in d3js force-direct graph layout
     http://mbostock.github.com/d3/ex/force.html
     """
-    return HttpResponse(simplejson.dumps(d3_js.d3_json(vlan.build_layer2_graph())))
+    return HttpResponse(simplejson.dumps(json_layer2()))
 
+def json_layer2():
+    graph = vlan.build_layer2_graph()
+    return d3_json(graph, None)

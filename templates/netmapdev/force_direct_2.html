@@ -94,33 +94,10 @@
         stroke-width: 4px;
     }
 
-    #tooltip.pretty {
-        font-family: Arial;
-        border: none;
-        width: 210px;
-        padding:20px;
-        height: 135px;
-        opacity: 0.8;
-        background: url('/images/shadow.png');
-    }
-    #tooltip.pretty h3 {
-        margin-bottom: 0.75em;
-        font-size: 12pt;
-        width: 220px;
-        text-align: center;
-    }
-    #tooltip.pretty div { width: 220px; text-align: left; }
-
-    #tooltip.fancy {
-        background: url('/images/shadow2.png');
-        padding-top: 5em;
-        height: 100px;
-    }
-
-    /*
-     http://bl.ocks.org/2514276
-     https://groups.google.com/group/d3-js/browse_thread/thread/29ddd76c646f5921/de483e446abf4d39?lnk=gst&q=zoom#de483e446abf4d39
-     */
+        /*
+        http://bl.ocks.org/2514276
+        https://groups.google.com/group/d3-js/browse_thread/thread/29ddd76c646f5921/de483e446abf4d39?lnk=gst&q=zoom#de483e446abf4d39
+        */
 
 
     div#pop-up {
@@ -190,7 +167,7 @@
             </ul>
         </div>
         <div class="span8">
-            <h2>force_direct.html</h2>
+            <h2>force_direct____2!!__</h2>
             <div id="chart">
                 <div id="pop-up">
                     <div id="pop-up-title"></div>
@@ -222,20 +199,20 @@ $(function () {
             scale=1;
 
     var svg = d3.select("#chart")
-            .append("svg:svg")
-            .attr("width", w)
-            .attr("height", h)
-            .attr("pointer-events", "all")
-            .append('svg:g')
-            .call(d3.behavior.zoom().on("zoom", redraw))
-            .append('svg:g')
-    ;
+                    .append("svg:svg")
+                    .attr("width", w)
+                    .attr("height", h)
+                    .attr("pointer-events", "all")
+                    .append('svg:g')
+                    .call(d3.behavior.zoom().on("zoom", redraw))
+                    .append('svg:g')
+            ;
     svg
             .append('svg:rect')
             .attr('width', w)
             .attr('height', h)
             .attr('fill', 'white');
-            ;
+    ;
 
 
     function redraw() {
@@ -248,13 +225,38 @@ $(function () {
                         + " scale(" + scale + ")");
     }
 
+    var labelDistance = 5;
+
     var draw = function(json) {
-        var force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([w, h])
-                    .nodes(json.nodes).links(json.links).on("tick", tick).start();
 
-        var link = svg.selectAll("line").data(json.links).enter().append("svg:line");
 
-        var node_s = svg.selectAll("g circle").data(json.nodes);
+
+        labelAnchors = [];
+        json.nodes.forEach(function (node) {
+            labelAnchors.push({ node: node });
+            labelAnchors.push({ node: node });
+        });
+
+        var labelAnchorLinks = [];
+        for(var i = 0; i < json.nodes.length; i++) {
+            labelAnchorLinks.push({
+                source : i * 2,
+                target : i * 2 + 1,
+                weight: 1
+            });
+        };
+
+
+
+        console.log(labelAnchorLinks);
+
+        var force = d3.layout.force().gravity(0.3).charge(-3000).linkDistance(250).size([w, h]).linkStrength(function(x) {
+            return Math.random() * 10
+        }).nodes(json.nodes).links(json.links).on("tick", tick).start();
+
+        var link = svg.selectAll("line.link").data(json.links).enter().append("svg:line").attr("class", "link").style("stroke", "#AAA");
+
+        var node_s = svg.selectAll("g.node").data(json.nodes);
 
         /*node_s.enter().append("svg:g")
          .append("svg:circle")
@@ -268,6 +270,7 @@ $(function () {
          })
          ;*/
         node_s.enter().append("svg:g")
+                .attr("class", "node")
                 .append("svg:image")
                 .attr("class", "circle node")
                 .attr("xlink:href", function (d) {
@@ -278,51 +281,113 @@ $(function () {
                 .attr("width", "32px")
                 .attr("height", "32px");
 
-        node_s.enter().forEach(function (d) {
-            node_s.append("svg:text")
-                    .attr("dy", "1.5em")
-                    .attr("class", "node")
-                    .attr("text-anchor", "middle")
-                    .attr("fill", "#000000")
-                    .attr("background", "#c0c0c0")
-                    .text(function (d) {
-                        return d.name
-                    })
-        });
-        var node = svg.selectAll("g");
-        node
-                .call(force.drag)
-                .on("mouseover", function(d) { return node_mouseOver(d) })
-                .on("mouseout", function(d) { return node_mouseOut(d) })
-                .on("click", node_onClick)
-        ;
-        /*node.selectAll("circle").append("title").text(function (d) {
-            return d.name;
-        });*/
+        /*node_s.enter().forEach(function (d) {
+         node_s.append("svg:text")
+         .attr("dy", "1.2em")
+         .attr("class", "node")
+         .attr("text-anchor", "middle")
+         .attr("fill", "#000000")
+         .attr("background", "#c0c0c0")
+         .text(function (d) {
+         return d.name
+         })
+         });*/
+
+        // Anchors:
+        // gravity to 1, graph looks odd but labels placement 100% correct.
+        var force2 = d3.layout.force().nodes(labelAnchors).links(labelAnchorLinks).gravity(0.3).linkDistance(labelDistance).linkStrength(5).charge(-2500).size([w, h]);
+        force2.start();
+
+        var anchorLink = svg.selectAll("line.anchorLink").data(labelAnchorLinks).enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999").style("stroke-dasharray", "2,2");
+
+        var anchorNode = svg.selectAll("g.anchorNode").data(force2.nodes()).enter().append("svg:g").attr("class", "anchorNode");
+        anchorNode.append("svg:circle").attr("r", 1).style("fill", "#FFF");
+
+        anchorNode.append("svg:text").text(function(d, i) {
+            return i % 2 == 0 ? "" : d.node.name
+        }).style("fill", "#000")
+            //.attr("dy", "1.2em")
+                .attr("class", "node")
+            //.attr("text-anchor", "middle")
+                .attr("fill", "#000000")
+                .attr("background", "#c0c0c0");
 
 
 
 
 
+
+
+        var node = svg.selectAll("g.node");
+        console.log("noder:");
+        console.log(node);
+        node.call(force.drag)
+                .on("mouseover", function(d) { return node_mouseOver(d); })
+                .on("mouseout", function(d) { return node_mouseOut(d); })
+                .on("click", node_onClick);
+
+
+
+
+        var updateNode = function() {
+            this.attr("transform", function(d) {
+                return "translate(" + d.x + "," + d.y + ")";
+            });
+        }
+
+        var updateLink = function() {
+            this.attr("x1", function(d) { return d.source.x; })
+                    .attr("y1", function(d) { return d.source.y; })
+                    .attr("x2", function(d) { return d.target.x; })
+                    .attr("y2", function(d) { return d.target.y; });
+        }
 
         function tick() {
 
-            //console.log(node);
-            node.attr("transform", function (d) {
-                return "translate(" + d.x + "," + d.y + ")";
+            force2.start();
+
+            node.call(updateNode);
+
+            anchorNode.each(function(d, i) {
+                if(i % 2 == 0) {
+                    d.x = d.node.x;
+                    d.y = d.node.y;
+                } else {
+                    var b = this.childNodes[1].getBBox();
+
+                    var diffX = d.x - d.node.x;
+                    var diffY = d.y - d.node.y;
+
+                    var dist = Math.sqrt(diffX * diffX + diffY * diffY);
+
+                    var shiftX = b.width * (diffX - dist) / (dist * 2);
+                    shiftX = Math.max(-b.width, Math.min(0, shiftX));
+                    var shiftY = 0;
+                    this.childNodes[1].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
+                }
             });
+
+
+            anchorNode.call(updateNode);
+
+            link.call(updateLink);
+            anchorLink.call(updateLink);
+
+            //console.log(node);
+            /*node.attr("transform", function (d) {
+             return "translate(" + d.x + "," + d.y + ")";
+             });*/
 
             /*text.attr("transform", function (d) {
              return "translate(" + d.x + "," + d.y + ")";
              });*/
 
-            link
-                    .attr("x1",function (d) { return d.source.x;})
-                    .attr("y1",function (d) { return d.source.y;})
-                    .attr("x2",function (d) { return d.target.x;})
-                    .attr("y2", function (d) { return d.target.y;}
-            );
-
+            /*link
+             .attr("x1",function (d) { return d.source.x;})
+             .attr("y1",function (d) { return d.source.y;})
+             .attr("x2",function (d) { return d.target.x;})
+             .attr("y2", function (d) { return d.target.y;}
+             );*/
 
         }
 
@@ -337,17 +402,21 @@ $(function () {
 
 
         function node_mouseOver(d) {
+            console.log("mouseOver: ");
+            console.log(d);
+            //fade(d, 0.1);
             mover(d);
-            fade(d, 0.1);
         }
 
         function node_mouseOut(d) {
+            console.log("mouseOut: ");
+            console.log(d);
             mout(d);
-            fade(d, 1);
+            //fade(d, 1);
         }
 
         function fade(d, opacity) {
-                node.style("stroke-opacity", function (o) {
+            node.style("stroke-opacity", function (o) {
                     thisOpacity = isConnected(d, o) ? 1 : opacity;
                     this.setAttribute('fill-opacity', thisOpacity);
                     this.setAttribute('opacity', thisOpacity);
@@ -373,7 +442,6 @@ $(function () {
                 link.style("stroke-opacity", function (o) {
                     return o.source === d || o.target === d ? 1 : opacity;
                 });
-
         }
 
         function mover(d) {
@@ -388,8 +456,9 @@ $(function () {
                 console.log(scale);
                 console.log(trans);
 
-                var popLeft = (d.x*scale)+trans[0]-10;//lE.cL[0] + 20;
-                var popTop = (d.y*scale)+trans[1]+70;//lE.cL[1] + 70;
+                var popLeft = (d.x*scale)+trans[0]+20;//lE.cL[0] + 20;
+                var popTop = (d.y*scale)+trans[1]+100;//lE.cL[1] + 70;
+                //console.log("popLeft: "+popLeft+ ", popTop: "+popTop);
                 $("#pop-up").css({"left":popLeft,"top":popTop});
                 $("#pop-up").fadeIn(100);
             });
@@ -426,9 +495,9 @@ $(function () {
         }
 
         /*svg.style("opacity", 1e-6)
-                .transition()
-                .duration(1000)
-                .style("opacity", 1);*/
+         .transition()
+         .duration(1000)
+         .style("opacity", 1);*/
 
     }
 
