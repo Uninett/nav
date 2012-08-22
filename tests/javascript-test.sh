@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 if [ ! -n "$1" ]; then
     echo "Need path to workspace"
     exit 1
@@ -45,7 +45,8 @@ fi
 
 echo "Starting Xvfb"
 XVFB_TRIES=0
-until [ ${XVFB_STARTED} ] || (( ${XVFB_TRIES} > 10 )) ; do
+XVFB_STARTED=0
+until [ ${XVFB_STARTED} -eq 1 ] || (( ${XVFB_TRIES} > 10 )) ; do
     # Find random display number for Xvfb
     DISPLAYNUM=$((RANDOM%10+90))
     ${XVFB} :${DISPLAYNUM} > /dev/null 2>/dev/null &
@@ -66,7 +67,8 @@ fi
 
 echo "Starting buster-server"
 BUSTER_TRIES=0
-until [ ${BUSTER_STARTED} ] || (( ${BUSTER_TRIES} > 10 )) ; do
+BUSTER_STARTED=0
+until [ ${BUSTER_STARTED} -eq 1 ] || (( ${BUSTER_TRIES} > 10 )) ; do
     # Find random port for buster-server
     BUSTERPORT=$((RANDOM%100+1200))
     ${BUSTERSERVER} -l error -p ${BUSTERPORT} &
