@@ -18,7 +18,7 @@ import networkx as nx
 import operator
 from nav.models.manage import SwPortVlan, NetType
 from nav.netmap import stubs
-from nav.netmap.metadata import edge_metadata_layer3, edge_metadata
+from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2
 from nav.topology import vlan
 
 
@@ -65,7 +65,7 @@ def build_netmap_layer2_graph(view=None):
     # Make a copy of the graph, and add edge meta data
     for n, nbrdict, key in topology_without_metadata.edges_iter(keys=True):
         graph.add_edge(n, nbrdict, key=key,
-            metadata=edge_metadata(key.netbox, key, nbrdict, key.to_interface, vlan_by_interface))
+            metadata=edge_metadata_layer2(key.netbox, key, nbrdict, key.to_interface, vlan_by_interface))
 
     _LOGGER.debug("build_netmap_layer2_graph() graph copy with metadata done")
 

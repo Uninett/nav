@@ -136,11 +136,32 @@ def edge_metadata_layer3(thiss_netbox, thiss_interface, other_netbox, other_inte
         other_interface = other_interface.interface
 
 
-    return edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface, None)
+    return edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface)
 
 
 
-def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface, vlans_by_interface):
+def edge_metadata_layer2(thiss_netbox, thiss_interface, other_netbox, other_interface, vlans_by_interface):
+    """
+    Adds edge meta data with python types for given edge (layer2)
+
+    :param thiss_netbox This netbox (edge from)
+    :param thiss_interface This netbox's interface (edge from)
+    :param other_netbox Other netbox (edge_to)
+    :param other_interface Other netbox's interface (edge_to)
+    """
+
+    metadata = edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface)
+
+    vlans = None
+    if vlans_by_interface and vlans_by_interface.has_key(thiss_interface):
+        vlans = sorted(vlans_by_interface.get(thiss_interface), key=lambda x:x.vlan.vlan)
+
+    metadata['uplink']['thiss'].update({'vlans': vlans})
+
+    return metadata
+
+
+def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface):
     """
     Adds edge meta data with python types for given edge (layer2)
 
@@ -151,22 +172,12 @@ def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface, 
     """
     error = {}
     tip_inspect_link = False
-    #vlans = thiss_interface.get_vlan_numbers()
-    vlans = None
 
-    if vlans_by_interface and vlans_by_interface.has_key(thiss_interface):
-        vlans = sorted(vlans_by_interface.get(thiss_interface), key=lambda x:x.vlan.vlan)
-
-    #vlans = thiss_interface.swportvlan_set.all()
-    #asdasd
-    #vlans = "foo"
-
-    #vlans = thiss_interface.get_vlan_numbers()
-    uplink = {'thiss': {'netbox': thiss_netbox, 'interface': thiss_interface, 'vlans': vlans},
+    uplink = {'thiss': {'netbox': thiss_netbox, 'interface': thiss_interface},
               'other': {'netbox': other_netbox,
                         'interface': other_interface}}
 
-    if thiss_interface and other_interface and thiss_interface.speed != \
+    if thiss_interface and other_interface and thiss_interface.speed !=\
                                                other_interface.speed:
         tip_inspect_link = True
         link_speed = None
@@ -180,8 +191,8 @@ def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface, 
 
 
     return {
-            'uplink': uplink,
-            'tip_inspect_link': tip_inspect_link,
-            'link_speed': link_speed,
-            'error': error,
-    }
+        'uplink': uplink,
+        'tip_inspect_link': tip_inspect_link,
+        'link_speed': link_speed,
+        'error': error,
+        }
