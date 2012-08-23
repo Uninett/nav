@@ -23,7 +23,25 @@ from nav.web.netmapdev.common import get_status_image_link
 _LOGGER = logging.getLogger(__name__)
 
 
-def node_to_json(node, nx_metadata=None):
+def node_to_json_layer2(node, nx_metadata=None):
+    json = _node_to_json(node, nx_metadata)
+
+    vlans = None
+    metadata = nx_metadata['metadata'] if nx_metadata and nx_metadata.has_key('metadata') else None
+    if metadata.has_key('vlans'):
+        # nav_vlan_id == swpv.vlan.id
+        vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': nav_vlan_id, 'net_ident': swpv.vlan.net_ident} for nav_vlan_id, swpv in metadata['vlans']]
+
+    json.update({'vlans': vlans})
+
+    return json
+
+def node_to_json_layer3(node, nx_metadata=None):
+    json = _node_to_json(node, nx_metadata)
+    return json
+
+
+def _node_to_json(node, nx_metadata=None):
     """Filter our metadata for a node in JSON-format
 
     Used for showing metadata in NetMap with D3
@@ -32,15 +50,11 @@ def node_to_json(node, nx_metadata=None):
     :returns: metadata for a node
     """
     position = None
-    vlans = None
     metadata = nx_metadata['metadata'] if nx_metadata and nx_metadata.has_key('metadata') else None
 
     if metadata:
         if metadata.has_key('position'):
             position = {'x': metadata['position'].x, 'y': metadata['position'].y}
-        if metadata.has_key('vlans'):
-            # nav_vlan_id == swpv.vlan.id
-            vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': nav_vlan_id, 'net_ident': swpv.vlan.net_ident} for nav_vlan_id, swpv in metadata['vlans']]
 
     if isinstance(node, Netbox):
         return {
@@ -61,10 +75,15 @@ def node_to_json(node, nx_metadata=None):
             'up_image': get_status_image_link(node.up),
             'roomid': node.room.id,
             'is_elink_node': False,
-            'vlans' : vlans
             #'roomid': 'fooo',
         }
 
+
+def edge_to_json_layer2(metadata):
+    return edge_to_json(metadata)
+
+def edge_to_json_layer3(metadata):
+    return edge_to_json(metadata)
 
 def edge_to_json(metadata):
     """converts edge information to json"""
@@ -85,12 +104,16 @@ def edge_to_json(metadata):
             if uplink['thiss'].has_key('vlans') and uplink['thiss']['vlans']:
                 vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id, 'net_ident': swpv.vlan.net_ident} for swpv in uplink['thiss']['vlans']]
 
+            prefix = None
+            if uplink.has_key('prefix') and uplink['prefix']:
+                prefix = str(uplink['prefix'])
+
             uplink_json.update(
                     {'thiss': {'interface': "{0} at {1}".format(
                     str(uplink['thiss']['interface'].ifname),
                     str(uplink['thiss']['interface'].netbox.sysname)
                 ), 'netbox': uplink['thiss']['netbox'].sysname,
-                               'vlans': vlans}}
+                               'vlans': vlans}, 'prefix': prefix}
             )
         else:
             uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
@@ -130,13 +153,24 @@ def edge_metadata_layer3(thiss_netbox, thiss_interface, other_netbox, other_inte
     :param other_interface Other netbox's interface (edge_to)
     """
 
+    net_ident = thiss_interface.prefix
+
+    this_gwprefix_meta = { 'gw_ip': thiss_interface.gw_ip, 'hsrp': thiss_interface.hsrp }
+    other_gwprefix_meta = { 'gw_ip': thiss_interface.gw_ip, 'hsrp': thiss_interface.hsrp }
+
     if type(thiss_interface)==GwPortPrefix:
         thiss_interface = thiss_interface.interface
     if type(other_interface)==GwPortPrefix:
         other_interface = other_interface.interface
 
 
-    return edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface)
+    metadata = edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface)
+
+    metadata['uplink']['thiss'].update(this_gwprefix_meta)
+    metadata['uplink']['other'].update(other_gwprefix_meta)
+    metadata['uplink'].update({'prefix': net_ident})
+
+    return metadata
 
 
 

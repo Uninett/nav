@@ -35,7 +35,7 @@ from shutil import copyfile
 from networkx.utils import _get_fh
 import networkx as nx
 from nav.topology.d3_js.d3_js_files import *
-from nav.netmap.metadata import edge_to_json, node_to_json
+from nav.netmap.metadata import node_to_json_layer2, node_to_json_layer3, edge_to_json_layer2, edge_to_json_layer3
 from nav.netmap.rrd import attach_rrd_data_to_edges
 import json
 import re
@@ -97,7 +97,13 @@ def write_d3_js(G, path, group=None, encoding="utf-8"):
     fh.write(graph_dump.encode(encoding))
 
 
-def d3_json(G, group=None):
+def d3_json_layer2(G, group=None):
+    return d3_json(G, node_to_json_layer2, edge_to_json_layer2, group)
+
+def d3_json_layer3(G, group=None):
+    return d3_json(G, node_to_json_layer3, edge_to_json_layer3, group)
+
+def d3_json(G, node_to_json_function, edge_to_json_function, group=None):
     """Converts a NetworkX Graph to a properly D3.js JSON formatted dictionary
 
      Parameters
@@ -135,7 +141,7 @@ def d3_json(G, group=None):
     if group is None:
         graph_json = {'nodes': map(
             lambda n: {'name': str(node_labels[n][1]), 'group': 0,
-                       'data': node_to_json(node_labels[n][1],
+                       'data': node_to_json_function(node_labels[n][1],
                            graph_nodes[n][1])},
             xrange(len(node_labels)))}
     else:
@@ -143,7 +149,7 @@ def d3_json(G, group=None):
             graph_json = {'nodes': map(
                 lambda n: {'name': str(node_labels[n][1]),
                            'group': graph_nodes[n][1][group],
-                           'data': node_to_json(node_labels[n][1],
+                           'data': node_to_json_function(node_labels[n][1],
                                graph_nodes[n][1]['metadata'] if 'metadata' in
                                                                 graph_nodes[n][
                                                                 1] else None)},
@@ -157,7 +163,7 @@ def d3_json(G, group=None):
     json_edges = list()
     for j, k, w in ints_graph.edges_iter(data=True):
         e = {'source': node_labels[j][1].sysname, 'target': node_labels[k][1].sysname,
-             'data': edge_to_json(w['metadata']) if 'metadata' in w else { 'traffic': {}}}
+             'data': edge_to_json_function(w['metadata']) if 'metadata' in w else { 'traffic': {}}}
         if any(map(lambda k: k == 'weight', w.keys())):
             e['value'] = w['weight']
         else:

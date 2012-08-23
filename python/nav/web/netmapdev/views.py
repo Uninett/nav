@@ -36,7 +36,7 @@ from nav.models.profiles import NetmapView, NetmapViewNodePosition, \
     NetmapViewCategories
 from nav.netmap.topology import build_netmap_layer3_graph, \
     build_netmap_layer2_graph
-from nav.topology.d3_js.d3_js import d3_json
+from nav.topology.d3_js.d3_js import d3_json_layer2, d3_json_layer3
 from nav.web.netmapdev.common import traffic_gradient_map, layer2_graph
 from nav.web.templates import Netmapdev
 
@@ -265,11 +265,11 @@ def d3js_layer2(request, map_id=None):
 
 def _json_layer2(view=None):
     graph = nx.Graph(build_netmap_layer2_graph(view))
-    return d3_json(graph, None)
+    return d3_json_layer2(graph, None)
 
 def _json_layer3(view=None):
     graph = nx.Graph(build_netmap_layer3_graph(view))
-    return d3_json(graph, None)
+    return d3_json_layer3(graph, None)
 
 def traffic_load_gradient(request):
     response = HttpResponse(simplejson.dumps(traffic_gradient_map()))
