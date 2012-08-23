@@ -134,6 +134,7 @@ define([
 
             if (self.view_netbox_info !== undefined) {
                 self.view_netbox_info.close();
+                $('#netmap_infopanel').append("<div id='nodeinfo'></div>"); // recreate nodeinfo placeholder
             }
             self.view_netbox_info = new NetboxInfoView({el: $('#nodeinfo')});
 
