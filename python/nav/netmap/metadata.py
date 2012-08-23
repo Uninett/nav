@@ -80,7 +80,18 @@ def _node_to_json(node, nx_metadata=None):
 
 
 def edge_to_json_layer2(metadata):
-    return edge_to_json(metadata)
+    json = edge_to_json(metadata)
+
+    if type(json['uplink']) == dict:
+        # Add vlan meta data for layer2
+        uplink = json['uplink']
+        vlans = None
+        if uplink['thiss'].has_key('vlans') and uplink['thiss']['vlans']:
+            vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id, 'net_ident': swpv.vlan.net_ident} for swpv in uplink['thiss']['vlans']]
+            uplink['thiss']['vlans'] = vlans
+
+    return json
+
 
 def edge_to_json_layer3(metadata):
     return edge_to_json(metadata)
@@ -100,10 +111,6 @@ def edge_to_json(metadata):
         uplink_json = {}
 
         if uplink['thiss']['interface']:
-            vlans = None
-            if uplink['thiss'].has_key('vlans') and uplink['thiss']['vlans']:
-                vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id, 'net_ident': swpv.vlan.net_ident} for swpv in uplink['thiss']['vlans']]
-
             prefix = None
             if uplink.has_key('prefix') and uplink['prefix']:
                 prefix = str(uplink['prefix'])
@@ -113,7 +120,7 @@ def edge_to_json(metadata):
                     str(uplink['thiss']['interface'].ifname),
                     str(uplink['thiss']['interface'].netbox.sysname)
                 ), 'netbox': uplink['thiss']['netbox'].sysname,
-                               'vlans': vlans}, 'prefix': prefix}
+                              }, 'prefix': prefix}
             )
         else:
             uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
