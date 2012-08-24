@@ -8,15 +8,30 @@ from os.path import join, isdir
 
 from nav.mcc import utils, dbutils
 from nav.models.manage import Netbox
+from nav.models.oid import NetboxSnmpOid
 
 LOGGER = logging.getLogger(__name__)
 
-CATEGORIES = {'router-interfaces': ['GW', 'GSW'],
-              'switch-ports': ['SW', 'GSW']}
+IPV6MODULE = 'ipv6-counters'
 
-INTERFACE_FILTERS = {'router-interfaces': {'gwportprefix__isnull': False},
-                     'switch-ports': {'baseport__isnull': False}}
-
+CONFIG = {
+    IPV6MODULE: {
+        'dirname': 'ipv6-interfaces',
+        'categories': ['GW', 'GSW'],
+        'filter': {'gwportprefix__isnull': False},
+        'extra': {'where': ['family(gwip)=6']}
+    },
+    'router-interfaces-counters': {
+        'dirname': 'router-interfaces',
+        'categories': ['GW', 'GSW'],
+        'filter': {'gwportprefix__isnull': False}
+    },
+    'switch-port-counters': {
+        'dirname': 'switch-ports',
+        'categories': ['SW', 'GSW'],
+        'filter': {'baseport__isnull': False}
+    }
+}
 
 def make_config(config):
     """Make interface config"""
@@ -29,19 +44,25 @@ def make_config(config):
         % config.get('mcc', 'configfile'))
         return False
 
-    dirnames = CATEGORIES.keys()
-
     results = []
-    for dirname in dirnames:
-        results.append(start_config_creation(dirname, configroot))
+    for module in CONFIG:
+        LOGGER.info("Starting module %s" % module)
+        results.append(start_config_creation(module, configroot))
 
     return all(results)
 
 
-def start_config_creation(dirname, configroot):
+def start_config_creation(module, configroot):
     """Start config creation for this config directory"""
 
+    config = CONFIG[module]
+    dirname = config['dirname']
     rrdconfigpath = join(configroot, dirname)
+
+    if not isdir(rrdconfigpath):
+        LOGGER.error("%s does not exist, please create it" % rrdconfigpath)
+        return False
+
     rrddatadir = join(utils.get_datadir(configroot), dirname)
 
     LOGGER.info("Creating config for %s in %s" % (dirname, rrdconfigpath))
@@ -52,9 +73,17 @@ def start_config_creation(dirname, configroot):
         return False
 
     configdirs = []  # The directories we have created config in
-    netboxes = Netbox.objects.filter(category__in=CATEGORIES[dirname])
+    netboxes = Netbox.objects.filter(category__in=config['categories'])
     containers = []  # containers are objects used for database storage
     for netbox in netboxes:
+        # Special handling of IPV6 module
+        if module == IPV6MODULE:
+            try:
+                netbox.netboxsnmpoid_set.get(
+                    snmp_oid__oid_key='ipIfStatsHCInOctets.ipv6')
+            except NetboxSnmpOid.DoesNotExist:
+                continue
+
         targetdir = join(rrdconfigpath, netbox.sysname)
         configdirs.append(targetdir)
 
@@ -68,7 +97,7 @@ def start_config_creation(dirname, configroot):
                 continue
 
         containers.extend(create_interface_config(
-            netbox, targetdir, dirname, datasources))
+            netbox, targetdir, module, datasources))
 
     dbutils.updatedb(rrddatadir, containers)
     utils.find_and_remove_old_config(rrdconfigpath, configdirs)
@@ -76,15 +105,18 @@ def start_config_creation(dirname, configroot):
     return True
 
 
-def create_interface_config(netbox, targetdir, dirname, datasources):
+def create_interface_config(netbox, targetdir, module, datasources):
     """Create config for this netbox and store it in targetdir
 
     returns: a list of containers
     """
     LOGGER.info("Creating config for %s" % targetdir)
 
+    config = CONFIG[module]
     interfaces = netbox.interface_set.filter(
-        **INTERFACE_FILTERS[dirname]).distinct().order_by('ifindex')
+        **config['filter']).distinct().order_by('ifindex')
+    if 'extra' in config:
+        interfaces = interfaces.extra(**config['extra'])
 
     reversecounter = interfaces.count()
     snmp_version = format_snmp_version(netbox)
@@ -95,7 +127,7 @@ def create_interface_config(netbox, targetdir, dirname, datasources):
         return []
 
     # Create default target config for this netbox
-    stringbuilder.extend(create_default_target(netbox, snmp_version))
+    stringbuilder.extend(create_default_target(netbox, snmp_version, module))
 
     containers = []
     targets = []
@@ -111,8 +143,8 @@ def create_interface_config(netbox, targetdir, dirname, datasources):
         reversecounter -= 1
         targets.append(targetname)
 
-        containers.append(create_rrd_container(datasources, interface, netbox,
-            snmp_version, targetname))
+        containers.append(create_rrd_container(datasources, interface,
+                                               targetname, module))
 
     # Make a target for all graphs, put it on top with order
     stringbuilder.extend(create_all_target(targets, interfaces.count()))
@@ -124,15 +156,18 @@ def create_interface_config(netbox, targetdir, dirname, datasources):
         return []
 
 
-def create_default_target(router, snmp_version):
-    """Create common config for this router"""
+def create_default_target(netbox, snmp_version, module):
+    """Create common config for this netbox"""
 
     strings = ["target --default--\n",
-               "\tsnmp-host\t= %s\n" % router.ip,
+               "\tsnmp-host\t= %s\n" % netbox.ip,
                "\tsnmp-version\t= %s\n" % snmp_version]
-    if snmp_version == '2c':
+
+    if module == IPV6MODULE:
+        strings.append("\ttarget-type\t= ipv6-interface\n")
+    elif snmp_version == '2c':
         strings.append("\ttarget-type\t= snmpv2-interface\n")
-    strings.append("\tsnmp-community\t= %s\n\n" % router.read_only)
+    strings.append("\tsnmp-community\t= %s\n\n" % netbox.read_only)
 
     return strings
 
@@ -166,27 +201,26 @@ def create_all_target(targets, count):
     return strings
 
 
-def format_snmp_version(router):
+def format_snmp_version(netbox):
     """Convert snmp-version from int to string"""
-    if router.snmp_version == 2:
+    if netbox.snmp_version == 2:
         return '2c'
     else:
-        return str(router.snmp_version)
+        return str(netbox.snmp_version)
 
 
-def create_rrd_container(datasources, interface, router, snmp_version,
-                         targetname):
+def create_rrd_container(datasources, interface, targetname, module):
     """Create the container used for db-storage"""
 
+    netbox = interface.netbox
     container = utils.RRDcontainer(
-        targetname + ".rrd", router.id, router.sysname, 'interface',
-        interface.id, speed=interface.speed)
-    counter = 0
-    for datasource in datasources[snmp_version]:
+        targetname + ".rrd", netbox.id, netbox.sysname, 'interface',
+        interface.id, speed=interface.speed, category=module)
+    snmp_version = format_snmp_version(netbox)
+    for index, datasource in enumerate(datasources[snmp_version]):
         container.datasources.append(
-            ('ds' + str(counter), datasource, 'DERIVE')
+            ('ds' + str(index), datasource, 'DERIVE')
         )
-        counter += 1
     return container
 
 

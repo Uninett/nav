@@ -36,6 +36,7 @@ class RrdFile(models.Model):
     key = VarcharField()
     value = VarcharField()
     interface = LegacyGenericForeignKey('key', 'value')
+    category = VarcharField()
 
     class Meta:
         db_table = 'rrd_file'

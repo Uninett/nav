@@ -423,7 +423,7 @@ class RRDcontainer:
     """
 
     def __init__(self, filename, netboxid, path="", key=None, value=None,
-                 step=300, speed=None):
+                 step=300, speed=None, category=None):
         self.filename = filename.lower()
         self.netboxid = netboxid
         self.path = path
@@ -432,3 +432,7 @@ class RRDcontainer:
         self.step = step
         self.datasources = []
         self.speed = speed
+        self.category = category
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
