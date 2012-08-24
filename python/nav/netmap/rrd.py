@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 import logging
+from nav.netmap import stubs
 from nav.rrd2 import presenter
 from nav.web.netmapdev.common import get_traffic_rgb
 
@@ -97,16 +98,17 @@ def attach_rrd_data_to_edges(graph, json=None, debug=False):
         if 'metadata' in w:
             metadata = w['metadata']
 
-            if metadata['uplink']['thiss']['interface'].pk in datasource_lookup:
-                datasources_for_interface = datasource_lookup[
-                                            metadata['uplink']['thiss'][
-                                            'interface'].pk]
-                for rrd_source in datasources_for_interface:
-                    if rrd_source.description in valid_traffic_sources and\
-                       rrd_source.description not in traffic:
-                        if debug:
-                            traffic[rrd_source.description] = rrd_info(
-                                rrd_source)
+            if not isinstance(metadata['uplink']['thiss']['netbox'], stubs.Netbox):
+                if metadata['uplink']['thiss']['interface'].pk in datasource_lookup:
+                    datasources_for_interface = datasource_lookup[
+                                                metadata['uplink']['thiss'][
+                                                'interface'].pk]
+                    for rrd_source in datasources_for_interface:
+                        if rrd_source.description in valid_traffic_sources and\
+                           rrd_source.description not in traffic:
+                            if debug:
+                                traffic[rrd_source.description] = rrd_info(
+                                    rrd_source)
 
 
             if 'ifInOctets' in traffic:
