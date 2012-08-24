@@ -37,8 +37,9 @@ from nav.ipdevpoll.log import ContextLogger
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.db import autocommit
 
+HSRP_MAC_PREFIXES = ('00:00:0c:07:ac',)
 VRRP_MAC_PREFIXES = ('00:00:5e:00:01', '00:00:5e:00:02') # RFC5798
-IGNORED_MAC_PREFIXES = VRRP_MAC_PREFIXES
+IGNORED_MAC_PREFIXES = HSRP_MAC_PREFIXES + VRRP_MAC_PREFIXES
 
 @synchronized(threading.Lock())
 @cachedfor(timedelta(minutes=5))
