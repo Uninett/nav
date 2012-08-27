@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 import logging
+from nav.models.manage import Interface
 from nav.netmap import stubs
 from nav.rrd2 import presenter
 from nav.web.netmapdev.common import get_traffic_rgb
@@ -35,10 +36,10 @@ def _get_datasource_lookup(graph):
     for _, _, w in edges_iter:
         w = w['metadata'] if 'metadata' in w else {}
         if 'uplink' in w:
-            if w['uplink']['thiss']['interface']:
+            if w['uplink']['thiss']['interface'] and isinstance(w['uplink']['thiss']['interface'], Interface):
                 interfaces.add(w['uplink']['thiss']['interface'].pk)
 
-            if w['uplink']['other']['interface']:
+            if w['uplink']['other']['interface'] and isinstance(w['uplink']['other']['interface'], Interface):
                 interfaces.add(w['uplink']['other']['interface'].pk)
 
     _LOGGER.debug(
@@ -98,7 +99,7 @@ def attach_rrd_data_to_edges(graph, json=None, debug=False):
         if 'metadata' in w:
             metadata = w['metadata']
 
-            if not isinstance(metadata['uplink']['thiss']['netbox'], stubs.Netbox):
+            if not isinstance(metadata['uplink']['thiss']['interface'], stubs.Interface):
                 if metadata['uplink']['thiss']['interface'].pk in datasource_lookup:
                     datasources_for_interface = datasource_lookup[
                                                 metadata['uplink']['thiss'][
