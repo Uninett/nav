@@ -158,16 +158,16 @@ hr.floatclear {
     display: none;
 }
 
-.toggle-datasources td:hover {
+.toggletrigger td:hover {
     background-color: #EEE;
     cursor: pointer;
 }
 
-.toggle-datasources td .hellip {
+.toggletrigger td .hellip {
     float: left;
 }
 
-.toggle-datasources td .infotext {
+.toggletrigger td .infotext {
     color: #888;
     display: block;
     font-size: 0.8em;
