@@ -28,7 +28,7 @@ def node_to_json_layer2(node, nx_metadata=None):
 
     vlans = None
     metadata = nx_metadata['metadata'] if nx_metadata and nx_metadata.has_key('metadata') else None
-    if metadata.has_key('vlans'):
+    if metadata and metadata.has_key('vlans'):
         # nav_vlan_id == swpv.vlan.id
         vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': nav_vlan_id, 'net_ident': swpv.vlan.net_ident} for nav_vlan_id, swpv in metadata['vlans']]
 
@@ -86,15 +86,43 @@ def edge_to_json_layer2(metadata):
         # Add vlan meta data for layer2
         uplink = json['uplink']
         vlans = None
-        if uplink['thiss'].has_key('vlans') and uplink['thiss']['vlans']:
-            vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id, 'net_ident': swpv.vlan.net_ident} for swpv in uplink['thiss']['vlans']]
-            uplink['thiss']['vlans'] = vlans
+        if metadata['uplink'].has_key('vlans') and metadata['uplink']['vlans']:
+            vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id, 'net_ident': swpv.vlan.net_ident} for swpv in metadata['uplink']['vlans']]
+            uplink['vlans'] = vlans
 
     return json
 
 
 def edge_to_json_layer3(metadata):
-    return edge_to_json(metadata)
+    json = edge_to_json(metadata)
+
+    if type(json['uplink']) == dict:
+        uplink = json['uplink']
+
+        # Add prefix metadata
+        prefix = None
+
+        uplink_this = {}
+        uplink_other = {}
+
+        if metadata['uplink'].has_key('prefix') and metadata['uplink']['prefix']:
+            #prefix = unicode(metadata['uplink']['prefix'].vlan.net_ident)
+            prefix = unicode(metadata['uplink']['prefix'])
+            if metadata['uplink']['thiss'].has_key('gw_ip'):
+                uplink_this.update(
+                        {'gw_ip': metadata['uplink']['thiss']['gw_ip'],
+                         'hsrp': metadata['uplink']['thiss']['hsrp']})
+
+            if metadata['uplink']['other'].has_key('gw_ip'):
+                uplink_other.update(
+                        {'gw_ip': metadata['uplink']['other']['gw_ip'],
+                         'hsrp': metadata['uplink']['other']['hsrp']})
+
+        uplink['thiss'].update(uplink_this)
+        uplink['other'].update(uplink_other)
+        uplink['prefix'] = prefix
+
+    return json
 
 def edge_to_json(metadata):
     """converts edge information to json"""
@@ -111,16 +139,12 @@ def edge_to_json(metadata):
         uplink_json = {}
 
         if uplink['thiss']['interface']:
-            prefix = None
-            if uplink.has_key('prefix') and uplink['prefix']:
-                prefix = str(uplink['prefix'])
-
             uplink_json.update(
                     {'thiss': {'interface': "{0} at {1}".format(
                     str(uplink['thiss']['interface'].ifname),
                     str(uplink['thiss']['interface'].netbox.sysname)
                 ), 'netbox': uplink['thiss']['netbox'].sysname,
-                              }, 'prefix': prefix}
+                              }}
             )
         else:
             uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
@@ -147,34 +171,35 @@ def edge_to_json(metadata):
         }
 
 
-def edge_metadata_layer3(thiss_netbox, thiss_interface, other_netbox, other_interface):
+def edge_metadata_layer3(thiss_gwpp, other_gwpp):
     """
     Adds edge meta data with python types for given edge (layer3)
 
-
-    todo: meta data in layer3, we want to pass prefix instead of interface maybe?
-
-    :param thiss_netbox This netbox (edge from)
-    :param thiss_interface This netbox's interface (edge from)
-    :param other_netbox Other netbox (edge_to)
-    :param other_interface Other netbox's interface (edge_to)
+    :param thiss_gwpp This netbox's GwPortPrefix
+    :param other_gwpp Other netbox's GwPortPrefix
     """
 
-    net_ident = thiss_interface.prefix
+    net_ident = None
+    this_gwprefix_meta = None
+    other_gwprefix_meta = None
 
-    this_gwprefix_meta = { 'gw_ip': thiss_interface.gw_ip, 'hsrp': thiss_interface.hsrp }
-    other_gwprefix_meta = { 'gw_ip': thiss_interface.gw_ip, 'hsrp': thiss_interface.hsrp }
+    if thiss_gwpp:
+        net_ident = thiss_gwpp.prefix
 
-    if type(thiss_interface)==GwPortPrefix:
-        thiss_interface = thiss_interface.interface
-    if type(other_interface)==GwPortPrefix:
-        other_interface = other_interface.interface
+        if isinstance(thiss_gwpp, GwPortPrefix):
+            this_gwprefix_meta = { 'gw_ip': thiss_gwpp.gw_ip, 'hsrp': thiss_gwpp.hsrp }
+    if other_gwpp:
+        net_ident = other_gwpp.prefix
 
+        if isinstance(other_gwpp, GwPortPrefix):
+            other_gwprefix_meta = { 'gw_ip': other_gwpp.gw_ip, 'hsrp': other_gwpp.hsrp }
 
-    metadata = edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface)
+    metadata = edge_metadata(thiss_gwpp.interface.netbox, thiss_gwpp.interface, other_gwpp.interface.netbox, other_gwpp.interface)
 
-    metadata['uplink']['thiss'].update(this_gwprefix_meta)
-    metadata['uplink']['other'].update(other_gwprefix_meta)
+    if this_gwprefix_meta:
+        metadata['uplink']['thiss'].update(this_gwprefix_meta)
+    if other_gwprefix_meta:
+        metadata['uplink']['other'].update(other_gwprefix_meta)
     metadata['uplink'].update({'prefix': net_ident})
 
     return metadata
@@ -197,7 +222,8 @@ def edge_metadata_layer2(thiss_netbox, thiss_interface, other_netbox, other_inte
     if vlans_by_interface and vlans_by_interface.has_key(thiss_interface):
         vlans = sorted(vlans_by_interface.get(thiss_interface), key=lambda x:x.vlan.vlan)
 
-    metadata['uplink']['thiss'].update({'vlans': vlans})
+    metadata['uplink'].update({'vlans': vlans})
+    # add check against other_interface vlans?
 
     return metadata
 
@@ -225,7 +251,7 @@ def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface):
         error[
         'link_speed'] = 'Interface link speed not the same between the nodes'
     else:
-        if thiss_interface:
+        if thiss_interface and thiss_interface.speed:
             link_speed = thiss_interface.speed
         else:
             link_speed = other_interface.speed
