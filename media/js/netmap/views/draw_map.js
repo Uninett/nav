@@ -21,7 +21,9 @@ define([
             'map:search': 'search',
             'map:centerGraph': 'centerGraph',
             'map:freezeNodes': 'freezeNodes',
-            'map:show_vlan': 'showVlan'
+            'map:show_vlan': 'showVlan',
+            'map:ui:mouseover:nodes': 'toggleUIMouseoverNodes',
+            'map:ui:mouseover:links': 'toggleUIMouseoverLinks'
         },
         initialize: function () {
             this.broker.register(this);
@@ -34,6 +36,10 @@ define([
 
             this.selected_node = null;
             this.selected_vlan = null;
+            this.ui = {'mouseover': {
+                'nodes': false,
+                'links': false
+            }};
             this.context_selected_map = this.options.context_selected_map;
             this.sidebar = this.options.view_map_info;
 
@@ -128,6 +134,12 @@ define([
                 var node = this.modelJson.nodes[i];
                 node.fixed = isFreezing;
             }*/
+        },
+        toggleUIMouseoverNodes: function (boolean) {
+            this.ui.mouseover.nodes = boolean;
+        },
+        toggleUIMouseoverLinks: function (boolean) {
+            this.ui.mouseover.links = boolean;
         },
         redraw: function (options) {
             if (options !== undefined) {
@@ -316,7 +328,8 @@ define([
                         .attr('stroke', function (d, i) {
                             return 'url(#linkload' + i + ')';
                         })
-                        .on("click", function(d) { self.sidebar.swap_to_link(d); });
+                        .on("click", function(d) { self.sidebar.swap_to_link(d); })
+                        .on("mouseover", function (d) { if (self.ui.mouseover.links) { return self.sidebar.swap_to_link(d); }});
                      /*.on("mouseover", function(d) { return link_popup(d); }) // adds about 400 listners^n refresh :D
                      .on("mouseout", function(d) { return link_popout(d); });*/
                 });
@@ -366,10 +379,17 @@ define([
                     .on("click", node_onClick)
                     // doubleclick? http://jsfiddle.net/wfG6k/
                     .on("mouseover", function (d) {
-                        return node_mouseOver(d);
+                        if (self.ui.mouseover.nodes) {
+                            return self.sidebar.swap_to_netbox(d);
+                            //return node_mouseOver(d);
+                        }
+
                     })
                     .on("mouseout", function (d) {
-                        return node_mouseOut(d);
+                        /*if (this.ui.mouseover.nodes) {
+                            return self.sidebar.swap_to_netbox(d);
+                        }*/
+                        //return node_mouseOut(d);
                     })
 
                 ;

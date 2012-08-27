@@ -17,7 +17,8 @@ define([
             'click input[name="categories[]"]': 'onCheckboxLayerClick',
             'click input[name="filter_orphans"]': 'onFilterOrphansClick',
             'click input[name="group_roomid"]': 'onGroupByRoomClick',
-            'click input[name="freezeNodes"]': 'onFreezeNodesClick'
+            'click input[name="freezeNodes"]': 'onFreezeNodesClick',
+            'click input[name="mouseOver[]"]': 'onUIMouseOverClick'
         },
         initialize: function () {
             console.log("foodsfsdfbar");
@@ -81,6 +82,10 @@ define([
                 },
                 'specific_filters': {
                     'groupby_room': false
+                },
+                'ui_mouseover': {
+                    'nodes': false,
+                    'links': false
                 }
             };
 
@@ -167,6 +172,9 @@ define([
         },
         onFreezeNodesClick: function (e) {
             this.broker.trigger('map:freezeNodes', $(e.currentTarget).prop('checked'));
+        },
+        onUIMouseOverClick: function (e) {
+            this.broker.trigger('map:ui:mouseover:'+$(e.currentTarget).val(), $(e.currentTarget).prop('checked'));
         },
         close:function () {
             this.broker.unregister(this);

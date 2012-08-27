@@ -41,5 +41,16 @@
         <label for="freezeNodes">Freeze all nodes</label>
     </div>
 
+    <h3>UI options</h3>
+
+    <h4>Mouseover</h4>
+
+    {{#eachkeys model.ui_mouseover}}
+        <div class="squaredTwo">
+            <input type="checkbox" name="mouseOver[]" value="{{this.key}}" id="mouseOver_{{this.key}}" {{#if this.value}} checked{{/if}} />
+            <label for="mouseOver_{{this.key}}">{{this.key}}</label>
+        </div>
+    {{/eachkeys}}
+
 </div>
 
