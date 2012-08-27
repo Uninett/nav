@@ -35,7 +35,7 @@ define([
             this.selected_node = null;
             this.selected_vlan = null;
             this.context_selected_map = this.options.context_selected_map;
-            this.sidebar = this.options.view_netbox_info;
+            this.sidebar = this.options.view_map_info;
 
             this.w = this.options.cssWidth;
             this.h = screen.height - 500;
@@ -316,8 +316,8 @@ define([
                         .attr('stroke', function (d, i) {
                             return 'url(#linkload' + i + ')';
                         })
-                        .on("click", function(d) { console.log(d); self.sidebar.data = d; self.sidebar.render(); })
-                    /*.on("mouseover", function(d) { return link_popup(d); }) // adds about 400 listners^n refresh :D
+                        .on("click", function(d) { self.sidebar.swap_to_link(d); });
+                     /*.on("mouseover", function(d) { return link_popup(d); }) // adds about 400 listners^n refresh :D
                      .on("mouseout", function(d) { return link_popout(d); });*/
                 });
 
@@ -586,7 +586,9 @@ define([
                         outOctets = outOctetsRaw = 'N/A';
                     }
 
-                    var thiss_vlans = (d.data.uplink.thiss.vlans !== null ? d.data.uplink.thiss.vlans.join() : 'none');
+                    var thiss_vlans = (d.data.uplink.vlans !== null ? d.data.uplink.vlans : 'none');
+                    var vlans = [];
+                    _.each(thiss_vlans, function (num, key) { vlans.push(num.vlan); }, vlans);
 
                     mouseFocusInPopup({
                         'title':                 'link',
@@ -594,7 +596,8 @@ define([
                             '<br />' + d.data.link_speed +
                             '<br />In: ' + inOctets + " raw[" + inOctetsRaw + "]" +
                             '<br />Out: ' + outOctets + " raw[" + outOctetsRaw + "]" +
-                            '<br />Vlans: ' + thiss_vlans,
+                            '<br />Vlans: ' + vlans.join() +
+                            '<br />Prefix: ' + d.data.uplink.prefix,
                         'css_description_width': 400
                     });
 
@@ -632,9 +635,9 @@ define([
 
                 function node_onClick(node) {
                     //var netbox_info = new NetboxInfoView({node: node});
+
                     self.selected_node = node;
-                    self.sidebar.node = node;
-                    self.sidebar.render();
+                    self.sidebar.swap_to_netbox(node);
 
                     if (self.groupby_room) {
                         groupByRoom();

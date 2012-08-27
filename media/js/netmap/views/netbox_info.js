@@ -35,7 +35,7 @@ define([
         },
         close: function () {
             $(this.el).unbind();
-            $(this.el).remove();
+            $(this.el).empty();
         }
     });
     return NetboxInfoView;

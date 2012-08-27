@@ -7,13 +7,13 @@ define([
     'collections/map',
     'models/map',
     'models/graph',
-    'views/netbox_info',
+    'views/map_info',
     'views/draw_map',
     'views/list_maps',
     'views/navigation',
     'views/searchbox'
     /*'views/users/list'*/
-], function ($, _, Backbone, BackboneEventbroker, MapCollection, MapModel, GraphModel, NetboxInfoView, DrawNetmapView, ListNetmapView, NavigationView, SearchboxView) {
+], function ($, _, Backbone, BackboneEventbroker, MapCollection, MapModel, GraphModel, MapInfoView, DrawNetmapView, ListNetmapView, NavigationView, SearchboxView) {
 
     var collection_maps;
     var context_selected_map = {};
@@ -132,17 +132,15 @@ define([
         drawPage: function () {
             var self = this;
 
-            if (self.view_netbox_info !== undefined) {
-                self.view_netbox_info.close();
-                $('#netmap_infopanel').append("<div id='nodeinfo'></div>"); // recreate nodeinfo placeholder
+            if (self.view_map_info !== undefined) {
+                self.view_map_info.close();
             }
-            self.view_netbox_info = new NetboxInfoView({el: $('#nodeinfo')});
-
+            self.view_map_info = new MapInfoView({el: $('#mapinfo')});
             // graph is now set in context_selected-map, we can render map!
             $('#netmap_infopanel #list_views').html(view_choose_map.render().el);
 
 
-            self.view_map = new DrawNetmapView({context_selected_map: context_selected_map, view_netbox_info: self.view_netbox_info, cssWidth: $('#netmap_main_view').width()});
+            self.view_map = new DrawNetmapView({context_selected_map: context_selected_map, view_map_info: self.view_map_info, cssWidth: $('#netmap_main_view').width()});
             $('#netmap_main_view #chart').html(self.view_map.render().el);
         }
 

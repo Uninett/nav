@@ -1,0 +1,14 @@
+
+<p>{{link.data.uplink.thiss.interface}} - {{link.data.uplink.other.interface}}</p>
+<br /> {{d.data.uplink.prefix}}
+<br /> {{link.data.link_speed}}
+<br /> {{inOctets}}
+<br /> {{outOctets}}
+<h5>Vlans</h5>
+
+<ul id="node_info_vlan">
+    {{#each node.data.vlans}}
+    <li><a class="vlan" data-nav-vlan="{{this.nav_vlan}}">{{this.vlan}}
+        ({{this.net_ident}})</a></li>
+    {{/each}}
+</ul>
