@@ -68,4 +68,4 @@ class VirtualRouter(Plugin):
             self._logger.debug("Found virtual addresses from %s: %r",
                                from_mib, addresses)
         for gwp_prefix in self.containers[GwPortPrefix].values():
-            gwp_prefix.hsrp = IP(gwp_prefix.gw_ip) in addresses
+            gwp_prefix.virtual = IP(gwp_prefix.gw_ip) in addresses

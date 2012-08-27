@@ -587,13 +587,14 @@ class Vendor(models.Model):
 ### Router/topology
 
 class GwPortPrefix(models.Model):
-    """From NAV Wiki: The gwportprefix table defines the router port IP
-    addresses, one or more. HSRP is also supported."""
+    """Defines IP addresses assigned to Interfaces, with a relation to the
+    associated Prefix.
 
+    """
     interface = models.ForeignKey('Interface', db_column='interfaceid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
     gw_ip = models.IPAddressField(db_column='gwip', primary_key=True)
-    hsrp = models.BooleanField(default=False)
+    virtual = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'gwportprefix'

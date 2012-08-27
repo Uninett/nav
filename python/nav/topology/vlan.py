@@ -369,7 +369,7 @@ def filter_active_router_addresses(gwportprefixes):
     """Filters a GwPortPrefix queryset, leaving only active router addresses.
 
     For any given prefix, if multiple router addresses exist, the lowest IP
-    address will be picked.  If the prefix has an HSRP address, it will be
+    address will be picked.  If the prefix has a virtual address, it will be
     picked instead.
 
     :param gwportprefixes: A GwPortPrefix QuerySet.
@@ -378,7 +378,7 @@ def filter_active_router_addresses(gwportprefixes):
     """
     # It is more or less impossible to get Django's ORM to generate the
     # wonderfully complex SQL needed for this, so we do it by hand.
-    raddrs = gwportprefixes.order_by('prefix__id', '-hsrp', 'gw_ip')
+    raddrs = gwportprefixes.order_by('prefix__id', '-virtual', 'gw_ip')
     grouper = groupby(raddrs, attrgetter('prefix_id'))
     return [group.next() for _key, group in grouper]
 
