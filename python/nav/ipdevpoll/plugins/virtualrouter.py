@@ -19,37 +19,41 @@ from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.shadows import GwPortPrefix
+from nav.mibs.vrrp_mib import VRRPMib
 from nav.mibs.cisco_hsrp_mib import CiscoHSRPMib
 
-VENDORID_CISCO = 9
+class VirtualRouter(Plugin):
+    """ipdevpoll plugin to collect Virtual Router addresses from VRRP and
+    HSRP routers.
 
-class HSRP(Plugin):
-    """ipdevpoll plugin to collect HSRP addresses.
+    These addresses are marked as virtual in NAV database,
+    and will ensure that networks with redundant routers aren't classified
+    incorrectly as link networks.
 
-    This will only update addresses collected already by a plugin that ran
-    before on the same ContainerRepository.
+    This plugin will only update existing addresses that were collected by a
+    plugin that ran before this one in the same job (such as the Prefix
+    plugin). This is to ensure we don't create addresses that aren't active
+    on the router.
 
     """
 
     @classmethod
     def can_handle(cls, netbox):
-        daddy_says_ok = super(HSRP, cls).can_handle(netbox)
-        if netbox.type:
-            vendor_id = netbox.type.get_enterprise_id()
-            if vendor_id != VENDORID_CISCO:
-                return False
-        return daddy_says_ok
+        daddy_says_ok = super(VirtualRouter, cls).can_handle(netbox)
+        return daddy_says_ok and netbox.category.id in ('GW', 'GSW')
 
     def __init__(self, *args, **kwargs):
-        super(HSRP, self).__init__(*args, **kwargs)
-        self.hsrp = CiscoHSRPMib(self.agent)
+        super(VirtualRouter, self).__init__(*args, **kwargs)
+        self.mibs = [mib(self.agent) for mib in CiscoHSRPMib, VRRPMib]
 
     @defer.inlineCallbacks
     def handle(self):
-        """Handles HSRP collection"""
+        """Handles address collection"""
         if self.gwportprefixes_found():
-            addresses = yield self.hsrp.get_virtual_addresses()
-            self.update_containers_with(addresses)
+            for mib in self.mibs:
+                addresses = yield mib.get_virtual_addresses()
+                self.update_containers_with(addresses, mib.mib['moduleName'])
+
 
     def gwportprefixes_found(self):
         if GwPortPrefix not in self.containers:
@@ -59,8 +63,9 @@ class HSRP(Plugin):
         else:
             return True
 
-    def update_containers_with(self, addresses):
+    def update_containers_with(self, addresses, from_mib=None):
         if addresses:
-            self._logger.debug("Found HSRP addresses: %r", addresses)
+            self._logger.debug("Found virtual addresses from %s: %r",
+                               from_mib, addresses)
         for gwp_prefix in self.containers[GwPortPrefix].values():
             gwp_prefix.hsrp = IP(gwp_prefix.gw_ip) in addresses
