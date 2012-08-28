@@ -29,20 +29,20 @@ define([
         },
         swap_to_link: function (link) {
             if (this.netboxInfoView !== undefined) {
-                this.netboxInfoView.close();
+                this.netboxInfoView.reset();
             }
             if (this.linkInfoView === undefined) {
-                this.linkInfoView = new LinkInfoView({el: $("#linkinfo")});
+                this.linkInfoView = new LinkInfoView({el: $("#linkinfo", this.$el)});
             }
             this.linkInfoView.link = link;
             this.linkInfoView.render();
         },
         swap_to_netbox: function (netbox) {
             if (this.linkInfoView !== undefined) {
-                this.linkInfoView.close();
+                this.linkInfoView.reset();
             }
             if (this.netboxInfoView === undefined) {
-                this.netboxInfoView = new NetboxInfoView({el: $("#nodeinfo")});
+                this.netboxInfoView = new NetboxInfoView({el: $("#nodeinfo", this.$el)});
             }
             this.netboxInfoView.node = netbox;
             this.netboxInfoView.render();

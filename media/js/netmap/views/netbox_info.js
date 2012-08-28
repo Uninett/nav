@@ -25,17 +25,26 @@ define([
         },
         render: function () {
             var self = this;
-            var out = this.template({ node: self.node});
-            this.$el.html(out);
+            if (self.node !== undefined) {
+                var out = this.template({ node: self.node});
+                this.$el.html(out);
+            } else {
+                this.$el.empty();
+            }
+
             return this;
         },
         showVlan: function (e) {
             e.stopPropagation();
             this.broker.trigger('map:show_vlan', $(e.currentTarget).data().navVlan);
         },
+        reset: function () {
+            this.node = undefined;
+            this.render();
+        },
         close: function () {
             $(this.el).unbind();
-            $(this.el).empty();
+            $(this.el).remove();
         }
     });
     return NetboxInfoView;
