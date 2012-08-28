@@ -38,7 +38,7 @@ define([
         },
         update_selected_map: function (new_context) {
             this.loadingMap();
-            this.loadUi();
+            this.showNetmap(new_context.map.id);
         },
         map_topology_change: function (topology_id) {
             this.loadingMap();
