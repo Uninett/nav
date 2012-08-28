@@ -15,21 +15,28 @@ require([
         // Plug row toggler on datasources
         new TableUtil($('table.datasources')).addRowToggleTrigger();
 
-        // Plug tabs on page
+        addGlobalAjaxConfig();
         addModuleTabs();
         addMainTabs();
     });
+
+    function addGlobalAjaxConfig() {
+        // jQuery UI's Ajaxoptions does not seem to work on all requests.
+        // Thus we explicitly set the headers on all requests.
+        $(document).ajaxSend(function (event, request) {
+            request.setRequestHeader('X-NAV-AJAX', 'true');
+        });
+        $(document).ajaxError(function (event, request) {
+            if (request.status == 401) {
+                window.location = '/index/login/?origin=' + window.location.href;
+            }
+        });
+    }
 
     function addModuleTabs() {
         var tabconfig = {
             cache: true, // cache loaded pages
             spinner: '<img src="/images/main/process-working.gif">',
-            ajaxOptions: {
-                beforeSend: request_before_send,
-                error: request_error,
-                success: request_success,
-                complete: request_complete
-            },
             load: addActivityButtonListener
         };
         $(moduleTabsSelector).tabs(tabconfig);
@@ -48,12 +55,10 @@ require([
         if (element.index != 1) {
             return;
         }
-        console.log('Adding listener to button');
         var activityTab = findActivityTab();
         var button = activityTab.find('form button');
 
         button.click(function (event) {
-            console.log('button clicked');
             event.preventDefault();
             addIntervalToRequest();
             $(moduleTabsSelector).tabs('load', 1);
@@ -76,25 +81,6 @@ require([
     function getActivityInterval() {
         var activityTab = findActivityTab();
         return $('form input[type=text]', activityTab).val();
-    }
-
-    /* Request handlers */
-
-    function request_before_send(req) {
-        req.setRequestHeader('X-NAV-AJAX', 'true');
-    }
-
-    function request_error(xhr, status, error) {
-        console.error('Request error');
-        if (xhr.status == 401) {
-            window.location = '/index/login/?origin=' + window.location.href;
-        }
-    }
-
-    function request_success() {
-    }
-
-    function request_complete() {
     }
 
 });
