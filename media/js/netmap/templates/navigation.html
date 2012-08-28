@@ -44,11 +44,11 @@
     <h3>UI options</h3>
 
     <h4>Mouseover</h4>
-
+    <p>Enable &quot;auto clicking&quot; when hovering a node or a link</p>
     {{#eachkeys model.ui_mouseover}}
         <div class="squaredTwo">
-            <input type="checkbox" name="mouseOver[]" value="{{this.key}}" id="mouseOver_{{this.key}}" {{#if this.value}} checked{{/if}} />
-            <label for="mouseOver_{{this.key}}">{{this.key}}</label>
+            <input type="checkbox" name="mouseOver[]" value="{{this.key}}" id="mouseOver_{{this.key}}" {{#if this.value.state}} checked{{/if}} />
+            <label for="mouseOver_{{this.key}}">{{this.key}} [{{this.value.hotkey}}]</label>
         </div>
     {{/eachkeys}}
 

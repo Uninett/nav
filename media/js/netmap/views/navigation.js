@@ -25,6 +25,9 @@ define([
             this.isContentVisible = true;
 
 
+            _.bindAll(this, 'on_keypress');
+            $(document).bind('keypress', this.on_keypress);
+
             this.template = Handlebars.compile(netmapTemplate);
 
             // Registers Handlebars helpers
@@ -59,11 +62,7 @@ define([
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
 
-        },
-        render: function () {
-            var self = this;
-
-            var context = {
+            this.context = {
                 'link_types': {
                     'layer2':  false,
                     'layer3':  false
@@ -84,19 +83,25 @@ define([
                     'groupby_room': false
                 },
                 'ui_mouseover': {
-                    'nodes': false,
-                    'links': false
+                    'nodes': { state: false, hotkey: 'n' },
+                    'links': { state: false, hotkey: 'l' },
                 }
             };
 
+
+        },
+        render: function () {
+            var self = this;
+
             for (var i = 0; i < this.model.attributes.categories.length; i++) {
                 var category = this.model.attributes.categories[i];
-                context.categories[category] = true;
+                this.context.categories[category] = true;
             }
 
-            context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
+            this.context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
 
-            var out = this.template({ model: context});
+
+            var out = this.template({ model: this.context});
             this.$el.html(out);
 
             self.alignView();
@@ -176,7 +181,19 @@ define([
         onUIMouseOverClick: function (e) {
             this.broker.trigger('map:ui:mouseover:'+$(e.currentTarget).val(), $(e.currentTarget).prop('checked'));
         },
+        on_keypress: function (e) {
+            if (e.charCode === 110) { // n
+                this.context.ui_mouseover.nodes.state = !this.context.ui_mouseover.nodes.state;
+                this.render();
+                this.broker.trigger('map:ui:mouseover:nodes', this.context.ui_mouseover.nodes.state);
+            } else if (e.charCode === 108) { // l
+                this.context.ui_mouseover.links.state = !this.context.ui_mouseover.links.state;
+                this.render();
+                this.broker.trigger('map:ui:mouseover:links', this.context.ui_mouseover.links.state);
+            }
+        },
         close:function () {
+            $(document).unbind('keypress', 'on_keypress');
             this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
