@@ -4,6 +4,7 @@
     <script type="text/javascript" src="/js/d3.v2.js"></script>
     <link rel="stylesheet" href="/style/netmap.css" media="screen" type="text/css" />
     <link rel="stylesheet" href="/style/jqueryui/jquery-ui-1.8.21.custom.css" type="text/css" />
+    <script type="text/javascript" src="/js/spin.min.js"></script>
     <script type="text/javascript" data-main="/js/netmap/main" src="/js/netmap/libs/require/require.js"></script>
     <!-- check out https://github.com/jrburke/jqueryui-amd -->
 {% endblock %}
@@ -43,4 +44,25 @@
         </div>
     </div>
     <div class="clear"></div>
+    <script type="text/javascript">
+        var target = document.getElementById('loading_chart');
+        var opts = {
+            lines: 13, // The number of lines to draw
+            length: 7, // The length of each line
+            width: 6, // The line thickness
+            radius: 20, // The radius of the inner circle
+            corners: 1, // Corner roundness (0..1)
+            rotate: 0, // The rotation offset
+            color: '#000', // #rgb or #rrggbb
+            speed: 1, // Rounds per second
+            trail: 60, // Afterglow percentage
+            shadow: true, // Whether to render a shadow
+            hwaccel: true, // Whether to use hardware acceleration
+            className: 'spinner', // The CSS class to assign to the spinner
+            zIndex: 2e9, // The z-index (defaults to 2000000000)
+            top: 'auto', // Top position relative to parent in px
+            left: 'auto' // Left position relative to parent in px
+        };
+        document.navNetmapAppSpinner = new Spinner(opts).spin(target);
+    </script>
 {% endblock %}
