@@ -3,21 +3,23 @@
 
 {% block content %}
 
-    <table id="ipdevinfo-actions" class="listtable">
-        <caption>Actions</caption>
-        <tr>
-            <td><a href="{% url seeddb-netbox-edit netbox.id %}">Edit IP device</a></td>
-            <td><a href="{% url maintenance-new-netbox netbox.id %}">Schedule maintenance</a></td>
-            <td><a href="{% url devicehistory-view-netbox netbox.id %}">View device history</a></td>
-            <td>
-                {% if netbox.get_swports.count %}
-                    <a href="{% url portadmin-sysname netbox.sysname %}">Configure ports</a>
-                {% else %}
-                    &nbsp;
-                {% endif %}
-            </td>
-        </tr>
-    </table>
+    {% if netbox %}
+        <table id="ipdevinfo-actions" class="listtable">
+            <caption>Actions</caption>
+            <tr>
+                <td><a href="{% url seeddb-netbox-edit netbox.id %}">Edit IP device</a></td>
+                <td><a href="{% url maintenance-new-netbox netbox.id %}">Schedule maintenance</a></td>
+                <td><a href="{% url devicehistory-view-netbox netbox.id %}">View device history</a></td>
+                <td>
+                    {% if netbox.get_swports.count %}
+                        <a href="{% url portadmin-sysname netbox.sysname %}">Configure ports</a>
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    {% endif %}
 
     <div id="ipdevinfotabs" class="ui-helper-hidden">
 

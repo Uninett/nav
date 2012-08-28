@@ -268,21 +268,6 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         alert_info = get_recent_alerts(netbox)
         netboxsubcat = netbox.netboxcategory_set.all()
 
-        # Select port view to display
-#        run_port_view = True
-#        valid_perspectives = ('swportstatus', 'swportactive', 'gwportstatus')
-#        if port_view_perspective not in valid_perspectives:
-#            if netbox.get_swports().count():
-#                port_view_perspective = 'swportstatus'
-#            elif netbox.get_gwports().count():
-#                port_view_perspective = 'gwportstatus'
-#            else:
-#                run_port_view = False
-#
-#        if run_port_view:
-#            port_view = get_port_view(
-#                netbox, port_view_perspective, activity_interval)
-
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
         {
@@ -298,13 +283,11 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
 
 def get_port_view(request, netbox_sysname, perspective):
-    """
-    Returns a dict structure with all modules and ports on the netbox.
+    """Returns a html fragment with all modules and ports on the netbox.
 
     Arguments:
+    netbox_sysname -- ...
     perspective -- decides what kind of ports are included.
-    activity_interval -- number of days to check for port activity.
-
     """
 
     netbox = Netbox.objects.get(sysname=netbox_sysname)
