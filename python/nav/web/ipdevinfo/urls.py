@@ -19,7 +19,7 @@
 from django.conf.urls.defaults import url, patterns
 
 from nav.web.ipdevinfo.views import search, service_list, service_matrix
-from nav.web.ipdevinfo.views import ipdev_details, module_details, port_details
+from nav.web.ipdevinfo.views import ipdev_details, module_details, port_details, get_port_view
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
@@ -54,5 +54,10 @@ urlpatterns = patterns('',
         port_details, name='ipdevinfo-interface-details'),
     url(r'^(?P<netbox_sysname>[\w\d\.-]+)/ifname=(?P<port_name>[^&]+)/$',
         port_details, name='ipdevinfo-interface-details-by-name'),
+
+    # Modules
+    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/modules/(?P<perspective>\w+)/$',
+        get_port_view, name='ipdevinfo-get-port-view'
+    ),
 )
 
