@@ -129,6 +129,12 @@
     </tr>
 
     <tr>
+        <th>Interfaces</th>
+        <td><a href="{% url report-interfaces-netbox netbox.id %}">
+            {{ netbox.interface_set.count }}</a></td>
+    </tr>
+
+    <tr>
         <th>Switch ports</th>
         <td><a href="{% url report-swport-netbox netbox.id %}">
             {{ netbox.get_swports.count }}</a></td>

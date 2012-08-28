@@ -72,6 +72,9 @@ def get_urlpatterns():
             r'&module=(?P<module_number>\d+)$',
             dummy, name='report-modules-module'),
 
+        url(r'^report/interfaces\?netboxid=(?P<netbox_id>\d+)$',
+            dummy, name='report-interfaces-netbox'),
+
         url(r'^report/gwport$',
             dummy, name='report-gwport-all'),
         url(r'^report/gwport\?netboxid=(?P<netbox_id>\d+)$',
