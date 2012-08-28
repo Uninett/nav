@@ -380,7 +380,7 @@ define([
                     // doubleclick? http://jsfiddle.net/wfG6k/
                     .on("mouseover", function (d) {
                         if (self.ui.mouseover.nodes) {
-                            return self.sidebar.swap_to_netbox(d);
+                            return node_onClick(d);
                             //return node_mouseOver(d);
                         }
 
