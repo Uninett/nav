@@ -102,6 +102,7 @@ define([
         },
         loadMapFromContextId: function (map_id) {
             var self = this;
+            self.broker.trigger('map:loading:context_selected_map');
 
             self.options.context_selected_map.map.unbind("change");
             self.options.context_selected_map.map = self.collection.get(map_id);

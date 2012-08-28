@@ -23,7 +23,8 @@ define([
             'map:freezeNodes': 'freezeNodes',
             'map:show_vlan': 'showVlan',
             'map:ui:mouseover:nodes': 'toggleUIMouseoverNodes',
-            'map:ui:mouseover:links': 'toggleUIMouseoverLinks'
+            'map:ui:mouseover:links': 'toggleUIMouseoverLinks',
+            'map:loading:context_selected_map': 'clear'
         },
         initialize: function () {
             this.broker.register(this);
@@ -141,6 +142,10 @@ define([
         toggleUIMouseoverLinks: function (boolean) {
             this.ui.mouseover.links = boolean;
         },
+        clear: function () {
+            this.force.stop();
+            (this.$el).find('#svg-netmap').remove();
+        },
         redraw: function (options) {
             if (options !== undefined) {
                 if (options.filter_orphans !== undefined) {
@@ -151,10 +156,8 @@ define([
                 }
             }
 
-            this.force.stop();
-            (this.$el).find('#svg-netmap').remove();
-            /*this.$el.unbind();
-            this.$el.remove();*/
+            this.clear();
+
             this.render();
         },
         render: function () {

@@ -32,39 +32,35 @@ define([
             '': 'loadPage'
         },
         interests: {
+            'map:loading:context_selected_map': 'loadingMap',
             'map:context_selected_map': 'update_selected_map',
             'map:topology_change': 'map_topology_change'
         },
         update_selected_map: function (new_context) {
-            $('#netmap_main_view #loading_chart').show();
-            var target = document.getElementById('loading_chart');
-            spinner_map.spin(target);
-
+            this.loadingMap();
             this.loadUi();
         },
         map_topology_change: function (topology_id) {
+            this.loadingMap();
+            this.loadUi();
+        },
+        loadingMap: function () {
             $('#netmap_main_view #loading_chart').show();
             var target = document.getElementById('loading_chart');
             spinner_map.spin(target);
-            console.log("topology_change " + topology_id);
-            this.loadUi();
         },
 
         // Routes below here
 
         showNetmap: function(map_id) {
-            $('#netmap_main_view #loading_chart').show();
-            var target = document.getElementById('loading_chart');
-            spinner_map.spin(target);
-
+            this.loadingMap();
             //console.log("showNetmap({0})".format(map_id));
             context_selected_map.id = parseInt(map_id);
             this.loadPage();
         },
         loadPage: function () {
             var self = this;
-            var target = document.getElementById('loading_chart');
-            spinner_map.spin(target);
+            this.loadingMap();
 
             // is "colelction_maps" set?
 
