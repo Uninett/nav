@@ -249,33 +249,33 @@
             {% with netbox.get_rrd_data_sources as dss %}
                 {% if dss|length %}
                     <table class="datasources">
+                        <thead>
                         <tr>
                             <th>Data source</th>
                             <th>Threshold</th>
                         <tr>
-                            {% for ds in dss %}
-                                <tr
-                                        {% if forloop.counter > 10 %}class="hidden"{% endif %}>
-                                    <td>
-                                        <a href="{{ ds.get_absolute_url }}">
-                                            {{ ds.description }}</a>
-                                    </td>
-                                    <td>
-                                        <a href="{% url threshold-netbox netbox.id %}">
-                                            {% if ds.threshold %}{{ ds.threshold }}{% else %}
-                                                not
-                                                configured{% endif %}</a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        {% if dss|length > 10 %}
-                            <tr class="toggletrigger">
-                                <td colspan="2">
-                                    <span class="hellip">&hellip;</span>
-                                    <span class="infotext">Show all</span>
+                        </thead>
+                        <tbody>
+                        {% for ds in dss %}
+                            <tr>
+                                <td>
+                                    <a href="{{ ds.get_absolute_url }}">
+                                        {{ ds.description }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{% url threshold-netbox netbox.id %}">
+                                        {% if ds.threshold %}
+                                            {{ ds.threshold }}
+                                        {% else %}
+                                            not configured
+                                        {% endif %}
+                                    </a>
                                 </td>
                             </tr>
-                        {% endif %}
+                        {% endfor %}
+
+                        </tbody>
                     </table>
                 {% else %}
                     N/A

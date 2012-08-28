@@ -14,6 +14,7 @@ require([
     $(document).ready(function () {
         // Plug row toggler on datasources
         new TableUtil($('table.datasources')).addRowToggleTrigger();
+        new TableUtil($('#hostinfo')).addRowToggleTrigger();
 
         addGlobalAjaxConfig();
         addModuleTabs();

@@ -440,3 +440,24 @@ p.paginator .active {
 .mapwrapper {
     margin: 1em 0;
 }
+
+
+/* Table Utils classes */
+.toggletrigger td:hover {
+    background-color: #EEE;
+    cursor: pointer;
+}
+
+.toggletrigger .hellip {
+    float: left;
+}
+
+.toggletrigger .toggle-infotext {
+    color: #888;
+    display: block;
+    font-size: 0.8em;
+    line-height: 1.4em;
+    margin: auto;
+    text-align: center;
+    width: 100px;
+}

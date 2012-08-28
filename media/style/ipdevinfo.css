@@ -139,22 +139,3 @@
 .hidden {
     display: none;
 }
-
-.toggletrigger td:hover {
-    background-color: #EEE;
-    cursor: pointer;
-}
-
-.toggletrigger td .hellip {
-    float: left;
-}
-
-.toggletrigger td .infotext {
-    color: #888;
-    display: block;
-    font-size: 0.8em;
-    line-height: 1.4em;
-    margin: auto;
-    text-align: center;
-    width: 100px;
-}
