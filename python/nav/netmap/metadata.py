@@ -87,9 +87,8 @@ def edge_to_json_layer2(metadata):
         uplink = json['uplink']
         vlans = None
         if metadata['uplink'].has_key('vlans') and metadata['uplink']['vlans']:
-            vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id, 'net_ident': swpv.vlan.net_ident} for swpv in metadata['uplink']['vlans']]
+            vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id, 'net_ident': unicode(swpv.vlan.net_ident)} for swpv in metadata['uplink']['vlans']]
             uplink['vlans'] = vlans
-
     return json
 
 
