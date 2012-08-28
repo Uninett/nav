@@ -228,10 +228,14 @@ define([
             }
 
             //json = {}
-            function validateTranslateScaleValues() {
+            var validateTranslateScaleValues = function (nodesCount) {
                 if (isNaN(self.scale)) {
                     console.log("[Netmap][WARNING] Received invalid scale, use default scaling: {0}".format(self.scale));
-                    self.scale = 1 / Math.log(json.nodes.length);
+                    if (nodesCount) {
+                        self.scale = 1 / Math.log(nodesCount);
+                    } else {
+                        self.scale = 1;
+                    }
                 }
                 if (self.trans.length !== 2 || isNaN(self.trans[0]) || isNaN(self.trans[1])) {
                     console.log("[Netmap][WARNING] Received invalid translate values, centering graph: {0}".format(self.trans));
@@ -943,13 +947,13 @@ define([
 
 
 
-            function getMapOptions(nodesCount) {
+            var getMapOptions = function (nodesCount) {
                 // translate and scale to saved settings
                 if (!self.context_selected_map.map.isNew() && self.context_selected_map.map.attributes.zoom !== undefined) {
                     var tmp = self.context_selected_map.map.attributes.zoom.split(";");
                     self.trans = tmp[0].split(",");
                     self.scale = tmp[1];
-                    validateTranslateScaleValues();
+                    validateTranslateScaleValues(nodesCount);
                     self.zoom.translate(self.trans);
                     self.zoom.scale(self.scale);
 
