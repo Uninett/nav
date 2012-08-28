@@ -56,7 +56,7 @@ urlpatterns = patterns('',
         port_details, name='ipdevinfo-interface-details-by-name'),
 
     # Modules
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/modules/(?P<perspective>\w+)/$',
+    url(r'^(?P<netbox_sysname>.+)/modules/(?P<perspective>\w+)/$',
         get_port_view, name='ipdevinfo-get-port-view'
     ),
 )
