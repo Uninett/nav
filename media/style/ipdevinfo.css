@@ -25,6 +25,15 @@
 
 /* Device details table */
 
+.multitable {
+    overflow: auto;
+}
+
+.multitable table {
+    float: left;
+    margin-right: 1em;
+}
+
 .indent {
     text-indent: 1em;
 }
