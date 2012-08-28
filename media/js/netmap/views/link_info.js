@@ -43,15 +43,15 @@ define([
             }
 
             var thiss_vlans = (self.link.data.uplink.vlans !== null ? self.link.data.uplink.vlans : 'none');
-            var vlans = [];
-            _.each(thiss_vlans, function (num, key) { vlans.push(num.vlan); }, vlans);
+            /*var vlans = [];
+            _.each(thiss_vlans, function (num, key) { vlans.push(num.vlan); }, vlans);*/
 
             var out = this.template({link: self.link,
                 inOctets: inOctets,
                 inOctetsRaw: inOctetsRaw,
                 outOctets: outOctets,
-                outOctetsRaw: outOctetsRaw,
-                vlans: vlans});
+                outOctetsRaw: outOctetsRaw
+                });
 
             this.$el.html(out);
             return this;

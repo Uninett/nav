@@ -7,7 +7,7 @@
 <h5>Vlans</h5>
 
 <ul id="node_info_vlan">
-    {{#each node.data.vlans}}
+    {{#each link.data.uplink.vlans}}
     <li><a class="vlan" data-nav-vlan="{{this.nav_vlan}}">{{this.vlan}}
         ({{this.net_ident}})</a></li>
     {{/each}}
