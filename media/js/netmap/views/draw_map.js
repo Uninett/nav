@@ -24,7 +24,8 @@ define([
             'map:show_vlan': 'showVlan',
             'map:ui:mouseover:nodes': 'toggleUIMouseoverNodes',
             'map:ui:mouseover:links': 'toggleUIMouseoverLinks',
-            'map:loading:context_selected_map': 'clear'
+            'map:loading:context_selected_map': 'clear',
+            'map:node:fixed': 'updateNodeFixedStatus'
         },
         initialize: function () {
             this.broker.register(this);
@@ -145,6 +146,15 @@ define([
         clear: function () {
             this.force.stop();
             (this.$el).find('#svg-netmap').remove();
+        },
+        updateNodeFixedStatus: function (data) {
+            for (var i = 0; i < this.modelJson.nodes.length; i++) {
+                var node = this.modelJson.nodes[i];
+                if (node.data.sysname === data.sysname) {
+                    node.fixed = data.fixed;
+                    break;
+                }
+            }
         },
         redraw: function (options) {
             if (options !== undefined) {

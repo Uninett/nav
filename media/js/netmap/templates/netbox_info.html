@@ -6,6 +6,10 @@
         <li>[<a href='{{node.data.ipdevinfo_link}}'>infodevinfo</a>]</li>
         <li>[<a href='#'>geomap</a>]</li>
     </ul>
+    <div class="squaredTwo">
+        <input type="checkbox" name="positionFixed" value="positionFixed" id="positionFixed" {{#if node.fixed}} checked{{/if}} />
+        <label for="positionFixed">Node is fixed position?</label>
+    </div>
     <dl>
         <dt>IP</dt>
         <dd>{{node.data.ip}}</dd>

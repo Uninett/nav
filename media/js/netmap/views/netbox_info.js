@@ -11,7 +11,8 @@ define([
     var NetboxInfoView = Backbone.View.extend({
         broker: Backbone.EventBroker,
         events: {
-            "click .vlan": "showVlan"
+            "click .vlan": "showVlan",
+            "click input[name=positionFixed]": 'notifyMap'
         },
         initialize: function () {
             this.template = Handlebars.compile(netmapTemplate);
@@ -33,6 +34,9 @@ define([
             }
 
             return this;
+        },
+        notifyMap: function (e) {
+            this.broker.trigger('map:node:fixed', {sysname: this.node.data.sysname, fixed: $(e.currentTarget).prop('checked')});
         },
         showVlan: function (e) {
             e.stopPropagation();
