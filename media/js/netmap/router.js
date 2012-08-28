@@ -146,6 +146,7 @@ define([
 
             if (self.view_map_info !== undefined) {
                 self.view_map_info.close();
+                $('#netmap_infopanel').append("<div id='mapinfo'></div>");
             }
             self.view_map_info = new MapInfoView({el: $('#mapinfo')});
             // graph is now set in context_selected-map, we can render map!
