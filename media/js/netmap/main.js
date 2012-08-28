@@ -8,6 +8,9 @@ require.config({
         backbone: {
             deps: ["underscore", "jquery"],
             exports: "Backbone"
+        },
+        spinjs: {
+            exports: "Spinner"
         }
     },
     paths: {
@@ -25,6 +28,7 @@ require.config({
         /*text: 'libs/require/text',
          order: 'libs/require/order',*/
         netmapextras: '../netmap-extras',
+        spinjs: '../spin.min',
         templates: 'templates'
     },
     urlArgs: "nav=" + (new Date()).getTime()
@@ -36,6 +40,7 @@ require([
     'app'
 
 ], function (App) {
+    document.navNetmapAppSpinner.stop(); // global spinner while javascript is loading it's dependencies
     define.amd.jQuery = true;
 
     // The "app" dependency is passed in as "App"

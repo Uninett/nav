@@ -4,6 +4,7 @@ define([
     'underscore',
     'backbone',
     'backbone_eventbroker',
+    'spinjs',
     'collections/map',
     'models/map',
     'models/graph',
@@ -13,10 +14,11 @@ define([
     'views/navigation',
     'views/searchbox'
     /*'views/users/list'*/
-], function ($, _, Backbone, BackboneEventbroker, MapCollection, MapModel, GraphModel, MapInfoView, DrawNetmapView, ListNetmapView, NavigationView, SearchboxView) {
+], function ($, _, Backbone, BackboneEventbroker, Spinner, MapCollection, MapModel, GraphModel, MapInfoView, DrawNetmapView, ListNetmapView, NavigationView, SearchboxView) {
 
     var collection_maps;
     var context_selected_map = {};
+    var spinner_map;
 
     var view_choose_map;
 
@@ -34,9 +36,16 @@ define([
             'map:topology_change': 'map_topology_change'
         },
         update_selected_map: function (new_context) {
+            $('#netmap_main_view #loading_chart').show();
+            var target = document.getElementById('loading_chart');
+            spinner_map.spin(target);
+
             this.loadUi();
         },
         map_topology_change: function (topology_id) {
+            $('#netmap_main_view #loading_chart').show();
+            var target = document.getElementById('loading_chart');
+            spinner_map.spin(target);
             console.log("topology_change " + topology_id);
             this.loadUi();
         },
@@ -44,12 +53,19 @@ define([
         // Routes below here
 
         showNetmap: function(map_id) {
+            $('#netmap_main_view #loading_chart').show();
+            var target = document.getElementById('loading_chart');
+            spinner_map.spin(target);
+
             //console.log("showNetmap({0})".format(map_id));
             context_selected_map.id = parseInt(map_id);
             this.loadPage();
         },
         loadPage: function () {
             var self = this;
+            var target = document.getElementById('loading_chart');
+            spinner_map.spin(target);
+
             // is "colelction_maps" set?
 
             if (collection_maps === undefined) {
@@ -142,12 +158,15 @@ define([
 
             self.view_map = new DrawNetmapView({context_selected_map: context_selected_map, view_map_info: self.view_map_info, cssWidth: $('#netmap_main_view').width()});
             $('#netmap_main_view #chart').html(self.view_map.render().el);
+            spinner_map.stop();
+            $('#netmap_main_view #loading_chart').hide();
         }
 
     });
 
     var initialize = function () {
         var self = this;
+        spinner_map = new Spinner();
         this.app_router = new AppRouter;
 
         // Extend the View class to include a navigation method goTo
