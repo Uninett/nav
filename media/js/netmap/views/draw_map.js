@@ -329,7 +329,15 @@ define([
                             return 'url(#linkload' + i + ')';
                         })
                         .on("click", function(d) { self.sidebar.swap_to_link(d); })
-                        .on("mouseover", function (d) { if (self.ui.mouseover.links) { return self.sidebar.swap_to_link(d); }});
+                        .on("mouseover", function (d) {
+                            if (self.ui.mouseover.links) {
+                                if (self.nodesInVlan !== undefined) {
+                                    self.selected_vlan = null;
+                                    markVlan(self.selected_vlan);
+                                }
+                                return self.sidebar.swap_to_link(d);
+                            }
+                        });
                      /*.on("mouseover", function(d) { return link_popup(d); }) // adds about 400 listners^n refresh :D
                      .on("mouseout", function(d) { return link_popout(d); });*/
                 });
