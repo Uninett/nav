@@ -132,7 +132,8 @@ define([
         },
         alignView: function () {
             var $helper = $(this.$el.parent().parent());
-            var $helper_content = $(".inner_wrap", this.$el);
+            //var $helper_content = $(".inner_wrap", this.$el);
+            var $helper_content = $(".inner_wrap"); // hack until 'ScrollViewRightPane' is created!
 
             var margin;
 
