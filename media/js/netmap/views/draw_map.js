@@ -335,7 +335,12 @@ define([
                         .attr('stroke', function (d, i) {
                             return 'url(#linkload' + i + ')';
                         })
-                        .on("click", function(d) { self.sidebar.swap_to_link(d); })
+                        .on("click", function(d) {
+                            if (self.selected_vlan) {
+                                removeVlanSelectionOnChanged(d.data.uplink.vlans);
+                            }
+                            self.sidebar.swap_to_link(d);
+                        })
                         .on("mouseover", function (d) {
                             if (self.ui.mouseover.links) {
                                 if (self.nodesInVlan !== undefined) {
@@ -351,7 +356,10 @@ define([
 
                 var link = svg.selectAll("g.link line");
 
-                var node_s = svg.selectAll("g circle").data(json.nodes, function (d) {
+                var selectedNodeGroup = svg.append("svg:g").attr("class", "selected_nodes");
+                var nodeGroup = svg.append("svg:g").attr("class", "nodes");
+
+                var node_s = nodeGroup.selectAll("g.node").data(json.nodes, function (d) {
                     return d.data.sysname;
                 });
                 /*var drag = d3.behavior.drag()
@@ -364,7 +372,8 @@ define([
                         .on("dragend", dragend);
 
 
-                node_s.enter().append("svg:g")
+                node_s.enter()
+                    .append("svg:g")
                     .attr("class", "node")
                     .append("svg:image")
                     .attr("class", "circle node")
@@ -430,9 +439,9 @@ define([
                     });
 
                     var markVlanLinks = self.modelJson.links.filter(function (d) {
-                        if (d.data.uplink.thiss.vlans !== undefined && d.data.uplink.thiss.vlans) {
-                            for (var i = 0; i < d.data.uplink.thiss.vlans.length; i++) {
-                                var vlan = d.data.uplink.thiss.vlans[i];
+                        if (d.data.uplink.vlans !== undefined && d.data.uplink.vlans) {
+                            for (var i = 0; i < d.data.uplink.vlans.length; i++) {
+                                var vlan = d.data.uplink.vlans[i];
                                 if (vlan.nav_vlan === selected_vlan) {
                                     return true;
                                 }
@@ -441,7 +450,7 @@ define([
                         return false;
                     });
 
-                    self.nodesInVlan = svg.selectAll("g circle").data(markVlanNodes, function (d) {
+                    self.nodesInVlan = selectedNodeGroup.selectAll("g circle").data(markVlanNodes, function (d) {
                         return d.data.sysname;
                     });
 
@@ -679,25 +688,28 @@ define([
                     }
 
                     if (self.selected_vlan) {
-                        var foundVlan = false;
-                        if (node.data.vlans !== undefined && node.data.vlans) {
-                            for (var i = 0; i < node.data.vlans.length; i++) {
-                                var vlan = node.data.vlans[i];
-                                if (self.selected_vlan === vlan.nav_vlan) {
-                                    foundVlan = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (!foundVlan) {
-                            self.selected_vlan = null;
-                            markVlan(self.selected_vlan);
-                        }
+                        removeVlanSelectionOnChanged(node.data.vlans);
                     }
 
                     //self.sidebar.html(netbox_info.render().el);
                 }
 
+                var removeVlanSelectionOnChanged = function (vlans) {
+                    var foundVlan = false;
+                    if (vlans !== undefined && vlans) {
+                        for (var i = 0; i < vlans.length; i++) {
+                            var vlan = vlans[i];
+                            if (self.selected_vlan === vlan.nav_vlan) {
+                                foundVlan = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!foundVlan) {
+                        self.selected_vlan = null;
+                        markVlan(self.selected_vlan);
+                    }
+                };
 
                 self.force.stop();
                 node_s.exit().remove();

@@ -11,7 +11,7 @@ define([
     var LinkInfoView = Backbone.View.extend({
         broker: Backbone.EventBroker,
         events: {
-
+            "click .vlan": "showVlan"
         },
         initialize: function () {
             this.template = Handlebars.compile(netmapTemplate);
@@ -54,6 +54,10 @@ define([
             }
 
             return this;
+        },
+        showVlan: function (e) {
+            e.stopPropagation();
+            this.broker.trigger('map:show_vlan', $(e.currentTarget).data().navVlan);
         },
         reset: function () {
             this.link = undefined;
