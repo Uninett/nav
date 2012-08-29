@@ -16,23 +16,10 @@ require([
         new TableUtil($('table.datasources')).addRowToggleTrigger();
         new TableUtil($('#hostinfo')).addRowToggleTrigger();
 
-        addGlobalAjaxConfig();
+        addGlobalAjaxHandlers();
         addModuleTabs();
         addMainTabs();
     });
-
-    function addGlobalAjaxConfig() {
-        // jQuery UI's Ajaxoptions does not seem to work on all requests.
-        // Thus we explicitly set the headers on all requests.
-        $(document).ajaxSend(function (event, request) {
-            request.setRequestHeader('X-NAV-AJAX', 'true');
-        });
-        $(document).ajaxError(function (event, request) {
-            if (request.status == 401) {
-                window.location = '/index/login/?origin=' + window.location.href;
-            }
-        });
-    }
 
     function addModuleTabs() {
         var tabconfig = {
