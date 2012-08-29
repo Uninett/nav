@@ -14,6 +14,9 @@ class Netbox(object):
     def __hash__(self):
         return hash(self.__key())
 
+    def get_absolute_url(self):
+        return None
+
 class GwPortPrefix(object):
     def __str__(self):
         return str(self.gw_ip)
@@ -45,5 +48,8 @@ class Interface(object):
 
     def __hash__(self):
         return hash(self.__key())
+
+    def get_absolute_url(self):
+        return None
 
 
