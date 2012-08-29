@@ -75,6 +75,7 @@ def _node_to_json(node, nx_metadata=None):
             'up': str(node.up),
             'up_image': get_status_image_link(node.up),
             'roomid': node.room.id,
+            'room': unicode(node.room),
             'is_elink_node': False,
             #'roomid': 'fooo',
         }
