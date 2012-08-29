@@ -409,8 +409,8 @@ define([
                 var node = svg.selectAll("g.node");
 
                 node
-                    .call(node_drag)
                     .on("click", node_onClick)
+                    .call(node_drag)
                     // doubleclick? http://jsfiddle.net/wfG6k/
                     .on("mouseover", function (d) {
                         if (self.ui.mouseover.nodes) {
@@ -565,8 +565,14 @@ define([
 
                 }
 
+                var dragInfo ;
                 function dragstart(d, i) {
-                    self.force.stop();
+                    dragInfo = {
+                        x: Math.abs(d.x),
+                        y: Math.abs(d.y)
+                    };
+                    //self.force.stop();
+                    self.force.friction(0);
                 }
 
                 function dragmove(d, i) {
@@ -578,11 +584,28 @@ define([
                 }
 
                 function dragend(d, i) {
-                    console.log("dragend: " + d.data.sysname);
-                    d.fixed = true;
                     tick();
-                    self.force.resume();
+
+                    if (nodeIsDragged(d)) {
+                        d.fixed = true;
+                        if (self.selected_node && d.data.sysname === self.selected_node.data.sysname) {
+                            node_onClick(d);
+                        }
+
+                    }
+
+                    self.force.friction(0.9);
+                    if (nodeIsDragged(d)) {
+                        self.force.resume();
+                    }
+
+
                 }
+
+                var nodeIsDragged = function (d) {
+                    console.log(dragInfo.x, Math.abs(d.x));
+                    return ((dragInfo.x - Math.abs(d.x) > 2) || (dragInfo.y - Math.abs(d.y) > 2));
+                };
 
                 function node_mouseOver(d) {
                     mouseFocusInPopup({'title': d.name, 'description': '', 'css_description_width': 200});
@@ -689,7 +712,6 @@ define([
 
                 function node_onClick(node) {
                     //var netbox_info = new NetboxInfoView({node: node});
-
                     self.selected_node = node;
                     self.sidebar.swap_to_netbox(node);
 
