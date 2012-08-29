@@ -146,21 +146,26 @@ def edge_to_json(metadata):
 
         if uplink['thiss']['interface']:
             uplink_json.update(
-                    {'thiss': {'interface': "{0} at {1}".format(
-                    str(uplink['thiss']['interface'].ifname),
-                    str(uplink['thiss']['interface'].netbox.sysname)
-                ), 'netbox': uplink['thiss']['netbox'].sysname,
-                              }}
+                    {'thiss': {
+                    'interface': unicode(uplink['thiss']['interface'].ifname),
+                    'netbox': uplink['thiss']['netbox'].sysname,
+                    'interface_link': uplink['thiss'][
+                                      'interface'].get_absolute_url(),
+                    'netbox_link': uplink['thiss']['netbox'].get_absolute_url()
+                }}
             )
         else:
             uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
 
         if uplink['other']['interface']:
             uplink_json.update(
-                    {'other': {'interface': "{0} at {1}".format(
-                    str(uplink['other']['interface'].ifname),
-                    str(uplink['other']['interface'].netbox.sysname)
-                ), 'netbox': uplink['other']['netbox'].sysname}}
+                    {'other': {
+                    'interface': unicode(uplink['other']['interface'].ifname),
+                    'netbox': uplink['other']['netbox'].sysname,
+                    'interface_link': uplink['other'][
+                                      'interface'].get_absolute_url(),
+                    'netbox_link': uplink['other']['netbox'].get_absolute_url()
+                }}
             )
         else:
             uplink_json.update({'other': {'interface': 'N/A', 'netbox': 'N/A'}})

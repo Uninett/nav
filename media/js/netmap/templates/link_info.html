@@ -1,9 +1,35 @@
+<div>
+    <div class="uplink_this">
+        {{#if link.data.uplink.thiss.netbox_link}}
+        <br /><a href="{{link.data.uplink.thiss.netbox_link}}">{{link.data.uplink.thiss.netbox}}</a> [<a href="{{link.data.uplink.thiss.interface_link}}">{{link.data.uplink.thiss.interface}}</a>]
+        {{else}}
+        <br />{{link.data.uplink.thiss.netbox}} [{{link.data.uplink.thiss.interface}}]
+        {{/if}}
+    </div>
 
-<p>{{link.data.uplink.thiss.interface}} - {{link.data.uplink.other.interface}}</p>
-<br /> {{link.data.uplink.prefix.net_address}} - {{link.data.uplink.prefix.net_ident}} ({{link.data.uplink.prefix.description}})
-<br /> {{link.data.link_speed}}
-<br /> {{inOctets}}
-<br /> {{outOctets}}
+    <div class="uplink_other">
+        {{#if link.data.uplink.other.netbox_link}}
+        <br /><a href="{{link.data.uplink.other.netbox_link}}">{{link.data.uplink.other.netbox}}</a> [<a href="{{link.data.uplink.other.interface_link}}">{{link.data.uplink.other.interface}}</a>]
+        {{else}}
+        <br />{{link.data.uplink.other.netbox}} [{{link.data.uplink.other.interface}}]
+        {{/if}}
+    </div>
+</div>
+{{#if link.data.uplink.prefix}}
+<div class="uplink_prefix">
+
+        <br />{{link.data.uplink.prefix.net_address}}
+        <br />{{link.data.uplink.prefix.net_ident}}
+        <br />{{link.data.uplink.prefix.description}}
+</div>
+{{/if}}
+
+<br />Link speed: {{link.data.link_speed}}mbps
+<br />Traffic
+<br />in[{{inOctets}}]
+<br />out[{{outOctets}}]
+
+{{#if link.data.uplink.vlans}}
 <h5>Vlans</h5>
 
 <ul id="node_info_vlan">
@@ -12,3 +38,4 @@
         ({{this.net_ident}})</a></li>
     {{/each}}
 </ul>
+{{/if}}
