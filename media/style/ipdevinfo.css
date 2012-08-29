@@ -29,7 +29,7 @@
     overflow: auto;
 }
 
-.multitable table {
+.multitable > table {
     float: left;
     margin-right: 1em;
 }
