@@ -5,8 +5,8 @@ require.config({
     }
 });
 require([
-    "src/ipdevinfo/table_utils", "libs/jquery-1.4.4.min", "libs/jquery-ui-1.8.21.custom.min"
-], function (TableUtil) {
+    "src/ipdevinfo/table_utils", "src/info/tab_navigation", "libs/jquery-1.4.4.min", "libs/jquery-ui-1.8.21.custom.min"
+], function (TableUtil, TabNavigation) {
 
     var mainTabsSelector = '#ipdevinfotabs';
     var moduleTabsSelector = '#moduletabs';
@@ -28,6 +28,7 @@ require([
             load: addActivityButtonListener
         };
         $(moduleTabsSelector).tabs(tabconfig);
+        TabNavigation.add(mainTabsSelector);
     }
 
     function addMainTabs() {
