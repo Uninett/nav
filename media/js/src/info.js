@@ -32,7 +32,7 @@ require(
             }
 
             if ($('#mapcontainer').length > 0) {
-                fetchRoomPositions();
+                fetchRoomPositions($('#mapcontainer'));
             }
         });
 
@@ -174,9 +174,9 @@ require(
             });
         }
 
-        function fetchRoomPositions() {
-            $.getJSON('/info/room/positions/', function (data) {
-                new RoomMapper('mapcontainer', data.rooms).createMap();
+        function fetchRoomPositions(mapcontainer) {
+            $.getJSON('/ajax/open/roommapper/rooms/', function (data) {
+                new RoomMapper(mapcontainer.get(0), data.rooms).createMap();
             });
         }
 

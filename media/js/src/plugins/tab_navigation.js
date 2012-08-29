@@ -1,13 +1,15 @@
 define(['libs/jquery-ui-1.8.21.custom.min'], function () {
     /* Add navigation to jQuery ui tabs */
     function add_navigation(wrapper) {
+        var $wrapper = typeof(wrapper) === 'string' ? $(wrapper) : wrapper;
+
         /* Mark selected tab on page load */
-        select_tab_on_load();
+        navigate();
 
         /* Set hash mark with index when a tab is selected */
-        $(wrapper).bind('tabsselect', function (event, ui) {
+        $wrapper.bind('tabsselect', function (event, ui) {
             /* Check if this is the tabs we're hooked to */
-            if (event.target.id === wrapper.substring(1)) {
+            if (event.target.id === $wrapper.attr('id')) {
                 if (ui.index != 0 || window.location.hash) {
                     window.location.hash = ui.index;
                 }
@@ -19,14 +21,9 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
             navigate();
         });
 
-        /* Mark selected tab on page load */
-        function select_tab_on_load() {
-            navigate();
-        }
-
         /* Navigate to correct tab based on url hash mark */
         function navigate() {
-            var $tabs = $(wrapper).tabs();
+            var $tabs = $wrapper.tabs();
             var index = 0;
             if (window.location.hash) {
                 index = parseInt(window.location.hash.substring(1));
@@ -37,7 +34,6 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
             }
         }
     }
-
 
     return {
         add: add_navigation
