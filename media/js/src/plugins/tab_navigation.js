@@ -6,8 +6,11 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
 
         /* Set hash mark with index when a tab is selected */
         $(wrapper).bind('tabsselect', function (event, ui) {
-            if (ui.index != 0 || window.location.hash) {
-                window.location.hash = ui.index;
+            /* Check if this is the tabs we're hooked to */
+            if (event.target.id === wrapper.substring(1)) {
+                if (ui.index != 0 || window.location.hash) {
+                    window.location.hash = ui.index;
+                }
             }
         });
 

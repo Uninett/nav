@@ -28,12 +28,12 @@ require([
             load: addActivityButtonListener
         };
         $(moduleTabsSelector).tabs(tabconfig);
-        TabNavigation.add(mainTabsSelector);
     }
 
     function addMainTabs() {
         var tabs = $(mainTabsSelector).tabs();
         tabs.show();
+        TabNavigation.add(mainTabsSelector);
     }
 
     /*
