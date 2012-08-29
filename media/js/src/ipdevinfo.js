@@ -5,7 +5,7 @@ require.config({
     }
 });
 require([
-    "src/ipdevinfo/table_utils", "src/info/tab_navigation", "libs/jquery-1.4.4.min", "libs/jquery-ui-1.8.21.custom.min"
+    "src/plugins/table_utils", "src/plugins/tab_navigation", "libs/jquery-1.4.4.min", "libs/jquery-ui-1.8.21.custom.min"
 ], function (TableUtil, TabNavigation) {
 
     var mainTabsSelector = '#ipdevinfotabs';

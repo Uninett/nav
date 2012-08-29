@@ -8,10 +8,10 @@ require.config({
 });
 require(
     [
-        "src/info/tab_navigation",
+        "src/plugins/tab_navigation",
         "src/info/global_dt_filters",
         "src/info/table_info_converter",
-        "src/info/room_mapper",
+        "src/plugins/room_mapper",
         "src/dt_plugins/natsort",
         "src/dt_plugins/altsort",
         "src/dt_plugins/date_title_sort",

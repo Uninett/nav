@@ -1,7 +1,7 @@
 require.config({
     baseUrl: "/js/"
 });
-require(['src/info/room_mapper', 'libs/jquery-1.4.4.min'], function (RoomMapper) {
+require(['src/plugins/room_mapper', 'libs/jquery-1.4.4.min'], function (RoomMapper) {
 
     $(function () {
         var mapper_node = $('#room_map');
