@@ -16,6 +16,7 @@
 import logging
 from django.core.urlresolvers import reverse
 from nav.models.manage import GwPortPrefix
+from nav.netmap import stubs
 from nav.netmap.stubs import Netbox
 from nav.web.netmapdev.common import get_status_image_link
 
@@ -245,10 +246,14 @@ def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface):
 
     if thiss_interface and other_interface and thiss_interface.speed !=\
                                                other_interface.speed:
-        tip_inspect_link = True
-        link_speed = None
-        error[
-        'link_speed'] = 'Interface link speed not the same between the nodes'
+        if thiss_netbox.category_id is not 'elink' and other_netbox.category_id is not 'elink':
+            tip_inspect_link = True
+            link_speed = None
+            error[
+            'link_speed'] = 'Interface link speed not the same between the nodes'
+        else:
+            link_speed= None
+
     else:
         if thiss_interface and thiss_interface.speed:
             link_speed = thiss_interface.speed
