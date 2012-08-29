@@ -107,8 +107,12 @@ def edge_to_json_layer3(metadata):
         uplink_other = {}
 
         if metadata['uplink'].has_key('prefix') and metadata['uplink']['prefix']:
-            #prefix = unicode(metadata['uplink']['prefix'].vlan.net_ident)
-            prefix = unicode(metadata['uplink']['prefix'])
+            prefix = {
+                'net_address': unicode(metadata['uplink']['prefix'].net_address),
+                'net_ident': unicode(metadata['uplink']['prefix'].vlan.net_ident),
+                'description': unicode(metadata['uplink']['prefix'].vlan.description)
+            }
+
             if metadata['uplink']['thiss'].has_key('gw_ip'):
                 uplink_this.update(
                         {'gw_ip': metadata['uplink']['thiss']['gw_ip'],
@@ -121,6 +125,7 @@ def edge_to_json_layer3(metadata):
 
         uplink['thiss'].update(uplink_this)
         uplink['other'].update(uplink_other)
+
         uplink['prefix'] = prefix
 
     return json
