@@ -139,3 +139,7 @@
 .hidden {
     display: none;
 }
+
+td.cell-center {
+    text-align: center;
+}

@@ -252,6 +252,12 @@ class Netbox(models.Model):
         else:
             return unresolved
 
+    def get_powersupplies(self):
+        return self.powersupplyorfan_set.filter(physical_class='powerSupply').order_by('name')
+
+    def get_fans(self):
+        return self.powersupplyorfan_set.filter(physical_class='fan').order_by('name')
+
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place to store additional info
     on a netbox."""

@@ -1,0 +1,65 @@
+<div id="powerfans" class="multitable">
+
+    <table class="vertitable">
+        <caption>Power supplies</caption>
+
+        <thead>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Status</th>
+        </thead>
+
+        <tbody>
+        {% for power in netbox.get_powersupplies %}
+            <tr>
+                <td>{{ power.name }}</td>
+                <td>{{ power.descr }}</td>
+                <td class="cell-center">
+                    {% if power.up == 'y' %}
+                        <img src="/images/lys/green.png" title="Up">
+                    {% endif %}
+                    {% if power.up == 'n' %}
+                        <img src="/images/lys/red.png" title="Down">
+                    {% endif %}
+                    {% if power.up == 'u' %}
+                        <img src="/images/lys/grey.png" title="Unknown">
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+
+    <table class="vertitable">
+        <caption>Fans</caption>
+
+        <thead>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Status</th>
+        </thead>
+
+        <tbody>
+        {% for fan in netbox.get_fans %}
+            <tr>
+                <td>{{ fan.name }}</td>
+                <td>{{ fan.descr }}</td>
+                <td class="cell-center">
+                    {% if fan.up == 'y' %}
+                        <img src="/images/lys/green.png" title="Up">
+                    {% endif %}
+                    {% if fan.up == 'n' %}
+                        <img src="/images/lys/red.png" title="Down">
+                    {% endif %}
+                    {% if fan.up == 'u' %}
+                        <img src="/images/lys/grey.png" title="Unknown">
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+
+</div>
