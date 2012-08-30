@@ -101,7 +101,7 @@ define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
 
     function roomClickHandler(feature) {
         var roomname = feature.attributes.name;
-        window.location = '/info/room/' + roomname + '/#1';
+        window.location = '/info/room/' + roomname + '/#!deviceinfo';
     }
 
     function transform(obj, reverse) {
