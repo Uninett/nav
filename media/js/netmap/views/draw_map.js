@@ -368,9 +368,8 @@ define([
                         })
                         .on("mouseover", function (d) {
                             if (self.ui.mouseover.links) {
-                                if (self.nodesInVlan !== undefined) {
-                                    self.selected_vlan = null;
-                                    markVlan(self.selected_vlan);
+                                if (self.selected_vlan) {
+                                    removeVlanSelectionOnChanged(d.data.uplink.vlans);
                                 }
                                 return self.sidebar.swap_to_link(d);
                             }
