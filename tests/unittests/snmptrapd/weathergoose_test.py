@@ -1,13 +1,18 @@
 from unittest import TestCase
-from minimock import Mock, restore
+from mock import patch, Mock
 
-# Ensure that we don't actually touch the database while unit testing
-import nav.db
-nav.db.getConnection = Mock('nav.db.getConnection',
-                            returns=Mock('psycopg2.Connection'))
 from nav.snmptrapd.handlers import weathergoose as wg
 
-class WeatherGoose1ClassTest(TestCase):
+class WeatherGooseMockedDb(TestCase):
+    def setUp(self):
+        self.getConnection = patch('nav.snmptrapd.handlers.weathergoose'
+                                   '.getConnection')
+        self.getConnection.start()
+
+    def tearDown(self):
+        self.getConnection.stop()
+
+class WeatherGoose1ClassTest(WeatherGooseMockedDb):
     def test_should_not_handle_a_weathergoose2_trap(self):
         self.assertFalse(
             wg.WeatherGoose1.can_handle('.1.3.6.1.4.1.17373.3.32767.0.10205'))
@@ -26,8 +31,9 @@ class WeatherGoose1ClassTest(TestCase):
         trap.snmpTrapOID = '5'
         self.assertRaises(Exception, wg.WeatherGoose1, trap, None, None, None)
 
-class WeatherGoose1TrapTest(TestCase):
+class WeatherGoose1TrapTest(WeatherGooseMockedDb):
     def setUp(self):
+        super(WeatherGoose1TrapTest, self).setUp()
         trap = Mock('trap')
         trap.snmpTrapOID = '.1.3.6.1.4.1.17373.0.10205'
         TRIP_TYPE_HIGH = 2
@@ -43,10 +49,12 @@ class WeatherGoose1TrapTest(TestCase):
             def post(self):
                 pass
 
-        nav.event.Event = Mock('nav.event.Event', returns_func=Event)
+        self.mocked_event = patch("nav.event.Event", Event)
+        self.mocked_event.start()
 
     def tearDown(self):
-        restore()
+        super(WeatherGoose1TrapTest, self).setUp()
+        self.mocked_event.stop()
 
     def test_init_should_parse_trap_without_error(self):
         self.assertTrue(wg.WeatherGoose1(self.trap, None, None, None))
@@ -71,7 +79,7 @@ class WeatherGoose1TrapTest(TestCase):
         goose = wg.WeatherGoose1(self.trap, None, None, None)
         self.assertTrue(goose.post_event())
 
-class WeatherGoose2Test(TestCase):
+class WeatherGoose2Test(WeatherGooseMockedDb):
     def test_should_not_handle_a_weathergoose1_trap(self):
         self.assertFalse(
             wg.WeatherGoose2.can_handle('.1.3.6.1.4.1.17373.0.10205'))
