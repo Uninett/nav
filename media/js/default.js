@@ -32,7 +32,7 @@ function addGlobalAjaxHandlers() {
     });
     $(document).ajaxError(function (event, request) {
         if (request.status == 401) {
-            window.location = '/index/login/?origin=' + window.location.href;
+            window.location = '/index/login/?origin=' + encodeURIComponent(window.location.href);
         }
     });
 }
