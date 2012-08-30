@@ -71,7 +71,7 @@ def get_traffic_rgb(octets, capacity=None):
 
     average_traffic = (float(octets) * 8)  # from octets (bytes) to bits
 
-    traffic_in_percent = average_traffic / (capacity * MEGABITS_TO_BITS)
+    traffic_in_percent = (average_traffic / (capacity * MEGABITS_TO_BITS)) * 100
 
     if traffic_in_percent > 100 or traffic_in_percent < 0:
         traffic_in_percent = 100 # set to red, this indicates something is odd
