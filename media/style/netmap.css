@@ -324,7 +324,9 @@ line.speed4096 {
 }
 
 line.warning_inspect {
-    stroke: red
+    stroke: red;
+    stroke-dasharray: 0, 2 1;
+    stroke-width: 7px; /* must be larger the largest link to show */
 }
 
 path.link {

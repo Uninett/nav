@@ -270,8 +270,25 @@ define([
 
                 self.force.nodes(json.nodes).links(json.links).on("tick", tick);
 
+                var linkGroupMeta = svg.append("svg:g").attr("class", "linksmeta");
+
+                var linksWithErrors = self.modelJson.links.filter(function (d) {
+                    if (d.data.tip_inspect_link) {
+                        return true;
+                    }
+                    return false;
+                });
+
+                var linkErrors = linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
+                    return d.source.id + "-" + d.target.id;
+                });
+
+                linkErrors.enter().append("svg:line").attr("class", "warning_inspect");
+                linkErrors.exit().remove();
+
+                var linkGroup = svg.append("svg:g").attr("class", "links");
                 //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
-                var s_link = svg.selectAll("g line").data(json.links, function (d) {
+                var s_link = linkGroup.selectAll("g line").data(json.links, function (d) {
                     return d.source.id + "-" + d.target.id;
                 });
 
@@ -336,9 +353,6 @@ define([
                             else {
                                 classes = 'speedunknown';
                             }
-                            if (d.data.tip_inspect_link) {
-                                classes = classes + " warning_inspect";
-                            }
                             return classes;
 
                         })
@@ -364,7 +378,7 @@ define([
                      .on("mouseout", function(d) { return link_popout(d); });*/
                 });
 
-                var link = svg.selectAll("g.link line");
+                var link = linkGroup.selectAll("g.link line");
 
                 var selectedNodeGroup = svg.append("svg:g").attr("class", "selected_nodes");
                 var nodeGroup = svg.append("svg:g").attr("class", "nodes");
@@ -544,6 +558,13 @@ define([
                             .attr("x2", function (d) { return d.target.x;})
                             .attr("y2", function (d) { return d.target.y;});
                     }
+
+                    linkErrors
+                        .attr("x1", function (d) { return d.source.x; })
+                        .attr("y1", function (d) { return d.source.y; })
+                        .attr("x2", function (d) { return d.target.x; })
+                        .attr("y2", function (d) { return d.target.y; });
+
 
                     link
                         .attr("x1", function (d) {
