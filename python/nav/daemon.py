@@ -41,7 +41,7 @@ import time
 import nav.logs
 
 nav.logs.set_log_levels()
-logger = logging.getLogger('nav.daemon')
+_logger = logging.getLogger('nav.daemon')
 
 
 # Exception classes
@@ -54,6 +54,7 @@ class UserNotFoundError(DaemonError):
     """Raised if requested user is not found and we have to run as root."""
 
     def __init__(self, username):
+        super(UserNotFoundError, self).__init__()
         self.username = username
 
     def __str__(self):
@@ -64,6 +65,7 @@ class SwitchUserError(DaemonError):
     """Raised if user switch failes, e.g. we don't have enough permissions."""
 
     def __init__(self, olduid, oldgid, newuid, newgid):
+        super(SwitchUserError, self).__init__()
         self.olduid = olduid
         self.oldgid = oldgid
         self.newuid = newuid
@@ -77,6 +79,7 @@ class AlreadyRunningError(DaemonError):
     """Raised if the daemon is alrady running."""
 
     def __init__(self, pid):
+        super(AlreadyRunningError, self).__init__()
         self.pid = pid
 
     def __str__(self):
@@ -86,6 +89,7 @@ class PidFileReadError(DaemonError):
     """Raised if we can't read a numeric pid from the pidfile."""
 
     def __init__(self, pidfile):
+        super(PidFileReadError, self).__init__()
         self.pidfile = pidfile
 
     def __str__(self):
@@ -95,6 +99,7 @@ class PidFileWriteError(DaemonError):
     """Raised if we can't write the pid to the pidfile."""
 
     def __init__(self, pidfile, error):
+        super(PidFileWriteError, self).__init__()
         self.pidfile = pidfile
         self.error = error
 
@@ -106,6 +111,7 @@ class ForkError(DaemonError):
     """Raised if a fork fails."""
 
     def __init__(self, forkno, error):
+        super(ForkError, self).__init__()
         self.forkno = forkno
         self.error = error
 
@@ -138,8 +144,8 @@ def switchuser(username):
 
     try:
         # Try to get information about the given username
-        name, passwd, uid, gid, gecos, dir, shell = pwd.getpwnam(username)
-    except KeyError, error:
+        _name, _passwd, uid, gid, _gecos, _dir, _shell = pwd.getpwnam(username)
+    except KeyError:
         raise UserNotFoundError(username)
     else:
         if olduid != uid:
@@ -149,7 +155,7 @@ def switchuser(username):
 
                 # Set non-primary groups
                 gids = []
-                for (name, passwd, gid, members) in grp.getgrall():
+                for (_name, _passwd, gid, members) in grp.getgrall():
                     if username in members:
                         gids.append(gid)
                 if len(gids) > 0:
@@ -159,17 +165,17 @@ def switchuser(username):
                 os.setuid(uid)
             except OSError:
                 # Failed changing uid/gid
-                logger.debug("Failed chaning uid/gid from %d/%d to %d/%d.",
+                _logger.debug("Failed chaning uid/gid from %d/%d to %d/%d.",
                     olduid, oldgid, uid, gid)
                 raise SwitchUserError(olduid, oldgid, uid, gid)
             else:
                 # Switch successfull
-                logger.debug("uid/gid changed from %d/%d to %d/%d.",
+                _logger.debug("uid/gid changed from %d/%d to %d/%d.",
                     olduid, oldgid, uid, gid)
                 return True
         else:
             # Already running as the given user
-            logger.debug("Running as uid/gid %d/%d.", olduid, oldgid)
+            _logger.debug("Running as uid/gid %d/%d.", olduid, oldgid)
             return True
 
 
@@ -190,9 +196,8 @@ def justme(pidfile):
 
     # If pidfile exists (is readable)
     if os.access(pidfile, os.R_OK):
-        fd = file(pidfile, 'r')
-        pid = fd.readline().strip()
-        fd.close()
+        with file(pidfile, 'r') as pid_fd:
+            pid = pid_fd.readline().strip()
 
         # Check if pidfile is empty (obscure, but we should handle it)
         if pid == '':
@@ -200,7 +205,7 @@ def justme(pidfile):
             try:
                 os.remove(pidfile)
             except OSError, error:
-                logger.debug("Unable to remove empty pidfile: %s", error)
+                _logger.debug("Unable to remove empty pidfile: %s", error)
                 raise PidFileWriteError(pidfile, error)
             return True
 
@@ -208,7 +213,7 @@ def justme(pidfile):
         if pid.isdigit():
             pid = int(pid)
         else:
-            logger.debug("Can't read pid from pid file %s.", pidfile)
+            _logger.debug("Can't read pid from pid file %s.", pidfile)
             raise PidFileReadError(pidfile)
 
         try:
@@ -219,7 +224,7 @@ def justme(pidfile):
             return True
         else:
             # We assume the process lives and bails out
-            logger.debug("%s already running with pid %d.", sys.argv[0], pid)
+            _logger.debug("%s already running with pid %d.", sys.argv[0], pid)
             raise AlreadyRunningError(pid)
     else:
         # No pidfile, assume we're alone
@@ -232,14 +237,14 @@ def writepidfile(pidfile):
     # Write pidfile
     pid = os.getpid()
     try:
-        fd = file(pidfile, 'w+')
+        pid_fd = file(pidfile, 'w+')
     except IOError, error:
-        logger.debug('Cannot open pidfile %s for writing. Exiting. (%s)',
+        _logger.debug('Cannot open pidfile %s for writing. Exiting. (%s)',
             pidfile, error)
         raise PidFileWriteError(pidfile, error)
 
-    fd.write("%d\n" % pid)
-    fd.close()
+    pid_fd.write("%d\n" % pid)
+    pid_fd.close()
 
 def redirect_std_fds(stdin=None, stdout=None, stderr=None):
     """Close and redirect the standard file descriptors.
@@ -301,10 +306,10 @@ def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
         pid = os.fork()
         if pid > 0:
             # We're the first parent. Exit!
-            logger.debug("First parent exiting. Second has pid %d.", pid)
+            _logger.debug("First parent exiting. Second has pid %d.", pid)
             sys.exit(0)
     except OSError, error:
-        logger.debug("Fork #1 failed. (%s)", error)
+        _logger.debug("Fork #1 failed. (%s)", error)
         raise ForkError(1, error)
 
     # Decouple from parent environment
@@ -318,15 +323,15 @@ def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
         pid = os.fork()
         if pid > 0:
             # We're the second parent. Exit!
-            logger.debug("Second parent exiting. Daemon has pid %d.", pid)
+            _logger.debug("Second parent exiting. Daemon has pid %d.", pid)
             sys.exit(0)
     except OSError, error:
-        logger.exception("Fork #2 failed. (%s)", error)
+        _logger.exception("Fork #2 failed. (%s)", error)
         raise ForkError(2, error)
 
     # Now only the child is left :-)
     pid = os.getpid()
-    logger.debug("Daemon started with pid %d.", pid)
+    _logger.debug("Daemon started with pid %d.", pid)
 
     writepidfile(pidfile)
 
@@ -338,7 +343,7 @@ def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
 
     return True
 
-
+# pylint: disable=W0703
 def daemonexit(pidfile):
     """
     Clean up after daemon process. This functions is only runned by the
@@ -353,16 +358,16 @@ def daemonexit(pidfile):
 
     """
 
-    logger.debug("Daemon is exiting. Cleaning up...")
+    _logger.debug("Daemon is exiting. Cleaning up...")
 
     try:
         os.remove(pidfile)
     except Exception, error:
-        logger.debug("Can't remove pidfile (%s). (%s)", pidfile, error)
+        _logger.debug("Can't remove pidfile (%s). (%s)", pidfile, error)
         if error.errno != errno.ENOENT:
             raise PidFileWriteError(pidfile, error)
     else:
-        logger.debug("pidfile (%s) removed.", pidfile)
+        _logger.debug("pidfile (%s) removed.", pidfile)
     return True
 
 def safesleep(delay):
@@ -380,11 +385,10 @@ def safesleep(delay):
     """
     try:
         time.sleep(delay)
-    except IOError, e:
-        if e.errno == 514:
-            logger.exception("Ignoring possible Linux kernel bug in "
+    except IOError, error:
+        if error.errno == 514:
+            _logger.exception("Ignoring possible Linux kernel bug in "
                              "time.sleep(): IOError=514. See LP#352316")
-            pass
         else:
             raise
 
