@@ -11,7 +11,7 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
             /* Check if this is the tabs we're hooked to */
             if (event.target.id === $wrapper.attr('id')) {
                 if (ui.index != 0 || window.location.hash) {
-                    window.location.hash = ui.index;
+                    window.location.hash = '!' + ui.tab.hash.substring(1);
                 }
             }
         });
@@ -26,7 +26,7 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
             var $tabs = $wrapper.tabs();
             var index = 0;
             if (window.location.hash) {
-                index = parseInt(window.location.hash.substring(1));
+                index = window.location.hash.substring(2);
             }
 
             if (index != $tabs.tabs('option', 'selected')) {

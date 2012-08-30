@@ -10,7 +10,7 @@
         <ul>
             <li><a href="#roominfo">Room info</a></li>
             <li><a href="#deviceinfo">Device info</a></li>
-            <li><a href="{% url room-info-netboxes room.id %}">Netbox interfaces <span class="tab-spinner"></span></a></li>
+            <li><a href="{% url room-info-netboxes room.id %}" title="netboxinterfaces">Netbox interfaces <span class="tab-spinner"></span></a></li>
         </ul>
 
         <div id="roominfo">
@@ -77,6 +77,8 @@
             {% endfor %}
             </tbody>
         </table>
+
+        <div id="netboxinterfaces"></div>
 
     </div>
 
