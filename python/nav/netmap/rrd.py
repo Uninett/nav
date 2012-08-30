@@ -17,7 +17,8 @@ import logging
 from nav.models.manage import Interface
 from nav.netmap import stubs
 from nav.rrd2 import presenter
-from nav.web.netmapdev.common import get_traffic_rgb
+from nav.web.netmapdev.common import get_traffic_rgb, \
+    get_traffic_load_in_percent
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,6 +87,22 @@ def attach_rrd_data_to_edges(graph, json=None, debug=False):
 
     datasource_lookup = _get_datasource_lookup(graph)
 
+    def _fetch_rrd(uplink):
+        traffic = {}
+        if uplink['interface'] and not isinstance(
+            uplink['interface'], stubs.Interface):
+            if uplink['interface'].pk in datasource_lookup:
+                datasources_for_interface = datasource_lookup[
+                                            uplink[
+                                            'interface'].pk]
+                for rrd_source in datasources_for_interface:
+                    if rrd_source.description in valid_traffic_sources and\
+                       rrd_source.description not in traffic:
+                        traffic[rrd_source.description] = rrd_info(
+                            rrd_source)
+        return traffic
+
+
     # , u'ifInErrors', u'ifInUcastPkts', u'ifOutErrors', u'ifOutUcastPkts'
     valid_traffic_sources = (
         u'ifHCInOctets', u'ifHCOutOctets', u'ifInOctets', u'ifOutOctets')
@@ -98,18 +115,13 @@ def attach_rrd_data_to_edges(graph, json=None, debug=False):
 
         if 'metadata' in w:
             metadata = w['metadata']
+            direction = 'thiss'
+            traffic.update(_fetch_rrd(metadata['uplink'][direction]))
 
-            if not isinstance(metadata['uplink']['thiss']['interface'], stubs.Interface):
-                if metadata['uplink']['thiss']['interface'].pk in datasource_lookup:
-                    datasources_for_interface = datasource_lookup[
-                                                metadata['uplink']['thiss'][
-                                                'interface'].pk]
-                    for rrd_source in datasources_for_interface:
-                        if rrd_source.description in valid_traffic_sources and\
-                           rrd_source.description not in traffic:
-                            if debug:
-                                traffic[rrd_source.description] = rrd_info(
-                                    rrd_source)
+            if not any(source in traffic for source in valid_traffic_sources):
+                direction = 'other'
+                traffic.update(_fetch_rrd(metadata['uplink'][direction]))
+
 
 
             if 'ifInOctets' in traffic:
@@ -125,16 +137,25 @@ def attach_rrd_data_to_edges(graph, json=None, debug=False):
             if 'ifHCOutOctets' in traffic:
                 traffic['outOctets'] = traffic['ifHCOutOctets']
 
+            # swap
+            if direction == 'other':
+                tmp = traffic['inOctets']
+                traffic['inOctets'] = traffic['outOctets']
+                traffic['outOctets'] = tmp
 
         unknown_speed_css = (211,211,211) # light grey
 
-        traffic['inOctets_css'] = get_traffic_rgb(traffic['inOctets']['raw'],
+        inOctetsPercentBySpeed = get_traffic_load_in_percent(traffic['inOctets']['raw'],
             metadata['link_speed']) if traffic['inOctets'] and\
-                                       traffic['inOctets']['raw'] else unknown_speed_css
-        traffic['outOctets_css'] = get_traffic_rgb(traffic['outOctets']['raw'],
+                                       traffic['inOctets']['raw'] else None
+        outOctetsPercentBySpeed = get_traffic_load_in_percent(traffic['outOctets']['raw'],
             metadata['link_speed']) if traffic['outOctets'] and\
-                                       traffic['inOctets']['raw'] else unknown_speed_css
+                                       traffic['outOctets']['raw'] else None
 
+        traffic['inOctets_css'] = get_traffic_rgb(inOctetsPercentBySpeed) if inOctetsPercentBySpeed else unknown_speed_css
+        traffic['outOctets_css'] = get_traffic_rgb(outOctetsPercentBySpeed) if outOctetsPercentBySpeed else unknown_speed_css
+        traffic['inOctetsPercentBySpeed'] = "%.2f" % inOctetsPercentBySpeed if inOctetsPercentBySpeed else None
+        traffic['outOctetsPercentBySpeed'] = "%.2f" % outOctetsPercentBySpeed if outOctetsPercentBySpeed else None
 
         for json_edge in json:
 

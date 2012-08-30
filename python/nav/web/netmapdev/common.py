@@ -55,7 +55,7 @@ def convert_bits_to_ieee1541():
     return None
 
 
-def get_traffic_rgb(octets, capacity=None):
+def get_traffic_load_in_percent(octets, capacity=None):
     """Traffic load color
     Blue color if capacity is not defined. Normally indicates an error
     ex. link_speed on interfaces between nodes are not equal!
@@ -63,9 +63,8 @@ def get_traffic_rgb(octets, capacity=None):
      :param traffic: octets pr second (bytes a second)
      :param capacity: capacity on link in mbps. (ie 1Gbit = 1000 mbps)
     """
-
     if not capacity:
-        return 0, 0, 255
+        return None
 
     MEGABITS_TO_BITS = 1000000
 
@@ -75,11 +74,16 @@ def get_traffic_rgb(octets, capacity=None):
 
     if traffic_in_percent > 100 or traffic_in_percent < 0:
         traffic_in_percent = 100 # set to red, this indicates something is odd
+    return traffic_in_percent
+
+def get_traffic_rgb(percent):
+    if not percent:
+        return 0, 0, 255
 
     # range(42,236) = 194 steps with nice colors from traffic_gradient_map()
     step_constant = 194.00 / 100.00
 
-    color_map_index = int(traffic_in_percent * step_constant)
+    color_map_index = int(percent * step_constant)
     if color_map_index >= 194:
         color_map_index = 193
 

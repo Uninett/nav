@@ -26,8 +26,8 @@
 
 <br />Link speed: {{link.data.link_speed}}mbps
 <br />Traffic
-<br />in[{{inOctets}}]
-<br />out[{{outOctets}}]
+<br />in[{{inOctets}}] {{#if link.data.traffic.inOctetsPercentBySpeed}} ({{link.data.traffic.inOctetsPercentBySpeed}}%){{/if}}
+<br />out[{{outOctets}}] {{#if link.data.traffic.outOctetsPercentBySpeed}} ({{link.data.traffic.outOctetsPercentBySpeed}}%){{/if}}
 
 {{#if link.data.uplink.vlans}}
 <h5>Vlans</h5>
