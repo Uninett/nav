@@ -51,7 +51,7 @@ until [ ${XVFB_STARTED} -eq 1 ] || (( ${XVFB_TRIES} > 10 )) ; do
     DISPLAYNUM=$((RANDOM%10+90))
     ${XVFB} :${DISPLAYNUM} > /dev/null 2>/dev/null &
     PID_XVFB="$!"
-    sleep 4
+    sleep 8
     if jobs | grep XVFB; then
         echo "Started on display ${DISPLAYNUM} with pid ${PID_XVFB}"
         XVFB_STARTED=1
@@ -73,7 +73,7 @@ until [ ${BUSTER_STARTED} -eq 1 ] || (( ${BUSTER_TRIES} > 10 )) ; do
     BUSTERPORT=$((RANDOM%100+1200))
     ${BUSTERSERVER} -l error -p ${BUSTERPORT} &
     PID_BUSTER="$!"
-    sleep 4
+    sleep 8
     if jobs | grep BUSTERSERVER; then
         echo "Started on port ${BUSTERPORT} with pid ${PID_BUSTER}"
         BUSTER_STARTED=1
@@ -94,7 +94,7 @@ export DISPLAY=:${DISPLAYNUM}
 ${GOOGLECHROME} http://localhost:${BUSTERPORT}/capture &
 PID_CHROME="$!"
 echo "Started on display ${DISPLAYNUM} with pid ${PID_CHROME} connected to ${BUSTERPORT}"
-sleep 4
+sleep 8
 
 echo "Running tests"
 cd ${WORKSPACE}/media/js
