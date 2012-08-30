@@ -1224,6 +1224,8 @@ class NetmapView(models.Model):
     zoom = models.CharField(max_length=255) # picke x,y,scale (translate(x,y) , scale(scale)
     last_modified = models.DateTimeField(auto_now_add=True)
     is_public = models.BooleanField(default=False)
+    display_elinks = models.BooleanField(default=False)
+    display_orphans = models.BooleanField(default=False)
 
     def __unicode__(self):
         return u'%s (%s)' % (self.viewid, self.title)
@@ -1238,6 +1240,8 @@ class NetmapView(models.Model):
             'last_modified': str(self.last_modified),
             'is_public': str(self.is_public),
             'categories': [str(x.category.id) for x in self.categories_set.all()],
+            'display_elinks': unicode(self.display_elinks),
+            'display_orphans': unicode(self.display_orphans)
         }
 
 
