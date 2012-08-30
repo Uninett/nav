@@ -26,9 +26,9 @@
         <ul>
             <li><a href="#deviceinfo">Device Info</a></li>
             <li><a href="#ports">Ports</a></li>
-            <li><a href="#alerts">Alerts</a></li>
-            <li><a href="#powerfans">Power and fans</a></li>
-            <li><a href="#services">Services</a></li>
+            <li><a href="#alerts">Alerts ({{ alert_info.alerts|length }})</a></li>
+            <li><a href="#powerfans">Power and fans ({{ netbox.get_powersupplies|length }}/{{ netbox.get_fans|length }})</a></li>
+            <li><a href="#services">Services ({{ netbox.service_set.count|default:"0" }})</a></li>
         </ul>
 
         <div id="deviceinfo" class="multitable">
