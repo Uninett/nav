@@ -25,20 +25,20 @@
 
         <ul>
             <li><a href="#deviceinfo">Device Info</a></li>
-            <li><a href="#alerts">Alerts</a></li>
-            <li><a href="#services">Services</a></li>
-            <li><a href="#powerfans">Power and fans</a></li>
             <li><a href="#ports">Ports</a></li>
+            <li><a href="#alerts">Alerts</a></li>
+            <li><a href="#powerfans">Power and fans</a></li>
+            <li><a href="#services">Services</a></li>
         </ul>
 
         <div id="deviceinfo" class="multitable">
             {% include "ipdevinfo/frag-ipdevinfo.html" %}
             {% include "ipdevinfo/frag-hostinfo.html" %}
         </div>
-        {% include "ipdevinfo/frag-alerts.html" %}
-        {% include "ipdevinfo/frag-services.html" %}
-        {% include "ipdevinfo/frag-powerfans.html" %}
         {% include "ipdevinfo/frag-ports.html" %}
+        {% include "ipdevinfo/frag-alerts.html" %}
+        {% include "ipdevinfo/frag-powerfans.html" %}
+        {% include "ipdevinfo/frag-services.html" %}
 
     </div>
 
