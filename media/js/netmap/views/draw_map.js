@@ -44,6 +44,7 @@ define([
             }};
             this.context_selected_map = this.options.context_selected_map;
             this.sidebar = this.options.view_map_info;
+            this.filter_orphans = !this.context_selected_map.display_orphans;
 
             this.w = this.options.cssWidth;
             this.h = screen.height - 500;

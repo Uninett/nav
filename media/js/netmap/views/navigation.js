@@ -80,7 +80,8 @@ define([
                     'ELINK': false
                 },
                 'specific_filters': {
-                    'groupby_room': false
+                    'groupby_room': false,
+                    'filter_orphans': false
                 },
                 'ui_mouseover': {
                     'nodes': { state: false, hotkey: 'n' },
@@ -97,7 +98,7 @@ define([
                 var category = this.model.attributes.categories[i];
                 this.context.categories[category] = true;
             }
-
+            this.context.specific_filters.filter_orphans = !this.model.attributes.display_orphans;
             this.context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
 
 

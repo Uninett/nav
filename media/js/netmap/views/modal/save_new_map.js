@@ -35,12 +35,12 @@ define([
         get_fixed_nodes: function () {
             var fixed_nodes = [];
 
-            for (var i in this.graph.attributes.nodes) {
-                if (this.graph.attributes.nodes[i].fixed === true) {
-                    fixed_nodes.push(this.graph.attributes.nodes[i]);
+            for (var i = 0; i < this.graph.attributes.nodes.length; i++) {
+                var node = this.graph.attributes.nodes[i];
+                if (node.fixed == true && node.data.category !== 'ELINK') {
+                    fixed_nodes.push(node);
                 }
             }
-
             return fixed_nodes;
 
                 /*data['fixed_nodes'] = JSON.stringify(fixed_nodes);
@@ -61,7 +61,8 @@ define([
                 //zoom: self.graph.zoom,
                 topology: self.model.attributes.topology,
                 categories: self.model.attributes.categories,
-                zoom: self.model.attributes.zoom
+                zoom: self.model.attributes.zoom,
+                display_orphans: !self.model.attributes.display_orphans
             });
             console.log("====" + "savedata");
             console.log($.extend(true, {}, this.model.attributes));

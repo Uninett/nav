@@ -10,8 +10,9 @@ define([
             is_public: true,
             // see nav.models.profiles TOPOLOGY_TYPES , 1 == layer 2 topology
             topology: 1,
-            categories: ['GSW', 'GW', 'SW', 'EDGE', 'OTHER', 'WLAN', 'SRV', 'ELINK'],
+            categories: ['GSW', 'GW', 'SW', 'EDGE', 'OTHER', 'WLAN', 'SRV'],
             zoom: "0,0;0",
+            display_orphans: false
         },
         initialize: function () {
         },
