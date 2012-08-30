@@ -296,7 +296,37 @@ body>#netmap_infopanel {width:168px;}
 }
 
 .netmap-node-category {
+}
+.uplink_prefix h4 {
+    text-decoration: underline;
+}
+.traffic {
+    margin-bottom: 0.5em;
+}
+.uplink span {
+    display: block;
+}
+.uplink_virtual {
+    display: block;
+}
 
+.uplink_prefix h5 {
+    margin-top: 0.5em;
+}
+.uplink_prefix .prefix_net_ident {
+    text-size: 14pt;
+}
+
+.uplink_prefix .prefix_description {
+    text-size: 12pt;
+}
+
+.uplink_prefix .prefix_description {
+    display: block;
+}
+
+.uplink {
+    margin: 1em 0 1em 0;
 }
 
 circle {

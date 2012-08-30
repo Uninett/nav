@@ -101,32 +101,33 @@ def edge_to_json_layer3(metadata):
         uplink = json['uplink']
 
         # Add prefix metadata
-        prefix = None
+        vlan = None
 
         uplink_this = {}
         uplink_other = {}
-
-        if metadata['uplink'].has_key('prefix') and metadata['uplink']['prefix']:
-            prefix = {
-                'net_address': unicode(metadata['uplink']['prefix'].net_address),
-                'net_ident': unicode(metadata['uplink']['prefix'].vlan.net_ident),
-                'description': unicode(metadata['uplink']['prefix'].vlan.description)
+#                'net_address': unicode(metadata['uplink']['prefix'].net_address),
+        if metadata['uplink'].has_key('vlan') and metadata['uplink']['vlan']:
+            vlan = {
+                'net_ident': unicode(metadata['uplink']['vlan'].net_ident),
+                'description': unicode(metadata['uplink']['vlan'].description)
             }
+
+            uplink.update({'prefixes': [x.net_address for x in metadata['uplink']['prefixes']]})
 
             if metadata['uplink']['thiss'].has_key('gw_ip'):
                 uplink_this.update(
                         {'gw_ip': metadata['uplink']['thiss']['gw_ip'],
-                         'hsrp': metadata['uplink']['thiss']['hsrp']})
+                         'virtual': metadata['uplink']['thiss']['virtual']})
 
             if metadata['uplink']['other'].has_key('gw_ip'):
                 uplink_other.update(
                         {'gw_ip': metadata['uplink']['other']['gw_ip'],
-                         'hsrp': metadata['uplink']['other']['hsrp']})
+                         'virtual': metadata['uplink']['other']['virtual']})
 
         uplink['thiss'].update(uplink_this)
         uplink['other'].update(uplink_other)
 
-        uplink['prefix'] = prefix
+        uplink['vlan'] = vlan
 
     return json
 
@@ -182,28 +183,30 @@ def edge_to_json(metadata):
         }
 
 
-def edge_metadata_layer3(thiss_gwpp, other_gwpp):
+def edge_metadata_layer3(thiss_gwpp, other_gwpp, prefixes):
     """
     Adds edge meta data with python types for given edge (layer3)
 
     :param thiss_gwpp This netbox's GwPortPrefix
     :param other_gwpp Other netbox's GwPortPrefix
+    :param prefixes list of prefixes (Prefix)
     """
 
-    net_ident = None
+    prefix = None
     this_gwprefix_meta = None
     other_gwprefix_meta = None
 
     if thiss_gwpp:
-        net_ident = thiss_gwpp.prefix
+        prefix = thiss_gwpp.prefix
 
         if isinstance(thiss_gwpp, GwPortPrefix):
-            this_gwprefix_meta = { 'gw_ip': thiss_gwpp.gw_ip, 'hsrp': thiss_gwpp.hsrp }
+            this_gwprefix_meta = { 'gw_ip': thiss_gwpp.gw_ip, 'virtual': thiss_gwpp.virtual }
     if other_gwpp:
-        net_ident = other_gwpp.prefix
+        if not prefix:
+            prefix = other_gwpp.prefix
 
         if isinstance(other_gwpp, GwPortPrefix):
-            other_gwprefix_meta = { 'gw_ip': other_gwpp.gw_ip, 'hsrp': other_gwpp.hsrp }
+            other_gwprefix_meta = { 'gw_ip': other_gwpp.gw_ip, 'virtual': other_gwpp.virtual }
 
     metadata = edge_metadata(thiss_gwpp.interface.netbox, thiss_gwpp.interface, other_gwpp.interface.netbox, other_gwpp.interface)
 
@@ -211,7 +214,7 @@ def edge_metadata_layer3(thiss_gwpp, other_gwpp):
         metadata['uplink']['thiss'].update(this_gwprefix_meta)
     if other_gwprefix_meta:
         metadata['uplink']['other'].update(other_gwprefix_meta)
-    metadata['uplink'].update({'prefix': net_ident})
+    metadata['uplink'].update({'vlan': prefix.vlan, 'prefixes': prefixes})
 
     return metadata
 

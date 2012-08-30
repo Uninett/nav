@@ -16,8 +16,8 @@
 import logging
 import networkx as nx
 import operator
-from nav.models.manage import SwPortVlan, NetType, GwPortPrefix
-from nav.netmap import stubs
+from collections import defaultdict
+from nav.models.manage import SwPortVlan, Prefix
 from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2
 from nav.topology import vlan
 
@@ -31,7 +31,6 @@ def _get_vlans_map(graph):
         if key.vlan:
             interface_id_list.append(key.id)
 
-    from collections import defaultdict
     vlan_by_interface = defaultdict(list)
     vlan_by_netbox = defaultdict(dict)
     for swpv in SwPortVlan.objects.filter(interface__in=list(interface_id_list)).select_related():
@@ -42,17 +41,16 @@ def _get_vlans_map(graph):
 
     return (vlan_by_interface, vlan_by_netbox)
 
-def _get_prefixes_map(graph):
-    prefixes_in_graph = []
-    for a, b, key in graph.edges_iter(keys=True):
-        prefixes_in_graph.append(key.id)
+def _get_vlans_map_layer3(graph):
+    prefix_list_id = list()
+    for gwpp_a, gwpp_b, prefix in graph.edges_iter(keys=True):
+        prefix_list_id.append(prefix.vlan.id)
 
-    from collections import defaultdict
-    gwpp_by_prefix = defaultdict(list)
-    for gwpp in GwPortPrefix.objects.filter(prefix__in=prefixes_in_graph).select_related():
-        gwpp_by_prefix[gwpp.prefix].append(gwpp)
+    prefixes_by_navvlan = defaultdict(list)
+    for prefix_in_navvlan in Prefix.objects.filter(vlan__id__in=list(prefix_list_id)).select_related():
+        prefixes_by_navvlan[prefix_in_navvlan.vlan.id].append(prefix_in_navvlan)
 
-    return gwpp_by_prefix
+    return prefixes_by_navvlan
 
 
 def build_netmap_layer2_graph(view=None):
@@ -108,6 +106,8 @@ def build_netmap_layer3_graph(view=None):
     #    ('to_interface__netbox__room', 'netbox__room', 'to_interface__to_netbox__room', 'interface__to_netbox__rom' 'to_interface__netbox', 'prefix__vlan__net_type',))
     _LOGGER.debug("build_netmap_layer3_graph() topology graph done")
 
+    vlans_map = _get_vlans_map_layer3(topology_without_metadata)
+
     # Make a copy of the graph, and add edge meta data
     graph = nx.MultiGraph()
 
@@ -115,8 +115,8 @@ def build_netmap_layer3_graph(view=None):
         netbox_a = gwpp_a.interface.netbox
         netbox_b = gwpp_b.interface.netbox
 
-        graph.add_edge(netbox_a, netbox_b, key=prefix,
-            metadata=edge_metadata_layer3(gwpp_a, gwpp_b))
+        graph.add_edge(netbox_a, netbox_b, key=prefix.vlan.id,
+            metadata=edge_metadata_layer3(gwpp_a, gwpp_b, vlans_map.get(prefix.vlan.id)))
     _LOGGER.debug("build_netmap_layer3_graph() graph copy with metadata done")
 
     if view:
