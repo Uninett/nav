@@ -23,15 +23,8 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
 
         /* Navigate to correct tab based on url hash mark */
         function navigate() {
-            var $tabs = $wrapper.tabs();
-            var index = 0;
-            if (window.location.hash) {
-                index = window.location.hash.substring(2);
-            }
-
-            if (index != $tabs.tabs('option', 'selected')) {
-                $tabs.tabs('select', index);
-            }
+            var index = window.location.hash ? window.location.hash.substring(2) : 0;
+            $wrapper.tabs().tabs('select', index);
         }
     }
 
