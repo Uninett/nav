@@ -412,16 +412,16 @@
     <object pk="10.0.1.1" model="models.gwportprefix">
         <field to="models.interface" name="interface" rel="ManyToOneRel">2</field>
         <field to="models.prefix" name="prefix" rel="ManyToOneRel">2</field>
-        <field type="BooleanField" name="hsrp">False</field>
+        <field type="BooleanField" name="virtual">False</field>
     </object>
     <object pk="10.0.20.1" model="models.gwportprefix">
         <field to="models.interface" name="interface" rel="ManyToOneRel">1</field>
         <field to="models.prefix" name="prefix" rel="ManyToOneRel">3</field>
-        <field type="BooleanField" name="hsrp">False</field>
+        <field type="BooleanField" name="virtual">False</field>
     </object>
     <object pk="10.0.30.1" model="models.gwportprefix">
         <field to="models.interface" name="interface" rel="ManyToOneRel">1</field>
         <field to="models.prefix" name="prefix" rel="ManyToOneRel">4</field>
-        <field type="BooleanField" name="hsrp">False</field>
+        <field type="BooleanField" name="virtual">False</field>
     </object>
 </django-objects>

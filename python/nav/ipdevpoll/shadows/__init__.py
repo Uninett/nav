@@ -422,8 +422,11 @@ class Vlan(Shadow):
         """
         prefix_containers = self._get_my_prefixes(containers)
         self._log_if_multiple_prefixes(prefix_containers)
-        # ATM we only look at the first prefix we can find.
+
         if prefix_containers:
+            # prioritize ipv4 prefixes, as the netmasks are more revealing
+            prefix_containers.sort(
+                key=lambda p: IPy.IP(p.net_address).version())
             prefix = IPy.IP(prefix_containers[0].net_address)
         else:
             return NetType.get('unknown')
