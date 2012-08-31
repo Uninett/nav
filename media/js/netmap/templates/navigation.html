@@ -38,7 +38,15 @@
 
     <div class="squaredTwo">
         <input type="checkbox" name="freezeNodes" value="freezeNodes" id="freezeNodes" {{#if freezeNodes}} checked{{/if}} />
-        <label for="freezeNodes">Freeze all nodes</label>
+        <label for="freezeNodes">Stop force algorithm?</label>
+    </div>
+
+    <div class="fix_options">
+        <span>Fix or unfix all nodes</span>
+        <div class="squaredTwo">
+            <input type="button" name="nodesFixed" value="Fix" id="setNodesFixed" />
+            <input type="button" name="nodesFixed" value="UnFix" id="unsetNodesFixed" />
+        </div>
     </div>
 
     <h3>UI options</h3>

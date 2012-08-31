@@ -25,7 +25,8 @@ define([
             'map:ui:mouseover:nodes': 'toggleUIMouseoverNodes',
             'map:ui:mouseover:links': 'toggleUIMouseoverLinks',
             'map:loading:context_selected_map': 'clear',
-            'map:node:fixed': 'updateNodeFixedStatus'
+            'map:node:fixed': 'updateNodeFixedStatus',
+            'map:fixNodes': 'updateAllNodePositions'
         },
         initialize: function () {
             this.broker.register(this);
@@ -159,6 +160,13 @@ define([
                     break;
                 }
             }
+        },
+        updateAllNodePositions: function (boolean) {
+            for (var i = 0; i < this.modelJson.nodes.length; i++) {
+                var node = this.modelJson.nodes[i];
+                node.fixed = boolean;
+            }
+            this.sidebar.render();
         },
         redraw: function (options) {
             if (options !== undefined) {

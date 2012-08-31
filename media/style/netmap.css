@@ -297,6 +297,25 @@ body>#netmap_infopanel {width:168px;}
 
 .netmap-node-category {
 }
+
+/* Navigation styles */
+
+.fix_options {
+    margin-top: 0.5em;
+}
+.fix_options span {
+    font-size: 10pt;
+}
+.fix_options div {
+    margin-top: 0.5em;
+    text-align: center;
+}
+.fix_options div input {
+    width: 50px;
+}
+
+
+/* Link info styles */
 .uplink_prefix h4 {
     text-decoration: underline;
 }

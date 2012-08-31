@@ -21,8 +21,7 @@ define([
             });
 
             this.render();
-            this.linkInfoView = new LinkInfoView({el: $("#linkinfo", this.$el)});
-            this.netboxInfoView = new NetboxInfoView({el: $("#nodeinfo", this.$el)});
+
             /*this.model.bind("change", this.render, this);
              this.model.bind("destroy", this.close, this);*/
 
@@ -44,7 +43,28 @@ define([
         render: function () {
             var self = this;
             var out = this.template();
+
+            var netbox = null;
+            var link = null;
+
+            if (this.linkInfoView !== undefined && this.linkInfoView.link) {
+                link = this.linkInfoView.link;
+                this.linkInfoView.close();
+            } else if (this.netboxInfoView !== undefined && this.netboxInfoView.node) {
+                netbox = this.netboxInfoView.node;
+                this.netboxInfoView.close();
+            }
+
             this.$el.html(out);
+
+            this.linkInfoView = new LinkInfoView({el: $("#linkinfo", this.$el)});
+            this.netboxInfoView = new NetboxInfoView({el: $("#nodeinfo", this.$el)});
+            if (netbox !== null) {
+                this.swap_to_netbox(netbox);
+            } else if (link !== null) {
+                this.swap_to_link(link);
+            }
+
             return this;
         },
         close: function () {

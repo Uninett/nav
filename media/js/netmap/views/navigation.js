@@ -18,9 +18,9 @@ define([
             'click input[name="filter_orphans"]': 'onFilterOrphansClick',
             'click input[name="group_roomid"]': 'onGroupByRoomClick',
             'click input[name="freezeNodes"]': 'onFreezeNodesClick',
-            'click input[name="setNodesFixed"]': 'onFreezeNodesClick',
             'click input[name="mouseOver[]"]': 'onUIMouseOverClick',
-            'click input[name="topologyErrors"]': 'onUITopologyErrorsClick'
+            'click input[name="topologyErrors"]': 'onUITopologyErrorsClick',
+            'click input[name="nodesFixed"]': 'onNodesFixedClick'
         },
         initialize: function () {
             console.log("foodsfsdfbar");
@@ -192,6 +192,14 @@ define([
             this.broker.trigger('map:redraw', {
                 topologyErrors: $(e.currentTarget).prop('checked')
             });
+        },
+        onNodesFixedClick: function (e) {
+            var val = $(e.currentTarget).val();
+            if (val === 'Fix') {
+                this.broker.trigger('map:fixNodes', true);
+            } else if (val === 'UnFix') {
+                this.broker.trigger('map:fixNodes', false);
+            }
         },
         on_keypress: function (e) {
             if (e.charCode === 110) { // n
