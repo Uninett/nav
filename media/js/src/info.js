@@ -1,9 +1,9 @@
 require.config({
     baseUrl: "/js/",
     shim: {
-        'libs/jquery-ui-1.8.21.custom.min': ['libs/jquery-1.4.4.min'],
-        'libs/jquery.dataTables.min': ['libs/jquery-1.4.4.min'],
-        'libs/downloadify.min': ['libs/jquery-1.4.4.min', 'libs/swfobject']
+        'libs/jquery-ui-1.8.21.custom.min': ['libs/jquery'],
+        'libs/jquery.dataTables.min': ['libs/jquery'],
+        'libs/downloadify.min': ['libs/jquery', 'libs/swfobject']
     }
 });
 require(
@@ -16,7 +16,7 @@ require(
         "src/dt_plugins/altsort",
         "src/dt_plugins/date_title_sort",
         "src/dt_plugins/modulesort",
-        "libs/jquery-1.4.4.min",
+        "libs/jquery",
         "libs/jquery-ui-1.8.21.custom.min",
         "libs/jquery.dataTables.min",
         "libs/downloadify.min",

@@ -5,7 +5,7 @@ config["My tests"] = {
     environment: "browser", // or "node"
     libs: [
         "libs/require.js",
-        "libs/jquery-1.4.4.min.js",
+        "libs/jquery.js",
         "libs/jquery.dataTables.min.js",
         "libs/jquery-ui-1.8.21.custom.min.js"
     ],

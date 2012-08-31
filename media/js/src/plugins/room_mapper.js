@@ -1,4 +1,4 @@
-define(['libs/OpenLayers', 'libs/jquery-1.4.4.min'], function () {
+define(['libs/OpenLayers', 'libs/jquery'], function () {
 
     /*
      * Mapper creates an OpenStreetMap on the node given rooms from NAV

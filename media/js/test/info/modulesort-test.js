@@ -1,5 +1,5 @@
 require([
-    'src/dt_plugins/modulesort', 'libs/jquery-1.4.4.min', 'libs/jquery.dataTables.min'
+    'src/dt_plugins/modulesort', 'libs/jquery', 'libs/jquery.dataTables.min'
 ], function (modulesort) {
     buster.testCase("modulesort", {
         "basic numeric sort should work": function () {

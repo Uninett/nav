@@ -1,4 +1,4 @@
-define(["libs/jquery-1.4.4.min"], function () {
+define(["libs/jquery"], function () {
 
     function TableUtil(node, limit) {
         this.node = node;
