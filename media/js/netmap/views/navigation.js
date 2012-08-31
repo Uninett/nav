@@ -117,7 +117,7 @@ define([
         },
         alignView: function () {
             var $helper = $(this.$el.parent());
-            var $helper_content = $(".inner_wrap", this.$el);
+            var $helper_content = $(".inner_wrap.left_sidebar", this.$el);
 
             var margin;
 
