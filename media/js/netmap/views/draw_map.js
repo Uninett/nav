@@ -38,10 +38,13 @@ define([
 
             this.selected_node = null;
             this.selected_vlan = null;
-            this.ui = {'mouseover': {
-                'nodes': false,
-                'links': false
-            }};
+            this.ui = {
+                'topologyErrors': false,
+                'mouseover': {
+                    'nodes': false,
+                    'links': false
+                }
+            };
             this.context_selected_map = this.options.context_selected_map;
             this.sidebar = this.options.view_map_info;
             this.filter_orphans = !this.context_selected_map.display_orphans;
@@ -165,6 +168,9 @@ define([
                 if (options.groupby_room !== undefined) {
                     this.groupby_room = options.groupby_room;
                 }
+                if (options.topologyErrors !== undefined) {
+                    this.ui.topologyErrors = options.topologyErrors;
+                }
             }
 
             this.clear();
@@ -271,21 +277,25 @@ define([
 
                 self.force.nodes(json.nodes).links(json.links).on("tick", tick);
 
-                var linkGroupMeta = svg.append("svg:g").attr("class", "linksmeta");
+                if (linkErrors !== undefined && !self.ui.topologyErrors) {
+                    linkErrors.exit().remove();
+                } else if (self.ui.topologyErrors) {
+                    var linkGroupMeta = svg.append("svg:g").attr("class", "linksmeta");
 
-                var linksWithErrors = self.modelJson.links.filter(function (d) {
-                    if (d.data.tip_inspect_link) {
-                        return true;
-                    }
-                    return false;
-                });
+                    var linksWithErrors = self.modelJson.links.filter(function (d) {
+                        if (d.data.tip_inspect_link) {
+                            return true;
+                        }
+                        return false;
+                    });
 
-                var linkErrors = linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
-                    return d.source.id + "-" + d.target.id;
-                });
+                    var linkErrors = linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
+                        return d.source.id + "-" + d.target.id;
+                    });
 
-                linkErrors.enter().append("svg:line").attr("class", "warning_inspect");
-                linkErrors.exit().remove();
+                    linkErrors.enter().append("svg:line").attr("class", "warning_inspect");
+                    linkErrors.exit().remove();
+                }
 
                 var linkGroup = svg.append("svg:g").attr("class", "links");
                 //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
@@ -559,12 +569,13 @@ define([
                             .attr("y2", function (d) { return d.target.y;});
                     }
 
-                    linkErrors
-                        .attr("x1", function (d) { return d.source.x; })
-                        .attr("y1", function (d) { return d.source.y; })
-                        .attr("x2", function (d) { return d.target.x; })
-                        .attr("y2", function (d) { return d.target.y; });
-
+                    if (self.ui.topologyErrors) {
+                        linkErrors
+                            .attr("x1", function (d) { return d.source.x; })
+                            .attr("y1", function (d) { return d.source.y; })
+                            .attr("x2", function (d) { return d.target.x; })
+                            .attr("y2", function (d) { return d.target.y; });
+                    }
 
                     link
                         .attr("x1", function (d) {
