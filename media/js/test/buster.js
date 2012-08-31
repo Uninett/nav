@@ -11,6 +11,7 @@ config["My tests"] = {
     ],
     sources: [
         "src/info/*.js",
+        "src/plugins/*.js",
         "src/dt_plugins/*.js"
     ],
     tests: [
