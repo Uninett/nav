@@ -28,5 +28,8 @@
             </div>
         </fieldset>
     </form>
-    <div id="save_new_view_form"></div>
+    {{#if context_selected_map.isNew}}
+    {{else}}
+        <div class="description_selected_view"><span class="description">Description:</span><span class="value">{{#if context_selected_map.description}}{{context_selected_map.description}}{{else}}N/A{{/if}}</span></div>
+    {{/if}}
 </div>

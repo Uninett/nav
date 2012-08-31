@@ -56,6 +56,7 @@ define([
             //var copy = $.extend(true, {}, this.model);
             this.model.set({
                 title: self.$('#new_view_title').val().trim(),
+                description: self.$('#new_view_description').val().trim(),
                 is_public: (self.$('#new_view_is_public').attr('checked') ? true : false),
                 nodes: self.get_fixed_nodes(),
                 //zoom: self.graph.zoom,
