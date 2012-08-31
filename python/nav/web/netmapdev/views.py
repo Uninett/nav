@@ -116,6 +116,8 @@ def update_map(request, map_id):
 
         view.title = data['title']
 
+        view.description = data['description']
+
         view.topology = data['topology']
 
         view.zoom = data['zoom']
@@ -151,6 +153,7 @@ def create_map(request):
     # todo: sanitize input.
     view = NetmapView()
     view.title = data['title']
+    view.description = data['description']
     view.owner = session_user
     #if 'link_tyes' in data:
     #    view.link_types = data['link_types']

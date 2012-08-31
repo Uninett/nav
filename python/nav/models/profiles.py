@@ -1219,7 +1219,8 @@ class NetmapView(models.Model):
     """Properties for a specific view in Netmap"""
     viewid = models.AutoField(primary_key=True)
     owner = models.ForeignKey(Account, db_column='owner')
-    title = models.TextField()
+    title = models.TextField(),
+    description = models.TextField(),
     topology = models.CharField(choices=LINK_TYPES)
     zoom = models.CharField(max_length=255) # picke x,y,scale (translate(x,y) , scale(scale)
     last_modified = models.DateTimeField(auto_now_add=True)
