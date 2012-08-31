@@ -10,29 +10,6 @@ body {
     font-size: 90%;
 }
 
-a {
-    color: #369;
-}
-
-a:hover {
-    color: #fff;
-    background: #369;
-    text-decoration: none;
-}
-
-h1, h2, h3 {
-    margin: .8em 0 .2em 0;
-    padding: 0;
-}
-
-p {
-    margin: .4em 0 .8em 0;
-    padding: 0;
-}
-
-img {
-    margin: 10px 0 5px;
-}
 
 /* Header styles */
 #header {
@@ -313,6 +290,40 @@ body>#netmap_infopanel {width:168px;}
 .fix_options div input {
     width: 50px;
 }
+
+/* Node info styles */
+
+.netmap_node_status {
+    float: right;
+}
+
+.node_sysname {
+    margin-bottom: 0.5em;
+}
+.node_ip {
+    margin-bottom: 1em;
+}
+
+.node_fixed_position {
+    margin: 1em 0 1em 0;
+}
+
+
+.node_category img {
+    float: right;
+    margin-top: 15px;
+}
+
+.node_room {
+    margin-top: 1em;
+}
+span.description {
+    font-weight: bold;
+}
+span.value {
+    display: block;
+}
+
 
 
 /* Link info styles */

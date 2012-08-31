@@ -1,35 +1,32 @@
+<img src='/images/lys/{{node.data.up_image}}' alt='{{node.data.up}}' class='netmap_node_status'/>
+<h4 class="node_sysname"><a href="{{node.data.ipdevinfo_link}}">{{node.data.sysname}}</a></h4>
+<div class="node_ip">{{node.data.ip}}</div>
+<div class="node_last_updated">
+    <span class="description">Last updated:</span><span class="value">{{#if node.data.last_updated}}{{node.data.last_updated}}{{else}}N/A{{/if}}</span>
+</div>
 
-    <span><img src='/images/lys/{{node.data.up_image}}' alt='{{node.data.up}}' class='netmap-node-status'/>
-    <h2>{{node.data.sysname}}</h2></span>
-    <p>Last updated: {{node.data.last_updated}}</p>
-    <ul class='netmap-node-menu'>
-        <li>[<a href='{{node.data.ipdevinfo_link}}'>infodevinfo</a>]</li>
-        <li>[<a href='#'>geomap</a>]</li>
-    </ul>
-    <div class="squaredTwo">
-        <input type="checkbox" name="positionFixed" value="positionFixed" id="positionFixed" {{#if node.fixed}} checked{{/if}} />
-        <label for="positionFixed">Node is fixed position?</label>
-    </div>
-    <dl>
-        <dt>IP</dt>
-        <dd>{{node.data.ip}}</dd>
-        <dt>Category</dt>
-        <dd style='background: url(\/images\/netmap\/{{{toLowerCase node.data.category}}}.png) no-repeat; background-size: 32px 32px; padding-left: 35px; min-height: 32px; height: 32px'>
-            {{node.data.category}}
-        </dd>
-        <dt>Type</dt>
-        <dd>{{node.data.type}}</dd>
-        <dt>Room</dt>
-        <dd>{{node.data.room}}</dd>
-        <dt>Vlans</dt>
-        <dd>
-            <ul id="node_info_vlan">
-            {{#each node.data.vlans}}
-                <li><a class="vlan" data-nav-vlan="{{this.nav_vlan}}">{{this.vlan}} ({{this.net_ident}})</a></li>
-            {{/each}}
-            </ul>
+<div class="node_fixed_position">
+    <input type="checkbox" name="positionFixed" value="positionFixed" id="positionFixed" {{#if node.fixed}} checked{{/if}} />
+    <label for="positionFixed">Node is fixed position?</label>
+</div>
 
-        </dd>
 
-        {{node.x}}, {{node.y}}
-    </dl>
+<div class="node_category">
+    <img src="/images/netmap/{{{toLowerCase node.data.category}}}.png" alt="{{node.data.category}}" width="32px" height="32px" />
+    <span class="description">Category:</span><span class="value">{{node.data.category}}</span>
+</div>
+
+<div class="node_room"><span class="description">Location:</span><span class="value">{{#if node.data.room}}{{node.data.room}}{{else}}N/A{{/if}}</span></div>
+
+{{#if node.data.vlans}}
+<h4>Vlans</h4>
+
+<ul id="node_info_vlan">
+    {{#each node.data.vlans}}
+    <li><a class="vlan" data-nav-vlan="{{this.nav_vlan}}">{{this.vlan}}
+        ({{this.net_ident}})</a></li>
+    {{/each}}
+</ul>
+{{/if}}
+
+
