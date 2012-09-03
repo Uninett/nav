@@ -1189,3 +1189,15 @@ class UnrecognizedNeighbor(models.Model):
             self.netbox.sysname, self.interface.ifname,
             self.source,
             self.remote_id, self.remote_name)
+
+class IpdevpollJobLog(models.Model):
+    id = models.AutoField(primary_key=True)
+    netbox = models.ForeignKey(Netbox, db_column='netboxid', null=False)
+    job_name = VarcharField(null=False, blank=False)
+    end_time = models.DateTimeField(auto_now_add=True, null=False)
+    duration = models.FloatField(null=True)
+    success = models.BooleanField(default=False, null=False)
+    interval = models.IntegerField(null=True)
+
+    class Meta:
+        db_table = 'ipdevpoll_job_log'
