@@ -11,10 +11,13 @@ define([
 
     var MapInfoView = Backbone.View.extend({
         broker: Backbone.EventBroker,
+        interests: {
+            'map:show_vlan': 'setSelectedVlan'
+        },
         events: {
-
         },
         initialize: function () {
+            this.broker.register(this);
             this.template = Handlebars.compile(mapInfoTemplate);
             Handlebars.registerHelper('toLowerCase', function (value) {
                 return (value && typeof value === 'string') ? value.toLowerCase() : '';
@@ -22,23 +25,23 @@ define([
 
             this.render();
 
-            /*this.model.bind("change", this.render, this);
-             this.model.bind("destroy", this.close, this);*/
-
         },
         swap_to_link: function (link) {
             if (this.netboxInfoView !== undefined) {
                 this.netboxInfoView.reset();
             }
-            this.linkInfoView.link = link;
+            this.linkInfoView.setLink(link, this.selected_vlan);
             this.linkInfoView.render();
         },
         swap_to_netbox: function (netbox) {
             if (this.linkInfoView !== undefined) {
                 this.linkInfoView.reset();
             }
-            this.netboxInfoView.node = netbox;
+            this.netboxInfoView.setNode(netbox, this.selected_vlan);
             this.netboxInfoView.render();
+        },
+        setSelectedVlan: function (selected_vlan) {
+            this.selected_vlan = selected_vlan;
         },
         render: function () {
             var self = this;

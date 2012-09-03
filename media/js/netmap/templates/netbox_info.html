@@ -18,15 +18,4 @@
 
 <div class="node_room"><span class="description">Location:</span><span class="value">{{#if node.data.room}}{{node.data.room}}{{else}}N/A{{/if}}</span></div>
 
-{{#if node.data.vlans}}
-<h4>Vlans</h4>
-
-<ul id="node_info_vlan">
-    {{#each node.data.vlans}}
-    <li {{#if this.is_selected}}class="selected_vlan"{{/if}}><a class="vlan" data-nav-vlan="{{this.nav_vlan}}">{{this.vlan}}
-        ({{this.net_ident}})</a></li>
-    {{/each}}
-</ul>
-{{/if}}
-
 

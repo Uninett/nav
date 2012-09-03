@@ -4,24 +4,21 @@ define([
     'backbone',
     'handlebars',
     'netmapextras',
+    'views/info/vlan',
     'text!templates/link_info.html'
 
-], function ($, _, Backbone, Handlebars, NetmapExtras, netmapTemplate) {
+], function ($, _, Backbone, Handlebars, NetmapExtras, VlanInfoView, netmapTemplate) {
 
     var LinkInfoView = Backbone.View.extend({
         broker: Backbone.EventBroker,
-        events: {
-            "click .vlan": "showVlan"
-        },
+
         initialize: function () {
             this.template = Handlebars.compile(netmapTemplate);
             Handlebars.registerHelper('toLowerCase', function (value) {
                 return (value && typeof value === 'string') ? value.toLowerCase() : '';
             });
             this.link = this.options.link;
-            /*this.model.bind("change", this.render, this);
-             this.model.bind("destroy", this.close, this);*/
-
+            this.vlanView = new VlanInfoView();
         },
         render: function () {
             var self = this;
@@ -42,50 +39,31 @@ define([
                     outOctets = outOctetsRaw = 'N/A';
                 }
 
-                // Mark selected vlan in metadata for template.
-                if (self.selected_vlan !== undefined) {
-                    for (var i = 0; i < self.link.data.uplink.vlans.length; i++) {
-                        var vlan = self.link.data.uplink.vlans[i];
-                        if (vlan.nav_vlan === self.selected_vlan.navVlanId) {
-                            vlan.is_selected = true;
-                        } else {
-                            vlan.is_selected = false;
-                        }
-                    }
-                } else {
-                    _.each(self.link.data.uplink.vlans, function (vlan) {
-                        vlan.is_selected = false;
-                    });
-                }
-
                 var out = this.template({link: self.link,
                     inOctets: inOctets,
                     inOctetsRaw: inOctetsRaw,
                     outOctets: outOctets,
-                    outOctetsRaw: outOctetsRaw,
-                    selected_vlan: this.selected_vlan
+                    outOctetsRaw: outOctetsRaw
                 });
 
                 this.$el.html(out);
+                this.$el.append(this.vlanView.render().el);
+                this.vlanView.delegateEvents();
             } else {
                 this.$el.empty();
             }
 
             return this;
         },
-        showVlan: function (e) {
-            e.stopPropagation();
-
-            this.selected_vlan = {
-                navVlanId: $(e.currentTarget).data().navVlan,
-                displayText: $(e.currentTarget).html()
-            };
-            this.broker.trigger('map:show_vlan', this.selected_vlan.navVlanId);
-            this.render();
+        setLink: function (link, selected_vlan) {
+            this.link = link;
+            this.vlanView.setVlans(link.data.uplink.vlans);
+            this.vlanView.setSelectedVlan(selected_vlan);
         },
         reset: function () {
             this.link = undefined;
             this.selected_vlan = undefined;
+            this.vlanView.setVlans(undefined);
             this.render();
         },
         close: function () {

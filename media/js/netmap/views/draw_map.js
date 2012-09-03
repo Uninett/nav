@@ -118,8 +118,8 @@ define([
             this.svg.attr("transform",
                 "translate(" + this.trans + ") scale(" + this.scale + ")");
         },
-        showVlan: function (nav_vlan_id) {
-            this.selected_vlan = nav_vlan_id;
+        showVlan: function (vlan) {
+            this.selected_vlan = vlan;
             this.redraw();
         },
         centerGraph: function () {
@@ -514,7 +514,7 @@ define([
                 };
 
                 if (self.selected_vlan !== undefined && self.selected_vlan) {
-                    markVlan(self.selected_vlan);
+                    markVlan(self.selected_vlan.navVlanId);
                 }
 
 
@@ -749,17 +749,17 @@ define([
                 function node_onClick(node) {
                     //var netbox_info = new NetboxInfoView({node: node});
                     self.selected_node = node;
-                    self.sidebar.swap_to_netbox(node);
 
                     if (self.groupby_room) {
                         groupByRoom();
                     }
 
+                    self.sidebar.setSelectedVlan(self.selected_vlan);
                     if (self.selected_vlan) {
                         removeVlanSelectionOnChanged(node.data.vlans);
                     }
 
-                    //self.sidebar.html(netbox_info.render().el);
+                    self.sidebar.swap_to_netbox(node);
                 }
 
                 var removeVlanSelectionOnChanged = function (vlans) {
@@ -767,7 +767,7 @@ define([
                     if (vlans !== undefined && vlans) {
                         for (var i = 0; i < vlans.length; i++) {
                             var vlan = vlans[i];
-                            if (self.selected_vlan === vlan.nav_vlan) {
+                            if (self.selected_vlan.navVlanId === vlan.nav_vlan) {
                                 foundVlan = true;
                                 break;
                             }
@@ -775,7 +775,7 @@ define([
                     }
                     if (!foundVlan) {
                         self.selected_vlan = null;
-                        markVlan(self.selected_vlan);
+                        markVlan(null);
                     }
                 };
 
