@@ -24,13 +24,15 @@ from math import ceil
 
 from twisted.python.failure import Failure
 from twisted.internet import task, threads, reactor
-from twisted.internet.defer import Deferred, maybeDeferred
+from twisted.internet.defer import Deferred, maybeDeferred, inlineCallbacks
 
 from nav import ipdevpoll
+from nav.ipdevpoll import db
 from nav.ipdevpoll.snmp import SnmpError, AgentProxy
 from . import shadows, config, signals
 from .dataloader import NetboxLoader
 from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
+from nav.models import manage
 from nav.tableformat import SimpleTableFormatter
 
 from nav.ipdevpoll.utils import log_unhandled_failure
@@ -161,6 +163,7 @@ class NetboxJobScheduler(object):
             self._log_finished_job(True)
         else:
             self._logger.debug("job did nothing")
+        log_job_to_db(self.job_handler, True, self.job.interval)
         return result
 
     def _reschedule_on_failure(self, failure):
@@ -171,6 +174,7 @@ class NetboxJobScheduler(object):
             delay = randint(5*60, 10*60) # within 5-10 minutes
         self.reschedule(delay)
         self._log_finished_job(False)
+        log_job_to_db(self.job_handler, False, self.job.interval)
         failure.trap(AbortedJobError)
 
     def _log_finished_job(self, success=True):
@@ -403,3 +407,29 @@ class JobScheduler(object):
             logger.log(level,
                        "no active jobs (%d JobHandlers)",
                        JobHandler.get_instance_count())
+
+# pylint: disable=W0703
+@inlineCallbacks
+def log_job_to_db(job_handler, success=True, interval=None):
+    """Logs a job to the database"""
+    @db.autocommit
+    def _create_record(timestamp):
+        duration = job_handler.get_current_runtime()
+        duration_in_seconds = (duration.days * 86400 +
+                               duration.seconds +
+                               duration.microseconds / 1e6)
+        log = manage.IpdevpollJobLog(
+            netbox_id = job_handler.netbox.id,
+            job_name = job_handler.name,
+            end_time = timestamp,
+            duration = duration_in_seconds,
+            success = success,
+            interval = interval
+        )
+        log.save()
+
+    timestamp = datetime.datetime.now()
+    try:
+        yield threads.deferToThread(_create_record, timestamp)
+    except Exception, error:
+        _logger.warning("failed to log job to database: %s", error)
