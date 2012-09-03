@@ -51,7 +51,7 @@ define([
             this.filter_orphans = !this.context_selected_map.display_orphans;
 
             this.w = this.options.cssWidth;
-            this.h = screen.height - 500;
+            this.h = $(window).height() - 350;
             this.force = d3.layout.force()
                 .gravity(0.5)
                 .distance(2000)
@@ -93,7 +93,7 @@ define([
             } else {
                 this.w = this.$el.width();
             }
-            this.h = this.$el.height();
+            this.h = $(window).height() - 350;
 
             (this.$el).find('#svg-netmap').attr('width', this.w);
             (this.$el).find('#svg-netmap').attr('height', this.h);
