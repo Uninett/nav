@@ -83,6 +83,7 @@ def build_netmap_layer2_graph(view=None):
     for node, data in graph.nodes_iter(data=True):
         if vlan_by_netbox.has_key(node):
             data['metadata'] = {'vlans': sorted(vlan_by_netbox.get(node).iteritems(), key=lambda x: x[1].vlan.vlan)}
+    _LOGGER.debug("build_netmap_layer2_graph() vlan metadata done")
 
     if view:
         graph = _attach_node_positions(graph, view.node_position_set.all())
@@ -107,6 +108,7 @@ def build_netmap_layer3_graph(view=None):
     _LOGGER.debug("build_netmap_layer3_graph() topology graph done")
 
     vlans_map = _get_vlans_map_layer3(topology_without_metadata)
+    _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
 
     # Make a copy of the graph, and add edge meta data
     graph = nx.MultiGraph()
