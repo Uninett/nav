@@ -43,7 +43,8 @@ _LOGGER = logging.getLogger('nav.web.netmapdev')
 
 
 def index(request):
-    return backbone_app(request, get_account(request) )
+    """Single page javascript app"""
+    return backbone_app(request)
 
 
 def backbone_app(request):
@@ -60,8 +61,9 @@ def backbone_app(request):
 # data views, d3js
 
 def netmap(request, map_id):
-    if request.method == 'PUT' or ('HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
-                                   request.META['HTTP_X_HTTP_METHOD_OVERRIDE']=='PUT'):
+    if request.method == 'PUT' or (
+    'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
+    request.META['HTTP_X_HTTP_METHOD_OVERRIDE'] == 'PUT'):
         return update_map(request, map_id)
     elif request.method == 'GET':
         return get_map(request, map_id)
@@ -126,8 +128,15 @@ def update_map(request, map_id):
         view.last_modified = datetime.datetime.now()
         fixed_nodes = data['nodes']
 
-        view.display_orphans = data['display_orphans'] if data['display_orphans'] else False
-        view.display_elinks = True if any(x == 'ELINK' for x in data['categories']) else False
+        if data['display_orphans']:
+            view.display_orphans = data['display_orphans']
+        else:
+            view.display_orphans = False
+
+        if any(x == 'ELINK' for x in data['categories']):
+            view.display_elinks = True
+        else:
+            view.display_elinks = False
 
         _update_map_categories(data['categories'], view)
 
@@ -161,7 +170,10 @@ def create_map(request):
     view.is_public = data['is_public']
     view.last_modified = datetime.datetime.now()
     fixed_nodes = data['nodes']
-    view.display_orphans = data['display_orphans'] if data['display_orphans'] else False
+    if data['display_orphans']:
+        view.display_orphans = data['display_orphans']
+    else:
+        view.display_orphans = False
     view.save()
 
     _update_map_categories(data['categories'], view)
@@ -199,11 +211,11 @@ def maps(request):
 def get_maps(request):
     session_user = get_account(request)
 
-    maps = NetmapView.objects.filter(
+    _maps = NetmapView.objects.filter(
         Q(is_public=True) | Q(owner=session_user.id))\
     .order_by('-is_public')
-    json_views =[]
-    [json_views.append(view.to_json_dict()) for view in maps]
+    json_views = []
+    [json_views.append(view.to_json_dict()) for view in _maps]
     return HttpResponse(simplejson.dumps(json_views))
 
 
@@ -218,7 +230,6 @@ def d3js_layer3(request, map_id=None):
 
         if view.is_public or (session_user == view.owner):
             json = _json_layer3(view)
-            json['colormap']=traffic_gradient_map()
             response = HttpResponse(simplejson.dumps(json))
             response['Content-Type'] = 'application/json; charset=utf-8'
             response['Cache-Control'] = 'no-cache'
@@ -230,7 +241,6 @@ def d3js_layer3(request, map_id=None):
             return HttpResponseForbidden()
 
     json = _json_layer3()
-    json['colormap']=traffic_gradient_map()
     response = HttpResponse(simplejson.dumps(json))
     response['Content-Type'] = 'application/json; charset=utf-8'
     response['Cache-Control'] = 'no-cache'
@@ -249,7 +259,6 @@ def d3js_layer2(request, map_id=None):
 
         if view.is_public or (session_user == view.owner):
             json = _json_layer2(view)
-            json['colormap']=traffic_gradient_map()
             response = HttpResponse(simplejson.dumps(json))
             response['Content-Type'] = 'application/json; charset=utf-8'
             response['Cache-Control'] = 'no-cache'
@@ -261,7 +270,6 @@ def d3js_layer2(request, map_id=None):
             return HttpResponseForbidden()
 
     json = _json_layer2()
-    json['colormap']=traffic_gradient_map()
     response = HttpResponse(simplejson.dumps(json))
     response['Content-Type'] = 'application/json; charset=utf-8'
     response['Cache-Control'] = 'no-cache'
