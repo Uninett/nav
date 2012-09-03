@@ -624,9 +624,11 @@ define([
 
                     if (nodeIsDragged(d)) {
                         d.fixed = true;
-                        if (self.selected_node && d.data.sysname === self.selected_node.data.sysname) {
-                            node_onClick(d);
-                        }
+
+                        // uncomment if you don't want node to be auto selected when it is dragged.
+                        //if (self.selected_node && d.data.sysname === self.selected_node.data.sysname) {
+                        node_onClick(d);
+                        //}
 
                     }
 
