@@ -17,13 +17,12 @@
 
 import datetime
 import logging
-from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseForbidden, \
-    HttpResponseRedirect, HttpResponseBadRequest
+    HttpResponseBadRequest
 from django.utils import simplejson
 
 
@@ -60,7 +59,7 @@ def backbone_app(request):
 
 # data views, d3js
 
-def map(request, map_id):
+def netmap(request, map_id):
     if request.method == 'PUT' or ('HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
                                    request.META['HTTP_X_HTTP_METHOD_OVERRIDE']=='PUT'):
         return update_map(request, map_id)
