@@ -137,10 +137,6 @@ define([
             } else {
                 this.force.resume();
             }
-            /*for (var i = 0; i < this.modelJson.nodes.length; i++) {
-                var node = this.modelJson.nodes[i];
-                node.fixed = isFreezing;
-            }*/
         },
         toggleUIMouseoverNodes: function (boolean) {
             this.ui.mouseover.nodes = boolean;
