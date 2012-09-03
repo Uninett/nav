@@ -27,7 +27,18 @@ define([
         render: function () {
             var self = this;
             if (self.node !== undefined) {
-                var out = this.template({ node: self.node});
+                // Mark selected vlan in metadata for template.
+                if (self.selected_vlan !== undefined) {
+                    for (var i = 0; i < self.node.data.vlans.length; i++) {
+                        var vlan = self.node.data.vlans[i];
+                        vlan.is_selected = vlan.nav_vlan === self.selected_vlan.navVlanId;
+                    }
+                } else {
+                    _.each(self.node.data.vlans, function (vlan) {
+                        vlan.is_selected = false;
+                    });
+                }
+                var out = this.template({ node: self.node, selected_vlan: self.selected_vlan});
                 this.$el.html(out);
             } else {
                 this.$el.empty();
@@ -40,10 +51,17 @@ define([
         },
         showVlan: function (e) {
             e.stopPropagation();
-            this.broker.trigger('map:show_vlan', $(e.currentTarget).data().navVlan);
+
+            this.selected_vlan = {
+                navVlanId: $(e.currentTarget).data().navVlan,
+                displayText: $(e.currentTarget).html()
+            };
+            this.broker.trigger('map:show_vlan', this.selected_vlan.navVlanId);
+            this.render();
         },
         reset: function () {
             this.node = undefined;
+            this.selected_vlan = undefined;
             this.render();
         },
         close: function () {

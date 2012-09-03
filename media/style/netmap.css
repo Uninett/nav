@@ -216,6 +216,10 @@ body>#netmap_infopanel {width:168px;}
 .netmap-node-category {
 }
 
+li.selected_vlan a {
+    color: orange;
+}
+
 /* Navigation styles */
 
 .fix_options {

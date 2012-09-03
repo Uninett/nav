@@ -68,7 +68,7 @@
 
 <ul id="node_info_vlan">
     {{#each link.data.uplink.vlans}}
-    <li><a class="vlan" data-nav-vlan="{{this.nav_vlan}}">{{this.vlan}}
+    <li {{#if this.is_selected}}class="selected_vlan"{{/if}}><a class="vlan" data-nav-vlan="{{this.nav_vlan}}">{{this.vlan}}
         ({{this.net_ident}})</a></li>
     {{/each}}
 </ul>
