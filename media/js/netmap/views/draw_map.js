@@ -122,22 +122,25 @@ define([
             this.selected_vlan = vlan;
             this.redraw();
         },
-        centerGraph: function () {
+        baseScale:      function () {
             var boundingBox = document.getElementById('boundingbox').getBoundingClientRect();
 
-            var baseWidth = boundingBox.width / this.scale;
-            var baseHeight = boundingBox.height / this.scale;
+            var baseWidth = (boundingBox.width+40) / this.scale;
+            var baseHeight = (boundingBox.height+40) / this.scale;
 
             var baseScaleWidth = this.w / baseWidth;
             var baseScaleHeight = this.h / baseHeight;
 
-
+            var requiredScale = 1;
             if (baseScaleWidth < baseScaleHeight) {
                 requiredScale = baseScaleWidth;
             } else {
                 requiredScale = baseScaleHeight;
             }
-
+            return requiredScale;
+        },
+        centerGraph: function () {
+            var requiredScale = this.baseScale();
             this.scale = requiredScale;
             this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
             this.zoom.scale(requiredScale);
@@ -236,14 +239,9 @@ define([
             }
 
             //json = {}
-            var validateTranslateScaleValues = function (nodesCount) {
+            var validateTranslateScaleValues = function () {
                 if (isNaN(self.scale)) {
-                    //console.log("[Netmap][WARNING] Received invalid scale, use default scaling: {0}".format(self.scale));
-                    if (nodesCount) {
-                        self.scale = 1 / Math.log(nodesCount);
-                    } else {
-                        self.scale = 1;
-                    }
+                    self.scale = self.baseScale();
                 }
                 if (self.trans.length !== 2 || isNaN(self.trans[0]) || isNaN(self.trans[1])) {
                     //console.log("[Netmap][WARNING] Received invalid translate values, centering graph: {0}".format(self.trans));
@@ -981,7 +979,7 @@ define([
                     var tmp = self.context_selected_map.map.attributes.zoom.split(";");
                     self.trans = tmp[0].split(",");
                     self.scale = tmp[1];
-                    validateTranslateScaleValues(nodesCount);
+                    validateTranslateScaleValues();
                     self.zoom.translate(self.trans);
                     self.zoom.scale(self.scale);
 
@@ -993,6 +991,7 @@ define([
                     // we're trying to draw
 
                     // Guess a good estimated scaling factor
+                    // (can't use self.baseScale , since svg is not drawn yet)
                     self.scale = 1 / Math.log(nodesCount);
 
                     // translate ( -centerX*(factor-1) , -centerY*(factor-1) ) scale(factor)
