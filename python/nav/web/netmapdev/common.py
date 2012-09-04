@@ -135,13 +135,13 @@ def _traffic_gradient(intensity):
         return (255 * (intensity ** gamma), 255, 0)
 
 
+# pylint: disable=W0702
 def get_status_image_link(status):
     """ uplink icon for status
     """
     try:
         return STATUS_IMAGE_MAP[status]
     except:
-        # pylint: disable=W0702
         return STATUS_IMAGE_MAP[Netbox.UP_DOWN]
 
 
