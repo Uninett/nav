@@ -14,13 +14,11 @@ define([], function () {
     };
     var _TOPOLOGIES = {
         1: 'Layer 2',
-        2: 'Layer 2 with VLAN',
         3: 'Layer 3'
     };
 
     var _LINKS_TOPOLOGIES = {
         1: 'layer2',
-        2: 'layer2vlan',
         3: 'layer3'
     };
 

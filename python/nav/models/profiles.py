@@ -23,7 +23,6 @@ import os
 from datetime import datetime
 import re
 # To stay compatible with both python 2.4 and 2.6:
-from nav.django.forms import MultiSelectField
 
 try:
     from hashlib import md5
@@ -1211,8 +1210,7 @@ class StatusPreferenceCategory(models.Model):
 
 
 # Make sure you update netmap-extras.js too if you change this! ;-)
-LINK_TYPES = (1, 'Layer 2'),\
-(2, 'Layer 2 with VLAN'),\
+LINK_TYPES = (1, 'Layer 2'), \
 (3, 'Layer 3')
 
 class NetmapView(models.Model):
@@ -1222,7 +1220,8 @@ class NetmapView(models.Model):
     title = models.TextField()
     description = models.TextField()
     topology = models.CharField(choices=LINK_TYPES)
-    zoom = models.CharField(max_length=255) # picke x,y,scale (translate(x,y) , scale(scale)
+    # picke x,y,scale (translate(x,y) , scale(scale)
+    zoom = models.CharField(max_length=255)
     last_modified = models.DateTimeField(auto_now_add=True)
     is_public = models.BooleanField(default=False)
     display_elinks = models.BooleanField(default=False)
@@ -1232,6 +1231,7 @@ class NetmapView(models.Model):
         return u'%s (%s)' % (self.viewid, self.title)
 
     def to_json_dict(self):
+        """Presents a NetmapView as JSON"""
         categories = [unicode(x.category.id) for x in self.categories_set.all()]
         if self.display_elinks:
             categories.append("ELINK")
@@ -1256,9 +1256,12 @@ class NetmapView(models.Model):
 
 
 class NetmapViewCategories(models.Model):
+    """Saved categories for a selected view in Netmap"""
     id = models.AutoField(primary_key=True) # Serial for faking a primary key
-    view = models.ForeignKey(NetmapView, db_column='viewid', related_name='categories_set')
-    category = models.ForeignKey(Category, db_column='catid', related_name='netmapview_set')
+    view = models.ForeignKey(NetmapView, db_column='viewid',
+        related_name='categories_set')
+    category = models.ForeignKey(Category, db_column='catid',
+        related_name='netmapview_set')
 
     def __unicode__(self):
         return u'%s in category %s' % (self.view, self.category)
@@ -1271,9 +1274,12 @@ class NetmapViewCategories(models.Model):
 
 
 class NetmapViewNodePosition(models.Model):
+    """Saved positions for nodes for a selected view in Netmap"""
     id = models.AutoField(primary_key=True) # Serial for faking a primary key
-    viewid = models.ForeignKey(NetmapView, db_column='viewid', related_name='node_position_set')
-    netbox = models.ForeignKey(Netbox, db_column='netboxid', related_name='node_position_set')
+    viewid = models.ForeignKey(NetmapView, db_column='viewid',
+        related_name='node_position_set')
+    netbox = models.ForeignKey(Netbox, db_column='netboxid',
+        related_name='node_position_set')
     x = models.IntegerField()
     y = models.IntegerField()
 
