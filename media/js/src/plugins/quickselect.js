@@ -62,7 +62,7 @@ define(['libs/jquery'], function() {
             if (textArea.attr('multiple')) {
                 var selectAllButton = $(html.selectAllButton);
                 selectAllButton.click(function () {
-                    textArea.find('option').attr('selected', true);
+                    textArea.find('option').attr('selected', 'selected');
                 });
                 textArea.parent().find('input').after(selectAllButton);
             }

@@ -1,4 +1,4 @@
-require(['src/plugins/checkbox_selector'], function (CheckboxSelector) {
+require(['src/plugins/checkbox_selector', 'libs/jquery'], function (CheckboxSelector) {
     buster.testCase("Checkbox Selector", {
         setUp: function () {
             this.table = $('<table><tr><th id="select"></th></tr><tr><td><input type="checkbox" class="selector" /><input type="checkbox" class="selector" /></td></tr></table>');

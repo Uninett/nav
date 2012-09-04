@@ -1,9 +1,9 @@
-require(['src/plugins/quickselect'], function (QuickSelect) {
+require(['src/plugins/quickselect', 'libs/jquery'], function (QuickSelect) {
     buster.testCase("QuickSelect", {
         setUp: function () {
             this.wrapper = $('<div></div>');
             var html ='<div class="quickselect">' +
-                '<div><label for="idnetbox">IP device</label>' +
+                '<div><label for="id_netbox">IP device</label>' +
                 '<select size="5" name="netbox" id="id_netbox">' +
                 '<option value="1">absint.online.ntnu.no</option>' +
                 '<option value="2">altersex.samfundet.no</option>' +
@@ -12,7 +12,7 @@ require(['src/plugins/quickselect'], function (QuickSelect) {
                 '<p><input type="submit" name="submit_netbox" value="Add IP device"></p>' +
                 '</div>' +
                 '<div class="collapse">' +
-                '<label for="idloc">Location</label>' +
+                '<label for="id_loc">Location</label>' +
                 '<select multiple="multiple" size="5" name="loc" id="id_loc">' +
                 '<option value="bergen">bergen (Bergen)</option>' +
                 '<option value="finland">finland (vodkaland)</option>' +
@@ -73,15 +73,6 @@ require(['src/plugins/quickselect'], function (QuickSelect) {
                 }
             });
             assert.equals(counter, 3);
-        },
-        "should toggle arrows on label-click": function() {
-            var arrowContainer = $('div.quickselect div > label', this.wrapper).eq(0);
-            var firstdisplay = $('span', arrowContainer).eq(0).css('display');
-            var seconddisplay = $('span', arrowContainer).eq(1).css('display');
-            arrowContainer.click();
-
-            assert(firstdisplay != $('span', arrowContainer).eq(0).css('display'));
-            assert(seconddisplay != $('span', arrowContainer).eq(1).css('display'));
         },
         "should set size on textarea to 10": function() {
             assert.equals(this.textAreas.filter('[size=10]').length, this.textAreas.length);
