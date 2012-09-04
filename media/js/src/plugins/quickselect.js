@@ -18,123 +18,129 @@
 require.config({baseUrl: "/js/"});
 
 define(['libs/jquery'], function() {
-    $(function() {
-        $('.quickselect').each(function() {
-            var quickselect = $(this);
-            var search     = $('<label>Search <textarea class="search" rows="2"></textarea></label>');
-            var all        = $('<input type="button" value="Select all" />');
-            var spinner    = $('<img src="/images/main/process-working.gif" alt="" style="vertical-align: middle; visibility: hidden;"/>');
-            var timeout    = null;
 
-            var selects = quickselect.find('select');
-            var selects_clone = selects.clone();
+    /* Todo: Rewrite this to not be so DOM-manipulative */
 
-            function do_search(value) {
-                /*
-                 * Search code that does OR search in optgroup and options.
-                 *
-                 *   option matches   -> it and any parent optgroup is shown.
-                 *   optgroup matches -> it and all children are shown.
-                 */
-                var keywords = value.replace("'","").split(/\s+/);
+    var html = {
+        downArrow: '<span>&darr; </span>',
+        upArrow: '<span>&uarr; </span>',
+        selectAllButton: '<input type="button" value="Select all" />'
+    };
 
-                quickselect.find('label').removeClass('highlight');
+    function QuickSelect(node) {
+        this.node = typeof node === 'string' ? $(node) : node;
+        this.textAreas = this.node.find('div select');
 
-                // Search on clone of select and replace selects children with
-                // cloned children
-                for (var j = 0; j < selects.length; j++) {
-                    var select = selects.eq(j);
-                    var clone  = selects_clone.eq(j).clone();
+        var searchArea = addLabelAndSearch(this.node, this.textAreas);
+        addTextAreaListener(this.textAreas, searchArea);
+        addSelectAllButtons(this.textAreas);
+        setTextAreaSize(this.textAreas);
+        addArrows(this.node);
+        collapseNodes(this.node);
+    }
 
-                    if (keywords[0] == '') {
-                        // Show all options when our search is empty
-                        select.children().remove();
-                        select.append(clone.children());
+    function addLabelAndSearch(node, textAreas) {
+        var label = $('<label>Search</label>');
+        var searchArea = $('<textarea class="search" rows="2"></textarea>');
+        var textAreaWidth = textAreas.find('select').width();
 
-                    } else {
-                        for (var i = 0; i < keywords.length; i++) {
-                            if(keywords[i]) {
-                                // Show options and its parents if it contains a keyword
-                                clone.find("option:contains('" + keywords[i] + "')").addClass('keep').parents('optgroup').addClass('keep');
-                                clone.find("optgroup[label*='" + keywords[i] + "']").addClass('keep').find('option').addClass('keep');
-                            }
-                        }
+        searchArea.css('width', textAreaWidth);
+        label.append(searchArea);
+        node.prepend(label);
 
-                        clone.find(":not(.keep)").remove();
-                        select.children().remove();
-                        select.append(clone.children());
+        return searchArea;
+    }
 
+    function addTextAreaListener(textAreas, searchArea) {
+        searchArea.keyup([textAreas, textAreas.clone()], do_search);
+    }
 
-                        select.find('option:visible').parents('select').siblings('label').addClass('highlight');
+    function addSelectAllButtons(textAreas) {
+        textAreas.each(function() {
+            var textArea = $(this);
+
+            if (textArea.attr('multiple')) {
+                var selectAllButton = $(html.selectAllButton);
+                selectAllButton.click(function () {
+                    textArea.find('option').attr('selected', true);
+                });
+                textArea.parent().find('input').after(selectAllButton);
+            }
+        });
+    }
+
+    function setTextAreaSize(textAreas) {
+        textAreas.attr('size', 10);
+    }
+
+    function addArrows(node) {
+        $('div label', node).each(function () {
+            var up = $(html.upArrow);
+            var down = $(html.downArrow);
+
+            $(this).prepend(up).prepend(down).css('cursor', 'pointer')
+
+            if ($(this).parent('div').hasClass('collapse')) {
+                up.hide();
+            } else {
+                down.hide();
+            }
+
+            $(this).click(function () {
+                down.toggle();
+                up.toggle();
+
+                $(this).parent().children().not('label').toggle();
+                $(this).parent().find('option:selected').removeAttr('selected');
+            });
+
+        });
+    }
+
+    function collapseNodes(node) {
+        $('.collapse', node).children().not('label').hide()
+    }
+
+    function do_search(event) {
+        /*
+         * Search code that does OR search in optgroup and options.
+         *
+         *   option matches   -> it and any parent optgroup is shown.
+         *   optgroup matches -> it and all children are shown.
+         */
+        var value = $(this).val();
+        var keywords = value.replace("'", "").split(/\s+/);
+
+        var selects = event.data[0];
+        var selects_clone = event.data[1];
+
+        // Search on clone of select and replace selects children with
+        // cloned children
+        for (var j = 0; j < selects.length; j++) {
+            var select = selects.eq(j);
+            var clone = selects_clone.eq(j).clone();
+
+            if (keywords[0] == '') {
+                // Show all options when our search is empty
+                select.children().remove();
+                select.append(clone.children());
+
+            } else {
+                for (var i = 0; i < keywords.length; i++) {
+                    if (keywords[i]) {
+                        // Show options and its parents if it contains a keyword
+                        clone.find("option:contains('" + keywords[i] + "')").addClass('keep').parents('optgroup').addClass('keep');
+                        clone.find("optgroup[label*='" + keywords[i] + "']").addClass('keep').find('option').addClass('keep');
                     }
                 }
-                spinner.css('visibility', 'hidden');
+
+                clone.find(":not(.keep)").remove();
+                select.children().remove();
+                select.append(clone.children());
             }
+        }
+    }
 
-            function handler() {
-                /*
-                 * Event handler for search field, uses a timeout to avoid starting
-                 * the searh before the user is done typing.
-                 */
-                var value = $(this).val();
-                if (timeout) {
-                    clearTimeout(timeout);
-                }
-
-                timeout = setTimeout(function() { do_search(value) }, 300);
-
-                if (value.length > 0) {
-                    spinner.css('visibility', 'visible');
-                }
-            }
-            search.find('.search').keyup(handler).click(handler);
-
-            // Collapse and selects that we dont want to show
-            quickselect.find('.collapse').children().not('label').hide()
-
-            // Add clik handler and state indicator for label.
-            quickselect.find('div label').each(function() {
-                var down = $('<span>&darr; </span>');
-                var up = $('<span>&uarr; </span>');
-
-                if ($(this).parent().hasClass('collapse')) {
-                    up.hide();
-                } else {
-                    down.hide();
-                }
-
-                $(this).prepend(up).prepend(down).css('cursor', 'pointer')
-
-                $(this).click(function() {
-                    down.toggle();
-                    up.toggle();
-
-                    $(this).parent().children().not('label').toggle();
-                    $(this).parent().find('option:selected').removeAttr('selected');
-                });
-            });
-
-            // Add select all buttons
-            selects.each(function (){
-                var select = $(this);
-
-                select.attr('size', 10);
-
-                if (select.attr('multiple')) {
-                    var clone  = all.clone();
-                    clone.click(function() {
-                        select.find('option:visible').attr('selected', 'selected');
-                    });
-                    select.parent().find('input').after(clone);
-                }
-            });
-
-            // Fix the search box with to match selects and insert the search box
-            search.find('.search').css('width', quickselect.find('select').width() + 'px')
-            search.find('.search').before(spinner);
-            quickselect.prepend(search);
-        });
-    });
+    return QuickSelect;
 
 });
-
