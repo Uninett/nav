@@ -13,6 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Netmap functions for attaching RRD/traffic metadata to netmap"""
 import logging
 from nav.models.manage import Interface
 from nav.netmap import stubs
@@ -34,14 +35,16 @@ def _get_datasource_lookup(graph):
     edges_iter = graph.edges_iter(data=True)
 
     interfaces = set()
-    for _, _, w in edges_iter:
-        w = w['metadata'] if 'metadata' in w else {}
-        if 'uplink' in w:
-            if w['uplink']['thiss']['interface'] and isinstance(w['uplink']['thiss']['interface'], Interface):
-                interfaces.add(w['uplink']['thiss']['interface'].pk)
+    for _, _, meta in edges_iter:
+        meta = meta['metadata'] if 'metadata' in meta else {}
+        if 'uplink' in meta:
+            if meta['uplink']['thiss']['interface'] and \
+               isinstance(meta['uplink']['thiss']['interface'], Interface):
+                interfaces.add(meta['uplink']['thiss']['interface'].pk)
 
-            if w['uplink']['other']['interface'] and isinstance(w['uplink']['other']['interface'], Interface):
-                interfaces.add(w['uplink']['other']['interface'].pk)
+            if meta['uplink']['other']['interface'] and \
+               isinstance(meta['uplink']['other']['interface'], Interface):
+                interfaces.add(meta['uplink']['other']['interface'].pk)
 
     _LOGGER.debug(
         "netmap:attach_rrd_data_to_edges() datasource id filter list done")
@@ -65,15 +68,20 @@ def _get_datasource_lookup(graph):
 
 
 def rrd_info(source):
+    """fetches RRD info using presenter.Presentation
+    :param source RrdDataSource model from nav.rrd2
+    :returns dict of name, description and raw value on data source lookup
+    """
+
     # todo : what to do if rrd source is not where it should be? Will return 0
     # if it can't find RRD file for example
-    a = presenter.Presentation()
-    a.add_datasource(source)
+    presentation = presenter.Presentation()
+    presentation.add_datasource(source)
     return {'name': source.name, 'description': source.description,
-            'raw': a.average()[0]}
+            'raw': presentation.average()[0]}
 
 
-def attach_rrd_data_to_edges(graph, json=None, debug=False):
+def attach_rrd_data_to_edges(graph, json=None):
     """ called from d3_js to attach rrd_data after it has attached other
     edge metadata by using edge_to_json
 
@@ -108,13 +116,13 @@ def attach_rrd_data_to_edges(graph, json=None, debug=False):
         u'ifHCInOctets', u'ifHCOutOctets', u'ifInOctets', u'ifOutOctets')
 
     edges_iter = graph.edges_iter(data=True)
-    for j, k, w in edges_iter:
+    for j, k, meta in edges_iter:
         traffic = {}
         traffic['inOctets'] = None
         traffic['outOctets'] = None
 
-        if 'metadata' in w:
-            metadata = w['metadata']
+        if 'metadata' in meta:
+            metadata = meta['metadata']
             direction = 'thiss'
             traffic.update(_fetch_rrd(metadata['uplink'][direction]))
 
@@ -143,23 +151,26 @@ def attach_rrd_data_to_edges(graph, json=None, debug=False):
                 traffic['inOctets'] = traffic['outOctets']
                 traffic['outOctets'] = tmp
 
-        unknown_speed_css = (211,211,211) # light grey
+        unknown_speed_css = (211, 211, 211) # light grey
 
-        inOctetsPercentBySpeed = get_traffic_load_in_percent(traffic['inOctets']['raw'],
-            metadata['link_speed']) if traffic['inOctets'] and\
+        in_octets_percent = get_traffic_load_in_percent(
+            traffic['inOctets']['raw'],
+            metadata['link_speed']) if traffic['inOctets'] and \
                                        traffic['inOctets']['raw'] else None
-        outOctetsPercentBySpeed = get_traffic_load_in_percent(traffic['outOctets']['raw'],
-            metadata['link_speed']) if traffic['outOctets'] and\
+        out_octets_percent = get_traffic_load_in_percent(
+            traffic['outOctets']['raw'],
+            metadata['link_speed']) if traffic['outOctets'] and \
                                        traffic['outOctets']['raw'] else None
 
-        traffic['inOctets_css'] = get_traffic_rgb(inOctetsPercentBySpeed) if inOctetsPercentBySpeed else unknown_speed_css
-        traffic['outOctets_css'] = get_traffic_rgb(outOctetsPercentBySpeed) if outOctetsPercentBySpeed else unknown_speed_css
-        traffic['inOctetsPercentBySpeed'] = "%.2f" % inOctetsPercentBySpeed if inOctetsPercentBySpeed else None
-        traffic['outOctetsPercentBySpeed'] = "%.2f" % outOctetsPercentBySpeed if outOctetsPercentBySpeed else None
+        traffic['inOctets_css'] = get_traffic_rgb(in_octets_percent) if in_octets_percent else unknown_speed_css
+        traffic['outOctets_css'] = get_traffic_rgb(out_octets_percent) if out_octets_percent else unknown_speed_css
+        traffic['inOctetsPercentBySpeed'] = "%.2f" % in_octets_percent if in_octets_percent else None
+        traffic['outOctetsPercentBySpeed'] = "%.2f" % out_octets_percent if out_octets_percent else None
 
         for json_edge in json:
 
-            if json_edge['source'] == node_labels[j][1].sysname and json_edge['target'] == node_labels[k][1].sysname:
+            if json_edge['source'] == node_labels[j][1].sysname and \
+               json_edge['target'] == node_labels[k][1].sysname:
                 json_edge['data'].update({'traffic':traffic})
                 break
     return json

@@ -170,7 +170,7 @@ def d3_json(G, node_to_json_function, edge_to_json_function, group=None):
             e['value'] = 1
         json_edges.append(e)
     _LOGGER.debug("netmap:d3_json() edges done")
-    json_edges = attach_rrd_data_to_edges(ints_graph, json_edges, True)
+    json_edges = attach_rrd_data_to_edges(ints_graph, json_edges)
     _LOGGER.debug("netmap:d3_json() edges_fake_rrd done")
     graph_json['links'] = json_edges
 
