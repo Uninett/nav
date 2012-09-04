@@ -4,21 +4,14 @@
 {% block content %}
 
     {% if netbox %}
-        <table id="ipdevinfo-actions" class="listtable">
-            <caption>Actions</caption>
-            <tr>
-                <td><a href="{% url seeddb-netbox-edit netbox.id %}">Edit IP device</a></td>
-                <td><a href="{% url maintenance-new-netbox netbox.id %}">Schedule maintenance</a></td>
-                <td><a href="{% url devicehistory-view-netbox netbox.id %}">View device history</a></td>
-                <td>
-                    {% if netbox.get_swports.count %}
-                        <a href="{% url portadmin-sysname netbox.sysname %}">Configure ports</a>
-                    {% else %}
-                        &nbsp;
-                    {% endif %}
-                </td>
-            </tr>
-        </table>
+        <div class="horizontal-icon-linklist">
+            <a href="{% url seeddb-netbox-edit netbox.id %}"><span class="edit">Edit IP device</span></a>
+            <a href="{% url maintenance-new-netbox netbox.id %}"><span class="maintenance">Schedule maintenance</span></a>
+            <a href="{% url devicehistory-view-netbox netbox.id %}"><span class="history">View device history</span></a>
+            {% if netbox.get_swports.count %}
+                <a href="{% url portadmin-sysname netbox.sysname %}"><span class="configure">Configure ports</span></a>
+            {% endif %}
+        </div>
     {% endif %}
 
     <div id="ipdevinfotabs" class="ui-helper-hidden">
@@ -26,7 +19,7 @@
         <ul>
             <li><a href="#deviceinfo">Device Info</a></li>
             <li><a href="#ports">Ports</a></li>
-            <li><a href="#alerts">Alerts ({{ alert_info.alerts|length }})</a></li>
+            <li><a href="#alerts">Recent alerts ({{ alert_info.alerts|length }})</a></li>
             <li><a href="#powerfans">Power and fans ({{ netbox.get_powersupplies|length }}/{{ netbox.get_fans|length }})</a></li>
             <li><a href="#services">Services ({{ netbox.service_set.count|default:"0" }})</a></li>
         </ul>

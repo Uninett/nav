@@ -461,3 +461,53 @@ p.paginator .active {
     text-align: center;
     width: 100px;
 }
+
+
+/* Vertical list */
+.horizontal-icon-linklist {
+    margin-bottom: 10px;
+    overflow: auto;
+}
+
+.horizontal-icon-linklist a {
+    color: #000;
+    background-color: #EEE;
+    border: 1px solid #AAA;
+    display: block;
+    float: left;
+    height: 30px;
+    line-height: 30px;
+    margin-right: 5px;
+    text-decoration: none;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -khtml-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.horizontal-icon-linklist a:hover {
+    color: grey;
+}
+
+.horizontal-icon-linklist span {
+    display: block;
+    text-indent: 30px;
+    padding-right: 1em;
+    background: no-repeat 8px 7px;
+}
+
+.horizontal-icon-linklist span.edit {
+    background-image: url("/images/icons/pencil.png");
+}
+
+.horizontal-icon-linklist span.maintenance {
+    background-image: url("/images/icons/hammer.png");
+}
+
+.horizontal-icon-linklist span.history {
+    background-image: url("/images/icons/clock-history.png");
+}
+
+.horizontal-icon-linklist span.configure {
+    background-image: url("/images/icons/gear.png");
+}
