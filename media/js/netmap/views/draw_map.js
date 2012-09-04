@@ -562,47 +562,36 @@ define([
 
                 }
 
-                var dragInfo ;
+                var isDragMovedTriggered;
                 function dragstart(d, i) {
-                    dragInfo = {
-                        x: Math.abs(d.x),
-                        y: Math.abs(d.y)
-                    };
-                    self.force.friction(0);
+                    isDragMovedTriggered = false;
                 }
 
                 function dragmove(d, i) {
+                    isDragMovedTriggered = true;
                     d.px += d3.event.dx;
                     d.py += d3.event.dy;
                     d.x += d3.event.dx;
                     d.y += d3.event.dy;
+
+                    self.force.stop();
+                    d.fixed = true;
+
                     tick();
                 }
 
                 function dragend(d, i) {
                     tick();
 
-                    if (nodeIsDragged(d)) {
-                        d.fixed = true;
-
+                    if (isDragMovedTriggered) {
+                        self.force.resume();
                         // uncomment if you don't want node to be auto selected when it is dragged.
                         //if (self.selected_node && d.data.sysname === self.selected_node.data.sysname) {
                         node_onClick(d);
                         //}
 
                     }
-
-                    self.force.friction(0.9);
-                    if (nodeIsDragged(d)) {
-                        self.force.resume();
-                    }
-
-
                 }
-
-                var nodeIsDragged = function (d) {
-                    return ((dragInfo.x - Math.abs(d.x) > 2) || (dragInfo.y - Math.abs(d.y) > 2));
-                };
 
                 function node_mouseOver(d) {
                     mouseFocusInPopup({'title': d.name, 'description': '', 'css_description_width': 200});
