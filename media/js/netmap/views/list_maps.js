@@ -42,8 +42,6 @@ define([
                 var map = this.collection.get(this.options.context_selected_map.map.attributes.viewid)
                 if (map === undefined) {
                     this.collection.add(this.options.context_selected_map.map);
-                    console.log("Added new map to collection");
-                    console.log(this.options.context_selected_map.map.isNew());
                 }
             }
             this.render();
@@ -65,7 +63,6 @@ define([
         },
         new_show_save_view: function () {
             var self = this;
-            console.log("YUPPP");
             self.options.context_selected_map.map = new MapModel();
             self.options.context_selected_map.map.bind("change", this.updateCollection, this);
 
@@ -160,7 +157,6 @@ define([
             var context = {};
             context.maps = this.collection.toJSON();
 
-            console.log(this.options.context_selected_map.map.attributes.title);
             context.context_selected_map = this.options.context_selected_map.map.toJSON();
 
             var out = this.template(context);
@@ -172,7 +168,6 @@ define([
             return this;
         },
         close:function () {
-            console.log("CLOSING LIST NETMAP VIEW");
             $(this.el).unbind();
             $(this.el).remove();
         },

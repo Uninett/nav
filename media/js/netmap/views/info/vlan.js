@@ -49,7 +49,6 @@ define([
         },
         showVlan: function (e) {
             e.stopPropagation();
-            console.log("showVlan");
             this.selected_vlan = {
                 navVlanId: $(e.currentTarget).data().navVlan,
                 displayText: $(e.currentTarget).html()

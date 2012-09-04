@@ -23,7 +23,6 @@ define([
             'click input[name="nodesFixed"]': 'onNodesFixedClick'
         },
         initialize: function () {
-            console.log("foodsfsdfbar");
             this.isContentVisible = true;
 
 

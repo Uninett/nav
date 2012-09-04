@@ -190,28 +190,6 @@ define([
                 r = 6,
                 fill = d3.scale.category20();
 
-
-
-
-
-            // clean up listners, crappy listners! :D
-            /*console.log("cleaning listernersnrsnres");
-             $(svg.selectAll("g.node")).unbind();*/
-            //debugger;
-            //$(d3.select("#svg-netmap")).unbind();
-            //d3.select((this.$el).find('#svg-netmap')).remove();
-            //this.$el.unbind();
-
-
-            //this.$el.unbind();
-            //d3.select(this.el).remove();
-            //debugger;
-            //debugger;
-
-
-//            if (svg === undefined) {
-
-
             var root_chart = d3.select(this.el)
                 .append("svg:svg")
                 .attr('id', 'svg-netmap')
@@ -229,16 +207,6 @@ define([
             ;
             //root_chart.attr("opacity", 0.1);
             this.svg = svg;
-            /*                if (self.force !== undefined) {
-             self.force.off("tick", null);
-             }
-             $(self.svg).unbind();
-             $(self.svg).remove();
-             self.svg = svg;
-
-
-             //console.log("Creating SVG vis");
-             }*/
 
 
             function redraw() {
@@ -254,7 +222,7 @@ define([
             //json = {}
             var validateTranslateScaleValues = function (nodesCount) {
                 if (isNaN(self.scale)) {
-                    console.log("[Netmap][WARNING] Received invalid scale, use default scaling: {0}".format(self.scale));
+                    //console.log("[Netmap][WARNING] Received invalid scale, use default scaling: {0}".format(self.scale));
                     if (nodesCount) {
                         self.scale = 1 / Math.log(nodesCount);
                     } else {
@@ -262,7 +230,7 @@ define([
                     }
                 }
                 if (self.trans.length !== 2 || isNaN(self.trans[0]) || isNaN(self.trans[1])) {
-                    console.log("[Netmap][WARNING] Received invalid translate values, centering graph: {0}".format(self.trans));
+                    //console.log("[Netmap][WARNING] Received invalid translate values, centering graph: {0}".format(self.trans));
                     self.trans = [(-self.w / 2) * (self.scale - 1), (-self.h / 2) * (self.scale - 1)];
                 }
             }
@@ -273,11 +241,6 @@ define([
                 svg.attr("transform",
                     "translate(" + self.trans + ") scale(" + self.scale + ")");
 
-                //svg.attr("transform", "translate({0}) scale({1})".format(self.zoom.trans, self.zoom.scale));
-
-
-                // FILTERS ON CATEGORIES ---- EXTRACT METHOD PLEASE
-                // FILTERS ON CATEGORIES ---- EXTRACT METHOD PLEASE
 
                 self.force.nodes(json.nodes).links(json.links).on("tick", tick);
 
@@ -388,8 +351,6 @@ define([
                                 return self.sidebar.swap_to_link(d);
                             }
                         });
-                     /*.on("mouseover", function(d) { return link_popup(d); }) // adds about 400 listners^n refresh :D
-                     .on("mouseout", function(d) { return link_popout(d); });*/
                 });
 
                 var link = linkGroup.selectAll("g.link line");
@@ -400,9 +361,7 @@ define([
                 var node_s = nodeGroup.selectAll("g.node").data(json.nodes, function (d) {
                     return d.data.sysname;
                 });
-                /*var drag = d3.behavior.drag()
-                      .origin(Object)
-                .call(d3.behavior.zoom().on("zoom", redraw))*/
+
                 var node_drag =
                     d3.behavior.drag()
                         .on("dragstart", dragstart)
@@ -443,21 +402,10 @@ define([
                     .on("mouseover", function (d) {
                         if (self.ui.mouseover.nodes) {
                             return node_onClick(d);
-                            //return node_mouseOver(d);
                         }
 
-                    })
-                    .on("mouseout", function (d) {
-                        /*if (this.ui.mouseover.nodes) {
-                            return self.sidebar.swap_to_netbox(d);
-                        }*/
-                        //return node_mouseOut(d);
-                    })
+                    });
 
-                ;
-                /*node.selectAll("circle").append("title").text(function (d) {
-                 return d.name;
-                 });*/
 
                 var markVlan = function (selected_vlan) {
                     if (!selected_vlan) {
@@ -596,7 +544,6 @@ define([
                         }
                     );
 
-                    //node.call( function (d,i) { return node_drag(d,i) });
 
 
                 }
@@ -607,7 +554,6 @@ define([
                         x: Math.abs(d.x),
                         y: Math.abs(d.y)
                     };
-                    //self.force.stop();
                     self.force.friction(0);
                 }
 
@@ -641,7 +587,6 @@ define([
                 }
 
                 var nodeIsDragged = function (d) {
-                    console.log(dragInfo.x, Math.abs(d.x));
                     return ((dragInfo.x - Math.abs(d.x) > 2) || (dragInfo.y - Math.abs(d.y) > 2));
                 };
 
@@ -792,8 +737,8 @@ define([
                     .attr('height', self.h)
                     .attr('fill', 'd5d5d5');*/
 
-                console.log("[Netmap][Debug] Nodes: {0}".format(json.nodes.length));
-                console.log("[Netmap][Debug] Edges: {0}".format(json.links.length));
+                //console.log("[Netmap][Debug] Nodes: {0}".format(json.nodes.length));
+                //console.log("[Netmap][Debug] Edges: {0}".format(json.links.length));
                 self.force.start();
                 /*svg.style("opacity", 1e-6)
                  .transition()
@@ -868,10 +813,6 @@ define([
                              node.y = 0;*/
 
                         }
-
-                    } else {
-                        console.log("THIS IS A BUG");
-                        console.log(i);
                     }
                 }
                 return result;
@@ -882,14 +823,6 @@ define([
 
             function categoryLinksFilter(data, filter_nodes, selected_categories) {
                 var json = data;
-                //if (!self.selected_netmap.isNew() && self.selected_netmap.attributes.)
-
-                //var selected_categories = ['other','sw'];
-
-                // can't remove nodes YET, will screw up stupid linksLinkedByIndex!
-                // If you don't want to remap links >=index_you_delete by -1 for every
-                // delete ...
-
 
                 var filter_links = [];
 
@@ -932,8 +865,6 @@ define([
 
                     }
 
-                    console.log(filter_nodes_indexes);
-                    console.log("START: " + json.links.length);
                     for (var x = 0; x < filter_nodes_indexes.length; x++) {
                         var node = filter_nodes_indexes[x];
                         for (var i = 0; i < json.links.length; i++) {
@@ -951,7 +882,6 @@ define([
                         }
 
                     }
-                    console.log("result : " + result.length);
                     return result;
                 }
 
@@ -962,8 +892,6 @@ define([
 
 
 
-            //var selected_categories = context_selected_map.map.
-            //var selected_categories = ['gsw', 'sw'];
             if (self.force !== undefined) {
                 self.force.stop();
             }
@@ -1009,7 +937,6 @@ define([
             }
 
             if (self.filter_orphans) {
-                console.log("Filtering orphans");
                 for (var i = 0; i < self.modelJson.nodes.length; i++) {
                     var node = self.modelJson.nodes[i];
 

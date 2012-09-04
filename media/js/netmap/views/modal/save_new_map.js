@@ -43,17 +43,10 @@ define([
             }
             return fixed_nodes;
 
-                /*data['fixed_nodes'] = JSON.stringify(fixed_nodes);
-                data['link_types'] = "2";
-                data['zoom'] = [trans, scale].join(";");*/
         },
         save_view: function () {
             var self = this;
 
-            //self.$('#choose_netview form').attr('action', this.model.url)
-
-            // make a copy
-            //var copy = $.extend(true, {}, this.model);
             this.model.set({
                 title: self.$('#new_view_title').val().trim(),
                 description: self.$('#new_view_description').val().trim(),
@@ -65,9 +58,10 @@ define([
                 zoom: self.model.attributes.zoom,
                 display_orphans: !self.model.attributes.display_orphans
             });
-            console.log("====" + "savedata");
+            // logger should log this as debug.
+            /*console.log("====" + "savedata");
             console.log($.extend(true, {}, this.model.attributes));
-            console.log("====/" + "savedata");
+            console.log("====/" + "savedata");*/
             this.model.save(this.model.attributes, {
                 wait: true,
                 error: function () { alert("Error while saving view, try again"); },
@@ -87,8 +81,6 @@ define([
             this.close();
         },
         close: function () {
-            console.log("SAVE NEW VIEW CLOSED");
-
             $('#modal_new_view').dialog('destroy').remove();
             $(this.el).unbind();
             $(this.el).remove();
@@ -96,8 +88,3 @@ define([
     });
     return modalSaveNew;
 });
-
-
-
-
-

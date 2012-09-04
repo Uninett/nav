@@ -122,9 +122,6 @@ define([
         },
         loadGraph: function () {
             var self = this;
-            console.log("====" + "map_id");
-            console.log(context_selected_map.id);
-            console.log("====/" + "map_id");
 
             if (self.view_map !== undefined) {
                 self.view_map.close();
