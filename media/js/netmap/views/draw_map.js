@@ -123,9 +123,24 @@ define([
             this.redraw();
         },
         centerGraph: function () {
-            this.scale = 1/Math.log(this.modelJson.nodes.length);
+            var boundingBox = document.getElementById('boundingbox').getBoundingClientRect();
+
+            var baseWidth = boundingBox.width / this.scale;
+            var baseHeight = boundingBox.height / this.scale;
+
+            var baseScaleWidth = this.w / baseWidth;
+            var baseScaleHeight = this.h / baseHeight;
+
+
+            if (baseScaleWidth < baseScaleHeight) {
+                requiredScale = baseScaleWidth;
+            } else {
+                requiredScale = baseScaleHeight;
+            }
+
+            this.scale = requiredScale;
             this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
-            this.zoom.scale(this.scale);
+            this.zoom.scale(requiredScale);
             this.zoom.translate(this.trans);
             this.svg.attr("transform",
                 "translate(" + this.trans + ") scale(" + this.scale + ")");
@@ -204,6 +219,7 @@ define([
             svg = root_chart.append('svg:g')
                 //.call(d3.behavior.zoom().on("zoom", redraw))
                 .append('svg:g')
+                .attr('id', 'boundingbox')
             ;
             //root_chart.attr("opacity", 0.1);
             this.svg = svg;
