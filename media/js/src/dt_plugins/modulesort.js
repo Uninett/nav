@@ -5,11 +5,12 @@
 define(['dt_plugins/natsort', 'libs/jquery.dataTables.min'], function (naturalSort) {
     function moduleSort(a, b) {
         if (bothAreStrings(a, b) && bothAreCiscoInterfaceNames(a, b)) {
-            return naturalSort.naturalSort(
+            return naturalSort(
                 a.slice(a.search(/\d/)),
-                b.slice(b.search(/\d/)));
+                b.slice(b.search(/\d/))
+            );
         } else {
-            return naturalSort.naturalSort(a, b)
+            return naturalSort(a, b);
         }
     }
 
@@ -37,9 +38,7 @@ define(['dt_plugins/natsort', 'libs/jquery.dataTables.min'], function (naturalSo
         });
     }
 
-    return {
-        moduleSort: moduleSort
-    }
+    return moduleSort
 
 });
 
