@@ -1,13 +1,13 @@
 define([
-    'jquery',
-    'underscore',
-    'backbone',
-    'handlebars',
-    'netmapextras',
-    'views/info/vlan',
-    'text!templates/netbox_info.html'
+    'libs/netmap-extras',
+    'netmap/views/info/vlan',
+    'libs/text!netmap/templates/netbox_info.html',
+    'libs/handlebars',
+    'libs/jquery',
+    'libs/underscore',
+    'libs/backbone'
 
-], function ($, _, Backbone, Handlebars, NetmapHelpers, VlanInfoView, netmapTemplate) {
+], function (NetmapHelpers, VlanInfoView, netmapTemplate, Handlebars) {
 
     var NetboxInfoView = Backbone.View.extend({
         broker: Backbone.EventBroker,

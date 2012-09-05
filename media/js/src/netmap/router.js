@@ -1,20 +1,20 @@
 
 define([
-    'jquery',
-    'underscore',
-    'backbone',
-    'backbone_eventbroker',
-    'spinjs',
-    'collections/map',
-    'models/map',
-    'models/graph',
-    'views/map_info',
-    'views/draw_map',
-    'views/list_maps',
-    'views/navigation',
-    'views/searchbox'
+    'netmap/collections/map',
+    'netmap/models/map',
+    'netmap/models/graph',
+    'netmap/views/map_info',
+    'netmap/views/draw_map',
+    'netmap/views/list_maps',
+    'netmap/views/navigation',
+    'netmap/views/searchbox',
+    'libs/jquery',
+    'libs/underscore',
+    'libs/backbone',
+    'libs/backbone-eventbroker',
+    'libs/spin.min'
     /*'views/users/list'*/
-], function ($, _, Backbone, BackboneEventbroker, Spinner, MapCollection, MapModel, GraphModel, MapInfoView, DrawNetmapView, ListNetmapView, NavigationView, SearchboxView) {
+], function (MapCollection, MapModel, GraphModel, MapInfoView, DrawNetmapView, ListNetmapView, NavigationView, SearchboxView) {
 
     var collection_maps;
     var context_selected_map = {};

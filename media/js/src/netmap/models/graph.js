@@ -1,8 +1,7 @@
 define([
-    'underscore',
-    'backbone',
-    'netmapextras'
-], function (_, Backbone, NetmapExtras) {
+    'libs/netmap-extras',
+    'libs/backbone'
+], function (NetmapExtras) {
     var graphModel = Backbone.Model.extend({
         defaults: {
                   topology: 1

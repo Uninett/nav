@@ -1,12 +1,12 @@
 define([
-    'jquery',
-    'underscore',
-    'backbone',
-    'handlebars',
-    'netmapextras',
-    'text!templates/searchbox.html'
+    'libs/netmap-extras',
+    'libs/text!netmap/templates/searchbox.html',
+    'libs/handlebars',
+    'libs/jquery',
+    'libs/underscore',
+    'libs/backbone'
 
-], function ($, _, Backbone, Handlebars, NetmapHelpers, netmapTemplate) {
+], function (NetmapHelpers, netmapTemplate, Handlebars) {
 
     var SearchboxView = Backbone.View.extend({
         broker: Backbone.EventBroker,

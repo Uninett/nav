@@ -1,5 +1,6 @@
 
 // Require.js configure shortcut aliases
+/*
 require.config({
     shim: {
         underscore: {
@@ -25,19 +26,19 @@ require.config({
         backbone: 'libs/backbone/backbone',
         backbone_eventbroker: 'libs/backbone/backbone-eventbroker',
         //Backbone: 'libs/backbone/backbone',
-        /*text: 'libs/require/text',
-         order: 'libs/require/order',*/
+        //text: 'libs/require/text',
+         //order: 'libs/require/order',
         netmapextras: '../netmap-extras',
         spinjs: '../spin.min',
         templates: 'templates'
     },
     urlArgs: "nav=" + (new Date()).getTime()
-});
+});*/
 
 require([
 
     // Load our app module and pass it to our definition function
-    'app'
+    'netmap/app'
 
 ], function (App) {
     document.navNetmapAppSpinner.stop(); // global spinner while javascript is loading it's dependencies

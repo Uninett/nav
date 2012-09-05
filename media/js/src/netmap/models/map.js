@@ -1,7 +1,6 @@
 define([
-    'underscore',
-    'backbone'
-], function (_, Backbone) {
+    'libs/backbone'
+], function () {
     var netmapModel = Backbone.Model.extend({
         idAttribute: "viewid",
         defaults: {

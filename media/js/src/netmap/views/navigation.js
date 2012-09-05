@@ -1,13 +1,13 @@
 define([
-    'jquery',
-    'underscore',
-    'backbone',
-    'backbone_eventbroker',
-    'handlebars',
-    'netmapextras',
-    'text!templates/navigation.html'
+    'libs/netmap-extras',
+    'libs/text!netmap/templates/navigation.html',
+    'libs/handlebars',
+    'libs/jquery',
+    'libs/underscore',
+    'libs/backbone',
+    'libs/backbone-eventbroker'
 
-], function ($, _, Backbone, BackboneEventbroker, Handlebars, NetmapHelpers, netmapTemplate) {
+], function (NetmapHelpers, netmapTemplate, Handlebars) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,

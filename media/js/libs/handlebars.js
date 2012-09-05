@@ -1,5 +1,5 @@
 // src/amd/prologue.js
-define(['jquery'], function($) {
+define(['libs/jquery'], function($) {
 
 // lib/handlebars/base.js
 

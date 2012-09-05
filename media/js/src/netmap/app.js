@@ -1,10 +1,10 @@
 
 define([
-    'jquery',
-    'underscore',
-    'backbone',
-    'router' // Request router.js
-], function($, _, Backbone, Router, posts) {
+    'netmap/router', // Request router.js
+    'libs/jquery',
+    'libs/underscore',
+    'libs/backbone'
+], function(Router) {
     var initialize = function () {
         self = this;
 

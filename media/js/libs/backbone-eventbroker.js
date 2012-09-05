@@ -31,12 +31,12 @@
  *   THE SOFTWARE.
  */
 define([
-    'jquery',
-    'backbone',
-    'underscore'
+    'libs/jquery',
+    'libs/backbone',
+    'libs/underscore'
 ],
 
-    function($, Backbone, _) {
+    function () {
 
         "use strict";
 

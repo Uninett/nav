@@ -1,12 +1,12 @@
 define([
-    'jquery',
-    'underscore',
-    'backbone',
-    'handlebars',
-    'netmapextras',
-    'text!templates/modal/save_new_map.html',
-    'jqueryui/dialog'
-], function ($, _, Backbone, Handlebars, NetmapHelpers, template) {
+    'libs/handlebars',
+    'libs/netmap-extras',
+    'libs/text!netmap/templates/modal/save_new_map.html',
+    'libs/jquery',
+    'libs/underscore',
+    'libs/backbone',
+    'libs/jqueryui/dialog'
+], function (Handlebars, NetmapHelpers, template) {
 
     var modalSaveNew = Backbone.View.extend({
         events: {
