@@ -464,12 +464,12 @@ p.paginator .active {
 
 
 /* Vertical list */
-.horizontal-icon-linklist {
+.horizontal-button-list {
     margin-bottom: 10px;
     overflow: auto;
 }
 
-.horizontal-icon-linklist a {
+.horizontal-button-list a {
     color: #000;
     background-color: #EEE;
     border: 1px solid #AAA;
@@ -485,29 +485,29 @@ p.paginator .active {
     border-radius: 3px;
 }
 
-.horizontal-icon-linklist a:hover {
+.horizontal-button-list a:hover {
     color: grey;
 }
 
-.horizontal-icon-linklist span {
+.horizontal-button-list a span {
     display: block;
     text-indent: 30px;
     padding-right: 1em;
     background: no-repeat 8px 7px;
 }
 
-.horizontal-icon-linklist span.edit {
+.horizontal-button-list a span.edit {
     background-image: url("/images/icons/pencil.png");
 }
 
-.horizontal-icon-linklist span.maintenance {
+.horizontal-button-list a span.maintenance {
     background-image: url("/images/icons/hammer.png");
 }
 
-.horizontal-icon-linklist span.history {
+.horizontal-button-list a span.history {
     background-image: url("/images/icons/clock-history.png");
 }
 
-.horizontal-icon-linklist span.configure {
+.horizontal-button-list a span.configure {
     background-image: url("/images/icons/gear.png");
 }

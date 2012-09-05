@@ -4,7 +4,7 @@
 {% block content %}
 
     {% if netbox %}
-        <div class="horizontal-icon-linklist">
+        <div class="horizontal-button-list">
             <a href="{% url seeddb-netbox-edit netbox.id %}"><span class="edit">Edit IP device</span></a>
             <a href="{% url maintenance-new-netbox netbox.id %}"><span class="maintenance">Schedule maintenance</span></a>
             <a href="{% url devicehistory-view-netbox netbox.id %}"><span class="history">View device history</span></a>
