@@ -26,3 +26,15 @@ function jump(fe) {
 	return false;
 }
 
+function addGlobalAjaxHandlers() {
+    $(document).ajaxSend(function (event, request) {
+        request.setRequestHeader('X-NAV-AJAX', 'true');
+    });
+    $(document).ajaxError(function (event, request) {
+        if (request.status == 401) {
+            window.location = '/index/login/?origin=' + encodeURIComponent(window.location.href);
+        }
+    });
+}
+
+

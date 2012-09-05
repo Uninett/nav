@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 
+{% block base_header_additional_head %}
+    <script type="text/javascript" data-main="src/webfront" src="/js/libs/require.js"></script>
+{% endblock %}
+
+
 {% block base_content %}
 
 <div class="boxes">
@@ -36,6 +41,7 @@
 <div class="welcome">
     {{ welcome|safe }}
 </div>
+
 
 <table class="listtable">
     <caption>

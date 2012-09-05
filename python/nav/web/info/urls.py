@@ -16,9 +16,10 @@
 """Django URL configuration"""
 
 from django.conf.urls.defaults import patterns, include, url
-from nav.web.info.views import index
+from nav.web.info.views import index, osm_map_redirecter
 
 urlpatterns = patterns('',
     url(r'^$', index, name="info-search"),
+    url(r'^osm_map_redirect/(.+)/(.+)/(.+)\.png', osm_map_redirecter, name='osm_map_redirect'),
     url(r'^room/', include('nav.web.info.room.urls')),
 )

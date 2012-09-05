@@ -263,6 +263,12 @@ class Netbox(models.Model):
         else:
             return unresolved
 
+    def get_powersupplies(self):
+        return self.powersupplyorfan_set.filter(physical_class='powerSupply').order_by('name')
+
+    def get_fans(self):
+        return self.powersupplyorfan_set.filter(physical_class='fan').order_by('name')
+
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place to store additional info
     on a netbox."""
@@ -971,7 +977,7 @@ class Interface(models.Model):
         return self.netbox.cam_set.filter(ifindex=self.ifindex).latest(
             'end_time')
 
-    def get_active_time(self, interval):
+    def get_active_time(self, interval=600):
         """
         Time since last CAM activity on port, looking at CAM entries
         for the last ``interval'' days.
@@ -1035,7 +1041,7 @@ class Interface(models.Model):
 
         if self.trunk:
             return ",".join(as_range(y) for x,y in groupby(
-                self.swportallowedvlan.get_allowed_vlans(),
+                sorted(self.swportallowedvlan.get_allowed_vlans()),
                 lambda n, c=count(): n-next(c))
             )
         else:

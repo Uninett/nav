@@ -8,49 +8,52 @@
 #############################################
 
 Target	--default--
-	dataDir			= %auto-base%/../cricket-data/%auto-target-path%
-	rrd-datafile		= %dataDir%/%auto-target-name%.rrd
-	rrd-poll-interval	= 300
-	snmp-host		= %auto-target-name%
-	snmp-community		= public
-	snmp-port		= 161
+	dataDir			        = %auto-base%/../cricket-data/%auto-target-path%
+	rrd-datafile		    = %dataDir%/%auto-target-name%.rrd
+	rrd-poll-interval	    = 300
+	snmp-host	        	= %auto-target-name%
+	snmp-community		    = public
+	snmp-port		        = 161
 	snmp-timeout            = 2.0
 	snmp-retries            = 5
 	snmp-backoff            = 1.0
 	snmp-version            = 1
 	snmp                    = %snmp-community%@%snmp-host%:%snmp-port%:%snmp-timeout%:%snmp-retries%:%snmp-backoff%:%snmp-version%
-	directory-desc		= "Graphs for %auto-target-name%"
-	show-path 		= yes
+	directory-desc		    = "Graphs for %auto-target-name%"
+	show-path 		        = yes
 
-OID	sysUptime  		1.3.6.1.2.1.1.3.0
-OID	ifNumber   		1.3.6.1.2.1.2.1.0
+OID	sysUptime           1.3.6.1.2.1.1.3.0
+OID	ifNumber            1.3.6.1.2.1.2.1.0
 
-OID	ifIndex    		1.3.6.1.2.1.2.2.1.1
-OID	ifDescr    		1.3.6.1.2.1.2.2.1.2
-OID	ifType     		1.3.6.1.2.1.2.2.1.3
-OID	ifMtu     		1.3.6.1.2.1.2.2.1.4
-OID	ifSpeed    	    	1.3.6.1.2.1.2.2.1.5 
-OID 	ifPhysAddress		1.3.6.1.2.1.2.2.1.6
-OID	ifAdminStatus		1.3.6.1.2.1.2.2.1.7 
-OID	ifOperStatus   		1.3.6.1.2.1.2.2.1.8 
-OID	ifLastChange		1.3.6.1.2.1.2.2.1.9
-OID	ifInOctets 		1.3.6.1.2.1.2.2.1.10
-OID	ifInUcastPkts		1.3.6.1.2.1.2.2.1.11
-OID	ifInNUcastPkts		1.3.6.1.2.1.2.2.1.12
-OID	ifInDiscards		1.3.6.1.2.1.2.2.1.13
-OID	ifInErrors 		1.3.6.1.2.1.2.2.1.14
-OID	ifInUnknownProtos	1.3.6.1.2.1.2.2.1.15
-OID	ifOutOctets		1.3.6.1.2.1.2.2.1.16
-OID	ifOutUcastPkts  	1.3.6.1.2.1.2.2.1.17
-OID	ifOutNUcastPkts 	1.3.6.1.2.1.2.2.1.18
-OID	ifOutDiscards		1.3.6.1.2.1.2.2.1.19
-OID	ifOutErrors		1.3.6.1.2.1.2.2.1.20
-OID	ifOutQLen      		1.3.6.1.2.1.2.2.1.21
-OID 	ifHCInOctets    	1.3.6.1.2.1.31.1.1.1.6
-OID 	ifHCOutOctets   	1.3.6.1.2.1.31.1.1.1.10
+OID	ifIndex             1.3.6.1.2.1.2.2.1.1
+OID	ifDescr             1.3.6.1.2.1.2.2.1.2
+OID	ifType              1.3.6.1.2.1.2.2.1.3
+OID	ifMtu               1.3.6.1.2.1.2.2.1.4
+OID	ifSpeed             1.3.6.1.2.1.2.2.1.5
+OID ifPhysAddress       1.3.6.1.2.1.2.2.1.6
+OID	ifAdminStatus       1.3.6.1.2.1.2.2.1.7
+OID	ifOperStatus        1.3.6.1.2.1.2.2.1.8
+OID	ifLastChange        1.3.6.1.2.1.2.2.1.9
+OID	ifInOctets          1.3.6.1.2.1.2.2.1.10
+OID	ifInUcastPkts       1.3.6.1.2.1.2.2.1.11
+OID	ifInNUcastPkts      1.3.6.1.2.1.2.2.1.12
+OID	ifInDiscards        1.3.6.1.2.1.2.2.1.13
+OID	ifInErrors          1.3.6.1.2.1.2.2.1.14
+OID	ifInUnknownProtos   1.3.6.1.2.1.2.2.1.15
+OID	ifOutOctets         1.3.6.1.2.1.2.2.1.16
+OID	ifOutUcastPkts      1.3.6.1.2.1.2.2.1.17
+OID	ifOutNUcastPkts     1.3.6.1.2.1.2.2.1.18
+OID	ifOutDiscards       1.3.6.1.2.1.2.2.1.19
+OID	ifOutErrors         1.3.6.1.2.1.2.2.1.20
+OID	ifOutQLen           1.3.6.1.2.1.2.2.1.21
+OID ifHCInOctets        1.3.6.1.2.1.31.1.1.1.6
+OID ifHCOutOctets       1.3.6.1.2.1.31.1.1.1.10
 
-OID 	ifName			1.3.6.1.2.1.31.1.1.1.1
-OID 	ifAlias			1.3.6.1.2.1.31.1.1.1.18
+OID ifHCInOctetsv6      1.3.6.1.2.1.4.31.3.1.6.2
+OID ifHCOutOctetsv6     1.3.6.1.2.1.4.31.3.1.33.2
+
+OID ifName			    1.3.6.1.2.1.31.1.1.1.1
+OID ifAlias			    1.3.6.1.2.1.31.1.1.1.18
 
 dataSource --default--
 	rrd-ds-type	=	DERIVE	
@@ -59,32 +62,38 @@ dataSource --default--
 
 
 dataSource sysUptime
-        ds-source       =       snmp://%snmp%/sysUptime
+    ds-source = snmp://%snmp%/sysUptime
 
 # These datasources are used for interfaces of all types.
 dataSource  ifInOctets
-	ds-source	=	snmp://%snmp%/ifInOctets.%inst%
+	ds-source =	snmp://%snmp%/ifInOctets.%inst%
 
 dataSource  ifOutOctets
-	ds-source	=	snmp://%snmp%/ifOutOctets.%inst%
+	ds-source =	snmp://%snmp%/ifOutOctets.%inst%
 
 dataSource  ifHCInOctets
-	ds-source	=	snmp://%snmp%/ifHCInOctets.%inst%
+	ds-source =	snmp://%snmp%/ifHCInOctets.%inst%
 
 dataSource  ifHCOutOctets
-	ds-source	=	snmp://%snmp%/ifHCOutOctets.%inst%
+	ds-source =	snmp://%snmp%/ifHCOutOctets.%inst%
 
 datasource ifInErrors
-        ds-source       =       snmp://%snmp%/ifInErrors.%inst%
+    ds-source = snmp://%snmp%/ifInErrors.%inst%
 
 datasource ifOutErrors
-        ds-source       =       snmp://%snmp%/ifOutErrors.%inst%
+    ds-source = snmp://%snmp%/ifOutErrors.%inst%
 
 datasource ifInUcastPkts
-        ds-source       =       snmp://%snmp%/ifInUcastPkts.%inst%
+    ds-source = snmp://%snmp%/ifInUcastPkts.%inst%
 
 datasource ifOutUcastPkts
-        ds-source       =       snmp://%snmp%/ifOutUcastPkts.%inst%
+    ds-source = snmp://%snmp%/ifOutUcastPkts.%inst%
+
+dataSource  ifHCInOctetsv6
+    ds-source = snmp://%snmp%/ifHCInOctetsv6.%inst%
+
+dataSource  ifHCOutOctetsv6
+    ds-source = snmp://%snmp%/ifHCOutOctetsv6.%inst%
 
 
 # rra
@@ -119,20 +128,25 @@ targetType	--default--
 # Don't change the order of those unless you also change it in the makecricketconfig-script.
 # There really should be no reason to do this...
 targetType  standard-interface
-	ds	=	"ifInOctets, ifOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
-	view	=	"Octets: ifInOctets ifOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
+	ds      = "ifInOctets, ifOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
+	view	= "Octets: ifInOctets ifOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
 
 targetType  sub-interface
-	ds	=	"ifInOctets, ifOutOctets"
-	view	=	"Octets: ifInOctets ifOutOctets"
+	ds      = "ifInOctets, ifOutOctets"
+	view	= "Octets: ifInOctets ifOutOctets"
 
 targetType  subv2-interface
-	ds	=	"ifHCInOctets, ifHCOutOctets"
-	view	=	"Octets: ifHCInOctets ifHCOutOctets"
+	ds      = "ifHCInOctets, ifHCOutOctets"
+	view	= "Octets: ifHCInOctets ifHCOutOctets"
 
 targetType  snmpv2-interface
-	ds	=	"ifHCInOctets, ifHCOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
-	view	=	"Octets: ifHCInOctets ifHCOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
+	ds      = "ifHCInOctets, ifHCOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
+	view	= "Octets: ifHCInOctets ifHCOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
+
+targetType  ipv6-interface
+    ds      = "ifHCInOctetsv6, ifHCOutOctetsv6"
+    view    = "Octets: ifHCInOctetsv6 ifHCOutOctetsv6"
+
 
 # The HTML dict has bits and pieces of HTML that gets used
 # by the grapher.
@@ -300,6 +314,23 @@ graph   ifHCInOctets
     bytes		=	true
 
 graph   ifHCOutOctets
+    color		=	blue
+    legend		=	"Average bits out"
+    y-axis		=	"bits per second"
+    units		=	"bits/sec"
+    scale		=	8,*
+    bytes		=	true
+
+graph   ifHCInOctetsv6
+    color		=	dark-green
+    draw-as		=	AREA
+    legend		=	"Average bits in"
+    y-axis		=	"bits per second"
+    units		=	"bits/sec"
+    scale		=	8,*
+    bytes		=	true
+
+graph   ifHCOutOctetsv6
     color		=	blue
     legend		=	"Average bits out"
     y-axis		=	"bits per second"

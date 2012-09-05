@@ -1,7 +1,34 @@
+{% load info %}
+
 <div id="netboxes">
+
+    <h3>{{ room.id }}: {{ netboxes|length }} netbox{{ netboxes|pluralize:"es" }}</h3>
+
+    <div id="global-search" class="input-filter">
+        <div class="input-filter-desc">Search <img id="searchhelp" src="/images/helpers/question.png" /></div>
+        <input id="netbox-global-search" type="text" />
+    </div>
+
+    <div id="vlanfilter" class="input-filter">
+        <div class="input-filter-desc">Vlan</div>
+        <input type="text">
+    </div>
+
+    <div id="lastseenfilter" class="input-filter">
+        <div class="input-filter-desc">Last Seen</div>
+        <input type="text">
+    </div>
+
+    <div class="input-filter">
+        <div class="input-filter-desc">Download CSV-file</div>
+        <span id="downloadify">You must have Flash 10 installed to download this file.</span>
+    </div>
+
+    <div class="float-clear"></div>
+
     {% for netbox in netboxes %}
 
-        <table class="vertitable netbox">
+        <table class="vertitable netbox compact cluttered">
 
             <caption><a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a> {% if netbox.type.name %} - {{ netbox.type.name }} {% endif %}</caption>
 
@@ -9,19 +36,35 @@
             <tr>
                 <th>Name</th>
                 <th>Portname</th>
+                <th>Status</th>
                 <th>Vlan</th>
+                <th>Last active</th>
             </tr>
             </thead>
 
             <tbody>
             {% for interface in netbox.interfaces %}
                 <tr>
-                    <td>{{ interface.ifname }}</td>
+                    <td title="Interface speed: {{ interface.speed }}" class="help">{{ interface.ifname }}</td>
                     <td>{{ interface.ifalias }}</td>
-                    <td>
-                        {% if interface.trunk %}<span title="{{ interface.get_trunkvlans_as_range }}">Trunk</span>{% else %}
+                    <td class="center-content help">
+                        <img title="Link status (green=link, red=no link)" src="/images/lys/{% if interface.ifoperstatus == interface.OPER_UP  %}green.png{% else %}red.png{% endif %}" alt="{% if interface.ifoperstatus == interface.OPER_UP  %}Up{% else %}Down{% endif %}"/>
+                    </td>
+                    <td class="numeric">
+                        {% if interface.trunk %}<span class="help" title="Allowed vlans: {{ interface.get_trunkvlans_as_range }}">Trunk</span>{% else %}
                             {% if interface.vlan %}{{ interface.vlan }}{% endif %}
                         {% endif %}
+                    </td>
+                    <td {% if not interface.last_cam|is_max_timestamp %}
+                            title="{{ interface.last_cam|date:"Y-m-d H:i" }}"
+                        {% endif %}
+                            class="numeric {% if interface.last_cam|is_max_timestamp %}brighten{% endif %}">
+
+                        {% if not interface.trunk %}
+                            {{ interface.last_cam|days_since }}
+                            <span class="ui-helper-hidden" title="{% firstof interface.last_cam 'Never' %}"></span>
+                        {% endif %}
+
                     </td>
                 </tr>
             {% endfor %}
@@ -30,5 +73,27 @@
         </table>
 
     {% endfor %}
+
+    <div id="searchhelptext" class="helperdialog">
+        <div>
+            The searchtext matches the whole row including some of the html. You can for instance search for "down" to see all interfaces with status down.
+        </div>
+
+        <div>
+            To improve the filtering you can use the other searchboxes that filters on specific rows.
+        </div>
+
+        <div>
+            You can also use predefined keywords in the main searchbox to filter what you want to see. The following keywords are currently available:
+            <ul>
+                <li>$vlan - Ex: $vlan:130 - Only show interfaces with vlan 130</li>
+                <li>$days - Ex: $days:5 - Only show rows where last active is 5 days or more</li>
+            </ul>
+        </div>
+
+        <div>
+            You can combine the filters if you want to. <kbd>fa1/2 $days:5 $vlan:10</kbd> is a valid filter. Also combining keywords and searchboxes work, but keywords have presedence
+        </div>
+    </div>
 
 </div>

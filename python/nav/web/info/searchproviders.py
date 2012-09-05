@@ -12,29 +12,34 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
-#
 
+# pylint: disable=R0903
+
+""" Module containing different searchproviders used for searching in NAV """
+
+from collections import namedtuple
 from django.core.urlresolvers import reverse
+from django.db.models import Q
+from operator import attrgetter
 
-from nav.models.manage import Room, Netbox
+from nav.models.manage import Room, Netbox, Interface
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
 
-class SearchResult():
-    """
-    Container for searchresults
-    """
-    def __init__(self, text, href, inst=None):
-        self.text = text
-        self.href = href
-        self.inst = inst
-
+SearchResult = namedtuple("SearchResult", ['href', 'inst'])
 
 class SearchProvider(object):
-    """
-    Searchprovider interface
+    """Searchprovider interface
+
+    name: displayed as table caption
+    headers: object attrs to display as headers and cell content
+    headertext: text lookup for headers
+    link: attr to create a link on
     """
     name = "SearchProvider"
+    headers = ['id']
+    headertext = {'id': 'Id'}
+    link = 'id'
 
     def __init__(self, query=""):
         self.results = []
@@ -47,23 +52,28 @@ class SearchProvider(object):
 
 
 class RoomSearchProvider(SearchProvider):
-    """
-    Searchprovider for rooms
-    """
+    """Searchprovider for rooms"""
     name = "Rooms"
+    headers = [
+        ('Roomid', attrgetter('id')),
+        ('Description', attrgetter('description'))
+    ]
+    link = 'Roomid'
 
     def fetch_results(self):
         results = Room.objects.filter(id__icontains=self.query).order_by("id")
         for result in results:
-            self.results.append(SearchResult(result.id,
-                reverse('room-info', kwargs={'roomid': result.id}), result))
+            self.results.append(SearchResult(
+                reverse('room-info', kwargs={'roomid': result.id}),
+                result)
+            )
 
 
 class NetboxSearchProvider(SearchProvider):
-    """
-    Searchprovider for netboxes
-    """
+    """Searchprovider for netboxes"""
     name = "Netboxes"
+    headers = [('Sysname', attrgetter('sysname'))]
+    link = 'Sysname'
 
     def fetch_results(self):
         if is_valid_ip(self.query):
@@ -73,14 +83,42 @@ class NetboxSearchProvider(SearchProvider):
 
         results.order_by("sysname")
         for result in results:
-            self.results.append(SearchResult(result.sysname,
+            self.results.append(SearchResult(
                 reverse('ipdevinfo-details-by-name',
-                    kwargs={'name': result.sysname}), result))
+                    kwargs={'name': result.sysname}),
+                result)
+            )
+
+
+class InterfaceSearchProvider(SearchProvider):
+    """Searchprovider for interfaces"""
+    name = "Interfaces"
+    headers = [
+        ('Netbox', attrgetter('netbox.sysname')),
+        ('Interface', attrgetter('ifname')),
+        ('Alias', attrgetter('ifalias')),
+    ]
+    link = 'Interface'
+
+    def fetch_results(self):
+        results = Interface.objects.filter(
+            Q(ifalias__icontains=self.query) |
+            Q(ifname__icontains=self.query)
+        ).order_by('netbox__sysname', 'ifindex')
+
+        for result in results:
+            self.results.append(SearchResult(
+                reverse('ipdevinfo-interface-details', kwargs={
+                    'netbox_sysname': result.netbox.sysname,
+                    'port_id': result.id
+                }),
+                result)
+            )
 
 
 class FallbackSearchProvider(SearchProvider):
-    """
-    Fallback searchprovider if no results are found.
+    """Fallback searchprovider if no results are found.
+
     Two cases:
     1 - if ip, send to ipdevinfos name lookup
     2 - if valid text based on ipdevinfos regexp, send to ipdevinfo
@@ -89,10 +127,14 @@ class FallbackSearchProvider(SearchProvider):
 
     def fetch_results(self):
         if is_valid_ip(self.query):
-            self.results.append(
-                SearchResult(self.query, reverse('ipdevinfo-details-by-addr',
-                    kwargs={'addr': self.query}), None))
+            self.results.append(SearchResult(
+                reverse('ipdevinfo-details-by-addr',
+                    kwargs={'addr': self.query}),
+                None)
+            )
         elif is_valid_hostname(self.query):
-            self.results.append(
-                SearchResult(self.query, reverse('ipdevinfo-details-by-name',
-                    kwargs={'name': self.query}), None))
+            self.results.append(SearchResult(
+                reverse('ipdevinfo-details-by-name',
+                    kwargs={'name': self.query}),
+                None)
+            )

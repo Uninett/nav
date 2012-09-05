@@ -1,0 +1,37 @@
+<div id="datasources">
+    {% if netbox %}
+        <table class="listtable">
+
+            <caption>Datasources</caption>
+
+            <thead>
+            <tr>
+                <th>Data source</th>
+                <th>Threshold</th>
+            <tr>
+            </thead>
+
+            <tbody>
+            {% for ds in netbox.get_rrd_data_sources %}
+                <tr>
+                    <td>
+                        <a href="{{ ds.get_absolute_url }}">
+                            {{ ds.description }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url threshold-netbox netbox.id %}">
+                            {% if ds.threshold %}
+                                {{ ds.threshold }}
+                            {% else %}
+                                not configured
+                            {% endif %}
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+    {% endif %}
+</div>

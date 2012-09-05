@@ -1,0 +1,19 @@
+<div id="ports">
+    {% if netbox %}
+        {% if netbox.module_set.count or netbox.interface_set.count %}
+
+            <div id="moduletabs">
+                <ul>
+                    <li><a href="/ipdevinfo/{{ netbox.sysname }}/modules/swportstatus/">Switch port status<span class="tab-spinner" >&nbsp;</span></a></li>
+                    <li><a href="/ipdevinfo/{{ netbox.sysname }}/modules/swportactive/">Switch port activity<span class="tab-spinner" >&nbsp;</span></a></li>
+                    <li><a href="/ipdevinfo/{{ netbox.sysname }}/modules/gwportstatus/">Router port status<span class="tab-spinner" >&nbsp;</span></a></li>
+                </ul>
+            </div>
+
+        {% else %}
+            <div class="infobox">
+                No ports found.
+            </div>
+        {% endif %}
+    {% endif %}
+</div>

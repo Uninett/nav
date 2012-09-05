@@ -1,0 +1,358 @@
+<table id="ipdevinfo" class="vertitable">
+{% if netbox %}
+    <caption>
+        IP Device: {{ netbox.get_short_sysname }}
+    </caption>
+
+    <tr>
+        <th>Full sysname</th>
+        <td>{{ netbox.sysname }}</td>
+    </tr>
+
+    <tr>
+        <th>Type</th>
+        <td>
+            {% if netbox.type %}
+                <a href="{% url report-type-type netbox.type.id %}">
+                    {{ netbox.type }}</a></td>
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+    </tr>
+
+    <tr>
+        <th>Category</th>
+        <td>
+            <a href="{% url report-netbox-category netbox.category.id %}">
+                {{ netbox.category }}</a></td>
+    </tr>
+
+    {% if netboxsubcat %}
+        <tr>
+            <th>Subcategories</th>
+            <td>{% for subcat in netboxsubcat %}
+                {{ subcat.category_id }}
+            {% endfor %}
+            </td>
+        </tr>
+    {% endif %}
+
+    <tr>
+        <th>Function</th>
+        <td>{{ netbox.get_function|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th>Organization</th>
+        <td>
+            <a href="{% url report-organization-organization netbox.organization.id|urlencode %}">
+                {{ netbox.organization }}</a></td>
+    </tr>
+
+    <tr>
+        <th>Room</th>
+        <td>
+            <a href="{% url report-netbox-room netbox.room.id|urlencode %}">
+                {{ netbox.room }}</a></td>
+    </tr>
+
+    <tr>
+        <th>Serial number</th>
+        <td>{{ netbox.device.serial|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th>Software</th>
+        <td>{{ netbox.device.software_version|default:"N/A" }}</td>
+    </tr>
+
+    <tr>
+        <th>IP address</th>
+        <td><a href="{% url ipdevinfo-details-by-addr netbox.ip %}">
+            {{ netbox.ip }}</a></td>
+    </tr>
+
+    <tr>
+        <th>Prefix</th>
+        <td>
+            {% with netbox.get_filtered_prefix as prefix %}
+                {% if prefix %}
+                    <a href="{% url report-prefix-prefix prefix.id %}">
+                        {{ prefix }}</a>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
+        </td>
+    </tr>
+
+    {% if netbox.category.is_sw or netbox.category.is_edge %}
+        <tr>
+            {% with netbox.get_uplinks as uplinks %}
+                <th>Uplink{{ uplinks|pluralize }}</th>
+                <td>
+                    {% if uplinks %}
+                        {% if uplinks|length_is:1 %}
+                            From <a
+                                href="{{ uplinks.0.this.get_absolute_url }}">
+                            {{ uplinks.0.this }}</a><br/>
+                            To <a
+                                href="{{ uplinks.0.other.get_absolute_url }}">
+                            {{ uplinks.0.other }}</a>
+                        {% else %}
+                            <ul>
+                                {% for uplink in uplinks %}
+                                    <li>
+                                        From <a
+                                            href="{{ uplink.this.get_absolute_url }}">
+                                        {{ uplink.this }}</a><br/>
+                                        To <a
+                                            href="{{ uplink.other.get_absolute_url }}">
+                                        {{ uplink.other }}</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+            {% endwith %}
+        </tr>
+    {% endif %}
+
+    <tr>
+        <th>Modules</th>
+        <td><a href="{% url report-modules-netbox netbox.id %}">
+            {{ netbox.module_set.count }}</a></td>
+    </tr>
+
+    <tr>
+        <th>Interfaces</th>
+        <td><a href="{% url report-interfaces-netbox netbox.id %}">
+            {{ netbox.interface_set.count }}</a></td>
+    </tr>
+
+    <tr>
+        <th>Switch ports</th>
+        <td><a href="{% url report-swport-netbox netbox.id %}">
+            {{ netbox.get_swports.count }}</a></td>
+    </tr>
+
+    <tr>
+        <th>Router ports</th>
+        <td><a href="{% url report-gwport-netbox netbox.id %}">
+            {{ netbox.get_gwports.count }}</a></td>
+    </tr>
+
+    <tr>
+        <th colspan="2">Status</th>
+    </tr>
+
+    <tr>
+        <th>Uptime</th>
+        <td>
+            {{ netbox.get_up_display|capfirst }}
+            {% ifequal netbox.up netbox.UP_UP %}
+                for {{ netbox.up_since|timesince }}
+            {% endifequal %}
+        </td>
+    </tr>
+
+    {% with netbox.get_availability as stats %}
+        <tr>
+            <th>Availability</th>
+            <td>
+                {% if stats %}
+                    {% with stats.availability as a %}
+                        <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"day" %}">
+                            {% if a.day %}
+                                {{ a.day|floatformat:2 }}%
+                            {% else %}
+                                (N/A)
+                            {% endif %}
+                            last day</a>,
+                        <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"week" %}">
+                            {% if a.week %}
+                                {{ a.week|floatformat:2 }}%
+                            {% else %}
+                                (N/A)
+                            {% endif %}
+                            last week</a>,
+                        <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"month" %}">
+                            {% if a.month %}
+                                {{ a.month|floatformat:2 }}%
+                            {% else %}
+                                (N/A)
+                            {% endif %}
+                            last month</a>
+                    {% endwith %}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+        </tr>
+
+        <tr>
+            <th>Response time</th>
+            <td>
+                {% if stats %}
+                    {% with stats.response_time as rt %}
+                        <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"day" %}">
+                            {% if rt.day %}
+                                {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
+                            {% else %}
+                                (N/A)
+                            {% endif %}
+                            last day</a>,
+                        <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"week" %}">
+                            {% if rt.week %}
+                                {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
+                            {% else %}
+                                (N/A)
+                            {% endif %}
+                            last week</a>,
+                        <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"month" %}">
+                            {% if rt.month %}
+                                {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
+                            {% else %}
+                                (N/A)
+                            {% endif %}
+                            last month</a>
+                    {% endwith %}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+        </tr>
+    {% endwith %}
+
+    <tr>
+        <th>First discovered</th>
+        <td>{{ netbox.discovered|date|default:"N/A" }}
+            {{ netbox.discovered|time }}</td>
+    </tr>
+
+    <tr>
+        <th>Last updated</th>
+        <td>{{ netbox.last_updated|date|default:"N/A" }}
+            {{ netbox.last_updated|time }}</td>
+    </tr>
+
+
+{% else %}
+
+
+    <caption class="nowrap">IP
+        Address: {{ host_info.addresses.0.addr|default:"N/A" }}</caption>
+    <tr>
+        <th>Status</th>
+        <td>Not monitored</td>
+    </tr>
+
+    <tr>
+        <th>Prefix</th>
+        <td>
+            {% with no_netbox.prefix as prefix %}
+                {% if prefix %}
+                    <a href="{% url report-prefix-prefix prefix.id %}">
+                        {{ prefix.net_address }}
+                    </a>
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endwith %}
+        </td>
+    </tr>
+
+    {% with no_netbox.prefix.vlan as vlan %}
+        <tr>
+            <th>VLAN</th>
+            <td>
+                {% if vlan %}
+                    <a href="{% url report-swporttrunk-vlanid vlan.id %}">
+                        {{ vlan }}
+                    </a>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+        </tr>
+
+        <tr>
+            <th class="indent">Usage</th>
+            <td>{{ vlan.usage|default:"N/A" }}</td>
+        </tr>
+
+        <tr>
+            <th class="indent">Description</th>
+            <td>{{ vlan.description|default:"N/A" }}</td>
+        </tr>
+
+        <tr>
+            <th class="indent">Organization</th>
+            <td>
+                {% if vlan.organization %}
+                    <a href="{% url report-organization-organization vlan.organization.id|urlencode %}">
+                        {{ vlan.organization|default:"N/A" }}
+                    </a>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+        </tr>
+
+        <tr>
+            <th class="indent">Optional #1</th>
+            <td>{{ vlan.organization.optional_1|default:"N/A" }}</td>
+        </tr>
+
+        <tr>
+            <th class="indent">Optional #2</th>
+            <td>{{ vlan.organization.optional_2|default:"N/A" }}</td>
+        </tr>
+
+        <tr>
+            <th class="indent">Optional #3</th>
+            <td>{{ vlan.organization.optional_3|default:"N/A" }}</td>
+        </tr>
+    {% endwith %}
+
+    {% with no_netbox.arp as arp %}
+        <tr>
+            <th>Last active</th>
+            <td>
+                {% ifequal no_netbox.dt_max arp.end_time %}
+                    <a href="{% url machinetracker-mac_search arp.mac 1 "" %}">
+                        Right now
+                    </a>
+                {% else %}
+                    {% if arp.end_time %}
+                        <a href="{% url machinetracker-mac_search arp.mac no_netbox.days_since_active "" %}">
+                            {{ arp.end_time|date }}
+                            {{ arp.end_time|time }}
+                        </a>
+                    {% else %}
+                        Never
+                    {% endif %}
+                {% endifequal %}
+            </td>
+        </tr>
+
+        <tr>
+            <th>Last seen with MAC</th>
+            <td>
+                {% if arp.mac %}
+                    <a href="{% url machinetracker-mac_search arp.mac 30 "" %}">
+                        {{ arp.mac }}
+                    </a>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+        </tr>
+    {% endwith %}
+
+{% endif %}
+</table>

@@ -206,49 +206,6 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'is_more_alerts': count > max_num_alerts,
         }
 
-    def get_port_view(netbox, perspective, activity_interval):
-        """
-        Returns a dict structure with all modules and ports on the netbox.
-
-        Arguments:
-        perspective -- decides what kind of ports are included.
-        activity_interval -- number of days to check for port activity.
-
-        """
-
-        port_view = {
-            'perspective': perspective,
-            'modules': [],
-            'activity_interval': activity_interval,
-            'activity_interval_start':
-                dt.datetime.now() - dt.timedelta(days=activity_interval),
-        }
-
-        # Check if we got data for the entire search interval
-        try:
-            port_view['activity_data_start'] = netbox.cam_set.order_by(
-                'start_time')[0].start_time
-            port_view['activity_data_interval'] = (
-                dt.datetime.now() - port_view['activity_data_start']).days
-            port_view['activity_complete_data'] = (
-                port_view['activity_data_start'] <
-                port_view['activity_interval_start'])
-        except IndexError:
-            port_view['activity_data_start'] = None
-            port_view['activity_data_interval'] = 0
-            port_view['activity_complete_data'] = False
-
-        # Add the modules
-        for module in netbox.module_set.select_related():
-            port_view['modules'].append(utils.get_module_view(
-                module, perspective, activity_interval))
-
-        # Add interfaces with no module
-        port_view['modules'].append(utils.get_module_view(
-            None, perspective, activity_interval, netbox))
-
-        return port_view
-
     def get_prefix_info(addr):
         try:
             return Prefix.objects.select_related().extra(
@@ -274,22 +231,6 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         except:
             return None
 
-
-    port_view_perspective = request.GET.get('view', None)
-
-    # Get port activity search interval from form
-    activity_interval = 30
-    if port_view_perspective == 'swportactive':
-        if 'interval' in request.GET:
-            activity_interval_form = ActivityIntervalForm(request.GET)
-            if activity_interval_form.is_valid():
-                activity_interval = activity_interval_form.cleaned_data[
-                    'interval']
-        else:
-            activity_interval_form = ActivityIntervalForm(
-                initial={'interval': activity_interval})
-    else:
-        activity_interval_form = None
 
     # Get data needed by the template
     host_info = get_host_info(name or addr)
@@ -327,21 +268,6 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         alert_info = get_recent_alerts(netbox)
         netboxsubcat = netbox.netboxcategory_set.all()
 
-        # Select port view to display
-        run_port_view = True
-        valid_perspectives = ('swportstatus', 'swportactive', 'gwportstatus')
-        if port_view_perspective not in valid_perspectives:
-            if netbox.get_swports().count():
-                port_view_perspective = 'swportstatus'
-            elif netbox.get_gwports().count():
-                port_view_perspective = 'gwportstatus'
-            else:
-                run_port_view = False
-
-        if run_port_view:
-            port_view = get_port_view(
-                netbox, port_view_perspective, activity_interval)
-
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
         {
@@ -349,14 +275,78 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'netbox': netbox,
             'title': netbox.sysname if netbox else host_info['host'],
             'alert_info': alert_info,
-            'port_view': port_view,
-            'activity_interval_form': activity_interval_form,
-            'activity_interval': activity_interval,
             'no_netbox': no_netbox,
             'netboxsubcat': netboxsubcat,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
+
+
+def get_port_view(request, netbox_sysname, perspective):
+    """Returns a html fragment with all modules and ports on the netbox.
+
+    Arguments:
+    netbox_sysname -- ...
+    perspective -- decides what kind of ports are included.
+    """
+
+    netbox = Netbox.objects.get(sysname=netbox_sysname)
+
+    # Get port activity search interval from form
+    activity_interval = 30
+    activity_interval_form = None
+    if perspective == 'swportactive':
+        if 'interval' in request.GET:
+            activity_interval_form = ActivityIntervalForm(request.GET)
+            if activity_interval_form.is_valid():
+                activity_interval = activity_interval_form.cleaned_data[
+                                    'interval']
+        else:
+            activity_interval_form = ActivityIntervalForm(
+                initial={'interval': activity_interval})
+
+    port_view = {
+            'perspective': perspective,
+            'modules': [],
+            'activity_interval': activity_interval,
+            'activity_interval_start':
+                dt.datetime.now() - dt.timedelta(days=activity_interval),
+            }
+
+    # Check if we got data for the entire search interval
+    try:
+        port_view['activity_data_start'] = netbox.cam_set.order_by(
+            'start_time')[0].start_time
+        port_view['activity_data_interval'] = (
+            dt.datetime.now() - port_view['activity_data_start']).days
+        port_view['activity_complete_data'] = (
+            port_view['activity_data_start'] <
+            port_view['activity_interval_start'])
+    except IndexError:
+        port_view['activity_data_start'] = None
+        port_view['activity_data_interval'] = 0
+        port_view['activity_complete_data'] = False
+
+    # Add the modules
+    for module in netbox.module_set.select_related():
+        port_view['modules'].append(utils.get_module_view(
+            module, perspective, activity_interval))
+
+    # Add interfaces with no module
+    port_view['modules'].append(utils.get_module_view(
+        None, perspective, activity_interval, netbox))
+
+
+    return render_to_response(
+        'ipdevinfo/modules.html',
+            {
+            'netbox': netbox,
+            'port_view': port_view,
+            'activity_interval_form': activity_interval_form
+            },
+        context_instance=RequestContext(request))
+
+
 
 def module_details(request, netbox_sysname, module_name):
     """Show detailed view of one IP device module"""
