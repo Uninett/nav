@@ -301,6 +301,9 @@ define([
                     break;
                 }
             }
+            if (!data.fixed) {
+                this.force.resume();
+            }
         },
         updateAllNodePositions: function (boolean) {
             for (var i = 0; i < this.modelJson.nodes.length; i++) {
