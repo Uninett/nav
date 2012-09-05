@@ -311,6 +311,9 @@ define([
                 node.fixed = boolean;
             }
             this.sidebar.render();
+            if (!boolean) {
+                this.force.resume();
+            }
         },
         requestRedraw: function (options) {
             if (options !== undefined) {
