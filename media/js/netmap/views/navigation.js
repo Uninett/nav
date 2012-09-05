@@ -99,6 +99,16 @@ define([
         render: function () {
             var self = this;
 
+            this.context.categories = {
+                'GSW':   false,
+                'GW':    false,
+                'SW':    false,
+                'OTHER': false,
+                'WLAN':  false,
+                'SRV':   false,
+                'EDGE':  false,
+                'ELINK': false
+            };
             for (var i = 0; i < this.model.attributes.categories.length; i++) {
                 var category = this.model.attributes.categories[i];
                 this.context.categories[category] = true;
