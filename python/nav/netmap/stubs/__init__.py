@@ -29,8 +29,8 @@ class Netbox(object):
     def __key(self):
         return (self.sysname)
 
-    def __eq__(self, i, j):
-        return i.__key() == j.__key()
+    def __eq__(self, i):
+        return self.__key() == i.__key()
 
     def __hash__(self):
         return hash(self.__key())
@@ -50,8 +50,8 @@ class GwPortPrefix(object):
     def __key(self):
         return (self.gw_ip)
 
-    def __eq__(self, i, j):
-        return i.__key() == j.__key()
+    def __eq__(self, i):
+        return self.__key() == i.__key()
 
     def __hash__(self):
         return hash(self.__key())
@@ -67,8 +67,8 @@ class Interface(object):
     def __key(self):
         return (self.ifname)
 
-    def __eq__(self, i, j):
-        return i.__key() == j.__key()
+    def __eq__(self, i):
+        return self.__key() == i.__key()
 
     def __hash__(self):
         return hash(self.__key())
