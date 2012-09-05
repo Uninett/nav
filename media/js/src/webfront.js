@@ -1,7 +1,4 @@
-require.config({
-    baseUrl: "/js/"
-});
-require(['src/plugins/room_mapper', 'libs/jquery'], function (RoomMapper) {
+require(['plugins/room_mapper', 'libs/jquery'], function (RoomMapper) {
 
     $(function () {
         var mapper_node = $('#room_map');

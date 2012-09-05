@@ -1,4 +1,4 @@
-require(['src/info/table_info_converter', 'libs/jquery'], function (converter) {
+require(['info/table_info_converter', 'libs/jquery'], function (converter) {
     buster.testCase("table info converter", {
         setUp:function () {
             this.wrapper = $('<div></div>');

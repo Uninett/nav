@@ -15,8 +15,6 @@
  * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-require.config({baseUrl: "/js/"});
-
 define(['libs/jquery'], function() {
 
     /* Todo: Rewrite this to not be so DOM-manipulative */

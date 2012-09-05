@@ -13,8 +13,7 @@
  * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
  */
 
-require.config({baseUrl: '/js/'});
-require(['src/plugins/quickselect', 'libs/jquery'], function (QuickSelect) {
+require(['plugins/quickselect', 'libs/jquery'], function (QuickSelect) {
     $(document).ready(function() {
         new QuickSelect('.quickselect');
 

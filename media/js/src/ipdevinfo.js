@@ -1,11 +1,5 @@
-require.config({
-    baseUrl: "/js/",
-    shim: {
-        'libs/jquery-ui-1.8.21.custom.min': ['libs/jquery']
-    }
-});
 require([
-    "src/plugins/table_utils", "src/plugins/tab_navigation", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
+    "plugins/table_utils", "plugins/tab_navigation", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
 ], function (TableUtil, TabNavigation) {
 
     var mainTabsSelector = '#ipdevinfotabs';

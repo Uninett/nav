@@ -4,15 +4,12 @@ config["My tests"] = {
     rootPath: "../",
     environment: "browser", // or "node"
     libs: [
-        "libs/require.js",
-        "libs/jquery.js",
-        "libs/jquery.dataTables.min.js",
-        "libs/jquery-ui-1.8.21.custom.min.js"
+        "require_config.js",
+        "require_testconfig.js",
+        "libs/*.js"
     ],
-    sources: [
-        "src/info/*.js",
-        "src/plugins/*.js",
-        "src/dt_plugins/*.js"
+    resources: [
+        "src/*/*.js"
     ],
     tests: [
         "test/*/*-test.js"

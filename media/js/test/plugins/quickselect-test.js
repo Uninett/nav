@@ -1,4 +1,4 @@
-require(['src/plugins/quickselect', 'libs/jquery'], function (QuickSelect) {
+require(['plugins/quickselect', 'libs/jquery'], function (QuickSelect) {
     buster.testCase("QuickSelect", {
         setUp: function () {
             this.wrapper = $('<div></div>');

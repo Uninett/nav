@@ -1,5 +1,3 @@
-require.config({'baseUrl': '/js/'});
-
 define(['libs/jquery'], function () {
     /*
      * Create a checkbox on node, that when clicked on
