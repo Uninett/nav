@@ -17,7 +17,7 @@ define([
         broker: Backbone.EventBroker,
         interests: {
             'map:resize:animate': 'resizeAnimate',
-            'map:redraw': 'redraw',
+            'map:redraw': 'requestRedraw',
             'map:search': 'search',
             'map:centerGraph': 'centerGraph',
             'map:freezeNodes': 'freezeNodes',
@@ -56,13 +56,47 @@ define([
                 .gravity(0.5)
                 .distance(2000)
                 .charge(-100)
-                .size([self.w, self.h]);
+                .size([this.w, this.h]);
 
             this.trans = [0,0];
             this.scale = 1;
             this.zoom = d3.behavior.zoom();
             // swap .on with .bind for jQuery<1.7
             $(window).on("resize.app", _.bind(this.resize, this));
+            this.clear();
+
+
+            if (!this.context_selected_map.map.isNew() && this.context_selected_map.map.attributes.zoom !== undefined) {
+                var tmp = this.context_selected_map.map.attributes.zoom.split(";");
+                this.trans = tmp[0].split(",");
+                this.scale = tmp[1];
+                this.validateTranslateScaleValues();
+                this.zoom.translate(this.trans);
+                this.zoom.scale(this.scale);
+
+                this.svg.attr("transform",
+                    "translate(" + this.trans + ") scale(" + this.scale + ")");
+
+            } else {
+                // adjust scale and translated according to how many nodes
+                // we're trying to draw
+
+                // Guess a good estimated scaling factor
+                // (can't use self.baseScale , since svg is not drawn yet)
+                //this.scale = 1 / Math.log(nodesCount);
+                this.scale = 0.5;
+
+                // translate ( -centerX*(factor-1) , -centerY*(factor-1) ) scale(factor)
+                // Example: SVG view pot 800x600, center is 400,300
+                // Reduce 30%, translate( -400*(0.7-1), -300*(0.7-1) ) scale(0.7)
+                this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
+
+                this.validateTranslateScaleValues();
+                this.zoom.scale(this.scale);
+                this.zoom.translate(this.trans);
+
+
+            }
         },
         resizeAnimate: function (margin) {
             var self = this;
@@ -120,8 +154,69 @@ define([
                 "translate(" + this.trans + ") scale(" + this.scale + ")");
         },
         showVlan: function (vlan) {
-            this.selected_vlan = vlan;
-            this.redraw();
+            var self = this;
+            self.selected_vlan = vlan;
+
+            if (!self.selected_vlan) {
+                self.nodesInVlan.exit().remove();
+                self.linksInVlan.exit().remove();
+            }
+
+            var markVlanNodes = self.modelJson.nodes.filter(function (d) {
+
+                if (d.data.vlans !== undefined && d.data.vlans && self.selected_vlan) {
+                    for (var i = 0; i < d.data.vlans.length; i++) {
+                        var vlan = d.data.vlans[i];
+                        if (vlan.nav_vlan === self.selected_vlan.navVlanId) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            });
+
+            var markVlanLinks = self.modelJson.links.filter(function (d) {
+                if (d.data.uplink.vlans !== undefined && d.data.uplink.vlans && self.selected_vlan) {
+                    for (var i = 0; i < d.data.uplink.vlans.length; i++) {
+                        var vlan = d.data.uplink.vlans[i];
+                        if (vlan.nav_vlan === self.selected_vlan.navVlanId) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            });
+
+            self.nodesInVlan = self.selectedNodeGroup.selectAll("g circle").data(markVlanNodes, function (d) {
+                return d.data.sysname;
+            });
+
+            self.linksInVlan = self.selectedLinkGroup.selectAll("g line").data(markVlanLinks, function (d) {
+                return d.source.id + "-" + d.target.id;
+            });
+
+
+
+            self.nodesInVlan.enter()
+                .append("svg:circle")
+                .attr("class", "grouped_by_vlan")
+                .attr("cx", function (d) {
+                    return d.px;
+                })
+                .attr("cy", function (d) {
+                    return d.py;
+                })
+                .attr("r", 38);
+            self.linksInVlan.enter()
+                .append("svg:line")
+                .attr("class", "grouped_by_vlan")
+                .attr("x1", function (d) { return d.source.x;})
+                .attr("y1", function (d) { return d.source.y;})
+                .attr("x2", function (d) { return d.target.x;})
+                .attr("y2", function (d) { return d.target.y;});
+            self.nodesInVlan.exit().remove();
+            self.linksInVlan.exit().remove();
+
         },
         baseScale:      function () {
             var boundingBox = document.getElementById('boundingbox').getBoundingClientRect();
@@ -166,6 +261,37 @@ define([
         clear: function () {
             this.force.stop();
             (this.$el).find('#svg-netmap').remove();
+            var self = this;
+
+            this.root_chart = d3.select(this.el)
+                .append("svg:svg")
+                .attr('id', 'svg-netmap')
+                .attr("width", self.w).attr("height", self.h)
+                .attr("pointer-events", "all");
+            this.root_chart
+                .append('svg:rect')
+                .attr('width', self.w)
+                .attr('height', self.h)
+                .attr('fill', 'white')
+                .call(self.zoom.on("zoom", redraw));
+            this.svg = this.root_chart.append('svg:g')
+                .append('svg:g')
+                .attr('id', 'boundingbox')
+            ;
+            this.selectedNodeGroup = this.svg.append("svg:g").attr("class", "selected_nodes");
+            this.selectedLinkGroup = this.svg.append("svg:g").attr("class", "selected_links");
+            this.linkGroup = this.svg.append("svg:g").attr("class", "links");
+            this.nodeGroup = this.svg.append("svg:g").attr("class", "nodes");
+
+            function redraw() {
+                self.trans = d3.event.translate;
+                self.scale = d3.event.scale;
+                self.context_selected_map.map.set({
+                    'zoom': self.trans + ";" + self.scale
+                }, {silent: true});
+                self.svg.attr("transform",
+                    "translate(" + self.trans + ") scale(" + self.scale + ")");
+            }
         },
         updateNodeFixedStatus: function (data) {
             for (var i = 0; i < this.modelJson.nodes.length; i++) {
@@ -183,7 +309,7 @@ define([
             }
             this.sidebar.render();
         },
-        redraw: function (options) {
+        requestRedraw: function (options) {
             if (options !== undefined) {
                 if (options.filter_orphans !== undefined) {
                     this.filter_orphans = options.filter_orphans;
@@ -200,55 +326,26 @@ define([
 
             this.render();
         },
+        validateTranslateScaleValues: function () {
+            if (isNaN(this.scale)) {
+                this.scale = this.baseScale();
+            }
+            if (this.trans.length !== 2 || isNaN(this.trans[0]) || isNaN(this.trans[1])) {
+                //console.log("[Netmap][WARNING] Received invalid translate values, centering graph: {0}".format(self.trans));
+                this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
+            }
+        },
         render: function () {
 
-            var chart, svg, trans, scale, self, restart;
+            var svg, self;
             self = this;
 
-            chart = this.$el[0],
-                r = 6,
-                fill = d3.scale.category20();
-
-            var root_chart = d3.select(this.el)
-                .append("svg:svg")
-                .attr('id', 'svg-netmap')
-                .attr("width", self.w).attr("height", self.h)
-                .attr("pointer-events", "all");
-            root_chart
-                .append('svg:rect')
-                .attr('width', self.w)
-                .attr('height', self.h)
-                .attr('fill', 'white')
-                .call(self.zoom.on("zoom", redraw));
-            svg = root_chart.append('svg:g')
-                //.call(d3.behavior.zoom().on("zoom", redraw))
-                .append('svg:g')
-                .attr('id', 'boundingbox')
-            ;
             //root_chart.attr("opacity", 0.1);
-            this.svg = svg;
 
-
-            function redraw() {
-                self.trans = d3.event.translate;
-                self.scale = d3.event.scale;
-                self.context_selected_map.map.set({
-                    'zoom': self.trans + ";" + self.scale
-                }, {silent: true});
-                svg.attr("transform",
-                    "translate(" + self.trans + ") scale(" + self.scale + ")");
-            }
+            svg = self.svg;
 
             //json = {}
-            var validateTranslateScaleValues = function () {
-                if (isNaN(self.scale)) {
-                    self.scale = self.baseScale();
-                }
-                if (self.trans.length !== 2 || isNaN(self.trans[0]) || isNaN(self.trans[1])) {
-                    //console.log("[Netmap][WARNING] Received invalid translate values, centering graph: {0}".format(self.trans));
-                    self.trans = [(-self.w / 2) * (self.scale - 1), (-self.h / 2) * (self.scale - 1)];
-                }
-            }
+
 
             var draw = function (data) {
                 json = data;
@@ -279,9 +376,9 @@ define([
                     linkErrors.exit().remove();
                 }
 
-                var linkGroup = svg.append("svg:g").attr("class", "links");
+
                 //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
-                var s_link = linkGroup.selectAll("g line").data(json.links, function (d) {
+                var s_link = self.linkGroup.selectAll("g line").data(json.links, function (d) {
                     return d.source.id + "-" + d.target.id;
                 });
 
@@ -368,12 +465,9 @@ define([
                         });
                 });
 
-                var link = linkGroup.selectAll("g.link line");
+                var link = self.linkGroup.selectAll("g.link line");
 
-                var selectedNodeGroup = svg.append("svg:g").attr("class", "selected_nodes");
-                var nodeGroup = svg.append("svg:g").attr("class", "nodes");
-
-                var node_s = nodeGroup.selectAll("g.node").data(json.nodes, function (d) {
+                var node_s = self.nodeGroup.selectAll("g.node").data(json.nodes, function (d) {
                     return d.data.sysname;
                 });
 
@@ -422,62 +516,10 @@ define([
                     });
 
 
-                var markVlan = function (selected_vlan) {
-                    if (!selected_vlan) {
-                        self.nodesInVlan.remove();
-                        self.linksInVlan.remove();
-                    }
-                    var markVlanNodes = self.modelJson.nodes.filter(function (d) {
-                        if (d.data.vlans !== undefined && d.data.vlans) {
-                            for (var i = 0; i < d.data.vlans.length; i++) {
-                                var vlan = d.data.vlans[i];
-                                if (vlan.nav_vlan === selected_vlan) {
-                                    return true;
-                                }
-                            }
-                        }
-                        return false;
-                    });
-
-                    var markVlanLinks = self.modelJson.links.filter(function (d) {
-                        if (d.data.uplink.vlans !== undefined && d.data.uplink.vlans) {
-                            for (var i = 0; i < d.data.uplink.vlans.length; i++) {
-                                var vlan = d.data.uplink.vlans[i];
-                                if (vlan.nav_vlan === selected_vlan) {
-                                    return true;
-                                }
-                            }
-                        }
-                        return false;
-                    });
-
-                    self.nodesInVlan = selectedNodeGroup.selectAll("g circle").data(markVlanNodes, function (d) {
-                        return d.data.sysname;
-                    });
-
-                    self.linksInVlan = svg.selectAll("g links").data(markVlanLinks, function (d) {
-                       return d.source.id + "-" + d.target.id;
-                    });
-
-                    self.nodesInVlan.enter()
-                        .append("svg:circle")
-                        .attr("class", "grouped_by_vlan")
-                        .attr("cx", function (d) {
-                            return d.px;
-                        })
-                        .attr("cy", function (d) {
-                            return d.py;
-                        })
-                        .attr("r", 38);
-                    self.linksInVlan.enter()
-                        .append("svg:line")
-                        .attr("class", "grouped_by_vlan");
-
-                    self.nodesInVlan.exit().remove();
-                };
 
                 if (self.selected_vlan !== undefined && self.selected_vlan) {
-                    markVlan(self.selected_vlan.navVlanId);
+                    //markVlan(self.selected_vlan.navVlanId);
+
                 }
 
 
@@ -726,7 +768,7 @@ define([
                     }
                     if (!foundVlan) {
                         self.selected_vlan = null;
-                        markVlan(null);
+                        self.showVlan(self.selected_vlan);
                     }
                 };
 
@@ -963,44 +1005,8 @@ define([
 
 
 
-            var getMapOptions = function (nodesCount) {
-                // translate and scale to saved settings
-                if (!self.context_selected_map.map.isNew() && self.context_selected_map.map.attributes.zoom !== undefined) {
-                    var tmp = self.context_selected_map.map.attributes.zoom.split(";");
-                    self.trans = tmp[0].split(",");
-                    self.scale = tmp[1];
-                    validateTranslateScaleValues();
-                    self.zoom.translate(self.trans);
-                    self.zoom.scale(self.scale);
-
-                    svg.attr("transform",
-                        "translate(" + self.trans + ") scale(" + self.scale + ")");
-
-                } else {
-                    // adjust scale and translated according to how many nodes
-                    // we're trying to draw
-
-                    // Guess a good estimated scaling factor
-                    // (can't use self.baseScale , since svg is not drawn yet)
-                    self.scale = 1 / Math.log(nodesCount);
-
-                    // translate ( -centerX*(factor-1) , -centerY*(factor-1) ) scale(factor)
-                    // Example: SVG view pot 800x600, center is 400,300
-                    // Reduce 30%, translate( -400*(0.7-1), -300*(0.7-1) ) scale(0.7)
-                    self.trans = [(-self.w / 2) * (self.scale - 1), (-self.h / 2) * (self.scale - 1)];
-
-                    validateTranslateScaleValues();
-                    self.zoom.scale(self.scale);
-                    self.zoom.translate(self.trans);
-
-
-                }
-                self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
-            }
-
-            getMapOptions(self.modelJson.nodes.length);
+            self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
             draw(self.modelJson);
-            redraw = false;
 
             return this;
         },
