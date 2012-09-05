@@ -73,7 +73,6 @@ define(['libs/jquery.dataTables.min'], function () {
 
     /* Attach keylistener and register filter to datatable plugin */
     function register_filter(config) {
-        console.log('Applying filter ' + config.name);
         $.fn.dataTableExt.afnFiltering.push(config.runner);
         $('#' + config.node + ' input').keyup(do_primary_filter);
     }

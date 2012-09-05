@@ -30,7 +30,6 @@ require(
 
         /* Add tabs to roomview content */
         function add_tabs() {
-            console.log('Adding tabs');
             var tabconfig = {
                 cache: true, // cache loaded pages
                 spinner: '<img src="/images/main/process-working.gif">',
@@ -59,7 +58,6 @@ require(
         }
 
         function request_success() {
-            console.log('Request success');
             enrich_tables();
             add_filters();
             add_csv_download();
@@ -72,7 +70,6 @@ require(
 
         /* Add navigation to jQuery ui tabs */
         function add_navigation() {
-            console.log('Adding navigation');
             var wrapper = $('#infotabs');
             tab_navigation.add(wrapper);
         }
@@ -88,7 +85,6 @@ require(
 
         /* Enrich tables with dataTables module */
         function enrich_tables() {
-            console.log('Enriching tables');
             var dt_config = {
                 bAutoWidth: false,
                 bFilter: true,
@@ -123,7 +119,6 @@ require(
 
         /* Add global filtering to the tables */
         function add_filters() {
-            console.log('Adding filters');
             var tables = $.fn.dataTable.fnTables();
             var primary_node = $('#netbox-global-search');
             var filters = ['last_seen', 'vlan'];
@@ -131,12 +126,11 @@ require(
             try {
                 global_dt_filters.add_filters(primary_node, tables, filters);
             } catch (error) {
-                console.log(error.message);
+                console.error(error.message);
             }
         }
 
         function add_csv_download() {
-            console.log('Adding csv download');
             var tables = $('#netboxes table.netbox');
 
             var config = {
@@ -155,7 +149,6 @@ require(
         }
 
         function add_helper_dialog() {
-            console.log('Adding helper dialog');
             var dialog = $('#searchhelptext').dialog({
                 autoOpen: false,
                 title: 'Search help',
