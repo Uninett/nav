@@ -19,9 +19,10 @@
         <ul>
             <li><a href="#deviceinfo">Device Info</a></li>
             <li><a href="#ports">Ports</a></li>
-            <li><a href="#alerts">Recent alerts ({{ alert_info.alerts|length }})</a></li>
-            <li><a href="#powerfans">Power and fans ({{ netbox.get_powersupplies|length }}/{{ netbox.get_fans|length }})</a></li>
-            <li><a href="#services">Services ({{ netbox.service_set.count|default:"0" }})</a></li>
+            <li><a href="#datasources">Datasources</a></li>
+            <li><a href="#alerts">Recent alerts</a></li>
+            <li><a href="#powerfans">Power and fans</a></li>
+            <li><a href="#services">Services</a></li>
         </ul>
 
         <div id="deviceinfo" class="multitable">
@@ -29,6 +30,7 @@
             {% include "ipdevinfo/frag-hostinfo.html" %}
         </div>
         {% include "ipdevinfo/frag-ports.html" %}
+        {% include "ipdevinfo/frag-datasources.html" %}
         {% include "ipdevinfo/frag-alerts.html" %}
         {% include "ipdevinfo/frag-powerfans.html" %}
         {% include "ipdevinfo/frag-services.html" %}
