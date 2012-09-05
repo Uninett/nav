@@ -4,6 +4,7 @@ if [ ! -n "$1" ]; then
     exit 1
 fi
 
+SLEEPTIME=8
 WORKSPACE=$1
 JSDIR="${WORKSPACE}/media/js"
 
@@ -51,7 +52,7 @@ until [ ${XVFB_STARTED} -eq 1 ] || (( ${XVFB_TRIES} > 10 )) ; do
     DISPLAYNUM=$((RANDOM%10+90))
     ${XVFB} :${DISPLAYNUM} > /dev/null 2>/dev/null &
     PID_XVFB="$!"
-    sleep 8
+    sleep ${SLEEPTIME}
     if jobs | grep XVFB; then
         echo "Started on display ${DISPLAYNUM} with pid ${PID_XVFB}"
         XVFB_STARTED=1
@@ -73,7 +74,7 @@ until [ ${BUSTER_STARTED} -eq 1 ] || (( ${BUSTER_TRIES} > 10 )) ; do
     BUSTERPORT=$((RANDOM%100+1200))
     ${BUSTERSERVER} -l error -p ${BUSTERPORT} &
     PID_BUSTER="$!"
-    sleep 8
+    sleep ${SLEEPTIME}
     if jobs | grep BUSTERSERVER; then
         echo "Started on port ${BUSTERPORT} with pid ${PID_BUSTER}"
         BUSTER_STARTED=1
@@ -94,13 +95,13 @@ export DISPLAY=:${DISPLAYNUM}
 ${GOOGLECHROME} http://localhost:${BUSTERPORT}/capture &
 PID_CHROME="$!"
 echo "Started on display ${DISPLAYNUM} with pid ${PID_CHROME} connected to ${BUSTERPORT}"
-sleep 8
+sleep ${SLEEPTIME}
 
 echo "Running tests"
 cd ${WORKSPACE}/media/js
 ${BUSTERTEST} -s http://localhost:${BUSTERPORT} -r xml > ${WORKSPACE}/tests/javascript-result.xml
 
-sleep 1
+sleep ${SLEEPTIME}
 
 echo "Cleaning up"
 kill ${PID_CHROME}
