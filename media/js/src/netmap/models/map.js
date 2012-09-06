@@ -11,7 +11,7 @@ define([
             // see nav.models.profiles TOPOLOGY_TYPES , 1 == layer 2 topology
             topology: 1,
             categories: ['GSW', 'GW', 'SW', 'EDGE', 'OTHER', 'WLAN', 'SRV'],
-            zoom: "0,0;0",
+            zoom: "0,0;0.5",
             display_orphans: false
         },
         initialize: function () {
