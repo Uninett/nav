@@ -37,7 +37,7 @@ Cricket configuration
 
 IP-v6 statistics for router interfaces will now be collected. For this to be
 done you need to copy some config-files to your cricket-config directory.
-NB: Make sure the dataDir is the same as the original after copying.
+NB: Make sure the dataDir is the same as the original after copying Defaults.
 
   sudo cp doc/cricket/cricket-config/Defaults \
              /usr/local/nav/etc/cricket-config/
