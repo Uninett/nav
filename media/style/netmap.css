@@ -237,6 +237,10 @@ li.selected_vlan a {
     width: 50px;
 }
 
+#mapinfo {
+    margin-top: 2em;
+}
+
 /* Node info styles */
 
 .netmap_node_status {
@@ -295,14 +299,19 @@ span.value {
 
 .uplink_prefix .prefix_description {
     text-size: 12pt;
+    margin-bottom: 0.5em;
 }
 
 .uplink_prefix .prefix_description {
     display: block;
 }
 
+.traffic .link_speed {
+    margin-bottom: 0.5em;
+}
+
 .uplink {
-    margin: 1em 0 1em 0;
+    margin-bottom: 1em;
 }
 
 circle {

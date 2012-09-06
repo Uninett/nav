@@ -1,9 +1,10 @@
+<h3>Link info</h3>
 {{#if link.data.uplink.vlan}}
 <div class="uplink_prefix">
 
     <h4>{{link.data.uplink.vlan.net_ident}}</h4>
     <span class="prefix_description">{{link.data.uplink.vlan.description}}</span>
-    <h5>Prefix members</h5>
+    <span class="description">Prefix members</span>
     <ul class="uplink_prefixes">
         {{#each link.data.uplink.prefixes}}
             <li class="prefix_net_address">{{this}}</li>
@@ -46,17 +47,17 @@
     </div>
 </div>
 <div class="traffic">
-    <span class="link_speed">Link speed: {{link.data.link_speed}}mbps</span>
-    <h5>Traffic</h5>
+    <div class="link_speed"><span class="description">Link speed:</span><span class="value">{{link.data.link_speed}}mbps</span></div>
+    <span class="description">Traffic</span>
     <div class="trafficIn">
-        <span class="trafficInDescription">in:</span>
+        <span class="trafficInDescription description">in:</span>
         <span class="trafficInOctets">{{inOctets}}</span>
         {{#if link.data.traffic.inOctetsPercentBySpeed}}
             <span class="trafficInPercentByLinkSpeed">({{link.data.traffic.inOctetsPercentBySpeed}}%)</span>
         {{/if}}
     </div>
     <div class="trafficOut">
-        <span class="trafficOutDescription">out:</span>
+        <span class="trafficOutDescription description">out:</span>
         <span class="trafficOutOctets">{{outOctets}}</span>
         {{#if link.data.traffic.outOctetsPercentBySpeed}}
             <span class="trafficOutPercentByLinkSpeed">({{link.data.traffic.outOctetsPercentBySpeed}}%)</span>
