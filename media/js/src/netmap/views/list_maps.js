@@ -62,7 +62,15 @@ define([
         },
         new_show_save_view: function () {
             var self = this;
+            var propertiesToKeep = {
+                is_public: self.options.context_selected_map.map.attributes.is_public,
+                topology:  self.options.context_selected_map.map.attributes.topology,
+                categories: self.options.context_selected_map.map.attributes.categories,
+                zoom: self.options.context_selected_map.map.attributes.zoom,
+                display_orphans: self.options.context_selected_map.map.attributes.display_orphans
+            };
             self.options.context_selected_map.map = new MapModel();
+            self.options.context_selected_map.map.set(propertiesToKeep);
             self.options.context_selected_map.map.bind("change", this.updateCollection, this);
 
             this.showSaveModal(self.context_selected_map);
