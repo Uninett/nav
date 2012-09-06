@@ -91,8 +91,15 @@ define([
             self.selected_id = parseInt(this.$("#dropdown_view_id :selected").val().trim());
             if (isNaN(self.selected_id)) {
                 // assume new
-
+                var propertiesToKeep = {
+                    is_public: self.options.context_selected_map.map.attributes.is_public,
+                    topology:  self.options.context_selected_map.map.attributes.topology,
+                    categories: self.options.context_selected_map.map.attributes.categories,
+                    zoom: self.options.context_selected_map.map.attributes.zoom,
+                    display_orphans: self.options.context_selected_map.map.attributes.display_orphans
+                };
                 self.options.context_selected_map.map = new MapModel();
+                self.options.context_selected_map.map.set(propertiesToKeep);
                 self.options.context_selected_map.map.bind("change", this.render, this);
             } else {
                 self.options.context_selected_map.map = self.collection.get(self.selected_id);
