@@ -69,6 +69,7 @@ define([
                 zoom: self.options.context_selected_map.map.attributes.zoom,
                 display_orphans: self.options.context_selected_map.map.attributes.display_orphans
             };
+            self.options.context_selected_map.map.unbind("change");
             self.options.context_selected_map.map = new MapModel();
             self.options.context_selected_map.map.set(propertiesToKeep);
             self.options.context_selected_map.map.bind("change", this.updateCollection, this);
@@ -98,6 +99,7 @@ define([
                     zoom: self.options.context_selected_map.map.attributes.zoom,
                     display_orphans: self.options.context_selected_map.map.attributes.display_orphans
                 };
+                self.options.context_selected_map.map.unbind("change");
                 self.options.context_selected_map.map = new MapModel();
                 self.options.context_selected_map.map.set(propertiesToKeep);
                 self.options.context_selected_map.map.bind("change", this.render, this);
