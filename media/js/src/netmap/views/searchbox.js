@@ -4,7 +4,8 @@ define([
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
-    'libs/backbone'
+    'libs/backbone',
+    'libs/backbone-eventbroker'
 
 ], function (NetmapHelpers, netmapTemplate, Handlebars) {
 
