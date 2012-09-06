@@ -19,4 +19,4 @@ from django import forms
 class MaintenanceTaskForm(forms.Form):
     start_time = forms.DateTimeField()
     end_time = forms.DateTimeField()
-    description = forms.CharField()
+    description = forms.CharField(widget=forms.Textarea)
