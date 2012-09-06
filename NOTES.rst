@@ -20,6 +20,52 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 3.12
+========
+
+To see the overview of scheduled features and reported bugs on the 3.12 series
+of NAV, please go to https://launchpad.net/nav/3.12 .
+
+Dependency changes
+------------------
+
+- Python 2.6 is now required
+- Django 1.2 is now required
+
+Cricket configuration
+---------------------
+
+IP-v6 statistics for router interfaces will now be collected. For this to be
+done you need to copy some config-files to your cricket-config directory.
+NB: Make sure the dataDir is the same as the original after copying.
+
+  sudo cp doc/cricket/cricket-config/Defaults \
+             /usr/local/nav/etc/cricket-config/
+
+  sudo cp -r doc/cricket/cricket-config/ipv6-interfaces \
+             /usr/local/nav/etc/cricket-config/
+
+Room map
+--------
+
+If you have registered coordinates (latitude, longitude) on your rooms you may
+include a geographical map of the rooms on the frontpage by editing
+etc/webfront/welcome-registered.txt and/or welcome-anonymous.txt and adding
+the following html:
+
+  <div id="mapwrapper">
+      <div id="room_map" class="smallmap"></div>
+  </div>
+
+If you feel for a bigger map, replace smallmap with bigmap. The markers are
+clickable.
+
+Toolbar search
+--------------
+
+The toolbar search now searches for more than ip devices. Try it!
+
+
 NAV 3.11
 ========
 
