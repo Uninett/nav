@@ -269,7 +269,8 @@ class MaintenanceCalendar(HTMLCalendar):
         if day != 0:
             this_day = date(self.year, self.month, day)
             css = self.cssclasses[weekday]
-            dayurl = '<a href="%s">%d</a>' % (reverse('maintenance-new-date', args=[this_day]), day)
+            dayurl = '<a href="%s" class="daynumber">%d</a>' % (
+                reverse('maintenance-new-date', args=[this_day]), day)
             if date.today() == this_day:
                 css += " today"
             if this_day in self.tasks:

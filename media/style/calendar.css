@@ -27,6 +27,11 @@ div.calendar tr td {
 	height: 5em; /* Content will increase height if necessary. */
 	vertical-align: top;
 }
+div.calendar .daynumber {
+    font-weight: bold;
+    margin-left: 0.3em;
+}
+
 div.calendar tr td.today {
 	background: #FFC;
 	color: black;
@@ -43,13 +48,17 @@ div.calendar tr th.month {
 }
 
 div.calendar tr.weekheader th {
-  background: #D3D7CF;
+    background: #eee;
+    font-weight: bold;
 	border-left: 1px solid white;
 	border-right: 2px solid white;
 	padding: 5px;
 	padding-bottom: 0;
 }
 
+div.calendar .calendar_controls {
+    margin-bottom: 1em;
+}
 div.calendar .calendar_controls a {
 }
 div.calendar .calendar_controls form {
@@ -59,7 +68,7 @@ div.calendar .calendar_controls input {
 }
 
 div.calendar .noday {
-	background-color: #BABDB6;
+	background-color: #dddddd;
 }
 
 div.calendar .task ul {
