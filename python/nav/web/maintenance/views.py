@@ -63,7 +63,7 @@ def calendar(request, year=None, month=None):
     tasks = MaintenanceTask.objects.filter(
         end_time__gt=this_month_start,
         start_time__lt=next_month_start,
-    ).order_by('start_time')
+    ).exclude(state=MaintenanceTask.STATE_CANCELED).order_by('start_time')
     cal = MaintenanceCalendar(tasks).formatmonth(year, month)
     return render_to_response(
         'maintenance/calendar.html',
