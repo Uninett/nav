@@ -1,3 +1,42 @@
+Version 3.11.6
+(released 17 August 2012)
+
+Bugfixes
+
+  * LP#1023567 (ipdevpoll logging system uses too many resources)
+  * LP#1027051 (ipdevpoll is not able to gather ARP and ND data from h3c/hp
+                devices configured in IRF)
+  * LP#1034864 (serial numbers disappear in NAV 3.11.5)
+  * LP#1036656 (ipdevinfo only lists uplinks for switches)
+  * LP#1037059 (CDP neighbors reported with IP=0.0.0.0 are mis-identified)
+  * LP#1037460 (Cisco switch ports disappear in NAV 3.11.5)
+  * LP#1037533 (ifAlias is not updated on changes)
+
+
+Version 3.11.5
+(released 21 June 2012)
+
+Bugfixes
+
+  * LP#722561  (Netmap:incorrect link load info)
+  * LP#1009002 (Unknown orgid parsed from router port description causes
+                ipdevpoll inventory job to fail)
+  * LP#1010013 (KeyError in ipdevpoll interfaces plugin on devices that have no
+                network interfaces)
+  * LP#1010018 (IndexToIpException in ipdevpoll Prefix plugin)
+  * LP#1012001 (ipdevpoll inventory job fails on WeatherGoose device)
+  * LP#1012032 (ipdevpoll inventory job crashes on devices reporting invalid IP
+                address netmasks)
+  * LP#1012034 (Unknown usageid parsed from router port description causes
+                ipdevpoll inventory job to fail)
+
+ Various performance-related improvements:
+
+  * More tweaks to avoid producing unnecessary SNMP queries.
+
+  * Switch port detection on Cisco equipment has been improved
+
+
 Version 3.11.4
 (released 31 May 2012)
 

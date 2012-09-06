@@ -85,19 +85,17 @@ class Netbox(models.Model):
         }
         return reverse('ipdevinfo-details-by-name', kwargs=kwargs)
 
-    def last_updated(self):
-        """Returns the netbox' last updated value as a datetime object."""
+    def last_updated(self, job='inventory'):
+        """Returns the last updated timestamp of a particular job as a
+        datetime object.
+
+        """
         try:
-            # Netboxes with multiple values for lastUpdated in NetboxInfo
-            # have been observed. Using the highest value.
-            value = self.info_set.filter(variable='lastUpdated').order_by(
-                '-value')[0].value
-            value = int(value) / 1000.0
-            return dt.datetime.fromtimestamp(value)
+            log = self.job_log.filter(success=True, job_name=job).order_by(
+                '-end_time')[0]
+            return log.end_time
         except IndexError:
             return None
-        except ValueError:
-            return '(Invalid value in DB)'
 
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
@@ -593,13 +591,14 @@ class Vendor(models.Model):
 ### Router/topology
 
 class GwPortPrefix(models.Model):
-    """From NAV Wiki: The gwportprefix table defines the router port IP
-    addresses, one or more. HSRP is also supported."""
+    """Defines IP addresses assigned to Interfaces, with a relation to the
+    associated Prefix.
 
+    """
     interface = models.ForeignKey('Interface', db_column='interfaceid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
     gw_ip = models.IPAddressField(db_column='gwip', primary_key=True)
-    hsrp = models.BooleanField(default=False)
+    virtual = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'gwportprefix'
@@ -1194,3 +1193,16 @@ class UnrecognizedNeighbor(models.Model):
             self.netbox.sysname, self.interface.ifname,
             self.source,
             self.remote_id, self.remote_name)
+
+class IpdevpollJobLog(models.Model):
+    id = models.AutoField(primary_key=True)
+    netbox = models.ForeignKey(Netbox, db_column='netboxid', null=False,
+                               related_name='job_log')
+    job_name = VarcharField(null=False, blank=False)
+    end_time = models.DateTimeField(auto_now_add=True, null=False)
+    duration = models.FloatField(null=True)
+    success = models.BooleanField(default=False, null=False)
+    interval = models.IntegerField(null=True)
+
+    class Meta:
+        db_table = 'ipdevpoll_job_log'

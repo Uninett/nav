@@ -29,9 +29,6 @@ from nav.mibs.etherlike_mib import EtherLikeMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
-from nav.ipdevpoll.timestamps import TimestampChecker
-
-INFO_VAR_NAME = 'interfaces'
 
 class Interfaces(Plugin):
     "Collects comprehensive information about device's network interfaces"
@@ -39,30 +36,16 @@ class Interfaces(Plugin):
         super(Interfaces, self).__init__(*args, **kwargs)
         self.ifmib = IfMib(self.agent)
         self.etherlikemib = EtherLikeMib(self.agent)
-        self.stampcheck = TimestampChecker(self.agent, self.containers,
-                                           INFO_VAR_NAME)
 
     @defer.inlineCallbacks
     def handle(self):
         self._logger.debug("Collecting interface data")
-        need_to_collect = yield self._need_to_collect()
-        if need_to_collect:
-            df = self._get_iftable_columns()
-            df.addCallback(self._retrieve_duplex)
-            df.addCallback(self._process_interfaces)
-            df.addCallback(self._get_stack_status)
-            yield df
-            shadows.Interface.add_sentinel(self.containers)
-
-        self.stampcheck.save()
-
-    @defer.inlineCallbacks
-    def _need_to_collect(self):
-        yield self.stampcheck.load()
-        yield self.stampcheck.collect([self.ifmib.get_if_table_last_change()])
-
-        result = yield self.stampcheck.is_changed()
-        defer.returnValue(result)
+        df = self._get_iftable_columns()
+        df.addCallback(self._retrieve_duplex)
+        df.addCallback(self._process_interfaces)
+        df.addCallback(self._get_stack_status)
+        yield df
+        shadows.Interface.add_sentinel(self.containers)
 
     def _get_iftable_columns(self):
         df = self.ifmib.retrieve_columns([

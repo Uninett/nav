@@ -36,10 +36,18 @@ ADMINS = (
 MANAGERS = ADMINS
 
 # Database / ORM configuration
-DATABASE_ENGINE = 'postgresql_psycopg2'
 try:
-    (DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USER,
-     DATABASE_PASSWORD) = get_connection_parameters('django')
+    _host, _port, _name, _user, _password = get_connection_parameters('django')
+    DATABASES = {
+        'default': {
+            'NAME': _name,
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'HOST': _host,
+            'PORT': _port,
+            'USER': _user,
+            'PASSWORD': _password,
+        }
+    }
 except IOError:
     pass
 

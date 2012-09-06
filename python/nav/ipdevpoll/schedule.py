@@ -24,19 +24,20 @@ from math import ceil
 
 from twisted.python.failure import Failure
 from twisted.internet import task, threads, reactor
-from twisted.internet.defer import Deferred, maybeDeferred
+from twisted.internet.defer import Deferred, maybeDeferred, inlineCallbacks
 
 from nav import ipdevpoll
+from nav.ipdevpoll import db
 from nav.ipdevpoll.snmp import SnmpError, AgentProxy
 from . import shadows, config, signals
 from .dataloader import NetboxLoader
 from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
+from nav.models import manage
 from nav.tableformat import SimpleTableFormatter
 
 from nav.ipdevpoll.utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
-MAX_CONCURRENT_JOBS = 1000
 
 class NetboxJobScheduler(object):
     """Netbox job schedule handler.
@@ -48,7 +49,8 @@ class NetboxJobScheduler(object):
     job_counters = {}
     job_queues = {}
     global_job_queue = []
-    global_intensity = MAX_CONCURRENT_JOBS
+    global_intensity = config.ipdevpoll_conf.getint('ipdevpoll',
+                                                    'max_concurrent_jobs')
     _logger = ipdevpoll.ContextLogger()
 
     def __init__(self, job, netbox):
@@ -161,6 +163,7 @@ class NetboxJobScheduler(object):
             self._log_finished_job(True)
         else:
             self._logger.debug("job did nothing")
+        log_job_to_db(self.job_handler, True, self.job.interval)
         return result
 
     def _reschedule_on_failure(self, failure):
@@ -171,6 +174,7 @@ class NetboxJobScheduler(object):
             delay = randint(5*60, 10*60) # within 5-10 minutes
         self.reschedule(delay)
         self._log_finished_job(False)
+        log_job_to_db(self.job_handler, False, self.job.interval)
         failure.trap(AbortedJobError)
 
     def _log_finished_job(self, success=True):
@@ -360,8 +364,11 @@ class JobScheduler(object):
             self.cancel_netbox_scheduler(netbox_id)
 
         # Schedule new and changed boxes
+        def _lastupdated(netboxid):
+            return self.netboxes[netboxid].last_updated.get(self.job.name,
+                                                            None)
         new_and_changed = sorted(new_ids.union(changed_ids),
-                                 key=lambda x: self.netboxes[x].last_updated)
+                                 key=_lastupdated)
         for netbox_id in new_and_changed:
             self.add_netbox_scheduler(netbox_id)
 
@@ -403,3 +410,29 @@ class JobScheduler(object):
             logger.log(level,
                        "no active jobs (%d JobHandlers)",
                        JobHandler.get_instance_count())
+
+# pylint: disable=W0703
+@inlineCallbacks
+def log_job_to_db(job_handler, success=True, interval=None):
+    """Logs a job to the database"""
+    @db.autocommit
+    def _create_record(timestamp):
+        duration = job_handler.get_current_runtime()
+        duration_in_seconds = (duration.days * 86400 +
+                               duration.seconds +
+                               duration.microseconds / 1e6)
+        log = manage.IpdevpollJobLog(
+            netbox_id = job_handler.netbox.id,
+            job_name = job_handler.name,
+            end_time = timestamp,
+            duration = duration_in_seconds,
+            success = success,
+            interval = interval
+        )
+        log.save()
+
+    timestamp = datetime.datetime.now()
+    try:
+        yield threads.deferToThread(_create_record, timestamp)
+    except Exception, error:
+        _logger.warning("failed to log job to database: %s", error)

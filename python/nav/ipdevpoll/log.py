@@ -18,6 +18,7 @@
 import logging
 from logging import Formatter
 import inspect
+from itertools import islice
 
 from nav.loggeradapter import LoggerAdapter
 
@@ -102,7 +103,7 @@ class ContextLogger(object):
             elif hasattr(target, '_log_context'):
                 extra = getattr(target, '_log_context')
             else:
-                extra = self._context_search(inspect.stack())
+                extra = _context_search(inspect.currentframe())
 
             if extra:
                 logger = LoggerAdapter(logger, extra)
@@ -119,27 +120,6 @@ class ContextLogger(object):
             name = name + '.' + self.suffix
         return name.lower()
 
-    @staticmethod
-    def _context_search(stack, maxdepth=10):
-        """Attempts to extract a logging context from the current stack"""
-        def inspect_frame(frame):
-            obj = frame.f_locals.get('self', None)
-            if obj is None:
-                return
-            if hasattr(obj, '_log_context'):
-                return getattr(obj, '_log_context')
-            elif hasattr(obj, '_logger'):
-                logger = getattr(obj, '_logger')
-                if hasattr(logger, 'extra'):
-                    return logger.extra
-
-        frames = (s[0] for s in stack[1:maxdepth])
-        for frame in frames:
-            extra = inspect_frame(frame)
-            if extra:
-                return extra
-        return None
-
     def __set__(self, obj, value):
         raise AttributeError(
             "cannot reassign a %s attribute" % self.__class__.__name__)
@@ -147,3 +127,43 @@ class ContextLogger(object):
     def __delete__(self, obj):
         raise AttributeError(
             "cannot delete a %s attribute" % self.__class__.__name__)
+
+#
+# Utility functions for inspecting the call stack for logging contexts
+#
+
+def _context_search(frame, maxdepth=10):
+    """Attempts to extract a logging context from the current stack"""
+    frames = islice(_stack_iter(frame), maxdepth)
+    return _first_true(_get_context_from_frame(f) for f in frames)
+
+def _stack_iter(frame):
+    "Iterates backwards through stack frames, starting with the one below frame"
+    try:
+        while frame.f_back:
+            frame = frame.f_back
+            yield frame
+    finally:
+        del frame
+
+def _first_true(sequence):
+    """Returns the first element from sequence that evaluates to a true value,
+    or None if no such element was found.
+
+    """
+    for elem in sequence:
+        if elem:
+            return elem
+
+def _get_context_from_frame(frame):
+    "Returns a logging context from a stack frame, if found"
+    obj = frame.f_locals.get('self', None)
+    if obj is None:
+        return
+    if hasattr(obj, '_log_context'):
+        return getattr(obj, '_log_context')
+    elif hasattr(obj, '_logger'):
+        logger = getattr(obj, '_logger')
+        if hasattr(logger, 'extra'):
+            return logger.extra
+

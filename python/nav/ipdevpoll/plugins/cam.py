@@ -23,7 +23,6 @@ from nav.models import manage
 from nav.util import splitby
 from nav.mibs.bridge_mib import MultiBridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib
-from nav.mibs.if_mib import IfMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll import utils
@@ -79,10 +78,6 @@ class Cam(Plugin):
             self._log_fdb_stats("BRIDGE-MIB", fdb)
 
         self.fdb = fdb
-
-        # get all existing ifindexes to ensure ports we don't touch aren't
-        # marked as gone by the InterfaceManager
-        yield self._get_interfaces()
 
         self.monitored = yield threads.deferToThread(get_netbox_macs)
         self.my_macs = set(mac for mac, netboxid in self.monitored.items()
@@ -232,13 +227,6 @@ class Cam(Plugin):
             self._log_blocking_ports(translated)
             self._store_blocking_ports(translated)
         defer.returnValue(translated)
-
-    @defer.inlineCallbacks
-    def _get_interfaces(self):
-        indexes = yield IfMib(self.agent).get_ifindexes()
-        for ifindex in indexes:
-            ifc = self.containers.factory(ifindex, shadows.Interface)
-            ifc.ifindex = ifindex
 
     def _log_blocking_ports(self, blocking):
         ifc_count = len(set(ifc for ifc, vlan in blocking))

@@ -29,6 +29,7 @@ _logger = logging.getLogger(__name__)
 _ipdevpoll_conf_defaults = """
 [ipdevpoll]
 logfile = ipdevpolld.log
+max_concurrent_jobs = 500
 
 [snmp]
 timeout = 1.5

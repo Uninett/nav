@@ -306,18 +306,12 @@ class AlertHistory(models.Model):
     def is_stateful(self):
         """Returns true if the alert is stateful."""
 
-        if self.end_time is None:
-            return False
-        else:
-            return True
+        return self.end_time is not None
 
     def is_open(self):
         """Returns true if stateful and open."""
 
-        if self.is_stateful() and self.end_time == dt.datetime.max:
-            return True
-        else:
-            return False
+        return self.is_stateful() and self.end_time == dt.datetime.max
 
     def get_downtime(self):
         """Returns the difference between start_time and end_time, the current

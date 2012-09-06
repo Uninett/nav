@@ -15,6 +15,7 @@
 #
 "Process control for multi-process invocation of ipdevpoll"
 
+import os
 import sys
 import logging
 
@@ -34,7 +35,8 @@ def run_as_multiprocess():
     for job in jobs:
         mon.addProcess(job.name,
                        [get_process_command(),
-                        '-J', job.name, '-f', '-s', '-P'])
+                        '-J', job.name, '-f', '-s', '-P'],
+                       env=os.environ)
 
     reactor.callWhenRunning(mon.startService)
     return mon
