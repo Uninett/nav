@@ -13,6 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Views for ipdevinfo"""
 
 import IPy
 import re
@@ -26,22 +27,23 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.views.generic.list_detail import object_list
 
-from nav.models.cabling import Cabling, Patch
-from nav.models.event import AlertHistory
-from nav.models.manage import Netbox, Module, Interface, Prefix, Vlan, Arp, Cam
-from nav.models.rrd import RrdFile, RrdDataSource
+from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
 from nav.models.service import Service
 
 from nav import asyncdns
 from nav.util import is_valid_ip
+from nav.web.utils import create_title
 
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
 from nav.web.ipdevinfo import utils
 
+NAVPATH = [('Home', '/'), ('IP Device Info', 'ipdevinfo')]
+
 def search(request):
     """Search for an IP device"""
 
+    titles = NAVPATH
     errors = []
     query = None
     netboxes = Netbox.objects.none()
@@ -56,6 +58,7 @@ def search(request):
     if search_form is not None and search_form.is_valid():
         # Preprocess query string
         query = search_form.cleaned_data['query'].strip().lower()
+        titles.append(("Search for %s" % query,))
 
         # IPv4, v6 or hostname?
         ip = is_valid_ip(query)
@@ -69,10 +72,11 @@ def search(request):
                         kwargs={'addr': ip}))
         elif is_valid_hostname(query):
             # Check perfect match first
-            filter = Q(sysname=query)
+            sysname_filter = Q(sysname=query)
             if settings.DOMAIN_SUFFIX is not None:
-                filter |= Q(sysname='%s%s' % (query, settings.DOMAIN_SUFFIX))
-            netboxes = Netbox.objects.filter(filter)
+                sysname_filter |= Q(sysname='%s%s' %
+                                            (query, settings.DOMAIN_SUFFIX))
+            netboxes = Netbox.objects.filter(sysname_filter)
             if len(netboxes) != 1:
                 # No exact match, search for matches in substrings
                 netboxes = Netbox.objects.filter(sysname__icontains=query)
@@ -95,11 +99,15 @@ def search(request):
             'errors': errors,
             'query': query,
             'netboxes': netboxes,
+            'heading': NAVPATH[-1][0],
+            'navpath': NAVPATH,
+            'title': create_title(titles)
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
 def is_valid_hostname(hostname):
+    """Check if hostname is valid"""
     return re.match('^[a-z0-9-]+(\.[a-z0-9-]+)*$', hostname) is not None
 
 
@@ -118,11 +126,13 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         return {'host': host, 'addresses': addresses}
 
     def forward_lookup(host):
+        """Do a forward lookup on host"""
         addrinfo = asyncdns.forward_lookup([host])
         if not isinstance(addrinfo[host], Exception):
             return set(addr for addr in addrinfo[host])
 
     def reverse_lookup(addresses):
+        """Do a reverse lookup on addresses"""
         reverses = asyncdns.reverse_lookup(addresses)
         for addr, response in sorted(reverses.items(), key=address_sorter):
             if isinstance(response, Exception):
@@ -132,8 +142,8 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
                     yield {'addr': addr, 'name': name}
 
     def address_sorter(addr_tuple):
-        addr, response = addr_tuple
-        return IPy.IP(addr)
+        """Return ip object from tuple"""
+        return IPy.IP(addr_tuple[0])
 
     def get_netbox(name=None, addr=None, host_info=None):
         """Lookup IP device in NAV by either hostname or IP address"""
@@ -173,10 +183,11 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         filter_stateful = Q(end_time__gt=lowest_end_time)
         filter_stateless = (Q(end_time__isnull=True)
             & Q(start_time__gt=lowest_end_time))
-        qs = netbox.alerthistory_set.filter(filter_stateful | filter_stateless
+        queryset = netbox.alerthistory_set.filter(
+            filter_stateful | filter_stateless
             ).order_by('-start_time')
-        count = qs.count()
-        raw_alerts = qs[:max_num_alerts]
+        count = queryset.count()
+        raw_alerts = queryset[:max_num_alerts]
 
         alerts = []
         for alert in raw_alerts:
@@ -207,6 +218,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         }
 
     def get_prefix_info(addr):
+        """Return prefix based on address"""
         try:
             return Prefix.objects.select_related().extra(
                 select={"mask_size": "masklen(netaddr)"},
@@ -217,6 +229,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             return None
 
     def get_arp_info(addr):
+        """Return arp based on address"""
         try:
             return Arp.objects.filter(ip=addr).order_by('-end_time',
                                                         '-start_time')[0]
@@ -225,6 +238,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
 
     def get_cam_info(mac):
+        """Return cam objects based on mac address"""
         try:
             return Cam.objects.filter(mac=mac).order_by('-end_time',
                                                         '-start_time')[0]
@@ -245,7 +259,6 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         'days_since_active': 7,
     }
     alert_info = None
-    port_view = None
 
     # If addr or host not a netbox it is not monitored by NAV
     if netbox is None:
@@ -255,6 +268,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
         no_netbox['prefix'] = get_prefix_info(addr)
         netboxsubcat = None
+        navpath = NAVPATH + [(host_info['host'], '')]
 
         if no_netbox['prefix']:
             no_netbox['arp'] = get_arp_info(addr)
@@ -267,16 +281,19 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     else:
         alert_info = get_recent_alerts(netbox)
         netboxsubcat = netbox.netboxcategory_set.all()
+        navpath = NAVPATH + [(netbox.sysname, '')]
 
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
         {
             'host_info': host_info,
             'netbox': netbox,
-            'title': netbox.sysname if netbox else host_info['host'],
+            'heading': navpath[-1][0],
             'alert_info': alert_info,
             'no_netbox': no_netbox,
             'netboxsubcat': netboxsubcat,
+            'navpath': navpath,
+            'title': create_title(navpath)
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
@@ -417,8 +434,8 @@ def module_details(request, netbox_sysname, module_name):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
-def port_details(request, netbox_sysname, module_number=None, port_type=None,
-    port_id=None, port_name=None):
+def port_details(request, netbox_sysname, port_type=None, port_id=None,
+                 port_name=None):
     """Show detailed view of one IP device port"""
 
     if not (port_id or port_name):
