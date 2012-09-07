@@ -22,10 +22,10 @@ from django.template import RequestContext
 
 from nav.models.manage import Room
 from nav.web.info.room.forms import SearchForm
+from nav.web.utils import create_title
 
 
 CATEGORIES = ("GW", "GSW", "SW")
-
 
 def search(request):
     """Controller for searching for rooms"""
@@ -33,10 +33,12 @@ def search(request):
         ('Room', reverse('room-search'))]
 
     rooms = Room.objects.none()
+    titles = navpath
 
     if "query" in request.GET:
         searchform = SearchForm(request.GET, auto_id=False)
         if searchform.is_valid():
+            titles.append(("Search for %s" % request.GET['query'],))
             rooms = process_searchform(searchform)
             for room in rooms:
                 room.netboxes = filter_netboxes(room)
@@ -46,7 +48,8 @@ def search(request):
     return render_to_response("info/room/base.html",
                               {"searchform": searchform,
                                "rooms": rooms,
-                               "navpath": navpath},
+                               "navpath": navpath,
+                               "title": create_title(titles)},
                               context_instance=RequestContext(request))
 
 
@@ -79,7 +82,8 @@ def roominfo(request, roomid):
     return render_to_response("info/room/roominfo.html",
                               {"room": room,
                                "all_netboxes": all_netboxes,
-                               "navpath": navpath},
+                               "navpath": navpath,
+                               "title": create_title(navpath)},
                               context_instance=RequestContext(request))
 
 

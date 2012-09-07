@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""Views for /info"""
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -23,20 +23,22 @@ from django.template import RequestContext
 from nav.web.info.forms import SearchForm
 from nav.web.info.searchproviders import RoomSearchProvider, \
     NetboxSearchProvider, FallbackSearchProvider, InterfaceSearchProvider
+from nav.web.utils import create_title
 
 from random import choice
 
 def index(request):
-    """
-    Main controller
-    """
+    """Main controller"""
+
     searchproviders = []
 
     navpath = [('Home', '/'), ('Info', reverse('info-search'))]
+    titles = navpath
 
     if "query" in request.GET:
         form = SearchForm(request.GET, auto_id=False)
         if form.is_valid():
+            titles.append(("Search for %s" % request.GET["query"],))
             searchproviders = process_form(form)
             if has_only_one_result(searchproviders):
                 return HttpResponseRedirect(searchproviders[0].results[0].href)
@@ -46,15 +48,14 @@ def index(request):
     return render_to_response("info/base.html",
             {"form": form,
              "searchproviders": searchproviders,
-             "navpath": navpath},
+             "navpath": navpath,
+             "title": create_title(titles)},
         context_instance=RequestContext(request)
     )
 
 
 def process_form(form):
-    """
-    Processor for searchform on main page
-    """
+    """Processor for searchform on main page"""
     query = form.cleaned_data['query']
 
     searchproviders = [RoomSearchProvider(query), NetboxSearchProvider(query),
@@ -69,9 +70,7 @@ def process_form(form):
 
 
 def has_results(searchproviders):
-    """
-    Check if any of the searchproviders has any results
-    """
+    """Check if any of the searchproviders has any results"""
     providers_with_result = []
     for searchprovider in searchproviders:
         if searchprovider.results:
@@ -81,22 +80,18 @@ def has_results(searchproviders):
 
 
 def has_only_one_result(searchproviders):
-    """
-    Check if searchproviders has one and only one result
-    """
+    """Check if searchproviders has one and only one result"""
     results = 0
     for provider in searchproviders:
         results += len(provider.results)
     return results == 1
 
 
-def osm_map_redirecter(request, x, y, z):
-    """
-    A redirector for OpenStreetmap tiles
-    """
+def osm_map_redirecter(request, zoom, ytile, ztile):
+    """A redirector for OpenStreetmap tiles"""
     server = choice(['a', 'b', 'c'])
     url = "http://%s.tile.openstreetmap.org/%s/%s/%s.png" % (
-        server, x, y, z)
+        server, zoom, ytile, ztile)
     return redirect(url, permanent=True)
 
 
