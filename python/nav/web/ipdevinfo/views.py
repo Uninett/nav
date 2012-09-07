@@ -421,6 +421,8 @@ def module_details(request, netbox_sysname, module_name):
         module, 'swportactive', activity_interval)
     gwportstatus_view = get_module_view(module, 'gwportstatus')
 
+    navpath = NAVPATH + [('Module Details',)]
+
     return render_to_response(
         'ipdevinfo/module-details.html',
         {
@@ -430,6 +432,9 @@ def module_details(request, netbox_sysname, module_name):
             'gwportstatus_view': gwportstatus_view,
             'activity_interval_form': activity_interval_form,
             'activity_interval': activity_interval,
+            'navpath': navpath,
+            'heading': navpath[-1][0],
+            'title': create_title(navpath)
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
@@ -452,11 +457,16 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             port = get_object_or_404(ports, netbox__sysname=netbox_sysname,
                                      ifdescr=port_name)
 
+    navpath = NAVPATH + [('Port Details',)]
+
     return render_to_response(
         'ipdevinfo/port-details.html',
         {
             'port_type': port_type,
             'port': port,
+            'navpath': navpath,
+            'heading': navpath[-1][0],
+            'title': create_title(navpath)
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
@@ -472,6 +482,7 @@ def service_list(request, handler=None):
         services = services.filter(handler=handler)
 
     handler_list = Service.objects.values('handler').distinct()
+    navpath = NAVPATH + [('Service List',)]
 
     # Pass on to generic view
     return object_list(
@@ -484,6 +495,10 @@ def service_list(request, handler=None):
             'show_ipdev_info': True,
             'handler_list': handler_list,
             'handler': handler,
+            'title': create_title(navpath),
+            'navpath': navpath,
+            'heading': navpath[-1][0]
+
         },
         allow_empty=True,
         context_processors=[search_form_processor],

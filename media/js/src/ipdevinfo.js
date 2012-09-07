@@ -10,8 +10,10 @@ require([
         new TableUtil($('#hostinfo')).addRowToggleTrigger();
 
         addGlobalAjaxHandlers();
-        addModuleTabs();
-        addMainTabs();
+        if ($(mainTabsSelector).length != 0) {
+            addModuleTabs();
+            addMainTabs();
+        }
     });
 
     function addModuleTabs() {
