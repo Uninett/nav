@@ -38,7 +38,7 @@ from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
 from nav.web.ipdevinfo import utils
 
-NAVPATH = [('Home', '/'), ('IP Device Info', 'ipdevinfo')]
+NAVPATH = [('Home', '/'), ('IP Device Info', '/ipdevinfo')]
 
 def search(request):
     """Search for an IP device"""
@@ -523,12 +523,16 @@ def service_matrix(request):
         matrix_dict[service.netbox.id]['services'][index] = service
 
     matrix = matrix_dict.values()
+    navpath = NAVPATH + [('Service Matrix',)]
 
     return render_to_response(
         'ipdevinfo/service-matrix.html',
         {
             'handler_list': handler_list,
             'matrix': matrix,
+            'title': create_title(navpath),
+            'navpath': navpath,
+            'heading': navpath[-1][0]
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
