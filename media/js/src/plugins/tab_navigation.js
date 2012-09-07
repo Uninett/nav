@@ -4,17 +4,17 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
         var $wrapper = typeof(wrapper) === 'string' ? $(wrapper) : wrapper;
 
         /* Mark selected tab on page load */
-        navigate();
+        init();
 
         /* Set hash mark with index when a tab is selected */
         $wrapper.bind('tabsselect', function (event, ui) {
             /* Check if this is the tabs we're hooked to */
             if (event.target.id === $wrapper.attr('id')) {
                 var hashValue = ui.tab.hash;
-                setTitle(hashValue);
                 if (ui.index != 0 || window.location.hash) {
                     window.location.hash = '!' + hashValue.substring(1);
                 }
+                setTitle(hashValue);
             }
         });
 
@@ -38,6 +38,20 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
         function navigate() {
             var index = window.location.hash ? window.location.hash.substring(2) : 0;
             $wrapper.tabs().tabs('select', index);
+        }
+
+        /* Do some initial stuff */
+        function init() {
+            navigate();
+            setTitle(getSelectedTabHash());
+        }
+
+        function getSelectedTab() {
+            return $wrapper.children('.ui-tabs-panel:not(.ui-tabs-hide)');
+        }
+
+        function getSelectedTabHash() {
+            return "#" + getSelectedTab().prop('id');
         }
     }
 
