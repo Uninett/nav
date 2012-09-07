@@ -10,8 +10,10 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
         $wrapper.bind('tabsselect', function (event, ui) {
             /* Check if this is the tabs we're hooked to */
             if (event.target.id === $wrapper.attr('id')) {
+                var hashValue = ui.tab.hash;
+                setTitle(hashValue);
                 if (ui.index != 0 || window.location.hash) {
-                    window.location.hash = '!' + ui.tab.hash.substring(1);
+                    window.location.hash = '!' + hashValue.substring(1);
                 }
             }
         });
@@ -20,6 +22,17 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
         $(window).bind('hashchange', function (event) {
             navigate();
         });
+
+        /* Set title based on fragment. Remove other fragment */
+        function setTitle(fragment) {
+            var old = document.title;
+            var hashIndex = old.lastIndexOf('#');
+            if (hashIndex === -1) {
+                document.title = old + fragment;
+            } else {
+                document.title = old.substring(0, hashIndex) + fragment;
+            }
+        }
 
         /* Navigate to correct tab based on url hash mark */
         function navigate() {
