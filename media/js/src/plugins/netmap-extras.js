@@ -1,4 +1,5 @@
-define([], function () {
+define(function () {
+
 
     var _this; // proxy variable
 
@@ -32,6 +33,15 @@ define([], function () {
         }
         return output;
     }
+
+    String.prototype.format = function () {
+        var args = arguments;
+        return this.replace(/\{(\d+)\}/g, function (match, number) {
+            return typeof args[number] !== 'undefined' ? args[number] : match;
+
+        });
+    };
+
     var _LINKS_TOPOLOGIES_REVERSE = swapJsonKeyValues(_LINKS_TOPOLOGIES);
 
     var publicMethods = {
@@ -73,13 +83,6 @@ define([], function () {
     };
 
     _this = publicMethods;
-    return publicMethods;
+    return _this;
 });
 
-String.prototype.format = function () {
-    var args = arguments;
-    return this.replace(/\{(\d+)\}/g, function (match, number) {
-        return typeof args[number] !== 'undefined' ? args[number] : match;
-
-    });
-};

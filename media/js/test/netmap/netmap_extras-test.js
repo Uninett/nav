@@ -1,4 +1,4 @@
-define(["NetmapExtras"], function (NetmapExtras) {
+define(["plugins/netmap-extras"], function (NetmapExtras) {
 
     buster.testCase("Traffic SI units tests", {
         setUp: function () {
