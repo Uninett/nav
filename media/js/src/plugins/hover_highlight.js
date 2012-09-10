@@ -6,7 +6,6 @@ define(['libs/jquery'], function () {
     }
 
     function addHighlight(topNode) {
-        console.log('Adding highlight to ' + topNode.prop('class'));
         var bg_colors = {};
         $('a[class^="task_"]', topNode).hover(function () {
             var shared_id = $(this).attr('class').match(/(task_\d+)/)[1];
