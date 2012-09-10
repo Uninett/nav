@@ -623,7 +623,8 @@ class MultiMibMixIn(MibRetriever):
             agent.ip,
             agent.port,
             community=community,
-            snmpVersion = agent.snmpVersion)
+            snmpVersion = agent.snmpVersion,
+            snmp_parameters = agent.snmp_parameters)
         if hasattr(agent, 'protocol'):
             alt_agent.protocol = agent.protocol
 
