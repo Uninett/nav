@@ -5,7 +5,7 @@ User-visible features and improvements:
 
   * New netmap <insert more sellings points here>
 
-  * Improved search in navbar. The search now returns results from rooms,
+  * Improved search in navbar. The search now return results from rooms,
     netboxes and interfaces.
 
   * Room view with powerful netbox interface overview that makes it possible
