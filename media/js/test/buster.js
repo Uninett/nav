@@ -5,7 +5,7 @@ config["My tests"] = {
     environment: "browser", // or "node"
     libs: [
         "require_config.js",
-        "require_testconfig.js",
+        "require_config.*.js",
         "libs/*.js"
     ],
     resources: [
