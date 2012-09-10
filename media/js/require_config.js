@@ -3,6 +3,7 @@ var require = {
     waitSeconds: 7, // default
     paths: {
         "libs": "libs",
+        "libs-amd": "resources/libs",
         "plugins": "src/plugins",
         "dt_plugins": "src/dt_plugins",
         "info": "src/info",

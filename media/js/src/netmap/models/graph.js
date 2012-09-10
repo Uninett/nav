@@ -1,5 +1,5 @@
 define([
-    'libs/netmap-extras',
+    'plugins/netmap-extras',
     'libs/backbone'
 ], function (NetmapExtras) {
     var graphModel = Backbone.Model.extend({

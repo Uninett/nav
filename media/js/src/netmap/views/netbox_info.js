@@ -1,13 +1,13 @@
 define([
-    'libs/netmap-extras',
+    'plugins/netmap-extras',
     'netmap/views/info/vlan',
-    'libs/text!netmap/templates/netbox_info.html',
+    'libs-amd/text!netmap/templates/netbox_info.html',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone'
 
-], function (NetmapHelpers, VlanInfoView, netmapTemplate, Handlebars) {
+], function (NetmapHelpers, VlanInfoView, netmapTemplate) {
 
     var NetboxInfoView = Backbone.View.extend({
         broker: Backbone.EventBroker,

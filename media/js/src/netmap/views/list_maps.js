@@ -1,15 +1,15 @@
 define([
-    'libs/netmap-extras',
+    'plugins/netmap-extras',
     'netmap/models/map',
     'netmap/models/graph',
     'netmap/views/modal/save_new_map',
-    'libs/text!netmap/templates/list_maps.html',
+    'libs-amd/text!netmap/templates/list_maps.html',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function ( NetmapExtras, MapModel, GraphModel, SaveDialogView, netmapTemplate, Handlebars) {
+], function ( NetmapExtras, MapModel, GraphModel, SaveDialogView, netmapTemplate) {
 
     var ListNetmapView = Backbone.View.extend({
         tagName: "div",

@@ -1,13 +1,13 @@
 define([
-    'libs/netmap-extras',
-    'libs/text!netmap/templates/map_info.html',
+    'plugins/netmap-extras',
+    'libs-amd/text!netmap/templates/map_info.html',
     'netmap/views/netbox_info',
     'netmap/views/link_info',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone'
-], function (NetmapHelpers, mapInfoTemplate, NetboxInfoView, LinkInfoView, Handlebars) {
+], function (NetmapHelpers, mapInfoTemplate, NetboxInfoView, LinkInfoView) {
 
     var MapInfoView = Backbone.View.extend({
         broker: Backbone.EventBroker,

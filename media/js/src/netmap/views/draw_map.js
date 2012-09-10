@@ -1,14 +1,14 @@
 define([
-    'libs/netmap-extras',
+    'plugins/netmap-extras',
     // Pull in the Collection module from above
     'netmap/views/netbox_info',
-    'libs/text!netmap/templates/draw_map.html',
+    'libs-amd/text!netmap/templates/draw_map.html',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapExtras, NetboxInfoView, netmapTemplate, Handlebars) {
+], function (NetmapExtras, NetboxInfoView, netmapTemplate) {
 
     var drawNetmapView = Backbone.View.extend({
         tagName: "div",
