@@ -1,0 +1,69 @@
+{% extends "maintenance/base.html" %}
+
+{% block content %}
+<table class="vertitable vertitablefull">
+    <caption>
+        {{ task.description }}
+    </caption>
+
+    <tbody>
+        <tr>
+            <th>Start</th>
+            <td>{{ task.start_time|date:"Y-m-d H:i" }}</td>
+        </tr>
+        <tr>
+            <th>End</th>
+            <td>{{ task.end_time|date:"Y-m-d H:i" }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ task.description }}</td>
+        </tr>
+        <tr>
+            <th>Components</th>
+            <td>
+            {% if components %}
+            <ul>
+            {% for comp in components %}
+                <li>
+                    {{ comp.title|capfirst }}:
+                {% for elem in comp.trail %}
+                    {% if elem.url %}
+                    <a href="{{ elem.url }}" title="{{ elem.title }}">{{ elem.name }}</a>
+                    {% else %}
+                    {{ elem.name }}
+                    {% endif %}
+                    {% if not forloop.last %}
+                    &rarr;
+                    {% endif %}
+                {% endfor %}
+                </li>
+            {% endfor %}
+            </ul>
+            {% else %}
+                (none)
+            {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Author</th>
+            <td>{{ task.author }}</td>
+        </tr>
+        {% if not current_user_data.account.is_default_account %}
+        <tr>
+            <th>State</th>
+            <td>{{ task.state|capfirst }}</td>
+        </tr>
+        <tr>
+            <th>Actions</th>
+            <td>
+                <a href="{% url maintenance-edit task.id %}">Edit</a>
+                {% ifnotequal task.state "cancelled" %}
+                | <a href="{% url maintenance-cancel task.id %}">Cancel now</a>
+                {% endifnotequal %}
+            </td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endblock %}
