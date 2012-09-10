@@ -1,3 +1,4 @@
+{% load settings %}
 {% block base_header %}
 
 <!DOCTYPE html>
@@ -20,6 +21,9 @@
     <link rel="stylesheet" type="text/css" href="/style/quickselect.css" />
     <script type="text/javascript" src="/js/default.js"></script>
     <script type="text/javascript" src="/js/require_config.js"></script>
+    {% if debug %}
+        <script type="text/javascript" src="/js/require_config.dev.js"></script>
+    {% endif %}
     {% block base_header_additional_head %}
     {% endblock %}
 </head>

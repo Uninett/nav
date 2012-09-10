@@ -19,6 +19,5 @@ var require = {
         'libs/backbone': ["libs/underscore", "libs/jquery"],
         'libs/backbone-eventbroker': ['libs/backbone']
 
-    },
-    urlArgs: "nav=" + (new Date()).getTime()
+    }
 };
