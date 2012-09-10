@@ -1,6 +1,6 @@
 //var buster = require("buster");
-
-define(["jQuery", "netmap/views/netbox_info"], function ($, View) {
+/*
+define(["libs/jquery", "netmap/views/netbox_info"], function ($, View) {
 
 
     buster.testCase("View tests", {
@@ -43,24 +43,4 @@ define(["jQuery", "netmap/views/netbox_info"], function ($, View) {
         }
     });
 });
-/*buster.testCase("speed translations :: SI units", {
-    "bits to Tbps": function () {
-
-        assert(true);
-    }
-});
-asd
-// SI Units, http://en.wikipedia.org/wiki/SI_prefix
-function convert_bits_to_si(bits) {
-    if (bits >= TRAFFIC_META.tb) {
-        return '{0}Tbps'.format(Math.round(((bits / TRAFFIC_META.tb) * 100) / 100));
-    } else if (bits >= TRAFFIC_META.gb) {
-        return '{0}Gbps'.format(Math.round(((bits / TRAFFIC_META.gb) * 100) / 100));
-    } else if (bits >= TRAFFIC_META.mb) {
-        return '{0}Mbps'.format(Math.round(((bits / TRAFFIC_META.mb) * 100) / 100));
-    } else if (bits >= TRAFFIC_META.kb) {
-        return '{0}Kbps'.format(Math.round(((bits / TRAFFIC_META.kb) * 100) / 100));
-    }
-
-    return '{0}b/s'.format(Math.round((bits * 100) / 100));
-}*/
+*/
