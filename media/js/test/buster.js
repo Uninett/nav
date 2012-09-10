@@ -6,10 +6,16 @@ config["My tests"] = {
     libs: [
         "require_config.js",
         "require_testconfig.js",
+        "libs/require.js",
+        "libs/underscore.js",
+        "libs/backbone.js",
         "libs/*.js"
     ],
     resources: [
-        "src/*/*.js"
+        "resources/**/*.js",
+        "test/resources/**/*.html",
+        "src/**/*.js",
+        "src/**/*.html"
     ],
     tests: [
         "test/*/*-test.js"

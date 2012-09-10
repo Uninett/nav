@@ -1,5 +1,6 @@
 var require = {
     baseUrl: '/js',
+    waitSeconds: 7, // default
     paths: {
         "libs": "libs",
         "plugins": "src/plugins",
