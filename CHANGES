@@ -23,6 +23,12 @@ User-visible features and improvements:
     manually copy new files to the cricket-config. For more info read the
     release notes.
 
+  * ipdevpoll now supports both VRRP and HSRP.
+
+  * The Maintenance and Messages tool have been migrated from mod_python to
+    Django.
+
+
 Bugfixes:
 
   * LP#1039490 (Mixed IPv4 and IPv6 elinks are mis-labeled as lans)
