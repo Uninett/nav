@@ -17,6 +17,8 @@ require(
     function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper) {
         /* Run javascript at document ready */
         $(document).ready(function () {
+            NAV.addGlobalAjaxHandlers();
+
             if ($('#infotabs').length != 0) {
                 add_tabs();
                 add_navigation();
@@ -34,7 +36,6 @@ require(
                 cache: true, // cache loaded pages
                 spinner: '<img src="/images/main/process-working.gif">',
                 ajaxOptions: {
-                    beforeSend: request_before_send,
                     error: request_error,
                     success: request_success,
                     complete: request_complete
@@ -44,17 +45,9 @@ require(
             $('#infotabs').show();
         }
 
-        function request_before_send(req) {
-            req.setRequestHeader('X-NAV-AJAX', 'true');
-        }
-
         function request_error(xhr, status, error) {
             console.error('Request error');
-            if (xhr.status == 401) {
-                window.location = '/index/login/?origin=' + window.location.href;
-            } else {
-                $('<div class="messages error">Could not load netbox interfaces</div>').appendTo('#ui-tabs-1');
-            }
+            $('<div class="messages error">Could not load netbox interfaces</div>').appendTo('#ui-tabs-1');
         }
 
         function request_success() {
