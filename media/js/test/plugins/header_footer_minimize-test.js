@@ -4,7 +4,7 @@ require(['plugins/header_footer_minimize',
 ], function (TestScript, headerEl, jquery) {
     buster.testCase("HeaderFooterMinimize:", {
         setUp: function () {
-            this.script = new TestScript;
+            this.script = new TestScript();
             this.script.initialize({
                 header: headerEl,
                 footer: headerEl
