@@ -37,8 +37,7 @@ require(
                 spinner: '<img src="/images/main/process-working.gif">',
                 ajaxOptions: {
                     error: request_error,
-                    success: request_success,
-                    complete: request_complete
+                    success: request_success
                 }
             };
             var tabs = $('#infotabs').tabs(tabconfig);
@@ -55,10 +54,6 @@ require(
             add_filters();
             add_csv_download();
             add_helper_dialog();
-        }
-
-        function request_complete() {
-            $('.tab-spinner').hide();
         }
 
         /* Add navigation to jQuery ui tabs */
