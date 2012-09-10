@@ -86,7 +86,7 @@ Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently logged in as 
                 {% endfor %}
                 {% if current_user_data.qlink1 %}
                 <td class="list">
-                    <select onchange="return jump(this);">
+                    <select onchange="return NAV.jump(this);">
                         <option selected="selected">Quicklink #1</option>
                         {% for link in current_user_data.qlink1 %}
                         <option value="{{ link.uri }}">{{ link.name }}</option>
@@ -96,7 +96,7 @@ Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently logged in as 
                 {% endif %}
                 {% if current_user_data.qlink2 %}
                 <td class="list">
-                    <select onchange="return jump(this);">
+                    <select onchange="return NAV.jump(this);">
                         <option selected="selected">Quicklink #2</option>
                         {% for link in current_user_data.qlink2 %}
                         <option value="{{ link.uri }}">{{ link.name }}</option>

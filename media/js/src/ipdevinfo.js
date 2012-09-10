@@ -9,9 +9,11 @@ require([
         // Plug row toggler on datasources
         new TableUtil($('#hostinfo')).addRowToggleTrigger();
 
-        addGlobalAjaxHandlers();
-        addModuleTabs();
-        addMainTabs();
+        NAV.addGlobalAjaxHandlers();
+        if ($(mainTabsSelector).length != 0) {
+            addModuleTabs();
+            addMainTabs();
+        }
     });
 
     function addModuleTabs() {
