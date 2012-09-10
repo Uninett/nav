@@ -1,9 +1,8 @@
-{% block base_header %}<?xml version="1.0" encoding="UTF-8"?>
+{% block base_header %}
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<html>
 
 {# FIXME Hardcoded urls #}
 
@@ -21,6 +20,10 @@
     <link rel="stylesheet" type="text/css" href="/style/treeselect.css" />
     <link rel="stylesheet" type="text/css" href="/style/quickselect.css" />
     <script type="text/javascript" src="/js/default.js"></script>
+    <script type="text/javascript" src="/js/require_config.js"></script>
+    {% if debug %}
+        <script type="text/javascript" src="/js/require_config.dev.js"></script>
+    {% endif %}
     {% block base_header_additional_head %}
     {% endblock %}
 </head>

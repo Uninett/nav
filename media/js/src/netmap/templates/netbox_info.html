@@ -1,0 +1,22 @@
+<h3>Netbox info</h3>
+<img src='/images/lys/{{node.data.up_image}}' alt='{{node.data.up}}' class='netmap_node_status'/>
+<h4 class="node_sysname"><a href="{{node.data.ipdevinfo_link}}">{{node.data.sysname}}</a></h4>
+<div class="node_ip">{{node.data.ip}}</div>
+<div class="node_last_updated">
+    <span class="description">Last updated:</span><span class="value">{{#if node.data.last_updated}}{{node.data.last_updated}}{{else}}N/A{{/if}}</span>
+</div>
+
+<div class="node_fixed_position">
+    <input type="checkbox" name="positionFixed" value="positionFixed" id="positionFixed" {{#if node.fixed}} checked{{/if}} />
+    <label for="positionFixed">Node is fixed position?</label>
+</div>
+
+
+<div class="node_category">
+    <img src="/images/netmap/{{{toLowerCase node.data.category}}}.png" alt="{{node.data.category}}" width="32px" height="32px" />
+    <span class="description">Category:</span><span class="value">{{node.data.category}}</span>
+</div>
+
+<div class="node_room"><span class="description">Location:</span><span class="value">{{#if node.data.room}}{{node.data.room}}{{else}}N/A{{/if}}</span></div>
+
+

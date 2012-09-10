@@ -2,12 +2,8 @@
 
 {% block base_header_additional_head %}
     <link href="/style/info_room.css" type="text/css" rel="stylesheet">
-    <link href="/style/jqueryui/jquery-ui-1.8.21.custom.css" type="text/css"
-          rel="stylesheet">
-    <script src="/js/jquery-1.4.4.min.js" type="text/javascript"></script>
-    <script src="/js/jquery-ui-1.8.21.custom.min.js"
-            type="text/javascript"></script>
-    <script src="/js/info.js"></script>
+    <link href="/style/jqueryui/jquery-ui-1.8.21.custom.css" type="text/css" rel="stylesheet">
+    <script data-main="src/info" src="/js/libs/require.js"></script>
 {% endblock %}
 
 {% block base_content %}
@@ -58,6 +54,9 @@
             {% endif %}
 
         {% endif %}
+
+        <div id="mapcontainer" class="smallmap"></div>
+        <div id="coordinates"></div>
 
     {% endblock %}
 

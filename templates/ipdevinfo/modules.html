@@ -1,0 +1,28 @@
+{% ifequal port_view.perspective 'swportactive' %}
+    <form action="" method="get">
+        <input type="hidden" name="view"
+               value="swportactive"/>
+
+        <p class="infobox">
+            Activity based on CAM records since
+            {{ port_view.activity_interval_start|date }}.
+            {{ activity_interval_form.interval.label }}:
+            {{ activity_interval_form.interval }}
+            <button type="submit">Recheck activity
+            </button>
+            {% if not port_view.activity_complete_data %}
+                <em>
+                    Warning: CAM data is only available
+                    for {{ port_view.activity_data_interval }}
+                    day{{ port_view.activity_data_interval|pluralize }}.
+                </em>
+            {% endif %}
+        </p>
+    </form>
+{% endifequal %}
+
+{% for module in port_view.modules %}
+    {% include "ipdevinfo/module-port-view.html" %}
+{% endfor %}
+
+{% include "ipdevinfo/port-legend.html" %}

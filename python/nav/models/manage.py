@@ -139,10 +139,10 @@ class Netbox(models.Model):
         def average(rds, time_frame):
             """Calculates the average value within a time_frame."""
             from nav.rrd import presenter
-            rrd = presenter.presentation()
-            rrd.timeLast(time_frame)
-            rrd.addDs(rds.id)
-            value = rrd.average(onErrorReturn=None, onNanReturn=None)
+            rrd = presenter.Presentation()
+            rrd.time_last(time_frame)
+            rrd.add_datasource(rds.id)
+            value = rrd.average(on_error_return=None, on_nan_return=None)
             if not value:
                 return None
             else:
@@ -185,7 +185,7 @@ class Netbox(models.Model):
         return result
 
     def get_uplinks(self):
-        """Returns a list of uplinks on this netbox."""
+        """Returns a list of uplinks on this netbox. Requires valid vlan."""
         result = []
 
         for iface in self.connected_to_interface.all():
@@ -195,6 +195,17 @@ class Netbox(models.Model):
                     'other': iface,
                     'this': iface.to_interface,
                 })
+
+        return result
+
+    def get_uplinks_regarding_of_vlan(self):
+        result = []
+
+        for iface in self.connected_to_interface.all():
+            result.append({
+                'other': iface,
+                'this': iface.to_interface,
+            })
 
         return result
 
@@ -249,6 +260,12 @@ class Netbox(models.Model):
             return unresolved.filter(event_type__id=kind)
         else:
             return unresolved
+
+    def get_powersupplies(self):
+        return self.powersupplyorfan_set.filter(physical_class='powerSupply').order_by('name')
+
+    def get_fans(self):
+        return self.powersupplyorfan_set.filter(physical_class='fan').order_by('name')
 
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place to store additional info
@@ -958,7 +975,7 @@ class Interface(models.Model):
         return self.netbox.cam_set.filter(ifindex=self.ifindex).latest(
             'end_time')
 
-    def get_active_time(self, interval):
+    def get_active_time(self, interval=600):
         """
         Time since last CAM activity on port, looking at CAM entries
         for the last ``interval'' days.
@@ -1022,7 +1039,7 @@ class Interface(models.Model):
 
         if self.trunk:
             return ",".join(as_range(y) for x,y in groupby(
-                self.swportallowedvlan.get_allowed_vlans(),
+                sorted(self.swportallowedvlan.get_allowed_vlans()),
                 lambda n, c=count(): n-next(c))
             )
         else:

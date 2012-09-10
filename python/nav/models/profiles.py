@@ -23,6 +23,7 @@ import os
 from datetime import datetime
 import re
 # To stay compatible with both python 2.4 and 2.6:
+
 try:
     from hashlib import md5
 except ImportError:
@@ -1206,3 +1207,81 @@ class StatusPreferenceCategory(models.Model):
 
     class Meta:
         db_table = u'statuspreference_category'
+
+
+# Make sure you update netmap-extras.js too if you change this! ;-)
+LINK_TYPES = (1, 'Layer 2'), \
+(3, 'Layer 3')
+
+class NetmapView(models.Model):
+    """Properties for a specific view in Netmap"""
+    viewid = models.AutoField(primary_key=True)
+    owner = models.ForeignKey(Account, db_column='owner')
+    title = models.TextField()
+    description = models.TextField()
+    topology = models.CharField(choices=LINK_TYPES)
+    # picke x,y,scale (translate(x,y) , scale(scale)
+    zoom = models.CharField(max_length=255)
+    last_modified = models.DateTimeField(auto_now_add=True)
+    is_public = models.BooleanField(default=False)
+    display_elinks = models.BooleanField(default=False)
+    display_orphans = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return u'%s (%s)' % (self.viewid, self.title)
+
+    def to_json_dict(self):
+        """Presents a NetmapView as JSON"""
+        categories = [unicode(x.category.id) for x in self.categories_set.all()]
+        if self.display_elinks:
+            categories.append("ELINK")
+
+        return {
+            'viewid': self.viewid,
+            'owner': self.owner.id,
+            'title': self.title,
+            'description': self.description,
+            'topology': self.topology,
+            'zoom': self.zoom,
+            'last_modified': unicode(self.last_modified),
+            'is_public': self.is_public,
+            'categories': categories,
+            'display_orphans': self.display_orphans
+        }
+
+
+    class Meta:
+        db_table = u'netmap_view'
+
+
+
+class NetmapViewCategories(models.Model):
+    """Saved categories for a selected view in Netmap"""
+    id = models.AutoField(primary_key=True) # Serial for faking a primary key
+    view = models.ForeignKey(NetmapView, db_column='viewid',
+        related_name='categories_set')
+    category = models.ForeignKey(Category, db_column='catid',
+        related_name='netmapview_set')
+
+    def __unicode__(self):
+        return u'%s in category %s' % (self.view, self.category)
+
+    class Meta:
+        db_table = u'netmap_view_categories'
+        unique_together = (('view', 'category'),) # Primary key
+
+
+
+
+class NetmapViewNodePosition(models.Model):
+    """Saved positions for nodes for a selected view in Netmap"""
+    id = models.AutoField(primary_key=True) # Serial for faking a primary key
+    viewid = models.ForeignKey(NetmapView, db_column='viewid',
+        related_name='node_position_set')
+    netbox = models.ForeignKey(Netbox, db_column='netboxid',
+        related_name='node_position_set')
+    x = models.IntegerField()
+    y = models.IntegerField()
+
+    class Meta:
+        db_table = u'netmap_view_nodeposition'

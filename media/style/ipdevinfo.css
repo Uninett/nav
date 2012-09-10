@@ -23,35 +23,17 @@
  *
  */
 
-/* Search field */
-#ipdevinfosearch {
-	float: right;
-	margin-left: 1em;
-}
-#ipdevinfosearch form {
-	margin: 0;
-}
-#ipdevinfosearch button {
-	width: 100%;
-}
-
-/* Left-floating tables */
-#ipdevinfo, #hostinfo, #alerts {
-	float: left;
-	display: inline;
-}
-#hostinfo, #alerts {
-	margin-left: 1em;
-}
-
-/* Used for pushing the rest of the content below the host
- * and IP Device info tables. */
-hr.floatclear {
-	clear: both;
-	visibility: hidden;
-}
-
 /* Device details table */
+
+.multitable {
+    overflow: auto;
+}
+
+.multitable > table {
+    float: left;
+    margin-right: 1em;
+}
+
 .indent {
     text-indent: 1em;
 }
@@ -158,21 +140,6 @@ hr.floatclear {
     display: none;
 }
 
-.toggle-datasources td:hover {
-    background-color: #EEE;
-    cursor: pointer;
-}
-
-.toggle-datasources td .hellip {
-    float: left;
-}
-
-.toggle-datasources td .infotext {
-    color: #888;
-    display: block;
-    font-size: 0.8em;
-    line-height: 1.4em;
-    margin: auto;
+td.cell-center {
     text-align: center;
-    width: 100px;
 }

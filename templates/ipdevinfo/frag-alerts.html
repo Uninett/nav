@@ -1,0 +1,70 @@
+<div id="alerts">
+    {% if netbox %}
+        <table class="listtable">
+            <caption>
+                Alerts last {{ alert_info.days_back }}
+                day{{ alert_info.days_back|pluralize }}
+            </caption>
+
+            <thead>
+            <tr>
+                <th>Event</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Downtime</th>
+            </tr>
+            </thead>
+
+            <tfoot>
+            <tr>
+                <th colspan="4">
+                    {% if alert_info.is_more_alerts %}
+                        Showing {{ alert_info.alerts|length }} of
+                        {{ alert_info.count }} alerts, see
+                        <a href="{% url devicehistory-view-netbox netbox.id %}">
+                            Device History</a> for all
+                    {% else %}
+                        {{ alert_info.alerts|length }}
+                        alert{{ alert_info.alerts|length|pluralize }}
+                        found,
+                        see
+                        <a href="{% url devicehistory-view-netbox netbox.id %}">Device
+                            History</a> for details
+                    {% endif %}
+                </th>
+            </tr>
+            </tfoot>
+
+            <tbody>
+            {% if alert_info.count %}
+                {% for a in alert_info.alerts %}
+                    <tr class="{% cycle oddrow,evenrow %}">
+                        <td title="{{ a.message|default:"" }}">{{ a.type }}</td>
+                        <td>{{ a.alert.start_time|date|default:"N/A" }}
+                            {{ a.alert.start_time|time }}</td>
+                        {% if a.alert.is_open %}
+                            <td class="status_down">Unresolved</td>
+                        {% else %}
+                            <td>{{ a.alert.end_time|date|default:"N/A" }}
+                                {{ a.alert.end_time|time }}</td>
+                        {% endif %}
+                        <td>
+                            {% if a.alert.is_stateful %}
+                                {% if a.alert.is_open %}
+                                    {{ a.alert.start_time|timesince }}
+                                {% else %}
+                                    {{ a.alert.start_time|timesince:a.alert.end_time }}
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td>No matching alerts found.</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>

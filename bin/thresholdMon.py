@@ -42,7 +42,7 @@ from nav.models.rrd import RrdFile, RrdDataSource
 
 LOG_FILE = nav.buildconf.localstatedir + "/log/thresholdMon.log"
 
-pres = presenter.presentation()
+pres = presenter.Presentation()
 
 # Script started
 start = time.time()
@@ -209,16 +209,16 @@ def main(argv):
             threshold_max = int(threshold_max)
         logger.debug("Adding datasource %s" % rrd_datasourceid)
         # Getting the value from the database
-        pres.removeAllDs()
+        pres.remove_all_datasources()
         try:
-            pres.addDs(rrd_datasourceid)
+            pres.add_datasource(rrd_datasourceid)
         except TypeError:
             logger.error("Error could not add ds, continuing (%s,%s,%s)" %
                     (rrd_datasourceid))
             continue
 
         # We look at values over the 15 last minutes.
-        pres.fromTime = '-15min'
+        pres.from_time = '-15min'
 
         logger.debug("Getting data from %s (%s)" % (rrd_datasourceid, descr))
         if pres.average():

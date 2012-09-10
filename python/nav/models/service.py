@@ -54,10 +54,10 @@ class Service(models.Model):
 
         def average(rds, time_frame):
             from nav.rrd import presenter
-            rrd = presenter.presentation()
-            rrd.timeLast(time_frame)
-            rrd.addDs(rds.id)
-            value = rrd.average(onErrorReturn=None, onNanReturn=None)
+            rrd = presenter.Presentation()
+            rrd.time_last(time_frame)
+            rrd.add_datasource(rds.id)
+            value = rrd.average(on_error_return=None, on_nan_return=None)
             if not value:
                 return None
             else:

@@ -18,13 +18,14 @@
 import logging
 import networkx as nx
 
-from nav.models.manage import GwPortPrefix, Interface, SwPortVlan, SwPortBlocked
+from nav.models.manage import GwPortPrefix, Interface, SwPortVlan, SwPortBlocked, Prefix
 
 from django.db.models import Q
 from django.db import transaction
 from itertools import groupby, chain
 from operator import attrgetter
 from collections import defaultdict
+from nav.netmap import stubs
 
 _LOGGER = logging.getLogger(__name__)
 NO_TRUNK = Q(trunk=False) | Q(trunk__isnull=True)
@@ -336,24 +337,122 @@ class VlanTopologyUpdater(object):
         SwPortVlan.objects.exclude(interface__in=touched).delete()
 
 
-def build_layer2_graph():
+def build_layer2_graph(related_extra=None):
     """Builds a graph representation of the layer 2 topology stored in the NAV
     database.
+
+    :param related_extra Additional selection_related fields
 
     :returns: A MultiDiGraph of Netbox nodes, edges annotated with Interface
               model objects.
 
     """
     graph = nx.MultiDiGraph(name="Layer 2 topology")
-    links = Interface.objects.filter(
-        to_netbox__isnull=False).select_related(
-        'netbox', 'to_netbox', 'to_interface')
+
+    select_related = ('netbox', 'to_netbox', 'to_interface')
+    if related_extra:
+        select_related = select_related+related_extra
+
+    links = Interface.objects.filter(to_netbox__isnull=False).select_related(*select_related)
 
     for link in links:
         dest = link.to_interface.netbox if link.to_interface else link.to_netbox
         graph.add_edge(link.netbox, dest, key=link)
-
     return graph
+
+def build_layer3_graph(related_extra=None):
+    """Build a graph representation of the layer 3 topology stored in the NAV
+    database.
+
+    :param related_extra Additional selection_related fields
+
+    : returns: A MultiDiGraph of Netbox nodes, edges annotated with Interface
+               model objects.
+    """
+    graph = nx.MultiGraph(name="Layer 3 topology")
+
+    select_related = ('interface__netbox', 'interface__to_netbox', 'interface__to_interface', 'interface__to_interface__netbox')
+    if related_extra:
+        select_related = select_related+related_extra
+
+    prefixes = Prefix.objects.filter(vlan__net_type__in=('link', 'elink', 'core')).select_related("vlan__net_type")
+
+    router_ports = GwPortPrefix.objects.filter(prefix__in=prefixes, interface__netbox__category__in=('GW','GSW')).select_related(*select_related)
+
+    router_ports_prefix_map = defaultdict(list)
+    for router_port in router_ports:
+        router_ports_prefix_map[router_port.prefix].append(router_port)
+
+
+    def _add_edge(gwportprefixes_in_prefix):
+        """ Adds connections between netboxes in gwportprefix (fully connected network)
+            note: loop/self.loop edges should _NOT_ use this method for adding the loop to the graph.
+        """
+        for this in gwportprefixes_in_prefix:
+            for gwpp in gwportprefixes_in_prefix:
+                if this is not gwpp:
+                    graph.add_edge(this, gwpp, key=this.prefix)
+
+    for prefix in prefixes:
+
+        gwportprefixes = router_ports_prefix_map.get(prefix)
+        if gwportprefixes:
+            if prefix.vlan.net_type.id == 'elink':
+                if len(gwportprefixes) > 1:
+                    # Special case, (horrible) check if its a local loopback to same netbox.
+                    #
+                    # d3js force directed doesnt show loopback edges, but
+                    # we'll include it in the graph metadata,
+                    # in case we fix the visualizing later.
+
+                    # take first GwPortPrefix in list of GwPortPrefixes, and use as base to
+                    # check for loop back edges linking to the same netbox.
+                    gwpp_match = gwportprefixes[0]
+
+                    if [x.interface.netbox == gwpp_match.interface.netbox for x in gwportprefixes].count(True) >= 2:
+                        #graph.add_edge(netbox_match, netbox_match, key=prefix)
+                        for x in gwportprefixes:
+                            for y in gwportprefixes:
+                                if x is not y:
+                                    graph.add_edge(x, y, key=prefix)
+
+                    else:
+                        # If not, we'll add the edge anyway and log a warning
+                        # about topology detector should really not classify this
+                        # as an elink. (since we found >1 known gwpp's in given prefix
+                        # means it shold be a link or core.)
+                        _LOGGER.warning(
+                            "Topology error? %s classified as elink, "
+                            "we know %s GwPortPrefixes ..."
+                            , unicode(prefix), len(gwportprefixes))
+                        _add_edge(gwportprefixes)
+                else:
+
+                    fictive_gwportprefix = stubs.GwPortPrefix()
+                    fictive_netbox = stubs.Netbox()
+                    if gwportprefixes[0].prefix.vlan.net_ident:
+
+                        fictive_netbox.sysname = unicode(gwportprefixes[0].prefix.vlan.net_ident)
+                    else:
+                        fictive_netbox.sysname = "%s, ???" % unicode(gwportprefixes[0].interface.netbox)
+                    fictive_netbox.category_id = 'elink'
+
+
+                    fictive_interface = stubs.Interface()
+                    fictive_interface.netbox = fictive_netbox
+                    fictive_interface.ifname = "?"
+                    fictive_interface.speed = None
+
+                    fictive_gwportprefix.interface = fictive_interface
+                    fictive_gwportprefix.gw_ip = fictive_netbox.sysname # keying.
+                    fictive_gwportprefix.prefix = prefix
+
+                    graph.add_edge(gwportprefixes[0], fictive_gwportprefix, key=prefix)
+
+            else:
+                _add_edge(gwportprefixes)
+    return graph
+
 
 def get_active_addresses_of_routed_vlans():
     """Gets a single router port address for each routed VLAN.

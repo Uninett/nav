@@ -1,0 +1,68 @@
+<a id="toggle_view" style="float: right;">&lt;&lt;</a>
+<div class="inner_wrap left_sidebar">
+    {{#ifequal 1 model.viewid}}class="active"{{/ifequal}}
+
+
+    <h3>Layer</h3>
+
+    {{#eachkeys model.link_types}}
+        <div class="squaredTwo">
+            <input name="topology" type="radio" value="{{this.key}}" id="layer_{{this.key}}" {{#if this.value}} checked{{/if}} />
+            <label for="layer_{{this.key}}">{{this.key}}</label>
+        </div>
+
+    {{/eachkeys}}
+
+
+    <!-- dummy for now -->
+    <h3>Categories</h3>
+
+    {{#eachkeys model.categories}}
+        <div class="squaredTwo">
+            <input type="checkbox" name="categories[]" value="{{this.key}}" id="category_{{this.key}}" {{#if this.value}} checked{{/if}} />
+            <label for="category_{{this.key}}">{{this.key}}</label>
+        </div>
+    {{/eachkeys}}
+
+    <h3>Filter options</h3>
+
+    <div class="squaredTwo">
+        <input type="checkbox" name="filter_orphans" value="filter_orphans" id="filter_orphans" {{#if model.specific_filters.filter_orphans }} checked{{/if}} />
+        <label for="filter_orphans">Filter orphans (single instance nodes)</label>
+    </div>
+
+    <div class="squaredTwo">
+        <input type="checkbox" name="group_roomid" value="group_roomid" id="group_roomid" {{#if group_roomid}} checked{{/if}} />
+        <label for="group_roomid">Group rooms by color</label>
+    </div>
+
+    <div class="squaredTwo">
+        <input type="checkbox" name="freezeNodes" value="freezeNodes" id="freezeNodes" {{#if freezeNodes}} checked{{/if}} />
+        <label for="freezeNodes">Stop force algorithm?</label>
+    </div>
+
+    <div class="fix_options">
+        <span>Fix or unfix all nodes</span>
+        <div class="squaredTwo">
+            <input type="button" name="nodesFixed" value="Fix" id="setNodesFixed" />
+            <input type="button" name="nodesFixed" value="UnFix" id="unsetNodesFixed" />
+        </div>
+    </div>
+
+    <h3>UI options</h3>
+    <div class="squaredTwo">
+        <input type="checkbox" name="topologyErrors" value="topologyErrors" id="topologyErrors" {{#if topologyErrors}} checked{{/if}} />
+        <label for="topologyErrors">Show topology errors</label>
+    </div>
+
+    <h4>Mouseover</h4>
+    <p>Enable &quot;auto clicking&quot; when hovering a node or a link</p>
+    {{#eachkeys model.ui.mouseover}}
+        <div class="squaredTwo">
+            <input type="checkbox" name="mouseOver[]" value="{{this.key}}" id="mouseOver_{{this.key}}" {{#if this.value.state}} checked{{/if}} />
+            <label for="mouseOver_{{this.key}}">{{this.key}} [{{this.value.hotkey}}]</label>
+        </div>
+    {{/eachkeys}}
+
+</div>
+

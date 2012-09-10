@@ -48,11 +48,12 @@ def updatedb(datadir, containers):
 
         except RrdFile.DoesNotExist:
             # 2
-            key, value = get_key_value(container)
-            if key and value:
+            key, value, category = get_key_value(container)
+            if key and value and category:
                 try:
                     # 2.1
-                    rrdfile = RrdFile.objects.get(key=key, value=value)
+                    rrdfile = RrdFile.objects.get(key=key, value=value,
+                                                  category=category)
                     move_file(join(rrdfile.path, rrdfile.filename),
                               path_to_file)
                     update_rrdfile(rrdfile, netbox, datapath, container)
@@ -68,20 +69,21 @@ def updatedb(datadir, containers):
 def fix_filename(filename):
     """ Make sure filename is correct  """
     if not filename.endswith('.rrd'):
-        filename = filename + '.rrd'
+        filename += '.rrd'
 
     return filename
 
 
 def update_rrdfile(rrdfile, netbox, path_to_rrd, container):
     """ Update database with new info """
-    key, value = get_key_value(container)
+    key, value, category = get_key_value(container)
 
     rrdfile.path = path_to_rrd
     rrdfile.filename = fix_filename(container.filename)
     rrdfile.netbox = netbox
     rrdfile.key = key
     rrdfile.value = value
+    rrdfile.category = category
 
     # We don't update the datasources as the database is the source of
     # the datasources. Somewhere in the future there will exist an
@@ -100,7 +102,7 @@ def update_rrdfile(rrdfile, netbox, path_to_rrd, container):
 def insert_rrdfile(datapath, filename, container, netbox):
     """ Create a new tuple in the database """
     subsystem = Subsystem.objects.get(name='cricket')
-    key, value = get_key_value(container)
+    key, value, category = get_key_value(container)
 
     LOGGER.info("Inserting target %s in database", join(datapath, filename))
     rrdfile = RrdFile(
@@ -110,22 +112,25 @@ def insert_rrdfile(datapath, filename, container, netbox):
         subsystem=subsystem,
         netbox=netbox,
         key=key,
-        value=value)
+        value=value,
+        category=category)
 
     rrdfile.save()
     insert_datasources(container, rrdfile)
 
 
 def get_key_value(container):
-    """ Return key/value as a tuple """
+    """ Return key/value and category as a tuple """
     key = None
     value = None
+    category = None
 
     if hasattr(container, 'key'):
         key = container.key
         value = container.value
+        category = container.category
 
-    return (key, str(value))
+    return key, str(value), category
 
 
 def is_octet_counter(datasource):
@@ -184,7 +189,7 @@ def move_file(source, destination):
     except IOError, ioerror:
         # If file did not exist, accept that and continue
         if ioerror.errno == 2:
-            LOGGER.info("%s did not exist.", source)
+            LOGGER.info("File %s did not exist.", source)
         else:
             LOGGER.error("Exception when moving file %s: %s" \
                          % (source, ioerror))
