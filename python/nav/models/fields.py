@@ -32,8 +32,8 @@ class DateTimeInfinityField(models.DateTimeField):
         elif value == datetime.min:
             value = u'-infinity'
         else:
-            return super(DateTimeInfinityField,
-                         self).get_db_prep_value(value, connection, prepared)
+            return super(DateTimeInfinityField, self).get_db_prep_value(
+                value, connection=connection, prepared=prepared)
         return connection.ops.value_to_db_datetime(value)
 
 class VarcharField(models.TextField):
