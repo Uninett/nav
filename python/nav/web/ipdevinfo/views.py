@@ -231,8 +231,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     def get_arp_info(addr):
         """Return arp based on address"""
         try:
-            return Arp.objects.filter(ip=addr).order_by('-end_time',
-                                                        '-start_time')[0]
+            return Arp.objects.extra(
+                where=["ip = %s"], params=[addr]).order_by(
+                '-end_time','-start_time')[0]
         except:
             return None
 

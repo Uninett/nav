@@ -1,35 +1,38 @@
 Version 3.12.0
 (released xx Sep 2012)
 
-User-visible features and improvements:
+ User-visible features and improvements:
 
-  * New netmap <insert more sellings points here>
+  * The Netmap Java applet has been rewritten in JavaScript, with many
+    improvements, including, but not limited to, saveable map layouts and VLAN
+    topology tracing.  Layer 2 and layer 3 maps are now separate, and
+    elinks/peers can optionally be displayed on L3.
 
-  * Improved search in navbar. The search now return results from rooms,
-    netboxes and interfaces.
+  * Searches in the navbar will now return results from rooms and interfaces,
+    as well as IP devices.
 
-  * Room view with powerful netbox interface overview that makes it possible
-    to sort, filter and export interface information. Reachable when searching
-    in the navbar.
+  * New room view with powerful port overview, enabling sorting, filtering and
+    exporting information to CSV files.
 
-  * IP Device Info has gone through a major cleanup. It is now cleaner and
-    easier to navigate.
+  * IP Device Info has been cleaned up, now with more information,
+    navigateable via a tabbing interface.
 
-  * A map with rooms and room-status is available for embedding on the main
-    page. You will need to edit your rooms and give them coordinates for this
-    to work. Just uncomment the comment in welcome-registered.txt to enable it.
+  * A map of registered room locations with status indicators can now be
+    embedded in the main page by removing the commented-out sections of the
+    `welcome-registered.txt` file.
 
-  * IPv6 counters for router interfaces. For users updating NAV you need to
-    manually copy new files to the cricket-config. For more info read the
-    release notes.
+  * IPv6 traffic counters for router interfaces. Vendor support for this seems
+    dismal at the moment, so keep nagging for software updates!  If upgrading
+    from previous NAV versions, new cricket configuration templates need to be
+    copied; please read the release notes.
 
   * ipdevpoll now supports both VRRP and HSRP.
 
   * The Maintenance and Messages tool have been migrated from mod_python to
-    Django.
+    Django, and especially the former has received some improvements along the
+    way.
 
-
-Bugfixes:
+ Bugfixes:
 
   * LP#1039490 (Mixed IPv4 and IPv6 elinks are mis-labeled as lans)
   * LP#1040043 (Incorrect layer 2 topology in networks with VRRP routers)
@@ -42,7 +45,7 @@ Bugfixes:
 Version 3.11.6
 (released 17 August 2012)
 
-Bugfixes
+ Bugfixes:
 
   * LP#1023567 (ipdevpoll logging system uses too many resources)
   * LP#1027051 (ipdevpoll is not able to gather ARP and ND data from h3c/hp
@@ -57,7 +60,7 @@ Bugfixes
 Version 3.11.5
 (released 21 June 2012)
 
-Bugfixes
+Bugfixes:
 
   * LP#722561  (Netmap:incorrect link load info)
   * LP#1009002 (Unknown orgid parsed from router port description causes
