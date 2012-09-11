@@ -11,6 +11,7 @@ syntax: glob
 *.bak
 *.iml # JetBrains (PyCharm/IDEA) project files
 *.rrd
+.idea/*
 
 # Generated javadoc and build dirs
 */javadoc/*
