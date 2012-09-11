@@ -64,8 +64,14 @@ define(['libs/jquery', 'libs/underscore', 'libs/backbone'], function () {
             this.footerView = new HeaderFooterMinimizeView({el: map.footer.el, hotkey: map.footer.hotkey});
         };
 
+        var close = function () {
+            this.headerView.close();
+            this.footerView.close();
+        };
+
         return {
             initialize:      initialize,
+            close: close,
             toggleHeader:    function () {
                 return this.headerView.toggle();
             },
