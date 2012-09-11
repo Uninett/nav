@@ -51,9 +51,8 @@ define([
             this.sidebar = this.options.view_map_info;
             this.filter_orphans = !this.context_selected_map.display_orphans;
 
-            /*this.w = this.options.cssWidth;
-            this.h = $(window).height() - 250; /*- 350*/
-            this.resize(); // sets initial this.w and this.h
+            this.w = this.options.cssWidth;
+            this.resize({width: this.w});
             this.force = d3.layout.force()
                 .gravity(0.5)
                 .distance(2000)
@@ -124,16 +123,14 @@ define([
             //$("#netmap_main_view").animate({'margin-left': "{0}px".format(margin)}, 400);
         },
         resize: function (options) {
-            var padding = 80;
+            var padding = 93; // make sure it renders in IE by toggling fullscreen and non fullscreen
             if (options && options.width && !isNaN(options.width)) {
                 this.w = options.width;
             } else {
                 this.w = this.$el.innerWidth();
                 var paddingForVerticalScrollbar = (document.body.scrollHeight - document.body.clientHeight);
-                if (paddingForVerticalScrollbar>0 && this.w > paddingForVerticalScrollbar) {
-                    this.w -= paddingForVerticalScrollbar;
-                } else {
-                    this.w = paddingForVerticalScrollbar;
+                if (paddingForVerticalScrollbar > 0 && this.w > paddingForVerticalScrollbar) {
+                    this.w -= 10; // scrollbar takes 10px approx.
                 }
             }
 
@@ -285,7 +282,8 @@ define([
                 .append("svg:svg")
                 .attr('id', 'svg-netmap')
                 .attr("width", self.w).attr("height", self.h)
-                .attr("pointer-events", "all");
+                .attr("pointer-events", "all")
+                .attr("overflow", "hidden");
             this.root_chart
                 .append('svg:rect')
                 .attr('width', self.w)
