@@ -89,7 +89,8 @@ define([
                         'nodes': { state: false, hotkey: 'n' },
                         'links': { state: false, hotkey: 'l' }
                     },
-                    'topology_errors': false
+                    'topology_errors': false,
+                    'freezeNodes': false
                 }
 
             };
@@ -116,11 +117,9 @@ define([
             this.context.specific_filters.filter_orphans = !this.model.attributes.display_orphans;
             this.context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
 
-
             var out = this.template({ model: this.context});
             this.$el.html(out);
 
-            self.alignView();
 
             return this;
         },
@@ -187,17 +186,22 @@ define([
             });
         },
         onGroupByRoomClick: function (e) {
+            this.context.specific_filters.groupby_room = $(e.currentTarget).prop('checked');
             this.broker.trigger('map:redraw', {
                 groupby_room: $(e.currentTarget).prop('checked')
             });
         },
         onFreezeNodesClick: function (e) {
+            this.context.ui.freezeNodes = $(e.currentTarget).prop('checked');
             this.broker.trigger('map:freezeNodes', $(e.currentTarget).prop('checked'));
         },
         onUIMouseOverClick: function (e) {
+            this.context.ui.mouseover[$(e.currentTarget).val()].state = $(e.currentTarget).prop('checked');
             this.broker.trigger('map:ui:mouseover:'+$(e.currentTarget).val(), $(e.currentTarget).prop('checked'));
+            //this.render();
         },
         onUITopologyErrorsClick: function (e) {
+            this.context.ui.topology_errors = $(e.currentTarget).prop('checked');
             this.broker.trigger('map:redraw', {
                 topologyErrors: $(e.currentTarget).prop('checked')
             });
@@ -213,13 +217,12 @@ define([
         on_keypress: function (e) {
             if (e.charCode === 110) { // n
                 this.context.ui.mouseover.nodes.state = !this.context.ui.mouseover.nodes.state;
-                this.render();
                 this.broker.trigger('map:ui:mouseover:nodes', this.context.ui.mouseover.nodes.state);
             } else if (e.charCode === 108) { // l
                 this.context.ui.mouseover.links.state = !this.context.ui.mouseover.links.state;
-                this.render();
                 this.broker.trigger('map:ui:mouseover:links', this.context.ui.mouseover.links.state);
             }
+            this.render();
         },
         close:function () {
             $(document).unbind('keypress', 'on_keypress');

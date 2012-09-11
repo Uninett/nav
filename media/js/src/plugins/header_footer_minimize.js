@@ -15,59 +15,69 @@
  * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-define(['libs/jquery'], function () {
+define(['libs/jquery', 'libs/underscore', 'libs/backbone'], function () {
 
 
     function header_footer_minimize() {
-        //$(headerEl).
-        var $headerEl = null;
-        var $footerEl = null;
 
-        var _headerDom = null;
-        var _footerDom = null;
+        var HeaderFooterMinimizeView = Backbone.View.extend({
+            initialize: function () {
+                this.isShowing = true;
 
-        var headerShowing = true;
-        var footerShowing = true;
+                if (this.options.hotkey !== undefined) {
+                    _.bindAll(this, 'onKeypress');
+                    $(document).bind('keypress', this.onKeypress);
+                }
 
 
-        var toggleHeader = function () {
-            if (headerShowing) {
-                $headerEl.fadeOut('fast', function () {
-                    $headerEl.empty();
-                });
-            } else {
-                $headerEl.html(_headerDom);
-                $headerEl.fadeIn('fast');
+            },
+            toggle:     function () {
+                var self = this;
+                if (this.isShowing) {
+                    this.$el.fadeOut('fast');
+                } else {
+                    this.$el.fadeIn('fast');
+                }
+                this.isShowing = !this.isShowing;
+            },
+            onKeypress: function (e) {
+                if (e.charCode === this.options.hotkey.charCode &&
+                    e.altKey === this.options.hotkey.altKey &&
+                    e.ctrlKey === this.options.hotkey.ctrlKey) {
+
+                    this.toggle();
+                }
+
+            },
+            render:     function () {
+
+            },
+            close: function () {
+                $(document).unbind('keypress', 'onKeypress');
+                $(this.el).unbind();
+                $(this.el).remove();
             }
-            headerShowing = !headerShowing;
-        };
-        var toggleFooter = function () {
-            if (footerShowing) {
-                $footerEl.fadeOut('fast', function () {
-                    $footerEl.empty();
-                });
-            } else {
-                $footerEl.html(_footerDom);
-                $footerEl.fadeIn('fast');
-            }
-            footerShowing = !footerShowing;
-        };
-
+        });
 
         var initialize = function (map) {
-            $headerEl = $(map.header);
-            $footerEl = $(map.footer);
-
-            _headerDom = map.header;
-            _footerDom = map.footer;
+            this.headerView = new HeaderFooterMinimizeView({el: map.header.el, hotkey: map.header.hotkey});
+            this.footerView = new HeaderFooterMinimizeView({el: map.footer.el, hotkey: map.footer.hotkey});
         };
 
         return {
-            initialize: initialize,
-            toggleHeader: toggleHeader,
-            toggleFooter: toggleFooter,
-            isHeaderShowing: function () { return  headerShowing; },
-            isFooterShowing: function () { return  footerShowing; }
+            initialize:      initialize,
+            toggleHeader:    function () {
+                return this.headerView.toggle();
+            },
+            toggleFooter:    function () {
+                return this.footerView.toggle();
+            },
+            isHeaderShowing: function () {
+                return this.headerView.isShowing;
+            },
+            isFooterShowing: function () {
+                return this.footerView.isShowing;
+            }
         };
     }
 

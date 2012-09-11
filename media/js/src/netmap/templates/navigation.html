@@ -14,7 +14,6 @@
     {{/eachkeys}}
 
 
-    <!-- dummy for now -->
     <h3>Categories</h3>
 
     {{#eachkeys model.categories}}
@@ -32,12 +31,12 @@
     </div>
 
     <div class="squaredTwo">
-        <input type="checkbox" name="group_roomid" value="group_roomid" id="group_roomid" {{#if group_roomid}} checked{{/if}} />
+        <input type="checkbox" name="group_roomid" value="group_roomid" id="group_roomid" {{#if model.specific_filters.groupby_room}} checked{{/if}} />
         <label for="group_roomid">Group rooms by color</label>
     </div>
 
     <div class="squaredTwo">
-        <input type="checkbox" name="freezeNodes" value="freezeNodes" id="freezeNodes" {{#if freezeNodes}} checked{{/if}} />
+        <input type="checkbox" name="freezeNodes" value="freezeNodes" id="freezeNodes" {{#if model.ui.freezeNodes}} checked{{/if}} />
         <label for="freezeNodes">Stop force algorithm?</label>
     </div>
 
