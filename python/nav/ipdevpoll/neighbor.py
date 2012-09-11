@@ -50,6 +50,10 @@ def get_netbox_macs():
     Special MAC address will be ignored, such as those reserved by VRRP.
 
     """
+    return _get_netbox_macs()
+
+def _get_netbox_macs():
+    """Actual implementation of get_netbox_macs()"""
     from django.db import connection
     cursor = connection.cursor()
     cursor.execute('SELECT mac, netboxid FROM netboxmac')
