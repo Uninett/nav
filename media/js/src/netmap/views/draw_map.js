@@ -26,7 +26,8 @@ define([
             'map:ui:mouseover:links': 'toggleUIMouseoverLinks',
             'map:loading:context_selected_map': 'clear',
             'map:node:fixed': 'updateNodeFixedStatus',
-            'map:fixNodes': 'updateAllNodePositions'
+            'map:fixNodes': 'updateAllNodePositions',
+            'headerFooterMinimize:trigger': 'resize'
         },
         initialize: function () {
             this.broker.register(this);
@@ -50,8 +51,9 @@ define([
             this.sidebar = this.options.view_map_info;
             this.filter_orphans = !this.context_selected_map.display_orphans;
 
-            this.w = this.options.cssWidth;
-            this.h = $(window).height() - 350;
+            /*this.w = this.options.cssWidth;
+            this.h = $(window).height() - 250; /*- 350*/
+            this.resize(); // sets initial this.w and this.h
             this.force = d3.layout.force()
                 .gravity(0.5)
                 .distance(2000)
@@ -113,21 +115,37 @@ define([
                 },
                 {   duration: 400,
                     step:     function () {
-                        self.resize(self.$el.width() - 100);
+                        self.resize({width: self.$el.innerWidth() - 100});
                     },
                     complete: function () {
-                        self.resize(self.$el.width());
+                        self.resize({width: self.$el.innerWidth()});
                     }
                 });
             //$("#netmap_main_view").animate({'margin-left': "{0}px".format(margin)}, 400);
         },
-        resize: function (width) {
-            if (!isNaN(width)) {
-                this.w = width;
+        resize: function (options) {
+            var padding = 80;
+            if (options && options.width && !isNaN(options.width)) {
+                this.w = options.width;
             } else {
-                this.w = this.$el.width();
+                this.w = this.$el.innerWidth();
+                var paddingForVerticalScrollbar = (document.body.scrollHeight - document.body.clientHeight);
+                if (paddingForVerticalScrollbar>0 && this.w > paddingForVerticalScrollbar) {
+                    this.w -= paddingForVerticalScrollbar;
+                } else {
+                    this.w = paddingForVerticalScrollbar;
+                }
             }
-            this.h = $(window).height() - 350;
+
+            this.h = $(window).height();
+            if ($("#header").is(':visible')) {
+                this.h -= $("#header").height();
+            }
+            if ($("#footer").is(':visible')) {
+                this.h -= $("#footer").height();
+                this.h -= $("#debug").height();
+            }
+            this.h -= padding;
 
             (this.$el).find('#svg-netmap').attr('width', this.w);
             (this.$el).find('#svg-netmap').attr('height', this.h);
