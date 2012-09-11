@@ -12,10 +12,7 @@ body {
 
 /* Header styles */
 #header {
-    clear: both;
-    float: left;
-    /*width: 100%;*/
-    padding: 0 1em 0 1em;
+    margin: 0 1em 0 1em;
 }
 
 /* 'widths' sub menu */
@@ -220,6 +217,14 @@ body>#netmap_infopanel {width:168px;}
 li.selected_vlan a {
     color: orange;
 }
+#toggle_view {
+    cursor: pointer;
+}
+
+#searchbox_search {
+     cursor: pointer;
+}
+
 
 /* Navigation styles */
 
