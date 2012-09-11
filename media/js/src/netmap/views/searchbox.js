@@ -6,7 +6,6 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-
 ], function (NetmapHelpers, netmapTemplate) {
 
     var SearchboxView = Backbone.View.extend({
