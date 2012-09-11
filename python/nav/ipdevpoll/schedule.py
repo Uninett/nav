@@ -365,8 +365,8 @@ class JobScheduler(object):
 
         # Schedule new and changed boxes
         def _lastupdated(netboxid):
-            return self.netboxes[netboxid].last_updated.get(self.job.name,
-                                                            None)
+            return self.netboxes[netboxid].last_updated.get(
+                self.job.name, datetime.datetime.min)
         new_and_changed = sorted(new_ids.union(changed_ids),
                                  key=_lastupdated)
         for netbox_id in new_and_changed:
