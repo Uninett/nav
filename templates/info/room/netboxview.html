@@ -45,7 +45,11 @@
             <tbody>
             {% for interface in netbox.interfaces %}
                 <tr>
-                    <td title="Interface speed: {{ interface.speed }}" class="help">{{ interface.ifname }}</td>
+                    <td title="Interface speed: {{ interface.speed }}">
+                        <a href="{% url ipdevinfo-interface-details netbox.sysname interface.id %}">
+                            {{ interface.ifname }}
+                        </a>
+                    </td>
                     <td>{{ interface.ifalias }}</td>
                     <td class="center-content help">
                         <img title="Link status (green=link, red=no link)" src="/images/lys/{% if interface.ifoperstatus == interface.OPER_UP  %}green.png{% else %}red.png{% endif %}" alt="{% if interface.ifoperstatus == interface.OPER_UP  %}Up{% else %}Down{% endif %}"/>
