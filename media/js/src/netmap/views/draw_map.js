@@ -146,7 +146,7 @@ define([
 
             (this.$el).find('#svg-netmap').attr('width', this.w);
             (this.$el).find('#svg-netmap').attr('height', this.h);
-            (this.$el).find('#svg-netmap').attr('style', "width: {0}; height: {1}".format(this.w, this.h));
+            (this.$el).find('#svg-netmap').attr('style', "width: {0}px; height: {1}px".format(this.w, this.h));
             (this.$el).find('#svg-netmap rect').attr('width', this.w);
             (this.$el).find('#svg-netmap rect').attr('height', this.h);
 
