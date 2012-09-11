@@ -5,7 +5,7 @@ define([
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
-    'libs/jqueryui/dialog'
+    'libs/jquery-ui-1.8.21.custom.min'
 ], function (NetmapHelpers, template) {
 
     var modalSaveNew = Backbone.View.extend({
