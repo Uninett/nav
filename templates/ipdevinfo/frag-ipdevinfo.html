@@ -87,40 +87,40 @@
         </td>
     </tr>
 
-    {% if netbox.category.is_sw or netbox.category.is_edge %}
-        <tr>
-            {% with netbox.get_uplinks as uplinks %}
-                <th>Uplink{{ uplinks|pluralize }}</th>
-                <td>
-                    {% if uplinks %}
-                        {% if uplinks|length_is:1 %}
-                            From <a
-                                href="{{ uplinks.0.this.get_absolute_url }}">
+    <tr>
+        {% with netbox.get_uplinks as uplinks %}
+            <th>Uplink{{ uplinks|pluralize }}</th>
+            <td>
+                {% if uplinks %}
+                    {% if uplinks|length_is:1 %}
+                        {% if uplinks.0.this %}
+                            From <a href="{{ uplinks.0.this.get_absolute_url }}">
                             {{ uplinks.0.this }}</a><br/>
-                            To <a
-                                href="{{ uplinks.0.other.get_absolute_url }}">
-                            {{ uplinks.0.other }}</a>
-                        {% else %}
-                            <ul>
-                                {% for uplink in uplinks %}
-                                    <li>
-                                        From <a
-                                            href="{{ uplink.this.get_absolute_url }}">
-                                        {{ uplink.this }}</a><br/>
-                                        To <a
-                                            href="{{ uplink.other.get_absolute_url }}">
-                                        {{ uplink.other }}</a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
+                            To
                         {% endif %}
+                        <a href="{{ uplinks.0.other.get_absolute_url }}">
+                            {{ uplinks.0.other }}</a>
                     {% else %}
-                        N/A
+                        <ul>
+                            {% for uplink in uplinks %}
+                                <li>
+                                    {% if uplinks.0.this %}
+                                        From <a href="{{ uplink.this.get_absolute_url }}">
+                                        {{ uplink.this }}</a><br/>
+                                        To
+                                    {% endif %}
+                                    <a href="{{ uplink.other.get_absolute_url }}">
+                                        {{ uplink.other }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
                     {% endif %}
-                </td>
-            {% endwith %}
-        </tr>
-    {% endif %}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+        {% endwith %}
+    </tr>
 
     <tr>
         <th>Modules</th>

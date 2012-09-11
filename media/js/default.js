@@ -17,24 +17,32 @@
  *
  */
 
-function jump(fe) {
-	var opt_key = fe.selectedIndex;
-	var uri_val = fe.options[opt_key].value;
-	if (uri_val) {
-		window.location = uri_val;
-	}
-	return false;
-}
 
-function addGlobalAjaxHandlers() {
-    $(document).ajaxSend(function (event, request) {
-        request.setRequestHeader('X-NAV-AJAX', 'true');
-    });
-    $(document).ajaxError(function (event, request) {
-        if (request.status == 401) {
-            window.location = '/index/login/?origin=' + encodeURIComponent(window.location.href);
+var NAV = this.NAV || {};
+
+(function () {
+    function jump(fe) {
+        var opt_key = fe.selectedIndex;
+        var uri_val = fe.options[opt_key].value;
+        if (uri_val) {
+            window.location = uri_val;
         }
-    });
-}
+        return false;
+    }
 
+    function addGlobalAjaxHandlers() {
+        $(document).ajaxSend(function (event, request) {
+            request.setRequestHeader('X-NAV-AJAX', 'true');
+        });
+        $(document).ajaxError(function (event, request) {
+            if (request.status == 401) {
+                window.location = '/index/login/?origin=' + encodeURIComponent(window.location.href);
+            }
+        });
+    }
+
+    NAV.jump = jump;
+    NAV.addGlobalAjaxHandlers = addGlobalAjaxHandlers;
+
+})();
 

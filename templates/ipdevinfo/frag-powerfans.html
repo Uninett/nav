@@ -1,21 +1,21 @@
 <div id="powerfans" class="multitable">
 
-    <table class="vertitable">
-        <caption>Power supplies</caption>
+    {% with netbox.get_powersupplies as psus %}
+        {% if psus|length %}
+            <table class="vertitable">
+                <caption>Power supplies</caption>
+                {% include "ipdevinfo/frag-psutable.html" %}
+            </table>
+        {% endif %}
+    {% endwith %}
 
-        {% with netbox.get_powersupplies as psus %}
-            {% include "ipdevinfo/frag-psutable.html" %}
-        {% endwith %}
-
-    </table>
-
-    <table class="vertitable">
-        <caption>Fans</caption>
-
-        {% with netbox.get_fans as psus %}
-            {% include "ipdevinfo/frag-psutable.html" %}
-        {% endwith %}
-
-    </table>
+    {% with netbox.get_fans as psus %}
+        {% if psus|length %}
+            <table class="vertitable">
+                <caption>Fans</caption>
+                {% include "ipdevinfo/frag-psutable.html" %}
+            </table>
+        {% endif %}
+    {% endwith %}
 
 </div>

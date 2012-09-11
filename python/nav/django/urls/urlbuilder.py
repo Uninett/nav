@@ -37,14 +37,6 @@ def get_urlpatterns():
         url(r'^devicemanagement/\?view_netbox=(?P<netbox_id>\d+)$',
             dummy, name='devicemanagement-history-netbox'),
 
-        # Subsystem: Maintenance
-        url(r'^maintenance/$',
-            dummy, name='maintenance'),
-        url(r'^maintenance/new\?netbox=(?P<netbox_id>\d+)$',
-            dummy, name='maintenance-new-netbox'),
-        url(r'^maintenance/new\?service=(?P<service_id>\d+)$',
-            dummy, name='maintenance-new-service'),
-
         # Subsystem: Report
         # Naming convention: report-<result>-<query>
         url(r'^report/org$',
@@ -56,6 +48,11 @@ def get_urlpatterns():
             dummy, name='report-type-all'),
         url(r'^report/type\?typeid=(?P<type_id>\d+)$',
             dummy, name='report-type-type'),
+
+        url(r'^report/room$',
+            dummy, name='report-room-all'),
+        url(r'^report/room\?locationid=(?P<location_id>[^&]+)$',
+            dummy, name='report-room-location'),
 
         url(r'^report/netbox$',
             dummy, name='report-netbox-all'),

@@ -21,6 +21,7 @@ This is the daemon program that runs the IP device poller.
 """
 
 import sys
+from twisted.python.failure import Failure
 import os
 import logging
 import signal
@@ -37,7 +38,7 @@ from nav.models import manage
 from django.db.models import Q
 
 from . import plugins
-from nav.ipdevpoll import ContextFormatter
+from nav.ipdevpoll import ContextFormatter, schedule
 
 
 class IPDevPollProcess(object):
@@ -96,7 +97,12 @@ class IPDevPollProcess(object):
             job_handler = JobHandler(job.name, self.options.netbox,
                                      plugins=job.plugins)
             deferred = maybeDeferred(job_handler.run)
-            deferred.addCallbacks(lambda x: reactor.stop())
+            deferred.addBoth(_log_job, job_handler)
+            deferred.addBoth(lambda x: reactor.stop())
+
+        def _log_job(result, handler):
+            success = not isinstance(result, Failure)
+            schedule.log_job_to_db(handler, success)
 
         plugins.import_plugins()
         self._logger.info("Running single %r job for %s",

@@ -32,6 +32,7 @@ from the database can be executed in a separate thread to avoid
 interfering with the daemon's asynchronous operations.
 
 """
+from collections import defaultdict
 
 from twisted.internet import threads
 
@@ -39,6 +40,7 @@ from nav.models import manage
 from nav import ipdevpoll
 from . import storage
 from nav.ipdevpoll.db import autocommit, django_debug_cleanup
+import django.db
 
 class NetboxLoader(dict):
     """Loads netboxes from the database, synchronously or asynchronously.
@@ -82,16 +84,15 @@ class NetboxLoader(dict):
                            WHERE alerthist.netboxid = netbox.netboxid
                              AND eventtypeid='snmpAgentState'
                              AND end_time >= 'infinity' """
-        last_updated_query = """SELECT val::BIGINT AS last_updated
-                                FROM netboxinfo
-                                WHERE netboxinfo.netboxid = netbox.netboxid
-                                  AND key IS NULL AND var='lastUpdated' """
         queryset = (manage.Netbox.objects.select_related(*related).
                     filter(up='y').
-                    extra(select={'snmp_up': snmp_up_query,
-                                  'last_updated': last_updated_query}))
+                    extra(select={'snmp_up': snmp_up_query}))
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
+
+        times = load_last_updated_times()
+        for netbox in netbox_list:
+            netbox.last_updated = times.get(netbox.id, {})
 
         django_debug_cleanup()
 
@@ -156,3 +157,21 @@ def is_netbox_changed(netbox1, netbox2):
     return False
 
 
+def load_last_updated_times():
+    """Loads the last-successful timestamps of each job of each netbox"""
+    sql = """SELECT
+               netboxid,
+               job_name,
+               MAX(end_time) AS end_time
+             FROM
+               ipdevpoll_job_log
+             WHERE
+               success
+             GROUP BY netboxid, job_name
+             """
+    cursor = django.db.connection.cursor()
+    cursor.execute(sql)
+    times = defaultdict(dict)
+    for netboxid, job_name, end_time in cursor.fetchall():
+        times[netboxid][job_name] = end_time
+    return dict(times)
