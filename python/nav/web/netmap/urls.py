@@ -19,7 +19,7 @@ from django.conf.urls.defaults import url, patterns
 
 
 # The patterns are relative to the base URL of the subsystem
-from nav.web.netmapdev.views import netmap, maps, \
+from nav.web.netmap.views import netmap, maps, \
     d3js_layer2, d3js_layer3, traffic_load_gradient, graphml_layer2, \
     backbone_app, netmap_defaultview, netmap_defaultview_global, admin_views
 

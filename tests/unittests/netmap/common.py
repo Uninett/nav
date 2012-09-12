@@ -4,7 +4,7 @@ import unittest
 import mock
 from nav.models.rrd import RrdDataSource, RrdFile
 from nav.netmap.rrd import _get_datasources, _get_datasource_lookup
-from nav.web.netmapdev import common
+from nav.web.netmap import common
 from netmapgraph_testcase import NetmapGraphTestCase
 
 class CommonNetmapTests(NetmapGraphTestCase):

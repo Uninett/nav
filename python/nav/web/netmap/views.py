@@ -37,8 +37,8 @@ from nav.models.profiles import NetmapView, NetmapViewNodePosition,\
 from nav.netmap.topology import build_netmap_layer3_graph,\
     build_netmap_layer2_graph
 from nav.topology.d3_js.d3_js import d3_json_layer2, d3_json_layer3
-from nav.web.netmapdev.common import traffic_gradient_map, layer2_graph
-from nav.web.netmapdev.forms import NetmapDefaultViewForm
+from nav.web.netmap.common import traffic_gradient_map, layer2_graph
+from nav.web.netmap.forms import NetmapDefaultViewForm
 from nav.web.templates import Netmapdev
 
 _LOGGER = logging.getLogger('nav.web.netmapdev')

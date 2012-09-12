@@ -19,7 +19,7 @@ import logging
 from django.core.urlresolvers import reverse
 from nav.models.manage import GwPortPrefix
 from nav.netmap import stubs
-from nav.web.netmapdev.common import get_status_image_link
+from nav.web.netmap.common import get_status_image_link
 
 
 _LOGGER = logging.getLogger(__name__)
