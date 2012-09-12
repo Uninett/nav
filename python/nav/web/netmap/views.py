@@ -20,7 +20,7 @@ import logging
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render_to_response
 
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseForbidden,\
@@ -29,7 +29,6 @@ from django.utils import simplejson
 from simplejson.decoder import JSONDecodeError
 
 import networkx as nx
-from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
 from nav.models.manage import Netbox, Category
 from nav.models.profiles import NetmapView, NetmapViewNodePosition,\
@@ -39,7 +38,6 @@ from nav.netmap.topology import build_netmap_layer3_graph,\
 from nav.topology.d3_js.d3_js import d3_json_layer2, d3_json_layer3
 from nav.web.netmap.common import traffic_gradient_map, layer2_graph
 from nav.web.netmap.forms import NetmapDefaultViewForm
-from nav.web.templates import Netmapdev
 
 _LOGGER = logging.getLogger('nav.web.netmap')
 
@@ -51,12 +49,13 @@ def index(request):
 
 def backbone_app(request):
     session_user = get_account(request)
-    response = render_to_response(Netmapdev,
+    response = render_to_response(
         'netmap/backbone.html',
-        {'auth_id': session_user.id},
-        RequestContext(request),
-        path=[('Home', '/'),
-              ('Netmap', None)])
+        {
+            'auth_id': session_user.id,
+            'navpath': [('Home', '/'), ('Netmap', '/netmap')]
+        },
+        RequestContext(request))
 
     return response
 
@@ -73,14 +72,14 @@ def admin_views(request):
     except ObjectDoesNotExist:
         pass # ignore it
 
-    response = render_to_response(Netmapdev,
+    response = render_to_response(
         'netmap/admin_list_mapviews.html',
         {'views': NetmapView.objects.all(),
-         'current_global_favorite': global_favorite},
-        RequestContext(request),
-        path=[('Home', '/'),
-              ('Netmap', None),
-              ('Netmap Admin', '/netmap/admin')])
+         'current_global_favorite': global_favorite,
+         'navpath': [('Home', '/'), ('Netmap', '/netmap'),
+                     ('Netmap Admin', '/netmap/admin')]
+        },
+        RequestContext(request))
     return response
 
 # data views, d3js
@@ -482,17 +481,14 @@ def graphml_layer2(request):
 
     netboxes, connections = layer2_graph()
 
-    response = render_to_response(Netmapdev,
+    response = render_to_response(
         'netmap/graphml.html',
         {'netboxes': netboxes,
          'connections': connections,
          'layer': 2,
+         'navpath': [('Home', '/'), ('Netmap', '/netmap')]
         },
-        RequestContext(request),
-        path=[
-            ('Home', '/'),
-            ('Netmapdev', None)
-        ],
+        RequestContext(request)
     )
     response['Content-Type'] = 'application/xml; charset=utf-8'
     response['Cache-Control'] = 'no-cache'
