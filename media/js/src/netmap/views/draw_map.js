@@ -186,7 +186,8 @@ define([
         },
         search: function (query) {
             this.searchQuery = {
-                query: query
+                query: query,
+                zoomTarget: null,
             };
             // find related box
             for (var i = 0; i < this.modelJson.nodes.length; i++) {
@@ -196,10 +197,12 @@ define([
                     break;
                 }
             }
-            this.trans = [ (-(this.searchQuery.zoomTarget.x * this.scale) + (this.w / 2)), (-(this.searchQuery.zoomTarget.y * this.scale) + (this.h / 2))];
-            this.zoom.translate(this.trans);
-            this.svg.attr("transform",
-                "translate(" + this.trans + ") scale(" + this.scale + ")");
+            if (this.searchQuery.zoomTarget) {
+                this.trans = [ (-(this.searchQuery.zoomTarget.x * this.scale) + (this.w / 2)), (-(this.searchQuery.zoomTarget.y * this.scale) + (this.h / 2))];
+                this.zoom.translate(this.trans);
+                this.svg.attr("transform",
+                    "translate(" + this.trans + ") scale(" + this.scale + ")");
+            }
         },
         showVlan: function (vlan) {
             var self = this;
