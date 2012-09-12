@@ -124,7 +124,7 @@ define([
             this.context.specific_filters.filter_orphans = !this.model.attributes.display_orphans;
             this.context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
 
-            var out = this.template({ model: this.context});
+            var out = this.template({ model: this.context, isVisible: this.isContentVisible});
             this.$el.html(out);
 
             return this;
