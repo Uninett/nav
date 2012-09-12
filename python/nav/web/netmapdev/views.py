@@ -65,9 +65,17 @@ def admin_views(request):
     if session_user == Account.DEFAULT_ACCOUNT:
         return HttpResponseForbidden()
 
+    global_favorite = None
+    try:
+        global_favorite = NetmapViewDefaultView.objects.get(
+            owner=Account.DEFAULT_ACCOUNT)
+    except ObjectDoesNotExist:
+        pass # ignore it
+
     response = render_to_response(Netmapdev,
         'netmapdev/admin_list_mapviews.html',
-        {'views': NetmapView.objects.all()},
+        {'views': NetmapView.objects.all(),
+         'current_global_favorite': global_favorite},
         RequestContext(request),
         path=[('Home', '/'),
               ('Netmap', None),

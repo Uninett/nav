@@ -209,6 +209,14 @@ div.netmapview_view {
     margin:  0;
 }
 
+td.current_favorite {
+    background: url(/images/netmap/emblem-favorite.png) no-repeat center left;
+    height: 33px;
+}
+td.current_favorite a {
+    padding-left: 33px;
+}
+
 /* D3JS Netmap style */
 
 #netmap_userid {
