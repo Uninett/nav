@@ -208,6 +208,10 @@ div.netmapview_view {
 
 /* D3JS Netmap style */
 
+#netmap_userid {
+    display: none;
+}
+
 #save_view_spinner {
     margin-left: 10px;
     margin-bottom: 2px;
