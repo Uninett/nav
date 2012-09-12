@@ -373,7 +373,6 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
                    FROM rrd_file
                    NATURAL JOIN rrd_datasource
                    WHERE descr = 'cpu5min') AS rrd USING (netboxid)
-        LEFT JOIN netmap_position USING (sysname)
         WHERE room.position IS NOT NULL
         """
 
