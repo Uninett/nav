@@ -387,6 +387,8 @@ define([
 
             this.clear();
 
+            this.startForceRunningTimer();
+
             this.render();
         },
         validateTranslateScaleValues: function () {
