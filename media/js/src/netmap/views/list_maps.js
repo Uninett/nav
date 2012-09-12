@@ -219,6 +219,7 @@ define([
             context.maps = this.collection.toJSON();
 
             context.context_selected_map = this.options.context_selected_map.map.toJSON();
+            context.isNew = this.options.context_selected_map.map.isNew();
 
             var out = this.template(context);
 

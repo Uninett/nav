@@ -6,7 +6,10 @@
                 <label class="control-label"
                        for="dropdown_view_id">Views</label>
                 <a class="save_view" id="save_new_view" title="Save new view"><img src="/images/threshold/plus-button.png"/></a>
-                <a class="save_view" id="delete_view" title="Delete view"><img src="/images/threshold/minus-button.png"/></a>
+                {{#if isNew}}
+                {{else}}
+                    <a class="save_view" id="delete_view" title="Delete view"><img src="/images/threshold/minus-button.png"/></a>
+                {{/if}}
                 <select id="dropdown_view_id">
                     {{#if context_selected_map}}
                     <option value="{{context_selected_map.viewid}}" selected="selected">
@@ -25,14 +28,14 @@
                 <button id="save_view"
                         class="btn save_view">Save
                 </button>
-                <button id="set_as_user_favorite"
+                <button id="set_as_user_favorite" {{#if isNew}}disabled=disabled{{/if}}
                         class="btn save_view">Favorite
                 </button>
                 <div id="save_view_spinner"></div>
             </div>
         </fieldset>
     </form>
-    {{#if context_selected_map.isNew}}
+    {{#if isNew}}
     {{else}}
         <div class="description_selected_view"><span class="description">Description:</span><span class="value">{{#if context_selected_map.description}}{{context_selected_map.description}}{{else}}N/A{{/if}}</span></div>
     {{/if}}
