@@ -49,6 +49,7 @@ define([
             this.loadUi();
         },
         loadingMap: function () {
+            $('#netmap_main_view #chart').hide();
             $('#netmap_main_view #loading_chart').show();
             var target = document.getElementById('loading_chart');
             spinner_map.spin(target);
