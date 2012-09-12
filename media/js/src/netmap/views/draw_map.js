@@ -35,8 +35,6 @@ define([
             this.model = this.options.context_selected_map.graph;
 
             this.$el.append(netmapTemplate);
-            this.model.bind("change", this.render, this);
-            this.model.bind("destroy", this.close, this);
 
             this.selected_node = null;
             this.selected_vlan = null;
@@ -98,6 +96,9 @@ define([
 
 
             }
+            this.model.bind("change", this.render, this);
+            this.model.bind("destroy", this.close, this);
+
         },
         resizeAnimate: function (margin) {
             var self = this;
