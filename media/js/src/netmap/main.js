@@ -1,4 +1,3 @@
-
 // Require.js configure shortcut aliases
 /*
 require.config({
@@ -47,4 +46,10 @@ require([
     // The "app" dependency is passed in as "App"
     // Again, the other dependencies passed in are not "AMD" therefore don't pass a parameter to this function
     App.initialize();
+}, function (errorCallback) {
+    if (errorCallback.requireType === 'timeout') {
+        alert("Timed out while loading resources for javascript application, please try to reload the page!");
+    } else {
+        throw errorCallback;
+    }
 });
