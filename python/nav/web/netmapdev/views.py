@@ -156,7 +156,7 @@ def netmap_defaultview_global(request):
         if response.status_code == 200:
             return HttpResponseRedirect(reverse('netmapdev-admin-views'))
         else:
-            return response;
+            return response
 
     elif request.method == 'GET':
         return get_global_defaultview(request)
