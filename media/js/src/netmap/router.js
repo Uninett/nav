@@ -1,8 +1,8 @@
-
 define([
     'netmap/collections/map',
     'netmap/models/map',
     'netmap/models/graph',
+    'netmap/models/default_map',
     'netmap/views/map_info',
     'netmap/views/draw_map',
     'netmap/views/list_maps',
@@ -14,7 +14,7 @@ define([
     'libs/backbone-eventbroker',
     'libs/spin.min'
     /*'views/users/list'*/
-], function (MapCollection, MapModel, GraphModel, MapInfoView, DrawNetmapView, ListNetmapView, NavigationView, SearchboxView) {
+], function (MapCollection, MapModel, GraphModel, DefaultMapModel, MapInfoView, DrawNetmapView, ListNetmapView, NavigationView, SearchboxView) {
 
     var collection_maps;
     var context_selected_map = {};
@@ -92,8 +92,27 @@ define([
             // todo add a map the administrator can set to be default view
             // for every page request not containing a map id
 
-            context_selected_map.map = new MapModel({topology: 1});
-            self.loadUi();
+            var user_id = $("#netmap_userid").html();
+            var defaultMap = new DefaultMapModel({ownerid: parseInt(user_id)});
+            defaultMap.fetch({
+                success: function (model, attributes) {
+                    Backbone.View.goTo("netmap/{0}".format(attributes.viewid));
+                },
+                error: function () {
+                    // User's default map not found, try global
+                    self.defaultMap = new DefaultMapModel();
+                    self.defaultMap.fetch({
+                        success: function (model, attributes) {
+                            Backbone.View.goTo("netmap/{0}".format(attributes.viewid));
+                        },
+                        error: function () {
+                            // global not found, just do a graph
+                            context_selected_map.map = new MapModel({topology: 1});
+                            self.loadUi();
+                        }
+                    });
+                }
+            });
         },
         loadMap: function (model) {
             var self = this;
@@ -118,7 +137,7 @@ define([
             $('#netmap_left_sidebar #map_filters').html(this.view_navigation.render().el);
 
             this.view_searchbox = new SearchboxView();
-            $('#netmap_main_view #searchbox').html(this.view_searchbox.render().el);
+            $('#netmap_left_sidebar #searchbox').html(this.view_searchbox.render().el);
         },
         loadGraph: function () {
             var self = this;
