@@ -225,7 +225,6 @@ define([
         },
         close:function () {
             $(document).unbind('keypress', 'on_keypress');
-            this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         }
