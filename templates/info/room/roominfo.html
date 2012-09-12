@@ -2,6 +2,10 @@
 
 {% block roominfo %}
 
+    <div class="horizontal-button-list">
+        <a href="{% url seeddb-room-edit room.id %}"><span class="edit">Edit Room</span></a>
+    </div>
+
     <div id="infotabs" class="ui-helper-hidden">
         <ul>
             <li><a href="#roominfo">Room info</a></li>
