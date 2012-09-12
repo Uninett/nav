@@ -144,6 +144,10 @@
     display: none;
 }
 
-td.cell-center {
+.cell-center {
     text-align: center;
+}
+
+.cell-right {
+    text-align: right;
 }

@@ -235,10 +235,52 @@
     </tr>
 
     <tr>
-        <th>Last updated</th>
-        <td>{{ netbox.last_updated|date|default:"N/A" }}
-            {{ netbox.last_updated|time }}</td>
+        <th colspan="2">Jobs</th>
     </tr>
+
+    {% with netbox.get_last_jobs as jobs %}
+        {% if jobs %}
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <table style="width:100%">
+                        <thead>
+                        <th>Name</th>
+                        <th>End time</th>
+                        <th>Duration</th>
+                        <th class="cell-center">Status</th>
+                        </thead>
+
+                        <tbody>
+                        {% for job in jobs %}
+                            <tr>
+                                <td>{{ job.job_name|capfirst }}</td>
+                                <td>{{ job.end_time|date:"DATETIME_FORMAT" }}</td>
+                                <td class="cell-right">{{ job.duration|stringformat:".2f" }}s</td>
+                                <td class="cell-center">
+                                    {% if job.is_overdue %}
+                                        <img src="/images/lys/yellow.png" alt="Overdue" title="Overdue">
+                                    {% else %}
+                                        {% if job.success %}
+                                            <img src="/images/lys/green.png" alt="Success" title="Success">
+                                        {% else %}
+                                            <img src="/images/lys/red.png" alt="Failed" title="Failed">
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <th>&nbsp;</th>
+                <td>No jobs have run on this netbox</td>
+            </tr>
+        {% endif %}
+    {% endwith %}
 
 
 {% else %}
