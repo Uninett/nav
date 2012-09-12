@@ -97,6 +97,28 @@ class Netbox(models.Model):
         except IndexError:
             return None
 
+    def get_last_jobs(self):
+        """Returns the last log entry for all jobs"""
+        query = """
+            SELECT
+              ijl.*
+            FROM ipdevpoll_job_log AS ijl
+            JOIN (
+                SELECT
+                  netboxid,
+                  job_name,
+                  MAX(end_time) AS end_time
+                FROM
+                  ipdevpoll_job_log
+                GROUP BY netboxid, job_name
+              ) AS foo USING (netboxid, job_name, end_time)
+            JOIN netbox ON (ijl.netboxid = netbox.netboxid)
+            WHERE ijl.netboxid = %s
+            ORDER BY end_time
+        """
+        logs = IpdevpollJobLog.objects.raw(query, [self.id])
+        return list(logs)
+
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(netbox=self,
@@ -1217,3 +1239,36 @@ class IpdevpollJobLog(models.Model):
 
     class Meta:
         db_table = 'ipdevpoll_job_log'
+
+    def __unicode__(self):
+        return u"Job %s for %s ended in %s at %s, after %s seconds>" % (
+            self.job_name, self.netbox.sysname,
+            'success' if self.success else 'failure',
+            self.end_time, self.duration
+            )
+
+    def is_overdue(self):
+        """Returns True if the next run if this job is overdue.
+
+        Does _NOT_ check whether the next job has actually run or not,
+        just that it should have been run.  If the interval of this job is
+        unknown, None is returned.
+
+        """
+        if self.interval is not None:
+            next_run = self.end_time + dt.timedelta(seconds=self.interval)
+            return next_run < dt.datetime.now()
+
+    def previous(self):
+        """Returns the log entry of the previous job of the same name for the
+         same netbox.
+
+        """
+        try:
+            prev = IpdevpollJobLog.objects.filter(
+                netbox=self.netbox,
+                job_name=self.job_name,
+                end_time__lt=self.end_time).order_by('-end_time')[0]
+            return prev
+        except IndexError:
+            return None

@@ -203,6 +203,8 @@ def edit(request, task_id=None, start_time=None):
             if key in PRIMARY_KEY_INTEGER:
                 value = int(value)
             component_keys[key].append(value)
+    else:
+        component_keys = get_component_keys(request.GET)
 
     if component_keys:
         component_data = components_for_keys(component_keys)

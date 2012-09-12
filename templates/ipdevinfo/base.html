@@ -10,6 +10,11 @@
 {% block base_content %}
     <h2>{{ heading }}</h2>
 
+    <div id="service-matrix-links" class="horizontal-button-list">
+            <a href="{% url ipdevinfo-service-list-all %}"><span class="list">Service List</span></a>
+            <a href="{% url ipdevinfo-service-matrix %}"><span class="matrix">Service matrix</span></a>
+    </div>
+
     {% if errors %}
         <ul class="error">
             {% for error in errors %}

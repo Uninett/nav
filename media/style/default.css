@@ -511,3 +511,11 @@ p.paginator .active {
 .horizontal-button-list a span.configure {
     background-image: url("/images/icons/gear.png");
 }
+
+.horizontal-button-list a span.list {
+    background-image: url("/images/icons/application-list.png");
+}
+
+.horizontal-button-list a span.matrix {
+    background-image: url("/images/icons/grid.png");
+}

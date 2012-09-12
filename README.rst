@@ -24,9 +24,6 @@ See individual source files for more detailed copyright notices.
 
 3rd parties
 ~~~~~~~~~~~
-A beta version of the Prefuse library comes bundled with NAV.  Prefuse is
-copyright 2004-2007 Regents of the University of California.  For the full
-Prefuse license, please see src/Netmap/lib/prefuse-beta/license-prefuse.txt.
 
 Some of the graphics icons come altered and/or unaltered from the Tango Icon
 Library (http://tango.freedesktop.org/) or other public domain collections.

@@ -33,21 +33,8 @@ table.cluttered tr td {
     color: #777;
 }
 
-/* Sorting indicators */
-table.vertitable tr th {
-    padding: 0.1em 16px 0.1em 0.5em;
-}
-
-table.vertitable tr th.sorting_asc {
-    background: url('/images/datatables/sort_asc.png') no-repeat right center #EEEEEE;
-}
-
-table.vertitable tr th.sorting_desc {
-    background: url('/images/datatables/sort_desc.png') no-repeat right center #EEEEEE ;
-}
-
-table.vertitable tr th.sorting {
-    background: url('/images/datatables/sort_both.png') no-repeat right center #EEEEEE ;
+img.textbottom {
+    vertical-align: text-bottom;
 }
 
 .input-filter {

@@ -2,6 +2,12 @@
 
 {% block roominfo %}
 
+    <div class="horizontal-button-list">
+        <a href="{% url seeddb-room-edit room.id %}"><span class="edit">Edit room</span></a>
+        <a href="{% url maintenance-new-room room.id %}"><span class="maintenance">Schedule Maintenance</span></a>
+        <a href="{% url devicehistory-view-room room.id %}"><span class="history">View room history</span></a>
+    </div>
+
     <div id="infotabs" class="ui-helper-hidden">
         <ul>
             <li><a href="#roominfo">Room info</a></li>
@@ -43,24 +49,25 @@
 
         </div>
 
-        <table id="deviceinfo" class="listtable">
-            <caption>Netboxes</caption>
-            <thead>
-            <tr>
-                <th>Name</th>
-                <th>IP-address</th>
-                <th>Category</th>
-                <th>Type</th>
-                <th>Organization</th>
-                <th>#swp</th>
-                <th>#gwp</th>
-                <th>Up</th>
-                <th>Availability (week)</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for netbox in all_netboxes %}
+        <div id="deviceinfo">
+            <table id="deviceinfotable" class="listtable">
+                <caption>Netboxes</caption>
+                <thead>
                 <tr>
+                    <th>Name</th>
+                    <th>IP-address</th>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>Organization</th>
+                    <th>#swp</th>
+                    <th>#gwp</th>
+                    <th>Up</th>
+                    <th>Availability (week)</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for netbox in all_netboxes %}
+                <tr class="{% cycle "oddrow" "evenrow" %}">
                     <td><a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a></td>
                     <td>{{ netbox.ip }}</td>
                     <td><a href="/report/netbox?catid={{ netbox.category.id }}">{{ netbox.category.id }}</a></td>
@@ -71,9 +78,10 @@
                     <td><img src="/images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}"></td>
                     <td class="numeric">{{ netbox.availability }}</td>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
         <div id="netboxinterfaces"></div>
 

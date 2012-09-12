@@ -58,7 +58,7 @@ def search(request):
     if search_form is not None and search_form.is_valid():
         # Preprocess query string
         query = search_form.cleaned_data['query'].strip().lower()
-        titles.append(("Search for %s" % query,))
+        titles = titles + [("Search for %s" % query,)]
 
         # IPv4, v6 or hostname?
         ip = is_valid_ip(query)
@@ -231,8 +231,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     def get_arp_info(addr):
         """Return arp based on address"""
         try:
-            return Arp.objects.filter(ip=addr).order_by('-end_time',
-                                                        '-start_time')[0]
+            return Arp.objects.extra(
+                where=["ip = %s"], params=[addr]).order_by(
+                '-end_time','-start_time')[0]
         except:
             return None
 

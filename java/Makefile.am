@@ -12,8 +12,7 @@ subdirs = \
 	Event \
 	eventEngine \
 	Logger \
-	NetboxInfo \
-	Netmap
+	NetboxInfo
 
 EDITFILES = \
 	build.properties \

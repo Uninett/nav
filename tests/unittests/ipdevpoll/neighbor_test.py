@@ -1,6 +1,6 @@
 from __future__ import with_statement
 from unittest import TestCase
-from nav.ipdevpoll.neighbor import get_netbox_macs
+from nav.ipdevpoll.neighbor import _get_netbox_macs
 from mock import patch, Mock
 
 class IgnoredMacTest(TestCase):
@@ -15,7 +15,7 @@ class IgnoredMacTest(TestCase):
                 (vrrp2, 3),
                 ]
             cx.cursor.return_value = my_cursor
-            result = get_netbox_macs()
+            result = _get_netbox_macs()
             self.assertTrue(len(result) > 0,
                             msg="Non-VRRP addresses were ignored")
             self.assertFalse(vrrp1 in result or vrrp2 in result,

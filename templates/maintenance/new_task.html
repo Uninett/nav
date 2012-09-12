@@ -1,7 +1,7 @@
 {% extends "maintenance/base.html" %}
 
 {% block content %}
-<form action="" method="post">
+<form action="{{ request.path }}" method="post">
     <table class="listtable vertitable">
         <tr>
             <th>Search/select components:</th>

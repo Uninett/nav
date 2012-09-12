@@ -50,4 +50,6 @@ urlpatterns = patterns('',
         name='maintenance-new-netbox'),
     url(r'^new\?service=(?P<service_id>\d+)$', dummy,
         name='maintenance-new-service'),
+    url(r'^new\?room=(?P<room_id>.+)$', dummy,
+        name='maintenance-new-room'),
 )

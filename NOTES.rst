@@ -29,15 +29,18 @@ of NAV, please go to https://launchpad.net/nav/3.12 .
 Dependency changes
 ------------------
 
-- Python 2.6 is now required
-- Django 1.2 is now required
+- Python >= 2.6 is now required. NAV will not work under Python 3.
+- Django >= 1.2 is now required. NAV will likely not work under Django 1.4.
+
 
 Cricket configuration
 ---------------------
 
-IP-v6 statistics for router interfaces will now be collected. For this to be
-done you need to copy some config-files to your cricket-config directory.
-NB: Make sure the dataDir is the same as the original after copying Defaults.
+IPv6 statistics for router interfaces will now be collected. For this to work
+you need to copy some configuration templates to your `cricket-config`
+directory.  NB: Make sure the `dataDir` is the same as the original after
+copying the `Defaults` file. If your NAV is installed in `/usr/local/nav`, run
+these commands::
 
   sudo cp doc/cricket/cricket-config/Defaults \
              /usr/local/nav/etc/cricket-config/
@@ -49,21 +52,22 @@ Room map
 --------
 
 If you have registered coordinates (latitude, longitude) on your rooms you may
-include a geographical map of the rooms on the frontpage by editing
-etc/webfront/welcome-registered.txt and/or welcome-anonymous.txt and adding
-the following html:
+include a geographical map of the rooms on the front page by editing
+`etc/webfront/welcome-registered.txt` and/or `welcome-anonymous.txt` and
+adding the following HTML::
 
   <div id="mapwrapper">
       <div id="room_map" class="smallmap"></div>
   </div>
 
-If you feel for a bigger map, replace smallmap with bigmap. The markers are
-clickable.
+If you feel like having a bigger map, replace `smallmap` with `bigmap`. The
+markers are clickable and will take you to the new "Room view" for the clicked
+room.
 
 Toolbar search
 --------------
 
-The toolbar search now searches for more than ip devices. Try it!
+The toolbar search now searches for more than IP devices. Try it!
 
 
 NAV 3.11
