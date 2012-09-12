@@ -1253,6 +1253,24 @@ class NetmapView(models.Model):
     class Meta:
         db_table = u'netmap_view'
 
+class NetmapViewDefaultView(models.Model):
+    """Default view for each user"""
+    id = models.AutoField(primary_key=True)
+    view = models.ForeignKey(NetmapView, db_column='viewid')
+    owner = models.ForeignKey(Account, db_column='ownerid')
+
+    def to_json_dict(self):
+        """
+        Convert a default view entry for a netmap to json
+        :return: JSON of a default netmap view entry
+        """
+        return {
+            'viewid': self.viewid,
+            'ownerid': self.owner.id
+        }
+
+    class Meta:
+        db_table = u'netmap_view_defaultview'
 
 
 class NetmapViewCategories(models.Model):

@@ -17,6 +17,7 @@
 
 import datetime
 import logging
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
@@ -32,7 +33,7 @@ from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
 from nav.models.manage import Netbox, Category
 from nav.models.profiles import NetmapView, NetmapViewNodePosition, \
-    NetmapViewCategories
+    NetmapViewCategories, NetmapViewDefaultView, Account, AccountGroup
 from nav.netmap.topology import build_netmap_layer3_graph, \
     build_netmap_layer2_graph
 from nav.topology.d3_js.d3_js import d3_json_layer2, d3_json_layer3
@@ -69,6 +70,75 @@ def netmap(request, map_id):
         return get_map(request, map_id)
     else:
         return HttpResponseBadRequest()
+
+def netmap_defaultview(request, map_id):
+    if request.method == 'PUT' or (
+        'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
+        request.META['HTTP_X_HTTP_METHOD_OVERRIDE'] == 'PUT'):
+        return update_defaultview(request, map_id)
+    elif request.method == 'GET':
+        return get_defaultview(request)
+    else:
+        return HttpResponseBadRequest()
+
+def netmap_defaultview_global(request, map_id):
+    if request.method == 'PUT' or (
+        'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
+        request.META['HTTP_X_HTTP_METHOD_OVERRIDE'] == 'PUT'):
+        return update_defaultview(request, map_id, True)
+    elif request.method == 'GET':
+        return get_defaultview(request)
+    else:
+        return HttpResponseBadRequest()
+
+def update_defaultview(request, map_id, is_global_defaultview=False):
+    """ Save/update a default view for a user.
+    :param request: request
+    :param map_id: NetmapView id
+    :return: 200 HttpResponse with view_id or related http status code.
+    """
+    session_user = get_account(request)
+
+    if session_user == Account.DEFAULT_ACCOUNT:
+        return HttpResponseForbidden()
+
+    view = get_object_or_404(NetmapView, pk=map_id)
+
+    if is_global_defaultview:
+        if AccountGroup.ADMIN_GROUP in session_user.get_groups():
+            default_view = NetmapViewDefaultView()
+            default_view.view = view
+            default_view.owner = Account.DEFAULT_ACCOUNT
+            default_view.save()
+            return HttpResponse(default_view.view)
+        else:
+            return HttpResponseForbidden()
+    else:
+        if view.is_public or (session_user == view.owner):
+            default_view = NetmapViewDefaultView()
+            default_view.view = view
+            default_view.owner = session_user
+            default_view.save()
+            return HttpResponse(default_view.view)
+        else:
+            return HttpResponseForbidden()
+
+
+
+def get_defaultview(request):
+    session_user = get_account(request)
+
+    try:
+        view = NetmapViewDefaultView.objects.get(owner=session_user)
+    except ObjectDoesNotExist:
+        view = get_object_or_404(NetmapViewDefaultView, pk=Account.DEFAULT_ACCOUNT)
+
+    response = HttpResponse(simplejson.dumps(view.to_json_dict()))
+    response['Content-Type'] = 'application/json; charset=utf-8'
+    response['Cache-Control'] = 'no-cache'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
+    return response
 
 
 def _update_map_node_positions(fixed_nodes, view):
