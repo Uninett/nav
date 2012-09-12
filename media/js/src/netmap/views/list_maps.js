@@ -17,6 +17,9 @@ define([
         id: "choose_netview",
 
         broker: Backbone.EventBroker,
+        interests: {
+            "map:topology_change": "deactiveAndShowSpinnerWhileLoading"
+        },
         events: {
                 "click #save_view": "show_save_view",
                 "click #save_new_view": "new_show_save_view",
@@ -28,6 +31,7 @@ define([
 
         initialize: function () {
             this.isContentVisible = true;
+            this.broker.register(this);
 
             this.template = Handlebars.compile(netmapTemplate);
 
@@ -162,13 +166,17 @@ define([
                 self.loadMapFromContextId(self.selected_id);
             }
         },
-        loadMapFromContextId: function (map_id) {
+        deactiveAndShowSpinnerWhileLoading: function () {
             var self = this;
             self.isLoading = true;
             this.$el.find("#set_as_user_favorite").attr('disabled', 'disabled');
             this.$el.find("#save_view").attr('disabled', 'disabled');
             this.$el.find("#dropdown_view_id").attr('disabled', 'disabled');
             self.broker.trigger('map:loading:context_selected_map');
+        },
+        loadMapFromContextId: function (map_id) {
+            var self = this;
+            self.deactiveAndShowSpinnerWhileLoading();
 
             self.options.context_selected_map.map.unbind("change");
             self.options.context_selected_map.map = self.collection.get(map_id);
@@ -239,6 +247,7 @@ define([
             return this;
         },
         close:function () {
+            this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         },
