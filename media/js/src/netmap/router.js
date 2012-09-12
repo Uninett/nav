@@ -46,7 +46,7 @@ define([
         },
         map_topology_change: function (topology_id) {
             this.loadingMap();
-            this.loadUi();
+            this.loadUi(true); // force load!
         },
         loadingMap: function () {
             $('#netmap_main_view #chart').hide();
@@ -125,7 +125,7 @@ define([
             // render error if model is empty !
             self.loadUi();
         },
-        loadUi: function () {
+        loadUi: function (forceLoad) {
             var self = this;
 
             /*if (view_choose_map !== undefined) {
@@ -133,7 +133,7 @@ define([
             } else {*/
             view_choose_map = new ListNetmapView({collection: collection_maps, context_selected_map: context_selected_map});
             //}
-            self.loadGraph();
+            self.loadGraph(forceLoad);
             self.loadNavigation();
         },
         loadNavigation: function () {
@@ -145,7 +145,7 @@ define([
             this.view_searchbox = new SearchboxView();
             $('#netmap_left_sidebar #searchbox').html(this.view_searchbox.render().el);
         },
-        loadGraph: function () {
+        loadGraph: function (forceLoad) {
             var self = this;
 
             if (self.view_map !== undefined) {
@@ -153,7 +153,7 @@ define([
             }
 
 
-            if (context_selected_map.graph !== undefined && context_selected_map.graph) {
+            if (context_selected_map.graph !== undefined && context_selected_map.graph && !forceLoad) {
                self.drawPage();
             } else {
                 if (context_selected_map.id !== undefined) {
