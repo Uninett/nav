@@ -181,7 +181,7 @@ define([
 
 
             self.view_map = new DrawNetmapView({context_selected_map: context_selected_map, view_map_info: self.view_map_info, cssWidth: $('#netmap_main_view').width()});
-            $('#netmap_main_view').prepend(self.view_map.render().el);
+            $('#netmap_main_view #wrapper_chart').html(self.view_map.render().el);
             spinner_map.stop();
             $('#netmap_main_view #loading_chart').hide();
         }
