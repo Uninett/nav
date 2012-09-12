@@ -41,7 +41,7 @@ from nav.web.netmap.common import traffic_gradient_map, layer2_graph
 from nav.web.netmap.forms import NetmapDefaultViewForm
 from nav.web.templates import Netmapdev
 
-_LOGGER = logging.getLogger('nav.web.netmapdev')
+_LOGGER = logging.getLogger('nav.web.netmap')
 
 
 def index(request):
@@ -52,7 +52,7 @@ def index(request):
 def backbone_app(request):
     session_user = get_account(request)
     response = render_to_response(Netmapdev,
-        'netmapdev/backbone.html',
+        'netmap/backbone.html',
         {'auth_id': session_user.id},
         RequestContext(request),
         path=[('Home', '/'),
@@ -74,7 +74,7 @@ def admin_views(request):
         pass # ignore it
 
     response = render_to_response(Netmapdev,
-        'netmapdev/admin_list_mapviews.html',
+        'netmap/admin_list_mapviews.html',
         {'views': NetmapView.objects.all(),
          'current_global_favorite': global_favorite},
         RequestContext(request),
@@ -159,7 +159,7 @@ def netmap_defaultview_global(request):
         # dirty anti ajax hack, since this is not using ajax yet.
         response = update_defaultview(request, map_id, True)
         if response.status_code == 200:
-            return HttpResponseRedirect(reverse('netmapdev-admin-views'))
+            return HttpResponseRedirect(reverse('netmap-admin-views'))
         else:
             return response
 
@@ -483,7 +483,7 @@ def graphml_layer2(request):
     netboxes, connections = layer2_graph()
 
     response = render_to_response(Netmapdev,
-        'netmapdev/graphml.html',
+        'netmap/graphml.html',
         {'netboxes': netboxes,
          'connections': connections,
          'layer': 2,
