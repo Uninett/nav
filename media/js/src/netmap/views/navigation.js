@@ -127,7 +127,6 @@ define([
             var out = this.template({ model: this.context});
             this.$el.html(out);
 
-
             return this;
         },
         alignView: function () {
@@ -167,7 +166,6 @@ define([
 
             this.model.set({topology: NetmapHelpers.topology_link_to_id($(e.currentTarget).val())});
             this.broker.trigger('map:topology_change', this.model.get('topology'));
-            //NetmapHelpers.topology_link_to_id($e.currentTarget).val());
         },
         onCheckboxLayerClick: function (e) {
             // jQuery<=1.6
