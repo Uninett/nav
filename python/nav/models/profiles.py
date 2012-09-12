@@ -1236,12 +1236,12 @@ class NetmapView(models.Model):
 
     def get_absolute_url(self):
         return "%s#/netmap/%s" % (
-            reverse('netmapdev-index'),
+            reverse('netmap-index'),
             self.viewid
             )
     def get_set_defaultview_url(self):
         """URL for admin django view to set a default view"""
-        return reverse('netmapdev-api-netmap-defaultview-global')
+        return reverse('netmap-api-netmap-defaultview-global')
 
 
     def to_json_dict(self):
