@@ -58,7 +58,7 @@ def search(request):
     if search_form is not None and search_form.is_valid():
         # Preprocess query string
         query = search_form.cleaned_data['query'].strip().lower()
-        titles.append(("Search for %s" % query,))
+        titles = titles + [("Search for %s" % query,)]
 
         # IPv4, v6 or hostname?
         ip = is_valid_ip(query)
