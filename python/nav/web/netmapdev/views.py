@@ -103,7 +103,7 @@ def netmap_defaultview(request):
                 # request.POST['model']
                 # change to request.body when swapping to django >=1.4
                 data = simplejson.loads(request.raw_post_data)
-                map_id = data['map_id']
+                map_id = data['viewid']
         except KeyError:
             return HttpResponseBadRequest("Malformed data! (1)")
         except JSONDecodeError:
@@ -134,7 +134,7 @@ def netmap_defaultview_global(request):
                 # request.POST['model']
                 # change to request.body when swapping to django >=1.4
                 data = simplejson.loads(request.raw_post_data)
-                map_id = data['map_id']
+                map_id = data['viewid']
         except KeyError:
             return HttpResponseBadRequest("Malformed data! (1)")
         except JSONDecodeError:
@@ -180,7 +180,7 @@ def update_defaultview(request, map_id, is_global_defaultview=False):
             default_view.view = view
             default_view.owner = session_user
             default_view.save()
-            return HttpResponse(default_view.viewid)
+            return HttpResponse(default_view.view.viewid)
         else:
             return HttpResponseForbidden()
 
