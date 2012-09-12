@@ -19,6 +19,7 @@
 # pylint: disable=R0903
 
 import logging
+from django.core.urlresolvers import reverse
 import os
 from datetime import datetime
 import re
@@ -1230,6 +1231,19 @@ class NetmapView(models.Model):
     def __unicode__(self):
         return u'%s (%s)' % (self.viewid, self.title)
 
+    def topology_unicode(self):
+        return dict(LINK_TYPES).get(self.topology)
+
+    def get_absolute_url(self):
+        return "%s#/netmap/%s" % (
+            reverse('netmapdev-index'),
+            self.viewid
+            )
+    def get_set_defaultview_url(self):
+        """URL for admin django view to set a default view"""
+        return reverse('netmapdev-api-netmap-defaultview-global')
+
+
     def to_json_dict(self):
         """Presents a NetmapView as JSON"""
         categories = [unicode(x.category.id) for x in self.categories_set.all()]
@@ -1265,7 +1279,7 @@ class NetmapViewDefaultView(models.Model):
         :return: JSON of a default netmap view entry
         """
         return {
-            'viewid': self.viewid,
+            'viewid': self.view.viewid,
             'ownerid': self.owner.id
         }
 

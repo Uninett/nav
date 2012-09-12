@@ -21,18 +21,19 @@ from django.conf.urls.defaults import url, patterns
 # The patterns are relative to the base URL of the subsystem
 from nav.web.netmapdev.views import netmap, maps, \
     d3js_layer2, d3js_layer3, traffic_load_gradient, graphml_layer2, \
-    backbone_app, netmap_defaultview, netmap_defaultview_global
+    backbone_app, netmap_defaultview, netmap_defaultview_global, admin_views
 
 urlpatterns = patterns('nav.web.netmapdev.views',
     url(r'^$', backbone_app, name='netmapdev-index'),
+    url(r'^admin$', admin_views, name='netmapdev-admin-views'),
     url(r'^api/netmap$', maps,
         name='netmapdev-api-netmap'),
-    url(r'^api/netmap/defaultview$', netmap_defaultview,
-        name='netmapdev-api-netmap-defaultview'),
+    url(r'^api/netmap/defaultview$', netmap_defaultview_global,
+        name='netmapdev-api-netmap-defaultview-global'),
     url(r'^api/netmap/(?P<map_id>[\d]+)$', netmap,
         name='netmapdev-api-netmap'),
-    url(r'^api/netmap/(?P<map_id>[\d]+)/defaultview$',
-        netmap_defaultview_global,
+    url(r'^api/netmap/user/defaultview$',
+        netmap_defaultview,
         name='netmapdev-api-netmap-defaultview'),
     url(r'^api/graph/layer2$', d3js_layer2,
         name='netmapdev-api-graph-layer2'),

@@ -109,6 +109,12 @@ body {
     float:right;
 }
 
+#delete_view {
+    float: right;
+    clear: right;
+    margin-top: 20px;
+}
+
 /*
 2012-07-31
 view-source:http://bluerobot.com/web/layouts/layout3.css
@@ -184,6 +190,21 @@ body>#netmap_infopanel {width:168px;}
     min-height: 300px;
     min-width: 300px;
 }
+
+/* Netmap Admin style */
+
+#netmap_admin {
+    margin: 1em;
+}
+
+div.netmapview_view {
+    clear: left;
+    margin: 2em;
+}
+.netmapview_view span {
+    float: left;
+}
+
 
 /* D3JS Netmap style */
 
