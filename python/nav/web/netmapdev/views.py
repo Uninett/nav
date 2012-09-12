@@ -18,12 +18,13 @@
 import datetime
 import logging
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseForbidden,\
-    HttpResponseBadRequest
+    HttpResponseBadRequest, HttpResponseRedirect
 from django.utils import simplejson
 from simplejson.decoder import JSONDecodeError
 
@@ -150,7 +151,13 @@ def netmap_defaultview_global(request):
         if not map_id:
             return HttpResponseBadRequest("Malformed data! (3)")
 
-        return update_defaultview(request, map_id, True)
+        # dirty anti ajax hack, since this is not using ajax yet.
+        response = update_defaultview(request, map_id, True)
+        if response.status_code == 200:
+            return HttpResponseRedirect(reverse('netmapdev-admin-views'))
+        else:
+            return response;
+
     elif request.method == 'GET':
         return get_global_defaultview(request)
     else:
