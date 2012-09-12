@@ -49,9 +49,10 @@ def index(request):
 
 
 def backbone_app(request):
+    session_user = get_account(request)
     response = render_to_response(Netmapdev,
         'netmapdev/backbone.html',
-        {},
+        {'auth_id': session_user.id},
         RequestContext(request),
         path=[('Home', '/'),
               ('Netmap', None)])
