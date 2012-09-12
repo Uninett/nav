@@ -14,7 +14,6 @@ http://graphml.graphdrawing.org/xmlns">
     <key id="location" for="node" attr.name="location" attr.type="string"/>
     <key id="uptime" for="node" attr.name="uptime" attr.type="string"/>
     <key id="up" for="node" attr.name="up" attr.type="string"/>
-    <key id="position" for="node" attr.name="position" attr.type="string"/>
     <key id="link_load_in" for="edge" attr.name="link_load_in" attr.type="string"/>
     <key id="link_load_out" for="edge" attr.name="link_load_out" attr.type="string"/>
     <key id="link_capacity" for="edge" attr.name="link_capacity" attr.type="string"/>
@@ -45,9 +44,6 @@ http://graphml.graphdrawing.org/xmlns">
             <data key="cpuload">{{box.load}}</data>
             <data key="ipdevinfolink">{{box.get_absolute_url}}</data>
             <data key="image">media/{{box.category.id}}.png</data>
-            {% if box.xpos and box.ypos %}
-            <data key="position">{{box.xpos}} x {{box.ypos}}</data>
-            {% endif %}
         </node>
         {% endfor %}
 
