@@ -2,6 +2,7 @@ define([
     'plugins/netmap-extras',
     'netmap/models/map',
     'netmap/models/graph',
+    'netmap/models/default_map',
     'netmap/views/modal/save_new_map',
     'libs-amd/text!netmap/templates/list_maps.html',
     'libs/handlebars',
@@ -9,7 +10,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function ( NetmapExtras, MapModel, GraphModel, SaveDialogView, netmapTemplate) {
+], function ( NetmapExtras, MapModel, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
 
     var ListNetmapView = Backbone.View.extend({
         tagName: "div",
@@ -19,6 +20,7 @@ define([
         events: {
                 "click #save_view": "show_save_view",
                 "click #save_new_view": "new_show_save_view",
+                "click #set_as_user_favorite": "set_favorite",
                 "change #dropdown_view_id": "changed_view",
                 'click #toggle_view' : 'toggleView'
         },
@@ -59,6 +61,21 @@ define([
 
 
             self.modal_save_view.render();
+        },
+        set_favorite: function (e) {
+            e.preventDefault();
+            var self = this;
+            var user_id = $("#netmap_userid").html();
+            var updateUserDefaultMap = new DefaultMapModel({ownerid: parseInt(user_id), viewid: self.options.context_selected_map.id});
+            updateUserDefaultMap.save({
+                success: function () {
+                    alert("Set view as favorite!");
+                },
+                error: function () {
+                    alert("Error while setting favorite view");
+                }
+            });
+
         },
         new_show_save_view: function () {
             var self = this;
