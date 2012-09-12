@@ -205,6 +205,9 @@ div.netmapview_view {
     float: left;
 }
 
+.netmapview_action form {
+    margin:  0;
+}
 
 /* D3JS Netmap style */
 
