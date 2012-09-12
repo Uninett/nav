@@ -67,7 +67,7 @@ define([
             var self = this;
             var user_id = $("#netmap_userid").html();
             var updateUserDefaultMap = new DefaultMapModel({ownerid: parseInt(user_id), viewid: self.options.context_selected_map.id});
-            updateUserDefaultMap.save({
+            updateUserDefaultMap.save(this.attributes, {
                 success: function () {
                     alert("Set view as favorite!");
                 },
