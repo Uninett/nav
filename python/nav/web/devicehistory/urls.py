@@ -33,6 +33,9 @@ urlpatterns = patterns('',
     url(r'^history/\?netbox=(?P<netbox_id>\d+)$', devicehistory_view,
         name='devicehistory-view-netbox'),
 
+    url(r'^history/\?room=(?P<room_id>.+)$', devicehistory_view,
+        name='devicehistory-view-room'),
+
     url(r'^registererror/$', error_form,
         name='devicehistory-registererror'),
 
