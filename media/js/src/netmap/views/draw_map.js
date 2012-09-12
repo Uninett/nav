@@ -99,6 +99,38 @@ define([
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
 
+            this.startForceRunningTimer();
+
+        },
+        stopForceRunningTimer: function () {
+            var self = this;
+            if (self.forceTimer) {
+                clearInterval(self.forceTimer);
+            }
+            self.forceTimer = null;
+        },
+        startForceRunningTimer: function () {
+            var self = this;
+            if (self.forceTimer) {
+                clearInterval(self.forceTimer);
+            }
+
+            self.forceTimer = setInterval(function () {
+                if (self.hasForceChanged()) {
+                    self.broker.trigger("map:forceChangedStatus", self.lastCheckForceRunning);
+                }
+            }, 500);
+        },
+        hasForceChanged: function () {
+            var isRunning;
+            if (this.force !== undefined && this.force) {
+                isRunning = (this.force.alpha() !== 0);
+            }
+            if (this.lastCheckForceRunning !== isRunning) {
+                this.lastCheckForceRunning = isRunning;
+                return true;
+            }
+            return false;
         },
         resizeAnimate: function (margin) {
             var self = this;
@@ -264,8 +296,10 @@ define([
         freezeNodes: function (isFreezing) {
             if (isFreezing) {
                 this.force.stop();
+                this.stopForceRunningTimer();
             } else {
                 this.force.resume();
+                this.startForceRunningTimer();
             }
         },
         toggleUIMouseoverNodes: function (boolean) {
@@ -276,6 +310,7 @@ define([
         },
         clear: function () {
             this.force.stop();
+            this.stopForceRunningTimer();
             (this.$el).find('#svg-netmap').remove();
             var self = this;
 
@@ -320,6 +355,7 @@ define([
             }
             if (!data.fixed) {
                 this.force.resume();
+                this.startForceRunningTimer();
             }
         },
         updateAllNodePositions: function (boolean) {
@@ -330,6 +366,7 @@ define([
             this.sidebar.render();
             if (!boolean) {
                 this.force.resume();
+                this.startForceRunningTimer();
             }
         },
         requestRedraw: function (options) {
@@ -651,6 +688,7 @@ define([
 
                     if (isDragMovedTriggered) {
                         self.force.resume();
+                        self.startForceRunningTimer();
                         // uncomment if you don't want node to be auto selected when it is dragged.
                         //if (self.selected_node && d.data.sysname === self.selected_node.data.sysname) {
                         node_onClick(d);
@@ -1035,6 +1073,7 @@ define([
         },
         close:function () {
             this.force.stop();
+            this.stopForceRunningTimer();
             context_selected_map = undefined;
             this.broker.unregister(this);
             $(window).off("resize.app");

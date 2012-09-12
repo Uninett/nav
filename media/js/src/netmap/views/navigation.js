@@ -10,6 +10,9 @@ define([
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
+        interests: {
+            'map:forceChangedStatus': 'updatefreezeNodes'
+        },
         events: {
             'click #toggle_view':      'toggleView',
             'click input[type=radio]': 'onRadioLayerClick',
@@ -23,7 +26,7 @@ define([
         },
         initialize: function () {
             this.isContentVisible = true;
-
+            this.broker.register(this);
 
             _.bindAll(this, 'on_keypress');
             $(document).bind('keypress', this.on_keypress);
@@ -95,6 +98,11 @@ define([
             };
 
 
+        },
+        updatefreezeNodes: function (status) {
+            // status is if force is running, so opposite of nodes is freezing.
+            this.context.ui.freezeNodes = !status;
+            this.render();
         },
         render: function () {
             var self = this;
@@ -225,6 +233,7 @@ define([
         },
         close:function () {
             $(document).unbind('keypress', 'on_keypress');
+            this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         }

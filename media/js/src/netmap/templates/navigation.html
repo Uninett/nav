@@ -36,6 +36,13 @@
     </div>
 
     <div class="squaredTwo">
+        <div style="float: right;">
+            {{#if model.ui.freezeNodes}}
+                <img src='/images/lys/red.png' alt='Force is NOT running' class='force_status'/>
+            {{else}}
+                <img src='/images/lys/green.png' alt='Force is running' class='force_status'/>
+            {{/if}}
+        </div>
         <input type="checkbox" name="freezeNodes" value="freezeNodes" id="freezeNodes" {{#if model.ui.freezeNodes}} checked{{/if}} />
         <label for="freezeNodes">Stop force algorithm?</label>
     </div>
