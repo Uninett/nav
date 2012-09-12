@@ -92,6 +92,11 @@ def netmap(request, map_id):
         return update_map(request, map_id)
     elif request.method == 'GET':
         return get_map(request, map_id)
+    elif request.method == 'DELETE' or (
+        'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
+        request.META['HTTP_X_HTTP_METHOD_OVERRIDE'] == 'DELETE'):
+        return delete_map(request, map_id)
+
     else:
         return HttpResponseBadRequest()
 
@@ -359,6 +364,17 @@ def get_map(request, map_id):
         return response
     else:
         return HttpResponseForbidden()
+
+def delete_map(request, map_id):
+    view = get_object_or_404(NetmapView, pk=map_id)
+    session_user = get_account(request)
+
+    if session_user == view.owner or AccountGroup.ADMIN_GROUP in session_user.get_groups():
+        view.delete()
+        return HttpResponse()
+    else:
+        return HttpResponseForbidden()
+
 
 
 def maps(request):

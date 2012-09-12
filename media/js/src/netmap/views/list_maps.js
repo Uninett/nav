@@ -20,6 +20,7 @@ define([
         events: {
                 "click #save_view": "show_save_view",
                 "click #save_new_view": "new_show_save_view",
+                "click #delete_view": "delete_view",
                 "click #set_as_user_favorite": "set_favorite",
                 "change #dropdown_view_id": "changed_view",
                 'click #toggle_view' : 'toggleView'
@@ -40,7 +41,7 @@ define([
         },
         updateCollection: function () {
             if (this.options.context_selected_map.map.attributes.viewid !== undefined) {
-                var map = this.collection.get(this.options.context_selected_map.map.attributes.viewid)
+                var map = this.collection.get(this.options.context_selected_map.map.attributes.viewid);
                 if (map === undefined) {
                     this.collection.add(this.options.context_selected_map.map);
                 }
@@ -92,6 +93,33 @@ define([
             self.options.context_selected_map.map.bind("change", this.updateCollection, this);
 
             this.showSaveModal(self.context_selected_map);
+        },
+        delete_view: function (e) {
+            e.preventDefault();
+            var self = this;
+            var selected_id = self.options.context_selected_map.map.id;
+            self.options.context_selected_map.map.destroy({
+                success: function () {
+                    var propertiesToKeep = {
+                        is_public: self.options.context_selected_map.map.attributes.is_public,
+                        topology:  self.options.context_selected_map.map.attributes.topology,
+                        categories: self.options.context_selected_map.map.attributes.categories,
+                        zoom: self.options.context_selected_map.map.attributes.zoom,
+                        display_orphans: self.options.context_selected_map.map.attributes.display_orphans
+                    };
+                    self.options.context_selected_map.map.unbind("change");
+                    self.options.context_selected_map.map = new MapModel();
+                    self.options.context_selected_map.map.set(propertiesToKeep);
+                    self.options.context_selected_map.map.bind("change", this.updateCollection, this);
+                    self.options.context_selected_map.id = undefined;
+                    Backbone.history.navigate("");
+                    self.broker.trigger("map:context_selected_map", self.options.context_selected_map);
+                },
+                error: function () {
+                    alert("Failed to delete view");
+                }
+            });
+
         },
         show_save_view: function (e) {
             e.preventDefault();

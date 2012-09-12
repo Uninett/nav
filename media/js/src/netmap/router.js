@@ -38,7 +38,11 @@ define([
         },
         update_selected_map: function (new_context) {
             this.loadingMap();
-            this.showNetmap(new_context.map.id);
+            if (new_context.map.id !== undefined && new_context.map.id) {
+                this.showNetmap(new_context.map.id);
+            } else if (new_context.map !== undefined && new_context.map) {
+                this.loadUi();
+            }
         },
         map_topology_change: function (topology_id) {
             this.loadingMap();
@@ -117,6 +121,7 @@ define([
         loadMap: function (model) {
             var self = this;
             context_selected_map.map = model;
+            // render error if model is empty !
             self.loadUi();
         },
         loadUi: function () {
@@ -146,16 +151,21 @@ define([
                 self.view_map.close();
             }
 
-            if (context_selected_map.id !== undefined) {
-                context_selected_map.graph = new GraphModel({id: context_selected_map.id, topology: context_selected_map.map.attributes.topology});
+
+            if (context_selected_map.graph !== undefined && context_selected_map.graph) {
+               self.drawPage();
             } else {
-                context_selected_map.graph = new GraphModel({topology: context_selected_map.map.attributes.topology});
-            }
-            context_selected_map.graph.fetch({
-                success: function () {
-                    self.drawPage();
+                if (context_selected_map.id !== undefined) {
+                    context_selected_map.graph = new GraphModel({id: context_selected_map.id, topology: context_selected_map.map.attributes.topology});
+                } else {
+                    context_selected_map.graph = new GraphModel({topology: context_selected_map.map.attributes.topology});
                 }
-            });
+                context_selected_map.graph.fetch({
+                    success: function () {
+                        self.drawPage();
+                    }
+                });
+            }
         },
         drawPage: function () {
             var self = this;
