@@ -20,8 +20,8 @@ define(['libs/jquery'], function() {
     /* Todo: Rewrite this to not be so DOM-manipulative */
 
     var html = {
-        downArrow: '<span>&darr; </span>',
-        upArrow: '<span>&uarr; </span>',
+        downArrow: '<span class="downarrow">&darr; </span>',
+        upArrow: '<span class="uparrow">&uarr; </span>',
         selectAllButton: '<input type="button" value="Select all" />'
     };
 
@@ -137,6 +137,22 @@ define(['libs/jquery'], function() {
                 select.append(clone.children());
             }
         }
+
+    }
+
+    function openSelectsWithResults(selects) {
+        $(selects).each(function (index, select) {
+            $parent = $(select).parent('div');
+            if ($(select).children().length > 0) {
+                $parent.children().show();
+                $('.downarrow', $parent).hide();
+                $('.uparrow', $parent).show();
+            } else {
+                $parent.children().not('label').hide();
+                $('.downarrow', $parent).show();
+                $('.uparrow', $parent).hide();
+            }
+        });
     }
 
     return QuickSelect;
