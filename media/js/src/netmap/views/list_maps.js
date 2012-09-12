@@ -18,7 +18,8 @@ define([
 
         broker: Backbone.EventBroker,
         interests: {
-            "map:topology_change": "deactiveAndShowSpinnerWhileLoading"
+            "map:topology_change": "deactiveAndShowSpinnerWhileLoading",
+            'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
         },
         events: {
                 "click #save_view": "show_save_view",
@@ -199,6 +200,11 @@ define([
                     //self.render();
                 }
             })*/
+        },
+        headerFooterMinimizeRequest: function (options) {
+            if (options && options.name === 'header' && (options.isShowing !== this.isContentVisible)) {
+                this.toggleView();
+            }
         },
         toggleView: function (e) {
             this.isContentVisible = !this.isContentVisible;

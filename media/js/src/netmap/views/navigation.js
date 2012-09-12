@@ -11,7 +11,8 @@ define([
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
         interests: {
-            'map:forceChangedStatus': 'updatefreezeNodes'
+            'map:forceChangedStatus': 'updatefreezeNodes',
+            'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
         },
         events: {
             'click #toggle_view':      'toggleView',
@@ -155,6 +156,11 @@ define([
             return margin;
             //$("#netmap_main_view").animate({'margin-left': "{0}px".format(margin)}, 400);
 
+        },
+        headerFooterMinimizeRequest: function (options) {
+            if (options && options.name === 'header' && (options.isShowing !== this.isContentVisible)) {
+                this.toggleView();
+            }
         },
         toggleView: function (e) {
             this.isContentVisible = !this.isContentVisible;
