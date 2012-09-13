@@ -43,12 +43,14 @@ Version 3.12.0
 
  Bugfixes:
 
+  * LP#736825  (Replace ip-hostname search in toolbar with a more generic
+                searchbox)
   * LP#1039490 (Mixed IPv4 and IPv6 elinks are mis-labeled as lans)
   * LP#1040043 (Incorrect layer 2 topology in networks with VRRP routers)
   * LP#1043791 (MAX_CONCURRENT_JOBS needs to be configurable)
+  * LP#1044321 (SNMP timeout value is not respected during Cisco community
+                indexing)
   * LP#1046227 (Django >= 1.2 deprecation warnings)
-  * LP#736825  (Replace ip-hostname search in toolbar with a more generic
-                searchbox)
 
 
 Version 3.11.6
