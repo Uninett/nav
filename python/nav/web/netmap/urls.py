@@ -19,34 +19,39 @@ from django.conf.urls.defaults import url, patterns
 
 
 # The patterns are relative to the base URL of the subsystem
-from nav.web.netmapdev.views import netmap, maps, \
+from nav.web.netmap.views import netmap, maps, \
     d3js_layer2, d3js_layer3, traffic_load_gradient, graphml_layer2, \
-    backbone_app
+    backbone_app, netmap_defaultview, netmap_defaultview_global, admin_views
 
-urlpatterns = patterns('nav.web.netmapdev.views',
-    url(r'^$', backbone_app, name='netmapdev-index'),
+urlpatterns = patterns('nav.web.netmap.views',
+    url(r'^$', backbone_app, name='netmap-index'),
+    url(r'^admin$', admin_views, name='netmap-admin-views'),
     url(r'^api/netmap$', maps,
-        name='netmapdev-api-netmap'),
+        name='netmap-api-netmap'),
+    url(r'^api/netmap/defaultview$', netmap_defaultview_global,
+        name='netmap-api-netmap-defaultview-global'),
     url(r'^api/netmap/(?P<map_id>[\d]+)$', netmap,
-        name='netmapdev-api-netmap'),
+        name='netmap-api-netmap'),
+    url(r'^api/netmap/defaultview/user$',
+        netmap_defaultview,
+        name='netmap-api-netmap-defaultview'),
     url(r'^api/graph/layer2$', d3js_layer2,
-        name='netmapdev-api-graph-layer2'),
+        name='netmap-api-graph-layer2'),
     url(r'^api/graph/layer2/(?P<map_id>[\d]+)$', d3js_layer2,
-        name='netmapdev-api-graph-layer2-map'),
+        name='netmap-api-graph-layer2-map'),
     url(r'^api/graph/layer3$', d3js_layer3,
-        name='netmapdev-api-graph-layer3'),
+        name='netmap-api-graph-layer3'),
     url(r'^api/graph/layer3/(?P<map_id>[\d]+)$', d3js_layer3,
-        name='netmapdev-api-graph-layer3-map'),
+        name='netmap-api-graph-layer3-map'),
 
     url(r'^api/traffic_load_gradient', traffic_load_gradient,
-        name='netmapdev-api-traffic_load_gradient'),
+        name='netmap-api-traffic_load_gradient'),
 
 
     # old netmap, grapml format, meh meh.
     url(r'^data/graphml/layer2$', graphml_layer2,
-        name='netmapdev-data-graphml-layer2'),
+        name='netmap-data-graphml-layer2'),
 
 
-    #url(r'^data/views', get_views, name='netmapdev-get_views'),
 
 )

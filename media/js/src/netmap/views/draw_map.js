@@ -26,7 +26,8 @@ define([
             'map:ui:mouseover:links': 'toggleUIMouseoverLinks',
             'map:loading:context_selected_map': 'clear',
             'map:node:fixed': 'updateNodeFixedStatus',
-            'map:fixNodes': 'updateAllNodePositions'
+            'map:fixNodes': 'updateAllNodePositions',
+            'headerFooterMinimize:trigger': 'resize'
         },
         initialize: function () {
             this.broker.register(this);
@@ -34,8 +35,6 @@ define([
             this.model = this.options.context_selected_map.graph;
 
             this.$el.append(netmapTemplate);
-            this.model.bind("change", this.render, this);
-            this.model.bind("destroy", this.close, this);
 
             this.selected_node = null;
             this.selected_vlan = null;
@@ -51,7 +50,7 @@ define([
             this.filter_orphans = !this.context_selected_map.display_orphans;
 
             this.w = this.options.cssWidth;
-            this.h = $(window).height() - 350;
+            this.resize({width: this.w});
             this.force = d3.layout.force()
                 .gravity(0.5)
                 .distance(2000)
@@ -97,6 +96,41 @@ define([
 
 
             }
+            this.model.bind("change", this.render, this);
+            this.model.bind("destroy", this.close, this);
+
+            this.startForceRunningTimer();
+
+        },
+        stopForceRunningTimer: function () {
+            var self = this;
+            if (self.forceTimer) {
+                clearInterval(self.forceTimer);
+            }
+            self.forceTimer = null;
+        },
+        startForceRunningTimer: function () {
+            var self = this;
+            if (self.forceTimer) {
+                clearInterval(self.forceTimer);
+            }
+
+            self.forceTimer = setInterval(function () {
+                if (self.hasForceChanged()) {
+                    self.broker.trigger("map:forceChangedStatus", self.lastCheckForceRunning);
+                }
+            }, 500);
+        },
+        hasForceChanged: function () {
+            var isRunning;
+            if (this.force !== undefined && this.force) {
+                isRunning = (this.force.alpha() !== 0);
+            }
+            if (this.lastCheckForceRunning !== isRunning) {
+                this.lastCheckForceRunning = isRunning;
+                return true;
+            }
+            return false;
         },
         resizeAnimate: function (margin) {
             var self = this;
@@ -113,32 +147,47 @@ define([
                 },
                 {   duration: 400,
                     step:     function () {
-                        self.resize(self.$el.width() - 100);
+                        self.resize({width: self.$el.innerWidth() - 100});
                     },
                     complete: function () {
-                        self.resize(self.$el.width());
+                        self.resize({width: self.$el.innerWidth()});
                     }
                 });
             //$("#netmap_main_view").animate({'margin-left': "{0}px".format(margin)}, 400);
         },
-        resize: function (width) {
-            if (!isNaN(width)) {
-                this.w = width;
+        resize: function (options) {
+            var padding = 93; // make sure it renders in IE by toggling fullscreen and non fullscreen
+            if (options && options.width && !isNaN(options.width)) {
+                this.w = options.width;
             } else {
-                this.w = this.$el.width();
+                this.w = this.$el.innerWidth();
+                var paddingForVerticalScrollbar = (document.body.scrollHeight - document.body.clientHeight);
+                if (paddingForVerticalScrollbar > 0 && this.w > paddingForVerticalScrollbar) {
+                    this.w -= 10; // scrollbar takes 10px approx.
+                }
             }
-            this.h = $(window).height() - 350;
+
+            this.h = $(window).height();
+            if ($("#header").is(':visible')) {
+                this.h -= $("#header").height();
+            }
+            if ($("#footer").is(':visible')) {
+                this.h -= $("#footer").height();
+                this.h -= $("#debug").height();
+            }
+            this.h -= padding;
 
             (this.$el).find('#svg-netmap').attr('width', this.w);
             (this.$el).find('#svg-netmap').attr('height', this.h);
-            (this.$el).find('#svg-netmap').attr('style', "width: {0}; height: {1}".format(this.w, this.h));
+            (this.$el).find('#svg-netmap').attr('style', "width: {0}px; height: {1}px".format(this.w, this.h));
             (this.$el).find('#svg-netmap rect').attr('width', this.w);
             (this.$el).find('#svg-netmap rect').attr('height', this.h);
 
         },
         search: function (query) {
             this.searchQuery = {
-                query: query
+                query: query,
+                zoomTarget: null,
             };
             // find related box
             for (var i = 0; i < this.modelJson.nodes.length; i++) {
@@ -148,10 +197,12 @@ define([
                     break;
                 }
             }
-            this.trans = [ (-(this.searchQuery.zoomTarget.x * this.scale) + (this.w / 2)), (-(this.searchQuery.zoomTarget.y * this.scale) + (this.h / 2))];
-            this.zoom.translate(this.trans);
-            this.svg.attr("transform",
-                "translate(" + this.trans + ") scale(" + this.scale + ")");
+            if (this.searchQuery.zoomTarget) {
+                this.trans = [ (-(this.searchQuery.zoomTarget.x * this.scale) + (this.w / 2)), (-(this.searchQuery.zoomTarget.y * this.scale) + (this.h / 2))];
+                this.zoom.translate(this.trans);
+                this.svg.attr("transform",
+                    "translate(" + this.trans + ") scale(" + this.scale + ")");
+            }
         },
         showVlan: function (vlan) {
             var self = this;
@@ -248,8 +299,10 @@ define([
         freezeNodes: function (isFreezing) {
             if (isFreezing) {
                 this.force.stop();
+                this.stopForceRunningTimer();
             } else {
                 this.force.resume();
+                this.startForceRunningTimer();
             }
         },
         toggleUIMouseoverNodes: function (boolean) {
@@ -260,6 +313,7 @@ define([
         },
         clear: function () {
             this.force.stop();
+            this.stopForceRunningTimer();
             (this.$el).find('#svg-netmap').remove();
             var self = this;
 
@@ -267,7 +321,8 @@ define([
                 .append("svg:svg")
                 .attr('id', 'svg-netmap')
                 .attr("width", self.w).attr("height", self.h)
-                .attr("pointer-events", "all");
+                .attr("pointer-events", "all")
+                .attr("overflow", "hidden");
             this.root_chart
                 .append('svg:rect')
                 .attr('width', self.w)
@@ -278,6 +333,7 @@ define([
                 .append('svg:g')
                 .attr('id', 'boundingbox')
             ;
+            this.linkGroupMeta = this.svg.append("svg:g").attr("class", "linksmeta");
             this.selectedNodeGroup = this.svg.append("svg:g").attr("class", "selected_nodes");
             this.selectedLinkGroup = this.svg.append("svg:g").attr("class", "selected_links");
             this.linkGroup = this.svg.append("svg:g").attr("class", "links");
@@ -303,6 +359,7 @@ define([
             }
             if (!data.fixed) {
                 this.force.resume();
+                this.startForceRunningTimer();
             }
         },
         updateAllNodePositions: function (boolean) {
@@ -313,6 +370,7 @@ define([
             this.sidebar.render();
             if (!boolean) {
                 this.force.resume();
+                this.startForceRunningTimer();
             }
         },
         requestRedraw: function (options) {
@@ -320,8 +378,8 @@ define([
                 if (options.filter_orphans !== undefined) {
                     this.filter_orphans = options.filter_orphans;
                 }
-                if (options.groupby_room !== undefined) {
-                    this.groupby_room = options.groupby_room;
+                if (options.groupby_position !== undefined) {
+                    this.groupby_position = options.groupby_position;
                 }
                 if (options.topologyErrors !== undefined) {
                     this.ui.topologyErrors = options.topologyErrors;
@@ -329,6 +387,8 @@ define([
             }
 
             this.clear();
+
+            this.startForceRunningTimer();
 
             this.render();
         },
@@ -365,7 +425,6 @@ define([
                 if (linkErrors !== undefined && !self.ui.topologyErrors) {
                     linkErrors.exit().remove();
                 } else if (self.ui.topologyErrors) {
-                    var linkGroupMeta = svg.append("svg:g").attr("class", "linksmeta");
 
                     var linksWithErrors = self.modelJson.links.filter(function (d) {
                         if (d.data.tip_inspect_link) {
@@ -374,7 +433,7 @@ define([
                         return false;
                     });
 
-                    var linkErrors = linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
+                    var linkErrors = self.linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
                         return d.source.id + "-" + d.target.id;
                     });
 
@@ -530,12 +589,22 @@ define([
 
 
 
-                var groupByRoom = function () {
-                    var groupByRoomId = self.modelJson.nodes.filter(function (d) {
-                        return d.data.roomid === self.selected_node.data.roomid
-                    });
+                var groupByPosition = function () {
+                    var groupBy = null;
 
-                    self.nodesInRoom = svg.selectAll("g circle").data(groupByRoomId, function (d) {
+                    if (self.groupby_position === 'room') {
+                        groupBy = self.modelJson.nodes.filter(function (d) {
+                            return d.data.roomid === self.selected_node.data.roomid
+                        });
+                    } else if (self.groupby_position === 'location') {
+                        groupBy = self.modelJson.nodes.filter(function (d) {
+                            return d.data.locationid === self.selected_node.data.locationid
+                        });
+                    } else {
+                        groupBy = [];
+                    }
+
+                    self.nodesInRoom = svg.selectAll("g circle").data(groupBy, function (d) {
                         return d.data.sysname;
                     });
 
@@ -551,8 +620,8 @@ define([
                         .attr("r", 34);
                     self.nodesInRoom.exit().remove();
                 };
-                if (self.groupby_room && self.selected_node!==null) {
-                    groupByRoom();
+                if (self.groupby_position && self.selected_node!==null) {
+                    groupByPosition();
                 }
                 //spinner.stop();
 
@@ -634,6 +703,7 @@ define([
 
                     if (isDragMovedTriggered) {
                         self.force.resume();
+                        self.startForceRunningTimer();
                         // uncomment if you don't want node to be auto selected when it is dragged.
                         //if (self.selected_node && d.data.sysname === self.selected_node.data.sysname) {
                         node_onClick(d);
@@ -749,8 +819,8 @@ define([
                     //var netbox_info = new NetboxInfoView({node: node});
                     self.selected_node = node;
 
-                    if (self.groupby_room) {
-                        groupByRoom();
+                    if (self.groupby_position) {
+                        groupByPosition();
                     }
 
                     self.sidebar.setSelectedVlan(self.selected_vlan);
@@ -1018,6 +1088,7 @@ define([
         },
         close:function () {
             this.force.stop();
+            this.stopForceRunningTimer();
             context_selected_map = undefined;
             this.broker.unregister(this);
             $(window).off("resize.app");

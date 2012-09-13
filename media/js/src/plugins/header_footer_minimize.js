@@ -15,12 +15,13 @@
  * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-define(['libs/jquery', 'libs/underscore', 'libs/backbone'], function () {
+define(['libs/jquery', 'libs/underscore', 'libs/backbone', 'libs/backbone-eventbroker'], function () {
 
 
     function header_footer_minimize() {
 
         var HeaderFooterMinimizeView = Backbone.View.extend({
+            broker: Backbone.EventBroker,
             initialize: function () {
                 this.isShowing = true;
 
@@ -34,16 +35,21 @@ define(['libs/jquery', 'libs/underscore', 'libs/backbone'], function () {
             toggle:     function () {
                 var self = this;
                 if (this.isShowing) {
-                    this.$el.fadeOut('fast');
+                    this.$el.fadeOut('fast', function () {
+                        self.broker.trigger('headerFooterMinimize:trigger', {'name': self.options.name, 'isShowing': self.isShowing});
+                    });
                 } else {
-                    this.$el.fadeIn('fast');
+                    this.$el.fadeIn('fast', function () {
+                        self.broker.trigger('headerFooterMinimize:trigger', {'name': self.options.name, 'isShowing': self.isShowing});
+                    });
                 }
                 this.isShowing = !this.isShowing;
             },
             onKeypress: function (e) {
                 if (e.charCode === this.options.hotkey.charCode &&
                     e.altKey === this.options.hotkey.altKey &&
-                    e.ctrlKey === this.options.hotkey.ctrlKey) {
+                    e.ctrlKey === this.options.hotkey.ctrlKey &&
+                    e.shiftKey === this.options.hotkey.shiftKey) {
 
                     this.toggle();
                 }
@@ -60,12 +66,18 @@ define(['libs/jquery', 'libs/underscore', 'libs/backbone'], function () {
         });
 
         var initialize = function (map) {
-            this.headerView = new HeaderFooterMinimizeView({el: map.header.el, hotkey: map.header.hotkey});
-            this.footerView = new HeaderFooterMinimizeView({el: map.footer.el, hotkey: map.footer.hotkey});
+            this.headerView = new HeaderFooterMinimizeView({name: 'header', el: map.header.el, hotkey: map.header.hotkey});
+            this.footerView = new HeaderFooterMinimizeView({name: 'footer', el: map.footer.el, hotkey: map.footer.hotkey});
+        };
+
+        var close = function () {
+            this.headerView.close();
+            this.footerView.close();
         };
 
         return {
             initialize:      initialize,
+            close: close,
             toggleHeader:    function () {
                 return this.headerView.toggle();
             },

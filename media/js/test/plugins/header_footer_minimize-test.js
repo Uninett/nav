@@ -10,6 +10,10 @@ require(['plugins/header_footer_minimize',
                 footer: headerEl
             });
         },
+        tearDown: function () {
+            this.script.close();
+            this.script = undefined;
+        },
         "should minimize when header is showing": function () {
             var self = this;
 
