@@ -70,7 +70,7 @@ Rolling and uploading a new distribution tarball
 
 * Create a detached PGP signature of the created tarball::
 
-    gpg --detach-sign nav-X.Y.X.tar.gz
+    gpg --armor --detach-sign nav-X.Y.X.tar.gz
 
 * Browse the Launchpad milestone page and create a new release from the
   milestone.
