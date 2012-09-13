@@ -16,10 +16,10 @@ define([
         },
         events: {
             'click #toggle_view':      'toggleView',
-            'click input[type=radio]': 'onRadioLayerClick',
+            'click input[name="topology[]"]': 'onTopologyClick',
             'click input[name="categories[]"]': 'onCheckboxLayerClick',
             'click input[name="filter_orphans"]': 'onFilterOrphansClick',
-            'click input[name="group_roomid"]': 'onGroupByRoomClick',
+            'click input[name="group_position[]"]': 'onGroupByPositionClick',
             'click input[name="freezeNodes"]': 'onFreezeNodesClick',
             'click input[name="mouseOver[]"]': 'onUIMouseOverClick',
             'click input[name="topologyErrors"]': 'onUITopologyErrorsClick',
@@ -84,7 +84,11 @@ define([
                     'ELINK': false
                 },
                 'specific_filters': {
-                    'groupby_room': false,
+                    'position': {
+                        'none':     false,
+                        'room':     false,
+                        'location': false
+                    },
                     'filter_orphans': false
                 },
                 'ui': {
@@ -167,7 +171,7 @@ define([
             var margin = this.alignView();
             this.broker.trigger('map:resize:animate', {marginLeft: margin});
         },
-        onRadioLayerClick: function (e) {
+        onTopologyClick: function (e) {
             e.stopPropagation();
 
             this.model.set({topology: NetmapHelpers.topology_link_to_id($(e.currentTarget).val())});
@@ -196,10 +200,17 @@ define([
                 filter_orphans: $(e.currentTarget).prop('checked')
             });
         },
-        onGroupByRoomClick: function (e) {
-            this.context.specific_filters.groupby_room = $(e.currentTarget).prop('checked');
+        onGroupByPositionClick: function (e) {
+            e.stopPropagation();
+            var val = $(e.currentTarget).val().trim();
+
+            // haha…  here there be dragons. Cute shoulder dragons
+            this.context.specific_filters.position.location = false;
+            this.context.specific_filters.position.room = false;
+            this.context.specific_filters.position.none = false;
+            this.context.specific_filters.position[val] = true;
             this.broker.trigger('map:redraw', {
-                groupby_room: $(e.currentTarget).prop('checked')
+                groupby_position: val
             });
         },
         onFreezeNodesClick: function (e) {

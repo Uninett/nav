@@ -377,8 +377,8 @@ define([
                 if (options.filter_orphans !== undefined) {
                     this.filter_orphans = options.filter_orphans;
                 }
-                if (options.groupby_room !== undefined) {
-                    this.groupby_room = options.groupby_room;
+                if (options.groupby_position !== undefined) {
+                    this.groupby_position = options.groupby_position;
                 }
                 if (options.topologyErrors !== undefined) {
                     this.ui.topologyErrors = options.topologyErrors;
@@ -589,12 +589,22 @@ define([
 
 
 
-                var groupByRoom = function () {
-                    var groupByRoomId = self.modelJson.nodes.filter(function (d) {
-                        return d.data.roomid === self.selected_node.data.roomid
-                    });
+                var groupByPosition = function () {
+                    var groupBy = null;
 
-                    self.nodesInRoom = svg.selectAll("g circle").data(groupByRoomId, function (d) {
+                    if (self.groupby_position === 'room') {
+                        groupBy = self.modelJson.nodes.filter(function (d) {
+                            return d.data.roomid === self.selected_node.data.roomid
+                        });
+                    } else if (self.groupby_position === 'location') {
+                        groupBy = self.modelJson.nodes.filter(function (d) {
+                            return d.data.locationid === self.selected_node.data.locationid
+                        });
+                    } else {
+                        groupBy = [];
+                    }
+
+                    self.nodesInRoom = svg.selectAll("g circle").data(groupBy, function (d) {
                         return d.data.sysname;
                     });
 
@@ -610,8 +620,8 @@ define([
                         .attr("r", 34);
                     self.nodesInRoom.exit().remove();
                 };
-                if (self.groupby_room && self.selected_node!==null) {
-                    groupByRoom();
+                if (self.groupby_position && self.selected_node!==null) {
+                    groupByPosition();
                 }
                 //spinner.stop();
 
@@ -809,8 +819,8 @@ define([
                     //var netbox_info = new NetboxInfoView({node: node});
                     self.selected_node = node;
 
-                    if (self.groupby_room) {
-                        groupByRoom();
+                    if (self.groupby_position) {
+                        groupByPosition();
                     }
 
                     self.sidebar.setSelectedVlan(self.selected_vlan);
