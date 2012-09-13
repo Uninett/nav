@@ -28,6 +28,15 @@ Version 3.12.0
 
   * ipdevpoll now supports both VRRP and HSRP.
 
+  * The maximum number of concurrent collection jobs in an ipdevpoll process
+    can now be configured, which is useful in situations where the process
+    runs out of resources such as file descriptors.
+
+  * ipdevpoll job runs are now all logged to the database, enabling more
+    details and analysis of job statuses in the web interface.  ipdevinfo will
+    now display a timestamp for each of the configured jobs, complete with
+    status indicators and warnings for jobs that may be overdue.
+
   * The Maintenance and Messages tool have been migrated from mod_python to
     Django, and especially the former has received some improvements along the
     way.
