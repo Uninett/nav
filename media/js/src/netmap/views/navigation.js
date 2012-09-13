@@ -203,8 +203,8 @@ define([
             });
         },
         onFreezeNodesClick: function (e) {
-            this.context.ui.freezeNodes = $(e.currentTarget).prop('checked');
-            this.broker.trigger('map:freezeNodes', $(e.currentTarget).prop('checked'));
+            this.context.ui.freezeNodes = true;
+            this.broker.trigger('map:freezeNodes', true);
         },
         onUIMouseOverClick: function (e) {
             this.context.ui.mouseover[$(e.currentTarget).val()].state = $(e.currentTarget).prop('checked');

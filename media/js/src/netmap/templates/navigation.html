@@ -35,7 +35,8 @@
         <label for="group_roomid">Group rooms by color</label>
     </div>
 
-    <div class="squaredTwo">
+    <div class="squaredTwo" id="pauseForce">
+        <span>Pause force algorithm?</span>
         <div style="float: right;">
             {{#if model.ui.freezeNodes}}
                 <img src='/images/lys/red.png' alt='Force is NOT running' class='force_status'/>
@@ -43,8 +44,9 @@
                 <img src='/images/lys/green.png' alt='Force is running' class='force_status'/>
             {{/if}}
         </div>
-        <input type="checkbox" name="freezeNodes" value="freezeNodes" id="freezeNodes" {{#if model.ui.freezeNodes}} checked{{/if}} />
-        <label for="freezeNodes">Stop force algorithm?</label>
+        <div class="center-content">
+            <input type="button" name="freezeNodes" value="Pause" id="freezeNodes"  />
+        </div>
     </div>
 
     <div class="fix_options">

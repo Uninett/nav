@@ -278,7 +278,16 @@ li.selected_vlan a {
     text-align: center;
 }
 .fix_options div input {
-    width: 50px;
+    width: 45%;
+}
+
+#pauseForce {
+    margin-top: 0.5em;
+}
+#pauseForce input {
+    margin-top: 0.5em;
+    text-align: center;
+    width: 100%;
 }
 
 #mapinfo {
