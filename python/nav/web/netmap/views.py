@@ -49,10 +49,16 @@ def index(request):
 
 def backbone_app(request):
     session_user = get_account(request)
+
+    link_to_admin = None
+    if AccountGroup.ADMIN_GROUP in session_user.get_groups():
+        link_to_admin = reverse('netmap-admin-views')
+
     response = render_to_response(
         'netmap/backbone.html',
         {
             'auth_id': session_user.id,
+            'link_to_admin': link_to_admin,
             'navpath': [('Home', '/'), ('Netmap', '/netmap')]
         },
         RequestContext(request))

@@ -46,7 +46,6 @@ define([
         },
         render: function () {
             var self = this;
-            var out = this.template();
 
             var netbox = null;
             var link = null;
@@ -59,6 +58,12 @@ define([
                 this.netboxInfoView.close();
             }
 
+            var out = null;
+            if ($("#netmap_link_to_admin").length !== 0) {
+                out = this.template({link_to_admin: $("#netmap_link_to_admin").html().trim()});
+            } else {
+                out = this.template({link_to_admin: false});
+            }
             this.$el.html(out);
 
             this.linkInfoView = new LinkInfoView({el: $("#linkinfo", this.$el)});
