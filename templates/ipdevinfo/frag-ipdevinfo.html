@@ -252,7 +252,7 @@
                         </thead>
 
                         <tbody>
-                        {% for job in jobs %}
+                        {% for job in jobs|dictsortreversed:'end_time' %}
                             <tr>
                                 <td>{{ job.job_name|capfirst }}</td>
                                 <td>{{ job.end_time|date:"DATETIME_FORMAT" }}</td>
