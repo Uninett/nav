@@ -15,8 +15,8 @@ define([
         var headerFooterPlugin = new PluginHeaderFooter();
 
         headerFooterPlugin.initialize({
-            'header': { el: $('#header'), hotkey: { altKey: false, ctrlKey: false, charCode: 102} },
-            'footer': { el: $('#footer'), hotkey: { altKey: false, ctrlKey: false, charCode: 102} }
+            'header': { el: $('#header'), hotkey: { altKey: false, ctrlKey: true, shiftKey: true, charCode: 6} },
+            'footer': { el: $('#footer'), hotkey: { altKey: false, ctrlKey: true, shiftKey: true, charCode: 6} }
         });
 
         //Backbone.emulateJSON = true;
