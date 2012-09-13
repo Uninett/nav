@@ -8,3 +8,4 @@ set normal:
 	/router-interfaces
 	/servers
 	/sensors
+	/ipv6-interfaces
