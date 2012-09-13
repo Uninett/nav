@@ -1,12 +1,14 @@
 define([
     'plugins/netmap-extras',
     'libs-amd/text!netmap/templates/navigation.html',
+    'netmap/collections/traffic_gradient',
+    'netmap/views/modal/traffic_gradient',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate) {
+], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
@@ -23,9 +25,11 @@ define([
             'click input[name="freezeNodes"]': 'onFreezeNodesClick',
             'click input[name="mouseOver[]"]': 'onUIMouseOverClick',
             'click input[name="topologyErrors"]': 'onUITopologyErrorsClick',
-            'click input[name="nodesFixed"]': 'onNodesFixedClick'
+            'click input[name="nodesFixed"]': 'onNodesFixedClick',
+            'click input[name="trafficGradient"]': 'onTrafficGradientClick'
         },
         initialize: function () {
+            this.gradientView = null;
             this.isContentVisible = true;
             this.broker.register(this);
 
@@ -235,6 +239,21 @@ define([
             } else if (val === 'UnFix') {
                 this.broker.trigger('map:fixNodes', false);
             }
+        },
+        onTrafficGradientClick: function (e) {
+            var self = this;
+            if (this.gradientView) {
+                this.gradientView.close();
+            }
+
+            var gradientModel = new TrafficGradientCollection();
+            gradientModel.fetch({
+                success: function (model) {
+                    self.gradientView = new TrafficGradientView({collection: model});
+                    self.gradientView.render();
+                }
+            });
+
         },
         on_keypress: function (e) {
             if (e.charCode === 110) { // n

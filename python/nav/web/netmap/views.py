@@ -467,7 +467,12 @@ def _json_layer3(view=None):
 
 
 def traffic_load_gradient(request):
-    response = HttpResponse(simplejson.dumps(traffic_gradient_map()))
+    traffic = traffic_gradient_map()
+    keys = ('r','g','b')
+
+    # again thar be dragons.
+    response = HttpResponse(
+        simplejson.dumps(([dict(zip(keys, traffic)) for traffic in traffic])))
     response['Content-Type'] = 'application/json; charset=utf-8'
     return response
 
