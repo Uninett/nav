@@ -333,6 +333,7 @@ define([
                 .append('svg:g')
                 .attr('id', 'boundingbox')
             ;
+            this.linkGroupMeta = this.svg.append("svg:g").attr("class", "linksmeta");
             this.selectedNodeGroup = this.svg.append("svg:g").attr("class", "selected_nodes");
             this.selectedLinkGroup = this.svg.append("svg:g").attr("class", "selected_links");
             this.linkGroup = this.svg.append("svg:g").attr("class", "links");
@@ -424,7 +425,6 @@ define([
                 if (linkErrors !== undefined && !self.ui.topologyErrors) {
                     linkErrors.exit().remove();
                 } else if (self.ui.topologyErrors) {
-                    var linkGroupMeta = svg.append("svg:g").attr("class", "linksmeta");
 
                     var linksWithErrors = self.modelJson.links.filter(function (d) {
                         if (d.data.tip_inspect_link) {
@@ -433,7 +433,7 @@ define([
                         return false;
                     });
 
-                    var linkErrors = linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
+                    var linkErrors = self.linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
                         return d.source.id + "-" + d.target.id;
                     });
 
