@@ -530,7 +530,7 @@ class ModuleSection(_Section):
     def form_class():
         return ModuleForm
 
-    def fetch_history(self):
+    def fetch_history(self, module_history=None):
         module_history = AlertHistory.objects.select_related(
             'netbox', 'device'
         ).filter(
@@ -551,7 +551,7 @@ class ModuleSection(_Section):
                 'module.up IN %s',
             ],
             params=[tuple(self.states)]
-        ).order_by('-start_time')
+        ).order_by('-start_time') if module_history is None else module_history
 
         history = []
         for module in module_history:
@@ -566,7 +566,7 @@ class ModuleSection(_Section):
                     reverse('ipdevinfo-module-details', args=[
                         module.netbox.sysname,
                         module.module_name
-                    ])
+                    ]) if module.module_name else None
                 ),
                 (module.start_time, None),
                 (module.downtime, None),

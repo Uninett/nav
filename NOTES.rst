@@ -69,6 +69,35 @@ Toolbar search
 
 The toolbar search now searches for more than IP devices. Try it!
 
+Files to remove
+---------------
+
+If any of the following files and directories are still in your installation
+after upgrading to NAV 3.12, they should be removed (installation prefix has
+been stripped from these file names).  If you installed and upgraded NAV using
+a packaging system, you should be able to safely ignore this section::
+
+  doc/getting-started.txt
+  doc/mailin/README
+  doc/radius/
+  etc/apache/subsystems/maintenance.conf
+  etc/apache/subsystems/messages.conf
+  etc/apache/subsystems/netmap.conf
+  lib/python/nav/ipdevpoll/plugins/lastupdated.py
+  lib/python/nav/web/maintenance/handler.py
+  lib/python/nav/web/messages/handler.py
+  lib/python/nav/web/netmap/datacollector.py
+  share/htdocs/js/DeviceBrowserTemplate.js
+  share/htdocs/js/devicehistory.js
+  share/htdocs/js/EditTemplate.js
+  share/htdocs/js/ipdevinfo.js
+  share/htdocs/js/jquery-1.4.4.min.js
+  share/htdocs/js/jquery-json-2.2.min.js
+  share/htdocs/js/quickselect.js
+  share/htdocs/js/seeddb.js
+  share/htdocs/js/seeddbTemplate.js
+  share/htdocs/netmap/
+
 
 NAV 3.11
 ========
