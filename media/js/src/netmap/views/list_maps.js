@@ -2,6 +2,7 @@ define([
     'plugins/netmap-extras',
     'netmap/models/map',
     'netmap/models/graph',
+    'netmap/models/default_map',
     'netmap/views/modal/save_new_map',
     'libs-amd/text!netmap/templates/list_maps.html',
     'libs/handlebars',
@@ -9,26 +10,33 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function ( NetmapExtras, MapModel, GraphModel, SaveDialogView, netmapTemplate) {
+], function ( NetmapExtras, MapModel, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
 
     var ListNetmapView = Backbone.View.extend({
         tagName: "div",
         id: "choose_netview",
 
         broker: Backbone.EventBroker,
+        interests: {
+            "map:topology_change": "deactiveAndShowSpinnerWhileLoading",
+            'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
+        },
         events: {
                 "click #save_view": "show_save_view",
                 "click #save_new_view": "new_show_save_view",
+                "click #delete_view": "delete_view",
+                "click #set_as_user_favorite": "set_favorite",
                 "change #dropdown_view_id": "changed_view",
                 'click #toggle_view' : 'toggleView'
         },
 
         initialize: function () {
             this.isContentVisible = true;
+            this.broker.register(this);
 
             this.template = Handlebars.compile(netmapTemplate);
 
-
+            this.isLoading = false;
             this.collection.bind("reset", this.render, this);
             this.collection.bind("change", this.render, this);
             this.collection.bind("destroy", this.close, this);
@@ -38,7 +46,7 @@ define([
         },
         updateCollection: function () {
             if (this.options.context_selected_map.map.attributes.viewid !== undefined) {
-                var map = this.collection.get(this.options.context_selected_map.map.attributes.viewid)
+                var map = this.collection.get(this.options.context_selected_map.map.attributes.viewid);
                 if (map === undefined) {
                     this.collection.add(this.options.context_selected_map.map);
                 }
@@ -60,21 +68,69 @@ define([
 
             self.modal_save_view.render();
         },
+        set_favorite: function (e) {
+            e.preventDefault();
+            var self = this;
+            var user_id = $("#netmap_userid").html();
+            var updateUserDefaultMap = new DefaultMapModel({ownerid: parseInt(user_id), viewid: self.options.context_selected_map.id});
+            updateUserDefaultMap.save(this.attributes, {
+                success: function (model) {
+                    self.options.context_user_default_view = model;
+                    self.render();
+                    alert("Set view as favorite!");
+                },
+                error: function () {
+                    alert("Error while setting favorite view");
+                }
+            });
+
+        },
         new_show_save_view: function () {
             var self = this;
-            var propertiesToKeep = {
-                is_public: self.options.context_selected_map.map.attributes.is_public,
-                topology:  self.options.context_selected_map.map.attributes.topology,
-                categories: self.options.context_selected_map.map.attributes.categories,
-                zoom: self.options.context_selected_map.map.attributes.zoom,
-                display_orphans: self.options.context_selected_map.map.attributes.display_orphans
-            };
-            self.options.context_selected_map.map.unbind("change");
-            self.options.context_selected_map.map = new MapModel();
-            self.options.context_selected_map.map.set(propertiesToKeep);
-            self.options.context_selected_map.map.bind("change", this.updateCollection, this);
+            if (!self.isLoading) {
+                var propertiesToKeep = {
+                    is_public: self.options.context_selected_map.map.attributes.is_public,
+                    topology:  self.options.context_selected_map.map.attributes.topology,
+                    categories: self.options.context_selected_map.map.attributes.categories,
+                    zoom: self.options.context_selected_map.map.attributes.zoom,
+                    display_orphans: self.options.context_selected_map.map.attributes.display_orphans
+                };
+                self.options.context_selected_map.map.unbind("change");
+                self.options.context_selected_map.map = new MapModel();
+                self.options.context_selected_map.map.set(propertiesToKeep);
+                self.options.context_selected_map.map.bind("change", this.updateCollection, this);
 
-            this.showSaveModal(self.context_selected_map);
+                this.showSaveModal(self.context_selected_map);
+            }
+        },
+        delete_view: function (e) {
+            e.preventDefault();
+            var self = this;
+            if (!self.isLoading) {
+                var selected_id = self.options.context_selected_map.map.id;
+                self.options.context_selected_map.map.destroy({
+                    success: function () {
+                        var propertiesToKeep = {
+                            is_public: self.options.context_selected_map.map.attributes.is_public,
+                            topology:  self.options.context_selected_map.map.attributes.topology,
+                            categories: self.options.context_selected_map.map.attributes.categories,
+                            zoom: self.options.context_selected_map.map.attributes.zoom,
+                            display_orphans: self.options.context_selected_map.map.attributes.display_orphans
+                        };
+                        self.options.context_selected_map.map.unbind("change");
+                        self.options.context_selected_map.map = new MapModel();
+                        self.options.context_selected_map.map.set(propertiesToKeep);
+                        self.options.context_selected_map.map.bind("change", this.updateCollection, this);
+                        self.options.context_selected_map.id = undefined;
+                        Backbone.history.navigate("");
+                        self.broker.trigger("map:context_selected_map", self.options.context_selected_map);
+                    },
+                    error: function () {
+                        alert("Failed to delete view");
+                    }
+                });
+            }
+
         },
         show_save_view: function (e) {
             e.preventDefault();
@@ -113,9 +169,17 @@ define([
                 self.loadMapFromContextId(self.selected_id);
             }
         },
+        deactiveAndShowSpinnerWhileLoading: function () {
+            var self = this;
+            self.isLoading = true;
+            this.$el.find("#set_as_user_favorite").attr('disabled', 'disabled');
+            this.$el.find("#save_view").attr('disabled', 'disabled');
+            this.$el.find("#dropdown_view_id").attr('disabled', 'disabled');
+            self.broker.trigger('map:loading:context_selected_map');
+        },
         loadMapFromContextId: function (map_id) {
             var self = this;
-            self.broker.trigger('map:loading:context_selected_map');
+            self.deactiveAndShowSpinnerWhileLoading();
 
             self.options.context_selected_map.map.unbind("change");
             self.options.context_selected_map.map = self.collection.get(map_id);
@@ -125,6 +189,7 @@ define([
                 success: function (model) {
                     self.options.context_selected_map.graph = model;
                     //self.render();
+                    self.isLoading = false;
                     self.broker.trigger('map:context_selected_map', self.options.context_selected_map);
                     //self.options.context_selected_map.trigger('reattach', self.options.context_selected_map);
                 }
@@ -137,6 +202,11 @@ define([
                     //self.render();
                 }
             })*/
+        },
+        headerFooterMinimizeRequest: function (options) {
+            if (options && options.name === 'header' && (options.isShowing !== this.isContentVisible)) {
+                this.toggleView();
+            }
         },
         toggleView: function (e) {
             this.isContentVisible = !this.isContentVisible;
@@ -174,6 +244,12 @@ define([
             context.maps = this.collection.toJSON();
 
             context.context_selected_map = this.options.context_selected_map.map.toJSON();
+            context.isNew = this.options.context_selected_map.map.isNew();
+            if (this.options.context_user_default_view && this.options.context_user_default_view.attributes.viewid === this.options.context_selected_map.map.attributes.viewid) {
+                context.isFavorite = this.options.context_user_default_view;
+            } else {
+                context.isFavorite = false;
+            }
 
             var out = this.template(context);
 
@@ -184,6 +260,7 @@ define([
             return this;
         },
         close:function () {
+            this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         },

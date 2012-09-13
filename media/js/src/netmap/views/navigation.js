@@ -1,30 +1,37 @@
 define([
     'plugins/netmap-extras',
     'libs-amd/text!netmap/templates/navigation.html',
+    'netmap/collections/traffic_gradient',
+    'netmap/views/modal/traffic_gradient',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-
-], function (NetmapHelpers, netmapTemplate) {
+], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
+        interests: {
+            'map:forceChangedStatus': 'updatefreezeNodes',
+            'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
+        },
         events: {
             'click #toggle_view':      'toggleView',
-            'click input[type=radio]': 'onRadioLayerClick',
+            'click input[name="topology[]"]': 'onTopologyClick',
             'click input[name="categories[]"]': 'onCheckboxLayerClick',
             'click input[name="filter_orphans"]': 'onFilterOrphansClick',
-            'click input[name="group_roomid"]': 'onGroupByRoomClick',
+            'click input[name="group_position[]"]': 'onGroupByPositionClick',
             'click input[name="freezeNodes"]': 'onFreezeNodesClick',
             'click input[name="mouseOver[]"]': 'onUIMouseOverClick',
             'click input[name="topologyErrors"]': 'onUITopologyErrorsClick',
-            'click input[name="nodesFixed"]': 'onNodesFixedClick'
+            'click input[name="nodesFixed"]': 'onNodesFixedClick',
+            'click input[name="trafficGradient"]': 'onTrafficGradientClick'
         },
         initialize: function () {
+            this.gradientView = null;
             this.isContentVisible = true;
-
+            this.broker.register(this);
 
             _.bindAll(this, 'on_keypress');
             $(document).bind('keypress', this.on_keypress);
@@ -81,7 +88,11 @@ define([
                     'ELINK': false
                 },
                 'specific_filters': {
-                    'groupby_room': false,
+                    'position': {
+                        'none':     false,
+                        'room':     false,
+                        'location': false
+                    },
                     'filter_orphans': false
                 },
                 'ui': {
@@ -96,6 +107,11 @@ define([
             };
 
 
+        },
+        updatefreezeNodes: function (status) {
+            // status is if force is running, so opposite of nodes is freezing.
+            this.context.ui.freezeNodes = !status;
+            this.render();
         },
         render: function () {
             var self = this;
@@ -117,15 +133,14 @@ define([
             this.context.specific_filters.filter_orphans = !this.model.attributes.display_orphans;
             this.context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
 
-            var out = this.template({ model: this.context});
+            var out = this.template({ model: this.context, isVisible: this.isContentVisible});
             this.$el.html(out);
-
 
             return this;
         },
         alignView: function () {
             var $helper = $(this.$el.parent());
-            var $helper_content = $(".inner_wrap.left_sidebar", this.$el);
+            var $helper_content = $(".inner_wrap.left_sidebar");
 
             var margin;
 
@@ -150,17 +165,21 @@ define([
             //$("#netmap_main_view").animate({'margin-left': "{0}px".format(margin)}, 400);
 
         },
+        headerFooterMinimizeRequest: function (options) {
+            if (options && options.name === 'header' && (options.isShowing !== this.isContentVisible)) {
+                this.toggleView();
+            }
+        },
         toggleView: function (e) {
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
             this.broker.trigger('map:resize:animate', {marginLeft: margin});
         },
-        onRadioLayerClick: function (e) {
+        onTopologyClick: function (e) {
             e.stopPropagation();
 
             this.model.set({topology: NetmapHelpers.topology_link_to_id($(e.currentTarget).val())});
             this.broker.trigger('map:topology_change', this.model.get('topology'));
-            //NetmapHelpers.topology_link_to_id($e.currentTarget).val());
         },
         onCheckboxLayerClick: function (e) {
             // jQuery<=1.6
@@ -185,15 +204,22 @@ define([
                 filter_orphans: $(e.currentTarget).prop('checked')
             });
         },
-        onGroupByRoomClick: function (e) {
-            this.context.specific_filters.groupby_room = $(e.currentTarget).prop('checked');
+        onGroupByPositionClick: function (e) {
+            e.stopPropagation();
+            var val = $(e.currentTarget).val().trim();
+
+            // haha…  here there be dragons. Cute shoulder dragons
+            this.context.specific_filters.position.location = false;
+            this.context.specific_filters.position.room = false;
+            this.context.specific_filters.position.none = false;
+            this.context.specific_filters.position[val] = true;
             this.broker.trigger('map:redraw', {
-                groupby_room: $(e.currentTarget).prop('checked')
+                groupby_position: val
             });
         },
         onFreezeNodesClick: function (e) {
-            this.context.ui.freezeNodes = $(e.currentTarget).prop('checked');
-            this.broker.trigger('map:freezeNodes', $(e.currentTarget).prop('checked'));
+            this.context.ui.freezeNodes = true;
+            this.broker.trigger('map:freezeNodes', true);
         },
         onUIMouseOverClick: function (e) {
             this.context.ui.mouseover[$(e.currentTarget).val()].state = $(e.currentTarget).prop('checked');
@@ -213,6 +239,21 @@ define([
             } else if (val === 'UnFix') {
                 this.broker.trigger('map:fixNodes', false);
             }
+        },
+        onTrafficGradientClick: function (e) {
+            var self = this;
+            if (this.gradientView) {
+                this.gradientView.close();
+            }
+
+            var gradientModel = new TrafficGradientCollection();
+            gradientModel.fetch({
+                success: function (model) {
+                    self.gradientView = new TrafficGradientView({collection: model});
+                    self.gradientView.render();
+                }
+            });
+
         },
         on_keypress: function (e) {
             if (e.charCode === 110) { // n

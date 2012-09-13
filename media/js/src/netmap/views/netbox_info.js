@@ -5,8 +5,8 @@ define([
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
-    'libs/backbone'
-
+    'libs/backbone',
+    'libs/backbone-eventbroker'
 ], function (NetmapHelpers, VlanInfoView, netmapTemplate) {
 
     var NetboxInfoView = Backbone.View.extend({

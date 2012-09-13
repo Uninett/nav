@@ -16,15 +16,19 @@
 
         <div id="netmap_main_view">
             <!-- <h2>{{ current_view.title }}</h2> -->
+            <div id="wrapper_chart">
 
-            <div id="chart"></div>
+            </div>
 
             <div id="netmapview_id" style="display:none">
                 {{ current_view.viewid }}
             </div>
             <div id="chart_header"></div>
             <div id="loading_chart"></div>
-
+            <div id="netmap_userid">{{ auth_id }}</div>
+            {% if link_to_admin %}
+                <div id="netmap_link_to_admin">{{link_to_admin}}</div>
+            {% endif %}
         </div>
         <div id="netmap_left_sidebar">
             <div id="searchbox"></div>

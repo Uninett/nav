@@ -19,7 +19,7 @@ import logging
 from django.core.urlresolvers import reverse
 from nav.models.manage import GwPortPrefix
 from nav.netmap import stubs
-from nav.web.netmapdev.common import get_status_image_link
+from nav.web.netmap.common import get_status_image_link
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -94,6 +94,8 @@ def _node_to_json(node, nx_metadata=None):
             'up': str(node.up),
             'up_image': get_status_image_link(node.up),
             'roomid': node.room.id,
+            'locationid': unicode(node.room.location.id),
+            'location': unicode(node.room.location.description),
             'room': unicode(node.room),
             'is_elink_node': False,
         }

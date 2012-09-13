@@ -1,5 +1,5 @@
-<a id="toggle_view" style="float: right;">&lt;&lt;</a>
-<div class="inner_wrap left_sidebar">
+<a id="toggle_view" style="float: right;">{{#if isVisible}}&lt;&lt;{{else}}&gt;&gt;{{/if}}</a>
+<div class="inner_wrap left_sidebar" {{#if isVisible}} {{else}} style="display: none"{{/if}}>
     {{#ifequal 1 model.viewid}}class="active"{{/ifequal}}
 
 
@@ -7,7 +7,7 @@
 
     {{#eachkeys model.link_types}}
         <div class="squaredTwo">
-            <input name="topology" type="radio" value="{{this.key}}" id="layer_{{this.key}}" {{#if this.value}} checked{{/if}} />
+            <input name="topology[]" type="radio" value="{{this.key}}" id="layer_{{this.key}}" {{#if this.value}} checked{{/if}} />
             <label for="layer_{{this.key}}">{{this.key}}</label>
         </div>
 
@@ -30,14 +30,33 @@
         <label for="filter_orphans">Filter orphans (single instance nodes)</label>
     </div>
 
-    <div class="squaredTwo">
-        <input type="checkbox" name="group_roomid" value="group_roomid" id="group_roomid" {{#if model.specific_filters.groupby_room}} checked{{/if}} />
-        <label for="group_roomid">Group rooms by color</label>
-    </div>
+    <h4>Mark by position</h4>
 
     <div class="squaredTwo">
-        <input type="checkbox" name="freezeNodes" value="freezeNodes" id="freezeNodes" {{#if model.ui.freezeNodes}} checked{{/if}} />
-        <label for="freezeNodes">Stop force algorithm?</label>
+        <input name="group_position[]" type="radio" value="none" id="position_none" {{#if model.specific_filters.position.none}} checked{{/if}} />
+        <label for="position_none">None</label>
+    </div>
+    <div class="squaredTwo">
+        <input name="group_position[]" type="radio" value="room" id="position_room" {{#if model.specific_filters.position.room}} checked{{/if}} />
+        <label for="position_room">Room</label>
+    </div>
+    <div class="squaredTwo">
+        <input name="group_position[]" type="radio" value="location" id="position_location" {{#if model.specific_filters.position.location}} checked{{/if}} />
+        <label for="position_location">Location</label>
+    </div>
+
+    <div class="squaredTwo" id="pauseForce">
+        <span>Pause force algorithm?</span>
+        <div style="float: right;">
+            {{#if model.ui.freezeNodes}}
+                <img src='/images/lys/red.png' alt='Force is NOT running' class='force_status'/>
+            {{else}}
+                <img src='/images/lys/green.png' alt='Force is running' class='force_status'/>
+            {{/if}}
+        </div>
+        <div class="center-content">
+            <input type="button" name="freezeNodes" value="Pause" id="freezeNodes"  />
+        </div>
     </div>
 
     <div class="fix_options">
@@ -50,7 +69,7 @@
 
     <h3>UI options</h3>
     <div class="squaredTwo">
-        <input type="checkbox" name="topologyErrors" value="topologyErrors" id="topologyErrors" {{#if topologyErrors}} checked{{/if}} />
+        <input type="checkbox" name="topologyErrors" value="topologyErrors" id="topologyErrors" {{#if model.ui.topology_errors}} checked{{/if}} />
         <label for="topologyErrors">Show topology errors</label>
     </div>
 
@@ -62,6 +81,12 @@
             <label for="mouseOver_{{this.key}}">{{this.key}} [{{this.value.hotkey}}]</label>
         </div>
     {{/eachkeys}}
+
+    <h4>Traffic gradient</h4>
+    <div class="squaredTwo">
+        <p>Click to show traffic gradient in a popup</p>
+        <input type="button" name="trafficGradient" value="Show gradient" id="trafficGradient" />
+    </div>
 
 </div>
 

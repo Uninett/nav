@@ -1,0 +1,11 @@
+<div class="modal fade hide" style="display:none;background: #c0c0c0;color: blue; width: 200px" id="modal_traffic_gradient">
+    <div class="modal-header">
+        <h3>Traffic gradient</h3>
+    </div>
+    <div class="modal-body">
+        {{#each collection}}
+            <div style="width: 30px; height: 3px; background-color: rgb({{{round r}}},{{{round g}}},{{{round b}}});">
+            </div>
+        {{/each}}
+    </div>
+</div>

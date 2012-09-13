@@ -12,10 +12,7 @@ body {
 
 /* Header styles */
 #header {
-    clear: both;
-    float: left;
-    /*width: 100%;*/
-    padding: 0 1em 0 1em;
+    margin: 0 1em 0 1em;
 }
 
 /* 'widths' sub menu */
@@ -112,6 +109,12 @@ body {
     float:right;
 }
 
+#delete_view {
+    float: right;
+    clear: right;
+    margin-top: 20px;
+}
+
 /*
 2012-07-31
 view-source:http://bluerobot.com/web/layouts/layout3.css
@@ -188,7 +191,55 @@ body>#netmap_infopanel {width:168px;}
     min-width: 300px;
 }
 
+/* Netmap Admin style */
+
+#netmap_admin {
+    margin: 1em;
+}
+
+div.netmapview_view {
+    clear: left;
+    margin: 2em;
+}
+.netmapview_view span {
+    float: left;
+}
+
+.netmapview_action form {
+    margin:  0;
+}
+
+td.current_favorite {
+    background: url(/images/netmap/emblem-favorite.png) no-repeat center left;
+    height: 33px;
+}
+td.current_favorite a {
+    padding-left: 33px;
+}
+
+div.isFavorite {
+    background: url(/images/netmap/emblem-favorite.png) no-repeat center right;
+    height: 33px;
+}
+div.isFavorite span.description {
+    padding-right: 33px;
+}
+
+
+
 /* D3JS Netmap style */
+
+#netmap_userid {
+    display: none;
+}
+
+div#netmap_link_to_admin {
+    display: none;
+}
+a#netmap_link_to_admin {
+    margin-top: 0.5em;
+    display: block;
+}
 
 #save_view_spinner {
     margin-left: 10px;
@@ -220,6 +271,17 @@ body>#netmap_infopanel {width:168px;}
 li.selected_vlan a {
     color: orange;
 }
+#toggle_view {
+    cursor: pointer;
+}
+
+#searchbox_search {
+     cursor: pointer;
+}
+
+#searchbox_query {
+    width: 100%;
+}
 
 /* Navigation styles */
 
@@ -234,7 +296,16 @@ li.selected_vlan a {
     text-align: center;
 }
 .fix_options div input {
-    width: 50px;
+    width: 45%;
+}
+
+#pauseForce {
+    margin-top: 0.5em;
+}
+#pauseForce input {
+    margin-top: 0.5em;
+    text-align: center;
+    width: 100%;
 }
 
 #mapinfo {
