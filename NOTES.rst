@@ -36,6 +36,13 @@ Dependency changes
 Cricket configuration
 ---------------------
 
+Your subtree-sets configuration for Cricket must be updated. This file is most
+likely placed in /etc/cricket/. Compare manually with or copy from
+`doc/cricket/cricket/subtree-sets`.
+
+Take note of `$(NAV)/etc/mcc.conf`. Module `interfaces` should be there instead
+of `routerinterfaces` and `switchports`.
+
 IPv6 statistics for router interfaces will now be collected. For this to work
 you need to copy some configuration templates to your `cricket-config`
 directory.  NB: Make sure the `dataDir` is the same as the original after
