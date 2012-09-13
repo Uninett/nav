@@ -48,7 +48,8 @@ define(['libs/jquery', 'libs/underscore', 'libs/backbone', 'libs/backbone-eventb
             onKeypress: function (e) {
                 if (e.charCode === this.options.hotkey.charCode &&
                     e.altKey === this.options.hotkey.altKey &&
-                    e.ctrlKey === this.options.hotkey.ctrlKey) {
+                    e.ctrlKey === this.options.hotkey.ctrlKey &&
+                    e.shiftKey === this.options.hotkey.shiftKey) {
 
                     this.toggle();
                 }
