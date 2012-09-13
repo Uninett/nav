@@ -223,8 +223,12 @@ td.current_favorite a {
     display: none;
 }
 
-#netmap_link_to_admin {
+div#netmap_link_to_admin {
     display: none;
+}
+a#netmap_link_to_admin {
+    margin-top: 0.5em;
+    display: block;
 }
 
 #save_view_spinner {
