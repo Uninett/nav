@@ -80,7 +80,8 @@ def build_netmap_layer2_graph(view=None):
     topology_without_metadata = vlan.build_layer2_graph(
         (
         'to_interface__netbox', 'to_interface__netbox__room', 'to_netbox__room',
-        'netbox__room',))
+        'netbox__room', 'to_interface__netbox__room__location',
+        'to_netbox__room__location', 'netbox__room__location'))
     _LOGGER.debug("build_netmap_layer2_graph() topology graph done")
 
     vlan_by_interface, vlan_by_netbox = _get_vlans_map_layer2(
@@ -122,7 +123,7 @@ def build_netmap_layer3_graph(view=None):
     """
     _LOGGER.debug("build_netmap_layer3_graph() start")
     topology_without_metadata = vlan.build_layer3_graph(
-        ('prefix__vlan__net_type', 'gwportprefix__prefix__vlan__net_type'))
+        ('prefix__vlan__net_type', 'gwportprefix__prefix__vlan__net_type',))
     _LOGGER.debug("build_netmap_layer3_graph() topology graph done")
 
     vlans_map = _get_vlans_map_layer3(topology_without_metadata)
