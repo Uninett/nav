@@ -18,6 +18,7 @@ define([
 
     var collection_maps;
     var context_selected_map = {};
+    var context_user_default_view;
     var spinner_map;
 
     var view_choose_map;
@@ -67,6 +68,21 @@ define([
             var self = this;
             this.loadingMap();
 
+            // check user's default view if he has any.
+
+
+            if (context_user_default_view === undefined) {
+                var user_id = $("#netmap_userid").html();
+                new DefaultMapModel({ownerid: parseInt(user_id)}).fetch({
+                    success: function (model) {
+                        context_user_default_view = model;
+                    },
+                    error: function () {
+                        context_user_default_view = null;
+                    }
+                });
+            }
+
             // is "colelction_maps" set?
 
             if (collection_maps === undefined) {
@@ -97,27 +113,20 @@ define([
             // todo add a map the administrator can set to be default view
             // for every page request not containing a map id
 
-            var user_id = $("#netmap_userid").html();
-            var defaultMap = new DefaultMapModel({ownerid: parseInt(user_id)});
-            defaultMap.fetch({
-                success: function (model, attributes) {
-                    Backbone.View.goTo("netmap/{0}".format(attributes.viewid));
-                },
-                error: function () {
-                    // User's default map not found, try global
-                    self.defaultMap = new DefaultMapModel();
-                    self.defaultMap.fetch({
-                        success: function (model, attributes) {
-                            Backbone.View.goTo("netmap/{0}".format(attributes.viewid));
-                        },
-                        error: function () {
-                            // global not found, just do a graph
-                            context_selected_map.map = new MapModel({topology: 1});
-                            self.loadUi();
-                        }
-                    });
-                }
-            });
+            if (context_user_default_view) {
+                Backbone.View.goTo("netmap/{0}".format(context_user_default_view.attributes.viewid));
+            } else {
+                new DefaultMapModel().fetch({
+                    success: function (model, attributes) {
+                        Backbone.View.goTo("netmap/{0}".format(attributes.viewid));
+                    },
+                    error: function () {
+                        // global not found, just do a graph
+                        context_selected_map.map = new MapModel({topology: 1});
+                        self.loadUi();
+                    }
+                });
+            }
         },
         loadMap: function (model) {
             var self = this;
@@ -131,7 +140,7 @@ define([
             /*if (view_choose_map !== undefined) {
                 view_choose_map.close(); //
             } else {*/
-            view_choose_map = new ListNetmapView({collection: collection_maps, context_selected_map: context_selected_map});
+            view_choose_map = new ListNetmapView({collection: collection_maps, context_selected_map: context_selected_map, context_user_default_view: context_user_default_view});
             //}
             self.loadGraph(forceLoad);
             self.loadNavigation();

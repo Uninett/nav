@@ -37,6 +37,6 @@
     </form>
     {{#if isNew}}
     {{else}}
-        <div class="description_selected_view"><span class="description">Description:</span><span class="value">{{#if context_selected_map.description}}{{context_selected_map.description}}{{else}}N/A{{/if}}</span></div>
+        <div class="description_selected_view {{#if isFavorite}}isFavorite{{/if}}"><span class="description">Description:</span><span class="value">{{#if context_selected_map.description}}{{context_selected_map.description}}{{else}}N/A{{/if}}</span></div>
     {{/if}}
 </div>

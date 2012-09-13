@@ -74,7 +74,9 @@ define([
             var user_id = $("#netmap_userid").html();
             var updateUserDefaultMap = new DefaultMapModel({ownerid: parseInt(user_id), viewid: self.options.context_selected_map.id});
             updateUserDefaultMap.save(this.attributes, {
-                success: function () {
+                success: function (model) {
+                    self.options.context_user_default_view = model;
+                    self.render();
                     alert("Set view as favorite!");
                 },
                 error: function () {
@@ -243,6 +245,11 @@ define([
 
             context.context_selected_map = this.options.context_selected_map.map.toJSON();
             context.isNew = this.options.context_selected_map.map.isNew();
+            if (this.options.context_user_default_view && this.options.context_user_default_view.attributes.viewid === this.options.context_selected_map.map.attributes.viewid) {
+                context.isFavorite = this.options.context_user_default_view;
+            } else {
+                context.isFavorite = false;
+            }
 
             var out = this.template(context);
 

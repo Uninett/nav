@@ -217,6 +217,16 @@ td.current_favorite a {
     padding-left: 33px;
 }
 
+div.isFavorite {
+    background: url(/images/netmap/emblem-favorite.png) no-repeat center right;
+    height: 33px;
+}
+div.isFavorite span.description {
+    padding-right: 33px;
+}
+
+
+
 /* D3JS Netmap style */
 
 #netmap_userid {
