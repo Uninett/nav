@@ -50,10 +50,10 @@ XVFB_STARTED=0
 until [ ${XVFB_STARTED} -eq 1 ] || (( ${XVFB_TRIES} > 10 )) ; do
     # Find random display number for Xvfb
     DISPLAYNUM=$((RANDOM%10+90))
-    ${XVFB} :${DISPLAYNUM} > /dev/null 2>/dev/null &
+    ${XVFB} :${DISPLAYNUM} -screen 0 1280x1024x16 > /dev/null 2>/dev/null &
     PID_XVFB="$!"
     sleep ${SLEEPTIME}
-    if jobs | grep XVFB; then
+    if kill -0 ${PID_XVFB}; then
         echo "Started on display ${DISPLAYNUM} with pid ${PID_XVFB}"
         XVFB_STARTED=1
     else
@@ -75,7 +75,7 @@ until [ ${BUSTER_STARTED} -eq 1 ] || (( ${BUSTER_TRIES} > 10 )) ; do
     ${BUSTERSERVER} -l error -p ${BUSTERPORT} &
     PID_BUSTER="$!"
     sleep ${SLEEPTIME}
-    if jobs | grep BUSTERSERVER; then
+    if kill -0 ${PID_BUSTER}; then
         echo "Started on port ${BUSTERPORT} with pid ${PID_BUSTER}"
         BUSTER_STARTED=1
     else
@@ -101,7 +101,10 @@ echo "Running tests"
 cd ${WORKSPACE}/media/js
 ${BUSTERTEST} -s http://localhost:${BUSTERPORT} -r xml > ${WORKSPACE}/tests/javascript-result.xml
 
-sleep ${SLEEPTIME}
+if [ "$?" -eq 1 ]; then
+    echo "Error when testing, taking screenshot"
+    import -window root ${WORKSPACE}/test-error.png
+fi
 
 echo "Cleaning up"
 kill ${PID_CHROME}
