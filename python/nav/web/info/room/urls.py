@@ -21,6 +21,7 @@ from nav.web.info.room.views import search, roominfo, render_netboxes
 
 urlpatterns = patterns('',
     url(r'^$', search, name='room-search'),
-    url(r'^(?P<roomid>[\w-]+)/$', roominfo, name='room-info'),
-    url(r'^(?P<roomid>[\w-]+)/netboxes/', render_netboxes, name='room-info-netboxes'),
+    url(r'^(?P<roomid>.+)/netboxes/', render_netboxes, name='room-info-netboxes'),
+    url(r'^(?P<roomid>.+)/$', roominfo, name='room-info'),
+
 )
