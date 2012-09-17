@@ -14,7 +14,8 @@ define([
         broker: Backbone.EventBroker,
         interests: {
             'map:forceChangedStatus': 'updatefreezeNodes',
-            'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
+            'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest',
+            'map:loading:done': 'eventLoadingDone'
         },
         events: {
             'click #toggle_view':      'toggleView',
@@ -103,14 +104,18 @@ define([
                     'topology_errors': false,
                     'freezeNodes': false
                 }
-
             };
+            this.isLoading = !!(this.options.isLoading);
 
 
         },
         updatefreezeNodes: function (status) {
             // status is if force is running, so opposite of nodes is freezing.
             this.context.ui.freezeNodes = !status;
+            this.render();
+        },
+        eventLoadingDone: function () {
+            this.isLoading = false;
             this.render();
         },
         render: function () {
@@ -133,7 +138,7 @@ define([
             this.context.specific_filters.filter_orphans = !this.model.attributes.display_orphans;
             this.context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
 
-            var out = this.template({ model: this.context, isVisible: this.isContentVisible});
+            var out = this.template({ model: this.context, isVisible: this.isContentVisible, isLoading: this.isLoading });
             this.$el.html(out);
 
             return this;
@@ -176,6 +181,7 @@ define([
             this.broker.trigger('map:resize:animate', {marginLeft: margin});
         },
         onTopologyClick: function (e) {
+            this.isLoading = true;
             e.stopPropagation();
 
             this.model.set({topology: NetmapHelpers.topology_link_to_id($(e.currentTarget).val())});

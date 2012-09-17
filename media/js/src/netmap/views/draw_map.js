@@ -1083,6 +1083,7 @@ define([
 
             self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
             draw(self.modelJson);
+            self.broker.trigger("map:loading:done");
 
             return this;
         },
