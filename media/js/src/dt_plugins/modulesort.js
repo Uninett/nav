@@ -4,6 +4,8 @@
  */
 define(['dt_plugins/natsort', 'libs/jquery.dataTables.min'], function (naturalSort) {
     function moduleSort(a, b) {
+        a = strip_tags(a);
+        b = strip_tags(b);
         if (bothAreStrings(a, b) && bothAreCiscoInterfaceNames(a, b)) {
             return naturalSort(
                 a.slice(a.search(/\d/)),
@@ -26,6 +28,10 @@ define(['dt_plugins/natsort', 'libs/jquery.dataTables.min'], function (naturalSo
         return typeof(a) === 'string' && typeof(b) === 'string';
     }
 
+    function strip_tags(input) {
+        return $('<div>' + input + '</div>').text();
+    }
+
     if (jQuery.fn.dataTableExt) {
         jQuery.extend(jQuery.fn.dataTableExt.oSort, {
             "module-asc": function (a, b) {
@@ -33,7 +39,7 @@ define(['dt_plugins/natsort', 'libs/jquery.dataTables.min'], function (naturalSo
             },
 
             "module-desc": function (a, b) {
-                return moduleSort(a, b) * -1;
+                return moduleSort(b, a);
             }
         });
     }
@@ -41,4 +47,3 @@ define(['dt_plugins/natsort', 'libs/jquery.dataTables.min'], function (naturalSo
     return moduleSort
 
 });
-
