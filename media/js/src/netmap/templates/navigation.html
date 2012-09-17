@@ -7,7 +7,7 @@
 
     {{#eachkeys model.link_types}}
         <div class="squaredTwo">
-            <input name="topology[]" type="radio" value="{{this.key}}" id="layer_{{this.key}}" {{#if this.value}} checked{{/if}} />
+            <input name="topology[]" type="radio" value="{{this.key}}" id="layer_{{this.key}}" {{#if this.value}} checked{{/if}} {{#if ../isLoading}}disabled='disabled'{{/if}} />
             <label for="layer_{{this.key}}">{{this.key}}</label>
         </div>
 
@@ -18,7 +18,7 @@
 
     {{#eachkeys model.categories}}
         <div class="squaredTwo">
-            <input type="checkbox" name="categories[]" value="{{this.key}}" id="category_{{this.key}}" {{#if this.value}} checked{{/if}} />
+            <input type="checkbox" name="categories[]" value="{{this.key}}" id="category_{{this.key}}" {{#if this.value}} checked{{/if}}  {{#if ../isLoading}}disabled='disabled'{{/if}} />
             <label for="category_{{this.key}}">{{this.key}}</label>
         </div>
     {{/eachkeys}}
@@ -26,22 +26,22 @@
     <h3>Filter options</h3>
 
     <div class="squaredTwo">
-        <input type="checkbox" name="filter_orphans" value="filter_orphans" id="filter_orphans" {{#if model.specific_filters.filter_orphans }} checked{{/if}} />
+        <input type="checkbox" name="filter_orphans" value="filter_orphans" id="filter_orphans" {{#if model.specific_filters.filter_orphans }} checked{{/if}}  {{#if isLoading}}disabled='disabled'{{/if}} />
         <label for="filter_orphans">Filter orphans (single instance nodes)</label>
     </div>
 
     <h4>Mark by position</h4>
 
     <div class="squaredTwo">
-        <input name="group_position[]" type="radio" value="none" id="position_none" {{#if model.specific_filters.position.none}} checked{{/if}} />
+        <input name="group_position[]" type="radio" value="none" id="position_none" {{#if model.specific_filters.position.none}} checked{{/if}}  {{#if isLoading}}disabled='disabled'{{/if}} />
         <label for="position_none">None</label>
     </div>
     <div class="squaredTwo">
-        <input name="group_position[]" type="radio" value="room" id="position_room" {{#if model.specific_filters.position.room}} checked{{/if}} />
+        <input name="group_position[]" type="radio" value="room" id="position_room" {{#if model.specific_filters.position.room}} checked{{/if}}  {{#if isLoading}}disabled='disabled'{{/if}} />
         <label for="position_room">Room</label>
     </div>
     <div class="squaredTwo">
-        <input name="group_position[]" type="radio" value="location" id="position_location" {{#if model.specific_filters.position.location}} checked{{/if}} />
+        <input name="group_position[]" type="radio" value="location" id="position_location" {{#if model.specific_filters.position.location}} checked{{/if}}  {{#if isLoading}}disabled='disabled'{{/if}} />
         <label for="position_location">Location</label>
     </div>
 
@@ -62,14 +62,14 @@
     <div class="fix_options">
         <span>Fix or unfix all nodes</span>
         <div class="squaredTwo">
-            <input type="button" name="nodesFixed" value="Fix" id="setNodesFixed" />
-            <input type="button" name="nodesFixed" value="UnFix" id="unsetNodesFixed" />
+            <input type="button" name="nodesFixed" value="Fix" id="setNodesFixed"  {{#if isLoading}}disabled='disabled'{{/if}} />
+            <input type="button" name="nodesFixed" value="UnFix" id="unsetNodesFixed"  {{#if isLoading}}disabled='disabled'{{/if}} />
         </div>
     </div>
 
     <h3>UI options</h3>
     <div class="squaredTwo">
-        <input type="checkbox" name="topologyErrors" value="topologyErrors" id="topologyErrors" {{#if model.ui.topology_errors}} checked{{/if}} />
+        <input type="checkbox" name="topologyErrors" value="topologyErrors" id="topologyErrors" {{#if model.ui.topology_errors}} checked{{/if}}  {{#if isLoading}}disabled='disabled'{{/if}} />
         <label for="topologyErrors">Show topology errors</label>
     </div>
 
@@ -77,7 +77,7 @@
     <p>Enable &quot;auto clicking&quot; when hovering a node or a link</p>
     {{#eachkeys model.ui.mouseover}}
         <div class="squaredTwo">
-            <input type="checkbox" name="mouseOver[]" value="{{this.key}}" id="mouseOver_{{this.key}}" {{#if this.value.state}} checked{{/if}} />
+            <input type="checkbox" name="mouseOver[]" value="{{this.key}}" id="mouseOver_{{this.key}}" {{#if this.value.state}} checked{{/if}}   {{#if ../isLoading}}disabled='disabled'{{/if}}/>
             <label for="mouseOver_{{this.key}}">{{this.key}} [{{this.value.hotkey}}]</label>
         </div>
     {{/eachkeys}}
