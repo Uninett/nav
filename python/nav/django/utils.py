@@ -18,10 +18,23 @@
 """Utility methods for django used in NAV"""
 
 from copy import copy
+import django
 from django.http import HttpResponseForbidden
 from django.db.models.fields import FieldDoesNotExist
 
 from nav.models.profiles import Account, AccountGroup
+
+def get_request_body(request):
+    """ Function for retrieving the request body
+    https://docs.djangoproject.com/en/dev/ref/request-response/#django.http.HttpRequest.body
+
+    :param request: request
+    :return: request body
+    """
+    if django.VERSION >= (1, 4):
+        return request.body
+    else:
+        return request.raw_post_data
 
 def get_account(request):
     """Tries to fetch account from request object. If it's not found we look it

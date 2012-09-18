@@ -28,7 +28,7 @@ from django.http import HttpResponse, HttpResponseForbidden,\
 from django.utils import simplejson
 
 import networkx as nx
-from nav.django.utils import get_account
+from nav.django.utils import get_account, get_request_body
 from nav.models.manage import Netbox, Category
 from nav.models.profiles import NetmapView, NetmapViewNodePosition,\
     NetmapViewCategories, NetmapViewDefaultView, Account, AccountGroup
@@ -118,9 +118,7 @@ def netmap_defaultview(request):
                 map_id = form.cleaned_data['map_id']
 
             if not map_id:
-                # request.POST['model']
-                # change to request.body when swapping to django >=1.4
-                data = simplejson.loads(request.raw_post_data)
+                data = simplejson.loads(get_request_body(request))
                 map_id = data['viewid']
         except KeyError:
             return HttpResponseBadRequest("Malformed data! (1)")
@@ -149,9 +147,7 @@ def netmap_defaultview_global(request):
                 map_id = form.cleaned_data['map_id']
 
             if not map_id:
-                # request.POST['model']
-                # change to request.body when swapping to django >=1.4
-                data = simplejson.loads(request.raw_post_data)
+                data = simplejson.loads(get_request_body(request))
                 map_id = data['viewid']
         except KeyError:
             return HttpResponseBadRequest("Malformed data! (1)")
@@ -277,9 +273,7 @@ def update_map(request, map_id):
         # todo: change to request.PUT when swapping to mod_wsgi!
 
         try:
-            # request.POST['model']
-            # change to request.body when swapping to django >=1.4
-            data = simplejson.loads(request.raw_post_data)
+            data = simplejson.loads(get_request_body(request))
         except KeyError:
             return HttpResponseBadRequest("Malformed data!")
 
@@ -323,7 +317,7 @@ def create_map(request):
     session_user = get_account(request)
 
     try:
-        data = simplejson.loads(request.raw_post_data)
+        data = simplejson.loads(get_request_body(request))
     except KeyError:
         return HttpResponseBadRequest("Malformed data")
 
