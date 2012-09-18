@@ -53,7 +53,7 @@ The following python modules are required:
  * :mod:`pysnmp-se`
  * :mod:`pyrad`
  * :mod:`rrd` (from the rrdtool distribution)
- * :mod:`simplejson`
+ * :mod:`simplejson` >= 2.0.6
  * :mod:`twisted` >= 8.1
  * :mod:`twistedsnmp` >= 0.3 | :mod:`pynetsnmp`
 
