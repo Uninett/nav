@@ -26,7 +26,6 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseForbidden,\
     HttpResponseBadRequest, HttpResponseRedirect
 from django.utils import simplejson
-from simplejson.decoder import JSONDecodeError
 
 import networkx as nx
 from nav.django.utils import get_account
@@ -125,7 +124,7 @@ def netmap_defaultview(request):
                 map_id = data['viewid']
         except KeyError:
             return HttpResponseBadRequest("Malformed data! (1)")
-        except JSONDecodeError:
+        except ValueError:
             return HttpResponseBadRequest("Malformed data! (2)")
         if not map_id:
             return HttpResponseBadRequest("Malformed data! (3)")
@@ -156,7 +155,7 @@ def netmap_defaultview_global(request):
                 map_id = data['viewid']
         except KeyError:
             return HttpResponseBadRequest("Malformed data! (1)")
-        except JSONDecodeError:
+        except ValueError:
             return HttpResponseBadRequest("Malformed data! (2)")
         if not map_id:
             return HttpResponseBadRequest("Malformed data! (3)")
