@@ -38,7 +38,7 @@ urlpatterns = patterns('',
         name='ipdevinfo-service-matrix'),
 
     # IP Device details
-    url(r'^(?P<name>[\w\d\.-]+)/$', ipdev_details,
+    url(r'^(?P<name>[^/]+)/$', ipdev_details,
         name='ipdevinfo-details-by-name'),
     url(r'^ip=(?P<addr>[a-f\d\.:]+)/$', ipdev_details,
         name='ipdevinfo-details-by-addr'),
