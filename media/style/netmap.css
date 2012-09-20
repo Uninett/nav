@@ -312,6 +312,11 @@ li.selected_vlan a {
     margin-top: 2em;
 }
 
+#netmap_wrapper .float-right {
+    float: right;
+    padding: 0;;
+}
+
 /* Node info styles */
 
 .netmap_node_status {
