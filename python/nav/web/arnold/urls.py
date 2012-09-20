@@ -15,11 +15,12 @@
 #
 
 from django.conf.urls.defaults import patterns, include, url
-from nav.web.arnold.views import index, render_history, render_detained_ports
+from nav.web.arnold.views import *
 
 urlpatterns = patterns('',
    url(r'^$', index, name="arnold_index"),
    url(r'^history/$', render_history, name="arnold-history"),
    url(r'^detainedports/$', render_detained_ports, name="arnold-detainedports"),
+   url(r'^search/$', render_search, name="arnold-search"),
 )
 
