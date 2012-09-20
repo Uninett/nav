@@ -220,6 +220,7 @@ define([
         onFreezeNodesClick: function (e) {
             this.context.ui.freezeNodes = true;
             this.broker.trigger('map:freezeNodes', true);
+            this.render();
         },
         onUIMouseOverClick: function (e) {
             this.context.ui.mouseover[$(e.currentTarget).val()].state = $(e.currentTarget).prop('checked');
