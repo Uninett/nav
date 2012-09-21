@@ -99,7 +99,6 @@ define([
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
 
-            this.force.on("tick");
         },
         hasForceChanged: function () {
             var isRunning;
