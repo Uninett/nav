@@ -26,9 +26,14 @@ class SshChecker(AbstractChecker):
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "ssh", service, port=22, **kwargs)
     def execute(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        (s_hostname,s_port)=self.getAddress()
+        addrinfolist = socket.getaddrinfo(s_hostname,s_port,0,0,socket.IPPROTO_TCP,0)
+        for hostsel in addrinfolist:
+               (s_family,s_socktype,s_proto,s_canonname,s_sockaddr) = hostsel
+               if s_family in [socket.AF_INET,socket.AF_INET6]: break
+        s = socket.socket(s_family, socket.SOCK_STREAM)
         s.settimeout(self.getTimeout())
-        s.connect(self.getAddress())
+        s.connect(s_sockaddr)
         f = s.makefile('r+')
         version = f.readline().strip()
         try:
