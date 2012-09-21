@@ -1067,7 +1067,6 @@ define([
         },
         close:function () {
             this.force.stop();
-            this.stopForceRunningTimer();
             context_selected_map = undefined;
             this.broker.unregister(this);
             $(window).off("resize.app");
