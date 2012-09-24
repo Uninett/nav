@@ -10,7 +10,7 @@ define([
 
     var modalSaveNew = Backbone.View.extend({
         events: {
-            "click #save_new_view": "save_view",
+            "click #modal_save_view_button": "save_view",
             "submit": function () { return false; }
         },
         initialize: function () {

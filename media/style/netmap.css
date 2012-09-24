@@ -568,3 +568,7 @@ div#pop-img {
 #modal_new_view input[type=checkbox] {
     margin-left: 0.5em;
 }
+
+#modal_save_view_button {
+    float: right;
+}
