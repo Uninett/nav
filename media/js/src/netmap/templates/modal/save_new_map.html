@@ -1,64 +1,70 @@
-<div class="modal fade hide" style="display:none;background: #c0c0c0;color: blue;" id="modal_new_view">
+<div class="modal fade hide" id="modal_new_view">
     <div class="modal-header">
-        <h3>Save new view as</h3>
+        <h3>
+            {{#if is_new}}
+            Save new view
+            {{else}}
+            Update view
+            {{/if}}
+        </h3>
     </div>
     <div class="modal-body">
-        {{#if is_new}}
-            <form class="form-horizontal" action="#/netmap">
-        {{else}}
-            <form class="form-horizontal" action="#/netmap/{{model.viewid}}">
-        {{/if}}
+        <form class="form-horizontal">
             <fieldset>
                 <div class="control-group">
-                    <label class="control-label"
-                           for="new_view_title">Title</label>
+                    <label class="control-label" for="new_view_title">
+                        Title
+                        <img src="/images/helpers/question.png"
+                             class="help"
+                             title="The name of view"
+                             alt="The name of view" />
+                    </label>
 
                     <div class="controls">
-                        <input type="text" class="input"
-                               id="new_view_title" value="{{model.title}}" />
-
-                        <p class="help-block">Title shown in
-                            dropdown list</p>
+                        <input type="text" class="input" id="new_view_title" value="{{model.title}}" />
                     </div>
                 </div>
+
                 <div class="control-group">
-                    <label class="control-label"
-                           for="new_view_description">Description</label>
+                    <label class="control-label" for="new_view_description">
+                        Description
+                        <img src="/images/helpers/question.png"
+                             class="help"
+                             title="The description of the view"
+                             alt="The description of the view" />
+                    </label>
 
                     <div class="controls">
                         <textarea class="input-xlarge" id="new_view_description" rows="5">{{model.description}}</textarea>
-
-                        <p class="help-block">Shows in sidebar after you
-                            have selected
-                            the view</p>
                     </div>
                 </div>
-                <div class="control-group">
-                    <label class="control-label"
-                           for="new_view_is_public">Is public?</label>
 
-                    <div class="controls">
-                        <input type="checkbox" class="checkbox"
+                <div class="control-group choice_public">
+                    <label class="control-label" for="new_view_is_public">
+                        Public
+                        <img src="/images/helpers/question.png"
+                             class="help"
+                             title="A public view is available for everyone"
+                             alt="A public view is available for everyone" />
+                    </label>
+
+                        <input id="new_view_is_public" type="checkbox" class="checkbox"
                                {{#if model.is_public}}
                                checked
                                {{/if}}
-                               id="new_view_is_public"/>
-                        <p class="help-block">Makes view available for
-                            everyone</p>
-                    </div>
+                        />
                 </div>
 
             </fieldset>
         </form>
     </div>
     <div class="modal-footer">
-        {{#if is_new}}
-            <a id="save_new_view" href="#/netmap" class="btn btn-primary">Save
-            changes</a>
-        {{else}}
-            <a id="save_new_view" href="#/netmap/{{model.viewid}}" class="btn btn-primary">Save
-            changes</a>
-        {{/if}}
-
+        <button class="btn btn-primary" id="save_new_view">
+            {{#if is_new}}
+            Save
+            {{else}}
+            Update
+            {{/if}}
+        </button>
     </div>
 </div>

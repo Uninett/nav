@@ -10,7 +10,8 @@ define([
 
     var modalSaveNew = Backbone.View.extend({
         events: {
-            "click #save_new_view": "save_view"
+            "click #save_new_view": "save_view",
+            "submit": function () { return false; }
         },
         initialize: function () {
             this.template_post = Handlebars.compile(template);
@@ -21,8 +22,6 @@ define([
 
             this.el = $(this.template_post({'model': this.model.toJSON(), 'is_new': this.model.isNew()})).dialog({autoOpen: false});
             this.$el = $(this.el);
-
-            if (this.graph === undefined) {  debugger }
 
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
