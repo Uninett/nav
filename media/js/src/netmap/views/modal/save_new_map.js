@@ -19,6 +19,7 @@ define([
             // Parent list view collection of models
             this.model_collection = this.options.model_collection;
             this.graph = this.options.graph;
+            this.model.set({'isNewView': this.options.isNewView});
 
             this.el = $(this.template_post({'model': this.model.toJSON(), 'is_new': this.model.isNew()})).dialog({autoOpen: false});
             this.$el = $(this.el);
