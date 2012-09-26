@@ -10,7 +10,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function ( NetmapExtras, MapModel, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
+], function (NetmapExtras, MapModel, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
 
     var ListNetmapView = Backbone.View.extend({
         tagName: "div",
@@ -22,12 +22,12 @@ define([
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
         },
         events: {
-                "click #save_view": "show_save_view",
-                "click #save_new_view": "new_show_save_view",
-                "click #delete_view": "delete_view",
-                "click #set_as_user_favorite": "set_favorite",
-                "change #dropdown_view_id": "changed_view",
-                'click #toggle_view' : 'toggleView'
+            "click #save_view": "show_save_view",
+            "click #save_new_view": "new_show_save_view",
+            "click #delete_view": "delete_view",
+            "click #set_as_user_favorite": "set_favorite",
+            "change #dropdown_view_id": "changed_view",
+            'click #toggle_view': 'toggleView'
         },
 
         initialize: function () {
@@ -53,18 +53,23 @@ define([
             }
             this.render();
         },
-        showSaveModal:     function (netmapModel) {
+        showCreateNewViewDialog: function () {
+            this.showSaveModal(true);
+        },
+        showUpdateViewDialog: function () {
+            this.showSaveModal(false);
+        },
+        showSaveModal: function (isNewView) {
             var self = this;
             if (self.modal_save_view !== undefined) {
                 self.modal_save_view.close();
             }
-            if (this.options.context_selected_map === undefined) {
-                debugger;
-            }
 
-            self.modal_save_view = new SaveDialogView({model: self.options.context_selected_map.map, 'graph': self.options.context_selected_map.graph});
-
-
+            self.modal_save_view = new SaveDialogView({
+                model: self.options.context_selected_map.map,
+                'graph': self.options.context_selected_map.graph,
+                'isNewView': isNewView
+            });
 
             self.modal_save_view.render();
         },
@@ -100,7 +105,7 @@ define([
                 self.options.context_selected_map.map.set(propertiesToKeep);
                 self.options.context_selected_map.map.bind("change", this.updateCollection, this);
 
-                this.showSaveModal(self.context_selected_map);
+                this.showCreateNewViewDialog();
             }
         },
         delete_view: function (e) {
@@ -136,7 +141,7 @@ define([
             e.preventDefault();
             var self = this;
             var selected_id = this.$("#dropdown_view_id :selected").val();
-            this.showSaveModal(self.context_selected_map);
+            this.showUpdateViewDialog();
         },
         changed_view: function () {
             var self = this;

@@ -31,8 +31,42 @@ require([
             assert.equals(l.sort(modulesort), ['ge-0/1/2', 'ge-1/1/0','ge-3/0/0']);
         },
         "should sort correctly on triple modules": function() {
-            var l = ['Gi2/5/3', 'Gi2/2/4', 'Te1/3/8', 'Te1/2/2', 'Gi1/1/1'];
-            assert.equals(l.sort(modulesort), ['Gi1/1/1', 'Te1/2/2', 'Te1/3/8', 'Gi2/2/4', 'Gi2/5/3']);
+            var l = ['Gi2/5/38', 'Gi2/2/44', 'Te1/3/8', 'Te1/2/2', 'Gi1/1/1'];
+            assert.equals(l.sort(modulesort), ['Gi1/1/1', 'Te1/2/2', 'Te1/3/8', 'Gi2/2/44', 'Gi2/5/38']);
+        },
+        "should sort correctly on mixed modules": function() {
+            var l = ['ge-0/0/0', 'em0', 'fxp0', 'bcm0', 'ge-1/0/9', 'ge-0/3/0'];
+            assert.equals(l.sort(modulesort), ['bcm0', 'em0', 'fxp0', 'ge-0/0/0', 'ge-0/3/0', 'ge-1/0/9']);
+        },
+        "should sort correctly on input with spaces": function() {
+            var l = ['ge-0/0/0', 'em0', '  fxp0 ', ' bcm0', 'ge-1/0/9   ', '    ge-0/3/0'];
+            var j = [];
+            var sorted = l.sort(modulesort);
+            for (var i=0; i<sorted.length; i++) {
+                j.push($.trim(sorted[i]));
+            }
+
+            assert.equals(j, ['bcm0', 'em0', 'fxp0', 'ge-0/0/0', 'ge-0/3/0', 'ge-1/0/9']);
+        },
+        "should sort correctly on input inside links": function() {
+            var l = [
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=337/"> ge-0/2/0 </a>',
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=395/"> ge-0/0/0 </a>',
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=383/"> em0 </a>',
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=367/"> fxp0 </a>',
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=355/"> bcm0 </a>',
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=361/"> ge-1/1/0 </a>'
+                ]
+            var j = [
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=355/"> bcm0 </a>',
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=383/"> em0 </a>',
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=367/"> fxp0 </a>',
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=395/"> ge-0/0/0 </a>',
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=337/"> ge-0/2/0 </a>',
+                '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=361/"> ge-1/1/0 </a>'
+                ]
+
+            assert.equals(l.sort(modulesort), j);
         }
     });
 });

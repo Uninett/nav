@@ -3,17 +3,17 @@ define([
     'libs-amd/text!netmap/templates/navigation.html',
     'netmap/collections/traffic_gradient',
     'netmap/views/modal/traffic_gradient',
+    'netmap/views/algorithm_toggler',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView) {
+], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, AlgorithmView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
-        interests: {
-            'map:forceChangedStatus': 'updatefreezeNodes',
+        interests: {    
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest',
             'map:loading:done': 'eventLoadingDone'
         },
@@ -23,7 +23,6 @@ define([
             'click input[name="categories[]"]': 'onCheckboxLayerClick',
             'click input[name="filter_orphans"]': 'onFilterOrphansClick',
             'click input[name="group_position[]"]': 'onGroupByPositionClick',
-            'click input[name="freezeNodes"]': 'onFreezeNodesClick',
             'click input[name="mouseOver[]"]': 'onUIMouseOverClick',
             'click input[name="topologyErrors"]': 'onUITopologyErrorsClick',
             'click input[name="nodesFixed"]': 'onNodesFixedClick',
@@ -109,11 +108,6 @@ define([
 
 
         },
-        updatefreezeNodes: function (status) {
-            // status is if force is running, so opposite of nodes is freezing.
-            this.context.ui.freezeNodes = !status;
-            this.render();
-        },
         eventLoadingDone: function () {
             this.isLoading = false;
             this.render();
@@ -140,6 +134,8 @@ define([
 
             var out = this.template({ model: this.context, isVisible: this.isContentVisible, isLoading: this.isLoading });
             this.$el.html(out);
+
+            new AlgorithmView({el: $('#algorithm_view', this.$el)}).render();
 
             return this;
         },
@@ -222,10 +218,6 @@ define([
             this.broker.trigger('map:redraw', {
                 groupby_position: val
             });
-        },
-        onFreezeNodesClick: function (e) {
-            this.context.ui.freezeNodes = true;
-            this.broker.trigger('map:freezeNodes', true);
         },
         onUIMouseOverClick: function (e) {
             this.context.ui.mouseover[$(e.currentTarget).val()].state = $(e.currentTarget).prop('checked');

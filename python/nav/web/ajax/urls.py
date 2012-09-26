@@ -32,6 +32,6 @@ from nav.web.ajax.views import get_rooms_with_position
 urlpatterns = patterns('',
    url(r'^open/roommapper/rooms/$', get_rooms_with_position,
        name='room-positions'),
-   url(r'^open/roommapper/rooms/(?P<roomid>[\w-]+)/$', get_rooms_with_position,
+   url(r'^open/roommapper/rooms/(?P<roomid>.+)/$', get_rooms_with_position,
        name='room-position'),
 )

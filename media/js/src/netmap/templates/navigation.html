@@ -45,19 +45,7 @@
         <label for="position_location">Location</label>
     </div>
 
-    <div class="squaredTwo" id="pauseForce">
-        <span>Pause force algorithm?</span>
-        <div style="float: right;">
-            {{#if model.ui.freezeNodes}}
-                <img src='/images/lys/red.png' alt='Force is NOT running' class='force_status'/>
-            {{else}}
-                <img src='/images/lys/green.png' alt='Force is running' class='force_status'/>
-            {{/if}}
-        </div>
-        <div class="center-content">
-            <input type="button" name="freezeNodes" value="Pause" id="freezeNodes"  />
-        </div>
-    </div>
+    <div id="algorithm_view"></div>
 
     <div class="fix_options">
         <span>Fix or unfix all nodes</span>
@@ -73,8 +61,8 @@
         <label for="topologyErrors">Show topology errors</label>
     </div>
 
-    <h4>Mouseover</h4>
-    <p>Enable &quot;auto clicking&quot; when hovering a node or a link</p>
+    <h4>Mouseover <img class="float-right" title="Enable &quot;auto clicking&quot; when hovering a node or a link" src="/images/helpers/question.png" /></h4>
+
     {{#eachkeys model.ui.mouseover}}
         <div class="squaredTwo">
             <input type="checkbox" name="mouseOver[]" value="{{this.key}}" id="mouseOver_{{this.key}}" {{#if this.value.state}} checked{{/if}}   {{#if ../isLoading}}disabled='disabled'{{/if}}/>

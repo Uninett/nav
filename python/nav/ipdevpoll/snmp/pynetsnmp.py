@@ -49,7 +49,7 @@ class AgentProxy(common.AgentProxyMixIn, twistedsnmp.AgentProxy):
         def getTable(self, *args, **kwargs):
             if 'limit' not in kwargs:
                 kwargs['limit'] = sys.maxint
-            return super(AgentProxy, self).getTable(self, *args, **kwargs)
+            return super(AgentProxy, self).getTable(*args, **kwargs)
 
     def open(self):
         try:
