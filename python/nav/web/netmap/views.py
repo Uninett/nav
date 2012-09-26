@@ -35,7 +35,7 @@ from nav.models.profiles import NetmapView, NetmapViewNodePosition,\
 from nav.netmap.topology import build_netmap_layer3_graph,\
     build_netmap_layer2_graph
 from nav.topology.d3_js.d3_js import d3_json_layer2, d3_json_layer3
-from nav.web.netmap.common import traffic_gradient_map, layer2_graph
+from nav.web.netmap.common import layer2_graph, get_traffic_rgb
 from nav.web.netmap.forms import NetmapDefaultViewForm
 
 _LOGGER = logging.getLogger('nav.web.netmap')
@@ -466,12 +466,11 @@ def _json_layer3(view=None):
 
 
 def traffic_load_gradient(request):
-    traffic = traffic_gradient_map()
     keys = ('r','g','b')
 
     # again thar be dragons.
     response = HttpResponse(
-        simplejson.dumps(([dict(zip(keys, traffic)) for traffic in traffic])))
+        simplejson.dumps(([dict(zip(keys, get_traffic_rgb(percent))) for percent in range(0, 101)])))
     response['Content-Type'] = 'application/json; charset=utf-8'
     return response
 
