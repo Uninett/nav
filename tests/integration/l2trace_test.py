@@ -3,7 +3,7 @@ import datetime
 from nav.models.manage import Netbox, Device, Room, Category, Organization
 from nav.models.manage import NetType, Vlan, Prefix, Interface, SwPortVlan
 from nav.models.manage import Arp, Cam, GwPortPrefix
-from minimock import Mock, restore
+from mock import patch
 
 from nav.web import l2trace
 from nav.tests.cases import DjangoTransactionTestCase
@@ -15,10 +15,12 @@ class L2TraceTestCase(DjangoTransactionTestCase):
         super(L2TraceTestCase, self).setUp()
         # Mock the DNS lookup methods; none of the test addresses will
         # resolve, they will just cause the tests to take a long time
-        l2trace.Host.get_host_by_name = Mock('l2trace.Host.get_host_by_name')
-        l2trace.Host.get_host_by_name.mock_returns = None
-        l2trace.Host.get_host_by_addr = Mock('l2trace.Host.get_host_by_addr')
-        l2trace.Host.get_host_by_addr.mock_returns = None
+        self.get_host_by_name = patch('l2trace.Host.get_host_by_name',
+                                      return_value=None)
+        self.get_host_by_addr = patch('l2trace.Host.get_host_by_addr',
+                                      return_value = None)
+        self.get_host_by_name.start()
+        self.get_host_by_addr.start()
 
         self.foo_sw1 = Netbox.objects.get(sysname='foo-sw1.example.org')
         self.foo_gw = Netbox.objects.get(sysname='foo-gw.example.org')
@@ -26,7 +28,8 @@ class L2TraceTestCase(DjangoTransactionTestCase):
         self.admin_vlan = Vlan.objects.get(net_ident='adminvlan')
 
     def tearDown(self):
-        restore()
+        self.get_host_by_name.stop()
+        self.get_host_by_addr.stop()
 
 class GetVlanFromThingsTest(L2TraceTestCase):
     def test_arbitrary_ip_is_on_vlan_10(self):
