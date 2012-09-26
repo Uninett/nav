@@ -15,9 +15,9 @@ class L2TraceTestCase(DjangoTransactionTestCase):
         super(L2TraceTestCase, self).setUp()
         # Mock the DNS lookup methods; none of the test addresses will
         # resolve, they will just cause the tests to take a long time
-        self.get_host_by_name = patch('l2trace.Host.get_host_by_name',
+        self.get_host_by_name = patch('nav.web.l2trace.Host.get_host_by_name',
                                       return_value=None)
-        self.get_host_by_addr = patch('l2trace.Host.get_host_by_addr',
+        self.get_host_by_addr = patch('nav.web.l2trace.Host.get_host_by_addr',
                                       return_value = None)
         self.get_host_by_name.start()
         self.get_host_by_addr.start()
