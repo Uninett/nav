@@ -167,7 +167,7 @@ class AlertSubscriptionForm(forms.ModelForm):
                 Q(owner__isnull=True) |
                 Q(owner__exact=account)).order_by('owner', 'name')
 
-            address_choices = [(a.id, a.address) for a in addresses]
+            address_choices = [(a.id, unicode(a)) for a in addresses]
             filter_group_choices = [(f.id, f.name) for f in filter_groups]
 
             self.fields['alert_address'] = forms.ChoiceField(

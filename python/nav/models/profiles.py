@@ -305,7 +305,7 @@ class AlertAddress(models.Model):
         db_table = u'alertaddress'
 
     def __unicode__(self):
-        return '%s by %s' % (self.address, self.type.name)
+        return self.type.scheme() + self.address
 
     @transaction.commit_manually
     def send(self, alert, subscription, dispatcher={}):
@@ -387,6 +387,16 @@ class AlertSender(models.Model):
     _blacklist = {}
     _handlers = {}
 
+    JABBER = u'Jabber'
+    EMAIL = u'Email'
+    SMS = u'SMS'
+
+    SCHEMES = {
+        JABBER: u'jabber:',
+        EMAIL: u'mailto:',
+        SMS: u'sms:',
+    }
+
     def __unicode__(self):
         return self.name
 
@@ -421,6 +431,9 @@ class AlertSender(models.Model):
 
     def blacklist_reason(self):
         return self.__class__._blacklist.get(self.handler, 'Unknown reason')
+
+    def scheme(self):
+        return self.SCHEMES.get(self.name, u'')
 
     class Meta:
         db_table = 'alertsender'
