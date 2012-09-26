@@ -163,7 +163,7 @@ def post_event(psu_or_fan, status):
     """ Posts an event on the eventqueue."""
     source = "powersupplywatch"
     target = "eventEngine"
-    eventtypeid = "moduleState"
+    eventtypeid = "psuState" if is_psu(psu_or_fan) else "fanState"
     value = 100
     severity = 50
     device_id = None
@@ -175,16 +175,20 @@ def post_event(psu_or_fan, status):
     event = Event(source=source, target=target,
                             deviceid=device_id,
                             netboxid=psu_or_fan.netbox.id,
+                            subid=psu_or_fan.id,
                             eventtypeid=eventtypeid,
+                            state='x',
                             value=value,
                             severity=severity)
     event['sysname'] = psu_or_fan.netbox.sysname
-    if (PowerSupplyOrFan.STATE_DOWN == status
-            or PowerSupplyOrFan.STATE_WARNING == status):
-        event['alerttype'] = 'moduleDown'
-    elif PowerSupplyOrFan.STATE_UP == status:
-        event['alerttype'] = 'moduleUp'
-    event['powername'] = psu_or_fan.name
+    if status in (PowerSupplyOrFan.STATE_DOWN,
+                  PowerSupplyOrFan.STATE_WARNING):
+        event['alerttype'] = 'psuNotOK' if is_psu(psu_or_fan) else 'fanNotOK'
+        event.state = 's'
+    elif status == PowerSupplyOrFan.STATE_UP:
+        event['alerttype'] = 'psuOK' if is_psu(psu_or_fan) else 'fanOK'
+        event.state = 'e'
+    event['unitname'] = psu_or_fan.name
     event['state'] = status
     verify('Posting event: %s' % event)
     try:
