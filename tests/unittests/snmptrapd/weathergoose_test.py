@@ -27,15 +27,13 @@ class WeatherGoose1ClassTest(WeatherGooseMockedDb):
             'cmClimateTempCTRAP')
 
     def test_init_should_raise_on_invalid_oid(self):
-        trap = Mock('trap')
-        trap.snmpTrapOID = '5'
+        trap = Mock(snmpTrapOID = '5')
         self.assertRaises(Exception, wg.WeatherGoose1, trap, None, None, None)
 
 class WeatherGoose1TrapTest(WeatherGooseMockedDb):
     def setUp(self):
         super(WeatherGoose1TrapTest, self).setUp()
-        trap = Mock('trap')
-        trap.snmpTrapOID = '.1.3.6.1.4.1.17373.0.10205'
+        trap = Mock(snmpTrapOID = '.1.3.6.1.4.1.17373.0.10205')
         TRIP_TYPE_HIGH = 2
         self.goosename = 'cleese'
         self.temperature = 32
@@ -49,12 +47,12 @@ class WeatherGoose1TrapTest(WeatherGooseMockedDb):
             def post(self):
                 pass
 
-        self.mocked_event = patch("nav.event.Event", Event)
-        self.mocked_event.start()
+        self.event = patch('nav.event.Event', side_effect=Event)
+        self.event.start()
 
     def tearDown(self):
-        super(WeatherGoose1TrapTest, self).setUp()
-        self.mocked_event.stop()
+        super(WeatherGoose1TrapTest, self).tearDown()
+        self.event.stop()
 
     def test_init_should_parse_trap_without_error(self):
         self.assertTrue(wg.WeatherGoose1(self.trap, None, None, None))
