@@ -22,7 +22,7 @@ from nav.namedtuple import namedtuple
 def cache_for_session(func):
     "Decorateor for AgentProxyMixIn.getTable to cache responses"
     def _wrapper(*args, **kwargs):
-        self, oids = args[0], args[2]
+        self, oids = args[0], args[1]
         cache = getattr(self, '_result_cache')
         key = tuple(oids)
         if key not in cache:
@@ -73,9 +73,6 @@ class AgentProxyMixIn(object):
     @cache_for_session
     def getTable(self, *args, **kwargs):
         kwargs['maxRepetitions'] = self.snmp_parameters.max_repetitions
-        if args[0] is self:
-            # now this is just plain weird!
-            args = args[1:]
         return super(AgentProxyMixIn, self).getTable(*args, **kwargs)
 
 # pylint: disable=C0103

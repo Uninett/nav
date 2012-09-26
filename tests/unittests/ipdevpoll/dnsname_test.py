@@ -1,5 +1,5 @@
 from unittest import TestCase
-from minimock import Mock
+from mock import Mock
 
 from nav.ipdevpoll.shadows import Netbox
 from nav.ipdevpoll.storage import ContainerRepository
@@ -21,7 +21,5 @@ class StrangeDnsResponsesTest(TestCase):
         self.assertEquals(netbox.sysname, 'original-sw.example.org')
 
     def test_response_without_ptr_record_should_translate_to_none(self):
-        plugin = DnsName(Mock('Netbox'), Mock('agent'),
-                         Mock('ContainerRepository'))
-
-        self.assertTrue(plugin._find_ptr_response([[Mock('record')]]) is None)
+        plugin = DnsName(Mock(), Mock(), Mock())
+        self.assertTrue(plugin._find_ptr_response([[Mock()]]) is None)
