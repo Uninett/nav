@@ -74,7 +74,11 @@ npmModule jshint
 
 echo "Running jshint"
 JAVASCRIPT_FILES=( $(find ${JSDIR} \( \( -path "${JSDIR}/node_modules*" \) -o \( -path "${JSDIR}/libs/*" \) -o \( -path "${JSDIR}/geomap/*" \) -prune \) -o -iname "*.js" -print) )
-${JSDIR}/node_modules/jshint/bin/hint --config ${JSDIR}/jshint.rc.json ${JAVASCRIPT_FILES[@]} --jslint-reporter --show-non-errors
+
+${JSDIR}/node_modules/jshint/bin/hint --config ${JSDIR}/jshint.rc.json ${JAVASCRIPT_FILES[@]} --jslint-reporter > ${JSDIR}/javascript-jshint.xml || true
+
+# Verify that jshint was running as jshint will have non-zero exit if ANY linting errors is found.
+[ -s "${JSDIR}/javascript-jshint.xml" ]
 
 echo "Starting Xvfb"
 XVFB_TRIES=0
