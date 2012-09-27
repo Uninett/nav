@@ -166,7 +166,7 @@ define([
         search: function (query) {
             this.searchQuery = {
                 query: query,
-                zoomTarget: null,
+                zoomTarget: null
             };
             // find related box
             for (var i = 0; i < this.modelJson.nodes.length; i++) {
