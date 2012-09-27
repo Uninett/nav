@@ -317,6 +317,50 @@ li.selected_vlan a {
     padding: 0;;
 }
 
+/* Traffic gradient */
+
+#modal_traffic_gradient {
+    overflow: hidden;
+}
+#modal_traffic_gradient div.modal-body {
+    margin: 6px 0 6px 32px;
+}
+
+.traffic_gradient_row {
+    width: 30px;
+    height: 6px;
+}
+
+div.traffic_gradient_meta {
+    position: absolute;
+    top: 13px;
+    height: 606px;
+}
+
+div.measure_line {
+    width: 70px;
+    height: 60.4px;
+    padding-left: 20px;
+    position: relative;
+    top: 0px;
+    left: 0px;
+    display: block;
+}
+div.measure_line span.measure_line {
+    position: relative;
+    left: -10px;
+    height: 0px;
+    display: block;
+    border-bottom: 2px solid black;
+    width: 28px;
+}
+div.measure_line span.measure_line_description {
+    display: block;
+    margin-left: 20px; /* dont hit measure_line */
+    margin-top: -9.5px; /* bump text up */
+    font-weight: bold;
+}
+
 /* Node info styles */
 
 .netmap_node_status {
