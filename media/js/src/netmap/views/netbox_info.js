@@ -26,7 +26,7 @@ define([
         render: function () {
             var self = this;
             if (self.node !== undefined) {
-                var out = this.template({ node: self.node });
+                var out = this.template({ node: self.node, 'isElink': !!(self.node.data.category === 'elink') });
                 this.$el.html(out);
                 this.$el.append(this.vlanView.render().el);
                 this.vlanView.delegateEvents();
