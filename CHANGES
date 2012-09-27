@@ -24,6 +24,9 @@ Version 3.12.1
   * LP#1054091 (netmap save as dialog does not follow NAV's palette)
   * LP#1055586 (ipdevpoll aborted due to plugin failure: tuple index out of
                 range)
+  * LP#1057366 (Netmap should warn IE users about min. version)
+  * LP#1057373 (Netmap traffic gradient enhancements)
+  * LP#1057374 (Netmap renders wrong linkload color for 0%)
 
 Version 3.12.0
 (released 13 Sep 2012)
