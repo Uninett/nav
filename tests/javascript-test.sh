@@ -14,6 +14,48 @@ if [ "$?" -eq 1 ]; then
     exit 1
 fi
 
+GOOGLECHROME=`which google-chrome`
+if [ "$?" -eq 1 ]; then
+    echo "google chrome not found"
+    exit 1
+fi
+
+NPM=`which npm`
+
+# Function to check for module
+# Will trigger npmInstall if not found.
+function npmModule {
+    if [ -z "$1" ]; then
+        echo "Need to specify module to check for..."
+        exit 1
+    else
+        if [ ! -d "${JSDIR}/node_modules/${1}" ]; then
+            npmInstall $1
+        fi
+    fi
+}
+
+# Tries to install a module from NPM
+function npmInstall {
+        if [ -z "${NPM}" ]; then
+            echo "No $1 and no npm, need both"
+            exit 1
+        else
+            cd ${JSDIR}
+            echo "Trying to install $1 locally"
+            npm install $1
+            if [ "$?" -ne 0 ]; then
+                echo "Failed to install $1"
+                exit 1
+            else
+                echo "Installed $1"
+            fi
+        fi
+}
+
+#  This requires to be installed global as you want buster in PATH :-(
+#npmModule buster
+
 BUSTERSERVER=`which buster-server`
 if [ "$?" -eq 1 ]; then
     echo "buster-server not found"
@@ -26,23 +68,13 @@ if [ "$?" -eq 1 ]; then
     exit 1
 fi
 
-GOOGLECHROME=`which google-chrome`
-if [ "$?" -eq 1 ]; then
-    echo "google chrome not found"
-    exit 1
-fi
+npmModule buster-amd
+npmModule jshint
 
-# Buster-amd is required, check if it's installed locally
-if [ ! -d "${JSDIR}/node_modules/buster-amd" ]; then
-    NPM=`which npm`
-    if [ "$?" -eq 1 ]; then
-        echo "No buster-amd and no npm, need both"
-        exit 1
-    fi
-    cd ${JSDIR}
-    echo "Installing buster-amd locally"
-    npm install buster-amd
-fi
+
+echo "Running jshint"
+JAVASCRIPT_FILES=( $(find ${JSDIR} \( \( -path "${JSDIR}/node_modules*" \) -o \( -path "${JSDIR}/libs/*" \) -o \( -path "${JSDIR}/geomap/*" \) -prune \) -o -iname "*.js" -print) )
+${JSDIR}/node_modules/jshint/bin/hint --config ${JSDIR}/jshint.rc.json ${JAVASCRIPT_FILES[@]} --jslint-reporter --show-non-errors
 
 echo "Starting Xvfb"
 XVFB_TRIES=0
