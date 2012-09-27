@@ -6,6 +6,33 @@ define([
     'libs/backbone'
 ], function(PluginHeaderFooter, Router) {
     var initialize = function () {
+        var IESanityTest = {
+            Version: function() {
+                var version = 666; // assume good
+                if (navigator.appVersion.indexOf("MSIE") != -1) {
+                    version = parseFloat(navigator.appVersion.split("MSIE")[1]);
+                }
+                return version;
+            },
+            DocumentVersion: function () {
+                var version = 666; // assume good
+                if (navigator.appVersion.indexOf("MSIE") != -1) {
+                    var documentVersion = document.documentMode;
+                    if (documentVersion !== undefined) {
+                        version = documentVersion
+                    } else {
+                        version = 1; // documentMode included from IE8>=, just fail older browser!
+                    }
+                }
+                return version;
+            }
+        };
+        if (IESanityTest.Version() < 9) {
+            alert("Your version of Internet Explorer is too old to run Netmap. Please upgrade to IE9 or make sure DocumentMode is set to 9 or newer");
+        } else if (IESanityTest.DocumentVersion() < 9) {
+            alert("Netmap requires Internet Explorer to have DocumentMode 9 or newer!");
+        }
+
         self = this;
 
         // Comment this one out when moving to mod_wsgi! mod_python
