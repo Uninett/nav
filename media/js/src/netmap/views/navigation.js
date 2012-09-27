@@ -13,8 +13,9 @@ define([
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
-        interests: {
-            'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
+        interests: {    
+            'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest',
+            'map:loading:done': 'eventLoadingDone'
         },
         events: {
             'click #toggle_view':      'toggleView',
@@ -102,10 +103,14 @@ define([
                     'topology_errors': false,
                     'freezeNodes': false
                 }
-
             };
+            this.isLoading = !!(this.options.isLoading);
 
 
+        },
+        eventLoadingDone: function () {
+            this.isLoading = false;
+            this.render();
         },
         render: function () {
             var self = this;
@@ -127,7 +132,7 @@ define([
             this.context.specific_filters.filter_orphans = !this.model.attributes.display_orphans;
             this.context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
 
-            var out = this.template({ model: this.context, isVisible: this.isContentVisible});
+            var out = this.template({ model: this.context, isVisible: this.isContentVisible, isLoading: this.isLoading });
             this.$el.html(out);
 
             new AlgorithmView({el: $('#algorithm_view', this.$el)}).render();
@@ -172,6 +177,7 @@ define([
             this.broker.trigger('map:resize:animate', {marginLeft: margin});
         },
         onTopologyClick: function (e) {
+            this.isLoading = true;
             e.stopPropagation();
 
             this.model.set({topology: NetmapHelpers.topology_link_to_id($(e.currentTarget).val())});
