@@ -35,64 +35,64 @@ urlpatterns = patterns('nav.web.report.views',
 # make_report views.
 urlpatterns += patterns('nav.web.report.views',
 
-    url(r'^report/org$',
+    url(r'^org$',
         organization_all, name='report-organization-all'),
-    url(r'^report/org\?orgid=(?P<organization_id>[^&]+)$',
+    url(r'^org\?orgid=(?P<organization_id>[^&]+)$',
         organization_id, name='report-organization-organization'),
 
-    url(r'^report/type$',
+    url(r'^type$',
         type_all, name='report-type-all'),
-    url(r'^report/type\?typeid=(?P<type_id>\d+)$',
+    url(r'^type\?typeid=(?P<type_id>\d+)$',
         type_id, name='report-type-type'),
 
-    url(r'^report/room$',
+    url(r'^room$',
         room_all, name='report-room-all'),
-    url(r'^report/room\?locationid=(?P<location_id>[^&]+)$',
+    url(r'^room\?locationid=(?P<location_id>[^&]+)$',
         room_location, name='report-room-location'),
 
-    url(r'^report/netbox$',
+    url(r'^netbox$',
         netbox_all, name='report-netbox-all'),
-    url(r'^report/netbox\?roomid=(?P<room_id>[^&]+)$',
+    url(r'^netbox\?roomid=(?P<room_id>[^&]+)$',
         netbox_room, name='report-netbox-room'),
-    url(r'^report/netbox\?catid=(?P<category_id>[\w\d._-]+)$',
+    url(r'^netbox\?catid=(?P<category_id>[\w\d._-]+)$',
         netbox_category, name='report-netbox-category'),
 
-    url(r'^report/modules$',
+    url(r'^modules$',
         modules_all, name='report-modules-all'),
-    url(r'^report/modules\?netboxid=(?P<netbox_id>\d+)$',
+    url(r'^modules\?netboxid=(?P<netbox_id>\d+)$',
         modules_netbox, name='report-modules-netbox'),
-    url(r'^report/modules\?netboxid=(?P<netbox_id>\d+)'
+    url(r'^modules\?netboxid=(?P<netbox_id>\d+)'
         r'&module=(?P<module_number>\d+)$',
         modules_module, name='report-modules-module'),
 
-    url(r'^report/interfaces\?netboxid=(?P<netbox_id>\d+)$',
+    url(r'^interfaces\?netboxid=(?P<netbox_id>\d+)$',
         interfaces_netbox, name='report-interfaces-netbox'),
 
-    url(r'^report/gwport$',
+    url(r'^gwport$',
         gwport_all, name='report-gwport-all'),
-    url(r'^report/gwport\?netboxid=(?P<netbox_id>\d+)$',
+    url(r'^gwport\?netboxid=(?P<netbox_id>\d+)$',
         gwport_netbox, name='report-gwport-netbox'),
-    url(r'^report/gwport\?netboxid=(?P<netbox_id>\d+)'
+    url(r'^gwport\?netboxid=(?P<netbox_id>\d+)'
         r'&module=(?P<module_name>[^&]+)$',
         gwport_module, name='report-gwport-module'),
 
-    url(r'^report/swport$',
+    url(r'^swport$',
         swport_all, name='report-swport-all'),
-    url(r'^report/swport\?netboxid=(?P<netbox_id>\d+)$',
+    url(r'^swport\?netboxid=(?P<netbox_id>\d+)$',
         swport_netbox, name='report-swport-netbox'),
-    url(r'^report/swport\?netboxid=(?P<netbox_id>\d+)'
+    url(r'^swport\?netboxid=(?P<netbox_id>\d+)'
         r'&module=(?P<module_name>[^&]+)$',
         swport_module, name='report-swport-module'),
 
-    url(r'^report/swporttrunk$',
+    url(r'^swporttrunk$',
         swporttrunk_all, name='report-swporttrunk-all'),
-    url(r'^report/swporttrunk\?vlan=(?P<vlan>\d+)$',
+    url(r'^swporttrunk\?vlan=(?P<vlan>\d+)$',
         swporttrunk_vlan, name='report-swporttrunk-vlan'),
-    url(r'^report/swporttrunk\?vlanid=(?P<vlanid>\d+)$',
+    url(r'^swporttrunk\?vlanid=(?P<vlanid>\d+)$',
         swporttrunk_vlanid, name='report-swporttrunk-vlanid'),
 
-    url(r'^report/prefix$',
+    url(r'^prefix$',
         prefix_all, name='report-prefix-all'),
-    url(r'^report/prefix\?prefixid=(?P<prefix_id>\d+)$',
+    url(r'^prefix\?prefixid=(?P<prefix_id>\d+)$',
         prefix_prefix, name='report-prefix-prefix'),
 )
