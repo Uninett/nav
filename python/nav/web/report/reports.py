@@ -271,7 +271,7 @@ def report_list(request):
 
 
 
-def make_report(req, report_name, export_delimiter, uri, nuri):
+def make_report(request, report_name, export_delimiter, uri, nuri):
 
     # Initiating variables used when caching
     report = contents = neg = operator = adv = dbresult = result_time = None
@@ -284,7 +284,7 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
             del nuri.args[key]
 
     uri_strip = nuri.make()
-    username = req.session['user']['login']
+    username = request.session['user']['login']
     mtime_config = os.stat(config_file_package).st_mtime + os.stat(config_file_local).st_mtime
     cache_name = 'report_' + username + '_' + str(mtime_config)
 
@@ -306,11 +306,11 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
 
 
     if export_delimiter:
-        generate_export(req, report, report_name, export_delimiter)
+        generate_export(request, report, report_name, export_delimiter)
 
     else:
-        req.content_type = "text/html"
-        req.send_http_header()
+        request.content_type = "text/html"
+        request.send_http_header()
         page = ReportTemplate()
         page.result_time = result_time
         page.report = report
@@ -332,7 +332,7 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
         page.path = [("Home", "/"), ("Report", "/report/"),
                      (namename, namelink)]
         page.title = "Report - "+namename
-        old_uri = req.unparsed_uri
+        old_uri = request.unparsed_uri
         page.old_uri = old_uri
 
         if adv:
@@ -373,7 +373,7 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
             # CSV Export dialects/delimiters
             page.delimiters = (",", ";", ":", "|")
 
-        req.write(page.respond())
+        request.write(page.respond())
 
 
 
