@@ -77,7 +77,7 @@ def fix_report_urlpath(func):
 
     @wraps(func)
     def _wrapper(request, *args, **kwargs):
-        url = urlparse(request.unparsed_uri)
+        url = urlparse(request.META['QUERY_STRING'] or "")
         elements = [e for e in multislash.split(url.path) if e]
         if len(elements) > 1:
             path = '/%s/%s' % (elements[0], elements[-1])
