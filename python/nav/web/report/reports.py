@@ -118,7 +118,7 @@ def handler(req):
     else:
         make_report(req, report_name, export_delimiter, uri, nuri)
 
-    return apache.OK
+    return HttpResponse()
 
 
 
