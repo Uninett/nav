@@ -170,15 +170,15 @@ def arg_parsing(req):
 
 
 
-def matrix_report(req):
+def matrix_report(request):
 
-    req.content_type = "text/html"
-    req.send_http_header()
+    request.content_type = "text/html"
+    request.send_http_header()
 
     ## Parameterdictionary
     argsdict = {}
-    if req.args:
-        reqargsplit = urllib.unquote_plus(req.args).split("&")
+    if request.args:
+        reqargsplit = urllib.unquote_plus(request.args).split("&")
         if len(reqargsplit):
             for a in reqargsplit:
                 (c, d) = a.split("=")
@@ -207,7 +207,7 @@ def matrix_report(req):
             for scope in databasescopes:
                 page.scopes.append(scope[0])
 
-            req.write(page.respond())
+            request.write(page.respond())
             return apache.OK
 
     # If a single scope has been selected, display that.
@@ -245,7 +245,7 @@ def matrix_report(req):
 
         else:
             raise UnknownNetworkTypeException, "version: " + str(scope.version())
-        req.write(matrix.getTemplateResponse())
+        request.write(matrix.getTemplateResponse())
 
         # Invalidating the MetaIP cache to get rid of processed data.
         MetaIP.invalidateCache()
