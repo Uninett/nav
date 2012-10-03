@@ -26,9 +26,9 @@ swporttrunk_vlan, swporttrunk_vlanid, prefix_all, prefix_prefix, index
 # Subsystem: Report
 # Naming convention: report-<result>-<query>
 urlpatterns = patterns('nav.web.report.views',
-    url(r'^/reportmatrix$',
+    url(r'^reportmatrix$',
         index, name='report-matrix'),
-    url(r'^/reportlist$',
+    url(r'^reportlist$',
         reports.report_list, name='report-reportlist')
 )
 
