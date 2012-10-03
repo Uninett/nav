@@ -23,6 +23,7 @@ from operator import itemgetter
 from time import localtime, strftime
 import copy
 import csv
+from django.http import HttpResponse
 import os
 import os.path
 import re
@@ -251,11 +252,10 @@ def matrix_report(req):
 
 
 
-def report_list(req):
+def report_list(request):
 
     page = ReportListTemplate()
-    req.content_type = "text/html"
-    req.send_http_header()
+    request.content_type = "text/html"
 
     # Default config
     report_list = ReportList(config_file_package).getReportList()
@@ -274,7 +274,7 @@ def report_list(req):
     page.report_list = report_list
     page.report_list_local = report_list_local
 
-    req.write(page.respond())
+    return HttpResponse(page.respond())
 
 
 
