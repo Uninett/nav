@@ -122,9 +122,9 @@ def handler(req):
 
 
 
-def arg_parsing(req):
+def arg_parsing(request):
 
-    uri = req.unparsed_uri
+    uri = request.unparsed_uri
     nuri = URI(uri)
     export_delimiter = None
 
@@ -157,9 +157,9 @@ def arg_parsing(req):
 
     # Redirect if any arguments were removed
     if len(remove):
-        redirect(req, nuri.make())
+        redirect(request, nuri.make())
 
-    match = re.search("\/(\w+?)(?:\/$|\?|\&|$)", req.uri)
+    match = re.search("\/(\w+?)(?:\/$|\?|\&|$)", request.uri)
 
     if match:
         report_name = match.group(1)
