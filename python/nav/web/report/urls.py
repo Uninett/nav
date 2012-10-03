@@ -16,15 +16,25 @@
 """Report backend URL config."""
 
 from django.conf.urls.defaults import url, patterns
-from nav.web.report import organization_all, organization_id, type_all, type_id, \
+from nav.web.report import reports
+from nav.web.report.views import organization_all, organization_id, type_all, type_id, \
 room_all, room_location, netbox_all, netbox_room, netbox_category, modules_all, \
 modules_netbox, modules_module, interfaces_netbox, gwport_all, gwport_netbox, \
 gwport_module, swport_all, swport_netbox, swport_module, swporttrunk_all, \
-swporttrunk_vlan, swporttrunk_vlanid, prefix_all, prefix_prefix
+swporttrunk_vlan, swporttrunk_vlanid, prefix_all, prefix_prefix, index
 
 # Subsystem: Report
 # Naming convention: report-<result>-<query>
 urlpatterns = patterns('nav.web.report.views',
+    url(r'^/reportmatrix$',
+        index, name='report-matrix'),
+    url(r'^/reportlist$',
+        reports.report_list, name='report-reportlist')
+)
+
+# make_report views.
+urlpatterns += patterns('nav.web.report.views',
+
     url(r'^report/org$',
         organization_all, name='report-organization-all'),
     url(r'^report/org\?orgid=(?P<organization_id>[^&]+)$',
