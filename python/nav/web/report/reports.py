@@ -76,8 +76,8 @@ def fix_report_urlpath(func):
     multislash = re.compile(r'/+')
 
     @wraps(func)
-    def _wrapper(req, *args, **kwargs):
-        url = urlparse(req.unparsed_uri)
+    def _wrapper(request, *args, **kwargs):
+        url = urlparse(request.unparsed_uri)
         elements = [e for e in multislash.split(url.path) if e]
         if len(elements) > 1:
             path = '/%s/%s' % (elements[0], elements[-1])
@@ -88,9 +88,9 @@ def fix_report_urlpath(func):
             url = ParseResult(url.scheme, url.netloc, path,
                               url.params, url.query, url.fragment)
             logger.warning("fixing broken url: %r -> %r",
-                           req.unparsed_uri, url.geturl())
-            redirect(req, url.geturl())
-        return func(req, *args, **kwargs)
+                           request.unparsed_uri, url.geturl())
+            redirect(request, url.geturl())
+        return func(request, *args, **kwargs)
 
     return _wrapper
 
