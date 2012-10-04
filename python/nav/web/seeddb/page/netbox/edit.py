@@ -14,6 +14,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Controls add and edit of ip devices"""
+
+# pylint: disable=F0401
+
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
@@ -26,8 +30,10 @@ from nav.models.oid import SnmpOid
 from nav.Snmp import Snmp, SnmpError
 from nav.web.message import new_message, Messages
 
+from nav.web.seeddb import reverse_lazy
+from nav.web.seeddb.page.netbox import NetboxInfo as NI
 from nav.web.seeddb.page.netbox.forms import NetboxForm, NetboxReadonlyForm
-from nav.web.seeddb.page.netbox.forms import NetboxSerialForm, NetboxSubcategoryForm
+from nav.web.seeddb.page.netbox.forms import NetboxSerialForm
 from nav.web.seeddb.page.netbox.forms import get_netbox_subcategory_form
 
 FORM_STEP = 0
@@ -35,6 +41,7 @@ SERIAL_STEP = 1
 SAVE_STEP = 2
 
 def netbox_edit(request, netbox_id=None):
+    """Controller for edit or create of netbox"""
     try:
         step = int(request.POST.get('step', '0'))
     except ValueError:
@@ -43,6 +50,7 @@ def netbox_edit(request, netbox_id=None):
     serial_form = None
     subcat_form = None
     netbox = get_netbox(netbox_id)
+    title = get_title(netbox)
     if request.method == 'POST':
         if step == SERIAL_STEP:
             netbox_form = NetboxForm(request.POST)
@@ -54,7 +62,7 @@ def netbox_edit(request, netbox_id=None):
             (forms_are_valid,
              netbox_form,
              serial_form,
-             subcat_form) = netbox_validate_before_save(request, netbox_id)
+             subcat_form) = netbox_validate_before_save(request)
 
             if forms_are_valid:
                 netbox = netbox_do_save(netbox_form, serial_form, subcat_form)
@@ -66,18 +74,24 @@ def netbox_edit(request, netbox_id=None):
         netbox_form = get_netbox_form(netbox)
         step = SERIAL_STEP
     return netbox_render(request, step, netbox, netbox_form, serial_form,
-                        subcat_form)
+                        subcat_form, title)
+
 
 def get_netbox(netbox_id):
-    netbox = None
-    if netbox_id:
-        try:
-            netbox = Netbox.objects.get(id=netbox_id)
-        except Netbox.DoesNotExist:
-            netbox = None
-    return netbox
+    """Get netbox with id or return None if none is found"""
+    try:
+        return Netbox.objects.get(id=netbox_id)
+    except Netbox.DoesNotExist:
+        return None
+
+
+def get_title(netbox):
+    """Return correct title based on if netbox exists or not"""
+    return "Edit IP Device" if netbox else "Add new IP Device"
+
 
 def get_netbox_form(netbox):
+    """Get form object for netbox or create if no netbox"""
     if netbox:
         form_data = {
             'id': netbox.pk,
@@ -94,6 +108,7 @@ def get_netbox_form(netbox):
     return form
 
 def netbox_serial_and_type(form, netbox_id):
+    """If netbox form is valid, create and return serial and subcat form"""
     ro_form = serial_form = subcat_form = None
     if form.is_valid():
         serial, netbox_type = netbox_get_serial_and_type(form)
@@ -102,7 +117,8 @@ def netbox_serial_and_type(form, netbox_id):
                 form, serial, function, netbox_type)
     return (ro_form, serial_form, subcat_form)
 
-def netbox_validate_before_save(request, netbox_id):
+def netbox_validate_before_save(request):
+    """Validate netbox before save"""
     form = NetboxReadonlyForm(request.POST)
     if form.is_valid():
         data = form.cleaned_data
@@ -119,20 +135,27 @@ def netbox_validate_before_save(request, netbox_id):
     else:
         return (False, form, None, None)
 
-def netbox_render(request, step, netbox, netbox_form, serial_form, subcat_form):
-    context = {
+def netbox_render(request, step, netbox, netbox_form, serial_form, subcat_form,
+                  title):
+    """Move some code to another function to make it cleaner"""
+    info = NI()
+    context = info.template_context
+    context.update({
         'step': step,
         'object': netbox,
         'form': netbox_form,
         'serial_form': serial_form,
         'subcat_form': subcat_form,
+        'title': title,
+        '_navpath': [('Edit Device', reverse_lazy('seeddb-netbox-edit'))],
         'sub_active': netbox and {'edit': True} or {'add': True},
         'tab_template': 'seeddb/tabs_netbox.html',
-    }
+    })
     return render_to_response('seeddb/netbox_wizard.html',
         context, RequestContext(request))
 
 def snmp_type(ip_addr, snmp_ro, snmp_version):
+    """Query ip for sysobjectid using form data"""
     snmp = Snmp(ip_addr, snmp_ro, snmp_version)
     try:
         sysobjectid = snmp.get('.1.3.6.1.2.1.1.2.0')
@@ -146,6 +169,7 @@ def snmp_type(ip_addr, snmp_ro, snmp_version):
         return None
 
 def snmp_serials(ip_addr, snmp_ro, snmp_version):
+    """Query ip for serial using form data"""
     snmp = Snmp(ip_addr, snmp_ro, snmp_version)
     oids = SnmpOid.objects.filter(
         oid_key__icontains='serial'
@@ -167,6 +191,7 @@ def snmp_serials(ip_addr, snmp_ro, snmp_version):
     return serials
 
 def netbox_get_serial_and_type(form):
+    """Use form data to query for serial and sysobjectid"""
     data = form.cleaned_data
     serial = None
     netbox_type = None
@@ -181,15 +206,19 @@ def netbox_get_serial_and_type(form):
     return (serial, netbox_type)
 
 def netbox_get_function(netbox_id):
+    """Check if we have a function set for this netbox id"""
     func = None
     if netbox_id:
         try:
-            func = NetboxInfo.objects.get(netbox=netbox_id, variable='function').value
+            func = NetboxInfo.objects.get(
+                netbox=netbox_id, variable='function'
+            ).value
         except NetboxInfo.DoesNotExist:
             pass
     return func
 
 def netbox_serial_and_subcat_form(form, serial, function, netbox_type):
+    """Create serial and subcat form based on first form"""
     data = form.cleaned_data
     form_data = data
     form_data['room'] = data['room'].pk
@@ -222,6 +251,7 @@ def netbox_serial_and_subcat_form(form, serial, function, netbox_type):
 
 @transaction.commit_on_success
 def netbox_do_save(form, serial_form, subcat_form):
+    """Save netbox"""
     clean_data = form.cleaned_data
     primary_key = clean_data.get('id')
     data = {
@@ -238,7 +268,7 @@ def netbox_do_save(form, serial_form, subcat_form):
 
     serial = serial_form.cleaned_data['serial']
     if serial:
-        device, created = Device.objects.get_or_create(serial=serial)
+        device, _ = Device.objects.get_or_create(serial=serial)
         data['device'] = device
     elif not primary_key:
         device = Device.objects.create(serial=None)
@@ -262,7 +292,9 @@ def netbox_do_save(form, serial_form, subcat_form):
         try:
             func = NetboxInfo.objects.get(netbox=netbox, variable='function')
         except NetboxInfo.DoesNotExist:
-            func = NetboxInfo(netbox=netbox, variable='function', value=function)
+            func = NetboxInfo(
+                netbox=netbox, variable='function', value=function
+            )
         else:
             func.value = function
         func.save()

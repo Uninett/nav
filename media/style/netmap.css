@@ -312,6 +312,11 @@ li.selected_vlan a {
     margin-top: 2em;
 }
 
+#netmap_wrapper .float-right {
+    float: right;
+    padding: 0;;
+}
+
 /* Node info styles */
 
 .netmap_node_status {
@@ -548,3 +553,22 @@ div#pop-img {
     font-weight: bolder;
 }
 
+#modal_new_view img.help {
+    float: right;
+}
+
+#modal_new_view fieldset > div {
+    margin-bottom: 1em;
+}
+
+#modal_new_view input[type=text], #modal_new_view textarea {
+    width: 100%;
+}
+
+#modal_new_view input[type=checkbox] {
+    margin-left: 0.5em;
+}
+
+#modal_save_view_button {
+    float: right;
+}

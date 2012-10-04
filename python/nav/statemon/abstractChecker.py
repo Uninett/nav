@@ -191,6 +191,9 @@ class AbstractChecker:
         self.setResponsetime(time.time()-start)
         return status, info
 
+    def execute(self):
+        raise NotImplementedError
+
     def setServiceid(self, serviceid):
         """Sets the serviceid according to the database"""
         self._serviceid = serviceid

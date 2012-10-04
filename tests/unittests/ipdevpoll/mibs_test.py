@@ -21,7 +21,7 @@ from IPy import IP
 from twisted.internet import defer
 from twisted.python import failure
 
-from minimock import Mock
+from mock import Mock
 from nav.mibs.cisco_hsrp_mib import CiscoHSRPMib
 
 os.environ['PYSNMP_API_VERSION'] = 'v3'
