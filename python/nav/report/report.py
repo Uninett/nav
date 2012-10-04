@@ -37,14 +37,14 @@ class Report:
     """
 
 
-    def __init__(self, configuration, database, path):
+    def __init__(self, configuration, database, query_dict):
         """
         The constructor of the Report class
 
         - configuration : a ReportConfig object containing all the configuration
         - database      : a DatabaseResult object that will be modified according
                           to the configuration
-        - path          : the address of the requested page
+        - query_dict          : mutable Query Dict
         """
 
         self.rowcount = database.rowcount
@@ -60,7 +60,7 @@ class Report:
             self.formatted = database.result
         self.dbresult = database.result
         
-        self.address = self.stripPath(path)
+        self.query_args = self.stripPath(query_dict)
 
         self.title = configuration.title
         self.hide = configuration.hidden
@@ -81,12 +81,13 @@ class Report:
         self.table = self.makeTableContents()
         footers = self.makeTableFooters(self.sums)
         self.table.setFooters(footers)
-        headers = self.makeTableHeaders(self.name, self.uri, self.explain,
-                                        configuration.orderBy)
+        headers = self.makeTableHeaders(self.name, self.uri, self.query_args,
+            self.explain,
+            configuration.orderBy)
         self.table.setHeaders(headers)
 
         self.navigator = Navigator()
-        self.navigator.setNavigator(self.limit, self.offset, self.address,
+        self.navigator.setNavigator(self.limit, self.offset, self.query_args,
                                     self.rowcount)
 
         self.form = self.makeForm(self.name)
@@ -134,14 +135,13 @@ class Report:
 
         - path : the path that will get its 'limit' and 'offset'- fields removed
 
-        returns the new path
+        returns the modified query dict
         """
-        uri = URI(path)
         stripFields = ['limit','offset']
         for field in stripFields:
-            if field in uri.args:
-                del uri.args[field]
-        return uri.make()
+            if field in path:
+                del path[field]
+        return path
 
     def fieldNum(self, fields):
         """
@@ -188,12 +188,13 @@ class Report:
         return uri_new
 
 
-    def makeTableHeaders(self, name, uri, explain, sortList=[]):
+    def makeTableHeaders(self, name, uri, query_dict, explain, sortList=[]):
         """
         makes the table headers
 
         - name    : a hash containing the numbers and names of the fields
         - uri     : a hash containing the numbers of the fields and their uris
+        - querydict : QueryDict to work with query params with
         - explain : a hash containing the numbers of the fields and the fields explicit explanations
 
         returns a list of cells that later will represent the headers of the table
@@ -202,7 +203,7 @@ class Report:
         name_hash = name
         explain_hash = explain
 
-        #bruker ikke uri ennå
+        #bruker ikke uri ennï¿½
         uri_hash = uri
         headers = Headers()
 
@@ -215,12 +216,14 @@ class Report:
             ## get the name of it
             title = self.fields[header]
             explanation = ""
-            uri = URI(self.address)
             if sorted == title:
-                uri.setArguments(['sort', 'order_by'], "-" + title)
+                setattr(query_dict, 'sort', '-'+title)
+                setattr(query_dict, 'order_by', '-'+title)
             else:
-                uri.setArguments(['sort', 'order_by'], title)
-            uri = uri.make()
+                setattr(query_dict, 'sort', title)
+                setattr(query_dict, 'order_by', title)
+
+            uri = self.query_args.urlencode()
 
             ## change if the name exist in the overrider hash
             if name_hash.has_key(title):
@@ -400,13 +403,13 @@ class Navigator:
 
         self.view = message
 
-    def setNavigator(self, limit, offset, address, number):
+    def setNavigator(self, limit, offset, query_dict, number):
         """
         Sets the values of the navigator object
 
         - limit  : the number of results per page
         - offset : the number of the first result displayed on the page
-        - address : the uri used when making the next an previous buttons
+        - query_dict : mutable query_dict used used when making the next an previous buttons
         - number : total number of restults returned from the query
 
         """
@@ -426,21 +429,16 @@ class Navigator:
         view_to_int = offset_int + limit_int
         view_to = str(view_to_int)
 
+
         if offset_int:
-
-            uri = URI(address)
-            uri.setArguments(['limit'], limit)
-            uri.setArguments(['offset'], previous)
-
-            self.previous = uri.make()
+            setattr(query_dict, 'limit', limit)
+            setattr(query_dict, 'offset', previous)
+            self.previous = query_dict.copy()
 
         if limit_int + offset_int < number_int:
-
-            uri = URI(address)
-            uri.setArguments(['limit'], limit)
-            uri.setArguments(['offset'], next)
-
-            self.next = uri.make()
+            setattr(query_dict, 'limit', limit)
+            setattr(query_dict, 'offset', next)
+            self.next = query_dict.copy()
 
         if number_int:
             if limit_int > number_int:
