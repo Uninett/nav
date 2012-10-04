@@ -279,7 +279,7 @@ def make_report(request, report_name, export_delimiter, uri, query_dict):
     uri_strip = dict((key, querydict[key]) for key in querydict)
     username = get_account(request).login
     mtime_config = os.stat(config_file_package).st_mtime + os.stat(config_file_local).st_mtime
-    cache_name = 'report_' + username + '_' + str(mtime_config)
+    cache_name = 'report_' + username + '_' + '_' + report_name + str(mtime_config)
 
     def _fetch_data_from_db():
         (report, contents, neg, operator, adv, config, dbresult) = gen.makeReport(report_name, config_file_package, config_file_local, querydict, None, None)
@@ -307,7 +307,6 @@ def make_report(request, report_name, export_delimiter, uri, query_dict):
 
     else: # Report not in cache, fetch data from DB
         (report, contents, neg, operator, adv) = _fetch_data_from_db()
-
 
     if cache.get(cache_name) and not report:
         raise RuntimeWarning("Found cache entry, but no report. Ooops, panic!")
