@@ -263,26 +263,26 @@ def make_report(request, report_name, export_delimiter, uri, query_dict):
     # Initiating variables used when caching
     report = contents = neg = operator = adv = dbresult = result_time = None
 
-    querydict = query_dict.copy()
+    query_dict_no_meta = query_dict.copy()
     # Deleting meta variables from uri to help identifying if the report
     # asked for is in the cache or not.
-    if 'offset' in querydict: del querydict['offset']
-    if 'limit' in querydict: del querydict['limit']
-    if 'export' in querydict: del querydict['export']
-    if 'exportcsv' in querydict: del querydict['exportcsv']
+    if 'offset' in query_dict_no_meta: del query_dict_no_meta['offset']
+    if 'limit' in query_dict_no_meta: del query_dict_no_meta['limit']
+    if 'export' in query_dict_no_meta: del query_dict_no_meta['export']
+    if 'exportcsv' in query_dict_no_meta: del query_dict_no_meta['exportcsv']
 
-    helper_remove = dict((key, querydict[key]) for key in querydict)
+    helper_remove = dict((key, query_dict_no_meta[key]) for key in query_dict_no_meta)
     for key, val in helper_remove.items():
         if val == "":
-            del querydict[key]
+            del query_dict_no_meta[key]
 
-    uri_strip = dict((key, querydict[key]) for key in querydict)
+    uri_strip = dict((key, query_dict_no_meta[key]) for key in query_dict_no_meta)
     username = get_account(request).login
     mtime_config = os.stat(config_file_package).st_mtime + os.stat(config_file_local).st_mtime
     cache_name = 'report_' + username + '_' + '_' + report_name + str(mtime_config)
 
     def _fetch_data_from_db():
-        (report, contents, neg, operator, adv, config, dbresult) = gen.makeReport(report_name, config_file_package, config_file_local, querydict, None, None)
+        (report, contents, neg, operator, adv, config, dbresult) = gen.makeReport(report_name, config_file_package, config_file_local, query_dict, None, None)
         if not report:
             raise Http404
         result_time = strftime("%H:%M:%S", localtime())
@@ -301,7 +301,7 @@ def make_report(request, report_name, export_delimiter, uri, query_dict):
             # then ends up being None.
             (report, contents, neg, operator, adv) = _fetch_data_from_db()
         else:
-            (report, contents, neg, operator, adv) = gen.makeReport(report_name, None, None, querydict, config_cache, dbresult_cache)
+            (report, contents, neg, operator, adv) = gen.makeReport(report_name, None, None, query_dict, config_cache, dbresult_cache)
             result_time = cache.get(cache_name)[8]
             dbresult = dbresult_cache
 

@@ -95,6 +95,9 @@ class Report:
         if database.error:
             self.navigator.setMessage(database.error)
 
+    def __repr__(self):
+        return "Report[Navigator: {0}]".format(self.navigator)
+
     def setLimit(self, config):
         """
         returns the limit according to the configuration or the default (1000)
@@ -216,14 +219,16 @@ class Report:
             ## get the name of it
             title = self.fields[header]
             explanation = ""
-            if sorted == title:
-                setattr(query_dict, 'sort', '-'+title)
-                setattr(query_dict, 'order_by', '-'+title)
-            else:
-                setattr(query_dict, 'sort', title)
-                setattr(query_dict, 'order_by', title)
 
-            uri = self.query_args.urlencode()
+            wtf=self.query_args
+            if sorted == title:
+                self.query_args['sort'] = '-'+title
+                self.query_args['order_by'] = '-'+title
+            else:
+                self.query_args['sort'] = title
+                self.query_args['order_by'] = title
+
+            uri = "?{0}".format(self.query_args.urlencode())
 
             ## change if the name exist in the overrider hash
             if name_hash.has_key(title):
@@ -394,6 +399,11 @@ class Navigator:
         self.previous = ""
         self.next = ""
 
+    def __repr__(self):
+        return "Navigor[view = {0}, previous={1} next={2}]".format(
+            self.view, self.previous, self.next)
+
+
     def setMessage(self, message):
         """
         Sets the view-field (the line under the title of the page) to "message"
@@ -431,14 +441,14 @@ class Navigator:
 
 
         if offset_int:
-            setattr(query_dict, 'limit', limit)
-            setattr(query_dict, 'offset', previous)
-            self.previous = query_dict.copy()
+            query_dict['limit'] = limit
+            query_dict['offset'] = previous
+            self.previous = query_dict.copy().urlencode()
 
         if limit_int + offset_int < number_int:
-            setattr(query_dict, 'limit', limit)
-            setattr(query_dict, 'offset', next)
-            self.next = query_dict.copy()
+            query_dict['limit'] = limit
+            query_dict['offset'] = next
+            self.next = query_dict.copy().urlencode()
 
         if number_int:
             if limit_int > number_int:
