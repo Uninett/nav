@@ -49,7 +49,7 @@ def make_sockets():
 
 class Host(object):
     """
-    Host object for a host. This object holds the destination address and is used
+    Host object for a host. This object holds the destination address and sequence number.
     """
     COOKIE_LENGTH = len(hashlib.md5().digest())
 
