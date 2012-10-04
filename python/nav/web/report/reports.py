@@ -312,7 +312,7 @@ def make_report(request, report_name, export_delimiter, uri, query_dict):
         raise RuntimeWarning("Found cache entry, but no report. Ooops, panic!")
 
     if export_delimiter:
-        generate_export(request, report, report_name, export_delimiter)
+        return generate_export(request, report, report_name, export_delimiter)
     else:
         request.content_type = "text/html"
         page = ReportTemplate()
@@ -377,21 +377,20 @@ def make_report(request, report_name, export_delimiter, uri, query_dict):
 
 
 
-def generate_export(req, report, report_name, export_delimiter):
+def generate_export(request, report, report_name, export_delimiter):
     def _cellformatter(cell):
         if isinstance(cell.text, unicode):
             return cell.text.encode('utf-8')
         else:
             return cell.text
 
-    req.content_type = "text/x-csv; charset=utf-8"
-    req.headers_out["Content-Type"] = "application/force-download"
-    req.headers_out["Content-Disposition"] = (
+    response = HttpResponse(mimetype="text/x-csv; charset=utf-8")
+    response["Content-Type"] = "application/force-download"
+    response["Content-Disposition"] = (
         "attachment; filename=report-%s-%s.csv" %
         (report_name, strftime("%Y%m%d", localtime()))
         )
-    req.send_http_header()
-    writer = csv.writer(req, delimiter=export_delimiter)
+    writer = csv.writer(response, delimiter=str(export_delimiter))
 
     # Make a list of headers
     header_row = [_cellformatter(cell) for cell in report.table.header.cells]
@@ -404,7 +403,7 @@ def generate_export(req, report, report_name, export_delimiter):
         rows.append([_cellformatter(cell) for cell in row.cells])
     writer.writerows(rows)
 
-    req.write("")
+    return response
 
 
 
