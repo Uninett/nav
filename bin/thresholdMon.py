@@ -233,7 +233,14 @@ def main(argv):
         # Checking if it is percent or a normal value we are comparing
         is_percent = re.compile("%$").search(threshold)
         threshold = re.sub('%$', '', threshold.strip())
-        threshold = int(threshold)
+        try:
+            threshold = int(threshold)
+        except ValueError, val_err:
+            try:
+                threshold = float(threshold)
+            except ValueError, val_err:
+                logger.error("Illegal threshold %s: %s" % (str(threshold), val_err.message))
+                continue
 
         # To prevent oscillation in case the value is just below the threshold
         # we create a lower limit that has to be passed to really say that the
