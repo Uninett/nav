@@ -147,8 +147,12 @@ define([
         },
         loadNavigation: function () {
             // draw navigation view!
-
-            this.view_navigation = new NavigationView({model: context_selected_map.map});
+            var oldViewNavigationOptions = {model: context_selected_map.map};
+            if (this.view_navigation !== undefined) {
+                oldViewNavigationOptions.isLoading = this.view_navigation.isLoading;
+                this.view_navigation.close();
+            }
+            this.view_navigation = new NavigationView(oldViewNavigationOptions);
             $('#netmap_left_sidebar #map_filters').html(this.view_navigation.render().el);
 
             this.view_searchbox = new SearchboxView();

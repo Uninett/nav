@@ -32,7 +32,7 @@
                 <td><input type="checkbox" name="subscription"
                 id="id_subscription_{{ s.id }}" value="{{ s.id }}" /></td>
                 <td>{{ s.filter_group.name }}</td>
-                <td>{{ s.alert_address.address }}</td>
+                <td>{{ s.alert_address }}</td>
                 <td>{{ s.get_type_display|capfirst }}</td>
                 <td>{{ s.ignore_resolved_alerts|yesno:"Yes,No" }}</td>
                 <td><a href="{% url alertprofiles-profile-timeperiod-subscription s.id %}">

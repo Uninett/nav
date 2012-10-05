@@ -1,3 +1,33 @@
+Version 3.12.1
+(released 27 Sep 2012)
+
+ Bugfixes:
+
+  * LP#1046221 (SshChecker.py only works for IPv4)
+  * LP#1046777 (no breadcrumb on seeddb IP Device)
+  * LP#1050890 (info/room - roomid with spaces crashes room listing)
+  * LP#1050905 (room view port ordering in netbox interfaces is wrong)
+  * LP#1051869 (Netmap selected node elink renders incorrect)
+  * LP#1051878 (Netmap last updated field for selected netbox)
+  * LP#1052435 (Netmap crashes NAV if install has old simplejson library)
+  * LP#1052436 (Netmap fails reading request body on django>=1.4)
+  * LP#1052804 (NoReverseMatch error on multiple pages when adding IPv6 host
+                with no DNS name)
+  * LP#1052885 (snmpAgentState alert is not resolved when SNMP is deconfigured
+                for device)
+  * LP#1052893 (When adding an alert subscription, it's impossible to see which
+                addresses are Jabber addresss and which are e-mail)
+  * LP#1052898 (No fan or PSU-related alarms are ever posted)
+  * LP#1053866 (newest instead of oldest entries are trimmed from the ipdevpoll
+                job log table)
+  * LP#1053961 (Netmap algorithm state indicator is slow)
+  * LP#1054091 (netmap save as dialog does not follow NAV's palette)
+  * LP#1055586 (ipdevpoll aborted due to plugin failure: tuple index out of
+                range)
+  * LP#1057366 (Netmap should warn IE users about min. version)
+  * LP#1057373 (Netmap traffic gradient enhancements)
+  * LP#1057374 (Netmap renders wrong linkload color for 0%)
+
 Version 3.12.0
 (released 13 Sep 2012)
 
