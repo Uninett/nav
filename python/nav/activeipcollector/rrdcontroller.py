@@ -22,9 +22,9 @@ import rrdtool
 LOG = logging.getLogger('ipcollector.rrdcontroller')
 
 
-def create_rrdfile(filename, when):
+def create_rrdfile(element, when):
     """Create rrdfile"""
-    LOG.debug('Creating rrdfile %s', filename)
+    LOG.debug('Creating rrdfile %s', element.fullpath)
 
     rras = ['RRA:AVERAGE:0.5:1:600',
             'RRA:AVERAGE:0.5:6:600',
@@ -34,14 +34,12 @@ def create_rrdfile(filename, when):
                    'DS:mac_count:GAUGE:3600:0:10000',
                    'DS:ip_range:GAUGE:3600:0:10000']
 
-    arguments = [filename]
+    arguments = [element.fullpath]
     arguments.extend(['--step', '1800'])
     arguments.extend(['--start', str(when - 1800)])
     arguments.extend(datasources)
     arguments.extend(rras)
     rrdtool.create(arguments)
-
-    return filename
 
 
 def update_rrdfile(element, when):
@@ -51,8 +49,8 @@ def update_rrdfile(element, when):
               element.mac_count,
               element.ip_range]
     values_as_string = ":".join([str(x) for x in values])
-    LOG.debug('Updating %s -> %s' % (element.filename, values_as_string))
-    rrdtool.update([element.filename, values_as_string])
+    LOG.debug('Updating %s -> %s' % (element.fullpath, values_as_string))
+    rrdtool.update([element.fullpath, values_as_string])
 
 
 def update_rrddb():

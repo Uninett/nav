@@ -31,7 +31,8 @@ import nav.activeipcollector.collector as collector
 import nav.activeipcollector.rrdcontroller as rrdcontroller
 
 Element = namedtuple('Element',
-                     'prefix ip_type ip_count mac_count ip_range filename')
+                     'prefix ip_type ip_count mac_count ip_range filename '
+                     'fullpath')
 
 LOG = logging.getLogger('ipcollector.manager')
 
@@ -58,9 +59,13 @@ def delete_files(datadir):
 def store(data, where):
     """Store data"""
     errors = 0
+    has_stored = []
     for db_tuple in data:
         try:
-            store_tuple(db_tuple, where)
+            element = store_tuple(db_tuple, where)
+            if element.prefix not in has_stored:
+                update_rrddb(element, where)
+                has_stored.append(element.prefix)
         except rrdtool.error, error:
             LOG.error(error)
             errors += 1
@@ -72,15 +77,15 @@ def store_tuple(db_tuple, where):
     """Store this database tuple"""
     prefix, timestamp, ip_count, mac_count = db_tuple
     when = get_timestamp(timestamp)
+    filename = convert_to_filename(prefix)
     element = Element(prefix, find_type(prefix), ip_count, mac_count,
-                      find_range(prefix),
-                      create_fully_qualified_filename(prefix, where))
+                      find_range(prefix), filename, join(where, filename))
 
-    if not exists(element.filename):
-        rrdcontroller.create_rrdfile(element.filename, when)
+    if not exists(element.fullpath):
+        rrdcontroller.create_rrdfile(element, when)
 
     rrdcontroller.update_rrdfile(element, when)
-    update_rrddb(element, where)
+    return element
 
 
 def find_type(prefix):
@@ -103,11 +108,6 @@ def find_range(prefix):
         return 0
     except ValueError:
         return 0
-
-
-def create_fully_qualified_filename(prefix, where):
-    """Create full path to this rrd-file"""
-    return join(where, convert_to_filename(prefix))
 
 
 def convert_to_filename(prefix):
