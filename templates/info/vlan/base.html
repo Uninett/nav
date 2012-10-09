@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+{% endblock %}
+
+{% block base_content %}
+
+    <h3>Vlans - whop de fucking doo</h3>
+
+    {% for image in images %}
+        <img style="margin:1em" src="{{ image }}">
+    {% endfor %}
+
+    <div class="clear"></div>
+
+{% endblock %}
+
+

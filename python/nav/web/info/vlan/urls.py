@@ -15,12 +15,10 @@
 #
 """Django URL configuration"""
 
-from django.conf.urls.defaults import patterns, include, url
-from nav.web.info.views import index, osm_map_redirecter
+
+from django.conf.urls.defaults import url, patterns
+from nav.web.info.vlan.views import index
 
 urlpatterns = patterns('',
-    url(r'^$', index, name="info-search"),
-    url(r'^osm_map_redirect/(.+)/(.+)/(.+)\.png', osm_map_redirecter, name='osm_map_redirect'),
-    url(r'^room/', include('nav.web.info.room.urls')),
-    url(r'^vlan/', include('nav.web.info.vlan.urls')),
-)
+                       url(r'^$', index, name='vlan-index'),
+                       )
