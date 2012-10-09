@@ -30,9 +30,9 @@ def create_rrdfile(element, when):
             'RRA:AVERAGE:0.5:6:600',
             'RRA:AVERAGE:0.5:24:600',
             'RRA:AVERAGE:0.5:240:600']
-    datasources = ['DS:ip_count:GAUGE:3600:0:10000',
-                   'DS:mac_count:GAUGE:3600:0:10000',
-                   'DS:ip_range:GAUGE:3600:0:10000']
+    datasources = ['DS:ip_count:GAUGE:3600:0:100000',
+                   'DS:mac_count:GAUGE:3600:0:100000',
+                   'DS:ip_range:GAUGE:3600:0:100000']
 
     arguments = [element.fullpath]
     arguments.extend(['--step', '1800'])
