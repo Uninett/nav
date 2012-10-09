@@ -25,6 +25,8 @@ from IPy import IP
 from os import listdir, unlink
 from os.path import exists, join
 
+from nav.models.manage import Prefix
+from nav.models.rrd import RrdFile, RrdDataSource
 import nav.activeipcollector.collector as collector
 import nav.activeipcollector.rrdcontroller as rrdcontroller
 
@@ -78,6 +80,7 @@ def store_tuple(db_tuple, where):
         rrdcontroller.create_rrdfile(element.filename, when)
 
     rrdcontroller.update_rrdfile(element, when)
+    update_rrddb(element, where)
 
 
 def find_type(prefix):
@@ -133,3 +136,69 @@ def get_timestamp(timestamp=None):
         epoch -= difference
 
     return epoch
+
+
+def update_rrddb(element, datapath):
+    """Create a row for this element in the RRD-database"""
+    try:
+        prefix = Prefix.objects.get(net_address=element.prefix)
+    except Prefix.DoesNotExist:
+        LOG.error('Could not find prefix %s in database' % element.prefix)
+        return
+
+    try:
+        rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
+
+        LOG.debug('This rrdfile already exists: %s' % element.prefix)
+
+        rrdfile.path = datapath
+        rrdfile.filename = element.filename
+        rrdfile.save()
+    except RrdFile.DoesNotExist:
+        create_rrddb_file(element, prefix, datapath)
+
+
+def create_rrddb_file(element, prefix, datapath):
+    """Create an rrd_file"""
+    LOG.debug('Creating rrd_file for %s' % element.prefix)
+
+    Datasource = namedtuple("Datasource", "name descr unit")
+
+    rrdfile = RrdFile(
+        path = datapath,
+        filename = element.filename,
+        step = 1800,
+        key = 'prefix',
+        value = prefix.id,
+        category = 'activeip'
+    )
+    rrdfile.save()
+
+    datasources = [
+        Datasource('ip_count', 'Number of ip-addresses on this prefix',
+                   'ip-addresses'),
+        Datasource('mac_count', 'Number of mac-addresses on this prefix',
+                   'mac-addresses'),
+        Datasource('ip_range',
+                   'Total number of ip-addresses available on this prefix',
+                   'ip-addresses'),
+    ]
+
+    for datasource in datasources:
+        create_rrddb_datasource(rrdfile, datasource)
+
+
+def create_rrddb_datasource(rrdfile, datasource):
+    """Create an rrd_datasource"""
+    LOG.debug('Creating rrd_datasource for %s' % datasource.name)
+
+    rrdds = RrdDataSource(
+        rrd_file = rrdfile,
+        name = datasource.name,
+        description = datasource.descr,
+        type = RrdDataSource.TYPE_GAUGE,
+        units = datasource.unit,
+        threshold_state = None,
+        delimiter = None
+    )
+    rrdds.save()

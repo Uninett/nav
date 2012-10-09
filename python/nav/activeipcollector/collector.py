@@ -19,7 +19,6 @@
 import logging
 import time
 
-from nav.models.manage import Arp # Needed for setting settings module
 from django.db import connection
 
 LOG = logging.getLogger('ipcollector.collector')
