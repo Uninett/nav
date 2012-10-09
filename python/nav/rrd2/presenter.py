@@ -45,10 +45,17 @@ Quick example:
                                  # the two datasources. This link is valid
                                  # for about ten minutes
 """
+import glob
 import logging
+import os
 import rrdtool
+import random
+import time
+
+import nav
 from nav.models.rrd import RrdDataSource
 
+CONFIG_FILE = 'rrdviewer/rrdviewer.conf'
 
 UNIT_MAP = {'s': 'Seconds',
             '%': 'Percent',
@@ -69,9 +76,6 @@ class Presentation(object):
         self.datasources = set()
         self.to_time = to_time
         self.none = None
-        self.graph_height = 150
-        self.graph_width = 500
-        self.title = ''
         self.time_last(time_frame)
         self.time_frame = time_frame
         self.show_max = 0
@@ -293,8 +297,103 @@ class Presentation(object):
         """Removes the datasource specified by rrd_datasourceid"""
         self.datasources.remove(datasource)
 
-    # Yes we want to use the variable y
-    # pylint: disable=C0103
-    def set_y_axis(self, y):
-        """ set y axis"""
-        self.y_axis = y
+
+class Graph(object):
+    """Represent an image of the data"""
+
+    colorindex = 0
+    color = {0: "#00cc00",
+             1: "#0000ff",
+             2: "#ff0000",
+             3: "#00ffff",
+             4: "#ff00ff",
+             5: "#ffff00",
+             6: "#cc0000",
+             7: "#0000cc",
+             8: "#0080C0",
+             9: "#8080C0",
+             10: "#FF0080",
+             11: "#800080",
+             12: "#0000A0",
+             13: "#408080",
+             14: "#808000",
+             15: "#000000",
+             16: "#00FF00",
+             17: "#0080FF",
+             18: "#FF8000",
+             19: "#800000",
+             20: "#FB31FB"}
+
+    def __init__(self, presenter, title=None, params=None):
+        """TODO: Make it possible to overwrite params"""
+        if not params:
+            params = []
+        self.presenter = presenter
+        self.graph_height = 150
+        self.graph_width = 500
+        self.title = title or presenter.title or "Title"
+        self.params = params
+        self.params.extend(['-w' + str(self.graph_width),
+                            '-h' + str(self.graph_height),
+                            '-s' + self.presenter.from_time,
+                            '-e' + self.presenter.to_time,
+                            '-t %s' % self.title,
+                            '--no-minor'])
+
+    def add_datasource(self, datasource, draw_as='LINE1', legend=None,
+                       stack=False):
+        """Add a datasource to display in graph"""
+        self._add_def(datasource)
+        self._add_graph_element(datasource, draw_as, legend, stack)
+
+
+    def add_parameter(self, parameter):
+        """Add a custom parameter to the graph"""
+        self.params.append(parameter)
+
+    def _add_def(self, datasource):
+        defs = ['DEF',
+                "%s=%s" % (datasource.id, datasource.rrd_file.get_file_path()),
+                datasource.name,
+                "AVERAGE"]
+        self.params.append(":".join(defs))
+
+    def _add_graph_element(self, datasource, draw_as, legend, stack):
+        draw = [draw_as,
+                "%s%s" % (datasource.id, self._get_color())]
+        if legend:
+            draw.append(legend)
+        if stack:
+            draw.append("STACK")
+        self.params.append(":".join(draw))
+
+    def _get_color(self):
+        color = self.color[self.colorindex]
+        if self.colorindex == self.color.keys()[-1]:
+            self.colorindex = 0
+        else:
+            self.colorindex += 1
+        return color
+
+    def get_url(self):
+        """Return url for displaying graph"""
+        config = nav.config.readConfig(CONFIG_FILE)
+        randomid = str(random.randint(1, 10 ** 9))
+        image_filename = "".join([config['file_prefix'], randomid,
+                                 config['file_suffix']])
+        _LOGGER.error('graph: ' + image_filename)
+        self.params.insert(0, image_filename)
+        try:
+            rrdtool.graph(*[str(s) for s in self.params])
+        except rrdtool.error, error:
+            _LOGGER.error(error)
+            _LOGGER.error(self.params)
+        deadline = 60 * 10
+        for i in glob.glob(config['file_prefix'] + '*'):
+            if os.path.getmtime(i) < (time.time() - deadline):
+                try:
+                    os.unlink(i)
+                except OSError:
+                    pass
+
+        return '/rrd/image=%s/' % str(randomid)
