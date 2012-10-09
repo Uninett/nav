@@ -52,9 +52,8 @@ def create_logger():
 
 
 def get_datadir():
-    """Get datadir from root Defaults file"""
-    root_defaults = nav.mcc.utils.get_configroot(get_cricket_conf())
-    return nav.mcc.utils.get_datadir(root_defaults)
+    """Get datadir"""
+    return join(localstatedir, 'rrd')
 
 
 def get_cricket_conf():
