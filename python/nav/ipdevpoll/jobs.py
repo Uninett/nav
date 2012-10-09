@@ -74,9 +74,6 @@ class JobHandler(object):
         self.netbox = netbox
         self.cancelled = threading.Event()
 
-        instance_name = (self.name, "(%s)" % netbox.sysname)
-        instance_queue_name = ("queue",) + instance_name
-
         self.plugins = plugins or []
         self._logger.debug("Job %r initialized with plugins: %r",
                            self.name, self.plugins)
