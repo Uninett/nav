@@ -35,7 +35,6 @@ def collect(days=None):
     starttime = time.time()
     LOG.debug('Collecting %s intervals' % intervals)
 
-
     query = """
     SELECT
         netaddr,
@@ -43,12 +42,11 @@ def collect(days=None):
         COUNT(DISTINCT ip) AS ipcount,
         COUNT(DISTINCT mac) AS maccount
     FROM prefix
-    JOIN arp ON (ip << netaddr)
-    JOIN (
+    CROSS JOIN (
         SELECT
             now() - generate_series(0,%s) * INTERVAL '30 minutes' AS timeentry)
         AS series
-    ON ((timeentry, timeentry) OVERLAPS (start_time, end_time))
+    LEFT JOIN arp ON (ip << netaddr AND (timeentry, timeentry) OVERLAPS (start_time, end_time))
     GROUP BY netaddr, timeentry
     ORDER BY timeentry
     """ % intervals
