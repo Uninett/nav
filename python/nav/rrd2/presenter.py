@@ -75,9 +75,9 @@ class Presentation(object):
     def __init__(self, time_frame='day', to_time='now', datasource=None):
         self.datasources = set()
         self.to_time = to_time
-        self.none = None
-        self.time_last(time_frame)
+        self.from_time = time_last(self.to_time, time_frame)
         self.time_frame = time_frame
+        self.none = None
         self.show_max = 0
         self.y_axis = 0
 
@@ -257,37 +257,6 @@ class Presentation(object):
             valid.append(ret)
         return valid
 
-    def time_last(self, time_frame='day', value=1):
-        """Sets the timeframe of the presentation
-        Currently valid timeframes: year,month,week,hour,day,minute"""
-
-        if time_frame == 'year':
-            self.from_time = '%s-%sY' % (self.to_time, value)
-            self._time_frame = 'year'
-
-        elif time_frame == 'month':
-            self.from_time = '%s-%sm' % (self.to_time, value)
-            self._time_frame = 'month'
-
-        elif time_frame == 'week':
-            self.from_time = '%s-%sw' % (self.to_time, value)
-            self._time_frame = 'week'
-
-        elif time_frame == 'day':
-            self.from_time = '%s-%sd' % (self.to_time, value)
-            self._time_frame = 'day'
-
-        elif time_frame == 'hour':
-            self.from_time = '%s-%sh' % (self.to_time, value)
-            self._time_frame = 'hour'
-
-        elif time_frame == 'day':
-            self.from_time = '%s-%sd' % (self.to_time, value)
-            self._time_frame = 'day'
-
-        else:
-            self.from_time = '%s-%smin' % (self.to_time, value)
-            self._time_frame = 'minute'
 
     def remove_all_datasources(self):
         """Removes all datasources from the presentation object"""
@@ -324,19 +293,24 @@ class Graph(object):
              19: "#800000",
              20: "#FB31FB"}
 
-    def __init__(self, presenter, title=None, params=None):
+    def __init__(self, title="", to_time="now", time_frame="day",
+                 params=None):
         """TODO: Make it possible to overwrite params"""
         if not params:
             params = []
-        self.presenter = presenter
         self.graph_height = 150
         self.graph_width = 500
-        self.title = title or presenter.title or "Title"
+        self.title = title
+
+        self.time_frame = time_frame
+        self.to_time = to_time
+        self.from_time = time_last(self.to_time, self.time_frame)
+
         self.params = params
         self.params.extend(['-w' + str(self.graph_width),
                             '-h' + str(self.graph_height),
-                            '-s' + self.presenter.from_time,
-                            '-e' + self.presenter.to_time,
+                            '-s' + self.from_time,
+                            '-e' + self.to_time,
                             '-t %s' % self.title,
                             '--no-minor'])
 
@@ -397,3 +371,30 @@ class Graph(object):
                     pass
 
         return '/rrd/image=%s/' % str(randomid)
+
+
+
+def time_last(to_time, time_frame='day', value=1):
+    """Return from_time based on time_frame and to_time
+    Currently valid timeframes: year,month,week,hour,day,minute"""
+
+    if time_frame == 'year':
+        return '%s-%sY' % (to_time, value)
+
+    elif time_frame == 'month':
+        return '%s-%sm' % (to_time, value)
+
+    elif time_frame == 'week':
+        return '%s-%sw' % (to_time, value)
+
+    elif time_frame == 'day':
+        return '%s-%sd' % (to_time, value)
+
+    elif time_frame == 'hour':
+        return '%s-%sh' % (to_time, value)
+
+    elif time_frame == 'day':
+        return '%s-%sd' % (to_time, value)
+
+    else:
+        return '%s-%smin' % (to_time, value)

@@ -41,7 +41,8 @@ def collect(days=None):
         timeentry,
         COUNT(DISTINCT ip) AS ipcount,
         COUNT(DISTINCT mac) AS maccount
-    FROM prefix
+    FROM vlan
+    JOIN prefix USING (vlanid)
     CROSS JOIN (
         SELECT
             now() - generate_series(0,%s) * INTERVAL '30 minutes' AS timeentry)
@@ -49,6 +50,7 @@ def collect(days=None):
     LEFT JOIN arp ON (
         ip << netaddr AND
         (timeentry >= start_time AND timeentry <= end_time))
+    WHERE vlan.nettype IN ('lan', 'scope')
     GROUP BY netaddr, timeentry
     ORDER BY timeentry
     """ % intervals
