@@ -268,7 +268,10 @@ class Presentation(object):
 
 
 class Graph(object):
-    """Represent an image of the data"""
+    """Represent an image of the data
+
+    TODO: Add option for displaying values from other archives than AVERAGE
+    """
 
     colorindex = 0
     color = {0: "#00cc00",
