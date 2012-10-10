@@ -34,11 +34,8 @@ def index(request):
             continue
 
         datasources = rrdfile.rrddatasource_set.all()
-        pres = Presentation()
-        for datasource in datasources:
-            pres.add_datasource(datasource)
 
-        graph = Graph(pres, prefix.net_address, params=['-l0', '-v IP-addresses'])
+        graph = Graph(prefix.net_address, params=['-l0', '-v IP-addresses'])
         for datasource in datasources:
             if datasource.name == 'ip_count':
                 graph.add_datasource(datasource, 'AREA', 'IP-addresses ')
