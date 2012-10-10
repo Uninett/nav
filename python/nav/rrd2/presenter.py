@@ -301,6 +301,8 @@ class Graph(object):
         if not args:
             args = []
 
+        self.config = nav.config.readConfig(CONFIG_FILE)
+
         from_time = time_last(to_time, time_frame)
 
         default_opts = {
@@ -338,8 +340,7 @@ class Graph(object):
         self.args.append(":".join(defs))
 
     def _add_graph_element(self, datasource, draw_as, legend, stack):
-        draw = [draw_as,
-                "%s%s" % (datasource.id, self._get_color())]
+        draw = [draw_as, "%s%s" % (datasource.id, self._get_color())]
         if legend:
             draw.append(legend)
         if stack:
@@ -356,27 +357,37 @@ class Graph(object):
 
     def get_url(self):
         """Return url for displaying graph"""
-        config = nav.config.readConfig(CONFIG_FILE)
         randomid = str(random.randint(1, 10 ** 9))
-        image_filename = "".join([config['file_prefix'], randomid,
-                                 config['file_suffix']])
-        _LOGGER.error('graph: ' + image_filename)
         try:
-            rrdtool.graph(*[image_filename] +
-                           ["%s%s" % (x, y) for x, y in self.opts.items()] +
-                           [str(s) for s in self.args])
+            rrdtool.graph(*self._get_graph_args(
+                self._get_image_filename(randomid)))
         except rrdtool.error, error:
             _LOGGER.error(error)
+
+        self._cleanup()
+        return '/rrd/image=%s/' % str(randomid)
+
+    def _get_graph_args(self, image_filename):
+        """Construct all arguments used to create the graph"""
+        args = [image_filename]
+        args.extend(["%s%s" % (x, y) for x, y in self.opts.items()])
+        args.extend([str(s) for s in self.args])
+        return args
+
+    def _get_image_filename(self, randomid):
+        """Create filename based on config and randomid"""
+        return "".join([self.config['file_prefix'], randomid,
+                        self.config['file_suffix']])
+
+    def _cleanup(self):
+        """Clean up old image-files"""
         deadline = 60 * 10
-        for i in glob.glob(config['file_prefix'] + '*'):
+        for i in glob.glob(self.config['file_prefix'] + '*'):
             if os.path.getmtime(i) < (time.time() - deadline):
                 try:
                     os.unlink(i)
-                except OSError:
-                    pass
-
-        return '/rrd/image=%s/' % str(randomid)
-
+                except OSError, error:
+                    _LOGGER.error(error)
 
 def time_last(to_time, time_frame='day', value=1):
     """Return from_time based on time_frame and to_time

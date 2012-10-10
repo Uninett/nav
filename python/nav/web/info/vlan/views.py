@@ -25,7 +25,7 @@ from nav.models.rrd import RrdFile
 from nav.rrd2.presenter import Presentation, Graph
 
 def index(request):
-    prefixes = Prefix.objects.all()[0:50]
+    prefixes = Prefix.objects.all()[0:5]
     images = []
     for prefix in prefixes:
         try:
@@ -35,7 +35,8 @@ def index(request):
 
         datasources = rrdfile.rrddatasource_set.all()
 
-        graph = Graph(prefix.net_address, params=['-l0', '-v IP-addresses'])
+        options = {'-l': '0', '-v': 'IP-addresses'}
+        graph = Graph(title=prefix.net_address, opts=options)
         for datasource in datasources:
             if datasource.name == 'ip_count':
                 graph.add_datasource(datasource, 'AREA', 'IP-addresses ')
@@ -55,9 +56,9 @@ def index(request):
 
 
 def add_graph_info(graph, dsid, variable):
-    graph.add_parameter("VDEF:cur_%s=%s,LAST" % (variable, dsid))
-    graph.add_parameter("GPRINT:cur_%s:%s" % (variable, 'Now\: %-6.0lf'))
-    graph.add_parameter("VDEF:avg_%s=%s,AVERAGE" % (variable, dsid))
-    graph.add_parameter("GPRINT:avg_%s:%s" % (variable, 'Avg\: %-6.0lf'))
-    graph.add_parameter("VDEF:max_%s=%s,MAXIMUM" % (variable, dsid))
-    graph.add_parameter("GPRINT:max_%s:%s" % (variable, 'Max\: %-6.0lf\l'))
+    graph.add_argument("VDEF:cur_%s=%s,LAST" % (variable, dsid))
+    graph.add_argument("GPRINT:cur_%s:%s" % (variable, 'Now\: %-6.0lf'))
+    graph.add_argument("VDEF:avg_%s=%s,AVERAGE" % (variable, dsid))
+    graph.add_argument("GPRINT:avg_%s:%s" % (variable, 'Avg\: %-6.0lf'))
+    graph.add_argument("VDEF:max_%s=%s,MAXIMUM" % (variable, dsid))
+    graph.add_argument("GPRINT:max_%s:%s" % (variable, 'Max\: %-6.0lf\l'))
