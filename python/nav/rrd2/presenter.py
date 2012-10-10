@@ -293,26 +293,27 @@ class Graph(object):
              19: "#800000",
              20: "#FB31FB"}
 
-    def __init__(self, title="", to_time="now", time_frame="day",
-                 params=None):
-        """TODO: Make it possible to overwrite params"""
-        if not params:
-            params = []
-        self.graph_height = 150
-        self.graph_width = 500
-        self.title = title
+    def __init__(self, title="", to_time="now", time_frame="day", opts=None,
+                 args=None):
+        """Add default options and parameters"""
+        if not opts:
+            opts = {}
+        if not args:
+            args = []
 
-        self.time_frame = time_frame
-        self.to_time = to_time
-        self.from_time = time_last(self.to_time, self.time_frame)
+        from_time = time_last(to_time, time_frame)
 
-        self.params = params
-        self.params.extend(['-w' + str(self.graph_width),
-                            '-h' + str(self.graph_height),
-                            '-s' + self.from_time,
-                            '-e' + self.to_time,
-                            '-t %s' % self.title,
-                            '--no-minor'])
+        default_opts = {
+            '-w': "500",
+            '-h': "150",
+            '-s': from_time,
+            '-e': to_time,
+            '-t': '%s' % title,
+            '--no-minor': ''
+        }
+
+        self.opts = dict(default_opts.items() + opts.items())
+        self.args = args
 
     def add_datasource(self, datasource, draw_as='LINE1', legend=None,
                        stack=False):
@@ -321,16 +322,20 @@ class Graph(object):
         self._add_graph_element(datasource, draw_as, legend, stack)
 
 
-    def add_parameter(self, parameter):
-        """Add a custom parameter to the graph"""
-        self.params.append(parameter)
+    def add_argument(self, argument):
+        """Add a argument to the graph"""
+        self.args.append(argument)
+
+    def add_option(self, option):
+        """Add an option to the graph"""
+        self.opts = dict(self.opts.items() + option.items())
 
     def _add_def(self, datasource):
         defs = ['DEF',
                 "%s=%s" % (datasource.id, datasource.rrd_file.get_file_path()),
                 datasource.name,
                 "AVERAGE"]
-        self.params.append(":".join(defs))
+        self.args.append(":".join(defs))
 
     def _add_graph_element(self, datasource, draw_as, legend, stack):
         draw = [draw_as,
@@ -339,7 +344,7 @@ class Graph(object):
             draw.append(legend)
         if stack:
             draw.append("STACK")
-        self.params.append(":".join(draw))
+        self.args.append(":".join(draw))
 
     def _get_color(self):
         color = self.color[self.colorindex]
@@ -356,12 +361,12 @@ class Graph(object):
         image_filename = "".join([config['file_prefix'], randomid,
                                  config['file_suffix']])
         _LOGGER.error('graph: ' + image_filename)
-        self.params.insert(0, image_filename)
         try:
-            rrdtool.graph(*[str(s) for s in self.params])
+            rrdtool.graph(*[image_filename] +
+                           ["%s%s" % (x, y) for x, y in self.opts.items()] +
+                           [str(s) for s in self.args])
         except rrdtool.error, error:
             _LOGGER.error(error)
-            _LOGGER.error(self.params)
         deadline = 60 * 10
         for i in glob.glob(config['file_prefix'] + '*'):
             if os.path.getmtime(i) < (time.time() - deadline):
@@ -373,28 +378,22 @@ class Graph(object):
         return '/rrd/image=%s/' % str(randomid)
 
 
-
 def time_last(to_time, time_frame='day', value=1):
     """Return from_time based on time_frame and to_time
     Currently valid timeframes: year,month,week,hour,day,minute"""
 
+    from_time = '%s-%smin' % (to_time, value)
     if time_frame == 'year':
-        return '%s-%sY' % (to_time, value)
-
+        from_time = '%s-%sY' % (to_time, value)
     elif time_frame == 'month':
-        return '%s-%sm' % (to_time, value)
-
+        from_time = '%s-%sm' % (to_time, value)
     elif time_frame == 'week':
-        return '%s-%sw' % (to_time, value)
-
+        from_time = '%s-%sw' % (to_time, value)
     elif time_frame == 'day':
-        return '%s-%sd' % (to_time, value)
-
+        from_time = '%s-%sd' % (to_time, value)
     elif time_frame == 'hour':
-        return '%s-%sh' % (to_time, value)
-
+        from_time = '%s-%sh' % (to_time, value)
     elif time_frame == 'day':
-        return '%s-%sd' % (to_time, value)
+        from_time = '%s-%sd' % (to_time, value)
 
-    else:
-        return '%s-%smin' % (to_time, value)
+    return from_time
