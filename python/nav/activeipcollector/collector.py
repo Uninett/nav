@@ -46,7 +46,9 @@ def collect(days=None):
         SELECT
             now() - generate_series(0,%s) * INTERVAL '30 minutes' AS timeentry)
         AS series
-    LEFT JOIN arp ON (ip << netaddr AND (timeentry >= start_time AND timeentry <= end_time))
+    LEFT JOIN arp ON (
+        ip << netaddr AND
+        (timeentry >= start_time AND timeentry <= end_time))
     GROUP BY netaddr, timeentry
     ORDER BY timeentry
     """ % intervals
