@@ -4,10 +4,7 @@ from nav.models.profiles import Account, Organization, Location, Room
 from django.db import transaction
 from StringIO import StringIO
 
-from nav.web.report import handler
-
 class ReportEncodingTest(ModPythonTestCase):
-    module_under_test = handler
 
     def setUp(self):
         super(ReportEncodingTest, self).setUp()
