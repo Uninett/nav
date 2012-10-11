@@ -96,7 +96,7 @@ class Report:
             self.navigator.setMessage(database.error)
 
     def __repr__(self):
-        return "Report[Navigator: {0}]".format(self.navigator)
+        return "Report[Navigator: {0}]".format(self.navigator if self.navigator else None)
 
     def setLimit(self, config):
         """
