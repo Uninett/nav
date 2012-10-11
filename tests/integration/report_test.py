@@ -35,16 +35,4 @@ class ReportEncodingTest(ModPythonTestCase):
         transaction.rollback()
         transaction.leave_transaction_management()
 
-    def test_admin_name_present_in_output(self):
-        buffer = StringIO()
-        admin_substring = '\xc3\x86\xc3\x98\xc3\x85'
-        request = self.make_request("/report/")
-        request.write = buffer.write
-
-        self.assertEquals(handler.handler(request), 200)
-
-        buffer.seek(0)
-        output = buffer.read()
-        self.assertTrue(admin_substring in output,
-                        "%r not in %r" % (admin_substring, output))
 
