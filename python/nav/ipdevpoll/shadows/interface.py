@@ -20,6 +20,7 @@ from itertools import groupby
 
 from nav.models import manage
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
+from nav.models.event import AlertHistory
 from nav import natsort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
@@ -28,6 +29,7 @@ from nav.ipdevpoll import db
 from .netbox import Netbox
 
 MISSING_THRESHOLD = datetime.timedelta(days=1)
+INFINITY = datetime.datetime.max
 
 # pylint: disable=C0111
 
@@ -56,6 +58,7 @@ class InterfaceManager(DefaultManager):
             ifc.prepare(self.containers)
         self._load_existing_objects()
         self._resolve_changed_ifindexes()
+        self._resolve_linkstate_alerts()
 
     def _reset_baseport_numbers(self):
         """Explicitly sets baseport to None for interfaces where it wasn't
@@ -141,6 +144,28 @@ class InterfaceManager(DefaultManager):
             ifindex__in=[new for new, old in changed_ifindexes])
         changed_interfaces.update(ifindex=None)
 
+    def _resolve_linkstate_alerts(self):
+        alerts = self._get_unresolved_linkstate_alerts()
+        need_to_resolve = set(
+            ifc for ifc in self.get_managed()
+            if not ifc.is_linkstate_changed()
+                and ifc.id in alerts
+                and ifc.ifoperstatus == manage.Interface.OPER_UP)
+        self._logger.debug(
+            "resolving link state alerts for these ifcs: %r",
+            [ifc.ifname or ifc.ifdescr for ifc in need_to_resolve])
+        for ifc in need_to_resolve:
+            ifc.ifoperstatus_change = (manage.Interface.OPER_DOWN,
+                                       manage.Interface.OPER_UP)
+        self._ifcs_with_unresolved_alerts = need_to_resolve
+
+    def _get_unresolved_linkstate_alerts(self):
+        unresolved = AlertHistory.objects.filter(
+            netbox=self.netbox.id, event_type__id='linkState',
+            end_time__gte=INFINITY)
+        interface_ids = [v['subid'] for v in unresolved.values('subid')]
+        return [int(ifc_id) for ifc_id in interface_ids if ifc_id.isdigit()]
+
     def cleanup(self):
         """Cleans up Interface data."""
         if self.handle_missing:
@@ -204,7 +229,8 @@ class InterfaceManager(DefaultManager):
 
         linkstate_filter = self.get_linkstate_filter()
         eventful_ifcs = [ifc for ifc in changed_ifcs
-                         if ifc.matches_filter(linkstate_filter)]
+                         if ifc.matches_filter(linkstate_filter)
+                             or ifc in self._ifcs_with_unresolved_alerts]
         if eventful_ifcs:
             self._logger.debug("posting linkState events for %r: %s",
                                linkstate_filter, ifnames(eventful_ifcs))
