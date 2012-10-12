@@ -2,13 +2,16 @@
 
 {% block content %}
 
+    {% comment %} List all existing justifications {% endcomment %}
     <table class="listtable">
         <caption>Existing reasons for detention</caption>
 
         <thead>
-        <th>Reason</th>
-        <th>Description</th>
-        <th>&nbsp;</th>
+        <tr>
+            <th>Reason</th>
+            <th>Description</th>
+            <th>&nbsp;</th>
+        </tr>
         </thead>
 
         <tbody>
@@ -16,11 +19,32 @@
             <tr>
                 <td>{{ justification.name }}</td>
                 <td>{{ justification.description }}</td>
-                <td>Edit</td>
+                <td>
+                    <a href="{% url arnold-justificatons-edit justification.id %}">
+                        Edit
+                    </a>
+                </td>
             </tr>
         {% endfor %}
         </tbody>
 
     </table>
+
+
+    {% comment %} Form for creating new justifications {% endcomment %}
+    <form action="{% url arnold-justificatons %}" method="POST">
+        {{ form.justificationid }}
+        <table class="vertitable">
+            <tbody>
+            {{ form.as_table }}
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <input type="submit" value="{{ form.initial.justificationid|yesno:'Save changes, Add reason' }}">
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
 
 {% endblock %}

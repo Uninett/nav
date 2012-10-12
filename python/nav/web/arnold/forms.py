@@ -18,4 +18,8 @@
 from django import forms
 
 class JustificationForm(forms.Form):
-    name = forms.CharField()
+    name = forms.CharField(label="Name:")
+    description = forms.CharField(label="Description", required=False)
+    justificationid = forms.IntegerField(widget=forms.HiddenInput(),
+                                         required=False)
+

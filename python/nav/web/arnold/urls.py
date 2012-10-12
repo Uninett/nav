@@ -24,7 +24,7 @@ urlpatterns = patterns('',
    url(r"^history/$", render_history, name="arnold-history"),
    url(r"^detainedports/$", render_detained_ports, name="arnold-detainedports"),
    url(r"^search/$", render_search, name="arnold-search"),
-   url(r"^addreason/$", render_justifications,
-       name="arnold-justificatons"),
+   url(r"^addreason/$", render_justifications, name="arnold-justificatons"),
+   url(r"^addreason/edit/(?P<id>\d+)$", render_justifications, name="arnold-justificatons-edit"),
 )
 

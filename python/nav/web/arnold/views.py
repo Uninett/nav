@@ -13,15 +13,21 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Views for Arnold"""
+"""Views for Arnold
 
+TODO:
+- Add titles and breadcrumb
+"""
+
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models import Q
 
 from nav.models.arnold import Identity, Justification
+from nav.web.arnold.forms import JustificationForm
 from nav.web.utils import create_title
-
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
 
@@ -67,16 +73,48 @@ def render_search(request):
     pass
 
 
-def render_justifications(request):
+def render_justifications(request, id=None):
     """Controller for rendering detention reasons"""
+    if request.method == 'POST':
+        form = JustificationForm(request.POST)
+        if form.is_valid():
+            process_justification_form(form)
+            return HttpResponseRedirect(reverse('arnold-justificatons'))
+    elif id:
+        justification = Justification.objects.get(pk=id)
+        form = JustificationForm(initial={
+            'justificationid': justification.id,
+            'name': justification.name,
+            'description': justification.description
+        })
+    else:
+        form = JustificationForm()
+
     justifications = Justification.objects.all()
 
     return render_to_response(
         'arnold/justifications.html',
         {'active': {'justifications': True},
+         'form': form,
          'justifications': justifications},
         context_instance = RequestContext(request)
     )
+
+def process_justification_form(form):
+    """Add new justification based on form data"""
+    name = form.cleaned_data['name']
+    desc = form.cleaned_data['description']
+    justificationid = form.cleaned_data['justificationid']
+
+    if justificationid:
+        justification = Justification.objects.get(pk=justificationid)
+    else:
+        justification = Justification()
+
+    justification.name=name
+    justification.description=desc
+
+    justification.save()
 
 
 def render_manual_detention(request):
