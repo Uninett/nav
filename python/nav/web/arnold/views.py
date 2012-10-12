@@ -17,7 +17,11 @@
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.db.models import Q
+
+from nav.models.arnold import Identity
 from nav.web.utils import create_title
+
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
 
@@ -35,15 +39,20 @@ def index(request):
 
 def render_history(request):
     """Controller for rendering arnold history"""
+    identities = Identity.objects.filter()
+
     return render_to_response(
         'arnold/history.html',
-        {},
+        {'identities': identities},
         context_instance = RequestContext(request)
     )
 
 
 def render_detained_ports(request):
     """Controller for rendering detained ports"""
+    identities = Identity.objects.filter(
+        Q(status='disabled') | Q(status='quarantined'))
+
     return render_to_response(
         'arnold/detainedports.html',
         {},
