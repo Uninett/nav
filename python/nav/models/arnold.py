@@ -14,9 +14,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django.db import models
 from nav.models.fields import VarcharField
-from nav.models.manage import Interface
+from nav.models.manage import Interface, Organization
+from django.db import models
 
 STATUSES = (
     ('enabled',),
@@ -24,49 +24,58 @@ STATUSES = (
     ('quarantined',)
     )
 
-class Computer(models.Model):
-    """The table contains a listing for each computer Arnold has blocked"""
+class Identity(models.Model):
+    """
+    The table contains a listing for each computer,interface combo Arnold
+    has blocked
+    """
 
     id = models.AutoField(db_column='identityid', primary_key=True)
-    ip = models.IPAddressField(db_column='ip', null=True)
     mac = models.CharField(db_column='mac', max_length=17)
-    dns = VarcharField(null=True)
-    netbios = VarcharField(null=True)
-    status = models.ForeignKey('Status')
-
-    class Meta:
-        db_table = 'identity'
-        verbose_name = 'identity'
-        verbose_name_plural = 'identities'
-        ordering = ('', )
-
-
-
-class Status(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = VarcharField()
-    description = VarcharField()
-
-
-class Event(models.Model):
-    """A class representing an action taken"""
-    id = models.AutoField(primary_key=True)
+    status = VarcharField(db_column='blocked_status', choices=STATUSES)
     justification = models.ForeignKey('Justification', db_column='blocked_reasonid')
     interface = models.ForeignKey(Interface, db_column='swportid')
-    event_time = models.DateTimeField(auto_now_add=True)
-    action = VarcharField(choices=STATUSES)
-    identity = models.ForeignKey('Identity')
+    ip = models.IPAddressField(null=True)
+    dns = VarcharField(null=True)
+    netbios = VarcharField(null=True)
+    first_offence = models.DateTimeField(db_column='starttime')
+    last_changed = models.DateTimeField(db_column='lastchanged', auto_now_add=True)
+    autoenable = models.DateTimeField(null=True)
+    autoenablestep = models.IntegerField(null=True)
     mail = VarcharField(null=True)
+    organization = models.ForeignKey('Organization', db_column='orgid', null=True)
+    keep_closed = models.CharField(db_column='determined', default='n')
     fromvlan = models.IntegerField(null=True)
     tovlan = models.IntegerField(null=True)
 
     class Meta:
-        db_table = 'action'
+        db_table = 'identity'
+        ordering = ('last_changed', )
+        verbose_name = 'identity'
+        verbose_name_plural = 'identities'
+        unique_together = ('mac', 'interface')
+
+
+class Event(models.Model):
+    """A class representing an action taken"""
+    id = models.AutoField(db_column='eventid', primary_key=True)
+    identity = models.ForeignKey('Identity', db_column='identityid')
+    comment = VarcharField(db_column='event_comment', null=True)
+    action = VarcharField(db_column='blocked_status', choices=STATUSES)
+    justification = models.ForeignKey('Justification', db_column='blocked_reasonid')
+    event_time = models.DateTimeField(db_column='eventtime', auto_now_add=True)
+    autoenablestep = models.IntegerField(null=True)
+    executor = VarcharField(db_column='username')
+
+    class Meta:
+        db_table = 'event'
+        ordering = ('event_time', )
 
 
 class Justification(models.Model):
+    """Represents the justification for an event"""
     id = models.AutoField(db_column='blocked_reasonid', primary_key=True)
-    name = VarcharField(db_column='name'),
+    name = VarcharField()
     description = VarcharField(db_column='comment', null=True)
 
     class Meta:
@@ -75,9 +84,10 @@ class Justification(models.Model):
 
 
 class QuarantineVlan(models.Model):
+    """A quarantine vlan is a vlan where offender are placed"""
     id = models.AutoField(db_column='quarantineid', primary_key=True)
-    vlan = models.IntegerField(db_column='vlan')
-    description = VarcharField(db_column='description', null=True)
+    vlan = models.IntegerField()
+    description = VarcharField(null=True)
 
     class Meta:
         db_table = 'quarantine_vlans'
@@ -85,9 +95,24 @@ class QuarantineVlan(models.Model):
 
 
 class DetentionType(models.Model):
+    """A detentiontype is a configuration of an automatic detention"""
+    detention_types = ['disable', 'quarantine']
+
     id = models.AutoField(db_column='blockid', primary_key=True)
     name = VarcharField(db_column='blocktitle')
     description = VarcharField(db_column='blockdesc', null=True)
+    mailfile = VarcharField(null=True)
+    justification = models.ForeignKey('Justification', db_column='reasonid')
+    keep_closed = models.CharField(db_column='determined', default='n')
+    incremental = models.CharField(default='n')
+    autoenable_time = models.DateTimeField(db_column='blocktime')
+    active = models.CharField(default='n')
+    last_edited = models.DateTimeField(db_column='lastedited', auto_now_add=True)
+    edited_by = VarcharField(db_column='lastedituser')
+    inputfile = VarcharField()
+    active_on_vlans = VarcharField(db_column='activeonvlans')
+    detention_type = VarcharField(db_column='detainmenttype', choices=detention_types)
+    quarantine_vlan = models.ForeignKey('QuarantineVlan', db_column='quarantineid')
 
     class Meta:
         db_table = 'block'
