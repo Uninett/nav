@@ -20,13 +20,14 @@ TODO:
 """
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.db.models import Q
 
+from datetime import datetime, timedelta
+
 from nav.models.arnold import Identity, Justification
-from nav.web.arnold.forms import JustificationForm
+from nav.web.arnold.forms import JustificationForm, HistorySearchForm
 from nav.web.utils import create_title
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
@@ -45,11 +46,22 @@ def index(request):
 
 def render_history(request):
     """Controller for rendering arnold history"""
-    identities = Identity.objects.filter()
+
+    days = 7
+    if 'days' in request.GET:
+        form = HistorySearchForm(request.GET)
+        if form.is_valid():
+            days = form.cleaned_data['days']
+
+    form = HistorySearchForm(initial={'days': days})
+
+    identities = Identity.objects.filter(
+        last_changed__gte=datetime.now() - timedelta(days=days))
 
     return render_to_response(
         'arnold/history.html',
         {'active': {'history': True},
+         'form': form,
          'identities': identities},
         context_instance = RequestContext(request)
     )
@@ -73,15 +85,15 @@ def render_search(request):
     pass
 
 
-def render_justifications(request, id=None):
+def render_justifications(request, jid=None):
     """Controller for rendering detention reasons"""
     if request.method == 'POST':
         form = JustificationForm(request.POST)
         if form.is_valid():
             process_justification_form(form)
-            return HttpResponseRedirect(reverse('arnold-justificatons'))
-    elif id:
-        justification = Justification.objects.get(pk=id)
+            return redirect('arnold-justificatons')
+    elif jid:
+        justification = Justification.objects.get(pk=jid)
         form = JustificationForm(initial={
             'justificationid': justification.id,
             'name': justification.name,
@@ -100,6 +112,7 @@ def render_justifications(request, id=None):
         context_instance = RequestContext(request)
     )
 
+
 def process_justification_form(form):
     """Add new justification based on form data"""
     name = form.cleaned_data['name']
@@ -111,8 +124,8 @@ def process_justification_form(form):
     else:
         justification = Justification()
 
-    justification.name=name
-    justification.description=desc
+    justification.name = name
+    justification.description = desc
 
     justification.save()
 

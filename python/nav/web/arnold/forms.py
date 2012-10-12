@@ -18,8 +18,13 @@
 from django import forms
 
 class JustificationForm(forms.Form):
+    """Form for adding a new justificaton"""
     name = forms.CharField(label="Name:")
     description = forms.CharField(label="Description", required=False)
     justificationid = forms.IntegerField(widget=forms.HiddenInput(),
                                          required=False)
 
+
+class HistorySearchForm(forms.Form):
+    """Form for searching in history"""
+    days = forms.IntegerField(widget=forms.TextInput({'size': 3}))
