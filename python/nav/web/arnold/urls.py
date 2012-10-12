@@ -16,7 +16,7 @@
 """Urlconfig for arnold"""
 
 from django.conf.urls.defaults import patterns, url
-from nav.web.arnold.views import (index, render_history, render_detained_ports,
+from nav.web.arnold.views import (render_history, render_detained_ports,
                                   render_search, render_justifications)
 
 urlpatterns = patterns('',

@@ -13,13 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Views for Arnold
+"""Views for Arnold"""
 
-TODO:
-- Add titles and breadcrumb
-"""
-
-from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.db.models import Q
@@ -32,21 +27,19 @@ from nav.web.utils import create_title
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
 
-def index(request):
-    """Main controller for Arnold"""
-    return render_to_response(
-        'arnold/base.html',
-        {
-            'navpath': NAVPATH,
-            'title': create_title(NAVPATH)
-        },
-        context_instance = RequestContext(request)
-    )
+
+def create_context(path, context):
+    """Create a dictionary for use in context based on path"""
+    navpath = NAVPATH + [(path,)]
+    path_context = {
+        'navpath': navpath,
+        'title': create_title(navpath)
+    }
+    return dict(path_context.items() + context.items())
 
 
 def render_history(request):
     """Controller for rendering arnold history"""
-
     days = 7
     if 'days' in request.GET:
         form = HistorySearchForm(request.GET)
@@ -60,10 +53,11 @@ def render_history(request):
 
     return render_to_response(
         'arnold/history.html',
-        {'active': {'history': True},
-         'form': form,
-         'identities': identities},
-        context_instance = RequestContext(request)
+        create_context('History',
+                       {'active': {'history': True},
+                        'form': form,
+                        'identities': identities}),
+        context_instance=RequestContext(request)
     )
 
 
@@ -74,9 +68,10 @@ def render_detained_ports(request):
 
     return render_to_response(
         'arnold/detainedports.html',
-        {'active': {'detentions': True},
-         'identities': identities},
-        context_instance = RequestContext(request)
+        create_context('Detentions',
+                       {'active': {'detentions': True},
+                        'identities': identities}),
+        context_instance=RequestContext(request)
     )
 
 
@@ -106,10 +101,11 @@ def render_justifications(request, jid=None):
 
     return render_to_response(
         'arnold/justifications.html',
-        {'active': {'justifications': True},
-         'form': form,
-         'justifications': justifications},
-        context_instance = RequestContext(request)
+        create_context('Justifications',
+                       {'active': {'justifications': True},
+                        'form': form,
+                        'justifications': justifications}),
+        context_instance=RequestContext(request)
     )
 
 
