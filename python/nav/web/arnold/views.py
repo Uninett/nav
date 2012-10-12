@@ -55,7 +55,7 @@ def render_detained_ports(request):
 
     return render_to_response(
         'arnold/detainedports.html',
-        {},
+        {'identities': identities},
         context_instance = RequestContext(request)
     )
 
