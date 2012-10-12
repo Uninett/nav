@@ -19,7 +19,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models import Q
 
-from nav.models.arnold import Identity
+from nav.models.arnold import Identity, Justification
 from nav.web.utils import create_title
 
 
@@ -43,7 +43,8 @@ def render_history(request):
 
     return render_to_response(
         'arnold/history.html',
-        {'identities': identities},
+        {'active': {'history': True},
+         'identities': identities},
         context_instance = RequestContext(request)
     )
 
@@ -55,7 +56,8 @@ def render_detained_ports(request):
 
     return render_to_response(
         'arnold/detainedports.html',
-        {'identities': identities},
+        {'active': {'detentions': True},
+         'identities': identities},
         context_instance = RequestContext(request)
     )
 
@@ -65,9 +67,16 @@ def render_search(request):
     pass
 
 
-def render_detention_reason(request):
+def render_justifications(request):
     """Controller for rendering detention reasons"""
-    pass
+    justifications = Justification.objects.all()
+
+    return render_to_response(
+        'arnold/justifications.html',
+        {'active': {'justifications': True},
+         'justifications': justifications},
+        context_instance = RequestContext(request)
+    )
 
 
 def render_manual_detention(request):

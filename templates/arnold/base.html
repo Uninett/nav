@@ -9,14 +9,22 @@
 
     <h2>Arnold</h2>
 
-    <div id="arnoldtabs" class="hidden">
+    <div class="tabs">
 
         <ul>
-            <li><a href="{% url arnold-history %}">History</a></li>
-            <li><a href="{% url arnold-detainedports %}">Detained Ports</a></li>
-            <li><a href="{% url arnold-search %}">Search</a></li>
+            <li class="{{ active.history|yesno:"tabactive," }}"><a href="{% url arnold-history %}">History</a></li>
+            <li class="{{ active.detentions|yesno:"tabactive," }}"><a href="{% url arnold-detainedports %}">Detained Ports</a></li>
+            <li class="{{ active.search|yesno:"tabactive," }}"><a href="{% url arnold-search %}">Search</a></li>
+            <li class="{{ active.justifications|yesno:"tabactive," }}"><a href="{% url arnold-justificatons %}">Add detentionreason</a></li>
         </ul>
 
+    </div>
+
+
+
+    <div class="tabcontent">
+        {% block content %}
+        {% endblock %}
     </div>
 
 {% endblock %}

@@ -1,6 +1,10 @@
-<table class="listtable">
-    <caption>History</caption>
-    <thead>
+{% extends "arnold/base.html" %}
+
+{% block content %}
+
+    <table class="listtable">
+        <caption>History</caption>
+        <thead>
         <tr>
             <th>IP</th>
             <th>DNS</th>
@@ -12,26 +16,30 @@
             <th>Last Changed</th>
             <th>_</th>
         </tr>
-    </thead>
+        </thead>
 
-    <tbody>
-    {% for identity in identities %}
+        <tbody>
+        {% for identity in identities %}
+            <tr>
+                <td>{{ identity.ip|default_if_none:'' }}</td>
+                <td>{{ identity.dns|default_if_none:'' }}</td>
+                <td>{{ identity.mac }}</td>
+                <td>{{ identity.netbios|default_if_none:'' }}</td>
+                <td>{{ identity.organization|default_if_none:'' }}</td>
+                <td>{{ identity.status }}</td>
+                <td>{{ identity.justification.name|default_if_none:'' }}</td>
+                <td>{{ identity.last_changed }}</td>
+                <td>Details</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
         <tr>
-            <td>{{ identity.ip|default_if_none:'' }}</td>
-            <td>{{ identity.dns|default_if_none:'' }}</td>
-            <td>{{ identity.mac }}</td>
-            <td>{{ identity.netbios|default_if_none:'' }}</td>
-            <td>{{ identity.organization|default_if_none:'' }}</td>
-            <td>{{ identity.status }}</td>
-            <td>{{ identity.justification.name|default_if_none:'' }}</td>
-            <td>{{ identity.last_changed }}</td>
-            <td>Details</td>
+            <th colspan="9">{{ identities|length }}
+                hit{{ identities|pluralize:'s' }} in history the last x days
+            </th>
         </tr>
-    {% endfor %}
-    </tbody>
-    <tfoot>
-        <tr>
-            <th colspan="9">{{ identities|length }} hit{{ identities|pluralize:'s' }} in history the last x days</th>
-        </tr>
-    </tfoot>
-</table>
+        </tfoot>
+    </table>
+
+{% endblock %}

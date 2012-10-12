@@ -1,0 +1,26 @@
+{% extends "arnold/base.html" %}
+
+{% block content %}
+
+    <table class="listtable">
+        <caption>Existing reasons for detention</caption>
+
+        <thead>
+        <th>Reason</th>
+        <th>Description</th>
+        <th>&nbsp;</th>
+        </thead>
+
+        <tbody>
+        {% for justification in justifications %}
+            <tr>
+                <td>{{ justification.name }}</td>
+                <td>{{ justification.description }}</td>
+                <td>Edit</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+
+{% endblock %}
