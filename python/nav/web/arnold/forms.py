@@ -19,10 +19,18 @@ from django import forms
 
 class JustificationForm(forms.Form):
     """Form for adding a new justificaton"""
-    name = forms.CharField(label="Name:")
+    name = forms.CharField(label="Name")
     description = forms.CharField(label="Description", required=False)
     justificationid = forms.IntegerField(widget=forms.HiddenInput(),
                                          required=False)
+
+
+class QuarantineVlanForm(forms.Form):
+    """Form for adding a new quarantine vlan"""
+    vlan = forms.IntegerField(label="Vlan")
+    description = forms.CharField(label="Description", required=False)
+    qid = forms.IntegerField(widget=forms.HiddenInput(),
+                             required=False)
 
 
 class HistorySearchForm(forms.Form):

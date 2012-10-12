@@ -16,6 +16,7 @@
             <li class="{{ active.detentions|yesno:"tabactive," }}"><a href="{% url arnold-detainedports %}">Detained Ports</a></li>
             <li class="{{ active.search|yesno:"tabactive," }}"><a href="{% url arnold-search %}">Search</a></li>
             <li class="{{ active.justifications|yesno:"tabactive," }}"><a href="{% url arnold-justificatons %}">Add detentionreason</a></li>
+            <li class="{{ active.quarantinevlans|yesno:"tabactive," }}"><a href="{% url arnold-quarantinevlans %}">Add quarantine vlan</a></li>
         </ul>
 
     </div>

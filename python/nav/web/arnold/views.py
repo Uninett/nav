@@ -21,8 +21,9 @@ from django.db.models import Q
 
 from datetime import datetime, timedelta
 
-from nav.models.arnold import Identity, Justification
-from nav.web.arnold.forms import JustificationForm, HistorySearchForm
+from nav.models.arnold import Identity, Justification, QuarantineVlan
+from nav.web.arnold.forms import (JustificationForm, HistorySearchForm,
+                                  QuarantineVlanForm)
 from nav.web.utils import create_title
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
@@ -136,6 +137,48 @@ def render_predefined_detentions(request):
     pass
 
 
-def render_quarantine_vlans(request):
+def render_quarantine_vlans(request, qid=None):
     """Controller for rendering quarantine vlans"""
-    pass
+    if request.method == 'POST':
+        form = QuarantineVlanForm(request.POST)
+        if form.is_valid():
+            process_quarantinevlan_form(form)
+            return redirect('arnold-quarantinevlans')
+    elif qid:
+        qvlan = QuarantineVlan.objects.get(pk=qid)
+        form = QuarantineVlanForm(initial={
+            'qid': qvlan.id,
+            'vlan': qvlan.vlan,
+            'description': qvlan.description
+        })
+    else:
+        form = QuarantineVlanForm()
+
+    qvlans = QuarantineVlan.objects.all()
+
+    return render_to_response(
+        'arnold/quarantinevlans.html',
+        create_context('Quarantine Vlans',
+                       {'active': {'quarantinevlans': True},
+                        'form': form,
+                        'qvlans': qvlans}),
+        context_instance=RequestContext(request)
+    )
+
+
+def process_quarantinevlan_form(form):
+    """Add new quarantine vlan based on form data"""
+    vlan = form.cleaned_data['vlan']
+    desc = form.cleaned_data['description']
+    qid = form.cleaned_data['qid']
+
+    if qid:
+        qvlan = QuarantineVlan.objects.get(pk=qid)
+    else:
+        qvlan = QuarantineVlan()
+
+    qvlan.vlan = vlan
+    qvlan.description = desc
+
+    qvlan.save()
+
