@@ -15,7 +15,11 @@
 #
 """Forms for Arnold"""
 
+
+from IPy import IP
 from django import forms
+
+from nav.models.arnold import STATUSES
 
 class JustificationForm(forms.Form):
     """Form for adding a new justificaton"""
@@ -36,3 +40,35 @@ class QuarantineVlanForm(forms.Form):
 class HistorySearchForm(forms.Form):
     """Form for searching in history"""
     days = forms.IntegerField(widget=forms.TextInput({'size': 3}))
+
+
+class SearchForm(forms.Form):
+    """Form for searching for detained computers"""
+    search_choices = [('ip', 'IP'), ('mac', 'MAC'), ('netbios', 'Netbios'),
+                      ('dns', 'DNS')]
+    status_choices = STATUSES + [('any', 'Any')]
+
+    searchtype = forms.ChoiceField(choices=search_choices)
+    searchvalue = forms.CharField(required=True)
+    status = forms.ChoiceField(choices=status_choices, label='Status')
+    days = forms.IntegerField(label='Days', widget=forms.TextInput({'size': 3}))
+
+    def clean_searchvalue(self):
+        """Clean whitespace from searchvalue"""
+        return self.cleaned_data['searchvalue'].strip()
+
+    def clean(self):
+        """Validate on several fields"""
+        cleaned_data = self.cleaned_data
+        searchtype = cleaned_data.get('searchtype')
+        searchvalue = cleaned_data.get('searchvalue')
+
+        if searchtype == 'ip':
+            try:
+                IP(searchvalue)
+            except ValueError:
+                self._errors["searchvalue"] = self.error_class(
+                    ["IP-address or range is not valid"])
+                del cleaned_data["searchvalue"]
+
+        return cleaned_data

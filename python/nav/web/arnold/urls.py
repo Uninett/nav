@@ -27,9 +27,12 @@ urlpatterns = patterns('',
    url(r"^search/$", render_search, name="arnold-search"),
 
    url(r"^addreason/$", render_justifications, name="arnold-justificatons"),
-   url(r"^addreason/edit/(?P<jid>\d+)$", render_justifications, name="arnold-justificatons-edit"),
+   url(r"^addreason/edit/(?P<jid>\d+)$", render_justifications,
+       name="arnold-justificatons-edit"),
 
-   url(r"^addquarantinevlan/$", render_quarantine_vlans, name="arnold-quarantinevlans"),
-   url(r"^addquarantinevlan/edit/(?P<qid>\d+)$", render_quarantine_vlans, name="arnold-quarantinevlans-edit"),
+   url(r"^addquarantinevlan/$", render_quarantine_vlans,
+       name="arnold-quarantinevlans"),
+   url(r"^addquarantinevlan/edit/(?P<qid>\d+)$", render_quarantine_vlans,
+       name="arnold-quarantinevlans-edit"),
 )
 

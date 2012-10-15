@@ -15,6 +15,8 @@
 #
 """Views for Arnold"""
 
+
+from IPy import IP
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.db.models import Q
@@ -23,7 +25,7 @@ from datetime import datetime, timedelta
 
 from nav.models.arnold import Identity, Justification, QuarantineVlan
 from nav.web.arnold.forms import (JustificationForm, HistorySearchForm,
-                                  QuarantineVlanForm)
+                                  QuarantineVlanForm, SearchForm)
 from nav.web.utils import create_title
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
@@ -78,7 +80,46 @@ def render_detained_ports(request):
 
 def render_search(request):
     """Controller for rendering search"""
-    pass
+    search_result = []
+    if request.method == 'POST':
+        form = SearchForm(request.POST)
+        if form.is_valid():
+            search_result = process_searchform(form)
+    else:
+        form = SearchForm(initial={'searchtype': 'ip', 'status': 'any',
+                                   'days': 7})
+
+    return render_to_response('arnold/search.html',
+                              create_context('Search', {
+                                  'form': form,
+                                  'search_result': search_result,
+                                  'active': {'search': True}
+                              }),
+                              RequestContext(request))
+
+
+def process_searchform(form):
+    """Get searchresults based on form data"""
+    extra = {}
+    kwargs = {
+        'last_changed__gte': datetime.now() - timedelta(
+            days=form.cleaned_data['days'])
+    }
+
+    if form.cleaned_data['searchtype'] == 'ip':
+        ip = IP(form.cleaned_data['searchvalue'])
+        if ip.len() == 1:
+            kwargs['ip'] = str(ip)
+        else:
+            extra['where'] = ["ip << '%s'" % str(ip)]
+    else:
+        key = form.cleaned_data['searchtype'] + '__icontains'
+        kwargs[key] = form.cleaned_data['searchvalue']
+
+    if form.cleaned_data['status'] != 'any':
+        kwargs['status'] = form.cleaned_data['status']
+
+    return Identity.objects.filter(**kwargs).extra(**extra)
 
 
 def render_justifications(request, jid=None):

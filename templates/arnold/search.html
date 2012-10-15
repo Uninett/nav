@@ -1,0 +1,79 @@
+{% extends "arnold/base.html" %}
+
+{% block content %}
+
+    {% comment %} Display form for defining search parameters {% endcomment %}
+
+    <form action="{% url arnold-search %}" method="POST">
+        <table class="vertitable">
+            <tr>
+                <th>{{ form.searchtype }}</th>
+                <td>{{ form.searchvalue }}</td>
+                <td><span class="error">{{ form.searchvalue.errors.0 }}</span></td>
+            </tr>
+            <tr>
+                <th>{{ form.status.label }}</th>
+                <td>{{ form.status }}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <th>{{ form.days.label }}</th>
+                <td>{{ form.days }} days back</td>
+                <td><span class="error">{{ form.days.errors.0 }}</span></td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td><input type="submit" value="Search"></td>
+                <td>&nbsp;</td>
+            </tr>
+
+        </table>
+    </form>
+
+
+    {% comment %} Display search results {% endcomment %}
+    {% if form.is_bound and not form.errors %}
+        <table class="listtable">
+
+            <caption>Result</caption>
+
+            <thead>
+            <tr>
+                <th>IP</th>
+                <th>DNS</th>
+                <th>MAC</th>
+                <th>Netbios</th>
+                <th>Status</th>
+                <th>Reason</th>
+                <th>Last changed</th>
+                <th>&nbsp;</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for result in search_result %}
+                <tr>
+                    <td>{{ result.ip|default_if_none:'' }}</td>
+                    <td>{{ result.dns|default_if_none:'' }}</td>
+                    <td>{{ result.mac }}</td>
+                    <td>{{ result.netbios|default_if_none:'' }}</td>
+                    <td>{{ result.status }}</td>
+                    <td>{{ result.justification }}</td>
+                    <td>{{ result.last_changed }}</td>
+                    <td>Details</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+            <tfoot>
+                <tr>
+                    <th colspan="8">
+                        {{ search_result|length }} result{{ search_result|pluralize:'s' }} found
+                    </th>
+                </tr>
+            </tfoot>
+
+        </table>
+    {% endif %}
+
+{% endblock %}

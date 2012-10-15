@@ -15,14 +15,14 @@
 #
 
 from nav.models.fields import VarcharField
-from nav.models.manage import Interface, Organization
+from nav.models.manage import Interface
 from django.db import models
 
-STATUSES = (
-    ('enabled',),
-    ('disabled',),
-    ('quarantined',)
-    )
+STATUSES = [
+    ('enabled', 'Enabled'),
+    ('disabled', 'Disabled'),
+    ('quarantined', 'Quarantined')
+]
 
 class Identity(models.Model):
     """
@@ -77,6 +77,9 @@ class Justification(models.Model):
     id = models.AutoField(db_column='blocked_reasonid', primary_key=True)
     name = VarcharField()
     description = VarcharField(db_column='comment', null=True)
+
+    def __unicode__(self):
+        return self.name
 
     class Meta:
         db_table = 'blocked_reason'
