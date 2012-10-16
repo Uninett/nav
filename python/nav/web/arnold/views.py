@@ -173,11 +173,11 @@ def render_manual_detention(request):
     pass
 
 
-def render_detentionstypes(request):
+def render_detention_profiles(request):
     """Controller for rendering predefined detentions"""
     pass
 
-def render_add_detentiontype(request):
+def render_edit_detention_profile(request, did=None):
     pass
 
 def render_quarantine_vlans(request, qid=None):

@@ -97,7 +97,7 @@ class QuarantineVlan(models.Model):
         ordering = ('vlan',)
 
 
-class DetentionType(models.Model):
+class DetentionProfile(models.Model):
     """A detentiontype is a configuration of an automatic detention"""
     detention_types = ['disable', 'quarantine']
 
