@@ -59,7 +59,7 @@
                     <td>{{ result.netbios|default_if_none:'' }}</td>
                     <td>{{ result.status }}</td>
                     <td>{{ result.justification }}</td>
-                    <td>{{ result.last_changed }}</td>
+                    <td>{{ result.last_changed|date:"Y-m-d H:i:s" }}</td>
                     <td>Details</td>
                 </tr>
             {% endfor %}
