@@ -648,3 +648,31 @@ class PowerSupplyOrFan(Shadow):
     __shadowclass__ = manage.PowerSupplyOrFan
     __lookups__ = [('netbox', 'name')]
 
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        cls._delete_missing_psus_and_fans(containers)
+
+    @classmethod
+    @db.autocommit
+    def _delete_missing_psus_and_fans(cls, containers):
+        missing_psus_and_fans = cls._get_missing_psus_and_fans(containers)
+        psu_and_fan_names = [row['name']
+                             for row in missing_psus_and_fans.values('name')]
+        if len(missing_psus_and_fans) < 1:
+            return
+        netbox = containers.get(None, Netbox)
+        cls._logger.debug('Deleting %d missing psus and fans from %s: %s',
+            len(psu_and_fan_names), netbox.sysname,
+            ", ".join(psu_and_fan_names))
+        missing_psus_and_fans.delete()
+
+    @classmethod
+    @db.autocommit
+    def _get_missing_psus_and_fans(cls, containers):
+        found_psus_and_fans_pks = [psu_fan.id
+                                   for psu_fan in containers[cls].values()]
+        netbox = containers.get(None, Netbox)
+        missing_psus_and_fans = manage.PowerSupplyOrFan.objects.filter(
+            netbox=netbox.id).exclude(pk__in=found_psus_and_fans_pks)
+        return missing_psus_and_fans
+    
