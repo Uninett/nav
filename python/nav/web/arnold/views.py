@@ -223,3 +223,11 @@ def process_quarantinevlan_form(form):
 
     qvlan.save()
 
+
+def render_details(request, did):
+    """Controller for rendering details about an identity"""
+    identity = Identity.objects.get(pk=did)
+
+    return render_to_response('arnold/details.html',
+                              create_context('Details', {'identity': identity}),
+                              RequestContext(request))

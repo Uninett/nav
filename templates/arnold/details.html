@@ -1,0 +1,80 @@
+{% extends 'arnold/base.html' %}
+
+{% block content %}
+
+    {% comment %} Display info for this identity {% endcomment %}
+    <table class="listtable">
+        <caption>Details for {{ identity.ip }}</caption>
+
+        <thead>
+        <tr>
+            <th>Ip</th>
+            <th>Dns</th>
+            <th>Netbios</th>
+            <th>Mac</th>
+            <th>Switch</th>
+            <th>Port</th>
+            <th>Vlan</th>
+            <th>Status</th>
+            <th>Autoenable</th>
+            <th>Mail</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td>{{ identity.ip }}</td>
+            <td>{{ identity.dns|default_if_none:'' }}</td>
+            <td>{{ identity.netbios|default_if_none:'' }}</td>
+            <td>{{ identity.mac }}</td>
+            <td>{{ identity.interface.netbox.sysname }}</td>
+            <td>{{ identity.interface.ifname|default_if_none:'' }}</td>
+            <td>{{ identity.interface.vlan|default_if_none:'' }}</td>
+            <td>{{ identity.status }}</td>
+            <td>{{ identity.autoenable|default_if_none:'' }}</td>
+            <td>{{ identity.mail|default_if_none:'' }}</td>
+        </tr>
+        </tbody>
+
+    </table>
+
+
+    {% comment %}Display list of events regarding this identity{% endcomment %}
+    {% with identity.event_set.all as events %}
+
+    <table class="listtable">
+        <caption>History</caption>
+
+        <thead>
+            <tr>
+                <th>Eventtime</th>
+                <th>Action</th>
+                <th>Reason</th>
+                <th>Comment</th>
+                <th>User</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for event in events %}
+            <tr>
+                <td>{{ event.event_time|date:"Y-m-d H:i:s" }}</td>
+                <td>{{ event.action }}</td>
+                <td>{{ event.justification }}</td>
+                <td>{{ event.comment|default_if_none:'' }}</td>
+                <td>{{ event.executor }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <th colspan="5">{{ events|length }} entr{{ events|pluralize:'y,ies' }} in history</th>
+            </tr>
+        </tfoot>
+
+    </table>
+
+    {% endwith %}
+
+{% endblock %}

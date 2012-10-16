@@ -18,11 +18,12 @@
 from django.conf.urls.defaults import patterns, url
 from nav.web.arnold.views import (render_history, render_detained_ports,
                                   render_search, render_justifications,
-                                  render_quarantine_vlans)
+                                  render_quarantine_vlans, render_details)
 
 urlpatterns = patterns('',
    url(r"^$", render_detained_ports, name="arnold_index"),
    url(r"^history/$", render_history, name="arnold-history"),
+   url(r"^details/(?P<did>\d+)$", render_details, name="arnold-details"),
    url(r"^detainedports/$", render_detained_ports, name="arnold-detainedports"),
    url(r"^search/$", render_search, name="arnold-search"),
 
