@@ -18,21 +18,38 @@
 from django.conf.urls.defaults import patterns, url
 from nav.web.arnold.views import (render_history, render_detained_ports,
                                   render_search, render_justifications,
-                                  render_quarantine_vlans, render_details)
+                                  render_quarantine_vlans, render_details,
+                                  render_manual_detention,
+                                  render_detentionstypes,
+                                  render_add_detentiontype)
 
 urlpatterns = patterns('',
    url(r"^$", render_detained_ports, name="arnold_index"),
+
    url(r"^history/$", render_history, name="arnold-history"),
+
    url(r"^details/(?P<did>\d+)$", render_details, name="arnold-details"),
+
    url(r"^detainedports/$", render_detained_ports, name="arnold-detainedports"),
+
    url(r"^search/$", render_search, name="arnold-search"),
 
+   url(r"^manualdetention/$", render_manual_detention,
+       name="arnold-manual-detention"),
+
+   url(r"^predefined/$", render_detentionstypes, name="arnold-detentiontypes"),
+
+   url(r"^predefined/add$", render_add_detentiontype,
+       name="arnold-detentiontypes-add"),
+
    url(r"^addreason/$", render_justifications, name="arnold-justificatons"),
+
    url(r"^addreason/edit/(?P<jid>\d+)$", render_justifications,
        name="arnold-justificatons-edit"),
 
    url(r"^addquarantinevlan/$", render_quarantine_vlans,
        name="arnold-quarantinevlans"),
+
    url(r"^addquarantinevlan/edit/(?P<qid>\d+)$", render_quarantine_vlans,
        name="arnold-quarantinevlans-edit"),
 )
