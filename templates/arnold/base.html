@@ -17,7 +17,7 @@
             <li class="{{ active.search|yesno:"tabactive," }}"><a href="{% url arnold-search %}">Search</a></li>
             <li class="{{ active.justifications|yesno:"tabactive," }}"><a href="{% url arnold-justificatons %}">Add detention reason</a></li>
             <li class="{{ active.manualdetention|yesno:"tabactive," }}"><a href="{% url arnold-manual-detention %}">Manual detention</a></li>
-            <li class="{{ active.manualdetention|yesno:"tabactive," }}"><a href="{% url arnold-detentiontypes %}">Predefined detentions</a></li>
+            <li class="{{ active.detentionprofiles|yesno:"tabactive," }}"><a href="{% url arnold-detention-profiles %}">Predefined detentions</a></li>
             <li class="{{ active.quarantinevlans|yesno:"tabactive," }}"><a href="{% url arnold-quarantinevlans %}">Add quarantine vlan</a></li>
         </ul>
 

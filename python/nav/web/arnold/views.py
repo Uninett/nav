@@ -23,7 +23,8 @@ from django.db.models import Q
 
 from datetime import datetime, timedelta
 
-from nav.models.arnold import Identity, Justification, QuarantineVlan
+from nav.models.arnold import (Identity, Justification, QuarantineVlan,
+                               DetentionProfile)
 from nav.web.arnold.forms import (JustificationForm, HistorySearchForm,
                                   QuarantineVlanForm, SearchForm)
 from nav.web.utils import create_title
@@ -175,10 +176,21 @@ def render_manual_detention(request):
 
 def render_detention_profiles(request):
     """Controller for rendering predefined detentions"""
-    pass
+    profiles = DetentionProfile.objects.all()
+
+    for profile in profiles:
+        profile.active = True if profile.active == 'y' else False
+
+    return render_to_response('arnold/detention_profiles.html',
+                       create_context('Detention Profiles',
+                                      {'active': {'detentionprofiles': True},
+                                       'profiles': profiles}),
+                       RequestContext(request))
+
 
 def render_edit_detention_profile(request, did=None):
     pass
+
 
 def render_quarantine_vlans(request, qid=None):
     """Controller for rendering quarantine vlans"""

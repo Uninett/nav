@@ -1,0 +1,38 @@
+{% extends 'arnold/base.html' %}
+
+{% block content %}
+
+    <table class="listtable">
+        <caption>List of current detention profiles</caption>
+
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Active</th>
+                <th>_</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for profile in profiles %}
+            <tr>
+                <td>{{ profile.id }}</td>
+                <td>{{ profile.name }}</td>
+                <td>{{ profile.description }}</td>
+                <td>{{ profile.active|yesno:'Yes,No' }}</td>
+                <td><a href="{% url arnold-detention-profile-edit profile.id %}">Edit</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <th colspan="5">{{ profiles|length }} profile{{ profiles|pluralize:'s' }} registered</th>
+            </tr>
+        </tfoot>
+
+    </table>
+
+{% endblock %}
