@@ -74,7 +74,10 @@ def is_legal_threshold(value, allow_empty=True):
     try:
         value = int(value)
     except ValueError, val_err:
-        return False
+        try:
+            value = float(value)
+        except ValueError, val_err:
+            return False
     if is_per_cent:
         if not is_legal_percent_value(value):
             return False

@@ -24,7 +24,11 @@ This interface supports both PySNMP v2 and PySNMP SE.
 import os
 os.environ['PYSNMP_API_VERSION'] = 'v3'
 
-import pysnmp
+try:
+    import pysnmp
+except ImportError, e:
+    os.environ['PYSNMP_API_VERSION'] = 'v2'
+    import pysnmp
 
 # Identify which PySNMP version is actually installed.  Looks ugly, but each
 # version provides (or forgets to provide) a different API for reporting its
