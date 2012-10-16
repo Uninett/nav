@@ -31,7 +31,7 @@
                 <td>{{ identity.status }}</td>
                 <td>{{ identity.justification.name|default_if_none:'' }}</td>
                 <td>{{ identity.last_changed|date:"Y-m-d H:i:s" }}</td>
-                <td>Details</td>
+                <td><a href="{% url arnold-details identity.id %}">Details</a></td>
             </tr>
         {% endfor %}
         </tbody>

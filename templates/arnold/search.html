@@ -60,7 +60,7 @@
                     <td>{{ result.status }}</td>
                     <td>{{ result.justification }}</td>
                     <td>{{ result.last_changed|date:"Y-m-d H:i:s" }}</td>
-                    <td>Details</td>
+                    <td><a href="{% url arnold-details result.id %}">Details</a></td>
                 </tr>
             {% endfor %}
             </tbody>
