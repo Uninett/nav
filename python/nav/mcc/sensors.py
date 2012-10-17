@@ -26,11 +26,15 @@ def make_config(globalconfig):
     LOGGER.info("Creating config for %s in %s" % (dirname, path_to_directory))
 
     boxes = Netbox.objects.exclude(read_only__isnull=True).exclude(read_only='')
+
+    configdirs = []
     for netbox in boxes:
         containers = create_netbox_config(netbox, path_to_directory)
         if containers:
+            configdirs.append(join(path_to_directory, netbox.sysname))
             dbutils.updatedb(path_to_rrdfiles, containers)
 
+    utils.find_and_remove_old_config(path_to_directory, configdirs)
     return True
 
 

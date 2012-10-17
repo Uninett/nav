@@ -248,6 +248,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
 
     # Get data needed by the template
+    addr = is_valid_ip(addr)
     host_info = get_host_info(name or addr)
     netbox = get_netbox(name=name, addr=addr, host_info=host_info)
 
