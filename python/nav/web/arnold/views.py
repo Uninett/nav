@@ -13,7 +13,12 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Views for Arnold"""
+"""Views for Arnold
+
+TODO:
+- Check possibility of using model forms
+- Add "Manual Detention"
+"""
 
 
 from IPy import IP
@@ -25,8 +30,10 @@ from datetime import datetime, timedelta
 
 from nav.models.arnold import (Identity, Justification, QuarantineVlan,
                                DetentionProfile)
+from nav.django.utils import get_account
 from nav.web.arnold.forms import (JustificationForm, HistorySearchForm,
-                                  QuarantineVlanForm, SearchForm)
+                                  QuarantineVlanForm, SearchForm,
+                                  DetentionProfileForm)
 from nav.web.utils import create_title
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
@@ -189,7 +196,72 @@ def render_detention_profiles(request):
 
 
 def render_edit_detention_profile(request, did=None):
-    pass
+    """Controller for rendering edit of a detention profile"""
+    profile = None
+
+    if request.method == 'POST':
+        form = DetentionProfileForm(request.POST)
+        if form.is_valid():
+            process_detention_profile_form(form, get_account(request))
+            return redirect('arnold-detention-profiles')
+
+    elif did:
+        profile = DetentionProfile.objects.get(pk=did)
+
+        profile.active = True if profile.active == 'y' else False
+        profile.incremental = True if profile.incremental == 'y' else False
+
+        form = DetentionProfileForm(initial={
+            'detention_id': profile.id,
+            'detention_type': profile.detention_type,
+            'title': profile.name,
+            'description': profile.description,
+            'justification': profile.justification.id,
+            'mail': profile.mailfile,
+            'qvlan': profile.quarantine_vlan.id,
+            'keep_closed': profile.keep_closed,
+            'exponential': profile.incremental,
+            'duration': profile.duration,
+            'active_on_vlans': profile.active_on_vlans,
+            'active': profile.active
+        })
+    else:
+        form = DetentionProfileForm()
+
+
+    return render_to_response('arnold/edit_detention_profile.html',
+                              create_context('Detention Profile',
+                                             {'form': form,
+                                              'profile': profile}),
+                              RequestContext(request))
+
+
+def process_detention_profile_form(form, account):
+    """Process add or edit of new form"""
+    did = form.cleaned_data['detention_id']
+    if did:
+        profile = DetentionProfile.objects.get(pk=did)
+    else:
+        profile = DetentionProfile()
+
+    profile.name = form.cleaned_data['title']
+    profile.description = form.cleaned_data['description']
+    profile.mailfile = form.cleaned_data['mail']
+    profile.justification = Justification.objects.get(
+        pk=form.cleaned_data['justification'])
+    profile.keep_closed = form.cleaned_data['keep_closed']
+    profile.incremental = 'y' if form.cleaned_data['exponential'] else 'n'
+    profile.duration = form.cleaned_data['duration']
+    profile.active = 'y' if form.cleaned_data['active'] else 'n'
+    profile.last_edited = datetime.now()
+    profile.edited_by = account.login
+    profile.active_on_vlans = form.cleaned_data['active_on_vlans']
+    profile.detention_type = form.cleaned_data['detention_type']
+    if form.cleaned_data['qvlan']:
+        profile.quarantine_vlan = QuarantineVlan.objects.get(
+            pk=form.cleaned_data['qvlan'])
+
+    profile.save()
 
 
 def render_quarantine_vlans(request, qid=None):

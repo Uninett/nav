@@ -19,7 +19,9 @@
 from IPy import IP
 from django import forms
 
-from nav.models.arnold import STATUSES
+from nav.models.arnold import (DETENTION_TYPE_CHOICES, STATUSES,
+                               KEEP_CLOSED_CHOICES, Justification,
+                               QuarantineVlan)
 
 class JustificationForm(forms.Form):
     """Form for adding a new justificaton"""
@@ -72,3 +74,36 @@ class SearchForm(forms.Form):
                 del cleaned_data["searchvalue"]
 
         return cleaned_data
+
+
+class DetentionProfileForm(forms.Form):
+    """Form for creating a new detention profile"""
+    justification_choices = [('', '-- Select reason --')] +\
+                            [(j.id, j.name) for j in
+                             Justification.objects.all()]
+    qvlan_choices = [(q.id, "%s - %s" % (q.vlan, q.description)) for q in
+                     QuarantineVlan.objects.all()]
+
+    detention_id = forms.IntegerField(widget=forms.HiddenInput(),
+                                      required=False)
+    detention_type = forms.ChoiceField(choices=DETENTION_TYPE_CHOICES,
+                                       widget=forms.RadioSelect(),
+                                       initial=DETENTION_TYPE_CHOICES[0][0])
+    title = forms.CharField(label="Title")
+    description = forms.CharField(label="Description", widget=forms.Textarea,
+                                  required=False)
+    justification = forms.ChoiceField(label="Reason",
+                                      choices=justification_choices)
+    qvlan = forms.ChoiceField(choices=qvlan_choices, label="Quarantinevlan",
+                              initial=qvlan_choices[0][0],
+                              required=False)
+    mail = forms.CharField(label="Path to mailfile", required=False)
+    keep_closed = forms.ChoiceField(label="Detention pursuit",
+                                    choices=KEEP_CLOSED_CHOICES,
+                                    widget=forms.RadioSelect(),
+                                    initial=KEEP_CLOSED_CHOICES[0][0])
+    exponential = forms.BooleanField(label="Exponential increase",
+                                     required=False)
+    duration = forms.IntegerField(label="Detention duration")
+    active_on_vlans = forms.CharField(label="Active on vlans", required=False)
+    active = forms.BooleanField(label="Active", required=False)

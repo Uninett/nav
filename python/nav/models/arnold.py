@@ -24,6 +24,12 @@ STATUSES = [
     ('quarantined', 'Quarantined')
 ]
 
+DETENTION_TYPE_CHOICES = [('disable', 'Block'),
+                          ('quarantine', 'Quarantine')]
+
+KEEP_CLOSED_CHOICES = [('n', 'Open on move'), ('y', 'All closed')]
+
+
 class Identity(models.Model):
     """
     The table contains a listing for each computer,interface combo Arnold
@@ -44,7 +50,7 @@ class Identity(models.Model):
     autoenablestep = models.IntegerField(null=True)
     mail = VarcharField(null=True)
     organization = models.ForeignKey('Organization', db_column='orgid', null=True)
-    keep_closed = models.CharField(db_column='determined', default='n')
+    keep_closed = models.CharField(db_column='determined', default='n', choices=KEEP_CLOSED_CHOICES)
     fromvlan = models.IntegerField(null=True)
     tovlan = models.IntegerField(null=True)
 
@@ -99,23 +105,21 @@ class QuarantineVlan(models.Model):
 
 class DetentionProfile(models.Model):
     """A detentiontype is a configuration of an automatic detention"""
-    detention_types = ['disable', 'quarantine']
-
     id = models.AutoField(db_column='blockid', primary_key=True)
     name = VarcharField(db_column='blocktitle')
     description = VarcharField(db_column='blockdesc', null=True)
     mailfile = VarcharField(null=True)
     justification = models.ForeignKey('Justification', db_column='reasonid')
-    keep_closed = models.CharField(db_column='determined', default='n')
+    keep_closed = models.CharField(db_column='determined', default='n', choices=KEEP_CLOSED_CHOICES)
     incremental = models.CharField(default='n')
-    autoenable_time = models.DateTimeField(db_column='blocktime')
+    duration = models.IntegerField(db_column='blocktime')
     active = models.CharField(default='n')
     last_edited = models.DateTimeField(db_column='lastedited', auto_now_add=True)
     edited_by = VarcharField(db_column='lastedituser')
-    inputfile = VarcharField()
+    inputfile = VarcharField(null=True)
     active_on_vlans = VarcharField(db_column='activeonvlans')
-    detention_type = VarcharField(db_column='detainmenttype', choices=detention_types)
-    quarantine_vlan = models.ForeignKey('QuarantineVlan', db_column='quarantineid')
+    detention_type = VarcharField(db_column='detainmenttype', choices=DETENTION_TYPE_CHOICES)
+    quarantine_vlan = models.ForeignKey('QuarantineVlan', db_column='quarantineid', null=True)
 
     class Meta:
         db_table = 'block'
