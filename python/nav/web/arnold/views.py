@@ -18,8 +18,8 @@
 TODO:
 - Check possibility of using model forms
 - Add "Manual Detention"
+- Styling
 """
-
 
 from IPy import IP
 from django.shortcuts import render_to_response, redirect
@@ -210,6 +210,8 @@ def render_edit_detention_profile(request, did=None):
 
         profile.active = True if profile.active == 'y' else False
         profile.incremental = True if profile.incremental == 'y' else False
+        qvlanid = profile.quarantine_vlan.id if profile.quarantine_vlan else \
+        None
 
         form = DetentionProfileForm(initial={
             'detention_id': profile.id,
@@ -218,7 +220,7 @@ def render_edit_detention_profile(request, did=None):
             'description': profile.description,
             'justification': profile.justification.id,
             'mail': profile.mailfile,
-            'qvlan': profile.quarantine_vlan.id,
+            'qvlan': qvlanid,
             'keep_closed': profile.keep_closed,
             'exponential': profile.incremental,
             'duration': profile.duration,

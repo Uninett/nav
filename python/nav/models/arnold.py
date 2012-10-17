@@ -98,6 +98,9 @@ class QuarantineVlan(models.Model):
     vlan = models.IntegerField()
     description = VarcharField(null=True)
 
+    def __unicode__(self):
+        return "%s - %s" % (self.vlan, self.description)
+
     class Meta:
         db_table = 'quarantine_vlans'
         ordering = ('vlan',)

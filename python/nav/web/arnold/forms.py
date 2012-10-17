@@ -15,7 +15,6 @@
 #
 """Forms for Arnold"""
 
-
 from IPy import IP
 from django import forms
 
@@ -78,11 +77,6 @@ class SearchForm(forms.Form):
 
 class DetentionProfileForm(forms.Form):
     """Form for creating a new detention profile"""
-    justification_choices = [('', '-- Select reason --')] +\
-                            [(j.id, j.name) for j in
-                             Justification.objects.all()]
-    qvlan_choices = [(q.id, "%s - %s" % (q.vlan, q.description)) for q in
-                     QuarantineVlan.objects.all()]
 
     detention_id = forms.IntegerField(widget=forms.HiddenInput(),
                                       required=False)
@@ -92,11 +86,8 @@ class DetentionProfileForm(forms.Form):
     title = forms.CharField(label="Title")
     description = forms.CharField(label="Description", widget=forms.Textarea,
                                   required=False)
-    justification = forms.ChoiceField(label="Reason",
-                                      choices=justification_choices)
-    qvlan = forms.ChoiceField(choices=qvlan_choices, label="Quarantinevlan",
-                              initial=qvlan_choices[0][0],
-                              required=False)
+    justification = forms.ChoiceField(label="Reason")
+    qvlan = forms.ChoiceField(label="Quarantinevlan", required=False)
     mail = forms.CharField(label="Path to mailfile", required=False)
     keep_closed = forms.ChoiceField(label="Detention pursuit",
                                     choices=KEEP_CLOSED_CHOICES,
@@ -107,3 +98,15 @@ class DetentionProfileForm(forms.Form):
     duration = forms.IntegerField(label="Detention duration")
     active_on_vlans = forms.CharField(label="Active on vlans", required=False)
     active = forms.BooleanField(label="Active", required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(DetentionProfileForm, self).__init__(*args, **kwargs)
+        self.justification_choices = [('', '-- Select reason --')] +\
+                                     [(j.id, j.name) for j in
+                                      Justification.objects.all()]
+        self.qvlan_choices = [('', '-- Select vlan --')] +\
+                             [(q.id, "%s - %s" % (q.vlan, q.description)) for q
+                              in QuarantineVlan.objects.all()]
+
+        self.fields['qvlan'].choices = self.qvlan_choices
+        self.fields['justification'].choices = self.justification_choices
