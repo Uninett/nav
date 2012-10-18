@@ -1,6 +1,8 @@
 Version 3.12.2
 (released 18 Okt 2012)
 
+ Bugfixes:
+
   * LP#1052902 (linkState remains unresolved after links comes back up)
   * LP#1052906 (Cannot add thresholds with decimals)
   * LP#1057403 (cricket sensor module does not clean up old config)
