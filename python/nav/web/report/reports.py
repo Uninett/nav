@@ -115,7 +115,8 @@ def arg_parsing(request):
     remove = []
 
     # Finding empty values
-
+    # TODO: implement this, so it removes empty keys from querydict on
+    #       advance search.
     #helper_remove = dict((key, querydict[key]) for key in querydict):
     #for key, val in helper_remove:
     #    if val == "":
