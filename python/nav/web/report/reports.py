@@ -106,6 +106,20 @@ def index(request):
     page.content = lambda:file(frontFile).read()
     return HttpResponse(page.respond())
 
+def get_report(request):
+
+    # notes from mod_python to django refactor
+    # uri == request.get_full_path()
+    # nuri == request.META['QUERY_STRING']
+    try:
+        (report_name, export_delimiter, uri, query_dict) = arg_parsing(request)
+    except HttpRedirectException, e:
+        return HttpResponseRedirect(e)
+
+    if report_name == 'report':
+        return redirect('report-index')
+    return make_report(request, report_name, export_delimiter, uri, query_dict)
+
 def arg_parsing(request):
     query_dict = request.GET.copy()
 

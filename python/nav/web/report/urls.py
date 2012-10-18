@@ -16,102 +16,85 @@
 """Report backend URL config."""
 
 from django.conf.urls.defaults import url, patterns
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect
-from nav.web.report import reports
-
+from nav.web.report.reports import get_report, matrix_report, index, report_list
 
 # Subsystem: Report
 # Naming convention: report-<result>-<query>
 urlpatterns = patterns('nav.web.report.views',
-    url(r'^$', reports.index, name='report-index'),
+    url(r'^$', index, name='report-index'),
     url(r'^matrix',
-        reports.matrix_report, name='report-matrix'),
+        matrix_report, name='report-matrix'),
     url(r'^reportlist$',
-        reports.report_list, name='report-reportlist')
+        report_list, name='report-reportlist'),
 )
 
-# Dummy view
-#dummy = lambda reports.handle: *args, **kwargs: None
-#dummy = lambda: *args, **kwargs: None
-def dummy(request):
-
-    # notes from mod_python to django refactor
-    # uri == request.get_full_path()
-    # nuri == request.META['QUERY_STRING']
-    try:
-        (report_name, export_delimiter, uri, query_dict) = reports.arg_parsing(request)
-    except reports.HttpRedirectException, e:
-        return reports.HttpResponseRedirect(e)
-
-    if report_name == 'report':
-        return redirect('report-index')
-    return reports.make_report(request, report_name, export_delimiter, uri, query_dict)
-
+# Reverse urls for known reports shipped by NAV
+# .* wildcard match for unknown reports but is hopefully defined
+# in report.conf
 urlpatterns += patterns('nav.web.report.views',
     # Subsystem: Report
     # Naming convention: report-<result>-<query>
 
     url(r'^org$',
-        dummy, name='report-organization-all'),
+        get_report, name='report-organization-all'),
     url(r'^org\?orgid=(?P<organization_id>[^&]+)$',
-        dummy, name='report-organization-organization'),
+        get_report, name='report-organization-organization'),
 
     url(r'^type$',
-        dummy, name='report-type-all'),
+        get_report, name='report-type-all'),
     url(r'^type\?typeid=(?P<type_id>\d+)$',
-        dummy, name='report-type-type'),
+        get_report, name='report-type-type'),
 
     url(r'^room$',
-        dummy, name='report-room-all'),
+        get_report, name='report-room-all'),
     url(r'^room\?locationid=(?P<location_id>[^&]+)$',
-        dummy, name='report-room-location'),
+        get_report, name='report-room-location'),
 
     url(r'^netbox$',
-        dummy, name='report-netbox-all'),
+        get_report, name='report-netbox-all'),
     url(r'^netbox\?roomid=(?P<room_id>[^&]+)$',
-        dummy, name='report-netbox-room'),
+        get_report, name='report-netbox-room'),
     url(r'^netbox\?catid=(?P<category_id>[\w\d._-]+)$',
-        dummy, name='report-netbox-category'),
+        get_report, name='report-netbox-category'),
 
     url(r'^modules$',
-        dummy, name='report-modules-all'),
+        get_report, name='report-modules-all'),
     url(r'^modules\?netboxid=(?P<netbox_id>\d+)$',
-        dummy, name='report-modules-netbox'),
+        get_report, name='report-modules-netbox'),
     url(r'^modules\?netboxid=(?P<netbox_id>\d+)'
         r'&module=(?P<module_number>\d+)$',
-        dummy, name='report-modules-module'),
+        get_report, name='report-modules-module'),
 
     url(r'^interfaces\?netboxid=(?P<netbox_id>\d+)$',
-        dummy, name='report-interfaces-netbox'),
+        get_report, name='report-interfaces-netbox'),
 
     url(r'^gwport$',
-        dummy, name='report-gwport-all'),
+        get_report, name='report-gwport-all'),
     url(r'^gwport\?netboxid=(?P<netbox_id>\d+)$',
-        dummy, name='report-gwport-netbox'),
+        get_report, name='report-gwport-netbox'),
     url(r'^gwport\?netboxid=(?P<netbox_id>\d+)'
         r'&module=(?P<module_name>[^&]+)$',
-        dummy, name='report-gwport-module'),
+        get_report, name='report-gwport-module'),
 
     url(r'^swport$',
-        dummy, name='report-swport-all'),
+        get_report, name='report-swport-all'),
     url(r'^swport\?netboxid=(?P<netbox_id>\d+)$',
-        dummy, name='report-swport-netbox'),
+        get_report, name='report-swport-netbox'),
     url(r'^swport\?netboxid=(?P<netbox_id>\d+)'
         r'&module=(?P<module_name>[^&]+)$',
-        dummy, name='report-swport-module'),
+        get_report, name='report-swport-module'),
 
     url(r'^swporttrunk$',
-        dummy, name='report-swporttrunk-all'),
+        get_report, name='report-swporttrunk-all'),
     url(r'^swporttrunk\?vlan=(?P<vlan>\d+)$',
-        dummy, name='report-swporttrunk-vlan'),
+        get_report, name='report-swporttrunk-vlan'),
     url(r'^swporttrunk\?vlanid=(?P<vlanid>\d+)$',
-        dummy, name='report-swporttrunk-vlanid'),
+        get_report, name='report-swporttrunk-vlanid'),
 
     url(r'^prefix$',
-        dummy, name='report-prefix-all'),
+        get_report, name='report-prefix-all'),
     url(r'^prefix\?prefixid=(?P<prefix_id>\d+)$',
-        dummy, name='report-prefix-prefix'),
+        get_report, name='report-prefix-prefix'),
 
-    url(r'^.*$', dummy, name='report-wildcard')
+    url(r'^.*$', get_report, name='report-wildcard')
 )
