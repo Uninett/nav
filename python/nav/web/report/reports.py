@@ -21,82 +21,30 @@ from IPy import IP
 
 from operator import itemgetter
 from time import localtime, strftime
-import copy
 import csv
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 import os
-import os.path
 import re
-import string
-import urllib
 from nav.django.utils import get_account
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 from django.core.cache import cache
 
-from IPy import IP
 from nav import db
 from nav.report.IPtree import getMaxLeaf, buildTree
 from nav.report.generator import Generator, ReportList
 from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP
-from nav.web import state
-from nav.web.URI import URI
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
 from nav.web.templates.ReportListTemplate import ReportListTemplate
 from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
-from nav.web.encoding import encoded_output
 import nav.path
 
 config_file_package = os.path.join(nav.path.sysconfdir, "report/report.conf")
 config_file_local = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
-
-def fix_report_urlpath(func):
-    """Decorates report's mod_python handler to fix strange URLs.
-
-    report is very picky about URLs, and there is no URL magic helping us
-    anywhere in mod_python.  Only the following path patterns allow hyperlinks
-    within reports to function properly:
-
-    * /report/
-    * /report/(?P<report_name>)
-
-    I.e. the report front page path must always end in a slash, while any
-    report page must never end in a slash.  This works some redirect magic on
-    requests with non-conforming paths. Looking forward to replace this crazy
-    voodoo with Django's sweet URL magic!
-
-    """
-    from functools import wraps
-    import logging
-    from urlparse import urlparse, ParseResult
-    logger = logging.getLogger(__name__)
-    multislash = re.compile(r'/+')
-
-    @wraps(func)
-    def _wrapper(request, *args, **kwargs):
-        url = urlparse(request.META['QUERY_STRING'] or "")
-        elements = [e for e in multislash.split(url.path) if e]
-        if len(elements) > 1:
-            path = '/%s/%s' % (elements[0], elements[-1])
-        else:
-            path = '/%s/' % elements[0]
-
-        if path != url.path:
-            url = ParseResult(url.scheme, url.netloc, path,
-                              url.params, url.query, url.fragment)
-            logger.warning("fixing broken url: %r -> %r",
-                request.META['QUERY_STRING'] or "", url.geturl())
-            redirect(url.geturl())
-        return func(request, *args, **kwargs)
-
-    return _wrapper
-
-
-
 
 def index(request):
     page = MainTemplate()
