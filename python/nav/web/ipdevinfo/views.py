@@ -190,6 +190,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         raw_alerts = queryset[:max_num_alerts]
 
         alerts = []
+        has_unresolved_alerts = False
         for alert in raw_alerts:
             if alert.source.name == 'serviceping':
                 try:
@@ -204,6 +205,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             except IndexError:
                 message = None
 
+            if not has_unresolved_alerts and alert.is_open():
+                has_unresolved_alerts = True
+
             alerts.append({
                 'alert': alert,
                 'type': alert_type,
@@ -215,6 +219,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'alerts': alerts,
             'count': count,
             'is_more_alerts': count > max_num_alerts,
+            'has_unresolved_alerts': has_unresolved_alerts
         }
 
     def get_prefix_info(addr):
