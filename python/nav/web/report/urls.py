@@ -16,6 +16,7 @@
 """Report backend URL config."""
 
 from django.conf.urls.defaults import url, patterns
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from nav.web.report import reports
 
@@ -35,9 +36,14 @@ urlpatterns = patterns('nav.web.report.views',
 #dummy = lambda: *args, **kwargs: None
 def dummy(request):
 
+    # notes from mod_python to django refactor
     # uri == request.get_full_path()
     # nuri == request.META['QUERY_STRING']
-    (report_name, export_delimiter, uri, query_dict) = reports.arg_parsing(request)
+    try:
+        (report_name, export_delimiter, uri, query_dict) = reports.arg_parsing(request)
+    except reports.HttpRedirectException, e:
+        return reports.HttpResponseRedirect(e)
+
     if report_name == 'report':
         return redirect('report-index')
     return reports.make_report(request, report_name, export_delimiter, uri, query_dict)

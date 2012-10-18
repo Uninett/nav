@@ -23,7 +23,7 @@ from operator import itemgetter
 from time import localtime, strftime
 import copy
 import csv
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 import os
 import os.path
@@ -115,13 +115,23 @@ def arg_parsing(request):
     remove = []
 
     # Finding empty values
-    # TODO: implement this, so it removes empty keys from querydict on
-    #       advance search.
-    #helper_remove = dict((key, querydict[key]) for key in querydict):
-    #for key, val in helper_remove:
-    #    if val == "":
-    #        del querydict[key]
+    original_query_dict = query_dict.copy()
 
+    for key, value in query_dict.iteritems():
+        # Just in case...
+        value = value.strip()
+        if not value:
+            remove.append(key)
+        else:
+            # QueryDict seems to store multiple values on a key...
+            if type(value) == 'list':
+                key_has_value = False
+                for v in value:
+                    if v:
+                        key_has_value = True
+                        break
+                if not key_has_value:
+                    remove.append(key)
 
 
     if 'exportcsv' in query_dict and 'export' in query_dict:
@@ -139,14 +149,13 @@ def arg_parsing(request):
         if r in request.GET:
             del query_dict[r]
         if "op_{0}".format(r) in query_dict:
-            del query_dict[r]
+            del query_dict["op_{0}".format(r)]
         if "not_{0}".format(r) in query_dict:
-            del query_dict[r]
+            del query_dict["not_{0}".format(r)]
 
     # Redirect if any arguments were removed
-    if len(remove):
-        return redirect("{0}{1}".format(request.get_full_path, query_dict))
-
+    if len(remove) or query_dict != original_query_dict:
+        raise HttpRedirectException("{0}?{1}".format(request.META['PATH_INFO'], query_dict.urlencode()))
     match = re.search("\/(\w+?)(?:\/$|\?|\&|$)", request.get_full_path())
     if match:
         report_name = match.group(1)
@@ -409,3 +418,4 @@ def generate_export(request, report, report_name, export_delimiter):
 
 
 class UnknownNetworkTypeException(Exception): pass
+class HttpRedirectException(Exception): pass
