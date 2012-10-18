@@ -1,4 +1,5 @@
 """Template tags used in info subsystem"""
+import time
 from django import template
 from datetime import datetime, timedelta
 from django.utils.timesince import timesince
@@ -10,10 +11,10 @@ def time_since(timestamp):
     """Convert a timestamp to human readable time since"""
 
     mapping = {'minute': 'min',
-              'hour': 'hr',
-              'week': 'wk',
-              'month': 'mo',
-              'year': 'yr'}
+               'hour': 'hr',
+               'week': 'wk',
+               'month': 'mo',
+               'year': 'yr'}
 
     if timestamp is None:
         return "Never"
@@ -63,3 +64,26 @@ def run(function, arg):
 def lookup(value, key):
     """Lookup key in a dictionary"""
     return value.get(key, value)
+
+
+@register.filter
+def interval(value):
+    """Create a human readable interval
+
+    Arguments:
+    value -- a number of seconds
+
+    """
+    return time.strftime('%H:%M:%S', time.gmtime(value))
+
+
+@register.filter
+def add_interval(value, interval):
+    """Create a new timestamp based on value and interval
+
+    Arguments:
+    value -- a datetime object
+    interval -- interval in seconds
+
+    """
+    return value + timedelta(seconds=interval)
