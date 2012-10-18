@@ -16,9 +16,9 @@
 """Views for Arnold
 
 TODO:
-- Check possibility of using model forms
 - Add "Manual Detention"
 - Styling
+- Correct submit button value on "Add profile"
 """
 
 from IPy import IP
@@ -33,7 +33,7 @@ from nav.models.arnold import (Identity, Justification, QuarantineVlan,
 from nav.django.utils import get_account
 from nav.web.arnold.forms import (JustificationForm, HistorySearchForm,
                                   QuarantineVlanForm, SearchForm,
-                                  DetentionProfileForm)
+                                  DetentionProfileForm, ManualDetentionForm)
 from nav.web.utils import create_title
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
@@ -178,6 +178,23 @@ def process_justification_form(form):
 
 def render_manual_detention(request):
     """Controller for rendering manual detention"""
+    if request.method == 'POST':
+        form = ManualDetentionForm(request.POST)
+        if form.is_valid():
+            process_manual_detention_form(form)
+            return redirect('arnold-detainedports')
+    else:
+        form = ManualDetentionForm()
+
+    return render_to_response('arnold/manualdetain.html',
+                       create_context('Manual detention', {
+                           'active': {'manualdetention': True},
+                           'form': form
+                       }), RequestContext(request))
+
+
+def process_manual_detention_form(form):
+    """Execute a manual detention based on form data"""
     pass
 
 
@@ -210,8 +227,7 @@ def render_edit_detention_profile(request, did=None):
 
         profile.active = True if profile.active == 'y' else False
         profile.incremental = True if profile.incremental == 'y' else False
-        qvlanid = profile.quarantine_vlan.id if profile.quarantine_vlan else \
-        None
+        qid = profile.quarantine_vlan.id if profile.quarantine_vlan else None
 
         form = DetentionProfileForm(initial={
             'detention_id': profile.id,
@@ -220,7 +236,7 @@ def render_edit_detention_profile(request, did=None):
             'description': profile.description,
             'justification': profile.justification.id,
             'mail': profile.mailfile,
-            'qvlan': qvlanid,
+            'qvlan': qid,
             'keep_closed': profile.keep_closed,
             'exponential': profile.incremental,
             'duration': profile.duration,

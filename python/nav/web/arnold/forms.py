@@ -17,6 +17,7 @@
 
 from IPy import IP
 from django import forms
+from nav.util import is_valid_ip, is_valid_mac
 
 from nav.models.arnold import (DETENTION_TYPE_CHOICES, STATUSES,
                                KEEP_CLOSED_CHOICES, Justification,
@@ -99,14 +100,71 @@ class DetentionProfileForm(forms.Form):
     active_on_vlans = forms.CharField(label="Active on vlans", required=False)
     active = forms.BooleanField(label="Active", required=False)
 
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        detention_type = cleaned_data.get('detention_type')
+        qvlan = cleaned_data.get('qvlan')
+
+        # If method = quarantine and no quarantine vlan is set, throw error
+        if detention_type == DETENTION_TYPE_CHOICES[1][0] and not qvlan:
+            self._errors['qvlan'] = self.error_class(['This field is required'])
+            del cleaned_data['qvlan']
+
+        return cleaned_data
+
     def __init__(self, *args, **kwargs):
         super(DetentionProfileForm, self).__init__(*args, **kwargs)
-        self.justification_choices = [('', '-- Select reason --')] +\
-                                     [(j.id, j.name) for j in
-                                      Justification.objects.all()]
-        self.qvlan_choices = [('', '-- Select vlan --')] +\
-                             [(q.id, "%s - %s" % (q.vlan, q.description)) for q
-                              in QuarantineVlan.objects.all()]
+        self.fields['qvlan'].choices = get_quarantine_vlans()
+        self.fields['justification'].choices = get_justifications()
 
-        self.fields['qvlan'].choices = self.qvlan_choices
-        self.fields['justification'].choices = self.justification_choices
+
+class ManualDetentionForm(forms.Form):
+    """Form for executing a manual detention"""
+
+    method = forms.ChoiceField(label="Choose method",
+                               choices=DETENTION_TYPE_CHOICES,
+                               initial=DETENTION_TYPE_CHOICES[0][0],
+                               widget=forms.RadioSelect())
+    target = forms.CharField(label="IP/MAC to detain")
+    justification = forms.ChoiceField(label="Reason")
+    qvlan = forms.ChoiceField(label="Quarantine vlan", required=False)
+    comment = forms.CharField(label="Comment", required=False)
+    days = forms.IntegerField(label="Autoenable in")
+
+    def clean_target(self):
+        """Validate target"""
+        target = self.cleaned_data['target'].strip()
+        if not (is_valid_ip(target) or is_valid_mac(target)):
+            raise forms.ValidationError('Not a valid ip or mac-address')
+
+        return target
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        method = cleaned_data.get('method')
+        qvlan = cleaned_data.get('qvlan')
+
+        # If method = quarantine and no quarantine vlan is set, throw error
+        if method == DETENTION_TYPE_CHOICES[1][0] and not qvlan:
+            self._errors['qvlan'] = self.error_class(['This field is required'])
+            del cleaned_data['qvlan']
+
+        return cleaned_data
+
+
+    def __init__(self, *args, **kwargs):
+        super(ManualDetentionForm, self).__init__(*args, **kwargs)
+        self.fields['justification'].choices = get_justifications()
+        self.fields['qvlan'].choices = get_quarantine_vlans()
+
+
+def get_justifications():
+    """Return list of justifications ready for use as choices in forms"""
+    return [('', '-- Select reason --')] + [(j.id, j.name) for j in
+                                            Justification.objects.all()]
+
+def get_quarantine_vlans():
+    """Return list of quarantine vlans ready for use as choices in form"""
+    return [('', '-- Select vlan --')] + [
+            (q.id, str(q)) for q in
+            QuarantineVlan.objects.all()]

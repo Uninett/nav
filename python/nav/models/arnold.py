@@ -13,6 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Model definitions for arnold"""
 
 from nav.models.fields import VarcharField
 from nav.models.manage import Interface

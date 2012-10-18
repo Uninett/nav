@@ -17,6 +17,7 @@
 """General utility functions for Network Administration Visualized"""
 
 import os
+import re
 import stat
 import datetime
 from functools import wraps
@@ -94,6 +95,12 @@ def is_valid_cidr(cidr):
             return False
         else:
             return valid_cidr
+    return False
+
+def is_valid_mac(mac):
+    """Verify that this mac-address is valid"""
+    if re.match("[0-9a-f]{2}([-:][0-9a-f]{2}){5}$", mac.lower()):
+        return True
     return False
 
 def which(cmd):

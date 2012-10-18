@@ -7,3 +7,15 @@ table li {
     list-style-type: none;
     margin: 0 1em 0 0;
 }
+
+form table td.days input[type="text"] {
+    width: 3em;
+}
+
+form table textarea, form table input[type="text"] {
+    width: 220px;
+}
+
+form table textarea {
+    height: 3em;
+}
