@@ -287,7 +287,7 @@ def make_report(request, report_name, export_delimiter, uri, query_dict):
             raise Http404
         result_time = strftime("%H:%M:%S", localtime())
         cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, config, dbresult, result_time))
-        return (report, contents, neg, operator, adv)
+        return (report, contents, neg, operator, adv, result_time)
 
     gen = Generator()
     # Caching. Checks if cache exists for this user, that the cached report is
@@ -299,14 +299,14 @@ def make_report(request, report_name, export_delimiter, uri, query_dict):
         if not config_cache or not dbresult_cache or not report_cache:
             # Might happen if last report was N/A or invalid request, config
             # then ends up being None.
-            (report, contents, neg, operator, adv) = _fetch_data_from_db()
+            (report, contents, neg, operator, adv, result_time) = _fetch_data_from_db()
         else:
             (report, contents, neg, operator, adv) = gen.makeReport(report_name, None, None, query_dict, config_cache, dbresult_cache)
             result_time = cache.get(cache_name)[8]
             dbresult = dbresult_cache
 
     else: # Report not in cache, fetch data from DB
-        (report, contents, neg, operator, adv) = _fetch_data_from_db()
+        (report, contents, neg, operator, adv, result_time) = _fetch_data_from_db()
 
     if cache.get(cache_name) and not report:
         raise RuntimeWarning("Found cache entry, but no report. Ooops, panic!")
