@@ -16,7 +16,7 @@
 """Report backend URL config."""
 
 from django.conf.urls.defaults import url, patterns
-from nav.web.report.reports import get_report, matrix_report, index, report_list
+from nav.web.report.views import get_report, matrix_report, index, report_list
 
 # Subsystem: Report
 # Naming convention: report-<result>-<query>
