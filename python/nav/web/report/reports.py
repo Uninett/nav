@@ -55,75 +55,52 @@ def index(request):
     return HttpResponse(page.respond())
 
 def get_report(request, report_name):
-    try:
-        (_name, export_delimiter, uri, query_dict) = arg_parsing(request)
-    except HttpRedirectException, e:
-        return HttpResponseRedirect(e)
+    """Loads and displays a specific reports with optional search arguments"""
+    query = _strip_empty_arguments(request)
+    export_delimiter = _get_export_delimiter(query)
 
-    if report_name == 'report':
-        return redirect('report-index')
-    return make_report(request, report_name, export_delimiter, uri, query_dict)
+    if query != request.GET:
+        # some arguments were stripped, let's clean up the URL
+        return HttpResponseRedirect(
+            "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode()))
 
-def arg_parsing(request):
-    query_dict = request.GET.copy()
+    return make_report(request, report_name, export_delimiter,
+                       request.get_full_path(), query)
 
-    export_delimiter = None
+def _strip_empty_arguments(request):
+    """Strips empty arguments and their related operator arguments from the
+    QueryDict in request.GET and returns a new, possibly modified QueryDict.
 
-    # These arguments and their friends will be deleted
-    remove = []
+    """
+    query = request.GET.copy()
 
-    # Finding empty values
-    original_query_dict = query_dict.copy()
+    deletable = [key for key, value in query.iteritems() if not value.strip()]
+    for key in deletable:
+        del query[key]
+        if "op_{0}".format(key) in query:
+            del query["op_{0}".format(key)]
+        if "not_{0}".format(key) in query:
+            del query["not_{0}".format(key)]
 
-    for key, value in query_dict.iteritems():
-        # Just in case...
-        value = value.strip()
-        if not value:
-            remove.append(key)
-        else:
-            # QueryDict seems to store multiple values on a key...
-            if type(value) == 'list':
-                key_has_value = False
-                for v in value:
-                    if v:
-                        key_has_value = True
-                        break
-                if not key_has_value:
-                    remove.append(key)
+    return query
 
+def _get_export_delimiter(query):
+    """Retrieves the CSV export delimiter from a QueryDict, but only if the
+    query indicates the CSV export submit button was pressed.
 
-    if 'exportcsv' in query_dict and 'export' in query_dict:
-        delimiter = request.GET.get('export')
-        # Remember to match against 'page.delimiters'
+    If the delimiter is invalid, the export-related arguments are stripped
+    from the query instance.
+
+    """
+    if 'exportcsv' in query and 'export' in query:
+        delimiter = query.get('export')
+
         match = re.search("(\,|\;|\:|\|)", delimiter)
         if match:
-            export_delimiter = match.group(0)
+            return match.group(0)
         else:
-            remove.append('export')
-            remove.append('exportcsv')
-
-    # Deleting empty values
-    for r in remove:
-        if r in request.GET:
-            del query_dict[r]
-        if "op_{0}".format(r) in query_dict:
-            del query_dict["op_{0}".format(r)]
-        if "not_{0}".format(r) in query_dict:
-            del query_dict["not_{0}".format(r)]
-
-    # Redirect if any arguments were removed
-    if len(remove) or query_dict != original_query_dict:
-        raise HttpRedirectException("{0}?{1}".format(request.META['PATH_INFO'], query_dict.urlencode()))
-    match = re.search("\/(\w+?)(?:\/$|\?|\&|$)", request.get_full_path())
-    if match:
-        report_name = match.group(1)
-    else:
-        report_name= "report"
-        query_dict.update({})
-
-    return (report_name, export_delimiter, request.get_full_path(), query_dict)
-
-
+            del query['export']
+            del query['exportcsv']
 
 def matrix_report(request):
 
