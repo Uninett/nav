@@ -1,3 +1,5 @@
+{% load info %}
+
 <table id="ipdevinfo" class="vertitable">
 {% if netbox %}
     <caption>
@@ -255,11 +257,13 @@
                         {% for job in jobs|dictsortreversed:'end_time' %}
                             <tr>
                                 <td>{{ job.job_name|capfirst }}</td>
-                                <td>{{ job.end_time|date:"DATETIME_FORMAT" }}</td>
+                                <td title="Next run expected at {{ job.end_time|add_interval:job.interval|date:"DATETIME_FORMAT" }}">{{ job.end_time|date:"DATETIME_FORMAT" }}</td>
                                 <td class="cell-right">{{ job.duration|stringformat:".2f" }}s</td>
                                 <td class="cell-center">
                                     {% if job.is_overdue %}
-                                        <img src="/images/lys/yellow.png" alt="Overdue" title="Overdue">
+                                        <img src="/images/lys/yellow.png"
+                                             alt="Overdue"
+                                             title="Overdue - interval is {{ job.interval|interval }}">
                                     {% else %}
                                         {% if job.success %}
                                             <img src="/images/lys/green.png" alt="Success" title="Success">

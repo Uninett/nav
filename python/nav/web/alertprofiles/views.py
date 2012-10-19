@@ -1142,9 +1142,9 @@ def sms_list(request):
         'time', '-time', 'time_sent', '-time_sent', 'phone', '-phone',
         'message', '-message', 'severity', '-severity', 'sent', '-sent',
     ]
-    order_by = request.GET.get('order_by', 'time').lower()
+    order_by = request.GET.get('order_by', '-time').lower()
     if order_by not in valid_ordering:
-        order_by = 'time'
+        order_by = '-time'
 
     # NOTE Old versions of alert engine may not have set account.
     sms = SMSQueue.objects.filter(account=account).order_by(order_by)
