@@ -23,12 +23,11 @@ from operator import itemgetter
 from time import localtime, strftime
 import csv
 from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.shortcuts import redirect
 import os
 import re
 from nav.django.utils import get_account
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
+from nav.models import manage
 from django.core.cache import cache
 
 from nav import db
@@ -64,8 +63,7 @@ def get_report(request, report_name):
         return HttpResponseRedirect(
             "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode()))
 
-    return make_report(request, report_name, export_delimiter,
-                       request.get_full_path(), query)
+    return make_report(request, report_name, export_delimiter, query)
 
 def _strip_empty_arguments(request):
     """Strips empty arguments and their related operator arguments from the
@@ -203,7 +201,7 @@ def report_list(request):
 
 
 
-def make_report(request, report_name, export_delimiter, uri, query_dict):
+def make_report(request, report_name, export_delimiter, query_dict):
 
     # Initiating variables used when caching
     report = contents = neg = operator = adv = dbresult = result_time = None
@@ -353,4 +351,3 @@ def generate_export(request, report, report_name, export_delimiter):
 
 
 class UnknownNetworkTypeException(Exception): pass
-class HttpRedirectException(Exception): pass
