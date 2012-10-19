@@ -97,3 +97,6 @@ class URI:
             return unquote(self.args[var])
         else:
             return
+
+    def __repr__(self):
+        return "path: {0}, args: {1}".format(self.path, self.args)
