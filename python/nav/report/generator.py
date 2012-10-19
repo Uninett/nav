@@ -29,7 +29,7 @@ class Generator:
     The maker and controller of the generating of a report
     """
 
-    def makeReport(self, reportName, configFile, configFileLocal, uri, config,
+    def makeReport(self, reportName, configFile, configFileLocal, query_dict, config,
                    dbresult):
         """
         Makes a report
@@ -37,7 +37,7 @@ class Generator:
         - reportName      : the name of the report that will be represented
         - configFile      : the configuration file where the definition resides
         - configFileLocal : the local configuration file where changes to the default definition resides
-        - uri             : the request from the user as a uri
+        - queryDict       : mutable QueryDict
         - config          : the parsed configuration object, if cached
         - dbresult        : the database result, if cached
 
@@ -45,8 +45,7 @@ class Generator:
         parsed ReportConfig object and a DatabaseResult object to be cached.
         """
 
-        parsed_uri = urlsplit(uri)
-        args = parsed_uri[3]
+        args = query_dict
         adv = 0
 
         if not config:
@@ -54,11 +53,11 @@ class Generator:
             parseOK = configParser.parseReport(reportName)
             config = configParser.configuration
             if not parseOK:
-                return (0, None, None, None, None, None, None)
+                return (None, None, None, None, None, None, None)
 
         argumentParser = ArgumentParser(config)
         argumentHash = argumentParser.parseArguments(args)
-        
+
         # Remove non-query arguments
         if argumentHash.has_key("export"):
             del argumentHash["export"]
@@ -78,7 +77,7 @@ class Generator:
 
         # Check if there exists a cached database result for this query
         if dbresult: # Cached
-            report = Report(config, dbresult, uri)
+            report = Report(config, dbresult, query_dict)
             report.titlebar = reportName + " - report - NAV"
 
             return (report, contents, neg, operator, adv)
@@ -87,7 +86,7 @@ class Generator:
             dbresult = DatabaseResult(config)
             self.sql = dbresult.sql
 
-            report = Report(config, dbresult, uri)
+            report = Report(config, dbresult, query_dict)
             report.titlebar = reportName + " - report - NAV"
 
             return (report, contents, neg, operator, adv, config, dbresult)
@@ -376,30 +375,23 @@ class ArgumentParser:
                         else:
                             config.error = "The arguments to 'between' must be comma separated"
 
+            # query is now a unicode QueryDict to dict()...
+            # here be DRAGONS, cute shoulder dragons!
+            key = key.encode('UTF8')
             config.where.append(key+" "+neg+operat+" "+value)
-
         return (fields, nott, operator)
 
-    def parseArguments(self, args):
+    def parseArguments(self, query_dict):
         """
         Parses the argument part of the uri and makes a hash representation of it
 
-        - args : the argument part of the uri
+        - query_dict : query_dict from uri
 
-        returns a hash representing the arguments in the uri
+        returns a hash of the query dict
         """
+        return dict((key, query_dict[key]) for key in query_dict)
 
-        queryString = {}
 
-        if args:
-
-            for arg in args.split("&"):
-
-                if arg:
-                    (key, val) = arg.split("=")
-                    queryString[key] = val
-
-        return queryString
 
 
     def intstr(self, arg):
@@ -423,6 +415,9 @@ class ReportConfig:
         self.title = ""
         self.uri = {}
         self.where = []
+
+    def __repr__(self):
+        return "ReportConfig(sql({0}) sql_select({1}) where({2}) orderBy({3}))".format(self.sql, self.sql_select, self.where, self.orderBy)
 
     def makeSQL(self):
         # Group bys are not configured nor supported through the web interface - therefore dropped.

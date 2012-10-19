@@ -18,6 +18,7 @@ import os.path
 from nav import db
 from nav.report.generator import ReportList, Generator
 from nav.buildconf import sysconfdir
+from django.http import QueryDict
 
 '''
 Test report generators for basic errors.
@@ -38,7 +39,8 @@ def test_report_generator():
         yield report_name, check_report, report_name
 
 def check_report(report_name):
-    uri = 'http://example.com/report/%s/' % report_name
+    #uri = 'http://example.com/report/%s/' % report_name
+    uri = QueryDict('').copy()
     db.closeConnections() # Ensure clean connection for each test
 
     generator = Generator()
