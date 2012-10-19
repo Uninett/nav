@@ -279,17 +279,11 @@ def make_report(request, report_name, export_delimiter, query_dict):
         page.path = [("Home", "/"), ("Report", "/report/"),
                      (namename, namelink)]
         page.title = "Report - "+namename
-        old_uri = dict((key, request.GET[key]) for key in request.GET)
-        page.old_uri = old_uri
-
-        if adv:
-            page.adv_block = True
-        else:
-            page.adv_block = False
+        page.old_uri = "{0}?{1}&".format(request.META['PATH_INFO'],
+                                         request.GET.urlencode())
+        page.adv_block = bool(adv)
 
         if report:
-            page.old_uri = old_uri
-
             #### A maintainable list of variables sent to template
             # Searching
             page.operators = {"eq": "=",
