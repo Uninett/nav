@@ -7,7 +7,7 @@ import os
 
 from nav.models.manage import Netbox
 from nav.mcc import dbutils, utils
-from nav.mcc.utils import encode_and_escape
+from nav.mcc.utils import encode_and_escape, Datasource
 from os.path import join, isdir
 
 LOGGER = logging.getLogger('mcc.sensors')
@@ -102,7 +102,8 @@ def create_container(sensor):
     container = utils.RRDcontainer(str(sensor.id) + ".rrd", sensor.netbox.id,
                                    sensor.netbox.sysname, key="sensor",
                                    value=sensor.id)
-    container.datasources = [("ds0", sensor.human_readable, "GAUGE")]
+    container.datasources = [Datasource("ds0", sensor.human_readable, "GAUGE",
+                                        sensor.unit_of_measurement)]
     return container
 
 

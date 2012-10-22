@@ -58,15 +58,75 @@ def create_subtree_config(configroot, dirname, views):
         if not target_oids:
             LOGGER.info("No oids found for %s" % netbox.sysname)
             continue
-        target_oids = utils.check_database_sanity(path_to_rrd, netbox,
-                                                  target_oids)
         target_types.append(
-            utils.create_targettype_config(netbox, target_oids, views))
-        targets.append(utils.create_target_config(netbox))
-        containers.append(utils.create_container(netbox, target_oids))
+            create_targettype_config(netbox, target_oids, views))
+        targets.append(create_target_config(netbox))
+        containers.append(create_container(netbox, target_oids))
 
     utils.write_target_types(path_to_config, target_types)
     utils.write_targets(path_to_config, targets)
     dbutils.updatedb(path_to_rrd, containers)
 
     return True
+
+
+def create_targettype_config(netbox, snmpoids, views):
+    """ Create target type config for this router """
+
+    targetoids = [x.oid_key for x in snmpoids]
+    config = ""
+    config = config + "targetType %s\n" % netbox.sysname
+    config = config + "\tds = \"%s\"\n" % ", ".join(targetoids)
+
+    # Create view configuration. We do that by comparing the data from
+    # views with the targetoids and see what intersections exists.
+    intersections = []
+    for entry in views:
+        intersect = sorted(set(views[entry]).intersection(targetoids))
+        if intersect:
+            intersections.append("%s: %s" % (entry, " ".join(intersect)))
+
+    if intersections:
+        config = config + "\tview = \"%s\"\n\n" % ", ".join(
+            sorted(intersections))
+
+    return config
+
+
+def create_target_config(netbox):
+    """ Create Cricket config for this netbox """
+    displayname = utils.convert_unicode_to_latin1(netbox.sysname)
+    typename = utils.encode_and_escape(netbox.type.name if netbox.type else '')
+    if netbox.room.description:
+        descr = utils.encode_and_escape(netbox.room.description)
+        shortdesc = ", ".join([typename, descr])
+    else:
+        shortdesc = typename
+
+    LOGGER.info("Writing target %s" % netbox.sysname)
+    config = [
+        'target "%s"' % str(netbox.sysname),
+        '\tdisplay-name\t= "%s"' % displayname,
+        '\tsnmp-host\t= %s' % str(netbox.ip),
+        '\tsnmp-community\t= %s' % str(netbox.read_only),
+        '\ttarget-type\t= %s' % str(netbox.sysname),
+        '\tshort-desc\t= "%s"' % shortdesc,
+        ''
+    ]
+
+    return "\n".join(config)
+
+
+def create_container(netbox, targetoids):
+    """ Create container object and fill it """
+    container = utils.RRDcontainer(netbox.sysname, netbox.id)
+    counter = 0
+    for targetoid in targetoids:
+        container.datasources.append(
+            utils.Datasource('ds' + str(counter), targetoid.oid_key, 'GAUGE',
+                             targetoid.unit))
+        counter = counter + 1
+
+    return container
+
+
