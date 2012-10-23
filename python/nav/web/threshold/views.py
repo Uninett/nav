@@ -45,7 +45,7 @@ from nav.web.threshold.utils import is_percent_value
 
 
 NAVBAR = [('Home', '/'), ('Threshold manager', None)]
-DEFAULT_VALUES = {'title': 'THreshold manager', 'navpath': NAVBAR}
+DEFAULT_VALUES = {'title': 'Threshold manager', 'navpath': NAVBAR}
 
 BULK_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': {'bulk': True}}
 ALL_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': {'all': True}}
@@ -126,7 +126,7 @@ def prepare_bulkset(request):
     if request.method == 'POST':
         descr = unicode(request.POST.get('descr', ''))
         ids = unicode(request.POST.get('ids', ''))
-        logger.error('Ids = %s' % ids)
+        logger.debug('Ids = %s' % ids)
         if not is_legal_descr(descr):
             logger.error('Illegal description: login=%s; descr=%s' %
                     (account.login, descr))
@@ -166,7 +166,7 @@ def prepare_bulkset(request):
         # This is actually a html-table to get rendered in the browser
         message = render_to_response('threshold/bulkset.html',
                     info_dict, RequestContext(request))
-        logger.error('prepare_bulkset: timer = %.3f' % (time.clock() - before))
+        logger.debug('prepare_bulkset: timer = %.3f' % (time.clock() - before))
         return HttpResponse(message, mimetype="text/plain")
     else:
         logger.error('Illegal request: login=%s' % account.login)
@@ -433,8 +433,8 @@ def threshold_all(request, exceeded=None):
             'sources': datasource_list,
             }
         netboxes.append(netbox)
-    logger.error("len = %d" % len(netboxes))
-    logger.error("time = %.3f" % (time.clock()-before))
+    logger.debug("len = %d" % len(netboxes))
+    logger.debug("time = %.4f" % (time.clock()-before))
     info_dict = {'netboxes' : netboxes }
     if exceeded:
         info_dict.update(EXCEEDED_DEFAULTS)
@@ -575,6 +575,9 @@ def thresholds_save(request):
             dsId = unicode(threshold.get('dsId', ''))
             op = unicode(threshold.get('op', ''))
             thrVal = unicode(threshold.get('thrVal', ''))
+            units = unicode(threshold.get('units', ''))
+            logger.debug('threshold_save: dsId=%s, op=%s, thrVal=%s, units =%s' %
+                         (dsId, op, thrVal, units))
             if not is_legal_id(dsId):
                 logger.error('Illegal id: login=%s; id=%s' %
                                 (account.login, dsId))
@@ -585,13 +588,17 @@ def thresholds_save(request):
                                 (account.login, op))
                 error_list.append(dsId)
                 continue
-            if not is_legal_threshold(thrVal):
-                logger.error('Illegal threshold: login=%s; value=%s' %
-                                (account.login, thrVal))
+            thr_val_to_test = thrVal
+            if (units == '%'):
+                thr_val_to_test += units
+            if not is_legal_threshold(thr_val_to_test):
+                logger.error('Illegal threshold: login=%s; value=%s; units=%s' %
+                                (account.login, thrVal, units))
                 error_list.append(dsId)
                 continue
-            #logger.error('dsId=%s, op=%s, thrVal=%s' % (dsId, op, thrVal))
+            # logger.error('dsId=%s, op=%s, thrVal=%s, units =%s' % (dsId, op, thrVal, units))
             thrVal.strip()
+            thrVal += units
             rrd_data_source = None
             try :
                 rrd_data_source = RrdDataSource.objects.get(pk=int(dsId))

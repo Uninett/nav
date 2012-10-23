@@ -31,12 +31,10 @@
                 <option value="<">Less than</option>
             </select>
         </td>
-        {% if threshold.threshold %}
-        <td><input type="text" class="thresholdvalue" size="10" id="threshold" name="threshold" value="{{ threshold.threshold }}"></td>
-        {% else %}
-        <td><input type="text" class="thresholdvalue" size="10" id="threshold" name="threshold" value=""></td>
-        {% endif %}
-
+        <td>
+            <input type="text" class="thresholdvalue" id="threshold" name="threshold"
+                   value="{% if threshold.threshold %}{{ threshold.get_threshold_value }}{% endif %}"/>
+        </td>
         <td class="maxvalue">{% if threshold.max %}{{ threshold.max }}{% endif %}</td>
         <td>{% if threshold.state %}{{ threshold.state }}{% endif %}</td>
         <td data_dsid="{{threshold.id}}">

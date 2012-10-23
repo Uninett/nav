@@ -16,12 +16,16 @@
 #
 """Django ORM wrapper for the NAV manage database"""
 
+import re
 from django.db import models
 from django.core.urlresolvers import reverse
 
 from nav.models.event import Subsystem
 from nav.models.manage import Netbox, Interface
 from nav.models.fields import VarcharField, LegacyGenericForeignKey
+
+PERCENT_REGEXP = re.compile('^(\d+(\.\d+)?)%+$', re.UNICODE)
+NON_PERCENT_REGEXP = re.compile('^(\d+(\.\d+)?)([a-zA-Z]+)$', re.UNICODE)
 
 class RrdFile(models.Model):
     """From NAV Wiki: The rrd_file contains meta information on all RRD files
@@ -98,3 +102,40 @@ class RrdDataSource(models.Model):
         return reverse('rrdviewer-rrd-by-ds', kwargs={
             'rrddatasource_id': self.id,
         })
+
+    def get_unicode(self, str):
+        if(not isinstance(str, unicode)):
+            return unicode(str)
+        return str
+
+    def get_threshold_value(self):
+        if(self.threshold):
+            thr = self.get_unicode(self.threshold)
+            if(thr.isdecimal()):
+                return thr
+            matched = PERCENT_REGEXP.match(thr)
+            if(matched):
+                return matched.group(1)
+            matched = NON_PERCENT_REGEXP.match(thr)
+            if(matched):
+                return matched.group(1)
+        return None
+
+    def is_percent(self):
+        if(self.threshold):
+            thr = self.get_unicode(self.threshold)
+            matched = PERCENT_REGEXP.match(thr)
+            if(matched):
+                return '%'
+        return None
+
+    def get_threshold_unit(self):
+        if(self.threshold):
+            thr = self.get_unicode(self.threshold)
+            matched = PERCENT_REGEXP.match(thr)
+            if(matched):
+                return '%'
+            matched = NON_PERCENT_REGEXP.match(thr)
+            if(matched):
+                return matched.group(3)
+        return None

@@ -4,8 +4,8 @@
 
     {% if thresholds %}
     <div>
-        <label for="descr">Data source:</label>
-        <select id="descr" name="descr">
+        <label for="thresholdDescr">Data source:</label>
+        <select id="thresholdDescr" name="thresholdDescr">
             <option value="empty">Not chosen</option>
             {% for threshold in thresholds %}
                 <option value="{{ threshold }}">{{ threshold }}</option>
@@ -17,30 +17,30 @@
 
         <div id="netboxsearch" style="display: none;">
 
-        <table class="vertitable">
+        <table class="vertitable" id="netboxSearchTable">
         <caption>Netboxes</caption>
         <thead></thead>
         <tbody>
             <tr>
-                <th><label for="netboxname">Search:</label></th>
-                <td><input id="netboxname" type="text" name="netboxname"/></td>
+                <th><label for="netboxSysname">Search:</label></th>
+                <td><input type="text" id="netboxSysname" name="netboxSysname"/></td>
             </tr>
             <tr>
                 <th>Category:</th>
                 <td>
-                    <input id="gw" type="checkbox" name="boxtype"
+                    <input type="checkbox" id="gwBoxType" name="boxtype"
                         value="GW">GW</input>
                     &nbsp;
-                    <input id="gsw" type="checkbox" name="boxtype"
+                    <input type="checkbox" id="gswBoxType" name="boxtype"
                         value="GSW">GSW</input>
                     &nbsp;
-                    <input id="sw" type="checkbox" name="boxtype"
+                    <input type="checkbox" id="swBoxType" name="boxtype"
                         value="SW">SW</input></td>
             </tr>
             <tr>
-                <th><label for="vendor">Vendor:</label></th>
+                <th><label for="boxVendor">Vendor:</label></th>
                 <td>
-                    <select id="vendor" name="vendor">
+                    <select id="boxVendor" name="boxVendor">
                         <option value="empty">Not chosen</option>
                         {% if vendors %}
                         {% for vendor in vendors %}
@@ -50,9 +50,9 @@
                     </select></td>
             </tr>
             <tr>
-                <th><label for="model">Type:</label></th>
+                <th><label for="netBoxModel">Type:</label></th>
                 <td>
-                    <select id="model" name="model">
+                    <select id="netBoxModel" name="netBoxModel">
                         <option value="empty">Not Chosen</option>
                         {% if types %}
                         {% for type in types %}
@@ -62,9 +62,9 @@
                     </select></td>
             </tr>
             <tr>
-                <th><label for="chosenboxes">Netboxes:</label></th>
+                <th><label for="chosenBoxes">Netboxes:</label></th>
                 <td>
-                    <select id="chosenboxes" name="chosenboxes" size="24" multiple>
+                    <select id="chosenBoxes" name="chosenBoxes" size="24" multiple>
                         {% if chosenboxes %}
                         {% for netbox in chosenboxes %}
                         <option value="{{ netbox.id }}">{{ netbox.sysname }}</option>
@@ -76,25 +76,25 @@
             </table>
 
 	    <div id="netboxSubmitDiv" style="display: none;">
-	        <input type="button" id="netboxsubmit" name="netboxsubmit"
+	        <input type="button" id="netboxSubmit" name="netboxSubmit"
 		     value="Continue"/>
 	    </div>
         
         </div>
         <div id="interfacesearch" style="display: none;">
 
-            <table class="vertitable">
+            <table class="vertitable" id="interfaceSearchTable">
             <caption>Interface</caption>
             <thead></thead>
             <tbody>
             <tr>
-                <th><label for="interfacename">Search interfaces:</label></th>
-                <td><input id="interfacename" type="text"
+                <th><label for="interfaceName">Search interfaces:</label></th>
+                <td><input type="text" id="interfaceName"
                         name="interfacename"/></td>
             </tr>
             <tr>
                 <th>&nbsp;</th>
-                <td><input id="updown" type="checkbox" name="updown"
+                <td><input type="checkbox" id="interfaceUpDown" name="interfaceUpDown"
                         value="updown">Up-/Down-link</input></tr>
             </tr>
             <tr>
@@ -112,8 +112,8 @@
             </table>
 
 	    <div id="interfaceSubmitDiv" style="display: none;">
-	      <input type="button" id="interfacesubmit"
-		     name="interfacesubmit" value="Continue" />
+	      <input type="button" id="interfaceSubmit"
+		     name="interfaceSubmit" value="Continue" />
 	    </div>
         </div>
         

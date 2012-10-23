@@ -2,7 +2,7 @@
  *
  * Threshold specific javascripts
  *
- * Copyright (C) 2011 UNINETT AS
+ * Copyright (C) 2012 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV).
  *
@@ -77,23 +77,23 @@ threshold.removeFromQueue = function(id){
 };
 
 threshold.backToSearch = function(){
-    $('div.#netboxsearch').show();
+    $('#netboxsearch').show();
     if(threshold.displayMode == 'interface'){
-        $('div.#interfacesearch').show();
+        $('#interfacesearch').show();
     }
-    var bulkUpdateData = $('div.#bulkupdateDiv');
+    var bulkUpdateData = $('#bulkupdateDiv');
     $(bulkUpdateData).hide();
     $(bulkUpdateData).empty();
     threshold.removeMessages();
 };
 
 threshold.removeMessages = function(){
-    var messagesDiv = $('div.#messagesDiv');
+    var messagesDiv = $('#messagesDiv');
     $(messagesDiv).empty();
 };
 
 threshold.updateMessages = function(msg, isError){
-    var messagesDiv = $('div.#messagesDiv');
+    var messagesDiv = $('#messagesDiv');
     $(messagesDiv).append('<ul><li>' + msg + '</li></ul>');
     if(isError){
         $(messagesDiv).css('color', threshold.stdErrColor);
@@ -112,7 +112,7 @@ threshold.serverError = function(){
     return -1;
 };
 
-threshold.ajaxError = function( request, ErrMessage, errType){
+threshold.ajaxError = function( request, errMessage, errType){
     var errMsg = 'Error: ' + errMessage + '; ' + errType;
     threshold.updateMessages(errMsg, true);
     return -1;
@@ -146,9 +146,8 @@ threshold.table2String = function(tab){
     return ret_str;   
 };
 
-threshold.toggleIncludes = function(){
-    var checkBox = $('input:checkbox[name="toggleIncludes"]');
-    if($(checkBox).attr('checked')){
+threshold.toggleIncludes = function(checkbox){
+    if( $(checkbox).prop('checked') ){
         threshold.checkAllInclude();
     } else {
         threshold.unCheckAllInclude();
@@ -156,16 +155,16 @@ threshold.toggleIncludes = function(){
 };
 
 threshold.checkAllInclude = function(){
-    var allIncludes = $('input:checkbox[name="include"]') || [];
+    var allIncludes = $("#bulkUpdateTable input.includeInBulk") || [];
     for(var i = 0; i < allIncludes.length; i++){
-        allIncludes[i].checked = true;
+        $(allIncludes[i]).prop('checked', true);
     }
 };
 
 threshold.unCheckAllInclude = function(){
-    var allIncludes = $('input:checkbox[name="include"]:checked') || [];
+    var allIncludes = $("#bulkUpdateTable input.includeInBulk") || [];
     for(var i = 0; i < allIncludes.length; i++){
-        allIncludes[i].checked=false;
+        $(allIncludes[i]).prop('checked', false);
     }
 };
 
@@ -217,16 +216,16 @@ threshold.netboxSearch = function(){
     threshold.removeMessages();
     var retVal = 0;
 
-    var descr = $('select.#descr').val();
-    var sysname = $('input.#netboxname').val();
+    var descr = $('#thresholdDescr').val();
+    var sysname = $('#netboxSysname').val();
     // The checkboxes for GW, GSW and SW
     var checkBoxList = $('input:checkbox[name="boxtype"]:checked');
-    var vendor = $('select.#vendor').val();
-    var model = $('select.#model').val();
-    var ifname = $('input.#interfacename').val();
-    var upDown = $('input:checkbox[name="updown"]:checked').val();
+    var vendor = $('#boxVendor').val();
+    var model = $('#netBoxModel').val();
+    var ifname = $('#interfaceName').val();
+    var upDown = $('input:checkbox[name="interfaceUpDown"]:checked').val();
 
-    var boxes = $('select.#chosenboxes').val() || [];
+    var boxes = $('#chosenBoxes').val() || [];
     
     if(descr == 'empty'){
         return -1;
@@ -275,13 +274,13 @@ threshold.netboxSearch = function(){
                                 retVal = -1;
                                 return retVal;
                             }
-                            $('select.#chosenboxes').empty();
-                            $('select.#chosenboxes').append(data.foundboxes);
-                            $('select.#choseninterfaces').empty();
-                            $('select.#choseninterfaces').append(data.foundinterfaces);
+                            $('#chosenBoxes').empty();
+                            $('#chosenBoxes').append(data.foundboxes);
+                            $('#choseninterfaces').empty();
+                            $('#choseninterfaces').append(data.foundinterfaces);
                             if(data.types){
-                                $('select.#model').empty();
-                                $('select.#model').append(data.types);
+                                $('#netBoxModel').empty();
+                                $('#netBoxModel').append(data.types);
                             }
                             return retVal;
                      },
@@ -328,10 +327,11 @@ threshold.getBulkUpdateHtml = function(descr, ids){
                                 threshold.updateMessages(data.message, true);
                                 return -1;
                             }
-                            $('div.#netboxsearch').hide();
-                            $('div.#interfacesearch').hide();
-                            $('div.#bulkupdateDiv').show();
-                            $('div.#bulkupdateDiv').html(data);
+                            $('#netboxsearch').hide();
+                            $('#interfacesearch').hide();
+                            $('#bulkupdateDiv').show();
+                            $('#bulkupdateDiv').html(data);
+                            threshold.attachBulkListeners();
                             return 0;
                         },
                 error: function(req, errMsg, errType){
@@ -370,16 +370,16 @@ threshold.chooseDeviceType = function(the_select, select_val){
                         threshold.displayMode = data.message;
                         threshold.netboxSearch();
                         if(threshold.displayMode == 'interface'){
-                            $(document).find('div.#netboxSubmitDiv').hide();
-                            $(document).find('div.#netboxsearch').show();
-                            $(document).find('div.#interfacesearch').show();
-                            $(document).find('div.#interfaceSubmitDiv').show();
+                            $(document).find('#netboxSubmitDiv').hide();
+                            $(document).find('#netboxsearch').show();
+                            $(document).find('#interfacesearch').show();
+                            $(document).find('#interfaceSubmitDiv').show();
                         }
                         if(threshold.displayMode == 'netbox'){
-                            $(document).find('div.#interfaceSubmitDiv').hide();
-                            $(document).find('div.#interfacesearch').hide();
-                            $(document).find('div.#netboxsearch').show();
-                            $(document).find('div.#netboxSubmitDiv').show();
+                            $(document).find('#interfaceSubmitDiv').hide();
+                            $(document).find('#interfacesearch').hide();
+                            $(document).find('#netboxsearch').show();
+                            $(document).find('#netboxSubmitDiv').show();
                         }
                         return 0;
                       },
@@ -444,7 +444,7 @@ threshold.saveToServer = function(toSave){
 };
 
 threshold.findCheckBox = function(name, value){
-    var findStr = 'input:checkbox[name="'+ name + '"]';
+    var findStr = 'input:checkbox.' + name;
     if(value != null){
         findStr += '[value="' + value +'"]';
     }
@@ -462,10 +462,11 @@ threshold.saveChosenThresholds = function(allIncludes){
         var chkbox = allIncludes[i];
         var dsId = $(chkbox).val();
         var row = $(chkbox).parents('tr');
-        var op = $(row).find('select').val();
-        var thrInput = $(row).find('input.#threshold');
+        var op = $('select.operator', row).val();
+        var thrInput = $('input:text.threshold', row);
         var thrVal = $(thrInput).val();
-        thresholdsToSave[i] = {'dsId' : dsId, 'op': op, 'thrVal': thrVal};
+        var units = $('select.unit', row).val();
+        thresholdsToSave[i] = {'dsId' : dsId, 'op': op, 'thrVal': thrVal, 'units': units};
         chosenIds[i] = dsId;
     }
     var saveStatus = 0;
@@ -494,10 +495,10 @@ threshold.saveChosenThresholds = function(allIncludes){
         threshold.updateMessages(serverMsg.message, true);
         for(var i = 0; i < serverMsg.failed.length; i++){
             var dsId = serverMsg.failed[i];
-            var chkbox = threshold.findCheckBox('include', dsId);
-            var thrInput = $(chkbox).parents('tr').find('input.#threshold');
+            var chkbox = threshold.findCheckBox('includeInBulk', dsId);
+            var thrInput = $(chkbox).parents('tr').find('input:text.threshold');
             threshold.showErrorThreshold(thrInput);
-            /* Remove those who dis not get saved */
+            /* Remove those who did not get saved */
             var idx = chosenIds.indexOf(dsId);
             if(idx > -1){
                 chosenIds.splice(idx, 1);
@@ -505,8 +506,8 @@ threshold.saveChosenThresholds = function(allIncludes){
         }
     }
     for(var i = 0; i < chosenIds.length; i++){
-        var chkbox = threshold.findCheckBox('include', chosenIds[i]);
-        var thrInput = $(chkbox).parents('tr').find('input.#threshold');
+        var chkbox = threshold.findCheckBox('includeInBulk', chosenIds[i]);
+        var thrInput = $(chkbox).parents('tr').find('input:text.threshold');
         threshold.showSavedThreshold(thrInput);
     }
     threshold.hideAjaxLoader();
@@ -516,7 +517,7 @@ threshold.saveChosenThresholds = function(allIncludes){
 threshold.saveSingleThreshold = function(btn){
     threshold.removeMessages();
     var row = $(btn).parents('tr');
-    var thrInput = $(row).find('input.#threshold');
+    var thrInput = $('input:text.threshold', row);
     var thrVal = $(thrInput).val();
     if(! threshold.isLegalThreshold(thrVal)){
         threshold.updateMessages('Save failed. Illegal threshold', true);
@@ -524,47 +525,65 @@ threshold.saveSingleThreshold = function(btn){
         return -1;
     }       
 
-    var chkbox= $(row).find('input:checkbox[name="include"]');
+    var chkbox= $('input:checkbox.includeInBulk', row);
     threshold.saveChosenThresholds([chkbox]);
     return 0;
 };
 
+
 threshold.saveCheckedThresholds = function(){
-    //threshold.removeMessages();
-    var allIncludes = $('input:checkbox[name="include"]:checked') || [];
+    var bulkUpdateTable = $('#bulkUpdateTable');
+    var bulkUpdateChkBoxes = $('input:checkbox.includeInBulk') || [];
+    var allIncludes = Array();
+    for(var i = 0; i < bulkUpdateChkBoxes.length; i++){
+        if($(bulkUpdateChkBoxes[i]).prop('checked')){
+            allIncludes.push(bulkUpdateChkBoxes[i]);
+        }
+    }
     if(allIncludes.length < 1){
         threshold.updateMessages('Please, check the ones to save', true);
         return -1;
     }
     threshold.saveChosenThresholds(allIncludes);
     return 0;
-};
+}; /* saveCheckedThresholds */
+
 
 threshold.saveAllThresholds = function(){
     threshold.removeMessages();
-    var allIncludes = $('input:checkbox[name="include"]') || [];
+    var bulkUpdateTable = $('#bulkUpdateTable');
+    var allIncludes = $('input:checkbox.includeInBulk', bulkUpdateTable) || [];
     if(allIncludes.length < 1){
         return -1;
     }
     threshold.saveChosenThresholds(allIncludes);
     return 0;
-};
+}; /* saveAllThresholds */
 
-threshold.bulkUpdateThresholds = function(btn){
+threshold.bulkUpdateThresholds = function(){
     threshold.removeMessages();
-    var allIncludes = $('input:checkbox[name="include"]:checked') || [];
 
-    var bulkRow = $(btn).parents('tr');
-    var bulkOperator = $(bulkRow).find('select').val();
-    var bulkThrInput= $(bulkRow).find('input.#bulkThreshold');
-    var bulkThr = $(bulkThrInput).val();
-
+    var bulkSetTable = $('#bulkSetTable');
+    var bulkRow = $("tr", bulkSetTable);
+    var bulkOperator = $("select", bulkRow).val();
+    var bulkThrInput = $("input:text", bulkRow);
+    var bulkThr= $(bulkThrInput).val();
     if(! threshold.isLegalThreshold(bulkThr)){
         threshold.updateMessages('Illegal threshold', true);
         threshold.showErrorThreshold(bulkThrInput);
         return -1;
     }
+    var thrAsPerCent = $("input:checkbox", bulkRow).prop('checked');
 
+    /* Start updating the bulk-table */
+    var bulkUpdateTable = $('#bulkUpdateTable');
+    var bulkUpdateChkBoxes = $("input.includeInBulk", bulkUpdateTable) || [];
+    var allIncludes = Array();
+    for(var i = 0; i < bulkUpdateChkBoxes.length; i++){
+        if( $(bulkUpdateChkBoxes[i]).prop('checked')){
+            allIncludes.push(bulkUpdateChkBoxes[i]);
+        }
+    }
     if(allIncludes.length < 1){
         threshold.updateMessages('Please, check the ones to update', true);
         return -1;
@@ -572,22 +591,54 @@ threshold.bulkUpdateThresholds = function(btn){
 
     $(bulkThrInput).parent().removeClass();
     for(var i = 0; i < allIncludes.length; i++){
-        var dsId = allIncludes[i].value;
-        var chkbox = $('input:checkbox[value="'+dsId+'"]:checked');
-        var row = $(chkbox).parents('tr');
+        var row = $(allIncludes[i]).parents('tr');
 
-        $(row).find('select').val(bulkOperator);
+        var thresholdOperator = $("select.operator", row);
+        $(thresholdOperator).val(bulkOperator);
 
-        var thrInput = $(row).find('input.#threshold');
+        var thrInput = $("input:text.threshold", row);
         $(thrInput).val(bulkThr);
         // Mark as changed
         threshold.setChangedThreshold(thrInput);
-        
+
+        var unitsSelect = $("select.unit", row);
+        if( unitsSelect != null ){
+            if(thrAsPerCent){
+                $(unitsSelect).val('%');
+            } else {
+                if( $(unitsSelect).val() == '%'){
+                    /* Reset select to first value */
+                    var firstValue = $('select.unit', row).find('option:first').val();
+                    $(unitsSelect).val(firstValue);
+                }
+            }
+        }
     }
-};
+}; /* bulkUpdateThresholds */
+
+
+threshold.attachBulkListeners = function(){
+    $('#bulkSetTable input:button').click(threshold.bulkUpdateThresholds);
+
+    $('#bulkUpdateTable input.toggleIncludes').change(function(){
+        threshold.toggleIncludes(this);
+    });
+
+    $('#bulkUpdateTable input.threshold').change(function(){
+        threshold.setChangedThreshold(this);
+    });
+
+    $("#saveCheckedThresholdsTop").click(threshold.saveCheckedThresholds);
+    $("#saveAllThresholdsTop").click(threshold.saveAllThresholds);
+
+    $("#saveCheckedThresholdsBottom").click(threshold.saveCheckedThresholds);
+    $("#saveAllThresholdsBottom").click(threshold.saveAllThresholds);
+
+}; /* attachBulkListeners */
+
 
 $(document).ready(function(){
-    $('select.#descr').change(function(){
+    $('#thresholdDescr').change(function(){
         var sval = $(this).val();
         if(sval == 'empty'){
             return -1;
@@ -597,11 +648,11 @@ $(document).ready(function(){
             threshold.updateMessages('Illegal threshold description', true);
             return -1;
         }
-        $('div.#bulkupdateDiv').hide();
+        $('#bulkupdateDiv').hide();
         threshold.chooseDeviceType(this, sval);
     });
 
-    $('input.#netboxname').keyup(function(){
+    $('#netboxSysname').keyup(function(){
         typeDelay(function(){
             threshold.netboxSearch();
         }, 300);
@@ -611,34 +662,34 @@ $(document).ready(function(){
         threshold.netboxSearch();
     });
 
-    $('select.#vendor').change(function(){
+    $('#boxVendor').change(function(){
         threshold.netboxSearch();
     });
         
-    $('select.#model').change(function(){
+    $('#netBoxModel').change(function(){
         threshold.netboxSearch();
     });
 
-    $('select.#chosenboxes').change(function(){
+    $('#chosenBoxes').change(function(){
         if(threshold.displayMode == 'interface'){
             threshold.netboxSearch();
         }
     });
     
-    $('input.#interfacename').keyup(function(){
+    $('#interfaceName').keyup(function(){
         typeDelay(function(){
             threshold.netboxSearch();
         }, 300);
     });
 
-    $('input.#netboxsubmit').click(function(){
+    $('#netboxSubmit').click(function(){
         threshold.showAjaxLoader();
         threshold.removeMessages();
         var retVal = 0;
-        var descr = $('select.#descr').val();
-        var boxes = $('select.#chosenboxes').val() || [];
-        if(boxes.length > 0){
-            threshold.getBulkUpdateHtml(descr, threshold.table2String(boxes));
+        var thresholdDescr = $('#thresholdDescr').val();
+        var chosenBoxes = $('#chosenBoxes').val() || [];
+        if(chosenBoxes.length > 0){
+            threshold.getBulkUpdateHtml(thresholdDescr, threshold.table2String(chosenBoxes));
         } else {
             threshold.updateMessages('No netboxes chosen', true);
             retVal = -1;
@@ -647,12 +698,12 @@ $(document).ready(function(){
         return retVal;
     });
 
-    $('input.#interfacesubmit').click(function(){
+    $('#interfaceSubmit').click(function(){
         threshold.showAjaxLoader();
         threshold.removeMessages();
         var retVal = 0;
-        var descr = $('select.#descr').val();
-        var interfaces = $('select.#choseninterfaces').val() || [];
+        var descr = $('#thresholdDescr').val();
+        var interfaces = $('#choseninterfaces').val() || [];
         if(interfaces.length > 0){
             threshold.getBulkUpdateHtml(descr, threshold.table2String(interfaces));
         } else {
@@ -664,19 +715,23 @@ $(document).ready(function(){
     });
 
     $('img.toggler').click(function(){
-        $(this).parent().find('img.#plus').toggle();
-        $(this).parent().find('img.#minus').toggle();
-	$(this).parent().parent().find('table.vertitable').toggle();
+        var parent = $(this).parent();
+        var images = $('img', parent) || [];
+        for(var i = 0; i < images.length; i++){
+            $(images[i]).toggle();
+        }
+	    $(this).parent().parent().find('table.vertitable').toggle();
     });
 
     $('div.netboxcontainer').find('input.button').each(function(){
         $(this).click(function(){
-	    var dsid = $(this).parent().attr('data_dsid');
-	    var thrVal = $(this).parents('tr').find('input.thresholdvalue').val();
-            var operator = $(this).parents('tr').find('select').val();
-            threshold.save_threshold(this, dsid, operator, thrVal);
+	        var dsid = $(this).parent().attr('data_dsid');
+            var rowParent = $(this).parents('tr');
+            var thrVal = $('input.thresholdvalue', rowParent).val();
+            var operator = $('select.operator', rowParent).val();
+            var unit = $('select.unit', rowParent).val();
+            threshold.save_threshold(this, dsid, operator, thrVal, unit);
         });
-		
     });
 
     $('input.thresholdvalue').change(function(){
@@ -685,13 +740,13 @@ $(document).ready(function(){
 });
 
 
-threshold.save_threshold = function(updateButton, dsId, op, thrVal){
+threshold.save_threshold = function(updateButton, dsId, op, thrVal, unit){
     threshold.removeMessages();
     if( threshold.save_queue.indexOf(dsId) > -1){
 	return -1;
     }
     threshold.save_queue.push(dsId);
-    var thrRecord = {'dsId': dsId, 'op': op, 'thrVal': thrVal};
+    var thrRecord = {'dsId': dsId, 'op': op, 'thrVal': thrVal, 'units': unit};
     var retVal = threshold.saveToServer([thrRecord]);
     if(retVal == -1){
         threshold.callbackFail(updateButton);
