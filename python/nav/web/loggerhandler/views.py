@@ -111,6 +111,10 @@ def index(request):
     if not account:
         return HttpResponseForbidden("You must be logged in to access this resource")
 
+    db_access = DbAccess()
+    param_util = ParamUtil(request, db_access)
+    context = _get_basic_info_dict(db_access, param_util)
+
     tfrom_param = request.GET.get('tfrom', None)
     tto_param = request.GET.get('tto', None)
     priority_param = request.GET.get('priority', None)
@@ -119,16 +123,6 @@ def index(request):
     category_param = request.GET.get('category', None)
     log_param = request.GET.get('log', None)
 
-    # convert to datetime or set current timestamp if not requested any format
-    if not tto_param:
-        tto_param = datetime.datetime.now()
-    else:
-        tto_param = datetime.time.striptime(tto_param, DATEFORMAT)
-    # todo: make sure tfrom is 1 hour before tto_param.
-    if not tfrom_param:
-        tfrom_param = datetime.datetime.now()
-    else:
-        tfrom_param = datetime.time.striptime(tfrom_param, DATEFORMAT)
 
 
     if ((origin_param and type_param) or (origin_param and log_param)
@@ -172,13 +166,13 @@ def index(request):
     #else:
     #    query = query.group_by('origin')
 
-    context = {
+    context.update({
         'log_messages': query,
         'tfrom': tfrom_param,
         'tto': tto_param,
         'priority_mode': True,
         'priority_list': None,
-    }
+    })
     return render_to_response('loggerhandler/index.html',
                                 context,
                                 RequestContext(request))
