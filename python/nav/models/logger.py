@@ -27,11 +27,10 @@ class LoggerCategory(models.Model):
     """
     Model for the logger.category-table
     """
-    id = models.AutoField(db_column='category_id', primary_key=True)
-    cat_name = VarcharField(db_column='cat_name', unique=True)
+    category = VarcharField(db_column='category', unique=True, primary_key=True)
 
     class Meta:
-        db_table = 'category'
+        db_table = '"logger"."category"'
 
 
 class Origin(models.Model):
@@ -40,10 +39,10 @@ class Origin(models.Model):
     """
     origin = models.AutoField(db_column='origin', primary_key=True)
     name = VarcharField(db_column='name')
-    category = models.ForeignKey(LoggerCategory, db_column='log_category')
+    category = models.ForeignKey(LoggerCategory, db_column='category')
 
     class Meta:
-        db_table = 'origin'
+        db_table = '"logger"."origin"'
 
 
 class Priority(models.Model):
@@ -55,7 +54,7 @@ class Priority(models.Model):
     description = VarcharField(db_column='description')
 
     class Meta:
-        db_table = 'priority'
+        db_table = '"logger"."priority"'
 
 
 class LogMessageType(models.Model):
@@ -68,7 +67,7 @@ class LogMessageType(models.Model):
     mnemonic = VarcharField(db_column='mnemonic')
 
     class Meta:
-        db_table = 'log_message_type'
+        db_table = '"logger"."log_message_type"'
         unique_together = (('priority', 'facility', 'mnemonic'),)
 
 
@@ -84,7 +83,7 @@ class LogMessage(models.Model):
     message = VarcharField(db_column='message')
 
     class Meta:
-        db_table = 'log_message'
+        db_table = '"logger"."log_message"'
 
 
 class ErrorError(models.Model):
@@ -95,7 +94,7 @@ class ErrorError(models.Model):
     message = VarcharField(db_column='message')
 
     class Meta:
-        db_table = 'errorerror'
+        db_table = '"logger"."errorerror"'
 
 
 class MessageView(models.Model):
@@ -112,6 +111,6 @@ class MessageView(models.Model):
     time = models.DateTimeField(db_column='time')
 
     class Meta:
-        db_table = 'message_view'
+        db_table = '"logger"."message_view"'
         # Models for database-views must set this option.
         managed = False
