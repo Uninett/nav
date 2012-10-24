@@ -203,13 +203,13 @@ def log_response(request, db_access=None, param_util=None):
         db_access = DbAccess()
     if not param_util:
         param_util = ParamUtil(request, db_access)
-    info_dict = _get_basic_info_dict(db_access, param_util)
+    context = _get_basic_info_dict(db_access, param_util)
 
-    type_param = info_dict.get('type', None)
-    origin_param = info_dict.get('origin', None)
-    tfrom_param = info_dict.get('tfrom', None)
-    tto_param = info_dict.get('tto', None)
-    priority_param = info_dict.get('priority', None)
+    type_param = context.get('type', None)
+    origin_param = context.get('origin', None)
+    tfrom_param = context.get('tfrom', None)
+    tto_param = context.get('tto', None)
+    priority_param = context.get('priority', None)
     
     query = None
     if type_param:
@@ -248,7 +248,7 @@ def log_response(request, db_access=None, param_util=None):
                    'log_mode': True
                   }
     return render_to_response('loggerhandler/index.html',
-                                info_dict,
+                                context,
                                 RequestContext(request))
     
 def statistics_response(request, db_access=None, param_util=None):
