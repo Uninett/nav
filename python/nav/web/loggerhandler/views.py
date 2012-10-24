@@ -51,7 +51,7 @@ def _get_basic_info_dict(db_access, param_util):
     """
     Get all default parameters for view.
     """
-    links = QueryDict().copy()
+    links = QueryDict("").copy()
     error_list = []
     tfrom = param_util.get_time_from()
     if tfrom:
