@@ -103,14 +103,14 @@ class DbAccess(object):
             self.categories = []
             self.categories.append(('-', '(All)'))
             for cat in self._get_categories_db():
-                self.categories.append((cat.id, cat.cat_name))
+                self.categories.append((cat.category, cat.category))
         return self.categories
 
     def get_legal_categories(self):
         if not self.legal_categories:
             self.legal_categories = []
             for cat in self._get_categories_db():
-                self.legal_categories.append(cat.id)
+                self.legal_categories.append(cat.category)
         return self.legal_categories
 
     def get_priorities(self):
