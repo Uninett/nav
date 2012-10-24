@@ -1,0 +1,5 @@
+from nav.django.templatetags.info import register
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
