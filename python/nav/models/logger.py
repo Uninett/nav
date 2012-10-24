@@ -29,6 +29,9 @@ class LoggerCategory(models.Model):
     """
     category = VarcharField(db_column='category', unique=True, primary_key=True)
 
+    def __unicode__(self):
+        return self.category
+
     class Meta:
         db_table = '"logger"."category"'
 
@@ -40,6 +43,9 @@ class Origin(models.Model):
     origin = models.AutoField(db_column='origin', primary_key=True)
     name = VarcharField(db_column='name')
     category = models.ForeignKey(LoggerCategory, db_column='category')
+
+    def __unicode__(self):
+        return self.name
 
     class Meta:
         db_table = '"logger"."origin"'
@@ -53,6 +59,9 @@ class Priority(models.Model):
     keyword = VarcharField(db_column='keyword', unique=True)
     description = VarcharField(db_column='description')
 
+    def __unicode__(self):
+        return self.keyword
+
     class Meta:
         db_table = '"logger"."priority"'
 
@@ -65,6 +74,9 @@ class LogMessageType(models.Model):
     priority = models.ForeignKey(Priority, db_column='priority')
     facility = VarcharField(db_column='facility')
     mnemonic = VarcharField(db_column='mnemonic')
+
+    def __unicode__(self):
+        return u"{0}-{1}-{2}".format(self.facility, self.priority, self.mnemonic).upper()
 
     class Meta:
         db_table = '"logger"."log_message_type"'
