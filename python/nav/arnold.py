@@ -28,9 +28,11 @@ import email.Charset
 import commands
 from IPy import IP
 import psycopg2.extras
+from datetime import datetime
 
 import nav.buildconf
 import nav.bitvector
+from nav.models.arnold import Identity, Event
 from nav.db import getConnection
 from nav.util import isValidIP
 from nav.errors import GeneralException
@@ -436,7 +438,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
             fromvlan = vlan = 0
             
             try:
-                changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
+                change_port_status('disable', sw['ip'], sw['vendorid'], sw['rw'],
                                  sw['module'], sw['baseport'], sw['ifindex'],
                                  snmp_version=sw['snmp_version'])
             except ChangePortStatusError, e:
@@ -446,7 +448,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
         elif type == 'quarantine':
             
             try:
-                fromvlan = changePortVlan(sw['ip'], sw['ifindex'], vlan,
+                fromvlan = change_port_vlan(sw['ip'], sw['ifindex'], vlan,
                                           snmp_version=sw['snmp_version'])
             except (DbError, NotSupportedError, ChangePortStatusError,
                     ChangePortVlanError), e:
@@ -507,7 +509,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
         
         if type == 'block':
             try:
-                changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
+                change_port_status('disable', sw['ip'], sw['vendorid'], sw['rw'],
                                  sw['module'], sw['baseport'], sw['ifindex'],
                                  snmp_version=sw['snmp_version'])
             except ChangePortStatusError:
@@ -531,7 +533,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
         elif type == 'quarantine':
 
             try:
-                fromvlan = changePortVlan(sw['ip'], sw['ifindex'], vlan,
+                fromvlan = change_port_vlan(sw['ip'], sw['ifindex'], vlan,
                                           snmp_version=sw['snmp_version'])
             except (DbError, NotSupportedError, ChangePortStatusError,
                     ChangePortVlanError), e:
@@ -579,7 +581,7 @@ def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
 ###############################################################################
 # openPort
 #
-def openPort(id, username, eventcomment=""):
+def open_port(identity, username, eventcomment=""):
     """
     Takes as input the identityid of the block and username. Opens the
     port (either enable or change vlan) and updates the database.
@@ -589,144 +591,58 @@ def openPort(id, username, eventcomment=""):
     port is enabled, we enable the port in the arnold-database.
     """
 
-    logger.info("openPort: Trying to open identity with id %s" %id)
+    logger.info("openPort: Trying to open identity with id %s" % identity.id)
 
-    # Connect to database
-    conn = getConnection('default')
-    arnolddb = getConnection('default', 'arnold')
+    if identity.status == 'disabled':
+        change_port_status('enable', identity)
+    elif identity.status == 'quarantined':
+        change_port_vlan(identity, identity.fromvlan)
 
-    carnold = arnolddb.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cmanage = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    identity.status = 'enabled'
+    identity.last_changed = datetime.now()
+    identity.fromvlan = None
+    identity.tovlan = None
+    identity.save()
 
-    # Find identityidinformation
-    query = """SELECT * FROM identity WHERE identityid = %s"""
-    carnold.execute(query, (id, ))
-
-    if carnold.rowcount <= 0:
-        raise NoDatabaseInformationError, id
-
-    identityrow = carnold.fetchone()
-
-    # Fetch info for this swportid
-    swportidquery = """SELECT * FROM netbox
-    LEFT JOIN type USING (typeid)
-    LEFT JOIN module USING (netboxid)
-    LEFT JOIN interface USING (netboxid)
-    WHERE interfaceid = %s"""
-
-    cmanage.execute(swportidquery, (identityrow['swportid'], ))
-
-    # If port exists, enable it with SNMP
-    if cmanage.rowcount > 0:
-        row = cmanage.fetchone()
-        status = identityrow['blocked_status']
-
-        if status == 'disabled':
-            # Enable port based on information gathered
-            try:
-                changePortStatus('enable', row['ip'], row['vendorid'],
-                                 row['rw'], row['module'], row['baseport'],
-                                 row['ifindex'],
-                                 snmp_version=row['snmp_version'])
-            except ChangePortStatusError, why:
-                logger.error("openPort: Error when changing portstatus: %s"
-                             %why)
-                raise ChangePortStatusError
-
-        elif status == 'quarantined':
-            # Change vlan to fromvlan stored in database
-            try:
-                changePortVlan(row['ip'], row['ifindex'],
-                               identityrow['fromvlan'],
-                               snmp_version=row['snmp_version'])
-            except (DbError, NotSupportedError, ChangePortVlanError), e:
-                logger.error("openPort: %s", e)
-                raise ChangePortVlanError
-            
-    else:
-        # If port was not found, reflect this in event-comment
-        eventcomment = """Port was not found because switch/module
-        replaced. Port enabled in database only."""
-        
-
-    # Update identity-table
-    updateq = """UPDATE identity SET
-    lastchanged = now(),
-    blocked_status = 'enabled',
-    fromvlan = NULL, tovlan = NULL
-    WHERE identityid = %s"""
-
-    try:
-        carnold.execute(updateq, (id, ))
-    except nav.db.driver.ProgrammingError, why:
-        arnolddb.rollback()
-        raise DbError, why
-
-    # Update event-table
-    eventq = """INSERT INTO event
-    (identityid, blocked_status, eventtime, username, event_comment) VALUES
-    (%s, 'enabled', now(), %s, %s)"""
-
-    try:
-        carnold.execute(eventq, (id, username, eventcomment))
-        arnolddb.commit()
-    except nav.db.driver.ProgrammingError, why:
-        arnolddb.rollback()
-        raise DbError, why
-
-    # Raise exception to catch for notifying user of lack of swport
-    if cmanage.rowcount <= 0:
-        raise NoDatabaseInformationError, id
+    event = Event(identity=identity, comment=eventcomment, action='enabled',
+                  executor=username)
+    event.save()
 
     logger.info("openPort: Port successfully opened")
-
 
 
 ###############################################################################
 # changePortStatus
 #
-def changePortStatus(action, ip, vendorid, community, module, port, ifindex,
-                     snmp_version=1):
-    """
-    Use SNMP to disable a interface.
-    - Action must be 'enable' or 'disable'.
-    - Community must be read/write community
-    - IP is the ip of the switch to change portstatus on
+def change_port_status(action, identity):
+    """Use SNMP to change status on an interface.
 
-    Todo: Remove vendorid, community, module, port and fetch that from
-    database
-    """
+    We use ifadminstatus to enable and disable ports
+    ifAdminStatus has the following values:
+    1 - up
+    2 - down
+    3 - testing (no operational packets can be passed)
 
-    # We use ifadminstatus to enable and disable ports
-    # ifAdminStatus has the following values:
-    # 1 - up
-    # 2 - down
-    # 3 - testing (no operational packets can be passed)
+    """
     oid = '.1.3.6.1.2.1.2.2.1.7'
-
-    ifindex = str(ifindex)
-    query = oid + '.' + ifindex
-
-    logger.debug("vendor: %s, ro: %s, ifindex: %s, module: %s"
-                 %(vendorid, community, ifindex, module))
+    ifindex = identity.interface.ifindex
+    query = oid + '.' + str(ifindex)
 
     # Create snmp-object
-    s = nav.Snmp.Snmp(ip, community, version=snmp_version)
-
+    netbox = identity.interface.netbox
+    s = nav.Snmp.Snmp(netbox.ip, netbox.read_write, version=netbox.snmp_version)
 
     # Disable or enable based on input
     try:
         if action == 'disable':
             logger.info("Disabling ifindex %s on %s with %s"
-                        %(ifindex, ip, query))
+                        %(ifindex, netbox.ip, query))
             s.set(query, 'i', 2)
-            pass
         elif action == 'enable':
             logger.info("Enabling ifindex %s on %s with %s"
-                        %(ifindex, ip, query))
+                        %(ifindex, netbox.ip, query))
             s.set(query, 'i', 1)
-            pass
-        
+
     except nav.Snmp.AgentError, why:
         logger.error("Error when executing snmpquery: %s" %why)
         raise ChangePortStatusError, why
@@ -736,62 +652,33 @@ def changePortStatus(action, ip, vendorid, community, module, port, ifindex,
 ###############################################################################
 # changePortVlan
 #
-def changePortVlan(ip, ifindex, vlan, snmp_version=1):
+def change_port_vlan(identity, vlan):
     """
     Use SNMP to change switchport access vlan. Returns vlan on port
     before change if successful.
-
-    ip: ip of netbox
-    ifindex: ifindex of swport in manage-db
-    vlan: vlanid to change to
 
     Reasons for not successful change may be:
     - Wrong community, use rw-community
     - rw-community not set on netbox
     - port is a trunk
+
+    oid for getting and setting vlan
+    CISCO
+    cisco.ciscoMgmt.ciscoVlanMembershipMIB.ciscoVlanMembershipMIBObjects.
+    vmMembership.vmMembershipTable.vmMembershipEntry.vmVlan.<ifindex>
+
     """
+    interface = identity.interface
+    netbox = interface.netbox
+    vendorid = netbox.type.vendor
 
-    logger.debug("changePortVlan got %s, %s, %s" %(ip, ifindex, vlan))
-
-    # Connect to database
-    conn = getConnection('default')
-    c = conn.cursor()
-
-    q = """SELECT vendorid, ro, rw
-    FROM netbox
-    LEFT JOIN type USING (typeid)
-    WHERE ip = %s
-    """
-
-    # type is the TYPE in the snmpset-query
-    type = ''
-
-    try:
-        c.execute(q, (ip, ))
-    except nav.db.driver.ProgrammingError, e:
-        raise DbError, e
-
-    vendorid, ro, rw = c.fetchone()
-
-    # oid for getting and setting vlan
-    # CISCO
-    # cisco.ciscoMgmt.ciscoVlanMembershipMIB.ciscoVlanMembershipMIBObjects.
-    # vmMembership.vmMembershipTable.vmMembershipEntry.vmVlan.<ifindex>
     if vendorid == 'cisco':
-
         oid = "1.3.6.1.4.1.9.9.68.1.2.2.1.2"
-        type = 'i'
-
+        variable_type = 'i'
     elif vendorid == 'hp':
-
         oid = "1.3.6.1.2.1.17.7.1.4.5.1.1"
-        type = 'u'
-
+        variable_type = 'u'
     else:
-
-        # Nothing else supported :p As we use Q-BRIDGE-MIB this is
-        # possibly incorrect, but testing on other vendors is needed.
-
         raise NotSupportedError, vendorid
 
 
@@ -800,12 +687,10 @@ def changePortVlan(ip, ifindex, vlan, snmp_version=1):
         raise ChangePortVlanError, "Wrong format on vlan %s" % vlan
 
 
-    # Make query based on oid and ifindex
-    query = oid + '.' + str(ifindex)
+    query = oid + '.' + str(interface.ifindex)
 
-    # Create snmp-objects
-    snmpget = nav.Snmp.Snmp(ip, ro, version=snmp_version)
-    snmpset = nav.Snmp.Snmp(ip, rw, version=snmp_version)
+    snmpget = nav.Snmp.Snmp(netbox.ip, netbox.read_only, netbox.snmp_version)
+    snmpset = nav.Snmp.Snmp(netbox.ip, netbox.read_write, netbox.snmp_version)
 
     # Fetch the vlan currently on the port
     try:
@@ -818,12 +703,8 @@ def changePortVlan(ip, ifindex, vlan, snmp_version=1):
     if fromvlan == int(vlan):
         return fromvlan
 
-    # Set to inputvlan. This will fail if the vlan does not exist on
-    # the netbox, luckily.
-
     try:
-        snmpset.set(query, type, vlan)
-        pass
+        snmpset.set(query, variable_type, vlan)
     except nav.Snmp.AgentError, why:
         raise ChangePortVlanError, why
 
@@ -835,66 +716,25 @@ def changePortVlan(ip, ifindex, vlan, snmp_version=1):
     # The good thing about this is that it should work on any netbox
     # that supports Q-BRIDGE-MIB.
 
-    # TODO: Test on other netbox/vendor types
-    # TODO: We are fscked if the stuff below fails as we have already
-    # changed vlan. Howto fix?
-
     if vendorid == 'hp':
         # Fetch dot1qVlanStaticEgressPorts
-        dot1qVlanStaticEgressPorts = '1.3.6.1.2.1.17.7.1.4.3.1.2.' + \
+        dot1qvlanstaticegressports = '1.3.6.1.2.1.17.7.1.4.3.1.2.' + \
                                      str(fromvlan)
         try:
-            hexports = snmpget.get(dot1qVlanStaticEgressPorts)
+            hexports = snmpget.get(dot1qvlanstaticegressports)
         except nav.Snmp.NoSuchObjectError, why:
             raise ChangePortVlanError, why
 
         # Create new octetstring and set it
-        newhexports = computeOctetString(hexports, ifindex, 'disable')
+        newhexports = computeOctetString(hexports, interface.ifindex,
+                                         'disable')
 
         try:
-            snmpset.set(dot1qVlanStaticEgressPorts, 's', newhexports)
-            pass
+            snmpset.set(dot1qvlanstaticegressports, 's', newhexports)
         except nav.Snmp.NoSuchObjectError, why:
             raise ChangePortVlanError, why
     
     return fromvlan
-
-
-
-###############################################################################
-# toggleSwportStatus
-#
-def changeSwportStatus(action, swportid):
-    """
-    Use snmp to change the ifadminstatus on given swportid.
-    action = enable, disable
-    """
-
-    if not action in ['enable','disable']:
-        raise BlockError, "No such action %s" % action
-
-    # Connect to database
-    conn = getConnection('default')
-    c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    query = """SELECT * FROM netbox
-    LEFT JOIN type USING (typeid)
-    LEFT JOIN module USING (netboxid)
-    LEFT JOIN interface USING (netboxid)
-    WHERE interfaceid = %s"""
-
-    try:
-        c.execute(query, (swportid, ))
-    except nav.db.driver.ProgrammingError, why:
-        raise DbError, why
-
-    row = c.fetchone()
-
-    try:
-        changePortStatus(action, row['ip'], row['vendorid'], row['rw'],
-                         row['module'], row['baseport'], row['ifindex'])
-    except ChangePortStatusError:
-        raise ChangePortStatusError
 
 
 
@@ -939,23 +779,6 @@ def sendmail(fromaddr, toaddr, subject, msg):
     exitcode = p.close()
     if exitcode:
         logger.info("Exit code: %s" % exitcode)
-
-
-###############################################################################
-# addReason
-#
-def addReason(name, comment, id=0):
-    """Add a reason for blocking to the database"""
-
-    id = int(id)
-
-    if id:
-        query = """UPDATE blocked_reason SET name=%s, comment=%s
-        WHERE blocked_reasonid = %s"""
-        doQuery('arnold', query, (name, comment, id))
-    else:
-        query = "INSERT INTO blocked_reason (name, comment) VALUES (%s, %s)"
-        doQuery('arnold', query, (name, comment))
 
 
 ###############################################################################

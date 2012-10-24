@@ -15,34 +15,62 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 # import regular libraries
-import os
-import sys
-import logging
-import ConfigParser
-import getpass
-
-import psycopg2.extras
-
-# import nav-libraries
-import nav.arnold
-import nav.db
-import nav.buildconf
-
 """
 autoenable is meant to be run as a cronjob. It checks the configured
 arnold-database for any detained ports and opens them if they have a
 autoenable-time set and that time has passed.
 """
 
-def main():
+import sys
+import logging
+import ConfigParser
+import getpass
+from datetime import datetime
 
-    # Open and read config
+import nav.arnold
+import nav.db
+import nav.buildconf
+from nav.models.arnold import Identity
+
+
+def main():
+    """Main controller"""
+    logger = get_logger(read_config())
+    logger.info("Starting autoenable")
+
+    candidates = Identity.objects.filter(autoenable__lte=datetime.now())
+
+    if len(candidates) <= 0:
+        logger.info("No ports ready for opening.")
+        sys.exit(0)
+
+    # For each port that is blocked, try to enable the port.
+    for candidate in candidates:
+        try:
+            nav.arnold.open_port(candidate, getpass.getuser(),
+                                 eventcomment="Opened automatically by "
+                                              "autoenable")
+            interface = candidate.interface
+            netbox = interface.netbox
+            logger.info("Opening %s %s:%s for %s" % (
+                netbox.sysname, interface.module,
+                interface.baseport, candidate.mac))
+        except (nav.arnold.NoDatabaseInformationError,
+                nav.arnold.ChangePortStatusError,
+                nav.arnold.DbError), why:
+            logger.error(why)
+            continue
+
+
+def read_config():
+    """Read and return config"""
     configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
     config = ConfigParser.ConfigParser()
     config.read(configfile)
 
-    # Set variables based on configfile
 
+def get_logger(config):
+    """Set logger attributes, return logger"""
     loglevel = config.get('loglevel','autoenable')
     if not loglevel.isdigit():
         loglevel = logging.getLevelName(loglevel)
@@ -52,70 +80,17 @@ def main():
     except ValueError:
         loglevel = 20 # default to INFO
 
-    # Create logger, start logging
+        # Create logger, start logging
     logfile = nav.buildconf.localstatedir + "/log/arnold/autoenable.log"
     filehandler = logging.FileHandler(logfile)
-    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] ' \
+    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '\
                                   '[%(name)s] L%(lineno)d %(message)s')
     filehandler.setFormatter(formatter)
     logger = logging.getLogger('autoenable')
     logger.addHandler(filehandler)
     logger.setLevel(loglevel)
 
-    logger.info("Starting autoenable")
-
-    # Connect to arnold-database configured in arnold.conf
-    try:
-        arnoldconn = nav.db.getConnection('default', 'arnold')
-    except nav.db.driver.ProgrammingError, why:
-        logger.error("Could not connect to arnolddatabase: %s" %why)
-    
-    arnoldc = arnoldconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    # Connect to manage-database
-    try:
-        manageconn = nav.db.getConnection('default','manage')
-    except nav.db.driver.ProgrammingError, why:
-        logger.error("Could not connect to manage-db: %s" %why)
-    
-    managec = manageconn.cursor()
-
-
-    # Get all blocked port where autoenable is < now
-    query = """SELECT identityid, swportid, ip, mac
-    FROM identity
-    WHERE autoenable < now()
-    AND blocked_status IN ('disabled','quarantined')
-    """
-
-    arnoldc.execute(query)
-
-    if arnoldc.rowcount <= 0:
-        logger.info("No ports ready for opening.")
-        sys.exit(0)
-
-    # For each port that is blocked, try to enable the port.
-    for row in arnoldc.fetchall():
-
-        try:
-            swinfo = nav.arnold.findSwportIDinfo(row['swportid'])
-        except nav.arnold.PortNotFoundError, why:
-            logger.error(why)
-            continue
-
-        # Open port
-        try:
-            nav.arnold.openPort(row['identityid'], getpass.getuser(),
-                                eventcomment="Opened automatically by \
-                                autoenable")
-            logger.info("Opening %s %s:%s for %s" %(
-                swinfo['sysname'], swinfo['module'],
-                swinfo['baseport'], row['mac']))
-        except (nav.arnold.NoDatabaseInformationError,
-                nav.arnold.ChangePortStatusError,
-                nav.arnold.DbError), why:
-            logger.error(why)
-            continue
+    return logger
 
 
 if __name__ == '__main__':

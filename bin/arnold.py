@@ -179,7 +179,7 @@ must be set if state is quarantine")
 
                 # Open port
                 try:
-                    nav.arnold.openPort(identity, getpass.getuser())
+                    nav.arnold.open_port(identity, getpass.getuser())
                 except (nav.arnold.NoDatabaseInformationError,
                         nav.arnold.DbError,
                         nav.arnold.ChangePortStatusError), why:
