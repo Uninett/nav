@@ -34,6 +34,7 @@ from nav.django.utils import get_account
 from nav.models.logger import LogMessage
 from nav.models.logger import ErrorError
 from nav.models.logger import MessageView
+from nav.web.loggerhandler.forms import LoggerSearchForm
 
 from nav.web.loggerhandler.utils import DbAccess
 from nav.web.loggerhandler.utils import ParamUtil
@@ -102,77 +103,25 @@ def _get_basic_info_dict(db_access, param_util):
 
 
 def index(request):
-    """
-    Default handler.
-    """
     account = get_account(request)
     if not account:
         return HttpResponseForbidden("You must be logged in to access this resource")
 
-    db_access = DbAccess()
-    param_util = ParamUtil(request, db_access)
-    context = _get_basic_info_dict(db_access, param_util)
+    if len(request.GET.keys()) > 0:
+        form = LoggerSearchForm(request.GET)
+        if form.is_valid():
+            return HttpResponse("Valid form")
+    else:
+        form = LoggerSearchForm()
 
-    tfrom_param = context['tfrom']
-    tto_param = context['tto']
-    priority_param = request.GET.get('priority', None)
-    type_param = request.GET.get('type', None)
-    origin_param = request.GET.get('origin', None)
-    category_param = request.GET.get('category', None)
-    log_param = request.GET.get('log', None)
+    context =  {
+        'form': form
+    }
 
-
-
-    if ((origin_param and type_param) or (origin_param and log_param)
-            or (type_param and log_param)):
-        return log_response(request, db_access, param_util)
-    elif origin_param or type_param or priority_param:
-        return statistics_reponse(request)
-
-    # priotities-mode
-    query = None
-    if type_param:
-        query = MessageView.objects.filter(type=type_param)
-    if origin_param:
-        if not query:
-            query = MessageView.objects.filter(origin=origin_param)
-        else:
-            query = query.filter(origin=origin_param)
-    if priority_param:
-        if not query:
-            query = MessageView.objects.filter(newpriority=priority_param)
-        else:
-            query = query.filter(newpriority=priority_param)
-    if category_param:
-        if not query:
-            query = MessageView.objects.filter(category=category_param)
-        else:
-            query = query.filter(category=category_param)
-    if tfrom_param:
-        if not query:
-            query =  MessageView.objects.filter(time__gte=tfrom_param)
-        else:
-            query = query.filter(time__gte=tfrom_param)
-    if tto_param:
-        if not query:
-            query =  MessageView.objects.filter(time__lte=tto_param)
-        else:
-            query = query.filter(time__lte=tto_param)
-    #if not query:
-    #    query = MessageView.objects.group_by('origin')
-    #else:
-    #    query = query.group_by('origin')
-
-    context.update({
-        'log_messages': query,
-        'tfrom': tfrom_param,
-        'tto': tto_param,
-        'priority_mode': True,
-        'priority_list': None,
-    })
     return render_to_response('loggerhandler/index.html',
-                                context,
-                                RequestContext(request))
+        context,
+        RequestContext(request))
+
 
 def statistics_reponse(request, db_access=None, param_util=None):
     account = get_account(request)
