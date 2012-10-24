@@ -171,15 +171,16 @@ def index(request):
     #    query = MessageView.objects.group_by('origin')
     #else:
     #    query = query.group_by('origin')
-     
-    update_dict = {'tfrom': tfrom_param,
-                   'tto': tto_param,
-                   'priority_mode': True,
-                   'priority_list': None,
-                  }
-    info_dict.update(update_dict)
+
+    context = {
+        'log_messages': query,
+        'tfrom': tfrom_param,
+        'tto': tto_param,
+        'priority_mode': True,
+        'priority_list': None,
+    }
     return render_to_response('loggerhandler/index.html',
-                                info_dict,
+                                context,
                                 RequestContext(request))
 
 def statistics_reponse(request, db_access=None, param_util=None):
