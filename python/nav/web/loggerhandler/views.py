@@ -110,8 +110,6 @@ def index(request):
     if not account:
         return HttpResponseForbidden("You must be logged in to access this resource")
     db_access = DbAccess()
-    #param_util = ParamUtil(request, db_access)
-    #info_dict = _get_basic_info_dict(db_access, param_util)
 
     tfrom_param = request.GET.get('tfrom', None)
     tto_param = request.GET.get('tto', None)
