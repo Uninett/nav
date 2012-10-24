@@ -18,7 +18,7 @@
 
 import logging
 import os
-#import datetime
+import datetime
 from ConfigParser import ConfigParser
 
 from django.http import HttpResponseRedirect, HttpResponseForbidden, \
@@ -119,6 +119,18 @@ def index(request):
     category_param = request.GET.get('category', None)
     log_param = request.GET.get('log', None)
 
+    # convert to datetime or set current timestamp if not requested any format
+    if not tto_param:
+        tto_param = datetime.datetime.now()
+    else:
+        tto_param = datetime.time.striptime(tto_param, DATEFORMAT)
+    # todo: make sure tfrom is 1 hour before tto_param.
+    if not tfrom_param:
+        tfrom_param = datetime.datetime.now()
+    else:
+        tfrom_param = datetime.time.striptime(tfrom_param, DATEFORMAT)
+
+
     if ((origin_param and type_param) or (origin_param and log_param)
             or (type_param and log_param)):
         # todo: no such method as log_response(request, db_access, param_util) from patch
@@ -160,8 +172,8 @@ def index(request):
     #else:
     #    query = query.group_by('origin')
      
-    update_dict = {'tfrom': tfrom_param.strftime(DATEFORMAT),
-                   'tto': tto_param.strftime(DATEFORMAT),
+    update_dict = {'tfrom': tfrom_param,
+                   'tto': tto_param,
                    'priority_mode': True,
                    'priority_list': None,
                   }
