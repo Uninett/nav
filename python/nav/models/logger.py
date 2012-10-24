@@ -116,10 +116,10 @@ class MessageView(models.Model):
     Do not change attributes unless You know what You are doing!
     Check: https://docs.djangoproject.com/en/dev/ref/models/options/
     """
-    origin = models.IntegerField(db_column='origin', primary_key=True)
-    type = models.IntegerField(db_column='type')
-    newpriority = models.IntegerField(db_column='newpriority')
-    category = models.IntegerField(db_column='category')
+    origin = models.ForeignKey(Origin, db_column='origin', primary_key=True)
+    type = models.ForeignKey(LogMessageType, db_column='type')
+    newpriority = models.ForeignKey(Priority, db_column='newpriority')
+    category = models.ForeignKey(LoggerCategory, db_column='category')
     time = models.DateTimeField(db_column='time')
 
     class Meta:
