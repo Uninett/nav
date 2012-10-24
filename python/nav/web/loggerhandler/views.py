@@ -60,7 +60,7 @@ def _get_basic_info_dict(db_access, param_util):
         error_list.append('Illegal from date (YYYY-MM-DD hh:mm:ss).')
     tto = param_util.get_time_to()
     if tto:
-        links.update({'tto', tto.strftime(DATEFORMAT)})
+        links.update({'tto': tto.strftime(DATEFORMAT)})
     else:
         error_list.append('Illegal to date (YYYY-MM-DD hh:mm:ss).')
     priority =  param_util.get_priority()
