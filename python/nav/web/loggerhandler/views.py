@@ -22,7 +22,7 @@ import datetime
 from ConfigParser import ConfigParser
 
 from django.http import HttpResponseRedirect, HttpResponseForbidden, \
-    HttpResponse
+    HttpResponse, QueryDict
 from django.template import RequestContext
 #from django.template import Context
 from django.shortcuts import render_to_response
@@ -51,36 +51,34 @@ def _get_basic_info_dict(db_access, param_util):
     """
     Get all default parameters for view.
     """
-    links = []
+    links = QueryDict().copy()
     error_list = []
     tfrom = param_util.get_time_from()
     if tfrom:
-        links.append('tfrom=%s' % tfrom.strftime(DATEFORMAT))
+        links.update({'tfrom': tfrom.strftime(DATEFORMAT)})
     else:
         error_list.append('Illegal from date (YYYY-MM-DD hh:mm:ss).')
     tto = param_util.get_time_to()
     if tto:
-        links.append('tto=%s' % tto.strftime(DATEFORMAT))
+        links.update({'tto', tto.strftime(DATEFORMAT)})
     else:
         error_list.append('Illegal to date (YYYY-MM-DD hh:mm:ss).')
     priority =  param_util.get_priority()
     if priority:
-        links.append('priority=%d' % priority)
+        links.update({'priority': priority})
     type_param = param_util.get_type()
     if type_param:
-        links.append('type=%d' % type_param)
+        links.update({'type': type_param})
     origin = param_util.get_origin()
     if origin:
-        links.append('origin=%d' % origin)
+        links.update({'origin': origin})
     category = param_util.get_category()
     if category:
-        links.append('category=%d' % category)
-
-    link = "&amp;".join(links)
+        links.update({'category': category})
 
     info_dict = {'priority': param_util.get_priority(),
-                 'origin': origin_param,
-                 'originid': db_access.get_origin2originid().get(origin_param,
+                 'origin': origin,
+                 'originid': db_access.get_origin2originid().get(origin,
                                                                 None),
                  'category': param_util.get_category(),
                  'type': type_param,
@@ -93,7 +91,7 @@ def _get_basic_info_dict(db_access, param_util):
                  'origins': db_access.get_origins(),
                  'origindict':  db_access.get_originid2origin(),
                  'typedict': db_access.get_typeid2type(),
-                 'link': link,
+                 'link': links.urlencode(),
                  'error_list': error_list,
                  }
     log = param_util.get_log()
