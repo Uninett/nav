@@ -76,7 +76,7 @@ def _get_basic_info_dict(db_access, param_util):
     if category:
         links.update({'category': category})
 
-    info_dict = {'priority': param_util.get_priority(),
+    context = {'priority': param_util.get_priority(),
                  'origin': origin,
                  'originid': db_access.get_origin2originid().get(origin,
                                                                 None),
@@ -96,9 +96,9 @@ def _get_basic_info_dict(db_access, param_util):
                  }
     log = param_util.get_log()
     if log:
-        info_dict['log'] = log
-    info_dict.update(DEFAULT_VALUES)
-    return info_dict
+        context['log'] = log
+    context.update(DEFAULT_VALUES)
+    return context
 
 
 def index(request):
