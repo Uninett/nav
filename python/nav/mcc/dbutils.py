@@ -157,17 +157,25 @@ def update_datasources(container, rrdfile):
     - Insert new if datasource name does not exist
     Finally we remove those who did not exist on the container
     """
+    def is_equal(rrdds, datasource):
+        """Is the rrd_datasource equal to container datasource?"""
+        return rrdds.units == datasource.unit and \
+            rrdds.type == datasource.dstype and \
+            rrdds.description == datasource.descr
+
+
     existing = []
     for datasource in container.datasources:
         try:
             rrdds = rrdfile.rrddatasource_set.get(name=datasource.name)
-            if rrdds.units != datasource.unit or \
-               rrdds.type != datasource.dstype:
+            if not is_equal(rrdds, datasource):
                 rrdds.units = datasource.unit
                 rrdds.type = datasource.dstype
+                rrdds.description = datasource.descr
                 rrdds.save()
                 LOGGER.debug(
-                    'Updating datasource for %s' % (container.filename))
+                    'Updating datasource %s for %s' % (datasource.name,
+                        container.filename))
             existing.append(rrdds)
         except RrdDataSource.DoesNotExist:
             existing.append(
@@ -201,7 +209,7 @@ def update_maxspeed(container, rrdfile):
     if not container.speed > 0:
         return
 
-    LOGGER.debug("Updating datasource for %s" % container.filename)
+    LOGGER.debug("Updating maxspeed for %s" % container.filename)
     has_counter_sources = any(is_octet_counter(ds.descr)
                               for ds in container.datasources)
 
