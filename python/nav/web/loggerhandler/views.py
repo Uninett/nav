@@ -113,8 +113,8 @@ def index(request):
     param_util = ParamUtil(request, db_access)
     context = _get_basic_info_dict(db_access, param_util)
 
-    tfrom_param = request.GET.get('tfrom', None)
-    tto_param = request.GET.get('tto', None)
+    tfrom_param = context['tfrom']
+    tto_param = context['tto']
     priority_param = request.GET.get('priority', None)
     type_param = request.GET.get('type', None)
     origin_param = request.GET.get('origin', None)
