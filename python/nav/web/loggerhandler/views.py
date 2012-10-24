@@ -110,16 +110,16 @@ def index(request):
     if not account:
         return HttpResponseForbidden("You must be logged in to access this resource")
     db_access = DbAccess()
-    param_util = ParamUtil(request, db_access)
-    info_dict = _get_basic_info_dict(db_access, param_util)
+    #param_util = ParamUtil(request, db_access)
+    #info_dict = _get_basic_info_dict(db_access, param_util)
 
-    tfrom_param = info_dict.get('tfrom', None)
-    tto_param = info_dict.get('tto', None)
-    priority_param = info_dict.get('priority', None)
-    type_param = info_dict.get('type', None)
-    origin_param = info_dict.get('origin', None)
-    category_param = info_dict.get('category', None)
-    log_param = info_dict.get('log', None)
+    tfrom_param = request.GET.get('tfrom', None)
+    tto_param = request.GET.get('tto', None)
+    priority_param = request.GET.get('priority', None)
+    type_param = request.GET.get('type', None)
+    origin_param = request.GET.get('origin', None)
+    category_param = request.GET.get('category', None)
+    log_param = request.GET.get('log', None)
 
     if ((origin_param and type_param) or (origin_param and log_param)
             or (type_param and log)):
