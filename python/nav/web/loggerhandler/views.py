@@ -21,7 +21,8 @@ import os
 #import datetime
 from ConfigParser import ConfigParser
 
-from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponseRedirect, HttpResponseForbidden, \
+    HttpResponse
 from django.template import RequestContext
 #from django.template import Context
 from django.shortcuts import render_to_response
@@ -109,7 +110,7 @@ def index(request):
     account = get_account(request)
     if not account:
         return HttpResponseForbidden("You must be logged in to access this resource")
-    db_access = DbAccess()
+    #db_access = DbAccess()
 
     tfrom_param = request.GET.get('tfrom', None)
     tto_param = request.GET.get('tto', None)
@@ -121,9 +122,10 @@ def index(request):
 
     if ((origin_param and type_param) or (origin_param and log_param)
             or (type_param and log)):
-        return log_reponse(request, db_access, param_util)
+        # todo: no such method as log_response(request, db_access, param_util) from patch
+        return HttpResponse("No idea what it should respond with yet, dummy data")
     elif origin_param or type_param or priority_param:
-        return statistics_reponse(request, db_access, param_util)
+        return statistics_reponse(request)
 
     # priotities-mode
     query = None
