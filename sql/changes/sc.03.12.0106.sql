@@ -1,5 +1,5 @@
 -- Add unit column to snmpoid table for storing of units
-ALTER TABLE snmpoid ADD unit VARCHAR
+ALTER TABLE snmpoid ADD unit VARCHAR;
 
 
 -- Insert some default units
