@@ -15,8 +15,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """macwatch view definitions"""
+import copy
 
 import logging
+from django.db.models.aggregates import Count
 import os
 import datetime
 from ConfigParser import ConfigParser
@@ -28,6 +30,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 import nav
+from nav.django.templatetags.info import register
 
 from nav.django.utils import get_account
 
@@ -101,21 +104,52 @@ def _get_basic_info_dict(db_access, param_util):
     context.update(DEFAULT_VALUES)
     return context
 
-
 def index(request):
     account = get_account(request)
     if not account:
         return HttpResponseForbidden("You must be logged in to access this resource")
 
+    results = []
+    aggregates = {}
+
     if len(request.GET.keys()) > 0:
         form = LoggerSearchForm(request.GET)
         if form.is_valid():
-            return HttpResponse("Valid form")
+
+            results = LogMessage.objects.filter(time__gte=form.cleaned_data['timestamp_from'], time__lte=form.cleaned_data['timestamp_to']).select_related()
+            if form.cleaned_data['priority']:
+                results = results.filter(newpriority__in=form.cleaned_data['priority'])
+            if form.cleaned_data["message_type"]:
+                results = results.filter(type__in=form.cleaned_data['message_type'])
+            if form.cleaned_data["category"]:
+                results = results.filter(category__in=form.cleaned_data['category'])
+            if form.cleaned_data["origin"]:
+                results = results.filter(origin__in=form.cleaned_data['origin'])
+
+
+
+            priorities = results.values('newpriority__keyword').annotate(sum=Count('newpriority__keyword'))
+            priorities_headers = ['Priority']
+            message_types = results.values('type__facility', 'type__priority__keyword', 'type__mnemonic').annotate(sum=Count('type'))
+            message_types_headers = ['Facility', 'Priority', 'State']
+            origins = results.values('origin__name').annotate(sum=Count('origin__name'))
+            origins_headers = ['Prefix origin']
+
+            aggregates.update({'priorities' : { 'values': priorities, 'headers': priorities_headers, 'colspan': 1} })
+            aggregates.update({'message_type': { 'values': message_types, 'headers': message_types_headers, 'colspan': 3 }})
+            aggregates.update({'origin': { 'values': origins, 'headers': origins_headers, 'colspan': 1 }})
+
     else:
-        form = LoggerSearchForm()
+        form = LoggerSearchForm(initial={
+            'timestamp_from': (datetime.datetime.now() -
+                               datetime.timedelta(days=1)),
+            'timestamp_to': datetime.datetime.now()
+        })
 
     context =  {
-        'form': form
+        'form': form,
+        'log_messages': results,
+        'aggregates': aggregates,
     }
 
     return render_to_response('loggerhandler/index.html',
