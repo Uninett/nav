@@ -21,7 +21,7 @@ import os
 #import datetime
 from ConfigParser import ConfigParser
 
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.template import RequestContext
 #from django.template import Context
 from django.shortcuts import render_to_response
@@ -108,7 +108,7 @@ def index(request):
     """
     account = get_account(request)
     if not account:
-        return HttpResponseRedirect('/')
+        return HttpResponseForbidden("You must be logged in to access this resource")
     db_access = DbAccess()
     param_util = ParamUtil(request, db_access)
     info_dict = _get_basic_info_dict(db_access, param_util)
