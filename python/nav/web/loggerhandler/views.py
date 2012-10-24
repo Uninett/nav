@@ -120,7 +120,7 @@ def index(request):
     log_param = request.GET.get('log', None)
 
     if ((origin_param and type_param) or (origin_param and log_param)
-            or (type_param and log)):
+            or (type_param and log_param)):
         # todo: no such method as log_response(request, db_access, param_util) from patch
         return HttpResponse("No idea what it should respond with yet, dummy data")
     elif origin_param or type_param or priority_param:
