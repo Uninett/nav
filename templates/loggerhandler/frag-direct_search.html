@@ -1,4 +1,4 @@
-<div id="search">
+<div id="direct_search">
     {% if form %}
     <form method="get" action="#!results">
         <table class="vertitable">
@@ -19,4 +19,6 @@
         </table>
     </form>
     {% endif %}
+
+    {% include "loggerhandler/frag-results.html" %}
 </div>
