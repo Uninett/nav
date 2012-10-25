@@ -180,64 +180,6 @@
 {% endif %}
 {% endif %}
 
-{% load get_item %}
-
-{% if aggregates %}
-{% for name, aggregate in aggregates.items %}
-<table class="listtable">
-    <caption>{{ name }}</caption>
-    <thead>
-    <tr>
-        {% for key in aggregate.headers %}
-        <th>{{ key }}</th>
-        {% endfor %}
-        <th>Count</th>
-    </tr>
-    </thead>
-    <tbody>
-
-    {% for title in aggregate.values %}
-    <tr>
-        {% for key, value in title.items %}
-        {% if key != "sum" %}
-        <td>{{ value }}</td>
-        {% endif %}
-        {% endfor %}
-        <td>{{ title.sum }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
-{% endfor %}
-{% endif %}
-{% if log_messages %}
-<table class="listtable">
-    <caption>Log</caption>
-    <thead>
-    <tr>
-        <th>Time</th>
-        <th>Origin</th>
-        <th>Message type</th>
-        <th>Message</th>
-    </tr>
-    </thead>
-    <tbody>
-    {# Implement this! #}
-    {% for mess in log_messages %}
-    <tr>
-        <td>{{ mess.time }}</td>
-        <td>{{ mess.origin.name }}</td>
-        <td>{{ mess.type.priority.keyword }}</td>
-        <td>{{ mess.message }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<div>
-    No log-messages
-</div>
-{% endif %}
 
 {% if priority_mode %}
 {% if priority_list %}
