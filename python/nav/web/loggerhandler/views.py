@@ -152,12 +152,14 @@ def handle_search(request, searchform):
         'aggregates': aggregates,
         }
 
-    return render_to_response('loggerhandler/index.html',
+    return render_to_response('loggerhandler/frag-search.html',
         context,
         RequestContext(request))
 
 def index(request):
-    return direct_search(request)
+    return render_to_response('loggerhandler/index.html',
+        {},
+        RequestContext(request))
 
 def direct_search(request):
     return handle_search(request, LoggerSearchForm)

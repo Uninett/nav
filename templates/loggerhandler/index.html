@@ -8,9 +8,9 @@
 
 <div id="moduletabs">
     <ul>
-        <li><a href="#direct_search">Direct Search<span class="tab-spinner">&nbsp;</span></a>
+        <li><a href="{% url logger_search_direct %}">Direct Search<span class="tab-spinner">&nbsp;</span></a>
         </li>
-        <li><a href="#group_search">Group Search<span class="tab-spinner">&nbsp;</span></a>
+        <li><a href="{% url logger_search_group %}">Group Search<span class="tab-spinner">&nbsp;</span></a>
         </li>
         <li><a href="{% url logger_errors %}">Parsing
             errors?<span class="tab-spinner">&nbsp;</span></a></li>
@@ -18,8 +18,6 @@
             exceptions<span class="tab-spinner">&nbsp;</span></a></li>
     </ul>
 </div>
-
-{% include "loggerhandler/frag-direct_search.html" %}
 
 {% endblock %}
 
