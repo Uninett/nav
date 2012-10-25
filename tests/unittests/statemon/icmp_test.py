@@ -17,16 +17,16 @@ class ICMPPacketTestcase(TestCase):
         #Make Packet object which disassembles the raw packet
         v6_packet = PacketV6(packet, False)
 
-        #Check if ICMP_ECHO and cookie exists
+        #Check if ICMP_ECHO
         self.assertEquals(v6_packet.type, PacketV6.ICMP_ECHO)
 
-        #Sequence number should start with 0 when process is started
+        #Check sequence number
         self.assertEquals(v6_packet.sequence, 3)
 
         #Check payload
         self.assertEquals(v6_packet.data, 'Testing')
 
-        #Id of the packet is process id
+        #Check if Id of the packet is process id
         self.assertEquals(os.getpid(), v6_packet.id)
 
         #Check if the checksum is correct
@@ -49,13 +49,13 @@ class ICMPPacketTestcase(TestCase):
         #Make Packet object which disassembles the raw packet
         v4_packet = PacketV4(packet, False)
 
-        #Check if ICMP_ECHO and cookie exists
+        #Check if ICMP_ECHO
         self.assertEquals(v4_packet.type, PacketV4.ICMP_ECHO)
 
-        #Sequence number should start with 0 when process is started
+        #Check sequence number
         self.assertEquals(v4_packet.sequence, 3)
 
-        #Id of the packet is process id
+        #Check if Id of the packet is process id
         self.assertEquals(os.getpid(), v4_packet.id)
 
         #Check payload
