@@ -12,9 +12,9 @@ class LoggerSearchForm(forms.Form):
     timestamp_to = forms.DateTimeField(input_formats=DATEFORMAT)
 
 class LoggerGroupSearchForm(forms.Form):
-    priority = forms.ModelChoiceField(queryset=Priority.objects.all(), required=False)
-    message_type = forms.ModelChoiceField(queryset=LogMessageType.objects.all(), required=False)
-    category = forms.ModelChoiceField(queryset=LoggerCategory.objects.all(), required=False)
-    origin = forms.ModelChoiceField(queryset=Origin.objects.all(), required=False)
+    priority = forms.ModelChoiceField(queryset=Priority.objects.all(), required=False, empty_label=u'(All)')
+    message_type = forms.ModelChoiceField(queryset=LogMessageType.objects.all(), required=False, empty_label=u'(All)')
+    category = forms.ModelChoiceField(queryset=LoggerCategory.objects.all(), required=False, empty_label=u'(All)')
+    origin = forms.ModelChoiceField(queryset=Origin.objects.all(), required=False, empty_label=u'(All)')
     timestamp_from = forms.DateTimeField(input_formats=DATEFORMAT)
     timestamp_to = forms.DateTimeField(input_formats=DATEFORMAT)
