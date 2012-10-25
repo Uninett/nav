@@ -37,7 +37,7 @@ from nav.django.utils import get_account
 from nav.models.logger import LogMessage
 from nav.models.logger import ErrorError
 from nav.models.logger import MessageView
-from nav.web.loggerhandler.forms import LoggerSearchForm
+from nav.web.loggerhandler.forms import LoggerSearchForm, LoggerGroupSearchForm
 
 from nav.web.loggerhandler.utils import DbAccess
 from nav.web.loggerhandler.utils import ParamUtil
@@ -104,7 +104,7 @@ def _get_basic_info_dict(db_access, param_util):
     context.update(DEFAULT_VALUES)
     return context
 
-def index(request):
+def handle_search(request, searchform):
     account = get_account(request)
     if not account:
         return HttpResponseForbidden("You must be logged in to access this resource")
@@ -113,7 +113,7 @@ def index(request):
     aggregates = {}
 
     if len(request.GET.keys()) > 0:
-        form = LoggerSearchForm(request.GET)
+        form = searchform(request.GET)
         if form.is_valid():
 
             results = LogMessage.objects.filter(time__gte=form.cleaned_data['timestamp_from'], time__lte=form.cleaned_data['timestamp_to']).select_related()
@@ -140,7 +140,7 @@ def index(request):
             aggregates.update({'origin': { 'values': origins, 'headers': origins_headers, 'colspan': 1 }})
 
     else:
-        form = LoggerSearchForm(initial={
+        form = searchform(initial={
             'timestamp_from': (datetime.datetime.now() -
                                datetime.timedelta(days=1)),
             'timestamp_to': datetime.datetime.now()
@@ -150,11 +150,21 @@ def index(request):
         'form': form,
         'log_messages': results,
         'aggregates': aggregates,
-    }
+        }
 
     return render_to_response('loggerhandler/index.html',
         context,
         RequestContext(request))
+
+def index(request):
+    return direct_search(request)
+
+def direct_search(request):
+    return handle_search(request, LoggerSearchForm)
+
+def group_search(request):
+    return handle_search(request, LoggerGroupSearchForm)
+
 
 
 def statistics_reponse(request, db_access=None, param_util=None):
