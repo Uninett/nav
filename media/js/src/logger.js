@@ -6,23 +6,13 @@ require([
 
     $(document).ready(function () {
         // Plug row toggler on datasources
-        new TableUtil($('#hostinfo')).addRowToggleTrigger();
+        //new TableUtil($('#hostinfo')).addRowToggleTrigger();
 
         NAV.addGlobalAjaxHandlers();
         if ($(mainTabsSelector).length != 0) {
-            addModuleTabs();
             addMainTabs();
         }
     });
-
-    function addModuleTabs() {
-        var tabconfig = {
-            cache: true, // cache loaded pages
-            spinner: '<img src="/images/main/process-working.gif">',
-            load: addActivityButtonListener
-        };
-        $(moduleTabsSelector).tabs(tabconfig);
-    }
 
     function addMainTabs() {
         var tabs = $(mainTabsSelector).tabs();
