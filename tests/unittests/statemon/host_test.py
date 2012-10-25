@@ -29,7 +29,7 @@ class HostTestcase(TestCase):
 
     def test_make_v6_packet(self):
         """
-        Test to make a v4 packet
+        Test to make a v6 packet
         """
         host = Host('2001:701::FFFF')
         pid = os.getpid()
