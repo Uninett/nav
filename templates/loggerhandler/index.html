@@ -1,5 +1,11 @@
 {% extends "loggerhandler/base.html" %}
 
+{% block base_header_additional_head %}
+<script type="text/javascript" src="/js/libs/require.js" data-main="src/logger"></script>
+<link rel="stylesheet" type="text/css" href="/style/jqueryui/jquery-ui-1.8.21.custom.css">
+<!--<link rel="stylesheet" type="text/css" href="/style/ipdevinfo.css"/>-->
+{% endblock %}
+
 {% block content %}
 
 <div>
@@ -7,6 +13,18 @@
 </div>
 
 <div>
+
+    <div id="moduletabs">
+        <ul>
+            <li><a href="{% url logger_index %}">Search<span class="tab-spinner">&nbsp;</span></a></li>
+            <li><a href="{% url logger_index %}">Results<span class="tab-spinner">&nbsp;</span></a></li>
+            <li><a href="{% url logger_index %}">Parsing errors?<span class="tab-spinner">&nbsp;</span></a></li>
+            <li><a href="{% url logger_index %}">Priority exceptions<span class="tab-spinner">&nbsp;</span></a></li>
+        </ul>
+    </div>
+
+
+
 
 {% if form %}
     <form method="get">
