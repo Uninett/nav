@@ -1,0 +1,8 @@
+.multitable {
+    overflow: auto;
+}
+
+.multitable > table {
+    float: left;
+    margin-right: 1em;
+}
