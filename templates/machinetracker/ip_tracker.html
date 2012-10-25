@@ -28,7 +28,6 @@
             {% if form_data.dns %}
             <td>{{ row.dns_lookup }}</td>
             {% endif %}
-            {% if forloop.first %}
             <td>
                 {% with form_data.dns|yesno:"True," as dns %}
                 <a href="{% url machinetracker-ip_short_search row.ip form_data.days dns %}" title="Search for this IP address">
@@ -45,9 +44,6 @@
                 {% endif %}
                 {% endwith %}
             </td>
-            {% else %}
-            <td></td><td></td><td></td>
-            {% endif %}
             <td>{{ row.start_time|date:"Y-m-d H:i:s" }}</td>
             <td>
                 {% if row.still_active %}
