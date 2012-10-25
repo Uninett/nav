@@ -26,7 +26,7 @@ from nav.web.loggerhandler.views import log_response
 urlpatterns = patterns('',
     # Default view
     url(r'^$', index, name='logger_index'),
-    url(r'^exceptions/$', exceptions_response),
-    url(r'^errors/$', errors_response),
+    url(r'^exceptions/$', exceptions_response, name='logger_priority_exceptions'),
+    url(r'^errors/$', errors_response, name='logger_errors'),
     url(r'^log/$', log_response),
 )

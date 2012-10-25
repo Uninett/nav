@@ -1,0 +1,22 @@
+{% if errors %}
+<table class="listtable">
+    <caption>Parsing errors</caption>
+    <tbody>
+    {# Implement this! #}
+    {% for err in errors %}
+    <tr class="rowcycler">
+        <td>{{ err }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    <tbody class="footer">
+    <tr>
+        <th>Total {{ errors_count }} error conditions</th>
+    </tr>
+    </tbody>
+</table>
+{% else %}
+<div>
+    No errors
+</div>
+{% endif %}

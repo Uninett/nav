@@ -270,7 +270,7 @@ def exceptions_response(request):
         excepts.append((option, newpriority))
     info_dict['exceptions'] = excepts
     info_dict['exceptions_mode'] = True
-    return render_to_response('loggerhandler/index.html',
+    return render_to_response('loggerhandler/frag-exceptions.html',
                                 info_dict,
                                 RequestContext(request))
 
@@ -291,6 +291,6 @@ def errors_response(request):
     info_dict['errors'] = errs
     info_dict['errors_count'] = len(errs)
     info_dict['errors_mode'] = True
-    return render_to_response('loggerhandler/index.html',
+    return render_to_response('loggerhandler/frag-errors.html',
                                 info_dict,
                                 RequestContext(request))
