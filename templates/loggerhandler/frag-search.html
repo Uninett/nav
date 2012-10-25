@@ -1,21 +1,22 @@
-{% if form %}
-<form method="get">
-    <table class="vertitable">
-        <tbody>
-        {% for field in form %}
-        <tr>
-            <th>{{ field.label }}</th>
-            <td>{{ field }} {% if field.errors %}{{ field.errors }}{% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-        <tr>
-            <th></th>
-            <td>
-                <button type="submit" name="send">Filter</button>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</form>
-{% endif %}
+<div id="search">
+    {% if form %}
+    <form method="get" action="#!results">
+        <table class="vertitable">
+            <tbody>
+            {% for field in form %}
+            <tr>
+                <th>{{ field.label }}</th>
+                <td>{{ field }} {% if field.errors %}{{ field.errors }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <th></th>
+                <td>
+                    <button type="submit" name="send">Filter</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
+    {% endif %}
+</div>
