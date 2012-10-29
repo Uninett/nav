@@ -5,7 +5,6 @@
 
 {% if descr %}
     <div>
-
         <table class="vertitable" id="bulkSetTable">
         <caption>Update</caption>
         <thead>
@@ -35,7 +34,12 @@
 
         <div>
             <input type="button" id="saveCheckedThresholdsTop" value="Save checked" />
+            &nbsp;
+            <input type="button" id="clearCheckedThresholdsTop" value="Clear checked"/>
+            &nbsp;
             <input type="button" id="saveAllThresholdsTop" value="Save all" />
+            &nbsp;
+            <input type="button" id="clearAllThresholdsTop" value="Clear all" />
         </div>
 
        <table class="vertitable" id="bulkUpdateTable">
@@ -59,7 +63,7 @@
         </thead>
         <tbody>
             {% for ds in datasources %}
-            <tr>
+            <tr class="{{ds.id}}">
                 <td><input type="checkbox" class="includeInBulk" value="{{ ds.id }}" /></td>
                 {% if interfaces %}
                 <td><a href="{% url ipdevinfo-details-by-name ds.rrd_file.interface.netbox.sysname %}">
@@ -97,19 +101,13 @@
                     {% if ds.units %}
                         {% if ds.max %}
                             <select class="unit">
-                                {% if ds.get_threshold_unit %}
-                                    {% ifequal ds.get_threshold_unit ds.units %}
-                                        <option value="{{ds.units}}" selected="selected">{{ds.units}}</option>
-                                        <option value="%">&#37;</option>
-                                    {% endifequal %}
-                                    {% if ds.is_percent %}
-                                        <option value="{{ds.units}}">{{ds.units}}</option>
-                                        <option value="%" selected="selected">&#37;</option>
-                                    {% endif %}
-                                {% else %}
-                                    <option value="{{ds.units}}">{{ds.units}}</option>
-                                    <option value="%">&#37;</option>
-                                {% endif %}
+                            {% if ds.is_percent %}
+                                <option value="{{ds.units}}">{{ds.units}}</option>
+                                <option value="%" selected="selected">&#37;</option>
+                            {% else %}
+                                <option value="{{ds.units}}" selected="selected">{{ds.units}}</option>
+                                <option value="%">&#37;</option>
+                            {% endif %}
                             </select>
                         {% else %}
                             {{ds.units}}
@@ -131,9 +129,7 @@
                         {{ ds.threshold_state }}
                     {% endif %}</td>
                 <td>
-                    <input id="updateThreshold" type="button"
-                        onclick="threshold.saveSingleThreshold(this);"
-                        value="Save" />
+                    <input type="button" class="button" value="Save" />
                 </td>
             </tr>
             {% endfor %}
@@ -142,7 +138,12 @@
 
         <div>
             <input type="button" id="saveCheckedThresholdsBottom" value="Save checked" />
+            &nbsp;
+            <input type="button" id="clearCheckedThresholdsBottom" value="Clear checked"/>
+            &nbsp;
             <input type="button" id="saveAllThresholdsBottom" value="Save all" />
+            &nbsp;
+            <input type="button" id="clearAllThresholdsBottom" value="Clear all" />
         </div>
 
     </div>

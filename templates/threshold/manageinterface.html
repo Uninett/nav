@@ -27,7 +27,7 @@
         <th>&nbsp;</th>
     </tr>
 {% for threshold in thresholds %}
-    <tr>
+    <tr class="{{threshold.id}}">
         <td>
             <span title="{{ threshold.extra_descr }}">{{ threshold.description }}</span>
         </td>
@@ -48,24 +48,18 @@
             </select>
         </td>
         <td>
-            <input type="text" class="thresholdvalue" id="threshold" name="threshold"
+            <input type="text" class="threshold" name="threshold"
                    value="{% if threshold.threshold %}{{ threshold.get_threshold_value }}{% endif %}"/>
         </td>
         <td>
             {% if threshold.units %}
                 {% if threshold.max %}
                     <select class="unit">
-                    {% if threshold.get_threshold_unit %}
-                        {% ifequal threshold.get_threshold_unit threshold.units %}
-                            <option value="{{threshold.units}}" selected="selected">{{threshold.units}}</option>
-                            <option value="%">&#37;</option>
-                        {% endifequal %}
-                        {% if threshold.is_percent %}
-                            <option value="{{threshold.units}}">{{threshold.units}}</option>
-                            <option value="%" selected="selected">&#37;</option>
-                        {% endif %}
-                    {% else %}
+                    {% if threshold.is_percent %}
                         <option value="{{threshold.units}}">{{threshold.units}}</option>
+                        <option value="%" selected="selected">&#37;</option>
+                    {% else %}
+                        <option value="{{threshold.units}}" selected="selected">{{threshold.units}}</option>
                         <option value="%">&#37;</option>
                     {% endif %}
                     </select>
@@ -90,7 +84,7 @@
             {% endif %}
         </td>
         <td data_dsid="{{threshold.id}}">
-            <input class="button" type="submit" id="update" name="update" value="Update"/>
+            <input class="button" type="button" value="Update"/>
         </td>
     </tr>
 {% endfor %}

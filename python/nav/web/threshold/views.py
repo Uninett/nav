@@ -212,7 +212,8 @@ def get_netbox_interfaces(nbox, ifname, updown):
     if nbox.category.is_gsw() or nbox.category.is_gw():
         if_query = if_query.filter(gwportprefix__isnull=False)
     if ifname:
-        if_query = if_query.filter(ifname__contains=ifname)
+        if_query = if_query.filter(Q(ifname__icontains=ifname)|
+                                        Q(ifalias__icontains=ifname))
     if updown:
         if_query = if_query.filter(Q(to_netbox__isnull=False)|
                                         Q(to_interface__isnull=False))
@@ -564,6 +565,7 @@ def threshold_edit(request, thresholdid=None):
 
 def thresholds_save(request):
     """Save operators and thresholds for the given datasource-ids."""
+    before = time.clock()
     account = get_account(request)
     result = {}
     # collection of datasources with errors
@@ -571,13 +573,12 @@ def thresholds_save(request):
     if request.method == 'POST':
         thresholds_json = request.POST.get('thresholds', '')
         thresholds = simplejson.loads(thresholds_json)
+        logger.error('thresholds_save: Number of thresholds %d' % len(thresholds))
         for threshold in thresholds:
             dsId = unicode(threshold.get('dsId', ''))
             op = unicode(threshold.get('op', ''))
             thrVal = unicode(threshold.get('thrVal', ''))
-            units = unicode(threshold.get('units', ''))
-            logger.debug('threshold_save: dsId=%s, op=%s, thrVal=%s, units =%s' %
-                         (dsId, op, thrVal, units))
+            logger.debug('threshold_save: dsId=%s, op=%s, thrVal=%s' % (dsId, op, thrVal))
             if not is_legal_id(dsId):
                 logger.error('Illegal id: login=%s; id=%s' %
                                 (account.login, dsId))
@@ -588,17 +589,13 @@ def thresholds_save(request):
                                 (account.login, op))
                 error_list.append(dsId)
                 continue
-            thr_val_to_test = thrVal
-            if (units == '%'):
-                thr_val_to_test += units
-            if not is_legal_threshold(thr_val_to_test):
-                logger.error('Illegal threshold: login=%s; value=%s; units=%s' %
-                                (account.login, thrVal, units))
+            if not is_legal_threshold(thrVal):
+                logger.error('Illegal threshold: login=%s; value=%s' %
+                                (account.login, thrVal))
                 error_list.append(dsId)
                 continue
-            # logger.error('dsId=%s, op=%s, thrVal=%s, units =%s' % (dsId, op, thrVal, units))
+            # logger.error('dsId=%s, op=%s, thrVal=%s' % (dsId, op, thrVal))
             thrVal.strip()
-            thrVal += units
             rrd_data_source = None
             try :
                 rrd_data_source = RrdDataSource.objects.get(pk=int(dsId))
@@ -609,7 +606,7 @@ def thresholds_save(request):
                 continue
             if is_percent_value(thrVal) and not rrd_data_source.max:
                 logger.error('% is prohibited when max is undefined, ' +
-                            'id=%s: login=%s' % (dsId, account.login))
+                            'login=%s; id=%s' % (account.login, dsId))
                 error_list.append(dsId)
                 continue
 
@@ -636,12 +633,11 @@ def thresholds_save(request):
                 message = 'Could not save threshold'
             elif numb_errors > 1:
                 message = '%d threholds could not be saved' % numb_errors
-            result = {'error': numb_errors,
-                      'message': message,
-                      'failed': error_list,}
+            result = {'error': numb_errors, 'message': message, 'failed': error_list,}
         else:
-            result = {'error': 0, 'message': 'Successfully saved', }
+            result = {'error': 0, 'message': 'Successfully saved', 'failed': [],}
     else:
-        result = {'error': 1, 'message': 'Wrong request'}
+        result = {'error': 1, 'message': 'Wrong request',}
+    logger.error('thresholds_save: timer = %.3f' % (time.clock() - before))
     return HttpResponse(simplejson.dumps(result),
         mimetype="application/json")

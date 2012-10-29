@@ -25,7 +25,6 @@ from nav.models.manage import Netbox, Interface
 from nav.models.fields import VarcharField, LegacyGenericForeignKey
 
 PERCENT_REGEXP = re.compile('^(\d+(\.\d+)?)%+$', re.UNICODE)
-NON_PERCENT_REGEXP = re.compile('^(\d+(\.\d+)?)([a-zA-Z]+)$', re.UNICODE)
 
 class RrdFile(models.Model):
     """From NAV Wiki: The rrd_file contains meta information on all RRD files
@@ -111,14 +110,10 @@ class RrdDataSource(models.Model):
     def get_threshold_value(self):
         if(self.threshold):
             thr = self.get_unicode(self.threshold)
-            if(thr.isdecimal()):
-                return thr
             matched = PERCENT_REGEXP.match(thr)
             if(matched):
                 return matched.group(1)
-            matched = NON_PERCENT_REGEXP.match(thr)
-            if(matched):
-                return matched.group(1)
+            return thr
         return None
 
     def is_percent(self):
@@ -129,13 +124,3 @@ class RrdDataSource(models.Model):
                 return '%'
         return None
 
-    def get_threshold_unit(self):
-        if(self.threshold):
-            thr = self.get_unicode(self.threshold)
-            matched = PERCENT_REGEXP.match(thr)
-            if(matched):
-                return '%'
-            matched = NON_PERCENT_REGEXP.match(thr)
-            if(matched):
-                return matched.group(3)
-        return None

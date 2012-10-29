@@ -39,7 +39,26 @@ var typeDelay = function(){
         clearTimeout (timer);
         timer = setTimeout(callback, ms);
     }  
-}();
+}(); /* typeDelay */
+
+/*
+ * Implements a <div> with the spinning wheel.
+ */
+$.fn.spin = function(opts) {
+    this.each(function() {
+        var $this = $(this),
+        spinner = $this.data('spinner');
+
+        if (spinner){
+            spinner.stop();
+        }
+        if (opts !== false) {
+            spinner = new Spinner($.extend({color: $this.css('color')}, opts)).spin(this);
+            $this.data('spinner', spinner);
+        }
+    });
+    return this;
+}; /* $.fn.spin */
 
 /*
  * Declare a separate namespace for all variables and functions related to
@@ -53,28 +72,32 @@ threshold.netboxSearchReq = null;
 threshold.getBulkUpdateHtmlReq = null;
 /* Used as a semaphore to block out concurrent ajax-calls to chooseDevice */
 threshold.chooseDeviceTypeReq = null;
+/* Used as a semaphore to block out concurrent ajax-calls to saveToServer */
+threshold.saveToServerReq = null;
+
 /* netbox- or interface-mode */
 threshold.displayMode = '';
-threshold.stdBgColor = 'white';
+
 threshold.stdErrColor = 'red';
 threshold.stdSuccessColor = 'green';
 threshold.perCentRepl = new RegExp('%*$');
-threshold.descriptionRegExp = new RegExp('^[a-zA-Z][a-zA-Z0-9\ ]+$');
-threshold.thresholdSaveStatus = 0;
-threshold.saveMessage = null;
+threshold.descriptionRegExp = new RegExp('^[a-zA-Z0-9][a-zA-Z0-9\ ]+$');
 
-/*
- * Kind of a semaphore to block out concurrent ajax-calls for
- * save_threshold.
-*/
-threshold.save_queue =  new Array();
+threshold.spinnerOptions = {
+                lines: 14, // The number of lines to draw 
+                length: 20, // The length of each line
+                width: 10, // The line thickness
+                radius: 22, // The radius of the inner circle
+                rotate: 0, // The rotation offset
+                color: '#020202', // #rgb or #rrggbb
+                speed: 1, // Rounds per second
+                trail: 50, // Afterglow percentage
+                shadow: false, // Whether to render a shadow
+                hwaccel: false, // Whether to use hardware acceleration
+                className: 'spinner', // The CSS class to assign to the spinner
+                zIndex: 2e9 // The z-index (defaults to 2000000000)
+            };
 
-threshold.removeFromQueue = function(id){
-    var idx = threshold.save_queue.indexOf(id);
-    if(idx > -1){
-	threshold.save_queue.splice(idx, 1);
-    }
-};
 
 threshold.backToSearch = function(){
     $('#netboxsearch').show();
@@ -85,12 +108,14 @@ threshold.backToSearch = function(){
     $(bulkUpdateData).hide();
     $(bulkUpdateData).empty();
     threshold.removeMessages();
-};
+}; /* backToSearch */
+
 
 threshold.removeMessages = function(){
     var messagesDiv = $('#messagesDiv');
     $(messagesDiv).empty();
-};
+}; /* removeMessages */
+
 
 threshold.updateMessages = function(msg, isError){
     var messagesDiv = $('#messagesDiv');
@@ -100,35 +125,29 @@ threshold.updateMessages = function(msg, isError){
     } else {
         $(messagesDiv).css('color', threshold.stdSuccessColor);
     }
-};
+}; /* updateMessages */
+
 
 threshold.pageNotFound = function(){
     threshold.updateMessages('Page not found', true);
-    return -1;
-};
+}; /* pageNotFound */
+
 
 threshold.serverError = function(){
     threshold.updateMessages('Internal server-error', true);
-    return -1;
-};
+}; /* serverError */
 
-threshold.ajaxError = function( request, errMessage, errType){
+
+threshold.ajaxError = function(request, errMessage, errType){
     var errMsg = 'Error: ' + errMessage + '; ' + errType;
     threshold.updateMessages(errMsg, true);
-    return -1;
-};
+}; /* ajaxError */
+
 
 threshold.isLegalDescription = function(desc){
     return desc.match(threshold.descriptionRegExp);
-};
+}; /* isLegalDescription */
 
-threshold.showAjaxLoader = function(){
-    $('span.ajaxLoader').show();
-};
-
-threshold.hideAjaxLoader = function(){
-    $('span.ajaxLoader').hide();
-};
 
 /*
  * Takes a table and makes it a string.  Each element from the table
@@ -144,7 +163,8 @@ threshold.table2String = function(tab){
         ret_str += tab[i];
     }
     return ret_str;   
-};
+}; /* table2String */
+
 
 threshold.toggleIncludes = function(checkbox){
     if( $(checkbox).prop('checked') ){
@@ -152,25 +172,29 @@ threshold.toggleIncludes = function(checkbox){
     } else {
         threshold.unCheckAllInclude();
     }
-};
+}; /* toggleIncludes */
+
 
 threshold.checkAllInclude = function(){
     var allIncludes = $("#bulkUpdateTable input.includeInBulk") || [];
     for(var i = 0; i < allIncludes.length; i++){
         $(allIncludes[i]).prop('checked', true);
     }
-};
+}; /* checkAllInclude */
+
 
 threshold.unCheckAllInclude = function(){
-    var allIncludes = $("#bulkUpdateTable input.includeInBulk") || [];
+    var allIncludes = $("#bulkUpdateTable input.includeInBulk:checked") || [];
     for(var i = 0; i < allIncludes.length; i++){
         $(allIncludes[i]).prop('checked', false);
     }
-};
+}; /* unCheckAllInclude */
+
 
 threshold.stripPerCentSymbol = function(str){
     return str.replace(threshold.perCentRepl, '');
-};
+}; /* stripPerCentSymbol */
+
 
 /*
  * NB!
@@ -182,44 +206,41 @@ threshold.isLegalThreshold = function(thr){
     }
     var intValue = parseInt(threshold.stripPerCentSymbol(thr));
     return (! isNaN(intValue));
-    
-};
+}; /* isLegalThreshold */
 
-threshold.setChangedThreshold = function(inp){
-    $(inp).parent().removeClass();
-    $(inp).parent().addClass('changed');
-};
 
-threshold.showSavedThreshold = function(inp){
-    var par = $(inp).parent();
-    $(par).removeClass('changed');
-    $(par).css('background-color', threshold.stdSuccessColor);
-    $(par).fadeTo(2000, 0.6);
-    $(par).fadeTo(2000, 1.0, function(){
-        $(par).css('background-color', threshold.stdBgColor);
-        $(par).show();
-    });
-    return true;
-};
+threshold.setThresholdInputClass = function(thrInput, className){
+    var thrParent = $(thrInput).parent();
+    $(thrParent).removeClass();
+    $(thrParent).addClass(className);
+} /* setThresholdInputClass */
 
-threshold.showErrorThreshold = function(inp){
-    $(inp).parent().removeClass();
-    $(inp).parent().addClass('error');
-};
+
+threshold.setChangedThreshold = function(thrInput){
+    threshold.setThresholdInputClass(thrInput, 'changed');
+}; /* setChangedThreshold */
+
+
+threshold.showSavedThreshold = function(thrInput){
+    threshold.setThresholdInputClass(thrInput, 'success');
+}; /* showSavedThreshold */
+
+
+threshold.showErrorThreshold = function(thrInput){
+    threshold.setThresholdInputClass(thrInput, 'error');
+}; /* showErrorThreshold */
+
 
 threshold.netboxSearch = function(){
+    threshold.removeMessages();
     if(threshold.netboxSearchReq) {
         /* The previous ajax-call is cancelled and replaced with the last */
         threshold.netboxSearchReq.abort();
     }
-    threshold.showAjaxLoader();
-    threshold.removeMessages();
-    var retVal = 0;
-
     var descr = $('#thresholdDescr').val();
     var sysname = $('#netboxSysname').val();
     // The checkboxes for GW, GSW and SW
-    var checkBoxList = $('input:checkbox[name="boxtype"]:checked');
+    var checkBoxList = $('input:checkbox[name="boxtype"]:checked') || [];
     var vendor = $('#boxVendor').val();
     var model = $('#netBoxModel').val();
     var ifname = $('#interfaceName').val();
@@ -259,20 +280,22 @@ threshold.netboxSearch = function(){
     if(boxes.length > 0 ){
         inputData['boxes'] = threshold.table2String(boxes);
     }
-    
-    var len = checkBoxList.length;
-    for(var i = 0; i < len; i++){
-        inputData[checkBoxList[i].value] = checkBoxList[i].value;
+
+    for(var i = 0; i < checkBoxList.length; i++){
+        inputData[$(checkBoxList[i]).val()] = $(checkBoxList[i]).val();
     }
-    threshold.netboxSearchReq = $.ajax({ url: '/threshold/netboxsearch/',
+    $('div.spinnerContainer').spin(threshold.spinnerOptions);
+    threshold.netboxSearchReq =
+        $.ajax({ url: '/threshold/netboxsearch/',
              data: inputData,
              dataType: 'json',
              type: 'POST',
-             success: function(data, textStatus, header){
+             async: true,
+             timeout: 180000,
+             success:   function(data, textStatus, header){
                             if(data.error){
                                 threshold.updateMessages(data.message, true);
-                                retVal = -1;
-                                return retVal;
+                                return -1;
                             }
                             $('#chosenBoxes').empty();
                             $('#chosenBoxes').append(data.foundboxes);
@@ -282,29 +305,38 @@ threshold.netboxSearch = function(){
                                 $('#netBoxModel').empty();
                                 $('#netBoxModel').append(data.types);
                             }
-                            return retVal;
-                     },
-             error: function(req, errMsg, errType){
-                        return threshold.ajaxError(req, errMsg, errType);
-                    },
-             complete: function(header, textStatus){
-                        threshold.netboxSearchReq = null;
-                        return 0;
-                       },
-             statusCode: {404: function(){
-                                return threshold.pageNotFound();
-                               },
-                          500: function(){
-                                return threshold.serverError();
-                               }
-                        }
+                            return 0;
+                        },
+             error:     function(req, errMsg, errType){
+                            /*
+                            threshold.ajaxError(req, errMsg, errType);
+                            */
+                            threshold.netboxSearchReq = null;
+                            return -1;
+                        },
+             complete:  function(header, textStatus){
+                            $('div.spinnerContainer').spin(false);
+                            threshold.netboxSearchReq = null;
+                            return 0;
+                        },
+             statusCode: { 404: function(){
+                                    threshold.pageNotFound();
+                            threshold.netboxSearchReq = null;
+                                    return -1;
+                                },
+                           500: function(){
+                                    threshold.serverError();
+                            threshold.netboxSearchReq = null;
+                                    return -1;
+                                }
+                         }
         });
-    threshold.hideAjaxLoader();
-    return retVal;
-};
+    return 0;
+}; /* netboxSearch */
 
 
 threshold.getBulkUpdateHtml = function(descr, ids){
+    threshold.removeMessages();
     if(threshold.getBulkUpdateHtmlReq){
         /* The previous ajax-call is cancelled and replaced with the last */
         threshold.getBulkUpdateHtmlReq.abort();
@@ -314,209 +346,228 @@ threshold.getBulkUpdateHtml = function(descr, ids){
         return -1;
     }
     var inputData = {
-        'descr': descr,
-        'ids': ids
-        };
+                'descr': descr,
+                'ids': ids
+            };
+    $('div.spinnerContainer').spin(threshold.spinnerOptions);
     threshold.getBulkUpdateHtmlReq =
         $.ajax({url: '/threshold/preparebulk/',
                 data: inputData,
                 dataType: 'text',
                 type: 'POST',
-                success: function(data, textStatus, header){
-                            if(data.error){
-                                threshold.updateMessages(data.message, true);
-                                return -1;
-                            }
-                            $('#netboxsearch').hide();
-                            $('#interfacesearch').hide();
-                            $('#bulkupdateDiv').show();
-                            $('#bulkupdateDiv').html(data);
-                            threshold.attachBulkListeners();
-                            return 0;
-                        },
-                error: function(req, errMsg, errType){
-                        return threshold.ajaxError(req, errMsg, errType);
-                       },
-                complete: function(header, textStatus){
-                            threshold.getBulkUpdateHtmlReq = null;
-                            return 0;
-                          },
-                statusCode: {404: function(){
-                                    return threshold.pageNotFound();
-                                },
-                             500: function(){
-                                    return threshold.serverError();
+                async: true,
+                timeout: 180000,
+                success:    function(data, textStatus, header){
+                                if(data.error){
+                                    threshold.updateMessages(data.message, true);
+                                    return -1;
                                 }
-                        }
+                                $('#netboxsearch').hide();
+                                $('#interfacesearch').hide();
+                                $('#bulkupdateDiv').show();
+                                $('#bulkupdateDiv').html(data);
+                                threshold.attachBulkListeners();
+                                return 0;
+                            },
+                error:      function(req, errMsg, errType){
+                                /*
+                                threshold.ajaxError(req, errMsg, errType);
+                                */
+                                threshold.getBulkUpdateHtmlReq = null;
+                                return -1;
+                            },
+                complete:   function(header, textStatus){
+                                $('div.spinnerContainer').spin(false);
+                                threshold.getBulkUpdateHtmlReq = null;
+                                return 0;
+                            },
+                statusCode: { 404:  function(){
+                                        threshold.pageNotFound();
+                                        threshold.getBulkUpdateHtmlReq = null;
+                                        return -1;
+                                    },
+                             500:   function(){
+                                        threshold.serverError();
+                                        threshold.getBulkUpdateHtmlReq = null;
+                                        return -1;
+                                    }
+                            }
             });
-
-};
+    return 0;
+}; /* getBulkUpdateHtml */
 
 threshold.chooseDeviceType = function(the_select, select_val){
+    threshold.removeMessages();
     if(threshold.chooseDeviceTypeReq){
         /* The previous ajax-call is cancelled and replaced with the last */
         threshold.chooseDeviceTypeReq.abort();
     }
+    $('div.spinnerContainer').spin(threshold.spinnerOptions);
     threshold.chooseDeviceTypeReq =
         $.ajax({url: '/threshold/choosetype/',
             data: {'descr': select_val},
             dataType: 'json',
             type: 'POST',
-            success: function(data, textStatus, header){
-                        if(data.error){
-                            threshold.updateMessages(data.Message, true);
+            async: true,
+            timeout: 180000,
+            success:    function(data, textStatus, header){
+                            if(data.error){
+                                threshold.updateMessages(data.Message, true);
+                                return -1;
+                            }
+                            threshold.displayMode = data.message;
+                            threshold.netboxSearch();
+                            if(threshold.displayMode == 'interface'){
+                                $('#netboxSubmitDiv').hide();
+                                $('#netboxsearch').show();
+                                $('#interfacesearch').show();
+                                $('#interfaceSubmitDiv').show();
+                            }
+                            if(threshold.displayMode == 'netbox'){
+                                $('#interfaceSubmitDiv').hide();
+                                $('#interfacesearch').hide();
+                                $('#netboxsearch').show();
+                                $('#netboxSubmitDiv').show();
+                            }
+                            return 0;
+                        },
+            error:      function(req, errMsg, errType){
+                            /*
+                            threshold.ajaxError(req, errMsg, errType);
+                            */
+                            threshold.chooseDeviceTypeReq = null;
                             return -1;
-                        } 
-                        threshold.displayMode = data.message;
-                        threshold.netboxSearch();
-                        if(threshold.displayMode == 'interface'){
-                            $(document).find('#netboxSubmitDiv').hide();
-                            $(document).find('#netboxsearch').show();
-                            $(document).find('#interfacesearch').show();
-                            $(document).find('#interfaceSubmitDiv').show();
-                        }
-                        if(threshold.displayMode == 'netbox'){
-                            $(document).find('#interfaceSubmitDiv').hide();
-                            $(document).find('#interfacesearch').hide();
-                            $(document).find('#netboxsearch').show();
-                            $(document).find('#netboxSubmitDiv').show();
-                        }
-                        return 0;
-                      },
-            error: function(req, errMsg, errType){
-                        return threshold.ajaxError(req, errMsg, errType);
-                    },
-            complete: function(header, textStatus){
-                        threshold.chooseDeviceTypeReq = null;
-                        return 0;
-                      },
-            statusCode: {404: function(){
-                                return threshold.pageNotFound();
-                               },
-                         500: function(){
-                                return threshold.serverError();
-                              }
+                        },
+            complete:   function(header, textStatus){
+                            $('div.spinnerContainer').spin(false);
+                            threshold.chooseDeviceTypeReq = null;
+                            return 0;
+                        },
+            statusCode: { 404:  function(){
+                                    threshold.pageNotFound();
+                                    threshold.chooseDeviceTypeReq = null;
+                                    return -1;
+                                },
+                          500:   function(){
+                                    threshold.serverError();
+                                    threshold.chooseDeviceTypeReq = null;
+                                    return -1;
+                                }
                         }
           });
-};
+    return 0;
+}; /* chooseDeviceType */
 
-threshold.saveToServer = function(toSave){
-    threshold.saveMessage = null;
-    threshold.thresholdSaveStatus = 0;
+
+threshold.saveToServer = function(toSave, chosenIds, parentTable){
+    threshold.removeMessages();
+    if(threshold.saveToServerReq){
+        threshold.saveToServerReq.abort();
+    }
     var objectJSON = $.toJSON(toSave);
-
-    $.ajax({url: '/threshold/thresholdssave/',
+    $('div.spinnerContainer').spin(threshold.spinnerOptions);
+    threshold.saveToServerReq =
+        $.ajax({url: '/threshold/thresholdssave/',
             data: {'thresholds': objectJSON},
             dataType: 'json',
             type: 'POST',
-            async: false,
-            success: function(data, textStatus, header){
-                        if(typeof data.error == 'undefined' ){
-                            threshold.thresholdSaveStatus = -1;
+            async: true,
+            timeout: 180000,
+            success:    function(data, textStatus, header){
+                            var serverMsg = null;
+                            var isErrors = false;
+                            if((data.error) && (data.error > 0)){
+                                if(data.failed.length > 0 ){
+                                    serverMsg = data;
+                                    isErrors = true;
+                                } else {
+                                    serverMsg = {};
+                                    serverMsg.message = 'Save failed'
+                                    serverMsg.failed = chosenIds.slice();
+                                    serverMsg.error = serverMsg.failed.length;
+                                    isErrors = true;
+                                }
+                            }
+                            if(isErrors){
+                                threshold.updateMessages(serverMsg.message, true);
+                                for(var i = 0; i < serverMsg.failed.length; i++){
+                                    var dsId = serverMsg.failed[i];
+                                    var row = $("tr." + dsId, parentTable);
+                                    var thrInput = $('input:text.threshold', row);
+                                    threshold.showErrorThreshold(thrInput);
+                                    /* Remove those who did not get saved */
+                                    var idx = chosenIds.indexOf(dsId);
+                                    if(idx > -1){
+                                        chosenIds.splice(idx, 1);
+                                    }
+                                }
+                            }
+                            for(var i = 0; i < chosenIds.length; i++){
+                                var dsId = chosenIds[i];
+                                var row = $("tr." + dsId, parentTable);
+                                var thrInput = $('input:text.threshold', row);
+                                threshold.showSavedThreshold(thrInput);
+                            }
+                            return 0;
+                        },
+            error:      function(req, errMsg, errType){
+                            /*
+                            threshold.ajaxError(req, errMsg, errType);
+                            */
+                            threshold.saveToServerReq = null;
                             return -1;
-                        }
-                        if(data.error > 0){
-                            threshold.thresholdSaveStatus = -1;
-                            threshold.saveMessage = data;
-                            return -1;
-                        }
-                        return 0;
-                     },
-            error:  function(req, errMsg, errType){
-                        threshold.thresholdSaveStatus = -1;
-                        return threshold.ajaxError(req, errMsg, errType);
-                    },
-            complete: function(header, textStatus){
-                        return 0;
-                      },
-            statusCode: {404: function(){
-                                threshold.thresholdSaveStatus = -1;
-                                return threshold.pageNotFound();
-                              },
-                         500: function(){
-                                threshold.thresholdSaveStatus = -1;
-                                return threshold.serverError();
-                              }
+                        },
+            complete:   function(header, textStatus){
+                            $('div.spinnerContainer').spin(false);
+                            threshold.saveToServerReq = null;
+                            return 0;
+                        },
+            statusCode: { 404:  function(){
+                                    threshold.pageNotFound();
+                                    threshold.saveToServerReq = null;
+                                    return -1;
+                                },
+                          500:  function(){
+                                    threshold.serverError();
+                                    threshold.saveToServerReq = null;
+                                    return -1;
+                                }
                         }
 
             });
-    return threshold.thresholdSaveStatus;
-};
+    return 0;
+}; /* saveToServer */
 
-threshold.findCheckBox = function(name, value){
-    var findStr = 'input:checkbox.' + name;
-    if(value != null){
-        findStr += '[value="' + value +'"]';
-    }
-    return $(findStr);
-};
 
 threshold.saveChosenThresholds = function(allIncludes){
-    threshold.removeMessages();
-    threshold.showAjaxLoader();
+    /* Save for later use */
+    var bulkUpdateTable = $('#bulkUpdateTable');
     /* Holds an dict of id, operator and threshold-value */
     var thresholdsToSave = new Array();
     /* An array with ids to update the GUI */
     var chosenIds = new Array();
     for(var i = 0; i < allIncludes.length; i++){
         var chkbox = allIncludes[i];
-        var dsId = $(chkbox).val();
-        var row = $(chkbox).parents('tr');
+        var row = $(chkbox).parent().parent();
+        var dsId = $(row).attr('class');
         var op = $('select.operator', row).val();
         var thrInput = $('input:text.threshold', row);
         var thrVal = $(thrInput).val();
         var units = $('select.unit', row).val();
-        thresholdsToSave[i] = {'dsId' : dsId, 'op': op, 'thrVal': thrVal, 'units': units};
+        if((thrVal.length > 0) && (units == '%')){
+            thrVal += '%';
+        }
+        thresholdsToSave[i] = {'dsId' : dsId, 'op': op, 'thrVal': thrVal};
         chosenIds[i] = dsId;
     }
-    var saveStatus = 0;
-    if(thresholdsToSave.length > 0){
-        saveStatus = threshold.saveToServer(thresholdsToSave);
-    }
-    if(saveStatus == -1){
-        var serverMsg = null;
-        if(threshold.saveMessage != null){
-            /*
-             * Something went wrong,- preserve the error-messages from
-             * the server
-            */
-            serverMsg = threshold.saveMessage;
-        } else {
-            /*
-             * Something went wrong,- but we do not know what...
-             * Usually a crash on the server.
-             * All thresholds are signaled as withdrawn.
-            */
-            serverMsg = {};
-            serverMsg.message = 'Save failed'
-            serverMsg.failed = chosenIds.slice();
-            serverMsg.error = serverMsg.failed.length;
-        }
-        threshold.updateMessages(serverMsg.message, true);
-        for(var i = 0; i < serverMsg.failed.length; i++){
-            var dsId = serverMsg.failed[i];
-            var chkbox = threshold.findCheckBox('includeInBulk', dsId);
-            var thrInput = $(chkbox).parents('tr').find('input:text.threshold');
-            threshold.showErrorThreshold(thrInput);
-            /* Remove those who did not get saved */
-            var idx = chosenIds.indexOf(dsId);
-            if(idx > -1){
-                chosenIds.splice(idx, 1);
-            }
-        }
-    }
-    for(var i = 0; i < chosenIds.length; i++){
-        var chkbox = threshold.findCheckBox('includeInBulk', chosenIds[i]);
-        var thrInput = $(chkbox).parents('tr').find('input:text.threshold');
-        threshold.showSavedThreshold(thrInput);
-    }
-    threshold.hideAjaxLoader();
+    threshold.saveToServer(thresholdsToSave, chosenIds, bulkUpdateTable);
     return 0;
-};
+}; /* saveChosenThresholds */
+
 
 threshold.saveSingleThreshold = function(btn){
     threshold.removeMessages();
-    var row = $(btn).parents('tr');
+    var row = $(btn).parent().parent();
     var thrInput = $('input:text.threshold', row);
     var thrVal = $(thrInput).val();
     if(! threshold.isLegalThreshold(thrVal)){
@@ -528,18 +579,13 @@ threshold.saveSingleThreshold = function(btn){
     var chkbox= $('input:checkbox.includeInBulk', row);
     threshold.saveChosenThresholds([chkbox]);
     return 0;
-};
+}; /* saveSingleThreshold */
 
 
 threshold.saveCheckedThresholds = function(){
+    threshold.removeMessages();
     var bulkUpdateTable = $('#bulkUpdateTable');
-    var bulkUpdateChkBoxes = $('input:checkbox.includeInBulk') || [];
-    var allIncludes = Array();
-    for(var i = 0; i < bulkUpdateChkBoxes.length; i++){
-        if($(bulkUpdateChkBoxes[i]).prop('checked')){
-            allIncludes.push(bulkUpdateChkBoxes[i]);
-        }
-    }
+    var allIncludes = $('input.includeInBulk:checked', bulkUpdateTable) || [];
     if(allIncludes.length < 1){
         threshold.updateMessages('Please, check the ones to save', true);
         return -1;
@@ -549,8 +595,24 @@ threshold.saveCheckedThresholds = function(){
 }; /* saveCheckedThresholds */
 
 
-threshold.saveAllThresholds = function(){
+threshold.clearCheckedThresholds = function(){
     threshold.removeMessages();
+    var bulkUpdateTable = $('#bulkUpdateTable');
+    var allIncludes = $('input.includeInBulk:checked', bulkUpdateTable) || [];
+    for( var i = 0; i < allIncludes.length; i++){
+        var row = $(allIncludes[i]).parent().parent();
+        var thrInput = $('input:text.threshold', row);
+        if($(thrInput).val().length > 0 ){
+            $(thrInput).val('');
+            threshold.setChangedThreshold(thrInput);
+        } else {
+            $(thrInput).parent().removeClass();
+        }
+    }
+};
+
+
+threshold.saveAllThresholds = function(){
     var bulkUpdateTable = $('#bulkUpdateTable');
     var allIncludes = $('input:checkbox.includeInBulk', bulkUpdateTable) || [];
     if(allIncludes.length < 1){
@@ -560,9 +622,25 @@ threshold.saveAllThresholds = function(){
     return 0;
 }; /* saveAllThresholds */
 
+
+threshold.clearAllThresholds = function(){
+    threshold.removeMessages();
+    var bulkUpdateTable = $('#bulkUpdateTable');
+    var allThresholds = $('input:text.threshold', bulkUpdateTable) || [];
+    for(var i = 0; i < allThresholds.length; i++){
+        var thrInput = allThresholds[i];
+        if($(thrInput).val().length > 0 ){
+            $(thrInput).val('');
+            threshold.setChangedThreshold(thrInput);
+        } else {
+            $(thrInput).parent().removeClass();
+        }
+    }
+}; /* clearAllThresholds */
+
+
 threshold.bulkUpdateThresholds = function(){
     threshold.removeMessages();
-
     var bulkSetTable = $('#bulkSetTable');
     var bulkRow = $("tr", bulkSetTable);
     var bulkOperator = $("select", bulkRow).val();
@@ -577,13 +655,7 @@ threshold.bulkUpdateThresholds = function(){
 
     /* Start updating the bulk-table */
     var bulkUpdateTable = $('#bulkUpdateTable');
-    var bulkUpdateChkBoxes = $("input.includeInBulk", bulkUpdateTable) || [];
-    var allIncludes = Array();
-    for(var i = 0; i < bulkUpdateChkBoxes.length; i++){
-        if( $(bulkUpdateChkBoxes[i]).prop('checked')){
-            allIncludes.push(bulkUpdateChkBoxes[i]);
-        }
-    }
+    var allIncludes = $('input.includeInBulk:checked', bulkUpdateTable) || [];
     if(allIncludes.length < 1){
         threshold.updateMessages('Please, check the ones to update', true);
         return -1;
@@ -591,16 +663,14 @@ threshold.bulkUpdateThresholds = function(){
 
     $(bulkThrInput).parent().removeClass();
     for(var i = 0; i < allIncludes.length; i++){
-        var row = $(allIncludes[i]).parents('tr');
-
+        var chkbox = allIncludes[i];
+        var row = $(chkbox).parent().parent();
         var thresholdOperator = $("select.operator", row);
         $(thresholdOperator).val(bulkOperator);
-
         var thrInput = $("input:text.threshold", row);
         $(thrInput).val(bulkThr);
         // Mark as changed
         threshold.setChangedThreshold(thrInput);
-
         var unitsSelect = $("select.unit", row);
         if( unitsSelect != null ){
             if(thrAsPerCent){
@@ -620,30 +690,54 @@ threshold.bulkUpdateThresholds = function(){
 threshold.attachBulkListeners = function(){
     $('#bulkSetTable input:button').click(threshold.bulkUpdateThresholds);
 
-    $('#bulkUpdateTable input.toggleIncludes').change(function(){
+    var bulkUpdateTable = $('#bulkUpdateTable');
+
+    $('input.toggleIncludes', bulkUpdateTable).change(function(){
         threshold.toggleIncludes(this);
     });
 
-    $('#bulkUpdateTable input.threshold').change(function(){
+    $('input.threshold', bulkUpdateTable).change(function(){
         threshold.setChangedThreshold(this);
     });
 
+    $(bulkUpdateTable).find('input.button').each(function(){
+        $(this).click(function(){
+            var row = $(this).parent().parent();
+            var dsId = $(row).attr('class');
+            var parentTable = $(row).parent();
+            var thrVal = $('input:text.threshold', row).val();
+            var op = $('select.operator', row).val();
+            var unit = $('select.unit', row).val();
+            if((thrVal.length > 0) && (unit == '%')){
+                thrVal += '%';
+            }
+            var toSave = {'dsId': dsId, 'op': op, 'thrVal': thrVal};
+            threshold.saveToServer([toSave], [dsId], parentTable);
+        });
+    });
+
     $("#saveCheckedThresholdsTop").click(threshold.saveCheckedThresholds);
+    $('#clearCheckedThresholdsTop').click(threshold.clearCheckedThresholds);
+
     $("#saveAllThresholdsTop").click(threshold.saveAllThresholds);
+    $('#clearAllThresholdsTop').click(threshold.clearAllThresholds);
 
     $("#saveCheckedThresholdsBottom").click(threshold.saveCheckedThresholds);
+    $("#clearCheckedThresholdsBottom").click(threshold.clearCheckedThresholds);
+
     $("#saveAllThresholdsBottom").click(threshold.saveAllThresholds);
+    $('#clearAllThresholdsBottom').click(threshold.clearAllThresholds);
 
 }; /* attachBulkListeners */
 
 
 $(document).ready(function(){
     $('#thresholdDescr').change(function(){
+        threshold.removeMessages();
         var sval = $(this).val();
         if(sval == 'empty'){
             return -1;
         }
-        threshold.removeMessages();
         if(! threshold.isLegalDescription(sval)){
             threshold.updateMessages('Illegal threshold description', true);
             return -1;
@@ -655,7 +749,7 @@ $(document).ready(function(){
     $('#netboxSysname').keyup(function(){
         typeDelay(function(){
             threshold.netboxSearch();
-        }, 300);
+        }, 500);
     });
 
     $('input:checkbox').change(function(){
@@ -679,39 +773,33 @@ $(document).ready(function(){
     $('#interfaceName').keyup(function(){
         typeDelay(function(){
             threshold.netboxSearch();
-        }, 300);
+        }, 500);
     });
 
     $('#netboxSubmit').click(function(){
-        threshold.showAjaxLoader();
         threshold.removeMessages();
-        var retVal = 0;
         var thresholdDescr = $('#thresholdDescr').val();
         var chosenBoxes = $('#chosenBoxes').val() || [];
         if(chosenBoxes.length > 0){
             threshold.getBulkUpdateHtml(thresholdDescr, threshold.table2String(chosenBoxes));
         } else {
             threshold.updateMessages('No netboxes chosen', true);
-            retVal = -1;
+             return -1;
         }
-        threshold.hideAjaxLoader();
-        return retVal;
+        return 0;
     });
 
     $('#interfaceSubmit').click(function(){
-        threshold.showAjaxLoader();
         threshold.removeMessages();
-        var retVal = 0;
         var descr = $('#thresholdDescr').val();
         var interfaces = $('#choseninterfaces').val() || [];
         if(interfaces.length > 0){
             threshold.getBulkUpdateHtml(descr, threshold.table2String(interfaces));
         } else {
             threshold.updateMessages('No interfaces chosen', true);
-            retVal = -1;
+            return -1;
         }
-        threshold.hideAjaxLoader();
-        return retVal;
+        return 0;
     });
 
     $('img.toggler').click(function(){
@@ -725,51 +813,22 @@ $(document).ready(function(){
 
     $('div.netboxcontainer').find('input.button').each(function(){
         $(this).click(function(){
-	        var dsid = $(this).parent().attr('data_dsid');
-            var rowParent = $(this).parents('tr');
-            var thrVal = $('input.thresholdvalue', rowParent).val();
-            var operator = $('select.operator', rowParent).val();
-            var unit = $('select.unit', rowParent).val();
-            threshold.save_threshold(this, dsid, operator, thrVal, unit);
+            var row = $(this).parent().parent();
+            var dsId = $(row).attr('class');
+            var parentTable = $(row).parent();
+            var thrVal = $('input:text.threshold', row).val();
+            var op = $('select.operator', row).val();
+            var unit = $('select.unit', row).val();
+            if((thrVal.length > 0) && (unit == '%')){
+                thrVal += '%';
+            }
+            var toSave = {'dsId': dsId, 'op': op, 'thrVal': thrVal};
+            threshold.saveToServer([toSave], [dsId], parentTable);
         });
     });
 
-    $('input.thresholdvalue').change(function(){
+    $('input.threshold').change(function(){
         threshold.setChangedThreshold(this);
     });
 });
 
-
-threshold.save_threshold = function(updateButton, dsId, op, thrVal, unit){
-    threshold.removeMessages();
-    if( threshold.save_queue.indexOf(dsId) > -1){
-	return -1;
-    }
-    threshold.save_queue.push(dsId);
-    var thrRecord = {'dsId': dsId, 'op': op, 'thrVal': thrVal, 'units': unit};
-    var retVal = threshold.saveToServer([thrRecord]);
-    if(retVal == -1){
-        threshold.callbackFail(updateButton);
-        if(threshold.saveMessage != null){
-            threshold.updateMessages(threshold.saveMessage.message, true);
-        } else {
-            threshold.updateMessages('Save failed', true);
-        }
-    } else {
-        threshold.callbackSuccess(updateButton);
-    }
-    threshold.removeFromQueue(dsId);
-    return 0;
-};
-
-threshold.callbackSuccess = function(button){
-    var maxColumn = $(button).parents("tr").find("td.maxvalue");
-    var thrInput = $(button).parents('tr').find('input.thresholdvalue');
-
-    threshold.showSavedThreshold(thrInput);
-};
-
-threshold.callbackFail = function(button){
-    var thrInput = $(button).parents('tr').find('input.thresholdvalue');
-    threshold.showErrorThreshold(thrInput);
-};

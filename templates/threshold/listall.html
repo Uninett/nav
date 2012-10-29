@@ -31,7 +31,7 @@
     <tbody>
     {% for item in netbox.list %}
         {% for threshold in item.sources %}
-        <tr>
+        <tr class="{{threshold.id}}">
                 {% if threshold.rrd_file.interface %}
                     {% if threshold.rrd_file.interface.ifname %}
                         <td>
@@ -57,7 +57,7 @@
                     <span title="{{ threshold.extra_descr }}">{{ threshold.description }}</span>
                 </td>
                 <td>
-                    <select class="operator" name="operator">
+                    <select class="operator">
                     {% if threshold.delimiter %}
                         {% ifequal threshold.delimiter ">" %}
                         <option value=">" selected="selected">Greater than</option>
@@ -73,26 +73,20 @@
                     </select>
                 </td>
                 <td>
-                    <input class="thresholdvalue" type="text" size="8"
+                    <input type="text" class="threshold"
                         value="{% if threshold.threshold %}{{ threshold.get_threshold_value }}{% endif %}">
                 </td>
                 <td>
                     {% if threshold.units %}
                         {% if threshold.max %}
                             <select class="unit">
-                                {% if threshold.get_threshold_unit %}
-                                    {% ifequal threshold.get_threshold_unit threshold.units %}
-                                        <option value="{{threshold.units}}" selected="selected">{{threshold.units}}</option>
-                                        <option value="%">&#37;</option>
-                                    {% endifequal %}
-                                    {% if threshold.is_percent %}
-                                        <option value="{{threshold.units}}">{{threshold.units}}</option>
-                                        <option value="%" selected="selected">&#37;</option>
-                                    {% endif %}
-                                {% else %}
-                                    <option value="{{threshold.units}}">{{threshold.units}}</option>
-                                    <option value="%">&#37;</option>
-                                {% endif %}
+                            {% if threshold.is_percent %}
+                                <option value="{{threshold.units}}">{{threshold.units}}</option>
+                                <option value="%" selected="selected">&#37;</option>
+                            {% else %}
+                                <option value="{{threshold.units}}" selected="selected">{{threshold.units}}</option>
+                                <option value="%">&#37;</option>
+                            {% endif %}
                             </select>
                         {% else %}
                             {{threshold.units}}
@@ -112,7 +106,7 @@
                 <td>
                     {% if threshold.threshold_state %} {{ threshold.threshold_state }} {% endif %}
                 </td>
-                <td data_dsid="{{threshold.id}}">
+                <td>
                     <input class="button" type="button" value="Update" />
                 </td>
         <tr>
