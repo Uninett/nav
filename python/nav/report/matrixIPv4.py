@@ -88,3 +88,10 @@ class MatrixIPv4(Matrix):
         end_net = max_address.make_net(24)
 
         return netDiff(start_net, end_net)
+
+    def __repr__(self):
+        return "%s(%r, %r, %r, %r)" % (self.__class__.__name__,
+                                       self.start_net,
+                                       self.show_unused_addresses,
+                                       self.end_net,
+                                       self.bits_in_matrix)
