@@ -203,7 +203,7 @@ must be set if state is quarantine")
 
                 # Find information about switch and id in database
                 try:
-                    res = nav.arnold.findIdInformation(identity, 3)
+                    res = nav.arnold.find_id_information(identity, 3)
                 except (nav.arnold.NoDatabaseInformationError,
                         nav.arnold.UnknownTypeError,
                         nav.arnold.PortNotFoundError), why:
@@ -348,7 +348,7 @@ def handle_file(input_file, opts):
             identity = re.match("([^ ]+)", line).groups()[0]
             print "Trying to block id %s" % identity
             try:
-                info = nav.arnold.findIdInformation(identity, 2)
+                info = nav.arnold.find_id_information(identity, 2)
             except (nav.arnold.UnknownTypeError,
                     nav.arnold.NoDatabaseInformationError), why:
                 print why

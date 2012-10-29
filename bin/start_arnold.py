@@ -162,7 +162,7 @@ Pipe in id's to block or use the -f option to specify file"""
         print "%s - " %(candidate) ,
         # Find information for each candidate
         try:
-            id = nav.arnold.findIdInformation(candidate, 1)
+            id = nav.arnold.find_id_information(candidate, 1)
         except (nav.arnold.NoDatabaseInformationError,
                 nav.arnold.UnknownTypeError), e:
             print e
@@ -249,11 +249,9 @@ Pipe in id's to block or use the -f option to specify file"""
 
         # First find and group all email-addresses
         for ip in blocked:
-            dns = nav.arnold.getHostName(ip)
-            netbios = nav.arnold.getNetbios(ip)
-            if netbios == 1:
-                netbios = ""
-            
+            dns = nav.arnold.get_host_name(ip)
+            netbios = nav.arnold.get_netbios(ip)
+
             # Find contact address
             getcontact = """SELECT * FROM prefix
             LEFT JOIN vlan USING (vlanid)

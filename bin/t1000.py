@@ -103,7 +103,7 @@ def main():
         logger.info("%s is %s, checking for activity..."
                     %(row['mac'], row['blocked_status']))
 
-        [id] = nav.arnold.findIdInformation(row['mac'], 1)
+        [id] = nav.arnold.find_id_information(row['mac'], 1)
 
         logger.debug(id)
 
