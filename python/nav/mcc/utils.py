@@ -5,13 +5,14 @@ import re
 import sys
 import logging
 import os
+from collections import namedtuple
 from nav.errors import GeneralException
 from os.path import join, abspath
 from subprocess import Popen, PIPE
 
 from nav import path
 from nav.db import getConnection
-from nav.models.oid import NetboxSnmpOid
+from nav.models.oid import SnmpOid
 from django.db.models import Q
 
 LOGGER = logging.getLogger(__name__)
@@ -92,7 +93,7 @@ def get_toplevel_oids(filepath):
 
     try:
         handle = open(join(filepath, 'Defaults'), 'r')
-    except Exception, error:
+    except IOError, error:
         LOGGER.error(error)
         sys.exit()
 
@@ -117,7 +118,7 @@ def get_datadir(filepath):
 
     try:
         handle = open(join(filepath, filename), 'r')
-    except Exception, error:
+    except IOError, error:
         LOGGER.error("Error opening %s: %s" % (join(filepath, filename),
                                                error[1]))
         sys.exit()
@@ -135,48 +136,6 @@ def get_datadir(filepath):
             break
 
     return datadir
-
-
-def compare_datasources(path_to_config, filename, targetoids):
-    """
-    Compare the datasources from the database with the ones found in file
-    (targetoids). If the number in database is larger than or equal to the
-    number in file, use database as source for the datasources. Else expand
-    rrd-file and update database (not implemented)
-    """
-
-    oids = targetoids
-
-    conn = getConnection('default')
-    cur = conn.cursor()
-
-    filename = filename.lower()
-    if not filename.endswith('.rrd'):
-        filename = filename + '.rrd'
-
-    numdsq = """SELECT name, descr FROM rrd_file
-    JOIN rrd_datasource USING (rrd_fileid)
-    WHERE path = %s AND lower(filename) = %s
-    ORDER BY name
-    """
-    cur.execute(numdsq, (path_to_config, filename))
-    if cur.rowcount > 0:
-        LOGGER.debug("Found %s datasources in database (%s in file)" \
-                     % (cur.rowcount, len(targetoids)))
-        if cur.rowcount >= len(targetoids):
-            LOGGER.debug(">= Using database as base for targetoids")
-            # There are more or equal number of datasources in the database
-            # Reset targetoids and fill it from database
-            oids = []
-            for name, descr in cur.fetchall():
-                LOGGER.debug("Appending %s as %s" % (descr, name))
-                oids.append(descr)
-        else:
-            # There are less datasources in the database
-            # Find a way to expand the file with the missing datasources...
-            LOGGER.debug("< Must expand rrd-file (not implemented)")
-
-    return oids
 
 
 def check_file_existence(datadir, sysname):
@@ -242,7 +201,7 @@ def encode_and_escape(string):
     if isinstance(string, unicode):
         string = convert_unicode_to_latin1(string)
     string = string.replace("\"", "&quot;")
-    string = string.replace("\n", " ");
+    string = string.replace("\n", " ")
 
     return string
 
@@ -256,8 +215,8 @@ def find_and_remove_old_config(configpath, dirs):
 def find_subdirs(fullpath):
     """Find sub directories in path"""
     subdirs = []
-    for d in os.listdir(fullpath):
-        subdir = join(fullpath, d)
+    for directory in os.listdir(fullpath):
+        subdir = join(fullpath, directory)
         if os.path.isdir(subdir):
             subdirs.append(subdir)
 
@@ -285,7 +244,7 @@ def remove_old_config(dirs):
             try:
                 os.rmdir(directory)
                 LOGGER.info("%s removed." % directory)
-            except Exception, error:
+            except IOError, error:
                 LOGGER.error("Could not remove %s: %s" % (directory, error))
         else:
             LOGGER.info("%s is not empty, leaving it alone." % directory)
@@ -294,28 +253,9 @@ def remove_old_config(dirs):
 def find_target_oids(netbox, oidlist):
     """ Find the oids this netbox answers to that also exist in the
         cricket config files. """
-    snmpoids = NetboxSnmpOid.objects.filter(netbox=netbox).filter(
-                      Q(snmp_oid__oid_source='Cricket') |
-                      Q(snmp_oid__oid_key__iexact='sysuptime'))
-    targetoids = []
-    for snmpoid in snmpoids:
-        if snmpoid.snmp_oid.snmp_oid in oidlist:
-            targetoids.append(snmpoid.snmp_oid.oid_key)
-
-    targetoids.sort()
-    return targetoids
-
-
-def check_database_sanity(path_to_rrd, netbox, targetoids):
-    """ Check if rrd-file exists. If not the database tuple regarding this
-        file is deleted """
-    if check_file_existence(path_to_rrd, netbox.sysname):
-        # Compare datasources we found with the ones in the database, if
-        # any.
-        targetoids = compare_datasources(path_to_rrd, netbox.sysname,
-                                         targetoids)
-
-    return targetoids
+    return SnmpOid.objects.filter(netboxsnmpoid__netbox=netbox).filter(
+        Q(oid_source='Cricket') | Q(oid_key__iexact='sysuptime')).filter(
+        snmp_oid__in=oidlist).order_by('oid_key')
 
 
 def find_oids(path_to_config):
@@ -342,63 +282,6 @@ def find_oids(path_to_config):
                 oidlist.append(matcher.groups()[1])
 
     return list(set(oidlist))
-
-
-def create_targettype_config(netbox, targetoids, views):
-    """ Create target type config for this router """
-    config = ""
-    config = config + "targetType %s\n" % netbox.sysname
-    config = config + "\tds = \"%s\"\n" % ", ".join(targetoids)
-
-    # Create view configuration. We do that by comparing the data from
-    # views with the targetoids and see what intersections exists.
-    intersections = []
-    for entry in views:
-        intersect = sorted(set(views[entry]).intersection(targetoids))
-        if intersect:
-            intersections.append("%s: %s" % (entry, " ".join(intersect)))
-
-    if intersections:
-        config = config + "\tview = \"%s\"\n\n" % ", ".join(
-            sorted(intersections))
-
-    return config
-
-
-def create_target_config(netbox):
-    """ Create Cricket config for this netbox """
-    displayname = convert_unicode_to_latin1(netbox.sysname)
-    typename = encode_and_escape(netbox.type.name if netbox.type else '')
-    if netbox.room.description:
-        descr = encode_and_escape(netbox.room.description)
-        shortdesc = ", ".join([typename, descr])
-    else:
-        shortdesc = typename
-
-    LOGGER.info("Writing target %s" % netbox.sysname)
-    config = [
-        'target "%s"' % str(netbox.sysname),
-        '\tdisplay-name\t= "%s"' % displayname,
-        '\tsnmp-host\t= %s' % str(netbox.ip),
-        '\tsnmp-community\t= %s' % str(netbox.read_only),
-        '\ttarget-type\t= %s' % str(netbox.sysname),
-        '\tshort-desc\t= "%s"' % shortdesc,
-        ''
-        ]
-
-    return "\n".join(config)
-
-
-def create_container(netbox, targetoids):
-    """ Create container object and fill it """
-    container = RRDcontainer(netbox.sysname, netbox.id)
-    counter = 0
-    for targetoid in sorted(targetoids):
-        container.datasources.append(('ds' + str(counter), targetoid,
-                                      'GAUGE'))
-        counter = counter + 1
-
-    return container
 
 
 def write_target_types(path_to_config, target_types):
@@ -436,3 +319,7 @@ class RRDcontainer:
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
+
+
+# pylint: disable=C0103
+Datasource = namedtuple('Datasource', 'name descr dstype unit')

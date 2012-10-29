@@ -79,7 +79,7 @@
 
 	#set $tTree = $tree
 	#set $subtree = $getSubtree($tTree,$ip)
-	#set $matrix_net_prefixlen = $matrix_nets.keys[0].prefixlen
+	#set $matrix_net_prefixlen = $matrix_nets and $matrix_nets.keys[0].prefixlen or 24
 	#set $nets = $generateMatrixNets($ip)
 
 	#for $net in $nets
@@ -153,7 +153,7 @@
 			</tr>
 
 		#else ##matrix_nets does not have key (ie. super node in the tree)
-			#if $lastnet.prefixlen < $matrix_nets.keys[0].prefixlen
+			#if $matrix_nets and $lastnet.prefixlen < $matrix_nets.keys[0].prefixlen
 				#set $mnets = $generateMatrixNets($lastnet)
 				#set $subnet_extended = $IP("/".join([$subnet.net.strNormal,$str($matrix_nets.keys[0].prefixlen)]))
 				$printNetsInRange($mnets[-1],$subnet_extended,$depth)

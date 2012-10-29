@@ -38,6 +38,7 @@ class SnmpOid(models.Model):
     description = VarcharField(db_column='descr')
     oid_name = VarcharField(db_column='oidname')
     mib = VarcharField()
+    unit = VarcharField()
 
     class Meta:
         db_table = 'snmpoid'

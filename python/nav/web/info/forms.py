@@ -20,3 +20,6 @@ from django import forms
 class SearchForm(forms.Form):
     query = forms.CharField(max_length=100, label='Search')
 
+    def clean_query(self):
+        return self.cleaned_data['query'].strip()
+

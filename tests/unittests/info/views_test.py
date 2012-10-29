@@ -20,6 +20,7 @@ import unittest
 
 from nav.web.info.searchproviders import SearchResult, SearchProvider
 from nav.web.info.views import has_results, has_only_one_result
+from nav.web.info.forms import SearchForm
 
 
 class ViewsTest(unittest.TestCase):
@@ -60,3 +61,8 @@ class ViewsTest(unittest.TestCase):
                                               self.searchprovider2]))
 
         self.assertFalse(has_only_one_result([self.searchprovider2]))
+
+    def test_search_form(self):
+        form = SearchForm({'query': 'Test '})
+        form.is_valid()
+        self.assertEqual(form.cleaned_data['query'], 'Test')
