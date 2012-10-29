@@ -133,6 +133,7 @@ def find_id_information(ip_or_mac, limit):
     Look in arp and cam tables to find id (which is either ip or
     mac-address). Returns a list with $limit number of dicts
     containing all info from arp and cam joined on mac.
+
     """
     cursor = connection.cursor()
     category = find_input_type(ip_or_mac)
@@ -171,7 +172,11 @@ def find_id_information(ip_or_mac, limit):
         """
 
     cursor.execute(query, [ip_or_mac, limit])
-    return dictfetchall(cursor)
+    result = dictfetchall(cursor)
+    if result:
+        return result
+    else:
+        raise NoDatabaseInformationError(ip_or_mac)
 
 
 def dictfetchall(cursor):
@@ -361,6 +366,10 @@ def change_port_vlan(identity, vlan):
     vmMembership.vmMembershipTable.vmMembershipEntry.vmVlan.<ifindex>
 
     """
+    # Check vlanformat
+    if not re.search('\d+', str(vlan)):
+        raise ChangePortVlanError, "Wrong format on vlan %s" % vlan
+
     interface = identity.interface
     netbox = interface.netbox
     vendorid = netbox.type.vendor
@@ -373,10 +382,6 @@ def change_port_vlan(identity, vlan):
         variable_type = 'u'
     else:
         raise NotSupportedError, vendorid
-
-    # Check vlanformat
-    if not re.search('\d+', str(vlan)):
-        raise ChangePortVlanError, "Wrong format on vlan %s" % vlan
 
     query = oid + '.' + str(interface.ifindex)
 
