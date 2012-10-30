@@ -1,0 +1,47 @@
+{% extends 'arnold/base.html' %}
+
+{% block content %}
+
+    <form action="{% url arnold-lift-detentions %}" method="POST">
+
+        <table class="listtable">
+            <caption>
+                Choose which ports to open
+            </caption>
+
+            <thead>
+            <tr>
+                <th>IP</th>
+                <th>MAC</th>
+                <th>DNS</th>
+                <th>Netbios</th>
+                <th>Switch</th>
+                <th>Interface</th>
+                <th>_</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for detention in detentions %}
+                <tr class="$rowcycler">
+                    <td>{{ detention.ip }}</td>
+                    <td>{{ detention.mac }}</td>
+                    <td>{{ detention.dns }}</td>
+                    <td>{{ detention.netbios }}</td>
+                    <td>{{ detention.interface.netbox.sysname }}</td>
+                    <td>{{ detention.interface.ifname }}</td>
+
+                    <td><input type="checkbox" name="detentions" value="{{ detention.id }}" checked="checked"/>
+                </tr>
+            {% endfor %}
+
+            <tr>
+                <td colspan='6'><input type="submit" value="Enable selected ports"/></td>
+            </tr>
+            </tbody>
+
+        </table>
+
+    </form>
+
+{% endblock %}

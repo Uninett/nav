@@ -21,7 +21,8 @@ from nav.web.arnold.views import (render_history, render_detained_ports,
                                   render_quarantine_vlans, render_details,
                                   render_manual_detention,
                                   render_detention_profiles,
-                                  render_edit_detention_profile)
+                                  render_edit_detention_profile,
+                                  choose_detentions, lift_detentions)
 
 urlpatterns = patterns('',
    url(r"^$", render_detained_ports, name="arnold_index"),
@@ -36,6 +37,12 @@ urlpatterns = patterns('',
 
    url(r"^manualdetention/$", render_manual_detention,
        name="arnold-manual-detention"),
+
+   url(r"^enable/(?P<did>\d+)$", choose_detentions,
+       name="arnold-choose-detentions"),
+
+   url(r"^doenable/$", lift_detentions,
+       name="arnold-lift-detentions"),
 
    url(r"^predefined/$", render_detention_profiles,
        name="arnold-detention-profiles"),

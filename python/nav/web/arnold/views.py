@@ -21,6 +21,7 @@ TODO:
 - Correct submit button value on "Add profile"
 """
 
+import logging
 from IPy import IP
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
@@ -28,6 +29,7 @@ from django.db.models import Q
 
 from datetime import datetime, timedelta
 
+from nav.arnold import open_port, detain
 from nav.models.arnold import (Identity, Justification, QuarantineVlan,
                                DetentionProfile)
 from nav.django.utils import get_account
@@ -38,6 +40,7 @@ from nav.web.utils import create_title
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
 
+LOGGER = logging.getLogger('nav.web.arnold')
 
 def create_context(path, context):
     """Create a dictionary for use in context based on path"""
@@ -196,6 +199,28 @@ def render_manual_detention(request):
 def process_manual_detention_form(form):
     """Execute a manual detention based on form data"""
     pass
+
+
+def choose_detentions(request, did):
+    """Find all detentions for the mac-address in the given detention"""
+    detention = Identity.objects.get(pk=did)
+    detentions = Identity.objects.filter(mac=detention.mac)
+
+    return render_to_response('arnold/choose_detentions.html',
+                              create_context('Enable',
+                                             {'detentions': detentions}),
+                              RequestContext(request))
+
+
+def lift_detentions(request):
+    """Lift all detentions given in form"""
+    if request.method == 'POST':
+        account = get_account(request)
+        for detentionid in request.POST.getlist('detentions'):
+            identity = Identity.objects.get(pk=detentionid)
+            open_port(identity, account.login, 'Enabled from web')
+
+    return redirect('arnold-detainedports')
 
 
 def render_detention_profiles(request):
