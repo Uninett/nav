@@ -150,11 +150,11 @@ def handle_search(request, searchform, form_target):
             message_types = results.values('type__facility', 'type__priority__keyword', 'type__mnemonic').annotate(sum=Count('type'))
             message_types_headers = ['Facility', 'Priority', 'State']
             origins = results.values('origin__name').annotate(sum=Count('origin__name'))
-            origins_headers = ['Prefix origin']
+            origins_headers = ['Origin']
 
-            aggregates.update({'priorities' : { 'values': priorities, 'headers': priorities_headers, 'colspan': 1} })
-            aggregates.update({'message_type': { 'values': message_types, 'headers': message_types_headers, 'colspan': 3 }})
-            aggregates.update({'origin': { 'values': origins, 'headers': origins_headers, 'colspan': 1 }})
+            aggregates.update({'Priorities' : { 'values': priorities, 'headers': priorities_headers, 'colspan': 1} })
+            aggregates.update({'Type': { 'values': message_types, 'headers': message_types_headers, 'colspan': 3 }})
+            aggregates.update({'Origin': { 'values': origins, 'headers': origins_headers, 'colspan': 1 }})
 
     else:
         form = searchform(initial={
