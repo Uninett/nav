@@ -27,3 +27,4 @@ class LoggerGroupSearchForm(forms.Form):
     category = forms.ModelChoiceField(queryset=LoggerCategory.objects.all(), required=False, empty_label=u'(All)')
     timestamp_from = forms.DateTimeField(input_formats=DATEFORMAT)
     timestamp_to = forms.DateTimeField(input_formats=DATEFORMAT)
+    show_log = forms.BooleanField(required=False)
