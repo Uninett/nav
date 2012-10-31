@@ -125,6 +125,7 @@ def handle_search(request, searchform, form_target):
 
     results = []
     aggregates = {}
+    context = {}
 
     if len(request.GET.keys()) > 0:
         query_dict = request.GET.copy()
@@ -170,7 +171,8 @@ def handle_search(request, searchform, form_target):
 
                 results = results.filter(origin__name__in=origin_name)
 
-
+            if 'show_log' in form.cleaned_data and form.cleaned_data['show_log']:
+                context.update({'show_log': form.cleaned_data['show_log']})
 
 
             priorities = results.values('newpriority__keyword').annotate(sum=Count('newpriority__keyword'))
