@@ -38,10 +38,60 @@ require([
         });
     }
 
+    function checkDataAndUpdateSelection(dataTarget, data) {
+        var update_target = $('select#id_'+dataTarget+' option');
+        for (var i = 0; i < update_target.length; i++) {
+            var select_box = update_target[i];
+            if (select_box.value === data) {
+                $(select_box).attr('selected', 'selected');
+                break;
+            }
+        }
+    }
+
+    function showLogIfEnoughFilteringEnabled(target) {
+        var matches = {}
+        $('#syslog_search_form select option:selected').each(function (index, value) {
+            if ($(value).val()) {
+                matches[$(value).parent().attr('name')] = true;
+            }
+        });
+
+        if ((matches.facility && matches.priority && matches.mnemonic) ||
+            (matches.origin && matches.priority)) {
+            $("#id_show_log").attr('checked', 'checked');
+            searchSyslog(target);
+        }
+    }
+
     function searchSyslog(target) {
         $.get(target, $("#syslog_search_form").serialize(), function (data) {
             // todo: need error checking.
             $('#syslog_search').html(data);
+
+            $('.logger_search_results a').on('click', function (event) {
+                event.preventDefault();
+                var eventTarget = event.target;
+                var update_target;
+                var data = $(eventTarget).data();
+
+                if (data.origin) {
+                    checkDataAndUpdateSelection('origin', data.origin);
+                }
+                if (data.facility) {
+                    checkDataAndUpdateSelection('facility', data.facility);
+                }
+                if (data.mnemonic) {
+                    checkDataAndUpdateSelection('mnemonic', data.mnemonic);
+                }
+                if (data.priority) {
+                    checkDataAndUpdateSelection('priority', data.priority);
+                }
+
+                showLogIfEnoughFilteringEnabled(target);
+                searchSyslog(target);
+
+            });
             attachButtonListeners()
         }).error(function (data) {
                 $('.results').html("<p>Failed to load search results, please try again</p>");

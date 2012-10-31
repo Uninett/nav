@@ -1,4 +1,4 @@
-<div class="results">
+<div class="logger_search_results">
     <p>Request generated at {{ timestamp }}. <a href="{{ bookmark }}">Hotlink for search</a></p>
 
 
@@ -22,20 +22,20 @@
             {% for key, value in title.items %}
                 {% if name == "Origin" %}
                     {% if key != "sum" %}
-                        <td><a href="{{ bookmark }}&origin={{value}}">{{ value }}</a></td>
+                        <td><a data-origin="{{value}}" href="{{ bookmark }}&origin={{value}}">{{ value }}</a></td>
                     {% endif %}
                 {% endif %}
                 {% if name == "Type" %}
                     {% if key == 'type__mnemonic' %}
-                        <td><a href="{{ bookmark }}&mnemonic={{value}}">{{ value }}</a></td>
+                        <td><a data-mnemonic="{{value}}" href="{{ bookmark }}&mnemonic={{value}}">{{ value }}</a></td>
                     {% endif %}
                     {% if key == 'type__facility' %}
-                        <td><a href="{{ bookmark }}&facility={{value}}">{{ value }}</a></td>
+                        <td><a data-facility="{{value}}" href="{{ bookmark }}&facility={{value}}">{{ value }}</a></td>
                     {% endif %}
                 {% endif %}
                 {% if name == "Priorities" %}
                     {% if key != "sum" %}
-                        <td><a href="{{ bookmark }}&priority={{value}}">{{ value }}</a></td>
+                        <td><a data-priority="{{value}}" href="{{ bookmark }}&priority={{value}}">{{ value }}</a></td>
                     {% endif %}
                 {% endif %}
             {% endfor %}
