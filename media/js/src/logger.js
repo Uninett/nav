@@ -15,7 +15,11 @@ require([
     });
 
     function addMainTabs() {
-        var tabs = $(mainTabsSelector).tabs();
+        var tabconfig = {
+            cache: true, // cache loaded pages
+            spinner: '<img src="/images/main/process-working.gif">'
+        };
+        var tabs = $(mainTabsSelector).tabs(tabconfig);
         tabs.show();
         TabNavigation.add(mainTabsSelector);
     }
