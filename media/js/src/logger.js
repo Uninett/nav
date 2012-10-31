@@ -1,8 +1,42 @@
 require([
-    "plugins/table_utils", "plugins/tab_navigation", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
+    "plugins/table_utils", "plugins/tab_navigation", "libs/spin.min", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
 ], function (TableUtil, TabNavigation) {
 
     var mainTabsSelector = '#loggerinfotabs';
+
+    var opts = {
+        lines: 9, // The number of lines to draw
+        length: 16, // The length of each line
+        width: 9, // The line thickness
+        radius: 21, // The radius of the inner circle
+        corners: 1, // Corner roundness (0..1)
+        rotate: 0, // The rotation offset
+        color: '#000', // #rgb or #rrggbb
+        speed: 1, // Rounds per second
+        trail: 60, // Afterglow percentage
+        shadow: true, // Whether to render a shadow
+        hwaccel: true, // Whether to use hardware acceleration
+        className: 'spinner', // The CSS class to assign to the spinner
+        zIndex: 2e9, // The z-index (defaults to 2000000000)
+        top: 'auto', // Top position relative to parent in px
+        left: 'auto' // Left position relative to parent in px
+    };
+
+    $.fn.spin = function(opts) {
+        this.each(function() {
+            var $this = $(this),
+                data = $this.data();
+
+            if (data.spinner) {
+                data.spinner.stop();
+                delete data.spinner;
+            }
+            if (opts !== false) {
+                data.spinner = new Spinner($.extend({color: $this.css('color')}, opts)).spin(this);
+            }
+        });
+        return this;
+    };
 
     $(document).ready(function () {
         // Plug row toggler on datasources
@@ -65,6 +99,7 @@ require([
     }
 
     function searchSyslog(target) {
+        $("#syslog_loader").spin(opts);
         $.get(target, $("#syslog_search_form").serialize(), function (data) {
             // todo: need error checking.
             $('#syslog_search').html(data);
@@ -95,6 +130,8 @@ require([
             attachButtonListeners()
         }).error(function (data) {
                 $('.results').html("<p>Failed to load search results, please try again</p>");
+        }).complete(function () {
+                $("#syslog_loader").spin(false);
         });
     }
 });
