@@ -45,7 +45,7 @@ from nav.web.threshold.utils import is_percent_value
 
 
 NAVBAR = [('Home', '/'), ('Threshold manager', None)]
-DEFAULT_VALUES = {'title': 'THreshold manager', 'navpath': NAVBAR}
+DEFAULT_VALUES = {'title': 'Threshold manager', 'navpath': NAVBAR}
 
 BULK_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': {'bulk': True}}
 ALL_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': {'all': True}}
@@ -126,7 +126,7 @@ def prepare_bulkset(request):
     if request.method == 'POST':
         descr = unicode(request.POST.get('descr', ''))
         ids = unicode(request.POST.get('ids', ''))
-        logger.error('Ids = %s' % ids)
+        logger.debug('Ids = %s' % ids)
         if not is_legal_descr(descr):
             logger.error('Illegal description: login=%s; descr=%s' %
                     (account.login, descr))
@@ -166,7 +166,7 @@ def prepare_bulkset(request):
         # This is actually a html-table to get rendered in the browser
         message = render_to_response('threshold/bulkset.html',
                     info_dict, RequestContext(request))
-        logger.error('prepare_bulkset: timer = %.3f' % (time.clock() - before))
+        logger.debug('prepare_bulkset: timer = %.3f' % (time.clock() - before))
         return HttpResponse(message, mimetype="text/plain")
     else:
         logger.error('Illegal request: login=%s' % account.login)
@@ -212,7 +212,8 @@ def get_netbox_interfaces(nbox, ifname, updown):
     if nbox.category.is_gsw() or nbox.category.is_gw():
         if_query = if_query.filter(gwportprefix__isnull=False)
     if ifname:
-        if_query = if_query.filter(ifname__contains=ifname)
+        if_query = if_query.filter(Q(ifname__icontains=ifname)|
+                                        Q(ifalias__icontains=ifname))
     if updown:
         if_query = if_query.filter(Q(to_netbox__isnull=False)|
                                         Q(to_interface__isnull=False))
@@ -433,8 +434,8 @@ def threshold_all(request, exceeded=None):
             'sources': datasource_list,
             }
         netboxes.append(netbox)
-    logger.error("len = %d" % len(netboxes))
-    logger.error("time = %.3f" % (time.clock()-before))
+    logger.debug("len = %d" % len(netboxes))
+    logger.debug("time = %.4f" % (time.clock()-before))
     info_dict = {'netboxes' : netboxes }
     if exceeded:
         info_dict.update(EXCEEDED_DEFAULTS)
@@ -564,6 +565,7 @@ def threshold_edit(request, thresholdid=None):
 
 def thresholds_save(request):
     """Save operators and thresholds for the given datasource-ids."""
+    before = time.clock()
     account = get_account(request)
     result = {}
     # collection of datasources with errors
@@ -571,10 +573,12 @@ def thresholds_save(request):
     if request.method == 'POST':
         thresholds_json = request.POST.get('thresholds', '')
         thresholds = simplejson.loads(thresholds_json)
+        logger.error('thresholds_save: Number of thresholds %d' % len(thresholds))
         for threshold in thresholds:
             dsId = unicode(threshold.get('dsId', ''))
             op = unicode(threshold.get('op', ''))
             thrVal = unicode(threshold.get('thrVal', ''))
+            logger.debug('threshold_save: dsId=%s, op=%s, thrVal=%s' % (dsId, op, thrVal))
             if not is_legal_id(dsId):
                 logger.error('Illegal id: login=%s; id=%s' %
                                 (account.login, dsId))
@@ -590,7 +594,7 @@ def thresholds_save(request):
                                 (account.login, thrVal))
                 error_list.append(dsId)
                 continue
-            #logger.error('dsId=%s, op=%s, thrVal=%s' % (dsId, op, thrVal))
+            # logger.error('dsId=%s, op=%s, thrVal=%s' % (dsId, op, thrVal))
             thrVal.strip()
             rrd_data_source = None
             try :
@@ -602,7 +606,7 @@ def thresholds_save(request):
                 continue
             if is_percent_value(thrVal) and not rrd_data_source.max:
                 logger.error('% is prohibited when max is undefined, ' +
-                            'id=%s: login=%s' % (dsId, account.login))
+                            'login=%s; id=%s' % (account.login, dsId))
                 error_list.append(dsId)
                 continue
 
@@ -629,12 +633,11 @@ def thresholds_save(request):
                 message = 'Could not save threshold'
             elif numb_errors > 1:
                 message = '%d threholds could not be saved' % numb_errors
-            result = {'error': numb_errors,
-                      'message': message,
-                      'failed': error_list,}
+            result = {'error': numb_errors, 'message': message, 'failed': error_list,}
         else:
-            result = {'error': 0, 'message': 'Successfully saved', }
+            result = {'error': 0, 'message': 'Successfully saved', 'failed': [],}
     else:
-        result = {'error': 1, 'message': 'Wrong request'}
+        result = {'error': 1, 'message': 'Wrong request',}
+    logger.error('thresholds_save: timer = %.3f' % (time.clock() - before))
     return HttpResponse(simplejson.dumps(result),
         mimetype="application/json")
