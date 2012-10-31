@@ -23,7 +23,7 @@ class LoggerGroupSearchForm(forms.Form):
     facility = forms.ChoiceField(choices=choice_values(LogMessageType, 'facility'), required=False)
     priority = forms.ChoiceField(choices=choice_values(Priority, 'keyword'), required=False)
     mnemonic = forms.ChoiceField(choices=choice_values(LogMessageType, 'mnemonic'), required=False)
-    origin_name = forms.ChoiceField(choices=choice_values(Origin, 'name'), required=False)
+    origin = forms.ChoiceField(choices=choice_values(Origin, 'name'), required=False)
     category = forms.ModelChoiceField(queryset=LoggerCategory.objects.all(), required=False, empty_label=u'(All)')
     timestamp_from = forms.DateTimeField(input_formats=DATEFORMAT)
     timestamp_to = forms.DateTimeField(input_formats=DATEFORMAT)
