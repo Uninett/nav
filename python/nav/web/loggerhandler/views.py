@@ -172,7 +172,10 @@ def handle_search(request, searchform, form_target):
                 results = results.filter(origin__name__in=origin_name)
 
             if 'show_log' in form.cleaned_data and form.cleaned_data['show_log']:
-                context.update({'show_log': form.cleaned_data['show_log']})
+                show_log = bool(form.cleaned_data['show_log'])
+                if show_log:
+                    context.update({'log_messages': results})
+                context.update({'show_log': show_log})
 
 
             priorities = results.values('newpriority__keyword').annotate(sum=Count('newpriority__keyword'))
@@ -205,14 +208,13 @@ def handle_search(request, searchform, form_target):
     strip_query_args = _strip_empty_arguments(request)
     strip_query_args = strip_query_args.urlencode() if strip_query_args else ""
 
-    context =  {
+    context.update({
         'form': form,
         'form_target': form_target,
         'bookmark': "{0}?{1}".format(request.META['PATH_INFO'], strip_query_args),
-        'log_messages': results,
         'aggregates': aggregates,
         'timestamp': datetime.datetime.now().strftime(DATEFORMAT)
-        }
+     })
 
     return render_to_response('loggerhandler/frag-search.html',
         context,

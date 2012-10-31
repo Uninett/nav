@@ -47,32 +47,34 @@
     {% endfor %}
     </div>
     {% endif %}
-    {% if log_messages %}
-    <table class="listtable">
-        <caption>Log</caption>
-        <thead>
-        <tr>
-            <th>Time</th>
-            <th>Origin</th>
-            <th>Message type</th>
-            <th>Message</th>
-        </tr>
-        </thead>
-        <tbody>
-        {# Implement this! #}
-        {% for mess in log_messages %}
-        <tr>
-            <td>{{ mess.time }}</td>
-            <td>{{ mess.origin.name }}</td>
-            <td>{{ mess.type.priority.keyword }}</td>
-            <td>{{ mess.message }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div id="no_log_messages">
-        No log-messages
-    </div>
+    {% if show_log %}
+        {% if log_messages %}
+        <table class="listtable">
+            <caption>Log</caption>
+            <thead>
+            <tr>
+                <th>Time</th>
+                <th>Origin</th>
+                <th>Message type</th>
+                <th>Message</th>
+            </tr>
+            </thead>
+            <tbody>
+            {# Implement this! #}
+            {% for mess in log_messages %}
+            <tr>
+                <td>{{ mess.time }}</td>
+                <td>{{ mess.origin.name }}</td>
+                <td>{{ mess.type.priority.keyword }}</td>
+                <td>{{ mess.message }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div id="no_log_messages">
+            No log-messages
+        </div>
+        {% endif %}
     {% endif %}
 </div>
