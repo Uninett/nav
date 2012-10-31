@@ -205,12 +205,6 @@ def handle_search(request, searchform, form_target):
                                datetime.timedelta(days=51)),
             'timestamp_to': datetime.datetime.now()
         }
-        #if 'Priorities' in request.GET:
-        #    initial_context.update({'priority': request.GET.get('Priorities')})
-        #if 'Type' in request.GET:
-        #    initial_context.update({'message_type': request.GET.get('Type')})
-        #if 'Origin' in request.GET:
-        #    initial_context.update({'origin': request.GET.get('Origin')})
 
         form = searchform(initial=initial_context)
 
