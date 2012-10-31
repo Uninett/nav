@@ -75,17 +75,32 @@ class Neighbor(object):
     "Abstract base class for neigbor identification"
     _logger = ContextLogger()
 
-    def __init__(self, record):
+    def __init__(self, record, local_address=None):
         """Given a supported neighbor record, tries to identify the remote
         device and port among the ones registered in NAV's database.
 
         If a neighbor can be identified, the identified attribute is set to
         True.  The netbox and interface attributes will represent the
-        identified items.  The record provided to the constructor is saved in
-        the record instance attribute.
+        identified items.
+
+        :param record: Some namedtuple instance representing the
+                       neighboring record read from the device.
+        :param local_address: The management IP address used by the local
+                              system. If supplied, will be used to identify
+                              and ignore possible self-loops.
 
         """
         self.record = record
+        self._invalid_neighbor_ips = list(INVALID_IPS)
+        if local_address:
+            self._invalid_neighbor_ips.append(str(local_address))
+
+        self.netbox = self.interface = None
+        self.identified = False
+
+        self.identify()
+
+    def identify(self):
         self.netbox = self._identify_netbox()
         self.interface = self._identify_interface()
         self.identified = bool(self.netbox or self.interface)
@@ -96,8 +111,7 @@ class Neighbor(object):
     def _identify_interface(self):
         raise NotImplementedError
 
-    @classmethod
-    def _netbox_from_ip(cls, ip):
+    def _netbox_from_ip(self, ip):
         """Tries to find a Netbox from NAV's database based on an IP address.
 
         :returns: A shadows.Netbox object representing the netbox, or None if no
@@ -106,10 +120,10 @@ class Neighbor(object):
         """
         ip = unicode(ip)
         assert ip
-        if ip in INVALID_IPS:
+        if ip in self._invalid_neighbor_ips:
             return
-        return (cls._netbox_query(Q(ip=ip)) or
-                cls._netbox_query(Q(interface__gwportprefix__gw_ip=ip)))
+        return (self._netbox_query(Q(ip=ip)) or
+                self._netbox_query(Q(interface__gwportprefix__gw_ip=ip)))
 
     ID_PATTERN = re.compile(r'(.*\()?(?P<sysname>[^\)]+)\)?')
     @classmethod
@@ -267,7 +281,7 @@ class LLDPNeighbor(Neighbor):
     def _interface_from_ip(self, ip):
         ip = unicode(ip)
         assert ip
-        if ip in INVALID_IPS:
+        if ip in self._invalid_neighbor_ips:
             return
         return self._interface_query(Q(gwportprefix__gw_ip=ip))
 
