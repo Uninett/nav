@@ -147,8 +147,8 @@ def handle_search(request, searchform, form_target):
 
             priorities = results.values('newpriority__keyword').annotate(sum=Count('newpriority__keyword'))
             priorities_headers = ['Priority']
-            message_types = results.values('type__facility', 'type__priority__keyword', 'type__mnemonic').annotate(sum=Count('type'))
-            message_types_headers = ['Facility', 'Priority', 'State']
+            message_types = results.values('type__mnemonic', 'type__priority__keyword', 'type__facility').annotate(sum=Count('type'))
+            message_types_headers = ['State', 'Priority', 'Facility']
             origins = results.values('origin__name').annotate(sum=Count('origin__name'))
             origins_headers = ['Origin']
 
