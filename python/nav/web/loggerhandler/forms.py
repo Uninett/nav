@@ -20,9 +20,9 @@ class LoggerSearchForm(forms.Form):
 
 
 class LoggerGroupSearchForm(forms.Form):
-    priority_keyword = forms.ChoiceField(choices=choice_values(Priority, 'keyword'), required=False)
-    message_type_facility = forms.ChoiceField(choices=choice_values(LogMessageType, 'facility'), required=False)
-    message_type_mnemonic = forms.ChoiceField(choices=choice_values(LogMessageType, 'mnemonic'), required=False)
+    facility = forms.ChoiceField(choices=choice_values(LogMessageType, 'facility'), required=False)
+    priority = forms.ChoiceField(choices=choice_values(Priority, 'keyword'), required=False)
+    mnemonic = forms.ChoiceField(choices=choice_values(LogMessageType, 'mnemonic'), required=False)
     origin_name = forms.ChoiceField(choices=choice_values(Origin, 'name'), required=False)
     category = forms.ModelChoiceField(queryset=LoggerCategory.objects.all(), required=False, empty_label=u'(All)')
     timestamp_from = forms.DateTimeField(input_formats=DATEFORMAT)
