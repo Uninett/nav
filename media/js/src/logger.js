@@ -43,6 +43,8 @@ require([
             // todo: need error checking.
             $('#syslog_search').html(data);
             attachButtonListeners()
+        }).error(function (data) {
+                $('.results').html("<p>Failed to load search results, please try again</p>");
         });
     }
 });
