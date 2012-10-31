@@ -20,7 +20,6 @@ from django.conf.urls.defaults import patterns, url
 from nav.web.loggerhandler.views import index
 from nav.web.loggerhandler.views import exceptions_response
 from nav.web.loggerhandler.views import errors_response
-from nav.web.loggerhandler.views import log_response
 from nav.web.loggerhandler.views import direct_search, group_search
 
 
@@ -31,5 +30,4 @@ urlpatterns = patterns('',
     url(r'^search/group/$', group_search, name='logger_search_group'),
     url(r'^exceptions/$', exceptions_response, name='logger_priority_exceptions'),
     url(r'^errors/$', errors_response, name='logger_errors'),
-    url(r'^log/$', log_response),
 )

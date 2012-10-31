@@ -27,17 +27,14 @@ from ConfigParser import ConfigParser
 from django.http import HttpResponseRedirect, HttpResponseForbidden, \
     HttpResponse, QueryDict
 from django.template import RequestContext
-#from django.template import Context
 from django.shortcuts import render_to_response
 
 import nav
-from nav.django.templatetags.info import register
 
 from nav.django.utils import get_account
 
-from nav.models.logger import LogMessage, Priority
+from nav.models.logger import LogMessage
 from nav.models.logger import ErrorError
-from nav.models.logger import MessageView
 from nav.web.loggerhandler.forms import LoggerSearchForm, LoggerGroupSearchForm
 
 from nav.web.loggerhandler.utils import DbAccess
@@ -237,100 +234,6 @@ def group_search(request):
 
 
 
-def statistics_reponse(request, db_access=None, param_util=None):
-    account = get_account(request)
-    if not account:
-        return HttpResponseRedirect('/')
-    if not db_access:
-        db_access = DbAccess()
-    if not param_util:
-        param_util = ParamUtil(request, db_access)
-
-    info_dict = _get_basic_info_dict(db_access, param_util)
-    tfrom_param = info_dict.get('tfrom', None)
-    tto_param = info_dict.get('tto', None)
-    priority_param = info_dict.get('priority', None)
-    type_param = info_dict.get('type', None)
-    origin_param = info_dict.get('origin', None)
-    category_param = info_dict.get('category', None)
-
-    return render_to_response('loggerhandler/index.html',
-                                info_dict,
-                                RequestContext(request))
-
-def log_response(request, db_access=None, param_util=None):
-    account = get_account(request)
-    if not account:
-        return HttpResponseRedirect('/')
-    if not db_access:
-        db_access = DbAccess()
-    if not param_util:
-        param_util = ParamUtil(request, db_access)
-    context = _get_basic_info_dict(db_access, param_util)
-
-    type_param = context.get('type', None)
-    origin_param = context.get('origin', None)
-    tfrom_param = context.get('tfrom', None)
-    tto_param = context.get('tto', None)
-    priority_param = context.get('priority', None)
-    
-    query = None
-    if type_param:
-        query = LogMessage.objects.filter(type__type=type_param)
-    if origin_param:
-        if not query:
-            query = LogMessage.objects.filter(origin__origin=origin_param)
-        else:
-            query = query.filter(origin__origin=origin_param)
-    if tfrom_param:
-        if not query:
-            query = LogMessage.objects.filter(time__gte=tfrom_param)
-        else:
-            query = query.filter(time__gte=tfrom_param)
-    if tto_param:
-        if not query:
-            query = LogMessage.objects.filter(time__lte=tto_param)
-        else:
-            query = query.filter(time__lte=tto_param)
-    if priority_param:
-        if not query:
-            query = LogMessage.objects.filter(
-                                    newpriority__priority=priority_param)
-        else:
-            query = query.filter(newpriority__priority=priority_param)
-    if not query:
-        query = LogMessage.objects.all().order_by('-time')
-    else:
-        query = query.order_by('-time')
-    
-    # Hit the database
-    log_messages = query
-    update_dict = {'log_messages': log_messages,
-                   'tfrom': tfrom_param.strftime(DATEFORMAT),
-                   'tto': tto_param.strftime(DATEFORMAT),
-                   'log_mode': True
-                  }
-    return render_to_response('loggerhandler/index.html',
-                                context,
-                                RequestContext(request))
-    
-def statistics_response(request, db_access=None, param_util=None):
-    if not db_access:
-        db_access = DbAccess()
-    if not param_util:
-        param_util = ParamUtil(request, db_access)
-    info_dict = _get_basic_info_dict(db_access, param_util)
-
-    type_param = info_dict.get('type', None)
-    origin_param = info_dict.get('origin', None)
-    tfrom_param = info_dict.get('tfrom', None)
-    tto_param = info_dict.get('tto', None)
-    priority_param = info_dict.get('priority', None)
-
-    return render_to_response('loggerhandler/index.html',
-                                info_dict,
-                                RequestContext(request))
-    
 def exceptions_response(request):
     """
     Handler for exception-mode.
