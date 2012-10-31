@@ -210,6 +210,9 @@ def find_input_type(ip_or_mac):
 def disable(myidentity, justification, username, comment="", determined=False,
             autoenablestep=0):
     """Disable a target by blocking the port"""
+    LOGGER.info('Disabling %s - %s on interface %s' % (
+                    myidentity.ip, myidentity.mac, myidentity.interface))
+
     identity = check_identity(myidentity)
     change_port_status('disable', identity)
     identity.status = 'disabled'
@@ -223,6 +226,9 @@ def disable(myidentity, justification, username, comment="", determined=False,
 def quarantine(myidentity, qvlan, justification, username, comment="",
                determined=False, autoenablestep=0):
     """Quarantine a target bu changing vlan on port"""
+    LOGGER.info('Quarantining %s - %s on interface %s' % (
+        myidentity.ip, myidentity.mac, myidentity.interface))
+
     identity = check_identity(myidentity)
     identity.fromvlan = change_port_vlan(identity, qvlan.vlan)
     identity.tovlan = qvlan.vlan
@@ -236,8 +242,10 @@ def quarantine(myidentity, qvlan, justification, username, comment="",
 
 def check_target(target):
     """Check if target can be blocked or not"""
+    LOGGER.debug('Checking target %s', target)
     if find_input_type(target) == 'IP':
         check_non_block(target)
+    find_id_information(target, 1)
 
 
 def check_identity(myidentity):

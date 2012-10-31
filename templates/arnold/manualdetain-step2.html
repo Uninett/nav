@@ -4,6 +4,11 @@
 
 {% block content %}
 
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+
     <form action="" method="POST">
         <table class="vertitable">
 

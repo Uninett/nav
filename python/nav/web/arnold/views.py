@@ -30,7 +30,8 @@ from django.db.models import Q
 from datetime import datetime, timedelta
 
 from nav.arnold import (open_port, disable, quarantine, GeneralException,
-                        find_id_information, find_input_type)
+                        InExceptionListError, find_id_information,
+                        find_input_type, check_target)
 from nav.models.arnold import (Identity, Justification, QuarantineVlan,
                                DetentionProfile)
 from nav.models.manage import Cam, Interface
@@ -184,14 +185,16 @@ def process_justification_form(form):
 
 def render_manual_detention_step_one(request):
     """Controller for rendering manual detention"""
+    error = ""
     if request.method == 'POST':
         form = ManualDetentionTargetForm(request.POST)
-        LOGGER.debug('Form is posted')
         if form.is_valid():
-            LOGGER.debug('Form is valid')
-
-            return redirect('arnold-manual-detention-step-two',
-                            form.cleaned_data['target'])
+            try:
+                check_target(form.cleaned_data['target'])
+                return redirect('arnold-manual-detention-step-two',
+                                form.cleaned_data['target'])
+            except GeneralException, err:
+                error = err
     else:
         form = ManualDetentionTargetForm()
 
@@ -199,6 +202,7 @@ def render_manual_detention_step_one(request):
                        create_context('Manual detention', {
                            'active': {'manualdetention': True},
                            'form': form,
+                           'error': error
                        }), RequestContext(request))
 
 
@@ -218,7 +222,7 @@ def render_manual_detention_step_two(request, target):
         if form.is_valid():
             error = process_manual_detention_form(form, get_account(request))
             if not error:
-                redirect('arnold-detainedports')
+                return redirect('arnold-detainedports')
 
     else:
         form = ManualDetentionForm(initial={'target': target})
@@ -249,7 +253,8 @@ def process_manual_detention_form(form, account):
     camtuple = form.cleaned_data['camtuple']
 
     cam = Cam.objects.get(pk=camtuple)
-    interface = Interface.objects.get(sysname=cam.sysname, ifindex=cam.ifindex)
+    interface = Interface.objects.get(netbox__sysname=cam.sysname,
+                                      ifindex=cam.ifindex)
 
     identity = Identity()
     identity.interface = interface
@@ -257,13 +262,13 @@ def process_manual_detention_form(form, account):
     if find_input_type(target) == 'IP':
         identity.ip = target
 
-    if form.method == 'disable':
+    if form.cleaned_data['method'] == 'disable':
         try:
             disable(identity, justification, username, comment=comment,
                     autoenablestep=days)
         except GeneralException, error:
             return error
-    elif form.method == 'quarantine':
+    elif form.cleaned_data['method'] == 'quarantine':
         try:
             quarantine(identity, form.cleaned_data['qvlan'], justification,
                        username, comment=comment, autoenablestep=days)
