@@ -166,6 +166,7 @@ def handle_search(request, searchform, form_target):
     context =  {
         'form': form,
         'form_target': form_target,
+        'bookmark': request.get_full_path(),
         'log_messages': results,
         'aggregates': aggregates,
         'timestamp': datetime.datetime.now().strftime(DATEFORMAT)
