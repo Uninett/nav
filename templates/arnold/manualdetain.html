@@ -1,50 +1,11 @@
-{% extends "arnold/base.html" %}
+{% extends 'arnold/base.html' %}
 
 {% block content %}
 
-    <form action="" method="POST">
-        <table class="vertitable">
-
-            <tbody>
-
-            <tr>
-                <th>{{ form.method.label }}</th>
-                <td>{{ form.method }}</td>
-                <td><span class="error">{{ form.method.errors.0 }}</span></td>
-            </tr>
-            <tr>
-                <th>{{ form.target.label }}</th>
-                <td>{{ form.target }}</td>
-                <td><span class="error">{{ form.target.errors.0 }}</span></td>
-            </tr>
-            <tr>
-                <th>{{ form.justification.label }}</th>
-                <td>{{ form.justification }}</td>
-                <td><span class="error">{{ form.justification.errors.0 }}</span></td>
-            </tr>
-            <tr>
-                <th>{{ form.qvlan.label }}</th>
-                <td>{{ form.qvlan }}</td>
-                <td><span class="error">{{ form.qvlan.errors.0 }}</span></td>
-            </tr>
-            <tr>
-                <th>{{ form.comment.label }}</th>
-                <td>{{ form.comment }}</td>
-                <td><span class="error">{{ form.comment.errors.0 }}</span></td>
-            </tr>
-            <tr>
-                <th>{{ form.days.label }}</th>
-                <td class="days">{{ form.days }} days</td>
-                <td><span class="error">{{ form.days.errors.0 }}</span></td>
-            </tr>
-
-            <tr>
-                <th>&nbsp;</th>
-                <td><input type="submit" value="Detain"></td>
-            </tr>
-            </tbody>
-
-        </table>
+    {{ form.errors }}
+    <form action="{% url arnold-manual-detention %}" method="POST">
+        {{ form.as_p }}
+        <input type="submit" value="Go to step 2">
     </form>
 
 {% endblock %}

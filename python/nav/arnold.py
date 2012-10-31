@@ -207,56 +207,77 @@ def find_input_type(ip_or_mac):
     return input_type
 
 
-def detain(ip_or_mac, method, justification, username, comment,
-           autoenablestep=0, determined=False, vlan=None):
-    """Detain a computer"""
-    cam_info = find_computer_info(ip_or_mac)
-    interface = Interface.objects.get(netbox__sysname=cam_info['sysname'],
-                                      ifindex=cam_info['ifindex'])
-    ip = cam_info['ip']
-    mac = cam_info['mac']
-    netbox = interface.netbox
+def disable(myidentity, justification, username, comment="", determined=False,
+            autoenablestep=0):
+    """Disable a target by blocking the port"""
+    identity = check_identity(myidentity)
+    change_port_status('disable', identity)
+    identity.status = 'disabled'
+    update_identity(identity, justification, determined, autoenablestep)
+    create_event(identity, comment, username)
 
-    # Check if we should not detain this ip address for some reason
-    should_detain(ip, interface)
+    LOGGER.info("Successfully %s %s (%s)" % (
+                identity.status, identity.ip, identity.mac))
 
+
+def quarantine(myidentity, qvlan, justification, username, comment="",
+               determined=False, autoenablestep=0):
+    """Quarantine a target bu changing vlan on port"""
+    identity = check_identity(myidentity)
+    identity.fromvlan = change_port_vlan(identity, qvlan.vlan)
+    identity.tovlan = qvlan.vlan
+    identity.status = 'quarantined'
+    update_identity(identity, justification, determined, autoenablestep)
+    create_event(identity, comment, username)
+
+    LOGGER.info("Successfully %s %s (%s)" % (
+                identity.status, identity.ip, identity.mac))
+
+
+def check_target(target):
+    """Check if target can be blocked or not"""
+    if find_input_type(target) == 'IP':
+        check_non_block(target)
+
+
+def check_identity(myidentity):
+    """Create or return existing identity object based on target"""
     try:
-        identity = Identity.objects.get(interface=interface, mac=mac)
+        identity = Identity.objects.get(interface=myidentity.interface,
+                                        mac=myidentity.mac)
         if identity.status != 'enabled':
             LOGGER.info('This computer is already detained - skipping')
             raise AlreadyBlockedError
+        identity.ip = myidentity.ip
     except Identity.DoesNotExist:
-        identity = Identity()
-        identity.mac = mac
-        identity.interface = interface
+        identity = myidentity
 
-    identity.ip = ip
+    # Check if we should not detain this ip address for some reason
+    should_detain(myidentity.interface)
 
-    if method == 'block':
-        change_port_status('disable', identity)
-        identity.status = 'disabled'
-    elif method == 'quarantine':
-        identity.fromvlan = change_port_vlan(identity, vlan)
-        identity.tovlan = vlan
-        identity.status = 'quarantined'
+    return identity
 
+
+def update_identity(identity, justification, determined, autoenablestep):
+    """Update an identity with common info"""
     identity.justification = justification
-    identity.organization = netbox.organization
+    identity.organization = identity.interface.netbox.organization
     identity.keep_closed = 'y' if determined else 'n'
-    identity.dns = get_host_name(ip)
-    identity.netbios = get_netbios(ip)
+    identity.dns = get_host_name(identity.ip)
+    identity.netbios = get_netbios(identity.ip)
     if autoenablestep > 0:
         identity.autoenable = datetime.now() + timedelta(days=autoenablestep)
         identity.autoenablestep = autoenablestep
 
     identity.save()
 
+
+def create_event(identity, comment, username):
     event = Event(identity=identity, comment=comment, action=identity.status,
-                  justification=justification, autoenablestep=autoenablestep,
+                  justification=identity.justification,
+                  autoenablestep=identity.autoenablestep,
                   executor=username)
     event.save()
-
-    LOGGER.info("Successfully %s %s (%s)" %(identity.status, ip, mac))
 
 
 def find_computer_info(ip_or_mac):
@@ -264,16 +285,12 @@ def find_computer_info(ip_or_mac):
     return find_id_information(ip_or_mac, 1)[0]
 
 
-def should_detain(ip, interface):
+def should_detain(interface):
     """Check if this identity should not be detained for some reason"""
     netbox = interface.netbox
     config = get_config(CONFIGFILE)
     allowtypes = [x.strip()
                   for x in str(config.get('arnold','allowtypes')).split(',')]
-
-    if check_non_block(ip):
-        LOGGER.info('Computer in nonblock list, skipping')
-        raise InExceptionListError
 
     if netbox.category.id not in allowtypes:
         LOGGER.info("Not allowed to detain on %s" % (netbox.category.id))
@@ -519,14 +536,13 @@ def check_non_block(ip):
 
     # Specific ip-addresses
     if ip in nonblockdict['ip']:
-        return True
+        LOGGER.info('Computer in nonblock list, skipping')
+        raise InExceptionListError
 
     # Ip-ranges
     for ip_range in nonblockdict['range']:
         if ip in IP(ip_range):
-            return True
-        
-    return False
+            raise InExceptionListError
 
 
 def compute_octet_string(hexstring, port, action='enable'):

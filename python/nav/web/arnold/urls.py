@@ -19,7 +19,8 @@ from django.conf.urls.defaults import patterns, url
 from nav.web.arnold.views import (render_history, render_detained_ports,
                                   render_search, render_justifications,
                                   render_quarantine_vlans, render_details,
-                                  render_manual_detention,
+                                  render_manual_detention_step_one,
+                                  render_manual_detention_step_two,
                                   render_detention_profiles,
                                   render_edit_detention_profile,
                                   choose_detentions, lift_detentions)
@@ -35,8 +36,11 @@ urlpatterns = patterns('',
 
    url(r"^search/$", render_search, name="arnold-search"),
 
-   url(r"^manualdetention/$", render_manual_detention,
+   url(r"^manualdetention/$", render_manual_detention_step_one,
        name="arnold-manual-detention"),
+
+   url(r"^manualdetention/(?P<target>[^/]+)$", render_manual_detention_step_two,
+       name="arnold-manual-detention-step-two"),
 
    url(r"^enable/(?P<did>\d+)$", choose_detentions,
        name="arnold-choose-detentions"),

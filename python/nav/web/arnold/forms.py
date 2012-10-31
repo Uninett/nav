@@ -19,6 +19,7 @@ from IPy import IP
 from django import forms
 from nav.util import is_valid_ip, is_valid_mac
 
+from nav.models.manage import Interface
 from nav.models.arnold import (DETENTION_TYPE_CHOICES, STATUSES,
                                KEEP_CLOSED_CHOICES, Justification,
                                QuarantineVlan)
@@ -118,18 +119,9 @@ class DetentionProfileForm(forms.Form):
         self.fields['justification'].choices = get_justifications()
 
 
-class ManualDetentionForm(forms.Form):
-    """Form for executing a manual detention"""
-
-    method = forms.ChoiceField(label="Choose method",
-                               choices=DETENTION_TYPE_CHOICES,
-                               initial=DETENTION_TYPE_CHOICES[0][0],
-                               widget=forms.RadioSelect())
+class ManualDetentionTargetForm(forms.Form):
+    """Form for step one of manual detention"""
     target = forms.CharField(label="IP/MAC to detain")
-    justification = forms.ChoiceField(label="Reason")
-    qvlan = forms.ChoiceField(label="Quarantine vlan", required=False)
-    comment = forms.CharField(label="Comment", required=False)
-    days = forms.IntegerField(label="Autoenable in")
 
     def clean_target(self):
         """Validate target"""
@@ -139,18 +131,33 @@ class ManualDetentionForm(forms.Form):
 
         return target
 
+
+class ManualDetentionForm(forms.Form):
+    """Form for executing a manual detention"""
+
+    method = forms.ChoiceField(label="Choose method",
+                               choices=DETENTION_TYPE_CHOICES,
+                               initial=DETENTION_TYPE_CHOICES[0][0],
+                               widget=forms.RadioSelect())
+    target = forms.CharField(label="IP/MAC to detain",
+                             widget=forms.TextInput(attrs={'readonly': True}))
+    camtuple = forms.ChoiceField(label="Interface")
+    justification = forms.ChoiceField(label="Reason")
+    qvlan = forms.ChoiceField(label="Quarantine vlan", required=False)
+    comment = forms.CharField(label="Comment", required=False)
+    days = forms.IntegerField(label="Autoenable in")
+
     def clean(self):
         cleaned_data = self.cleaned_data
         method = cleaned_data.get('method')
         qvlan = cleaned_data.get('qvlan')
 
         # If method = quarantine and no quarantine vlan is set, throw error
-        if method == DETENTION_TYPE_CHOICES[1][0] and not qvlan:
+        if method == 'quarantine' and not qvlan:
             self._errors['qvlan'] = self.error_class(['This field is required'])
             del cleaned_data['qvlan']
 
         return cleaned_data
-
 
     def __init__(self, *args, **kwargs):
         super(ManualDetentionForm, self).__init__(*args, **kwargs)

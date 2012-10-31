@@ -29,13 +29,16 @@ from django.db.models import Q
 
 from datetime import datetime, timedelta
 
-from nav.arnold import open_port, detain
+from nav.arnold import (open_port, disable, quarantine, GeneralException,
+                        find_id_information, find_input_type)
 from nav.models.arnold import (Identity, Justification, QuarantineVlan,
                                DetentionProfile)
+from nav.models.manage import Cam, Interface
 from nav.django.utils import get_account
-from nav.web.arnold.forms import (JustificationForm, HistorySearchForm,
-                                  QuarantineVlanForm, SearchForm,
-                                  DetentionProfileForm, ManualDetentionForm)
+from nav.web.arnold.forms import (SearchForm, HistorySearchForm,
+                                  JustificationForm, ManualDetentionForm,
+                                  ManualDetentionTargetForm,
+                                  DetentionProfileForm, QuarantineVlanForm)
 from nav.web.utils import create_title
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
@@ -179,26 +182,93 @@ def process_justification_form(form):
     justification.save()
 
 
-def render_manual_detention(request):
+def render_manual_detention_step_one(request):
     """Controller for rendering manual detention"""
     if request.method == 'POST':
-        form = ManualDetentionForm(request.POST)
+        form = ManualDetentionTargetForm(request.POST)
+        LOGGER.debug('Form is posted')
         if form.is_valid():
-            process_manual_detention_form(form)
-            return redirect('arnold-detainedports')
+            LOGGER.debug('Form is valid')
+
+            return redirect('arnold-manual-detention-step-two',
+                            form.cleaned_data['target'])
     else:
-        form = ManualDetentionForm()
+        form = ManualDetentionTargetForm()
 
     return render_to_response('arnold/manualdetain.html',
                        create_context('Manual detention', {
                            'active': {'manualdetention': True},
-                           'form': form
+                           'form': form,
                        }), RequestContext(request))
 
 
-def process_manual_detention_form(form):
+def render_manual_detention_step_two(request, target):
+    """Controller for rendering interface choices when manualy detaining"""
+
+    error = ""
+    interfaces = find_id_information(target, 3)
+    camtuples = {}
+    for interface in interfaces:
+        camtuples[str(interface['camid'])] = interface
+    camtuple_choices = [(str(x['camid']), 'a') for x in interfaces]
+
+    if request.method == 'POST':
+        form = ManualDetentionForm(request.POST)
+        form.fields['camtuple'].choices = camtuple_choices
+        if form.is_valid():
+            error = process_manual_detention_form(form, get_account(request))
+            if not error:
+                redirect('arnold-detainedports')
+
+    else:
+        form = ManualDetentionForm(initial={'target': target})
+        form.fields['camtuple'].choices = camtuple_choices
+
+    return render_to_response('arnold/manualdetain-step2.html',
+                              create_context('Manual detention', {
+                                  'active': {'manualdetention': True},
+                                  'target': target,
+                                  'interfaces': camtuples,
+                                  'form': form,
+                                  'now': datetime.now(),
+                                  'error': error
+                              }), RequestContext(request))
+
+
+def process_manual_detention_form(form, account):
     """Execute a manual detention based on form data"""
-    pass
+    LOGGER.debug('process_manual_detention_form')
+
+
+    target = form.cleaned_data['target']
+    justification = Justification.objects.get(
+        pk=form.cleaned_data['justification'])
+    username = account.login
+    comment = form.cleaned_data['comment']
+    days = form.cleaned_data['days']
+    camtuple = form.cleaned_data['camtuple']
+
+    cam = Cam.objects.get(pk=camtuple)
+    interface = Interface.objects.get(sysname=cam.sysname, ifindex=cam.ifindex)
+
+    identity = Identity()
+    identity.interface = interface
+    identity.mac = cam.mac
+    if find_input_type(target) == 'IP':
+        identity.ip = target
+
+    if form.method == 'disable':
+        try:
+            disable(identity, justification, username, comment=comment,
+                    autoenablestep=days)
+        except GeneralException, error:
+            return error
+    elif form.method == 'quarantine':
+        try:
+            quarantine(identity, form.cleaned_data['qvlan'], justification,
+                       username, comment=comment, autoenablestep=days)
+        except GeneralException, error:
+            return error
 
 
 def choose_detentions(request, did):
