@@ -119,13 +119,29 @@ def handle_search(request, searchform, form_target):
 
             results = LogMessage.objects.filter(time__gte=form.cleaned_data['timestamp_from'], time__lte=form.cleaned_data['timestamp_to']).select_related()
             if form.cleaned_data['priority']:
-                results = results.filter(newpriority__in=form.cleaned_data['priority'])
+                newpriorities = form.cleaned_data['priority']
+                if not isinstance(form.cleaned_data['priority'], list):
+                    newpriorities = [form.cleaned_data['priority']]
+
+                results = results.filter(newpriority__in=newpriorities)
             if form.cleaned_data["message_type"]:
-                results = results.filter(type__in=form.cleaned_data['message_type'])
+                message_types = form.cleaned_data['message_type']
+                if not isinstance(form.cleaned_data['message_type'], list):
+                    message_types = [form.cleaned_data['message_type']]
+
+                results = results.filter(type__in=message_types)
             if form.cleaned_data["category"]:
-                results = results.filter(category__in=form.cleaned_data['category'])
+                categories = form.cleaned_data['category']
+                if not isinstance(form.cleaned_data['category'], list):
+                    categories = [form.cleaned_data['category']]
+
+                results = results.filter(category__in=categories)
             if form.cleaned_data["origin"]:
-                results = results.filter(origin__in=form.cleaned_data['origin'])
+                origins = form.cleaned_data['origin']
+                if not isinstance(form.cleaned_data['origin'], list):
+                    origins = [form.cleaned_data['origin']]
+
+                results = results.filter(origin__in=origins)
 
 
 
