@@ -152,6 +152,7 @@ def handle_search(request, searchform, form_target):
         'form_target': form_target,
         'log_messages': results,
         'aggregates': aggregates,
+        'timestamp': datetime.datetime.now().strftime(DATEFORMAT)
         }
 
     return render_to_response('loggerhandler/frag-search.html',

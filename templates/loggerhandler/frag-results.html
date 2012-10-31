@@ -1,4 +1,6 @@
 <div class="results">
+    <p>Request generated at {{ timestamp }}</p>
+
     {% if aggregates %}
     <div class="multitable">
     {% for name, aggregate in aggregates.items %}
@@ -53,7 +55,7 @@
         </tbody>
     </table>
     {% else %}
-    <div>
+    <div id="no_log_messages">
         No log-messages
     </div>
     {% endif %}
