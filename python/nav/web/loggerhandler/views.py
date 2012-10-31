@@ -171,13 +171,6 @@ def handle_search(request, searchform, form_target):
 
                 results = results.filter(origin__name__in=origin_name)
 
-            if 'show_log' in form.cleaned_data and form.cleaned_data['show_log']:
-                show_log = bool(form.cleaned_data['show_log'])
-                if show_log:
-                    context.update({'log_messages': results})
-                context.update({'show_log': show_log})
-
-
             priorities = results.values('newpriority__keyword').annotate(sum=Count('newpriority__keyword'))
             priorities_headers = ['Priority']
             message_types = results.values('type__facility', 'type__priority__keyword', 'type__mnemonic').annotate(sum=Count('type'))
@@ -188,6 +181,23 @@ def handle_search(request, searchform, form_target):
             aggregates.update({'Priorities' : { 'values': priorities, 'headers': priorities_headers, 'colspan': 1} })
             aggregates.update({'Type': { 'values': message_types, 'headers': message_types_headers, 'colspan': 3 }})
             aggregates.update({'Origin': { 'values': origins, 'headers': origins_headers, 'colspan': 1 }})
+
+            def _update_show_log_context(value, results):
+                if value:
+                    context.update({'log_messages': results})
+                    context.update({'show_log': value})
+                form.data = form.data.copy() # mutable QueryDict, yes please
+                form.data['show_log'] = value
+
+
+            if 'show_log' in form.cleaned_data and form.cleaned_data['show_log']:
+                show_log = bool(form.cleaned_data['show_log'])
+                _update_show_log_context(show_log, results)
+
+            if len(priorities) <= 1 and len(origins) <= 1:
+                _update_show_log_context(True, results)
+            elif len(message_types) <= 1 and len(priorities) <= 1:
+                _update_show_log_context(True, results)
 
     else:
         initial_context = {
