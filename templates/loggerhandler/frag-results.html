@@ -1,8 +1,6 @@
 <div class="logger_search_results">
-    <p>Request generated at {{ timestamp }}. <a href="{{ bookmark }}">Hotlink for search</a></p>
-
-
     {% if aggregates %}
+        <p>Request generated at {{ timestamp }}. <a href="{{ bookmark }}">Hotlink for search</a></p>
     <div class="multitable">
     {% for name, aggregate in aggregates.items %}
 
