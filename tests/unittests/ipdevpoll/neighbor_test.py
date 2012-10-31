@@ -30,4 +30,4 @@ class IgnoreCDPSelfLoopsTest(TestCase):
     def test_apparent_cdp_self_loop_should_be_ignored(self):
         test_ip = '10.0.1.41'
         neighbor = _MockedCDPNeighbor(None, test_ip)
-        self.assertIsNone(neighbor._netbox_from_ip(test_ip))
+        self.assertTrue(neighbor._netbox_from_ip(test_ip) is None)
