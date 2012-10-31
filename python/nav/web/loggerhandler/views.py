@@ -35,7 +35,7 @@ from nav.django.templatetags.info import register
 
 from nav.django.utils import get_account
 
-from nav.models.logger import LogMessage
+from nav.models.logger import LogMessage, Priority
 from nav.models.logger import ErrorError
 from nav.models.logger import MessageView
 from nav.web.loggerhandler.forms import LoggerSearchForm, LoggerGroupSearchForm
@@ -105,6 +105,19 @@ def _get_basic_info_dict(db_access, param_util):
     context.update(DEFAULT_VALUES)
     return context
 
+
+def _strip_empty_arguments(request):
+    """Strips empty arguments and their related operator arguments from the
+    QueryDict in request.GET and returns a new, possibly modified QueryDict.
+
+    """
+    query = request.GET.copy()
+
+    deletable = [key for key, value in query.iteritems() if not value.strip()]
+    for key in deletable:
+        del query[key]
+    return query
+
 def handle_search(request, searchform, form_target):
     account = get_account(request)
     if not account:
@@ -114,59 +127,104 @@ def handle_search(request, searchform, form_target):
     aggregates = {}
 
     if len(request.GET.keys()) > 0:
-        form = searchform(request.GET)
+        query_dict = request.GET.copy()
+
+
+        form = searchform(query_dict)
         if form.is_valid():
 
             results = LogMessage.objects.filter(time__gte=form.cleaned_data['timestamp_from'], time__lte=form.cleaned_data['timestamp_to']).select_related()
-            if form.cleaned_data['priority']:
+            if 'priority' in form.cleaned_data and form.cleaned_data['priority']:
                 newpriorities = form.cleaned_data['priority']
                 if not isinstance(form.cleaned_data['priority'], list):
                     newpriorities = [form.cleaned_data['priority']]
 
                 results = results.filter(newpriority__in=newpriorities)
-            if form.cleaned_data["message_type"]:
+            elif 'priority_keyword' in form.cleaned_data and form.cleaned_data['priority_keyword']:
+                priority_keyword = form.cleaned_data['priority_keyword']
+                if not isinstance(form.cleaned_data['priority_keyword'], list):
+                    priority_keyword = [form.cleaned_data['priority_keyword']]
+
+                results = results.filter(newpriority__keyword__in=priority_keyword)
+
+            if 'message_type' in form.cleaned_data and form.cleaned_data["message_type"]:
                 message_types = form.cleaned_data['message_type']
                 if not isinstance(form.cleaned_data['message_type'], list):
                     message_types = [form.cleaned_data['message_type']]
 
                 results = results.filter(type__in=message_types)
+
+            if 'message_type_mnemonic' in form.cleaned_data and form.cleaned_data['message_type_mnemonic']:
+                message_type_mnemonic = form.cleaned_data['message_type_mnemonic']
+                if not isinstance(form.cleaned_data['message_type_mnemonic'], list):
+                    message_type_mnemonic = [form.cleaned_data['message_type_mnemonic']]
+
+
+                results = results.filter(type__mnemonic__in=message_type_mnemonic)
+
+            if 'message_type_facility' in form.cleaned_data and form.cleaned_data['message_type_facility']:
+                message_type_facility = form.cleaned_data['message_type_facility']
+                if not isinstance(form.cleaned_data['message_type_facility'], list):
+                    message_type_facility = [form.cleaned_data['message_type_facility']]
+
+                results = results.filter(type__facility__in=message_type_facility)
+
             if form.cleaned_data["category"]:
                 categories = form.cleaned_data['category']
                 if not isinstance(form.cleaned_data['category'], list):
                     categories = [form.cleaned_data['category']]
 
                 results = results.filter(category__in=categories)
-            if form.cleaned_data["origin"]:
+            if 'origin' in form.cleaned_data and form.cleaned_data["origin"]:
                 origins = form.cleaned_data['origin']
                 if not isinstance(form.cleaned_data['origin'], list):
                     origins = [form.cleaned_data['origin']]
 
                 results = results.filter(origin__in=origins)
+            elif 'origin_name' in form.cleaned_data and form.cleaned_data['origin_name']:
+                origin_name = form.cleaned_data['origin_name']
+                if not isinstance(form.cleaned_data['origin_name'], list):
+                    origin_name = [form.cleaned_data['origin_name']]
+
+                results = results.filter(origin__name__in=origin_name)
 
 
 
-            priorities = results.values('newpriority__keyword').annotate(sum=Count('newpriority__keyword'))
+
+            priorities = results.values('newpriority', 'newpriority__keyword').annotate(sum=Count('newpriority__keyword'))
             priorities_headers = ['Priority']
-            message_types = results.values('type__mnemonic', 'type__priority__keyword', 'type__facility').annotate(sum=Count('type'))
-            message_types_headers = ['State', 'Priority', 'Facility']
-            origins = results.values('origin__name').annotate(sum=Count('origin__name'))
+            message_types = results.values('type', 'type__facility', 'type__priority__keyword', 'type__mnemonic').annotate(sum=Count('type'))
+            message_types_headers = ['Facility', 'Priority', 'State']
+            origins = results.values('origin', 'origin__name').annotate(sum=Count('origin__name'))
             origins_headers = ['Origin']
 
-            aggregates.update({'Priorities' : { 'values': priorities, 'headers': priorities_headers, 'colspan': 1} })
-            aggregates.update({'Type': { 'values': message_types, 'headers': message_types_headers, 'colspan': 3 }})
-            aggregates.update({'Origin': { 'values': origins, 'headers': origins_headers, 'colspan': 1 }})
+            aggregates.update({'Priorities' : { 'name': 'priority', 'values': priorities, 'headers': priorities_headers, 'colspan': 1} })
+            aggregates.update({'Type': { 'name': 'message_type', 'values': message_types, 'headers': message_types_headers, 'colspan': 3 }})
+            aggregates.update({'Origin': { 'name': 'origin', 'values': origins, 'headers': origins_headers, 'colspan': 1 }})
 
     else:
-        form = searchform(initial={
+        initial_context = {
             'timestamp_from': (datetime.datetime.now() -
-                               datetime.timedelta(days=1)),
+                               datetime.timedelta(days=51)),
             'timestamp_to': datetime.datetime.now()
-        })
+        }
+        #if 'Priorities' in request.GET:
+        #    initial_context.update({'priority': request.GET.get('Priorities')})
+        #if 'Type' in request.GET:
+        #    initial_context.update({'message_type': request.GET.get('Type')})
+        #if 'Origin' in request.GET:
+        #    initial_context.update({'origin': request.GET.get('Origin')})
+
+        form = searchform(initial=initial_context)
+
+
+    strip_query_args = _strip_empty_arguments(request)
+    strip_query_args = strip_query_args.urlencode() if strip_query_args else ""
 
     context =  {
         'form': form,
         'form_target': form_target,
-        'bookmark': request.get_full_path(),
+        'bookmark': "{0}?{1}".format(request.META['PATH_INFO'], strip_query_args),
         'log_messages': results,
         'aggregates': aggregates,
         'timestamp': datetime.datetime.now().strftime(DATEFORMAT)

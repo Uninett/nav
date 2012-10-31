@@ -3,6 +3,13 @@ from nav.models.logger import Priority, LoggerCategory, Origin, LogMessageType
 
 DATEFORMAT = ("%Y-%m-%d %H:%M:%S",)
 
+def choice_values(model, field_name):
+    choice_list = model.objects.values_list(field_name).select_related().distinct()
+    choices = [(choice[0], choice[0]) for choice in choice_list]
+    choices.sort()
+    choices.insert(0, ('', u'(All)'))
+    return choices
+
 class LoggerSearchForm(forms.Form):
     priority = forms.ModelMultipleChoiceField(queryset=Priority.objects.all(), required=False)
     message_type = forms.ModelMultipleChoiceField(queryset=LogMessageType.objects.all(), required=False)
@@ -13,10 +20,10 @@ class LoggerSearchForm(forms.Form):
 
 
 class LoggerGroupSearchForm(forms.Form):
-    priority = forms.ModelChoiceField(queryset=Priority.objects.all(), required=False, empty_label=u'(All)')
-    message_type = forms.ModelChoiceField(queryset=LogMessageType.objects.all(), required=False, empty_label=u'(All)')
+    priority_keyword = forms.ChoiceField(choices=choice_values(Priority, 'keyword'), required=False)
+    message_type_facility = forms.ChoiceField(choices=choice_values(LogMessageType, 'facility'), required=False)
+    message_type_mnemonic = forms.ChoiceField(choices=choice_values(LogMessageType, 'mnemonic'), required=False)
+    origin_name = forms.ChoiceField(choices=choice_values(Origin, 'name'), required=False)
     category = forms.ModelChoiceField(queryset=LoggerCategory.objects.all(), required=False, empty_label=u'(All)')
-    origin = forms.ModelChoiceField(queryset=Origin.objects.all(), required=False, empty_label=u'(All)')
     timestamp_from = forms.DateTimeField(input_formats=DATEFORMAT)
     timestamp_to = forms.DateTimeField(input_formats=DATEFORMAT)
-
