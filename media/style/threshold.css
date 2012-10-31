@@ -25,3 +25,11 @@ table.vertitable tbody tr td.changed {
 table.vertitable tbody tr td.error {
     background-color: red;
 }
+
+table.vertitable tbody tr td.success {
+    background-color: green;
+}
+
+input.threshold {
+    width: 8em;
+}
