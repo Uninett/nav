@@ -1,3 +1,4 @@
+import urllib
 from django import forms
 from nav.models.logger import Priority, LoggerCategory, Origin, LogMessageType
 
@@ -11,6 +12,9 @@ class LoggerSearchForm(forms.Form):
     timestamp_from = forms.DateTimeField(input_formats=DATEFORMAT)
     timestamp_to = forms.DateTimeField(input_formats=DATEFORMAT)
 
+    def as_url_args(self):
+        return urllib.urlencode(self.cleaned_data)
+
 class LoggerGroupSearchForm(forms.Form):
     priority = forms.ModelChoiceField(queryset=Priority.objects.all(), required=False, empty_label=u'(All)')
     message_type = forms.ModelChoiceField(queryset=LogMessageType.objects.all(), required=False, empty_label=u'(All)')
@@ -18,3 +22,6 @@ class LoggerGroupSearchForm(forms.Form):
     origin = forms.ModelChoiceField(queryset=Origin.objects.all(), required=False, empty_label=u'(All)')
     timestamp_from = forms.DateTimeField(input_formats=DATEFORMAT)
     timestamp_to = forms.DateTimeField(input_formats=DATEFORMAT)
+
+    def as_url_args(self):
+        return urllib.urlencode(self.cleaned_data)
