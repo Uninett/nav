@@ -173,16 +173,16 @@ def handle_search(request, searchform, form_target):
 
 
 
-            priorities = results.values('newpriority', 'newpriority__keyword').annotate(sum=Count('newpriority__keyword'))
+            priorities = results.values('newpriority__keyword').annotate(sum=Count('newpriority__keyword'))
             priorities_headers = ['Priority']
-            message_types = results.values('type', 'type__facility', 'type__priority__keyword', 'type__mnemonic').annotate(sum=Count('type'))
+            message_types = results.values('type__facility', 'type__priority__keyword', 'type__mnemonic').annotate(sum=Count('type'))
             message_types_headers = ['Facility', 'Priority', 'State']
-            origins = results.values('origin', 'origin__name').annotate(sum=Count('origin__name'))
+            origins = results.values('origin__name').annotate(sum=Count('origin__name'))
             origins_headers = ['Origin']
 
-            aggregates.update({'Priorities' : { 'name': 'priority', 'values': priorities, 'headers': priorities_headers, 'colspan': 1} })
-            aggregates.update({'Type': { 'name': 'message_type', 'values': message_types, 'headers': message_types_headers, 'colspan': 3 }})
-            aggregates.update({'Origin': { 'name': 'origin', 'values': origins, 'headers': origins_headers, 'colspan': 1 }})
+            aggregates.update({'Priorities' : { 'values': priorities, 'headers': priorities_headers, 'colspan': 1} })
+            aggregates.update({'Type': { 'values': message_types, 'headers': message_types_headers, 'colspan': 3 }})
+            aggregates.update({'Origin': { 'values': origins, 'headers': origins_headers, 'colspan': 1 }})
 
     else:
         initial_context = {

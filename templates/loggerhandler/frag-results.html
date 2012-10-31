@@ -20,9 +20,24 @@
         {% for title in aggregate.values %}
         <tr>
             {% for key, value in title.items %}
-            {% if key != "sum" %}
-            <td>{{ value }}</td>
-            {% endif %}
+                {% if name == "Origin" %}
+                    {% if key != "sum" %}
+                        <td><a href="{{ bookmark }}&origin={{value}}">{{ value }}</a></td>
+                    {% endif %}
+                {% endif %}
+                {% if name == "Type" %}
+                    {% if key == 'type__mnemonic' %}
+                        <td><a href="{{ bookmark }}&mnemonic={{value}}">{{ value }}</a></td>
+                    {% endif %}
+                    {% if key == 'type__facility' %}
+                        <td><a href="{{ bookmark }}&facility={{value}}">{{ value }}</a></td>
+                    {% endif %}
+                {% endif %}
+                {% if name == "Priorities" %}
+                    {% if key != "sum" %}
+                        <td><a href="{{ bookmark }}&priority={{value}}">{{ value }}</a></td>
+                    {% endif %}
+                {% endif %}
             {% endfor %}
             <td>{{ title.sum }}</td>
         </tr>
