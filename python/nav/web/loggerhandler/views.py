@@ -135,37 +135,24 @@ def handle_search(request, searchform, form_target):
 
             results = LogMessage.objects.filter(time__gte=form.cleaned_data['timestamp_from'], time__lte=form.cleaned_data['timestamp_to']).select_related()
             if 'priority' in form.cleaned_data and form.cleaned_data['priority']:
-                newpriorities = form.cleaned_data['priority']
+                priority_keyword = form.cleaned_data['priority']
                 if not isinstance(form.cleaned_data['priority'], list):
-                    newpriorities = [form.cleaned_data['priority']]
-
-                results = results.filter(newpriority__in=newpriorities)
-            elif 'priority_keyword' in form.cleaned_data and form.cleaned_data['priority_keyword']:
-                priority_keyword = form.cleaned_data['priority_keyword']
-                if not isinstance(form.cleaned_data['priority_keyword'], list):
-                    priority_keyword = [form.cleaned_data['priority_keyword']]
+                    priority_keyword = [form.cleaned_data['priority']]
 
                 results = results.filter(newpriority__keyword__in=priority_keyword)
 
-            if 'message_type' in form.cleaned_data and form.cleaned_data["message_type"]:
-                message_types = form.cleaned_data['message_type']
-                if not isinstance(form.cleaned_data['message_type'], list):
-                    message_types = [form.cleaned_data['message_type']]
-
-                results = results.filter(type__in=message_types)
-
-            if 'message_type_mnemonic' in form.cleaned_data and form.cleaned_data['message_type_mnemonic']:
-                message_type_mnemonic = form.cleaned_data['message_type_mnemonic']
-                if not isinstance(form.cleaned_data['message_type_mnemonic'], list):
-                    message_type_mnemonic = [form.cleaned_data['message_type_mnemonic']]
+            if 'mnemonic' in form.cleaned_data and form.cleaned_data['mnemonic']:
+                message_type_mnemonic = form.cleaned_data['mnemonic']
+                if not isinstance(form.cleaned_data['mnemonic'], list):
+                    message_type_mnemonic = [form.cleaned_data['mnemonic']]
 
 
                 results = results.filter(type__mnemonic__in=message_type_mnemonic)
 
-            if 'message_type_facility' in form.cleaned_data and form.cleaned_data['message_type_facility']:
-                message_type_facility = form.cleaned_data['message_type_facility']
-                if not isinstance(form.cleaned_data['message_type_facility'], list):
-                    message_type_facility = [form.cleaned_data['message_type_facility']]
+            if 'facility' in form.cleaned_data and form.cleaned_data['facility']:
+                message_type_facility = form.cleaned_data['facility']
+                if not isinstance(form.cleaned_data['facility'], list):
+                    message_type_facility = [form.cleaned_data['facility']]
 
                 results = results.filter(type__facility__in=message_type_facility)
 
@@ -175,16 +162,11 @@ def handle_search(request, searchform, form_target):
                     categories = [form.cleaned_data['category']]
 
                 results = results.filter(category__in=categories)
-            if 'origin' in form.cleaned_data and form.cleaned_data["origin"]:
-                origins = form.cleaned_data['origin']
-                if not isinstance(form.cleaned_data['origin'], list):
-                    origins = [form.cleaned_data['origin']]
 
-                results = results.filter(origin__in=origins)
-            elif 'origin_name' in form.cleaned_data and form.cleaned_data['origin_name']:
-                origin_name = form.cleaned_data['origin_name']
-                if not isinstance(form.cleaned_data['origin_name'], list):
-                    origin_name = [form.cleaned_data['origin_name']]
+            if 'origin' in form.cleaned_data and form.cleaned_data['origin']:
+                origin_name = form.cleaned_data['origin']
+                if not isinstance(form.cleaned_data['origin'], list):
+                    origin_name = [form.cleaned_data['origin']]
 
                 results = results.filter(origin__name__in=origin_name)
 
