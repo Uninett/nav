@@ -18,6 +18,7 @@
 import copy
 
 import logging
+from django.core.urlresolvers import reverse
 from django.db.models.aggregates import Count
 import os
 import datetime
@@ -104,7 +105,7 @@ def _get_basic_info_dict(db_access, param_util):
     context.update(DEFAULT_VALUES)
     return context
 
-def handle_search(request, searchform):
+def handle_search(request, searchform, form_target):
     account = get_account(request)
     if not account:
         return HttpResponseForbidden("You must be logged in to access this resource")
@@ -148,6 +149,7 @@ def handle_search(request, searchform):
 
     context =  {
         'form': form,
+        'form_target': form_target,
         'log_messages': results,
         'aggregates': aggregates,
         }
@@ -162,10 +164,10 @@ def index(request):
         RequestContext(request))
 
 def direct_search(request):
-    return handle_search(request, LoggerSearchForm)
+    return handle_search(request, LoggerSearchForm, reverse(direct_search))
 
 def group_search(request):
-    return handle_search(request, LoggerGroupSearchForm)
+    return handle_search(request, LoggerGroupSearchForm, reverse(group_search))
 
 
 

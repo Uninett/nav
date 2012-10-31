@@ -24,4 +24,12 @@ require([
         TabNavigation.add(mainTabsSelector);
     }
 
+    function searchSyslog(target) {
+
+        $.post(target, $("#syslog_search_form").serialize(), function (data) {
+            // todo: need error checking.
+            debugger;
+            $('#syslog_search').html(data);
+        });
+    }
 });

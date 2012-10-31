@@ -1,6 +1,6 @@
-<div id="direct_search">
+<div id="syslog_search">
     {% if form %}
-    <form method="get" action="#!results">
+    <form id="syslog_search_form" method="get" action="{{ form_target }}">
         <table class="vertitable">
             <tbody>
             {% for field in form %}
@@ -12,7 +12,7 @@
             <tr>
                 <th></th>
                 <td>
-                    <button type="submit" name="send">Filter</button>
+                    <button type="submit" name="send" onclick="searchSyslog('{{ form_target }}')">Filter</button>
                 </td>
             </tr>
             </tbody>
