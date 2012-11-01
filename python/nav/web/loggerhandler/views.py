@@ -185,6 +185,8 @@ def direct_search(request):
     return handle_search(request, LoggerSearchForm, reverse(direct_search))
 
 def group_search(request):
+    if not request.is_ajax():
+        return HttpResponseRedirect(reverse(index) + request.path_info)
     return handle_search(request, LoggerGroupSearchForm, reverse(group_search))
 
 
@@ -193,6 +195,9 @@ def exceptions_response(request):
     """
     Handler for exception-mode.
     """
+    if not request.is_ajax():
+        return HttpResponseRedirect(reverse(index) + request.path_info)
+
     account = get_account(request)
     if not account:
         return HttpResponseRedirect('/')
@@ -215,6 +220,9 @@ def errors_response(request):
     """
     Handler for error-mode.
     """
+    if not request.is_ajax():
+        return HttpResponseRedirect(reverse(index) + request.path_info)
+
     account = get_account(request)
     if not account:
         return HttpResponseRedirect('/')
