@@ -68,7 +68,8 @@
 				#if $host_nybbles_map.has_key($i)
 					#set $meta = $MetaIP($host_nybbles_map[$i])
 					#set $ip = $host_nybbles_map[$i]
-					<td colspan="$colspan($ip)" style="background-color:$loadColor($meta.usage_percent,$meta.nettype); text-align:center;">#slurp
+					## <td colspan="$colspan($ip)" style="background-color:$loadColor($meta.usage_percent,$meta.nettype); text-align:center;">#slurp
+					<td colspan="$colspan($ip)" style="background-color:$meta.ipv6_color; text-align:center;">#slurp
 					$matrixlink($i,$ip)#slurp
 					</td>
 
