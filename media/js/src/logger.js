@@ -1,5 +1,10 @@
 require([
-    "plugins/table_utils", "plugins/tab_navigation", "libs/spin.min", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
+    "plugins/table_utils",
+    "plugins/tab_navigation",
+    "libs/spin.min",
+    "libs/jquery",
+    "libs/jquery-ui-1.8.21.custom.min",
+    "libs/jquery.dataTables.min"
 ], function (TableUtil, TabNavigation) {
 
     var mainTabsSelector = '#loggerinfotabs';
@@ -57,6 +62,22 @@ require([
         var tabs = $(mainTabsSelector).tabs(tabconfig);
         tabs.show();
         TabNavigation.add(mainTabsSelector);
+    }
+
+    /* Enrich tables with dataTables module */
+    function enrich_tables(tables, extra_opts) {
+        var dt_config = {
+            bAutoWidth: false,
+            bFilter: true,
+            bInfo: true,
+            bLengthChange: false,
+            bPaginate: false,
+            bSort: true
+        };
+        if (extra_opts) {
+            dt_config.update(extra_opts);
+        }
+        tables.dataTable(dt_config);
     }
 
     function eventLoadingComplete(event, ui) {
@@ -132,6 +153,7 @@ require([
                 $('.results').html("<p>Failed to load search results, please try again</p>");
         }).complete(function () {
                 $("#syslog_loader").spin(false);
+                enrich_tables($('.logger_search_results table.listtable'));
         });
     }
 });
