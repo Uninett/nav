@@ -25,11 +25,14 @@
                     {% endif %}
                 {% endif %}
                 {% if name == "Type" %}
+                    {% if key == 'type__facility' %}
+                    <td><a data-facility="{{value}}" href="{{ bookmark }}&facility={{value}}">{{ value }}</a></td>
+                    {% endif %}
+                    {% if key == 'type__priority__keyword' %}
+                        <td><a data-priority="{{value}}" href="{{ bookmark }}&priority={{value}}">{{ value }}</a></td>
+                    {% endif %}
                     {% if key == 'type__mnemonic' %}
                         <td><a data-mnemonic="{{value}}" href="{{ bookmark }}&mnemonic={{value}}">{{ value }}</a></td>
-                    {% endif %}
-                    {% if key == 'type__facility' %}
-                        <td><a data-facility="{{value}}" href="{{ bookmark }}&facility={{value}}">{{ value }}</a></td>
                     {% endif %}
                 {% endif %}
                 {% if name == "Priorities" %}
