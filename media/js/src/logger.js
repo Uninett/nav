@@ -81,7 +81,7 @@ require([
     }
 
     function eventLoadingComplete(event, ui) {
-        if (ui.tab.text.trim() === 'Direct Search' || ui.tab.text.trim() === 'Group Search') {
+        if (ui.tab.text.trim() === 'Search') {
             attachButtonListeners()
         }
     }
