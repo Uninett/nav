@@ -82,6 +82,7 @@ require([
 
     function eventLoadingComplete(event, ui) {
         if (ui.tab.text.trim() === 'Search') {
+            updateFormFromRequestArguments();
             attachButtonListeners()
         }
     }
@@ -102,6 +103,65 @@ require([
                 break;
             }
         }
+    }
+
+    function setSelectedOption(name, field) {
+        var options = $('#id_'+name+' option');
+        for (var i = 0; i < options.length; i++) {
+            var option = options[i];
+            if (option.value  && option.value.trim() === field.trim()) {
+                $(option).attr('selected', 'selected');
+                break;
+            }
+        }
+    }
+
+    function convertToBoolean(value) {
+        if (!value || value === 'undefined') return false;
+
+        if (typeof value === 'string') {
+            switch (value.toLowerCase()) {
+                case 'true':
+                case 'yes':
+                case '1':
+                case 'on':
+                    return true;
+                case 'false':
+                case 'no':
+                case '0':
+                case 'off':
+                    return false;
+            }
+        }
+        return Boolean(value);
+    }
+
+    function setSelectedValue(name, field) {
+        $('#id_'+name).val(decodeURIComponent((field.trim()).replace(/\+/g, '%20')));
+    }
+
+    function setSelectedCheckbox(name, field) {
+        if (convertToBoolean(field)) {
+            $('#id_'+name).attr('checked', (field));
+        }
+    }
+
+    function updateFormFromRequestArguments() {
+        var request = {};
+        var pairs = location.search.substring(1).split('&');
+        for (var i = 0; i < pairs.length; i++) {
+            var pair = pairs[i].split('=');
+            request[pair[0]] = pair[1];
+        }
+
+        if (request.timestamp_from) { setSelectedValue('timestamp_from', request.timestamp_from); }
+        if (request.timestamp_to) { setSelectedValue('timestamp_to', request.timestamp_to); }
+        if (request.priority) { setSelectedOption('priority', request.priority); }
+        if (request.facility) { setSelectedOption('facility', request.facility); }
+        if (request.mnemonic) { setSelectedOption('mnemonic', request.mnemonic); }
+        if (request.origin) { setSelectedOption('origin', request.origin); }
+        if (request.category) { setSelectedOption('category', request.category); }
+        if (request.show_log) { setSelectedCheckbox('show_log', request.show_log); }
     }
 
     function showLogIfEnoughFilteringEnabled(target) {

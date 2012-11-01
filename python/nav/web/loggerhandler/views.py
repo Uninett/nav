@@ -115,20 +115,15 @@ def _strip_empty_arguments(request):
         del query[key]
     return query
 
-def handle_search(request, searchform, form_target):
-    account = get_account(request)
-    if not account:
-        return HttpResponseForbidden("You must be logged in to access this resource")
-
+def _build_context(request):
     results = []
-    aggregates = {}
     context = {}
+    aggregates = {}
 
     if len(request.GET.keys()) > 0:
         query_dict = request.GET.copy()
 
-
-        form = searchform(query_dict)
+        form = LoggerGroupSearchForm(query_dict)
         if form.is_valid():
 
             results = LogMessage.objects.filter(time__gte=form.cleaned_data['timestamp_from'], time__lte=form.cleaned_data['timestamp_to']).select_related()
@@ -202,20 +197,29 @@ def handle_search(request, searchform, form_target):
                                datetime.timedelta(days=51)),
             'timestamp_to': datetime.datetime.now()
         }
-
-        form = searchform(initial=initial_context)
-
+        form = LoggerGroupSearchForm(initial=initial_context)
 
     strip_query_args = _strip_empty_arguments(request)
     strip_query_args = strip_query_args.urlencode() if strip_query_args else ""
 
     context.update({
         'form': form,
-        'form_target': form_target,
-        'bookmark': "{0}?{1}".format(request.META['PATH_INFO'], strip_query_args),
+        'bookmark': "{0}?{1}".format(reverse(index), strip_query_args),
         'aggregates': aggregates,
         'timestamp': datetime.datetime.now().strftime(DATEFORMAT)
-     })
+    })
+    return context
+
+def handle_search(request, searchform, form_target):
+    account = get_account(request)
+    if not account:
+        return HttpResponseForbidden("You must be logged in to access this resource")
+
+
+    context = _build_context(request)
+
+    context.update({'form_target': form_target})
+
 
     return render_to_response('loggerhandler/frag-search.html',
         context,
@@ -223,7 +227,7 @@ def handle_search(request, searchform, form_target):
 
 def index(request):
     return render_to_response('loggerhandler/index.html',
-        {},
+        _build_context(request),
         RequestContext(request))
 
 def direct_search(request):
