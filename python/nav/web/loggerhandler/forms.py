@@ -1,3 +1,7 @@
+"""
+forms and functions used for loggerhandler in NAV
+"""
+
 from django import forms
 from nav.models.logger import Priority, LoggerCategory, Origin, LogMessageType
 
