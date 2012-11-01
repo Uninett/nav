@@ -17,6 +17,7 @@
 """radius accounting interface mod_python handler"""
 
 import time
+from django.http import HttpResponse
 import re
 
 from nav.web.encoding import encoded_output
@@ -222,11 +223,7 @@ def handler(req):
 
 #    connection.close()
 
-    req.content_type = "text/html"
-    req.send_http_header()
-    req.write(page.respond())
-    page.shutdown()
-    return apache.OK
+    return HttpResponse(page.respond(), content_type="text/html")
 
 
 #
