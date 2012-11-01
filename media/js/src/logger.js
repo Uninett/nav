@@ -122,7 +122,6 @@ require([
     function searchSyslog(target) {
         $("#syslog_loader").spin(opts);
         $.get(target, $("#syslog_search_form").serialize(), function (data) {
-            // todo: need error checking.
             $('#syslog_search').html(data);
 
             $('.logger_search_results a').on('click', function (event) {
