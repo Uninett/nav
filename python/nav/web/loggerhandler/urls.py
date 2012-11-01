@@ -20,13 +20,12 @@ from django.conf.urls.defaults import patterns, url
 from nav.web.loggerhandler.views import index
 from nav.web.loggerhandler.views import exceptions_response
 from nav.web.loggerhandler.views import errors_response
-from nav.web.loggerhandler.views import direct_search, group_search
+from nav.web.loggerhandler.views import group_search
 
 
 urlpatterns = patterns('',
     # Default view
     url(r'^$', index, name='logger_index'),
-    url(r'^search/direct/$', direct_search, name='logger_search_direct'),
     url(r'^search/group/$', group_search, name='logger_search_group'),
     url(r'^exceptions/$', exceptions_response, name='logger_priority_exceptions'),
     url(r'^errors/$', errors_response, name='logger_errors'),

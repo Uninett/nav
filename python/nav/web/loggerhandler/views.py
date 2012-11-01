@@ -36,10 +36,9 @@ from nav.django.utils import get_account
 
 from nav.models.logger import LogMessage
 from nav.models.logger import ErrorError
-from nav.web.loggerhandler.forms import LoggerSearchForm, LoggerGroupSearchForm
+from nav.web.loggerhandler.forms import LoggerGroupSearchForm
 
-from nav.web.loggerhandler.utils import DbAccess
-from nav.web.loggerhandler.utils import ParamUtil
+
 
 
 NAVBAR = [('Home', '/'), ('Syslog Analyzer', None)]
@@ -180,9 +179,6 @@ def index(request):
     return render_to_response('loggerhandler/index.html',
         _build_context(request),
         RequestContext(request))
-
-def direct_search(request):
-    return handle_search(request, LoggerSearchForm, reverse(direct_search))
 
 def group_search(request):
     if not request.is_ajax():
