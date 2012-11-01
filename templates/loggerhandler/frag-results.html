@@ -1,82 +1,80 @@
 <div class="logger_search_results">
     {% if aggregates %}
         <p>Request generated at {{ timestamp }}. <a href="{{ bookmark }}">Hotlink for search</a></p>
-    <div class="multitable">
-    {% for name, aggregate in aggregates.items %}
-
-    <table class="vertitable" >
-        <caption>{{ name }}</caption>
-        <thead>
-        <tr>
-            {% for key in aggregate.headers %}
-            <th>{{ key }}</th>
+        <div class="multitable">
+            {% for name, aggregate in aggregates.items %}
+                <table class="vertitable" >
+                    <caption>{{ name }}</caption>
+                    <thead>
+                        <tr>
+                            {% for key in aggregate.headers %}
+                                <th>{{ key }}</th>
+                            {% endfor %}
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for title in aggregate.values %}
+                            <tr>
+                                {# Someone find a better way to do this please #}
+                                {% for key, value in title.items %}
+                                    {% if name == "Origin" %}
+                                        {% if key != "sum" %}
+                                            <td><a class="syslog_origin" data-origin="{{value}}" href="{{ bookmark }}&origin={{value}}">{{ value }}</a></td>
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if name == "Type" %}
+                                        {% if key == 'type__facility' %}
+                                        <td><a data-facility="{{value}}" href="{{ bookmark }}&facility={{value}}">{{ value }}</a></td>
+                                        {% endif %}
+                                        {% if key == 'type__priority__keyword' %}
+                                            <td><a data-priority="{{value}}" href="{{ bookmark }}&priority={{value}}">{{ value }}</a></td>
+                                        {% endif %}
+                                        {% if key == 'type__mnemonic' %}
+                                            <td><a data-mnemonic="{{value}}" href="{{ bookmark }}&mnemonic={{value}}">{{ value }}</a></td>
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if name == "Priorities" %}
+                                        {% if key != "sum" %}
+                                            <td><a data-priority="{{value}}" href="{{ bookmark }}&priority={{value}}">{{ value }}</a></td>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                                <td>{{ title.sum }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             {% endfor %}
-            <th>Count</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for title in aggregate.values %}
-        <tr>
-            {# Someone find a better way to do this please #}
-            {% for key, value in title.items %}
-                {% if name == "Origin" %}
-                    {% if key != "sum" %}
-                        <td><a class="syslog_origin" data-origin="{{value}}" href="{{ bookmark }}&origin={{value}}">{{ value }}</a></td>
-                    {% endif %}
-                {% endif %}
-                {% if name == "Type" %}
-                    {% if key == 'type__facility' %}
-                    <td><a data-facility="{{value}}" href="{{ bookmark }}&facility={{value}}">{{ value }}</a></td>
-                    {% endif %}
-                    {% if key == 'type__priority__keyword' %}
-                        <td><a data-priority="{{value}}" href="{{ bookmark }}&priority={{value}}">{{ value }}</a></td>
-                    {% endif %}
-                    {% if key == 'type__mnemonic' %}
-                        <td><a data-mnemonic="{{value}}" href="{{ bookmark }}&mnemonic={{value}}">{{ value }}</a></td>
-                    {% endif %}
-                {% endif %}
-                {% if name == "Priorities" %}
-                    {% if key != "sum" %}
-                        <td><a data-priority="{{value}}" href="{{ bookmark }}&priority={{value}}">{{ value }}</a></td>
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-            <td>{{ title.sum }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% endfor %}
-    </div>
+        </div>
     {% endif %}
     {% if show_log %}
         {% if log_messages %}
-        <table class="listtable">
-            <caption>Log</caption>
-            <thead>
-            <tr>
-                <th>Time</th>
-                <th>Origin</th>
-                <th>Message type</th>
-                <th>Message</th>
-            </tr>
-            </thead>
-            <tbody>
-            {# Implement this! #}
-            {% for mess in log_messages %}
-            <tr>
-                <td>{{ mess.time }}</td>
-                <td class="syslog_origin">{{ mess.origin.name }}</td>
-                <td>{{ mess.type.priority.keyword }}</td>
-                <td>{{ mess.message }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+            <table class="listtable">
+                <caption>Log</caption>
+                <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Origin</th>
+                    <th>Message type</th>
+                    <th>Message</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for mess in log_messages %}
+                        <tr>
+                            <td>{{ mess.time }}</td>
+                            <td class="syslog_origin">{{ mess.origin.name }}</td>
+                            <td>{{ mess.type.priority.keyword }}</td>
+                            <td>{{ mess.message }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         {% else %}
-        <div id="no_log_messages">
-            No log-messages
-        </div>
+            <div id="no_log_messages">
+                No log-messages
+            </div>
         {% endif %}
     {% endif %}
 </div>
