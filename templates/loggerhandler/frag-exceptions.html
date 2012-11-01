@@ -1,7 +1,7 @@
 {% if exceptions_mode %}
 {% if exceptions %}
 <table class="listtable">
-    <caption>Parsing errors</caption>
+    <caption>Priority exceptions</caption>
     <tbody>
     {% for option, pri in exceptions %}
     <tr class="rowcycler">
@@ -13,7 +13,8 @@
 </table>
 {% else %}
 <div>
-    No exceptions
+    <p>You have not defined any priority exceptions in the <code>logger.conf</code>
+        configuration file.</p>
 </div>
 {% endif %}
 {% endif %}
