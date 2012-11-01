@@ -61,48 +61,7 @@ def index(request):
     page = AcctSearchTemplate()
     page.menu = menu
 
-    if section.lower() == "logsearch":
-        page = LogTemplate()
-        page.current = "logsearch"
-        page.search = None
-        page.error = None
-        page.dbfields = LOG_SEARCHRESULTFIELDS #Infofields to display
-        page.menu = menu
-
-        try:
-            page.form = LogSearchForm(
-                            args.get("searchstring"),
-                            args.get("searchtype"),
-                            args.get("logentrytype"),
-                            args.get("timemode"),
-                            args.get("timestamp"),
-                            args.get("timestampslack"),
-                            args.get("hours"),
-                            args.get("sortfield"),
-                            args.get("sortorder")
-                                )
-
-            page.form.check_input()
-
-            if args.get("send"):
-                query = LogSearchQuery(
-                            page.form.searchstring,
-                            page.form.searchtype,
-                            page.form.logentrytype,
-                            page.form.timemode,
-                            page.form.timestamp,
-                            page.form.timestampslack,
-                            page.form.hours,
-                            page.form.sortfield,
-                            page.form.sortorder
-                                )
-                page.search = query
-                page.search.load_table()
-
-        except UserInputSyntaxWarning, error:
-            page.error = error
-
-    elif section.lower() == "logdetail":
+    if section.lower() == "logdetail":
         page = LogDetailTemplate()
         page.error = None
         page.menu = menu
@@ -220,7 +179,45 @@ def index(request):
 
 
 def log_search(request):
-    pass
+    page = LogTemplate()
+    page.current = "logsearch"
+    page.search = None
+    page.error = None
+    page.dbfields = LOG_SEARCHRESULTFIELDS #Infofields to display
+    page.menu = menu
+
+    try:
+        page.form = LogSearchForm(
+            args.get("searchstring"),
+            args.get("searchtype"),
+            args.get("logentrytype"),
+            args.get("timemode"),
+            args.get("timestamp"),
+            args.get("timestampslack"),
+            args.get("hours"),
+            args.get("sortfield"),
+            args.get("sortorder")
+        )
+
+        page.form.check_input()
+
+        if args.get("send"):
+            query = LogSearchQuery(
+                page.form.searchstring,
+                page.form.searchtype,
+                page.form.logentrytype,
+                page.form.timemode,
+                page.form.timestamp,
+                page.form.timestampslack,
+                page.form.hours,
+                page.form.sortfield,
+                page.form.sortorder
+            )
+            page.search = query
+            page.search.load_table()
+
+    except UserInputSyntaxWarning, error:
+        page.error = error
 
 def account_charts(request):
     pass
