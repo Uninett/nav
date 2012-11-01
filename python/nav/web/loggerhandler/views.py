@@ -49,60 +49,6 @@ DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 logger = logging.getLogger("nav.web.loggerhandler")
 
 
-def _get_basic_info_dict(db_access, param_util):
-    """
-    Get all default parameters for view.
-    """
-    links = QueryDict("").copy()
-    error_list = []
-    tfrom = param_util.get_time_from()
-    if tfrom:
-        links.update({'tfrom': tfrom.strftime(DATEFORMAT)})
-    else:
-        error_list.append('Illegal from date (YYYY-MM-DD hh:mm:ss).')
-    tto = param_util.get_time_to()
-    if tto:
-        links.update({'tto': tto.strftime(DATEFORMAT)})
-    else:
-        error_list.append('Illegal to date (YYYY-MM-DD hh:mm:ss).')
-    priority =  param_util.get_priority()
-    if priority:
-        links.update({'priority': priority})
-    type_param = param_util.get_type()
-    if type_param:
-        links.update({'type': type_param})
-    origin = param_util.get_origin()
-    if origin:
-        links.update({'origin': origin})
-    category = param_util.get_category()
-    if category:
-        links.update({'category': category})
-
-    context = {'priority': param_util.get_priority(),
-                 'origin': origin,
-                 'originid': db_access.get_origin2originid().get(origin,
-                                                                None),
-                 'category': param_util.get_category(),
-                 'type': type_param,
-                 'typeid': db_access.get_type2typeid().get(type_param, None),
-                 'tto': param_util.get_time_to(),
-                 'tfrom': param_util.get_time_from(),
-                 'priorities': db_access.get_priorities(),
-                 'types': db_access.get_types(),
-                 'categories': db_access.get_categories(),
-                 'origins': db_access.get_origins(),
-                 'origindict':  db_access.get_originid2origin(),
-                 'typedict': db_access.get_typeid2type(),
-                 'link': links.urlencode(),
-                 'error_list': error_list,
-                 }
-    log = param_util.get_log()
-    if log:
-        context['log'] = log
-    context.update(DEFAULT_VALUES)
-    return context
-
-
 def _strip_empty_arguments(request):
     """Strips empty arguments and their related operator arguments from the
     QueryDict in request.GET and returns a new, possibly modified QueryDict.
