@@ -241,20 +241,18 @@ def exceptions_response(request):
     account = get_account(request)
     if not account:
         return HttpResponseRedirect('/')
-    db_access = DbAccess()
-    param_util = ParamUtil(request, db_access)
-    info_dict = _get_basic_info_dict(db_access, param_util)
     config = ConfigParser()
     config.read(os.path.join(nav.path.sysconfdir, 'logger.conf'))
     options = config.options("priorityexceptions")
     excepts = []
+    context = {}
     for option in options:
         newpriority = config.get("priorityexceptions", option)
         excepts.append((option, newpriority))
-    info_dict['exceptions'] = excepts
-    info_dict['exceptions_mode'] = True
+    context['exceptions'] = excepts
+    context['exceptions_mode'] = True
     return render_to_response('loggerhandler/frag-exceptions.html',
-                                info_dict,
+                                context,
                                 RequestContext(request))
 
 
@@ -265,15 +263,13 @@ def errors_response(request):
     account = get_account(request)
     if not account:
         return HttpResponseRedirect('/')
-    db_access = DbAccess()
-    param_util = ParamUtil(request, db_access)
-    info_dict = _get_basic_info_dict(db_access, param_util)
+    context = {}
     errs = []
     for err in ErrorError.objects.all():
         errs.append(err.message)
-    info_dict['errors'] = errs
-    info_dict['errors_count'] = len(errs)
-    info_dict['errors_mode'] = True
+    context['errors'] = errs
+    context['errors_count'] = len(errs)
+    context['errors_mode'] = True
     return render_to_response('loggerhandler/frag-errors.html',
-                                info_dict,
+                                context,
                                 RequestContext(request))
