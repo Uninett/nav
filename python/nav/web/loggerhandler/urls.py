@@ -27,6 +27,7 @@ urlpatterns = patterns('',
     # Default view
     url(r'^$', index, name='logger_index'),
     url(r'^search/group/$', group_search, name='logger_search_group'),
-    url(r'^exceptions/$', exceptions_response, name='logger_priority_exceptions'),
+    url(r'^exceptions/$', exceptions_response,
+        name='logger_priority_exceptions'),
     url(r'^errors/$', errors_response, name='logger_errors'),
 )
