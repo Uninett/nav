@@ -30,17 +30,17 @@ from radius_config import ACCT_SEARCHRESULTFIELDS, LOG_SEARCHRESULTFIELDS
 from radius_config import ACCT_DETAILSFIELDS, LOG_DETAILFIELDS
 from radius_config import ACCT_TABLE, LOG_TABLE
 
+from nav.web.templates.AcctSearchTemplate import AcctSearchTemplate
+from nav.web.templates.AcctDetailTemplate import AcctDetailTemplate
+from nav.web.templates.AcctChartsTemplate import AcctChartsTemplate
+from nav.web.templates.LogTemplate import LogTemplate
+from nav.web.templates.LogDetailTemplate import LogDetailTemplate
 
 def index(request):
     global database
     connection = db.getConnection(DB_USER, DB)
     database = connection.cursor()
 
-    from nav.web.templates.AcctSearchTemplate import AcctSearchTemplate
-    from nav.web.templates.AcctDetailTemplate import AcctDetailTemplate
-    from nav.web.templates.AcctChartsTemplate import AcctChartsTemplate
-    from nav.web.templates.LogTemplate import LogTemplate
-    from nav.web.templates.LogDetailTemplate import LogDetailTemplate
 
     args = request.GET
 
