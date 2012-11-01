@@ -30,14 +30,8 @@ from radius_config import ACCT_SEARCHRESULTFIELDS, LOG_SEARCHRESULTFIELDS
 from radius_config import ACCT_DETAILSFIELDS, LOG_DETAILFIELDS
 from radius_config import ACCT_TABLE, LOG_TABLE
 
-URL_PATTERN = re.compile("(?P<baseurl>\w+)\/(?P<section>\w+?)(?:\/$|\?|\&|$)")
 
 def index(request):
-    pass
-
-@encoded_output
-def handler(req):
-    """mod_python handler for radius UI"""
     global database
     connection = db.getConnection(DB_USER, DB)
     database = connection.cursor()
@@ -48,13 +42,9 @@ def handler(req):
     from nav.web.templates.LogTemplate import LogTemplate
     from nav.web.templates.LogDetailTemplate import LogDetailTemplate
 
-    args = URI(req.unparsed_uri)
+    args = request.GET
 
-    # Get basename and section part of the URI
     section = ""
-    match = URL_PATTERN.search(req.uri)
-    if match:
-        section = match.group("section")
 
 
     menu = []
