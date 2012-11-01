@@ -76,7 +76,11 @@ class LogMessageType(models.Model):
     mnemonic = VarcharField(db_column='mnemonic')
 
     def __unicode__(self):
-        return u"{0}-{1}-{2}".format(self.facility, self.priority, self.mnemonic).upper()
+        return u"{0}-{1}-{2}".format(
+            self.facility,
+            self.priority,
+            self.mnemonic
+        ).upper()
 
     class Meta:
         db_table = '"logger"."log_message_type"'
