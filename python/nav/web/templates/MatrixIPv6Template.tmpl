@@ -1,6 +1,6 @@
 #encoding UTF-8
 ##
-## Copyright (C) 2007 UNINETT AS
+## Copyright (C) 2012 UNINETT AS
 ##
 ## This file is part of Network Administration Visualized (NAV).
 ##
@@ -32,7 +32,8 @@
 #end def	
 
 #def $matrixlink($nybble,$ip)
-	<a href="/report/prefix?prefixid=$MetaIP($ip).prefixid">$nybble::/$ip.prefixlen</a>
+    #set $meta = $MetaIP($ip)
+	<a href="/report/prefix?prefixid=$MetaIP($ip).prefixid" title="Active IPs: $meta.active_ip_cnt">$nybble::/$ip.prefixlen</a>
 #end def
 
 #def $printBlankRow

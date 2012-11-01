@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2007-2008 UNINETT AS
+# Copyright (C) 2007-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -97,8 +97,9 @@ class MetaIP:
         contain/calculates the correct values for IPv6. Once this has been fixed, this
         function needs to be changed."""
 
-        sql = """SELECT prefixid, nettype, netaddr
-                 FROM prefix LEFT OUTER JOIN vlan USING(vlanid)
+        sql = """SELECT prefixid, active_ip_cnt, nettype, netaddr
+                 FROM prefix LEFT OUTER JOIN prefix_active_ip_cnt USING(prefixid)
+                             LEFT OUTER JOIN vlan USING(vlanid)
                  WHERE family(netaddr)=6"""
 
         cursor = db.getConnection('default','manage').cursor()
@@ -107,9 +108,10 @@ class MetaIP:
         result = {}
         for row in rows:
             tupple = {}
-            tupple["prefixid"] = row[0]
-            tupple["nettype"] = row[1]
-            result[IP(row[2])] = tupple
+            tupple['prefixid'] = row[0]
+            tupple['active_ip_cnt'] = row[1]
+            tupple['nettype'] = row[2]
+            result[IP(row[3])] = tupple
         return result
 
     @classmethod
@@ -138,6 +140,11 @@ class MetaIP:
             metainfo = MetaIP.IPv6MetaMap[self.netaddr]
             self.prefixid = metainfo["prefixid"]
             self.nettype = metainfo["nettype"]
+            active_ip_cnt = metainfo["active_ip_cnt"]
+            if active_ip_cnt is None:
+                self.active_ip_cnt = 0
+            else:
+                self.active_ip_cnt = int(active_ip_cnt)
             self.usage_percent = 4
 
     def _setupIpv4(self):
