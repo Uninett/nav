@@ -400,6 +400,10 @@ div#top-bar + div#header {
     display: none;
 }
 
+.no-padding {
+    padding: 0;
+}
+
 /* Pagination */
 p.paginator a:link,
 p.paginator a:visited,
