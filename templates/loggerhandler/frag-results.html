@@ -17,10 +17,11 @@
         <tbody>
         {% for title in aggregate.values %}
         <tr>
+            {# Someone find a better way to do this please #}
             {% for key, value in title.items %}
                 {% if name == "Origin" %}
                     {% if key != "sum" %}
-                        <td><a data-origin="{{value}}" href="{{ bookmark }}&origin={{value}}">{{ value }}</a></td>
+                        <td><a class="syslog_origin" data-origin="{{value}}" href="{{ bookmark }}&origin={{value}}">{{ value }}</a></td>
                     {% endif %}
                 {% endif %}
                 {% if name == "Type" %}
@@ -62,7 +63,7 @@
             {% for mess in log_messages %}
             <tr>
                 <td>{{ mess.time }}</td>
-                <td>{{ mess.origin.name }}</td>
+                <td class="syslog_origin">{{ mess.origin.name }}</td>
                 <td>{{ mess.type.priority.keyword }}</td>
                 <td>{{ mess.message }}</td>
             </tr>

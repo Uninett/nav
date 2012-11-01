@@ -20,6 +20,7 @@ import copy
 import logging
 from django.core.urlresolvers import reverse
 from django.db.models.aggregates import Count
+from django.utils import simplejson
 import os
 import datetime
 from ConfigParser import ConfigParser
@@ -45,6 +46,9 @@ NAVBAR = [('Home', '/'), ('Syslog Analyzer', None)]
 DEFAULT_VALUES = {'title': "Syslog Analyzer", 'navpath': NAVBAR}
 
 DATEFORMAT = "%Y-%m-%d %H:%M:%S"
+
+DOMAIN_SUFFICES = nav.config.readConfig("nav.conf")["DOMAIN_SUFFIX"].split(",")
+DOMAIN_SUFFICES = [s.strip() for s in DOMAIN_SUFFICES]
 
 logger = logging.getLogger("nav.web.loggerhandler")
 
@@ -152,7 +156,8 @@ def _build_context(request):
         'form': form,
         'bookmark': "{0}?{1}".format(reverse(index), strip_query_args),
         'aggregates': aggregates,
-        'timestamp': datetime.datetime.now().strftime(DATEFORMAT)
+        'timestamp': datetime.datetime.now().strftime(DATEFORMAT),
+        'domain_strip': simplejson.dumps(DOMAIN_SUFFICES)
     })
     return context
 

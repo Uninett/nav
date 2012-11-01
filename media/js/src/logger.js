@@ -80,8 +80,26 @@ require([
         tables.dataTable(dt_config);
     }
 
+    function stripDomainSuffixOrigin(dom, suffixes) {
+        dom.each(function (index, option) {
+            for (var i = 0; i < suffixes.length; i++) {
+                var suffix = suffixes[i];
+
+                if (option.value && option.value.indexOf(suffix) !== -1) {
+                    $(option).text(option.value.slice(0, option.value.length-suffix.length));
+                } else if (option.tagName.toLowerCase() == 'td' && option.innerHTML && option.innerHTML.indexOf(suffix) !== -1) {
+                    $(option).html(option.innerHTML.slice(0, option.innerHTML.length-suffix.length));
+                } else if (option.text && option.text.indexOf(suffix) !== -1) {
+                    $(option).text(option.text.slice(0, option.text.length-suffix.length));
+                }
+            }
+        });
+    }
+
     function eventLoadingComplete(event, ui) {
         if (ui.tab.text.trim() === 'Search') {
+            var suffixes = JSON.parse($('#domain_strip').text());
+            stripDomainSuffixOrigin($('#id_origin option'), suffixes);
             updateFormFromRequestArguments();
             attachButtonListeners()
         }
@@ -183,6 +201,9 @@ require([
         $("#syslog_loader").spin(opts);
         $.get(target, $("#syslog_search_form").serialize(), function (data) {
             $('#syslog_search').html(data);
+            var suffixes = JSON.parse($('#domain_strip').text());
+            stripDomainSuffixOrigin($('#id_origin option'), suffixes);
+            stripDomainSuffixOrigin($('.syslog_origin'), suffixes);
 
             $('.logger_search_results a').on('click', function (event) {
                 event.preventDefault();
