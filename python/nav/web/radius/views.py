@@ -32,6 +32,9 @@ from radius_config import ACCT_TABLE, LOG_TABLE
 
 URL_PATTERN = re.compile("(?P<baseurl>\w+)\/(?P<section>\w+?)(?:\/$|\?|\&|$)")
 
+def index(request):
+    pass
+
 @encoded_output
 def handler(req):
     """mod_python handler for radius UI"""
@@ -225,6 +228,15 @@ def handler(req):
 
     return HttpResponse(page.respond(), content_type="text/html")
 
+
+def log_search(request):
+    pass
+
+def account_charts(request):
+    pass
+
+def account_search(request):
+    pass
 
 #
 # General classes
