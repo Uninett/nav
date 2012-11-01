@@ -1,4 +1,6 @@
-<table class="listtable">
+<script type="text/javascript" src="/js/libs/require.js" data-main="src/machinetracker"></script> 
+
+<table id="tracker-table" class="listtable tablesorter">
     <caption>
         IP search results<br />
         {% if not disable_ip_context %}
@@ -21,10 +23,10 @@
         </tr>
     </thead>
 
-    {% for key, result in ip_tracker.items %}
     <tbody>
+    {% for key, result in ip_tracker.items %}
         {% for row in result %}
-        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+        <tr>
             {% if form_data.dns %}
             <td>{{ row.dns_lookup }}</td>
             {% endif %}
@@ -54,8 +56,8 @@
             </td>
         </tr>
         {% endfor %}
-    </tbody>
     {% endfor %}
+    </tbody>
 
     <tfoot>
         <tr>
