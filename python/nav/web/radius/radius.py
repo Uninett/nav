@@ -23,7 +23,6 @@ from nav.web.encoding import encoded_output
 from nav.web.URI import URI
 from nav import db
 from socket import gethostbyname_ex, gaierror
-from mod_python import apache
 
 from radius_config import DB_USER, DB, DEBUG, DATEFORMAT_SEARCH
 from radius_config import ACCT_SEARCHRESULTFIELDS, LOG_SEARCHRESULTFIELDS
