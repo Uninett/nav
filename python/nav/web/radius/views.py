@@ -62,14 +62,7 @@ def index(request):
     page.menu = menu
 
     if section.lower() == "logdetail":
-        page = LogDetailTemplate()
-        page.error = None
-        page.menu = menu
-        page.dbfields = LOG_DETAILFIELDS #Infofields to display
-
-        query = LogDetailQuery(args.get("id"))
-        page.detailQuery = query
-        page.detailQuery.load_table()
+        pass
 
     elif section.lower() == "acctdetail":
         page = AcctDetailTemplate()
@@ -218,6 +211,16 @@ def log_search(request):
 
     except UserInputSyntaxWarning, error:
         page.error = error
+
+def log_detail(request):
+    page = LogDetailTemplate()
+    page.error = None
+    page.menu = menu
+    page.dbfields = LOG_DETAILFIELDS #Infofields to display
+
+    query = LogDetailQuery(args.get("id"))
+    page.detailQuery = query
+    page.detailQuery.load_table()
 
 def account_charts(request):
     pass
