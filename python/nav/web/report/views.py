@@ -93,7 +93,7 @@ def _get_export_delimiter(query):
     if 'exportcsv' in query and 'export' in query:
         delimiter = query.get('export')
 
-        match = re.search("(\,|\;|\:|\|)", delimiter)
+        match = re.search(r"(\,|\;|\:|\|)", delimiter)
         if match:
             return match.group(0)
         else:

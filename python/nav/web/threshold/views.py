@@ -53,7 +53,7 @@ EXCEEDED_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': 
 
 logger = logging.getLogger("nav.web.threshold")
 
-INTERFACE_REGEXP = re.compile('^if\w+$')
+INTERFACE_REGEXP = re.compile(r'^if\w+$')
 
 # Option that is selected
 NETBOX_OPTION_SELECTED = '<option selected="selected" value="%d">%s</option>'

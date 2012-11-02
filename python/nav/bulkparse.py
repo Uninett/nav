@@ -117,7 +117,7 @@ class BulkParser(object):
 
 class CommentStripper(object):
     """Iterator that strips comments from the input iterator"""
-    COMMENT_PATTERN = re.compile('\W*#[^\n\r]*')
+    COMMENT_PATTERN = re.compile(r'\W*#[^\n\r]*')
 
     def __init__(self, source_iterator):
         self.source_iterator = source_iterator

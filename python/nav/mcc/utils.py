@@ -78,7 +78,7 @@ def parse_views():
     for line in handle:
         if line.startswith("view"):
             key, value = line.split(':')
-            key = re.sub("view\s+", "", key)
+            key = re.sub(r"view\s+", "", key)
             values = [x.strip() for x in value.split()]
             LOGGER.debug("view: %s -> %s" % (key, values))
             views[key] = values
@@ -89,7 +89,7 @@ def parse_views():
 def get_toplevel_oids(filepath):
     """ Search all files in path for oids regarding Cricket-configuration """
     oidlist = []
-    match = re.compile("OID\s+(\w+)\s+(\S+)")
+    match = re.compile(r"OID\s+(\w+)\s+(\S+)")
 
     try:
         handle = open(join(filepath, 'Defaults'), 'r')
@@ -112,7 +112,7 @@ def get_datadir(filepath):
     The datadir contains information about where the rrd-files are stored. This
     information must be available in the cricket-config/Defaults file.
     """
-    match = re.compile("datadir\s+=\s+(\S+)", re.I)
+    match = re.compile(r"datadir\s+=\s+(\S+)", re.I)
     filename = "Defaults"
     datadir = ""
 
@@ -171,7 +171,7 @@ def create_target_name(name):
     Remove and replace certain characters from the string to make sure it is
     suitable as a filename.
     """
-    name = re.sub('\W', '_', name)
+    name = re.sub(r'\W', '_', name)
     name = name.lower()
 
     return name
@@ -262,7 +262,7 @@ def find_oids(path_to_config):
     """ Search all files in path for oids regarding Cricket-configuration """
 
     oidlist = []
-    match = re.compile("OID\s+(\w+)\s+(\S+)")
+    match = re.compile(r"OID\s+(\w+)\s+(\S+)")
 
     files = os.listdir(path_to_config)
     for entry in files:

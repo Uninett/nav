@@ -98,7 +98,7 @@ class ReportList:
 
         self.reports = []
 
-        reportRe = re.compile("^\s*(\S+)\s*\{(.*?)\}$", re.M|re.S|re.I)
+        reportRe = re.compile(r"^\s*(\S+)\s*\{(.*?)\}$", re.M|re.S|re.I)
         fileContents = file(configFile).read()
         list = reportRe.findall(fileContents)
 
@@ -162,7 +162,8 @@ class ConfigParser:
         if self.config is None:
             self.config = file(self.configFile).read()
             self.configLocal = file(self.configFileLocal).read()
-        reportRe = re.compile("^\s*"+reportName+"\s*\{(.*?)\}$", re.M|re.S|re.I)
+        reportRe = re.compile(r"^\s*" + reportName + r"\s*\{(.*?)\}$",
+                              re.M|re.S|re.I)
         reResult = reportRe.search(self.config)
         reResultLocal = reportRe.search(self.configLocal)
 
@@ -187,7 +188,8 @@ class ConfigParser:
 
         """
 
-        configurationRe = re.compile("^\s*\$(\S*)\s*\=\s*\"(.*?)\"\;?", re.M|re.S)
+        configurationRe = re.compiler(r'^\s*\$(\S*)\s*\=\s*"(.*?)"\;?',
+                                      re.M|re.S)
         reResult = configurationRe.findall(reportConfig)
 
         config = self.configuration
@@ -212,7 +214,7 @@ class ConfigParser:
             elif key == "description":
                 config.description = value
             else:
-                reObject = re.compile("^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
+                reObject = re.compile(r"^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
                 reResult = reObject.search(key)
 
                 if reResult:
@@ -273,7 +275,7 @@ class ArgumentParser:
             elif key == "limit":
                 config.limit = value
             else:
-                reObject = re.compile("^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
+                reObject = re.compile(r"^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
                 reResult = reObject.search(key)
 
                 if reResult:
@@ -427,8 +429,8 @@ class ReportConfig:
     def wherestring(self):
         where = self.where
         if where:
-            alias_remover = re.compile("(.+)\s+AS\s+\S+", re.I)
-            where = [alias_remover.sub("\g<1>", word) for word in where]
+            alias_remover = re.compile(r"(.+)\s+AS\s+\S+", re.I)
+            where = [alias_remover.sub(r"\g<1>", word) for word in where]
             return " WHERE " + string.join(where," AND ")
         else:
             return ""

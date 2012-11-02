@@ -89,7 +89,7 @@ def get_exception_dicts(config):
 
         #only one of the fields
         for exception, priority in exceptions.items():
-            typematch = re.search("^\w+\-\d+\-\S+$", exception)
+            typematch = re.search(r"^\w+\-\d+\-\S+$", exception)
             if typematch:
                 exceptiontype[exception] = priority
             else:
@@ -105,7 +105,7 @@ def get_exception_dicts(config):
 # Mar 25 10:54:25 somedevice 72: AP:000b.adc0.ffee: *Mar 25 10:15:51.666: %LINK-3-UPDOWN: Interface Dot11Radio0, changed state to up
 
 typicalmatchRe = re.compile(
-    """
+    r"""
     ^
     (?P<servmonth>\w+) \s+ (?P<servday>\d+) \s+      # server month and date
     (?P<servhour>\d+) \: (?P<servmin>\d+) : \d+ \W+  # server hour/min/second
@@ -122,7 +122,7 @@ typicalmatchRe = re.compile(
 
 # WTF is a "not so typical match"?
 notsotypicalmatchRe = re.compile(
-    """
+    r"""
     (?P<month>\w+) \s+ (?P<day>\d+) \s+
     (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+) \W+
     (?P<origin>\S+ \. \w+) .* \W
@@ -131,7 +131,7 @@ notsotypicalmatchRe = re.compile(
     $
     """, re.VERBOSE)
 
-typematchRe = re.compile("\w+-\d+-?\S*:")
+typematchRe = re.compile(r"\w+-\d+-?\S*:")
 def createMessage(line):
 
     typicalmatch = typicalmatchRe.search(line)
@@ -167,8 +167,8 @@ def createMessage(line):
 
 
 class Message:
-    prioritymatchRe = re.compile("^(.*)-(\d*)-(.*)$")
-    categorymatchRe = re.compile("\W(gw|sw|gsw|fw|ts)\W")
+    prioritymatchRe = re.compile(r"^(.*)-(\d*)-(.*)$")
+    categorymatchRe = re.compile(r"\W(gw|sw|gsw|fw|ts)\W")
 
     def __init__(self, time, origin, type, description):
         self.time = time

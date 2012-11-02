@@ -108,7 +108,7 @@ def search(request):
 
 def is_valid_hostname(hostname):
     """Check if hostname is valid"""
-    return re.match('^[a-z0-9-]+(\.[a-z0-9-]+)*$', hostname) is not None
+    return re.match(r'^[a-z0-9-]+(\.[a-z0-9-]+)*$', hostname) is not None
 
 
 def ipdev_details(request, name=None, addr=None, netbox_id=None):

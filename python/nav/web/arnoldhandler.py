@@ -64,7 +64,7 @@ def handler(req):
     page.path = [("Home","/"), ("Arnold", False)]
 
     section = ""
-    matched_sections = re.search("arnold\/(\w+?)(?:\/$|\?|\&|$)", req.uri)
+    matched_sections = re.search(r"arnold\/(\w+?)(?:\/$|\?|\&|$)", req.uri)
     if matched_sections:
         section = matched_sections.group(1)
     else:

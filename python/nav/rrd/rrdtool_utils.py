@@ -170,7 +170,7 @@ def edit_datasource(rrd_file, name, action):
     xml_file = parseString(output)
 
     # Find index of datasource
-    is_match = re.search('ds(\d+)', name)
+    is_match = re.search(r'ds(\d+)', name)
     if is_match:
         rrd_datasource_value = int(is_match.groups()[0])
     else:
@@ -250,7 +250,7 @@ def add_datasource(xml_file, datasource_value):
                 rrd_datasource_name = element.getElementsByTagName('name')[
                                       0].firstChild.data
                 current_value = int(
-                    re.search('ds(\d+)', rrd_datasource_name).groups()[0])
+                    re.search(r'ds(\d+)', rrd_datasource_name).groups()[0])
                 # Check if this is the datasource to be replaced.
                 if current_value == datasource_value and not inserted:
                     text_node = xml_file.createTextNode('\n\n\t')
@@ -325,7 +325,7 @@ def remove_datasource(xml_file, datasource_value):
             datasource_name = node.getElementsByTagName('name')[
                               0].firstChild.data
             datasource_number = int(
-                re.search("(\d+)", datasource_name).groups()[0])
+                re.search(r"(\d+)", datasource_name).groups()[0])
             if datasource_number >= datasource_value:
                 # Subtract one and pray.
                 datasource_number -= 1

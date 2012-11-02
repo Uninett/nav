@@ -315,7 +315,7 @@ class Report:
         returns a table containing the data of the report (without header and footer etc)
         """
 
-        linkFinder = re.compile("\$(.+?)(?:$|\$|\&|\"|\'|\s|\;|\/)", re.M)
+        linkFinder = re.compile(r"\$(.+?)(?:$|\$|\&|\"|\'|\s|\;|\/)", re.M)
 
         newtable = Table()
         for line in self.formatted:
@@ -354,7 +354,7 @@ class Report:
                                 to = unicode(to).encode('utf-8')
                             else:
                                 to = ""
-                            hei = re.compile("\$"+link)
+                            hei = re.compile(r"\$"+link)
                             try:
                                 uri = hei.sub(to, uri)
                             except TypeError:

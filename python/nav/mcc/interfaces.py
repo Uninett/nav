@@ -254,9 +254,9 @@ def get_interface_datasources(configroot):
 
     lines = read_defaults_file(configroot)
 
-    matchv1 = re.compile("targettype\s+standard-interface", re.I)
-    matchv2 = re.compile("targettype\s+snmpv2-interface", re.I)
-    dsmatch = re.compile("ds\s+=\s+\"(.+)\"")
+    matchv1 = re.compile(r"targettype\s+standard-interface", re.I)
+    matchv2 = re.compile(r"targettype\s+snmpv2-interface", re.I)
+    dsmatch = re.compile(r"ds\s+=\s+\"(.+)\"")
 
     is_standard_interface = False
     is_v2_interface = False
