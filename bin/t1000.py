@@ -36,7 +36,7 @@ import nav.db
 import nav.buildconf
 from nav.util import is_valid_ip
 from nav import logs
-from nav.arnold import (find_id_information, disable, quarantine,
+from nav.arnold import (find_computer_info, disable, quarantine,
                         NoDatabaseInformationError, GeneralException)
 from nav.models.arnold import Identity, DetentionProfile
 from nav.models.manage import Interface, Prefix
@@ -68,7 +68,7 @@ def main():
         LOGGER.info("%s is %s, checking for activity"
                     % (identity.mac, identity.status))
         try:
-            caminfo = find_id_information(identity.mac, 1)[0]
+            caminfo = find_computer_info(identity.mac)
         except NoDatabaseInformationError, error:
             LOGGER.info(error)
             continue

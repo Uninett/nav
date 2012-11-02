@@ -13,7 +13,10 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+
 """Model definitions for arnold"""
+
+#pylint: disable=R0903
 
 from nav.models.fields import VarcharField
 from nav.models.manage import Interface
@@ -34,26 +37,33 @@ KEEP_CLOSED_CHOICES = [('n', 'Open on move'), ('y', 'All closed')]
 class Identity(models.Model):
     """
     The table contains a listing for each computer,interface combo Arnold
-    has blocked
+    has blocked.
     """
 
     id = models.AutoField(db_column='identityid', primary_key=True)
     mac = models.CharField(db_column='mac', max_length=17)
     status = VarcharField(db_column='blocked_status', choices=STATUSES)
-    justification = models.ForeignKey('Justification', db_column='blocked_reasonid')
+    justification = models.ForeignKey('Justification',
+                                      db_column='blocked_reasonid')
     interface = models.ForeignKey(Interface, db_column='swportid')
     ip = models.IPAddressField(null=True, default='0.0.0.0')
     dns = VarcharField(null=True)
     netbios = VarcharField(null=True)
-    first_offence = models.DateTimeField(db_column='starttime', auto_now_add=True)
+    first_offence = models.DateTimeField(db_column='starttime',
+                                         auto_now_add=True)
     last_changed = models.DateTimeField(db_column='lastchanged', auto_now=True)
     autoenable = models.DateTimeField(null=True)
     autoenablestep = models.IntegerField(null=True, default=2)
     mail = VarcharField(null=True)
-    organization = models.ForeignKey('Organization', db_column='orgid', null=True)
-    keep_closed = models.CharField(db_column='determined', default='n', choices=KEEP_CLOSED_CHOICES)
+    organization = models.ForeignKey('Organization', db_column='orgid',
+                                     null=True)
+    keep_closed = models.CharField(db_column='determined', default='n',
+                                   choices=KEEP_CLOSED_CHOICES)
     fromvlan = models.IntegerField(null=True)
     tovlan = models.IntegerField(null=True)
+
+    def __unicode__(self):
+        return "%s/%s %s" % (self.ip, self.mac, self.interface)
 
     class Meta:
         db_table = 'identity'
@@ -69,7 +79,8 @@ class Event(models.Model):
     identity = models.ForeignKey('Identity', db_column='identityid')
     comment = VarcharField(db_column='event_comment', null=True)
     action = VarcharField(db_column='blocked_status', choices=STATUSES)
-    justification = models.ForeignKey('Justification', db_column='blocked_reasonid')
+    justification = models.ForeignKey('Justification',
+                                      db_column='blocked_reasonid')
     event_time = models.DateTimeField(db_column='eventtime', auto_now_add=True)
     autoenablestep = models.IntegerField(null=True)
     executor = VarcharField(db_column='username')
@@ -97,7 +108,7 @@ class Justification(models.Model):
 
 
 class QuarantineVlan(models.Model):
-    """A quarantine vlan is a vlan where offender are placed"""
+    """A quarantine vlan is a vlan where offenders are placed"""
     id = models.AutoField(db_column='quarantineid', primary_key=True)
     vlan = models.IntegerField()
     description = VarcharField(null=True)
@@ -111,22 +122,29 @@ class QuarantineVlan(models.Model):
 
 
 class DetentionProfile(models.Model):
-    """A detentiontype is a configuration of an automatic detention"""
+    """A detention profile is a configuration used by an automatic detention"""
     id = models.AutoField(db_column='blockid', primary_key=True)
     name = VarcharField(db_column='blocktitle')
     description = VarcharField(db_column='blockdesc', null=True)
     mailfile = VarcharField(null=True)
     justification = models.ForeignKey('Justification', db_column='reasonid')
-    keep_closed = models.CharField(db_column='determined', default='n', choices=KEEP_CLOSED_CHOICES)
+    keep_closed = models.CharField(db_column='determined', default='n',
+                                   choices=KEEP_CLOSED_CHOICES)
     incremental = models.CharField(default='n')
     duration = models.IntegerField(db_column='blocktime')
     active = models.CharField(default='n')
-    last_edited = models.DateTimeField(db_column='lastedited', auto_now_add=True)
+    last_edited = models.DateTimeField(db_column='lastedited',
+                                       auto_now_add=True)
     edited_by = VarcharField(db_column='lastedituser')
     inputfile = VarcharField(null=True)
     active_on_vlans = VarcharField(db_column='activeonvlans')
-    detention_type = VarcharField(db_column='detainmenttype', choices=DETENTION_TYPE_CHOICES)
-    quarantine_vlan = models.ForeignKey('QuarantineVlan', db_column='quarantineid', null=True)
+    detention_type = VarcharField(db_column='detainmenttype',
+                                  choices=DETENTION_TYPE_CHOICES)
+    quarantine_vlan = models.ForeignKey('QuarantineVlan',
+                                        db_column='quarantineid', null=True)
+
+    def __unicode__(self):
+        return self.name
 
     class Meta:
         db_table = 'block'

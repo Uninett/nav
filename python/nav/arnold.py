@@ -13,9 +13,12 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+
 """
 Provides helpfunctions for Arnold web and script
 """
+
+#pylint: disable=E1103
 
 from __future__ import absolute_import
 
@@ -32,13 +35,12 @@ from IPy import IP
 from subprocess import Popen, PIPE
 
 import nav.Snmp
-from nav.models.arnold import Identity, Event, Interface
-from django.db import connection
-
-import nav.buildconf
 import nav.bitvector
-from nav.util import isValidIP
+import nav.buildconf
 from nav.errors import GeneralException
+from nav.models.arnold import Identity, Event
+from django.db import connection  # import this after any django models
+from nav.util import isValidIP
 
 CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 NONBLOCKFILE = nav.buildconf.sysconfdir + "/arnold/nonblock.conf"
@@ -74,53 +76,66 @@ class Memo(object):
         self.cache[args] = (value, mtime)
         return value
 
+
 class ChangePortStatusError(GeneralException):
     "An error occured when changing portadminstatus"
     pass
+
 
 class ChangePortVlanError(GeneralException):
     "An error occured when changing portvlan"
     pass
 
+
 class NoDatabaseInformationError(GeneralException):
     "Could not find information in database for id"
     pass
+
 
 class PortNotFoundError(GeneralException):
     "Could not find port in database"
     pass
 
+
 class UnknownTypeError(GeneralException):
     "Unknown type (not ip or mac)"
     pass
+
 
 class DbError(GeneralException):
     "Error when querying database"
     pass
 
+
 class NotSupportedError(GeneralException):
     "This vendor does not support snmp set of vlan"
     pass
+
 
 class NoSuchProgramError(GeneralException):
     "No such program"
     pass
 
+
 class WrongCatidError(GeneralException):
     "Arnold is not permitted to block ports on equipment of this category"
     pass
+
 
 class AlreadyBlockedError(GeneralException):
     "This port is already blocked or quarantined."
     pass
 
+
 class InExceptionListError(GeneralException):
     "This ip-address is in the exceptionlist and cannot be blocked."
     pass
 
+
 class FileError(GeneralException):
     "Fileerror"
     pass
+
 
 class BlockonTrunkError(GeneralException):
     "No action on trunked interface allowed"
@@ -139,7 +154,7 @@ def find_id_information(ip_or_mac, limit):
 
     # Get data from database based on id
     if category not in ['IP', 'MAC']:
-        raise UnknownTypeError, ip_or_mac
+        raise UnknownTypeError(ip_or_mac)
 
     query = ""
     if category == 'IP':
@@ -184,8 +199,8 @@ def find_id_information(ip_or_mac, limit):
 def dictfetchall(cursor):
     "Returns all rows from a cursor as a dict"
     desc = cursor.description
-    return [
-    dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()]
+    return [dict(
+        zip([col[0] for col in desc], row)) for row in cursor.fetchall()]
 
 
 def find_input_type(ip_or_mac):
@@ -194,7 +209,7 @@ def find_input_type(ip_or_mac):
     tuple"""
     # Support mac-adresses on xx:xx... format
     ip_or_mac = str(ip_or_mac)
-    mac = ip_or_mac.replace(':','')
+    mac = ip_or_mac.replace(':', '')
 
     # idValidIP returns 10.0.0.0 if you type 10.0.0. Check that this is not the
     # case.
@@ -213,7 +228,7 @@ def disable(myidentity, justification, username, comment="", determined=False,
             autoenablestep=0):
     """Disable a target by blocking the port"""
     LOGGER.info('Disabling %s - %s on interface %s' % (
-                    myidentity.ip, myidentity.mac, myidentity.interface))
+                myidentity.ip, myidentity.mac, myidentity.interface))
 
     identity = check_identity(myidentity)
     change_port_status('disable', identity)
@@ -286,6 +301,7 @@ def update_identity(identity, justification, determined, autoenablestep):
 
 
 def create_event(identity, comment, username):
+    """Create event for the action specified in identity"""
     event = Event(identity=identity, comment=comment, action=identity.status,
                   justification=identity.justification,
                   autoenablestep=identity.autoenablestep,
@@ -294,16 +310,16 @@ def create_event(identity, comment, username):
 
 
 def find_computer_info(ip_or_mac):
-    """Populate mac and ip"""
+    """Return the latest entry from the cam table for ip_or_mac"""
     return find_id_information(ip_or_mac, 1)[0]
 
 
 def should_detain(interface):
-    """Check if this identity should not be detained for some reason"""
+    """Check if this interface should not be detained for some reason"""
     netbox = interface.netbox
     config = get_config(CONFIGFILE)
     allowtypes = [x.strip()
-                  for x in str(config.get('arnold','allowtypes')).split(',')]
+                  for x in str(config.get('arnold', 'allowtypes')).split(',')]
 
     if netbox.category.id not in allowtypes:
         LOGGER.info("Not allowed to detain on %s" % (netbox.category.id))
@@ -368,16 +384,16 @@ def change_port_status(action, identity):
     try:
         if action == 'disable':
             LOGGER.info("Disabling %s on %s with %s"
-                        %(identity.interface, netbox.ip, query))
+                        % (identity.interface, netbox.ip, query))
             #agent.set(query, 'i', 2)
         elif action == 'enable':
             LOGGER.info("Enabling %s on %s with %s"
-                        %(identity.interface, netbox.ip, query))
+                        % (identity.interface, netbox.ip, query))
             #agent.set(query, 'i', 1)
 
     except nav.Snmp.AgentError, why:
-        LOGGER.error("Error when executing snmpquery: %s" %why)
-        raise ChangePortStatusError, why
+        LOGGER.error("Error when executing snmpquery: %s" % why)
+        raise ChangePortStatusError(why)
 
 
 def change_port_vlan(identity, vlan):
@@ -398,7 +414,7 @@ def change_port_vlan(identity, vlan):
     """
     # Check vlanformat
     if not re.search('\d+', str(vlan)):
-        raise ChangePortVlanError, "Wrong format on vlan %s" % vlan
+        raise ChangePortVlanError("Wrong format on vlan %s" % vlan)
 
     interface = identity.interface
     netbox = interface.netbox
@@ -411,7 +427,7 @@ def change_port_vlan(identity, vlan):
         oid = "1.3.6.1.2.1.17.7.1.4.5.1.1"
         variable_type = 'u'
     else:
-        raise NotSupportedError, vendorid
+        raise NotSupportedError(vendorid)
 
     query = oid + '.' + str(interface.ifindex)
 
@@ -422,7 +438,7 @@ def change_port_vlan(identity, vlan):
     try:
         fromvlan = snmpget.get(query)
     except (nav.Snmp.NoSuchObjectError, nav.Snmp.TimeOutException), why:
-        raise ChangePortVlanError, why
+        raise ChangePortVlanError(why)
 
     # If the vlan on the interface is the same as we try to set, do
     # nothing.
@@ -433,7 +449,7 @@ def change_port_vlan(identity, vlan):
         #snmpset.set(query, variable_type, vlan)
         pass
     except nav.Snmp.AgentError, why:
-        raise ChangePortVlanError, why
+        raise ChangePortVlanError(why)
 
     # Ok, here comes the tricky part. On HP if we change vlan on a
     # port using dot1qPvid, the fromvlan will put the vlan in
@@ -450,18 +466,18 @@ def change_port_vlan(identity, vlan):
         try:
             hexports = snmpget.get(dot1qvlanstaticegressports)
         except nav.Snmp.NoSuchObjectError, why:
-            raise ChangePortVlanError, why
+            raise ChangePortVlanError(why)
 
         # Create new octetstring and set it
         newhexports = compute_octet_string(hexports, interface.ifindex,
-                                         'disable')
+                                           'disable')
 
         try:
 #            snmpset.set(dot1qvlanstaticegressports, 's', newhexports)
             pass
         except nav.Snmp.NoSuchObjectError, why:
-            raise ChangePortVlanError, why
-    
+            raise ChangePortVlanError(why)
+
     return fromvlan
 
 
@@ -475,7 +491,7 @@ def sendmail(fromaddr, toaddr, subject, msg):
 
     # Get mailprogram from config-file
     config = get_config(CONFIGFILE)
-    mailprogram = config.get('arnold','mailprogram')
+    mailprogram = config.get('arnold', 'mailprogram')
 
     try:
         program = Popen(mailprogram, stdin=PIPE).stdin
@@ -532,7 +548,7 @@ def get_netbios(ip):
         if re.search("<00>", line):
             match_object = re.search("(\S+)\s+<00>", line)
             return match_object.group(1) or ""
-            
+
     # If it times out or for some other reason doesn't match
     return ""
 
@@ -586,7 +602,7 @@ def parse_nonblock_file(filename):
     try:
         handle = open(filename)
     except IOError, why:
-        raise FileError, why
+        raise FileError(why)
 
     for line in handle.readlines():
         line = line.strip()
@@ -605,6 +621,7 @@ def parse_nonblock_file(filename):
     handle.close()
 
     return nonblockdict
+
 
 @Memo
 def get_config(configfile):
