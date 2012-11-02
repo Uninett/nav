@@ -156,6 +156,8 @@ def log_search(request):
     except UserInputSyntaxWarning, error:
         page.error = error
 
+    return HttpResponse(page.respond(), content_type="text/html")
+
 def log_detail(request):
     page = LogDetailTemplate()
     page.error = None
@@ -165,6 +167,8 @@ def log_detail(request):
     query = LogDetailQuery(args.get("id"))
     page.detailQuery = query
     page.detailQuery.load_table()
+
+    return HttpResponse(page.respond(), content_type="text/html")
 
 def account_charts(request):
     page = AcctChartsTemplate()
@@ -206,6 +210,8 @@ def account_charts(request):
     except UserInputSyntaxWarning, error:
         page.error = error
 
+    return HttpResponse(page.respond(), content_type="text/html")
+
 def account_detail(request):
     page = AcctDetailTemplate()
     page.error = None
@@ -216,8 +222,10 @@ def account_detail(request):
     page.detailQuery = query
     page.detailQuery.load_table()
 
+    return HttpResponse(page.respond(), content_type="text/html")
+
 def account_search(request):
-    pass
+    return index(request)
 
 #
 # General classes
