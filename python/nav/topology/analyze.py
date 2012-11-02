@@ -45,6 +45,9 @@ from operator import attrgetter
 import networkx as nx
 from nav.models.manage import AdjacencyCandidate
 
+import logging
+_logger = logging.getLogger(__name__)
+
 # Data classes
 
 class Box(int):
@@ -263,8 +266,14 @@ class AdjacencyReducer(AdjacencyAnalyzer):
 
                     path = self.find_return_path((source, dest))
                     if path:
-                        i, j = self.get_distinct_ports(path)
-                        self.connect_ports(i, j)
+                        ports = self.get_distinct_ports(path)
+                        if len(ports) == 2:
+                            i, j = ports
+                            self.connect_ports(i, j)
+                        else:
+                            _logger.warning("A possible self-loop was found: "
+                                            "%r", ports)
+                            i, j = (ports[0], ports[0])
                         visited.update((i, j))
                         break
 

@@ -1,3 +1,20 @@
+Version 3.12.3
+(released 01 Nov 2012)
+
+ Bugfixes:
+
+  * LP#343857  (Invalid IP in subnet matrix)
+  * LP#1052907 (Threshold configurator does not indicate the unit/scale of a
+                metric when editing a threshold)
+  * LP#1062230 (Removing a threshold doesn't clear an active threshold alert)
+  * LP#1062236 (PSU alarms don't show up on Status page)
+  * LP#1063728 (TemplateSyntaxError at /info/)
+  * LP#1068097 (navtopology crashes on CDP data from Cisco Switch Clustering)
+  * LP#1069688 (datasources have no default unit)
+  * LP#1069751 (Subnet matrix crash on scope with only a few large subnets)
+  * LP#1070798 (spaces in search words in navbar are not trimmed)
+  * LP#1070846 (ipdevinfo crashes when searching for netbox that does not exist)
+
 Version 3.12.2
 (released 18 Okt 2012)
 
