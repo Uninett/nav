@@ -13,13 +13,13 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""macwatch Django URL configuration"""
+"""loggerhandler Django URL configuration"""
 
 from django.conf.urls.defaults import patterns, include
 
 def get_urlpatterns():
     urlpatterns = patterns('',
-        # Give the macwatch namespace to the macwatch subsystem
+        # Give the loggerhandler/ namespace to the loggerhandler subsystem
         (r'^logger/', include('nav.web.loggerhandler.urls')),
     )
     return urlpatterns
