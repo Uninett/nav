@@ -59,68 +59,55 @@ def index(request):
                  'admin': False})
 
     page = AcctSearchTemplate()
+    page.current = "acctsearch"
+    if DEBUG:
+        page.refreshCache()
+    page.search = None
+    page.error = None
     page.menu = menu
 
-    if section.lower() == "logdetail":
-        pass
+    page.dbfields = ACCT_SEARCHRESULTFIELDS #Infofields to display
 
-    elif section.lower() == "acctdetail":
-        pass
+    try:
+        page.form = AcctSearchForm(
+            args.get("searchstring"),
+            args.get("searchtype"),
+            args.get("nasporttype"),
+            args.get("timemode"),
+            args.get("timestamp"),
+            args.get("timestampslack"),
+            args.get("days"),
+            args.get("userdns"),
+            args.get("nasdns"),
+            args.get("sortfield"),
+            args.get("sortorder")
+        )
+        page.form.check_input()
 
-    elif section.lower() == "acctcharts":
-        pass
+        if args.get("send"):
+            if page.form.searchstring:
+                query = AcctSearchQuery(
+                    page.form.searchstring,
+                    page.form.searchtype,
+                    page.form.nasporttype,
+                    page.form.timemode,
+                    page.form.timestamp,
+                    page.form.timestampslack,
+                    page.form.days,
+                    page.form.userdns,
+                    page.form.nasdns,
+                    page.form.sortfield,
+                    page.form.sortorder
+                )
+            else:
+                # Need a non-empty searchstring
+                raise EmptySearchstringWarning
 
-    else:
-        page = AcctSearchTemplate()
-        page.current = "acctsearch"
-        if DEBUG:
-            page.refreshCache()
-        page.search = None
-        page.error = None
-        page.menu = menu
+            page.search = query
+            page.search.load_table()
 
-        page.dbfields = ACCT_SEARCHRESULTFIELDS #Infofields to display
-
-        try:
-            page.form = AcctSearchForm(
-                            args.get("searchstring"),
-                            args.get("searchtype"),
-                            args.get("nasporttype"),
-                            args.get("timemode"),
-                            args.get("timestamp"),
-                            args.get("timestampslack"),
-                            args.get("days"),
-                            args.get("userdns"),
-                            args.get("nasdns"),
-                            args.get("sortfield"),
-                            args.get("sortorder")
-                                )
-            page.form.check_input()
-
-            if args.get("send"):
-                if page.form.searchstring:
-                    query = AcctSearchQuery(
-                        page.form.searchstring,
-                        page.form.searchtype,
-                        page.form.nasporttype,
-                        page.form.timemode,
-                        page.form.timestamp,
-                        page.form.timestampslack,
-                        page.form.days,
-                        page.form.userdns,
-                        page.form.nasdns,
-                        page.form.sortfield,
-                        page.form.sortorder
-                        )
-                else:
-                    # Need a non-empty searchstring
-                    raise EmptySearchstringWarning
-
-                page.search = query
-                page.search.load_table()
-
-        except UserInputSyntaxWarning, error:
-            page.error = error
+    except UserInputSyntaxWarning, error:
+        page.error = error
 
 #    connection.close()
 
