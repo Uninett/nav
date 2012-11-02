@@ -65,14 +65,7 @@ def index(request):
         pass
 
     elif section.lower() == "acctdetail":
-        page = AcctDetailTemplate()
-        page.error = None
-        page.menu = menu
-        page.dbfields = ACCT_DETAILSFIELDS #Infofields to display
-
-        query = AcctDetailQuery(args.get("acctuniqueid"))
-        page.detailQuery = query
-        page.detailQuery.load_table()
+        pass
 
     elif section.lower() == "acctcharts":
         page = AcctChartsTemplate()
@@ -224,6 +217,16 @@ def log_detail(request):
 
 def account_charts(request):
     pass
+
+def account_detail(request):
+    page = AcctDetailTemplate()
+    page.error = None
+    page.menu = menu
+    page.dbfields = ACCT_DETAILSFIELDS #Infofields to display
+
+    query = AcctDetailQuery(args.get("acctuniqueid"))
+    page.detailQuery = query
+    page.detailQuery.load_table()
 
 def account_search(request):
     pass
