@@ -44,9 +44,6 @@ def index(request):
 
     args = request.GET
 
-    section = ""
-
-
     menu = []
     menu.append({'link': 'acctsearch',
                  'text': 'Accounting Log',
