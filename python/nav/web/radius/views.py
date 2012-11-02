@@ -68,44 +68,7 @@ def index(request):
         pass
 
     elif section.lower() == "acctcharts":
-        page = AcctChartsTemplate()
-        page.current = "acctcharts"
-        page.error = None
-        page.menu = menu
-
-        try:
-            page.form = AcctChartForm(
-                                  args.get("overallchart"),
-                                  args.get("uploadchart"),
-                                  args.get("downloadchart"),
-                                  args.get("days")
-                                  )
-            page.form.check_input()
-
-            page.sentChartQuery = None
-            page.recvChartQuery = None
-            page.sentrecvChartQuery = None
-
-            if page.form.uploadchart:
-                # Get the top uploaders
-                query = AcctChartsQuery("sent", page.form.days)
-                page.sentChartQuery = query
-                page.sentChartQuery.load_table()
-
-            if page.form.downloadchart:
-                # Get the top leechers
-                query = AcctChartsQuery("recv", page.form.days)
-                page.recvChartQuery = query
-                page.recvChartQuery.load_table()
-
-            if page.form.overallchart:
-                # Get the top overall bandwidth hogs
-                query = AcctChartsQuery("sentrecv", page.form.days)
-                page.sentrecvChartQuery = query
-                page.sentrecvChartQuery.load_table()
-
-        except UserInputSyntaxWarning, error:
-            page.error = error
+        pass
 
     else:
         page = AcctSearchTemplate()
@@ -216,7 +179,44 @@ def log_detail(request):
     page.detailQuery.load_table()
 
 def account_charts(request):
-    pass
+    page = AcctChartsTemplate()
+    page.current = "acctcharts"
+    page.error = None
+    page.menu = menu
+
+    try:
+        page.form = AcctChartForm(
+            args.get("overallchart"),
+            args.get("uploadchart"),
+            args.get("downloadchart"),
+            args.get("days")
+        )
+        page.form.check_input()
+
+        page.sentChartQuery = None
+        page.recvChartQuery = None
+        page.sentrecvChartQuery = None
+
+        if page.form.uploadchart:
+            # Get the top uploaders
+            query = AcctChartsQuery("sent", page.form.days)
+            page.sentChartQuery = query
+            page.sentChartQuery.load_table()
+
+        if page.form.downloadchart:
+            # Get the top leechers
+            query = AcctChartsQuery("recv", page.form.days)
+            page.recvChartQuery = query
+            page.recvChartQuery.load_table()
+
+        if page.form.overallchart:
+            # Get the top overall bandwidth hogs
+            query = AcctChartsQuery("sentrecv", page.form.days)
+            page.sentrecvChartQuery = query
+            page.sentrecvChartQuery.load_table()
+
+    except UserInputSyntaxWarning, error:
+        page.error = error
 
 def account_detail(request):
     page = AcctDetailTemplate()
