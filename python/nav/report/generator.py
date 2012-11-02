@@ -188,8 +188,8 @@ class ConfigParser:
 
         """
 
-        configurationRe = re.compiler(r'^\s*\$(\S*)\s*\=\s*"(.*?)"\;?',
-                                      re.M|re.S)
+        configurationRe = re.compile(r'^\s*\$(\S*)\s*\=\s*"(.*?)"\;?',
+                                     re.M|re.S)
         reResult = configurationRe.findall(reportConfig)
 
         config = self.configuration
