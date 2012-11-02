@@ -36,14 +36,7 @@ from nav.web.templates.AcctChartsTemplate import AcctChartsTemplate
 from nav.web.templates.LogTemplate import LogTemplate
 from nav.web.templates.LogDetailTemplate import LogDetailTemplate
 
-def index(request):
-    global database
-    connection = db.getConnection(DB_USER, DB)
-    database = connection.cursor()
-
-
-    args = request.GET
-
+def _build_menu():
     menu = []
     menu.append({'link': 'acctsearch',
                  'text': 'Accounting Log',
@@ -54,6 +47,17 @@ def index(request):
     menu.append({'link': 'logsearch',
                  'text': 'Error Log',
                  'admin': False})
+    return menu
+
+def index(request):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
+
+    args = request.GET
+
+
 
     page = AcctSearchTemplate()
     page.current = "acctsearch"
@@ -61,7 +65,7 @@ def index(request):
         page.refreshCache()
     page.search = None
     page.error = None
-    page.menu = menu
+    page.menu = _build_menu()
 
     page.dbfields = ACCT_SEARCHRESULTFIELDS #Infofields to display
 
@@ -117,7 +121,7 @@ def log_search(request):
     page.search = None
     page.error = None
     page.dbfields = LOG_SEARCHRESULTFIELDS #Infofields to display
-    page.menu = menu
+    page.menu = _build_menu()
 
     try:
         page.form = LogSearchForm(
@@ -155,7 +159,7 @@ def log_search(request):
 def log_detail(request):
     page = LogDetailTemplate()
     page.error = None
-    page.menu = menu
+    page.menu = _build_menu()
     page.dbfields = LOG_DETAILFIELDS #Infofields to display
 
     query = LogDetailQuery(args.get("id"))
@@ -166,7 +170,7 @@ def account_charts(request):
     page = AcctChartsTemplate()
     page.current = "acctcharts"
     page.error = None
-    page.menu = menu
+    page.menu = _build_menu()
 
     try:
         page.form = AcctChartForm(
@@ -205,7 +209,7 @@ def account_charts(request):
 def account_detail(request):
     page = AcctDetailTemplate()
     page.error = None
-    page.menu = menu
+    page.menu = _build_menu()
     page.dbfields = ACCT_DETAILSFIELDS #Infofields to display
 
     query = AcctDetailQuery(args.get("acctuniqueid"))
