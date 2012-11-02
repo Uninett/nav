@@ -125,20 +125,20 @@ def log_search(request):
 
     try:
         page.form = LogSearchForm(
-            args.get("searchstring"),
-            args.get("searchtype"),
-            args.get("logentrytype"),
-            args.get("timemode"),
-            args.get("timestamp"),
-            args.get("timestampslack"),
-            args.get("hours"),
-            args.get("sortfield"),
-            args.get("sortorder")
+            request.GET.get("searchstring"),
+            request.GET.get("searchtype"),
+            request.GET.get("logentrytype"),
+            request.GET.get("timemode"),
+            request.GET.get("timestamp"),
+            request.GET.get("timestampslack"),
+            request.GET.get("hours"),
+            request.GET.get("sortfield"),
+            request.GET.get("sortorder")
         )
 
         page.form.check_input()
 
-        if args.get("send"):
+        if request.GET.get("send"):
             query = LogSearchQuery(
                 page.form.searchstring,
                 page.form.searchtype,
@@ -164,7 +164,7 @@ def log_detail(request):
     page.menu = _build_menu()
     page.dbfields = LOG_DETAILFIELDS #Infofields to display
 
-    query = LogDetailQuery(args.get("id"))
+    query = LogDetailQuery(request.GET.get("id"))
     page.detailQuery = query
     page.detailQuery.load_table()
 
@@ -178,10 +178,10 @@ def account_charts(request):
 
     try:
         page.form = AcctChartForm(
-            args.get("overallchart"),
-            args.get("uploadchart"),
-            args.get("downloadchart"),
-            args.get("days")
+            request.GET.get("overallchart"),
+            request.GET.get("uploadchart"),
+            request.GET.get("downloadchart"),
+            request.GET.get("days")
         )
         page.form.check_input()
 
@@ -218,7 +218,7 @@ def account_detail(request):
     page.menu = _build_menu()
     page.dbfields = ACCT_DETAILSFIELDS #Infofields to display
 
-    query = AcctDetailQuery(args.get("acctuniqueid"))
+    query = AcctDetailQuery(request.GET.get("acctuniqueid"))
     page.detailQuery = query
     page.detailQuery.load_table()
 
