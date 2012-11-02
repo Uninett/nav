@@ -37,6 +37,7 @@ from subprocess import Popen, PIPE
 import nav.Snmp
 import nav.bitvector
 import nav.buildconf
+from nav import logs
 from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
 from django.db import connection  # import this after any django models
@@ -629,3 +630,15 @@ def get_config(configfile):
     config = ConfigParser.ConfigParser()
     config.read(configfile)
     return config
+
+
+def init_logging(logfile):
+    """Create logger for logging to file"""
+    logs.set_log_levels()
+
+    filehandler = logging.FileHandler(logfile)
+    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '
+                                  '[%(name)s] %(message)s')
+    filehandler.setFormatter(formatter)
+    root = logging.getLogger('')
+    root.addHandler(filehandler)

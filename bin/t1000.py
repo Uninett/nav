@@ -32,12 +32,12 @@ import logging
 import getpass
 from datetime import datetime, timedelta
 
-import nav.db
 import nav.buildconf
 from nav.util import is_valid_ip
-from nav import logs
+
 from nav.arnold import (find_computer_info, disable, quarantine,
-                        NoDatabaseInformationError, GeneralException)
+                        NoDatabaseInformationError, GeneralException,
+                        init_logging)
 from nav.models.arnold import Identity, DetentionProfile
 from nav.models.manage import Interface, Prefix
 
@@ -48,7 +48,7 @@ LOGGER = logging.getLogger('t1000')
 
 def main():
     """Main controller"""
-    init_logging()
+    init_logging(nav.buildconf.localstatedir + "/log/arnold/t1000.log")
     LOGGER.info("Starting t1000")
 
     # Fetch all mac-addresses that we have detained, check if they are
@@ -78,19 +78,6 @@ def main():
             pursue(identity, caminfo)
         else:
             LOGGER.info("Mac not active.")
-
-
-def init_logging():
-    """Create logger for logging to file"""
-    logs.set_log_levels()
-
-    logfile = nav.buildconf.localstatedir + "/log/arnold/t1000.log"
-    filehandler = logging.FileHandler(logfile)
-    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '
-                                  '[%(name)s] %(message)s')
-    filehandler.setFormatter(formatter)
-    root = logging.getLogger('')
-    root.addHandler(filehandler)
 
 
 def pursue(identity, caminfo):

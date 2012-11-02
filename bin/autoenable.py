@@ -21,76 +21,42 @@ arnold-database for any detained ports and opens them if they have a
 autoenable-time set and that time has passed.
 """
 
-import sys
-import logging
-import ConfigParser
 import getpass
+import logging
+import sys
 from datetime import datetime
 
-import nav.arnold
-import nav.db
 import nav.buildconf
+from nav.arnold import (open_port, init_logging, GeneralException)
 from nav.models.arnold import Identity
+
+LOGGER = logging.getLogger('autoenable')
 
 
 def main():
     """Main controller"""
-    logger = get_logger(read_config())
-    logger.info("Starting autoenable")
+    init_logging(nav.buildconf.localstatedir + "/log/arnold/autoenable.log")
+    LOGGER.info("Starting autoenable")
 
     candidates = Identity.objects.filter(autoenable__lte=datetime.now())
 
     if len(candidates) <= 0:
-        logger.info("No ports ready for opening.")
+        LOGGER.info("No ports ready for opening.")
         sys.exit(0)
 
     # For each port that is blocked, try to enable the port.
     for candidate in candidates:
         try:
-            nav.arnold.open_port(candidate, getpass.getuser(),
-                                 eventcomment="Opened automatically by "
-                                              "autoenable")
+            open_port(candidate, getpass.getuser(),
+                      eventcomment="Opened automatically by autoenable")
             interface = candidate.interface
             netbox = interface.netbox
-            logger.info("Opening %s %s:%s for %s" % (
+            LOGGER.info("Opening %s %s:%s for %s" % (
                 netbox.sysname, interface.module,
                 interface.baseport, candidate.mac))
-        except (nav.arnold.NoDatabaseInformationError,
-                nav.arnold.ChangePortStatusError,
-                nav.arnold.DbError), why:
-            logger.error(why)
+        except GeneralException, why:
+            LOGGER.error(why)
             continue
-
-
-def read_config():
-    """Read and return config"""
-    configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
-    config = ConfigParser.ConfigParser()
-    config.read(configfile)
-
-
-def get_logger(config):
-    """Set logger attributes, return logger"""
-    loglevel = config.get('loglevel','autoenable')
-    if not loglevel.isdigit():
-        loglevel = logging.getLevelName(loglevel)
-
-    try:
-        loglevel = int(loglevel)
-    except ValueError:
-        loglevel = 20 # default to INFO
-
-        # Create logger, start logging
-    logfile = nav.buildconf.localstatedir + "/log/arnold/autoenable.log"
-    filehandler = logging.FileHandler(logfile)
-    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '\
-                                  '[%(name)s] L%(lineno)d %(message)s')
-    filehandler.setFormatter(formatter)
-    logger = logging.getLogger('autoenable')
-    logger.addHandler(filehandler)
-    logger.setLevel(loglevel)
-
-    return logger
 
 
 if __name__ == '__main__':
