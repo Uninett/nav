@@ -20,8 +20,6 @@ import time
 from django.http import HttpResponse
 import re
 
-from nav.web.encoding import encoded_output
-from nav.web.URI import URI
 from nav import db
 from socket import gethostbyname_ex, gaierror
 
