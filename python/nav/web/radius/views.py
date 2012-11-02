@@ -114,6 +114,10 @@ def index(request):
 
 
 def log_search(request):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
     page = LogTemplate()
     page.current = "logsearch"
     page.search = None
@@ -157,6 +161,10 @@ def log_search(request):
     return HttpResponse(page.respond(), content_type="text/html")
 
 def log_detail(request):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
     page = LogDetailTemplate()
     page.error = None
     page.menu = _build_menu()
@@ -169,6 +177,10 @@ def log_detail(request):
     return HttpResponse(page.respond(), content_type="text/html")
 
 def account_charts(request):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
     page = AcctChartsTemplate()
     page.current = "acctcharts"
     page.error = None
@@ -211,6 +223,10 @@ def account_charts(request):
     return HttpResponse(page.respond(), content_type="text/html")
 
 def account_detail(request):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
     page = AcctDetailTemplate()
     page.error = None
     page.menu = _build_menu()
