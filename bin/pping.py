@@ -97,7 +97,7 @@ class pinger:
         debug.debug("We now got %i hosts in our list to ping" % 
                     len(self.netboxmap), 7)
         #then update our pinger object
-        self.pinger.setHosts(self.ipToNetboxid.keys())
+        self.pinger.set_hosts(self.ipToNetboxid.keys())
 
     def generateEvents(self):
         """
@@ -266,6 +266,6 @@ if __name__=="__main__":
     if os.getuid() != 0:
         print "Must be started as root"
         sys.exit(1)
-    sock = megaping.makeSockets()
+    sock = megaping.make_sockets()
     setUser()
     start(nofork)
