@@ -15,10 +15,17 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 # import regular libraries
+
 """
+Autoenable removes detention for computers that are done with detention.
+
+Usage:
+sudo -u navcron ./autoenable.py
+
 autoenable is meant to be run as a cronjob. It checks the configured
 arnold-database for any detained ports and opens them if they have a
 autoenable-time set and that time has passed.
+
 """
 
 import getpass
