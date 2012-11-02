@@ -74,7 +74,6 @@ class Memo(object):
         self.cache[args] = (value, mtime)
         return value
 
-
 class ChangePortStatusError(GeneralException):
     "An error occured when changing portadminstatus"
     pass
@@ -130,16 +129,16 @@ class BlockonTrunkError(GeneralException):
 
 def find_id_information(ip_or_mac, limit):
     """
-    Look in arp and cam tables to find id (which is either ip or
-    mac-address). Returns a list with $limit number of dicts
-    containing all info from arp and cam joined on mac.
+    Look in arp and cam tables to find id (which is either ip or mac-address).
+    Returns a list with $limit number of dicts containing all info from arp
+    and cam joined on mac.
 
     """
     cursor = connection.cursor()
     category = find_input_type(ip_or_mac)
 
     # Get data from database based on id
-    if category not in ['IP','MAC']:
+    if category not in ['IP', 'MAC']:
         raise UnknownTypeError, ip_or_mac
 
     query = ""
@@ -174,6 +173,9 @@ def find_id_information(ip_or_mac, limit):
     cursor.execute(query, [ip_or_mac, limit])
     result = dictfetchall(cursor)
     if result:
+        for caminfo in result:
+            if 'ip' not in caminfo:
+                caminfo['ip'] = '0.0.0.0'
         return result
     else:
         raise NoDatabaseInformationError(ip_or_mac)
@@ -258,10 +260,13 @@ def check_identity(myidentity):
             raise AlreadyBlockedError
         identity.ip = myidentity.ip
     except Identity.DoesNotExist:
-        identity = myidentity
+        identity = Identity()
+        identity.interface = myidentity.interface
+        identity.ip = myidentity.ip
+        identity.mac = myidentity.mac
 
-    # Check if we should not detain this ip address for some reason
-    should_detain(myidentity.interface)
+    # Check if we should not detain this interface for some reason
+    should_detain(identity.interface)
 
     return identity
 
@@ -607,5 +612,3 @@ def get_config(configfile):
     config = ConfigParser.ConfigParser()
     config.read(configfile)
     return config
-
-

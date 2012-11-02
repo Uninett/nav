@@ -74,6 +74,9 @@ class Event(models.Model):
     autoenablestep = models.IntegerField(null=True)
     executor = VarcharField(db_column='username')
 
+    def __unicode__(self):
+        return "%s: %s" % (self.action, self.event_time)
+
     class Meta:
         db_table = 'event'
         ordering = ('event_time', )
