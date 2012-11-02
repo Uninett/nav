@@ -31,7 +31,7 @@ DB_USER = "radius"
 
 """ Alternate configuration for separate DB-users with read and write
 rights. Comment out the DB_USER above and uncomment the next two lines
-to enable this. NB! Some modification to radius.py and db.conf must
+to enable this. NB! Some modification to views.py and db.conf must
 also be done to enable this. See INSTALL for instructions.
 """
 #DB_USER_READ = "radius_front"
