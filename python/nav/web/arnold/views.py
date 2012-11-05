@@ -13,13 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Views for Arnold
-
-TODO:
-- Add "Manual Detention"
-- Styling
-- Correct submit button value on "Add profile"
-"""
+"""Views for Arnold"""
 
 import logging
 from IPy import IP
@@ -30,8 +24,7 @@ from django.db.models import Q
 from datetime import datetime, timedelta
 
 from nav.arnold import (open_port, disable, quarantine, GeneralException,
-                        InExceptionListError, find_id_information,
-                        find_input_type, check_target)
+                        find_id_information, find_input_type, check_target)
 from nav.models.arnold import (Identity, Justification, QuarantineVlan,
                                DetentionProfile)
 from nav.models.manage import Cam, Interface
@@ -279,7 +272,8 @@ def process_manual_detention_form(form, account):
 def choose_detentions(request, did):
     """Find all detentions for the mac-address in the given detention"""
     detention = Identity.objects.get(pk=did)
-    detentions = Identity.objects.filter(mac=detention.mac)
+    detentions = Identity.objects.filter(mac=detention.mac,
+                                         status__in=['disabled', 'quarantined'])
 
     return render_to_response('arnold/choose_detentions.html',
                               create_context('Enable',
