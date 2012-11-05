@@ -13,6 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+
 """Views for Arnold"""
 
 import logging
@@ -38,6 +39,7 @@ from nav.web.utils import create_title
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
 
 LOGGER = logging.getLogger('nav.web.arnold')
+
 
 def create_context(path, context):
     """Create a dictionary for use in context based on path"""
@@ -192,11 +194,11 @@ def render_manual_detention_step_one(request):
         form = ManualDetentionTargetForm()
 
     return render_to_response('arnold/manualdetain.html',
-                       create_context('Manual detention', {
-                           'active': {'manualdetention': True},
-                           'form': form,
-                           'error': error
-                       }), RequestContext(request))
+                              create_context('Manual detention', {
+                                  'active': {'manualdetention': True},
+                                  'form': form,
+                                  'error': error
+                              }), RequestContext(request))
 
 
 def render_manual_detention_step_two(request, target):
@@ -236,7 +238,6 @@ def process_manual_detention_form(form, account):
     """Execute a manual detention based on form data"""
     LOGGER.debug('process_manual_detention_form')
 
-
     target = form.cleaned_data['target']
     justification = Justification.objects.get(
         pk=form.cleaned_data['justification'])
@@ -272,8 +273,8 @@ def process_manual_detention_form(form, account):
 def choose_detentions(request, did):
     """Find all detentions for the mac-address in the given detention"""
     detention = Identity.objects.get(pk=did)
-    detentions = Identity.objects.filter(mac=detention.mac,
-                                         status__in=['disabled', 'quarantined'])
+    detentions = Identity.objects.filter(
+        mac=detention.mac, status__in=['disabled', 'quarantined'])
 
     return render_to_response('arnold/choose_detentions.html',
                               create_context('Enable',
@@ -300,10 +301,11 @@ def render_detention_profiles(request):
         profile.active = True if profile.active == 'y' else False
 
     return render_to_response('arnold/detention_profiles.html',
-                       create_context('Detention Profiles',
-                                      {'active': {'detentionprofiles': True},
-                                       'profiles': profiles}),
-                       RequestContext(request))
+                              create_context('Detention Profiles',
+                                             {'active': {
+                                                 'detentionprofiles': True},
+                                              'profiles': profiles}),
+                              RequestContext(request))
 
 
 def render_edit_detention_profile(request, did=None):
@@ -339,7 +341,6 @@ def render_edit_detention_profile(request, did=None):
         })
     else:
         form = DetentionProfileForm()
-
 
     return render_to_response('arnold/edit_detention_profile.html',
                               create_context('Detention Profile',
@@ -427,5 +428,6 @@ def render_details(request, did):
     identity = Identity.objects.get(pk=did)
 
     return render_to_response('arnold/details.html',
-                              create_context('Details', {'identity': identity}),
+                              create_context('Details',
+                                             {'identity': identity}),
                               RequestContext(request))
