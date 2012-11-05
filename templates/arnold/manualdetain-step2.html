@@ -34,15 +34,15 @@
                         <tbody>
                         {% comment %} Manually print form for choosing interface to detain {% endcomment %}
                         {% for choice in form.camtuple.field.choices %}
-                            {% with interfaces|lookup:choice.0 as interface %}
+                            {% with camtuples|lookup:choice.0 as camtuple %}
                             <tr>
-                                <td>{{ interface.sysname }}</td>
-                                <td>{{ interface.port }}</td>
+                                <td>{{ camtuple.interface.netbox.sysname }}</td>
+                                <td>{{ camtuple.interface.ifname }}</td>
                                 <td>
-                                    {% if interface.endtime >= now %}
+                                    {% if camtuple.endtime >= now %}
                                         Still active
                                     {% else %}
-                                        {{ interface.endtime|date:'DATETIME_FORMAT' }}
+                                        {{ camtuple.endtime|date:'DATETIME_FORMAT' }}
                                     {% endif %}
                                 </td>
                                 <td>

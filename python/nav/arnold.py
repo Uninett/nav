@@ -33,6 +33,7 @@ import email.charset
 from datetime import datetime, timedelta
 from IPy import IP
 from subprocess import Popen, PIPE
+from collections import namedtuple
 
 import nav.Snmp
 import nav.bitvector
@@ -40,12 +41,15 @@ import nav.buildconf
 from nav import logs
 from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
+from nav.models.manage import Interface
 from django.db import connection  # import this after any django models
 from nav.util import isValidIP
 
 CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 NONBLOCKFILE = nav.buildconf.sysconfdir + "/arnold/nonblock.conf"
 LOGGER = logging.getLogger("nav.arnold")
+
+Candidate = namedtuple("Candidate", "camid ip mac interface endtime")
 
 
 class Memo(object):
@@ -170,6 +174,8 @@ def find_id_information(ip_or_mac, limit):
               WHERE ip=%s
               ORDER BY end_time DESC
               LIMIT 2) arpaggr USING (mac)
+        LEFT JOIN interface ON (cam.ifindex=interface.ifindex
+                            AND cam.netboxid=interface.netboxid)
         WHERE (cam.start_time, cam.end_time)
         OVERLAPS (arpaggr.ipstarttime, arpaggr.ipendtime)
         ORDER BY endtime DESC
@@ -181,6 +187,8 @@ def find_id_information(ip_or_mac, limit):
         query = """
         SELECT *, cam.start_time AS starttime, cam.end_time AS endtime
         FROM cam
+        LEFT JOIN interface ON (cam.ifindex=interface.ifindex
+                            AND cam.netboxid=interface.netboxid)
         WHERE mac = %s
         ORDER BY endtime DESC
         LIMIT %s
@@ -188,20 +196,11 @@ def find_id_information(ip_or_mac, limit):
 
     cursor.execute(query, [ip_or_mac, limit])
     result = dictfetchall(cursor)
-    if result:
-        for caminfo in result:
-            if 'ip' not in caminfo:
-                caminfo['ip'] = '0.0.0.0'
-        return result
+    candidates = create_candidates(result)
+    if candidates:
+        return candidates
     else:
         raise NoDatabaseInformationError(ip_or_mac)
-
-
-def dictfetchall(cursor):
-    "Returns all rows from a cursor as a dict"
-    desc = cursor.description
-    return [dict(
-        zip([col[0] for col in desc], row)) for row in cursor.fetchall()]
 
 
 def find_input_type(ip_or_mac):
@@ -225,13 +224,38 @@ def find_input_type(ip_or_mac):
     return input_type
 
 
-def disable(myidentity, justification, username, comment="", determined=False,
+def dictfetchall(cursor):
+    "Returns all rows from a cursor as a dict"
+    desc = cursor.description
+    return [dict(
+        zip([col[0] for col in desc], row)) for row in cursor.fetchall()]
+
+
+def create_candidates(caminfos):
+    """Create candidates"""
+    candidates = []
+    for caminfo in caminfos:
+        if not caminfo['ip']:
+            caminfo['ip'] = '10.0.0.1'
+        interface = Interface.objects.get(pk=caminfo['interfaceid'])
+        candidates.append(Candidate(caminfo['camid'], caminfo['ip'],
+                                    caminfo['mac'], interface,
+                                    caminfo['endtime']))
+    return candidates
+
+
+def find_computer_info(ip_or_mac):
+    """Return the latest entry from the cam table for ip_or_mac"""
+    return find_id_information(ip_or_mac, 1)[0]
+
+
+def disable(candidate, justification, username, comment="", determined=False,
             autoenablestep=0):
     """Disable a target by blocking the port"""
     LOGGER.info('Disabling %s - %s on interface %s' % (
-                myidentity.ip, myidentity.mac, myidentity.interface))
+                candidate.ip, candidate.mac, candidate.interface))
 
-    identity = check_identity(myidentity)
+    identity = check_identity(candidate)
     change_port_status('disable', identity)
     identity.status = 'disabled'
     update_identity(identity, justification, determined, autoenablestep)
@@ -241,13 +265,13 @@ def disable(myidentity, justification, username, comment="", determined=False,
                 identity.status, identity.ip, identity.mac))
 
 
-def quarantine(myidentity, qvlan, justification, username, comment="",
+def quarantine(candidate, qvlan, justification, username, comment="",
                determined=False, autoenablestep=0):
     """Quarantine a target bu changing vlan on port"""
     LOGGER.info('Quarantining %s - %s on interface %s' % (
-        myidentity.ip, myidentity.mac, myidentity.interface))
+        candidate.ip, candidate.mac, candidate.interface))
 
-    identity = check_identity(myidentity)
+    identity = check_identity(candidate)
     identity.fromvlan = change_port_vlan(identity, qvlan.vlan)
     identity.tovlan = qvlan.vlan
     identity.status = 'quarantined'
@@ -263,23 +287,23 @@ def check_target(target):
     LOGGER.debug('Checking target %s', target)
     if find_input_type(target) == 'IP':
         check_non_block(target)
-    find_id_information(target, 1)
+    find_computer_info(target)
 
 
-def check_identity(myidentity):
+def check_identity(candidate):
     """Create or return existing identity object based on target"""
     try:
-        identity = Identity.objects.get(interface=myidentity.interface,
-                                        mac=myidentity.mac)
+        identity = Identity.objects.get(interface=candidate.interface,
+                                        mac=candidate.mac)
         if identity.status != 'enabled':
             LOGGER.info('This computer is already detained - skipping')
             raise AlreadyBlockedError
-        identity.ip = myidentity.ip
+        identity.ip = candidate.ip
     except Identity.DoesNotExist:
         identity = Identity()
-        identity.interface = myidentity.interface
-        identity.ip = myidentity.ip
-        identity.mac = myidentity.mac
+        identity.interface = candidate.interface
+        identity.ip = candidate.ip
+        identity.mac = candidate.mac
 
     # Check if we should not detain this interface for some reason
     should_detain(identity.interface)
@@ -308,11 +332,6 @@ def create_event(identity, comment, username):
                   autoenablestep=identity.autoenablestep,
                   executor=username)
     event.save()
-
-
-def find_computer_info(ip_or_mac):
-    """Return the latest entry from the cam table for ip_or_mac"""
-    return find_id_information(ip_or_mac, 1)[0]
 
 
 def should_detain(interface):
@@ -484,8 +503,8 @@ def change_port_vlan(identity, vlan):
 
 def sendmail(fromaddr, toaddr, subject, msg):
     """
-    Sends mail using mailprogram configured in arnold.conf (default
-    sendmail).
+    Sends mail using mailprogram configured in arnold.conf
+
     NB: Expects all strings to be in utf-8 format.
 
     """
@@ -642,3 +661,20 @@ def init_logging(logfile):
     filehandler.setFormatter(formatter)
     root = logging.getLogger('')
     root.addHandler(filehandler)
+
+
+def is_inside_vlans(ip, vlans):
+    """Check if ip is inside the vlans
+
+    vlans: a string with comma-separated vlans.
+
+    """
+    vlans = [x.strip() for x in vlans.split(',')]
+
+    # For each vlan, check if it is inside the prefix of the vlan.
+    for vlan in vlans:
+        if vlan.isdigit() and is_valid_ip(ip):
+            if Prefix.objects.filter(vlan__vlan=vlan).extra(
+                    where=['%s << netaddr'], params=[ip]):
+                return True
+    return False

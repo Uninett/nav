@@ -33,13 +33,10 @@ import getpass
 from datetime import datetime, timedelta
 
 import nav.buildconf
-from nav.util import is_valid_ip
-
 from nav.arnold import (find_computer_info, disable, quarantine,
-                        NoDatabaseInformationError, GeneralException,
-                        init_logging)
+                        is_inside_vlans, NoDatabaseInformationError,
+                        GeneralException, init_logging)
 from nav.models.arnold import Identity, DetentionProfile
-from nav.models.manage import Interface, Prefix
 
 CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 
@@ -68,22 +65,21 @@ def main():
         LOGGER.info("%s is %s, checking for activity"
                     % (identity.mac, identity.status))
         try:
-            caminfo = find_computer_info(identity.mac)
+            candidate = find_computer_info(identity.mac)
         except NoDatabaseInformationError, error:
             LOGGER.info(error)
             continue
 
         # If this mac-address is active behind another port, block it.
-        if caminfo['endtime'] > datetime.now():
-            pursue(identity, caminfo)
+        if candidate.endtime > datetime.now():
+            pursue(identity, candidate)
         else:
             LOGGER.info("Mac not active.")
 
 
-def pursue(identity, caminfo):
+def pursue(identity, candidate):
     """Try to detain this identity if applicable"""
     LOGGER.info("Found active mac")
-    identity.ip = caminfo['ip']
 
     # Check if this reason is a part of any detention profile. If it is we
     # need to fetch the vlans from that profile and see if the new ip is on
@@ -93,18 +89,9 @@ def pursue(identity, caminfo):
     if profile and not should_detain(identity, profile):
         return
 
-    try:
-        identity.interface = Interface.objects.get(
-            netbox__sysname=caminfo['sysname'],
-            ifindex=caminfo['ifindex'])
-    except Interface.DoesNotExist:
-        LOGGER.error('Could not find interface to detain')
-        return
     identity.autoenablestep = find_autoenable_step(identity)
 
-    LOGGER.debug("Setting autoenablestep to %s" % identity.autoenablestep)
-
-    detain(identity)
+    detain(identity, candidate)
 
 
 def is_detained_by_profile(identity):
@@ -129,6 +116,7 @@ def find_autoenable_step(identity):
     if profile and profile.incremental:
         autoenablestep *= 2
 
+    LOGGER.debug("Setting autoenablestep to %s" % autoenablestep)
     return autoenablestep
 
 
@@ -147,24 +135,7 @@ def should_detain(identity, profile):
     return True
 
 
-def is_inside_vlans(ip, vlans):
-    """Check if ip is inside the vlans
-
-    vlans: a string with comma-separated vlans.
-
-    """
-    vlans = [x.strip() for x in vlans.split(',')]
-
-    # For each vlan, check if it is inside the prefix of the vlan.
-    for vlan in vlans:
-        if vlan.isdigit() and is_valid_ip(ip):
-            if Prefix.objects.filter(vlan__vlan=vlan).extra(
-                    where=['%s << netaddr'], params=[ip]):
-                return True
-    return False
-
-
-def detain(identity):
+def detain(identity, candidate):
     """Detain based on identity info"""
     username = getpass.getuser()
     comment = "Detained automatically when switching ports"
@@ -172,13 +143,13 @@ def detain(identity):
     try:
         if identity.status == 'disabled':
             LOGGER.debug("Trying to disable %s" % identity.mac)
-            disable(identity, identity.justification, username, comment,
+            disable(candidate, identity.justification, username, comment,
                     identity.keep_closed, identity.autoenablestep)
 
         elif identity.status == 'quarantined':
             LOGGER.debug("Trying to quarantine %s with vlan %s"
                          % (identity.mac, identity.tovlan))
-            quarantine(identity, identity.tovlan, identity.justification,
+            quarantine(candidate, identity.tovlan, identity.justification,
                        username, comment, identity.keep_closed,
                        identity.autoenablestep)
     except GeneralException, error:

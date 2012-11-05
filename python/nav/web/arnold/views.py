@@ -210,11 +210,11 @@ def render_manual_detention_step_two(request, target):
     """Controller for rendering interface choices when manualy detaining"""
 
     error = ""
-    interfaces = find_id_information(target, 3)
+    candidates = find_id_information(target, 3)
     camtuples = {}
-    for interface in interfaces:
-        camtuples[str(interface['camid'])] = interface
-    camtuple_choices = [(str(x['camid']), 'a') for x in interfaces]
+    for candidate in candidates:
+        camtuples[str(candidate.camid)] = candidate
+    camtuple_choices = [(str(x.camid), 'a') for x in candidates]
 
     if request.method == 'POST':
         form = ManualDetentionForm(request.POST)
@@ -232,7 +232,7 @@ def render_manual_detention_step_two(request, target):
                               create_context('Manual detention', {
                                   'active': {'manualdetention': True},
                                   'target': target,
-                                  'interfaces': camtuples,
+                                  'camtuples': camtuples,
                                   'form': form,
                                   'now': datetime.now(),
                                   'error': error

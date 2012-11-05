@@ -480,6 +480,7 @@ class Organization(models.Model):
     id = models.CharField(db_column='orgid', max_length=30, primary_key=True)
     parent = models.ForeignKey('self', db_column='parent', blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
+    contact = VarcharField(db_column='contact', blank=True)
     optional_1 = VarcharField(db_column='opt1', blank=True)
     optional_2 = VarcharField(db_column='opt2', blank=True)
     optional_3 = VarcharField(db_column='opt3', blank=True)
