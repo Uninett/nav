@@ -19,10 +19,10 @@ from IPy import IP
 from django import forms
 from nav.util import is_valid_ip, is_valid_mac
 
-from nav.models.manage import Interface
 from nav.models.arnold import (DETENTION_TYPE_CHOICES, STATUSES,
                                KEEP_CLOSED_CHOICES, Justification,
-                               QuarantineVlan)
+                               QuarantineVlan, DetentionProfile)
+
 
 class JustificationForm(forms.Form):
     """Form for adding a new justificaton"""
@@ -54,7 +54,8 @@ class SearchForm(forms.Form):
     searchtype = forms.ChoiceField(choices=search_choices)
     searchvalue = forms.CharField(required=True)
     status = forms.ChoiceField(choices=status_choices, label='Status')
-    days = forms.IntegerField(label='Days', widget=forms.TextInput({'size': 3}))
+    days = forms.IntegerField(label='Days',
+                              widget=forms.TextInput({'size': 3}))
 
     def clean_searchvalue(self):
         """Clean whitespace from searchvalue"""
@@ -108,7 +109,8 @@ class DetentionProfileForm(forms.Form):
 
         # If method = quarantine and no quarantine vlan is set, throw error
         if detention_type == DETENTION_TYPE_CHOICES[1][0] and not qvlan:
-            self._errors['qvlan'] = self.error_class(['This field is required'])
+            self._errors['qvlan'] = self.error_class(
+                ['This field is required'])
             del cleaned_data['qvlan']
 
         return cleaned_data
@@ -116,7 +118,9 @@ class DetentionProfileForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(DetentionProfileForm, self).__init__(*args, **kwargs)
         self.fields['qvlan'].choices = get_quarantine_vlans()
-        self.fields['justification'].choices = get_justifications()
+        did = self.data.get('detention_id') or self.initial.get(
+            'detention_id')
+        self.fields['justification'].choices = get_justifications(did)
 
 
 class ManualDetentionTargetForm(forms.Form):
@@ -154,7 +158,8 @@ class ManualDetentionForm(forms.Form):
 
         # If method = quarantine and no quarantine vlan is set, throw error
         if method == 'quarantine' and not qvlan:
-            self._errors['qvlan'] = self.error_class(['This field is required'])
+            self._errors['qvlan'] = self.error_class(
+                ['This field is required'])
             del cleaned_data['qvlan']
 
         return cleaned_data
@@ -165,13 +170,26 @@ class ManualDetentionForm(forms.Form):
         self.fields['qvlan'].choices = get_quarantine_vlans()
 
 
-def get_justifications():
-    """Return list of justifications ready for use as choices in forms"""
-    return [('', '-- Select reason --')] + [(j.id, j.name) for j in
-                                            Justification.objects.all()]
+def get_justifications(profileid=None):
+    """Return list of justifications ready for use as choices in forms
+
+    Justifications used in detention profiles must not be listed. If
+    profileid is given, make sure the justification for that profile is added.
+
+    """
+    if profileid:
+        detention_profiles = DetentionProfile.objects.exclude(id=profileid)
+    else:
+        detention_profiles = DetentionProfile.objects.all()
+
+    justifications = detention_profiles.values_list('justification')
+    return [('', '-- Select reason --')] +\
+           [(j.id, j.name) for j in Justification.objects.exclude(
+               id__in=justifications)]
+
 
 def get_quarantine_vlans():
     """Return list of quarantine vlans ready for use as choices in form"""
-    return [('', '-- Select vlan --')] + [
-            (q.id, str(q)) for q in
-            QuarantineVlan.objects.all()]
+    return [('', '-- Select vlan --')] + [(q.id,
+                                           str(q)) for q in
+                                          QuarantineVlan.objects.all()]
