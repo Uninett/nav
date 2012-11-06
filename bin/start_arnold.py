@@ -89,7 +89,7 @@ def verify_options(options):
     """Verify that the options passed in are sane"""
 
     if not options.blockid:
-        LOGGER.debug("No profile id given")
+        LOGGER.info("No profile id given")
         return
 
     try:
@@ -100,7 +100,7 @@ def verify_options(options):
         return
 
     if profile.active == 'n':
-        LOGGER.debug("Detention profile is inactive: %s" % options.blockid)
+        LOGGER.info("Detention profile is inactive: %s" % options.blockid)
         return
 
     return profile
@@ -158,7 +158,7 @@ def detain(address, profile, comment=''):
 
     if profile.active_on_vlans and not is_inside_vlans(
             candidate.ip, profile.active_on_vlans):
-        LOGGER.info(
+        LOGGER.error(
             "%s is not inside defined vlanrange for this predefined "
             "detention" % address)
         return
