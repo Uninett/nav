@@ -104,20 +104,15 @@ def is_detained_by_profile(identity):
 
 
 def find_autoenable_step(identity):
-    """Find and set autoenable and autoenablestep"""
+    """Find and set autoenablestep"""
     event = identity.event_set.filter(
         autoenablestep__isnull=False,
         justification=identity.justification).order_by('-event_time')[0]
 
-    profile = is_detained_by_profile(identity)
-    autoenablestep = event.autoenablestep
-
-    # If detainment is incremental, increase autoenablestep
-    if profile and profile.incremental:
-        autoenablestep *= 2
-
-    LOGGER.debug("Setting autoenablestep to %s" % autoenablestep)
-    return autoenablestep
+    if event:
+        return event.autoenablestep
+    else:
+        return 0
 
 
 def should_detain(identity, profile):

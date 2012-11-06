@@ -39,12 +39,11 @@ import sys
 from operator import methodcaller
 from optparse import OptionParser
 from os.path import join
-import nav.arnold
-import nav.buildconf
 
+import nav.buildconf
 from nav.arnold import (init_logging, find_computer_info, is_inside_vlans,
                         quarantine, disable, GeneralException)
-from nav.models.arnold import DetentionProfile
+from nav.models.arnold import DetentionProfile, Identity
 from nav.models.manage import Prefix
 
 LOGGER = logging.getLogger('start_arnold')
@@ -63,6 +62,7 @@ def main(options):
     if not profile:
         return
 
+    LOGGER.info('Starting automatic detentions based on %s' % profile.name)
     addresses = get_addresses_to_detain(options)
 
     detentions = []  # List of successfully blocked ip-addresses
@@ -142,6 +142,8 @@ def parse_input(lines):
             address, comment = match.groups()
             if comment:
                 comment.strip()
+            else:
+                comment = ""
             addresses.append((address, comment))
 
     return addresses
@@ -154,21 +156,51 @@ def detain(address, profile, comment=''):
     username = getpass.getuser()
     candidate = find_computer_info(address)
 
-    if profile.activeonvlans and not is_inside_vlans(candidate.ip,
-                                                     profile.activeonvlans):
+    if profile.active_on_vlans and not is_inside_vlans(
+            candidate.ip, profile.active_on_vlans):
         LOGGER.info(
             "%s is not inside defined vlanrange for this predefined "
             "detention" % address)
         return
 
+    duration = find_duration(candidate, profile)
+
     if profile.detention_type == 'disable':
         disable(candidate, profile.justification, username, comment,
-                profile.keep_closed, profile.duration)
+                profile.keep_closed, duration)
     else:
         quarantine(candidate, profile.quarantine_vlan, profile.justification,
-                   username, comment, profile.keep_closed, profile.duration)
+                   username, comment, profile.keep_closed, duration)
 
     return address
+
+
+def find_duration(candidate, profile):
+    """Find duration for this candidate based on profile
+
+    If this candidate has been detained before on this interface and the
+    profile has defined exponential detainment, increase the detainment for
+    this candidate.
+
+    """
+    autoenablestep = profile.duration
+    try:
+        identity = Identity.objects.get(mac=candidate.mac,
+                                        interface=candidate.interface)
+    except Identity.DoesNotExist:
+        pass
+    else:
+        event = identity.event_set.filter(
+            justification=profile.justification,
+            autoenablestep__isnull=False).order_by('-event_time')
+
+        if event:
+            autoenablestep = event[0].autoenablestep
+            if profile.incremental == 'y':
+                autoenablestep *= 2
+
+    LOGGER.debug("Setting duration to %s days" % autoenablestep)
+    return autoenablestep
 
 
 def report_detentions(profile, detentions):

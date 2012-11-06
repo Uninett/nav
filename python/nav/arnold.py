@@ -41,9 +41,9 @@ import nav.buildconf
 from nav import logs
 from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
-from nav.models.manage import Interface
+from nav.models.manage import Interface, Prefix
 from django.db import connection  # import this after any django models
-from nav.util import isValidIP
+from nav.util import is_valid_ip
 
 CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 NONBLOCKFILE = nav.buildconf.sysconfdir + "/arnold/nonblock.conf"
@@ -222,7 +222,7 @@ def find_input_type(ip_or_mac):
     # idValidIP returns 10.0.0.0 if you type 10.0.0. Check that this is not the
     # case.
     input_type = "UNKNOWN"
-    if isValidIP(ip_or_mac) and not isValidIP(ip_or_mac).endswith('.0'):
+    if is_valid_ip(ip_or_mac) and not is_valid_ip(ip_or_mac).endswith('.0'):
         input_type = "IP"
     elif re.match("^[A-Fa-f0-9]{12}$", mac):
         input_type = "MAC"
@@ -264,7 +264,7 @@ def disable(candidate, justification, username, comment="", determined=False,
                 candidate.ip, candidate.mac, candidate.interface))
 
     if not candidate.interface.netbox.read_write:
-        raise NoReadWriteCommunityError
+        raise NoReadWriteCommunityError(candidate.interface.netbox)
     identity = check_identity(candidate)
     change_port_status('disable', identity)
     identity.status = 'disabled'
@@ -282,7 +282,7 @@ def quarantine(candidate, qvlan, justification, username, comment="",
         candidate.ip, candidate.mac, candidate.interface))
 
     if not candidate.interface.netbox.read_write:
-        raise NoReadWriteCommunityError
+        raise NoReadWriteCommunityError(candidate.interface.netbox)
     identity = check_identity(candidate)
     identity.fromvlan = change_port_vlan(identity, qvlan.vlan)
     identity.tovlan = qvlan
@@ -308,7 +308,6 @@ def check_identity(candidate):
         identity = Identity.objects.get(interface=candidate.interface,
                                         mac=candidate.mac)
         if identity.status != 'enabled':
-            LOGGER.info('This computer is already detained - skipping')
             raise AlreadyBlockedError
         identity.ip = candidate.ip
     except Identity.DoesNotExist:
@@ -420,14 +419,11 @@ def change_port_status(action, identity):
     # Disable or enable based on input
     try:
         if action == 'disable':
-            LOGGER.info("Disabling %s on %s with %s"
-                        % (identity.interface, netbox.ip, query))
             #agent.set(query, 'i', 2)
+            pass
         elif action == 'enable':
-            LOGGER.info("Enabling %s on %s with %s"
-                        % (identity.interface, netbox.ip, query))
             #agent.set(query, 'i', 1)
-
+            pass
     except nav.Snmp.AgentError, why:
         LOGGER.error("Error when executing snmpquery: %s" % why)
         raise ChangePortStatusError(why)
