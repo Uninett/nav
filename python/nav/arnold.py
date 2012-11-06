@@ -438,7 +438,7 @@ def change_port_vlan(identity, vlan):
 
     interface = identity.interface
     netbox = interface.netbox
-    vendorid = netbox.type.vendor
+    vendorid = netbox.type.vendor.id
 
     if vendorid == 'cisco':
         oid = "1.3.6.1.4.1.9.9.68.1.2.2.1.2"
