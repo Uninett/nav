@@ -263,6 +263,8 @@ def disable(candidate, justification, username, comment="", determined=False,
     LOGGER.info('Disabling %s - %s on interface %s' % (
                 candidate.ip, candidate.mac, candidate.interface))
 
+    if not candidate.interface.netbox.read_write:
+        raise NoReadWriteCommunityError
     identity = check_identity(candidate)
     change_port_status('disable', identity)
     identity.status = 'disabled'
@@ -279,6 +281,8 @@ def quarantine(candidate, qvlan, justification, username, comment="",
     LOGGER.info('Quarantining %s - %s on interface %s' % (
         candidate.ip, candidate.mac, candidate.interface))
 
+    if not candidate.interface.netbox.read_write:
+        raise NoReadWriteCommunityError
     identity = check_identity(candidate)
     identity.fromvlan = change_port_vlan(identity, qvlan.vlan)
     identity.tovlan = qvlan
