@@ -83,75 +83,83 @@ class Memo(object):
 
 
 class ChangePortStatusError(GeneralException):
-    "An error occured when changing portadminstatus"
+    """An error occured when changing portadminstatus"""
     pass
 
 
 class ChangePortVlanError(GeneralException):
-    "An error occured when changing portvlan"
+    """An error occured when changing portvlan"""
     pass
 
 
 class NoDatabaseInformationError(GeneralException):
-    "Could not find information in database for id"
+    """Could not find information in database for id"""
     pass
 
 
 class PortNotFoundError(GeneralException):
-    "Could not find port in database"
+    """Could not find port in database"""
     pass
 
 
 class UnknownTypeError(GeneralException):
-    "Unknown type (not ip or mac)"
+    """Unknown type (not ip or mac)"""
     pass
 
 
 class DbError(GeneralException):
-    "Error when querying database"
+    """Error when querying database"""
     pass
 
 
 class NotSupportedError(GeneralException):
-    "This vendor does not support snmp set of vlan"
+    """This vendor does not support snmp set of vlan"""
     pass
 
 
 class NoSuchProgramError(GeneralException):
-    "No such program"
+    """No such program"""
     pass
 
 
 class WrongCatidError(GeneralException):
-    "Arnold is not permitted to block ports on equipment of this category"
+    """Arnold is not permitted to block ports on equipment of this category"""
     pass
 
 
 class AlreadyBlockedError(GeneralException):
-    "This port is already blocked or quarantined."
+    """This port is already blocked or quarantined."""
     pass
 
 
 class InExceptionListError(GeneralException):
-    "This ip-address is in the exceptionlist and cannot be blocked."
+    """This ip-address is in the exceptionlist and cannot be blocked."""
     pass
 
 
 class FileError(GeneralException):
-    "Fileerror"
+    """Fileerror"""
     pass
 
 
 class BlockonTrunkError(GeneralException):
-    "No action on trunked interface allowed"
+    """No action on trunked interface allowed"""
+    pass
+
+
+class NoReadWriteCommunityError(GeneralException):
+    """No write community on switch"""
     pass
 
 
 def find_id_information(ip_or_mac, limit):
-    """
-    Look in arp and cam tables to find id (which is either ip or mac-address).
-    Returns a list with $limit number of dicts containing all info from arp
-    and cam joined on mac.
+    """Look in arp and cam tables to find camtuple with ip_or_mac
+
+    Returns $limit number of Candidates
+
+    If ip_or_mac is ip, then we can find info in arp. If it is a mac-address
+    we cannot find ip-address and it is set to a default value. In both
+    cases we are able to find the interface where the ip_or_mac is located.
 
     """
     cursor = connection.cursor()
@@ -423,8 +431,7 @@ def change_port_status(action, identity):
 
 def change_port_vlan(identity, vlan):
     """
-    Use SNMP to change switchport access vlan. Returns vlan on port
-    before change if successful.
+    Change switchport access vlan. Returns vlan on port before change.
 
     Reasons for not successful change may be:
     - Wrong community, use rw-community

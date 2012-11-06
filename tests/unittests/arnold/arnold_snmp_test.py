@@ -32,7 +32,7 @@ class TestArnoldSnmp(unittest.TestCase):
         netbox.read_write = self.read_write
         netbox.read_only = self.read_write
         netbox.snmp_version = 1
-        netbox.type.vendor = 'cisco'
+        netbox.type.vendor.id = 'cisco'
         return netbox
 
     def test_change_port_status_enable(self, snmp):
@@ -92,7 +92,7 @@ class TestArnoldSnmp(unittest.TestCase):
 
         identity = Mock()
         identity.interface = self.interface
-        identity.interface.netbox.type.vendor = 'hp'
+        identity.interface.netbox.type.vendor.id = 'hp'
 
         with patch('nav.arnold.compute_octet_string'):
             self.assertEqual(change_port_vlan(identity, tovlan), fromvlan)
