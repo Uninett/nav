@@ -363,10 +363,15 @@ def open_port(identity, username, eventcomment=""):
 
     LOGGER.info("openPort: Trying to open identity with id %s" % identity.id)
 
-    if identity.status == 'disabled':
-        change_port_status('enable', identity)
-    elif identity.status == 'quarantined':
-        change_port_vlan(identity, identity.fromvlan)
+    try:
+        identity.interface
+    except Interface.DoesNotExist:
+        pass
+    else:
+        if identity.status == 'disabled':
+            change_port_status('enable', identity)
+        elif identity.status == 'quarantined':
+            change_port_vlan(identity, identity.fromvlan)
 
     identity.status = 'enabled'
     identity.last_changed = datetime.now()

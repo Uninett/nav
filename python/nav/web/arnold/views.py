@@ -428,7 +428,14 @@ def render_details(request, did):
     """Controller for rendering details about an identity"""
     identity = Identity.objects.get(pk=did)
 
+    error = ''
+    try:
+        identity.interface
+    except Interface.DoesNotExist:
+        error = "Could not find interface, maybe switch is replaced?"
+
     return render_to_response('arnold/details.html',
                               create_context('Details',
-                                             {'identity': identity}),
+                                             {'identity': identity,
+                                              'error': error}),
                               RequestContext(request))
