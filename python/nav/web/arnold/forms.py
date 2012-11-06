@@ -149,7 +149,7 @@ class ManualDetentionForm(forms.Form):
     justification = forms.ChoiceField(label="Reason")
     qvlan = forms.ChoiceField(label="Quarantine vlan", required=False)
     comment = forms.CharField(label="Comment", required=False)
-    days = forms.IntegerField(label="Autoenable in")
+    days = forms.IntegerField(label="Autoenable in", required=False)
 
     def clean(self):
         cleaned_data = self.cleaned_data
