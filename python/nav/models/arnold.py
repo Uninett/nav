@@ -47,14 +47,14 @@ class Identity(models.Model):
                                       db_column='blocked_reasonid')
     interface = models.ForeignKey(Interface, db_column='swportid')
     ip = models.IPAddressField(null=True, default='0.0.0.0')
-    dns = VarcharField(null=True)
-    netbios = VarcharField(null=True)
+    dns = VarcharField(blank=True)
+    netbios = VarcharField(blank=True)
     first_offence = models.DateTimeField(db_column='starttime',
                                          auto_now_add=True)
     last_changed = models.DateTimeField(db_column='lastchanged', auto_now=True)
     autoenable = models.DateTimeField(null=True)
     autoenablestep = models.IntegerField(null=True, default=2)
-    mail = VarcharField(null=True)
+    mail = VarcharField(blank=True)
     organization = models.ForeignKey('Organization', db_column='orgid',
                                      null=True)
     keep_closed = models.CharField(db_column='determined', default='n',
@@ -78,7 +78,7 @@ class Event(models.Model):
     """A class representing an action taken"""
     id = models.AutoField(db_column='eventid', primary_key=True)
     identity = models.ForeignKey('Identity', db_column='identityid')
-    comment = VarcharField(db_column='event_comment', null=True)
+    comment = VarcharField(db_column='event_comment', blank=True)
     action = VarcharField(db_column='blocked_status', choices=STATUSES)
     justification = models.ForeignKey('Justification',
                                       db_column='blocked_reasonid')
@@ -98,7 +98,7 @@ class Justification(models.Model):
     """Represents the justification for an event"""
     id = models.AutoField(db_column='blocked_reasonid', primary_key=True)
     name = VarcharField()
-    description = VarcharField(db_column='comment', null=True)
+    description = VarcharField(db_column='comment', blank=True)
 
     def __unicode__(self):
         return self.name
@@ -112,7 +112,7 @@ class QuarantineVlan(models.Model):
     """A quarantine vlan is a vlan where offenders are placed"""
     id = models.AutoField(db_column='quarantineid', primary_key=True)
     vlan = models.IntegerField()
-    description = VarcharField(null=True)
+    description = VarcharField(blank=True)
 
     def __unicode__(self):
         return "%s - %s" % (self.vlan, self.description)
@@ -126,8 +126,8 @@ class DetentionProfile(models.Model):
     """A detention profile is a configuration used by an automatic detention"""
     id = models.AutoField(db_column='blockid', primary_key=True)
     name = VarcharField(db_column='blocktitle')
-    description = VarcharField(db_column='blockdesc', null=True)
-    mailfile = VarcharField(null=True)
+    description = VarcharField(db_column='blockdesc', blank=True)
+    mailfile = VarcharField(blank=True)
     justification = models.ForeignKey('Justification', db_column='reasonid')
     keep_closed = models.CharField(db_column='determined', default='n',
                                    choices=KEEP_CLOSED_CHOICES)
@@ -137,7 +137,7 @@ class DetentionProfile(models.Model):
     last_edited = models.DateTimeField(db_column='lastedited',
                                        auto_now_add=True)
     edited_by = VarcharField(db_column='lastedituser')
-    inputfile = VarcharField(null=True)
+    inputfile = VarcharField(blank=True)
     active_on_vlans = VarcharField(db_column='activeonvlans')
     detention_type = VarcharField(db_column='detainmenttype',
                                   choices=DETENTION_TYPE_CHOICES)
