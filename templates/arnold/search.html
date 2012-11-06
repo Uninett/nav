@@ -53,10 +53,10 @@
             <tbody>
             {% for result in search_result %}
                 <tr>
-                    <td>{{ result.ip|default_if_none:'' }}</td>
-                    <td>{{ result.dns|default_if_none:'' }}</td>
+                    <td>{{ result.ip }}</td>
+                    <td>{{ result.dns }}</td>
                     <td>{{ result.mac }}</td>
-                    <td>{{ result.netbios|default_if_none:'' }}</td>
+                    <td>{{ result.netbios }}</td>
                     <td>{{ result.status }}</td>
                     <td>{{ result.justification }}</td>
                     <td>{{ result.last_changed|date:"Y-m-d H:i:s" }}</td>

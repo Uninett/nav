@@ -34,7 +34,7 @@
             <td>
                 {{ identity.autoenable|date:'DATETIME_FORMAT'|default_if_none:'' }}
             </td>
-            <td>{{ identity.mail|default_if_none:'' }}</td>
+            <td>{{ identity.mail }}</td>
         </tr>
         </tbody>
 
@@ -63,7 +63,7 @@
                 <td>{{ event.event_time|date:"Y-m-d H:i:s" }}</td>
                 <td>{{ event.action }}</td>
                 <td>{{ event.justification }}</td>
-                <td>{{ event.comment|default_if_none:'' }}</td>
+                <td>{{ event.comment }}</td>
                 <td>{{ event.executor }}</td>
             </tr>
             {% endfor %}
