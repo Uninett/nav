@@ -273,7 +273,7 @@ def quarantine(candidate, qvlan, justification, username, comment="",
 
     identity = check_identity(candidate)
     identity.fromvlan = change_port_vlan(identity, qvlan.vlan)
-    identity.tovlan = qvlan.vlan
+    identity.tovlan = qvlan
     identity.status = 'quarantined'
     update_identity(identity, justification, determined, autoenablestep)
     create_event(identity, comment, username)

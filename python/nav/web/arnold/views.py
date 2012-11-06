@@ -263,8 +263,9 @@ def process_manual_detention_form(form, account):
         except GeneralException, error:
             return error
     elif form.cleaned_data['method'] == 'quarantine':
+        qvlan = QuarantineVlan.objects.get(pk=form.cleaned_data['qvlan'])
         try:
-            quarantine(identity, form.cleaned_data['qvlan'], justification,
+            quarantine(identity, qvlan, justification,
                        username, comment=comment, autoenablestep=days)
         except GeneralException, error:
             return error

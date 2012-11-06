@@ -60,7 +60,7 @@ class Identity(models.Model):
     keep_closed = models.CharField(db_column='determined', default='n',
                                    choices=KEEP_CLOSED_CHOICES)
     fromvlan = models.IntegerField(null=True)
-    tovlan = models.IntegerField(null=True)
+    tovlan = models.ForeignKey('QuarantineVlan', db_column='tovlan', null=True)
 
     def __unicode__(self):
         return "%s/%s %s" % (self.ip, self.mac, self.interface)
