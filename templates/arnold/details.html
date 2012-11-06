@@ -24,14 +24,16 @@
         <tbody>
         <tr>
             <td>{{ identity.ip }}</td>
-            <td>{{ identity.dns|default_if_none:'' }}</td>
-            <td>{{ identity.netbios|default_if_none:'' }}</td>
+            <td>{{ identity.dns }}</td>
+            <td>{{ identity.netbios }}</td>
             <td>{{ identity.mac }}</td>
             <td>{{ identity.interface.netbox.sysname }}</td>
             <td>{{ identity.interface.ifname|default_if_none:'' }}</td>
             <td>{{ identity.interface.vlan|default_if_none:'' }}</td>
             <td>{{ identity.status }}</td>
-            <td>{{ identity.autoenable|default_if_none:'' }}</td>
+            <td>
+                {{ identity.autoenable|date:'DATETIME_FORMAT'|default_if_none:'' }}
+            </td>
             <td>{{ identity.mail|default_if_none:'' }}</td>
         </tr>
         </tbody>
