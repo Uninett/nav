@@ -12,7 +12,8 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker',
-    'libs/spin.min'
+    'libs/spin.min',
+    'libs/d3.v2'
     /*'views/users/list'*/
 ], function (MapCollection, MapModel, GraphModel, DefaultMapModel, MapInfoView, DrawNetmapView, ListNetmapView, NavigationView, SearchboxView) {
 
