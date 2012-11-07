@@ -61,7 +61,7 @@ define([
         showNetmap: function(map_id) {
             this.loadingMap();
             //console.log("showNetmap({0})".format(map_id));
-            context_selected_map.id = parseInt(map_id);
+            context_selected_map.id = parseInt(map_id, 10);
             this.loadPage();
         },
         loadPage: function () {
@@ -73,7 +73,7 @@ define([
 
             if (context_user_default_view === undefined) {
                 var user_id = $("#netmap_userid").html();
-                new DefaultMapModel({ownerid: parseInt(user_id)}).fetch({
+                new DefaultMapModel({ownerid: parseInt(user_id, 10)}).fetch({
                     success: function (model) {
                         context_user_default_view = model;
                     },
