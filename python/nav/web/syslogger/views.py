@@ -36,7 +36,7 @@ from nav.django.utils import get_account
 
 from nav.models.logger import LogMessage
 from nav.models.logger import ErrorError
-from nav.web.loggerhandler.forms import LoggerGroupSearchForm
+from nav.web.syslogger.forms import LoggerGroupSearchForm
 
 
 

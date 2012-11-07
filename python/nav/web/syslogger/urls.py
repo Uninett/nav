@@ -17,10 +17,10 @@
 """loggerhandler Django URL config"""
 
 from django.conf.urls.defaults import patterns, url
-from nav.web.loggerhandler.views import index
-from nav.web.loggerhandler.views import exceptions_response
-from nav.web.loggerhandler.views import errors_response
-from nav.web.loggerhandler.views import group_search
+from nav.web.syslogger.views import index
+from nav.web.syslogger.views import exceptions_response
+from nav.web.syslogger.views import errors_response
+from nav.web.syslogger.views import group_search
 
 
 urlpatterns = patterns('',
