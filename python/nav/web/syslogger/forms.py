@@ -1,5 +1,5 @@
 """
-forms and functions used for loggerhandler in NAV
+forms and functions used for syslogger in NAV
 """
 
 from django import forms
