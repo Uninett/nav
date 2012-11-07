@@ -8,7 +8,7 @@ inhgrepo() {
 }
 
 do_describe() {
-  PYTHONPATH=tools ${HG} --config extensions.hgdescribe=tools/hgdescribe describe --single-tag
+  PYTHONPATH=tools ${HG} --config extensions.hgdescribe=tools/hgdescribe describe --single-tag --limit 9999
 }
 if test -z "$VERSION" && inhgrepo; then
   VERSION=`do_describe`
