@@ -110,7 +110,7 @@ require([
     }
 
     function checkDataAndUpdateSelection(dataTarget, data) {
-        var update_target = $('select#id_'+dataTarget+' option');
+        var update_target = $('#id_'+dataTarget+' option');
         for (var i = 0; i < update_target.length; i++) {
             var select_box = update_target[i];
             if (select_box.value === data) {
