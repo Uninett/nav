@@ -19,7 +19,7 @@ from django.conf.urls.defaults import patterns, include
 
 def get_urlpatterns():
     urlpatterns = patterns('',
-        # Give the syslogger/ and logger/ namespace to the syslogger subsystem
+        # Give the syslogger/ namespace to the syslogger subsystem
         (r'^syslogger/', include('nav.web.syslogger.urls'))
     )
     return urlpatterns
