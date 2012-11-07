@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""loggerhandler Django URL configuration"""
+"""syslogger Django URL configuration"""
 
 from django.conf.urls.defaults import patterns, include
 
