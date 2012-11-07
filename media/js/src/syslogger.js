@@ -125,7 +125,7 @@ require([
         for (var i = 0; i < options.length; i++) {
             var option = options[i];
             if (option.value  && option.value.trim() === field.trim()) {
-                $(option).attr('selected', 'selected');
+                $(option).prop('selected', 'selected');
                 break;
             }
         }
