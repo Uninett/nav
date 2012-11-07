@@ -454,8 +454,8 @@ def remove_forgotten():
 
 if __name__ == '__main__':
     loginit()
-    #schedule()
+    schedule()
     check_tasks_without_end()
-    #check_state()
-    #send_event()
-    #remove_forgotten()
+    check_state()
+    send_event()
+    remove_forgotten()
