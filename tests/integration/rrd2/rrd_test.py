@@ -55,7 +55,7 @@ class RrdTests(PresenterTestCase):
         self.assertEquals(list, type(result))
 
         expected_average = 2372285.25
-        self.assertAlmostEquals(expected_average, result[0], delta=0.1)
+        self.assertTrue((expected_average - result[0]) <= 0.1)
 
     def test_read_max(self):
         self.presentation.add_datasource(datasource=self.test_data[0])
@@ -68,7 +68,7 @@ class RrdTests(PresenterTestCase):
         result = self.presentation.max()
 
         expected_max = 11861200.31
-        self.assertAlmostEquals(expected_max, result[0], delta=0.1)
+        self.assertTrue((expected_max - result[0]) <= 0.1)
 
     def test_read_min(self):
         self.presentation.add_datasource(datasource=self.test_data[0])
@@ -84,7 +84,7 @@ class RrdTests(PresenterTestCase):
 
         expected_min = 902148.62
 
-        self.assertAlmostEquals(expected_min, result[0], delta=0.1)
+        self.assertTrue((expected_min - result[0]) <= 0.1)
 
     def test_read_sum(self):
         self.presentation.add_datasource(datasource=self.test_data[0])
@@ -99,7 +99,7 @@ class RrdTests(PresenterTestCase):
 
         expected_sum = 856394975.68
 
-        self.assertAlmostEquals(expected_sum, result[0], delta=0.1)
+        self.assertTrue((expected_sum - result[0]) <= 0.1)
 
     def test_valid_points(self):
         self.presentation.add_datasource(datasource=self.test_data[0])
