@@ -44,9 +44,6 @@ require([
     };
 
     $(document).ready(function () {
-        // Plug row toggler on datasources
-        //new TableUtil($('#hostinfo')).addRowToggleTrigger();
-
         NAV.addGlobalAjaxHandlers();
         if ($(mainTabsSelector).length != 0) {
             addMainTabs();
