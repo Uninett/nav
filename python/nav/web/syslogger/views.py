@@ -143,7 +143,7 @@ def _build_context(request):
     else:
         initial_context = {
             'timestamp_from': (datetime.datetime.now() -
-                               datetime.timedelta(days=51)),
+                               datetime.timedelta(days=1)),
             'timestamp_to': datetime.datetime.now()
         }
         form = LoggerGroupSearchForm(initial=initial_context)
