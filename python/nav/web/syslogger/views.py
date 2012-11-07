@@ -49,7 +49,7 @@ DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 DOMAIN_SUFFICES = nav.config.readConfig("nav.conf")["DOMAIN_SUFFIX"].split(",")
 DOMAIN_SUFFICES = [s.strip() for s in DOMAIN_SUFFICES]
 
-logger = logging.getLogger("nav.web.loggerhandler")
+logger = logging.getLogger("nav.web.syslogger")
 
 
 def _strip_empty_arguments(request):
@@ -171,12 +171,12 @@ def handle_search(request, searchform, form_target):
     context.update({'form_target': form_target})
 
 
-    return render_to_response('loggerhandler/frag-search.html',
+    return render_to_response('syslogger/frag-search.html',
         context,
         RequestContext(request))
 
 def index(request):
-    return render_to_response('loggerhandler/index.html',
+    return render_to_response('syslogger/index.html',
         _build_context(request),
         RequestContext(request))
 
@@ -207,7 +207,7 @@ def exceptions_response(request):
         excepts.append((option, newpriority))
     context['exceptions'] = excepts
     context['exceptions_mode'] = True
-    return render_to_response('loggerhandler/frag-exceptions.html',
+    return render_to_response('syslogger/frag-exceptions.html',
                                 context,
                                 RequestContext(request))
 
@@ -229,6 +229,6 @@ def errors_response(request):
     context['errors'] = errs
     context['errors_count'] = len(errs)
     context['errors_mode'] = True
-    return render_to_response('loggerhandler/frag-errors.html',
+    return render_to_response('syslogger/frag-errors.html',
                                 context,
                                 RequestContext(request))
