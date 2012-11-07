@@ -32,7 +32,8 @@ class RrdTests(PresenterTestCase):
         process = subprocess.Popen(['rrdtool','restore', path+'/rrd.xml',path+'/demo.rrd'])
         process.communicate()[0]
         if  process.returncode!=0:
-            raise ValueError("OBS OBS creating rrd file didn't go as planned!")
+            raise ValueError(
+                "Creation of demo.rrd for use with integration tests failed")
 
 
     def test_read_average(self):
