@@ -9,4 +9,21 @@ require(['plugins/quickselect', 'plugins/hover_highlight', 'libs/jquery'], funct
     if (quickselect.length) {
         new QuickSelect(quickselect);
     }
+
+    $(document).ready(function(){
+        $('#id_no_end_time').change(function(){
+            toggleEndTime(this);
+        });
+    });
+
+    function toggleEndTime(checkBox){
+        var endTime = $('#id_end_time');
+        if ($(checkBox).prop('checked')){
+            $(endTime).attr('disabled', 'disabled');
+        } else {
+            $(endTime).removeAttr('disabled');
+        }
+    }
+
+
 });

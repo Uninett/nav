@@ -55,6 +55,8 @@ NAVPATH = [
 
 TITLE = "NAV - Maintenance"
 
+INFINITY = datetime.max
+
 def task_form_initial(task=None, start_time=None):
     if task:
         initial = {
@@ -293,7 +295,11 @@ class MaintenanceCalendar(HTMLCalendar):
         task_index = {}
         for task in tasks:
             day = task.start_time.date()
-            while day <= task.end_time.date():
+            end_day = task.end_time.date()
+            if end_day >= INFINITY.date():
+                # Need to stop somewhere when tasks do not specify end date.
+                end_day = task.start_time.date() + timedelta(weeks=4)
+            while day <= end_day:
                 if not day in grouped:
                     grouped[day] = {}
                 if task.pk in task_index:

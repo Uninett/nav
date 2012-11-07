@@ -36,6 +36,8 @@ from nav.web.maintenance.utils import task_form_initial, infodict_by_state
 from nav.web.maintenance.utils import MaintenanceCalendar, NAVPATH, TITLE
 from nav.web.maintenance.forms import MaintenanceTaskForm
 
+INFINITY = datetime.max
+
 def calendar(request, year=None, month=None):
     try:
         year = int(request.GET.get('year'))
@@ -60,10 +62,13 @@ def calendar(request, year=None, month=None):
 
     prev_month_start = date(prev_year, prev_month, 1)
     next_month_start = date(next_year, next_month, 1)
-    tasks = MaintenanceTask.objects.filter(
-        end_time__gt=this_month_start,
-        start_time__lt=next_month_start,
-    ).exclude(state=MaintenanceTask.STATE_CANCELED).order_by('start_time')
+    #tasks = MaintenanceTask.objects.filter(
+    #    end_time__gt=this_month_start,
+    #    start_time__lt=next_month_start,
+    #).exclude(state=MaintenanceTask.STATE_CANCELED).order_by('start_time')
+    tasks = MaintenanceTask.objects.filter(start_time__gt=this_month_start
+        ).filter(start_time__lt=next_month_start
+        ).exclude(state=MaintenanceTask.STATE_CANCELED).order_by('start_time')
     cal = MaintenanceCalendar(tasks).formatmonth(year, month)
     return render_to_response(
         'maintenance/calendar.html',
@@ -219,13 +224,17 @@ def edit(request, task_id=None, start_time=None):
             if task_form.is_valid() and num_components > 0:
                 start_time = task_form.cleaned_data['start_time']
                 end_time = task_form.cleaned_data['end_time']
+                no_end_time = task_form.cleaned_data['no_end_time']
                 state = MaintenanceTask.STATE_SCHEDULED
-                if start_time < datetime.now() and end_time <= datetime.now():
+                if start_time < datetime.now() and end_time and end_time <= datetime.now():
                     state = MaintenanceTask.STATE_SCHEDULED
 
                 new_task = MaintenanceTask()
                 new_task.start_time = task_form.cleaned_data['start_time']
-                new_task.end_time = task_form.cleaned_data['end_time']
+                if no_end_time:
+                    new_task.end_time = INFINITY
+                elif not no_end_time and end_time:
+                    new_task.end_time = task_form.cleaned_data['end_time']
                 new_task.description = task_form.cleaned_data['description']
                 new_task.state = state
                 new_task.author = account.login

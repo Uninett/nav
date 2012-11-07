@@ -20,7 +20,7 @@
 This program dispatches maintenance events according to the maintenance
 schedule in NAVdb.
 """
-
+import datetime
 import logging
 import os.path
 import sys
@@ -31,6 +31,8 @@ import nav.logs
 logfile = os.path.join(nav.path.localstatedir, 'log', 'maintengine.log')
 logformat = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s"
 logger = logging.getLogger('maintengine')
+
+INFINITY = datetime.datetime.max
 
 # Placeholders
 events = []
@@ -82,6 +84,88 @@ def schedule():
     db.execute(sql)
     dbconn.commit()
     
+def get_tasks_and_boxes_without_end():
+    """Collect all netboxes from maintenance tasks that do not have a defined
+        end time.  Place them in a dictionary with maintenance identity as key
+        and a list of affected netboxes for each task."""
+    #  Select all affected components for every task.
+    sql = """SELECT maint_taskid, key, value
+                FROM maint_task
+                    INNER JOIN maint_component USING (maint_taskid)
+                WHERE state = 'active' AND
+                    maint_end >= %s"""
+    db.execute(sql, (INFINITY,))
+    tasks_and_boxes = {}
+    for (maint_id, key, value) in db.fetchall():
+        # Collect affected boxes for each maintenance task.
+        netbox_ids = []
+        if key in ('room', 'location'):
+            if key == 'location':
+                sql = """SELECT netboxid
+                            FROM netbox
+                                INNER JOIN room USING (roomid)
+                        WHERE locationid = %s"""
+            if key == 'room':
+                sql = """SELECT netboxid
+                            FROM netbox
+                        WHERE roomid = %s"""
+            db.execute(sql, (value,))
+            netbox_ids = [box_id for (box_id,) in db.fetchall()]
+        if key == 'service':
+            sql = "SELECT netboxid FROM service WHERE serviceid = %s"
+            db.execute(sql, (int(value),))
+            result = db.fetchone()
+            if result:
+                (box_id,) = result
+                netbox_ids.append(box_id)
+        if key == 'netbox':
+            netbox_ids.append(int(value))
+        # Use maintenance key as key for netboxes that are affected by
+        # the maintenance task.
+        if maint_id in tasks_and_boxes:
+            tasks_and_boxes[maint_id].extend(netbox_ids)
+        else:
+            tasks_and_boxes[maint_id] = netbox_ids
+    return tasks_and_boxes
+
+def check_tasks_without_end():
+    """Loop thru all maintenance tasks without a defined end time, and end the
+    task if all boxes included in the task have been up for longer than an hour."""
+    tasks_and_boxes = get_tasks_and_boxes_without_end()
+    # Loop thru all maintenance tasks and check if the affected boxes
+    # have been up for at least an hour.
+    for (maint_id, netbox_ids) in tasks_and_boxes.iteritems():
+        boxes_still_on_maint = []
+        for box_id in netbox_ids:
+            sql = """SELECT up, upsince
+                        FROM netbox
+                        WHERE netboxid = %s"""
+            db.execute(sql, (box_id,))
+            (up, upsince,) = db.fetchone()
+            if not up or (up and up == 'n'):
+                # Boxstate is unknown or box is down.
+                boxes_still_on_maint.append(str(box_id))
+            elif up and up == 'y' and upsince:
+                # Box is up
+                end_time_to_check = (datetime.datetime(upsince.year, upsince.month,
+                                                        upsince.day, upsince.hour,
+                                                        upsince.minute, upsince.second)
+                                        + datetime.timedelta(hours=1))
+                if end_time_to_check > datetime.datetime.now():
+                    # Box have not been up for an hour yet.
+                    boxes_still_on_maint.append(str(box_id))
+        if len(boxes_still_on_maint) > 0:
+            # Some boxes are still down...
+            logger.debug('Maintenance task %d: Boxes %s are still on maintenance' %
+                         (maint_id, ", ".join(boxes_still_on_maint)))
+        else:
+            # All affected boxes for this maintenance task have been up again for
+            # at least an hour.
+            time_now = datetime.datetime.now()
+            logger.warn("Maintenance task %d: Set end at %s" % (maint_id, str(time_now)))
+            sql = """UPDATE maint_task SET maint_end = %s WHERE maint_taskid = %s"""
+            db.execute(sql, (time_now, maint_id,))
+            dbconn.commit()
 
 def check_state():
     """Checks if there are some maintenance tasks to be set active or
@@ -370,7 +454,8 @@ def remove_forgotten():
 
 if __name__ == '__main__':
     loginit()
-    schedule()
-    check_state()
-    send_event()
-    remove_forgotten()
+    #schedule()
+    check_tasks_without_end()
+    #check_state()
+    #send_event()
+    #remove_forgotten()
