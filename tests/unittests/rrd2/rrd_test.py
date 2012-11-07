@@ -20,6 +20,15 @@ class RrdTests(PresenterTestCase):
 
 
     def _setup_rrd_file(self, path):
+        """ Setups the demo.rrd architecture dependent test file from rrd.xml
+        :param path: path to rrd2 testdir
+        :raise ValueError If subprocess execution of rrdtool didn't go as
+         expected
+        :raise OSException If file not found exception,
+        either troubling lookuping up rrdtool or the rrd.xml file. Check if
+        you installed rrdtool binary and path gets set correctly in this
+         function
+        """
         process = subprocess.Popen(['rrdtool','restore', path+'/rrd.xml',path+'/demo.rrd'])
         process.communicate()[0]
         if  process.returncode!=0:
