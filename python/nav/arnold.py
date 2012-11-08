@@ -18,7 +18,7 @@
 Provides helpfunctions for Arnold web and script
 """
 
-#pylint: disable=E1103
+
 
 from __future__ import absolute_import
 
@@ -49,6 +49,7 @@ CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 NONBLOCKFILE = nav.buildconf.sysconfdir + "/arnold/nonblock.conf"
 LOGGER = logging.getLogger("nav.arnold")
 
+# pylint: disable=C0103
 Candidate = namedtuple("Candidate", "camid ip mac interface endtime")
 
 
@@ -566,6 +567,7 @@ def get_host_name(ip):
     return hostname
 
 
+#pylint: disable=E1103
 def get_netbios(ip):
     """Get netbiosname of computer with ip"""
 
