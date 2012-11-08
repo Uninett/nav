@@ -24,18 +24,15 @@ from nav.web import servicecheckers
 
 def _organization_choices():
     org = [(org.id, org.description) for org in Organization.objects.all()]
-    org.insert(0, ('', '(all)'))
-    return org
+    return [('', '(all)')] + org
 
 def _category_choices():
     cat = [(cat.id, cat.description) for cat in Category.objects.all()]
-    cat.insert(0, ('', '(all)'))
-    return cat
+    return [('', '(all)')] + cat
 
 def _service_choices():
     service = [(s, s) for s in servicecheckers.get_checkers()]
-    service.insert(0, ('', '(all)'))
-    return service
+    return [('', '(all)')] + service
 
 def _state_choices():
     return (
@@ -54,35 +51,43 @@ class SectionForm(forms.Form):
     id = forms.IntegerField(widget=forms.HiddenInput(), required=False)
     name = forms.CharField()
     type = forms.CharField(widget=forms.HiddenInput())
-    organizations = forms.MultipleChoiceField(choices=_organization_choices())
+    organizations = forms.MultipleChoiceField()
+
+    def __init__(self, *args, **kwargs):
+        super(SectionForm, self).__init__(*args, **kwargs)
+        self.fields['organizations'].choices = _organization_choices()
+        if 'categories' in self.fields:
+            self.fields['categories'].choices = _category_choices()
+        if 'services' in self.fields:
+            self.fields['services'].choices = _service_choices()
 
 class NetboxForm(SectionForm):
-    categories = forms.MultipleChoiceField(choices=_category_choices())
+    categories = forms.MultipleChoiceField()
     states = forms.MultipleChoiceField(choices=_state_choices())
 
 class NetboxMaintenanceForm(SectionForm):
-    categories = forms.MultipleChoiceField(choices=_category_choices())
+    categories = forms.MultipleChoiceField()
     states = forms.MultipleChoiceField(choices=_all_state_choices())
 
 class ServiceForm(SectionForm):
-    services = forms.MultipleChoiceField(choices=_service_choices())
+    services = forms.MultipleChoiceField()
     states = forms.MultipleChoiceField(choices=_state_choices())
 
 class ServiceMaintenanceForm(SectionForm):
-    services = forms.MultipleChoiceField(choices=_service_choices())
+    services = forms.MultipleChoiceField()
     states = forms.MultipleChoiceField(choices=_all_state_choices())
 
 class ModuleForm(NetboxForm):
     pass
 
 class ThresholdForm(SectionForm):
-    categories = forms.MultipleChoiceField(choices=_category_choices())
+    categories = forms.MultipleChoiceField()
 
 class LinkStateForm(SectionForm):
-    categories = forms.MultipleChoiceField(choices=_category_choices())
+    categories = forms.MultipleChoiceField()
 
 class SNMPAgentForm(SectionForm):
-    categories = forms.MultipleChoiceField(choices=_category_choices())
+    categories = forms.MultipleChoiceField()
 
 class AddSectionForm(forms.Form):
     section = forms.ChoiceField(
