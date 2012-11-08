@@ -9,7 +9,7 @@
     {% endif %}
 
 
-    <form action="" method="POST">
+    <form action="" method="POST" class="manualDetentionForm">
         <table class="vertitable">
 
             <tbody>
@@ -73,7 +73,7 @@
                 <td>{{ form.justification }}</td>
                 <td><span class="error">{{ form.justification.errors.0 }}</span></td>
             </tr>
-            <tr>
+            <tr class="vlanrow">
                 <th>{{ form.qvlan.label }}</th>
                 <td>{{ form.qvlan }}</td>
                 <td><span class="error">{{ form.qvlan.errors.0 }}</span></td>

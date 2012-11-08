@@ -98,7 +98,7 @@ class DetentionProfileForm(forms.Form):
                                     initial=KEEP_CLOSED_CHOICES[0][0])
     exponential = forms.BooleanField(label="Exponential increase",
                                      required=False)
-    duration = forms.IntegerField(label="Detention duration")
+    duration = forms.IntegerField(label="Detention duration (days)")
     active_on_vlans = forms.CharField(label="Active on vlans", required=False)
     active = forms.BooleanField(label="Active", required=False)
 

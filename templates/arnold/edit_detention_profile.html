@@ -2,7 +2,7 @@
 
 {% block content %}
 
-    <form action="" method="POST">
+    <form action="" method="POST" class="profileDetentionForm">
 
         {% for field in form.hidden_fields %}
             {{ field.as_hidden }}
@@ -11,10 +11,18 @@
         <table class="vertitable">
             <tbody>
 
-            {{ form.as_table }}
+            {% for field in form.visible_fields %}
+                <tr {% if field.html_name == 'qvlan' %} class="vlanrow"{% endif %}>
+                    <th>{{ field.label_tag }}</th>
+                    <td>{{ field }}</td>
+                    <td>{{ field.errors }}</td>
+                </tr>
+            {% endfor %}
+
             <tr>
                 <th>&nbsp;</th>
                 <td><input type="submit" value="Save"></td>
+                <td>&nbsp;</td>
             </tr>
 
             </tbody>
