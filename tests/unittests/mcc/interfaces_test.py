@@ -16,7 +16,7 @@
 """Unit tests for the nav.mcc.interfaces."""
 
 from nav.mcc.interfaces import *
-from nav.mcc.utils import RRDcontainer
+from nav.mcc.utils import RRDcontainer, Datasource
 from mock import Mock, patch
 import unittest
 
@@ -35,6 +35,12 @@ class InterfaceTest(unittest.TestCase):
                                    'ifOutErrors',
                                    'ifInUcastPkts',
                                    'ifOutUcastPkts']}
+        self.datasource_units = {'ifHCInOctets': 'bytes',
+                                 'ifHCOutOctets': 'bytes',
+                                 'ifInErrors': 'packets',
+                                 'ifOutErrors': 'packets',
+                                 'ifInUcastPkts': 'packets',
+                                 'ifOutUcastPkts': 'packets'}
 
 
     def test_format_snmp_version_v1(self):
@@ -92,12 +98,13 @@ class InterfaceTest(unittest.TestCase):
                                       'interface', 2, speed=200,
                                       category='switch-port-counters')
         for index, datasource in enumerate(self.datasources['2c']):
-            dummycontainer.datasources.append(('ds' + str(index), datasource,
-                                               'DERIVE'))
+            dummycontainer.datasources.append(
+                Datasource('ds' + str(index), datasource, 'DERIVE',
+                           self.datasource_units[datasource]))
 
         container = create_rrd_container(self.datasources, interface,
                                          targetname, module)
-
+        self.assertEqual(container.datasources, dummycontainer.datasources)
         self.assertEqual(container, dummycontainer)
 
 

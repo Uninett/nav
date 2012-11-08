@@ -1,3 +1,41 @@
+Version 3.12.3
+(released 01 Nov 2012)
+
+ Bugfixes:
+
+  * LP#343857  (Invalid IP in subnet matrix)
+  * LP#1052907 (Threshold configurator does not indicate the unit/scale of a
+                metric when editing a threshold)
+  * LP#1062230 (Removing a threshold doesn't clear an active threshold alert)
+  * LP#1062236 (PSU alarms don't show up on Status page)
+  * LP#1063728 (TemplateSyntaxError at /info/)
+  * LP#1068097 (navtopology crashes on CDP data from Cisco Switch Clustering)
+  * LP#1069688 (datasources have no default unit)
+  * LP#1069751 (Subnet matrix crash on scope with only a few large subnets)
+  * LP#1070798 (spaces in search words in navbar are not trimmed)
+  * LP#1070846 (ipdevinfo crashes when searching for netbox that does not exist)
+
+Version 3.12.2
+(released 18 Okt 2012)
+
+ Bugfixes:
+
+  * LP#1052902 (linkState remains unresolved after links comes back up)
+  * LP#1052906 (Cannot add thresholds with decimals)
+  * LP#1057403 (cricket sensor module does not clean up old config)
+  * LP#1057514 (Removed PSUs and fans don't disappear from NAV)
+  * LP#1060974 (Web interface crash when PySNMP-SE is not installed)
+  * LP#1061518 (Room view "last seen" search needs label to identify unit/scale)
+  * LP#1061520 (The ipdevpoll job "logging" should be renamed to "ip2mac")
+  * LP#1061521 (The "lastupdated" report is horribly broken)
+  * LP#1061526 (The ipdevinfo job listing should include interval information)
+  * LP#1061529 (Ipdevinfo "recent alerts" tab should indicate unresolved alerts
+                by changing colour)
+  * LP#1061532 (My SMS list should sort the newest messages first)
+  * LP#1061595 (Machine Tracker no longer accepts a prefixid argument)
+  * LP#1065442 (Search for ip or id in navbar does not work)
+  * LP#1065464 (Searching for a partial ip in navbar crashes the site)
+
 Version 3.12.1
 (released 27 Sep 2012)
 

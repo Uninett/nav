@@ -10,7 +10,7 @@ require([
         new TableUtil($('#hostinfo')).addRowToggleTrigger();
 
         NAV.addGlobalAjaxHandlers();
-        if ($(mainTabsSelector).length != 0) {
+        if ($(mainTabsSelector).length !== 0) {
             addModuleTabs();
             addMainTabs();
         }
@@ -27,8 +27,16 @@ require([
 
     function addMainTabs() {
         var tabs = $(mainTabsSelector).tabs();
+        markErrorTabs(tabs);
         tabs.show();
         TabNavigation.add(mainTabsSelector);
+    }
+
+    /*
+     * Set error-class on tabs marked as error by template
+     */
+    function markErrorTabs(tabs) {
+        $('li[data-mark-as-error="True"]', tabs).removeClass('ui-state-default').addClass('ui-state-error');
     }
 
     /*
@@ -36,7 +44,7 @@ require([
      * Add listener to button to recheck switch port activity
      */
     function addActivityButtonListener(event, element) {
-        if (element.index != 1) {
+        if (element.index !== 1) {
             return;
         }
         var activityTab = findActivityTab();

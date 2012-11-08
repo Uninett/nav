@@ -16,9 +16,7 @@
 """This class serves as an interface for the prefix matrix."""
 
 import os
-import string
 import IPy
-from IPy import IP
 
 import nav.path
 from nav.web.templates.MatrixIPv4Template import MatrixIPv4Template
@@ -82,17 +80,18 @@ class MatrixIPv4(Matrix):
 
     def generateMatrixNets(self, supernet):
         """Generates all the matrix nets which belongs under ``supernet''."""
-        import math
-
         matrix_prefixlen = self.end_net.prefixlen() - self.bits_in_matrix
-        maskdiff = matrix_prefixlen - supernet.prefixlen()
-        number_of_nets = int(math.pow(2, maskdiff))
-        start_net = IP("/".join([supernet.net().strNormal(),
-                                 str(matrix_prefixlen)]))
+        start_net = supernet.net().make_net(matrix_prefixlen)
 
         #hack, assumes matrix_prefixlen == 24
-        end_net_third_octet = int(supernet.net().strNormal().split(".")[2])+number_of_nets
-        end_net_ip = ".".join(supernet.net().strNormal().split(".")[:2] + [str(end_net_third_octet),"0"])
-        end_net = IP("/".join([end_net_ip,"24"]))
+        max_address = supernet[-1]
+        end_net = max_address.make_net(24)
 
         return netDiff(start_net, end_net)
+
+    def __repr__(self):
+        return "%s(%r, %r, %r, %r)" % (self.__class__.__name__,
+                                       self.start_net,
+                                       self.show_unused_addresses,
+                                       self.end_net,
+                                       self.bits_in_matrix)

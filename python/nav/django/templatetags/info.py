@@ -1,4 +1,5 @@
 """Template tags used in info subsystem"""
+import time
 from django import template
 from datetime import datetime, timedelta
 from django.utils.timesince import timesince
@@ -10,10 +11,10 @@ def time_since(timestamp):
     """Convert a timestamp to human readable time since"""
 
     mapping = {'minute': 'min',
-              'hour': 'hr',
-              'week': 'wk',
-              'month': 'mo',
-              'year': 'yr'}
+               'hour': 'hr',
+               'week': 'wk',
+               'month': 'mo',
+               'year': 'yr'}
 
     if timestamp is None:
         return "Never"
@@ -60,6 +61,58 @@ def run(function, arg):
 
 
 @register.filter
+def get_attr(value, arg):
+    """Lookup attribute on object
+
+    value: an object instance - i.e. interface
+    arg: i.e. id
+
+    Supports chaining (arg = netbox.sysname)
+    If nothing is found, return empty string
+    """
+    if arg.count('.'):
+        return find_attr(value, arg.split('.'))
+    else:
+        return getattr(value, arg, "")
+
+
+def find_attr(obj, attrlist):
+    """Recursive search for attributes in attrlist"""
+    try:
+        attr = getattr(obj, attrlist[0])
+    except AttributeError:
+        return ""
+
+    if len(attrlist) > 1:
+        return find_attr(attr, attrlist[1:])
+    else:
+        return attr
+
+
+@register.filter
 def lookup(value, key):
     """Lookup key in a dictionary"""
     return value.get(key, value)
+
+
+@register.filter
+def interval(value):
+    """Create a human readable interval
+
+    Arguments:
+    value -- a number of seconds
+
+    """
+    return time.strftime('%H:%M:%S', time.gmtime(value))
+
+
+@register.filter
+def add_interval(value, interval):
+    """Create a new timestamp based on value and interval
+
+    Arguments:
+    value -- a datetime object
+    interval -- interval in seconds
+
+    """
+    return value + timedelta(seconds=interval)

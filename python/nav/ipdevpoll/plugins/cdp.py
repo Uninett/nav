@@ -80,7 +80,7 @@ class CDP(Plugin):
         "Tries to synchronously identify CDP cache entries in NAV's database"
         shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
 
-        neighbors = [CDPNeighbor(cdp) for cdp in self.cache]
+        neighbors = [CDPNeighbor(cdp, self.netbox.ip) for cdp in self.cache]
 
         self._process_identified(
             [n for n in neighbors if n.identified])

@@ -43,6 +43,7 @@ MODULE_STATE = 'moduleState'
 THRESHOLD_STATE = 'thresholdState'
 LINK_STATE = 'linkState'
 SNMP_STATE = 'snmpAgentState'
+PSU_STATE = 'psuState'
 
 def get_section_model(section_type):
     # Dispatch table
@@ -55,6 +56,7 @@ def get_section_model(section_type):
         StatusPreference.SECTION_THRESHOLD: ThresholdSection,
         StatusPreference.SECTION_LINKSTATE: LinkStateSection,
         StatusPreference.SECTION_SNMPAGENT: SNMPAgentSection,
+        StatusPreference.SECTION_PSU: PSUSection,
     }
     return dtable[section_type]
 
@@ -778,3 +780,57 @@ class SNMPAgentSection(_Section):
             )
             history.append(row)
         self.history = history
+
+class PSUSection(_Section):
+    columns = [
+        'Sysname',
+        'IP',
+        'PSU',
+        'Problem since',
+        'Duration',
+        '',
+    ]
+    devicehistory_type = 'a_psuNotOK'
+
+    @staticmethod
+    def form_class():
+        return ModuleForm
+
+    def fetch_history(self, psu_history=None):
+        psu_history = AlertHistory.objects.select_related(
+            'netbox', 'device'
+        ).filter(
+            end_time__gt=datetime.max,
+            event_type=PSU_STATE,
+            alert_type__name='psuNotOK',
+            netbox__organization__in=self.organizations,
+            netbox__category__in=self.categories,
+        ).extra(
+            select={
+                'downtime': "date_trunc('second', NOW() - start_time)",
+                'powersupply_id': 'powersupply_or_fan.powersupplyid',
+                'powersupply_name': 'powersupply_or_fan.name',
+            },
+            tables=['powersupply_or_fan'],
+            where=[
+                'alerthist.subid = powersupply_or_fan.powersupplyid::TEXT',
+            ],
+        ).order_by('-start_time') if psu_history is None else psu_history
+
+        self.history = [self._psu_to_table_row(psu) for psu in psu_history]
+
+    @staticmethod
+    def _psu_to_table_row(psu):
+        return (
+            (psu.netbox.sysname,
+             reverse('ipdevinfo-details-by-name', args=[psu.netbox.sysname])),
+            (psu.netbox.ip, None),
+            (psu.powersupply_name, None),
+            (psu.start_time, None),
+            (psu.downtime, None),
+            ('history',
+             (reverse('devicehistory-view') + '?powersupply=%s'
+                                              '&type=a_psuNotOK'
+                                              '&group_by=datetime' %
+                                              psu.powersupply_id)),
+        )

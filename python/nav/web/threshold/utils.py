@@ -19,11 +19,13 @@ import logging
 
 logger = logging.getLogger("nav.web.threshold.utils")
 
-PER_CENT_REGEXP = re.compile('^\d+%$', re.UNICODE)
-SYSNAME_REGEXP = re.compile('^[\w\-]+([\w\-.]+)*$', re.UNICODE)
-VENDOR_REGEXP = re.compile('^\w+$', re.UNICODE)
-IFNAME_REGEXP = re.compile('^[a-zA-Z0-9\/\-]+$', re.UNICODE)
-DESCR_REGEXP = re.compile('^[a-zA-Z][a-zA-Z\d\ ]+$', re.UNICODE)
+PER_CENT_REGEXP = re.compile(r'^\d+%$', re.UNICODE)
+SYSNAME_REGEXP = re.compile(r'^[\w\-]+([\w\-.]+)*$', re.UNICODE)
+VENDOR_REGEXP = re.compile(r'^\w+$', re.UNICODE)
+MODEL_REGEXP = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9\ \.\-]+$', re.UNICODE)
+IFNAME_REGEXP = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9\ \.\-\/\_\,\#]+$',
+                           re.UNICODE)
+DESCR_REGEXP = re.compile(r'^[a-zA-Z][a-zA-Z\d\ ]+$', re.UNICODE)
 
 def is_string(to_test):
     """Check if the parameter is a string or an unicode-string"""
@@ -59,7 +61,7 @@ def is_legal_percent_value(value):
     return (value > -1 and value < 101)
 
 def is_legal_threshold(value, allow_empty=True):
-    """A threshold is an inteeger with or without a pre-cent sign"""
+    """A threshold is an integer with or without a pre-cent sign"""
     if not is_string(value):
         return False
     if len(value) == 0:
@@ -74,7 +76,10 @@ def is_legal_threshold(value, allow_empty=True):
     try:
         value = int(value)
     except ValueError, val_err:
-        return False
+        try:
+            value = float(value)
+        except ValueError, val_err:
+            return False
     if is_per_cent:
         if not is_legal_percent_value(value):
             return False
@@ -124,7 +129,7 @@ def is_legal_vendor(vendor, allow_empty=True):
 
 def is_legal_model(model, allow_empty=True):
     """Is a legal model-name for a netbox"""
-    return is_legal_name(model, VENDOR_REGEXP, allow_empty)
+    return is_legal_name(model, MODEL_REGEXP, allow_empty)
 
 def is_match(to_test, exactmatch, allow_empty=True):
     """Test if a given value has an exact match"""

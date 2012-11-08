@@ -38,12 +38,12 @@ urlpatterns = patterns('',
         name='ipdevinfo-service-matrix'),
 
     # IP Device details
-    url(r'^(?P<name>[^/]+)/$', ipdev_details,
-        name='ipdevinfo-details-by-name'),
     url(r'^ip=(?P<addr>[a-f\d\.:]+)/$', ipdev_details,
         name='ipdevinfo-details-by-addr'),
     url(r'^id=(?P<netbox_id>\d+)/$', ipdev_details,
         name='ipdevinfo-details-by-id'),
+    url(r'^(?P<name>[^/]+)/$', ipdev_details,
+        name='ipdevinfo-details-by-name'),
 
     # Module details
     url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_name>.+)/$',

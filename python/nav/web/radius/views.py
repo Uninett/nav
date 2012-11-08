@@ -14,46 +14,27 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""radius accounting interface mod_python handler"""
+"""radius accounting interface views"""
 
 import time
+from django.http import HttpResponse
 import re
 
-from nav.web.encoding import encoded_output
-from nav.web.URI import URI
 from nav import db
 from socket import gethostbyname_ex, gaierror
-from mod_python import apache
 
 from radius_config import DB_USER, DB, DEBUG, DATEFORMAT_SEARCH
 from radius_config import ACCT_SEARCHRESULTFIELDS, LOG_SEARCHRESULTFIELDS
 from radius_config import ACCT_DETAILSFIELDS, LOG_DETAILFIELDS
 from radius_config import ACCT_TABLE, LOG_TABLE
 
-URL_PATTERN = re.compile("(?P<baseurl>\w+)\/(?P<section>\w+?)(?:\/$|\?|\&|$)")
+from nav.web.templates.AcctSearchTemplate import AcctSearchTemplate
+from nav.web.templates.AcctDetailTemplate import AcctDetailTemplate
+from nav.web.templates.AcctChartsTemplate import AcctChartsTemplate
+from nav.web.templates.LogTemplate import LogTemplate
+from nav.web.templates.LogDetailTemplate import LogDetailTemplate
 
-@encoded_output
-def handler(req):
-    """mod_python handler for radius UI"""
-    global database
-    connection = db.getConnection(DB_USER, DB)
-    database = connection.cursor()
-
-    from nav.web.templates.AcctSearchTemplate import AcctSearchTemplate
-    from nav.web.templates.AcctDetailTemplate import AcctDetailTemplate
-    from nav.web.templates.AcctChartsTemplate import AcctChartsTemplate
-    from nav.web.templates.LogTemplate import LogTemplate
-    from nav.web.templates.LogDetailTemplate import LogDetailTemplate
-
-    args = URI(req.unparsed_uri)
-
-    # Get basename and section part of the URI
-    section = ""
-    match = URL_PATTERN.search(req.uri)
-    if match:
-        section = match.group("section")
-
-
+def _build_menu():
     menu = []
     menu.append({'link': 'acctsearch',
                  'text': 'Accounting Log',
@@ -64,171 +45,201 @@ def handler(req):
     menu.append({'link': 'logsearch',
                  'text': 'Error Log',
                  'admin': False})
+    return menu
+
+def index(request):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
+
+    args = request.GET
+
+
 
     page = AcctSearchTemplate()
-    page.menu = menu
+    page.current = "acctsearch"
+    if DEBUG:
+        page.refreshCache()
+    page.search = None
+    page.error = None
+    page.menu = _build_menu()
 
-    if section.lower() == "logsearch":
-        page = LogTemplate()
-        page.current = "logsearch"
-        page.search = None
-        page.error = None
-        page.dbfields = LOG_SEARCHRESULTFIELDS #Infofields to display
-        page.menu = menu
+    page.dbfields = ACCT_SEARCHRESULTFIELDS #Infofields to display
 
-        try:
-            page.form = LogSearchForm(
-                            args.get("searchstring"),
-                            args.get("searchtype"),
-                            args.get("logentrytype"),
-                            args.get("timemode"),
-                            args.get("timestamp"),
-                            args.get("timestampslack"),
-                            args.get("hours"),
-                            args.get("sortfield"),
-                            args.get("sortorder")
-                                )
+    try:
+        page.form = AcctSearchForm(
+            args.get("searchstring"),
+            args.get("searchtype"),
+            args.get("nasporttype"),
+            args.get("timemode"),
+            args.get("timestamp"),
+            args.get("timestampslack"),
+            args.get("days"),
+            args.get("userdns"),
+            args.get("nasdns"),
+            args.get("sortfield"),
+            args.get("sortorder")
+        )
+        page.form.check_input()
 
-            page.form.check_input()
+        if args.get("send"):
+            if page.form.searchstring:
+                query = AcctSearchQuery(
+                    page.form.searchstring,
+                    page.form.searchtype,
+                    page.form.nasporttype,
+                    page.form.timemode,
+                    page.form.timestamp,
+                    page.form.timestampslack,
+                    page.form.days,
+                    page.form.userdns,
+                    page.form.nasdns,
+                    page.form.sortfield,
+                    page.form.sortorder
+                )
+            else:
+                # Need a non-empty searchstring
+                raise EmptySearchstringWarning
 
-            if args.get("send"):
-                query = LogSearchQuery(
-                            page.form.searchstring,
-                            page.form.searchtype,
-                            page.form.logentrytype,
-                            page.form.timemode,
-                            page.form.timestamp,
-                            page.form.timestampslack,
-                            page.form.hours,
-                            page.form.sortfield,
-                            page.form.sortorder
-                                )
-                page.search = query
-                page.search.load_table()
+            page.search = query
+            page.search.load_table()
 
-        except UserInputSyntaxWarning, error:
-            page.error = error
-
-    elif section.lower() == "logdetail":
-        page = LogDetailTemplate()
-        page.error = None
-        page.menu = menu
-        page.dbfields = LOG_DETAILFIELDS #Infofields to display
-
-        query = LogDetailQuery(args.get("id"))
-        page.detailQuery = query
-        page.detailQuery.load_table()
-
-    elif section.lower() == "acctdetail":
-        page = AcctDetailTemplate()
-        page.error = None
-        page.menu = menu
-        page.dbfields = ACCT_DETAILSFIELDS #Infofields to display
-
-        query = AcctDetailQuery(args.get("acctuniqueid"))
-        page.detailQuery = query
-        page.detailQuery.load_table()
-
-    elif section.lower() == "acctcharts":
-        page = AcctChartsTemplate()
-        page.current = "acctcharts"
-        page.error = None
-        page.menu = menu
-
-        try:
-            page.form = AcctChartForm(
-                                  args.get("overallchart"),
-                                  args.get("uploadchart"),
-                                  args.get("downloadchart"),
-                                  args.get("days")
-                                  )
-            page.form.check_input()
-
-            page.sentChartQuery = None
-            page.recvChartQuery = None
-            page.sentrecvChartQuery = None
-
-            if page.form.uploadchart:
-                # Get the top uploaders
-                query = AcctChartsQuery("sent", page.form.days)
-                page.sentChartQuery = query
-                page.sentChartQuery.load_table()
-
-            if page.form.downloadchart:
-                # Get the top leechers
-                query = AcctChartsQuery("recv", page.form.days)
-                page.recvChartQuery = query
-                page.recvChartQuery.load_table()
-
-            if page.form.overallchart:
-                # Get the top overall bandwidth hogs
-                query = AcctChartsQuery("sentrecv", page.form.days)
-                page.sentrecvChartQuery = query
-                page.sentrecvChartQuery.load_table()
-
-        except UserInputSyntaxWarning, error:
-            page.error = error
-
-    else:
-        page = AcctSearchTemplate()
-        page.current = "acctsearch"
-        if DEBUG:
-            page.refreshCache()
-        page.search = None
-        page.error = None
-        page.menu = menu
-
-        page.dbfields = ACCT_SEARCHRESULTFIELDS #Infofields to display
-
-        try:
-            page.form = AcctSearchForm(
-                            args.get("searchstring"),
-                            args.get("searchtype"),
-                            args.get("nasporttype"),
-                            args.get("timemode"),
-                            args.get("timestamp"),
-                            args.get("timestampslack"),
-                            args.get("days"),
-                            args.get("userdns"),
-                            args.get("nasdns"),
-                            args.get("sortfield"),
-                            args.get("sortorder")
-                                )
-            page.form.check_input()
-
-            if args.get("send"):
-                if page.form.searchstring:
-                    query = AcctSearchQuery(
-                        page.form.searchstring,
-                        page.form.searchtype,
-                        page.form.nasporttype,
-                        page.form.timemode,
-                        page.form.timestamp,
-                        page.form.timestampslack,
-                        page.form.days,
-                        page.form.userdns,
-                        page.form.nasdns,
-                        page.form.sortfield,
-                        page.form.sortorder
-                        )
-                else:
-                    # Need a non-empty searchstring
-                    raise EmptySearchstringWarning
-
-                page.search = query
-                page.search.load_table()
-
-        except UserInputSyntaxWarning, error:
-            page.error = error
+    except UserInputSyntaxWarning, error:
+        page.error = error
 
 #    connection.close()
 
-    req.content_type = "text/html"
-    req.send_http_header()
-    req.write(page.respond())
-    page.shutdown()
-    return apache.OK
+    return HttpResponse(page.respond(), content_type="text/html")
 
+
+def log_search(request):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
+    page = LogTemplate()
+    page.current = "logsearch"
+    page.search = None
+    page.error = None
+    page.dbfields = LOG_SEARCHRESULTFIELDS #Infofields to display
+    page.menu = _build_menu()
+
+    try:
+        page.form = LogSearchForm(
+            request.GET.get("searchstring"),
+            request.GET.get("searchtype"),
+            request.GET.get("logentrytype"),
+            request.GET.get("timemode"),
+            request.GET.get("timestamp"),
+            request.GET.get("timestampslack"),
+            request.GET.get("hours"),
+            request.GET.get("sortfield"),
+            request.GET.get("sortorder")
+        )
+
+        page.form.check_input()
+
+        if request.GET.get("send"):
+            query = LogSearchQuery(
+                page.form.searchstring,
+                page.form.searchtype,
+                page.form.logentrytype,
+                page.form.timemode,
+                page.form.timestamp,
+                page.form.timestampslack,
+                page.form.hours,
+                page.form.sortfield,
+                page.form.sortorder
+            )
+            page.search = query
+            page.search.load_table()
+
+    except UserInputSyntaxWarning, error:
+        page.error = error
+
+    return HttpResponse(page.respond(), content_type="text/html")
+
+def log_detail(request):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
+    page = LogDetailTemplate()
+    page.error = None
+    page.menu = _build_menu()
+    page.dbfields = LOG_DETAILFIELDS #Infofields to display
+
+    query = LogDetailQuery(request.GET.get("id"))
+    page.detailQuery = query
+    page.detailQuery.load_table()
+
+    return HttpResponse(page.respond(), content_type="text/html")
+
+def account_charts(request):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
+    page = AcctChartsTemplate()
+    page.current = "acctcharts"
+    page.error = None
+    page.menu = _build_menu()
+
+    try:
+        page.form = AcctChartForm(
+            request.GET.get("overallchart"),
+            request.GET.get("uploadchart"),
+            request.GET.get("downloadchart"),
+            request.GET.get("days")
+        )
+        page.form.check_input()
+
+        page.sentChartQuery = None
+        page.recvChartQuery = None
+        page.sentrecvChartQuery = None
+
+        if page.form.uploadchart:
+            # Get the top uploaders
+            query = AcctChartsQuery("sent", page.form.days)
+            page.sentChartQuery = query
+            page.sentChartQuery.load_table()
+
+        if page.form.downloadchart:
+            # Get the top leechers
+            query = AcctChartsQuery("recv", page.form.days)
+            page.recvChartQuery = query
+            page.recvChartQuery.load_table()
+
+        if page.form.overallchart:
+            # Get the top overall bandwidth hogs
+            query = AcctChartsQuery("sentrecv", page.form.days)
+            page.sentrecvChartQuery = query
+            page.sentrecvChartQuery.load_table()
+
+    except UserInputSyntaxWarning, error:
+        page.error = error
+
+    return HttpResponse(page.respond(), content_type="text/html")
+
+def account_detail(request):
+    global database
+    connection = db.getConnection(DB_USER, DB)
+    database = connection.cursor()
+
+    page = AcctDetailTemplate()
+    page.error = None
+    page.menu = _build_menu()
+    page.dbfields = ACCT_DETAILSFIELDS #Infofields to display
+
+    query = AcctDetailQuery(request.GET.get("acctuniqueid"))
+    page.detailQuery = query
+    page.detailQuery.load_table()
+
+    return HttpResponse(page.respond(), content_type="text/html")
+
+def account_search(request):
+    return index(request)
 
 #
 # General classes
@@ -301,7 +312,7 @@ class AcctSearchForm:
             # mistake, so remove it.
             self.searchstring = self.searchstring.strip()
         if self.searchtype == "iprange":
-            if not re.match("^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$",
+            if not re.match(r"^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$",
                             self.searchstring):
                 raise IPRangeSyntaxWarning
         if self.timestamp:
@@ -312,13 +323,13 @@ class AcctSearchForm:
 
             if self.timemode == "timestamp":
                 # Matches a date on the format "YYYY-MM-DD hh:mm"
-                if not re.match("^(19|20)\d\d[-](0[1-9]|1[012])[-]"
-                                "(0[1-9]|[12][0-9]|3[01])\ "
-                                "([01][0-9]|[2][0-3])\:[0-5][0-9]$",
+                if not re.match(r"^(19|20)\d\d[-](0[1-9]|1[012])[-]"
+                                r"(0[1-9]|[12][0-9]|3[01])\ "
+                                r"([01][0-9]|[2][0-3])\:[0-5][0-9]$",
                                 self.timestamp):
                     raise TimestampSyntaxWarning
 
-                if not re.match("^\d*$", self.timestampslack):
+                if not re.match(r"^\d*$", self.timestampslack):
                     raise TimestampSlackSyntaxWarning
 
         if self.timemode == "days":
@@ -327,7 +338,7 @@ class AcctSearchForm:
             self.days = self.days.strip()
 
             # Match integers and floats
-            if not re.match("(^\d+$)|(^\d+\.{1}\d+)", self.days):
+            if not re.match(r"(^\d+$)|(^\d+\.{1}\d+)", self.days):
                 raise DaysSyntaxWarning
 
 
@@ -356,7 +367,7 @@ class AcctChartForm:
             self.days = self.days.strip()
 
             # Everything but integers and floats throws exception
-            if not re.match("(^\d+$)|(^\d+\.{1}\d+)", self.days):
+            if not re.match(r"(^\d+$)|(^\d+\.{1}\d+)", self.days):
                 raise DaysSyntaxWarning
 
 
@@ -537,8 +548,8 @@ class AcctSearchQuery(SQLQuery):
                 or searchtype == "nasipaddress"):
             # Split search string into hostname and, if entered, cisco nas
             # port.
-            match = re.search("^(?P<host>[[a-zA-Z0-9\.\-]+)[\:\/]{0,1}"
-                              "(?P<swport>[\S]+){0,1}$",
+            match = re.search(r"^(?P<host>[[a-zA-Z0-9\.\-]+)[\:\/]{0,1}"
+                              r"(?P<swport>[\S]+){0,1}$",
                               searchstring)
             # Get all ip addresses, if a hostname is entered
             try:
@@ -776,13 +787,13 @@ class LogSearchForm:
 
             if self.timemode == "timestamp":
                 # Matches a date on the format "YYYY-MM-DD hh:mm"
-                if not re.match("^(19|20)\d\d[-](0[1-9]|1[012])[-]"
-                                "(0[1-9]|[12][0-9]|3[01])\ "
-                                "([01][0-9]|[2][0-3])\:[0-5][0-9]$",
+                if not re.match(r"^(19|20)\d\d[-](0[1-9]|1[012])[-]"
+                                r"(0[1-9]|[12][0-9]|3[01])\ "
+                                r"([01][0-9]|[2][0-3])\:[0-5][0-9]$",
                                 self.timestamp):
                     raise TimestampSyntaxWarning
 
-                if not re.match("^\d*$", self.timestampslack):
+                if not re.match(r"^\d*$", self.timestampslack):
                     raise TimestampSlackSyntaxWarning
 
         if self.timemode == "hours":
@@ -790,7 +801,7 @@ class LogSearchForm:
             self.hours = self.hours.strip()
 
             # Match integers and floats
-            if not re.match("(^\d+$)|(^\d+\.{1}\d+)", self.hours):
+            if not re.match(r"(^\d+$)|(^\d+\.{1}\d+)", self.hours):
                 raise HoursSyntaxWarning
 
 

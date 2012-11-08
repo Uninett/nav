@@ -136,9 +136,7 @@ class ProcessInput:
             ip = Prefix.objects.get(id=self.input['prefixid'])
         except Prefix.DoesNotExist:
             return None
-        subnet = IP(ip.net_address)
-        self.input['from_ip'] = unicode(subnet[0])
-        self.input['to_ip'] = unicode(subnet[-1])
+        self.input['ip_range'] = ip.net_address
 
     def ip(self):
         if self.input.get('prefixid', False):

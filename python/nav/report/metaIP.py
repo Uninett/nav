@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2007-2008 UNINETT AS
+# Copyright (C) 2007-2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,7 +16,7 @@
 """Holds meta information on one IPy.IP address."""
 
 
-from math import ceil
+import math
 from IPy import IP
 from nav import db
 
@@ -35,6 +35,7 @@ class MetaIP:
         self.max_ip_cnt = None
         self.nettype = None
         self.usage_percent = None
+        self.ipv6_color = None
 
         if ip.version() == 4:
             if MetaIP.IPv4MetaMap == None:
@@ -97,8 +98,9 @@ class MetaIP:
         contain/calculates the correct values for IPv6. Once this has been fixed, this
         function needs to be changed."""
 
-        sql = """SELECT prefixid, nettype, netaddr
-                 FROM prefix LEFT OUTER JOIN vlan USING(vlanid)
+        sql = """SELECT prefixid, active_ip_cnt, nettype, netaddr
+                 FROM prefix LEFT OUTER JOIN prefix_active_ip_cnt USING(prefixid)
+                             LEFT OUTER JOIN vlan USING(vlanid)
                  WHERE family(netaddr)=6"""
 
         cursor = db.getConnection('default','manage').cursor()
@@ -107,9 +109,10 @@ class MetaIP:
         result = {}
         for row in rows:
             tupple = {}
-            tupple["prefixid"] = row[0]
-            tupple["nettype"] = row[1]
-            result[IP(row[2])] = tupple
+            tupple['prefixid'] = row[0]
+            tupple['active_ip_cnt'] = row[1]
+            tupple['nettype'] = row[2]
+            result[IP(row[3])] = tupple
         return result
 
     @classmethod
@@ -133,12 +136,25 @@ class MetaIP:
             result[IP(row[4])] = tupple
         return result
 
+    def double_log(self, in_count):
+        return math.log(math.log(in_count + 1) + 1)
+
+    def calc_ipv6_color(self, active_ip_cnt):
+        new_color = 256 - int(255 * self.double_log(active_ip_cnt) / self.double_log(2**64)) - 1
+        return "#%02x%02xff" % (new_color,new_color)
+
     def _setupIpv6(self):
         if self.netaddr in MetaIP.IPv6MetaMap:
             metainfo = MetaIP.IPv6MetaMap[self.netaddr]
             self.prefixid = metainfo["prefixid"]
             self.nettype = metainfo["nettype"]
+            active_ip_cnt = metainfo["active_ip_cnt"]
+            if active_ip_cnt is None:
+                self.active_ip_cnt = 0
+            else:
+                self.active_ip_cnt = int(active_ip_cnt)
             self.usage_percent = 4
+            self.ipv6_color = self.calc_ipv6_color((self.active_ip_cnt + 1))
 
     def _setupIpv4(self):
         if self.netaddr in MetaIP.IPv4MetaMap:
@@ -157,7 +173,7 @@ class MetaIP:
             self.max_ip_cnt = int(max_ip_cnt)
 
             if self.active_ip_cnt > 0 and self.max_ip_cnt > 0:
-                self.usage_percent = int(ceil(100*float(self.active_ip_cnt)/self.max_ip_cnt))
+                self.usage_percent = int(math.ceil(100*float(self.active_ip_cnt)/self.max_ip_cnt))
             else:
                 self.usage_percent = 0
 

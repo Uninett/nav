@@ -47,7 +47,7 @@ def create_dict_from_tuplelist(tuplelist):
     The input is a list from a snmp bulkwalk or walk.
     Extract ifindex from oid and use that as key in the dict.
     """
-    pattern = re.compile("(\d+)$")
+    pattern = re.compile(r"(\d+)$")
     result = []
     # Extract ifindex from oid
     for key, value in tuplelist:
