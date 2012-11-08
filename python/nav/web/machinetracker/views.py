@@ -102,6 +102,7 @@ def ip_do_search(request):
             dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
         
         tracker = SortedDict()
+
         for ip_key in ip_range:
             ip = unicode(ip_key)
             if active and ip_key in ip_result:
@@ -113,18 +114,15 @@ def ip_do_search(request):
                             or not dns_lookups[ip]):
                             row.dns_lookup = ""
                         else:
-                            row.dns_lookup = dns_lookups[ip].pop()
+                            row.dns_lookup = dns_lookups[ip][0]
                     if (row.ip, row.mac) not in tracker:
                         tracker[(row.ip, row.mac)] = []
-                    else:
-                        if dns:
-                            row.dns_lookup = ""
                     tracker[(row.ip, row.mac)].append(row)
             elif inactive and ip_key not in ip_result:
                 row = {'ip': ip}
                 if dns:
                     if not isinstance(dns_lookups[ip], Exception):
-                        row['dns_lookup'] = dns_lookups[ip].pop()
+                        row['dns_lookup'] = dns_lookups[ip][0]
                     else:
                         row['dns_lookup'] = ""
                 tracker[(ip, "")] = [row]
@@ -146,6 +144,7 @@ def ip_do_search(request):
         'display_no_results': display_no_results,
     }
     info_dict.update(IP_DEFAULTS)
+        
     return render_to_response(
         'machinetracker/ip_search.html',
         info_dict,
