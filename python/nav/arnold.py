@@ -18,8 +18,6 @@
 Provides helpfunctions for Arnold web and script
 """
 
-
-
 from __future__ import absolute_import
 
 import re
@@ -419,12 +417,12 @@ def change_port_status(action, identity):
     # Disable or enable based on input
     try:
         if action == 'disable':
-            #agent.set(query, 'i', 2)
+            agent.set(query, 'i', 2)
             LOGGER.info('Setting ifadminstatus down on interface %s' % (
                 identity.interface
             ))
         elif action == 'enable':
-            #agent.set(query, 'i', 1)
+            agent.set(query, 'i', 1)
             LOGGER.info('Setting ifadminstatus up on interface %s' % (
                 identity.interface
             ))
@@ -482,7 +480,7 @@ def change_port_vlan(identity, vlan):
         return fromvlan
 
     try:
-        #snmpset.set(query, variable_type, vlan)
+        snmpset.set(query, variable_type, vlan)
         LOGGER.info('Setting vlan %s on interface %s' % (vlan, interface))
     except nav.Snmp.AgentError, why:
         raise ChangePortVlanError(why)
@@ -509,8 +507,7 @@ def change_port_vlan(identity, vlan):
                                            'disable')
 
         try:
-#            snmpset.set(dot1qvlanstaticegressports, 's', newhexports)
-            pass
+            snmpset.set(dot1qvlanstaticegressports, 's', newhexports)
         except nav.Snmp.NoSuchObjectError, why:
             raise ChangePortVlanError(why)
 
