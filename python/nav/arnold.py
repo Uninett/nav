@@ -257,8 +257,7 @@ def find_computer_info(ip_or_mac):
     return find_id_information(ip_or_mac, 1)[0]
 
 
-def disable(candidate, justification, username, comment="", determined=False,
-            autoenablestep=0):
+def disable(candidate, justification, username, comment="", autoenablestep=0):
     """Disable a target by blocking the port"""
     LOGGER.info('Disabling %s - %s on interface %s' % (
                 candidate.ip, candidate.mac, candidate.interface))
@@ -268,7 +267,7 @@ def disable(candidate, justification, username, comment="", determined=False,
     identity = check_identity(candidate)
     change_port_status('disable', identity)
     identity.status = 'disabled'
-    update_identity(identity, justification, determined, autoenablestep)
+    update_identity(identity, justification, autoenablestep)
     create_event(identity, comment, username)
 
     LOGGER.info("Successfully %s %s (%s)" % (
@@ -276,7 +275,7 @@ def disable(candidate, justification, username, comment="", determined=False,
 
 
 def quarantine(candidate, qvlan, justification, username, comment="",
-               determined=False, autoenablestep=0):
+               autoenablestep=0):
     """Quarantine a target bu changing vlan on port"""
     LOGGER.info('Quarantining %s - %s on interface %s' % (
         candidate.ip, candidate.mac, candidate.interface))
@@ -287,7 +286,7 @@ def quarantine(candidate, qvlan, justification, username, comment="",
     identity.fromvlan = change_port_vlan(identity, qvlan.vlan)
     identity.tovlan = qvlan
     identity.status = 'quarantined'
-    update_identity(identity, justification, determined, autoenablestep)
+    update_identity(identity, justification, autoenablestep)
     create_event(identity, comment, username)
 
     LOGGER.info("Successfully %s %s (%s)" % (
@@ -322,11 +321,10 @@ def check_identity(candidate):
     return identity
 
 
-def update_identity(identity, justification, determined, autoenablestep):
+def update_identity(identity, justification, autoenablestep):
     """Update an identity with common info"""
     identity.justification = justification
     identity.organization = identity.interface.netbox.organization
-    identity.keep_closed = 'y' if determined else 'n'
     identity.dns = get_host_name(identity.ip)
     identity.netbios = get_netbios(identity.ip)
     if autoenablestep > 0:

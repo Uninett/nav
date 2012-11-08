@@ -166,11 +166,10 @@ def detain(address, profile, comment=''):
     duration = find_duration(candidate, profile)
 
     if profile.detention_type == 'disable':
-        disable(candidate, profile.justification, username, comment,
-                profile.keep_closed, duration)
+        disable(candidate, profile.justification, username, comment, duration)
     else:
         quarantine(candidate, profile.quarantine_vlan, profile.justification,
-                   username, comment, profile.keep_closed, duration)
+                   username, comment, duration)
 
     return address
 

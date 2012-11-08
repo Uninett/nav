@@ -154,14 +154,13 @@ def detain(identity, candidate):
         if identity.status == 'disabled':
             LOGGER.debug("Trying to disable %s" % identity.mac)
             disable(candidate, identity.justification, username, comment,
-                    identity.keep_closed, identity.autoenablestep)
+                    identity.autoenablestep)
 
         elif identity.status == 'quarantined':
             LOGGER.debug("Trying to quarantine %s with vlan %s"
                          % (identity.mac, identity.tovlan))
             quarantine(candidate, identity.tovlan, identity.justification,
-                       username, comment, identity.keep_closed,
-                       identity.autoenablestep)
+                       username, comment, identity.autoenablestep)
     except GeneralException, error:
         LOGGER.error(error)
 
