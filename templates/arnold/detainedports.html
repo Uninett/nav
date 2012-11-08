@@ -19,21 +19,27 @@
         </tr>
         </thead>
 
-        <tbody>
-        {% for identity in identities %}
-            <tr>
-                <td>{{ identity.ip }}</td>
-                <td>{{ identity.dns }}</td>
-                <td>{{ identity.netbios }}</td>
-                <td>{{ identity.status }}</td>
-                <td>{{ identity.justification.name }}</td>
-                <td>{{ identity.interface.netbox.sysname }}</td>
-                <td>{{ identity.last_changed|date:"Y-m-d H:i:s" }}</td>
-                <td><a href="{% url arnold-choose-detentions identity.id %}">Enable</a></td>
-                <td><a href="{% url arnold-details identity.id %}">Details</a></td>
-            </tr>
-        {% endfor %}
-        </tbody>
+        {% if identities %}
+            <tbody>
+            {% for identity in identities %}
+                <tr>
+                    <td>{{ identity.ip }}</td>
+                    <td>{{ identity.dns }}</td>
+                    <td>{{ identity.netbios }}</td>
+                    <td>{{ identity.status }}</td>
+                    <td>{{ identity.justification.name }}</td>
+                    <td>{{ identity.interface.netbox.sysname }}</td>
+                    <td>{{ identity.last_changed|date:"Y-m-d H:i:s" }}</td>
+                    <td>
+                        <a href="{% url arnold-choose-detentions identity.id %}">Enable</a>
+                    </td>
+                    <td>
+                        <a href="{% url arnold-details identity.id %}">Details</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        {% endif %}
 
         <tfoot>
         <tr>

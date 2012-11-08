@@ -14,26 +14,28 @@
         </tr>
         </thead>
 
-        <tbody>
-        {% for justification in justifications %}
-            <tr>
-                <td>{{ justification.name }}</td>
-                <td>{{ justification.description }}</td>
-                <td>
-                    <a href="{% url arnold-justificatons-edit justification.id %}">
-                        Edit
-                    </a>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
+        {% if justifications %}
+            <tbody>
+            {% for justification in justifications %}
+                <tr>
+                    <td>{{ justification.name }}</td>
+                    <td>{{ justification.description }}</td>
+                    <td>
+                        <a href="{% url arnold-justificatons-edit justification.id %}">
+                            Edit
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        {% endif %}
 
     </table>
 
 
     {% comment %} Form for creating new justifications {% endcomment %}
     <form action="{% url arnold-justificatons %}" method="POST">
-        {{ form.justificationid }}
         <table class="vertitable">
             <tbody>
             {{ form.as_table }}

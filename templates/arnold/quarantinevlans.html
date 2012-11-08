@@ -14,25 +14,26 @@
         </tr>
         </thead>
 
-        <tbody>
-        {% for qvlan in qvlans %}
-            <tr>
-                <td>{{ qvlan.vlan }}</td>
-                <td>{{ qvlan.description }}</td>
-                <td>
-                    <a href="{% url arnold-quarantinevlans-edit qvlan.id %}">
-                        Edit
-                    </a>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
+        {% if qvlans %}
+            <tbody>
+            {% for qvlan in qvlans %}
+                <tr>
+                    <td>{{ qvlan.vlan }}</td>
+                    <td>{{ qvlan.description }}</td>
+                    <td>
+                        <a href="{% url arnold-quarantinevlans-edit qvlan.id %}">
+                            Edit
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        {% endif %}
 
     </table>
 
     {% comment %} Display form for creating a new quarantine vlan {% endcomment %}
     <form action="{% url arnold-quarantinevlans %}" method="POST">
-        {{ form.qid }}
         <table class="vertitable">
             <tbody>
             {{ form.as_table }}

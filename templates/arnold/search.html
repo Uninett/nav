@@ -9,7 +9,13 @@
             <tr>
                 <th>{{ form.searchtype }}</th>
                 <td>{{ form.searchvalue }}</td>
-                <td><span class="error">{{ form.searchvalue.errors.0 }}</span></td>
+                <td>
+                    {% if form.searchvalue.errors %}
+                        <span class="error">{{ form.searchvalue.errors.0 }}</span>
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                </td>
             </tr>
             <tr>
                 <th>{{ form.status.label }}</th>
@@ -19,7 +25,13 @@
             <tr>
                 <th>{{ form.days.label }}</th>
                 <td class="days">{{ form.days }} days back</td>
-                <td><span class="error">{{ form.days.errors.0 }}</span></td>
+                <td>
+                    {% if form.days.errors %}
+                        <span class="error">{{ form.days.errors.0 }}</span>
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                </td>
             </tr>
             <tr>
                 <th>&nbsp;</th>

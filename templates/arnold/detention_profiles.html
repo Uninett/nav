@@ -15,17 +15,21 @@
             </tr>
         </thead>
 
-        <tbody>
-        {% for profile in profiles %}
-            <tr>
-                <td>{{ profile.id }}</td>
-                <td>{{ profile.name }}</td>
-                <td>{{ profile.description }}</td>
-                <td>{{ profile.active|yesno:'Yes,No' }}</td>
-                <td><a href="{% url arnold-detention-profile-edit profile.id %}">Edit</a></td>
-            </tr>
-        {% endfor %}
-        </tbody>
+        {% if profiles %}
+            <tbody>
+            {% for profile in profiles %}
+                <tr>
+                    <td>{{ profile.id }}</td>
+                    <td>{{ profile.name }}</td>
+                    <td>{{ profile.description }}</td>
+                    <td>{{ profile.active|yesno:'Yes,No' }}</td>
+                    <td>
+                        <a href="{% url arnold-detention-profile-edit profile.id %}">Edit</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        {% endif %}
 
         <tfoot>
             <tr>
