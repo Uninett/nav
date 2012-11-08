@@ -83,7 +83,8 @@ def schedule():
         OR state NOT IN ('scheduled', 'active', 'passed', 'canceled')"""
     db.execute(sql)
     dbconn.commit()
-    
+
+
 def get_tasks_and_boxes_without_end():
     """Collect all netboxes from maintenance tasks that do not have a defined
         end time.  Place them in a dictionary with maintenance identity as key
@@ -128,6 +129,7 @@ def get_tasks_and_boxes_without_end():
             tasks_and_boxes[maint_id] = netbox_ids
     return tasks_and_boxes
 
+
 def check_tasks_without_end():
     """Loop thru all maintenance tasks without a defined end time, and end the
     task if all boxes included in the task have been up for longer than an hour."""
@@ -167,6 +169,7 @@ def check_tasks_without_end():
             db.execute(sql, (time_now, maint_id,))
             dbconn.commit()
 
+
 def check_state():
     """Checks if there are some maintenance tasks to be set active or
     passed."""
@@ -179,7 +182,7 @@ def check_state():
         e['type'] = 'active'
         e['taskid'] = taskid
         events.append(e)
-        
+
     sql = """SELECT maint_taskid, maint_end FROM maint_task
         WHERE maint_end < NOW() AND state = 'active'"""
     db.execute(sql)
@@ -194,7 +197,7 @@ def check_state():
     sql = """SELECT max(maint_end) AS maint_end, key, value
         FROM maint_task INNER JOIN maint_component USING (maint_taskid)
         WHERE state = 'active' AND maint_end > NOW()
-        GROUP BY key, value""";
+        GROUP BY key, value"""
     db.execute(sql)
     for (maint_end, key, value) in db.fetchall():
         if key in ('room', 'location'):
@@ -232,9 +235,9 @@ def send_event():
         # Get all components related to task/event
         sql = """SELECT key, value FROM maint_component
                  WHERE maint_taskid = %(maint_taskid)s"""
-        data = { 'maint_taskid': taskid }
+        data = {'maint_taskid': taskid}
         db.execute(sql, data)
-    
+
         for (key, val) in db.fetchall():
             # Prepare event variables
             target = 'eventEngine'
@@ -243,10 +246,10 @@ def send_event():
             severity = 50
             eventtype = 'maintenanceState'
             if type == 'active':
-                state = 's' # s = start
+                state = 's'  # s = start
                 value = 100
             elif type == 'passed':
-                state = 'e' # e = end
+                state = 'e'  # e = end
                 value = 0
 
             # Get all related netboxes
@@ -256,7 +259,7 @@ def send_event():
                     sql = """SELECT netboxid, sysname, deviceid
                         FROM netbox INNER JOIN room USING (roomid)
                         WHERE locationid = %(locationid)s"""
-                    data = { 'locationid': val }
+                    data = {'locationid': val}
 
                     logger.debug("location query: %s", sql % data)
                     db.execute(sql, data)
@@ -265,23 +268,23 @@ def send_event():
                     sql = """SELECT netboxid, sysname, deviceid
                         FROM netbox
                         WHERE roomid = %(roomid)s"""
-                    data = { 'roomid': val }
+                    data = {'roomid': val}
 
                     logger.debug("room query: %s", sql % data)
                     db.execute(sql, data)
                     logger.debug("room number of results: %d", db.rowcount)
 
                 for (netboxid, sysname, deviceid) in db.fetchall():
-                    netboxes.append({ 'netboxid': netboxid,
-                                      'sysname': sysname,
-                                      'deviceid': deviceid,
-                                      'cvar': 'netbox',
-                                      'cval': sysname })
+                    netboxes.append({'netboxid': netboxid,
+                                     'sysname': sysname,
+                                     'deviceid': deviceid,
+                                     'cvar': 'netbox',
+                                     'cval': sysname})
             elif key == 'netbox':
                 sql = """SELECT netboxid, sysname, deviceid
                     FROM netbox
                     WHERE netboxid = %(netboxid)s"""
-                data = { 'netboxid': int(val) }
+                data = {'netboxid': int(val)}
 
                 logger.debug("netbox query: %s", sql % data)
                 db.execute(sql, data)
@@ -290,16 +293,16 @@ def send_event():
 
                 if result:
                     (netboxid, sysname, deviceid) = result
-                    netboxes.append({ 'netboxid': netboxid,
-                                      'sysname': sysname,
-                                      'deviceid': deviceid,
-                                      'cvar': 'netbox',
-                                      'cval': sysname })
+                    netboxes.append({'netboxid': netboxid,
+                                     'sysname': sysname,
+                                     'deviceid': deviceid,
+                                     'cvar': 'netbox',
+                                     'cval': sysname})
             elif key == 'service':
                 sql = """SELECT netboxid, sysname, deviceid, handler
                     FROM service INNER JOIN netbox USING (netboxid)
                     WHERE serviceid = %(serviceid)s"""
-                data = { 'serviceid': int(val) }
+                data = {'serviceid': int(val)}
 
                 logger.debug("service query: %s", sql % data)
                 db.execute(sql, data)
@@ -308,16 +311,16 @@ def send_event():
 
                 if result:
                     (netboxid, sysname, deviceid, handler) = result
-                    netboxes.append({ 'netboxid': netboxid,
-                                      'sysname': sysname,
-                                      'deviceid': deviceid,
-                                      'serviceid': int(val),
-                                      'servicename': handler,
-                                      'cvar': 'service',
-                                      'cval': handler })
+                    netboxes.append({'netboxid': netboxid,
+                                     'sysname': sysname,
+                                     'deviceid': deviceid,
+                                     'serviceid': int(val),
+                                     'servicename': handler,
+                                     'cvar': 'service',
+                                     'cval': handler})
             elif key == 'module':
                 # Unsupported as of NAV 3.2
-                raise DeprecationWarning, "Deprecated component key"
+                raise DeprecationWarning("Deprecated component key")
 
             # Create events for all related netboxes
             for netbox in netboxes:
@@ -331,8 +334,8 @@ def send_event():
                 # Append to list of boxes taken off maintenance during this run
                 if type == 'passed':
                     boxesOffMaintenance.append(netbox['netboxid'])
- 
-                if netbox.has_key('serviceid'):
+
+                if 'serviceid' in netbox:
                     subid = netbox['serviceid']
                 else:
                     subid = None
@@ -354,8 +357,8 @@ def send_event():
         sql = """UPDATE maint_task
             SET state = %(state)s
             WHERE maint_taskid = %(maint_taskid)s"""
-        data = { 'state': type,
-                 'maint_taskid': taskid }
+        data = {'state': type,
+                'maint_taskid': taskid}
         db.execute(sql, data)
 
         # Commit transaction
@@ -400,7 +403,7 @@ def remove_forgotten():
         WHERE m.key = 'location' AND m.state = 'active'
 
         UNION
-        
+
         SELECT n.netboxid, n.deviceid, n.sysname, m.value AS subid
         FROM maint m INNER JOIN netbox n ON (n.netboxid IN
             (SELECT netboxid FROM service WHERE
