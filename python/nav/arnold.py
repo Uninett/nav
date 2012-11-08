@@ -372,7 +372,8 @@ def open_port(identity, username, eventcomment=""):
 
     """
 
-    LOGGER.info("openPort: Trying to open identity with id %s" % identity.id)
+    LOGGER.info("Trying to lift detention for %s on %s" % (identity.mac,
+                                                           identity.interface))
 
     try:
         identity.interface
@@ -420,10 +421,14 @@ def change_port_status(action, identity):
     try:
         if action == 'disable':
             #agent.set(query, 'i', 2)
-            pass
+            LOGGER.info('Setting ifadminstatus down on interface %s' % (
+                identity.interface
+            ))
         elif action == 'enable':
             #agent.set(query, 'i', 1)
-            pass
+            LOGGER.info('Setting ifadminstatus up on interface %s' % (
+                identity.interface
+            ))
     except nav.Snmp.AgentError, why:
         LOGGER.error("Error when executing snmpquery: %s" % why)
         raise ChangePortStatusError(why)
@@ -479,7 +484,7 @@ def change_port_vlan(identity, vlan):
 
     try:
         #snmpset.set(query, variable_type, vlan)
-        pass
+        LOGGER.info('Setting vlan %s on interface %s' % (vlan, interface))
     except nav.Snmp.AgentError, why:
         raise ChangePortVlanError(why)
 
