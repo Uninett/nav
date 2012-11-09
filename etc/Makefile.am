@@ -18,6 +18,7 @@ nobase_dist_sysconf_DATA = $(sort $(generated_config) $(wildcard \
 	alertprofiles/* \
 	arnold/*.conf \
 	arnold/mailtemplates/* \
+	cricket-config/*/Defaults \
 	portadmin/*.conf \
 	portadmin/*.html \
 	toolbox/*.tool \

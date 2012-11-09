@@ -2,9 +2,6 @@
 # Default Cricket config for sensors
 #
 
-Target --default--
-    short-desc   =    "Sensor"
-
 datasource --default--
     rrd-ds-type  =    GAUGE
     rrd-min      =    undef
@@ -21,15 +18,3 @@ graph --default--
 
 targetType sensor
     ds           =    sensor
-
-html  short-desc Sensors
-
-html    page-header
-<table width=100%>
-    <tr class=header>
-        <td width=33% align=left class=header>%auto-title%</td>
-        <td width=33% align=center class=header2>NAV-v3</td>
-        <td width=33% align=right><a href=/>Back to NAV</a></td>
-    </tr>
-</table>
-<h1>%auto-target-path%<br>%short-desc%</h1>

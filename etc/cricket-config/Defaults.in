@@ -115,6 +115,12 @@ rra    2hrMax      MAX:0.5:24:600
 rra    1dayAve     AVERAGE:0.5:288:600
 rra    1dayMax     MAX:0.5:288:600
 
+
+# Default target config
+target --default--
+    short-desc   =    ""
+
+
 # we will add datasources to each specific target-type later
 targetType --default--
     rra = "5minAve, 30minAve, 2hrAve, 2hrMax, 1dayAve, 1dayMax"
@@ -157,29 +163,14 @@ html page-header
     </tr>
     </table>
     <br clear=left>
+    <h1>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
 
-html  page-footer
-    <table width=100% cellpadding=3>
-    <tr>
-        <td>
-            <a href="http://cricket.sourceforge.net"><img align=left width=58 height=55 src="images/cricket-sm.gif" border=0></a>
-        </td>
-        <td width=90 valign=middle>
-            <p align=left><font size=+2>
-            <a href="http://cricket.sourceforge.net">Cricket</a>
-            <font size=2><br>Version %auto-short-version%</font>
-        </td>
-        <td class=ntnu valign=middle>
-            <p><font size=-2>
-            WARNING: This install of Cricket is a part of NAV-v3. When viewing the data, please note that we are not responsible for any anomalies on the network that you may see here. We are only displaying them. Any grief you may experience when using this install of Cricket is purely self-inflicted, and of no importance to us. If you however feel that we are helping you in any way, please feel free to send money to the editor. If you take this text seriously, don&#39;t.
-            </font></p>
-        </td>
-            <td width=130 valign=middle>
-                    <center>
-                    <a href="http://ee-staff.ethz.ch/~oetiker/webtools/rrdtool"><img width=120 height=34 src="images/rrdtool.gif" border=0></a>
-            </td>
-    </tr>
-    </table>
+html page-footer
+    <div width='100%'>
+        <a href="http://cricket.sourceforge.net"><img width='58' height='55' src="images/cricket-sm.gif" alt="Cricket"></a>
+        <span style='font-size: small'>Version %auto-short-version%</span>
+        <a href="http://ee-staff.ethz.ch/~oetiker/webtools/rrdtool"><img style='float: right;' width=120 height=34 src="images/rrdtool.gif" alt="RRDTool"></a>
+    </div>
     <p>
         <font color=red>%auto-error%</font>
     </p>
