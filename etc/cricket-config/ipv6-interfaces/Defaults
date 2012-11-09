@@ -1,19 +1,19 @@
-# interface sub-tree
 #
-# ipv6 interface statistics
+# Default Cricket config for ipv6-interfaces
+#
 
 Target  --default--
-        inst            =       map(interface-name)
-        short-desc      =       ""
+    inst         =    map(interface-name)
+    short-desc   =    ""
 
 # All the orther information is stored in the main Defaults file.
 
 html    page-header
-        <table width=100%>
-        <tr class=header>
-                <td width=33% align=left class=header>%auto-title%</td>
-                <td width=33% align=center class=header2>NAV-v3</td>
-                <td width=33% align=right><a href=/>Back to NAV</a></td>
-        </tr>
-        </table>
-        <h1>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
+<table width=100%>
+    <tr class=header>
+        <td width=33% align=left class=header>%auto-title%</td>
+        <td width=33% align=center class=header2>NAV-v3</td>
+        <td width=33% align=right><a href=/>Back to NAV</a></td>
+    </tr>
+</table>
+<h1>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
