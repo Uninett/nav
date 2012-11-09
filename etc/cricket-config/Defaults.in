@@ -8,7 +8,7 @@
 #############################################
 
 Target	--default--
-	dataDir			        = %auto-base%/../cricket-data/%auto-target-path%
+	dataDir			        = @localstatedir@/cricket-data/%auto-target-path%
 	rrd-datafile		    = %dataDir%/%auto-target-name%.rrd
 	rrd-poll-interval	    = 300
 	snmp-host	        	= %auto-target-name%
