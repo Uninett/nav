@@ -35,8 +35,8 @@ class InterfaceTest(unittest.TestCase):
                                    'ifOutErrors',
                                    'ifInUcastPkts',
                                    'ifOutUcastPkts']}
-        self.datasource_units = {'ifHCInOctets': 'bytes',
-                                 'ifHCOutOctets': 'bytes',
+        self.datasource_units = {'ifHCInOctets': 'bytes/s',
+                                 'ifHCOutOctets': 'bytes/s',
                                  'ifInErrors': 'packets',
                                  'ifOutErrors': 'packets',
                                  'ifInUcastPkts': 'packets',
