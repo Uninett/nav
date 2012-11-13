@@ -81,31 +81,34 @@ class InterfaceTest(unittest.TestCase):
 
 
     def test_create_rrd_container(self):
-        interface = Mock()
-        netbox = Mock()
-        netbox.sysname = 'uninett-gw'
-        netbox.id = 1
-        netbox.snmp_version = 2
+        with patch('nav.mcc.interfaces.get_unit') as getunit:
+            getunit.side_effect = lambda x: self.datasource_units[x]
 
-        interface.netbox = netbox
-        interface.id = 2
-        interface.speed = 200
+            interface = Mock()
+            netbox = Mock()
+            netbox.sysname = 'uninett-gw'
+            netbox.id = 1
+            netbox.snmp_version = 2
 
-        targetname = 'blapp'
-        module = 'switch-port-counters'
+            interface.netbox = netbox
+            interface.id = 2
+            interface.speed = 200
 
-        dummycontainer = RRDcontainer('blapp.rrd', 1, 'uninett-gw',
-                                      'interface', 2, speed=200,
-                                      category='switch-port-counters')
-        for index, datasource in enumerate(self.datasources['2c']):
-            dummycontainer.datasources.append(
-                Datasource('ds' + str(index), datasource, 'DERIVE',
-                           self.datasource_units[datasource]))
+            targetname = 'blapp'
+            module = 'switch-port-counters'
 
-        container = create_rrd_container(self.datasources, interface,
-                                         targetname, module)
-        self.assertEqual(container.datasources, dummycontainer.datasources)
-        self.assertEqual(container, dummycontainer)
+            dummycontainer = RRDcontainer('blapp.rrd', 1, 'uninett-gw',
+                                          'interface', 2, speed=200,
+                                          category='switch-port-counters')
+            for index, datasource in enumerate(self.datasources['2c']):
+                dummycontainer.datasources.append(
+                    Datasource('ds' + str(index), datasource, 'DERIVE',
+                               self.datasource_units[datasource]))
+
+            container = create_rrd_container(self.datasources, interface,
+                                             targetname, module)
+            self.assertEqual(container.datasources, dummycontainer.datasources)
+            self.assertEqual(container, dummycontainer)
 
 
     def test_create_all_target(self):
