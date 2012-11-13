@@ -66,16 +66,31 @@ if test -z "$CRICKETDIR"; then
 	CRICKETDIR='${prefix}/cricket/cricket'
 fi
 
+AC_ARG_ENABLE(install-conf,
+            [  --disable-install-conf  Do not install config-files from etc/],
+            [CONF_FILES="$enableval"],
+            [CONF_FILES="yes"])
+
+AC_MSG_RESULT($CONF_FILES)
+
+AM_CONDITIONAL([INSTALL_CONF], [test "x$CONF_FILES" = "xyes"])
+
+if test "x$CONF_FILES" = "xyes"; then
+    cp etc/Makefile_conf.am etc/Makefile.am
+else
+    cp etc/Makefile_no_conf.am etc/Makefile.am
+fi
 
 AC_CONFIG_FILES([
-	Makefile
-	doc/Makefile
-	etc/Makefile
-	sql/Makefile
-	java/Makefile
-	templates/Makefile
-	python/Makefile
-	bin/Makefile
-	media/Makefile
+    Makefile
+    doc/Makefile
+    etc/Makefile
+    sql/Makefile
+    java/Makefile
+    templates/Makefile
+    python/Makefile
+    bin/Makefile
+    media/Makefile
 ])
+
 AC_OUTPUT
