@@ -224,36 +224,32 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     def get_prefix_info(addr):
         """Return prefix based on address"""
-        #LOGGER.debug('get_prefix_info:%s' % locals())
-        if is_valid_ip(addr):
-            try:
-                return Prefix.objects.select_related().extra(
-                    select={"mask_size": "masklen(netaddr)"},
-                    where=["%s << netaddr AND nettype <> 'scope'"],
-                    order_by=["-mask_size"],
-                    params=[addr])[0]
-            except Prefix.DoesNotExist:
-                pass
+        ipaddr = is_valid_ip(addr)
+        if ipaddr:
+            prefixes = Prefix.objects.select_related().extra(
+                select={"mask_size": "masklen(netaddr)"},
+                where=["%s << netaddr AND nettype <> 'scope'"],
+                order_by=["-mask_size"], params=[ipaddr])[0:1]
+            if prefixes:
+                return prefixes[0]
         return None
 
     def get_arp_info(addr):
         """Return arp based on address"""
-        if is_valid_ip(addr):
-            try:
-                return Arp.objects.extra(
-                    where=["ip = %s"], params=[addr]).order_by(
-                    '-end_time', '-start_time')[0]
-            except Arp.DoesNotExist:
-                pass
+        ipaddr = is_valid_ip(addr)
+        if ipaddr:
+            arp_info = Arp.objects.extra(
+                where=["ip = %s"],
+                params=[ipaddr]).order_by('-end_time', '-start_time')[0:1]
+            if arp_info:
+                return arp_info[0]
         return None
 
     def get_cam_info(mac):
         """Return cam objects based on mac address"""
-        try:
-            return Cam.objects.filter(mac=mac).order_by('-end_time',
-                                                        '-start_time')[0]
-        except Cam.DoesNotExist:
-            return None
+        cam_info = Cam.objects.filter(mac=mac).order_by('-end_time',
+                                                        '-start_time')[0:1]
+        return cam_info[0] if cam_info else None
 
     # Get data needed by the template
     addr = is_valid_ip(addr)
