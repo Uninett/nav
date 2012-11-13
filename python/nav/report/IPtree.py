@@ -21,8 +21,6 @@ from copy import deepcopy
 from nav import db
 from nav.report.IPtools import getMask, sort_nets_by_prefixlength, andIpMask
 
-db_cursor = db.getConnection('webfront', 'manage').cursor()
-
 tree = None
 
 def buildTree(start_net, end_net=None, bits_in_matrix=0,
@@ -98,6 +96,7 @@ def getSubnets(network, min_length=None, max_length=128):
 		   "netaddr << '%s' AND masklen(netaddr) >= %d AND "
 		   "masklen(netaddr) < %d" %
 		   (network.version(),str(network),min_length,max_length))
+    db_cursor = db.getConnection('default').cursor()
     db_cursor.execute(sql)
     db_result = db_cursor.fetchall()
     return [IP(i[0]) for i in db_result]
