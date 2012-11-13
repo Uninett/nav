@@ -76,6 +76,7 @@ MIDDLEWARE_CLASSES = (
 
 # Email sending
 DEFAULT_FROM_EMAIL = nav_config.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 EMAIL_HOST = nav_config.get('EMAIL_HOST', 'localhost')
 EMAIL_PORT = nav_config.get('EMAIL_PORT', 25)
