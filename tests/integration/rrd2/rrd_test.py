@@ -20,10 +20,20 @@ class RrdTests(PresenterTestCase):
 
 
     def _setup_rrd_file(self, path):
+        """ Setups the demo.rrd architecture dependent test file from rrd.xml
+        :param path: path to rrd2 testdir
+        :raise ValueError If subprocess execution of rrdtool didn't go as
+         expected
+        :raise OSException If file not found exception,
+        either troubling lookuping up rrdtool or the rrd.xml file. Check if
+        you installed rrdtool binary and path gets set correctly in this
+         function
+        """
         process = subprocess.Popen(['rrdtool','restore', path+'/rrd.xml',path+'/demo.rrd'])
         process.communicate()[0]
         if  process.returncode!=0:
-            raise ValueError("OBS OBS creating rrd file didn't go as planned!")
+            raise ValueError(
+                "Creation of demo.rrd for use with integration tests failed")
 
 
     def test_read_average(self):
@@ -44,8 +54,8 @@ class RrdTests(PresenterTestCase):
 
         self.assertEquals(list, type(result))
 
-        expected_average = 2372285.2512119999
-        self.assertEquals(expected_average, result[0])
+        expected_average = 2372285.25
+        self.assertTrue((expected_average - result[0]) <= 0.1)
 
     def test_read_max(self):
         self.presentation.add_datasource(datasource=self.test_data[0])
@@ -57,8 +67,8 @@ class RrdTests(PresenterTestCase):
         self.presentation.add_datasource(datasource=self.test_data[0])
         result = self.presentation.max()
 
-        expected_max = 11861200.312999999
-        self.assertEquals(expected_max, result[0])
+        expected_max = 11861200.31
+        self.assertTrue((expected_max - result[0]) <= 0.1)
 
     def test_read_min(self):
         self.presentation.add_datasource(datasource=self.test_data[0])
@@ -72,9 +82,9 @@ class RrdTests(PresenterTestCase):
         self.presentation.add_datasource(datasource=self.test_data[0])
         result = self.presentation.min()
 
-        expected_min = 902148.62742000003
+        expected_min = 902148.62
 
-        self.assertEquals(expected_min, result[0])
+        self.assertTrue((expected_min - result[0]) <= 0.1)
 
     def test_read_sum(self):
         self.presentation.add_datasource(datasource=self.test_data[0])
@@ -87,9 +97,9 @@ class RrdTests(PresenterTestCase):
         self.presentation.add_datasource(datasource=self.test_data[0])
         result = self.presentation.sum()
 
-        expected_sum = 856394975.68765986
+        expected_sum = 856394975.68
 
-        self.assertEquals(expected_sum, result[0])
+        self.assertTrue((expected_sum - result[0]) <= 0.1)
 
     def test_valid_points(self):
         self.presentation.add_datasource(datasource=self.test_data[0])
