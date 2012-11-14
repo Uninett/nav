@@ -28,8 +28,6 @@ define([
         },
 
         render: function () {
-            console.log("render()");
-            console.log(this.model.toJSON());
             this.$el.html(
                 this.template({model: this.model.toJSON()})
             );
