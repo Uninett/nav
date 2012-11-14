@@ -25,7 +25,7 @@ from os.path import join
 
 from nav.activeipcollector import manager
 from nav.path import localstatedir, sysconfdir
-import nav.mcc.utils
+
 
 def main(days=None, reset=False):
     """Controller"""
