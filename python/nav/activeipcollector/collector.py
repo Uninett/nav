@@ -23,6 +23,7 @@ from django.db import connection
 
 LOG = logging.getLogger('ipcollector.collector')
 
+
 def collect(days=None):
     """Collect data from database
 

@@ -16,6 +16,8 @@
 #
 """Manage collection and storing of active ip-addresses statistics"""
 
+# pylint: disable=C0103
+
 import logging
 import rrdtool
 import time
@@ -35,6 +37,7 @@ Element = namedtuple('Element',
                      'fullpath')
 
 LOG = logging.getLogger('ipcollector.manager')
+
 
 def run(datadir, days=None, reset=False):
     """Fetch active ip"""
@@ -165,12 +168,12 @@ def create_rrddb_file(element, prefix, datapath):
     Datasource = namedtuple("Datasource", "name descr unit")
 
     rrdfile = RrdFile(
-        path = datapath,
-        filename = element.filename,
-        step = 1800,
-        key = 'prefix',
-        value = prefix.id,
-        category = 'activeip'
+        path=datapath,
+        filename=element.filename,
+        step=1800,
+        key='prefix',
+        value=prefix.id,
+        category='activeip'
     )
     rrdfile.save()
 
@@ -193,12 +196,12 @@ def create_rrddb_datasource(rrdfile, datasource):
     LOG.debug('Creating rrd_datasource for %s' % datasource.name)
 
     rrdds = RrdDataSource(
-        rrd_file = rrdfile,
-        name = datasource.name,
-        description = datasource.descr,
-        type = RrdDataSource.TYPE_GAUGE,
-        units = datasource.unit,
-        threshold_state = None,
-        delimiter = None
+        rrd_file=rrdfile,
+        name=datasource.name,
+        description=datasource.descr,
+        type=RrdDataSource.TYPE_GAUGE,
+        units=datasource.unit,
+        threshold_state=None,
+        delimiter=None
     )
     rrdds.save()
