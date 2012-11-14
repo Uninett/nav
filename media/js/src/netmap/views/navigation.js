@@ -140,6 +140,7 @@ define([
             var out = this.template({ model: this.context, isVisible: this.isContentVisible, isLoading: this.isLoading });
             this.$el.html(out);
 
+            new LayerView({el: $('#layer_view', this.$el)}).render();
             new AlgorithmView({el: $('#algorithm_view', this.$el)}).render();
 
             return this;

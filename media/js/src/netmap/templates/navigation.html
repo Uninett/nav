@@ -2,6 +2,8 @@
 <div class="inner_wrap left_sidebar" {{#if isVisible}} {{else}} style="display: none"{{/if}}>
     {{#ifequal 1 model.viewid}}class="active"{{/ifequal}}
 
+    <div id="layer_view"></div>
+
     <h3>Categories</h3>
 
     {{#eachkeys model.categories}}

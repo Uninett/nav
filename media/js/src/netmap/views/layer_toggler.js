@@ -16,7 +16,6 @@ define([
             'change:layer': 'updateSelection' // for template logic!
         },
         initialize: function () {
-            this.broker.register(this);
             this.template = Handlebars.compile(Template);
             return this;
         },
@@ -47,7 +46,13 @@ define([
 
             this.model.set({layer: NetmapHelpers.topology_link_to_id($(e.currentTarget).val())});
             // todo: next one needed? should be triggered by the model itself ...
-            this.broker.trigger('map:topology_change', this.model.get('topology'));
+            //this.broker.trigger('map:topology_change', this.model.get('topology'));
+        },
+
+        close:function () {
+            this.broker.unregister(this);
+            $(this.el).unbind();
+            $(this.el).remove();
         }
     });
 
