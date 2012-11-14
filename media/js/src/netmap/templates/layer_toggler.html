@@ -1,10 +1,9 @@
 <h3>Layer</h3>
-
 <div class="squaredTwo">
-    <input name="topology[]" type="radio" value="layer2" id="layer_layer2" {{#if this.model.layer2_selected}} checked{{/if}} />
+    <input name="topology[]" type="radio" value="2" id="layer_layer2" {{#if model.layer2_active}} checked{{/if}} />
     <label for="layer_layer2">Layer 2</label>
 </div>
 <div class="squaredTwo">
-    <input name="topology[]" type="radio" value="layer3" id="layer_layer3" {{#if this.model.layer3_selected}} checked{{/if}} />
+    <input name="topology[]" type="radio" value="3" id="layer_layer3" {{#if model.layer3_active}} checked{{/if}} />
     <label for="layer_layer3">Layer 3</label>
 </div>

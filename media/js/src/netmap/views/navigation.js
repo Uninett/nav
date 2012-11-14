@@ -107,6 +107,7 @@ define([
             };
             this.isLoading = !!(this.options.isLoading);
 
+            this.layer_toggler = null;
 
         },
         setLoading: function (state) {
@@ -140,9 +141,20 @@ define([
             var out = this.template({ model: this.context, isVisible: this.isContentVisible, isLoading: this.isLoading });
             this.$el.html(out);
 
-            new LayerView({el: $('#layer_view', this.$el)}).render();
-            new AlgorithmView({el: $('#algorithm_view', this.$el)}).render();
+            if (this.layer_toggler) {
+                this.layer_toggler.close();
+                console.log("close()");
+            }
 
+            if (this.layer_toggler) {
+                this.layer_toggler.setElement($('#layer_view', this.$el));
+                this.layer_toggler.render();
+            } else {
+                this.layer_toggler = new LayerView({el: $('#layer_view', this.$el)}).render();
+            }
+
+            new AlgorithmView({el: $('#algorithm_view', this.$el)}).render();
+            console.log("navigation render()");
             return this;
         },
         alignView: function () {
@@ -263,6 +275,7 @@ define([
             this.render();
         },
         close:function () {
+            this.layer_toggler.close();
             $(document).unbind('keypress', 'on_keypress');
             this.broker.unregister(this);
             $(this.el).unbind();

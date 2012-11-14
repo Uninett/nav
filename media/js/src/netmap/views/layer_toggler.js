@@ -17,12 +17,21 @@ define([
         },
         initialize: function () {
             this.template = Handlebars.compile(Template);
+            if (!this.model) {
+                this.model = new Model();
+            }
+
+            this.model.bind("change:layer", this.updateSelection, this);
+            //this.model.bind("change", this.render, this);
+
             return this;
         },
 
         render: function () {
+            console.log("render()");
+            console.log(this.model.toJSON());
             this.$el.html(
-                this.template({model: this.model})
+                this.template({model: this.model.toJSON()})
             );
 
             return this;
@@ -36,21 +45,21 @@ define([
             this.model.unset('layer2_active', {silent: true});
             this.model.unset('layer3_active', {silent: true});
 
+            var active_layer = "layer{0}_active".format(this.model.get('layer'));
             // Update template state
-            this.model.set('layer' + this.model.get('layer') + "_active", {silent: true});
+            this.model.set(active_layer, true);
+            this.render();
         },
 
         changeTopology: function (e) {
             this.broker.trigger("map:topology_change:loading");
-            e.stopPropagation();
-
-            this.model.set({layer: NetmapHelpers.topology_link_to_id($(e.currentTarget).val())});
+            //e.stopPropagation();
+            this.model.set({layer: $(e.currentTarget).val()});
             // todo: next one needed? should be triggered by the model itself ...
             //this.broker.trigger('map:topology_change', this.model.get('topology'));
         },
 
         close:function () {
-            this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         }
