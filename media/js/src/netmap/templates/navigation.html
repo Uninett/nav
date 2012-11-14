@@ -2,18 +2,6 @@
 <div class="inner_wrap left_sidebar" {{#if isVisible}} {{else}} style="display: none"{{/if}}>
     {{#ifequal 1 model.viewid}}class="active"{{/ifequal}}
 
-
-    <h3>Layer</h3>
-
-    {{#eachkeys model.link_types}}
-        <div class="squaredTwo">
-            <input name="topology[]" type="radio" value="{{this.key}}" id="layer_{{this.key}}" {{#if this.value}} checked{{/if}} {{#if ../isLoading}}disabled='disabled'{{/if}} />
-            <label for="layer_{{this.key}}">{{this.key}}</label>
-        </div>
-
-    {{/eachkeys}}
-
-
     <h3>Categories</h3>
 
     {{#eachkeys model.categories}}

@@ -3,23 +3,24 @@ define([
     'libs-amd/text!netmap/templates/navigation.html',
     'netmap/collections/traffic_gradient',
     'netmap/views/modal/traffic_gradient',
+    'netmap/views/layer_toggler',
     'netmap/views/algorithm_toggler',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, AlgorithmView) {
+], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, AlgorithmView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
         interests: {
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest',
-            'map:loading:done': 'eventLoadingDone'
+            'map:loading:done': 'eventLoadingDone',
+            'map:topology_change:loading': 'setLoading'
         },
         events: {
             'click #toggle_view':      'toggleView',
-            'click input[name="topology[]"]': 'onTopologyClick',
             'click input[name="categories[]"]': 'onCheckboxLayerClick',
             'click input[name="filter_orphans"]': 'onFilterOrphansClick',
             'click input[name="group_position[]"]': 'onGroupByPositionClick',
@@ -108,6 +109,10 @@ define([
 
 
         },
+        setLoading: function (state) {
+            this.isLoading = state;
+            this.render();
+        },
         eventLoadingDone: function () {
             this.isLoading = false;
             this.render();
@@ -175,13 +180,6 @@ define([
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
             this.broker.trigger('map:resize:animate', {marginLeft: margin});
-        },
-        onTopologyClick: function (e) {
-            this.isLoading = true;
-            e.stopPropagation();
-
-            this.model.set({topology: NetmapHelpers.topology_link_to_id($(e.currentTarget).val())});
-            this.broker.trigger('map:topology_change', this.model.get('topology'));
         },
         onCheckboxLayerClick: function (e) {
             // jQuery<=1.6
