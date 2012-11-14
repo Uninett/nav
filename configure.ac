@@ -75,12 +75,6 @@ AC_MSG_RESULT($CONF_FILES)
 
 AM_CONDITIONAL([INSTALL_CONF], [test "x$CONF_FILES" = "xyes"])
 
-if test "x$CONF_FILES" = "xyes"; then
-    cp etc/Makefile_conf.am etc/Makefile.am
-else
-    cp etc/Makefile_no_conf.am etc/Makefile.am
-fi
-
 AC_CONFIG_FILES([
     Makefile
     doc/Makefile
