@@ -28,6 +28,7 @@ define([
         },
 
         render: function () {
+            console.log(this.model.toJSON());
             this.$el.html(
                 this.template({model: this.model.toJSON()})
             );
@@ -53,8 +54,7 @@ define([
             this.broker.trigger("map:topology_change:loading");
             //e.stopPropagation();
             this.model.set({layer: $(e.currentTarget).val()});
-            // todo: next one needed? should be triggered by the model itself ...
-            //this.broker.trigger('map:topology_change', this.model.get('topology'));
+            this.broker.trigger('map:topology_change', this.model.get('layer'));
         },
 
         close:function () {

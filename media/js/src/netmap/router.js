@@ -21,6 +21,7 @@ define([
     var context_selected_map = {};
     var context_user_default_view;
     var spinner_map;
+    var map_id;
 
     var view_choose_map;
 
@@ -35,8 +36,7 @@ define([
         },
         interests: {
             'map:loading:context_selected_map': 'loadingMap',
-            'map:context_selected_map': 'update_selected_map',
-            'map:topology_change': 'map_topology_change'
+            'map:context_selected_map': 'update_selected_map'
         },
         update_selected_map: function (new_context) {
             this.loadingMap();
@@ -51,10 +51,11 @@ define([
             this.loadUi(true); // force load!
         },
         loadingMap: function () {
-            $('#netmap_main_view #chart').hide();
+            console.log("aha?");
+            /*$('#netmap_main_view #chart').hide();
             $('#netmap_main_view #loading_chart').show();
             var target = document.getElementById('loading_chart');
-            spinner_map.spin(target);
+            spinner_map.spin(target);*/
         },
 
         // Routes below here
@@ -62,6 +63,7 @@ define([
         showNetmap: function(map_id) {
             this.loadingMap();
             //console.log("showNetmap({0})".format(map_id));
+            map_id = parseInt(map_id, 10);
             context_selected_map.id = parseInt(map_id, 10);
             this.loadPage();
         },
@@ -141,7 +143,7 @@ define([
             /*if (view_choose_map !== undefined) {
                 view_choose_map.close(); //
             } else {*/
-            view_choose_map = new ListNetmapView({collection: collection_maps, context_selected_map: context_selected_map, context_user_default_view: context_user_default_view});
+            view_choose_map = new ListNetmapView({collection: collection_maps, mapProperties: context_selected_map, context_user_default_view: context_user_default_view});
             //}
             self.loadGraph(forceLoad);
             self.loadNavigation();
@@ -166,21 +168,7 @@ define([
                 self.view_map.close();
             }
 
-
-            if (context_selected_map.graph !== undefined && context_selected_map.graph && !forceLoad) {
-               self.drawPage();
-            } else {
-                if (context_selected_map.id !== undefined) {
-                    context_selected_map.graph = new GraphModel({id: context_selected_map.id, topology: context_selected_map.map.attributes.topology});
-                } else {
-                    context_selected_map.graph = new GraphModel({topology: context_selected_map.map.attributes.topology});
-                }
-                context_selected_map.graph.fetch({
-                    success: function () {
-                        self.drawPage();
-                    }
-                });
-            }
+            self.drawPage();
         },
         drawPage: function () {
             var self = this;
@@ -194,17 +182,18 @@ define([
             $('#netmap_infopanel #list_views').html(view_choose_map.render().el);
 
 
-            self.view_map = new DrawNetmapView({context_selected_map: context_selected_map, view_map_info: self.view_map_info, cssWidth: $('#netmap_main_view').width()});
+
+            self.view_map = new DrawNetmapView({viewid: map_id, mapProperties: context_selected_map.map, view_map_info: self.view_map_info, cssWidth: $('#netmap_main_view').width(), loadDefault: parseInt($("#netmap_userid").html(),10)});
             $('#netmap_main_view #wrapper_chart').html(self.view_map.render().el);
-            spinner_map.stop();
-            $('#netmap_main_view #loading_chart').hide();
+            //spinner_map.stop();
+            //$('#netmap_main_view #loading_chart').hide();
         }
 
     });
 
     var initialize = function () {
         var self = this;
-        spinner_map = new Spinner();
+        //spinner_map = new Spinner();
         this.app_router = new AppRouter;
 
         // Extend the View class to include a navigation method goTo

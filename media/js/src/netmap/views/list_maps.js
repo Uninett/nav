@@ -41,14 +41,14 @@ define([
             this.collection.bind("change", this.render, this);
             this.collection.bind("destroy", this.close, this);
             //debugger;
-            this.options.context_selected_map.map.bind("change", this.updateCollection, this);
+            this.options.mapProperties.map.bind("change", this.updateCollection, this);
 
         },
         updateCollection: function () {
-            if (this.options.context_selected_map.map.attributes.viewid !== undefined) {
-                var map = this.collection.get(this.options.context_selected_map.map.attributes.viewid);
+            if (this.options.mapProperties.map.attributes.viewid !== undefined) {
+                var map = this.collection.get(this.options.mapProperties.map.attributes.viewid);
                 if (map === undefined) {
-                    this.collection.add(this.options.context_selected_map.map);
+                    this.collection.add(this.options.mapProperties.map);
                 }
             }
             this.render();
@@ -66,8 +66,8 @@ define([
             }
 
             self.modal_save_view = new SaveDialogView({
-                model: self.options.context_selected_map.map,
-                'graph': self.options.context_selected_map.graph,
+                model: self.options.mapProperties.map,
+                'graph': self.options.mapProperties.graph,
                 'isNewView': isNewView
             });
 
@@ -77,7 +77,7 @@ define([
             e.preventDefault();
             var self = this;
             var user_id = $("#netmap_userid").html();
-            var updateUserDefaultMap = new DefaultMapModel({ownerid: parseInt(user_id), viewid: self.options.context_selected_map.id});
+            var updateUserDefaultMap = new DefaultMapModel({ownerid: parseInt(user_id), viewid: self.options.mapProperties.id});
             updateUserDefaultMap.save(this.attributes, {
                 success: function (model) {
                     self.options.context_user_default_view = model;
@@ -93,21 +93,21 @@ define([
         getPropertiesToKeep: function () {
             var self = this;
             return {
-                is_public: self.options.context_selected_map.map.attributes.is_public,
-                topology: self.options.context_selected_map.map.attributes.topology,
-                categories: self.options.context_selected_map.map.attributes.categories,
-                zoom: self.options.context_selected_map.map.attributes.zoom,
-                display_orphans: self.options.context_selected_map.map.attributes.display_orphans
+                is_public: self.options.mapProperties.map.attributes.is_public,
+                topology: self.options.mapProperties.map.attributes.topology,
+                categories: self.options.mapProperties.map.attributes.categories,
+                zoom: self.options.mapProperties.map.attributes.zoom,
+                display_orphans: self.options.mapProperties.map.attributes.display_orphans
             };
         },
         new_show_save_view: function () {
             var self = this;
             if (!self.isLoading) {
                 var properties = self.getPropertiesToKeep();
-                self.options.context_selected_map.map.unbind("change");
-                self.options.context_selected_map.map = new MapModel();
-                self.options.context_selected_map.map.set(properties);
-                self.options.context_selected_map.map.bind("change", this.updateCollection, this);
+                self.options.mapProperties.map.unbind("change");
+                self.options.mapProperties.map = new MapModel();
+                self.options.mapProperties.map.set(properties);
+                self.options.mapProperties.map.bind("change", this.updateCollection, this);
                 this.showCreateNewViewDialog();
             }
         },
@@ -115,17 +115,17 @@ define([
             e.preventDefault();
             var self = this;
             if (!self.isLoading) {
-                var selected_id = self.options.context_selected_map.map.id;
-                self.options.context_selected_map.map.destroy({
+                var selected_id = self.options.mapProperties.map.id;
+                self.options.mapProperties.map.destroy({
                     success: function () {
                         var properties = self.getPropertiesToKeep();
-                        self.options.context_selected_map.map.unbind("change");
-                        self.options.context_selected_map.map = new MapModel();
-                        self.options.context_selected_map.map.set(properties);
-                        self.options.context_selected_map.map.bind("change", this.updateCollection, this);
-                        self.options.context_selected_map.id = undefined;
+                        self.options.mapProperties.map.unbind("change");
+                        self.options.mapProperties.map = new MapModel();
+                        self.options.mapProperties.map.set(properties);
+                        self.options.mapProperties.map.bind("change", this.updateCollection, this);
+                        self.options.mapProperties.id = undefined;
                         Backbone.history.navigate("");
-                        self.broker.trigger("map:context_selected_map", self.options.context_selected_map);
+                        self.broker.trigger("map:mapProperties", self.options.mapProperties);
                     },
                     error: function () {
                         alert("Failed to delete view");
@@ -151,16 +151,16 @@ define([
             if (isNaN(self.selected_id)) {
                 // assume new
                 var properties = self.getPropertiesToKeep();
-                self.options.context_selected_map.map.unbind("change");
-                self.options.context_selected_map.map = new MapModel();
-                self.options.context_selected_map.map.set(properties);
-                self.options.context_selected_map.map.bind("change", this.render, this);
+                self.options.mapProperties.map.unbind("change");
+                self.options.mapProperties.map = new MapModel();
+                self.options.mapProperties.map.set(properties);
+                self.options.mapProperties.map.bind("change", this.render, this);
             } else {
-                self.options.context_selected_map.map = self.collection.get(self.selected_id);
+                self.options.mapProperties.map = self.collection.get(self.selected_id);
             }
             //self.options.context_selected_map.map.attributes.categories = keep_categories;
 
-            if (!self.options.context_selected_map.map.isNew() && self.is_selected_view_really_changed(self.selected_id, self.options.context_selected_map.map)) {
+            if (!self.options.mapProperties.map.isNew() && self.is_selected_view_really_changed(self.selected_id, self.options.mapProperties.map)) {
                 Backbone.history.navigate("netmap/{0}".format(self.selected_id));
                 self.loadMapFromContextId(self.selected_id);
             }
@@ -177,16 +177,16 @@ define([
             var self = this;
             self.deactiveAndShowSpinnerWhileLoading();
 
-            self.options.context_selected_map.map.unbind("change");
-            self.options.context_selected_map.map = self.collection.get(map_id);
+            self.options.mapProperties.map.unbind("change");
+            self.options.mapProperties.map = self.collection.get(map_id);
             //self.options.context_selected_map.map.bind("change", this.render, this);
-            self.options.context_selected_map.graph = new GraphModel({id: map_id});
-            self.options.context_selected_map.graph.fetch({
+            self.options.mapProperties.graph = new GraphModel({id: map_id});
+            self.options.mapProperties.graph.fetch({
                 success: function (model) {
-                    self.options.context_selected_map.graph = model;
+                    self.options.mapProperties.graph = model;
                     //self.render();
                     self.isLoading = false;
-                    self.broker.trigger('map:context_selected_map', self.options.context_selected_map);
+                    self.broker.trigger('map:mapProperties', self.options.mapProperties);
                     //self.options.context_selected_map.trigger('reattach', self.options.context_selected_map);
                 }
             });
@@ -239,9 +239,9 @@ define([
             var context = {};
             context.maps = this.collection.toJSON();
 
-            context.context_selected_map = this.options.context_selected_map.map.toJSON();
-            context.isNew = this.options.context_selected_map.map.isNew();
-            if (this.options.context_user_default_view && this.options.context_user_default_view.attributes.viewid === this.options.context_selected_map.map.attributes.viewid) {
+            context.mapProperties = this.options.mapProperties.map.toJSON();
+            context.isNew = this.options.mapProperties.map.isNew();
+            if (this.options.context_user_default_view && this.options.context_user_default_view.attributes.viewid === this.options.mapProperties.map.attributes.viewid) {
                 context.isFavorite = this.options.context_user_default_view;
             } else {
                 context.isFavorite = false;

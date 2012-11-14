@@ -1,5 +1,8 @@
 define([
     'plugins/netmap-extras',
+    'netmap/models/graph',
+    'netmap/models/default_map',
+    'netmap/views/loading_spinner',
     // Pull in the Collection module from above
     'netmap/views/netbox_info',
     'libs-amd/text!netmap/templates/draw_map.html',
@@ -8,7 +11,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapExtras, NetboxInfoView, netmapTemplate) {
+], function (NetmapExtras, GraphModel, DefaultMapModel, LoadingSpinnerView, NetboxInfoView, netmapTemplate) {
 
     var drawNetmapView = Backbone.View.extend({
         tagName: "div",
@@ -27,14 +30,15 @@ define([
             'map:loading:context_selected_map': 'clear',
             'map:node:fixed': 'updateNodeFixedStatus',
             'map:fixNodes': 'updateAllNodePositions',
+            'map:topology_change': 'updateMap',
             'headerFooterMinimize:trigger': 'resize'
         },
         initialize: function () {
             this.broker.register(this);
 
-            this.model = this.options.context_selected_map.graph;
-
             this.$el.append(netmapTemplate);
+            this.spinnerView = new LoadingSpinnerView();
+            this.$el.append(this.spinnerView.render());
 
             this.selected_node = null;
             this.selected_vlan = null;
@@ -45,9 +49,9 @@ define([
                     'links': false
                 }
             };
-            this.context_selected_map = this.options.context_selected_map;
+            this.mapProperties = this.options.mapProperties;
             this.sidebar = this.options.view_map_info;
-            this.filter_orphans = !this.context_selected_map.display_orphans;
+            this.filter_orphans = !this.mapProperties.display_orphans;
 
             this.w = this.options.cssWidth;
             this.resize({width: this.w});
@@ -62,11 +66,45 @@ define([
             this.zoom = d3.behavior.zoom();
             // swap .on with .bind for jQuery<1.7
             $(window).on("resize.app", _.bind(this.resize, this));
+
+            //this.model = this.options.context_selected_map.graph;
+            //context_selected_map.graph = new GraphModel({id: context_selected_map.id, topology: context_selected_map.map.attributes.topology});
+            var self = this;
+            if (this.options.viewid) {
+
+                if (this.options.mapProperties) {
+                    this.model = new GraphModel({topology: this.options.mapProperties.topology })
+                } else {
+                    this.model = new GraphModel({topology: 2});
+                }
+            } else if (this.options.loadDefault) {
+                // this.options.loadDefault contains userid to load default for!
+                var defaultMap = new DefaultMapModel({ownerid: this.options.loadDefault});
+                defaultMap.fetch({
+                    success: function (model, attributes) {
+                        self.model = new GraphModel({viewid: attributes.viewid, topology: self.options.mapProperties.topology});
+                    },
+                    error: function () {
+                        // User's default map not found, try global
+                        self.defaultMap = new DefaultMapModel();
+                        self.defaultMap.fetch({
+                            success: function (model, attributes) {
+                                self.model = new GraphModel({viewid: attributes.viewid, topology: self.options.mapProperties.topology});
+                            },
+                            error: function () {
+                                // global not found, just do a graph
+                                self.model = new GraphModel({topology: 2});
+                            }
+                        });
+                    }
+                });
+            }
+
             this.clear();
 
 
-            if (!this.context_selected_map.map.isNew() && this.context_selected_map.map.attributes.zoom !== undefined) {
-                var tmp = this.context_selected_map.map.attributes.zoom.split(";");
+            if (!this.mapProperties.isNew() && this.mapProperties.attributes.zoom !== undefined) {
+                var tmp = this.mapProperties.attributes.zoom.split(";");
                 this.trans = tmp[0].split(",");
                 this.scale = tmp[1];
                 this.validateTranslateScaleValues();
@@ -99,6 +137,15 @@ define([
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
 
+        },
+        updateMap: function (layer) {
+            var self = this;
+            this.model = new GraphModel({id: this.mapProperties.id, topology: layer });
+            this.model.fetch({
+                success: function () {
+                    self.clear();
+                }
+            });
         },
         hasForceChanged: function () {
             var isRunning;
@@ -318,7 +365,7 @@ define([
             function redraw() {
                 self.trans = d3.event.translate;
                 self.scale = d3.event.scale;
-                self.context_selected_map.map.set({
+                self.mapProperties.set({
                     'zoom': self.trans + ";" + self.scale
                 }, {silent: true});
                 self.svg.attr("transform",
@@ -374,7 +421,6 @@ define([
             }
         },
         render: function () {
-
             var svg, self;
             self = this;
 
@@ -997,7 +1043,7 @@ define([
                 self.force.stop();
             }
 
-            var selected_categories = self.context_selected_map.map.attributes.categories;
+            var selected_categories = self.mapProperties.attributes.categories;
 
             self.modelJson = this.model.toJSON();
 
@@ -1063,6 +1109,7 @@ define([
             self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
             draw(self.modelJson);
             self.broker.trigger("map:loading:done");
+            this.spinnerView.stop();
 
             return this;
         },
