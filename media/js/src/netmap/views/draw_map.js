@@ -30,16 +30,14 @@ define([
             'map:loading:context_selected_map': 'clear',
             'map:node:fixed': 'updateNodeFixedStatus',
             'map:fixNodes': 'updateAllNodePositions',
-            'map:topology_change': 'setTopologyInGraph',
+            'netmap:mapProperty:layer': 'setMapPropertyLayer',
             'headerFooterMinimize:trigger': 'resize'
         },
         initialize: function () {
             this.broker.register(this);
 
             this.$el.append(netmapTemplate);
-            this.spinnerView = new LoadingSpinnerView();
-            this.$el.append(this.spinnerView.render());
-
+            this.showLoadingSpinner(true);
             this.selected_node = null;
             this.selected_vlan = null;
             this.ui = {
@@ -105,6 +103,20 @@ define([
                 });
             }
         },
+        showLoadingSpinner: function (bool) {
+            if (bool) {
+                (this.$el).find('#svg-netmap').hide();
+
+                this.spinnerView = new LoadingSpinnerView();
+                this.$el.prepend(this.spinnerView.render().el);
+                //debugger;
+            } else {
+                if (this.spinnerView) {
+                    this.spinnerView.close();
+                    $(this.svg).show();
+                }
+            }
+        },
         loadGraph: function () {
             var self = this;
             this.model.fetch({
@@ -154,25 +166,21 @@ define([
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
             this.render();
+            this.showLoadingSpinner(false);
         },
-        setTopologyInGraph: function (layer) {
+        setMapPropertyLayer: function (layer) {
+            var self = this;
+            self.showLoadingSpinner(true);
             this.model.set({topology: layer});
             this.model.fetch({
-                success: function () {
+                success: function (model, attributes) {
+                    self.model = model;
+                    self.modelJson = self.model.toJSON();
                     self.clear();
+                    self.render();
+                    self.showLoadingSpinner(false);
                 }
             });
-        },
-        hasForceChanged: function () {
-            var isRunning;
-            if (this.force !== undefined && this.force) {
-                isRunning = (this.force.alpha() !== 0);
-            }
-            if (this.lastCheckForceRunning !== isRunning) {
-                this.lastCheckForceRunning = isRunning;
-                return true;
-            }
-            return false;
         },
         resizeAnimate: function (margin) {
             var self = this;
@@ -1127,7 +1135,6 @@ define([
                 draw(self.modelJson);
             }
             self.broker.trigger("map:loading:done");
-            this.spinnerView.stop();
 
             return this;
         },
