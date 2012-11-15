@@ -30,7 +30,7 @@ define([
             'map:loading:context_selected_map': 'clear',
             'map:node:fixed': 'updateNodeFixedStatus',
             'map:fixNodes': 'updateAllNodePositions',
-            'map:topology_change': 'updateMap',
+            'map:topology_change': 'setTopologyInGraph',
             'headerFooterMinimize:trigger': 'resize'
         },
         initialize: function () {
@@ -155,7 +155,7 @@ define([
             this.model.bind("destroy", this.close, this);
             this.render();
         },
-        updateMap: function (layer) {
+        setTopologyInGraph: function (layer) {
             this.model.set({topology: layer});
             this.model.fetch({
                 success: function () {
