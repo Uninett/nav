@@ -2,6 +2,7 @@
 
 {% block vlandetails %}
 
+    {% comment %} Print vlan information {% endcomment %}
     <table class="listtable">
         <caption>Vlan {{ vlan }}</caption>
 
@@ -27,12 +28,40 @@
 
     </table>
 
+
+    {% comment %} Print gwportprefixes {% endcomment %}
+    <table class="listtable">
+        <caption>Interfaces</caption>
+
+        <thead>
+            <tr>
+                <th>Netbox</th>
+                <th>Address</th>
+                <th>Interface</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for gwportprefix in gwportprefixes %}
+                <tr>
+                    <td>{{ gwportprefix.interface.netbox.sysname }}</td>
+                    <td>{{ gwportprefix.gw_ip }}</td>
+                    <td>{{ gwportprefix.interface.ifname }}</td>
+                </tr>
+
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+    {% comment %} Graph with stacked ip-address count from all ipv4 prefixes {% endcomment %}
     {% if vlan.graph %}
         <img class="'vlan" src="{{ vlan.graph.get_url }}">
     {% endif %}
 
     <h3>Prefixes</h3>
 
+    {% comment %} Graph for each prefix containing ip-addresses, mac-addresses and size of range {% endcomment %}
     {% for prefix in prefixes %}
         <img class="prefix" src="{{ prefix.graph.get_url }}" alt="{{ prefix.net_address }}">
     {% endfor %}

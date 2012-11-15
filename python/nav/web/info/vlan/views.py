@@ -18,7 +18,7 @@
 import logging
 from IPy import IP
 from os.path import exists
-from operator import methodcaller
+from operator import methodcaller, attrgetter
 
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
@@ -72,12 +72,15 @@ def vlan_details(request, vlanid):
             if is_ipv4(prefix):
                 ipv4_prefixes.append(prefix)
 
+    gwportprefixes = []
     if prefixes:
         vlan.graph = create_vlan_graph(vlan, ipv4_prefixes)
+        gwportprefixes = find_gwportprefixes(vlan)
 
     return render_to_response('info/vlan/vlandetails.html',
                               {'vlan': vlan,
-                               'prefixes': prefixes},
+                               'prefixes': prefixes,
+                               'gwportprefixes': gwportprefixes},
                               context_instance=RequestContext(request))
 
 
@@ -134,6 +137,15 @@ def create_vlan_graph(vlan, prefixes):
     LOGGER.debug("%r" % graph)
 
     return graph
+
+
+def find_gwportprefixes(vlan):
+    """Find routers that defines this vlan"""
+    gwportprefixes = []
+    for prefix in vlan.prefix_set.all():
+        gwportprefixes.extend(prefix.gwportprefix_set.filter(
+            interface__netbox__category__id__in=['GSW', 'GW']))
+    return sorted(gwportprefixes, key=attrgetter('gw_ip'))
 
 
 def rpn_sum(vnames):
