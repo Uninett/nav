@@ -32,6 +32,7 @@ define([
             'map:fixNodes': 'updateAllNodePositions',
             'netmap:mapProperty:layer': 'setMapPropertyLayer',
             'netmap:changeCategoriesFilters': 'setMapPropertyCategories',
+            'netmap:changeCategoriesFilters': 'setMapPropertyOrphanFilter',
             'headerFooterMinimize:trigger': 'resize'
         },
         initialize: function () {
@@ -187,6 +188,9 @@ define([
         },
         setMapPropertyCategories: function (categoriesCollection) {
             this.mapProperties.set({categories: categoriesCollection});
+        },
+        setMapPropertyOrphanFilter: function (is_filtering_orphans) {
+            this.mapProperties.set({display_orphans: !is_filtering_orphans});
         },
         resizeAnimate: function (margin) {
             var self = this;

@@ -171,7 +171,7 @@ define([
             this.$el.find("#set_as_user_favorite").attr('disabled', 'disabled');
             this.$el.find("#save_view").attr('disabled', 'disabled');
             this.$el.find("#dropdown_view_id").attr('disabled', 'disabled');
-            self.broker.trigger('map:loading:context_selected_map');
+            //self.broker.trigger('map:loading:context_selected_map');
         },
         loadMapFromContextId: function (map_id) {
             var self = this;

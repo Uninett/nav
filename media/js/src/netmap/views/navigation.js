@@ -5,13 +5,14 @@ define([
     'netmap/views/modal/traffic_gradient',
     'netmap/views/layer_toggler',
     'netmap/views/categories_toggler',
+    'netmap/views/orphans_toggler',
     'netmap/views/algorithm_toggler',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, CategoryView, AlgorithmView) {
+], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, CategoryView, OrphanView, AlgorithmView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
@@ -22,7 +23,6 @@ define([
         },
         events: {
             'click #toggle_view':      'toggleView',
-            'click input[name="filter_orphans"]': 'onFilterOrphansClick',
             'click input[name="group_position[]"]': 'onGroupByPositionClick',
             'click input[name="mouseOver[]"]': 'onUIMouseOverClick',
             'click input[name="topologyErrors"]': 'onUITopologyErrorsClick',
@@ -32,6 +32,8 @@ define([
         initialize: function () {
             this.gradientView = null;
             this.categoriesView = null;
+            this.orphansView = null;
+
             this.isContentVisible = true;
             this.broker.register(this);
 
@@ -85,7 +87,6 @@ define([
                         'room':     false,
                         'location': false
                     },
-                    'filter_orphans': false
                 },
                 'ui': {
                     'mouseover': {
@@ -154,6 +155,13 @@ define([
                 this.categoriesView = new CategoryView({el: $('#categories_view', this.$el)}).render();
             }
 
+            if (this.orphansView) {
+                this.orphansView.setElement($('#orphan_view', this.$el));
+                this.orphansView.render();
+            } else {
+                this.orphansView = new OrphanView({el: $('#orphan_view', this.$el)});
+            }
+
             new AlgorithmView({el: $('#algorithm_view', this.$el)}).render();
             console.log("navigation render()");
             return this;
@@ -194,11 +202,6 @@ define([
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
             this.broker.trigger('map:resize:animate', {marginLeft: margin});
-        },
-        onFilterOrphansClick: function (e) {
-            this.broker.trigger('map:redraw', {
-                filter_orphans: $(e.currentTarget).prop('checked')
-            });
         },
         onGroupByPositionClick: function (e) {
             e.stopPropagation();
