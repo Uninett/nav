@@ -2,12 +2,39 @@
 
 {% block vlandetails %}
 
-    <h3>Vlan {{ vlan }}</h3>
+    <table class="listtable">
+        <caption>Vlan {{ vlan }}</caption>
 
-    <img src="{{ vlan.graph.get_url }}">
+        <thead>
+            <tr>
+                <th>Vlan</th>
+                <th>Type</th>
+                <th>Organization</th>
+                <th>Net Ident</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td>{{ vlan.vlan|default_if_none:"N/A" }}</td>
+                <td>{{ vlan.net_type|default_if_none:"" }}</td>
+                <td>{{ vlan.organization|default_if_none:"" }}</td>
+                <td>{{ vlan.net_ident|default_if_none:"" }}</td>
+                <td>{{ vlan.description|default_if_none:"" }}</td>
+            </tr>
+        </tbody>
+
+    </table>
+
+    {% if vlan.graph %}
+        <img class="'vlan" src="{{ vlan.graph.get_url }}">
+    {% endif %}
+
+    <h3>Prefixes</h3>
 
     {% for prefix in prefixes %}
-        <img src="{{ prefix.graph.get_url }}">
+        <img class="prefix" src="{{ prefix.graph.get_url }}" alt="{{ prefix.net_address }}">
     {% endfor %}
 
 

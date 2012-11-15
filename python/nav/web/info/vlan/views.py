@@ -72,7 +72,8 @@ def vlan_details(request, vlanid):
             if is_ipv4(prefix):
                 ipv4_prefixes.append(prefix)
 
-    vlan.graph = create_vlan_graph(vlan, ipv4_prefixes)
+    if prefixes:
+        vlan.graph = create_vlan_graph(vlan, ipv4_prefixes)
 
     return render_to_response('info/vlan/vlandetails.html',
                               {'vlan': vlan,
@@ -93,9 +94,13 @@ def create_prefix_graph(prefix, rrdfile):
         if datasource.name == 'mac_count':
             vname = graph.add_datasource(datasource, 'LINE2', 'MAC-addresses')
             add_graph_text(graph, vname)
-        if is_add_max(datasource, prefix):
-            vname = graph.add_datasource(datasource, 'LINE2', 'Max addresses')
-            add_graph_text(graph, vname)
+        if datasource.name == 'ip_range':
+            if add_max(prefix):
+                vname = graph.add_datasource(datasource, 'LINE2',
+                                             'Max addresses')
+                add_graph_text(graph, vname)
+            else:
+                graph.add_argument("COMMENT:   ")
 
     return graph
 
@@ -135,10 +140,9 @@ def rpn_sum(vnames):
         return ",".join([first] + [",".join((x, '+')) for x in vnames])
 
 
-def is_add_max(datasource, prefix):
+def add_max(prefix):
     """Check if we should create max-values for this datasource"""
-    return datasource.name == 'ip_range' and is_ipv4(prefix) and not is_scope(
-        prefix)
+    return is_ipv4(prefix) and not is_scope(prefix)
 
 
 def is_scope(prefix):
