@@ -156,8 +156,7 @@ define([
             this.render();
         },
         updateMap: function (layer) {
-            var self = this;
-            this.model = new GraphModel({id: this.mapProperties.id, topology: layer });
+            this.model.set({topology: layer});
             this.model.fetch({
                 success: function () {
                     self.clear();
