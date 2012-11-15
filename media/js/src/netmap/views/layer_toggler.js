@@ -28,7 +28,6 @@ define([
         },
 
         render: function () {
-            console.log(this.model.toJSON());
             this.$el.html(
                 this.template({model: this.model.toJSON()})
             );
@@ -47,6 +46,7 @@ define([
             var active_layer = "layer{0}_active".format(this.model.get('layer'));
             // Update template state
             this.model.set(active_layer, true);
+            this.broker.trigger("netmap:mapProperty:layer", this.model.get('layer'));
             this.render();
         },
 
