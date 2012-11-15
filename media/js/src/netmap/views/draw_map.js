@@ -73,9 +73,11 @@ define([
             if (this.options.viewid) {
 
                 if (this.options.mapProperties) {
-                    this.model = new GraphModel({topology: this.options.mapProperties.topology })
+                    this.model = new GraphModel({topology: this.options.mapProperties.topology });
+                    self.loadGraph();
                 } else {
                     this.model = new GraphModel({topology: 2});
+                    self.loadGraph();
                 }
             } else if (this.options.loadDefault) {
                 // this.options.loadDefault contains userid to load default for!
@@ -83,6 +85,7 @@ define([
                 defaultMap.fetch({
                     success: function (model, attributes) {
                         self.model = new GraphModel({viewid: attributes.viewid, topology: self.options.mapProperties.topology});
+                        self.loadGraph();
                     },
                     error: function () {
                         // User's default map not found, try global
@@ -90,18 +93,32 @@ define([
                         self.defaultMap.fetch({
                             success: function (model, attributes) {
                                 self.model = new GraphModel({viewid: attributes.viewid, topology: self.options.mapProperties.topology});
+                                self.loadGraph();
                             },
                             error: function () {
                                 // global not found, just do a graph
                                 self.model = new GraphModel({topology: 2});
+                                self.loadGraph();
                             }
                         });
                     }
                 });
             }
-
+        },
+        loadGraph: function () {
+            var self = this;
+            this.model.fetch({
+               success: function (model, attributes) {
+                   self.model = model;
+                   self.postInitialize();
+               },
+               error: function () {
+                    alert("Error loading graph, please try to reload the page");
+               }
+            });
+        },
+        postInitialize: function () {
             this.clear();
-
 
             if (!this.mapProperties.isNew() && this.mapProperties.attributes.zoom !== undefined) {
                 var tmp = this.mapProperties.attributes.zoom.split(";");
@@ -136,7 +153,7 @@ define([
             }
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
-
+            this.render();
         },
         updateMap: function (layer) {
             var self = this;
@@ -1045,69 +1062,71 @@ define([
 
             var selected_categories = self.mapProperties.attributes.categories;
 
-            self.modelJson = this.model.toJSON();
+            if (this.model) {
+                self.modelJson = this.model.toJSON();
 
-            // map links to node objects in modelJson!
-            // (identifiers in links are node sysnames!)
-            for (var i = 0; i < self.modelJson.links.length; i++) {
-                var link = self.modelJson.links[i];
-                for (var j = 0; j < self.modelJson.nodes.length; j++) {
-                    var node = self.modelJson.nodes[j];
-                    if (node.data.sysname === link.target) {
-                        link.target = node;
-                    }
-                    if (node.data.sysname === link.source) {
-                        link.source = node;
+                // map links to node objects in modelJson!
+                // (identifiers in links are node sysnames!)
+                for (var i = 0; i < self.modelJson.links.length; i++) {
+                    var link = self.modelJson.links[i];
+                    for (var j = 0; j < self.modelJson.nodes.length; j++) {
+                        var node = self.modelJson.nodes[j];
+                        if (node.data.sysname === link.target) {
+                            link.target = node;
+                        }
+                        if (node.data.sysname === link.source) {
+                            link.source = node;
+                        }
                     }
                 }
-            }
 
 
-            // Category filter, finds nodes to keep, filters em out and
-            // remaps links
-            var keepNodes = filterNodes(self.modelJson, selected_categories);
-            self.modelJson.nodes = intersectionObjects(
-                self.modelJson.nodes,
-                keepNodes,
-                function (a, b) {
-                    return a.data.sysname === b.data.sysname;
+                // Category filter, finds nodes to keep, filters em out and
+                // remaps links
+                var keepNodes = filterNodes(self.modelJson, selected_categories);
+                self.modelJson.nodes = intersectionObjects(
+                    self.modelJson.nodes,
+                    keepNodes,
+                    function (a, b) {
+                        return a.data.sysname === b.data.sysname;
+                    });
+                self.modelJson.links = categoryLinksFilter(self.modelJson, keepNodes, selected_categories);
+
+                var linkedByIndex = {};
+                self.modelJson.links.forEach(function (d) {
+                    linkedByIndex[d.source.data.sysname + "," + d.target.data.sysname] = 1;
                 });
-            self.modelJson.links = categoryLinksFilter(self.modelJson, keepNodes, selected_categories);
 
-            var linkedByIndex = {};
-            self.modelJson.links.forEach(function (d) {
-                linkedByIndex[d.source.data.sysname + "," + d.target.data.sysname] = 1;
-            });
+                function isConnected(a, b) {
+                    return linkedByIndex[a.data.sysname + "," + b.data.sysname] || linkedByIndex[b.data.sysname + "," + a.data.sysname] || a.data.sysname == b.data.sysname;
+                }
 
-            function isConnected(a, b) {
-                return linkedByIndex[a.data.sysname + "," + b.data.sysname] || linkedByIndex[b.data.sysname + "," + a.data.sysname] || a.data.sysname == b.data.sysname;
-            }
+                if (self.filter_orphans) {
+                    for (var i = 0; i < self.modelJson.nodes.length; i++) {
+                        var node = self.modelJson.nodes[i];
 
-            if (self.filter_orphans) {
-                for (var i = 0; i < self.modelJson.nodes.length; i++) {
-                    var node = self.modelJson.nodes[i];
+                        var hasNeighbors = false;
+                        for (var j = 0; j < self.modelJson.links.length; j++) {
+                            var link = self.modelJson.links[j];
+                            if (link.source === node || link.target === node) {
+                                hasNeighbors = true;
+                                break;
+                            }
+                        }
 
-                    var hasNeighbors = false;
-                    for (var j = 0; j < self.modelJson.links.length; j++) {
-                        var link = self.modelJson.links[j];
-                        if (link.source === node || link.target === node) {
-                            hasNeighbors = true;
-                            break;
+                        if (!hasNeighbors) {
+                            self.modelJson.nodes.splice(i, 1);
+                            i--;
                         }
                     }
 
-                    if (!hasNeighbors) {
-                        self.modelJson.nodes.splice(i, 1);
-                        i--;
-                    }
                 }
 
+
+
+                self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
+                draw(self.modelJson);
             }
-
-
-
-            self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
-            draw(self.modelJson);
             self.broker.trigger("map:loading:done");
             this.spinnerView.stop();
 
