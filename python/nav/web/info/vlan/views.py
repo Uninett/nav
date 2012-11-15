@@ -100,6 +100,8 @@ def create_prefix_graph(prefix, rrdfile):
                                              'Max addresses')
                 add_graph_text(graph, vname)
             else:
+                # Add an empty comment so that the graphs with and without
+                # max are equal in size
                 graph.add_argument("COMMENT:   ")
 
     return graph
@@ -112,18 +114,21 @@ def create_vlan_graph(vlan, prefixes):
     graph = Graph(title='Vlan %s' % vlan, opts=options)
 
     stack = False
-    vnames = []
+    ipranges = []
     for prefix in prefixes:
         rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
         ipcount = rrdfile.rrddatasource_set.get(name='ip_count')
-        graph.add_datasource(ipcount, 'AREA', prefix.net_address, stack)
+
+        vname = graph.add_datasource(ipcount, 'AREA',
+                                     prefix.net_address.ljust(18), stack)
+        add_graph_text(graph, vname)
 
         iprange = rrdfile.rrddatasource_set.get(name='ip_range')
-        vnames.append(graph.add_def(iprange))
+        ipranges.append(graph.add_def(iprange))
 
         stack = True  # Stack all ip_counts after the first
 
-    graph.add_cdef('iprange', rpn_sum(vnames))
+    graph.add_cdef('iprange', rpn_sum(ipranges))
     graph.add_graph_element('iprange', draw_as='LINE2')
 
     LOGGER.debug("%r" % graph)
