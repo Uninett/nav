@@ -1,0 +1,16 @@
+{% extends 'info/vlan/base.html' %}
+
+{% block vlandetails %}
+
+    <h3>Vlan {{ vlan }}</h3>
+
+    <img src="{{ vlan.graph.get_url }}">
+
+    {% for prefix in prefixes %}
+        <img src="{{ prefix.graph.get_url }}">
+    {% endfor %}
+
+
+{% endblock %}
+
+

@@ -660,6 +660,11 @@ class Prefix(models.Model):
         ip = IPy.IP(self.net_address)
         return ip.prefixlen()
 
+    def get_prefix_size(self):
+        ip = IPy.IP(self.net_address)
+        return ip.len()
+
+
 class Vlan(models.Model):
     """From NAV Wiki: The vlan table defines the IP broadcast domain / vlan. A
     broadcast domain often has a vlan value, it may consist of many IP

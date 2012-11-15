@@ -257,7 +257,6 @@ class Presentation(object):
             valid.append(ret)
         return valid
 
-
     def remove_all_datasources(self):
         """Removes all datasources from the presentation object"""
         self.datasources = set()
@@ -320,12 +319,15 @@ class Graph(object):
         self.opts = dict(default_opts.items() + opts.items())
         self.args = args
 
+    def __repr__(self):
+        return str(self.args)
+
     def add_datasource(self, datasource, draw_as='LINE1', legend=None,
                        stack=False):
         """Add a datasource to display in graph"""
-        self._add_def(datasource)
-        self._add_graph_element(datasource, draw_as, legend, stack)
-
+        vname = self.add_def(datasource)
+        self.add_graph_element(vname, draw_as, legend, stack)
+        return vname
 
     def add_argument(self, argument):
         """Add a argument to the graph"""
@@ -335,15 +337,37 @@ class Graph(object):
         """Add an option to the graph"""
         self.opts = dict(self.opts.items() + option.items())
 
-    def _add_def(self, datasource):
+    def add_def(self, datasource):
+        """Add a variable used for fetching data from a rrd-file
+
+        The vname cannot be an integer as it may be used in a CDEF. Thus
+        we prepend the string 'id' to the datasource id.
+
+        To actually show something in the graph you need to use this def in a
+        graph element.
+
+        """
+        vname = 'id' + str(datasource.id)
         defs = ['DEF',
-                "%s=%s" % (datasource.id, datasource.rrd_file.get_file_path()),
+                "%s=%s" % (vname, datasource.rrd_file.get_file_path()),
                 datasource.name,
                 "AVERAGE"]
         self.args.append(":".join(defs))
+        return vname
 
-    def _add_graph_element(self, datasource, draw_as, legend, stack):
-        draw = [draw_as, "%s%s" % (datasource.id, self._get_color())]
+    def add_cdef(self, cdefname, rpn):
+        """Add a CDEF to the graph
+
+        http://oss.oetiker.ch/rrdtool/tut/cdeftutorial.en.html
+
+        """
+        cdef = ['CDEF', "%s=%s" % (cdefname, rpn)]
+        self.args.append(":".join(cdef))
+
+    def add_graph_element(self, vname, draw_as="LINE1", legend="",
+                          stack=False):
+        """Add an element on the graph. """
+        draw = [draw_as, "%s%s" % (vname, self._get_color())]
         if legend:
             draw.append(legend)
         if stack:
@@ -391,6 +415,7 @@ class Graph(object):
                     os.unlink(i)
                 except OSError, error:
                     _LOGGER.error(error)
+
 
 def time_last(to_time, time_frame='day', value=1):
     """Return from_time based on time_frame and to_time

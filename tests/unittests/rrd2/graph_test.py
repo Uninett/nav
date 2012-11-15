@@ -1,18 +1,19 @@
 
 import unittest
 import re
-from mock import Mock
+from mock import Mock, patch
 from nav.rrd2.presenter import Graph, time_last
 
 class TestGraph(unittest.TestCase):
 
     def setUp(self):
-        self.graph = Graph()
-        self.datasource = Mock()
-        self.datasource.id = 1
-        self.datasource.rrd_file.get_file_path = Mock(
-            return_value='/usr/local/nav/rrd/activeip/blapp.rrd')
-        self.datasource.name = 'activeip'
+        with patch('nav.config.readConfig'):
+            self.graph = Graph()
+            self.datasource = Mock()
+            self.datasource.id = 1
+            self.datasource.rrd_file.get_file_path = Mock(
+                return_value='/usr/local/nav/rrd/activeip/blapp.rrd')
+            self.datasource.name = 'activeip'
 
     def test_init(self):
         self.assertEqual(self.graph.args, [])
@@ -49,5 +50,5 @@ class TestGraph(unittest.TestCase):
     def test_add_datasource(self):
         self.graph.add_datasource(self.datasource)
         self.assertEqual(self.graph.args, [
-            'DEF:1=/usr/local/nav/rrd/activeip/blapp.rrd:activeip:AVERAGE',
-            'LINE1:1#00cc00'])
+            'DEF:id1=/usr/local/nav/rrd/activeip/blapp.rrd:activeip:AVERAGE',
+            'LINE1:id1#00cc00'])

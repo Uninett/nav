@@ -17,8 +17,10 @@
 
 
 from django.conf.urls.defaults import url, patterns
-from nav.web.info.vlan.views import index
+from nav.web.info.vlan.views import index, vlan_details
 
-urlpatterns = patterns('',
-                       url(r'^$', index, name='vlan-index'),
-                       )
+urlpatterns = patterns(
+    '',
+    url(r'^$', index, name='vlan-index'),
+    url(r'^(?P<vlanid>\d+)/$', vlan_details, name='vlan-details'),
+)
