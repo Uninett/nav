@@ -20,5 +20,10 @@ DocumentRoot @webrootdir@
     PythonHeaderParserHandler nav.web
     PythonCleanupHandler nav.web
 </Location>
+<Location /favicon.ico>
+    SetHandler none
+    PythonHeaderParserHandler nav.web.noauth
+</Location>
+Alias /favicon.ico @webrootdir@/images/main/favicon.ico
 
 Include @sysconfdir@/apache/subsystems/*.conf
