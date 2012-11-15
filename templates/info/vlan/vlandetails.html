@@ -2,46 +2,55 @@
 
 {% block vlandetails %}
 
-    {% comment %} Print vlan information {% endcomment %}
-    <table class="listtable">
-        <caption>Vlan {{ vlan }}</caption>
+    <div id="tablecontainer">
+        {% comment %} Print vlan information {% endcomment %}
+        <table id="vlaninfo" class="vertitable">
+            <caption>Vlan {{ vlan }}</caption>
 
-        <thead>
+            <tbody>
             <tr>
                 <th>Vlan</th>
-                <th>Type</th>
-                <th>Organization</th>
-                <th>Net Ident</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            <tr>
                 <td>{{ vlan.vlan|default_if_none:"N/A" }}</td>
+            </tr>
+            <tr>
+                <th>Type</th>
                 <td>{{ vlan.net_type|default_if_none:"" }}</td>
+            </tr>
+
+
+            <tr>
+                <th>Organization</th>
                 <td>{{ vlan.organization|default_if_none:"" }}</td>
+            </tr>
+
+
+            <tr>
+                <th>Net Ident</th>
                 <td>{{ vlan.net_ident|default_if_none:"" }}</td>
+            </tr>
+
+            <tr>
+                <th>Description</th>
                 <td>{{ vlan.description|default_if_none:"" }}</td>
             </tr>
-        </tbody>
+            </tbody>
 
-    </table>
+        </table>
 
 
-    {% comment %} Print gwportprefixes {% endcomment %}
-    <table class="listtable">
-        <caption>Interfaces</caption>
+        {% comment %} Print gwportprefixes {% endcomment %}
+        <table id="gwportprefixinfo" class="listtable">
+            <caption>Interfaces</caption>
 
-        <thead>
+            <thead>
             <tr>
                 <th>Netbox</th>
                 <th>Address</th>
                 <th>Interface</th>
             </tr>
-        </thead>
+            </thead>
 
-        <tbody>
+            <tbody>
             {% for gwportprefix in gwportprefixes %}
                 <tr>
                     <td>{{ gwportprefix.interface.netbox.sysname }}</td>
@@ -50,20 +59,45 @@
                 </tr>
 
             {% endfor %}
-        </tbody>
+            </tbody>
 
-    </table>
+        </table>
+
+
+        {% comment %} Print prefixes {% endcomment %}
+        <table id="prefixinfo" class="listtable">
+            <caption>Prefixes</caption>
+
+            <thead>
+            <tr>
+                <th>Net address</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for prefix in prefixes %}
+                <tr>
+                    <td>{{ prefix.net_address }}</td>
+                </tr>
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
 
     {% comment %} Graph with stacked ip-address count from all ipv4 prefixes {% endcomment %}
+
+    <h2>Vlan graph</h2>
     {% if vlan.graph %}
-        <img class="'vlan" src="{{ vlan.graph.get_url }}">
+        <img class="vlan" src="{{ vlan.graph.get_url }}" alt="Total ipv4-addresses on vlan" title="Total active ipv4-addresses on this vlan. This is the stacked values from each prefix.">
     {% endif %}
 
-    <h3>Prefixes</h3>
-
+    <h2>Prefix graphs</h2>
     {% comment %} Graph for each prefix containing ip-addresses, mac-addresses and size of range {% endcomment %}
     {% for prefix in prefixes %}
-        <img class="prefix" src="{{ prefix.graph.get_url }}" alt="{{ prefix.net_address }}">
+        <img class="prefix" src="{{ prefix.graph.get_url }}" alt="{{ prefix.net_address }}" title="Number of active ip- and mac-addresses on this prefix">
     {% endfor %}
 
 
