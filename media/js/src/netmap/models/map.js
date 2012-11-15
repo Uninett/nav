@@ -1,6 +1,7 @@
 define([
+    'netmap/collections/categories',
     'libs/backbone'
-], function () {
+], function (CategoryCollection) {
     var netmapModel = Backbone.Model.extend({
         idAttribute: "viewid",
         defaults: {
@@ -10,7 +11,16 @@ define([
             is_public: true,
             // see nav.models.profiles TOPOLOGY_TYPES , 1 == layer 2 topology
             topology: 1,
-            categories: ['GSW', 'GW', 'SW', 'EDGE', 'OTHER', 'WLAN', 'SRV'],
+            categories: new CategoryCollection([
+                {name: "GSW"},
+                {name: "GW"},
+                {name: "SW"},
+                {name: "OTHER"},
+                {name: "WLAN"},
+                {name: "SRV"},
+                {name: "EDGE"},
+                {name: "ELINK", 'is_selected': false}
+            ]),
             zoom: "0,0;0.5",
             display_orphans: false
         },

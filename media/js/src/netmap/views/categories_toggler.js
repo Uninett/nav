@@ -30,6 +30,7 @@ define([
                 ]);
             }
 
+            this.collection.bind("change", this.broadcastcategoriesFilters, this)
             //this.model.bind("change:layer", this.updateSelection, this);
             //this.model.bind("change", this.render, this);
 
@@ -43,7 +44,9 @@ define([
 
             return this;
         },
-
+        broadcastcategoriesFilters: function () {
+            this.broker.trigger("netmap:changeCategoriesFilters", this.collection);
+        },
         updateFilters: function (e) {
             // jQuery<=1.6
             var categoryToUpdate = null;

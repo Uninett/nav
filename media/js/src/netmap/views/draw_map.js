@@ -31,6 +31,7 @@ define([
             'map:node:fixed': 'updateNodeFixedStatus',
             'map:fixNodes': 'updateAllNodePositions',
             'netmap:mapProperty:layer': 'setMapPropertyLayer',
+            'netmap:changeCategoriesFilters': 'setMapPropertyCategories',
             'headerFooterMinimize:trigger': 'resize'
         },
         initialize: function () {
@@ -165,6 +166,8 @@ define([
             }
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
+            this.mapProperties.bind("change", this.render, this);
+
             this.render();
             this.showLoadingSpinner(false);
         },
@@ -181,6 +184,9 @@ define([
                     self.showLoadingSpinner(false);
                 }
             });
+        },
+        setMapPropertyCategories: function (categoriesCollection) {
+            this.mapProperties.set({categories: categoriesCollection});
         },
         resizeAnimate: function (margin) {
             var self = this;
@@ -965,16 +971,8 @@ define([
                             node.y = node.data.position.y;
                             node.fixed = true;
                         }
-                        isNodeMatchingFilter = false;
-                        for (var k = 0; k < selected_categories.length; k++) {
-                            var selected_category = selected_categories[k];
-                            if (selected_category.toLowerCase() === node.data.category.toLowerCase()) {
-                                isNodeMatchingFilter = true;
-                                break;
-                                // remove? need to reorder index crap..
-                            }
-                        }
-                        if (isNodeMatchingFilter) {
+                        var selected_category = selected_categories.get(node.data.category.toUpperCase());
+                        if (selected_category && selected_category.get('is_selected')) {
                             result.push(node);
                         } else if (!node.fixed) {
                             // reset it's coordinates if position is not fixed
@@ -1022,16 +1020,16 @@ define([
                         source = link.source;
                         target = link.target;
 
-
-                        for (var z = 0; z < selected_categories.length; z++) {
-                            var selected_category = selected_categories[z].toLowerCase();
-                            if (source.data.category.toLowerCase() === selected_category) {
+                        _.each(selected_categories.models, function (model) {
+                            if (source.data.category.toUpperCase() === model.get('name').toUpperCase() &&
+                                model.get('is_selected')) {
                                 sourceMatch = true;
                             }
-                            if (target.data.category.toLowerCase() === selected_category) {
+                            if (target.data.category.toUpperCase() === model.get('name').toUpperCase() &&
+                                model.get('is_selected')) {
                                 targetMatch = true;
                             }
-                        }
+                        });
                         return sourceMatch && targetMatch;
 
                     }
@@ -1045,7 +1043,6 @@ define([
                             target = link.target;
 
                             if (target === node) {
-
                                 if (isMatchingCriteria(link)) {
                                     result.push(link);
                                 }
@@ -1067,7 +1064,7 @@ define([
                 self.force.stop();
             }
 
-            var selected_categories = self.mapProperties.attributes.categories;
+            var selected_categories = self.mapProperties.get('categories');
 
             if (this.model) {
                 self.modelJson = this.model.toJSON();
