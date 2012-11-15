@@ -4,14 +4,7 @@
 
     <div id="layer_view"></div>
 
-    <h3>Categories</h3>
-
-    {{#eachkeys model.categories}}
-        <div class="squaredTwo">
-            <input type="checkbox" name="categories[]" value="{{this.key}}" id="category_{{this.key}}" {{#if this.value}} checked{{/if}}  {{#if ../isLoading}}disabled='disabled'{{/if}} />
-            <label for="category_{{this.key}}">{{this.key}}</label>
-        </div>
-    {{/eachkeys}}
+    <div id="categories_view"></div>
 
     <h3>Filter options</h3>
 

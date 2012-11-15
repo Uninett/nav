@@ -1,0 +1,8 @@
+<h3>Categories</h3>
+
+{{#each collection}}
+    <div>
+        <input type="checkbox" name="categories[]" value="{{this.name}}" id="category_{{this.name}}" {{#if this.is_selected}} checked{{/if}} />
+        <label for="category_{{this.name}}">{{this.name}}</label>
+    </div>
+{{/each}}

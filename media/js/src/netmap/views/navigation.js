@@ -4,13 +4,14 @@ define([
     'netmap/collections/traffic_gradient',
     'netmap/views/modal/traffic_gradient',
     'netmap/views/layer_toggler',
+    'netmap/views/categories_toggler',
     'netmap/views/algorithm_toggler',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, AlgorithmView) {
+], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, CategoryView, AlgorithmView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
@@ -21,7 +22,6 @@ define([
         },
         events: {
             'click #toggle_view':      'toggleView',
-            'click input[name="categories[]"]': 'onCheckboxLayerClick',
             'click input[name="filter_orphans"]': 'onFilterOrphansClick',
             'click input[name="group_position[]"]': 'onGroupByPositionClick',
             'click input[name="mouseOver[]"]': 'onUIMouseOverClick',
@@ -31,6 +31,7 @@ define([
         },
         initialize: function () {
             this.gradientView = null;
+            this.categoriesView = null;
             this.isContentVisible = true;
             this.broker.register(this);
 
@@ -78,17 +79,7 @@ define([
                 },
                 // eew, should get available categories from app context somehow
                 // ie, load categories list on app start..
-                'categories': {
-                    'GSW':   false,
-                    'GW':    false,
-                    'SW':    false,
-                    'OTHER': false,
-                    'WLAN':  false,
-                    'SRV':   false,
-                    'EDGE':  false,
-                    'ELINK': false
-                },
-                'specific_filters': {
+               'specific_filters': {
                     'position': {
                         'none':     false,
                         'room':     false,
@@ -143,7 +134,6 @@ define([
 
             if (this.layer_toggler) {
                 this.layer_toggler.close();
-                console.log("close()");
             }
 
             if (this.layer_toggler) {
@@ -151,6 +141,17 @@ define([
                 this.layer_toggler.render();
             } else {
                 this.layer_toggler = new LayerView({el: $('#layer_view', this.$el)}).render();
+            }
+
+            if (this.categoriesView) {
+                this.categoriesView.close();
+            }
+
+            if (this.categoriesView) {
+                this.categoriesView.setElement($('#categories_view', this.$el));
+                this.categoriesView.render();
+            } else {
+                this.categoriesView = new CategoryView({el: $('#categories_view', this.$el)}).render();
             }
 
             new AlgorithmView({el: $('#algorithm_view', this.$el)}).render();
@@ -193,24 +194,6 @@ define([
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
             this.broker.trigger('map:resize:animate', {marginLeft: margin});
-        },
-        onCheckboxLayerClick: function (e) {
-            // jQuery<=1.6
-            var categories = this.model.get('categories');
-            if (!$(e.currentTarget).prop('checked')) {
-                for (var i = 0; i < categories.length; i++) {
-                    var category = categories[i];
-                    if (category.toLowerCase() === $(e.currentTarget).val().toLowerCase()) {
-                        categories.splice(i, 1);
-                        break;
-                    }
-                }
-            } else {
-                categories.push($(e.currentTarget).val());
-            }
-            this.model.set({ categories: categories});
-
-            this.broker.trigger('map:redraw');
         },
         onFilterOrphansClick: function (e) {
             this.broker.trigger('map:redraw', {
