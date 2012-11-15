@@ -186,7 +186,7 @@ body>#netmap_left_sidebar {width:128px;}
 body>#netmap_infopanel {width:168px;}
 
 
-#loading_chart {
+#loading_chart, #chart {
     min-height: 300px;
     min-width: 300px;
 }
