@@ -43,7 +43,7 @@
                                         {% if header == searchprovider.link %}
                                             <a href="{{ result.href }}">
                                         {% endif  %}
-                                        {{ getter|run:result.inst }}
+                                        {{ result.inst|get_attr:getter }}
                                         {% if header == searchprovider.link %}
                                             </a>
                                         {% endif  %}

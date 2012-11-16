@@ -18,173 +18,93 @@
 
 
 from IPy import IP
-try:
-    from mod_python import apache
-except ImportError:
-    apache = None
+
 from operator import itemgetter
 from time import localtime, strftime
-import copy
 import csv
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 import os
-import os.path
 import re
-import string
-import urllib
+from nav.django.utils import get_account
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
+from nav.models import manage
 from django.core.cache import cache
 
-from IPy import IP
 from nav import db
 from nav.report.IPtree import getMaxLeaf, buildTree
 from nav.report.generator import Generator, ReportList
 from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP
-from nav.web import redirect
-from nav.web import state
-from nav.web.URI import URI
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
 from nav.web.templates.ReportListTemplate import ReportListTemplate
 from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
-from nav.web.encoding import encoded_output
 import nav.path
 
 config_file_package = os.path.join(nav.path.sysconfdir, "report/report.conf")
 config_file_local = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
-def fix_report_urlpath(func):
-    """Decorates report's mod_python handler to fix strange URLs.
+def index(request):
+    page = MainTemplate()
+    request.content_type = "text/html"
+    page.path = [("Home", "/"), ("Report", False)]
+    page.title = "Report - Index"
+    page.content = lambda:file(frontFile).read()
+    return HttpResponse(page.respond())
 
-    report is very picky about URLs, and there is no URL magic helping us
-    anywhere in mod_python.  Only the following path patterns allow hyperlinks
-    within reports to function properly:
+def get_report(request, report_name):
+    """Loads and displays a specific reports with optional search arguments"""
+    query = _strip_empty_arguments(request)
+    export_delimiter = _get_export_delimiter(query)
 
-    * /report/
-    * /report/(?P<report_name>)
+    if query != request.GET:
+        # some arguments were stripped, let's clean up the URL
+        return HttpResponseRedirect(
+            "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode()))
 
-    I.e. the report front page path must always end in a slash, while any
-    report page must never end in a slash.  This works some redirect magic on
-    requests with non-conforming paths. Looking forward to replace this crazy
-    voodoo with Django's sweet URL magic!
+    return make_report(request, report_name, export_delimiter, query)
+
+def _strip_empty_arguments(request):
+    """Strips empty arguments and their related operator arguments from the
+    QueryDict in request.GET and returns a new, possibly modified QueryDict.
 
     """
-    from functools import wraps
-    import logging
-    from urlparse import urlparse, ParseResult
-    logger = logging.getLogger(__name__)
-    multislash = re.compile(r'/+')
+    query = request.GET.copy()
 
-    @wraps(func)
-    def _wrapper(req, *args, **kwargs):
-        url = urlparse(req.unparsed_uri)
-        elements = [e for e in multislash.split(url.path) if e]
-        if len(elements) > 1:
-            path = '/%s/%s' % (elements[0], elements[-1])
-        else:
-            path = '/%s/' % elements[0]
+    deletable = [key for key, value in query.iteritems() if not value.strip()]
+    for key in deletable:
+        del query[key]
+        if "op_{0}".format(key) in query:
+            del query["op_{0}".format(key)]
+        if "not_{0}".format(key) in query:
+            del query["not_{0}".format(key)]
 
-        if path != url.path:
-            url = ParseResult(url.scheme, url.netloc, path,
-                              url.params, url.query, url.fragment)
-            logger.warning("fixing broken url: %r -> %r",
-                           req.unparsed_uri, url.geturl())
-            redirect(req, url.geturl())
-        return func(req, *args, **kwargs)
+    return query
 
-    return _wrapper
+def _get_export_delimiter(query):
+    """Retrieves the CSV export delimiter from a QueryDict, but only if the
+    query indicates the CSV export submit button was pressed.
 
-@fix_report_urlpath
-@encoded_output
-def handler(req):
+    If the delimiter is invalid, the export-related arguments are stripped
+    from the query instance.
 
-    (report_name, export_delimiter, uri, nuri) = arg_parsing(req)
+    """
+    if 'exportcsv' in query and 'export' in query:
+        delimiter = query.get('export')
 
-    if report_name == "report" or report_name == "index":
-        page = MainTemplate()
-        req.content_type = "text/html"
-        req.send_http_header()
-        page.path = [("Home", "/"), ("Report", False)]
-        page.title = "Report - Index"
-        page.content = lambda:file(frontFile).read()
-        req.write(page.respond())
-
-    elif report_name == "matrix":
-        matrix_report(req)
-
-    elif report_name == "reportlist":
-        report_list(req)
-
-    else:
-        make_report(req, report_name, export_delimiter, uri, nuri)
-
-    return apache.OK
-
-
-
-def arg_parsing(req):
-
-    uri = req.unparsed_uri
-    nuri = URI(uri)
-    export_delimiter = None
-
-    # These arguments and their friends will be deleted
-    remove = []
-
-    # Finding empty values
-    for key, val in nuri.args.items():
-        if val == "":
-            remove.append(key)
-
-    if 'exportcsv' in nuri.args and 'export' in nuri.args:
-        delimiter = urllib.unquote(nuri.args['export'])
-        # Remember to match against 'page.delimiters'
-        match = re.search("(\,|\;|\:|\|)", delimiter)
+        match = re.search(r"(\,|\;|\:|\|)", delimiter)
         if match:
-            export_delimiter = match.group(0)
+            return match.group(0)
         else:
-            remove.append('export')
-            remove.append('exportcsv')
+            del query['export']
+            del query['exportcsv']
 
-    # Deleting empty values
-    for r in remove:
-        if nuri.args.has_key(r):
-            del(nuri.args[r])
-        if nuri.args.has_key("op_"+r):
-            del(nuri.args["op_"+r])
-        if nuri.args.has_key("not_"+r):
-            del(nuri.args["not_"+r])
+def matrix_report(request):
 
-    # Redirect if any arguments were removed
-    if len(remove):
-        redirect(req, nuri.make())
+    request.content_type = "text/html"
 
-    match = re.search("\/(\w+?)(?:\/$|\?|\&|$)", req.uri)
-
-    if match:
-        report_name = match.group(1)
-    else:
-        report_name = "report"
-
-    return (report_name, export_delimiter, uri, nuri)
-
-
-
-def matrix_report(req):
-
-    req.content_type = "text/html"
-    req.send_http_header()
-
-    ## Parameterdictionary
-    argsdict = {}
-    if req.args:
-        reqargsplit = urllib.unquote_plus(req.args).split("&")
-        if len(reqargsplit):
-            for a in reqargsplit:
-                (c, d) = a.split("=")
-                argsdict[c] = d
+    argsdict = request.GET or {}
 
     scope = None
     if argsdict.has_key("scope") and argsdict["scope"]:
@@ -209,8 +129,7 @@ def matrix_report(req):
             for scope in databasescopes:
                 page.scopes.append(scope[0])
 
-            req.write(page.respond())
-            return apache.OK
+            return HttpResponse(page.respond())
 
     # If a single scope has been selected, display that.
     if scope is not None:
@@ -247,18 +166,19 @@ def matrix_report(req):
 
         else:
             raise UnknownNetworkTypeException, "version: " + str(scope.version())
-        req.write(matrix.getTemplateResponse())
+        matrix_template_response = matrix.getTemplateResponse()
 
         # Invalidating the MetaIP cache to get rid of processed data.
         MetaIP.invalidateCache()
 
+        return HttpResponse(matrix_template_response)
 
 
-def report_list(req):
+
+def report_list(request):
 
     page = ReportListTemplate()
-    req.content_type = "text/html"
-    req.send_http_header()
+    request.content_type = "text/html"
 
     # Default config
     report_list = ReportList(config_file_package).getReportList()
@@ -277,26 +197,40 @@ def report_list(req):
     page.report_list = report_list
     page.report_list_local = report_list_local
 
-    req.write(page.respond())
+    return HttpResponse(page.respond())
 
 
 
-def make_report(req, report_name, export_delimiter, uri, nuri):
+def make_report(request, report_name, export_delimiter, query_dict):
 
     # Initiating variables used when caching
     report = contents = neg = operator = adv = dbresult = result_time = None
 
+    query_dict_no_meta = query_dict.copy()
     # Deleting meta variables from uri to help identifying if the report
     # asked for is in the cache or not.
-    nuri.setArguments(['offset', 'limit', 'export', 'exportcsv'], '')
-    for key, val in nuri.args.items():
-        if val == "":
-            del nuri.args[key]
+    if 'offset' in query_dict_no_meta: del query_dict_no_meta['offset']
+    if 'limit' in query_dict_no_meta: del query_dict_no_meta['limit']
+    if 'export' in query_dict_no_meta: del query_dict_no_meta['export']
+    if 'exportcsv' in query_dict_no_meta: del query_dict_no_meta['exportcsv']
 
-    uri_strip = nuri.make()
-    username = req.session['user']['login']
+    helper_remove = dict((key, query_dict_no_meta[key]) for key in query_dict_no_meta)
+    for key, val in helper_remove.items():
+        if val == "":
+            del query_dict_no_meta[key]
+
+    uri_strip = dict((key, query_dict_no_meta[key]) for key in query_dict_no_meta)
+    username = get_account(request).login
     mtime_config = os.stat(config_file_package).st_mtime + os.stat(config_file_local).st_mtime
-    cache_name = 'report_' + username + '_' + str(mtime_config)
+    cache_name = 'report_' + username + '_' + '_' + report_name + str(mtime_config)
+
+    def _fetch_data_from_db():
+        (report, contents, neg, operator, adv, config, dbresult) = gen.makeReport(report_name, config_file_package, config_file_local, query_dict, None, None)
+        if not report:
+            raise Http404
+        result_time = strftime("%H:%M:%S", localtime())
+        cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, config, dbresult, result_time))
+        return (report, contents, neg, operator, adv, result_time)
 
     gen = Generator()
     # Caching. Checks if cache exists for this user, that the cached report is
@@ -305,22 +239,25 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
         report_cache = cache.get(cache_name)
         dbresult_cache = report_cache[7]
         config_cache = report_cache[6]
-        (report, contents, neg, operator, adv) = gen.makeReport(report_name, None, None, uri, config_cache, dbresult_cache)
-        result_time = cache.get(cache_name)[8]
-        dbresult = dbresult_cache
+        if not config_cache or not dbresult_cache or not report_cache:
+            # Might happen if last report was N/A or invalid request, config
+            # then ends up being None.
+            (report, contents, neg, operator, adv, result_time) = _fetch_data_from_db()
+        else:
+            (report, contents, neg, operator, adv) = gen.makeReport(report_name, None, None, query_dict, config_cache, dbresult_cache)
+            result_time = cache.get(cache_name)[8]
+            dbresult = dbresult_cache
 
     else: # Report not in cache, fetch data from DB
-        (report, contents, neg, operator, adv, config, dbresult) = gen.makeReport(report_name, config_file_package, config_file_local, uri, None, None)
-        result_time = strftime("%H:%M:%S", localtime())
-        cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, config, dbresult, result_time))
+        (report, contents, neg, operator, adv, result_time) = _fetch_data_from_db()
 
+    if cache.get(cache_name) and not report:
+        raise RuntimeWarning("Found cache entry, but no report. Ooops, panic!")
 
     if export_delimiter:
-        generate_export(req, report, report_name, export_delimiter)
-
+        return generate_export(request, report, report_name, export_delimiter)
     else:
-        req.content_type = "text/html"
-        req.send_http_header()
+        request.content_type = "text/html"
         page = ReportTemplate()
         page.result_time = result_time
         page.report = report
@@ -342,21 +279,11 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
         page.path = [("Home", "/"), ("Report", "/report/"),
                      (namename, namelink)]
         page.title = "Report - "+namename
-        old_uri = req.unparsed_uri
-        page.old_uri = old_uri
-
-        if adv:
-            page.adv_block = True
-        else:
-            page.adv_block = False
+        page.old_uri = "{0}?{1}&".format(request.META['PATH_INFO'],
+                                         request.GET.urlencode())
+        page.adv_block = bool(adv)
 
         if report:
-            if old_uri.find("?")>0:
-                old_uri += "&"
-            else:
-                old_uri += "?"
-            page.old_uri = old_uri
-
             #### A maintainable list of variables sent to template
             # Searching
             page.operators = {"eq": "=",
@@ -383,25 +310,24 @@ def make_report(req, report_name, export_delimiter, uri, nuri):
             # CSV Export dialects/delimiters
             page.delimiters = (",", ";", ":", "|")
 
-        req.write(page.respond())
+        return HttpResponse(page.respond())
 
 
 
-def generate_export(req, report, report_name, export_delimiter):
+def generate_export(request, report, report_name, export_delimiter):
     def _cellformatter(cell):
         if isinstance(cell.text, unicode):
             return cell.text.encode('utf-8')
         else:
             return cell.text
 
-    req.content_type = "text/x-csv; charset=utf-8"
-    req.headers_out["Content-Type"] = "application/force-download"
-    req.headers_out["Content-Disposition"] = (
+    response = HttpResponse(mimetype="text/x-csv; charset=utf-8")
+    response["Content-Type"] = "application/force-download"
+    response["Content-Disposition"] = (
         "attachment; filename=report-%s-%s.csv" %
         (report_name, strftime("%Y%m%d", localtime()))
         )
-    req.send_http_header()
-    writer = csv.writer(req, delimiter=export_delimiter)
+    writer = csv.writer(response, delimiter=str(export_delimiter))
 
     # Make a list of headers
     header_row = [_cellformatter(cell) for cell in report.table.header.cells]
@@ -414,7 +340,7 @@ def generate_export(req, report, report_name, export_delimiter):
         rows.append([_cellformatter(cell) for cell in row.cells])
     writer.writerows(rows)
 
-    req.write("")
+    return response
 
 
 

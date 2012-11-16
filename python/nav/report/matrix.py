@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2003-2004 Norwegian University of Science and Technology
+# Copyright (C) 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,12 +15,15 @@
 # NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Builds the prefix matrix."""
+import logging
 
 from nav.report.IPtree import buildTree
 from nav.report.IPtree import getSubtree
 from nav.report.IPtree import removeSubnetsWithPrefixLength
 from nav.report.IPtree import extractSubtreesWithPrefixLength
 from nav.report.IPtools import getLastSubnet
+
+logger = logging.getLogger("nav.report.matrix")
 
 class Matrix:
 

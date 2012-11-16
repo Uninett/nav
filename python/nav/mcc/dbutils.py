@@ -85,11 +85,8 @@ def update_rrdfile(rrdfile, netbox, path_to_rrd, container):
     rrdfile.value = value
     rrdfile.category = category
 
-    # We don't update the datasources as the database is the source of
-    # the datasources. Somewhere in the future there will exist an
-    # option to expand the rrd-files with more datasources
-    # However, we update the threshold metainfo
-    update_datasource_metainfo(container, rrdfile)
+    update_maxspeed(container, rrdfile)
+    update_datasources(container, rrdfile)
 
     # Special case: if the number of datasources is 0, we insert
     # what we have.
@@ -142,40 +139,86 @@ def insert_datasources(container, rrdfile):
     """ Insert this datasource in the database """
     LOGGER.debug("Inserting datasources for %s" % container.filename)
     for datasource in container.datasources:
-        units = None
         speed = None
 
         # If this is an octet counter on an interface,
         # set max value
-        if is_octet_counter(datasource[1]) and container.speed > 0:
-            units = "bytes"
+        if is_octet_counter(datasource.descr) and container.speed > 0:
             speed = str(convert_megabit_to_bytes(container.speed))
 
-        datasource = RrdDataSource(rrd_file=rrdfile, name=datasource[0],
-                                   description=datasource[1],
-                                   type=datasource[2],
-                                   units=units, max=speed,
-                                   threshold_state=None,
-                                   delimiter=None)
-        datasource.save()
+        create_datasource(datasource, rrdfile, speed)
 
 
-def update_datasource_metainfo(container, rrdfile):
+def update_datasources(container, rrdfile):
+    """Update datasources based on container data
+
+    For each datasource we
+    - Update database if datasource with same name exists
+    - Insert new if datasource name does not exist
+    Finally we remove those who did not exist on the container
+    """
+    def is_equal(rrdds, datasource):
+        """Is the rrd_datasource equal to container datasource?"""
+        return rrdds.units == datasource.unit and \
+            rrdds.type == datasource.dstype and \
+            rrdds.description == datasource.descr
+
+
+    existing = []
+    for datasource in container.datasources:
+        try:
+            rrdds = rrdfile.rrddatasource_set.get(name=datasource.name)
+            if not is_equal(rrdds, datasource):
+                rrdds.units = datasource.unit
+                rrdds.type = datasource.dstype
+                rrdds.description = datasource.descr
+                rrdds.save()
+                LOGGER.debug(
+                    'Updating datasource %s for %s' % (datasource.name,
+                        container.filename))
+            existing.append(rrdds)
+        except RrdDataSource.DoesNotExist:
+            existing.append(
+                create_datasource(datasource, rrdfile, container.speed))
+
+    rrds_to_delete = rrdfile.rrddatasource_set.exclude(
+        id__in=[x.id for x in existing])
+
+    if len(rrds_to_delete) > 0:
+        LOGGER.info('Deleting %s' % (rrds_to_delete))
+        rrds_to_delete.delete()
+
+
+def create_datasource(datasource, rrdfile, speed):
+    """Create a new rrd_datasource tuple"""
+
+    LOGGER.info('Creating new datasource for %s - %s:%s' % (
+        rrdfile, datasource.name, datasource.descr))
+    rrdds = RrdDataSource(rrd_file=rrdfile, name=datasource.name,
+                               description=datasource.descr,
+                               type=datasource.dstype,
+                               units=datasource.unit, max=speed,
+                               threshold_state=None,
+                               delimiter=None)
+    rrdds.save()
+    return rrdds
+
+
+def update_maxspeed(container, rrdfile):
     """ Update datasourcetuple regarding this container """
     if not container.speed > 0:
         return
 
-    LOGGER.debug("Updating datasource for %s" % container.filename)
-    has_counter_sources = any(is_octet_counter(descr)
-                              for name, descr, dstype in container.datasources)
+    LOGGER.debug("Updating maxspeed for %s" % container.filename)
+    has_counter_sources = any(is_octet_counter(ds.descr)
+                              for ds in container.datasources)
 
     if has_counter_sources:
         maxspeed = str(convert_megabit_to_bytes(container.speed))
         sources = rrdfile.rrddatasource_set.filter(
             description__in=OCTET_COUNTERS)
-        needs_update = sources.exclude(units__isnull=False, units='bytes',
-                                       max__isnull=False, max=maxspeed)
-        needs_update.update(units='bytes', max=maxspeed)
+        needs_update = sources.exclude(max__isnull=False, max=maxspeed)
+        needs_update.update(max=maxspeed)
 
 
 def move_file(source, destination):

@@ -206,7 +206,16 @@ def main(argv):
             continue
 
         if threshold_max:
-            threshold_max = int(threshold_max)
+            try:
+                threshold_max = int(threshold_max)
+            except ValueError, val_err:
+                try:
+                    threshold_max = float(threshold_max)
+                except ValueError, val_err:
+                    logger.error("Illegal max for threshold %s: %s" %
+                                 (str(threshold_max), val_err.message))
+                    continue
+
         logger.debug("Adding datasource %s" % rrd_datasourceid)
         # Getting the value from the database
         pres.remove_all_datasources()
@@ -231,9 +240,16 @@ def main(argv):
         # Save unmodified threshold for logging and alerts
         orig_threshold = threshold
         # Checking if it is percent or a normal value we are comparing
-        is_percent = re.compile("%$").search(threshold)
-        threshold = re.sub('%$', '', threshold.strip())
-        threshold = int(threshold)
+        is_percent = rrd_datasource.is_percent()
+        threshold = rrd_datasource.get_threshold_value()
+        try:
+            threshold = int(threshold)
+        except ValueError, val_err:
+            try:
+                threshold = float(threshold)
+            except ValueError, val_err:
+                logger.error("Illegal threshold %s: %s" % (str(threshold), val_err.message))
+                continue
 
         # To prevent oscillation in case the value is just below the threshold
         # we create a lower limit that has to be passed to really say that the

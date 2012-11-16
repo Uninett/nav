@@ -90,21 +90,24 @@ define([
             });
 
         },
+        getPropertiesToKeep: function () {
+            var self = this;
+            return {
+                is_public: self.options.context_selected_map.map.attributes.is_public,
+                topology: self.options.context_selected_map.map.attributes.topology,
+                categories: self.options.context_selected_map.map.attributes.categories,
+                zoom: self.options.context_selected_map.map.attributes.zoom,
+                display_orphans: self.options.context_selected_map.map.attributes.display_orphans
+            };
+        },
         new_show_save_view: function () {
             var self = this;
             if (!self.isLoading) {
-                var propertiesToKeep = {
-                    is_public: self.options.context_selected_map.map.attributes.is_public,
-                    topology:  self.options.context_selected_map.map.attributes.topology,
-                    categories: self.options.context_selected_map.map.attributes.categories,
-                    zoom: self.options.context_selected_map.map.attributes.zoom,
-                    display_orphans: self.options.context_selected_map.map.attributes.display_orphans
-                };
+                var properties = self.getPropertiesToKeep();
                 self.options.context_selected_map.map.unbind("change");
                 self.options.context_selected_map.map = new MapModel();
-                self.options.context_selected_map.map.set(propertiesToKeep);
+                self.options.context_selected_map.map.set(properties);
                 self.options.context_selected_map.map.bind("change", this.updateCollection, this);
-
                 this.showCreateNewViewDialog();
             }
         },
@@ -115,16 +118,10 @@ define([
                 var selected_id = self.options.context_selected_map.map.id;
                 self.options.context_selected_map.map.destroy({
                     success: function () {
-                        var propertiesToKeep = {
-                            is_public: self.options.context_selected_map.map.attributes.is_public,
-                            topology:  self.options.context_selected_map.map.attributes.topology,
-                            categories: self.options.context_selected_map.map.attributes.categories,
-                            zoom: self.options.context_selected_map.map.attributes.zoom,
-                            display_orphans: self.options.context_selected_map.map.attributes.display_orphans
-                        };
+                        var properties = self.getPropertiesToKeep();
                         self.options.context_selected_map.map.unbind("change");
                         self.options.context_selected_map.map = new MapModel();
-                        self.options.context_selected_map.map.set(propertiesToKeep);
+                        self.options.context_selected_map.map.set(properties);
                         self.options.context_selected_map.map.bind("change", this.updateCollection, this);
                         self.options.context_selected_map.id = undefined;
                         Backbone.history.navigate("");
@@ -153,16 +150,10 @@ define([
             self.selected_id = parseInt(this.$("#dropdown_view_id :selected").val().trim());
             if (isNaN(self.selected_id)) {
                 // assume new
-                var propertiesToKeep = {
-                    is_public: self.options.context_selected_map.map.attributes.is_public,
-                    topology:  self.options.context_selected_map.map.attributes.topology,
-                    categories: self.options.context_selected_map.map.attributes.categories,
-                    zoom: self.options.context_selected_map.map.attributes.zoom,
-                    display_orphans: self.options.context_selected_map.map.attributes.display_orphans
-                };
+                var properties = self.getPropertiesToKeep();
                 self.options.context_selected_map.map.unbind("change");
                 self.options.context_selected_map.map = new MapModel();
-                self.options.context_selected_map.map.set(propertiesToKeep);
+                self.options.context_selected_map.map.set(properties);
                 self.options.context_selected_map.map.bind("change", this.render, this);
             } else {
                 self.options.context_selected_map.map = self.collection.get(self.selected_id);

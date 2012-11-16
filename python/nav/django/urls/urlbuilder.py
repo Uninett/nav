@@ -37,69 +37,6 @@ def get_urlpatterns():
         url(r'^devicemanagement/\?view_netbox=(?P<netbox_id>\d+)$',
             dummy, name='devicemanagement-history-netbox'),
 
-        # Subsystem: Report
-        # Naming convention: report-<result>-<query>
-        url(r'^report/org$',
-            dummy, name='report-organization-all'),
-        url(r'^report/org\?orgid=(?P<organization_id>[^&]+)$',
-            dummy, name='report-organization-organization'),
-
-        url(r'^report/type$',
-            dummy, name='report-type-all'),
-        url(r'^report/type\?typeid=(?P<type_id>\d+)$',
-            dummy, name='report-type-type'),
-
-        url(r'^report/room$',
-            dummy, name='report-room-all'),
-        url(r'^report/room\?locationid=(?P<location_id>[^&]+)$',
-            dummy, name='report-room-location'),
-
-        url(r'^report/netbox$',
-            dummy, name='report-netbox-all'),
-        url(r'^report/netbox\?roomid=(?P<room_id>[^&]+)$',
-            dummy, name='report-netbox-room'),
-        url(r'^report/netbox\?catid=(?P<category_id>[\w\d._-]+)$',
-            dummy, name='report-netbox-category'),
-
-        url(r'^report/modules$',
-            dummy, name='report-modules-all'),
-        url(r'^report/modules\?netboxid=(?P<netbox_id>\d+)$',
-            dummy, name='report-modules-netbox'),
-        url(r'^report/modules\?netboxid=(?P<netbox_id>\d+)'
-            r'&module=(?P<module_number>\d+)$',
-            dummy, name='report-modules-module'),
-
-        url(r'^report/interfaces\?netboxid=(?P<netbox_id>\d+)$',
-            dummy, name='report-interfaces-netbox'),
-
-        url(r'^report/gwport$',
-            dummy, name='report-gwport-all'),
-        url(r'^report/gwport\?netboxid=(?P<netbox_id>\d+)$',
-            dummy, name='report-gwport-netbox'),
-        url(r'^report/gwport\?netboxid=(?P<netbox_id>\d+)'
-            r'&module=(?P<module_name>[^&]+)$',
-            dummy, name='report-gwport-module'),
-
-        url(r'^report/swport$',
-            dummy, name='report-swport-all'),
-        url(r'^report/swport\?netboxid=(?P<netbox_id>\d+)$',
-            dummy, name='report-swport-netbox'),
-        url(r'^report/swport\?netboxid=(?P<netbox_id>\d+)'
-            r'&module=(?P<module_name>[^&]+)$',
-            dummy, name='report-swport-module'),
-
-        url(r'^report/swporttrunk$',
-            dummy, name='report-swporttrunk-all'),
-        url(r'^report/swporttrunk\?vlan=(?P<vlan>\d+)$',
-            dummy, name='report-swporttrunk-vlan'),
-        url(r'^report/swporttrunk\?vlanid=(?P<vlanid>\d+)$',
-            dummy, name='report-swporttrunk-vlanid'),
-
-        url(r'^report/prefix$',
-            dummy, name='report-prefix-all'),
-        url(r'^report/prefix\?prefixid=(?P<prefix_id>\d+)$',
-            dummy, name='report-prefix-prefix'),
-
     )
 
     return urlpatterns

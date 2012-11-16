@@ -1167,6 +1167,7 @@ class StatusPreference(models.Model):
     SECTION_THRESHOLD = 'threshold'
     SECTION_LINKSTATE = 'linkstate'
     SECTION_SNMPAGENT = 'snmpagent'
+    SECTION_PSU = 'psu'
 
     SECTION_CHOICES = (
         (SECTION_NETBOX, 'IP Devices down'),
@@ -1177,6 +1178,7 @@ class StatusPreference(models.Model):
         (SECTION_THRESHOLD, 'Thresholds exceeded'),
         (SECTION_LINKSTATE, 'Links down'),
         (SECTION_SNMPAGENT, 'SNMP agents down'),
+        (SECTION_PSU, 'Power supplies with problems'),
     )
 
     name = models.TextField()

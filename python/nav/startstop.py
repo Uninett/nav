@@ -297,7 +297,7 @@ class Crontab(object):
         self['__init__'] = initBlock
 
     def _parseBlocks(self):
-        blockStart = re.compile('^##block\s+([^#]+)##')
+        blockStart = re.compile(r'^##block\s+([^#]+)##')
         blockEnd = '##end##'
         blockList = {}
         inBlock = None

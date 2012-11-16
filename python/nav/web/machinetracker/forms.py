@@ -65,7 +65,7 @@ class MacTrackerForm(forms.Form):
         # Checks for bad chars, valid chars are "0-9", "A-F", ":", "." and "-"
         mac = self.cleaned_data['mac']
         tmp_mac = re.sub("[^0-9a-fA-F]", "", mac)
-        bad_chars = re.sub("[0-9a-fA-F:\-\.]", "", mac)
+        bad_chars = re.sub(r"[0-9a-fA-F:\-\.]", "", mac)
         if len(bad_chars) > 0 or len(tmp_mac) > 12:
             raise forms.ValidationError(u"Invalid MAC address")
         return mac

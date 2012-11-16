@@ -8,7 +8,7 @@ from os.path import join, isdir
 
 from nav.mcc import utils, dbutils
 from nav.models.manage import Netbox
-from nav.models.oid import NetboxSnmpOid
+from nav.models.oid import NetboxSnmpOid, SnmpOid
 
 LOGGER = logging.getLogger(__name__)
 
@@ -219,9 +219,17 @@ def create_rrd_container(datasources, interface, targetname, module):
     snmp_version = format_snmp_version(netbox)
     for index, datasource in enumerate(datasources[snmp_version]):
         container.datasources.append(
-            ('ds' + str(index), datasource, 'DERIVE')
-        )
+            utils.Datasource('ds' + str(index), datasource, 'DERIVE',
+                             get_unit(datasource)))
     return container
+
+
+def get_unit(oid_key):
+    """Get unit for this oid_key from database"""
+    try:
+        return SnmpOid.objects.get(oid_key=oid_key).unit
+    except SnmpOid.DoesNotExist:
+        return ''
 
 
 def write_to_file(targetdir, strings):
@@ -246,9 +254,9 @@ def get_interface_datasources(configroot):
 
     lines = read_defaults_file(configroot)
 
-    matchv1 = re.compile("targettype\s+standard-interface", re.I)
-    matchv2 = re.compile("targettype\s+snmpv2-interface", re.I)
-    dsmatch = re.compile("ds\s+=\s+\"(.+)\"")
+    matchv1 = re.compile(r"targettype\s+standard-interface", re.I)
+    matchv2 = re.compile(r"targettype\s+snmpv2-interface", re.I)
+    dsmatch = re.compile(r"ds\s+=\s+\"(.+)\"")
 
     is_standard_interface = False
     is_v2_interface = False

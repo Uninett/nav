@@ -29,12 +29,16 @@ from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 
-from nav.web.maintenance.utils import components_for_keys, task_component_trails
+from nav.web.maintenance.utils import components_for_keys
+from nav.web.maintenance.utils import task_component_trails
 from nav.web.maintenance.utils import get_component_keys, PRIMARY_KEY_INTEGER
 from nav.web.maintenance.utils import structure_component_data
 from nav.web.maintenance.utils import task_form_initial, infodict_by_state
 from nav.web.maintenance.utils import MaintenanceCalendar, NAVPATH, TITLE
 from nav.web.maintenance.forms import MaintenanceTaskForm
+
+INFINITY = datetime.max
+
 
 def calendar(request, year=None, month=None):
     try:
@@ -60,10 +64,9 @@ def calendar(request, year=None, month=None):
 
     prev_month_start = date(prev_year, prev_month, 1)
     next_month_start = date(next_year, next_month, 1)
-    tasks = MaintenanceTask.objects.filter(
-        end_time__gt=this_month_start,
-        start_time__lt=next_month_start,
-    ).exclude(state=MaintenanceTask.STATE_CANCELED).order_by('start_time')
+    tasks = MaintenanceTask.objects.filter(start_time__gt=this_month_start
+        ).filter(start_time__lt=next_month_start
+        ).exclude(state=MaintenanceTask.STATE_CANCELED).order_by('start_time')
     cal = MaintenanceCalendar(tasks).formatmonth(year, month)
     return render_to_response(
         'maintenance/calendar.html',
@@ -80,11 +83,13 @@ def calendar(request, year=None, month=None):
         RequestContext(request)
     )
 
+
 def active(request):
     tasks = MaintenanceTask.objects.filter(
         start_time__lt=datetime.now(),
         end_time__gt=datetime.now(),
-        state__in=(MaintenanceTask.STATE_SCHEDULED, MaintenanceTask.STATE_ACTIVE),
+        state__in=(MaintenanceTask.STATE_SCHEDULED,
+                    MaintenanceTask.STATE_ACTIVE),
     ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
@@ -98,11 +103,13 @@ def active(request):
         RequestContext(request)
     )
 
+
 def planned(request):
     tasks = MaintenanceTask.objects.filter(
         start_time__gt=datetime.now(),
         end_time__gt=datetime.now(),
-        state__in=(MaintenanceTask.STATE_SCHEDULED, MaintenanceTask.STATE_ACTIVE),
+        state__in=(MaintenanceTask.STATE_SCHEDULED,
+                    MaintenanceTask.STATE_ACTIVE),
     ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
@@ -116,10 +123,12 @@ def planned(request):
         RequestContext(request)
     )
 
+
 def historic(request):
     tasks = MaintenanceTask.objects.filter(
         Q(end_time__lt=datetime.now()) |
-        Q(state__in=(MaintenanceTask.STATE_CANCELED, MaintenanceTask.STATE_PASSED))
+        Q(state__in=(MaintenanceTask.STATE_CANCELED,
+                        MaintenanceTask.STATE_PASSED))
     ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
@@ -132,6 +141,7 @@ def historic(request):
         },
         RequestContext(request)
     )
+
 
 def view(request, task_id):
     task = get_object_or_404(MaintenanceTask, pk=task_id)
@@ -161,6 +171,7 @@ def view(request, task_id):
         RequestContext(request)
     )
 
+
 def cancel(request, task_id):
     task = get_object_or_404(MaintenanceTask, pk=task_id)
     if request.method == 'POST':
@@ -168,7 +179,8 @@ def cancel(request, task_id):
         task.save()
         new_message(request._req,
             "This task is now cancelled.", Messages.SUCCESS)
-        return HttpResponseRedirect(reverse('maintenance-view', args=[task_id]))
+        return HttpResponseRedirect(reverse('maintenance-view',
+                                                args=[task_id]))
     else:
         infodict = infodict_by_state(task)
         return render_to_response(
@@ -182,6 +194,7 @@ def cancel(request, task_id):
             RequestContext(request)
         )
 
+
 @transaction.commit_on_success()
 def edit(request, task_id=None, start_time=None):
     account = get_account(request)
@@ -193,13 +206,16 @@ def edit(request, task_id=None, start_time=None):
 
     if task_id:
         task = get_object_or_404(MaintenanceTask, pk=task_id)
-    task_form = MaintenanceTaskForm(initial=task_form_initial(task, start_time))
+    task_form = MaintenanceTaskForm(
+                    initial=task_form_initial(task, start_time))
 
     if request.method == 'POST':
         component_keys = get_component_keys(request.POST)
     elif task:
-        component_keys = {'service': [], 'netbox': [], 'room': [], 'location': []}
-        for key, value in task.maintenancecomponent_set.values_list('key', 'value'):
+        component_keys = {'service': [], 'netbox': [],
+                          'room': [], 'location': []}
+        for key, value in task.maintenancecomponent_set.values_list('key',
+                                                                    'value'):
             if key in PRIMARY_KEY_INTEGER:
                 value = int(value)
             component_keys[key].append(value)
@@ -210,8 +226,10 @@ def edit(request, task_id=None, start_time=None):
         component_data = components_for_keys(component_keys)
         components = structure_component_data(component_data)
         component_trail = task_component_trails(component_keys, components)
-        num_components += len(component_data['service']) + len(component_data['netbox'])
-        num_components += len(component_data['room']) + len(component_data['location'])
+        num_components += (len(component_data['service'])
+                                + len(component_data['netbox']))
+        num_components += (len(component_data['room'])
+                                + len(component_data['location']))
 
     if request.method == 'POST':
         if 'save' in request.POST:
@@ -219,13 +237,18 @@ def edit(request, task_id=None, start_time=None):
             if task_form.is_valid() and num_components > 0:
                 start_time = task_form.cleaned_data['start_time']
                 end_time = task_form.cleaned_data['end_time']
+                no_end_time = task_form.cleaned_data['no_end_time']
                 state = MaintenanceTask.STATE_SCHEDULED
-                if start_time < datetime.now() and end_time <= datetime.now():
+                if (start_time < datetime.now() and end_time
+                            and end_time <= datetime.now()):
                     state = MaintenanceTask.STATE_SCHEDULED
 
                 new_task = MaintenanceTask()
                 new_task.start_time = task_form.cleaned_data['start_time']
-                new_task.end_time = task_form.cleaned_data['end_time']
+                if no_end_time:
+                    new_task.end_time = INFINITY
+                elif not no_end_time and end_time:
+                    new_task.end_time = task_form.cleaned_data['end_time']
                 new_task.description = task_form.cleaned_data['description']
                 new_task.state = state
                 new_task.author = account.login
@@ -235,7 +258,9 @@ def edit(request, task_id=None, start_time=None):
 
                 if task:
                     cursor = connection.cursor()
-                    cursor.execute("DELETE FROM maint_component WHERE maint_taskid = %s", (new_task.id,))
+                    sql = """DELETE FROM maint_component
+                                WHERE maint_taskid = %s"""
+                    cursor.execute(sql, (new_task.id,))
                     transaction.set_dirty()
                 for key in component_data:
                     for component in component_data[key]:
@@ -246,7 +271,8 @@ def edit(request, task_id=None, start_time=None):
                         task_component.save()
                 new_message(request._req,
                     "Saved task %s" % new_task.description, Messages.SUCCESS)
-                return HttpResponseRedirect(reverse('maintenance-view', args=[new_task.id]))
+                return HttpResponseRedirect(reverse('maintenance-view',
+                                                    args=[new_task.id]))
             if num_components <= 0:
                 new_message(request._req,
                     "No components selected.", Messages.ERROR)

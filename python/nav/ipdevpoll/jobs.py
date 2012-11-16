@@ -29,6 +29,7 @@ from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from nav.ipdevpoll.snmp.common import SnmpError
 from . import storage, shadows
+from nav.util import splitby
 from .plugins import plugin_registry
 from nav.ipdevpoll import db
 from .utils import log_unhandled_failure
@@ -72,9 +73,6 @@ class JobHandler(object):
         self.name = name
         self.netbox = netbox
         self.cancelled = threading.Event()
-
-        instance_name = (self.name, "(%s)" % netbox.sysname)
-        instance_queue_name = ("queue",) + instance_name
 
         self.plugins = plugins or []
         self._logger.debug("Job %r initialized with plugins: %r",
@@ -127,35 +125,50 @@ class JobHandler(object):
     def find_plugins(self):
         """Populate the internal plugin list with plugin class instances."""
         from nav.ipdevpoll.config import ipdevpoll_conf
-        plugins = []
 
-        for plugin_name in self.plugins:
-            if plugin_name not in plugin_registry:
-                self._logger.error("A non-existant plugin %r is configured "
-                                   "for job %r", plugin_name, self.name)
-                continue
-            plugin_class = plugin_registry[plugin_name]
+        plugin_classes = [plugin_registry[name]
+                          for name in self._get_valid_plugins()]
+        willing_plugins = yield self._get_willing_plugins(plugin_classes)
 
-            # Check if plugin wants to handle the netbox at all
-            can_handle = yield defer.maybeDeferred(
-                plugin_class.can_handle, self.netbox)
-            if can_handle:
-                plugin = plugin_class(self.netbox, agent=self.agent,
-                                      containers=self.containers,
-                                      config=ipdevpoll_conf)
-                plugins.append(plugin)
-            else:
-                self._logger.debug("Plugin %s wouldn't handle %s",
-                                   plugin_name, self.netbox.sysname)
+        plugins = [cls(self.netbox, agent=self.agent,
+                       containers=self.containers, config=ipdevpoll_conf)
+                   for cls in willing_plugins]
 
         if not plugins:
-            self._logger.debug("No plugins for this job")
             defer.returnValue(None)
 
-        self._logger.debug("Plugins to call: %s",
-                           ",".join([p.name() for p in plugins]))
-
         defer.returnValue(plugins)
+
+    def _get_valid_plugins(self):
+        valid_plugins, invalid_plugins = splitby(
+            lambda name: name in plugin_registry,
+            self.plugins)
+        if list(invalid_plugins):
+            self._logger.error("Non-existent plugins were configured for job "
+                               "%r (ignoring them): %r", self.name,
+                               list(invalid_plugins))
+        return valid_plugins
+
+    @defer.inlineCallbacks
+    def _get_willing_plugins(self, plugin_classes):
+        willing_plugins = []
+        unwilling_plugins = []
+        for cls in plugin_classes:
+            can_handle = yield defer.maybeDeferred(cls.can_handle, self.netbox)
+            if can_handle:
+                willing_plugins.append(cls)
+            else:
+                unwilling_plugins.append(cls)
+
+        for (willingness, plugins) in [('unwilling', unwilling_plugins),
+                                       ('willing', willing_plugins)]:
+            if plugins:
+                self._logger.debug("%s plugins: %r", willingness,
+                                   [cls.__name__ for cls in plugins])
+            else:
+                self._logger.debug("no %s plugins", willingness)
+
+        defer.returnValue(willing_plugins)
 
     def _iterate_plugins(self, plugins):
         """Iterates plugins."""

@@ -1,6 +1,6 @@
 from __future__ import with_statement
 from unittest import TestCase
-from nav.ipdevpoll.neighbor import _get_netbox_macs
+from nav.ipdevpoll.neighbor import _get_netbox_macs, CDPNeighbor
 from mock import patch, Mock
 
 class IgnoredMacTest(TestCase):
@@ -20,3 +20,14 @@ class IgnoredMacTest(TestCase):
                             msg="Non-VRRP addresses were ignored")
             self.assertFalse(vrrp1 in result or vrrp2 in result,
                              msg="VRRP addresses are present in result")
+
+class _MockedCDPNeighbor(CDPNeighbor):
+    def identify(self):
+        # bypass the regular identification routine on instantiation
+        pass
+
+class IgnoreCDPSelfLoopsTest(TestCase):
+    def test_apparent_cdp_self_loop_should_be_ignored(self):
+        test_ip = '10.0.1.41'
+        neighbor = _MockedCDPNeighbor(None, test_ip)
+        self.assertTrue(neighbor._netbox_from_ip(test_ip) is None)

@@ -70,7 +70,7 @@ class ConnectionObject(nav.CacheableObject):
         return 1
 
 def escape(string):
-    return str(psycopg2.extensions.QuotedString(string))
+    return str(psycopg2.extensions.QuotedString(string, "UTF8"))
 
 def get_connection_parameters(script_name='default', database='nav'):
     """Return a tuple of database connection parameters.

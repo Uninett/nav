@@ -120,10 +120,10 @@ def parseNonblockFile(file):
         if line.startswith('#'):
             continue
 
-        if re.search('^\d+\.\d+\.\d+\.\d+$', line):
+        if re.search(r'^\d+\.\d+\.\d+\.\d+$', line):
             # Single ip-address
             nonblockdict['ip'][line] = 1
-        elif re.search('^\d+\.\d+\.\d+\.\d+\/\d+$', line):
+        elif re.search(r'^\d+\.\d+\.\d+\.\d+\/\d+$', line):
             # Range
             nonblockdict['range'][line] = 1
 
@@ -322,7 +322,7 @@ def findInputType (input):
         return ("IP", input)
     elif re.match("^[A-Fa-f0-9]{12}$", mac):
         return ("MAC", input)
-    elif re.match("^\d+$", input):
+    elif re.match(r"^\d+$", input):
         return ("SWPORTID", input)
 
     return ("UNKNOWN", input)
@@ -796,7 +796,7 @@ def changePortVlan(ip, ifindex, vlan, snmp_version=1):
 
 
     # Check vlanformat
-    if not re.search('\d+', str(vlan)):
+    if not re.search(r'\d+', str(vlan)):
         raise ChangePortVlanError, "Wrong format on vlan %s" % vlan
 
 
@@ -1017,7 +1017,7 @@ def getNetbios(ip):
     # For each line in output, try to find name of computer.
     for line in output.split("\n\t"):
         if re.search("<00>", line):
-            m = re.search("(\S+)\s+<00>", line)
+            m = re.search(r"(\S+)\s+<00>", line)
             return m.group(1) or 1
             
     # If it times out or for some other reason doesn't match...

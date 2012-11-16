@@ -117,7 +117,7 @@ class ContextLogger(object):
         else:
             name = klass.__name__.lower()
         if self.suffix:
-            name = name + '.' + self.suffix
+            name = name + '-' + self.suffix
         return name.lower()
 
     def __set__(self, obj, value):

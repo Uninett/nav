@@ -49,7 +49,7 @@ from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
-VLAN_PATTERN = re.compile("Vl(an)?(?P<vlan>\d+)", re.IGNORECASE)
+VLAN_PATTERN = re.compile(r"Vl(an)?(?P<vlan>\d+)", re.IGNORECASE)
 
 class Prefix(Plugin):
     """

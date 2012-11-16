@@ -81,7 +81,7 @@ Rolling and uploading a new distribution tarball
 Announcing the release
 ----------------------
 
-* Update the MetaNAV wiki with new version numbers:
+* Update the NAV wiki with new version numbers:
 
   - on the front page
   - on the `Downloads` page

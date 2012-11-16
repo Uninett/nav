@@ -7,7 +7,7 @@ import os
 
 from nav.models.manage import Netbox
 from nav.mcc import dbutils, utils
-from nav.mcc.utils import encode_and_escape
+from nav.mcc.utils import encode_and_escape, Datasource
 from os.path import join, isdir
 
 LOGGER = logging.getLogger('mcc.sensors')
@@ -26,11 +26,15 @@ def make_config(globalconfig):
     LOGGER.info("Creating config for %s in %s" % (dirname, path_to_directory))
 
     boxes = Netbox.objects.exclude(read_only__isnull=True).exclude(read_only='')
+
+    configdirs = []
     for netbox in boxes:
         containers = create_netbox_config(netbox, path_to_directory)
         if containers:
+            configdirs.append(join(path_to_directory, netbox.sysname))
             dbutils.updatedb(path_to_rrdfiles, containers)
 
+    utils.find_and_remove_old_config(path_to_directory, configdirs)
     return True
 
 
@@ -98,7 +102,8 @@ def create_container(sensor):
     container = utils.RRDcontainer(str(sensor.id) + ".rrd", sensor.netbox.id,
                                    sensor.netbox.sysname, key="sensor",
                                    value=sensor.id)
-    container.datasources = [("ds0", sensor.human_readable, "GAUGE")]
+    container.datasources = [Datasource("ds0", sensor.human_readable, "GAUGE",
+                                        sensor.unit_of_measurement)]
     return container
 
 

@@ -55,8 +55,8 @@ class RoomSearchProvider(SearchProvider):
     """Searchprovider for rooms"""
     name = "Rooms"
     headers = [
-        ('Roomid', attrgetter('id')),
-        ('Description', attrgetter('description'))
+        ('Roomid', 'id'),
+        ('Description', 'description')
     ]
     link = 'Roomid'
 
@@ -72,7 +72,7 @@ class RoomSearchProvider(SearchProvider):
 class NetboxSearchProvider(SearchProvider):
     """Searchprovider for netboxes"""
     name = "Netboxes"
-    headers = [('Sysname', attrgetter('sysname'))]
+    headers = [('Sysname', 'sysname')]
     link = 'Sysname'
 
     def fetch_results(self):
@@ -94,9 +94,9 @@ class InterfaceSearchProvider(SearchProvider):
     """Searchprovider for interfaces"""
     name = "Interfaces"
     headers = [
-        ('Netbox', attrgetter('netbox.sysname')),
-        ('Interface', attrgetter('ifname')),
-        ('Alias', attrgetter('ifalias')),
+        ('Netbox', 'netbox.sysname'),
+        ('Interface', 'ifname'),
+        ('Alias', 'ifalias'),
     ]
     link = 'Interface'
 

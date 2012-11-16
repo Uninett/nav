@@ -17,13 +17,11 @@
 """Ping multiple hosts at once."""
 
 import threading
-import sys
 import time
 import socket
 import select
 import os
 import random
-import struct
 import circbuf
 import config
 import hashlib
@@ -34,7 +32,7 @@ from nav.daemon import safesleep as sleep
 from .icmppacket import ICMP_MINLEN, PacketV4, PacketV6
 
 # Global method to create the sockets as root before the process changes user
-def makeSockets():
+def make_sockets():
     try:
         socketv6 = socket.socket(socket.AF_INET6, socket.SOCK_RAW,
                                  socket.getprotobyname('ipv6-icmp'))
@@ -50,20 +48,28 @@ def makeSockets():
     return [socketv6, socketv4]
 
 class Host(object):
+    """
+    Host object for a host. This object holds the destination address and sequence number.
+    """
     COOKIE_LENGTH = len(hashlib.md5().digest())
 
     def __init__(self, ip):
-        self.rnd = random.randint(10000, 2**16-1)
-        self.time = 0
-        self.certain = 0
         self.ip = ip
+        #Random value for the cookie
+        self.rnd = random.randint(10000, 2**16-1)
+        #Time the echo was sent
+        self.time = 0
+        #Used in nextseq
+        self.certain = 0
 
+        #Check IP version and choose packet class
         if self.is_valid_ipv6(ip):
             self.ipv6 = True
             self.packet = PacketV6()
         else:
             self.ipv6 = False
             self.packet = PacketV4()
+
         self.packet.id = os.getpid() % 65536
         self.replies = circbuf.CircBuf()
 
@@ -77,7 +83,6 @@ class Host(object):
     def make_cookie(self):
         """Makes and returns a request identifier to be used as data in a ping
         packet.
-
         """
         hash = hashlib.md5()
         hash.update(self.ip)
@@ -86,28 +91,34 @@ class Host(object):
         return hash.digest()
 
     def is_v6(self):
+        """
+        Returns True if host is v6
+        """
         return self.ipv6
-    
-    # Help method
+
     def is_valid_ipv6(self, addr):
+        """
+        Help method to check if addr is v6
+        :param addr:
+        """
         try:
             socket.inet_pton(socket.AF_INET6, addr)
             return True
         except socket.error:
             return False
 
-    # Help method
     def is_valid_ipv4(self, addr):
+        """
+        Help method to check if addr is v4
+        :param addr:
+        """
         try:
             socket.inet_pton(socket.AF_INET, addr)
             return True
         except socket.error:
             return False
 
-    def getseq(self):
-        return self.packet.id
-
-    def nextseq(self):
+    def next_seq(self):
         """Increments the echo request sequence number to use with the next
         request.
 
@@ -118,6 +129,11 @@ class Host(object):
         if not self.certain and self.packet.sequence > 2:
             self.certain = 1
 
+    def get_state(self):
+        # This is the reoundtrip time. Not sure if we need
+        # status bit as well...
+        return self.replies[0]
+
     def __hash__(self):
         return self.ip.__hash__()
 
@@ -126,25 +142,23 @@ class Host(object):
             return self.ip == obj
         else:
             return self.ip == obj.ip
-    def __repr__(self):
-        return "megaping.Host instance for ip %s " % self.ip
 
-    def getState(self, nrping=3):
-        # This is the reoundtrip time. Not sure if we need
-        # status bit as well...
-        return self.replies[0]
+    def __repr__(self):
+        return "Host instance for IP %s with sequence number %s " % (self.ip, self.packet.sequence)
 
 class MegaPing:
     """
     Sends icmp echo to multiple hosts in parallell.
     Typical use:
     pinger = megaping.MegaPing()
-    pinger.setHosts(['127.0.0.1','10.0.0.1'])
+    pinger.set_hosts(['127.0.0.1','10.0.0.1'])
     timeUsed = pinger.ping()
     hostsUp = pinger.answers()
-    hostsDown = pinger.noAnswers()
+    hostsDown = pinger.no_answers()
     """
     def __init__(self, sockets, conf=None):
+
+        # Get config in /etc/pping.conf
         if conf is None:
             try:
                 self._conf = config.pingconf()
@@ -153,17 +167,23 @@ class MegaPing:
                 self._conf = {}
         else:
             self._conf = conf
-        # delay between each packet is transmitted
+
+
+        # Delay between each packet is transmitted
         self._delay = float(self._conf.get('delay', 2))/1000  # convert from ms
         # Timeout before considering hosts as down
         self._timeout = int(self._conf.get('timeout', 5))
+        # Dictionary with all the hosts, populated by set_hosts()
         self._hosts = {}
+
         packetsize = int(self._conf.get('packetsize', 64))
         if packetsize < 44:
             raise """Packetsize (%s) too small to create a proper cookie.
                              Must be at least 44.""" % packetsize
         self._packetsize = packetsize
         self._pid = os.getpid() % 65536
+
+        # Global timing of the ppinger
         self._elapsedtime = 0
 
         # Initialize the sockets
@@ -172,7 +192,7 @@ class MegaPing:
             self._sock4 = sockets[1]
         else:
             try:
-                sockets = makeSockets()
+                sockets = make_sockets()
             except:
                 debug("Tried to create sockets without beeing root!")
 
@@ -180,7 +200,7 @@ class MegaPing:
             self._sock4 = sockets[1]
             debug("No sockets passed as argument, creating own")
 
-    def setHosts(self, ips):
+    def set_hosts(self, ips):
         """
         Specify a list of ip addresses to ping. If we alredy have the host
         in our list, we reuse that host object to ensure proper sequence
@@ -197,6 +217,9 @@ class MegaPing:
         self._hosts = currenthosts
 
     def reset(self):
+        """
+        Reset method to clear requests and responses
+        """
         self._requests = {}
         self.responses = {}
         self._senderFinished = 0
@@ -209,8 +232,8 @@ class MegaPing:
         # Start working
         self.reset()
         #kwargs = {'mySocket': makeSocket()}
-        self._sender = threading.Thread(target=self._sendRequests, name="sender")
-        self._getter = threading.Thread(target=self._getResponses, name="getter")
+        self._sender = threading.Thread(target=self._send_requests, name="sender")
+        self._getter = threading.Thread(target=self._get_responses, name="getter")
         self._sender.setDaemon(1)
         self._getter.setDaemon(1)
         self._sender.start()
@@ -218,8 +241,35 @@ class MegaPing:
         self._getter.join()
         return self._elapsedtime
 
+    def _send_requests(self, mySocket=None, hosts=None):
 
-    def _getResponses(self):
+        # Get ip addresses to ping
+        hosts = self._hosts.values()
+
+        # Ping each host
+        for host in hosts:
+            if self._requests.has_key(host):
+                debug("Duplicate host %s ignored" % host, 6)
+                continue
+
+            host.time = time.time()
+            # create and save a request identifier
+            packet, cookie = host.make_packet(self._packetsize)
+            self._requests[cookie] = host
+            host.next_seq()
+
+            try:
+                if not host.is_v6():
+                    self._sock4.sendto(packet, (host.ip, 0))
+                else:
+                    self._sock6.sendto(packet, (host.ip, 0, 0, 0))
+            except Exception, error:
+                debug("Failed to ping %s [%s]" % (host.ip, error), 5)
+
+            sleep(self._delay)
+        self._senderFinished = time.time()
+
+    def _get_responses(self):
         start = time.time()
         timeout = self._timeout
 
@@ -253,7 +303,7 @@ class MegaPing:
                         continue
 
                     is_ipv6 = sock == self._sock6
-                    self._processResponse(raw_pong, sender, is_ipv6, arrival)
+                    self._process_response(raw_pong, sender, is_ipv6, arrival)
             elif self._senderFinished:
                 break
 
@@ -263,8 +313,7 @@ class MegaPing:
         end = time.time()
         self._elapsedtime = end - start
 
-
-    def _processResponse(self, raw_pong, sender, is_ipv6, arrival):
+    def _process_response(self, raw_pong, sender, is_ipv6, arrival):
         # Extract header info and payload
         packet_class = PacketV6 if is_ipv6 else PacketV4
         try:
@@ -276,6 +325,7 @@ class MegaPing:
 
         if pong.type != pong.ICMP_ECHO_REPLY:
             # we only care about echo replies
+            debug("Packet from %s was not an echo reply, but %s" % (sender, pong), 7)
             return
 
         if not pong.id == self._pid:
@@ -302,35 +352,6 @@ class MegaPing:
               (sender, pingtime*1000), 7)
         del self._requests[cookie]
 
-
-    def _sendRequests(self, mySocket=None, hosts=None):
-
-        # Get ip addresses to ping
-        hosts = self._hosts.values()
-
-        # Ping each host
-        for host in hosts:
-            if self._requests.has_key(host):
-                debug("Duplicate host %s ignored" % host, 6)
-                continue
-
-            host.time = time.time()
-            # create and save a request identifier
-            packet, cookie = host.make_packet(self._packetsize)
-            self._requests[cookie] = host
-            host.nextseq()
-
-            try:
-                if not host.is_v6():
-                    self._sock4.sendto(packet, (host.ip, 0))
-                else:
-                    self._sock6.sendto(packet, (host.ip, 0, 0, 0))
-            except Exception, error:
-                debug("Failed to ping %s [%s]" % (host.ip, error), 5)
-
-            sleep(self._delay)
-        self._senderFinished = time.time()
-
     def results(self):
         """
         Returns a tuple of
@@ -339,20 +360,20 @@ class MegaPing:
         """
         reply = []
         for host in self._hosts.values():
-            if host.getState():
+            if host.get_state():
                 reply.append((host.ip, host.replies[0]))
             else:
                 reply.append((host.ip, -1))
         return reply
 
-    def noAnswers(self):
+    def no_answers(self):
         """
         Returns a tuple of
         (ip, timeout) for the unreachable hosts.
         """
         reply = []
         for host in self._hosts.values():
-            if not host.getState():
+            if not host.get_state():
                 reply.append((host.ip, self._timeout))
         return reply
 
@@ -363,6 +384,6 @@ class MegaPing:
         """
         reply = []
         for host in self._hosts.values():
-            if host.getState():
+            if host.get_state():
                 reply.append((host.ip, host.replies[0]))
         return reply

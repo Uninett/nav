@@ -108,7 +108,7 @@ def search(request):
 
 def is_valid_hostname(hostname):
     """Check if hostname is valid"""
-    return re.match('^[a-z0-9-]+(\.[a-z0-9-]+)*$', hostname) is not None
+    return re.match(r'^[a-z0-9-]+(\.[a-z0-9-]+)*$', hostname) is not None
 
 
 def ipdev_details(request, name=None, addr=None, netbox_id=None):
@@ -154,7 +154,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
         if name:
             try:
-                netbox = netboxes.get(sysname=name)
+                netbox = netboxes.get(Q(sysname=name) | Q(ip=name))
             except Netbox.DoesNotExist:
                 pass
         elif addr:
@@ -190,6 +190,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         raw_alerts = queryset[:max_num_alerts]
 
         alerts = []
+        has_unresolved_alerts = False
         for alert in raw_alerts:
             if alert.source.name == 'serviceping':
                 try:
@@ -204,6 +205,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             except IndexError:
                 message = None
 
+            if not has_unresolved_alerts and alert.is_open():
+                has_unresolved_alerts = True
+
             alerts.append({
                 'alert': alert,
                 'type': alert_type,
@@ -215,39 +219,40 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'alerts': alerts,
             'count': count,
             'is_more_alerts': count > max_num_alerts,
+            'has_unresolved_alerts': has_unresolved_alerts
         }
 
     def get_prefix_info(addr):
         """Return prefix based on address"""
-        try:
-            return Prefix.objects.select_related().extra(
+        ipaddr = is_valid_ip(addr)
+        if ipaddr:
+            prefixes = Prefix.objects.select_related().extra(
                 select={"mask_size": "masklen(netaddr)"},
                 where=["%s << netaddr AND nettype <> 'scope'"],
-                order_by=["-mask_size"],
-                params=[addr])[0]
-        except:
-            return None
+                order_by=["-mask_size"], params=[ipaddr])[0:1]
+            if prefixes:
+                return prefixes[0]
+        return None
 
     def get_arp_info(addr):
         """Return arp based on address"""
-        try:
-            return Arp.objects.extra(
-                where=["ip = %s"], params=[addr]).order_by(
-                '-end_time','-start_time')[0]
-        except:
-            return None
-
+        ipaddr = is_valid_ip(addr)
+        if ipaddr:
+            arp_info = Arp.objects.extra(
+                where=["ip = %s"],
+                params=[ipaddr]).order_by('-end_time', '-start_time')[0:1]
+            if arp_info:
+                return arp_info[0]
+        return None
 
     def get_cam_info(mac):
         """Return cam objects based on mac address"""
-        try:
-            return Cam.objects.filter(mac=mac).order_by('-end_time',
-                                                        '-start_time')[0]
-        except:
-            return None
-
+        cam_info = Cam.objects.filter(mac=mac).order_by('-end_time',
+                                                        '-start_time')[0:1]
+        return cam_info[0] if cam_info else None
 
     # Get data needed by the template
+    addr = is_valid_ip(addr)
     host_info = get_host_info(name or addr)
     netbox = get_netbox(name=name, addr=addr, host_info=host_info)
 

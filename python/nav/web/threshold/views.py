@@ -45,7 +45,7 @@ from nav.web.threshold.utils import is_percent_value
 
 
 NAVBAR = [('Home', '/'), ('Threshold manager', None)]
-DEFAULT_VALUES = {'title': 'THreshold manager', 'navpath': NAVBAR}
+DEFAULT_VALUES = {'title': 'Threshold manager', 'navpath': NAVBAR}
 
 BULK_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': {'bulk': True}}
 ALL_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': {'all': True}}
@@ -53,7 +53,7 @@ EXCEEDED_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': 
 
 logger = logging.getLogger("nav.web.threshold")
 
-INTERFACE_REGEXP = re.compile('^if\w+$')
+INTERFACE_REGEXP = re.compile(r'^if\w+$')
 
 # Option that is selected
 NETBOX_OPTION_SELECTED = '<option selected="selected" value="%d">%s</option>'
@@ -126,7 +126,7 @@ def prepare_bulkset(request):
     if request.method == 'POST':
         descr = unicode(request.POST.get('descr', ''))
         ids = unicode(request.POST.get('ids', ''))
-        logger.error('Ids = %s' % ids)
+        logger.debug('prepare_bulkset: Received ids = %s' % ids)
         if not is_legal_descr(descr):
             logger.error('Illegal description: login=%s; descr=%s' %
                     (account.login, descr))
@@ -159,14 +159,14 @@ def prepare_bulkset(request):
                                     rrd_file__value__in=identities)
             info_dict['interfaces'] = True
 
-        logger.error('prepare_bulkset: identities = %d' % len(identities))
+        logger.debug('prepare_bulkset: Number of identities = %d' % len(identities))
         if data_sources:
             info_dict['descr'] = descr
             info_dict['datasources'] = data_sources
         # This is actually a html-table to get rendered in the browser
         message = render_to_response('threshold/bulkset.html',
                     info_dict, RequestContext(request))
-        logger.error('prepare_bulkset: timer = %.3f' % (time.clock() - before))
+        logger.debug('prepare_bulkset: Executed in %.3fs' % (time.clock() - before))
         return HttpResponse(message, mimetype="text/plain")
     else:
         logger.error('Illegal request: login=%s' % account.login)
@@ -212,7 +212,8 @@ def get_netbox_interfaces(nbox, ifname, updown):
     if nbox.category.is_gsw() or nbox.category.is_gw():
         if_query = if_query.filter(gwportprefix__isnull=False)
     if ifname:
-        if_query = if_query.filter(ifname__contains=ifname)
+        if_query = if_query.filter(Q(ifname__icontains=ifname)|
+                                        Q(ifalias__icontains=ifname))
     if updown:
         if_query = if_query.filter(Q(to_netbox__isnull=False)|
                                         Q(to_interface__isnull=False))
@@ -313,7 +314,7 @@ def netbox_search(request):
         updown = unicode(request.POST.get('updown', ''))
         boxes = unicode(request.POST.get('boxes', ''))
 
-        logger.error('descr=%s; sysname=%s; vendor=%s; model=%s; gw=%s; gsw=%s; sw=%s; ifname=%s; updown=%s; boxes=%s' %
+        logger.debug('netbox_search: descr=%s; sysname=%s; vendor=%s; model=%s; gw=%s; gsw=%s; sw=%s; ifname=%s; updown=%s; boxes=%s' %
             (descr, sysname, vendor, model, cat_gw, cat_gsw, cat_sw,
                 ifname, updown, boxes))
         
@@ -354,6 +355,7 @@ def netbox_search(request):
         foundboxes = []
         # Let the query hit the database
         netbox_list = query
+        logger.debug('netbox_search: Netbox query returned: %s' % str(netbox_list))
         if netbox_list:
             for nbox in netbox_list:
                 if search_interfaces:
@@ -365,7 +367,7 @@ def netbox_search(request):
                         box_interfaces[nbox.sysname] = interfaces
                 foundboxes.append(format_netbox_option(nbox, chosen_boxes))
 
-        logger.error('!!!!! number of netboxes = %d' % len(netbox_list))
+        logger.debug('netbox_search: Number of netboxes = %d' % len(netbox_list))
 
         numb_interfaces = 0
         foundinterfaces = []
@@ -375,7 +377,7 @@ def netbox_search(request):
             for sname, infs in box_interfaces.iteritems():
                 numb_interfaces += len(infs)
                 foundinterfaces.append(format_option_group(sname, infs))
-        logger.error('&&&&& number of interfaces = %d' % numb_interfaces)
+        logger.debug('netbox_search: Found %d interfaces' % numb_interfaces)
 
         result = { 'error': 0,
                    'foundboxes': ''.join(foundboxes),
@@ -386,7 +388,7 @@ def netbox_search(request):
     else:
         logger.error('Illegal request: login=%s' % account.login)
         result = { 'error': 1, 'message': 'Illegal request'}
-    logger.error('netbox_search: timer = %.3f' % (time.clock() - before))
+    logger.debug('netbox_search: Executed in %.3fs' % (time.clock() - before))
     return HttpResponse(simplejson.dumps(result),
         mimetype="application/json")
 
@@ -433,8 +435,8 @@ def threshold_all(request, exceeded=None):
             'sources': datasource_list,
             }
         netboxes.append(netbox)
-    logger.error("len = %d" % len(netboxes))
-    logger.error("time = %.3f" % (time.clock()-before))
+    logger.debug("threshold_all: Number of netboxes = %d" % len(netboxes))
+    logger.debug("threshold_all: Executed in %.4fs" % (time.clock()-before))
     info_dict = {'netboxes' : netboxes }
     if exceeded:
         info_dict.update(EXCEEDED_DEFAULTS)
@@ -522,6 +524,7 @@ def threshold_delete(request, thresholdid=None):
         if request.POST.get('submit', '') == 'Yes':
             form = RrdDataSourceForm(request.POST, instance=threshold)
             if not form.errors:
+                logger.debug('threshold_delete: Deleting threshold %d' % thresholdid)
                 form.delete()
     else:
         info_dict = {'threshold' : threshold}
@@ -564,6 +567,7 @@ def threshold_edit(request, thresholdid=None):
 
 def thresholds_save(request):
     """Save operators and thresholds for the given datasource-ids."""
+    before = time.clock()
     account = get_account(request)
     result = {}
     # collection of datasources with errors
@@ -571,10 +575,12 @@ def thresholds_save(request):
     if request.method == 'POST':
         thresholds_json = request.POST.get('thresholds', '')
         thresholds = simplejson.loads(thresholds_json)
+        logger.debug('thresholds_save: Number of thresholds = %d' % len(thresholds))
         for threshold in thresholds:
             dsId = unicode(threshold.get('dsId', ''))
             op = unicode(threshold.get('op', ''))
             thrVal = unicode(threshold.get('thrVal', ''))
+            logger.debug('threshold_save: dsId=%s, op=%s, thrVal=%s' % (dsId, op, thrVal))
             if not is_legal_id(dsId):
                 logger.error('Illegal id: login=%s; id=%s' %
                                 (account.login, dsId))
@@ -590,7 +596,7 @@ def thresholds_save(request):
                                 (account.login, thrVal))
                 error_list.append(dsId)
                 continue
-            #logger.error('dsId=%s, op=%s, thrVal=%s' % (dsId, op, thrVal))
+            # logger.error('dsId=%s, op=%s, thrVal=%s' % (dsId, op, thrVal))
             thrVal.strip()
             rrd_data_source = None
             try :
@@ -602,7 +608,7 @@ def thresholds_save(request):
                 continue
             if is_percent_value(thrVal) and not rrd_data_source.max:
                 logger.error('% is prohibited when max is undefined, ' +
-                            'id=%s: login=%s' % (dsId, account.login))
+                            'login=%s; id=%s' % (account.login, dsId))
                 error_list.append(dsId)
                 continue
 
@@ -629,12 +635,11 @@ def thresholds_save(request):
                 message = 'Could not save threshold'
             elif numb_errors > 1:
                 message = '%d threholds could not be saved' % numb_errors
-            result = {'error': numb_errors,
-                      'message': message,
-                      'failed': error_list,}
+            result = {'error': numb_errors, 'message': message, 'failed': error_list,}
         else:
-            result = {'error': 0, 'message': 'Successfully saved', }
+            result = {'error': 0, 'message': 'Successfully saved', 'failed': [],}
     else:
-        result = {'error': 1, 'message': 'Wrong request'}
+        result = {'error': 1, 'message': 'Wrong request',}
+    logger.debug('thresholds_save: Executed in %.3fs' % (time.clock() - before))
     return HttpResponse(simplejson.dumps(result),
         mimetype="application/json")
