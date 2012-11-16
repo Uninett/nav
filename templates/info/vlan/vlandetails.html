@@ -40,7 +40,7 @@
 
         {% comment %} Print gwportprefixes {% endcomment %}
         <table id="gwportprefixinfo" class="listtable">
-            <caption>Interfaces</caption>
+            <caption>Router ports</caption>
 
             <thead>
             <tr>
@@ -53,9 +53,21 @@
             <tbody>
             {% for gwportprefix in gwportprefixes %}
                 <tr>
-                    <td>{{ gwportprefix.interface.netbox.sysname }}</td>
-                    <td>{{ gwportprefix.gw_ip }}</td>
-                    <td>{{ gwportprefix.interface.ifname }}</td>
+                    <td>
+                        <a href="{% url ipdevinfo-details-by-name gwportprefix.interface.netbox.sysname %}">
+                            {{ gwportprefix.interface.netbox.sysname }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url ipdevinfo-details-by-addr gwportprefix.gw_ip %}">
+                            {{ gwportprefix.gw_ip }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url ipdevinfo-interface-details gwportprefix.interface.netbox.sysname gwportprefix.interface.id %}">
+                            {{ gwportprefix.interface.ifname }}
+                        </a>
+                    </td>
                 </tr>
 
             {% endfor %}
@@ -77,7 +89,11 @@
             <tbody>
             {% for prefix in prefixes %}
                 <tr>
-                    <td>{{ prefix.net_address }}</td>
+                    <td>
+                        <a href="{% url report-prefix-prefix prefix.id %}">
+                            {{ prefix.net_address }}
+                        </a>
+                    </td>
                 </tr>
             {% endfor %}
 
