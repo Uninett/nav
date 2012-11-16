@@ -145,10 +145,10 @@ class VlanSearchProvider(SearchProvider):
 
     name = "Vlans"
     headers = [
-        ('Vlan', attrgetter('vlan')),
-        ('Type', attrgetter('net_type')),
-        ('Netident', attrgetter('net_ident')),
-        ('Description', attrgetter('description'))
+        ('Vlan', 'vlan'),
+        ('Type', 'net_type'),
+        ('Netident', 'net_ident'),
+        ('Description', 'description')
     ]
     link = 'Vlan'
 
