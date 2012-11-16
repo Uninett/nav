@@ -75,7 +75,7 @@
             </thead>
 
             <tbody>
-            {% for prefix in vlan.prefix_set.all %}
+            {% for prefix in prefixes %}
                 <tr>
                     <td>{{ prefix.net_address }}</td>
                 </tr>
@@ -94,7 +94,7 @@
 
     {% comment %} Graph for each prefix containing ip-addresses, mac-addresses and size of range {% endcomment %}
     <h2>Prefix graphs</h2>
-    {% for prefix in vlan.prefix_set.all %}
+    {% for prefix in prefixes %}
         <div class="prefixgraph float-left" data-prefix="{{ prefix.id }}"></div>
     {% endfor %}
 

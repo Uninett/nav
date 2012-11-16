@@ -41,9 +41,12 @@ def index(request):
 def vlan_details(request, vlanid):
     """Render details for a vlan"""
     vlan = Vlan.objects.select_related(depth=1).get(pk=vlanid)
+    prefixes = sorted(vlan.prefix_set.all(),
+                      key=methodcaller('get_prefix_size'))
 
     return render_to_response('info/vlan/vlandetails.html',
                               {'vlan': vlan,
+                               'prefixes': prefixes,
                                'gwportprefixes': find_gwportprefixes(vlan)},
                               context_instance=RequestContext(request))
 
