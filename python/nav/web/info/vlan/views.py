@@ -17,11 +17,12 @@
 
 import logging
 from IPy import IP
-from os.path import exists
 from operator import methodcaller, attrgetter
+import simplejson
 
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
+from django.http import HttpResponse
 
 from nav.models.manage import Prefix, Vlan
 from nav.models.rrd import RrdFile
@@ -31,65 +32,39 @@ LOGGER = logging.getLogger('nav.web.info.vlan')
 
 
 def index(request):
-    """Render all graphs for prefixes"""
-    prefixes = Prefix.objects.exclude(vlan__net_type='loopback')
-    images = []
-    for prefix in prefixes:
-        try:
-            rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
-        except RrdFile.DoesNotExist:
-            continue
-
-        if exists(rrdfile.get_file_path()):
-            graph = create_prefix_graph(prefix, rrdfile)
-            images.append(graph.get_url())
+    """Index of vlan"""
 
     return render_to_response("info/vlan/base.html",
-                              {'images': images},
                               context_instance=RequestContext(request))
 
 
 def vlan_details(request, vlanid):
     """Render details for a vlan"""
     vlan = Vlan.objects.select_related(depth=1).get(pk=vlanid)
-    prefixes = sorted(vlan.prefix_set.all(),
-                      key=methodcaller('get_prefix_size'),
-                      reverse=True)
-
-    # Create graph for the prefixes
-    ipv4_prefixes = []
-    for prefix in prefixes:
-        try:
-            rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
-        except RrdFile.DoesNotExist:
-            LOGGER.error('rrdfile-object for %s did not exist' % prefix)
-            continue
-
-        if exists(rrdfile.get_file_path()):
-            LOGGER.info('file for %s did exist' % rrdfile)
-            prefix.graph = create_prefix_graph(prefix, rrdfile)
-
-            if is_ipv4(prefix):
-                ipv4_prefixes.append(prefix)
-
-    gwportprefixes = []
-    if prefixes:
-        vlan.graph = create_vlan_graph(vlan, ipv4_prefixes)
-        gwportprefixes = find_gwportprefixes(vlan)
 
     return render_to_response('info/vlan/vlandetails.html',
                               {'vlan': vlan,
-                               'prefixes': prefixes,
-                               'gwportprefixes': gwportprefixes},
+                               'gwportprefixes': find_gwportprefixes(vlan)},
                               context_instance=RequestContext(request))
 
 
-def create_prefix_graph(prefix, rrdfile):
+def create_prefix_graph(request, prefixid):
     """Create graph based on prefix and rrdfile"""
+
+    try:
+        prefix = Prefix.objects.get(pk=prefixid)
+        rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
+    except Prefix.DoesNotExist:
+        return None
+    except RrdFile.DoesNotExist:
+        return None
+
+    timeframe = request.GET.get('timeframe', 'day')
+
     datasources = rrdfile.rrddatasource_set.all()
 
     options = {'-l': '0', '-v': 'IP-addresses', '-w': 300, '-h': 100}
-    graph = Graph(title=prefix.net_address, opts=options)
+    graph = Graph(title=prefix.net_address, time_frame=timeframe, opts=options)
     for datasource in datasources:
         if datasource.name == 'ip_count':
             vname = graph.add_datasource(datasource, 'AREA', 'IP-addresses ')
@@ -107,18 +82,32 @@ def create_prefix_graph(prefix, rrdfile):
                 # max are equal in size
                 graph.add_argument("COMMENT:   ")
 
-    return graph
+    json = simplejson.dumps({'url': graph.get_url()})
+    return HttpResponse(json, mimetype='application/json')
 
 
-def create_vlan_graph(vlan, prefixes):
+def create_vlan_graph(request, vlanid):
     """Create graph for this vlan"""
 
+    try:
+        vlan = Vlan.objects.get(pk=vlanid)
+    except Vlan.DoesNotExist:
+        return None
+
+    timeframe = request.GET.get('timeframe', 'day')
+
+    prefixes = sorted(vlan.prefix_set.all(),
+                      key=methodcaller('get_prefix_size'),
+                      reverse=True)
+
     options = {'-v': 'IP-addresses', '-l': '0'}
-    graph = Graph(title='Vlan %s' % vlan, opts=options)
+    graph = Graph(title='Vlan %s' % vlan, time_frame=timeframe, opts=options)
 
     stack = False
     ipranges = []
     for prefix in prefixes:
+        if not is_ipv4(prefix):
+            continue
         rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
         ipcount = rrdfile.rrddatasource_set.get(name='ip_count')
 
@@ -134,9 +123,8 @@ def create_vlan_graph(vlan, prefixes):
     graph.add_cdef('iprange', rpn_sum(ipranges))
     graph.add_graph_element('iprange', draw_as='LINE2')
 
-    LOGGER.debug("%r" % graph)
-
-    return graph
+    json = simplejson.dumps({'url': graph.get_url()})
+    return HttpResponse(json, mimetype='application/json')
 
 
 def find_gwportprefixes(vlan):

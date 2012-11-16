@@ -2,6 +2,7 @@
 
 {% block base_header_additional_head %}
     <link rel="stylesheet" href="/style/info_vlan.css"/>
+    <script src="/js/libs/require.js" data-main="src/info_vlan" ></script>
 {% endblock %}
 
 {% block base_content %}
@@ -9,7 +10,6 @@
     <h1>Vlan view</h1>
 
     {% block vlandetails %}
-
     {% endblock %}
 
 {% endblock %}

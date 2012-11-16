@@ -17,10 +17,15 @@
 
 
 from django.conf.urls.defaults import url, patterns
-from nav.web.info.vlan.views import index, vlan_details
+from nav.web.info.vlan.views import (index, vlan_details,
+                                     create_prefix_graph, create_vlan_graph)
 
 urlpatterns = patterns(
     '',
     url(r'^$', index, name='vlan-index'),
     url(r'^(?P<vlanid>\d+)/$', vlan_details, name='vlan-details'),
+    url(r'^graph/prefix/(?P<prefixid>\d+)$', create_prefix_graph,
+        name='vlan-graph-prefix'),
+    url(r'^graph/vlan/(?P<vlanid>\d+)$', create_vlan_graph,
+        name='vlan-graph-prefix'),
 )
