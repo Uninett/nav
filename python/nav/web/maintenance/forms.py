@@ -34,3 +34,8 @@ class MaintenanceTaskForm(forms.Form):
             raise forms.ValidationError(
                 "End time or no end time must be specified")
         return self.cleaned_data
+
+class MaintenanceAddSingleNetbox(forms.Form):
+    """A form used for error-checking only; less code than writing
+    a custom variable-checker"""
+    netboxid = forms.IntegerField(required=True)
