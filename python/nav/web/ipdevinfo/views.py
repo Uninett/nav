@@ -359,12 +359,15 @@ def get_port_view(request, netbox_sysname, perspective):
     port_view['modules'].append(utils.get_module_view(
         None, perspective, activity_interval, netbox))
 
+    # Min length of ifname for it to be shortened
+    ifname_too_long = 12
 
     return render_to_response(
         'ipdevinfo/modules.html',
             {
             'netbox': netbox,
             'port_view': port_view,
+            'ifname_too_long': ifname_too_long,
             'activity_interval_form': activity_interval_form
             },
         context_instance=RequestContext(request))

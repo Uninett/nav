@@ -1,3 +1,5 @@
+{% load string_manipulation %}
+
 {% with module.ports as ports %}
 {% if ports|length %}
 <table class="listtable module">
@@ -11,7 +13,12 @@
     {% for port in ports %}
         <td class="{{ port.class }}" style="{{ port.style }}" title="{{ port.title }}">
             <a href="{{ port.object.get_absolute_url }}">
-                {{ port.object.ifname }}</a>
+                {% if port.object.ifname|length >= ifname_too_long %}
+                    {{ port.object.ifname|shorten_ifname }}
+                {% else %}
+                    {{ port.object.ifname }}
+                {% endif %}
+            </a>
         </td>
         {% if ports|length|divisibleby:12 %}
             {% if forloop.counter|divisibleby:12 %}</tr><tr>{% endif %}
