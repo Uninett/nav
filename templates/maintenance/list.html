@@ -25,7 +25,14 @@
                 <a href="{% url maintenance-view task.id %}">
                     {{ task.description|truncatewords:8 }}</a>
             </td>
-            <td>{{ task.component_count }}</td>
+            <td>
+                {% if task.netbox %}
+                    <a href="{% url ipdevinfo-details-by-name task.netbox.sysname %}">
+                        {{ task.netbox.get_short_sysname }}</a>
+                {% else %}
+                    {{ task.component_count}}
+                {% endif %}
+            </td>
             <td>{{ task.author }}</td>
             <td>{{ task.state }}</td>
         </tr>

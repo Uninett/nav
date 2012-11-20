@@ -15,6 +15,7 @@
 #
 
 from datetime import datetime, date, timedelta
+import logging
 
 from django.core.urlresolvers import reverse
 from django.db import transaction, connection
@@ -25,6 +26,7 @@ from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 
 from nav.django.utils import get_account
+from nav.models.manage import Netbox
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
@@ -39,6 +41,7 @@ from nav.web.maintenance.forms import MaintenanceTaskForm
 
 INFINITY = datetime.max
 
+logger = logging.getLogger('nav.web.maintenance')
 
 def calendar(request, year=None, month=None):
     try:
@@ -92,6 +95,23 @@ def active(request):
                     MaintenanceTask.STATE_ACTIVE),
     ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
+    for task in tasks:
+        # Tasks that have only one component should show a link
+        # directly to the device instead of a number.
+        if task.component_count == 1:
+            maint_components = MaintenanceComponent.objects.filter(
+                maintenance_task=task, key='netbox')
+            if len(maint_components) == 1:
+                netbox = None
+                netbox_id = maint_components[0].value
+                try:
+                    netbox = Netbox.objects.get(pk=int(netbox_id))
+                except Exception, get_ex:
+                    logger.error('Get netbox %s failed; Exception = %s' %
+                                 (netbox_id, get_ex.message))
+                    continue
+                task.netbox = netbox
+
     return render_to_response(
         'maintenance/list.html',
         {
