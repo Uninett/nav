@@ -35,7 +35,7 @@ define([
             return this;
         },
         broadcastOrphanFilter: function () {
-            this.broker.trigger("netmap:changeCategoriesFilters", this.model);
+            this.broker.trigger("netmap:changeOrphansFilters", this.model);
         },
         setOrphansFilter: function (e) {
             this.model.set({'is_filtering_orphans': $(e.currentTarget).prop('checked')});

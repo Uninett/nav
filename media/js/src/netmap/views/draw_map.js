@@ -32,7 +32,7 @@ define([
             'map:fixNodes': 'updateAllNodePositions',
             'netmap:mapProperty:layer': 'setMapPropertyLayer',
             'netmap:changeCategoriesFilters': 'setMapPropertyCategories',
-            'netmap:changeCategoriesFilters': 'setMapPropertyOrphanFilter',
+            'netmap:changeOrphansFilters': 'setMapPropertyOrphanFilter',
             'headerFooterMinimize:trigger': 'resize'
         },
         initialize: function () {
