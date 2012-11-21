@@ -34,8 +34,7 @@ from nav.django.utils import get_account
 from nav.models.logger import LogMessage
 from nav.models.logger import ErrorError
 from nav.web.syslogger.forms import LoggerGroupSearchForm
-
-
+from nav.web.utils import create_title
 
 
 DATEFORMAT = "%Y-%m-%d %H:%M:%S"
@@ -59,6 +58,7 @@ def _strip_empty_arguments(request):
     return query
 
 def _build_context(request):
+    nav_path = [('Home', '/'), ('Syslogger', reverse('logger_index'))]
     results = []
     context = {}
     aggregates = {}
@@ -151,7 +151,8 @@ def _build_context(request):
         'aggregates': aggregates,
         'timestamp': datetime.datetime.now().strftime(DATEFORMAT),
         'domain_strip': simplejson.dumps(DOMAIN_SUFFICES),
-        'navpath': [('Home', '/'), ('Syslogger', reverse('logger_index'))]
+        'navpath': nav_path,
+        'title': create_title(nav_path)
     })
     return context
 
