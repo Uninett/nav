@@ -39,7 +39,6 @@ define([
         },
         setOrphansFilter: function (e) {
             this.model.set({'is_filtering_orphans': $(e.currentTarget).prop('checked')});
-            this.broker.trigger('map:redraw');
         },
 
         close:function () {

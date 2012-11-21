@@ -51,7 +51,7 @@ define([
             };
             this.mapProperties = this.options.mapProperties;
             this.sidebar = this.options.view_map_info;
-            this.filter_orphans = !this.mapProperties.display_orphans;
+            // !this.mapProperties.display_orphans;
 
             this.w = this.options.cssWidth;
             this.resize({width: this.w});
@@ -189,8 +189,9 @@ define([
         setMapPropertyCategories: function (categoriesCollection) {
             this.mapProperties.set({categories: categoriesCollection});
         },
-        setMapPropertyOrphanFilter: function (is_filtering_orphans) {
-            this.mapProperties.set({display_orphans: !is_filtering_orphans});
+        setMapPropertyOrphanFilter: function (orphanModel) {
+            // todo double check this.
+            this.mapProperties.set({display_orphans: !orphanModel.get('is_filtering_orphans')});
         },
         resizeAnimate: function (margin) {
             var self = this;
@@ -430,9 +431,6 @@ define([
         },
         requestRedraw: function (options) {
             if (options !== undefined) {
-                if (options.filter_orphans !== undefined) {
-                    this.filter_orphans = options.filter_orphans;
-                }
                 if (options.groupby_position !== undefined) {
                     this.groupby_position = options.groupby_position;
                 }
@@ -1109,7 +1107,7 @@ define([
                     return linkedByIndex[a.data.sysname + "," + b.data.sysname] || linkedByIndex[b.data.sysname + "," + a.data.sysname] || a.data.sysname == b.data.sysname;
                 }
 
-                if (self.filter_orphans) {
+                if (!self.mapProperties.display_orphans) {
                     for (var i = 0; i < self.modelJson.nodes.length; i++) {
                         var node = self.modelJson.nodes[i];
 
