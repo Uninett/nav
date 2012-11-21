@@ -30,7 +30,7 @@ define([
                 ]);
             }
 
-            this.collection.bind("change", this.broadcastcategoriesFilters, this)
+            this.collection.bind("change", this.broadcastcategoriesFilters, this);
             //this.model.bind("change:layer", this.updateSelection, this);
             //this.model.bind("change", this.render, this);
 
