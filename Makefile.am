@@ -1,11 +1,8 @@
-SUBDIRS = java \
-	etc \
-	sql \
-	templates \
-	python \
-	bin \
-	doc \
-	media
+if INSTALL_CONF
+    CONF_DIR = etc
+endif
+
+SUBDIRS = java $(CONF_DIR) sql templates python bin doc media 
 
 EXTRA_DIST = version.m4
 

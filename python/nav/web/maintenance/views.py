@@ -14,7 +14,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from datetime import datetime, date, timedelta
+import logging
+
+import time
+from datetime import datetime, date
 
 from django.core.urlresolvers import reverse
 from django.db import transaction, connection
@@ -25,6 +28,7 @@ from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 
 from nav.django.utils import get_account
+from nav.models.manage import Netbox
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
@@ -36,9 +40,13 @@ from nav.web.maintenance.utils import structure_component_data
 from nav.web.maintenance.utils import task_form_initial, infodict_by_state
 from nav.web.maintenance.utils import MaintenanceCalendar, NAVPATH, TITLE
 from nav.web.maintenance.forms import MaintenanceTaskForm
+from nav.web.maintenance.forms import MaintenanceAddSingleNetbox
+import nav.maintengine
 
 INFINITY = datetime.max
+LOGGER_NAME = 'nav.web.maintenance'
 
+logger = logging.getLogger(LOGGER_NAME)
 
 def calendar(request, year=None, month=None):
     try:
@@ -299,3 +307,56 @@ def edit(request, task_id=None, start_time=None):
         },
         RequestContext(request)
     )
+
+
+def add_box_to_maintenance(request):
+    """A method that should get called to set a single netbox on
+    maintenance.  This method expects to get the netbox-identity
+    (or primary key) posted in the variable 'netboxid'."""
+    before = time.clock()
+    account = get_account(request)
+    if request.method == 'POST':
+        netboxid_form = MaintenanceAddSingleNetbox(request.POST)
+        if netboxid_form.is_valid():
+            netbox_id = netboxid_form.cleaned_data['netboxid']
+            netbox = get_object_or_404(Netbox, pk=netbox_id)
+
+            # Check if device is already on maintenance
+            already_on_maint = MaintenanceComponent.objects.filter(key='netbox',
+                        value=str(netbox.id),
+                        maintenance_task__state=MaintenanceTask.STATE_ACTIVE,
+                        maintenance_task__end_time=datetime.max)
+            if len(already_on_maint) == 0:
+                # Box is not on maintenance
+                logger.debug('Adding maintenance task...')
+                maint_task = MaintenanceTask()
+                maint_task.start_time = datetime.now()
+                maint_task.end_time = INFINITY
+                descr = ("On maintenance till up again; set " +
+                        "from status page by user %s" % account.login)
+                maint_task.description = descr
+                maint_task.author = account.login
+                maint_task.state = MaintenanceTask.STATE_SCHEDULED
+                maint_task.save()
+
+                logger.debug('Maintenance task %d; Adding component %s (id=%d)' %
+                             (maint_task.id, netbox.sysname, netbox.id))
+                maint_component = MaintenanceComponent()
+                maint_component.maintenance_task = maint_task
+                maint_component.key = 'netbox'
+                maint_component.value = '%d' % netbox.id
+                maint_component.save()
+
+                logger.debug('Run maintenance checker')
+                nav.maintengine.get_logger(LOGGER_NAME)
+                nav.maintengine.check_devices_on_maintenance()
+                logger.debug('Maintenance checker finished')
+
+                logger.debug('Add netbox to maintenance finished in %.3fs' %
+                             (time.clock() - before))
+            else:
+                # What should we do here?
+                logger.error('Netbox %s (id=%d) is already on maintenance' %
+                             (netbox.sysname, netbox.id))
+    return HttpResponseRedirect(reverse('status-index'))
+
