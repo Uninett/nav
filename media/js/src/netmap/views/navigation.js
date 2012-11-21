@@ -114,23 +114,6 @@ define([
         render: function () {
             var self = this;
 
-            this.context.categories = {
-                'GSW':   false,
-                'GW':    false,
-                'SW':    false,
-                'OTHER': false,
-                'WLAN':  false,
-                'SRV':   false,
-                'EDGE':  false,
-                'ELINK': false
-            };
-            for (var i = 0; i < this.model.attributes.categories.length; i++) {
-                var category = this.model.attributes.categories[i];
-                this.context.categories[category] = true;
-            }
-            this.context.specific_filters.filter_orphans = !this.model.attributes.display_orphans;
-            this.context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
-
             var out = this.template({ model: this.context, isVisible: this.isContentVisible, isLoading: this.isLoading });
             this.$el.html(out);
 
