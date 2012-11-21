@@ -190,7 +190,6 @@ define([
             this.mapProperties.set({categories: categoriesCollection});
         },
         setMapPropertyOrphanFilter: function (orphanModel) {
-            // todo double check this.
             this.mapProperties.set({display_orphans: !orphanModel.get('is_filtering_orphans')});
         },
         resizeAnimate: function (margin) {
@@ -1107,7 +1106,7 @@ define([
                     return linkedByIndex[a.data.sysname + "," + b.data.sysname] || linkedByIndex[b.data.sysname + "," + a.data.sysname] || a.data.sysname == b.data.sysname;
                 }
 
-                if (!self.mapProperties.display_orphans) {
+                if (!self.mapProperties.get('display_orphans')) {
                     for (var i = 0; i < self.modelJson.nodes.length; i++) {
                         var node = self.modelJson.nodes[i];
 
