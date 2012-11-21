@@ -34,6 +34,8 @@ define([
             this.categoriesView = null;
             this.orphansView = null;
             this.positionView = null;
+            this.layerView = null;
+            this.algorithmView = null;
 
             this.isContentVisible = true;
             this.broker.register(this);
@@ -100,8 +102,6 @@ define([
             };
             this.isLoading = !!(this.options.isLoading);
 
-            this.layer_toggler = null;
-
         },
         setLoading: function (state) {
             this.isLoading = state;
@@ -117,45 +117,22 @@ define([
             var out = this.template({ model: this.context, isVisible: this.isContentVisible, isLoading: this.isLoading });
             this.$el.html(out);
 
-            if (this.layer_toggler) {
-                this.layer_toggler.close();
-            }
-
-            if (this.layer_toggler) {
-                this.layer_toggler.setElement($('#layer_view', this.$el));
-                this.layer_toggler.render();
-            } else {
-                this.layer_toggler = new LayerView({el: $('#layer_view', this.$el)}).render();
-            }
-
-            if (this.categoriesView) {
-                this.categoriesView.close();
-            }
-
-            if (this.categoriesView) {
-                this.categoriesView.setElement($('#categories_view', this.$el));
-                this.categoriesView.render();
-            } else {
-                this.categoriesView = new CategoryView({el: $('#categories_view', this.$el)}).render();
-            }
-
-            if (this.orphansView) {
-                this.orphansView.setElement($('#orphan_view', this.$el));
-                this.orphansView.render();
-            } else {
-                this.orphansView = new OrphanView({el: $('#orphan_view', this.$el)});
-            }
-
-            if (this.positionView) {
-                this.positionView.setElement($('#position_view', this.$el));
-                this.positionView.render();
-            } else {
-                this.positionView = new PositionView({el: $('#position_view', this.$el)});
-            }
-
-            new AlgorithmView({el: $('#algorithm_view', this.$el)}).render();
+            this.layerView = this.attachSubView(this.layerView, LayerView, '#layer_view');
+            this.categoriesView = this.attachSubView(this.categoriesView, CategoryView, '#categories_view');
+            this.orphansView = this.attachSubView(this.orphansView, OrphanView, '#orphan_view');
+            this.positionView = this.attachSubView(this.positionView, PositionView, '#position_view');
+            this.algorithmView = this.attachSubView(this.algorithmView, AlgorithmView, '#algorithm_view');
 
             return this;
+        },
+        attachSubView: function (view, viewClass, element_id) {
+            if (view) {
+                view.setElement($(element_id, this.$el));
+                view.render();
+            } else {
+                view = new viewClass({el: $(element_id, this.$el)});
+            }
+            return view;
         },
         alignView: function () {
             var $helper = $(this.$el.parent());
@@ -239,7 +216,7 @@ define([
             this.render();
         },
         close:function () {
-            this.layer_toggler.close();
+            this.layerView.close();
             $(document).unbind('keypress', 'on_keypress');
             this.broker.unregister(this);
             $(this.el).unbind();
