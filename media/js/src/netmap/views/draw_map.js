@@ -33,6 +33,7 @@ define([
             'netmap:mapProperty:layer': 'setMapPropertyLayer',
             'netmap:changeCategoriesFilters': 'setMapPropertyCategories',
             'netmap:changeOrphansFilters': 'setMapPropertyOrphanFilter',
+            'netmap:changePositionFilter': 'setMapPropertyPositionFilter',
             'headerFooterMinimize:trigger': 'resize'
         },
         initialize: function () {
@@ -191,6 +192,11 @@ define([
         },
         setMapPropertyOrphanFilter: function (orphanModel) {
             this.mapProperties.set({display_orphans: !orphanModel.get('is_filtering_orphans')});
+        },
+        setMapPropertyPositionFilter: function (positionCollection) {
+            this.mapProperties.set({'position': positionCollection});
+            this.clear();
+            this.render();
         },
         resizeAnimate: function (margin) {
             var self = this;
@@ -430,9 +436,6 @@ define([
         },
         requestRedraw: function (options) {
             if (options !== undefined) {
-                if (options.groupby_position !== undefined) {
-                    this.groupby_position = options.groupby_position;
-                }
                 if (options.topologyErrors !== undefined) {
                     this.ui.topologyErrors = options.topologyErrors;
                 }
@@ -649,11 +652,11 @@ define([
                 var groupByPosition = function () {
                     var groupBy = null;
 
-                    if (self.groupby_position === 'room') {
+                    if (self.mapProperties.get('position').get('room').get('is_selected')) {
                         groupBy = self.modelJson.nodes.filter(function (d) {
                             return d.data.roomid === self.selected_node.data.roomid
                         });
-                    } else if (self.groupby_position === 'location') {
+                    } else if (self.mapProperties.get('position').get('location').get('is_selected')) {
                         groupBy = self.modelJson.nodes.filter(function (d) {
                             return d.data.locationid === self.selected_node.data.locationid
                         });
@@ -677,7 +680,7 @@ define([
                         .attr("r", 34);
                     self.nodesInRoom.exit().remove();
                 };
-                if (self.groupby_position && self.selected_node!==null) {
+                if (self.selected_node!==null) {
                     groupByPosition();
                 }
                 //spinner.stop();
@@ -875,7 +878,7 @@ define([
                     //var netbox_info = new NetboxInfoView({node: node});
                     self.selected_node = node;
 
-                    if (self.groupby_position) {
+                    if (self.mapProperties.get('position').has_targets()) {
                         groupByPosition();
                     }
 

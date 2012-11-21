@@ -1,7 +1,8 @@
 define([
     'netmap/collections/categories',
+    'netmap/collections/position',
     'libs/backbone'
-], function (CategoryCollection) {
+], function (CategoryCollection, PositionCollection) {
     var netmapModel = Backbone.Model.extend({
         idAttribute: "viewid",
         defaults: {
@@ -22,7 +23,13 @@ define([
                 {name: "ELINK", 'is_selected': false}
             ]),
             zoom: "0,0;0.5",
-            display_orphans: false
+            display_orphans: false,
+            /* properties that does not get saved */
+            position: new PositionCollection([
+                {marking: "none", is_selected: true},
+                {marking: "room"},
+                {marking: "location"}
+            ])
         },
         initialize: function () {
         },

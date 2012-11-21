@@ -10,20 +10,7 @@
 
     <div id="orphan_view"></div>
 
-    <h4>Mark by position</h4>
-
-    <div class="squaredTwo">
-        <input name="group_position[]" type="radio" value="none" id="position_none" {{#if model.specific_filters.position.none}} checked{{/if}}  {{#if isLoading}}disabled='disabled'{{/if}} />
-        <label for="position_none">None</label>
-    </div>
-    <div class="squaredTwo">
-        <input name="group_position[]" type="radio" value="room" id="position_room" {{#if model.specific_filters.position.room}} checked{{/if}}  {{#if isLoading}}disabled='disabled'{{/if}} />
-        <label for="position_room">Room</label>
-    </div>
-    <div class="squaredTwo">
-        <input name="group_position[]" type="radio" value="location" id="position_location" {{#if model.specific_filters.position.location}} checked{{/if}}  {{#if isLoading}}disabled='disabled'{{/if}} />
-        <label for="position_location">Location</label>
-    </div>
+    <div id="position_view"></div>
 
     <div id="algorithm_view"></div>
 

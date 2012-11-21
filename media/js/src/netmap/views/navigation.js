@@ -6,13 +6,14 @@ define([
     'netmap/views/layer_toggler',
     'netmap/views/categories_toggler',
     'netmap/views/orphans_toggler',
+    'netmap/views/position_toggler',
     'netmap/views/algorithm_toggler',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, CategoryView, OrphanView, AlgorithmView) {
+], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
@@ -23,7 +24,6 @@ define([
         },
         events: {
             'click #toggle_view':      'toggleView',
-            'click input[name="group_position[]"]': 'onGroupByPositionClick',
             'click input[name="mouseOver[]"]': 'onUIMouseOverClick',
             'click input[name="topologyErrors"]': 'onUITopologyErrorsClick',
             'click input[name="nodesFixed"]': 'onNodesFixedClick',
@@ -33,6 +33,7 @@ define([
             this.gradientView = null;
             this.categoriesView = null;
             this.orphansView = null;
+            this.positionView = null;
 
             this.isContentVisible = true;
             this.broker.register(this);
@@ -162,8 +163,15 @@ define([
                 this.orphansView = new OrphanView({el: $('#orphan_view', this.$el)});
             }
 
+            if (this.positionView) {
+                this.positionView.setElement($('#position_view', this.$el));
+                this.positionView.render();
+            } else {
+                this.positionView = new PositionView({el: $('#position_view', this.$el)});
+            }
+
             new AlgorithmView({el: $('#algorithm_view', this.$el)}).render();
-            console.log("navigation render()");
+
             return this;
         },
         alignView: function () {
@@ -202,19 +210,6 @@ define([
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
             this.broker.trigger('map:resize:animate', {marginLeft: margin});
-        },
-        onGroupByPositionClick: function (e) {
-            e.stopPropagation();
-            var val = $(e.currentTarget).val().trim();
-
-            // haha…  here there be dragons. Cute shoulder dragons
-            this.context.specific_filters.position.location = false;
-            this.context.specific_filters.position.room = false;
-            this.context.specific_filters.position.none = false;
-            this.context.specific_filters.position[val] = true;
-            this.broker.trigger('map:redraw', {
-                groupby_position: val
-            });
         },
         onUIMouseOverClick: function (e) {
             this.context.ui.mouseover[$(e.currentTarget).val()].state = $(e.currentTarget).prop('checked');
