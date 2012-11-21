@@ -98,7 +98,7 @@ require([
             var suffixes = JSON.parse($('#domain_strip').text());
             stripDomainSuffixOrigin($('#id_origin option'), suffixes);
             updateFormFromRequestArguments();
-            attachButtonListeners()
+            attachButtonListeners();
         }
     }
 
