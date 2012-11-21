@@ -180,7 +180,7 @@ require([
     }
 
     function showLogIfEnoughFilteringEnabled(target) {
-        var matches = {}
+        var matches = {};
         $('#syslog_search_form select option:selected').each(function (index, value) {
             if ($(value).val()) {
                 matches[$(value).parent().attr('name')] = true;
