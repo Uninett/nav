@@ -225,7 +225,7 @@ require([
                 searchSyslog(target);
 
             });
-            attachButtonListeners()
+            attachButtonListeners();
         }).error(function (data) {
                 $('.results').html("<p>Failed to load search results, please try again</p>");
         }).complete(function () {
