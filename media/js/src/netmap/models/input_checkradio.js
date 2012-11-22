@@ -1,7 +1,7 @@
 define([
     'libs/backbone'
 ], function () {
-    var CategoryModel = Backbone.Model.extend({
+    var CheckRadioModel = Backbone.Model.extend({
         idAttribute: "name",
         defaults: {
             name: null,
@@ -10,6 +10,6 @@ define([
         initialize: function () {
         }
     });
-    return CategoryModel;
+    return CheckRadioModel;
 
 });
