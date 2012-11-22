@@ -8,12 +8,13 @@ define([
     'netmap/views/orphans_toggler',
     'netmap/views/position_toggler',
     'netmap/views/algorithm_toggler',
+    'netmap/views/mouseover_toggler',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView) {
+], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView, MouseOverView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
@@ -24,7 +25,6 @@ define([
         },
         events: {
             'click #toggle_view':      'toggleView',
-            'click input[name="mouseOver[]"]': 'onUIMouseOverClick',
             'click input[name="topologyErrors"]': 'onUITopologyErrorsClick',
             'click input[name="nodesFixed"]': 'onNodesFixedClick',
             'click input[name="trafficGradient"]': 'onTrafficGradientClick'
@@ -122,6 +122,7 @@ define([
             this.orphansView = this.attachSubView(this.orphansView, OrphanView, '#orphan_view');
             this.positionView = this.attachSubView(this.positionView, PositionView, '#position_view');
             this.algorithmView = this.attachSubView(this.algorithmView, AlgorithmView, '#algorithm_view');
+            this.mouseOverView = this.attachSubView(this.mouseOverView, MouseOverView, '#mouseover_view');
 
             return this;
         },
@@ -170,11 +171,6 @@ define([
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
             this.broker.trigger('map:resize:animate', {marginLeft: margin});
-        },
-        onUIMouseOverClick: function (e) {
-            this.context.ui.mouseover[$(e.currentTarget).val()].state = $(e.currentTarget).prop('checked');
-            this.broker.trigger('map:ui:mouseover:'+$(e.currentTarget).val(), $(e.currentTarget).prop('checked'));
-            //this.render();
         },
         onUITopologyErrorsClick: function (e) {
             this.context.ui.topology_errors = $(e.currentTarget).prop('checked');
