@@ -19,14 +19,17 @@ import re
 
 from django import forms
 from nav.web.macwatch.models import MacWatch
+from nav.web.macwatch.utils import add_zeros_to_mac_addr
 
 class MacWatchForm(forms.Form):
+    """A class to clean and sanitize input-data for macwatch."""
     macaddress = forms.CharField(max_length=17)
     description = forms.CharField(max_length=200, required=False)
 
     def clean_macaddress(self):
         """ Validate macaddress """
         macaddress = self.cleaned_data.get('macaddress','')
+        macaddress = add_zeros_to_mac_addr(macaddress)
 
         # Filter : which is a common separator for mac addresses
         filteredmacaddress = re.sub(":", "", macaddress)
