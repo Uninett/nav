@@ -1,8 +1,8 @@
-<h3>{{ title }}</h3>
+<h3>{{ title }} {{#if title_help }}<img class="float-right" title="{{title_help}}" src="/images/helpers/question.png" />{{/if}}</h3>
 
 {{#each collection}}
 <div>
-    <input type="{{type}}" name="{{identifier}}[]" value="{{this.name}}" id="{{identifier}}_{{this.name}}" {{#if this.is_selected}} checked{{/if}} />
-    <label for="{{identifier}}_{{this.name}}">{{this.name}}</label>
+    <input type="{{../type}}" name="{{../identifier}}[]" value="{{this.name}}" id="{{../identifier}}_{{this.name}}" {{#if this.is_selected}} checked{{/if}} />
+    <label for="{{../identifier}}_{{this.name}}">{{this.name}}</label>
 </div>
 {{/each}}
