@@ -23,19 +23,18 @@ from nav.web.macwatch.utils import add_zeros_to_mac_addr
 
 class MacWatchForm(forms.Form):
     """A class to clean and sanitize input-data for macwatch."""
+    prefix_length = 0
     macaddress = forms.CharField(max_length=17)
     description = forms.CharField(max_length=200, required=False)
 
     def clean_macaddress(self):
         """ Validate macaddress """
         macaddress = self.cleaned_data.get('macaddress','')
-        macaddress = add_zeros_to_mac_addr(macaddress)
+        (filteredmacaddress, self.prefix_len) = add_zeros_to_mac_addr(macaddress)
 
-        # Filter : which is a common separator for mac addresses
-        filteredmacaddress = re.sub(":", "", macaddress)
-
-        if not re.match("[a-fA-F0-9]{12}$", filteredmacaddress):
-            raise forms.ValidationError("Wrong format on mac address.")
+        if self.prefix_len == 0:
+            raise forms.ValidationError(
+                "Illegal values or format for mac address.")
 
         if int(MacWatch.objects.filter(mac=filteredmacaddress).count()) > 0:
             raise forms.ValidationError("This mac address is already watched.")
