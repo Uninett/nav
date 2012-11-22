@@ -1,9 +1,9 @@
 define([
-    'netmap/models/category',
+    'netmap/models/input_checkradio',
     'libs/backbone'
-], function (categoryModel) {
+], function (Model) {
     var CategoryCollection = Backbone.Collection.extend({
-        model: categoryModel,
+        model: Model,
         //url: 'api/categories',
         initialize: function () {
 
