@@ -113,6 +113,12 @@ threshold.serverError = function(){
 };
 
 threshold.ajaxError = function( request, ErrMessage, errType){
+
+    // In this file, the ajaxError() from addGlobalAjaxHandlers is overwritten,
+    // and we must add it manually here. (Not cool..)
+    if(request.status == 401) {
+        window.location = '/index/login/?origin=' + encodeURIComponent(window.location.href);
+    }
     var errMsg = 'Error: ' + errMessage + '; ' + errType;
     threshold.updateMessages(errMsg, true);
     return -1;
@@ -587,6 +593,7 @@ threshold.bulkUpdateThresholds = function(btn){
 };
 
 $(document).ready(function(){
+    NAV.addGlobalAjaxHandlers();
     $('select.#descr').change(function(){
         var sval = $(this).val();
         if(sval == 'empty'){
