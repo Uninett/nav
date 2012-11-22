@@ -71,7 +71,7 @@ AC_ARG_ENABLE(install-conf,
             [CONF_FILES="$enableval"],
             [CONF_FILES="yes"])
 
-AC_MSG_RESULT($CONF_FILES)
+AC_MSG_RESULT(Install config-files... $CONF_FILES)
 
 AM_CONDITIONAL([INSTALL_CONF], [test "x$CONF_FILES" = "xyes"])
 
