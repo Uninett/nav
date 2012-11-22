@@ -5,7 +5,7 @@ define([
         idAttribute: "name",
         defaults: {
             name: null,
-            is_selected: true
+            is_selected: false
         },
         initialize: function () {
         }
