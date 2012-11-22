@@ -1,6 +1,6 @@
 define([
     'netmap/collections/categories',
-    'netmap/models/category',
+    'netmap/models/input_checkradio',
     'libs-amd/text!netmap/templates/categories_toggler.html',
     'libs/handlebars',
     'libs/jquery',
