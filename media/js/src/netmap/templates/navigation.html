@@ -28,14 +28,7 @@
         <label for="topologyErrors">Show topology errors</label>
     </div>
 
-    <h4>Mouseover <img class="float-right" title="Enable &quot;auto clicking&quot; when hovering a node or a link" src="/images/helpers/question.png" /></h4>
-
-    {{#eachkeys model.ui.mouseover}}
-        <div class="squaredTwo">
-            <input type="checkbox" name="mouseOver[]" value="{{this.key}}" id="mouseOver_{{this.key}}" {{#if this.value.state}} checked{{/if}}   {{#if ../isLoading}}disabled='disabled'{{/if}}/>
-            <label for="mouseOver_{{this.key}}">{{this.key}} [{{this.value.hotkey}}]</label>
-        </div>
-    {{/eachkeys}}
+    <div id="mouseover_view"></div>
 
     <h4>Traffic gradient</h4>
     <div class="squaredTwo">
