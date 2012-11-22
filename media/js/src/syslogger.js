@@ -179,7 +179,7 @@ require([
         if (request.show_log) { setSelectedCheckbox('show_log', request.show_log); }
     }
 
-    function showLogIfEnoughFilteringEnabled(target) {
+    function showLogIfEnoughFilteringEnabled() {
         var matches = {};
         $('#syslog_search_form select option:selected').each(function (index, value) {
             if ($(value).val()) {
@@ -189,9 +189,11 @@ require([
 
         if ((matches.facility && matches.priority && matches.mnemonic) ||
             (matches.origin && matches.priority)) {
-            $("#id_show_log").attr('checked', 'checked');
-            searchSyslog(target);
+            showLog();
         }
+    }
+    function showLog() {
+        $("#id_show_log").attr('checked', 'checked');
     }
 
     function searchSyslog(target) {
@@ -220,8 +222,11 @@ require([
                 if (data.priority) {
                     checkDataAndUpdateSelection('priority', data.priority);
                 }
-
-                showLogIfEnoughFilteringEnabled(target);
+                if (data.show_log) {
+                    showLog();
+                } else {
+                    showLogIfEnoughFilteringEnabled();
+                }
                 searchSyslog(target);
 
             });
