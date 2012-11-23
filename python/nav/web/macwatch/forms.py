@@ -27,7 +27,7 @@ from nav.web.macwatch.utils import add_zeros_to_mac_addr
 
 class MacWatchForm(forms.Form):
     """A class to clean and sanitize input-data for macwatch."""
-    prefix_length = 0
+    prefix_length = None
     macaddress = forms.CharField(max_length=17)
     description = forms.CharField(max_length=200, required=False)
 
@@ -41,8 +41,13 @@ class MacWatchForm(forms.Form):
         if len(filteredmacaddress) > MAC_ADDR_MAX_LEN:
             raise forms.ValidationError("Mac address is too long")
 
-        # Number of nybbles,- since prefix may get specified in nybbles.
-        self.prefix_length = len(filteredmacaddress)
+        # Number hex-digits (or so-called nybbles),- since prefix may
+        # get specified in hex-digits.
+        # Set when a mac-address prefix is given.
+        addr_len = len(filteredmacaddress)
+        if (addr_len >= MAC_ADDR_MIN_LEN and addr_len < MAC_ADDR_MAX_LEN):
+            self.prefix_length = addr_len
+
         filteredmacaddress = add_zeros_to_mac_addr(filteredmacaddress)
 
         if not has_legal_values(filteredmacaddress):

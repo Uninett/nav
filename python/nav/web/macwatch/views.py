@@ -59,6 +59,8 @@ def add_macwatch(request):
             m = MacWatch(mac=macwatchform.cleaned_data['macaddress'],
                         userid=account,
                         description=macwatchform.cleaned_data['description'])
+            if macwatchform.prefix_length:
+                m.prefix_length = macwatchform.prefix_length
             m.save()
             return HttpResponseRedirect('/macwatch/')
         else:
