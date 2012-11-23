@@ -18,23 +18,35 @@
 import re
 
 LEGAL_MAC_ADDRESS = re.compile('^[a-fA-F0-9]{12}$')
+
+# Max number of nybbles in a mac-address.
 MAC_ADDR_MAX_LEN = 12
+# Minimum number of nybbles for a mac-address prefix
 MAC_ADDR_MIN_LEN = 6
 
+def strip_delimiters(mac_address):
+    """Strip delimiters from mac-address.  Legal delimiters
+    are '-' and ':'"""
+    return re.sub('-', '', re.sub(':', '', mac_address))
+
+def has_legal_values(mac_address):
+    """Check if the given mac-addres consists for legal
+    hex-numbers.  The mac-address must be stripped for
+    delimiters before calling this functiom."""
+    if not LEGAL_MAC_ADDRESS.match(mac_address):
+        return False
+    return True
+
 def add_zeros_to_mac_addr(mac_address):
-    """Add zeroes at the end of a mac-address if the given mac-address
-    has less than 6 octets.
-    The mac-address must contain at least 3 octets as a vendor-prefix."""
-    result_address = re.sub('-', '', re.sub(':', '', mac_address))
-    prefix_len = len(result_address)
-    if prefix_len < MAC_ADDR_MIN_LEN or prefix_len > MAC_ADDR_MAX_LEN:
-        return (mac_address, 0)
+    """Add zeroes at the end of a mac-address if the given
+    mac-address has less than 6 octets.
+    The mac-address given as parameter will not get checked
+    if it only contains legal hex-numbers."""
+    prefix_len = len(mac_address)
     if prefix_len < MAC_ADDR_MAX_LEN:
         idx = prefix_len
         while idx < MAC_ADDR_MAX_LEN:
-            result_address += '0'
+            mac_address += '0'
             idx += 1
-    if not LEGAL_MAC_ADDRESS.match(result_address):
-        return (mac_address, 0)
-    return (result_address, prefix_len)
+    return mac_address
 

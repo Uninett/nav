@@ -15,11 +15,15 @@
 #
 """macwatch form definitions"""
 
-import re
 
 from django import forms
 from nav.web.macwatch.models import MacWatch
+from nav.web.macwatch.utils import MAC_ADDR_MAX_LEN
+from nav.web.macwatch.utils import MAC_ADDR_MIN_LEN
+from nav.web.macwatch.utils import strip_delimiters
+from nav.web.macwatch.utils import has_legal_values
 from nav.web.macwatch.utils import add_zeros_to_mac_addr
+
 
 class MacWatchForm(forms.Form):
     """A class to clean and sanitize input-data for macwatch."""
@@ -30,9 +34,18 @@ class MacWatchForm(forms.Form):
     def clean_macaddress(self):
         """ Validate macaddress """
         macaddress = self.cleaned_data.get('macaddress','')
-        (filteredmacaddress, self.prefix_len) = add_zeros_to_mac_addr(macaddress)
 
-        if self.prefix_len == 0:
+        filteredmacaddress = strip_delimiters(macaddress)
+        if len(filteredmacaddress) < MAC_ADDR_MIN_LEN:
+            raise forms.ValidationError("Mac address/prefix is too short")
+        if len(filteredmacaddress) > MAC_ADDR_MAX_LEN:
+            raise forms.ValidationError("Mac address is too long")
+
+        # Number of nybbles,- since prefix may get specified in nybbles.
+        self.prefix_length = len(filteredmacaddress)
+        filteredmacaddress = add_zeros_to_mac_addr(filteredmacaddress)
+
+        if not has_legal_values(filteredmacaddress):
             raise forms.ValidationError(
                 "Illegal values or format for mac address.")
 
