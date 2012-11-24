@@ -12,7 +12,6 @@ INSERT INTO macwatch_match (macwatch, camid, posted)
   WHERE camid IS NOT NULL;
 
 ALTER TABLE macwatch ADD COLUMN prefix_length INT DEFAULT NULL;
-ALTER TABLE macwatch ALTER COLUMN userid SET NOT NULL;
 ALTER TABLE macwatch ADD CONSTRAINT macwatch_unique_mac UNIQUE (mac);
 ALTER TABLE macwatch DROP COLUMN camid;
 ALTER TABLE macwatch DROP COLUMN posted;
