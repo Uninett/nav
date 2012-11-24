@@ -2,11 +2,11 @@
 CREATE TABLE macwatch_match(
   id SERIAL PRIMARY KEY,
   macwatch INT NOT NULL REFERENCES macwatch(id) ON DELETE CASCADE ON UPDATE CASCADE,
-  camid INT NOT NULL REFERENCES cam(camid) ON DELETE CASCADE ON UPDATE CASCADE,
+  cam INT NOT NULL REFERENCES cam(camid) ON DELETE CASCADE ON UPDATE CASCADE,
   posted TIMESTAMP DEFAULT NOW()
 );
 
-INSERT INTO macwatch_match (macwatch, camid, posted)
+INSERT INTO macwatch_match (macwatch, cam, posted)
   SELECT id, camid, posted
     FROM macwatch
   WHERE camid IS NOT NULL;

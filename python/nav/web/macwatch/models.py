@@ -48,12 +48,12 @@ class MacWatchMatch(models.Model):
     only has a mac-adress prefix"""
     id = models.AutoField(db_column='id', primary_key=True)
     macwatch = models.ForeignKey(MacWatch, db_column='macwatch', null=False)
-    camid = models.ForeignKey(Cam, db_column='camid', null=False)
+    cam = models.ForeignKey(Cam, db_column='cam', null=False)
     posted = models.DateTimeField(db_column='posted', auto_now_add=True)
 
     class Meta:
         db_table = u'macwatch_match'
 
     def __unicode__(self):
-        return (u'id=%d; macwatch=%d; camid=%d; posted=%s' %
-                (self.id, self.macwatch, self.camid, str(self.posted)))
+        return (u'id=%d; macwatch = %d; cam = %d; posted = %s' %
+                (self.id, self.macwatch, self.cam, str(self.posted)))

@@ -37,10 +37,13 @@ from nav.web.macwatch.models import MacWatchMatch
 LOGFILE = join(nav.buildconf.localstatedir, "log/macwatch.log")
 # Loglevel (case-sensitive), may be:
 # DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOGLEVEL = 'INFO'
+LOGLEVEL = 'DEBUG'
 
 # Max number of nybbles in a mac-address.
 MAC_ADDR_MAX_LEN = 12
+# Used for filling in a max adddress value when
+# only a prefix is given.
+MAC_ADDR_MAX_VAL = 'ffffffffffff'
 
 # Occurences of the mac-address nearest to the edges has highest
 # priority
@@ -133,16 +136,15 @@ def make_upper_mac_addr(mac_addr, last_pos):
     """Replace all nybbles in a mac-address with
     'f' from a specified index."""
     filtered_macaddr = strip_delimiters(mac_addr)
-    full_mac_addr = filtered_macaddr[0:last_pos]
-    idx = last_pos
-    while idx < MAC_ADDR_MAX_LEN:
-        full_mac_addr += 'f'
-        idx += 1
+    full_mac_addr = filtered_macaddr
+    if last_pos < MAC_ADDR_MAX_LEN:
+        full_mac_addr = (filtered_macaddr[0:last_pos]
+                        + MAC_ADDR_MAX_VAL[last_pos:])
     return insert_addr_delimiters(full_mac_addr)
 
 
 def find_the_latest(macwatch_matches):
-    """Find the latest that have posted an event"""
+    """Find the match that have posted an event latest"""
     latest_time = datetime.min
     match_to_keep = None
     for macwatch_match in macwatch_matches:
@@ -154,8 +156,8 @@ def find_the_latest(macwatch_matches):
 
 
 def delete_unwanted_matches(macwatch_matches, logger):
-    """Delete unwanted matches, but keep the latest if
-    the latest is found"""
+    """Delete unwanted matches, but keep the match
+    that have posted an event latest in time."""
     match_to_keep = find_the_latest(macwatch_matches)
     for macwatch_match in macwatch_matches:
         if (match_to_keep and
@@ -186,8 +188,8 @@ def main():
         if mac_watch.prefix_length:
             upper_mac_addr = make_upper_mac_addr(mac_watch.mac,
                 mac_watch.prefix_length)
-            logger.debug('Mac-addresses; prefix = %s and upper mac = %s' %
-                         (mac_watch.mac, upper_mac_addr))
+            logger.debug('Mac-addresses; prefix = %s and upper mac = %s'
+                        % (mac_watch.mac, upper_mac_addr))
             cam_objects = Cam.objects.filter(mac__gte=mac_watch.mac,
                                             mac__lte=upper_mac_addr,
                                             end_time=datetime.max,
@@ -206,7 +208,7 @@ def main():
         # cam now contains one tuple from the cam-table
 
         macwatch_matches = MacWatchMatch.objects.filter(
-            macwatch=mac_watch, camid=cam)
+            macwatch=mac_watch, cam=cam)
 
         # Check if the mac-address has moved since last time, continue with
         # next mac if not.
@@ -217,7 +219,7 @@ def main():
 
         if len(macwatch_matches) > 1:
             # Something strange has happened, delete all but
-            # the latest that has posted an event.
+            # the match that has posted an event latest in time.
             logger.info('%d matches found for macwatch = %d' %
                         (len(macwatch_matches), mac_watch.id))
             delete_unwanted_matches(macwatch_matches, logger)
@@ -229,7 +231,7 @@ def main():
         if post_event(mac_watch, cam, logger):
             logger.info("Event posted for macwatch = %d" % mac_watch.id)
             new_macwatch_match = MacWatchMatch(macwatch=mac_watch,
-                camid=cam, posted=datetime.now())
+                cam=cam, posted=datetime.now())
             new_macwatch_match.save()
         else:
             logger.warning("Failed to post event, no alert will be given.")
