@@ -37,7 +37,7 @@ from nav.web.macwatch.models import MacWatchMatch
 LOGFILE = join(nav.buildconf.localstatedir, "log/macwatch.log")
 # Loglevel (case-sensitive), may be:
 # DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOGLEVEL = 'DEBUG'
+LOGLEVEL = 'INFO'
 
 # Max number of nybbles in a mac-address.
 MAC_ADDR_MAX_LEN = 12
