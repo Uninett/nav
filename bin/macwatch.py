@@ -202,39 +202,46 @@ def main():
             logger.info("%s is not active", mac_watch.mac)
             continue
 
-        logger.debug('Cam-objects length %d; cam-objects = %s' %
-                    (len(cam_objects), str(cam_objects)))
-        cam = prioritize_location(cam_objects, logger)
-        # cam now contains one tuple from the cam-table
+        cam_by_mac = {}
+        for cam_obj in cam_objects:
+            if not cam_obj.mac in cam_by_mac:
+                cam_by_mac[cam_obj.mac] = []
+            cam_by_mac[cam_obj.mac].append(cam_obj)
 
-        macwatch_matches = MacWatchMatch.objects.filter(
-            macwatch=mac_watch, cam=cam)
+        for key, cams in cam_by_mac.iteritems():
+            logger.debug('Cam-objects length %d; cam-objects = %s' %
+                    (len(cams), str(cams)))
+            cam = prioritize_location(cams, logger)
+            # cam now contains one tuple from the cam-table
 
-        # Check if the mac-address has moved since last time, continue with
-        # next mac if not.
-        if len(macwatch_matches) == 1:
-            logger.info("Mac-address is active, but have not moved " +
+            macwatch_matches = MacWatchMatch.objects.filter(
+                macwatch=mac_watch, cam=cam)
+
+            # Check if the mac-address has moved since last time, continue with
+            # next mac if not.
+            if len(macwatch_matches) == 1:
+                logger.info("Mac-address is active, but have not moved " +
                         "since last check")
-            continue
+                continue
 
-        if len(macwatch_matches) > 1:
-            # Something strange has happened, delete all but
-            # the match that has posted an event latest in time.
-            logger.info('%d matches found for macwatch = %d' %
+            if len(macwatch_matches) > 1:
+                # Something strange has happened, delete all but
+                # the match that has posted an event latest in time.
+                logger.info('%d matches found for macwatch = %d' %
                         (len(macwatch_matches), mac_watch.id))
-            delete_unwanted_matches(macwatch_matches, logger)
-            continue
+                delete_unwanted_matches(macwatch_matches, logger)
+                continue
 
-        # Mac has moved (or appeared). Post event on eventq
-        logger.info("%s has appeared on %s (%s:%s)" %
-            (cam.mac, cam.sysname, cam.module, cam.port))
-        if post_event(mac_watch, cam, logger):
-            logger.info("Event posted for macwatch = %d" % mac_watch.id)
-            new_macwatch_match = MacWatchMatch(macwatch=mac_watch,
-                cam=cam, posted=datetime.now())
-            new_macwatch_match.save()
-        else:
-            logger.warning("Failed to post event, no alert will be given.")
+            # Mac has moved (or appeared). Post event on eventq
+            logger.info("%s has appeared on %s (%s:%s)" %
+                (cam.mac, cam.sysname, cam.module, cam.port))
+            if post_event(mac_watch, cam, logger):
+                logger.info("Event posted for macwatch = %d" % mac_watch.id)
+                new_macwatch_match = MacWatchMatch(macwatch=mac_watch,
+                    cam=cam, posted=datetime.now())
+                new_macwatch_match.save()
+            else:
+                logger.warning("Failed to post event, no alert will be given.")
 
     logger.info("--> Done checking for macs in %s seconds <--" %
                 str(time.clock()))
