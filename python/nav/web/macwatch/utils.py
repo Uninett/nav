@@ -23,11 +23,16 @@ LEGAL_MAC_ADDRESS = re.compile('^[a-fA-F0-9]{12}$')
 MAC_ADDR_MAX_LEN = 12
 # Minimum number of nybbles for a mac-address prefix
 MAC_ADDR_MIN_LEN = 6
+# Minimum value for a mac-address, used for appending
+# zeroes to prefix.
+MAC_ADDR_MIN_VAL = '000000000000'
+
 
 def strip_delimiters(mac_address):
     """Strip delimiters from mac-address.  Legal delimiters
     are '-' and ':'"""
     return re.sub('-', '', re.sub(':', '', mac_address))
+
 
 def has_legal_values(mac_address):
     """Check if the given mac-addres consists for legal
@@ -37,6 +42,7 @@ def has_legal_values(mac_address):
         return False
     return True
 
+
 def add_zeros_to_mac_addr(mac_address):
     """Add zeroes at the end of a mac-address if the given
     mac-address has less than 6 octets.
@@ -44,9 +50,5 @@ def add_zeros_to_mac_addr(mac_address):
     if it only contains legal hex-numbers."""
     prefix_len = len(mac_address)
     if prefix_len < MAC_ADDR_MAX_LEN:
-        idx = prefix_len
-        while idx < MAC_ADDR_MAX_LEN:
-            mac_address += '0'
-            idx += 1
+        mac_address += MAC_ADDR_MIN_VAL[prefix_len:]
     return mac_address
-
