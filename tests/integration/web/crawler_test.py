@@ -41,7 +41,7 @@ BLACKLISTED_PATHS = [
 if not HOST_URL:
     pytest.skip(msg="Missing environment variable TARGETURL (ADMINUSERNAME, ADMINPASSWORD) , skipping crawler tests!")
 
-TIMEOUT = 30
+TIMEOUT = 90
 HOST = urlparse.urlsplit(HOST_URL).hostname
 
 seen_paths = {}
