@@ -390,9 +390,10 @@ class Graph(object):
                 self._get_image_filename(randomid)))
         except rrdtool.error, error:
             _LOGGER.error(error)
+        else:
+            return '/rrd/image=%s/' % str(randomid)
 
         self._cleanup()
-        return '/rrd/image=%s/' % str(randomid)
 
     def _get_graph_args(self, image_filename):
         """Construct all arguments used to create the graph"""

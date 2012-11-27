@@ -85,8 +85,12 @@ def create_prefix_graph(request, prefixid):
                 # max are equal in size
                 graph.add_argument("COMMENT:   ")
 
-    json = simplejson.dumps({'url': graph.get_url()})
-    return HttpResponse(json, mimetype='application/json')
+    graphurl = graph.get_url()
+    if graphurl:
+        json = simplejson.dumps({'url': graphurl})
+        return HttpResponse(json, mimetype='application/json')
+    else:
+        return HttpResponse(status=500)
 
 
 def create_vlan_graph(request, vlanid):
@@ -126,8 +130,12 @@ def create_vlan_graph(request, vlanid):
     graph.add_cdef('iprange', rpn_sum(ipranges))
     graph.add_graph_element('iprange', draw_as='LINE2')
 
-    json = simplejson.dumps({'url': graph.get_url()})
-    return HttpResponse(json, mimetype='application/json')
+    graphurl = graph.get_url()
+    if graphurl:
+        json = simplejson.dumps({'url': graphurl})
+        return HttpResponse(json, mimetype='application/json')
+    else:
+        return HttpResponse(status=500)
 
 
 def find_gwportprefixes(vlan):
