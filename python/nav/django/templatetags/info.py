@@ -4,7 +4,9 @@ from django import template
 from datetime import datetime, timedelta
 from django.utils.timesince import timesince
 
+# pylint: disable=C0103
 register = template.Library()
+
 
 @register.filter
 def time_since(timestamp):
@@ -107,7 +109,7 @@ def interval(value):
 
 
 @register.filter
-def add_interval(value, interval):
+def add_interval(value, seconds):
     """Create a new timestamp based on value and interval
 
     Arguments:
@@ -115,4 +117,8 @@ def add_interval(value, interval):
     interval -- interval in seconds
 
     """
-    return value + timedelta(seconds=interval)
+
+    try:
+        return value + timedelta(seconds=seconds)
+    except TypeError:
+        return value

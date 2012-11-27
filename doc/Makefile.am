@@ -8,6 +8,7 @@ nobase_dist_doc_DATA = \
 	$(wildcard mailin/alertmsg.d/*) \
 	$(wildcard intro/*.txt) \
 	$(wildcard reference/*.txt) \
+	$(wildcard faq/*.txt) \
 	$(htmldocfiles)
 
 # Makefile for Sphinx documentation

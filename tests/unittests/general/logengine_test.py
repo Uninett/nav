@@ -128,3 +128,14 @@ class ParseMessageEndingWithColonTest(ParseTest):
         self.priority = 6
         self.mnemonic = 'LOG'
         self.description = "'on_high_cpu: CPU utilization is over 80%:'"
+
+class ParseMessageWithNoOriginTimestampTest(ParseTest):
+    def setUp(self):
+        self.message = "Nov 13 11:21:02 10.0.1.15 : %ASA-3-321007: System is low on free memory blocks of size 8192 (0 CNT out of 250 MAX)"
+
+        now = datetime.datetime.now()
+        self.timestamp = datetime.datetime(now.year, 11, 13, 11, 21, 2)
+        self.facility = 'ASA'
+        self.priority = 3
+        self.mnemonic = '321007'
+        self.description = "'System is low on free memory blocks of size 8192 (0 CNT out of 250 MAX)'"

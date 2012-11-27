@@ -111,7 +111,7 @@ def find_vlans_on_netbox(netbox):
 def find_allowed_vlans_for_user(account):
     allowed_vlans = []
     for org in account.organizations.all():
-        allowed_vlans.extend([vlan.vlan for vlan in find_vlans_in_org(org)])
+        allowed_vlans.extend(find_vlans_in_org(org))
     allowed_vlans.sort()
     return allowed_vlans
 
@@ -152,7 +152,11 @@ def intersect(a, b):
     return list(set(a) & set(b))
         
 def find_vlans_in_org(org):
-    return org.vlan_set.all()
+    """Find all vlans in an organization and child organizations"""
+    vlans = [vlan.vlan for vlan in org.vlan_set.all() if vlan.vlan]
+    for child_org in org.organization_set.all():
+        vlans.extend(find_vlans_in_org(child_org))
+    return list(set(vlans))
 
 def is_administrator(account):
     groups = account.get_groups()

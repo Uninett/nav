@@ -97,13 +97,6 @@ def get_exception_dicts(config):
 
     return (exceptionorigin, exceptiontype, exceptiontypeorigin)
 
-# Examples of typical log lines that must be matched by the following
-# regexp:
-
-# Feb  8 12:58:40 158.38.0.51 316371: Feb  8 12:58:39.873 MET: %SEC-6-IPACCESSLOGDP: list 112 permitted icmp 158.38.60.10 -> 158.38.12.5 (0/0), 1 packet
-# Mar 20 10:27:26 sw_1 607977: Mar 20 2009 10:20:06: %SEC-6-IPACCESSLOGP: list fraVLAN800 denied tcp x.x.x.x(1380) -> y.y.y.y(80), 2 packets
-# Mar 25 10:54:25 somedevice 72: AP:000b.adc0.ffee: *Mar 25 10:15:51.666: %LINK-3-UPDOWN: Interface Dot11Radio0, changed state to up
-
 typicalmatchRe = re.compile(
     r"""
     ^
@@ -120,14 +113,18 @@ typicalmatchRe = re.compile(
     $
     """, re.VERBOSE)
 
-# WTF is a "not so typical match"?
+# Matches log lines where there is no timestamp from the origin
 notsotypicalmatchRe = re.compile(
     r"""
-    (?P<month>\w+) \s+ (?P<day>\d+) \s+
-    (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+) \W+
-    (?P<origin>\S+ \. \w+) .* \W
-    (?P<type>\w+ \ ?? \w* - (?P<priority>\d) -? \w*) :
-    \s* (?P<description>.*)
+    ^
+    (?P<month>\w+) \s+ (?P<day>\d+) \s+              # server month and date
+    ((?P<year>\d{4}) \s+ )?                          # server year, if present
+    (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+)   # server time
+    \s*
+    (?P<origin>\S+)                                  # origin
+    .* %                                             # eat chars until % appears
+    (?P<type>[^:]+) :                                # message type
+    \s* (?P<description>.*)                          # message (lstripped)
     $
     """, re.VERBOSE)
 

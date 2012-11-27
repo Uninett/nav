@@ -25,7 +25,7 @@ from nav.web.info.room.forms import SearchForm
 from nav.web.utils import create_title
 
 
-CATEGORIES = ("GW", "GSW", "SW")
+CATEGORIES = ("GW", "GSW", "SW", "EDGE")
 
 def search(request):
     """Controller for searching for rooms"""

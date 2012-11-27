@@ -219,59 +219,54 @@ and pid files::
 Integrating Cricket with NAV
 ----------------------------
 
-NAV will automatically create a :program:`Cricket` configuration tree and keep
-it synced based on the information retrieved from the monitored devices.
+.. note:: 
+   
+  When you see the text ``PATH_TO_NAV``, this means you should replace this text
+  with the actual path to your NAV installation.
 
-The initial, empty Cricket configuration tree that NAV will work on should be
-copied from the documentation directory.  The config directory must be
-writeable by the navcron user if config updates are to take place::
-
-  sudo cp -r /usr/local/nav/doc/cricket/cricket-config /usr/local/nav/etc/
-  sudo chown -R navcron:nav /usr/local/nav/etc/cricket-config
-
-Now you need to locate your :file:`cricket-conf.pl` file and edit it to tell
-cricket where to locate the configuration tree that NAV keeps.  Make sure
-that it contains the following:
+You need to tell :program:`Cricket` where to locate the configuration. Locate
+your :file:`cricket-conf.pl` file and edit it. Make sure that it contains the
+following:
 
 .. code-block:: perl
 
-  $gConfigRoot = "/usr/local/nav/etc/cricket-config"
+  $gConfigRoot = "PATH_TO_NAV/etc/cricket-config"
 
-Also make sure that the navcron user has write permissions to whatever
-directory the ``$logDir`` option points to.
+Make sure that the ``navcron`` user has write permissions to whatever directory
+the ``$logDir`` option points to.
 
-Cricket comes with a file called subtree-sets, which contains some defaults
-that will be useless for us.  This file groups parts of the configuration tree
-that will collected during the same collect-subtree run.  You should replace
-Cricket's default version of this file with
-``/usr/local/nav/doc/cricket/cricket/subtree-sets``.
+Cricket has a file called :file:`subtree-sets` that determines what directories
+in the config-tree it will use when collecting data. You should replace
+Cricket's default version with this file:
+``PATH_TO_NAV/doc/cricket/cricket/subtree-sets``.
 
-Cricket needs to know where to store its RRD data, we suggest in NAV's var
-directory.  Create a suitable directory here::
+Next, Cricket needs to know where to store its RRD data. We suggest in NAV's
+``var`` directory. Create a suitable directory here::
 
-    sudo mkdir /usr/local/nav/var/cricket-data
-    sudo chown navcron /usr/local/nav/var/cricket-data
+  sudo mkdir PATH_TO_NAV/var/cricket-data
+  sudo chown navcron PATH_TO_NAV/var/cricket-data
 
-Now tell Cricket to put the files there, by editing
-:file:`/usr/local/nav/etc/cricket-config/Defaults` and making sure that it
+Now tell Cricket to put the collected data there by editing
+:file:`PATH_TO_NAV/etc/cricket-config/Defaults` and making sure that it
 contains:
 
 .. code-block:: none
 
   Target  --default--
-      dataDir         = /usr/local/nav/var/cricket-data/%auto-target-path%
+      dataDir = PATH_TO_NAV/var/cricket-data/%auto-target-path%
 
-You can now have Cricket compile this empty tree to make sure everything works
-so far::
+To test that things work so far, have Cricket compile its configuration::
 
   sudo -u navcron cricket-compile
+  [16-Nov-2012 15:22:22 ] Starting compile: Cricket version 1.0.5 (2004-03-28)
+  [16-Nov-2012 15:22:22 ] Config directory is PATH_TO_NAV/etc/cricket-config
+  [16-Nov-2012 15:22:23 ] Processed x nodes (in x files) in x seconds.
 
-NAV's :program:`mcc` program will generate a new version of the configuration
-tree every night around 5 am.  You kan manually update the configuration once
-you've seeded a bunch of devices into NAV and NAV has found their interfaces,
-instead of waiting till 5 am, by issuing the command::
+NAV will generate a new version of the configuration tree every night. You kan
+manually generate the configuration (once you've seeded some devices into NAV)
+by issuing the command::
 
-  sudo -u navcron /usr/local/nav/bin/mcc.py
+  sudo -u navcron PATH_TO_NAV/bin/mcc.py
 
 
 Integrating the Cricket web interface
@@ -283,17 +278,13 @@ symlink Cricket's CGI scripts into a directory under NAV's document root.
 Change directories to the one containing Cricket's CGI scripts and run the
 following::
 
-  sudo mkdir /usr/local/nav/share/htdocs/cricket
-  sudo ln -s $PWD/grapher.cgi /usr/local/nav/share/htdocs/cricket/
-  sudo ln -s $PWD/mini-graph.cgi  /usr/local/nav/share/htdocs/cricket/
-  cd /usr/local/nav/share/htdocs/cricket
+  sudo mkdir PATH_TO_NAV/share/htdocs/cricket
+  sudo ln -s $PWD/grapher.cgi PATH_TO_NAV/share/htdocs/cricket/
+  sudo ln -s $PWD/mini-graph.cgi  PATH_TO_NAV/share/htdocs/cricket/
+  sudo ln -s $PWD/images PATH_TO_NAV/share/htdocs/cricket
+  cd PATH_TO_NAV/share/htdocs/cricket
   sudo ln -s grapher.cgi index.cgi
-  sudo cp /usr/local/nav/doc/cricket/public_html/cricket.css .
-
-Also, find Cricket's images directory and symlink that as well::
-
-  sudo ln -s $PWD/images /usr/local/nav/share/htdocs/cricket
-
+  sudo cp PATH_TO_NAV/doc/cricket/public_html/cricket.css .
 
 You should now have a completely installed and integrated NAV. For a guide on
 how to get started using NAV, please refer to the :doc:`getting-started`

@@ -15,6 +15,7 @@ NAV documentation contents
     overview
     intro/install
     intro/getting-started
+    faq/faq
     reference/index
     glossary
     
