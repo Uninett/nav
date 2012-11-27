@@ -1,5 +1,6 @@
 require(['plugins/graphfetcher', 'libs/jquery'], function (GraphFetcher) {
     $(function () {
+        NAV.addGlobalAjaxHandlers();
         $('.vlangraph').each(function (index, element) {
             var vlanid = $(element).attr('data-vlan');
             var url = '/info/vlan/graph/vlan/' + vlanid;
