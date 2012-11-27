@@ -1,0 +1,12 @@
+.multitable {
+    overflow: auto;
+}
+
+.multitable > table {
+    float: left;
+    margin-right: 1em;
+}
+
+#search select {
+    min-width: 450px;
+}

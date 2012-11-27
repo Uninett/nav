@@ -1,0 +1,121 @@
+{% extends 'info/vlan/base.html' %}
+
+{% block vlandetails %}
+
+    <div id="tablecontainer">
+        {% comment %} Print vlan information {% endcomment %}
+        <table id="vlaninfo" class="vertitable">
+            <caption>Vlan {{ vlan }}</caption>
+
+            <tbody>
+            <tr>
+                <th>Vlan</th>
+                <td>{{ vlan.vlan|default_if_none:"N/A" }}</td>
+            </tr>
+            <tr>
+                <th>Type</th>
+                <td>{{ vlan.net_type|default_if_none:"" }}</td>
+            </tr>
+
+
+            <tr>
+                <th>Organization</th>
+                <td>{{ vlan.organization|default_if_none:"" }}</td>
+            </tr>
+
+
+            <tr>
+                <th>Net Ident</th>
+                <td>{{ vlan.net_ident|default_if_none:"" }}</td>
+            </tr>
+
+            <tr>
+                <th>Description</th>
+                <td>{{ vlan.description|default_if_none:"" }}</td>
+            </tr>
+            </tbody>
+
+        </table>
+
+
+        {% comment %} Print gwportprefixes {% endcomment %}
+        <table id="gwportprefixinfo" class="listtable">
+            <caption>Router ports</caption>
+
+            <thead>
+            <tr>
+                <th>Netbox</th>
+                <th>Address</th>
+                <th>Interface</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for gwportprefix in gwportprefixes %}
+                <tr>
+                    <td>
+                        <a href="{% url ipdevinfo-details-by-name gwportprefix.interface.netbox.sysname %}">
+                            {{ gwportprefix.interface.netbox.sysname }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url ipdevinfo-details-by-addr gwportprefix.gw_ip %}">
+                            {{ gwportprefix.gw_ip }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url ipdevinfo-interface-details gwportprefix.interface.netbox.sysname gwportprefix.interface.id %}">
+                            {{ gwportprefix.interface.ifname }}
+                        </a>
+                    </td>
+                </tr>
+
+            {% endfor %}
+            </tbody>
+
+        </table>
+
+
+        {% comment %} Print prefixes {% endcomment %}
+        <table id="prefixinfo" class="listtable">
+            <caption>Prefixes</caption>
+
+            <thead>
+            <tr>
+                <th>Net address</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for prefix in prefixes %}
+                <tr>
+                    <td>
+                        <a href="{% url report-prefix-prefix prefix.id %}">
+                            {{ prefix.net_address }}
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% comment %} Graph with stacked ip-address count from all ipv4 prefixes {% endcomment %}
+    <h2>Vlan graph</h2>
+    <div class="vlangraph" data-vlan="{{ vlan.id }}"></div>
+
+
+    {% comment %} Graph for each prefix containing ip-addresses, mac-addresses and size of range {% endcomment %}
+    <h2>Prefix graphs</h2>
+    {% for prefix in prefixes %}
+        <div class="prefixgraph float-left" data-prefix="{{ prefix.id }}"></div>
+    {% endfor %}
+
+    <div class="float-clear"></div>
+
+{% endblock %}
+
+

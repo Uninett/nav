@@ -1,0 +1,7 @@
+#
+# Default Config for switch-ports
+#
+
+Target  --default--
+    inst         =    map(interface-name)
+    target-type  =    standard-interface

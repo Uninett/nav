@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"boxState event plugin"
+""""boxState event plugin"""
 
 from nav.eventengine.plugin import EventHandler
 
@@ -21,7 +21,7 @@ WARNING_WAIT_TIME = 20
 ALERT_WAIT_TIME = 60
 
 class BoxStateHandler(EventHandler):
-    "Accepts boxState events"
+    """Accepts boxState events"""
     handles_types = ('boxState',)
     waiting_for_resolve = {}
 
@@ -69,23 +69,35 @@ class BoxStateHandler(EventHandler):
         event.delete()
 
     def _is_duplicate(self):
+        """Returns True if this appears to be a duplicate boxDown event"""
         return (self._box_already_has_down_state()
                 or self._get_waiting())
 
     def _box_already_has_down_state(self):
+        """Returns True if the target netbox already has an active boxState
+        in the alert history.
+
+        """
         return self.event.netbox.get_unresolved_alerts('boxState').count() > 0
 
     def _get_waiting(self):
+        """Returns a plugin instance waiting for boxState resolve
+        events for the same netbox this instance is processing.
+
+        :returns: A plugin instance, if one is waiting, otherwise False.
+
+        """
         return self.waiting_for_resolve.get(self.event.netbox, False)
 
     def _make_down_warning(self):
-        self._logger.info("%s boxDownWarning not posted", self.event.netbox)
+        self._logger.info("Pretending to post boxDownWarning for %s",
+                          self.event.netbox)
         self.task = self.engine.schedule(
             max(ALERT_WAIT_TIME-WARNING_WAIT_TIME, 0),
             self._make_down_alert)
 
     def _make_down_alert(self):
-        self._logger.info("%s boxDown final alert not posted",
+        self._logger.info("Pretending to post boxDown for %s",
                           self.event.netbox)
         del self.waiting_for_resolve[self.event.netbox]
         self.task = None
@@ -97,9 +109,11 @@ class BoxStateHandler(EventHandler):
         self.waiting_for_resolve[self.event.netbox] = self
 
     def deschedule(self):
-        "Deschedules any outstanding task and deletes the associated event"
+        """Deschedules any outstanding task and deletes the associated event"""
         self._logger.debug("descheduling waiting callback for %s",
                            self.event.netbox)
         self.engine.cancel(self.task)
         self.task = None
+        if self._get_waiting() == self:
+            del self.waiting_for_resolve[self.event.netbox]
         self.event.delete()

@@ -28,7 +28,7 @@
         <tbody>
         {% for row in section.history %}
             <tr class="{% cycle 'oddrow' 'evenrow' %}">
-                {% for name, url in row %}
+                {% for name, url in row.tabrow %}
                 <td>
                     {% if url %}
                     <a href="{{ url }}">
@@ -39,6 +39,15 @@
                     {% endif %}
                 </td>
                 {% endfor %}
+                {% ifequal section.devicehistory_type "a_boxDown" %}
+                <td>
+                    <form action="{% url maintenance-add-netbox %}" method="POST">
+                    <input type="hidden" name="netboxid" value="{{row.netboxid}}"/>
+                    <input type="submit" value="Put on maintenance"
+                            title="Set this device on maintenance until it is up and running again."/>
+                    </form>
+                </td>
+                {% endifequal %}
             </tr>
         {% endfor %}
         </tbody>

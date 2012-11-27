@@ -1,0 +1,20 @@
+{% if exceptions_mode %}
+{% if exceptions %}
+<table class="listtable">
+    <caption>Priority exceptions</caption>
+    <tbody>
+    {% for option, pri in exceptions %}
+    <tr class="rowcycler">
+        <td>{{ option }}</td>
+        <td>{{ pri }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div>
+    <p>You have not defined any priority exceptions in the <code>logger.conf</code>
+        configuration file.</p>
+</div>
+{% endif %}
+{% endif %}

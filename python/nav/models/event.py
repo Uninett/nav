@@ -69,12 +69,14 @@ class VariableMap(object):
 
         if hasattr(obj, self.cachename):
             return getattr(obj, self.cachename)
-        else:
+        elif obj.pk:
             variables = getattr(obj, self.variables)
             varmap = dict((var.variable, var.value)
                           for var in variables.all())
             setattr(obj, self.cachename, varmap)
             return varmap
+        else:
+            return {}
 
     def __set__(self, obj, vardict):
         if obj is None:
@@ -83,31 +85,48 @@ class VariableMap(object):
         if not hasattr(vardict, 'items'):
             raise ValueError("value must be a dict")
 
-        variables = getattr(obj, self.variables)
-        _rel_manager = getattr(obj.__class__, self.variables)
-        var_model = _rel_manager.related.model
-        related_field = _rel_manager.related.field.name
-        if vardict:
-            removed = variables.exclude(variable__in=vardict.keys())
-            removed.delete()
-        varmap = dict((v.variable, v) for v in variables.all())
-        for key, value in vardict.items():
-            if key in varmap:
-                if varmap[key].value != value:
-                    varmap[key] = value
-                    varmap[key].save()
-            else:
-                variable = var_model(**{
-                        related_field: obj,
-                        'variable': key,
-                        'value': value,
-                        })
-                variable.save()
+        if obj.pk:
+            variables = getattr(obj, self.variables)
+            _rel_manager = getattr(obj.__class__, self.variables)
+            var_model = _rel_manager.related.model
+            related_field = _rel_manager.related.field.name
+            if vardict:
+                removed = variables.exclude(variable__in=vardict.keys())
+                removed.delete()
+            varmap = dict((v.variable, v) for v in variables.all())
+            for key, value in vardict.items():
+                if key in varmap:
+                    if varmap[key].value != value:
+                        varmap[key] = value
+                        varmap[key].save()
+                else:
+                    variable = var_model(**{
+                            related_field: obj,
+                            'variable': key,
+                            'value': value,
+                            })
+                    variable.save()
 
         setattr(obj, self.cachename, vardict)
 
 
-class EventQueue(models.Model):
+class EventMixIn(object):
+    """MixIn for methods common to multiple event/alert/alerthistory models"""
+
+    def get_key(self):
+        """Returns an identifying key for this event.
+
+        The key is a tuple of identity attribute values and can be used as a
+        dictionary key to keep track of events that reference the same
+        problem.
+
+        """
+        id_keys = ('device_id', 'netbox_id', 'subid', 'event_type_id')
+        values = (getattr(self, key) for key in id_keys)
+        return tuple(values)
+
+
+class EventQueue(models.Model, EventMixIn):
     """From NAV Wiki: The event queue. Additional data in eventqvar. Different
     subsystem (specified in source) post events on the event queue. Normally
     event engine is the target and will take the event off the event queue and
@@ -143,6 +162,12 @@ class EventQueue(models.Model):
             u"%s=%r" % (attr, getattr(self, attr))
             for attr in ('event_type_id', 'source_id', 'target_id', 'state'))
 
+    def save(self, *args, **kwargs):
+        new_object = self.pk is None
+        super(EventQueue, self).save(*args, **kwargs)
+        if new_object:
+            assert self.pk
+            self.varmap = self.varmap
 
 class EventType(models.Model):
     """From NAV Wiki: Defines event types."""
@@ -184,7 +209,7 @@ class EventQueueVar(models.Model):
 #######################################################################
 ### Alert system
 
-class AlertQueue(models.Model):
+class AlertQueue(models.Model, EventMixIn):
     """From NAV Wiki: The alert queue. Additional data in alertqvar and
     alertmsg. Event engine posts alerts on the alert queue (and in addition on
     the alerthist table). Alert engine will process the data on the alert queue
@@ -222,6 +247,13 @@ class AlertQueue(models.Model):
     def __unicode__(self):
         return u'Source %s, state %s, severity %d' % (
             self.source, self.get_state_display(), self.severity)
+
+    def save(self, *args, **kwargs):
+        new_object = self.pk is None
+        super(EventQueue, self).save(*args, **kwargs)
+        if new_object:
+            assert self.pk
+            self.varmap = self.varmap
 
 class AlertType(models.Model):
     """From NAV Wiki: Defines the alert types. An event type may have many alert
@@ -277,7 +309,7 @@ class AlertQueueVariable(models.Model):
     def __unicode__(self):
         return u'%s=%s' % (self.variable, self.value)
 
-class AlertHistory(models.Model):
+class AlertHistory(models.Model, EventMixIn):
     """From NAV Wiki: The alert history. Simular to the alert queue with one
     important distinction; alert history stores stateful events as one row,
     with the start and end time of the event."""
@@ -328,6 +360,13 @@ class AlertHistory(models.Model):
         else:
             # Stateless alert
             return None
+
+    def save(self, *args, **kwargs):
+        new_object = self.pk is None
+        super(EventQueue, self).save(*args, **kwargs)
+        if new_object:
+            assert self.pk
+            self.varmap = self.varmap
 
 class AlertHistoryMessage(models.Model):
     """From NAV Wiki: To have a history of the formatted messages too, they are

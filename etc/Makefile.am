@@ -6,7 +6,7 @@ scripts_out = $(scripts_in:%.in=%)
 cron_in = $(wildcard cron.d/*.in)
 cron_out = $(cron_in:%.in=%)
 
-generated_config = logger.conf pping.conf servicemon.conf webfront/webfront.conf apache/apache.conf $(cron_out)
+generated_config = logger.conf pping.conf servicemon.conf webfront/webfront.conf apache/apache.conf cricket-config/Defaults $(cron_out)
 
 EDITFILES = $(generated_config) $(scripts_out)
 nobase_dist_sysconf_DATA = $(sort $(generated_config) $(wildcard \
@@ -18,6 +18,7 @@ nobase_dist_sysconf_DATA = $(sort $(generated_config) $(wildcard \
 	alertprofiles/* \
 	arnold/*.conf \
 	arnold/mailtemplates/* \
+	cricket-config/*/Defaults \
 	portadmin/*.conf \
 	portadmin/*.html \
 	toolbox/*.tool \

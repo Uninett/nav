@@ -45,10 +45,17 @@ Quick example:
                                  # the two datasources. This link is valid
                                  # for about ten minutes
 """
+import glob
 import logging
+import os
 import rrdtool
+import random
+import time
+
+import nav
 from nav.models.rrd import RrdDataSource
 
+CONFIG_FILE = 'rrdviewer/rrdviewer.conf'
 
 UNIT_MAP = {'s': 'Seconds',
             '%': 'Percent',
@@ -68,12 +75,9 @@ class Presentation(object):
     def __init__(self, time_frame='day', to_time='now', datasource=None):
         self.datasources = set()
         self.to_time = to_time
-        self.none = None
-        self.graph_height = 150
-        self.graph_width = 500
-        self.title = ''
-        self.time_last(time_frame)
+        self.from_time = time_last(self.to_time, time_frame)
         self.time_frame = time_frame
+        self.none = None
         self.show_max = 0
         self.y_axis = 0
 
@@ -253,38 +257,6 @@ class Presentation(object):
             valid.append(ret)
         return valid
 
-    def time_last(self, time_frame='day', value=1):
-        """Sets the timeframe of the presentation
-        Currently valid timeframes: year,month,week,hour,day,minute"""
-
-        if time_frame == 'year':
-            self.from_time = '%s-%sY' % (self.to_time, value)
-            self._time_frame = 'year'
-
-        elif time_frame == 'month':
-            self.from_time = '%s-%sm' % (self.to_time, value)
-            self._time_frame = 'month'
-
-        elif time_frame == 'week':
-            self.from_time = '%s-%sw' % (self.to_time, value)
-            self._time_frame = 'week'
-
-        elif time_frame == 'day':
-            self.from_time = '%s-%sd' % (self.to_time, value)
-            self._time_frame = 'day'
-
-        elif time_frame == 'hour':
-            self.from_time = '%s-%sh' % (self.to_time, value)
-            self._time_frame = 'hour'
-
-        elif time_frame == 'day':
-            self.from_time = '%s-%sd' % (self.to_time, value)
-            self._time_frame = 'day'
-
-        else:
-            self.from_time = '%s-%smin' % (self.to_time, value)
-            self._time_frame = 'minute'
-
     def remove_all_datasources(self):
         """Removes all datasources from the presentation object"""
         self.datasources = set()
@@ -293,8 +265,175 @@ class Presentation(object):
         """Removes the datasource specified by rrd_datasourceid"""
         self.datasources.remove(datasource)
 
-    # Yes we want to use the variable y
-    # pylint: disable=C0103
-    def set_y_axis(self, y):
-        """ set y axis"""
-        self.y_axis = y
+
+class Graph(object):
+    """Represent an image of the data
+
+    TODO: Add option for displaying values from other archives than AVERAGE
+    """
+
+    colorindex = 0
+    color = {0: "#00cc00",
+             1: "#0000ff",
+             2: "#ff0000",
+             3: "#00ffff",
+             4: "#ff00ff",
+             5: "#ffff00",
+             6: "#cc0000",
+             7: "#0000cc",
+             8: "#0080C0",
+             9: "#8080C0",
+             10: "#FF0080",
+             11: "#800080",
+             12: "#0000A0",
+             13: "#408080",
+             14: "#808000",
+             15: "#000000",
+             16: "#00FF00",
+             17: "#0080FF",
+             18: "#FF8000",
+             19: "#800000",
+             20: "#FB31FB"}
+
+    def __init__(self, title="", to_time="now", time_frame="day", opts=None,
+                 args=None):
+        """Add default options and parameters"""
+        if not opts:
+            opts = {}
+        if not args:
+            args = []
+
+        self.config = nav.config.readConfig(CONFIG_FILE)
+
+        from_time = time_last(to_time, time_frame)
+
+        default_opts = {
+            '-w': "500",
+            '-h': "150",
+            '-s': from_time,
+            '-e': to_time,
+            '-t': '%s' % title,
+            '--no-minor': ''
+        }
+
+        self.opts = dict(default_opts.items() + opts.items())
+        self.args = args
+
+    def __repr__(self):
+        return str(self.args)
+
+    def add_datasource(self, datasource, draw_as='LINE1', legend=None,
+                       stack=False):
+        """Add a datasource to display in graph"""
+        vname = self.add_def(datasource)
+        self.add_graph_element(vname, draw_as, legend, stack)
+        return vname
+
+    def add_argument(self, argument):
+        """Add a argument to the graph"""
+        self.args.append(argument)
+
+    def add_option(self, option):
+        """Add an option to the graph"""
+        self.opts = dict(self.opts.items() + option.items())
+
+    def add_def(self, datasource):
+        """Add a variable used for fetching data from a rrd-file
+
+        The vname cannot be an integer as it may be used in a CDEF. Thus
+        we prepend the string 'id' to the datasource id.
+
+        To actually show something in the graph you need to use this def in a
+        graph element.
+
+        """
+        vname = 'id' + str(datasource.id)
+        defs = ['DEF',
+                "%s=%s" % (vname, datasource.rrd_file.get_file_path()),
+                datasource.name,
+                "AVERAGE"]
+        self.args.append(":".join(defs))
+        return vname
+
+    def add_cdef(self, cdefname, rpn):
+        """Add a CDEF to the graph
+
+        http://oss.oetiker.ch/rrdtool/tut/cdeftutorial.en.html
+
+        """
+        cdef = ['CDEF', "%s=%s" % (cdefname, rpn)]
+        self.args.append(":".join(cdef))
+
+    def add_graph_element(self, vname, draw_as="LINE1", legend="",
+                          stack=False):
+        """Add an element on the graph. """
+        draw = [draw_as, "%s%s" % (vname, self._get_color())]
+        if legend:
+            draw.append(legend)
+        if stack:
+            draw.append("STACK")
+        self.args.append(":".join(draw))
+
+    def _get_color(self):
+        color = self.color[self.colorindex]
+        if self.colorindex == self.color.keys()[-1]:
+            self.colorindex = 0
+        else:
+            self.colorindex += 1
+        return color
+
+    def get_url(self):
+        """Return url for displaying graph"""
+        randomid = str(random.randint(1, 10 ** 9))
+        try:
+            rrdtool.graph(*self._get_graph_args(
+                self._get_image_filename(randomid)))
+        except rrdtool.error, error:
+            _LOGGER.error(error)
+        else:
+            return '/rrd/image=%s/' % str(randomid)
+
+        self._cleanup()
+
+    def _get_graph_args(self, image_filename):
+        """Construct all arguments used to create the graph"""
+        args = [image_filename]
+        args.extend(["%s%s" % (x, y) for x, y in self.opts.items()])
+        args.extend([str(s) for s in self.args])
+        return args
+
+    def _get_image_filename(self, randomid):
+        """Create filename based on config and randomid"""
+        return "".join([self.config['file_prefix'], randomid,
+                        self.config['file_suffix']])
+
+    def _cleanup(self):
+        """Clean up old image-files"""
+        deadline = 60 * 10
+        for i in glob.glob(self.config['file_prefix'] + '*'):
+            if os.path.getmtime(i) < (time.time() - deadline):
+                try:
+                    os.unlink(i)
+                except OSError, error:
+                    _LOGGER.error(error)
+
+
+def time_last(to_time, time_frame='day', value=1):
+    """Return from_time based on time_frame and to_time
+    Currently valid timeframes: year,month,week,hour,day,minute"""
+
+    from_time = '%s-%smin' % (to_time, value)
+    if time_frame == 'year':
+        from_time = '%s-%sY' % (to_time, value)
+    elif time_frame == 'month':
+        from_time = '%s-%sm' % (to_time, value)
+    elif time_frame == 'week':
+        from_time = '%s-%sw' % (to_time, value)
+    elif time_frame == 'day':
+        from_time = '%s-%sd' % (to_time, value)
+    elif time_frame == 'hour':
+        from_time = '%s-%sh' % (to_time, value)
+    elif time_frame == 'day':
+        from_time = '%s-%sd' % (to_time, value)
+
+    return from_time
