@@ -110,7 +110,23 @@ class VariableMap(object):
         setattr(obj, self.cachename, vardict)
 
 
-class EventQueue(models.Model):
+class EventMixIn(object):
+    """MixIn for methods common to multiple event/alert/alerthistory models"""
+
+    def get_key(self):
+        """Returns an identifying key for this event.
+
+        The key is a tuple of identity attribute values and can be used as a
+        dictionary key to keep track of events that reference the same
+        problem.
+
+        """
+        id_keys = ('device_id', 'netbox_id', 'subid', 'event_type_id')
+        values = (getattr(self, key) for key in id_keys)
+        return tuple(values)
+
+
+class EventQueue(models.Model, EventMixIn):
     """From NAV Wiki: The event queue. Additional data in eventqvar. Different
     subsystem (specified in source) post events on the event queue. Normally
     event engine is the target and will take the event off the event queue and
@@ -193,7 +209,7 @@ class EventQueueVar(models.Model):
 #######################################################################
 ### Alert system
 
-class AlertQueue(models.Model):
+class AlertQueue(models.Model, EventMixIn):
     """From NAV Wiki: The alert queue. Additional data in alertqvar and
     alertmsg. Event engine posts alerts on the alert queue (and in addition on
     the alerthist table). Alert engine will process the data on the alert queue
@@ -293,7 +309,7 @@ class AlertQueueVariable(models.Model):
     def __unicode__(self):
         return u'%s=%s' % (self.variable, self.value)
 
-class AlertHistory(models.Model):
+class AlertHistory(models.Model, EventMixIn):
     """From NAV Wiki: The alert history. Simular to the alert queue with one
     important distinction; alert history stores stateful events as one row,
     with the start and end time of the event."""
