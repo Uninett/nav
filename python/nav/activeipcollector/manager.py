@@ -62,16 +62,25 @@ def delete_files(datadir):
 def store(data, where):
     """Store data"""
     errors = 0
+    successful = 0  # Number of successful rrd-file updates
     has_stored = []
     for db_tuple in data:
         try:
             element = store_tuple(db_tuple, where)
+            successful += 1
+
+            # If we store data for several days, has_stored keeps track of
+            # this so that we don't update the rrd-database several times
+            # with the same info.
             if element.prefix not in has_stored:
                 update_rrddb(element, where)
                 has_stored.append(element.prefix)
         except rrdtool.error, error:
             LOG.error(error)
             errors += 1
+
+    LOG.info('%s updates (%s errors) for %s prefixes' % (successful, errors,
+                                                         len(data)))
 
     return errors
 

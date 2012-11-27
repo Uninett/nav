@@ -23,14 +23,17 @@ import time
 
 from os.path import join
 
+from nav import logs
 from nav.activeipcollector import manager
 from nav.path import localstatedir, sysconfdir
 
 
 def main(days=None, reset=False):
     """Controller"""
-    create_logger()
+    init_logger(join(localstatedir, 'log/collect_active_ip.log'))
     log = logging.getLogger('ipcollector')
+
+    log.info('Starting active ip collector')
 
     starttime = time.time()
     datadir = join(get_datadir(), 'activeip')
@@ -42,13 +45,16 @@ def main(days=None, reset=False):
     log.info('Done in %.2f seconds' % (time.time() - starttime))
 
 
-def create_logger():
+def init_logger(logfile):
     """Create logger for this process"""
-    logging.basicConfig(
-        level=logging.DEBUG,
-        filename=join(localstatedir, 'log/collect_active_ip.log'),
-        filemode='w',
-        format='%(asctime)s: [%(levelname)s] %(name)s - %(message)s')
+    logs.set_log_levels()
+
+    filehandler = logging.FileHandler(logfile)
+    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '
+                                  '[%(name)s] %(message)s')
+    filehandler.setFormatter(formatter)
+    root = logging.getLogger('')
+    root.addHandler(filehandler)
 
 
 def get_datadir():

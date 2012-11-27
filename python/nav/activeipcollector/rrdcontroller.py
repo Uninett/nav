@@ -49,7 +49,7 @@ def update_rrdfile(element, when):
               element.mac_count,
               element.ip_range]
     values_as_string = ":".join([str(x) for x in values])
-    LOG.info('Updating %s -> %s' % (element.fullpath, values_as_string))
+    LOG.debug('Updating %s -> %s' % (element.fullpath, values_as_string))
     rrdtool.update([element.fullpath, values_as_string])
 
 
