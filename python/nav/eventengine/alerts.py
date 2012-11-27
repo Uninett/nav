@@ -49,3 +49,16 @@ class AlertGenerator(object):
         alert.varmap = self.event.varmap
         return alert
 
+    def is_event_duplicate(self):
+        """Returns True if the represented event seems to duplicate an
+        existing unresolved alert.
+
+        """
+        unresolved = get_unresolved_alerts_map()
+        return (self.event.state == self.event.STATE_START
+                and self.event.get_key() in unresolved)
+
+def get_unresolved_alerts_map():
+    """Returns a dictionary of unresolved AlertHistory entries"""
+    unresolved = AlertHistory.objects.filter(end_time__gte=INFINITY)
+    return dict((alert.get_key(), alert) for alert in unresolved)
