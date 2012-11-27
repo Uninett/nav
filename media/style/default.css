@@ -523,3 +523,8 @@ p.paginator .active {
 .horizontal-button-list a span.matrix {
     background-image: url("/images/icons/grid.png");
 }
+
+/* GraphFetcher styles */
+.button-selected {
+    font-weight: bold;
+}

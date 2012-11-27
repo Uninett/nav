@@ -21,11 +21,15 @@ from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 
 from nav.web.info.forms import SearchForm
-from nav.web.info.searchproviders import RoomSearchProvider, \
-    NetboxSearchProvider, FallbackSearchProvider, InterfaceSearchProvider
+from nav.web.info.searchproviders import (RoomSearchProvider,
+                                          NetboxSearchProvider,
+                                          FallbackSearchProvider,
+                                          InterfaceSearchProvider,
+                                          VlanSearchProvider)
 from nav.web.utils import create_title
 
 from random import choice
+
 
 def index(request):
     """Main controller"""
@@ -46,20 +50,21 @@ def index(request):
         form = SearchForm()
 
     return render_to_response("info/base.html",
-            {"form": form,
-             "searchproviders": searchproviders,
-             "navpath": navpath,
-             "title": create_title(titles)},
-        context_instance=RequestContext(request)
-    )
+                              {"form": form,
+                               "searchproviders": searchproviders,
+                               "navpath": navpath,
+                               "title": create_title(titles)},
+                              context_instance=RequestContext(request))
 
 
 def process_form(form):
     """Processor for searchform on main page"""
     query = form.cleaned_data['query']
 
-    searchproviders = [RoomSearchProvider(query), NetboxSearchProvider(query),
-                       InterfaceSearchProvider(query)]
+    searchproviders = [RoomSearchProvider(query),
+                       NetboxSearchProvider(query),
+                       InterfaceSearchProvider(query),
+                       VlanSearchProvider(query)]
     providers_with_result = has_results(searchproviders)
     if not providers_with_result:
         fallback = FallbackSearchProvider(query)
@@ -87,11 +92,9 @@ def has_only_one_result(searchproviders):
     return results == 1
 
 
-def osm_map_redirecter(request, zoom, ytile, ztile):
+def osm_map_redirecter(_, zoom, ytile, ztile):
     """A redirector for OpenStreetmap tiles"""
     server = choice(['a', 'b', 'c'])
     url = "http://%s.tile.openstreetmap.org/%s/%s/%s.png" % (
         server, zoom, ytile, ztile)
     return redirect(url, permanent=True)
-
-
