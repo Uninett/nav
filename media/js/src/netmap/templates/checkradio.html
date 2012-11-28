@@ -7,6 +7,11 @@
     {{else}}
         <input type="{{../../type}}" name="{{../../identifier}}[]" value="{{name}}" id="{{../../identifier}}_{{name}}" {{#if is_selected}} checked{{/if}} />
     {{/if}}
-    <label for="{{../identifier}}_{{name}}">{{capitalize name}}</label>
+    {{#if ../nameInUppercase}}
+        <label for="{{../../identifier}}_{{name}}">{{uppercase name}}</label>
+    {{else}}
+        <label for="{{../../identifier}}_{{name}}">{{capitalize name}}</label>
+    {{/if}}
+
 </div>
 {{/each}}
