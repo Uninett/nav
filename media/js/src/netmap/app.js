@@ -49,6 +49,14 @@ define([
             return type.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
         });
 
+        Handlebars.registerHelper('uppercase', function (type) {
+            if (typeof type == 'string' || type instanceof String) {
+                return type.toUpperCase();
+            } else {
+                return type;
+            }
+        });
+
         //Backbone.emulateJSON = true;
         // Pass in our Router module and call it's initialize function
         Router.initialize();
