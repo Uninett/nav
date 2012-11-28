@@ -13,7 +13,7 @@ define([
             });
         },
         has_targets: function () {
-            var room = this.get("room")
+            var room = this.get("room");
             var location = this.get("location");
             return (room && room.get("is_selected")) || (location && location.get("is_selected"));
         }
