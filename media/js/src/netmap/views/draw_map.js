@@ -30,7 +30,7 @@ define([
             'map:loading:context_selected_map': 'clear',
             'map:node:fixed': 'updateNodeFixedStatus',
             'map:fixNodes': 'updateAllNodePositions',
-            'netmap:mapProperty:layer': 'setMapPropertyLayer',
+            'netmap:changeTopology': 'setMapPropertyLayer',
             'netmap:changeCategoriesFilters': 'setMapPropertyCategories',
             'netmap:changeOrphansFilters': 'setMapPropertyOrphanFilter',
             'netmap:changePositionFilter': 'setMapPropertyPositionFilter',

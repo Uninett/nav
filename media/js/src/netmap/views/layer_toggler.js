@@ -1,60 +1,62 @@
 define([
-    'netmap/models/layer_toggler',
-    'libs-amd/text!netmap/templates/layer_toggler.html',
+    'netmap/collections/checkradio',
+    'libs-amd/text!netmap/templates/checkradio.html',
     'plugins/netmap-extras',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Model, Template, NetmapHelpers) {
+], function (Collection, Template, NetmapHelpers) {
     var LayerView = Backbone.View.extend({
 
         broker: Backbone.EventBroker,
         events: {
-            'click input[name="topology[]"]': 'changeTopology',
-            'change:layer': 'updateSelection' // for template logic!
+            'click input[name="topology[]"]': 'setTopology'
+
         },
         initialize: function () {
             this.template = Handlebars.compile(Template);
-            if (!this.model) {
-                this.model = new Model();
+            if (!this.collection) {
+                this.collection = new Collection([
+                    {name:"Layer 2", value: 2, "is_selected":true},
+                    {name:"Layer 3", value: 3}
+                ]);
             }
 
-            this.model.bind("change:layer", this.updateSelection, this);
-            //this.model.bind("change", this.render, this);
+            this.collection.bind("change", this.broadcastTopologyChange, this);
 
             return this;
         },
 
         render: function () {
             this.$el.html(
-                this.template({model: this.model.toJSON()})
+                this.template({
+                    title: 'Layer',
+                    type: 'radio',
+                    identifier: 'topology',
+                    collection: this.collection.toJSON()
+                })
             );
 
             return this;
         },
 
-        updateSelection: function () {
-            // Method for telling which radio button is selected.
-            // We change attributes with silent:true to not resend events!
-
-            // Clear template state on helpers
-            this.model.unset('layer2_active', {silent: true});
-            this.model.unset('layer3_active', {silent: true});
-
-            var active_layer = "layer{0}_active".format(this.model.get('layer'));
-            // Update template state
-            this.model.set(active_layer, true);
-            this.broker.trigger("netmap:mapProperty:layer", this.model.get('layer'));
-            this.render();
+        broadcastTopologyChange: function (model) {
+            // layer number/value is stored in Graph model, so broadcast
+            // so user's using graph model can update selected topology
+            this.broker.trigger("netmap:changeTopology", model.get('value'));
         },
 
-        changeTopology: function (e) {
+        setTopology: function (e) {
             this.broker.trigger("map:topology_change:loading");
-            //e.stopPropagation();
-            this.model.set({layer: $(e.currentTarget).val()});
-            this.broker.trigger('map:topology_change', this.model.get('layer'));
+
+            var itemInCollection = this.collection.get($(e.currentTarget).val());
+            if (itemInCollection) {
+                this.collection.clearIsSelectedStatus();
+                itemInCollection.set({'is_selected': $(e.currentTarget).prop('checked')});
+                this.render();
+            }
         },
 
         close:function () {
