@@ -18,15 +18,16 @@ define([
             this.template = Handlebars.compile(Template);
             // todo: fetch collection from api.
             if (!this.collection) {
+                // also see map model file!
                 this.collection = new Collection([
-                    {name: "GSW"},
-                    {name: "GW"},
-                    {name: "SW"},
-                    {name: "OTHER"},
-                    {name: "WLAN"},
-                    {name: "SRV"},
-                    {name: "EDGE"},
-                    {name: "ELINK", 'is_selected': false}
+                    {name: "GSW", 'is_selected': true},
+                    {name: "GW", 'is_selected': true},
+                    {name: "SW", 'is_selected': true},
+                    {name: "OTHER", 'is_selected': true},
+                    {name: "WLAN", 'is_selected': true},
+                    {name: "SRV", 'is_selected': true},
+                    {name: "EDGE",'is_selected': true},
+                    {name: "ELINK"}
                 ]);
             }
 

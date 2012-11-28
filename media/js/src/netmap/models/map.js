@@ -11,16 +11,17 @@ define([
             description: null,
             is_public: true,
             // see nav.models.profiles TOPOLOGY_TYPES , 1 == layer 2 topology
+            // todo: change topology value to 2 and ship a SQL migration
             topology: 1,
             categories: new CategoryCollection([
-                {name: "GSW"},
-                {name: "GW"},
-                {name: "SW"},
-                {name: "OTHER"},
-                {name: "WLAN"},
-                {name: "SRV"},
-                {name: "EDGE"},
-                {name: "ELINK", 'is_selected': false}
+                {name: "GSW", is_selected: true},
+                {name: "GW", is_selected: true},
+                {name: "SW", is_selected: true},
+                {name: "OTHER", is_selected: true},
+                {name: "WLAN", is_selected: true},
+                {name: "SRV", is_selected: true},
+                {name: "EDGE", is_selected: true},
+                {name: "ELINK"}
             ]),
             zoom: "0,0;0.5",
             display_orphans: false,
