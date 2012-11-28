@@ -1,8 +1,0 @@
-<h4>Mark by position</h4>
-
-{{#each collection}}
-<div>
-    <input type="radio" name="group_position[]" value="{{this.marking}}" id="position_{{this.marking}}" {{#if this.is_selected}} checked{{/if}} />
-    <label for="position_{{this.marking}}">{{capitalize this.marking }}</label>
-</div>
-{{/each}}
