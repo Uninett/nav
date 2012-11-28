@@ -44,6 +44,7 @@ define([
                     title: 'Categories',
                     type: 'checkbox',
                     identifier: 'categories',
+                    nameInUppercase: true,
                     collection: this.collection.toJSON()
                 })
             );
