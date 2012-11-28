@@ -1,6 +1,6 @@
 define([
     'netmap/collections/position',
-    'libs-amd/text!netmap/templates/position_toggler.html',
+    'libs-amd/text!netmap/templates/checkradio.html',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
@@ -18,9 +18,9 @@ define([
 
             if (!this.collection) {
                 this.collection = new Collection([
-                    {marking:"none", "is_selected":true},
-                    {marking:"room"},
-                    {marking:"location"}
+                    {name:"none", "is_selected":true},
+                    {name:"room"},
+                    {name:"location"}
                 ]);
             }
 
@@ -33,7 +33,12 @@ define([
 
         render: function () {
             this.$el.html(
-                this.template({collection: this.collection.toJSON()})
+                this.template({
+                    title: 'Mark by position',
+                    type: 'radio',
+                    identifier: 'group_position',
+                    collection: this.collection.toJSON()
+                })
             );
             return this;
         },

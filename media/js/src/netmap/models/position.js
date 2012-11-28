@@ -1,19 +1,13 @@
 define([
+    'netmap/models/input_checkradio',
     'libs/backbone'
-], function () {
-    var PositionModel = Backbone.Model.extend({
-        idAttribute: "marking",
-        defaults: {
-            marking: "none",
-            is_selected: false
-        },
-        initialize: function () {
-        },
+], function (Model) {
+    var PositionModel = Model.extend({
         validate: function(attributes) {
-            if (attributes.marking &&
-                attributes.marking !== "room" &&
-                attributes.marking !== "location" &&
-                attributes.marking !== "none") {
+            if (attributes.name &&
+                attributes.name !== "room" &&
+                attributes.name !== "location" &&
+                attributes.name !== "none") {
                 return "position has to be none, room or location!";
             }
         }

@@ -27,9 +27,9 @@ define([
             display_orphans: false,
             /* properties that does not get saved */
             position: new PositionCollection([
-                {marking: "none", is_selected: true},
-                {marking: "room"},
-                {marking: "location"}
+                {name: "none", is_selected: true},
+                {name: "room"},
+                {name: "location"}
             ])
         },
         initialize: function () {
