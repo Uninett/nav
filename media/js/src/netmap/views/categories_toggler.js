@@ -1,7 +1,7 @@
 define([
     'netmap/collections/categories',
     'netmap/models/input_checkradio',
-    'libs-amd/text!netmap/templates/categories_toggler.html',
+    'libs-amd/text!netmap/templates/checkradio.html',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
@@ -40,7 +40,12 @@ define([
 
         render: function () {
             this.$el.html(
-                this.template({collection: this.collection.toJSON()})
+                this.template({
+                    title: 'Categories',
+                    type: 'checkbox',
+                    identifier: 'categories',
+                    collection: this.collection.toJSON()
+                })
             );
 
             return this;
