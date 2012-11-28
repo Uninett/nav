@@ -3,7 +3,8 @@ define([
     'netmap/router', // Request router.js
     'libs/jquery',
     'libs/underscore',
-    'libs/backbone'
+    'libs/backbone',
+    'libs/handlebars'
 ], function(PluginHeaderFooter, Router) {
     var initialize = function () {
         var IESanityTest = {
@@ -42,6 +43,10 @@ define([
         headerFooterPlugin.initialize({
             'header': { el: $('#header'), hotkey: { altKey: false, ctrlKey: true, shiftKey: true, charCode: 6} },
             'footer': { el: $('#footer'), hotkey: { altKey: false, ctrlKey: true, shiftKey: true, charCode: 6} }
+        });
+
+        Handlebars.registerHelper('capitalize', function (type) {
+            return type.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
         });
 
         //Backbone.emulateJSON = true;
