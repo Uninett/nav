@@ -2,7 +2,11 @@
 
 {{#each collection}}
 <div>
-    <input type="{{../type}}" name="{{../identifier}}[]" value="{{this.name}}" id="{{../identifier}}_{{this.name}}" {{#if this.is_selected}} checked{{/if}} />
-    <label for="{{../identifier}}_{{this.name}}">{{this.name}}</label>
+    {{#if value}}
+        <input type="{{../../type}}" name="{{../../identifier}}[]" value="{{value}}" id="{{../../identifier}}_{{name}}" {{#if is_selected}} checked{{/if}} />
+    {{else}}
+        <input type="{{../../type}}" name="{{../../identifier}}[]" value="{{name}}" id="{{../../identifier}}_{{name}}" {{#if is_selected}} checked{{/if}} />
+    {{/if}}
+    <label for="{{../identifier}}_{{name}}">{{name}}</label>
 </div>
 {{/each}}
