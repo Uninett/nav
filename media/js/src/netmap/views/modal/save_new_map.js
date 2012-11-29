@@ -16,16 +16,17 @@ define([
         initialize: function () {
             this.template_post = Handlebars.compile(template);
 
-            // Parent list view collection of models
-            this.model_collection = this.options.model_collection;
-            this.graph = this.options.graph;
-            this.model.set({'isNewView': this.options.isNewView});
+            if (!this.options.graph || !this.options.mapProperties) {
+                alert("Missing graph data or view properties, cannot save!");
+                this.close();
+            } else {
 
-            this.el = $(this.template_post({'model': this.model.toJSON(), 'is_new': this.model.isNew()})).dialog({autoOpen: false});
-            this.$el = $(this.el);
+                this.el = $(this.template_post({'model': this.model.toJSON(), 'is_new': this.model.isNew()})).dialog({autoOpen: false});
+                this.$el = $(this.el);
 
-            this.model.bind("change", this.render, this);
-            this.model.bind("destroy", this.close, this);
+                this.model.bind("change", this.render, this);
+                this.model.bind("destroy", this.close, this);
+            }
 
         },
         render: function () {
@@ -35,9 +36,9 @@ define([
         get_fixed_nodes: function () {
             var fixed_nodes = [];
 
-            for (var i = 0; i < this.graph.attributes.nodes.length; i++) {
-                var node = this.graph.attributes.nodes[i];
-                if (node.fixed == true && node.data.category !== 'ELINK') {
+            for (var i = 0; i < this.graph.get('nodes').length; i++) {
+                var node = this.graph.get('nodes').nodes[i];
+                if (node.fixed === true && node.data.category !== 'ELINK') {
                     fixed_nodes.push(node);
                 }
             }
@@ -50,7 +51,7 @@ define([
             this.model.set({
                 title: self.$('#new_view_title').val().trim(),
                 description: self.$('#new_view_description').val().trim(),
-                is_public: (self.$('#new_view_is_public').attr('checked') ? true : false),
+                is_public: self.$('#new_view_is_public').prop('checked'),
                 nodes: self.get_fixed_nodes(),
                 //zoom: self.graph.zoom,
                 topology: self.model.attributes.topology,

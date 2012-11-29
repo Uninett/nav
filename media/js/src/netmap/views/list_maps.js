@@ -1,5 +1,7 @@
 define([
+    'netmap/resource',
     'plugins/netmap-extras',
+    'netmap/collections/map',
     'netmap/models/map',
     'netmap/models/graph',
     'netmap/models/default_map',
@@ -9,8 +11,10 @@ define([
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
-    'libs/backbone-eventbroker'
-], function (NetmapExtras, MapModel, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
+    'libs/backbone-eventbroker',
+    'libs/spin.min',
+    'plugins/jquery_spinjs'
+], function (ResourceManager, NetmapExtras, CollectionMapProperties, ModelMapProperties, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
 
     var ListNetmapView = Backbone.View.extend({
         tagName: "div",
@@ -18,31 +22,64 @@ define([
 
         broker: Backbone.EventBroker,
         interests: {
+            "netmap:mapProperties": "setMapProperties",
+            "netmap:graph": "setGraph",
             "map:topology_change": "deactiveAndShowSpinnerWhileLoading",
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
         },
         events: {
-            "click #save_view": "show_save_view",
-            "click #save_new_view": "new_show_save_view",
-            "click #delete_view": "delete_view",
-            "click #set_as_user_favorite": "set_favorite",
+            "click #save_view": "showSaveView",
+            "click #save_new_view": "showSaveAsView",
+            "click #delete_view": "deleteView",
+            "click #set_as_user_favorite": "setFavorite",
             "change #dropdown_view_id": "changed_view",
             'click #toggle_view': 'toggleView'
         },
 
         initialize: function () {
+            var self = this;
             this.isContentVisible = true;
             this.broker.register(this);
 
             this.template = Handlebars.compile(netmapTemplate);
 
-            this.isLoading = false;
-            this.collection.bind("reset", this.render, this);
-            this.collection.bind("change", this.render, this);
-            this.collection.bind("destroy", this.close, this);
-            //debugger;
-            this.options.mapProperties.map.bind("change", this.updateCollection, this);
+            this.activeMapProperty = null; // selected item in dropdown box.
 
+            this.isLoading = !!this.collection;
+            if (this.collection) {
+                this.collection.bind("reset", this.render, this);
+                this.collection.bind("change", this.render, this);
+                this.collection.bind("destroy", this.close, this);
+            } else {
+                this.collection = new CollectionMapProperties();
+                this.collection.fetch({
+                    success: function (collection, attributes) {
+                        self.collection = collection;
+                        if (self.collection.length <= 1) {
+                            self.collection.unshift({}); // insert empty Map model
+                            self.activeMapProperty = self.collection.at(0);
+                        }
+                        self.render();
+                    },
+                    error: function () {
+                        alert("error loading collection over available views");
+                    }
+                });
+            }
+
+            //ResourceManager.getInterest("mapProperties");
+
+
+            //this.options.mapProperties.map.bind("change", this.updateCollection, this);
+
+        },
+        setMapProperties: function (mapProperties) {
+            this.collection = mapProperties;
+            this.render();
+        },
+        setGraph: function (graph) {
+            this.map = graph;
+            this.render();
         },
         updateCollection: function () {
             if (this.options.mapProperties.map.attributes.viewid !== undefined) {
@@ -61,19 +98,18 @@ define([
         },
         showSaveModal: function (isNewView) {
             var self = this;
-            if (self.modal_save_view !== undefined) {
-                self.modal_save_view.close();
+            if (self.viewModalSave !== undefined) {
+                self.viewModalSave.close();
             }
 
-            self.modal_save_view = new SaveDialogView({
-                model: self.options.mapProperties.map,
-                'graph': self.options.mapProperties.graph,
-                'isNewView': isNewView
+            self.viewModalSave = new SaveDialogView({
+                model: self.activeMapProperty,
+                graph: self.graph
             });
 
-            self.modal_save_view.render();
+            self.viewModalSave.render();
         },
-        set_favorite: function (e) {
+        setFavorite: function (e) {
             e.preventDefault();
             var self = this;
             var user_id = $("#netmap_userid").html();
@@ -100,7 +136,13 @@ define([
                 display_orphans: self.options.mapProperties.map.attributes.display_orphans
             };
         },
-        new_show_save_view: function () {
+        showSaveView: function (e) {
+            e.preventDefault();
+            //var self = this;
+            //var selected_id = $("#dropdown_view_id :selected", this.$el).val();
+            this.showUpdateViewDialog();
+        },
+        showSaveAsView: function () {
             var self = this;
             if (!self.isLoading) {
                 var properties = self.getPropertiesToKeep();
@@ -111,7 +153,7 @@ define([
                 this.showCreateNewViewDialog();
             }
         },
-        delete_view: function (e) {
+        deleteView: function (e) {
             e.preventDefault();
             var self = this;
             if (!self.isLoading) {
@@ -133,12 +175,6 @@ define([
                 });
             }
 
-        },
-        show_save_view: function (e) {
-            e.preventDefault();
-            var self = this;
-            var selected_id = this.$("#dropdown_view_id :selected").val();
-            this.showUpdateViewDialog();
         },
         changed_view: function () {
             var self = this;
@@ -237,19 +273,29 @@ define([
         render: function () {
             var self = this;
             var context = {};
-            context.maps = this.collection.toJSON();
+            if (this.collection) {
+                context.maps = this.collection.toJSON();
+            } else {
+                context.maps = null;
+            }
+            context.mapProperties = (this.mapProperties && this.mapProperties.toJSON()) || null;
+            context.isNew = (this.map && this.map.isNew()) || null;
 
-            context.mapProperties = this.options.mapProperties.map.toJSON();
-            context.isNew = this.options.mapProperties.map.isNew();
-            if (this.options.context_user_default_view && this.options.context_user_default_view.attributes.viewid === this.options.mapProperties.map.attributes.viewid) {
+            /*if (this.options.context_user_default_view && this.options.context_user_default_view.attributes.viewid === this.options.mapProperties.map.attributes.viewid) {
                 context.isFavorite = this.options.context_user_default_view;
             } else {
                 context.isFavorite = false;
-            }
+            }*/
+            console.log("redner maps:");
+            console.log(context.maps);
 
             var out = this.template(context);
 
             this.$el.html(out);
+
+            if (!this.collection) {
+                $(".loading", this.$el).spin();
+            }
 
             self.alignView();
 

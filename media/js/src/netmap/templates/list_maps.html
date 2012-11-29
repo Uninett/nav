@@ -1,42 +1,46 @@
 <a id="toggle_view">&gt;&gt;</a>
 <div class="inner_wrap right_sidebar">
-    <form class="well form-inline" action="#">
-        <fieldset>
-            <div id="form_view" class="control-group">
-                <label class="control-label"
-                       for="dropdown_view_id">Views</label>
-                <a class="save_view" id="save_new_view" title="Save new view"><img src="/images/threshold/plus-button.png"/></a>
-                {{#if isNew}}
-                {{else}}
-                    <a class="save_view" id="delete_view" title="Delete view"><img src="/images/threshold/minus-button.png"/></a>
-                {{/if}}
-                <select id="dropdown_view_id">
-                    {{#if context_selected_map}}
-                    <option value="{{context_selected_map.viewid}}" selected="selected">
-                        {{context_selected_map.title}}
-                    </option>
+    {{#if maps}}
+        <form class="well form-inline" action="#">
+            <fieldset>
+                <div id="form_view" class="control-group">
+                    <label class="control-label"
+                           for="dropdown_view_id">Views</label>
+                    <a class="save_view" id="save_new_view" title="Save new view"><img src="/images/threshold/plus-button.png"/></a>
+                    {{#if isNew}}
+                    {{else}}
+                        <a class="save_view" id="delete_view" title="Delete view"><img src="/images/threshold/minus-button.png"/></a>
                     {{/if}}
-                    {{#maps}}
-                    <option value="{{viewid}} ">{{title}}</option>
-                    {{/maps}}
+                    <select id="dropdown_view_id">
+                        {{#if context_selected_map}}
+                        <option value="{{context_selected_map.viewid}}" selected="selected">
+                            {{context_selected_map.title}}
+                        </option>
+                        {{/if}}
+                        {{#maps}}
+                        <option value="{{viewid}} ">{{title}}</option>
+                        {{/maps}}
 
 
-                </select>
+                    </select>
 
-                <!-- Debug: context.viewid {{context_selected_map.viewid}} -->
+                    <!-- Debug: context.viewid {{context_selected_map.viewid}} -->
 
-                <button id="save_view"
-                        class="btn save_view">Save
-                </button>
-                <button id="set_as_user_favorite" {{#if isNew}}disabled=disabled{{/if}}
-                        class="btn save_view">Favorite
-                </button>
-                <div id="save_view_spinner"></div>
-            </div>
-        </fieldset>
-    </form>
-    {{#if isNew}}
+                    <button id="save_view"
+                            class="btn save_view">Save
+                    </button>
+                    <button id="set_as_user_favorite" {{#if isNew}}disabled=disabled{{/if}}
+                            class="btn save_view">Favorite
+                    </button>
+                    <div id="save_view_spinner"></div>
+                </div>
+            </fieldset>
+        </form>
+        {{#if isNew}}
+        {{else}}
+            <div class="description_selected_view {{#if isFavorite}}isFavorite{{/if}}"><span class="description">Description:</span><span class="value">{{#if context_selected_map.description}}{{context_selected_map.description}}{{else}}N/A{{/if}}</span></div>
+        {{/if}}
     {{else}}
-        <div class="description_selected_view {{#if isFavorite}}isFavorite{{/if}}"><span class="description">Description:</span><span class="value">{{#if context_selected_map.description}}{{context_selected_map.description}}{{else}}N/A{{/if}}</span></div>
+        <div class="loading">Waiting for data... <img src="/images/threshold/ajax-loader.gif" alt="" alt="Loading.." /></div>
     {{/if}}
 </div>
