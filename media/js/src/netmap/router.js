@@ -140,10 +140,7 @@ define([
         loadUi: function (forceLoad) {
             var self = this;
 
-            /*if (view_choose_map !== undefined) {
-                view_choose_map.close(); //
-            } else {*/
-            view_choose_map = new ListNetmapView({collection: collection_maps, mapProperties: context_selected_map, context_user_default_view: context_user_default_view});
+            view_choose_map = new ListNetmapView();
             //}
             self.loadGraph(forceLoad);
             self.loadNavigation();
