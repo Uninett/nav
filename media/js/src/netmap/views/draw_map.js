@@ -126,6 +126,7 @@ define([
                success: function (model, attributes) {
                    self.model = model;
                    self.postInitialize();
+                   self.broker.trigger("netmap:graph", model);
                },
                error: function () {
                     alert("Error loading graph, please try to reload the page");
