@@ -25,10 +25,16 @@ class AlertGenerator(dict):
         super(AlertGenerator, self).__init__()
         self.event = event
 
-        for attr in ('source', 'device', 'netbox', 'subid', 'time',
-                     'event_type', 'state', 'value', 'severity'):
-            setattr(self, attr,
-                    getattr(self.event, attr))
+        self.source = event.source
+        self.device = event.device
+        self.netbox = event.netbox
+        self.subid = event.subid
+        self.time = event.time
+        self.event_type = event.event_type
+        self.state = event.state
+        self.value = event.value
+        self.severity = event.severity
+
         self.update(event.varmap)
 
     def make_alert(self):
