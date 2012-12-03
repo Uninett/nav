@@ -14,10 +14,43 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 import time
+from operator import attrgetter
+from collections import namedtuple
 from nav.Snmp.pysnmp_se import Snmp
 from nav.Snmp.errors import *
 from nav.bitvector import BitVector
-from nav.models.manage import SwPortAllowedVlan
+from nav.models.manage import SwPortAllowedVlan, Vlan
+
+import logging
+
+class FantasyVlan(object):
+    """A container object for storing vlans for a netbox
+
+    This object is needed because we mix "real" vlans that NAV know about
+    and "fake" vlan that NAV does not know about but exists on the switch.
+    They need to be compared and sorted, and this class does that.
+
+    """
+
+    def __init__(self, vlan, netident=None):
+        self.vlan = vlan
+        self.net_ident = netident
+
+    def __unicode__(self):
+        if self.net_ident:
+            return "%s (%s)" % (self.vlan, self.net_ident)
+        else:
+            return str(self.vlan)
+
+    def __hash__(self):
+        return hash(self.vlan)
+
+    def __cmp__(self, other):
+        return cmp(self.vlan, other.vlan)
+
+    def __eq__(self, other):
+        return self.vlan == other.vlan
+
 
 class SNMPHandler(object):
     netbox = ''
@@ -195,46 +228,31 @@ class SNMPHandler(object):
         ifOperStats = self._bulkwalk(self.ifOperStatus)
         return self._getIfStats(ifOperStats)
 
-    def _filter_vlans(self, vlans):
-        vlans = filter(None, list(set(vlans)))
-        vlans.sort()
-        return vlans
-
     def getNetboxVlans(self):
-        boxVlans = self._bulkwalk(self.dot1qVlanStaticRowStatus)
+        """Find all available vlans on this netbox"""
         available_vlans = []
-        for (vlan, valueType) in boxVlans:
-            currVlan = self._getLastNumber(vlan)
-            if isinstance(currVlan, int):
-                available_vlans.append(currVlan)
-        # remove duplicates and none values
-        available_vlans = self._filter_vlans(available_vlans)
-        return available_vlans
+        for swport in self.netbox.get_swports():
+            available_vlans.extend(self._find_vlans_for_interface(swport))
+        return list(set(available_vlans))
+
+    def _find_vlans_for_interface(self, interface):
+        interface_vlans = interface.swportvlan_set.all()
+        vlans = []
+        if interface_vlans:
+            for swportvlan in interface_vlans:
+                vlan = swportvlan.vlan
+                if vlan.vlan:
+                    vlans.append(FantasyVlan(vlan.vlan, vlan.net_ident))
+        elif interface.vlan:
+            vlans = [FantasyVlan(vlan=interface.vlan)]
+
+        return vlans
 
 class Cisco(SNMPHandler):
     def __init__(self, netbox):
         super(Cisco, self).__init__(netbox)
         self.vlanOid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
         self.writeMemOid = '1.3.6.1.4.1.9.2.1.54.0'
-
-    def getNetboxVlans(self):
-        """ Find all available vlans on this netbox"""
-        available_vlans = []
-        for swport in self.netbox.get_swports():
-            if swport.trunk:
-                available_vlans.extend(self._find_vlans_on_trunk(swport))
-            else:
-                available_vlans.append(swport.vlan)
-        # remove duplicates and none values
-        available_vlans = self._filter_vlans(available_vlans)
-        return available_vlans
-
-    def _find_vlans_on_trunk(self, swport):
-        """Find all vlans on trunk-ports"""
-        port = SwPortAllowedVlan.objects.get(interface=swport.id)
-        vector = BitVector.from_hex(port.hex_string)
-        vlans = vector.get_set_bits()
-        return vlans
 
     def setVlan(self, ifindex, vlan):
         if isinstance(vlan, str) or isinstance(vlan, unicode):

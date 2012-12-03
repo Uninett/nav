@@ -82,11 +82,9 @@ def search_by_interfaceid(request, interfaceid):
 def populate_infodict(account, netbox, interfaces):
     errors = []
     allowed_vlans = []
-    netidents = []
     try:
         get_and_populate_livedata(netbox, interfaces)
         allowed_vlans = find_and_populate_allowed_vlans(account, netbox, interfaces)
-        netidents = get_netident_for_vlans(allowed_vlans)
     except TimeOutException, t:
         errors.append("Timeout when contacting netbox.")
         if not netbox.read_only:
@@ -107,11 +105,11 @@ def populate_infodict(account, netbox, interfaces):
     
     save_to_database(interfaces)
 
-    info_dict = {'interfaces': interfaces, 'netbox': netbox, 
+    info_dict = {'interfaces': interfaces, 'netbox': netbox,
                  'allowed_vlans': allowed_vlans,
-                 'account': account, 'netidents': netidents, 
+                 'account': account,
                  'aliastemplate': aliastemplate, 'errors': errors
-                 }
+    }
     info_dict.update(DEFAULT_VALUES)
     
     return info_dict
@@ -136,7 +134,8 @@ def save_interfaceinfo(request):
             return HttpResponse(simplejson.dumps(result), mimetype="application/json")
 
         account = get_account(request)
-        if vlan in find_allowed_vlans_for_user(account) or is_administrator(account):
+        vlan_numbers = [v.vlan for v in find_allowed_vlans_for_user(account)]
+        if vlan in vlan_numbers or is_administrator(account):
             try:
                 interface = Interface.objects.get(id=interfaceid)
                 netbox = interface.netbox

@@ -19,11 +19,11 @@ import django.template
 
 from django.template.loaders import filesystem
 from nav.bitvector import BitVector
-from nav.models.manage import SwPortAllowedVlan
-from nav.models.manage import Vlan
+from nav.models.manage import SwPortAllowedVlan, Vlan
 from nav.models.profiles import AccountGroup
 from nav.path import sysconfdir
 from nav.portadmin.snmputils import *
+from nav.portadmin.snmputils import FantasyVlan
 from operator import attrgetter
 from os.path import join
 
@@ -79,7 +79,6 @@ def find_and_populate_allowed_vlans(account, netbox, interfaces):
     return allowed_vlans    
 
 def find_allowed_vlans_for_user_on_netbox(account, netbox):
-    allowed_vlans = []
     netbox_vlans = find_vlans_on_netbox(netbox)
 
     if is_vlan_authorization_enabled():
@@ -93,9 +92,9 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox):
 
     defaultvlan = find_default_vlan() 
     if defaultvlan and defaultvlan not in allowed_vlans:
-        allowed_vlans.append(defaultvlan)
+        allowed_vlans.append(FantasyVlan(vlan=defaultvlan))
     
-    return sorted(allowed_vlans)
+    return sorted(allowed_vlans, key=attrgetter('vlan'))
 
 def is_vlan_authorization_enabled():
     config = read_config()
@@ -112,7 +111,6 @@ def find_allowed_vlans_for_user(account):
     allowed_vlans = []
     for org in account.organizations.all():
         allowed_vlans.extend(find_vlans_in_org(org))
-    allowed_vlans.sort()
     return allowed_vlans
 
 def find_default_vlan(include_netident=False):
@@ -142,8 +140,10 @@ def set_editable_on_interfaces(interfaces, vlans):
     """
     Set a flag on the interface to indicate if user is allowed to edit it.
     """
+    vlan_numbers = [vlan.vlan for vlan in vlans]
+
     for interface in interfaces:
-        if interface.vlan in vlans and not interface.trunk :
+        if interface.vlan in vlan_numbers and not interface.trunk:
             interface.iseditable = True
         else:
             interface.iseditable = False
@@ -153,36 +153,17 @@ def intersect(a, b):
         
 def find_vlans_in_org(org):
     """Find all vlans in an organization and child organizations"""
-    vlans = [vlan.vlan for vlan in org.vlan_set.all() if vlan.vlan]
+    vlans = list(org.vlan_set.all())
     for child_org in org.organization_set.all():
         vlans.extend(find_vlans_in_org(child_org))
-    return list(set(vlans))
+    return [FantasyVlan(x.vlan, x.net_ident) for x in list(set(vlans)) if
+            x.vlan]
 
 def is_administrator(account):
     groups = account.get_groups()
     if AccountGroup.ADMIN_GROUP in groups:
         return True
     return False
-
-def get_netident_for_vlans(inputlist):
-    """
-    Fetch net_ident for the vlans in the input
-    If it does not exist, fill in blanks
-    """
-    defaultvlan, defaultnetident = find_default_vlan(True)
-    
-    result = []
-    for vlan in inputlist:
-        vlanlist = Vlan.objects.filter(vlan=vlan)
-        if vlanlist:
-            for element in vlanlist:
-                result.append((element.vlan, element.net_ident))
-        elif vlan == defaultvlan:
-            result.append((defaultvlan, defaultnetident))
-        else:
-            result.append((vlan, ''))
-        
-    return result
 
 def check_format_on_ifalias(ifalias):
     section = "ifaliasformat"

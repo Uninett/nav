@@ -74,7 +74,7 @@ class PortadminResponseTest(unittest.TestCase):
         self.snmpReadOnlyHandler.get = Mock(return_value=666)
         self.assertEqual(self.handler.getVlan(1), 666,
                                 "getVlan-test failed")
-        
+
     def test_get_ifaliases_hp(self):
         self.handler = SNMPFactory.getInstance(self.netboxHP)
         # get hold of the read-only Snmp-object
@@ -85,17 +85,6 @@ class PortadminResponseTest(unittest.TestCase):
         self.assertEqual(self.handler.getAllIfAlias(),
             ['hjalmar', 'snorre', 'bjarne'], "getAllIfAlias failed.")
         
-    def test_get_vlans_hp(self):
-        self.handler = SNMPFactory.getInstance(self.netboxHP)
-        # get hold of the read-only Snmp-object
-        self.snmpReadOnlyHandler = self.handler._getReadOnlyHandle()
-        # replace get-method on Snmp-object with a mock-method
-        # for getting all Vlans
-        return_values = [('1.2.2.3.4.5.5.1', '1'), ('2.3.4.5.6.8', '1'),]
-        self.snmpReadOnlyHandler.bulkwalk = Mock( return_value = return_values)
-        self.assertEqual(self.handler.getNetboxVlans(), [1, 8],
-            'getNetboxValns failed.')
-
     def test_set_ifalias_hp(self):
         self.handler = SNMPFactory.getInstance(self.netboxHP)
         # get hold of the read-write Snmp-object
@@ -106,6 +95,18 @@ class PortadminResponseTest(unittest.TestCase):
         self.snmpReadWriteHandler.set = Mock( return_value = None)
         self.assertEqual(self.handler.setIfAlias(1, 'punkt1'), None,
                             'setIfAlias failed')
+
+    def test_get_vlans(self):
+        handler = SNMPFactory.getInstance(self.netboxHP)
+
+        interface = Mock()
+        swportvlan1 = Mock(vlan=Mock(vlan=1))
+        swportvlan2 = Mock(vlan=Mock(vlan=2))
+
+        interface.swportvlan_set.all.return_value = [swportvlan1, swportvlan2]
+
+        self.assertEqual(sorted(handler._find_vlans_for_interface(interface)),
+                         [FantasyVlan(1), FantasyVlan(2)])
 
     ####################################################################
     #  CISCO-netbox
