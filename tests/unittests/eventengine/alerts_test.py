@@ -20,7 +20,7 @@ class AlertFromEventBase(TestCase):
 
 class AlertFromEventTests(AlertFromEventBase):
     def test_alert_from_event_copies_attributes(self):
-        alert = AlertGenerator(self.event).alert
+        alert = AlertGenerator(self.event).make_alert()
 
         self.assertEqual(alert.source,   self.event.source)
         self.assertEqual(alert.netbox,   self.event.netbox)
@@ -33,13 +33,13 @@ class AlertFromEventTests(AlertFromEventBase):
 
     def test_alert_from_event_copies_variables(self):
         self.event.varmap = dict(foo='bar', parrot='dead')
-        alert = AlertGenerator(self.event).alert
+        alert = AlertGenerator(self.event).make_alert()
 
         self.assertEqual(alert.varmap, self.event.varmap)
 
 class AlertHistoryFromEventTests(AlertFromEventBase):
     def test_alerthist_from_event_copies_attributes(self):
-        history = AlertGenerator(self.event).history
+        history = AlertGenerator(self.event).make_alert_history()
 
         self.assertEqual(history.source,     self.event.source)
         self.assertEqual(history.netbox,     self.event.netbox)
@@ -53,4 +53,4 @@ class AlertHistoryFromEventTests(AlertFromEventBase):
     def test_should_not_create_alerthist_from_end_event(self):
         self.event.state = self.event.STATE_END
         alert = AlertGenerator(self.event)
-        self.assertTrue(alert.history is None)
+        self.assertTrue(alert.make_alert_history() is None)

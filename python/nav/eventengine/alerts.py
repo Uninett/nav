@@ -15,39 +15,62 @@
 #
 """Alert generator functionality for the eventEngine"""
 import datetime
-from nav.models.event import AlertQueue as Alert, AlertHistory
+from nav.models.event import AlertQueue as Alert, EventQueue as Event
+from nav.models.event import AlertHistory
 
 INFINITY = datetime.datetime.max
 
-class AlertGenerator(object):
+class AlertGenerator(dict):
     def __init__(self, event):
+        super(AlertGenerator, self).__init__()
         self.event = event
-        self.alert = self._generateAlert()
-        self.history = self._generateAlertHistory()
 
-    def _generateAlert(self):
+        for attr in ('source', 'device', 'netbox', 'subid', 'time',
+                     'event_type', 'state', 'value', 'severity'):
+            setattr(self, attr,
+                    getattr(self.event, attr))
+        self.update(event.varmap)
+
+    def make_alert(self):
+        """Generates an alert object based on the current attributes"""
         attrs = {}
         for attr in ('source', 'device', 'netbox', 'subid', 'time',
                      'event_type', 'state', 'value', 'severity'):
-            attrs[attr] = getattr(self.event, attr)
+            attrs[attr] = getattr(self, attr)
         alert = Alert(**attrs)
-        alert.varmap = self.event.varmap
+        alert.varmap = self
         return alert
 
-    def _generateAlertHistory(self):
-        if self.event.state == self.event.STATE_END:
+    def make_alert_history(self):
+        """Generates an alert history object based on the current attributes"""
+        if self.state == Event.STATE_END:
             return None
 
         attrs = dict(
-            start_time=self.event.time,
-            end_time=INFINITY if self.event.state == self.event.STATE_START
+            start_time=self.time,
+            end_time=INFINITY if self.state == Event.STATE_START
             else None)
         for attr in ('source', 'device', 'netbox', 'subid', 'event_type',
                      'value', 'severity'):
-            attrs[attr] = getattr(self.event, attr)
+            attrs[attr] = getattr(self, attr)
         alert = AlertHistory(**attrs)
-        alert.varmap = self.event.varmap
+        alert.varmap = self
         return alert
+
+    def post(self):
+        """Generates and posts the necessary alert objects to the database"""
+        self.post_alert()
+        self.post_alert_history()
+
+    def post_alert(self):
+        """Generates and posts an alert on the alert queue only"""
+        alert = self.make_alert()
+        alert.save()
+
+    def post_alert_history(self):
+        """Generates and posts an alert history record only"""
+        history = self.make_alert_history()
+        history.save()
 
     def is_event_duplicate(self):
         """Returns True if the represented event seems to duplicate an
@@ -55,7 +78,7 @@ class AlertGenerator(object):
 
         """
         unresolved = get_unresolved_alerts_map()
-        return (self.event.state == self.event.STATE_START
+        return (self.event.state == Event.STATE_START
                 and self.event.get_key() in unresolved)
 
 def get_unresolved_alerts_map():
