@@ -18,6 +18,7 @@
 
 # Don't warn about Meta classes, we can't help the Django API
 # pylint: disable=R0903
+from collections import defaultdict
 
 import datetime as dt
 
@@ -51,9 +52,9 @@ class Subsystem(models.Model):
 #######################################################################
 ### Event system
 
-class VariableMap(object):
+class VariableMapBase(object):
     """Descriptor for simplified dict-like access to the variable map tables
-    associated with EventQueue, AlertQueue and AlertHistory.
+    associated with EventQueue and AlertQueue.
 
     NOTE: Updating the dictionary will not save it, the attribute must be
     assigned a dict value for a db update to take place.
@@ -70,9 +71,7 @@ class VariableMap(object):
         if hasattr(obj, self.cachename):
             return getattr(obj, self.cachename)
         elif obj.pk:
-            variables = getattr(obj, self.variables)
-            varmap = dict((var.variable, var.value)
-                          for var in variables.all())
+            varmap = self._as_dict(obj)
             setattr(obj, self.cachename, varmap)
             return varmap
         else:
@@ -87,28 +86,95 @@ class VariableMap(object):
 
         if obj.pk:
             variables = getattr(obj, self.variables)
-            _rel_manager = getattr(obj.__class__, self.variables)
-            var_model = _rel_manager.related.model
-            related_field = _rel_manager.related.field.name
             if vardict:
-                removed = variables.exclude(variable__in=vardict.keys())
-                removed.delete()
-            varmap = dict((v.variable, v) for v in variables.all())
-            for key, value in vardict.items():
-                if key in varmap:
-                    if varmap[key].value != value:
-                        varmap[key] = value
-                        varmap[key].save()
-                else:
-                    variable = var_model(**{
-                            related_field: obj,
-                            'variable': key,
-                            'value': value,
-                            })
-                    variable.save()
+                self._delete_missing_variables(vardict, variables)
+
+            self._update_variables(obj, vardict)
 
         setattr(obj, self.cachename, vardict)
 
+    def _as_dict(self, obj):
+        raise NotImplementedError
+
+    def _get_model_and_related_field(self, obj):
+        _rel_manager = getattr(obj.__class__, self.variables)
+        var_model = _rel_manager.related.model
+        related_field = _rel_manager.related.field.name
+        return related_field, var_model
+
+    def _delete_missing_variables(self, vardict, variables):
+        raise NotImplementedError
+
+    def _update_variables(self, obj, vardict):
+        raise NotImplementedError
+
+
+class VariableMap(VariableMapBase):
+    def _as_dict(self, obj):
+        variables = getattr(obj, self.variables)
+        return dict((var.variable, var.value) for var in variables.all())
+
+    def _delete_missing_variables(self, vardict, variables):
+        removed = variables.exclude(variable__in=vardict.keys())
+        removed.delete()
+
+    def _update_variables(self, obj, vardict):
+        varmap = self._as_dict(obj)
+        related_field, var_model = self._get_model_and_related_field(obj)
+
+        for key, value in vardict.items():
+            if key in varmap:
+                if varmap[key].value != value:
+                    varmap[key] = value
+                    varmap[key].save()
+            else:
+                variable = var_model(**{
+                    related_field: obj,
+                    'variable': key,
+                    'value': value,
+                    })
+                variable.save()
+
+class StateVariableMap(VariableMapBase):
+    """Descriptor for simplified dict-like access to the AlertHistory
+    stateful variable map.
+
+    NOTE: Updating the dictionary will not save it, the attribute must be
+    assigned a dict value for a db update to take place.
+
+    """
+    def _as_dict(self, obj):
+        variables = getattr(obj, self.variables)
+        varmap = defaultdict(dict)
+        for var in variables.all():
+            varmap[var.state][var.variable] = var.value
+        return dict(varmap)
+
+    def _delete_missing_variables(self, vardict, variables):
+        for state, _descr in STATE_CHOICES:
+            removed = variables.filter(state=state)
+            if state in vardict:
+                removed.exclude(variable__in=vardict[state].keys())
+            removed.delete()
+
+    def _update_variables(self, obj, vardict):
+        varmap = self._as_dict(obj)
+        related_field, var_model = self._get_model_and_related_field(obj)
+
+        for state, vars in vardict.items():
+            for key, value in vars.items():
+                if key in varmap[state]:
+                    if varmap[state][key].value != value:
+                        varmap[state][key] = value
+                        varmap[state][key].save()
+                else:
+                    variable = var_model(**{
+                        related_field: obj,
+                        'state': state,
+                        'variable': key,
+                        'value': value,
+                    })
+                    variable.save()
 
 class EventMixIn(object):
     """MixIn for methods common to multiple event/alert/alerthistory models"""
@@ -327,7 +393,7 @@ class AlertHistory(models.Model, EventMixIn):
     value = models.IntegerField()
     severity = models.IntegerField()
 
-    varmap = VariableMap()
+    varmap = StateVariableMap()
 
     class Meta:
         db_table = 'alerthist'
