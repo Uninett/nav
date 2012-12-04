@@ -4,6 +4,10 @@ from nav.models.event import EventQueue as Event, Subsystem, EventType
 from nav.models.manage import Netbox, Device
 from nav.eventengine.alerts import AlertGenerator
 
+class MockedAlertGenerator(AlertGenerator):
+    def get_alert_type(self):
+        return None
+
 class AlertFromEventBase(TestCase):
     def setUp(self):
         self.event = Event(
@@ -20,7 +24,7 @@ class AlertFromEventBase(TestCase):
 
 class AlertFromEventTests(AlertFromEventBase):
     def test_alert_from_event_copies_attributes(self):
-        alert = AlertGenerator(self.event).make_alert()
+        alert = MockedAlertGenerator(self.event).make_alert()
 
         self.assertEqual(alert.source,   self.event.source)
         self.assertEqual(alert.netbox,   self.event.netbox)
@@ -33,13 +37,13 @@ class AlertFromEventTests(AlertFromEventBase):
 
     def test_alert_from_event_copies_variables(self):
         self.event.varmap = dict(foo='bar', parrot='dead')
-        alert = AlertGenerator(self.event).make_alert()
+        alert = MockedAlertGenerator(self.event).make_alert()
 
         self.assertEqual(alert.varmap, self.event.varmap)
 
 class AlertHistoryFromEventTests(AlertFromEventBase):
     def test_alerthist_from_event_copies_attributes(self):
-        history = AlertGenerator(self.event).make_alert_history()
+        history = MockedAlertGenerator(self.event).make_alert_history()
 
         self.assertEqual(history.source,     self.event.source)
         self.assertEqual(history.netbox,     self.event.netbox)
@@ -52,5 +56,5 @@ class AlertHistoryFromEventTests(AlertFromEventBase):
 
     def test_should_not_create_alerthist_from_end_event(self):
         self.event.state = self.event.STATE_END
-        alert = AlertGenerator(self.event)
+        alert = MockedAlertGenerator(self.event)
         self.assertTrue(alert.make_alert_history() is None)

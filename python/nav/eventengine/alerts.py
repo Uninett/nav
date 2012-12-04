@@ -15,7 +15,7 @@
 #
 """Alert generator functionality for the eventEngine"""
 import datetime
-from nav.models.event import AlertQueue as Alert, EventQueue as Event
+from nav.models.event import AlertQueue as Alert, EventQueue as Event, AlertType
 from nav.models.event import AlertHistory
 
 INFINITY = datetime.datetime.max
@@ -37,6 +37,12 @@ class AlertGenerator(dict):
 
         self.update(event.varmap)
 
+        if 'alert_type' in self:
+            self.alert_type = self['alert_type']
+            del self['alert_type']
+        else:
+            self.alert_type = None
+
     def make_alert(self):
         """Generates an alert object based on the current attributes"""
         attrs = {}
@@ -44,6 +50,7 @@ class AlertGenerator(dict):
                      'event_type', 'state', 'value', 'severity'):
             attrs[attr] = getattr(self, attr)
         alert = Alert(**attrs)
+        alert.alert_type = self.get_alert_type()
         alert.varmap = self
         return alert
 
@@ -60,13 +67,14 @@ class AlertGenerator(dict):
                      'value', 'severity'):
             attrs[attr] = getattr(self, attr)
         alert = AlertHistory(**attrs)
+        alert.alert_type = self.get_alert_type()
         alert.varmap = self
         return alert
 
     def post(self):
         """Generates and posts the necessary alert objects to the database"""
-        self.post_alert()
         self.post_alert_history()
+        self.post_alert()
 
     def post_alert(self):
         """Generates and posts an alert on the alert queue only"""
@@ -86,6 +94,9 @@ class AlertGenerator(dict):
         unresolved = get_unresolved_alerts_map()
         return (self.event.state == Event.STATE_START
                 and self.event.get_key() in unresolved)
+
+    def get_alert_type(self):
+        return AlertType.objects.get(name=self.alert_type)
 
 def get_unresolved_alerts_map():
     """Returns a dictionary of unresolved AlertHistory entries"""
