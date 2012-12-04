@@ -18,8 +18,8 @@ from nav.models.manage import Netbox
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.plugin import EventHandler
 
-WARNING_WAIT_TIME = 20
-ALERT_WAIT_TIME = 60
+WARNING_WAIT_TIME = 2
+ALERT_WAIT_TIME = 5
 
 class BoxStateHandler(EventHandler):
     """Accepts boxState events"""
@@ -107,6 +107,7 @@ class BoxStateHandler(EventHandler):
             self._logger.info("%s: Posting boxDownWarning alert",
                               self.event.netbox)
             alert.alert_type = "boxDownWarning"
+            alert.state = self.event.STATE_STATELESS
             alert.post()
 
         self.task = self.engine.schedule(
