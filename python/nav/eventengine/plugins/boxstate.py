@@ -14,7 +14,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """"boxState event plugin"""
-
+from nav.models.manage import Netbox
+from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.plugin import EventHandler
 
 WARNING_WAIT_TIME = 20
@@ -35,6 +36,10 @@ class BoxStateHandler(EventHandler):
             return self._handle_start()
         elif event.state == event.STATE_END:
             return self._handle_end()
+        else:
+            self._logger.info("ignoring strange stateless boxState event: %r",
+                              self.event)
+            self.event.delete()
 
     def _handle_start(self):
         event = self.event
@@ -90,15 +95,33 @@ class BoxStateHandler(EventHandler):
         return self.waiting_for_resolve.get(self.event.netbox, False)
 
     def _make_down_warning(self):
-        self._logger.info("Pretending to post boxDownWarning for %s",
-                          self.event.netbox)
+        """Posts the initial boxDownWarning alert and schedules the callback
+        for the final boxDown alert.
+
+        """
+        alert = AlertGenerator(self.event)
+        if self.event.netbox.up == Netbox.UP_SHADOW:
+            self._logger.info("%s appears to be in shadow: not posting "
+                              "boxDownWarning alert for it", self.event.netbox)
+        else:
+            self._logger.info("%s: Posting boxDownWarning alert",
+                              self.event.netbox)
+            alert.alert_type = "boxDownWarning"
+            alert.post()
+
         self.task = self.engine.schedule(
             max(ALERT_WAIT_TIME-WARNING_WAIT_TIME, 0),
             self._make_down_alert)
 
     def _make_down_alert(self):
-        self._logger.info("Pretending to post boxDown for %s",
-                          self.event.netbox)
+        alert = AlertGenerator(self.event)
+        alert.alert_type = ('boxShadow'
+                            if self.event.netbox.up == Netbox.UP_SHADOW
+                            else 'boxDown')
+        self._logger.info("%s: Posting %s alert", self.event.netbox,
+                          alert.alert_type)
+        alert.post()
+
         del self.waiting_for_resolve[self.event.netbox]
         self.task = None
         self.event.delete()
