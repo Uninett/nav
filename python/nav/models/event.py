@@ -24,7 +24,7 @@ import datetime as dt
 from django.db import models
 
 from nav.models.manage import Device, Netbox
-from nav.models.fields import VarcharField
+from nav.models.fields import VarcharField, DateTimeInfinityField
 
 # Choices used in multiple models, "imported" into the models which use them
 STATE_STATELESS = 'x'
@@ -320,7 +320,7 @@ class AlertHistory(models.Model, EventMixIn):
     netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
     subid = VarcharField()
     start_time = models.DateTimeField()
-    end_time = models.DateTimeField(null=True)
+    end_time = DateTimeInfinityField(null=True)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     alert_type = models.ForeignKey('AlertType', db_column='alerttypeid',
                                    null=True)
