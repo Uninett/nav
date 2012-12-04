@@ -139,16 +139,16 @@ class EventQueue(models.Model, EventMixIn):
 
     id = models.AutoField(db_column='eventqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source',
-        related_name='source_of_events')
+                               related_name='source_of_events')
     target = models.ForeignKey('Subsystem', db_column='target',
-        related_name='target_of_events')
+                               related_name='target_of_events')
     device = models.ForeignKey(Device, db_column='deviceid', null=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
     subid = VarcharField()
     time = models.DateTimeField(default=dt.datetime.now)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
-        default=STATE_STATELESS)
+                             default=STATE_STATELESS)
     value = models.IntegerField(default=100)
     severity = models.IntegerField(default=50)
 
@@ -179,8 +179,8 @@ class EventType(models.Model):
         (STATEFUL_FALSE, 'stateless'),
     )
 
-    id = models.CharField(db_column='eventtypeid',
-        max_length=32, primary_key=True)
+    id = models.CharField(db_column='eventtypeid', max_length=32,
+                          primary_key=True)
     description = VarcharField(db_column='eventtypedesc')
     stateful = models.CharField(max_length=1, choices=STATEFUL_CHOICES)
 
@@ -230,9 +230,9 @@ class AlertQueue(models.Model, EventMixIn):
     time = models.DateTimeField()
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     alert_type = models.ForeignKey('AlertType', db_column='alerttypeid',
-        null=True)
+                                   null=True)
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
-        default=STATE_STATELESS)
+                             default=STATE_STATELESS)
     value = models.IntegerField()
     severity = models.IntegerField()
 
@@ -279,7 +279,7 @@ class AlertQueueMessage(models.Model):
 
     id = models.AutoField(primary_key=True)
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
-        related_name='messages')
+                                    related_name='messages')
     type = VarcharField(db_column='msgtype')
     language = VarcharField()
     message = models.TextField(db_column='msg')
@@ -298,7 +298,7 @@ class AlertQueueVariable(models.Model):
 
     id = models.AutoField(primary_key=True)
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
-        related_name='variables')
+                                    related_name='variables')
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
@@ -323,7 +323,7 @@ class AlertHistory(models.Model, EventMixIn):
     end_time = models.DateTimeField(null=True)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     alert_type = models.ForeignKey('AlertType', db_column='alerttypeid',
-        null=True)
+                                   null=True)
     value = models.IntegerField()
     severity = models.IntegerField()
 
@@ -379,9 +379,9 @@ class AlertHistoryMessage(models.Model):
 
     id = models.AutoField(primary_key=True)
     alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid',
-        related_name='messages')
+                                      related_name='messages')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
-        default=STATE_STATELESS)
+                             default=STATE_STATELESS)
     type = VarcharField(db_column='msgtype')
     language = VarcharField()
     message = models.TextField(db_column='msg')
@@ -406,7 +406,7 @@ class AlertHistoryVariable(models.Model):
     alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid',
                                       related_name='variables')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
-        default=STATE_STATELESS)
+                             default=STATE_STATELESS)
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
