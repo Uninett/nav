@@ -222,7 +222,7 @@ class AlertQueue(models.Model, EventMixIn):
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
 
-    id = models.IntegerField(db_column='alertqid', primary_key=True)
+    id = models.AutoField(db_column='alertqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey(Device, db_column='deviceid', null=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
@@ -250,7 +250,7 @@ class AlertQueue(models.Model, EventMixIn):
 
     def save(self, *args, **kwargs):
         new_object = self.pk is None
-        super(EventQueue, self).save(*args, **kwargs)
+        super(AlertQueue, self).save(*args, **kwargs)
         if new_object:
             assert self.pk
             self.varmap = self.varmap
@@ -363,7 +363,7 @@ class AlertHistory(models.Model, EventMixIn):
 
     def save(self, *args, **kwargs):
         new_object = self.pk is None
-        super(EventQueue, self).save(*args, **kwargs)
+        super(AlertHistory, self).save(*args, **kwargs)
         if new_object:
             assert self.pk
             self.varmap = self.varmap
