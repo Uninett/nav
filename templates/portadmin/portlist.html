@@ -33,8 +33,8 @@ PortAdmin - {{ netbox.get_short_sysname }}
 		<h4>Available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}</h4>
 		
 		<ul>
-		{% for vlan, netident in netidents %}
-			<li>{{ vlan }} - {{ netident }}</li>
+		{% for vlan in allowed_vlans %}
+			<li>{{ vlan }}</li>
 		{% endfor %}
 		</ul>
 	
@@ -76,16 +76,14 @@ PortAdmin - {{ netbox.get_short_sysname }}
 			{% else %}
 				{% if interface.iseditable %}
 					<select class="vlanlist" name="{{ interface.ifname }}">
-						{% for vlan in allowed_vlans %}
-							{% ifequal interface.vlan vlan %}
-							<option value="{{ vlan }}" selected="selected">{{ vlan }}</option>
-							{% else %}
-							<option value="{{ vlan }}">{{ vlan }}</option>
-							{% endifequal %}
+                        {% for vlan in allowed_vlans %}
+                            <option value="{{ vlan.vlan }}" {% if interface.vlan == vlan.vlan %}selected="selected"{% endif %}>
+                                {{ vlan.vlan }}
+                            </option>
 						{% endfor %}
 					</select>
-				{% else %}			
-					{{interface.vlan}}
+				{% else %}
+                    {{ interface.vlan|default_if_none:'' }}
 				{% endif %}
 			{% endif %}
 		</td>
