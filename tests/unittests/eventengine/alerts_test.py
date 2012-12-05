@@ -8,6 +8,9 @@ class MockedAlertGenerator(AlertGenerator):
     def get_alert_type(self):
         return None
 
+    def _find_existing_alert_history(self):
+        return None
+
 class AlertFromEventBase(TestCase):
     def setUp(self):
         self.event = Event(

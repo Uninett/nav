@@ -4,7 +4,7 @@ from nav.eventengine.plugin import UnsupportedEvent, EventHandler
 from nav.eventengine.plugin import _find_package_modules
 
 class _EmptyHandler(EventHandler):
-    pass
+    handled_types = ()
 
 def test_can_handle_should_return_true_by_default():
     assert _EmptyHandler.can_handle(object())
