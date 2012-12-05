@@ -257,8 +257,8 @@ def _update_map_categories(categories, view):
     """
     NetmapViewCategories.objects.filter(view=view.pk).delete()
     for category in categories:
-        if category != 'ELINK':
-            category_model = Category.objects.get(pk=category)
+        if category['name'] != 'ELINK' and category['is_selected']:
+            category_model = Category.objects.get(pk=category['name'])
 
             NetmapViewCategories.objects.create(
                 view=view,
@@ -295,7 +295,7 @@ def update_map(request, map_id):
         else:
             view.display_orphans = False
 
-        if any(x == 'ELINK' for x in data['categories']):
+        if any(x['name'] == 'ELINK' for x in data['categories']):
             view.display_elinks = True
         else:
             view.display_elinks = False

@@ -1261,9 +1261,9 @@ class NetmapView(models.Model):
 
     def to_json_dict(self):
         """Presents a NetmapView as JSON"""
-        categories = [unicode(x.category.id) for x in self.categories_set.all()]
+        categories = [{'name': unicode(x.category.id), 'is_selected': True} for x in self.categories_set.all()]
         if self.display_elinks:
-            categories.append("ELINK")
+            categories.append({'name': 'ELINK', 'is_selected': True})
 
         return {
             'viewid': self.viewid,
