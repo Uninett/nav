@@ -25,7 +25,6 @@ class UnsupportedEvent(ValueError):
 
 class EventHandler(object):
     "Base class for event handlers"
-    handled_types = []
 
     @classmethod
     def can_handle(cls, event):

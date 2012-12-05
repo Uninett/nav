@@ -23,7 +23,7 @@ ALERT_WAIT_TIME = 5
 
 class BoxStateHandler(EventHandler):
     """Accepts boxState events"""
-    handles_types = ('boxState',)
+    handled_types = ('boxState',)
     waiting_for_resolve = {}
 
     def __init__(self, *args, **kwargs):
