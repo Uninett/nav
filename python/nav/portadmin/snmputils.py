@@ -13,15 +13,18 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""This is a utility library made especially for PortAdmin."""
 import time
-from operator import attrgetter
-from collections import namedtuple
-from nav.Snmp.pysnmp_se import Snmp
-from nav.Snmp.errors import *
-from nav.bitvector import BitVector
-from nav.models.manage import SwPortAllowedVlan, Vlan
-
 import logging
+
+from nav.Snmp.pysnmp_se import Snmp
+from nav.Snmp.errors import UnsupportedSnmpVersionError
+from nav.Snmp.errors import NoSuchObjectError
+from nav.bitvector import BitVector
+
+
+_logger = logging.getLogger("nav.portadmin.snmputils")
+
 
 class FantasyVlan(object):
     """A container object for storing vlans for a netbox
@@ -53,91 +56,109 @@ class FantasyVlan(object):
 
 
 class SNMPHandler(object):
-    netbox = ''
-    ifAliasOid = '1.3.6.1.2.1.31.1.1.1.18' # From IF-MIB
-    vlanOid = '1.3.6.1.2.1.17.7.1.4.5.1.1' # From Q-BRIDGE-MIB
+    """A basic class for SNMP-read and -write to switches."""
+    IF_ALIAS_OID = '1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
+    VlAN_OID = '1.3.6.1.2.1.17.7.1.4.5.1.1'  # From Q-BRIDGE-MIB
     # oid for reading vlans om a stndard netbox (not cisco)
-    dot1qVlanStaticRowStatus = '1.3.6.1.2.1.17.7.1.4.3.1.5'
+    DOT1Q_VLAN_STATIC_ROW_STATUS = '1.3.6.1.2.1.17.7.1.4.3.1.5'
     # List of all ports on a vlan as a hexstring
-    dot1qVlanStaticEgressPorts = '1.3.6.1.2.1.17.7.1.4.3.1.2'
-    ifAdminStatus = '1.3.6.1.2.1.2.2.1.7'
-    ifOperStatus  = '1.3.6.1.2.1.2.2.1.8'
+    DOT1Q_VLAN_STATIC_EGRESS_PORTS = '1.3.6.1.2.1.17.7.1.4.3.1.2'
+    IF_ADMIN_STATUS = '1.3.6.1.2.1.2.2.1.7'
+    IF_OPER_STATUS = '1.3.6.1.2.1.2.2.1.8'
+
+    netbox = None
 
     def __init__(self, netbox):
         self.netbox = netbox
-        self.readOnlyHandle = None
-        self.readWriteHandle = None
-    
+        self.read_only_handle = None
+        self.read_write_handle = None
+
     def __unicode__(self):
         return self.netbox.type.vendor.id
 
     def _bulkwalk(self, oid):
-        handle = self._getReadOnlyHandle()
+        """Walk all branches for the given oid."""
+        handle = self._get_read_only_handle()
         result = []
         try:
             result = handle.bulkwalk(oid)
-        except UnsupportedSnmpVersionError, e:
-            result = handle.walk(oid)
+        except UnsupportedSnmpVersionError, unsup_ex:
+            _logger.info("_bulkwalk: UnsupportedSnmpVersionError = %s" %
+                         str(unsup_ex))
+            try:
+                result = handle.walk(oid)
+            except Exception, ex:
+                _logger.error("_bulkwalk: Exception = %s" % str(ex))
         return result
 
-    def _getLegalIfIndex(self, ifindex):
-        if isinstance(ifindex, int):
-            ifindex = str(ifindex)
-        if not (isinstance(ifindex, str) or isinstance(ifindex, unicode)):
+    def _get_legal_if_index(self, if_index):
+        """Check if the given index is a legal interface-index."""
+        if isinstance(if_index, int):
+            if_index = str(if_index)
+        if not (isinstance(if_index, str) or isinstance(if_index, unicode)):
             raise TypeError('Illegal value for interface-index')
-        if not ifindex.isdigit():
+        if not if_index.isdigit():
             raise TypeError('Illegal value for interface-index')
-        return ifindex
+        return if_index
 
-    def _getQuery(self, oid, ifindex):
-        return oid + "." + self._getLegalIfIndex(ifindex)
+    def _get_query(self, oid, if_index):
+        """Concat given oid and interface-index."""
+        return oid + "." + self._get_legal_if_index(if_index)
 
-    def _getReadOnlyHandle(self):
-        if self.readOnlyHandle is None:
-            self.readOnlyHandle = Snmp(self.netbox.ip, self.netbox.read_only)
-        return self.readOnlyHandle
+    def _get_read_only_handle(self):
+        """Get a read only SNMP-handle."""
+        if self.read_only_handle is None:
+            self.read_only_handle = Snmp(self.netbox.ip, self.netbox.read_only,
+                self.netbox.snmp_version)
+        return self.read_only_handle
 
-    def _queryNetbox(self, oid, ifindex):
-        handle = self._getReadOnlyHandle()
+    def _query_netbox(self, oid, if_index):
+        """Query the given interface."""
+        handle = self._get_read_only_handle()
         result = None
         try:
-            result = handle.get(self._getQuery(oid, ifindex))
-        except NoSuchObjectError, e:
-            pass
+            result = handle.get(self._get_query(oid, if_index))
+        except NoSuchObjectError, no_such_ex:
+            _logger.debug("_query_netbox: NoSuchObjectError = %s" %
+                          str(no_such_ex))
         return result
 
-    def _getReadWriteHandle(self):
-        if self.readWriteHandle is None:
-            self.readWriteHandle = Snmp(self.netbox.ip,
-                                        self.netbox.read_write,
-                                        self.netbox.snmp_version)
-        return self.readWriteHandle
+    def _get_read_write_handle(self):
+        """Get a read and write SNMP-handle."""
+        if self.read_write_handle is None:
+            self.read_write_handle = Snmp(self.netbox.ip,
+                self.netbox.read_write, self.netbox.snmp_version)
+        return self.read_write_handle
 
-    def _setNetboxValue(self, oid, ifindex, valueType, value):
-        handle = self._getReadWriteHandle()
-        return handle.set(self._getQuery(oid, ifindex), valueType, value)
+    def _set_netbox_value(self, oid, if_index, value_type, value):
+        """Set a value for the given interface."""
+        handle = self._get_read_write_handle()
+        return handle.set(self._get_query(oid, if_index), value_type, value)
 
-    def getIfAlias(self, ifindex):
+    def get_if_alias(self, if_index):
         """ Get alias on a specific interface """
-        return self._queryNetbox(self.ifAliasOid, ifindex)
+        return self._query_netbox(self.IF_ALIAS_OID, if_index)
 
-    def getAllIfAlias(self):
-        return self._bulkwalk(self.ifAliasOid)
-        
-    def setIfAlias(self, ifindex, ifalias):
-        """ Set alias on a specific interface."""
-        if not (isinstance(ifalias, str) or isinstance(ifalias, unicode)):
-            raise TypeError('Illegal value for interface-alias: %s' %ifalias)
-        return self._setNetboxValue(self.ifAliasOid, ifindex, "s", ifalias)
+    def get_all_if_alias(self):
+        """Get all aliases for all interfaces."""
+        return self._bulkwalk(self.IF_ALIAS_OID)
 
-    def getVlan(self, ifindex):
-        """ Get vlan on a specific interface."""
-        return self._queryNetbox(self.vlanOid, ifindex)
+    def set_if_alias(self, if_index, if_alias):
+        """Set alias on a specific interface."""
+        if not (isinstance(if_alias, str) or isinstance(if_alias, unicode)):
+            raise TypeError('Illegal value for interface-alias: %s' % if_alias)
+        return self._set_netbox_value(self.IF_ALIAS_OID, if_index, "s",
+            if_alias)
 
-    def getAllVlans(self):
-        return self._bulkwalk(self.vlanOid)
-    
-    def _computeOctetString(self, hexstring, port, action='enable'):
+    def get_vlan(self, if_index):
+        """Get vlan on a specific interface."""
+        return self._query_netbox(self.VlAN_OID, if_index)
+
+    def get_all_vlans(self):
+        """Get all vlans on the switch"""
+        return self._bulkwalk(self.VlAN_OID)
+
+    def _compute_octet_string(self, hexstring, port, action='enable'):
         """
         hexstring: the returnvalue of the snmpquery
         port: the number of the port to add
@@ -151,58 +172,63 @@ class SNMPHandler(object):
             bit[port] = 0
         return str(bit)
 
-    def setVlan(self, ifindex, vlan):
+    def set_vlan(self, if_index, vlan):
+        """Set a new vlan on the given interface and remove
+        the previous vlan"""
         if isinstance(vlan, str) or isinstance(vlan, unicode):
             if vlan.isdigit():
                 vlan = int(vlan)
         if not isinstance(vlan, int):
-            raise TypeError('Illegal value for vlan: %s' %vlan)
+            raise TypeError('Illegal value for vlan: %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.getVlan(ifindex)
+        fromvlan = self.get_vlan(if_index)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             return None
         # Add port to vlan. This makes the port active on both old and new vlan
-        status = self._setNetboxValue(self.vlanOid, ifindex, "u", vlan)
+        status = self._set_netbox_value(self.VlAN_OID, if_index, "u", vlan)
         # Remove port from list of ports on old vlan
-        hexstring = self._queryNetbox(self.dot1qVlanStaticEgressPorts, fromvlan)
-        modified_hexport = self._computeOctetString(hexstring, ifindex, 'disable')
-        return self._setNetboxValue(self.dot1qVlanStaticEgressPorts, fromvlan, 's', modified_hexport)
+        hexstring = self._query_netbox(self.DOT1Q_VLAN_STATIC_EGRESS_PORTS,
+            fromvlan)
+        modified_hexport = self._compute_octet_string(hexstring, if_index,
+                                                    'disable')
+        return self._set_netbox_value(self.DOT1Q_VLAN_STATIC_EGRESS_PORTS,
+                                    fromvlan, 's', modified_hexport)
 
-
-    def setIfUp(self, ifindex):
+    def set_if_up(self, if_index):
         """Set interface.to up"""
-        return self._setNetboxValue(self.ifAdminStatus, ifindex, "i", 1)
+        return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i", 1)
 
-    def setIfDown(self, ifindex):
+    def set_if_down(self, if_index):
         """Set interface.to down"""
-        return self._setNetboxValue(self.ifAdminStatus, ifindex, "i", 2)
+        return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i", 2)
 
-    def restartIf(self, ifindex, wait=5):
+    def restart_if(self, if_index, wait=5):
         """ Take interface down and up.
             wait = number of seconds to wait between down and up."""
         if isinstance(wait, str) or isinstance(wait, unicode):
             if wait.isdigit():
                 wait = int(wait)
         if not isinstance(wait, int):
-            raise TypeError('Illegal value for wait: %s' %wait)
-        self.setIfDown(ifindex)
+            raise TypeError('Illegal value for wait: %s' % wait)
+        self.set_if_down(if_index)
         time.sleep(wait)
-        self.setIfUp(ifindex)
+        self.set_if_up(if_index)
 
     def write_mem(self):
-        """ 
-        Do a write memory on netbox if available
-        """
+        """ Do a write memory on netbox if available"""
         pass
 
-    def getIfAdminStatus(self, ifindex):
-        return self._queryNetbox(self.ifAdminStatus, ifindex)
+    def get_if_admin_status(self, if_index):
+        """Query administration status for a given interface."""
+        return self._query_netbox(self.IF_ADMIN_STATUS, if_index)
 
-    def getIfOperStatus(self, ifindex):
-        return self._queryNetbox(self.ifOperStatus, ifindex)
+    def get_if_oper_status(self, if_index):
+        """Query operational status of a given interface."""
+        return self._query_netbox(self.IF_OPER_STATUS, if_index)
 
-    def _getLastNumber(self, oid):
+    def _get_last_number(self, oid):
+        """Get the last index for an OID."""
         if not (isinstance(oid, str) or isinstance(oid, unicode)):
             raise TypeError('Illegal value for oid')
         splits = oid.split('.')
@@ -212,23 +238,27 @@ class SNMPHandler(object):
                 last = int(last)
         return last
 
-    def _getIfStats(self, stats):
+    def _get_if_stats(self, stats):
+        """Make a list with tuples.  Each tuple contain
+         interface-index and corresponding status-value"""
         available_stats = []
-        for (ifIndex, stat) in stats:
-            ifIndex = self._getLastNumber(ifIndex)
-            if isinstance(ifIndex, int):
-                available_stats.append((ifIndex, stat))
+        for (if_index, stat) in stats:
+            if_index = self._get_last_number(if_index)
+            if isinstance(if_index, int):
+                available_stats.append((if_index, stat))
         return available_stats
-            
-    def getNetboxAdminStatus(self):
-        ifAdminStats = self._bulkwalk(self.ifAdminStatus)
-        return self._getIfStats(ifAdminStats)
 
-    def getNetboxOperStatus(self):
-        ifOperStats = self._bulkwalk(self.ifOperStatus)
-        return self._getIfStats(ifOperStats)
+    def get_netbox_admin_status(self):
+        """Walk all ports and get their administration status."""
+        if_admin_stats = self._bulkwalk(self.IF_ADMIN_STATUS)
+        return self._get_if_stats(if_admin_stats)
 
-    def getNetboxVlans(self):
+    def get_netbox_oper_status(self):
+        """Walk all ports and get their operational status."""
+        if_oper_stats = self._bulkwalk(self.IF_OPER_STATUS)
+        return self._get_if_stats(if_oper_stats)
+
+    def get_netbox_vlans(self):
         """Find all available vlans on this netbox"""
         available_vlans = []
         for swport in self.netbox.get_swports():
@@ -236,6 +266,7 @@ class SNMPHandler(object):
         return list(set(available_vlans))
 
     def _find_vlans_for_interface(self, interface):
+        """Find vland for the given interface."""
         interface_vlans = interface.swportvlan_set.all()
         vlans = []
         if interface_vlans:
@@ -245,56 +276,65 @@ class SNMPHandler(object):
                     vlans.append(FantasyVlan(vlan.vlan, vlan.net_ident))
         elif interface.vlan:
             vlans = [FantasyVlan(vlan=interface.vlan)]
-
         return vlans
 
+
 class Cisco(SNMPHandler):
+    """A specialized class for handling ports in CISCO switches."""
+
     def __init__(self, netbox):
         super(Cisco, self).__init__(netbox)
-        self.vlanOid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
-        self.writeMemOid = '1.3.6.1.4.1.9.2.1.54.0'
+        self.vlan_oid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
+        self.write_mem_oid = '1.3.6.1.4.1.9.2.1.54.0'
 
-    def setVlan(self, ifindex, vlan):
+    def set_vlan(self, if_index, vlan):
+        """Set a new vlan for a specified interface,- and
+        remove the previous vlan."""
         if isinstance(vlan, str) or isinstance(vlan, unicode):
             if vlan.isdigit():
                 vlan = int(vlan)
         if not isinstance(vlan, int):
-            raise TypeError('Illegal value for vlan: %s' %vlan)
+            raise TypeError('Illegal value for vlan: %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.getVlan(ifindex)
+        fromvlan = self.get_vlan(if_index)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             return None
         # Add port to vlan. This makes the port active on both old and new vlan
         status = None
         try:
-            status = self._setNetboxValue(self.vlanOid, ifindex, "u", vlan)
-        except Exception, e:
+            status = self._set_netbox_value(self.vlan_oid, if_index, "u", vlan)
+        except Exception, ex:
             # Ignore this exception,- some boxes want signed integer and
             # we do not know this beforehand.
             # If unsigned fail,- try with signed integer.
-            status = self._setNetboxValue(self.vlanOid, ifindex, "i", vlan)
+            _logger.debug("set_vlan: Exception = %s" % str(ex))
+            status = self._set_netbox_value(self.vlan_oid, if_index, "i", vlan)
         return status
-            
-   
+
     def write_mem(self):
-        """ Use OLD-CISCO-SYS-MIB (v1) writeMem to write to memory. 
-        Write configuration into non-volatile memory / erase config memory if 0.
-        """
-        handle = self._getReadWriteHandle()
-        return handle.set(self.writeMemOid, 'i', 1)
-        
-        
+        """Use OLD-CISCO-SYS-MIB (v1) writeMem to write tomemory.
+        Write configuration into non-volatile memory / erase config
+        memory if 0."""
+        handle = self._get_read_write_handle()
+        return handle.set(self.write_mem_oid, 'i', 1)
+
+
 class HP(SNMPHandler):
+    """A specialized class for handling ports in HP switches."""
     def __init__(self, netbox):
         super(HP, self).__init__(netbox)
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
 
+
 class SNMPFactory(object):
+    """Factory class for returning SNMP-handles depending
+    on a netbox' vendor identification."""
     @classmethod
-    def getInstance(self, netbox):
+    def get_instance(cls, netbox):
+        """Get and SNMP-handle depending on vendor type"""
         vendor_id = netbox.type.get_enterprise_id()
         if (vendor_id == VENDOR_CISCO):
             return Cisco(netbox)

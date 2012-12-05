@@ -160,9 +160,9 @@ def save_interfaceinfo(request):
             try:
                 interface = Interface.objects.get(id=interfaceid)
                 netbox = interface.netbox
-                fac = SNMPFactory.getInstance(netbox)
-                fac.setVlan(interface.ifindex, vlan)
-                fac.setIfAlias(interface.ifindex, ifalias)
+                fac = SNMPFactory.get_instance(netbox)
+                fac.set_vlan(interface.ifindex, vlan)
+                fac.set_if_alias(interface.ifindex, ifalias)
                 try:
                     fac.write_mem()
                 except:
