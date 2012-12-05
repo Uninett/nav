@@ -1,6 +1,4 @@
 define([
-    'netmap/resource',
-    'netmap/router',
     'plugins/netmap-extras',
     'netmap/collections/map',
     'netmap/models/map',
@@ -15,7 +13,7 @@ define([
     'libs/backbone-eventbroker',
     'libs/spin.min',
     'plugins/jquery_spinjs'
-], function (ResourceManager, Router, NetmapExtras, CollectionMapProperties, ModelMapProperties, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
+], function (NetmapExtras, CollectionMapProperties, ModelMapProperties, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
 
     var ListNetmapView = Backbone.View.extend({
         tagName: "div",
@@ -36,7 +34,6 @@ define([
             "change #dropdown_view_id": "eventViewChanged",
             'click #toggle_view': 'toggleView'
         },
-
         initialize: function () {
             var self = this;
             this.isContentVisible = true;
@@ -47,7 +44,7 @@ define([
             this.isLoading = !!this.collection;
             if (this.collection) {
                 this.collection.bind("reset", this.render, this);
-                this.collection.bind("change", this.render, this);
+                this.collection.bind("change", this.eventViewChanged, this);
                 this.collection.bind("destroy", this.close, this);
             } else {
                 this.collection = new CollectionMapProperties();
@@ -178,29 +175,20 @@ define([
             }
 
         },
-        eventViewChanged: function () {
+        eventViewChanged: function (e) {
             var self = this;
 
             // todo: make an option to check for not loading categories from
             //       a saved map but keep what is already chosen.
             //var keep_categories = self.options.context_selected_map.map.attributes.categories;
 
-            self.selected_id = parseInt(this.$("#dropdown_view_id :selected").val().trim());
-            if (isNaN(self.selected_id)) {
-                // assume new
-                var properties = self.getPropertiesToKeep();
-                self.options.mapProperties.map.unbind("change");
-                self.options.mapProperties.map = new MapModel();
-                self.options.mapProperties.map.set(properties);
-                self.options.mapProperties.map.bind("change", this.render, this);
-            } else {
-                self.options.mapProperties.map = self.collection.get(self.selected_id);
-            }
-            //self.options.context_selected_map.map.attributes.categories = keep_categories;
+            var selected_id = parseInt(this.$("#dropdown_view_id :selected").val().trim(), 10);
 
-            if (!self.options.mapProperties.map.isNew() && self.is_selected_view_really_changed(self.selected_id, self.options.mapProperties.map)) {
-                Backbone.history.navigate("netmap/{0}".format(self.selected_id));
-                self.loadMapFromContextId(self.selected_id);
+            var model = this.collection.get(selected_id);
+            if (model) {
+                this.options.activeMapProperty = model;
+                this.trigger("netmap:changeMapProperties", this.options.activeMapProperty);
+                Backbone.View.navigate("view/" + selected_id);
             }
         },
         deactiveAndShowSpinnerWhileLoading: function () {
@@ -210,32 +198,6 @@ define([
             this.$el.find("#save_view").attr('disabled', 'disabled');
             this.$el.find("#dropdown_view_id").attr('disabled', 'disabled');
             //self.broker.trigger('map:loading:context_selected_map');
-        },
-        loadMapFromContextId: function (map_id) {
-            var self = this;
-            self.deactiveAndShowSpinnerWhileLoading();
-
-            self.options.mapProperties.map.unbind("change");
-            self.options.mapProperties.map = self.collection.get(map_id);
-            //self.options.context_selected_map.map.bind("change", this.render, this);
-            self.options.mapProperties.graph = new GraphModel({id: map_id});
-            self.options.mapProperties.graph.fetch({
-                success: function (model) {
-                    self.options.mapProperties.graph = model;
-                    //self.render();
-                    self.isLoading = false;
-                    self.broker.trigger('map:mapProperties', self.options.mapProperties);
-                    //self.options.context_selected_map.trigger('reattach', self.options.context_selected_map);
-                }
-            });
-            /*self.options.context_selected_map.map.fetch({
-                success: function (model) {
-                    debugger;
-                    self.options.context_selected_map.map = model;
-                    self.options.context_selected_map.map.bind("change", this.render, this);
-                    //self.render();
-                }
-            })*/
         },
         headerFooterMinimizeRequest: function (options) {
             if (options && options.name === 'header' && (options.isShowing !== this.isContentVisible)) {

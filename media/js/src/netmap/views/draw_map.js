@@ -31,6 +31,7 @@ define([
             'map:node:fixed': 'updateNodeFixedStatus',
             'map:fixNodes': 'updateAllNodePositions',
             'netmap:request:graph': 'broadcastGraph',
+            'netmap:changeMapProperties': 'setMapProperties',
             'netmap:changeTopology': 'setMapPropertyLayer',
             'netmap:changeCategoriesFilters': 'setMapPropertyCategories',
             'netmap:changeOrphansFilters': 'setMapPropertyOrphanFilter',
@@ -177,6 +178,14 @@ define([
 
             this.render();
             this.showLoadingSpinner(false);
+        },
+        setMapProperties: function (mapPropertiesModel) {
+            var self = this;
+            var currentViewId = this.mapProperties.get("viewid");
+            this.mapProperties = mapPropertiesModel;
+            if (currentViewId !== mapPropertiesModel.get("viewid")) {
+                this.mapProperties.fetch();
+            }
         },
         setMapPropertyLayer: function (layer) {
             var self = this;
