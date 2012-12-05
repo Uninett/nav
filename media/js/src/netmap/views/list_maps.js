@@ -113,7 +113,7 @@ define([
             e.preventDefault();
             var self = this;
             var user_id = $("#netmap_userid").html();
-            var updateUserDefaultMap = new DefaultMapModel({ownerid: parseInt(user_id), viewid: self.options.mapProperties.id});
+            var updateUserDefaultMap = new DefaultMapModel({ownerid: parseInt(user_id, 10), viewid: self.options.mapProperties.id});
             updateUserDefaultMap.save(this.attributes, {
                 success: function (model) {
                     self.options.context_user_default_view = model;
