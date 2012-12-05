@@ -12,16 +12,15 @@
                         <a class="save_view" id="delete_view" title="Delete view"><img src="/images/threshold/minus-button.png"/></a>
                     {{/if}}
                     <select id="dropdown_view_id">
-                        {{#if context_selected_map}}
-                        <option value="{{context_selected_map.viewid}}" selected="selected">
-                            {{context_selected_map.title}}
-                        </option>
-                        {{/if}}
                         {{#maps}}
-                        <option value="{{viewid}} ">{{title}}</option>
+                            {{#if is_selected}}
+                                <option value="{{../viewid}}" selected="selected">
+                                    {{../title}}
+                                </option>
+                            {{else}}
+                                <option value="{{viewid}} ">{{title}}</option>
+                            {{/if}}
                         {{/maps}}
-
-
                     </select>
 
                     <!-- Debug: context.viewid {{context_selected_map.viewid}} -->
