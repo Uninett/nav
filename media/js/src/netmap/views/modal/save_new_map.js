@@ -34,14 +34,9 @@ define([
             return this;
         },
         get_fixed_nodes: function () {
-            var fixed_nodes = [];
-
-            for (var i = 0; i < this.graph.get('nodes').length; i++) {
-                var node = this.graph.get('nodes').nodes[i];
-                if (node.fixed === true && node.data.category !== 'ELINK') {
-                    fixed_nodes.push(node);
-                }
-            }
+            var fixed_nodes = _.filter(this.options.graph.get('nodes'), function (node) {
+                return node.fixed === true && node.data.category !== 'elink';
+            });
             return fixed_nodes;
 
         },
