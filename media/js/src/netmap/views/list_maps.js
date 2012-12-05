@@ -56,6 +56,7 @@ define([
                             self.collection.unshift({}); // insert empty Map model
                             self.options.activeMapProperty = self.collection.at(0);
                         }
+                        self.collection.bind("change", self.render, self);
                         self.render();
                     },
                     error: function () {
@@ -187,6 +188,10 @@ define([
             var model = this.collection.get(selected_id);
             if (model) {
                 this.options.activeMapProperty = model;
+                this.collection.forEach(function (element, index, list) {
+                   element.set({"is_selected": false}, {silent: true});
+                });
+                this.options.activeMapProperty.set({"is_selected": true});
                 this.trigger("netmap:changeMapProperties", this.options.activeMapProperty);
                 Backbone.View.navigate("view/" + selected_id);
             }
