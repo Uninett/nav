@@ -36,6 +36,7 @@ class AlertGenerator(dict):
         self.severity = event.severity
 
         self.update(event.varmap)
+        self.history_vars = {}
 
         if 'alert_type' in self:
             self.alert_type = self['alert_type']
@@ -68,14 +69,21 @@ class AlertGenerator(dict):
             attrs[attr] = getattr(self, attr)
         alert = AlertHistory(**attrs)
         alert.alert_type = self.get_alert_type()
-        # TODO: Add history_vars attribute
+        self._update_history_vars(alert)
         return alert
 
     def _resolve_alert_history(self):
         alert = self._find_existing_alert_history()
         if alert:
             alert.end_time = self.event.time
+            self._update_history_vars(alert)
         return alert
+
+    def _update_history_vars(self, alert):
+        if self.history_vars:
+            vars = alert.varmap
+            vars[self.state] = self.history_vars
+            alert.varmap = vars
 
     def _find_existing_alert_history(self):
         unresolved = get_unresolved_alerts_map()
