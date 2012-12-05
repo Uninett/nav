@@ -33,7 +33,7 @@ define([
             "click #save_new_view": "showSaveAsView",
             "click #delete_view": "deleteView",
             "click #set_as_user_favorite": "setFavorite",
-            "change #dropdown_view_id": "changed_view",
+            "change #dropdown_view_id": "eventViewChanged",
             'click #toggle_view': 'toggleView'
         },
 
@@ -178,7 +178,7 @@ define([
             }
 
         },
-        changed_view: function () {
+        eventViewChanged: function () {
             var self = this;
 
             // todo: make an option to check for not loading categories from
