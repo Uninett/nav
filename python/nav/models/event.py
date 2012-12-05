@@ -163,7 +163,7 @@ class StateVariableMap(VariableMapBase):
 
         for state, vars in vardict.items():
             for key, value in vars.items():
-                if key in varmap[state]:
+                if state in varmap and key in varmap[state]:
                     if varmap[state][key].value != value:
                         varmap[state][key] = value
                         varmap[state][key].save()
