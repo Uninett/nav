@@ -139,7 +139,6 @@ define([
         },
         loadUi: function (forceLoad) {
             var self = this;
-
             view_choose_map = new ListNetmapView();
             //}
             self.loadGraph(forceLoad);
@@ -179,7 +178,6 @@ define([
             $('#netmap_infopanel #list_views').html(view_choose_map.render().el);
 
 
-
             self.view_map = new DrawNetmapView({viewid: map_id, mapProperties: context_selected_map.map, view_map_info: self.view_map_info, cssWidth: $('#netmap_main_view').width(), loadDefault: parseInt($("#netmap_userid").html(),10)});
             $('#netmap_main_view #wrapper_chart').html(self.view_map.render().el);
             //spinner_map.stop();
@@ -194,22 +192,11 @@ define([
         this.app_router = new AppRouter;
 
         // Extend the View class to include a navigation method goTo
-        Backbone.View.goTo = function (loc) {
-            self.app_router.navigate(loc, true);
-        };
-
-
-        /*_.extend(context_selected_map, Backbone.Events);
-        context_selected_map.on('reattach', function (new_selected_map) {
-            context_selected_map = new_selected_map;
-            app_router.loadUi();
-        });*/
-        //var postListView = new postListView();
-        //var showPostView = new showPostView();
-
-
+        Backbone.View.navigate = self.app_router.navigate;
         Backbone.history.start();
     };
+
+
     return {
         initialize: initialize
     };
