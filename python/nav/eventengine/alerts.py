@@ -57,7 +57,7 @@ class AlertGenerator(dict):
     def make_alert_history(self):
         """Generates an alert history object based on the current attributes"""
         if self.state == Event.STATE_END:
-            return None
+            return self._resolve_alert_history()
 
         attrs = dict(
             start_time=self.time,
@@ -68,8 +68,19 @@ class AlertGenerator(dict):
             attrs[attr] = getattr(self, attr)
         alert = AlertHistory(**attrs)
         alert.alert_type = self.get_alert_type()
-        alert.varmap = self
+        # TODO: Add history_vars attribute
         return alert
+
+    def _resolve_alert_history(self):
+        alert = self._find_existing_alert_history()
+        if alert:
+            alert.end_time = self.event.time
+        return alert
+
+    def _find_existing_alert_history(self):
+        unresolved = get_unresolved_alerts_map()
+        key = self.event.get_key()
+        return unresolved.get(key, None)
 
     def post(self):
         """Generates and posts the necessary alert objects to the database"""
@@ -84,7 +95,8 @@ class AlertGenerator(dict):
     def post_alert_history(self):
         """Generates and posts an alert history record only"""
         history = self.make_alert_history()
-        history.save()
+        if history:
+            history.save()
 
     def is_event_duplicate(self):
         """Returns True if the represented event seems to duplicate an
