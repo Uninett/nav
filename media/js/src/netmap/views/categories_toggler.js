@@ -11,10 +11,14 @@ define([
     var CategoriesView = Backbone.View.extend({
 
         broker: Backbone.EventBroker,
+        interests: {
+            "netmap:changeMapProperties": "updateFiltersFromBroadcast"
+        },
         events: {
             'click input[name="categories[]"]': 'updateFilters'
         },
         initialize: function () {
+            this.broker.register(this);
             this.template = Handlebars.compile(Template);
             // todo: fetch collection from api.
             if (!this.collection) {
@@ -53,6 +57,7 @@ define([
         },
         broadcastcategoriesFilters: function () {
             this.broker.trigger("netmap:changeCategoriesFilters", this.collection);
+            this.render();
         },
         updateFilters: function (e) {
             // jQuery<=1.6
@@ -65,8 +70,21 @@ define([
 
             this.broker.trigger('map:redraw');
         },
+        updateFiltersFromBroadcast: function (mapProperties) {
+            this.collection.forEach(function (model) {
+                model.set({'is_selected': false}, {'silent': true});
+            });
+
+            // set's is_selected true on categories mentioned in mapProperties.categories which is in this.collection
+            _.invoke(this.collection.filter(function (model) {
+                return _.contains(_.pluck(mapProperties.get('categories'),'name'), model.get('name'));
+            }), "set", {'is_selected': true});
+
+            this.render();
+        },
 
         close:function () {
+            this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         }
