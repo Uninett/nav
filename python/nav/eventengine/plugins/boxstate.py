@@ -63,15 +63,28 @@ class BoxStateHandler(EventHandler):
                               event.netbox)
         else:
             self._logger.info("%s is back up", event.netbox)
+
+            self._make_up_alert(event)
+
             event.netbox.up = event.netbox.UP_UP
             event.netbox.save()
+
             waiter = self._get_waiting()
             if waiter:
                 self._logger.info("ignoring transient down state for %s",
                                   self.event.netbox)
                 waiter.deschedule()
-            # TODO: post alert, update alert state
+
         event.delete()
+
+    def _make_up_alert(self, event):
+        alert = AlertGenerator(event)
+        is_shadow = event.netbox.up == event.netbox.UP_SHADOW
+        alert.alert_type = "boxSunny" if is_shadow else "boxUp"
+        if self._box_is_on_maintenance():
+            alert.post_alert_history()
+        else:
+            alert.post()
 
     def _is_duplicate(self):
         """Returns True if this appears to be a duplicate boxDown event"""
@@ -84,6 +97,11 @@ class BoxStateHandler(EventHandler):
 
         """
         return self.event.netbox.get_unresolved_alerts('boxState').count() > 0
+
+    def _box_is_on_maintenance(self):
+        """Returns True if the target netbox is currently on maintenance"""
+        return self.event.netbox.get_unresolved_alerts(
+            'maintenanceState').count() > 0
 
     def _get_waiting(self):
         """Returns a plugin instance waiting for boxState resolve
@@ -99,20 +117,29 @@ class BoxStateHandler(EventHandler):
         for the final boxDown alert.
 
         """
+        if not self._box_is_on_maintenance():
+            self._post_down_warning()
+        else:
+            self._logger.info("%s: is on maintenance, "
+                              "not posting boxDownWarning")
+
+        self.task = self.engine.schedule(
+            max(ALERT_WAIT_TIME-WARNING_WAIT_TIME, 0),
+            self._make_down_alert)
+
+    def _post_down_warning(self):
+        """Posts the actual warning alert"""
         alert = AlertGenerator(self.event)
         if self.event.netbox.up == Netbox.UP_SHADOW:
             self._logger.info("%s appears to be in shadow: not posting "
-                              "boxDownWarning alert for it", self.event.netbox)
+                              "boxDownWarning alert for it",
+                              self.event.netbox)
         else:
             self._logger.info("%s: Posting boxDownWarning alert",
                               self.event.netbox)
             alert.alert_type = "boxDownWarning"
             alert.state = self.event.STATE_STATELESS
             alert.post()
-
-        self.task = self.engine.schedule(
-            max(ALERT_WAIT_TIME-WARNING_WAIT_TIME, 0),
-            self._make_down_alert)
 
     def _make_down_alert(self):
         alert = AlertGenerator(self.event)
@@ -121,7 +148,10 @@ class BoxStateHandler(EventHandler):
                             else 'boxDown')
         self._logger.info("%s: Posting %s alert", self.event.netbox,
                           alert.alert_type)
-        alert.post()
+        if self._box_is_on_maintenance():
+            alert.post_alert_history()
+        else:
+            alert.post()
 
         del self.waiting_for_resolve[self.event.netbox]
         self.task = None
