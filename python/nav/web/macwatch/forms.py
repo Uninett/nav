@@ -15,12 +15,19 @@
 #
 """macwatch form definitions"""
 
-import re
 
 from django import forms
 from nav.web.macwatch.models import MacWatch
+from nav.web.macwatch.utils import MAC_ADDR_MAX_LEN
+from nav.web.macwatch.utils import MAC_ADDR_MIN_LEN
+from nav.web.macwatch.utils import strip_delimiters
+from nav.web.macwatch.utils import has_legal_values
+from nav.web.macwatch.utils import add_zeros_to_mac_addr
+
 
 class MacWatchForm(forms.Form):
+    """A class to clean and sanitize input-data for macwatch."""
+    prefix_length = None
     macaddress = forms.CharField(max_length=17)
     description = forms.CharField(max_length=200, required=False)
 
@@ -28,11 +35,24 @@ class MacWatchForm(forms.Form):
         """ Validate macaddress """
         macaddress = self.cleaned_data.get('macaddress','')
 
-        # Filter : which is a common separator for mac addresses
-        filteredmacaddress = re.sub(":", "", macaddress)
+        filteredmacaddress = strip_delimiters(macaddress)
+        if len(filteredmacaddress) < MAC_ADDR_MIN_LEN:
+            raise forms.ValidationError("Mac address/prefix is too short")
+        if len(filteredmacaddress) > MAC_ADDR_MAX_LEN:
+            raise forms.ValidationError("Mac address is too long")
 
-        if not re.match("[a-fA-F0-9]{12}$", filteredmacaddress):
-            raise forms.ValidationError("Wrong format on mac address.")
+        # Number hex-digits (or so-called nybbles),- since prefix may
+        # get specified in hex-digits.
+        # Set when a mac-address prefix is given.
+        addr_len = len(filteredmacaddress)
+        if (addr_len >= MAC_ADDR_MIN_LEN and addr_len < MAC_ADDR_MAX_LEN):
+            self.prefix_length = addr_len
+
+        filteredmacaddress = add_zeros_to_mac_addr(filteredmacaddress)
+
+        if not has_legal_values(filteredmacaddress):
+            raise forms.ValidationError(
+                "Illegal values or format for mac address.")
 
         if int(MacWatch.objects.filter(mac=filteredmacaddress).count()) > 0:
             raise forms.ValidationError("This mac address is already watched.")

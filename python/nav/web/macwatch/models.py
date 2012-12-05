@@ -15,20 +15,25 @@
 #
 """macwatch Django models"""
 
+
 from django.db import models
 from nav.models.fields import VarcharField
 from nav.models.manage import Cam
 from nav.models.profiles import Account
 
+
 class MacWatch(models.Model):
+    """Data-model for mac-address that should get watched
+    by bin/macwatch.py"""
     id = models.AutoField(db_column='id', primary_key=True)
-    camid = models.ForeignKey(Cam, db_column='camid', null=True)
     # TODO: Create MACAddressField in Django
-    mac = models.CharField(max_length=17, unique=True)
-    created = models.DateTimeField(auto_now_add=True)
-    posted = models.DateTimeField()
-    userid = models.ForeignKey(Account, db_column='userid', null=True)
-    description = VarcharField()
+    mac = models.CharField(db_column='mac', max_length=17, unique=True)
+    userid = models.ForeignKey(Account, db_column='userid', null=False)
+    description = VarcharField(db_column='description', null=True)
+    created = models.DateTimeField(db_column='created', auto_now_add=True)
+    # Used only when a mac-address prefix is given.  This is value of
+    # the number for hex-digits (or so-called nybbles).
+    prefix_length = models.IntegerField(db_column='prefix_length', null=True)
 
     class Meta:
         db_table = u'macwatch'
@@ -36,3 +41,19 @@ class MacWatch(models.Model):
 
     def __unicode__(self):
         return u'%s' % self.mac
+
+
+class MacWatchMatch(models.Model):
+    """Extra model (helper-model) for mac-watch when macwatch
+    only has a mac-adress prefix"""
+    id = models.AutoField(db_column='id', primary_key=True)
+    macwatch = models.ForeignKey(MacWatch, db_column='macwatch', null=False)
+    cam = models.ForeignKey(Cam, db_column='cam', null=False)
+    posted = models.DateTimeField(db_column='posted', auto_now_add=True)
+
+    class Meta:
+        db_table = u'macwatch_match'
+
+    def __unicode__(self):
+        return (u'id=%d; macwatch = %d; cam = %d; posted = %s' %
+                (self.id, self.macwatch, self.cam, str(self.posted)))
