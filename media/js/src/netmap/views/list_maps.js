@@ -43,8 +43,6 @@ define([
 
             this.template = Handlebars.compile(netmapTemplate);
 
-            this.activeMapProperty = null; // selected item in dropdown box.
-
             this.isLoading = !!this.collection;
             if (this.collection) {
                 this.collection.bind("reset", this.render, this);
@@ -55,9 +53,10 @@ define([
                 this.collection.fetch({
                     success: function (collection, attributes) {
                         self.collection = collection;
-                        if (self.collection.length <= 1) {
+                        // if no netmap views loaded from API OR no active map property (read: netmap view is active)
+                        if (self.collection.length <= 1 || !self.options.activeMapProperty) {
                             self.collection.unshift({}); // insert empty Map model
-                            self.activeMapProperty = self.collection.at(0);
+                            self.options.activeMapProperty = self.collection.at(0);
                         }
                         self.render();
                     },
@@ -105,7 +104,7 @@ define([
             }
 
             self.viewModalSave = new SaveDialogView({
-                model: self.activeMapProperty,
+                model: self.options.activeMapProperty,
                 graph: self.graph
             });
 
