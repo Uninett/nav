@@ -27,7 +27,6 @@ define([
                 this.model.bind("change", this.render, this);
                 this.model.bind("destroy", this.close, this);
             }
-
         },
         render: function () {
             this.el.dialog('open');
@@ -38,7 +37,6 @@ define([
                 return node.fixed === true && node.data.category !== 'elink';
             });
             return fixed_nodes;
-
         },
         save_view: function () {
             var self = this;
@@ -53,10 +51,7 @@ define([
                 zoom: self.model.get('zoom'),
                 display_orphans: !self.model.get('display_orphans')
             });
-            // logger should log this as debug.
-            /*console.log("====" + "savedata");
-            console.log($.extend(true, {}, this.model.attributes));
-            console.log("====/" + "savedata");*/
+
             this.model.save(this.model.attributes, {
                 wait: true,
                 error: function () { alert("Error while saving view, try again"); },
@@ -65,7 +60,6 @@ define([
                     Backbone.View.navigate("view/{0}".format(response));
                 }
             });
-            //this.model.trigger('change');
             this.close();
         },
         close: function () {
