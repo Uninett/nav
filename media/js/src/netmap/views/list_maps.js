@@ -192,7 +192,7 @@ define([
                    element.set({"is_selected": false}, {silent: true});
                 });
                 this.options.activeMapProperty.set({"is_selected": true});
-                this.trigger("netmap:changeMapProperties", this.options.activeMapProperty);
+                this.broker.trigger("netmap:changeMapProperties", this.options.activeMapProperty);
                 Backbone.View.navigate("view/" + selected_id);
             }
         },
