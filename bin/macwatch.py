@@ -73,16 +73,19 @@ def prioritize_location(cam_objects, logger):
     # Mac _may_ be active on two ports at the same time (due to duplicate
     # mac addresses, error in db and so on). This is such a small problem
     # that we ignore it for the time.
-    cam = None
-    rank = 0
+    prioritized_cams = {0: [], }
+    for value in LOCATION_PRIORITY.itervalues():
+        if not value in prioritized_cams:
+            prioritized_cams[value] = []
     for curr_cam in cam_objects:
         category = curr_cam.netbox.category_id
-        logger.debug("Prioritizing %s", category)
-        if LOCATION_PRIORITY[category] > rank:
-            logger.debug("Putting %s first", category)
-            rank = LOCATION_PRIORITY[category]
-            cam = curr_cam
-    return cam
+        prioritized_cams[LOCATION_PRIORITY[category]].append(curr_cam)
+    rank = 0
+    for value in LOCATION_PRIORITY.itervalues():
+        if prioritized_cams[value] and value > rank:
+            rank = value
+    logger.debug('Returning %s' % str(prioritized_cams.get(rank)))
+    return prioritized_cams.get(rank)
 
 
 def post_event(mac_watch, cam, logger):
@@ -93,11 +96,11 @@ def post_event(mac_watch, cam, logger):
     value = 100
     severity = 50
     event = Event(source=source, target=target,
-                deviceid=cam.netbox.device_id,
-                netboxid=cam.netbox.id,
-                eventtypeid=eventtypeid,
-                value=value,
-                severity=severity)
+                  deviceid=cam.netbox.device_id,
+                  netboxid=cam.netbox.id,
+                  eventtypeid=eventtypeid,
+                  value=value,
+                  severity=severity)
     event['sysname'] = cam.sysname
     if cam.module:
         event['module'] = cam.module
@@ -138,8 +141,8 @@ def make_upper_mac_addr(mac_addr, last_pos):
     filtered_macaddr = strip_delimiters(mac_addr)
     full_mac_addr = filtered_macaddr
     if last_pos < MAC_ADDR_MAX_LEN:
-        full_mac_addr = (filtered_macaddr[0:last_pos]
-                        + MAC_ADDR_MAX_VAL[last_pos:])
+        full_mac_addr = (filtered_macaddr[0:last_pos] +
+                         MAC_ADDR_MAX_VAL[last_pos:])
     return insert_addr_delimiters(full_mac_addr)
 
 
@@ -187,17 +190,17 @@ def main():
         # mac-addr > prefix:00:00 and mac-address < prefix:ff:ff
         if mac_watch.prefix_length:
             upper_mac_addr = make_upper_mac_addr(mac_watch.mac,
-                mac_watch.prefix_length)
-            logger.debug('Mac-addresses; prefix = %s and upper mac = %s'
-                        % (mac_watch.mac, upper_mac_addr))
+                                                 mac_watch.prefix_length)
+            logger.debug('Mac-addresses; prefix = %s and upper mac = %s' %
+                         (mac_watch.mac, upper_mac_addr))
             cam_objects = Cam.objects.filter(mac__gte=mac_watch.mac,
-                                            mac__lte=upper_mac_addr,
-                                            end_time=datetime.max,
-                                            netbox__isnull=False)
+                                             mac__lte=upper_mac_addr,
+                                             end_time=datetime.max,
+                                             netbox__isnull=False)
         else:
             cam_objects = Cam.objects.filter(mac=mac_watch.mac,
-                                         end_time=datetime.max,
-                                         netbox__isnull=False)
+                                             end_time=datetime.max,
+                                             netbox__isnull=False)
         if len(cam_objects) < 1:
             logger.info("%s is not active", mac_watch.mac)
             continue
@@ -208,40 +211,42 @@ def main():
                 cam_by_mac[cam_obj.mac] = []
             cam_by_mac[cam_obj.mac].append(cam_obj)
 
-        for key, cams in cam_by_mac.iteritems():
+        for cams in cam_by_mac.itervalues():
             logger.debug('Cam-objects length %d; cam-objects = %s' %
-                    (len(cams), str(cams)))
-            cam = prioritize_location(cams, logger)
-            # cam now contains one tuple from the cam-table
+                         (len(cams), str(cams)))
+            prioritized_cams = prioritize_location(cams, logger)
+            for cam in prioritized_cams:
+                macwatch_matches = MacWatchMatch.objects.filter(
+                    macwatch=mac_watch, cam=cam)
 
-            macwatch_matches = MacWatchMatch.objects.filter(
-                macwatch=mac_watch, cam=cam)
+                # Check if the mac-address has moved since last time,
+                # continue with next mac if not.
+                if len(macwatch_matches) == 1:
+                    logger.info("Mac-address is active, but have not moved " +
+                                "since last check")
+                    continue
 
-            # Check if the mac-address has moved since last time, continue with
-            # next mac if not.
-            if len(macwatch_matches) == 1:
-                logger.info("Mac-address is active, but have not moved " +
-                        "since last check")
-                continue
+                if len(macwatch_matches) > 1:
+                    # Something strange has happened, delete all but
+                    # the match that has posted an event latest in time.
+                    logger.info('%d matches found for macwatch = %d' %
+                                (len(macwatch_matches), mac_watch.id))
+                    delete_unwanted_matches(macwatch_matches, logger)
+                    continue
 
-            if len(macwatch_matches) > 1:
-                # Something strange has happened, delete all but
-                # the match that has posted an event latest in time.
-                logger.info('%d matches found for macwatch = %d' %
-                        (len(macwatch_matches), mac_watch.id))
-                delete_unwanted_matches(macwatch_matches, logger)
-                continue
-
-            # Mac has moved (or appeared). Post event on eventq
-            logger.info("%s has appeared on %s (%s:%s)" %
-                (cam.mac, cam.sysname, cam.module, cam.port))
-            if post_event(mac_watch, cam, logger):
-                logger.info("Event posted for macwatch = %d" % mac_watch.id)
-                new_macwatch_match = MacWatchMatch(macwatch=mac_watch,
-                    cam=cam, posted=datetime.now())
-                new_macwatch_match.save()
-            else:
-                logger.warning("Failed to post event, no alert will be given.")
+                # Mac has moved (or appeared). Post event on eventq
+                logger.info("%s has appeared on %s (%s:%s)" %
+                            (cam.mac, cam.sysname, cam.module, cam.port))
+                if post_event(mac_watch, cam, logger):
+                    logger.info("Event posted for macwatch = %d" %
+                                mac_watch.id)
+                    new_macwatch_match = MacWatchMatch(macwatch=mac_watch,
+                                                       cam=cam,
+                                                       posted=datetime.now())
+                    new_macwatch_match.save()
+                else:
+                    logger.warning("Failed to post event, no alert " +
+                                   "will be given.")
 
     logger.info("--> Done checking for macs in %s seconds <--" %
                 str(time.clock()))
