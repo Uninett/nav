@@ -48,11 +48,10 @@ define([
                 description: self.$('#new_view_description').val().trim(),
                 is_public: self.$('#new_view_is_public').prop('checked'),
                 nodes: self.get_fixed_nodes(),
-                //zoom: self.graph.zoom,
-                topology: self.model.attributes.topology,
-                categories: self.model.attributes.categories,
-                zoom: self.model.attributes.zoom,
-                display_orphans: !self.model.attributes.display_orphans
+                topology: self.model.get('topology'),
+                categories: self.model.get('categories'),
+                zoom: self.model.get('zoom'),
+                display_orphans: !self.model.get('display_orphans')
             });
             // logger should log this as debug.
             /*console.log("====" + "savedata");
@@ -62,15 +61,8 @@ define([
                 wait: true,
                 error: function () { alert("Error while saving view, try again"); },
                 success: function (model, response) {
-
-
                     model.set({'viewid': response});
-                    //self.collection.add(model);
-
-
-                    Backbone.View.goTo("netmap/{0}".format(response));
-                    //Backbone.navigate("netmap/{0}".format(response));
-                    //window.location = "#/netmap/{0}".format(response);
+                    Backbone.View.navigate("view/{0}".format(response));
                 }
             });
             //this.model.trigger('change');
