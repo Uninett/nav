@@ -30,6 +30,7 @@ define([
             'map:loading:context_selected_map': 'clear',
             'map:node:fixed': 'updateNodeFixedStatus',
             'map:fixNodes': 'updateAllNodePositions',
+            'netmap:request:graph': 'broadcastGraph',
             'netmap:changeTopology': 'setMapPropertyLayer',
             'netmap:changeCategoriesFilters': 'setMapPropertyCategories',
             'netmap:changeOrphansFilters': 'setMapPropertyOrphanFilter',
@@ -105,6 +106,9 @@ define([
                     }
                 });
             }
+        },
+        broadcastGraph: function () {
+            this.broker.trigger("netmap:graph", this.model);
         },
         showLoadingSpinner: function (bool) {
             if (bool) {

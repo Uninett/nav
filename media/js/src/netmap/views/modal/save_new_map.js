@@ -16,7 +16,7 @@ define([
         initialize: function () {
             this.template_post = Handlebars.compile(template);
 
-            if (!this.options.graph || !this.options.mapProperties) {
+            if (!this.options.graph || !this.options.model) {
                 alert("Missing graph data or view properties, cannot save!");
                 this.close();
             } else {

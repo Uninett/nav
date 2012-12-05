@@ -67,6 +67,8 @@ define([
                 });
             }
 
+            this.broker.trigger("netmap:request:graph");
+
             //ResourceManager.getInterest("mapProperties");
 
 
@@ -78,7 +80,7 @@ define([
             this.render();
         },
         setGraph: function (graph) {
-            this.map = graph;
+            this.graph = graph;
             this.render();
         },
         updateCollection: function () {
