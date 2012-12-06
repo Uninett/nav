@@ -665,6 +665,14 @@ class Prefix(models.Model):
         ip = IPy.IP(self.net_address)
         return ip.len()
 
+    def get_router_ports(self):
+        """Returns a ordered list of GwPortPrefix objects on this prefix"""
+        return self.gwportprefix_set.filter(
+            interface__netbox__category__id__in=('GSW', 'GW')
+        ).select.related(
+            'interface', 'interface__netbox'
+        ).order_by('-virtual', 'gw_ip')
+
 
 class Vlan(models.Model):
     """From NAV Wiki: The vlan table defines the IP broadcast domain / vlan. A
