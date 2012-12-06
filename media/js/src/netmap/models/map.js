@@ -38,8 +38,13 @@ define([
             var base = 'api/netmap';
             if (this.isNew()) return base;
             return base + (base.charAt(base.length - 1) == '/' ? '' : '/') + this.id;
+        },
+        parse: function(resp, xhr) {
+            if (resp.categories) {
+                resp.categories = new CategoryCollection(resp.categories);
+            }
+            return resp;
         }
-
 
     });
     return netmapModel;
