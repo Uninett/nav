@@ -59,7 +59,7 @@ class MacWatch(models.Model):
         # Add together one character from odd and one from even list,
         # and make lists with the strings.
         # Join the lists of strings with delimiter-character to form
-        # a string.
+        # a mac-address string.
         ret_addr = self.MAC_ADDR_DELIM_CHAR.join(odd_char + even_char
             for odd_char,even_char in zip(mac_odds, mac_evens))
         # Sweep up the left-over if length is even,
