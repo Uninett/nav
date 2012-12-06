@@ -92,19 +92,22 @@ class AlertGenerator(dict):
 
     def post(self):
         """Generates and posts the necessary alert objects to the database"""
-        self.post_alert_history()
-        self.post_alert()
+        history = self.post_alert_history()
+        self.post_alert(history)
 
-    def post_alert(self):
+    def post_alert(self, history=None):
         """Generates and posts an alert on the alert queue only"""
         alert = self.make_alert()
+        alert.history = history
         alert.save()
+        return alert
 
     def post_alert_history(self):
         """Generates and posts an alert history record only"""
         history = self.make_alert_history()
         if history:
             history.save()
+        return history
 
     def is_event_duplicate(self):
         """Returns True if the represented event seems to duplicate an
