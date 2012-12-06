@@ -223,7 +223,7 @@ class NetboxSection(_Section):
             ~Q(netbox__in=maintenance),
             Q(netbox__up='n') | Q(netbox__up='s'),
             alert_type__name__in=alert_types,
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
         ).extra(
@@ -257,7 +257,7 @@ class NetboxSection(_Section):
     def _maintenance(self):
         return AlertHistory.objects.filter(
             event_type=MAINTENANCE_STATE,
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             netbox__isnull=False,
         ).values('netbox').query
 
@@ -335,7 +335,7 @@ class NetboxMaintenanceSection(_Section):
             alert_history__netbox__category__in=self.categories,
             alert_history__netbox__organization__in=self.organizations,
             alert_history__netbox__up__in=self.states,
-            alert_history__end_time__gt=datetime.max,
+            alert_history__end_time__gte=datetime.max,
             alert_history__event_type=MAINTENANCE_STATE,
             variable='maint_taskid',
         ).order_by('-alert_history__start_time')
@@ -344,7 +344,7 @@ class NetboxMaintenanceSection(_Section):
         history = AlertHistory.objects.select_related(
             'netbox'
         ).filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=BOX_STATE,
         ).extra(
             select={'downtime': "date_trunc('second', NOW() - start_time)"}
@@ -393,7 +393,7 @@ class ServiceSection(_Section):
 
     def fetch_history(self):
         maintenance = AlertHistory.objects.filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=MAINTENANCE_STATE,
         ).values('netbox').query
 
@@ -401,7 +401,7 @@ class ServiceSection(_Section):
             'netbox'
         ).filter(
             ~Q(netbox__in=maintenance),
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=SERVICE_STATE,
             netbox__organization__in=self.organizations,
         ).extra(
@@ -474,7 +474,7 @@ class ServiceMaintenanceSection(ServiceSection):
         maintenance = AlertHistoryVariable.objects.select_related(
             'alert_history', 'alert_history__netbox'
         ).filter(
-            alert_history__end_time__gt=datetime.max,
+            alert_history__end_time__gte=datetime.max,
             alert_history__event_type=MAINTENANCE_STATE,
             variable='maint_taskid',
         ).extra(
@@ -488,7 +488,7 @@ class ServiceMaintenanceSection(ServiceSection):
         ).order_by('-alert_history__start_time')
 
         service_history = AlertHistory.objects.filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=SERVICE_STATE,
         ).extra(
             select={'downtime': "date_trunc('second', NOW() - start_time)"}
@@ -555,7 +555,7 @@ class ModuleSection(_Section):
         module_history = AlertHistory.objects.select_related(
             'netbox', 'device'
         ).filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=MODULE_STATE,
             alert_type__name='moduleDown',
             netbox__organization__in=self.organizations,
@@ -636,7 +636,7 @@ class ThresholdSection(_Section):
         thresholds = AlertHistory.objects.select_related(
             'netbox'
         ).filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=THRESHOLD_STATE,
             alert_type__name='exceededThreshold',
             netbox__organization__in=self.organizations,
@@ -706,7 +706,7 @@ class LinkStateSection(_Section):
             'netbox'
         ).filter(
             event_type=LINK_STATE,
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
         ).extra(
@@ -780,7 +780,7 @@ class SNMPAgentSection(_Section):
             'netbox'
         ).filter(
             event_type=SNMP_STATE,
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
         ).extra(
@@ -831,7 +831,7 @@ class PSUSection(_Section):
         psu_history = AlertHistory.objects.select_related(
             'netbox', 'device'
         ).filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=PSU_STATE,
             alert_type__name='psuNotOK',
             netbox__organization__in=self.organizations,
