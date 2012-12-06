@@ -13,10 +13,42 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Topology evaluation functions for event processing"""
+
+import networkx
+from nav.models.manage import SwPortVlan
 
 def is_netbox_reachable(netbox):
     """Returns True if netbox appears to be reachable through the known
     topology.
 
     """
-    return True
+    prefix = netbox.get_prefix()
+    router_port = prefix.get_router_ports()[0]
+    router = router_port.interface.netbox
+    graph = get_graph_for_vlan(prefix.vlan)
+
+    if netbox not in graph or router not in graph:
+        return False
+
+    path = networkx.shortest_path(graph, netbox, router)
+    return path
+
+def get_graph_for_vlan(vlan):
+    """Builds a simple topology graph of the active netboxes in vlan.
+
+    Any netbox that seems to be down at the moment will not be included in
+    the graph.
+
+    :returns: A networkx.Graph object.
+
+    """
+    swpvlan = SwPortVlan.objects.filter(vlan=vlan).select_related(
+        'interface', 'interface__netbox',  'interface__to_netbox')
+    graph = networkx.Graph(name='graph for vlan %s' % vlan)
+    for swp in swpvlan:
+       source = swp.interface.netbox
+       target = swp.interface.to_netbox
+       if target and all(x.up==x.UP_UP for x in (source, target)):
+           graph.add_edge(source,target)
+    return graph
