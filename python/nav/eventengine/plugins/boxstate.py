@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """"boxState event plugin"""
+from nav.eventengine.topology import is_netbox_reachable
 from nav.models.manage import Netbox
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.plugin import EventHandler
@@ -130,22 +131,16 @@ class BoxStateHandler(EventHandler):
     def _post_down_warning(self):
         """Posts the actual warning alert"""
         alert = AlertGenerator(self.event)
-        if self.event.netbox.up == Netbox.UP_SHADOW:
-            self._logger.info("%s appears to be in shadow: not posting "
-                              "boxDownWarning alert for it",
-                              self.event.netbox)
-        else:
-            self._logger.info("%s: Posting boxDownWarning alert",
-                              self.event.netbox)
-            alert.alert_type = "boxDownWarning"
-            alert.state = self.event.STATE_STATELESS
-            alert.post()
+        self._logger.info("%s: Posting boxDownWarning alert",
+                          self.event.netbox)
+        alert.alert_type = "boxDownWarning"
+        alert.state = self.event.STATE_STATELESS
+        alert.post()
 
     def _make_down_alert(self):
         alert = AlertGenerator(self.event)
-        alert.alert_type = ('boxShadow'
-                            if self.event.netbox.up == Netbox.UP_SHADOW
-                            else 'boxDown')
+        shadow = self._verify_shadow()
+        alert.alert_type = 'boxShadow' if shadow else 'boxDown'
         self._logger.info("%s: Posting %s alert", self.event.netbox,
                           alert.alert_type)
         if self._box_is_on_maintenance():
@@ -156,6 +151,13 @@ class BoxStateHandler(EventHandler):
         del self.waiting_for_resolve[self.event.netbox]
         self.task = None
         self.event.delete()
+
+    def _verify_shadow(self):
+        netbox = self.event.netbox
+        netbox.up = (Netbox.UP_DOWN if is_netbox_reachable(netbox)
+                     else Netbox.UP_SHADOW)
+        Netbox.objects.filter(id=netbox.id).update(up=netbox.up)
+        return netbox.up == Netbox.UP_SHADOW
 
     def schedule(self, delay, action):
         "Schedules a callback and makes a note of it in a class variable"
