@@ -25,16 +25,21 @@ def choice_values(model, field_name):
 class LoggerGroupSearchForm(forms.Form):
     """LoggerSearchForm"""
 
-    facility = forms.ChoiceField(
-        choices=choice_values(LogMessageType, 'facility'), required=False)
-    priority = forms.ChoiceField(choices=choice_values(Priority, 'keyword'),
-        required=False)
-    mnemonic = forms.ChoiceField(
-        choices=choice_values(LogMessageType, 'mnemonic'), required=False)
-    origin = forms.ChoiceField(choices=choice_values(Origin, 'name'),
-        required=False)
+    facility = forms.ChoiceField(required=False)
+    priority = forms.ChoiceField(required=False)
+    mnemonic = forms.ChoiceField(required=False)
+    origin = forms.ChoiceField(required=False)
     category = forms.ModelChoiceField(queryset=LoggerCategory.objects.all(),
-        required=False, empty_label=u'(All)')
+                                      required=False, empty_label=u'(All)')
     timestamp_from = forms.DateTimeField(input_formats=DATEFORMAT)
     timestamp_to = forms.DateTimeField(input_formats=DATEFORMAT)
     show_log = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(LoggerGroupSearchForm, self).__init__(*args, **kwargs)
+        self.fields['facility'].choices = choice_values(LogMessageType,
+                                                        'facility')
+        self.fields['priority'].choices = choice_values(Priority, 'keyword')
+        self.fields['mnemonic'].choices = choice_values(LogMessageType,
+                                                        'mnemonic')
+        self.fields['origin'].choices = choice_values(Origin, 'name')
