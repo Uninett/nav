@@ -319,7 +319,7 @@ class NetboxMaintenanceSection(_Section):
                     (
                         'history',
                         reverse('devicehistory-view') +
-                        ('?netbox=%(id)s&type=e_maintenanceState' +
+                        ('?netbox=%(id)s&type=e_maintenanceState'
                          '&group_by=datetime' %
                          {'id': m.alert_history.netbox.id})
                     ),
@@ -438,7 +438,7 @@ class ServiceSection(_Section):
                     (
                         'history',
                         reverse('devicehistory-view') +
-                        ('?netbox=%(id)s&type=e_serviceState' +
+                        ('?netbox=%(id)s&type=e_serviceState'
                          '&group_by=datetime' %
                          {'id': s.netbox.id})
                     )
@@ -527,7 +527,7 @@ class ServiceMaintenanceSection(ServiceSection):
                     (
                         'history',
                         reverse('devicehistory-view') +
-                        ('?netbox=%(id)s&type=e_maintenanceState' +
+                        ('?netbox=%(id)s&type=e_maintenanceState'
                          '&group_by=datetime' %
                          {'id': m.alert_history.netbox.id})
                     ),
@@ -738,7 +738,7 @@ class LinkStateSection(_Section):
                     (h.downtime, None),
                     (
                         'history',
-                        reverse('devicehistory-view') +\
+                        reverse('devicehistory-view') +
                         '?netbox=%(id)s&type=a_linkDown&group_by=datetime' % {
                             'id': h.netbox.id,
                         }
@@ -804,7 +804,7 @@ class SNMPAgentSection(_Section):
                     (
                         'history',
                         reverse('devicehistory-view') +
-                        ('?netbox=%(id)s&type=a_snmpAgentDown' +
+                        ('?netbox=%(id)s&type=a_snmpAgentDown'
                          '&group_by=datetime' % {'id': h.netbox.id})
                     ),
                 ),
