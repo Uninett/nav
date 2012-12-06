@@ -36,7 +36,7 @@ import sys
 import textwrap
 
 BUG_URL = 'https://launchpad.net/bugs/%d/+text'
-COMMITLOG_PATTERN = re.compile(r'((bug)?fix for|fix(es)?|closes?) '
+COMMITLOG_PATTERN = re.compile(r'((bug)?fix for|fix(es)?|closes?):? '
                                r'+(lp)? *# *(?P<bug_id>[0-9]{6,})', re.I)
 
 def get_bug_details(bug_id):
