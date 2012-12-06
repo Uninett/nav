@@ -77,7 +77,7 @@ define([
 
             // set's is_selected true on categories mentioned in mapProperties.categories which is in this.collection
             _.invoke(this.collection.filter(function (model) {
-                return _.contains(_.pluck(mapProperties.get('categories'),'name'), model.get('name'));
+                return _.contains(mapProperties.get('categories').pluck('name'), model.get('name'));
             }), "set", {'is_selected': true});
 
             this.render();
