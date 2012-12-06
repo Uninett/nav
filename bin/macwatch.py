@@ -44,6 +44,10 @@ MAC_ADDR_MAX_LEN = 12
 # Used for filling in a max adddress value when
 # only a prefix is given.
 MAC_ADDR_MAX_VAL = 'ffffffffffff'
+# Possible delimiters as regexps
+STRIP_MAC_ADDR_DELIMS = ['-', ':']
+# The returning mac-address will use this as delimiter
+RET_MAC_ADDR_DELIM = ':'
 
 # Occurences of the mac-address nearest to the edges has highest
 # priority
@@ -118,8 +122,11 @@ def post_event(mac_watch, cam, logger):
 
 def strip_delimiters(mac_addr):
     """Strip mac-address delimiters, legal delimiters are
-    '-' and ':'"""
-    return re.sub('-', '', re.sub(':', '', mac_addr))
+    defined in the constant STRIP_MAC_ADDR_DELIMS."""
+    stripped_addr = mac_addr
+    for delim in STRIP_MAC_ADDR_DELIMS:
+        stripped_addr = re.sub(delim, '', stripped_addr)
+    return stripped_addr
 
 
 def insert_addr_delimiters(mac_addr):
@@ -132,7 +139,7 @@ def insert_addr_delimiters(mac_addr):
         hex_numbers.append(mac_addr[start:end])
         start += 2
     hex_numbers.append(mac_addr[end:])
-    return ':'.join(hex_numbers)
+    return RET_MAC_ADDR_DELIM.join(hex_numbers)
 
 
 def make_upper_mac_addr(mac_addr, last_pos):
