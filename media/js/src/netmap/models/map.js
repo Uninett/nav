@@ -10,9 +10,7 @@ define([
             title: "Unsaved view",
             description: null,
             is_public: true,
-            // see nav.models.profiles TOPOLOGY_TYPES , 1 == layer 2 topology
-            // todo: change topology value to 2 and ship a SQL migration
-            topology: 1,
+            topology: 2,
             categories: new CategoryCollection([
                 {name: "GSW", is_selected: true},
                 {name: "GW", is_selected: true},
@@ -42,6 +40,12 @@ define([
         parse: function(resp, xhr) {
             if (resp.categories) {
                 resp.categories = new CategoryCollection(resp.categories);
+            }
+            if (resp.topology && resp.topology === 1) {
+                // see nav.models.profiles TOPOLOGY_TYPES , 1 == layer 2 topology
+                // todo: change topology value to 2 and ship a SQL migration
+                // and remove this hack.
+                resp.topology = 2;
             }
             return resp;
         }
