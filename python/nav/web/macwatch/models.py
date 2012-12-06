@@ -52,19 +52,22 @@ class MacWatch(models.Model):
     def _add_separators(self, mac_addr):
         """Add delimiters between the hex-numbers. Check
         MAC_ADDR_DELIM_CHAR for delimiter-character."""
-        start = 0
-        end = start + 2
-        mac_addr_to_return = ''
-        while end < self.prefix_length:
-            if start > 0:
-                mac_addr_to_return += self.MAC_ADDR_DELIM_CHAR
-            mac_addr_to_return += mac_addr[start:end]
-            start += 2
-            end = start + 2
-        if start > 0:
-            mac_addr_to_return += self.MAC_ADDR_DELIM_CHAR
-        mac_addr_to_return += mac_addr[start:]
-        return mac_addr_to_return
+        # Extract every second chars at odd index
+        mac_odds = mac_addr[::2]
+        # Extract every second chars at even index
+        mac_evens = mac_addr[1::2]
+        # Add together one character from odd and one from even list,
+        # and make lists with the strings.
+        # Join the lists of strings with delimiter-character to form
+        # a string.
+        ret_addr = self.MAC_ADDR_DELIM_CHAR.join(odd_char + even_char
+            for odd_char,even_char in zip(mac_odds, mac_evens))
+        # Sweep up the left-over if length is even,
+        # since zip will only merge a pair.
+        if self.prefix_length % 2:
+            ret_addr += self.MAC_ADDR_DELIM_CHAR + mac_addr[-1]
+        return ret_addr
+
 
     def get_mac_addr(self):
         """Get the current mac-address.  If the stored
