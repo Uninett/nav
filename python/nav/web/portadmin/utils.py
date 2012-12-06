@@ -33,11 +33,11 @@ _logger = logging.getLogger("nav.web.portadmin")
 
 def get_and_populate_livedata(netbox, interfaces):
     """Fetch live data from netbox"""
-    handler = SNMPFactory.getInstance(netbox)
-    live_ifaliases = create_dict_from_tuplelist(handler.getAllIfAlias())
-    live_vlans = create_dict_from_tuplelist(handler.getAllVlans())
-    live_operstatus = dict(handler.getNetboxOperStatus())
-    live_adminstatus = dict(handler.getNetboxAdminStatus())
+    handler = SNMPFactory.get_instance(netbox)
+    live_ifaliases = create_dict_from_tuplelist(handler.get_all_if_alias())
+    live_vlans = create_dict_from_tuplelist(handler.get_all_vlans())
+    live_operstatus = dict(handler.get_netbox_oper_status())
+    live_adminstatus = dict(handler.get_netbox_admin_status())
     update_interfaces_with_snmpdata(interfaces, live_ifaliases, live_vlans,
                                     live_operstatus, live_adminstatus)
 
@@ -114,8 +114,8 @@ def is_vlan_authorization_enabled():
 
 def find_vlans_on_netbox(netbox):
     """Find all the vlans on this netbox"""
-    fac = SNMPFactory.getInstance(netbox)
-    return fac.getNetboxVlans()
+    fac = SNMPFactory.get_instance(netbox)
+    return fac.get_netbox_vlans()
 
 
 def find_allowed_vlans_for_user(account):

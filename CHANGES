@@ -1,3 +1,21 @@
+Version 3.12.4
+(released 06 Dec 2012)
+
+ Bugfixes:
+
+  * LP#744963  (generate short interface names in ip dev info when necessary)
+  * LP#1074323 (Machine tracker crashes on partial subnet search)
+  * LP#1076913 (cricket-config is not updated on update)
+  * LP#1077881 (snmpoid octets should be bytes/s not bytes)
+  * LP#1077949 (ipdevinfo helper functions crash on invalid input)
+  * LP#1078259 (templatetag add_interval does not exit cleanly on error)
+  * LP#1078292 (ipdevpoll job logger needs to log interval for manual jobs)
+  * LP#1079088 (logengine crashes on syslog entries from a Cisco ASA device)
+  * LP#1080663 (ipdevinfo netbox overview does not display edge netboxes)
+  * LP#1080727 (portadmin does not follow organization hierarchy correctly)
+  * LP#1082381 (ipdevpoll oidprofiler sets unsupported when value=0)
+  * LP#1085826 (portadmin shows wrong available vlans)
+
 Version 3.12.3
 (released 01 Nov 2012)
 
