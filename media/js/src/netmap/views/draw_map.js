@@ -180,12 +180,28 @@ define([
             this.showLoadingSpinner(false);
         },
         setMapProperties: function (mapPropertiesModel) {
+            this.showLoadingSpinner(true);
             var self = this;
             var currentViewId = this.mapProperties.get("viewid");
             this.mapProperties = mapPropertiesModel;
             if (currentViewId !== mapPropertiesModel.get("viewid")) {
-                this.mapProperties.fetch();
+                this.mapProperties.fetch({success: function (model) {
+                    self.mapProperties = model;
+                    self.model = new GraphModel({viewid: mapPropertiesModel.get("viewid"), topology: mapPropertiesModel.get('topology')});
+                    console.log("loading graph");
+                    self.loadGraph();
+                }});
+
+            } else {
+                this.clear();
+                this.render();
+                this.showLoadingSpinner(false);
             }
+
+            // tell list_maps we're done updating our mapProperties
+            // and loaded _graph_ :-)
+            this.broker.trigger("netmap:setMapProperties:done");
+
         },
         setMapPropertyLayer: function (layer) {
             var self = this;
@@ -1081,7 +1097,6 @@ define([
             if (self.force !== undefined) {
                 self.force.stop();
             }
-
             var selected_categories = self.mapProperties.get('categories');
 
             if (this.model) {

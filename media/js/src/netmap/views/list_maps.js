@@ -23,6 +23,7 @@ define([
         interests: {
             "netmap:mapProperties": "setMapProperties",
             "netmap:graph": "setGraph",
+            "netmap:setMapProperties:done": "enableView",
             "map:topology_change": "deactiveAndShowSpinnerWhileLoading",
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
         },
@@ -79,6 +80,7 @@ define([
         },
         setGraph: function (graph) {
             this.graph = graph;
+            this.isLoading = false;
             this.render();
         },
         updateCollection: function () {
@@ -194,6 +196,9 @@ define([
                 this.options.activeMapProperty.set({"is_selected": true});
                 this.broker.trigger("netmap:changeMapProperties", this.options.activeMapProperty);
                 Backbone.View.navigate("view/" + selected_id);
+                this.isLoading = true;
+                this.render();
+                // setGraph should be triggered by event next by draw_map
             }
         },
         deactiveAndShowSpinnerWhileLoading: function () {
@@ -203,6 +208,10 @@ define([
             this.$el.find("#save_view").attr('disabled', 'disabled');
             this.$el.find("#dropdown_view_id").attr('disabled', 'disabled');
             //self.broker.trigger('map:loading:context_selected_map');
+        },
+        enableView: function () {
+            this.isLoading = false;
+            this.render();
         },
         headerFooterMinimizeRequest: function (options) {
             if (options && options.name === 'header' && (options.isShowing !== this.isContentVisible)) {
@@ -248,7 +257,8 @@ define([
                 context.maps = null;
             }
             context.mapProperties = (this.mapProperties && this.mapProperties.toJSON()) || null;
-            context.isNew = (this.map && this.map.isNew()) || null;
+            context.isNewOrIsloading = ((this.map && this.map.isNew()) || this.isLoading) || null;
+            context.isLoading = this.isLoading;
 
             /*if (this.options.context_user_default_view && this.options.context_user_default_view.attributes.viewid === this.options.mapProperties.map.attributes.viewid) {
                 context.isFavorite = this.options.context_user_default_view;
