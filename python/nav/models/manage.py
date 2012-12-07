@@ -669,7 +669,7 @@ class Prefix(models.Model):
         """Returns a ordered list of GwPortPrefix objects on this prefix"""
         return self.gwportprefix_set.filter(
             interface__netbox__category__id__in=('GSW', 'GW')
-        ).select.related(
+        ).select_related(
             'interface', 'interface__netbox'
         ).order_by('-virtual', 'gw_ip')
 
