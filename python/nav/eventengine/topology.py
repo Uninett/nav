@@ -29,11 +29,18 @@ def is_netbox_reachable(netbox):
     prefix = netbox.get_prefix()
     router_port = prefix.get_router_ports()[0]
     router = router_port.interface.netbox
-    graph = get_graph_for_vlan(prefix.vlan)
     _logger.debug("reachability check for %s on %s (router: %s)",
                   netbox, prefix, router)
 
+    graph = get_graph_for_vlan(prefix.vlan)
+    strip_down_nodes_from_graph(graph, keep=netbox)
+
     if netbox not in graph or router not in graph:
+        if router.up == router.UP_UP:
+            _logger.warning("%(netbox)s topology problem: router %(router)s "
+                            "is up, but not in VLAN graph for %(prefix)r. "
+                            "Defaulting to 'reachable' status.", locals())
+            return True
         _logger.debug("%s not reachable, router or box not in graph: %r",
                       netbox, graph.edges())
         return False
@@ -57,6 +64,17 @@ def get_graph_for_vlan(vlan):
     for swp in swpvlan:
        source = swp.interface.netbox
        target = swp.interface.to_netbox
-       if target and all(x.up==x.UP_UP for x in (source, target)):
+       if target:
            graph.add_edge(source,target)
     return graph
+
+def strip_down_nodes_from_graph(graph, keep=None):
+    """Strips all nodes (netboxes) from graph that are currently down.
+
+    :param keep: A node to keep regardless of its current status.
+
+    """
+    removable = set(node for node in graph.nodes_iter()
+                    if node.up != node.UP_UP and node != keep)
+    graph.remove_nodes_from(removable)
+    return len(removable)
