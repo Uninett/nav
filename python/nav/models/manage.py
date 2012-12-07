@@ -640,8 +640,25 @@ class GwPortPrefix(models.Model):
     def __unicode__(self):
         return self.gw_ip
 
+class PrefixManager(models.Manager):
+    def contains_ip(self, ipaddr):
+        """Gets all prefixes that contain the given IP address,
+        ordered by descending network mask length.
+
+        """
+        return self.get_query_set().exclude(
+            vlan__net_type="loopback"
+        ).extra(
+            select={'mlen': 'masklen(netaddr)'},
+            where=["%s <<= netaddr"],
+            params=[ipaddr],
+            order_by=["-mlen"]
+        ).select_related('vlan')
+
 class Prefix(models.Model):
     """From NAV Wiki: The prefix table stores IP prefixes."""
+
+    objects = PrefixManager()
 
     id = models.AutoField(db_column='prefixid', primary_key=True)
     net_address = CIDRField(db_column='netaddr', unique=True)
