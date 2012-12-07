@@ -30,10 +30,17 @@ class ThresholdStateHandler(EventHandler):
         if event.state == event.STATE_STATELESS:
             self._logger.info('Ignoring stateless thresholdState event')
         else:
-            alert = AlertGenerator(event)
-            alert.alert_type = (
-                'exceededThreshold' if event.state == event.STATE_START
-                else 'belowThreshold')
-            alert.post()
+            self._post_alert(event)
 
         event.delete()
+
+    def _post_alert(self, event):
+        alert = AlertGenerator(event)
+        alert.alert_type = (
+            'exceededThreshold' if event.state == event.STATE_START
+            else 'belowThreshold')
+
+        if alert.is_event_duplicate():
+            self._logger.info('Ignoring duplicate alert')
+        else:
+            alert.post()
