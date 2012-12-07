@@ -30,11 +30,17 @@ class MaintenanceStateHandler(EventHandler):
         if event.state == event.STATE_STATELESS:
             self._logger('Ignoring stateless maintenanceState event')
         else:
-            alert = AlertGenerator(event)
-            alert.alert_type = (
-                'onMaintenance' if event.state == event.STATE_START
-                else 'offMaintenance')
-            alert.history_vars = dict(alert)
-            alert.post()
+            self._post_alert(event)
 
         event.delete()
+
+    def _post_alert(self, event):
+        alert = AlertGenerator(event)
+        alert.alert_type = (
+            'onMaintenance' if event.state == event.STATE_START
+            else 'offMaintenance')
+        alert.history_vars = dict(alert)
+        if alert.is_event_duplicate():
+            self._logger.info('Ignoring duplicate event')
+        else:
+            alert.post()
