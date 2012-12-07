@@ -18,6 +18,9 @@
 import networkx
 from nav.models.manage import SwPortVlan
 
+import logging
+_logger = logging.getLogger(__name__)
+
 def is_netbox_reachable(netbox):
     """Returns True if netbox appears to be reachable through the known
     topology.
@@ -27,11 +30,16 @@ def is_netbox_reachable(netbox):
     router_port = prefix.get_router_ports()[0]
     router = router_port.interface.netbox
     graph = get_graph_for_vlan(prefix.vlan)
+    _logger.debug("reachability check for %s on %s (router: %s)",
+                  netbox, prefix, router)
 
     if netbox not in graph or router not in graph:
+        _logger.debug("%s not reachable, router or box not in graph: %r",
+                      netbox, graph.edges())
         return False
 
     path = networkx.shortest_path(graph, netbox, router)
+    _logger.debug("path to %s: %r", netbox, path)
     return path
 
 def get_graph_for_vlan(vlan):
