@@ -28,7 +28,7 @@ class MaintenanceStateHandler(EventHandler):
         event = self.event
 
         if event.state == event.STATE_STATELESS:
-            self._logger('Ignoring stateless maintenanceState event')
+            self._logger.info('Ignoring stateless maintenanceState event')
         else:
             self._post_alert(event)
 
