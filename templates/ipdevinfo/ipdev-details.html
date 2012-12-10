@@ -26,10 +26,7 @@
             <li><a href="#services">Services</a></li>
             <li><a href="#hostinfo">DNS</a></li>
         </ul>
-
-        <div id="deviceinfo">
-            {% include "ipdevinfo/frag-ipdevinfo.html" %}
-        </div>
+        {% include "ipdevinfo/frag-ipdevinfo.html" %}
         {% include "ipdevinfo/frag-ports.html" %}
         {% include "ipdevinfo/frag-datasources.html" %}
         {% include "ipdevinfo/frag-alerts.html" %}
