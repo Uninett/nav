@@ -99,11 +99,6 @@ class BoxStateHandler(EventHandler):
         """
         return self.event.netbox.get_unresolved_alerts('boxState').count() > 0
 
-    def _box_is_on_maintenance(self):
-        """Returns True if the target netbox is currently on maintenance"""
-        return self.event.netbox.get_unresolved_alerts(
-            'maintenanceState').count() > 0
-
     def _get_waiting(self):
         """Returns a plugin instance waiting for boxState resolve
         events for the same netbox this instance is processing.

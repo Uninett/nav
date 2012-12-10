@@ -67,6 +67,11 @@ class EventHandler(object):
         # pylint: disable=E1101
         return cls.__subclasses__()
 
+    def _box_is_on_maintenance(self):
+        """Returns True if the target netbox is currently on maintenance"""
+        return self.event.netbox.get_unresolved_alerts(
+            'maintenanceState').count() > 0
+
 
 def _load_all_modules_in_package(package_name):
     modnames = ('%s.%s' % (package_name, mod)
