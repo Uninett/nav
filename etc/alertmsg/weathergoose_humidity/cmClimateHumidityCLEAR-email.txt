@@ -1,0 +1,3 @@
+Subject: Weathergoose {{ goosename }}: humidity threshold clear
+
+{{ climatedescr }}: {{ climatevalue }}

@@ -1,0 +1,1 @@
+SNMP response OK: {{ netbox.sysname }}

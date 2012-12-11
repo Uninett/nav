@@ -1,0 +1,1 @@
+AccessPoint {{ apname }} ({{ mac }}) disassociated.

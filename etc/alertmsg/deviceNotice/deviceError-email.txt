@@ -1,0 +1,5 @@
+Subject: Error event registered on {{ netbox.sysname }}
+User {{ username }} registered an error event on device {{ netbox.sysname }}.
+The following comment was given:
+
+{{ comment }}

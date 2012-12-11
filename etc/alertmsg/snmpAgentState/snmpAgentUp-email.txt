@@ -1,0 +1,2 @@
+Subject: SNMP agent up on {{ netbox.sysname }}
+{{ netbox.sysname }} has resumed responding to SNMP requests.
