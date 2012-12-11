@@ -151,3 +151,15 @@
 .cell-right {
     text-align: right;
 }
+
+table.module td div.portcell {
+    position: relative;
+    width: 100%;
+}
+
+table.module td div.portcell span.oplayer {
+    position: absolute;
+    right: -0.5em;
+    bottom: -0.5em;
+    font-size: 0.8em;
+}
