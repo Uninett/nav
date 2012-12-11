@@ -15,9 +15,16 @@
 #
 """Alert generator functionality for the eventEngine"""
 import datetime
+import os
+
 from nav.models.event import AlertQueue as Alert, EventQueue as Event, AlertType
 from nav.models.event import AlertHistory
 
+from django.template import loader, Context
+
+from nav import buildconf
+
+ALERT_TEMPLATE_DIR = os.path.join(buildconf.sysconfdir, 'alertmsg')
 INFINITY = datetime.datetime.max
 
 class AlertGenerator(dict):
@@ -131,3 +138,47 @@ def get_unresolved_alerts_map():
     """Returns a dictionary of unresolved AlertHistory entries"""
     unresolved = AlertHistory.objects.filter(end_time__gte=INFINITY)
     return dict((alert.get_key(), alert) for alert in unresolved)
+
+###
+### Alert message template processing
+###
+
+def _ensure_alert_templates_are_available():
+    from django.conf import settings
+    if ALERT_TEMPLATE_DIR not in settings.TEMPLATE_DIRS:
+        settings.TEMPLATE_DIRS += (ALERT_TEMPLATE_DIR,)
+
+def render_template(alert, msgtype=None, language=None):
+    """Renders an alert message template based on the parameters of `alert`.
+
+    :param alert: An :py:class:AlertGenerator object representing the alert
+    :param msgtype: The alert medium; one of ['email', 'sms', 'jabber']
+    :param language: The language to render the template for.
+    :return: A unicode string.
+    """
+    _ensure_alert_templates_are_available()
+    names_to_try = _get_list_of_template_names(alert.event_type,
+                                               alert.alert_type, msgtype)
+    template = loader.select_template(names_to_try)
+    context = Context(dict(alert))
+    context.update(vars(alert))
+    context.update(dict(msgtype=msgtype, language=language))
+    return template.render(context)
+
+def _get_list_of_template_names(event_type, alert_type, msgtype=None,
+                                language="en"):
+    base_names = [
+        "{event_type}/{alert_type}",
+        "{event_type}-{alert_type}",
+        "{event_type}/default",
+        "{event_type}-default",
+        "default",
+        ]
+    if msgtype:
+        base_names = [
+            "{event_type}/{alert_type}-{msgtype}",
+            "{event_type}-{alert_type}-{msgtype}",
+            ] + base_names
+    names_to_try = ([n + "." + language + ".txt" for n in base_names] +
+                    [n + ".txt" for n in base_names])
+    return [n.format(**locals()) for n in names_to_try]
