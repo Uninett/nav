@@ -27,6 +27,8 @@ nobase_dist_sysconf_DATA = $(sort $(generated_config) $(wildcard \
 	report/*.html \
 	geomap/*.html \
 	geomap/*.py \
+	alertmsg/*.txt \
+	alertmsg/*/*.txt \
 	))
 
 init_SCRIPTS = $(scripts_out)

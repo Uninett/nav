@@ -1,0 +1,3 @@
+Subject: Mac active
+
+{{ mac }} is active on {{ netbox.sysname }}, {% if module %}module {{ module }}, {% endif %}port {{ port }}

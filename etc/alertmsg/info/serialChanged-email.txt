@@ -1,0 +1,6 @@
+Subject: Serial changed for ({{new_deviceid}})
+
+Serial changed to:
+    ({{new_deviceid}}) {{new_serial}}
+from:
+    ({{old_deviceid}}) {{old_serial}}
