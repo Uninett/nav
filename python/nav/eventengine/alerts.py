@@ -119,7 +119,13 @@ class AlertGenerator(dict):
                 and self.event.get_key() in unresolved)
 
     def get_alert_type(self):
-        return AlertType.objects.get(name=self.alert_type)
+        if not self.alert_type:
+            return
+
+        try:
+            return AlertType.objects.get(name=self.alert_type)
+        except AlertType.DoesNotExist:
+            return
 
 def get_unresolved_alerts_map():
     """Returns a dictionary of unresolved AlertHistory entries"""
