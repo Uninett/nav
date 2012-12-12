@@ -8,13 +8,14 @@ define([
     'netmap/views/orphans_toggler',
     'netmap/views/position_toggler',
     'netmap/views/algorithm_toggler',
+    'netmap/views/topology_error_toggler',
     'netmap/views/mouseover_toggler',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView, MouseOverView) {
+], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView, TopologyErrorView, MouseOverView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
@@ -25,7 +26,6 @@ define([
         },
         events: {
             'click #toggle_view':      'toggleView',
-            'click input[name="topologyErrors"]': 'onUITopologyErrorsClick',
             'click input[name="nodesFixed"]': 'onNodesFixedClick',
             'click input[name="trafficGradient"]': 'onTrafficGradientClick'
         },
@@ -72,34 +72,6 @@ define([
                 }
             });
 
-            // Bindings
-
-            this.model.bind("change", this.render, this);
-            this.model.bind("destroy", this.close, this);
-
-            this.context = {
-                'link_types': {
-                    'layer2':  false,
-                    'layer3':  false
-                },
-                // eew, should get available categories from app context somehow
-                // ie, load categories list on app start..
-               'specific_filters': {
-                    'position': {
-                        'none':     false,
-                        'room':     false,
-                        'location': false
-                    },
-                },
-                'ui': {
-                    'mouseover': {
-                        'nodes': { state: false, hotkey: 'n' },
-                        'links': { state: false, hotkey: 'l' }
-                    },
-                    'topology_errors': false,
-                    'freezeNodes': false
-                }
-            };
             this.isLoading = !!(this.options.isLoading);
 
         },
@@ -114,7 +86,7 @@ define([
         render: function () {
             var self = this;
 
-            var out = this.template({ model: this.context, isVisible: this.isContentVisible, isLoading: this.isLoading });
+            var out = this.template({ isVisible: this.isContentVisible, isLoading: this.isLoading });
             this.$el.html(out);
 
             this.layerView = this.attachSubView(this.layerView, LayerView, '#layer_view');
@@ -122,6 +94,7 @@ define([
             this.orphansView = this.attachSubView(this.orphansView, OrphanView, '#orphan_view');
             this.positionView = this.attachSubView(this.positionView, PositionView, '#position_view');
             this.algorithmView = this.attachSubView(this.algorithmView, AlgorithmView, '#algorithm_view');
+            this.topologyErrorsView = this.attachSubView(this.topologyErrorsView, TopologyErrorView, '#topology_errors_view');
             this.mouseOverView = this.attachSubView(this.mouseOverView, MouseOverView, '#mouseover_view');
 
             return this;
@@ -171,12 +144,6 @@ define([
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
             this.broker.trigger('map:resize:animate', {marginLeft: margin});
-        },
-        onUITopologyErrorsClick: function (e) {
-            this.context.ui.topology_errors = $(e.currentTarget).prop('checked');
-            this.broker.trigger('map:redraw', {
-                topologyErrors: $(e.currentTarget).prop('checked')
-            });
         },
         onNodesFixedClick: function (e) {
             var val = $(e.currentTarget).val();
