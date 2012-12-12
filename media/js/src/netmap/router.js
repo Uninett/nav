@@ -31,7 +31,7 @@ define([
             this.broker.register(this);
         },
         routes: {
-            'netmap/:map_id': 'showNetmap',
+            'view/:map_id': 'showNetmap',
             '': 'loadPage'
         },
         interests: {
@@ -176,7 +176,6 @@ define([
             self.view_map_info = new MapInfoView({el: $('#mapinfo')});
             // graph is now set in context_selected-map, we can render map!
             $('#netmap_infopanel #list_views').html(view_choose_map.render().el);
-
 
             self.view_map = new DrawNetmapView({viewid: map_id, mapProperties: context_selected_map.map, view_map_info: self.view_map_info, cssWidth: $('#netmap_main_view').width(), loadDefault: parseInt($("#netmap_userid").html(),10)});
             $('#netmap_main_view #wrapper_chart').html(self.view_map.render().el);
