@@ -53,6 +53,8 @@ class AlertGenerator(dict):
         else:
             self.alert_type = None
 
+        self._messages = None
+
     def make_alert(self):
         """Generates an alert object based on the current attributes"""
         attrs = {}
@@ -109,6 +111,7 @@ class AlertGenerator(dict):
         alert = self.make_alert()
         alert.history = history
         alert.save()
+        self._post_alert_messages(alert)
         return alert
 
     def post_alert_history(self):
@@ -116,7 +119,26 @@ class AlertGenerator(dict):
         history = self.make_alert_history()
         if history:
             history.save()
+            self._post_alert_messages(history)
         return history
+
+    def _post_alert_messages(self, obj):
+        msg_class = obj.messages.model
+        for details, text in self._make_messages():
+            msg = msg_class(type=details.msgtype,
+                            language=details.language,
+                            message=text)
+            if hasattr(msg_class, 'alert_queue'):
+                msg.alert_queue = obj
+            elif hasattr(msg_class, 'alert_history'):
+                msg.alert_history = obj
+                msg.state = self.state
+            msg.save()
+
+    def _make_messages(self):
+        if self._messages is None:
+            self._messages = render_templates(self)
+        return self._messages
 
     def is_event_duplicate(self):
         """Returns True if the represented event seems to duplicate an
@@ -166,7 +188,8 @@ def render_templates(alert):
 
     """
     ensure_alert_templates_are_available()
-    templates = get_list_of_templates_for(alert.event_type, alert.alert_type)
+    templates = get_list_of_templates_for(alert.event_type.id,
+                                          alert.alert_type)
     return [_render_template(template, alert) for template in templates]
 
 def _render_template(details, alert):
@@ -199,4 +222,6 @@ def get_list_of_templates_for(event_type, alert_type):
                             match.group('language') or DEFAULT_LANGUAGE)
             for match, name in matches if match]
 
+# pylint sucks on namedtuples
+# pylint: disable=C0103
 TemplateDetails = namedtuple("TemplateDetails", "name msgtype language")
