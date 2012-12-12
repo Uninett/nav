@@ -24,9 +24,6 @@ define([
                 ]);
             }
 
-            Handlebars.registerHelper('capitalize', function (type) {
-                return type.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-            });
             this.collection.bind("change", this.broadcastPositionFilter, this);
             return this;
         },
