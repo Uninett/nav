@@ -1,0 +1,1 @@
+box sunny {{netbox.sysname}} ({{netbox.ip}})

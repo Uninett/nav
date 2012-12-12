@@ -1,0 +1,1 @@
+Module {{name}}, box {{netbox.sysname}} is up since {{time}}.

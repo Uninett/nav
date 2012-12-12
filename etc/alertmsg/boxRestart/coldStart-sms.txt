@@ -1,0 +1,1 @@
+Box has performed a coldstart: {{netbox.sysname}} ({{netbox.ip}})

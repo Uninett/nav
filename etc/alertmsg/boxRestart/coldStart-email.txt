@@ -1,0 +1,6 @@
+Subject: {{netbox.sysname}} ({{netbox.ip}}) has cold started
+
+Boks {{netbox.sysname}} ({{netbox.ip}}) has performed a coldstart:
+
+Old up since: {{old_upsince}}
+New up since: {{new_upsince}}
