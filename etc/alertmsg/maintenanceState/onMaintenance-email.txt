@@ -1,0 +1,3 @@
+Subject: On maintenance: {{netbox.sysname}}
+
+{{netbox.sysname}} is now on maintenance.
