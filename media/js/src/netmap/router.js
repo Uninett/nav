@@ -117,11 +117,11 @@ define([
             // for every page request not containing a map id
 
             if (context_user_default_view) {
-                Backbone.View.goTo("netmap/{0}".format(context_user_default_view.attributes.viewid));
+                Backbone.View.navigate("netmap/{0}".format(context_user_default_view.attributes.viewid));
             } else {
                 new DefaultMapModel().fetch({
                     success: function (model, attributes) {
-                        Backbone.View.goTo("netmap/{0}".format(attributes.viewid));
+                        Backbone.View.navigate("netmap/{0}".format(attributes.viewid));
                     },
                     error: function () {
                         // global not found, just do a graph
