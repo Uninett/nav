@@ -1,6 +1,7 @@
 define([
     'plugins/netmap-extras',
     'netmap/models/graph',
+    'netmap/models/map',
     'netmap/models/default_map',
     'netmap/views/loading_spinner',
     // Pull in the Collection module from above
@@ -11,7 +12,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapExtras, GraphModel, DefaultMapModel, LoadingSpinnerView, NetboxInfoView, netmapTemplate) {
+], function (NetmapExtras, GraphModel, MapModel, DefaultMapModel, LoadingSpinnerView, NetboxInfoView, netmapTemplate) {
 
     var drawNetmapView = Backbone.View.extend({
         tagName: "div",
@@ -53,6 +54,9 @@ define([
                 }
             };
             this.mapProperties = this.options.mapProperties;
+            if (!this.mapProperties) {
+                this.mapProperties = new MapModel();
+            }
             this.sidebar = this.options.view_map_info;
             // !this.mapProperties.display_orphans;
 
@@ -76,36 +80,22 @@ define([
             if (this.options.viewid) {
 
                 if (this.options.mapProperties) {
-                    this.model = new GraphModel({topology: this.options.mapProperties.topology });
+                    this.model = new GraphModel({
+                        viewid: this.options.mapProperties.get('viewid'),
+                        topology: this.options.mapProperties.topology
+                    });
                     self.loadGraph();
                 } else {
-                    this.model = new GraphModel({topology: 2});
+                    this.model = new GraphModel({
+                        viewid: this.options.viewid,
+                        topology: 2
+                    });
                     self.loadGraph();
                 }
-            } else if (this.options.loadDefault) {
+            } else  {
                 // this.options.loadDefault contains userid to load default for!
-                var defaultMap = new DefaultMapModel({ownerid: this.options.loadDefault});
-                defaultMap.fetch({
-                    success: function (model, attributes) {
-                        self.model = new GraphModel({viewid: attributes.viewid, topology: self.options.mapProperties.topology});
-                        self.loadGraph();
-                    },
-                    error: function () {
-                        // User's default map not found, try global
-                        self.defaultMap = new DefaultMapModel();
-                        self.defaultMap.fetch({
-                            success: function (model, attributes) {
-                                self.model = new GraphModel({viewid: attributes.viewid, topology: self.options.mapProperties.topology});
-                                self.loadGraph();
-                            },
-                            error: function () {
-                                // global not found, just do a graph
-                                self.model = new GraphModel({topology: 2});
-                                self.loadGraph();
-                            }
-                        });
-                    }
-                });
+                this.model = new GraphModel({topology: 2});
+                this.loadGraph();
             }
         },
         broadcastGraph: function () {
@@ -1099,7 +1089,7 @@ define([
             }
             var selected_categories = self.mapProperties.get('categories');
 
-            if (this.model) {
+            if (this.model && this.model.get('links')) {
                 self.modelJson = this.model.toJSON();
 
                 // map links to node objects in modelJson!
