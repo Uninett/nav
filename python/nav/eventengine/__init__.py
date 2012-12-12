@@ -26,6 +26,7 @@ import time
 import sched
 import select
 import logging
+from nav.eventengine.alerts import AlertGenerator
 
 from nav.models.event import EventQueue as Event
 from django.db import connection
@@ -124,11 +125,27 @@ class EventEngine(object):
         if modified_queue:
             self._logger.debug("task queue: %r", modified_queue)
 
+    def _post_generic_alert(self, event):
+        alert = AlertGenerator(event)
+        if 'alerttype' in event.varmap:
+            alert.alert_type = event.varmap['alerttype']
+
+        is_stateless = event.state == Event.STATE_STATELESS
+        if is_stateless or not alert.is_event_duplicate():
+            self._logger.debug('Posting %s event', event.event_type)
+            alert.post()
+        else:
+            self._logger.info('Ignoring duplicate %s event' % event.event_type)
+        event.delete()
+
     def handle_event(self, event):
         "Handles a single event"
         self._logger.debug("handling %r", event)
         queue = [cls(event, self) for cls in self.handlers
                  if cls.can_handle(event)]
+        if not queue:
+            self._post_generic_alert(event)
+
         for handler in queue:
             self._logger.debug("giving event to %s", handler.__class__.__name__)
             result = handler.handle()
