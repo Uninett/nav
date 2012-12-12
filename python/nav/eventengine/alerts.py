@@ -16,6 +16,8 @@
 """Alert generator functionality for the eventEngine"""
 from collections import namedtuple
 import datetime
+import logging
+from pprint import pformat
 import os
 import re
 
@@ -28,6 +30,7 @@ from nav import buildconf
 
 ALERT_TEMPLATE_DIR = os.path.join(buildconf.sysconfdir, 'alertmsg')
 INFINITY = datetime.datetime.max
+_logger = logging.getLogger(__name__)
 
 class AlertGenerator(dict):
     def __init__(self, event):
@@ -190,15 +193,24 @@ def render_templates(alert):
     ensure_alert_templates_are_available()
     templates = get_list_of_templates_for(alert.event_type.id,
                                           alert.alert_type)
+    if not templates:
+        _logger.error("no templates defined for %r, sending generic alert "
+                      "message", alert)
+        templates = [
+            TemplateDetails("default-email.txt", "email", DEFAULT_LANGUAGE),
+            TemplateDetails("default-sms.txt", "sms", DEFAULT_LANGUAGE),
+            ]
+
     return [_render_template(template, alert) for template in templates]
 
 def _render_template(details, alert):
     template = loader.get_template(details.name)
-    context = Context(dict(alert))
+    context = dict(alert)
     context.update(vars(alert))
     context.update(dict(msgtype=details.msgtype,
                         language=details.language))
-    return details, template.render(context).strip()
+    context.update(dict(context_dump=pformat(context)))
+    return details, template.render(Context(context)).strip()
 
 
 def get_list_of_templates_for(event_type, alert_type):
@@ -215,8 +227,11 @@ def get_list_of_templates_for(event_type, alert_type):
             return match
 
     directory = os.path.join(ALERT_TEMPLATE_DIR, event_type)
-    matches = [(_matcher(name), os.path.join(event_type, name))
-               for name in os.listdir(directory)]
+    if os.path.isdir(directory):
+        matches = [(_matcher(name), os.path.join(event_type, name))
+                   for name in os.listdir(directory)]
+    else:
+        matches = []
     return [TemplateDetails(name,
                             match.group('msgtype'),
                             match.group('language') or DEFAULT_LANGUAGE)

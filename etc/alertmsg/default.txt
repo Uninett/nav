@@ -1,2 +1,0 @@
-{{ alert_type }} on {{ netbox.sysname }} from NAV, but a message template is missing.
-{% if msgtype == "email" or msgtype == "jabber" %}Variable dump: {% debug %}{% endif %}
