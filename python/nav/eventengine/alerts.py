@@ -14,8 +14,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Alert generator functionality for the eventEngine"""
+from collections import namedtuple
 import datetime
 import os
+import re
 
 from nav.models.event import AlertQueue as Alert, EventQueue as Event, AlertType
 from nav.models.event import AlertHistory
@@ -143,42 +145,58 @@ def get_unresolved_alerts_map():
 ### Alert message template processing
 ###
 
-def _ensure_alert_templates_are_available():
+TEMPLATE_PATTERN = re.compile(r"^(?P<alert_type>\w+)-"
+                              r"(?P<msgtype>\w+)"
+                              r"(\.(?P<language>\w+))?"
+                              r"\.txt$")
+
+DEFAULT_LANGUAGE = "en"
+
+def ensure_alert_templates_are_available():
+    """Inserts the ALERT_TEMPLATE_DIR into Django's TEMPLATE_DIRS list"""
     from django.conf import settings
     if ALERT_TEMPLATE_DIR not in settings.TEMPLATE_DIRS:
         settings.TEMPLATE_DIRS += (ALERT_TEMPLATE_DIR,)
 
-def render_template(alert, msgtype=None, language=None):
-    """Renders an alert message template based on the parameters of `alert`.
+def render_templates(alert):
+    """Renders and returns message template based on the parameters of `alert`.
 
     :param alert: An :py:class:AlertGenerator object representing the alert
-    :param msgtype: The alert medium; one of ['email', 'sms', 'jabber']
-    :param language: The language to render the template for.
-    :return: A unicode string.
+    :return: A list of (TemplateDetails, <rendered_unicode>) tuples
+
     """
-    _ensure_alert_templates_are_available()
-    names_to_try = _get_list_of_template_names(alert.event_type,
-                                               alert.alert_type, msgtype)
-    template = loader.select_template(names_to_try)
+    ensure_alert_templates_are_available()
+    templates = get_list_of_templates_for(alert.event_type, alert.alert_type)
+    return [_render_template(template, alert) for template in templates]
+
+def _render_template(details, alert):
+    template = loader.get_template(details.name)
     context = Context(dict(alert))
     context.update(vars(alert))
-    context.update(dict(msgtype=msgtype, language=language))
-    return template.render(context)
+    context.update(dict(msgtype=details.msgtype,
+                        language=details.language))
+    return details, template.render(context).strip()
 
-def _get_list_of_template_names(event_type, alert_type, msgtype=None,
-                                language="en"):
-    base_names = [
-        "{event_type}/{alert_type}",
-        "{event_type}-{alert_type}",
-        "{event_type}/default",
-        "{event_type}-default",
-        "default",
-        ]
-    if msgtype:
-        base_names = [
-            "{event_type}/{alert_type}-{msgtype}",
-            "{event_type}-{alert_type}-{msgtype}",
-            ] + base_names
-    names_to_try = ([n + "." + language + ".txt" for n in base_names] +
-                    [n + ".txt" for n in base_names])
-    return [n.format(**locals()) for n in names_to_try]
+
+def get_list_of_templates_for(event_type, alert_type):
+    """Returns a list of TemplateDetails objects for the available alert
+    message templates for the given event_type and alert_type.
+
+    """
+    if not alert_type:
+        alert_type = "default"
+
+    def _matcher(name):
+        match = TEMPLATE_PATTERN.search(name)
+        if match and match.group('alert_type') == alert_type:
+            return match
+
+    directory = os.path.join(ALERT_TEMPLATE_DIR, event_type)
+    matches = [(_matcher(name), os.path.join(event_type, name))
+               for name in os.listdir(directory)]
+    return [TemplateDetails(name,
+                            match.group('msgtype'),
+                            match.group('language') or DEFAULT_LANGUAGE)
+            for match, name in matches if match]
+
+TemplateDetails = namedtuple("TemplateDetails", "name msgtype language")
