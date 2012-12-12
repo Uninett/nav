@@ -45,33 +45,6 @@ define([
 
             this.template = Handlebars.compile(netmapTemplate);
 
-            // Registers Handlebars helpers
-
-            Handlebars.registerHelper('eachkeys', function(context, options) {
-                var fn = options.fn, inverse = options.inverse;
-                var ret = "";
-
-                var empty = true;
-                for (key in context) { empty = false; break; }
-
-                if (!empty) {
-                    for (key in context) {
-                        ret = ret + fn({ 'key': key, 'value': context[key]});
-                    }
-                } else {
-                    ret = inverse(this);
-                }
-                return ret;
-            });
-            Handlebars.registerHelper('ifequal', function (val1, val2, fn, elseFn) {
-                if (val1 === val2) {
-                    return fn();
-                }
-                else if (elseFn) {
-                    return elseFn();
-                }
-            });
-
             this.isLoading = !!(this.options.isLoading);
 
         },
