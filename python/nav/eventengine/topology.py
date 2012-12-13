@@ -23,6 +23,7 @@ from nav.models.manage import SwPortVlan, Netbox, Prefix, Arp, Cam
 import logging
 _logger = logging.getLogger(__name__)
 
+
 def is_netbox_reachable(netbox):
     """Returns True if netbox appears to be reachable through the known
     topology.
@@ -34,6 +35,7 @@ def is_netbox_reachable(netbox):
     _logger.debug("reachability paths, target_path=%(target_path)r, "
                   "nav_path=%(nav_path)r", locals())
     return bool(target_path and nav_path)
+
 
 def get_path_to_netbox(netbox):
     """Returns a likely path from netbox to its apparent gateway/router.
@@ -71,6 +73,7 @@ def get_path_to_netbox(netbox):
     _logger.debug("path to %s: %r", netbox, path)
     return path
 
+
 def get_graph_for_vlan(vlan):
     """Builds a simple topology graph of the active netboxes in vlan.
 
@@ -84,11 +87,12 @@ def get_graph_for_vlan(vlan):
         'interface', 'interface__netbox',  'interface__to_netbox')
     graph = networkx.Graph(name='graph for vlan %s' % vlan)
     for swp in swpvlan:
-       source = swp.interface.netbox
-       target = swp.interface.to_netbox
-       if target:
-           graph.add_edge(source,target)
+        source = swp.interface.netbox
+        target = swp.interface.to_netbox
+        if target:
+            graph.add_edge(source, target)
     return graph
+
 
 def strip_down_nodes_from_graph(graph, keep=None):
     """Strips all nodes (netboxes) from graph that are currently down.
@@ -104,6 +108,7 @@ def strip_down_nodes_from_graph(graph, keep=None):
 ###
 ### Functions for locating the NAV server itself
 ###
+
 
 class NAVServer(object):
     """A simple mockup of a Netbox representing the NAV server itself"""
@@ -127,15 +132,18 @@ class NAVServer(object):
         self.up = Netbox.UP_UP
 
     def get_prefix(self):
+        """Gets the prefix for the NAV servers ip"""
         matches = Prefix.objects.contains_ip(self.ip)
         if matches:
             return matches[0]
 
     def add_to_graph(self, graph):
+        """Adds edge between myself and all neighboring switches"""
         for switch in self.get_switches_from_cam():
             graph.add_edge(self, switch)
 
     def get_switches_from_cam(self):
+        """Gets all neighboring switches"""
         mac = self.get_mac_from_arp()
         if mac:
             records = Cam.objects.filter(
@@ -147,6 +155,7 @@ class NAVServer(object):
             return []
 
     def get_mac_from_arp(self):
+        """Finds the NAV server's MAC address based on its IP address"""
         arp = Arp.objects.extra(
             where=['ip = %s'],
             params=[self.ip]
@@ -156,6 +165,7 @@ class NAVServer(object):
 
     def __repr__(self):
         return "{self.__class__.__name__}({self.ip!r})".format(self=self)
+
 
 def get_source_address_for(dest):
     """Gets the source IP address used by this host when attempting to
@@ -176,6 +186,7 @@ def get_source_address_for(dest):
     addrinfo = sock.getsockname()
     sock.close()
     return addrinfo[0]
+
 
 def _get_target_dgram_addr(target):
     """Returns a (family, sockaddr) tuple for the target address for
