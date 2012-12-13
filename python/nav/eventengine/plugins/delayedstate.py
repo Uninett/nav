@@ -25,11 +25,11 @@ class DelayedStateHandler(EventHandler):
     quick resolve should be able to subclass this.
 
     """
-    ALERT_WAIT_TIME = 5
-    WARNING_WAIT_TIME = 2
     HAS_WARNING_ALERT = True
-    handled_types = (None,)
+    WARNING_WAIT_TIME = 10
+    ALERT_WAIT_TIME = 20
 
+    handled_types = (None,)
     __waiting_for_resolve = {}
 
     def __init__(self, *args, **kwargs):
@@ -57,8 +57,18 @@ class DelayedStateHandler(EventHandler):
         else:
             self._register_internal_down_state()
             if self.HAS_WARNING_ALERT:
+                self._logger.info(
+                    "%s start event for %s; warning in %s seconds, declaring "
+                    "down in %s seconds (if still unresolved)",
+                    self.event.event_type, self.get_target(),
+                    self.WARNING_WAIT_TIME, self.ALERT_WAIT_TIME)
                 self.schedule(self.WARNING_WAIT_TIME, self._make_down_warning)
             else:
+                self._logger.info(
+                    "%s start event for %s; declaring down in %s seconds "
+                    "(if still unresolved)",
+                    self.event.event_type, self.get_target(),
+                    self.ALERT_WAIT_TIME)
                 self.schedule(self.ALERT_WAIT_TIME, self._make_down_alert)
 
     def _register_internal_down_state(self):
@@ -70,23 +80,26 @@ class DelayedStateHandler(EventHandler):
         raise NotImplementedError
 
     def _handle_end(self):
-        if not unresolved.refers_to_unresolved_alert(self.event):
-            self._logger.info("no unresolved %s for %s, ignoring end event",
-                              self.event.event_type, self.get_target())
-        else:
+        is_unresolved = unresolved.refers_to_unresolved_alert(self.event)
+        waiting_plugin = self._get_waiting()
+
+        if is_unresolved or waiting_plugin:
             self._logger.info("%s is back up", self.get_target())
 
-            alert = self._make_up_alert()
-            if self._box_is_on_maintenance():
-                alert.post_alert_history()
-            else:
-                alert.post()
+            if is_unresolved:
+                alert = self._make_up_alert()
+                if self._box_is_on_maintenance():
+                    alert.post_alert_history()
+                else:
+                    alert.post()
 
-            waiter = self._get_waiting()
-            if waiter:
+            if waiting_plugin:
                 self._logger.info("ignoring transient down state for %s",
                                   self.get_target())
-                waiter.deschedule()
+                waiting_plugin.deschedule()
+        else:
+            self._logger.info("no unresolved %s for %s, ignoring end event",
+                              self.event.event_type, self.get_target())
 
         self.event.delete()
 
