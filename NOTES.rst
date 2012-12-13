@@ -20,6 +20,18 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 3.13
+========
+
+To see the overview of scheduled features and reported bugs on the 3.13 series
+of NAV, please go to https://launchpad.net/nav/3.13 .
+
+Dependency changes
+------------------
+
+- NAV no longer requires Java. Consequently, the PostgreSQL JDBC driver is no
+  longer needed either.
+
 NAV 3.12
 ========
 
