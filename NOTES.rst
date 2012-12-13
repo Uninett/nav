@@ -20,6 +20,61 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 3.13
+========
+
+Vlans
+-----
+
+It is now possible to search for vlans in the navbar search. The search triggers
+on vlan numbers and netident.
+
+The vlan page gives information about the vlan and its related router ports and
+prefixes. The information is linked to the more extensive reports for each port
+and prefix.
+
+The page also contains graphs that display the vlans usage, giving visual
+information about how many addresses are in use at any time. Access to historic
+information is easily accessible by utilizing the buttons next to the graph.
+
+
+Arnold
+------
+
+Arnold is rewritten to not use mod_python and to use django models. The rewrite
+has tried to be as transparent as possible and at the same time fix the bugs
+that were reported.
+
+Some changes are introduced:
+
+- The shell-script for interacting directly with Arnold is gone. If there is an
+  outcry for it, it will be reintroduced. The other scripts for automatic
+  detentions and pursuit are a part of the core functionality and are of course
+  still present.
+
+- The workflow when manually detaining is altered to something better.
+
+- The reasons used for automatic detentions are no longer available when
+  manually detaining. This is done to be able to differ between manual and
+  automatic detentions. If you detain for the same reason both manually and
+  automatically, just create two similar reasons.
+
+- Logleves are no longer set in arnold.conf. Use logging.conf to alter loglevels
+  for the scripts and web.
+
+- Some unreported bugs are fixed.
+
+- The “Open on move”-option in a predefined detention was never used. This is
+  fixed.
+
+- Pursuing was not done in some cases.
+
+- Reported bugs that are fixed:
+  - #341703 Manual detention does not pursue client
+  - #361530 Predefined detention does not exponentially increase detentions
+  - #744932 Arnold should give warning if snmp write is not configured
+
+
 NAV 3.12
 ========
 
