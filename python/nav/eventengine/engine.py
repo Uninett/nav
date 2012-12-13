@@ -26,12 +26,31 @@ import logging
 import sched
 import select
 import time
+from functools import wraps
 from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine import unresolved
 from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import EventQueue as Event
 from django.db import connection
+
+_logger = logging.getLogger(__name__)
+
+def swallow_unhandled_exceptions(func):
+    """Decorates a function to log and ignore any exceptions thrown by it
+    :param func: The function to decorate
+    :return: A decorated version of func
+
+    """
+
+    @wraps(func)
+    def _decorated(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            _logger.exception("Unhandled exception occurred; ignoring it")
+
+    return _decorated
 
 
 class EventEngine(object):
@@ -103,6 +122,7 @@ class EventEngine(object):
 
         self._scheduler.enter(delay, 0, action, ())
 
+    @swallow_unhandled_exceptions
     @commit_on_success
     def load_new_events(self):
         "Loads and processes new events on the queue, if any"
@@ -113,16 +133,23 @@ class EventEngine(object):
             events = list(events)
             self._logger.info("found %d new events in queue db", len(events))
             self.last_event_id = events[-1].id
-            unresolved.update()
             for event in events:
-                self.handle_event(event)
+                unresolved.update()
+                try:
+                    self.handle_event(event)
+                except Exception:
+                    self._logger.exception("Unhandled exception while "
+                                           "handling %s, deleting event",
+                                           event)
+                    if event.id:
+                        event.delete()
 
             self._log_task_queue()
 
     def _log_task_queue(self):
         modified_queue = [
-            e for e in self._scheduler.queue
-            if e.action != self._load_new_events_and_reschedule]
+        e for e in self._scheduler.queue
+        if e.action != self._load_new_events_and_reschedule]
         if modified_queue:
             self._logger.debug("task queue: %r", modified_queue)
 
@@ -139,6 +166,7 @@ class EventEngine(object):
             self._logger.info('Ignoring duplicate %s event' % event.event_type)
         event.delete()
 
+    @commit_on_success
     def handle_event(self, event):
         "Handles a single event"
         self._logger.debug("handling %r", event)
@@ -149,9 +177,16 @@ class EventEngine(object):
             self._post_generic_alert(event)
 
         for handler in queue:
-            self._logger.debug("giving event to %s",
-                               handler.__class__.__name__)
-            handler.handle()
+            self._logger.debug("giving event to %s", handler.__class__.__name__)
+            try:
+                handler.handle()
+            except Exception:
+                self._logger.exception("Unhandled exception in plugin "
+                                       "%s; ignoring it", handler)
+                if len(queue) == 1 and event.id:
+                    # there's only one handler and it failed,
+                    # this will probably never be handled, so we delete it
+                    event.delete()
 
         if event.id:
             self._logger.debug("event wasn't disposed of, "
