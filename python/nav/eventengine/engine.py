@@ -148,8 +148,9 @@ class EventEngine(object):
 
     def _log_task_queue(self):
         modified_queue = [
-        e for e in self._scheduler.queue
-        if e.action != self._load_new_events_and_reschedule]
+            e for e in self._scheduler.queue
+            if e.action != self._load_new_events_and_reschedule
+        ]
         if modified_queue:
             self._logger.debug("task queue: %r", modified_queue)
 
