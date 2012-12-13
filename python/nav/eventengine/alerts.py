@@ -20,16 +20,17 @@ import logging
 from pprint import pformat
 import os
 import re
+from . import unresolved
 
 from nav.models.event import AlertQueue as Alert, EventQueue as Event, AlertType
 from nav.models.event import AlertHistory
+from nav.models.fields import INFINITY
 
 from django.template import loader, Context
 
 from nav import buildconf
 
 ALERT_TEMPLATE_DIR = os.path.join(buildconf.sysconfdir, 'alertmsg')
-INFINITY = datetime.datetime.max
 _logger = logging.getLogger(__name__)
 
 class AlertGenerator(dict):
@@ -100,9 +101,7 @@ class AlertGenerator(dict):
             alert.varmap = vars
 
     def _find_existing_alert_history(self):
-        unresolved = get_unresolved_alerts_map()
-        key = self.event.get_key()
-        return unresolved.get(key, None)
+        return unresolved.refers_to_unresolved_alert(self.event) or None
 
     def post(self):
         """Generates and posts the necessary alert objects to the database"""
@@ -148,9 +147,8 @@ class AlertGenerator(dict):
         existing unresolved alert.
 
         """
-        unresolved = get_unresolved_alerts_map()
         return (self.event.state == Event.STATE_START
-                and self.event.get_key() in unresolved)
+                and unresolved.refers_to_unresolved_alert(self.event))
 
     def get_alert_type(self):
         if not self.alert_type:
@@ -161,10 +159,7 @@ class AlertGenerator(dict):
         except AlertType.DoesNotExist:
             return
 
-def get_unresolved_alerts_map():
-    """Returns a dictionary of unresolved AlertHistory entries"""
-    unresolved = AlertHistory.objects.filter(end_time__gte=INFINITY)
-    return dict((alert.get_key(), alert) for alert in unresolved)
+
 
 ###
 ### Alert message template processing
