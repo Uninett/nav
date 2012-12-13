@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""NAV event engine.
+"""The actual "engine" part of the NAV eventEngine
 
 Will check the eventq ever so often, but will also react to notifications from
 PostgreSQL. To add notification of new events posted to eventq, the following
