@@ -30,8 +30,9 @@ from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine import unresolved
 from nav.ipdevpoll.db import commit_on_success
-from nav.models.event import EventQueue as Event, EventQueue
+from nav.models.event import EventQueue as Event
 from django.db import connection
+
 
 class EventEngine(object):
     """Event processing engine.
@@ -106,9 +107,8 @@ class EventEngine(object):
     def load_new_events(self):
         "Loads and processes new events on the queue, if any"
         self._logger.debug("checking for new events on queue")
-        events = Event.objects.filter(
-            target=self.target, id__gt=self.last_event_id
-            ).order_by('id')
+        events = Event.objects.filter(target=self.target,
+                                      id__gt=self.last_event_id).order_by('id')
         if events:
             events = list(events)
             self._logger.info("found %d new events in queue db", len(events))
@@ -149,16 +149,19 @@ class EventEngine(object):
             self._post_generic_alert(event)
 
         for handler in queue:
-            self._logger.debug("giving event to %s", handler.__class__.__name__)
-            result = handler.handle()
+            self._logger.debug("giving event to %s",
+                               handler.__class__.__name__)
+            handler.handle()
 
         if event.id:
             self._logger.debug("event wasn't disposed of, "
                                "maybe held for later processing?")
 
     def schedule(self, delay, action, args=()):
+        """Schedule running action after a given delay"""
         return self._scheduler.enter(delay, self.PLUGIN_TASKS_PRIORITY,
                                      action, args)
 
     def cancel(self, task):
+        """Cancel the current scheduled task"""
         self._scheduler.cancel(task)
