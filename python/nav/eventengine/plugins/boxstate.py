@@ -30,7 +30,7 @@ class BoxStateHandler(delayedstate.DelayedStateHandler):
     def get_target(self):
         return self.event.netbox
 
-    def _make_up_alert(self):
+    def _get_up_alert(self):
         alert = AlertGenerator(self.event)
         is_shadow = self.event.netbox.up == self.event.netbox.UP_SHADOW
         alert.alert_type = "boxSunny" if is_shadow else "boxUp"

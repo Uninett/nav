@@ -21,6 +21,7 @@ from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.plugins import delayedstate
 from nav.models.manage import Interface
 
+
 class LinkStateHandler(delayedstate.DelayedStateHandler):
     """Accepts linkState events"""
     HAS_WARNING_ALERT = False
@@ -35,7 +36,7 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
             assert self._target.netbox_id == self.event.netbox.id
         return self._target
 
-    def _make_up_alert(self):
+    def _get_up_alert(self):
         alert = AlertGenerator(self.event)
         alert.alert_type = "linkUp"
         return alert
@@ -44,3 +45,6 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
         alert = AlertGenerator(self.event)
         alert.alert_type = "linkDown"
         return alert
+
+    def _post_down_warning(self):
+        pass

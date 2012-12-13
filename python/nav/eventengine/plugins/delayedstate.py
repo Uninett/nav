@@ -87,7 +87,7 @@ class DelayedStateHandler(EventHandler):
             self._logger.info("%s is back up", self.get_target())
 
             if is_unresolved:
-                alert = self._make_up_alert()
+                alert = self._get_up_alert()
                 if self._box_is_on_maintenance():
                     alert.post_alert_history()
                 else:
@@ -103,7 +103,7 @@ class DelayedStateHandler(EventHandler):
 
         self.event.delete()
 
-    def _make_up_alert(self):
+    def _get_up_alert(self):
         raise NotImplementedError
 
     def _is_duplicate(self):
