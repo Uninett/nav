@@ -15,7 +15,7 @@
 #
 """servicestate handler plugin"""
 
-from nav.eventengine import EventHandler
+from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
 from nav.models.event import EventQueue as Event
 from nav.models.manage import Netbox

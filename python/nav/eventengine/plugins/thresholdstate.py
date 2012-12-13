@@ -15,7 +15,7 @@
 #
 """thresholdstate handler plugin"""
 
-from nav.eventengine import EventHandler
+from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
 
 

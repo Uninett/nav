@@ -22,8 +22,8 @@ from optparse import OptionParser
 
 from nav import buildconf
 import nav.daemon
+from nav.eventengine.engine import EventEngine
 import nav.logs
-from nav.eventengine import EventEngine
 
 
 PIDFILE = os.path.join(
