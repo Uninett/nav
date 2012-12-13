@@ -25,6 +25,7 @@ from nav.models.manage import Interface
 class LinkStateHandler(delayedstate.DelayedStateHandler):
     """Accepts linkState events"""
     HAS_WARNING_ALERT = False
+    ALERT_WAIT_TIME = 60
     handled_types = ('linkState',)
 
     __waiting_for_resolve = {}

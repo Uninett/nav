@@ -26,8 +26,8 @@ class DelayedStateHandler(EventHandler):
 
     """
     HAS_WARNING_ALERT = True
-    WARNING_WAIT_TIME = 10
-    ALERT_WAIT_TIME = 20
+    WARNING_WAIT_TIME = 60
+    ALERT_WAIT_TIME = 240
 
     handled_types = (None,)
     __waiting_for_resolve = {}
