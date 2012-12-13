@@ -62,7 +62,8 @@ class DelayedStateHandler(EventHandler):
                 self.schedule(self.ALERT_WAIT_TIME, self._make_down_alert)
 
     def _register_internal_down_state(self):
-        raise NotImplementedError
+        """Registers any internal states necessary prior to posting alerts"""
+        return
 
     def get_target(self):
         """Returns the target of the associated event"""
@@ -134,7 +135,7 @@ class DelayedStateHandler(EventHandler):
         else:
             alert.post()
 
-        del self.__waiting_for_resolve[self.event.netbox]
+        del self.__waiting_for_resolve[self.get_target()]
         self.task = None
         self.event.delete()
 
