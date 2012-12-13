@@ -1,0 +1,164 @@
+#
+# Copyright (C) 2012 UNINETT
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+""""Superclass for plugins that use delayed handling of state events"""
+from nav.eventengine import unresolved
+
+from nav.eventengine.topology import is_netbox_reachable
+from nav.models.manage import Netbox
+from nav.eventengine.plugin import EventHandler
+
+class DelayedStateHandler(EventHandler):
+    """A plugin that wants to delay down alerts while waiting a possible
+    quick resolve should be able to subclass this.
+
+    """
+    ALERT_WAIT_TIME = 5
+    WARNING_WAIT_TIME = 2
+    HAS_WARNING_ALERT = True
+    handled_types = (None,)
+
+    __waiting_for_resolve = {}
+
+    def __init__(self, *args, **kwargs):
+        super(DelayedStateHandler, self).__init__(*args, **kwargs)
+        self.task = None
+
+    def handle(self):
+        event = self.event
+        if event.state == event.STATE_START:
+            return self._handle_start()
+        elif event.state == event.STATE_END:
+            return self._handle_end()
+        else:
+            self._logger.info("ignoring strange stateless %s event: %r",
+                              event.event_type, event)
+            self.event.delete()
+
+    def _handle_start(self):
+        event = self.event
+        if self._is_duplicate():
+            self._logger.info(
+                "%s is already down, ignoring duplicate start event",
+                self.get_target())
+            event.delete()
+        else:
+            self._register_internal_down_state()
+            if self.HAS_WARNING_ALERT:
+                self.schedule(self.WARNING_WAIT_TIME, self._make_down_warning)
+            else:
+                self.schedule(self.ALERT_WAIT_TIME, self._make_down_alert)
+
+    def _register_internal_down_state(self):
+        raise NotImplementedError
+
+    def get_target(self):
+        """Returns the target of the associated event"""
+        raise NotImplementedError
+
+    def _handle_end(self):
+        if not unresolved.refers_to_unresolved_alert(self.event):
+            self._logger.info("no unresolved %s for %s, ignoring end event",
+                              self.event.event_type, self.get_target())
+        else:
+            self._logger.info("%s is back up", self.get_target())
+
+            alert = self._make_up_alert()
+            if self._box_is_on_maintenance():
+                alert.post_alert_history()
+            else:
+                alert.post()
+
+            waiter = self._get_waiting()
+            if waiter:
+                self._logger.info("ignoring transient down state for %s",
+                                  self.get_target())
+                waiter.deschedule()
+
+        self.event.delete()
+
+    def _make_up_alert(self):
+        raise NotImplementedError
+
+    def _is_duplicate(self):
+        """Returns True if this appears to be a duplicate boxDown event"""
+        return (unresolved.refers_to_unresolved_alert(self.event)
+                or self._get_waiting())
+
+    def _get_waiting(self):
+        """Returns a plugin instance waiting for boxState resolve
+        events for the same netbox this instance is processing.
+
+        :returns: A plugin instance, if one is waiting, otherwise False.
+
+        """
+        return self.__waiting_for_resolve.get(self.get_target(), False)
+
+    def _make_down_warning(self):
+        """Posts the initial boxDownWarning alert and schedules the callback
+        for the final boxDown alert.
+
+        """
+        if not self._box_is_on_maintenance():
+            self._post_down_warning()
+        else:
+            self._logger.info("%s: is on maintenance, not posting warning",
+                              self.event.netbox)
+
+        self.task = self.engine.schedule(
+            max(self.ALERT_WAIT_TIME-self.WARNING_WAIT_TIME, 0),
+            self._make_down_alert)
+
+    def _post_down_warning(self):
+        """Posts the actual warning alert"""
+        raise NotImplementedError
+
+    def _make_down_alert(self):
+        alert = self._get_down_alert()
+        self._logger.info("%s: Posting %s alert", self.get_target(),
+                          alert.alert_type)
+        if self._box_is_on_maintenance():
+            alert.post_alert_history()
+        else:
+            alert.post()
+
+        del self.__waiting_for_resolve[self.event.netbox]
+        self.task = None
+        self.event.delete()
+
+    def _get_down_alert(self):
+        raise NotImplementedError
+
+    def _verify_shadow(self):
+        netbox = self.event.netbox
+        netbox.up = (Netbox.UP_DOWN if is_netbox_reachable(netbox)
+                     else Netbox.UP_SHADOW)
+        Netbox.objects.filter(id=netbox.id).update(up=netbox.up)
+        return netbox.up == Netbox.UP_SHADOW
+
+    def schedule(self, delay, action):
+        "Schedules a callback and makes a note of it in a class variable"
+        self.task = self.engine.schedule(delay, action)
+        self.__waiting_for_resolve[self.get_target()] = self
+
+    def deschedule(self):
+        """Deschedules any outstanding task and deletes the associated event"""
+        self._logger.debug("descheduling waiting callback for %s",
+                           self.get_target())
+        self.engine.cancel(self.task)
+        self.task = None
+        if self._get_waiting() == self:
+            del self.__waiting_for_resolve[self.get_target()]
+        self.event.delete()

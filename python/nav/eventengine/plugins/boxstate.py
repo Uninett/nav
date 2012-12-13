@@ -14,114 +14,31 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """"boxState event plugin"""
-from nav.eventengine.topology import is_netbox_reachable
-from nav.models.manage import Netbox
 from nav.eventengine.alerts import AlertGenerator
-from nav.eventengine.plugin import EventHandler
+from nav.eventengine.plugins import delayedstate
 
-WARNING_WAIT_TIME = 2
-ALERT_WAIT_TIME = 5
-
-class BoxStateHandler(EventHandler):
+class BoxStateHandler(delayedstate.DelayedStateHandler):
     """Accepts boxState events"""
     handled_types = ('boxState',)
-    waiting_for_resolve = {}
+    __waiting_for_resolve = {}
 
-    def __init__(self, *args, **kwargs):
-        super(BoxStateHandler, self).__init__(*args, **kwargs)
-        self.task = None
+    def _register_internal_down_state(self):
+        netbox = self.get_target()
+        netbox.up = netbox.UP_DOWN
+        netbox.save()
 
-    def handle(self):
-        event = self.event
-        if event.state == event.STATE_START:
-            return self._handle_start()
-        elif event.state == event.STATE_END:
-            return self._handle_end()
-        else:
-            self._logger.info("ignoring strange stateless boxState event: %r",
-                              self.event)
-            self.event.delete()
+    def get_target(self):
+        return self.event.netbox
 
-    def _handle_start(self):
-        event = self.event
-        if self._is_duplicate():
-            self._logger.info(
-                "%s is already down, ignoring duplicate down event",
-                event.netbox)
-            event.delete()
-        else:
-            self._logger.info("%s is not responding to ping requests; "
-                              "holding possibly transient event",
-                              event.netbox)
-            event.netbox.up = event.netbox.UP_DOWN
-            event.netbox.save()
-            self.schedule(WARNING_WAIT_TIME, self._make_down_warning)
-
-    def _handle_end(self):
-        event = self.event
-        if event.netbox.up == event.netbox.UP_UP:
-            self._logger.info("%s is already up; ignoring up event",
-                              event.netbox)
-        else:
-            self._logger.info("%s is back up", event.netbox)
-
-            self._make_up_alert(event)
-
-            event.netbox.up = event.netbox.UP_UP
-            event.netbox.save()
-
-            waiter = self._get_waiting()
-            if waiter:
-                self._logger.info("ignoring transient down state for %s",
-                                  self.event.netbox)
-                waiter.deschedule()
-
-        event.delete()
-
-    def _make_up_alert(self, event):
-        alert = AlertGenerator(event)
-        is_shadow = event.netbox.up == event.netbox.UP_SHADOW
+    def _make_up_alert(self):
+        alert = AlertGenerator(self.event)
+        is_shadow = self.event.netbox.up == self.event.netbox.UP_SHADOW
         alert.alert_type = "boxSunny" if is_shadow else "boxUp"
-        if self._box_is_on_maintenance():
-            alert.post_alert_history()
-        else:
-            alert.post()
 
-    def _is_duplicate(self):
-        """Returns True if this appears to be a duplicate boxDown event"""
-        return (self._box_already_has_down_state()
-                or self._get_waiting())
-
-    def _box_already_has_down_state(self):
-        """Returns True if the target netbox already has an active boxState
-        in the alert history.
-
-        """
-        return self.event.netbox.get_unresolved_alerts('boxState').count() > 0
-
-    def _get_waiting(self):
-        """Returns a plugin instance waiting for boxState resolve
-        events for the same netbox this instance is processing.
-
-        :returns: A plugin instance, if one is waiting, otherwise False.
-
-        """
-        return self.waiting_for_resolve.get(self.event.netbox, False)
-
-    def _make_down_warning(self):
-        """Posts the initial boxDownWarning alert and schedules the callback
-        for the final boxDown alert.
-
-        """
-        if not self._box_is_on_maintenance():
-            self._post_down_warning()
-        else:
-            self._logger.info("%s: is on maintenance, "
-                              "not posting boxDownWarning")
-
-        self.task = self.engine.schedule(
-            max(ALERT_WAIT_TIME-WARNING_WAIT_TIME, 0),
-            self._make_down_alert)
+        netbox = self.get_target()
+        netbox.up = netbox.UP_UP
+        netbox.save()
+        return alert
 
     def _post_down_warning(self):
         """Posts the actual warning alert"""
@@ -132,39 +49,8 @@ class BoxStateHandler(EventHandler):
         alert.state = self.event.STATE_STATELESS
         alert.post()
 
-    def _make_down_alert(self):
+    def _get_down_alert(self):
         alert = AlertGenerator(self.event)
         shadow = self._verify_shadow()
         alert.alert_type = 'boxShadow' if shadow else 'boxDown'
-        self._logger.info("%s: Posting %s alert", self.event.netbox,
-                          alert.alert_type)
-        if self._box_is_on_maintenance():
-            alert.post_alert_history()
-        else:
-            alert.post()
-
-        del self.waiting_for_resolve[self.event.netbox]
-        self.task = None
-        self.event.delete()
-
-    def _verify_shadow(self):
-        netbox = self.event.netbox
-        netbox.up = (Netbox.UP_DOWN if is_netbox_reachable(netbox)
-                     else Netbox.UP_SHADOW)
-        Netbox.objects.filter(id=netbox.id).update(up=netbox.up)
-        return netbox.up == Netbox.UP_SHADOW
-
-    def schedule(self, delay, action):
-        "Schedules a callback and makes a note of it in a class variable"
-        self.task = self.engine.schedule(delay, action)
-        self.waiting_for_resolve[self.event.netbox] = self
-
-    def deschedule(self):
-        """Deschedules any outstanding task and deletes the associated event"""
-        self._logger.debug("descheduling waiting callback for %s",
-                           self.event.netbox)
-        self.engine.cancel(self.task)
-        self.task = None
-        if self._get_waiting() == self:
-            del self.waiting_for_resolve[self.event.netbox]
-        self.event.delete()
+        return alert

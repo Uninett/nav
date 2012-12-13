@@ -63,12 +63,11 @@ class EventHandler(object):
 
         for name in package_names:
             _load_all_modules_in_package(name)
-        # hey mr. pylint, every class has __subclasses__, you idiot!
-        # pylint: disable=E1101
-        return cls.__subclasses__()
+        return _get_recursive_subclasses(cls)
 
     def _box_is_on_maintenance(self):
         """Returns True if the target netbox is currently on maintenance"""
+
         return self.event.netbox.get_unresolved_alerts(
             'maintenanceState').count() > 0
 
@@ -87,3 +86,14 @@ def _find_package_modules(package_name):
              if not f.startswith('.') and not f.startswith('_'))
     modnames = set(name for name, ext in files if ext in extensions)
     return list(modnames)
+
+def _get_recursive_subclasses(cls, subclasses=None):
+    if subclasses is None:
+        subclasses = set()
+    # hey mr. pylint, every class has __subclasses__, you idiot!
+    # pylint: disable=E1101
+    new_classes = cls.__subclasses__()
+    subclasses.update(new_classes)
+    for cls in new_classes:
+        subclasses.update(_get_recursive_subclasses(cls))
+    return subclasses
