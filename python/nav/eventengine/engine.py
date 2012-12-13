@@ -195,7 +195,8 @@ class EventEngine(object):
     def schedule(self, delay, action, args=()):
         """Schedule running action after a given delay"""
         return self._scheduler.enter(delay, self.PLUGIN_TASKS_PRIORITY,
-                                     action, args)
+                                     swallow_unhandled_exceptions(action),
+                                     args)
 
     def cancel(self, task):
         """Cancel the current scheduled task"""
