@@ -378,7 +378,8 @@ class Module(models.Model):
         unique_together = (('netbox', 'name'),)
 
     def __unicode__(self):
-        return u'%s, at %s' % (self.name or self.module_number, self.netbox)
+        return u'Module {name}, at {netbox}'.format(
+            name=self.name or self.module_number, netbox=self.netbox)
 
     def get_absolute_url(self):
         kwargs = {
