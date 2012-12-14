@@ -45,17 +45,11 @@ Quick example:
                                  # the two datasources. This link is valid
                                  # for about ten minutes
 """
-import glob
 import logging
-import os
 import rrdtool
-import random
-import time
+from django.core.cache import cache
 
-import nav
 from nav.models.rrd import RrdDataSource
-
-CONFIG_FILE = 'rrdviewer/rrdviewer.conf'
 
 UNIT_MAP = {'s': 'Seconds',
             '%': 'Percent',
@@ -303,8 +297,6 @@ class Graph(object):
         if not args:
             args = []
 
-        self.config = nav.config.readConfig(CONFIG_FILE)
-
         from_time = time_last(to_time, time_frame)
 
         default_opts = {
@@ -320,7 +312,7 @@ class Graph(object):
         self.args = args
 
     def __repr__(self):
-        return str(self.args)
+        return "Graph(%r, %r)" % (self.args, self.opts)
 
     def add_datasource(self, datasource, draw_as='LINE1', legend=None,
                        stack=False):
@@ -384,38 +376,26 @@ class Graph(object):
 
     def get_url(self):
         """Return url for displaying graph"""
-        randomid = str(random.randint(1, 10 ** 9))
+        cached_image = cache.get(repr(self))
+        if cached_image:
+            return cached_image
+
         try:
-            rrdtool.graph(*self._get_graph_args(
-                self._get_image_filename(randomid)))
+            image = rrdtool.graphv(*self._get_graph_args())['image']
         except rrdtool.error, error:
             _LOGGER.error(error)
         else:
-            return '/rrd/image=%s/' % str(randomid)
+            encoded_image = image.encode("base64").replace('\n', '')
+            uri = 'data:image/png;base64,{0}'.format(encoded_image)
+            cache.set(repr(self), uri)
+            return uri
 
-        self._cleanup()
-
-    def _get_graph_args(self, image_filename):
+    def _get_graph_args(self):
         """Construct all arguments used to create the graph"""
-        args = [image_filename]
+        args = ['-']
         args.extend(["%s%s" % (x, y) for x, y in self.opts.items()])
         args.extend([str(s) for s in self.args])
         return args
-
-    def _get_image_filename(self, randomid):
-        """Create filename based on config and randomid"""
-        return "".join([self.config['file_prefix'], randomid,
-                        self.config['file_suffix']])
-
-    def _cleanup(self):
-        """Clean up old image-files"""
-        deadline = 60 * 10
-        for i in glob.glob(self.config['file_prefix'] + '*'):
-            if os.path.getmtime(i) < (time.time() - deadline):
-                try:
-                    os.unlink(i)
-                except OSError, error:
-                    _LOGGER.error(error)
 
 
 def time_last(to_time, time_frame='day', value=1):
