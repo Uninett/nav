@@ -32,6 +32,17 @@ Dependency changes
 - NAV no longer requires Java. Consequently, the PostgreSQL JDBC driver is no
   longer needed either.
 
+New eventengine
+---------------
+
+The `eventengine` was rewritten in Python. The beta version does not yet
+support a config file, but this will come.
+
+There is now a single log file for the `eventengine`, the lower-cased
+``eventengine.log``. The ``eventEngine.log`` log file and the ``eventEngine``
+log directory can safely be removed.
+
+
 VLANs
 -----
 
