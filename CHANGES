@@ -1,3 +1,47 @@
+Version 3.13.0b1
+(released 14 Dec 2012)
+
+ User-visible features and improvements:
+
+  * The eventEngine has been rewritten to Python. This was the last remaining
+    Java component of NAV, meaning Java is no longer needed for installing and
+    running NAV.
+
+  * VLANs are now searchable from the Navbar.
+
+  * IPv4 and IPv6 address usage for each VLAN is now graphed over time.
+
+  * NAV is now able to detect and graph data from sensors on Cisco Nexus
+    devices.
+
+  * IP Devices that are down can be placed on immediate maintenance from the
+    status page.
+
+  * Subscriptions to MAC address prefixes are now possible in Macwatch. Use
+    with caution!
+
+ Fixes:
+
+  * LP#305435  (Sort by "Start time" or "End time" in machinetracker)
+  * LP#305441  (Button for "Put on maintenance immediately")
+  * LP#317800  (Color gradient to express utilization of IPv6 subnets)
+  * LP#341703  (Manual detention does not pursue client)
+  * LP#361530  (Arnold: Predefined detention does not exponentially increase
+                detentions)
+  * LP#744932  (Arnold should give warning if snmp write is not configured)
+  * LP#833959  (make install overwrites nav.conf and db.conf)
+  * LP#922793  (Possibility to set end time = "until device is up again " in
+                maintenance)
+  * LP#961097  (Don't list cancelled maintenance tasks in active list)
+  * LP#961100  (Show component details in maintenance task list when there is
+                only a single component)
+  * LP#1057509 (Mouseovers with number of active IPv6 addresses in Subnet
+                Matrix)
+  * LP#1057511 (Get sensor information from CISCO-ENTITY-SENSOR-MIB)
+  * LP#1069773 (macwatch should be able to look for MAC address prefixes too)
+  * LP#1062130 (NAV should graph IP address usage per prefix)
+
+ 
 Version 3.12.4
 (released 06 Dec 2012)
 
