@@ -9,13 +9,16 @@ Version 3.13.0b1
 
   * VLANs are now searchable from the Navbar.
 
-  * IPv4 and IPv6 address usage for each VLAN is now graphed over time.
+  * IPv4, IPv6 and MAC host counts for each VLAN is now graphed over time.
 
   * NAV is now able to detect and graph data from sensors on Cisco Nexus
     devices.
 
-  * IP Devices that are down can be placed on immediate maintenance from the
-    status page.
+  * Maintenance tasks can now be configured to end automatically when all
+    components involved in the task are up.
+
+  * IP Devices that are down can be placed on immediate maintenance until up
+    again directly from the status page.
 
   * Subscriptions to MAC address prefixes are now possible in Macwatch. Use
     with caution!
@@ -38,8 +41,8 @@ Version 3.13.0b1
   * LP#1057509 (Mouseovers with number of active IPv6 addresses in Subnet
                 Matrix)
   * LP#1057511 (Get sensor information from CISCO-ENTITY-SENSOR-MIB)
-  * LP#1069773 (macwatch should be able to look for MAC address prefixes too)
   * LP#1062130 (NAV should graph IP address usage per prefix)
+  * LP#1069773 (macwatch should be able to look for MAC address prefixes too)
 
  
 Version 3.12.4
