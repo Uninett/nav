@@ -23,6 +23,7 @@ from StringIO import StringIO
 
 import nav.buildconf
 from nav.errors import GeneralException
+from nav.util import parse_interval
 
 _logger = logging.getLogger(__name__)
 
@@ -101,35 +102,13 @@ class JobDescriptor(object):
             raise InvalidJobSectionName(section)
 
         interval = (config.has_option(section, 'interval') and
-                    _parse_time(config.get(section, 'interval')) or '')
+                    parse_interval(config.get(section, 'interval')) or '')
         intensity = (config.has_option(section, 'intensity') and
                      config.getint(section, 'intensity') or 0)
         plugins = (config.has_option(section, 'plugins') and
                     _parse_plugins(config.get(section, 'plugins')) or '')
 
         return cls(jobname, interval, intensity, plugins)
-
-def _parse_time(value):
-    value = value.strip()
-
-    if value == '':
-        return 0
-
-    if value.isdigit():
-        return int(value)
-
-    value, unit = int(value[:-1]), value[-1:].lower()
-
-    if unit == 'd':
-        return value * 60*60*24
-    elif unit == 'h':
-        return value * 60*60
-    elif unit == 'm':
-        return value * 60
-    elif unit == 's':
-        return value
-
-    raise GeneralException('Invalid time format: %s%s' % (value, unit))
 
 def _parse_plugins(value):
     if value:

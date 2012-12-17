@@ -347,3 +347,44 @@ def synchronized(lock):
         return _wrapper
     return _decorator
 
+
+def parse_interval(string):
+    """Parses a string for simple time interval definitions and returns a
+    number of seconds represented.
+
+    Examples::
+    >>> parse_interval('1s')
+    1
+    >>> parse_interval('1m')
+    60
+    >>> parse_interval('1h')
+    3600
+    >>> parse_interval('1d')
+    86400
+    >>>
+
+
+    :param string: A string specifying an interval
+    :return: A number of seconds as an int
+
+    """
+    string = string.strip()
+
+    if string == '':
+        return 0
+
+    if string.isdigit():
+        return int(string)
+
+    string, unit = int(string[:-1]), string[-1:].lower()
+
+    if unit == 'd':
+        return string * 60*60*24
+    elif unit == 'h':
+        return string * 60*60
+    elif unit == 'm':
+        return string * 60
+    elif unit == 's':
+        return string
+
+    raise ValueError('Invalid time format: %s%s' % (string, unit))
