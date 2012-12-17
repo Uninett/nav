@@ -1304,3 +1304,18 @@ class IpdevpollJobLog(models.Model):
             return prev
         except IndexError:
             return None
+
+
+class Netbios(models.Model):
+    """Model representing netbios names collected by the netbios tracker"""
+    id = models.AutoField(db_column='netbiosid', primary_key=True)
+    ip = models.IPAddressField()
+    mac = models.CharField(max_length=17)
+    name = VarcharField()
+    server = VarcharField()
+    username = VarcharField()
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField()
+
+    class Meta:
+        db_table = 'netbios'
