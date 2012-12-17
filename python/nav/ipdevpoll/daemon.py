@@ -33,6 +33,7 @@ from twisted.internet.defer import maybeDeferred
 
 from nav import buildconf
 import nav.daemon
+from nav.daemon import signame
 import nav.logs
 from nav.models import manage
 from django.db.models import Q
@@ -310,11 +311,6 @@ class CommandProcessor(object):
 
         sys.exit(1)
 
-def signame(signum):
-    """Looks up signal name from signal number"""
-    lookup = dict((num, name) for name, num in vars(signal).items()
-                  if name.startswith('SIG'))
-    return lookup.get(signum, signum)
 
 def main():
     """Main execution function"""

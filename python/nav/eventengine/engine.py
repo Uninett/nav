@@ -27,6 +27,7 @@ import sched
 import select
 import time
 from functools import wraps
+import errno
 from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine import unresolved
@@ -84,7 +85,11 @@ class EventEngine(object):
         """
         conn = connection.connection
         if conn:
-            select.select([conn], [], [], delay)
+            try:
+                select.select([conn], [], [], delay)
+            except select.error, err:
+                if err.args[0] != errno.EINTR:
+                    raise
             conn.poll()
             if conn.notifies:
                 self._logger.debug("got event notification from database")

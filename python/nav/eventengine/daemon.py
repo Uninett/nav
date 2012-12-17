@@ -19,6 +19,7 @@ import sys
 import os
 import logging
 from optparse import OptionParser
+import signal
 
 from nav import buildconf
 import nav.daemon
@@ -96,6 +97,17 @@ def daemonize():
     except nav.daemon.DaemonError, error:
         _logger.fatal(error)
         sys.exit(1)
+    install_signal_handlers()
+
+def install_signal_handlers():
+    """Installs signal handlers"""
+    signal.signal(signal.SIGTERM, sigterm_handler)
+
+def sigterm_handler(signum, _frame):
+    """Logs the imminent shutdown"""
+    _logger.info("--- %s received: shutting down eventengine ---",
+                 nav.daemon.signame(signum))
+    sys.exit(0)
 
 def start_engine():
     "Starts event queue processing"

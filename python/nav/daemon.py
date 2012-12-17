@@ -1,4 +1,4 @@
-#
+
 # Copyright (C) 2006-2008, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
@@ -33,6 +33,7 @@ All exceptions raised subclasses DaemonError.
 import atexit
 import grp
 import logging
+import signal
 import os
 import errno
 import pwd
@@ -392,3 +393,9 @@ def safesleep(delay):
         else:
             raise
 
+
+def signame(signum):
+    """Looks up signal name from signal number"""
+    lookup = dict((num, name) for name, num in vars(signal).items()
+                  if name.startswith('SIG'))
+    return lookup.get(signum, signum)
