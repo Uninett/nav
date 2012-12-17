@@ -22,12 +22,14 @@ import ConfigParser
 from StringIO import StringIO
 
 import nav.buildconf
-from nav.errors import GeneralException
+from nav.config import ConfigurationError, NAVConfigParser
 from nav.util import parse_interval
 
 _logger = logging.getLogger(__name__)
 
-_ipdevpoll_conf_defaults = """
+class IpdevpollConfig(NAVConfigParser):
+    DEFAULT_CONFIG_FILES = ('ipdevpoll.conf',)
+    DEFAULT_CONFIG = """
 [ipdevpoll]
 logfile = ipdevpolld.log
 max_concurrent_jobs = 500
@@ -46,27 +48,6 @@ ignored = 127.0.0.0/8, fe80::/16
 [linkstate]
 filter = topology
 """
-
-class IpdevpollConfig(ConfigParser.ConfigParser):
-    def __init__(self):
-        ConfigParser.ConfigParser.__init__(self)
-        # TODO: perform sanity check on config settings
-        faked_default_file = StringIO(_ipdevpoll_conf_defaults)
-        self.readfp(faked_default_file)
-        self.read_all()
-
-    def read_all(self):
-        """Read all known ipdevpoll.conf instances."""
-        configfile = 'ipdevpoll.conf'
-        filenames = [os.path.join(nav.buildconf.sysconfdir, configfile),
-                     os.path.join('.', configfile)]
-        files_read = self.read(filenames)
-
-        if files_read:
-            _logger.debug("Read config files %r", files_read)
-        else:
-            _logger.warning("Found no config files")
-        return files_read
 
 def get_jobs(config=None):
     """Returns a list of JobDescriptors for each of the jobs configured in
@@ -115,10 +96,6 @@ def _parse_plugins(value):
         return value.split()
 
     return []
-
-class ConfigurationError(GeneralException):
-    """Configuration error"""
-    pass
 
 class InvalidJobSectionName(ConfigurationError):
     """Section name is invalid as a job section"""
