@@ -23,6 +23,8 @@ from nav.models.manage import Module
 class ModuleStateHandler(delayedstate.DelayedStateHandler):
     """Accepts moduleState events"""
     HAS_WARNING_ALERT = True
+    WARNING_WAIT_TIME = 'moduleDown.warning'
+    ALERT_WAIT_TIME = 'moduleDown.alert'
     handled_types = ('moduleState',)
 
     __waiting_for_resolve = {}

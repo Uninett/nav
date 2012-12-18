@@ -20,6 +20,8 @@ from nav.eventengine.plugins import delayedstate
 class BoxStateHandler(delayedstate.DelayedStateHandler):
     """Accepts boxState events"""
     handled_types = ('boxState',)
+    WARNING_WAIT_TIME = 'boxDown.warning'
+    ALERT_WAIT_TIME = 'boxDown.alert'
     __waiting_for_resolve = {}
 
     def _register_internal_down_state(self):
