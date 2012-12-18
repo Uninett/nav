@@ -45,4 +45,4 @@ snmpAgentDown.alert = 4m
         return [self.get_timeout_for(opt) for opt in options]
 
 
-eventengine_conf = EventEngineConfig()
+EVENTENGINE_CONF = EventEngineConfig()

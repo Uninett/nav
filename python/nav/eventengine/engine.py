@@ -30,6 +30,7 @@ from functools import wraps
 import errno
 from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
+from nav.eventengine.config import EVENTENGINE_CONF
 from nav.eventengine import unresolved
 from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import EventQueue as Event
@@ -67,9 +68,10 @@ class EventEngine(object):
     PLUGIN_TASKS_PRIORITY = 1
     _logger = logging.getLogger(__name__)
 
-    def __init__(self, target="eventEngine"):
+    def __init__(self, target="eventEngine", config=EVENTENGINE_CONF):
         self._scheduler = sched.scheduler(time.time, self._notifysleep)
         self.target = target
+        self.config = config
         self.last_event_id = 0
         self.handlers = EventHandler.load_and_find_subclasses()
         self._logger.debug("found %d event handler%s: %r",
