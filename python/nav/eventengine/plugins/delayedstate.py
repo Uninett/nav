@@ -39,12 +39,11 @@ class DelayedStateHandler(EventHandler):
 
     def _set_wait_times(self):
         """Sets wait times from config options under the timeouts section"""
+        get_timeout_for = self.engine.config.get_timeout_for
         for wait_var in ('WARNING_WAIT_TIME', 'ALERT_WAIT_TIME'):
-            value = getattr(self, wait_var)
-            if isinstance(value, basestring):
-                new_value = self.engine.config.get_timeout_for(value)
-                if new_value:
-                    setattr(self, wait_var, new_value)
+            new_value = get_timeout_for(getattr(self, wait_var))
+            if new_value:
+                setattr(self, wait_var, new_value)
 
 
     def handle(self):
