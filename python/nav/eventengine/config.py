@@ -15,7 +15,6 @@
 #
 """eventengengine config"""
 from nav.config import NAVConfigParser
-from nav.errors import GeneralException
 from nav.util import parse_interval
 from ConfigParser import NoSectionError, NoOptionError
 
@@ -44,11 +43,6 @@ snmpAgentDown.alert = 4m
     def get_timeouts_for(self, *options):
         """Gets timeouts using get_timeout_for for multiple options"""
         return [self.get_timeout_for(opt) for opt in options]
-
-
-class ConfigurationError(GeneralException):
-    """Configuration error"""
-    pass
 
 
 eventengine_conf = EventEngineConfig()
