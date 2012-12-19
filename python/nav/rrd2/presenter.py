@@ -303,7 +303,7 @@ class Graph(object):
         if not args:
             args = []
 
-        self.config = nav.config.readConfig(CONFIG_FILE)
+        self.config = nav.config.read_flat_config(CONFIG_FILE)
 
         from_time = time_last(to_time, time_frame)
 
