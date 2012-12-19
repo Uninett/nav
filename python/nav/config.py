@@ -60,22 +60,16 @@ def read_flat_config(config_file, delimiter='='):
 
     return configuration
 
-# Really, what value does this function add?  Why not use a
-# ConfigParser directly?
 def getconfig(configfile, defaults=None, configfolder=None):
-    """
-    Read whole config from an INI-style configuration file.
+    """Reads an INI-style configuration file into a two-level dictionary.
 
-    Arguments:
-        ``configfile'' the configuration file to read, either a name or an 
+    :param configfile: the configuration file to read, either a name or an
                        open file object.
-        ``defaults'' are passed on to configparser before reading config.
+    :param defaults: A dict that is passed on to the underlying ConfigParser.
+    :returns: Returns a dict, with sections names as keys and a dict for each
+              section as values.
 
-    Returns:
-        Returns a dict, with sections names as keys and a dict for each
-        section as values.
     """
-
     if isinstance(configfile, basestring):
         if configfolder:
             configfile = os.path.join(configfolder, configfile)
@@ -89,10 +83,7 @@ def getconfig(configfile, defaults=None, configfolder=None):
 
     for section in sections:
         configsection = config.items(section)
-        sectiondict = {}
-        for opt, val in configsection:
-            sectiondict[opt] = val
-        configdict[section] = sectiondict
+        configdict[section] = dict(configsection)
 
     return configdict
 
