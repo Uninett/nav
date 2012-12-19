@@ -43,57 +43,92 @@ def index(request):
     """View for showing main page"""
     info_dict = {}
     info_dict.update(DEFAULT_VALUES)
-    return render_to_response(
-        'portadmin/base.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render_to_response('portadmin/base.html',
+                              info_dict,
+                              RequestContext(request))
 
 
 def search_by_ip(request, ip):
     """View for showing a search done by ip-address"""
+    errors = []
+    info_dict = {}
     account = get_account(request)
-    netbox = Netbox.objects.get(ip=ip)
+    netbox = None
+    try:
+        netbox = Netbox.objects.get(ip=ip)
+    except Netbox.DoesNotExist, do_not_exist_ex:
+        netbox = None
+        _logger.error("Netbox with ip %s not found; DoesNotExist = %s " %
+                      (str(ip), str(do_not_exist_ex)))
+        errors.append('Could not find netbox with ip-address %s' % str(ip))
+
+    if not netbox:
+        info_dict.update(DEFAULT_VALUES)
+        info_dict['errors'] = errors
+        return render_to_response('portadmin/base.html',
+                                  info_dict,
+                                  RequestContext(request))
     interfaces = netbox.get_swports_sorted()
-
     info_dict = populate_infodict(account, netbox, interfaces)
-
     return render_to_response(
         'portadmin/portlist.html',
         info_dict,
-        RequestContext(request)
-    )
+        RequestContext(request))
 
 
 def search_by_sysname(request, sysname):
     """View for showing a search done by sysname"""
+    errors = []
+    info_dict = {}
     account = get_account(request)
-    netbox = Netbox.objects.get(sysname=sysname)
+    netbox = None
+    try:
+        netbox = Netbox.objects.get(sysname=sysname)
+    except Netbox.DoesNotExist, do_not_exist_ex:
+        netbox = None
+        _logger.error("Netbox %s not found; DoesNotExist = %s; " %
+                      (sysname, str(do_not_exist_ex)))
+        errors.append('Could not find netbox with sysname %s' % sysname)
+
+    if not netbox:
+        info_dict.update(DEFAULT_VALUES)
+        info_dict['errors'] = errors
+        return render_to_response('portadmin/base.html',
+                                  info_dict,
+                                  RequestContext(request))
     interfaces = netbox.get_swports_sorted()
-
     info_dict = populate_infodict(account, netbox, interfaces)
-
-    return render_to_response(
-        'portadmin/portlist.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render_to_response('portadmin/portlist.html',
+                              info_dict,
+                              RequestContext(request))
 
 
 def search_by_interfaceid(request, interfaceid):
     """View for showing a search done by interface id"""
+    errors = []
+    info_dict = {}
     account = get_account(request)
-    interface = Interface.objects.get(id=interfaceid)
+    interface = None
+    try:
+        interface = Interface.objects.get(id=interfaceid)
+    except Interface.DoesNotExist, do_not_exist_ex:
+        interface = None
+        _logger.error("Interface %s not found; DoesNotExist = %s; " %
+                      (str(interfaceid), str(do_not_exist_ex)))
+        errors.append('Could not find interface with id %s' % str(interfaceid))
+
+    if not interface:
+        info_dict.update(DEFAULT_VALUES)
+        info_dict['errors'] = errors
+        return render_to_response('portadmin/base.html',
+                                  info_dict,
+                                  RequestContext(request))
     netbox = interface.netbox
     interfaces = [interface]
-
     info_dict = populate_infodict(account, netbox, interfaces)
-
-    return render_to_response(
-        'portadmin/portlist.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render_to_response('portadmin/portlist.html',
+                              info_dict,
+                              RequestContext(request))
 
 
 def populate_infodict(account, netbox, interfaces):
@@ -124,12 +159,13 @@ def populate_infodict(account, netbox, interfaces):
 
     save_to_database(interfaces)
 
-    info_dict = {'interfaces': interfaces, 'netbox': netbox,
+    info_dict = {'interfaces': interfaces,
+                 'netbox': netbox,
                  'allowed_vlans': allowed_vlans,
                  'account': account,
-                 'aliastemplate': aliastemplate, 'errors': errors}
+                 'aliastemplate': aliastemplate,
+                 'errors': errors}
     info_dict.update(DEFAULT_VALUES)
-
     return info_dict
 
 
@@ -143,7 +179,7 @@ def save_interfaceinfo(request):
 
     """
     if request.method == 'POST':
-        ifalias = str(request.POST.get('ifalias', ''))
+        ifalias = unicode(request.POST.get('ifalias', ''))
         vlan = int(request.POST.get('vlan'))
         interfaceid = request.POST.get('interfaceid')
 
@@ -165,8 +201,9 @@ def save_interfaceinfo(request):
                 fac.set_if_alias(interface.ifindex, ifalias)
                 try:
                     fac.write_mem()
-                except:
-                    pass
+                except TimeOutException, timeout_ex:
+                    _logger.error('TimeOutException = %s' % str(timeout_ex))
+
                 result = {'error': 0, 'message': 'Save was successful'}
 
                 interface.vlan = vlan
