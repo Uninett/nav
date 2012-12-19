@@ -39,16 +39,16 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
     def _get_up_alert(self):
         alert = AlertGenerator(self.event)
         alert.alert_type = "moduleUp"
-
-        module = self.get_target()
-        module.up = module.UP_UP
-        module.save()
-
         return alert
 
-    def _register_internal_down_state(self):
+    def _set_internal_state_down(self):
         module = self.get_target()
         module.up = module.UP_DOWN
+        module.save()
+
+    def _set_internal_state_up(self):
+        module = self.get_target()
+        module.up = module.UP_UP
         module.save()
 
     def _get_down_alert(self):
