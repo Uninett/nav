@@ -31,6 +31,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 import nav
+from nav.config import read_flat_config
 
 from nav.django.utils import get_account
 
@@ -46,7 +47,10 @@ DEFAULT_VALUES = {'title': "Syslog Analyzer", 'navpath': NAVBAR}
 
 DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 
-DOMAIN_SUFFICES = nav.config.readConfig("nav.conf")["DOMAIN_SUFFIX"].split(",")
+try:
+    DOMAIN_SUFFICES = read_flat_config("nav.conf")["DOMAIN_SUFFIX"].split(",")
+except IOError:
+    DOMAIN_SUFFICES = []
 DOMAIN_SUFFICES = [s.strip() for s in DOMAIN_SUFFICES]
 
 logger = logging.getLogger("nav.web.syslogger")

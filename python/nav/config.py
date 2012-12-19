@@ -28,19 +28,15 @@ from nav.errors import GeneralException
 
 _logger = logging.getLogger(__name__)
 
-def readConfig(config_file, splitChar='='):
-    """Reads a key=value type config file. 
+def read_flat_config(config_file, delimiter='='):
+    """Reads a key=value type config file into a dictionary.
 
-    If the specified path does not begin at the root, the file is
-    searched for in the default NAV configuration directory.  
-
-    Arguments:
-        ``config_file'' the configuration file to read;  either a file name
-                        or an open file object.
-        ``splitChar'' the character used to assign values in the config file.
-
-    Returns:
-        A dictionary of the key/value pairs that were read.
+    :param config_file: the configuration file to read; either a file name
+                        or an open file object. If the filename is not an
+                        absolute path, NAV's configuration directory is used
+                        as the base path.
+    :param delimiter: the character used to assign values in the config file.
+    :returns: dictionary of the key/value pairs that were read.
     """
 
     if isinstance(config_file, basestring):
@@ -55,7 +51,7 @@ def readConfig(config_file, splitChar='='):
         if len(line) and line[0] != '#':
             # Split the key/value pair (max 1 split)
             try:
-                (key, value) = line.split(splitChar, 1)
+                (key, value) = line.split(delimiter, 1)
                 value = value.split('#', 1)[0] # Remove end-of-line comments
                 configuration[key.strip()] = value.strip()
             except ValueError:

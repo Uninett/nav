@@ -25,7 +25,7 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect
 from django.views.generic.simple import direct_to_template
 
-from nav.config import readConfig
+from nav.config import read_flat_config
 from nav.path import sysconfdir
 from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
@@ -55,7 +55,7 @@ def index(request):
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
     # Read nav-links
-    nav_links = readConfig(NAV_LINKS_PATH)
+    nav_links = read_flat_config(NAV_LINKS_PATH)
 
     down = boxes_down()
     num_shadow = 0

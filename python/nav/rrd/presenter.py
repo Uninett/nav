@@ -520,7 +520,7 @@ class Presentation(object):
         """ generates a image using rrdtool of given data sources in
          a Presenter() instance
         """
-        config = nav.config.readConfig(CONFIG_FILE)
+        config = nav.config.read_flat_config(CONFIG_FILE)
         id = str(random.randint(1, 10 ** 9))
         image_filename = config['file_prefix'] + id + config['file_suffix']
         rrd_params = (image_filename,) + rrd_params
@@ -586,7 +586,7 @@ def graph(request, id):
     """ Renders a graph request from mod_python
     :param id id of stored graph to render
     """
-    config = nav.config.readConfig(CONFIG_FILE)
+    config = nav.config.read_flat_config(CONFIG_FILE)
     filename = config['file_prefix'] + id + config['file_suffix']
     request.content_type = 'image/gif'
     request.send_http_header()

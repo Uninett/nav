@@ -83,7 +83,7 @@ def get_connection_parameters(script_name='default', database='nav'):
     (dbhost, dbport, dbname, user, password)
     """
     # Get the config setup for the requested connection
-    conf = config.readConfig('db.conf')
+    conf = config.read_flat_config('db.conf')
     dbhost = conf['dbhost']
     dbport   = conf['dbport']
 
