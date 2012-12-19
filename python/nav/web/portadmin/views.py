@@ -58,8 +58,8 @@ def search_by_ip(request, ip):
         netbox = Netbox.objects.get(ip=ip)
     except Netbox.DoesNotExist, do_not_exist_ex:
         netbox = None
-        _logger.error("Netbox with ip %s not found; DoesNotExist = %s " %
-                      (str(ip), str(do_not_exist_ex)))
+        _logger.error("Netbox with ip %s not found; DoesNotExist = %s",
+                      ip, do_not_exist_ex)
         errors.append('Could not find netbox with ip-address %s' % str(ip))
 
     if not netbox:
@@ -86,8 +86,8 @@ def search_by_sysname(request, sysname):
         netbox = Netbox.objects.get(sysname=sysname)
     except Netbox.DoesNotExist, do_not_exist_ex:
         netbox = None
-        _logger.error("Netbox %s not found; DoesNotExist = %s; " %
-                      (sysname, str(do_not_exist_ex)))
+        _logger.error("Netbox %s not found; DoesNotExist = %s",
+                      sysname, do_not_exist_ex)
         errors.append('Could not find netbox with sysname %s' % sysname)
 
     if not netbox:
@@ -113,8 +113,8 @@ def search_by_interfaceid(request, interfaceid):
         interface = Interface.objects.get(id=interfaceid)
     except Interface.DoesNotExist, do_not_exist_ex:
         interface = None
-        _logger.error("Interface %s not found; DoesNotExist = %s; " %
-                      (str(interfaceid), str(do_not_exist_ex)))
+        _logger.error("Interface %s not found; DoesNotExist = %s",
+                      interfaceid, do_not_exist_ex)
         errors.append('Could not find interface with id %s' % str(interfaceid))
 
     if not interface:
