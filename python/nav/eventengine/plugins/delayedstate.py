@@ -65,7 +65,7 @@ class DelayedStateHandler(EventHandler):
                 self.get_target())
             event.delete()
         else:
-            self._register_internal_down_state()
+            self._set_internal_state_down()
             if self.HAS_WARNING_ALERT:
                 self._logger.info(
                     "%s start event for %s; warning in %s seconds, declaring "
@@ -81,8 +81,18 @@ class DelayedStateHandler(EventHandler):
                     self.ALERT_WAIT_TIME)
                 self.schedule(self.ALERT_WAIT_TIME, self._make_down_alert)
 
-    def _register_internal_down_state(self):
-        """Registers any internal states necessary prior to posting alerts"""
+    def _set_internal_state_down(self):
+        """Called to set target's internal state to down as soon as start event
+        is received.
+
+        """
+        return
+
+    def _set_internal_state_up(self):
+        """Called to set target's internal state to up as soon as end event is
+        received.
+
+        """
         return
 
     def get_target(self):
@@ -95,6 +105,7 @@ class DelayedStateHandler(EventHandler):
 
         if is_unresolved or waiting_plugin:
             self._logger.info("%s is back up", self.get_target())
+            self._set_internal_state_up()
 
             if is_unresolved:
                 alert = self._get_up_alert()
