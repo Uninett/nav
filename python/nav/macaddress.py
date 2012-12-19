@@ -213,6 +213,46 @@ class MacAddress(object):
                           self.DEFAULT_DELIM,
                           self.DELIMS_AND_STEPS[self.DEFAULT_DELIM]))
 
+    def __lt__(self, other):
+        """Return True of this object is less than other"""
+        if isinstance(other, MacAddress):
+            return (self._addr < other._addr)
+        return False
+
+    def __le__(self, other):
+        """Return True of this object is less than or equal other"""
+        if isinstance(other, MacAddress):
+            return (self._addr <= other._addr)
+        return False
+
+    def __eq__(self, other):
+        """Return True of this object is equal other"""
+        if isinstance(other, MacAddress):
+            return (self._addr == other._addr)
+        return False
+
+    def __ne__(self, other):
+        """Return True of this object is not equal other"""
+        if isinstance(other, MacAddress):
+            return (self._addr != other._addr)
+        return False
+
+    def __gt__(self, other):
+        """Return True of this object is greater than other"""
+        if isinstance(other, MacAddress):
+            return (self._addr > other._addr)
+        return False
+
+    def __ge__(self, other):
+        """Return True of this object is greater than or equal other"""
+        if isinstance(other, MacAddress):
+            return (self._addr >= other._addr)
+        return False
+
+    def __hash__(self):
+        """Return this object's hash-value"""
+        return hash((self._addr, self._prefix_len))
+
     def to_string(self, delim=None):
         """Return a mac-address as a string with a given delimiter.
         The delimiter must be one of the legal delimiters '.', '-' or ':'.

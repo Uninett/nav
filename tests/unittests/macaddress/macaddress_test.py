@@ -160,3 +160,27 @@ class MacAddressTest(unittest.TestCase):
         param = 'e4-2f-45'
         mac_addr = MacAddress(param)
         self.assertEqual(unicode(mac_addr[-1]), u'e4:2f:45:ff:ff:ff')
+
+    def test_mac_addresses_are_equal(self):
+        mac_addr1 = MacAddress('01:23:45:67:89:ab')
+        mac_addr2 = MacAddress('01:23:45:67:89:ab')
+        self.assertEqual(mac_addr1, mac_addr2)
+
+    def test_mac_addresses_hash_the_same(self):
+        mac_addr1 = MacAddress('01:23:45:67:89:ab')
+        mac_addr2 = MacAddress('01:23:45:67:89:ab')
+        self.assertEqual(hash(mac_addr1), hash(mac_addr2))
+
+    def test_mac_addresses_hash_not_the_same(self):
+        mac_addr1 = MacAddress('01:23:45:67:89:ab')
+        mac_addr2 = MacAddress('01:23:45:67:89:ac')
+        self.assertNotEqual(hash(mac_addr1), hash(mac_addr2))
+
+    def test_mac_addresses_are_comparable(self):
+        mac_addr1 = MacAddress('01:23:45:67:89:ab')
+        mac_addr2 = MacAddress('01:23:45:67:89:cc')
+        self.assertTrue(mac_addr1 < mac_addr2)
+        self.assertTrue(mac_addr2 > mac_addr1)
+        self.assertTrue(mac_addr1 <= mac_addr2)
+        self.assertTrue(mac_addr2 >= mac_addr1)
+        self.assertTrue(mac_addr1 != mac_addr2)
