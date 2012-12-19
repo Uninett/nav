@@ -59,6 +59,14 @@ class AlertGenerator(dict):
 
         self._messages = None
 
+    def __repr__(self):
+        dictrepr = super(AlertGenerator, self).__repr__()
+        attribs = [u"{0}={1!r}".format(key, value)
+                   for key, value in vars(self).items()
+                   if not key.startswith('_')]
+        return u"<AlertGenerator: {0} varmap={1}>".format(u" ".join(attribs),
+                                                          dictrepr)
+
     def make_alert(self):
         """Generates an alert object based on the current attributes"""
         attrs = {}
