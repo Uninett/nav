@@ -16,6 +16,7 @@
 """"boxState event plugin"""
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.plugins import delayedstate
+from nav.models.manage import Netbox
 
 class BoxStateHandler(delayedstate.DelayedStateHandler):
     """Accepts boxState events"""
@@ -24,10 +25,19 @@ class BoxStateHandler(delayedstate.DelayedStateHandler):
     ALERT_WAIT_TIME = 'boxDown.alert'
     __waiting_for_resolve = {}
 
-    def _register_internal_down_state(self):
+    def _set_internal_state_down(self):
+        shadow = self._verify_shadow()
+        state = Netbox.UP_SHADOW if shadow else Netbox.UP_DOWN
+        self._set_internal_state(state)
+
+    def _set_internal_state_up(self):
+        self._set_internal_state(Netbox.UP_UP)
+
+    def _set_internal_state(self, state):
         netbox = self.get_target()
-        netbox.up = netbox.UP_DOWN
-        netbox.save()
+        if netbox.up != state:
+            netbox.up = state
+            netbox.save()
 
     def get_target(self):
         return self.event.netbox
@@ -36,23 +46,29 @@ class BoxStateHandler(delayedstate.DelayedStateHandler):
         alert = AlertGenerator(self.event)
         is_shadow = self.event.netbox.up == self.event.netbox.UP_SHADOW
         alert.alert_type = "boxSunny" if is_shadow else "boxUp"
-
-        netbox = self.get_target()
-        netbox.up = netbox.UP_UP
-        netbox.save()
         return alert
 
     def _post_down_warning(self):
         """Posts the actual warning alert"""
         alert = AlertGenerator(self.event)
-        self._logger.info("%s: Posting boxDownWarning alert",
-                          self.event.netbox)
-        alert.alert_type = "boxDownWarning"
         alert.state = self.event.STATE_STATELESS
+
+        shadow = self._verify_shadow()
+        if shadow:
+            alert.alert_type = 'boxShadowWarning'
+            self._set_internal_state(Netbox.UP_SHADOW)
+        else:
+            alert.alert_type = 'boxDownWarning'
+
+        self._logger.info("%s: Posting %s alert",
+                          self.event.netbox, alert.alert_type)
         alert.post()
 
     def _get_down_alert(self):
         alert = AlertGenerator(self.event)
-        shadow = self._verify_shadow()
-        alert.alert_type = 'boxShadow' if shadow else 'boxDown'
+        if self._verify_shadow():
+            alert.alert_type = 'boxShadow'
+            self._set_internal_state(Netbox.UP_SHADOW)
+        else:
+            alert.alert_type = 'boxDown'
         return alert
