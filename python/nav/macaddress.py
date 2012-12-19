@@ -46,7 +46,7 @@ class MacAddress(object):
     # Obviously number of bits for a nybble.
     NUM_BITS_IN_NYBBLE = 4
     # Strip for delimiters and test against this pattern.
-    MAC_ADDRESS_PATTERN= re.compile('^[a-fA-F0-9]{6,12}$')
+    MAC_ADDRESS_PATTERN = re.compile('^[a-fA-F0-9]{6,12}$')
     # To hold the value for a mac-address as an int.
     _addr = None
     # The number of nybbles in this address.
@@ -120,8 +120,8 @@ class MacAddress(object):
         """Format the mac-address to a string with delimiters"""
         mac_addr = ('%x' % mac_addr)
         mac_addr = mac_addr.rjust(self.MAX_MAC_ADDR_LEN, '0')
-        if (prefix_len >= self.MIN_MAC_ADDR_LEN and
-            prefix_len < self.MAX_MAC_ADDR_LEN):
+        if ((prefix_len >= self.MIN_MAC_ADDR_LEN) and
+           (prefix_len < self.MAX_MAC_ADDR_LEN)):
             mac_addr = mac_addr[0:prefix_len]
         return delim.join(mac_addr[x:x + step]
                           for x in range(0, len(mac_addr), step))
@@ -161,7 +161,6 @@ class MacAddress(object):
                                     self._prefix_len,
                                     self.DEFAULT_DELIM,
                                     self.DELIMS_AND_STEPS[self.DEFAULT_DELIM]))
-
 
     def __len__(self):
         """Return the maximum number of possible addresses
@@ -209,11 +208,10 @@ class MacAddress(object):
         else:
             if key >= self._addr_len:
                 raise IndexError
-        return MacAddress(
-            self._add_delimiter((self._addr + long(key)),
-                                 self.MAX_MAC_ADDR_LEN,
-                                 self.DEFAULT_DELIM,
-                                 self.DELIMS_AND_STEPS[self.DEFAULT_DELIM]))
+        return MacAddress(self._add_delimiter((self._addr + long(key)),
+                          self.MAX_MAC_ADDR_LEN,
+                          self.DEFAULT_DELIM,
+                          self.DELIMS_AND_STEPS[self.DEFAULT_DELIM]))
 
     def to_string(self, delim=None):
         """Return a mac-address as a string with a given delimiter.
