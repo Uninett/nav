@@ -26,9 +26,6 @@ class MacAddressTest(unittest.TestCase):
     def test_mac_address_too_long(self):
         self.assertRaises(ValueError, MacAddress, "e4:2f:45:72:6e:76:01")
 
-    def test_mac_address_too_small_integer_value(self):
-        self.assertRaises(ValueError, MacAddress, 234)
-
     def test_mac_address_wrong_parameter_type_list(self):
         self.assertRaises(ValueError, MacAddress, [])
 
@@ -41,32 +38,33 @@ class MacAddressTest(unittest.TestCase):
     def test_mac_address_should_return_same_address_value_with_colon(self):
         param = 'e42f45726e76'
         mac_addr = MacAddress(param)
-        self.assertEqual(unicode(mac_addr), u'e4:2f:45:72:6e:76',
-            "Return same address failed")
+        self.assertEqual(unicode(mac_addr), u'e4:2f:45:72:6e:76')
+
+    def test_mac_address_mac_addres_as_parameter_should_return_same_address(self):
+        param = 'e42f45726e76'
+        ma = MacAddress(param)
+        mac_addr = MacAddress(ma)
+        self.assertEqual(unicode(mac_addr), u'e4:2f:45:72:6e:76')
 
     def test_mac_address_return_same_address_value_with_colon(self):
         param = u'e4:2f:45:72:6e:76'
         mac_addr = MacAddress(param)
-        self.assertEqual(unicode(mac_addr), param,
-            "Return same colon-separated address failed")
+        self.assertEqual(unicode(mac_addr), param)
 
     def test_mac_address_return_same_address_value_without_dash(self):
         param = 'e4-2f-45-72-6e-76'
         mac_addr = MacAddress(param)
-        self.assertEqual(unicode(mac_addr), u'e4:2f:45:72:6e:76',
-            "Return same dash-separated address failed")
+        self.assertEqual(unicode(mac_addr), u'e4:2f:45:72:6e:76')
 
     def test_mac_address_return_same_address_value_without_dot(self):
         param = 'e42f.4572.6e76'
         mac_addr = MacAddress(param)
-        self.assertEqual(unicode(mac_addr), u'e4:2f:45:72:6e:76',
-            "Return same dot-separated address failed")
+        self.assertEqual(unicode(mac_addr), u'e4:2f:45:72:6e:76')
 
     def test_mac_address_return_same_address_value_when_byte_string(self):
         param = b'\xe4\x2f\x45\x72\x6e\x76'
         mac_addr = MacAddress(MacAddress.from_octets(param))
-        self.assertEqual(unicode(mac_addr), u'e4:2f:45:72:6e:76',
-            "Return same address when byte-string is parameter failed")
+        self.assertEqual(unicode(mac_addr), u'e4:2f:45:72:6e:76')
 
     def test_mac_address_with_colon_prefix_should_return_same_prefix(self):
         param = 'e4:2f:45:f'
@@ -82,6 +80,16 @@ class MacAddressTest(unittest.TestCase):
         param = 'e42f.45f'
         mac_addr = MacAddress(param)
         self.assertEqual(unicode(mac_addr), u'e4:2f:45:f')
+
+    def test_mac_address_should_return_zero_padded_when_address_start_with_zero(self):
+        param = u'01:01:01'
+        mac_addr = MacAddress(param)
+        self.assertEqual(unicode(mac_addr), u'01:01:01')
+
+    def test_mac_address_should_return_zero_padded_when_address_start_with_5_zeros(self):
+        param = u'00:00:01'
+        mac_addr = MacAddress(param)
+        self.assertEqual(unicode(mac_addr), u'00:00:01')
 
     def test_mac_address_with_byte_string_prefix_should_return_zero_padded_addr(self):
         param = b'\xe4\x2f\x45\x72'
@@ -113,6 +121,11 @@ class MacAddressTest(unittest.TestCase):
         mac_addr = MacAddress(param)
         self.assertEqual(mac_addr.to_string('.'), 'e42f.4572.6e76')
 
+    def test_mac_address_param_as_int_should_return_same_in_hex(self):
+        param = 11111110000
+        mac_addr = MacAddress(param)
+        self.assertEqual(unicode(mac_addr), u'00:02:96:46:15:70')
+
     def test_mac_address_has_correct_length_with_full_length_address(self):
         param = 'e4:2f:45:72:6e:76'
         mac_addr = MacAddress(param)
@@ -122,3 +135,28 @@ class MacAddressTest(unittest.TestCase):
         param = 'e4:2f:45'
         mac_addr = MacAddress(param)
         self.assertEqual(len(mac_addr), 16777216)
+
+    def test_mac_address_has_correct_length_with_prefix_length_seven(self):
+        param = u'e4-2f-45-3'
+        mac_addr = MacAddress(param)
+        self.assertEqual(len(mac_addr), 1048576)
+
+    def test_mac_address_has_correct_length_with_prefix_length_eigth(self):
+        param = u'e42f.453d'
+        mac_addr = MacAddress(param)
+        self.assertEqual(len(mac_addr), 65536)
+
+    def test_mac_address_should_return_correct_value_with_zero_key(self):
+        param = 'e42f.45'
+        mac_addr = MacAddress(param)
+        self.assertEqual(unicode(mac_addr[0]), u'e4:2f:45:00:00:00')
+
+    def test_mac_address_should_return_correct_value_with_key_equal_256(self):
+        param = u'e4:2f:45:3d'
+        mac_addr = MacAddress(param)
+        self.assertEqual(unicode(mac_addr[157]), u'e4:2f:45:3d:00:9d')
+
+    def test_mac_address_should_return_correct_value_with_last_key(self):
+        param = 'e4-2f-45'
+        mac_addr = MacAddress(param)
+        self.assertEqual(unicode(mac_addr[-1]), u'e4:2f:45:ff:ff:ff')

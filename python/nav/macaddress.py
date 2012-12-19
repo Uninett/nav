@@ -65,9 +65,7 @@ class MacAddress(object):
                 self._addr = long(addr)
                 if (self._addr < 0 or self._addr > self.MAX_MAC_ADDR_VALUE):
                     raise ValueError('Illegal value for address')
-                self._prefix_len = len(u'%x' % self._addr)
-                if self._addr < 0x0100000:
-                    raise ValueError('Value is too small to be a legal mac-address')
+                self._prefix_len = self.MAX_MAC_ADDR_LEN
             elif isinstance(addr, (str, unicode)):
                 (self._addr, self._prefix_len) = self._parse_address(addr)
             else:
@@ -120,11 +118,8 @@ class MacAddress(object):
 
     def _add_delimiter(self, mac_addr, prefix_len, delim, step):
         """Format the mac-address to a string with delimiters"""
-        str_format = '%x'
-        if mac_addr <= 0x100000000000:
-            str_format = u'0%x'
-        mac_addr = (str_format % mac_addr)
-        mac_addr = mac_addr.rjust(prefix_len, '0')
+        mac_addr = ('%x' % mac_addr)
+        mac_addr = mac_addr.rjust(self.MAX_MAC_ADDR_LEN, '0')
         if (prefix_len >= self.MIN_MAC_ADDR_LEN and
             prefix_len < self.MAX_MAC_ADDR_LEN):
             mac_addr = mac_addr[0:prefix_len]
