@@ -1,5 +1,5 @@
 #
-# Copyright 2012 (C) Norwegian University of Science and Technology
+# Copyright 2012 (C) UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -30,7 +30,7 @@ import re
 
 
 class MacAddress(object):
-    """Class for representing a mac-address"""
+    """Class for representing a mac-address or a partial mac-address (mac-address prefix)"""
     # Default delimiter for a mac-address as a string.
     DEFAULT_DELIM = ':'
     # Legal delimiters and the number of nybbles between them.
