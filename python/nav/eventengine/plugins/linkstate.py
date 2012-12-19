@@ -37,6 +37,19 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
             assert self._target.netbox_id == self.event.netbox.id
         return self._target
 
+    def _set_internal_state_down(self):
+        self._set_ifoperstatus(Interface.OPER_DOWN)
+
+    def _set_internal_state_up(self):
+        self._set_ifoperstatus(Interface.OPER_UP)
+
+    def _set_ifoperstatus(self, ifoperstatus):
+        ifc = self.get_target()
+        if ifc.ifoperstatus != ifoperstatus:
+            ifc.ifoperstatus = ifoperstatus
+            Interface.objects.filter(id=ifc.id).update(
+                ifoperstatus=ifoperstatus)
+
     def _get_up_alert(self):
         alert = AlertGenerator(self.event)
         alert.alert_type = "linkUp"
