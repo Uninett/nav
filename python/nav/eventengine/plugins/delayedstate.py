@@ -162,18 +162,26 @@ class DelayedStateHandler(EventHandler):
 
     def _make_down_alert(self):
         alert = self._get_down_alert()
-        self._logger.info("%s: Posting %s alert", self.get_target(),
-                          alert.alert_type)
-        if self._box_is_on_maintenance():
-            alert.post_alert_history()
-        else:
-            alert.post()
+        if alert:
+            self._logger.info("%s: Posting %s alert", self.get_target(),
+                              alert.alert_type)
+            if self._box_is_on_maintenance():
+                alert.post_alert_history()
+            else:
+                alert.post()
 
         del self.__waiting_for_resolve[self.get_target()]
         self.task = None
         self.event.delete()
 
     def _get_down_alert(self):
+        """Returns a ready-made AlertGenerator that can be used to post a
+        down alert for the implementing plugin.
+
+        :return: An AlertGenerator instance, or None if no alert should be
+                 posted.
+
+        """
         raise NotImplementedError
 
     def _verify_shadow(self):
