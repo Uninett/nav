@@ -129,28 +129,17 @@ class Netbox(models.Model):
         """Returns gwports naturally sorted by interface name"""
 
         ports = self.get_gwports().select_related('module', 'netbox')
-        interface_names = [p.ifname for p in ports]
-        unsorted = dict(zip(interface_names, ports))
-        interface_names.sort(key=nav.natsort.split)
-        sorted_ports = [unsorted[i] for i in interface_names]
-        return sorted_ports
+        return Interface.sort_ports_by_ifname(ports)
 
     def get_swports(self):
         """Returns all interfaces that are switch ports."""
         return Interface.objects.filter(netbox=self,
                                         baseport__isnull=False).distinct()
 
-    def _sort_ports_by_ifname(self, ports):
-        interface_names = [p.ifname for p in ports]
-        unsorted = dict(zip(interface_names, ports))
-        interface_names.sort(key=nav.natsort.split)
-        sorted_ports = [unsorted[i] for i in interface_names]
-        return sorted_ports
-
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
         ports = self.get_swports().select_related('module', 'netbox')
-        return self._sort_ports_by_ifname(ports)
+        return Interface.sort_ports_by_ifname(ports)
 
     def get_physical_ports(self):
         """Return all ports that are present."""
@@ -160,7 +149,7 @@ class Netbox(models.Model):
     def get_physical_ports_sorted(self):
         """Return all ports that are present sorted by interface name."""
         ports = self.get_physical_ports().select_related('module', 'netbox')
-        return self._sort_ports_by_ifname(ports)
+        return Interface.sort_ports_by_ifname(ports)
 
     def get_sensors(self):
         """ Returns sensors associated with this netbox """
@@ -417,11 +406,7 @@ class Module(models.Model):
         """Returns gwports naturally sorted by interface name"""
 
         ports = self.get_gwports()
-        interface_names = [p.ifname for p in ports]
-        unsorted = dict(zip(interface_names, ports))
-        interface_names.sort(key=nav.natsort.split)
-        sorted_ports = [unsorted[i] for i in interface_names]
-        return sorted_ports
+        return Interface.sort_ports_by_ifname(ports)
 
     def get_swports(self):
         """Returns all interfaces that are switch ports."""
@@ -432,11 +417,17 @@ class Module(models.Model):
         """Returns swports naturally sorted by interface name"""
 
         ports = self.get_swports()
-        interface_names = [p.ifname for p in ports]
-        unsorted = dict(zip(interface_names, ports))
-        interface_names.sort(key=nav.natsort.split)
-        sorted_ports = [unsorted[i] for i in interface_names]
-        return sorted_ports
+        return Interface.sort_ports_by_ifname(ports)
+
+    def get_physical_ports(self):
+        """Return all ports that are present."""
+        return Interface.objects.filter(
+            module=self, ifconnectorpresent=True).distinct()
+
+    def get_physical_ports_sorted(self):
+        """Return all ports that are present sorted by interface name."""
+        ports = self.get_physical_ports()
+        return Interface.sort_ports_by_ifname(ports)
 
 
 class Memory(models.Model):
@@ -1052,6 +1043,14 @@ class Interface(models.Model):
 
     def __unicode__(self):
         return u'%s at %s' % (self.ifname, self.netbox)
+
+    @classmethod
+    def sort_ports_by_ifname(cls, ports):
+        interface_names = [p.ifname for p in ports]
+        unsorted = dict(zip(interface_names, ports))
+        interface_names.sort(key=nav.natsort.split)
+        sorted_ports = [unsorted[i] for i in interface_names]
+        return sorted_ports
 
     def get_absolute_url(self):
         kwargs = {
