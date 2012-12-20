@@ -140,15 +140,17 @@ class Netbox(models.Model):
         return Interface.objects.filter(netbox=self,
                                         baseport__isnull=False).distinct()
 
-    def get_swports_sorted(self):
-        """Returns swports naturally sorted by interface name"""
-
-        ports = self.get_swports().select_related('module', 'netbox')
+    def _sort_ports_by_ifname(self, ports):
         interface_names = [p.ifname for p in ports]
         unsorted = dict(zip(interface_names, ports))
         interface_names.sort(key=nav.natsort.split)
         sorted_ports = [unsorted[i] for i in interface_names]
         return sorted_ports
+
+    def get_swports_sorted(self):
+        """Returns swports naturally sorted by interface name"""
+        ports = self.get_swports().select_related('module', 'netbox')
+        return self._sort_ports_by_ifname(ports)
 
     def get_physical_ports(self):
         """Return all ports that are present."""
@@ -158,11 +160,7 @@ class Netbox(models.Model):
     def get_physical_ports_sorted(self):
         """Return all ports that are present sorted by interface name."""
         ports = self.get_physical_ports().select_related('module', 'netbox')
-        interface_names = [p.ifname for p in ports]
-        unsorted = dict(zip(interface_names, ports))
-        interface_names.sort(key=nav.natsort.split)
-        sorted_ports = [unsorted[i] for i in interface_names]
-        return sorted_ports
+        return self._sort_ports_by_ifname(ports)
 
     def get_sensors(self):
         """ Returns sensors associated with this netbox """
