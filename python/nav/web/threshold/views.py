@@ -27,6 +27,7 @@ from django.db.models.query_utils import Q
 
 from nav.django.utils import get_account
 from nav.models.rrd import RrdDataSource
+from nav.models.rrd import RrdFile
 from nav.models.manage import Netbox
 from nav.models.manage import Interface
 from nav.models.manage import NetboxType
@@ -126,7 +127,7 @@ def prepare_bulkset(request):
     if request.method == 'POST':
         descr = unicode(request.POST.get('descr', ''))
         ids = unicode(request.POST.get('ids', ''))
-        logger.debug('Ids = %s' % ids)
+        logger.debug('prepare_bulkset: Ids = %s' % ids)
         if not is_legal_descr(descr):
             logger.error('Illegal description: login=%s; descr=%s' %
                     (account.login, descr))
@@ -159,14 +160,14 @@ def prepare_bulkset(request):
                                     rrd_file__value__in=identities)
             info_dict['interfaces'] = True
 
-        logger.error('prepare_bulkset: identities = %d' % len(identities))
+        logger.debug('prepare_bulkset: identities = %d' % len(identities))
         if data_sources:
             info_dict['descr'] = descr
             info_dict['datasources'] = data_sources
         # This is actually a html-table to get rendered in the browser
         message = render_to_response('threshold/bulkset.html',
                     info_dict, RequestContext(request))
-        logger.debug('prepare_bulkset: timer = %.3f' % (time.clock() - before))
+        logger.debug('prepare_bulkset: timer = %.4f' % (time.clock() - before))
         return HttpResponse(message, mimetype="text/plain")
     else:
         logger.error('Illegal request: login=%s' % account.login)
@@ -314,9 +315,11 @@ def netbox_search(request):
         updown = unicode(request.POST.get('updown', ''))
         boxes = unicode(request.POST.get('boxes', ''))
 
-        logger.error('descr=%s; sysname=%s; vendor=%s; model=%s; gw=%s; gsw=%s; sw=%s; ifname=%s; updown=%s; boxes=%s' %
-            (descr, sysname, vendor, model, cat_gw, cat_gsw, cat_sw,
-                ifname, updown, boxes))
+        logger.debug('netbox_search: descr=%s; sysname=%s; vendor=%s; '
+                    'model=%s; gw=%s; gsw=%s; sw=%s; ifname=%s; updown=%s;'
+                    'boxes=%s' %
+                    (descr, sysname, vendor, model, cat_gw, cat_gsw, cat_sw,
+                    ifname, updown, boxes))
         
         # This utillity-method return an error-message if any of
         # the parameters are illegal.
@@ -340,8 +343,7 @@ def netbox_search(request):
         netbox_categories = get_netbox_categories(cat_gw, cat_gsw, cat_sw)
 
         if descr:
-            query = Netbox.objects.filter(
-                        rrdfile__rrddatasource__description=descr)
+            query = Netbox.objects.filter(rrdfile__rrddatasource__description=descr)
         else:
             # Make a fake query and append the qualifiers
             query = Netbox.objects.filter(sysname__isnull=False)
@@ -366,7 +368,7 @@ def netbox_search(request):
                         box_interfaces[nbox.sysname] = interfaces
                 foundboxes.append(format_netbox_option(nbox, chosen_boxes))
 
-        logger.error('!!!!! number of netboxes = %d' % len(netbox_list))
+        logger.debug('netbox_search: number of netboxes = %d' % len(netbox_list))
 
         numb_interfaces = 0
         foundinterfaces = []
@@ -376,7 +378,7 @@ def netbox_search(request):
             for sname, infs in box_interfaces.iteritems():
                 numb_interfaces += len(infs)
                 foundinterfaces.append(format_option_group(sname, infs))
-        logger.error('&&&&& number of interfaces = %d' % numb_interfaces)
+        logger.debug('netbox_search: Number of interfaces = %d' % numb_interfaces)
 
         result = { 'error': 0,
                    'foundboxes': ''.join(foundboxes),
@@ -387,7 +389,7 @@ def netbox_search(request):
     else:
         logger.error('Illegal request: login=%s' % account.login)
         result = { 'error': 1, 'message': 'Illegal request'}
-    logger.error('netbox_search: timer = %.3f' % (time.clock() - before))
+    logger.debug('netbox_search: timer = %.3f' % (time.clock() - before))
     return HttpResponse(simplejson.dumps(result),
         mimetype="application/json")
 
@@ -434,8 +436,8 @@ def threshold_all(request, exceeded=None):
             'sources': datasource_list,
             }
         netboxes.append(netbox)
-    logger.debug("len = %d" % len(netboxes))
-    logger.debug("time = %.4f" % (time.clock()-before))
+    logger.debug("threshold_all: Number of netboxes = %d" % len(netboxes))
+    logger.debug("threshold_all: timer = %.4f" % (time.clock()-before))
     info_dict = {'netboxes' : netboxes }
     if exceeded:
         info_dict.update(EXCEEDED_DEFAULTS)
@@ -638,6 +640,6 @@ def thresholds_save(request):
             result = {'error': 0, 'message': 'Successfully saved', 'failed': [],}
     else:
         result = {'error': 1, 'message': 'Wrong request',}
-    logger.error('thresholds_save: timer = %.3f' % (time.clock() - before))
+    logger.debug('thresholds_save: timer = %.4f' % (time.clock() - before))
     return HttpResponse(simplejson.dumps(result),
         mimetype="application/json")
