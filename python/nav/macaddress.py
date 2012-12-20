@@ -30,7 +30,9 @@ import re
 
 
 class MacAddress(object):
-    """Class for representing a mac-address or a partial mac-address (mac-address prefix)"""
+    """Class for representing a mac-address or a partial mac-address
+    (mac-address prefix)
+    """
     # Default delimiter for a mac-address as a string.
     DEFAULT_DELIM = ':'
     # Legal delimiters and the number of nybbles between them.
@@ -213,41 +215,54 @@ class MacAddress(object):
                           self.DEFAULT_DELIM,
                           self.DELIMS_AND_STEPS[self.DEFAULT_DELIM]))
 
+    def __cmp__(self, other):
+        """Called by comparison operations.
+
+        Should return a negative integer if self < other, zero if self
+        == other, a positive integer if self > other.
+        If other is not an object that can get converted to a mac-address
+        this method will always return less than zero.
+        """
+        mac_addr = other
+        if (isinstance(other, (str, unicode)) or
+                isinstance(other, (int, long))):
+            try:
+                mac_addr = self._to_mac_addr(other)
+            except ValueError:
+                mac_addr = None
+        if isinstance(mac_addr, MacAddress):
+            if self._addr < mac_addr._addr:
+                return -1
+            elif self._addr > mac_addr._addr:
+                return 1
+            else:
+                return 0
+        return -1
+
     def __lt__(self, other):
         """Return True of this object is less than other"""
-        if isinstance(other, MacAddress):
-            return (self._addr < other._addr)
-        return False
+        return (self.__cmp__(other) < 0)
 
     def __le__(self, other):
         """Return True of this object is less than or equal other"""
-        if isinstance(other, MacAddress):
-            return (self._addr <= other._addr)
-        return False
+        return (self.__cmp__(other) <= 0)
 
     def __eq__(self, other):
         """Return True of this object is equal other"""
-        if isinstance(other, MacAddress):
-            return (self._addr == other._addr)
-        return False
+        return (self.__cmp__(other) == 0)
 
     def __ne__(self, other):
         """Return True of this object is not equal other"""
-        if isinstance(other, MacAddress):
-            return (self._addr != other._addr)
-        return False
+        return (self.__cmp__(other) != 0)
 
     def __gt__(self, other):
         """Return True of this object is greater than other"""
-        if isinstance(other, MacAddress):
-            return (self._addr > other._addr)
-        return False
+        return (self.__cmp__(other) > 0)
 
     def __ge__(self, other):
         """Return True of this object is greater than or equal other"""
         if isinstance(other, MacAddress):
-            return (self._addr >= other._addr)
-        return False
+            return (self.__cmp__(other) >= 0)
 
     def __hash__(self):
         """Return this object's hash-value"""
