@@ -14,11 +14,24 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Alert generator functionality for the eventEngine"""
+from collections import namedtuple
 import datetime
+import logging
+from pprint import pformat
+import os
+import re
+from . import unresolved
+
 from nav.models.event import AlertQueue as Alert, EventQueue as Event, AlertType
 from nav.models.event import AlertHistory
+from nav.models.fields import INFINITY
 
-INFINITY = datetime.datetime.max
+from django.template import loader, Context
+
+from nav import buildconf
+
+ALERT_TEMPLATE_DIR = os.path.join(buildconf.sysconfdir, 'alertmsg')
+_logger = logging.getLogger(__name__)
 
 class AlertGenerator(dict):
     def __init__(self, event):
@@ -43,6 +56,8 @@ class AlertGenerator(dict):
             del self['alert_type']
         else:
             self.alert_type = None
+
+        self._messages = None
 
     def make_alert(self):
         """Generates an alert object based on the current attributes"""
@@ -86,39 +101,137 @@ class AlertGenerator(dict):
             alert.varmap = vars
 
     def _find_existing_alert_history(self):
-        unresolved = get_unresolved_alerts_map()
-        key = self.event.get_key()
-        return unresolved.get(key, None)
+        return unresolved.refers_to_unresolved_alert(self.event) or None
 
     def post(self):
         """Generates and posts the necessary alert objects to the database"""
-        self.post_alert_history()
-        self.post_alert()
+        history = self.post_alert_history()
+        self.post_alert(history)
 
-    def post_alert(self):
+    def post_alert(self, history=None):
         """Generates and posts an alert on the alert queue only"""
         alert = self.make_alert()
+        alert.history = history
         alert.save()
+        self._post_alert_messages(alert)
+        return alert
 
     def post_alert_history(self):
         """Generates and posts an alert history record only"""
         history = self.make_alert_history()
         if history:
             history.save()
+            self._post_alert_messages(history)
+        return history
+
+    def _post_alert_messages(self, obj):
+        msg_class = obj.messages.model
+        for details, text in self._make_messages():
+            msg = msg_class(type=details.msgtype,
+                            language=details.language,
+                            message=text)
+            if hasattr(msg_class, 'alert_queue'):
+                msg.alert_queue = obj
+            elif hasattr(msg_class, 'alert_history'):
+                msg.alert_history = obj
+                msg.state = self.state
+            msg.save()
+
+    def _make_messages(self):
+        if self._messages is None:
+            self._messages = render_templates(self)
+        return self._messages
 
     def is_event_duplicate(self):
         """Returns True if the represented event seems to duplicate an
         existing unresolved alert.
 
         """
-        unresolved = get_unresolved_alerts_map()
         return (self.event.state == Event.STATE_START
-                and self.event.get_key() in unresolved)
+                and unresolved.refers_to_unresolved_alert(self.event))
 
     def get_alert_type(self):
-        return AlertType.objects.get(name=self.alert_type)
+        if not self.alert_type:
+            return
 
-def get_unresolved_alerts_map():
-    """Returns a dictionary of unresolved AlertHistory entries"""
-    unresolved = AlertHistory.objects.filter(end_time__gte=INFINITY)
-    return dict((alert.get_key(), alert) for alert in unresolved)
+        try:
+            return AlertType.objects.get(name=self.alert_type)
+        except AlertType.DoesNotExist:
+            return
+
+
+
+###
+### Alert message template processing
+###
+
+TEMPLATE_PATTERN = re.compile(r"^(?P<alert_type>\w+)-"
+                              r"(?P<msgtype>\w+)"
+                              r"(\.(?P<language>\w+))?"
+                              r"\.txt$")
+
+DEFAULT_LANGUAGE = "en"
+
+def ensure_alert_templates_are_available():
+    """Inserts the ALERT_TEMPLATE_DIR into Django's TEMPLATE_DIRS list"""
+    from django.conf import settings
+    if ALERT_TEMPLATE_DIR not in settings.TEMPLATE_DIRS:
+        settings.TEMPLATE_DIRS += (ALERT_TEMPLATE_DIR,)
+
+def render_templates(alert):
+    """Renders and returns message template based on the parameters of `alert`.
+
+    :param alert: An :py:class:AlertGenerator object representing the alert
+    :return: A list of (TemplateDetails, <rendered_unicode>) tuples
+
+    """
+    ensure_alert_templates_are_available()
+    templates = get_list_of_templates_for(alert.event_type.id,
+                                          alert.alert_type)
+    if not templates:
+        _logger.error("no templates defined for %r, sending generic alert "
+                      "message", alert)
+        templates = [
+            TemplateDetails("default-email.txt", "email", DEFAULT_LANGUAGE),
+            TemplateDetails("default-sms.txt", "sms", DEFAULT_LANGUAGE),
+            ]
+
+    return [_render_template(template, alert) for template in templates]
+
+def _render_template(details, alert):
+    template = loader.get_template(details.name)
+    context = dict(alert)
+    context.update(vars(alert))
+    context.update(dict(msgtype=details.msgtype,
+                        language=details.language))
+    context.update(dict(context_dump=pformat(context)))
+    return details, template.render(Context(context)).strip()
+
+
+def get_list_of_templates_for(event_type, alert_type):
+    """Returns a list of TemplateDetails objects for the available alert
+    message templates for the given event_type and alert_type.
+
+    """
+    if not alert_type:
+        alert_type = "default"
+
+    def _matcher(name):
+        match = TEMPLATE_PATTERN.search(name)
+        if match and match.group('alert_type') == alert_type:
+            return match
+
+    directory = os.path.join(ALERT_TEMPLATE_DIR, event_type)
+    if os.path.isdir(directory):
+        matches = [(_matcher(name), os.path.join(event_type, name))
+                   for name in os.listdir(directory)]
+    else:
+        matches = []
+    return [TemplateDetails(name,
+                            match.group('msgtype'),
+                            match.group('language') or DEFAULT_LANGUAGE)
+            for match, name in matches if match]
+
+# pylint sucks on namedtuples
+# pylint: disable=C0103
+TemplateDetails = namedtuple("TemplateDetails", "name msgtype language")

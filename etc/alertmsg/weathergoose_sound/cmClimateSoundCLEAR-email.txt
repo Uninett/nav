@@ -1,0 +1,3 @@
+Subject: Weathergoose {{ goosename }}: sound threshold clear
+
+{{ climatedescr }}: {{ climatevalue }}

@@ -1,0 +1,4 @@
+Subject: Link down on {{ netbox.sysname }}: {{ ifname }}
+This is an automatically generated message from NAV:
+
+Box {{ netbox.sysname }} ({{ netbox.ip }}) has lost link on interface {{ ifname }} ({{ ifalias }})

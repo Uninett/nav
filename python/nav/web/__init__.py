@@ -126,24 +126,37 @@ def redirect(req, url, temporary=False, seeOther=False):
         status = apache.HTTP_TEMPORARY_REDIRECT
     else:
         status = apache.HTTP_MOVED_PERMANENTLY
-    
+
     logger.debug("Redirect to %s using status code %s", url, status)
     req.headers_out['Location'] = url
     req.status = status
     raise apache.SERVER_RETURN, status
 
-def shouldShow(link, user):
+def should_show(url, user):
+    """Verifies whether a hyperlink should be shown to a specific user.
+
+    When a user doesn't have the proper permissions to visit a specific NAV
+    URL, it doesn't always make sense to display a link to that URL in the
+    interface. This function can be used to make a decision of whether to
+    display such a link or not.
+
+    Any url that starts with `http://` or `https://` is considered an
+    external link and allowed. Relative URLs are checked against the user's
+    privileges.
+
+    :param url: An URL string to check for access
+    :param user: A user dictionary from a web session
+    :return: True if a hyperlink to `url` should be shown to `user`
+
     """
-    Checks if a link should be shown on the webpage. If the link
-    starts with 'http://' or 'https://' it is considered an external
-    link and allowed. Internal links are checked using the corresponding
-    account object's has_perm method.
-    """
-    startsWithHTTP = (link.lower()[:7] == 'http://' or
-                      link.lower()[:8] == 'https://')
-    #FIXME handle Account.DoesNotExist
-    return (startsWithHTTP or
-            Account.objects.get(id=user['id']).has_perm('web_access', link))
+    starts_with_http = (url.lower().startswith('http://') or
+                        url.lower().startswith('https://'))
+
+    try:
+        return (starts_with_http or
+                Account.objects.get(id=user['id']).has_perm('web_access', url))
+    except Account.DoesNotExist:
+        return False
 
 def escape(s):
     """Replace special characters '&', '<' and '>' by SGML entities.
@@ -168,7 +181,7 @@ def loginit():
             return
     except:
         pass
-    
+
     root = logging.getLogger('')
 
     # Attempt to mimic Apache's standard log time format
@@ -215,7 +228,7 @@ def exceptionhandler(handler):
                 page.traceback = escape("\n".join(tracelines))
                 page.path = [("Home", "/"), ("NAV Exception", False)]
                 req.content_type = 'text/html'
-                req.status = apache.HTTP_INTERNAL_SERVER_ERROR 
+                req.status = apache.HTTP_INTERNAL_SERVER_ERROR
                 req.write(page.respond())
             return apache.OK
         else:

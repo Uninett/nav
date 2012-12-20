@@ -20,6 +20,112 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 3.13
+========
+
+To see the overview of scheduled features and reported bugs on the 3.13 series
+of NAV, please go to https://launchpad.net/nav/3.13 .
+
+Dependency changes
+------------------
+
+- NAV no longer requires Java. Consequently, the PostgreSQL JDBC driver is no
+  longer needed either.
+
+New eventengine
+---------------
+
+The `eventengine` was rewritten in Python. The beta version does not yet
+support a config file, but this will come.
+
+There is now a single log file for the `eventengine`, the lower-cased
+``eventengine.log``. The ``eventEngine.log`` log file and the ``eventEngine``
+log directory can safely be removed.
+
+
+VLANs
+-----
+
+It is now possible to search for VLANs in the navbar search. The search triggers
+on VLAN numbers and netidents.
+
+The VLAN page contains details about the VLAN and its related router ports and
+prefixes. The information is linked to the more extensive reports for each
+port and prefix.
+
+The page also contains graphs of the number of hosts on the VLAN over time
+(both IPv4 and IPv6 hosts, as well as number of unique MAC addresses seen).
+Historic information is easily accessible by utilizing the buttons next to the
+graphs.
+
+Bootstrapping host count graphs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Collection of the number of active hosts on each VLAN starts as you upgrade to
+NAV 3.13. The graphs will therefore have no information prior to this point.
+
+The source information comes from NAV's logs of ARP and ND caches from your
+routers. If you upgraded to 3.13 from a previous version, you can bootstrap
+your graphs with historical information from NAV's database.
+
+To do this, use the ``collect_active_ip.py`` program provided with NAV 3.13::
+
+  Usage: collect_active_ip.py [options]
+
+  Options:
+    -h, --help            show this help message and exit
+    -d DAYS, --days=DAYS  Days back in time to start collecting from
+    -r, --reset           Delete existing rrd-files. Use it with --days to
+                          refill
+
+To bootstrap your graphs with data from the last year (this may take a while),
+run::
+
+  sudo -u navcron collect_active_ip.py -d 365 -r
+
+.. NOTE:: NAV does not have historical information about prefixes. If your
+          subnet allocations have changed considerably recently, you shouldn't
+          bootstrap your graphs further back than this if you want your graphs
+          to be as close to the truth as possible.
+
+
+Arnold
+------
+
+Arnold was rewritten to not use ``mod_python`` and to use Django's ORM for
+database access. The rewrite has tried to be as transparent as possible and at
+the same time fix any open bugs reports.
+
+Some changes are introduced:
+
+- The shell script for interacting directly with Arnold is gone. If there is an
+  outcry for it, it will be reintroduced. The other scripts for automatic
+  detentions and pursuit are a part of the core functionality and are of course
+  still present.
+
+- The workflow when manually detaining has been slightly improved.
+
+- The reasons used for automatic detentions are no longer available when
+  manually detaining. This is done to be able to differ between manual and
+  automatic detentions. If you detain for the same reason both manually and
+  automatically, just create two similar reasons.
+
+- Log levels are no longer set in ``arnold.conf``. Use ``logging.conf`` to
+  alter loglevels for the scripts and web.
+
+- Some unreported bugs are fixed.
+
+- The “Open on move”-option in a predefined detention was never used. This is
+  fixed.
+
+- Pursuing was not done in some cases.
+
+- Reported bugs that were fixed:
+  - LP#341703 Manual detention does not pursue client
+  - LP#361530 Predefined detention does not exponentially increase detentions
+  - LP#744932 Arnold should give warning if snmp write is not configured
+
+
 NAV 3.12
 ========
 

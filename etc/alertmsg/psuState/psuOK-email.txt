@@ -1,0 +1,2 @@
+Subject: PSU OK again on {{ netbox.sysname }}
+PSU unit {{ unitname }} on {{ netbox.sysname }} is OK again (state={{ alert.state }})

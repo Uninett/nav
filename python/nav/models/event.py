@@ -223,10 +223,18 @@ class EventQueue(models.Model, EventMixIn):
     class Meta:
         db_table = 'eventq'
 
-    def __unicode__(self):
-        return u", ".join(
+    def __repr__(self):
+        return "<EventQueue: %s>" % u", ".join(
             u"%s=%r" % (attr, getattr(self, attr))
-            for attr in ('event_type_id', 'source_id', 'target_id', 'state'))
+            for attr in ('event_type_id', 'source_id', 'target_id',
+                         'netbox', 'subid', 'state', 'time'))
+
+    def __unicode__(self):
+        string = ("{self.event_type} {state} event for {self.netbox} "
+                  "(subid={self.subid}) from {self.source} to {self.target} "
+                  "at {self.time}")
+        return string.format(self=self,
+                             state=dict(self.STATE_CHOICES)[self.state])
 
     def save(self, *args, **kwargs):
         new_object = self.pk is None

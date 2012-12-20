@@ -7,28 +7,27 @@ initdir=@initdir@
 bindir=@bindir@
 localstatedir=@localstatedir@
 user=@nav_user@
+DAEMON=${bindir}/eventengine
 
 # Source function library.
 . ${initdir}/functions
 
-[ -x ${bindir}/eventEngine.sh ] || exit 1
+[ -x ${DAEMON} ] || exit 1
 
 # See how we were called.
 case "$1" in
 	start)
 		# Start daemons.
-		echo -n "Starting eventEngine: "
-		daemon "su - ${user} -c ${bindir}/eventEngine.sh"
+		echo -n "Starting eventengine: "
+		daemon "su - ${user} -c ${DAEMON}"
 		rc=$?
 		echo
 		exit $rc
 		;;
 	stop)
 		# Stop daemons.
-		echo -n "Shutting down eventEngine: "
-		if killproc eventEngine; then
-		# Make sure the pidfile is gone when stopping normal
-		    rm -f ${localstatedir}/run/eventEngine.pid
+		echo -n "Shutting down eventengine: "
+		if killproc eventengine; then
 		    echo
 		    exit 0
 		else
@@ -41,7 +40,7 @@ case "$1" in
 		$0 start
 		;;
 	status)
-	        status eventEngine
+	        status eventengine
 		exit $?
 		;;
 	*)

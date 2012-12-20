@@ -20,7 +20,6 @@ To build NAV, you need at least the following:
  * autoconf
  * ant
  * Python >= 2.6.0
- * Java 2 SDK >= 1.5.0
  * Cheetah Templates >= 2.0rc7
  * Sphinx >= 1.0 (for building this documentation)
 
@@ -35,13 +34,8 @@ To run NAV, these software packages are required:
  * PostgreSQL >= 8.3
  * rrdtool
  * Cheetah Templates >= 2.0rc7
- * Java 2 SDK >= 1.5.0
  * Python >= 2.6.0
  * dhcping (only needed if using DHCP service monitor)
-
-The following Java librares are required:
-
- * PostgreSQL JDBC driver
 
 The following python modules are required:
 
@@ -55,7 +49,7 @@ The following python modules are required:
  * :mod:`rrd` (from the rrdtool distribution)
  * :mod:`simplejson` >= 2.0.6
  * :mod:`twisted` >= 8.1
- * :mod:`twistedsnmp` >= 0.3 | :mod:`pynetsnmp`
+ * :mod:`pynetsnmp` (or less preferably, :mod:`twistedsnmp` >= 0.3)
 
 The following python modules are optional:
 
@@ -158,19 +152,11 @@ You should now be able to run the python command line interpreter and run
 :kbd:`import nav` without a hitch::
 
   $ python
-  Python 2.5.2 (r252:60911, Jan 24 2010, 14:53:14)
-  [GCC 4.3.2] on linux2
+  Python 2.6.6 (r266:84292, Dec 27 2010, 00:02:40) 
+  [GCC 4.4.5] on linux2
   Type "help", "copyright", "credits" or "license" for more information.
   >>> import nav
   >>>
-
-Making the necessary Java libraries available to NAV
-----------------------------------------------------
-
-The fastest way is to symlink the PostgreSQL JDBC driver library to NAV's java
-library directory::
-
-  sudo ln -s /usr/share/java/postgresql.jar /usr/local/nav/lib/java/
 
 Configuring Apache
 ------------------

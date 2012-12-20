@@ -1,0 +1,4 @@
+Subject: Weathergoose {{ goosename }}: humidity threshold exceeded
+
+Threshold: {{ triptype }}
+{{ climatedescr }}: {{ climatevalue }}

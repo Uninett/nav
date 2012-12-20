@@ -1,0 +1,3 @@
+Subject: Weathergoose {{ goosename }}: airflow threshold clear
+
+{{ climatedescr }}: {{ climatevalue }}

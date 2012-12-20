@@ -21,10 +21,6 @@ AC_PATH_PROG(CHEETAH,cheetah)
 if test -z "$CHEETAH"; then
   AC_MSG_ERROR([No Cheetah found, you will be unable to build any web templates])
 fi
-AC_PATH_PROG(ANT,ant)
-if test -z "$ANT"; then
-  AC_MSG_ERROR([No Ant found, you need this to build java software])
-fi
 AC_PATH_PROG(SED, sed)
 AC_PATH_PROG(GREP, grep)
 AC_PATH_PROG(HG, hg)
@@ -35,7 +31,6 @@ AC_SUBST(webrootdir)
 AC_SUBST(imagedir)
 AC_SUBST(javascriptdir)
 AC_SUBST(stylesheetdir)
-AC_SUBST(javalibdir)
 AC_SUBST(pythonlibdir)
 AC_SUBST(djangotmpldir)
 AC_SUBST(initdir)
@@ -55,7 +50,6 @@ javascriptdir='${webroot}/js'
 stylesheetdir='${webroot}/style'
 pythonlibdir='${libdir}/python'
 pythondir='${pythonlibdir}'
-javalibdir='${libdir}/java'
 djangotmpldir='${libdir}/templates'
 initdir='${sysconfdir}/init.d'
 tooldir='${sysconfdir}/toolbox'
@@ -80,7 +74,6 @@ AC_CONFIG_FILES([
     doc/Makefile
     etc/Makefile
     sql/Makefile
-    java/Makefile
     templates/Makefile
     python/Makefile
     bin/Makefile
