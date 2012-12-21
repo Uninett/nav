@@ -17,6 +17,7 @@
 
 import IPy
 import re
+import logging
 import datetime as dt
 
 from django.conf import settings
@@ -39,6 +40,9 @@ from nav.web.ipdevinfo.context_processors import search_form_processor
 from nav.web.ipdevinfo import utils
 
 NAVPATH = [('Home', '/'), ('IP Device Info', '/ipdevinfo')]
+
+_logger = logging.getLogger('nav.web.ipdevinfo')
+
 
 def search(request):
     """Search for an IP device"""
@@ -68,8 +72,8 @@ def search(request):
             netboxes = Netbox.objects.filter(ip=ip)
             if len(netboxes) == 0:
                 # Could not find IP device, redirect to host detail view
-                return HttpResponseRedirect(reverse('ipdevinfo-details-by-addr',
-                        kwargs={'addr': ip}))
+                return HttpResponseRedirect(
+                    reverse('ipdevinfo-details-by-addr', kwargs={'addr': ip}))
         elif is_valid_hostname(query):
             # Check perfect match first
             sysname_filter = Q(sysname=query)
@@ -82,8 +86,8 @@ def search(request):
                 netboxes = Netbox.objects.filter(sysname__icontains=query)
             if len(netboxes) == 0:
                 # Could not find IP device, redirect to host detail view
-                return HttpResponseRedirect(reverse('ipdevinfo-details-by-name',
-                        kwargs={'name': query}))
+                return HttpResponseRedirect(reverse(
+                    'ipdevinfo-details-by-name', kwargs={'name': query}))
         else:
             errors.append('The query does not seem to be a valid IP address'
                 + ' (v4 or v6) or a hostname.')
@@ -105,6 +109,7 @@ def search(request):
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
+
 
 def is_valid_hostname(hostname):
     """Check if hostname is valid"""
@@ -138,7 +143,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             if isinstance(response, Exception):
                 yield {'addr': addr, 'error': response.__class__.__name__}
             else:
-                for name in response :
+                for name in response:
                     yield {'addr': addr, 'name': name}
 
     def address_sorter(addr_tuple):
@@ -167,7 +172,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
                 if 'name' in address:
                     try:
                         netbox = netboxes.get(sysname=address['name'])
-                        break # Exit loop at first match
+                        break  # Exit loop at first match
                     except Netbox.DoesNotExist:
                         pass
 
@@ -318,6 +323,7 @@ def get_port_view(request, netbox_sysname, perspective):
     # Get port activity search interval from form
     activity_interval = 30
     activity_interval_form = None
+    _logger.debug('perspective = %s' % perspective)
     if perspective == 'swportactive':
         if 'interval' in request.GET:
             activity_interval_form = ActivityIntervalForm(request.GET)
@@ -371,7 +377,6 @@ def get_port_view(request, netbox_sysname, perspective):
             'activity_interval_form': activity_interval_form
             },
         context_instance=RequestContext(request))
-
 
 
 def module_details(request, netbox_sysname, module_name):
@@ -448,6 +453,7 @@ def module_details(request, netbox_sysname, module_name):
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
 
+
 def port_details(request, netbox_sysname, port_type=None, port_id=None,
                  port_name=None):
     """Show detailed view of one IP device port"""
@@ -479,6 +485,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
+
 
 def service_list(request, handler=None):
     """List services with given handler or any handler"""
@@ -512,6 +519,7 @@ def service_list(request, handler=None):
         allow_empty=True,
         context_processors=[search_form_processor],
         template_object_name='service')
+
 
 def service_matrix(request):
     """Show service status in a matrix with one IP Device per row and one

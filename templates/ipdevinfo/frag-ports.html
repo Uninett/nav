@@ -4,9 +4,10 @@
 
             <div id="moduletabs">
                 <ul>
-                    <li><a href="/ipdevinfo/{{ netbox.sysname }}/modules/swportstatus/">Switch port status<span class="tab-spinner" >&nbsp;</span></a></li>
-                    <li><a href="/ipdevinfo/{{ netbox.sysname }}/modules/swportactive/">Switch port activity<span class="tab-spinner" >&nbsp;</span></a></li>
-                    <li><a href="/ipdevinfo/{{ netbox.sysname }}/modules/gwportstatus/">Router port status<span class="tab-spinner" >&nbsp;</span></a></li>
+                    <li><a href="{% url ipdevinfo-get-port-view netbox.sysname 'swportstatus' %}">Switch port status<span class="tab-spinner" >&nbsp;</span></a></li>
+                    <li><a href="{% url ipdevinfo-get-port-view netbox.sysname 'swportactive' %}">Switch port activity<span class="tab-spinner" >&nbsp;</span></a></li>
+                    <li><a href="{% url ipdevinfo-get-port-view netbox.sysname 'gwportstatus' %}">Router port status<span class="tab-spinner" >&nbsp;</span></a></li>
+                    <li><a href="{% url ipdevinfo-get-port-view netbox.sysname 'physportstatus' %}">Physical ports<span class="tab-spinner" >&nbsp;</span></a></li>
                 </ul>
             </div>
 

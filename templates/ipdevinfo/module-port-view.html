@@ -12,6 +12,7 @@
     <tr>
     {% for port in ports %}
         <td class="{{ port.class }}" style="{{ port.style }}" title="{{ port.title }}">
+            <div class="portcell">
             <a href="{{ port.object.get_absolute_url }}">
                 {% if port.object.ifname|length >= ifname_too_long %}
                     {{ port.object.ifname|shorten_ifname }}
@@ -19,6 +20,10 @@
                     {{ port.object.ifname }}
                 {% endif %}
             </a>
+                {% if port.oplayer %}
+                    <span class="oplayer" title="OSI layer {{port.oplayer}}">{{ port.oplayer }}</span>
+                {% endif %}
+            </div>
         </td>
         {% if ports|length|divisibleby:12 %}
             {% if forloop.counter|divisibleby:12 %}</tr><tr>{% endif %}
