@@ -16,7 +16,7 @@
 """"Superclass for plugins that use delayed handling of state events"""
 from nav.eventengine import unresolved
 
-from nav.eventengine.topology import is_netbox_reachable
+from nav.eventengine.topology import netbox_appears_reachable
 from nav.models.manage import Netbox
 from nav.eventengine.plugin import EventHandler
 
@@ -186,7 +186,7 @@ class DelayedStateHandler(EventHandler):
 
     def _verify_shadow(self):
         netbox = self.event.netbox
-        netbox.up = (Netbox.UP_DOWN if is_netbox_reachable(netbox)
+        netbox.up = (Netbox.UP_DOWN if netbox_appears_reachable(netbox)
                      else Netbox.UP_SHADOW)
         Netbox.objects.filter(id=netbox.id).update(up=netbox.up)
         return netbox.up == Netbox.UP_SHADOW

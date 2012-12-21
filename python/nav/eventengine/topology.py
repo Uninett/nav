@@ -24,7 +24,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-def is_netbox_reachable(netbox):
+def netbox_appears_reachable(netbox):
     """Returns True if netbox appears to be reachable through the known
     topology.
 
@@ -84,13 +84,19 @@ def get_graph_for_vlan(vlan):
 
     """
     swpvlan = SwPortVlan.objects.filter(vlan=vlan).select_related(
-        'interface', 'interface__netbox',  'interface__to_netbox')
-    graph = networkx.Graph(name='graph for vlan %s' % vlan)
+        'interface', 'interface__netbox',  'interface__to_netbox',
+        'interface__to_interface')
+    graph = networkx.MultiGraph(name='graph for vlan %s' % vlan)
     for swp in swpvlan:
         source = swp.interface.netbox
+        source_ifc = swp.interface
         target = swp.interface.to_netbox
+        target_ifc = swp.interface.to_interface
         if target:
-            graph.add_edge(source, target)
+            key = tuple(sorted(
+                (source_ifc.id, target_ifc.id if target_ifc else None)))
+            data = set([source_ifc, target_ifc])
+            graph.add_edge(source, target, key=key, data=data)
     return graph
 
 
@@ -103,6 +109,23 @@ def strip_down_nodes_from_graph(graph, keep=None):
     removable = set(node for node in graph.nodes_iter()
                     if node.up != node.UP_UP and node != keep)
     graph.remove_nodes_from(removable)
+    return len(removable)
+
+def strip_down_links_from_graph(graph):
+    """Strips all edges (links) from graph where any of the involved
+    interfaces are down.
+
+    """
+    def _is_down(data):
+        ifcs = data.get('data', [])
+        return any(ifc and ifc.ifoperstatus == ifc.OPER_DOWN for ifc in ifcs)
+
+    removable = set(
+        (u, v, key)
+        for u, v, key, data in graph.edges_iter(data=True, keys=True)
+        if _is_down(data)
+    )
+    graph.remove_edges_from(removable)
     return len(removable)
 
 ###
