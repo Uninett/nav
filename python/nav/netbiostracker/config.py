@@ -14,8 +14,13 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Configparser for Netbiostracker"""
+
+import logging
 from ConfigParser import NoSectionError, NoOptionError
+from IPy import IP
 from nav.config import NAVConfigParser
+
+_logger = logging.getLogger('netbiostrackerconfig')
 
 
 class NetbiosTrackerConfig(NAVConfigParser):
@@ -33,8 +38,23 @@ encoding = cp850
         except (NoSectionError, NoOptionError):
             return []
         else:
-            return [x.strip() for x in exception_list.splitlines() if x]
+            return create_list(exception_list)
 
     def get_encoding(self):
         """Get the encoding option"""
         return self.get('main', 'encoding')
+
+
+def create_list(exceptions):
+    """Create a list of single ip-adresses from a list of IP instances"""
+    addresses = []
+    for element in [x.strip() for x in exceptions.splitlines() if x]:
+        try:
+            address = IP(element)
+        except ValueError, error:
+            _logger.error('Skipping exception %s: %s', element, error)
+            continue
+        else:
+            addresses.extend([str(x) for x in address])
+
+    return list(set(addresses))

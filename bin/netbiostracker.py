@@ -57,6 +57,5 @@ def init_logger(logfile):
     root = logging.getLogger('')
     root.addHandler(filehandler)
 
-
 if __name__ == '__main__':
     main()
