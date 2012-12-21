@@ -254,8 +254,20 @@ def switch_do_search(request):
 
         if module:
             criteria['module'] = module
+
+        # If port is specified, match on ifindex
         if port_interface:
-            criteria['port'] = port_interface
+            try:
+                cam_with_ifindex = Cam.objects.filter(
+                        Q(sysname__istartswith=switch) |
+                        Q(netbox__sysname__istartswith=switch),
+                        end_time__gt=from_time,
+                        port=port_interface,
+                        **criteria
+                        ).values('ifindex')[0]
+                criteria['ifindex'] = cam_with_ifindex['ifindex']
+            except IndexError:
+                pass
 
         cam_result = Cam.objects.filter(
             Q(sysname__istartswith=switch) |
@@ -266,6 +278,7 @@ def switch_do_search(request):
             'sysname', 'module', 'port', 'start_time', 'end_time', 'mac',
             'netbox__sysname'
         )
+
         swp_count = len(cam_result)
         swp_tracker = track_mac(('mac', 'sysname', 'module', 'port'),
                                 cam_result, dns=False)
