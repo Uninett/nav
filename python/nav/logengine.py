@@ -123,7 +123,7 @@ notsotypicalmatchRe = re.compile(
     \s*
     (?P<origin>\S+)                                  # origin
     .* %                                             # eat chars until % appears
-    (?P<type>[^:]+) :                                # message type
+    (?P<type>[a-zA-Z0-9\-_]+) :                      # message type
     \s* (?P<description>.*)                          # message (lstripped)
     $
     """, re.VERBOSE)

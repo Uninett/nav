@@ -31,12 +31,14 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
 
     def test_parse_without_exceptions(self):
         for line in self.loglines:
-            print line
-            logengine.createMessage(line)
+            msg = logengine.createMessage(line)
+            self.assertFalse(msg.facility is None,
+                             "Message has no facility: {0!r}\n{1!r}"
+                             .format(line, vars(msg)))
+
 
     def test_insert(self):
         for line in self.loglines:
-            print line
             database = Mock('cursor')
             database.fetchone = lambda: [random.randint(1, 10000)]
             def execute(sql, params=()):
@@ -139,3 +141,14 @@ class ParseMessageWithNoOriginTimestampTest(ParseTest):
         self.priority = 3
         self.mnemonic = '321007'
         self.description = "'System is low on free memory blocks of size 8192 (0 CNT out of 250 MAX)'"
+
+class ParseNonConformingLinesTest(TestCase):
+    def test_non_specific_sntp_message_should_not_match(self):
+        line = "Dec 20 15:16:04 10.0.101.179 SNTP[141365768]: sntp_client.c(1917) 2945474 %% SNTP: system clock synchronized on THU DEC 20 15:16:04 2012 UTC. Indicates that SNTP has successfully synchronized the time of the box with the server."
+        msg = logengine.createMessage(line)
+        self.assertTrue(msg is None)
+
+    def test_non_specific_cpu_message_should_not_match(self):
+        line = "Dec 20 16:23:37 10.0.3.15 2605010: CPU utilization for five seconds: 86%/14%; one minute: 33%; five minutes: 31%"
+        msg = logengine.createMessage(line)
+        self.assertTrue(msg is None)
