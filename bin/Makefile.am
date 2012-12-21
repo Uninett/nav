@@ -1,1 +1,1 @@
-bin_SCRIPTS = $(wildcard *.py) $(wildcard *.sh) nav ipdevpolld navtopology
+bin_SCRIPTS = $(wildcard *.py) $(wildcard *.sh) nav ipdevpolld navtopology eventengine

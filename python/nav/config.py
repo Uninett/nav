@@ -15,12 +15,18 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Utility functions for NAV configuration file parsing."""
+from StringIO import StringIO
+import logging
 
 import os
 import sys
 import ConfigParser
 
 import buildconf
+import nav.buildconf
+from nav.errors import GeneralException
+
+_logger = logging.getLogger(__name__)
 
 def readConfig(config_file, splitChar='='):
     """Reads a key=value type config file. 
@@ -94,3 +100,45 @@ def getconfig(configfile, defaults=None, configfolder=None):
 
     return configdict
 
+
+class NAVConfigParser(ConfigParser.ConfigParser):
+    """A ConfigParser for NAV config files with some NAV-related
+    simplifications.
+
+    A NAV subsystem utilizing an INI-type config file can subclass this
+    class and define only the DEFAULT_CONFIG and the DEFAULT_CONFIG_FILES
+    class variables to be mostly self-contained.
+
+    Any file listed in the class variable DEFAULT_CONFIG_FILES will be
+    attempted read from NAV's sysconfdir and from the current working
+    directory upon instantation of the parser subclass.
+
+    """
+    DEFAULT_CONFIG = ""
+    DEFAULT_CONFIG_FILES = ()
+
+    def __init__(self):
+        ConfigParser.ConfigParser.__init__(self)
+        # TODO: perform sanity check on config settings
+        faked_default_file = StringIO(self.DEFAULT_CONFIG)
+        self.readfp(faked_default_file)
+        self.read_all()
+
+    def read_all(self):
+        """Reads all config files in DEFAULT_CONFIG_FILES"""
+        filenames = [os.path.join(nav.buildconf.sysconfdir, configfile)
+                     for configfile in self.DEFAULT_CONFIG_FILES]
+        filenames.extend(os.path.join('.', configfile)
+                         for configfile in self.DEFAULT_CONFIG_FILES)
+        files_read = self.read(filenames)
+
+        if files_read:
+            _logger.debug("Read config files %r", files_read)
+        else:
+            _logger.warning("Found no config files")
+        return files_read
+
+
+class ConfigurationError(GeneralException):
+    """Configuration error"""
+    pass

@@ -15,6 +15,7 @@
 #
 """macwatch Django models"""
 
+import re
 
 from django.db import models
 from nav.models.fields import VarcharField
@@ -25,6 +26,8 @@ from nav.models.profiles import Account
 class MacWatch(models.Model):
     """Data-model for mac-address that should get watched
     by bin/macwatch.py"""
+    MAC_ADDR_DELIM_CHAR = ':'
+
     id = models.AutoField(db_column='id', primary_key=True)
     # TODO: Create MACAddressField in Django
     mac = models.CharField(db_column='mac', max_length=17, unique=True)
@@ -41,6 +44,41 @@ class MacWatch(models.Model):
 
     def __unicode__(self):
         return u'%s' % self.mac
+
+    def _filtered_mac_addr(self):
+        """Filter delimiters from the mac-address."""
+        return re.sub('-', '', re.sub(':', '', self.mac))
+
+    def _add_separators(self, mac_addr):
+        """Add delimiters between the hex-numbers. Check
+        MAC_ADDR_DELIM_CHAR for delimiter-character."""
+        # Extract every second chars at odd index
+        mac_odds = mac_addr[::2]
+        # Extract every second chars at even index
+        mac_evens = mac_addr[1::2]
+        # Add together one character from odd and one from even list,
+        # and make lists with the strings.
+        # Join the lists of strings with delimiter-character to form
+        # a mac-address string.
+        ret_addr = self.MAC_ADDR_DELIM_CHAR.join(odd_char + even_char
+            for odd_char,even_char in zip(mac_odds, mac_evens))
+        # Sweep up the left-over if length is even,
+        # since zip will only merge a pair.
+        if self.prefix_length % 2:
+            ret_addr += self.MAC_ADDR_DELIM_CHAR + mac_addr[-1]
+        return ret_addr
+
+
+    def get_mac_addr(self):
+        """Get the current mac-address.  If the stored
+        mac-address is a prefix (i.e. only a partial mac-address)
+        only the prefix will get returned."""
+        if self.prefix_length and self.prefix_length > 0:
+            filtered_mac = self._filtered_mac_addr()
+            prefix_mac = filtered_mac[0:self.prefix_length]
+            return self._add_separators(prefix_mac)
+        else:
+            return self.mac
 
 
 class MacWatchMatch(models.Model):
