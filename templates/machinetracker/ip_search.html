@@ -26,6 +26,10 @@
                     <td>{{ form.dns }}</td>
                 </tr>
                 <tr>
+                    <th><label>Netbios:</label></th>
+                    <td>{{ form.netbios }}</td>
+                </tr>
+                <tr>
                     <th><label for="id_hide">Show only active records:</label></th>
                     <td><input id="id_hide" name="days" type="checkbox" value="-1" onclick="document.getElementById('id_days').disabled = this.checked;" /></td>
                 </tr>

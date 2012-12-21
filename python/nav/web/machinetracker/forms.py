@@ -30,6 +30,7 @@ class IpTrackerForm(forms.Form):
     active = forms.BooleanField(required=False, initial=True)
     inactive = forms.BooleanField(required=False)
     dns = forms.BooleanField(required=False, initial=False)
+    netbios = forms.BooleanField(required=False, initial=False)
     days = forms.IntegerField(
         initial=7,
         widget=forms.TextInput(attrs={'size': 3}))
@@ -55,6 +56,7 @@ class IpTrackerForm(forms.Form):
 class MacTrackerForm(forms.Form):
     mac = forms.CharField()
     dns = forms.BooleanField(required=False, initial=False)
+    netbios = forms.BooleanField(required=False, initial=False)
     days = forms.IntegerField(
         initial=7,
         widget=forms.TextInput(attrs={'size': 3}))

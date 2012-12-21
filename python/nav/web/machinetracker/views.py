@@ -86,6 +86,7 @@ def ip_do_search(request):
         result = Arp.objects.filter(
             end_time__gt=from_time,
         ).extra(
+            select={'netbiosname': get_netbios_query()},
             where=['ip BETWEEN %s and %s'],
             params=[unicode(from_ip), unicode(to_ip)]
         ).order_by('ip', 'mac', '-start_time')
@@ -197,8 +198,10 @@ def mac_do_search(request):
         arp_result = Arp.objects.filter(
             end_time__gt=from_time,
             mac__range=(mac_min, mac_max)
+        ).extra(
+            select={'netbiosname': get_netbios_query()},
         ).order_by('mac', 'ip', '-start_time').values(
-            'ip', 'mac', 'start_time', 'end_time'
+            'ip', 'mac', 'start_time', 'end_time', 'netbiosname'
         )
 
         mac_count = len(cam_result)
@@ -295,3 +298,20 @@ def switch_do_search(request):
         info_dict,
         RequestContext(request)
     )
+
+def get_netbios_query(separator=', '):
+    """Return a query that populates netbios names on an arp query
+
+    Multiple netbiosnames are joined with separator to a single string.
+    Populates only if the arp tuple overlaps netbios tuple regarding time.
+
+    Ex:
+    Arp.objects.filter(..).extra(select={'netbiosname': get_netbios_query()})
+
+    """
+    return """SELECT string_agg(name,'%s')
+              FROM netbios
+              WHERE arp.ip=netbios.ip
+              AND (arp.start_time, arp.end_time)
+                   OVERLAPS (netbios.start_time,
+                             netbios.end_time)""" % separator

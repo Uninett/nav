@@ -15,6 +15,9 @@
             {% if form_data.dns %}
             <th>DNS</th>
             {% endif %}
+            {% if form_data.netbios %}
+            <th>Netbios</th>
+            {% endif %}
             <th>IP</th>
             <th></th>
             <th>MAC</th>
@@ -30,6 +33,11 @@
             {% if form_data.dns %}
             <td>{{ row.dns_lookup }}</td>
             {% endif %}
+
+            {% if form_data.netbios %}
+            <td>{{ row.netbiosname|default_if_none:'' }}</td>
+            {% endif %}
+
             <td>
                 {% with form_data.dns|yesno:"True," as dns %}
                 <a href="{% url machinetracker-ip_short_search row.ip form_data.days dns %}" title="Search for this IP address">
