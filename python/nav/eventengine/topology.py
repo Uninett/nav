@@ -111,6 +111,23 @@ def strip_down_nodes_from_graph(graph, keep=None):
     graph.remove_nodes_from(removable)
     return len(removable)
 
+def strip_down_links_from_graph(graph):
+    """Strips all edges (links) from graph where any of the involved
+    interfaces are down.
+
+    """
+    def _is_down(data):
+        ifcs = data.get('data', [])
+        return any(ifc and ifc.ifoperstatus == ifc.OPER_DOWN for ifc in ifcs)
+
+    removable = set(
+        (u, v, key)
+        for u, v, key, data in graph.edges_iter(data=True, keys=True)
+        if _is_down(data)
+    )
+    graph.remove_edges_from(removable)
+    return len(removable)
+
 ###
 ### Functions for locating the NAV server itself
 ###
