@@ -84,13 +84,19 @@ def get_graph_for_vlan(vlan):
 
     """
     swpvlan = SwPortVlan.objects.filter(vlan=vlan).select_related(
-        'interface', 'interface__netbox',  'interface__to_netbox')
-    graph = networkx.Graph(name='graph for vlan %s' % vlan)
+        'interface', 'interface__netbox',  'interface__to_netbox',
+        'interface__to_interface')
+    graph = networkx.MultiGraph(name='graph for vlan %s' % vlan)
     for swp in swpvlan:
         source = swp.interface.netbox
+        source_ifc = swp.interface
         target = swp.interface.to_netbox
+        target_ifc = swp.interface.to_interface
         if target:
-            graph.add_edge(source, target)
+            key = tuple(sorted(
+                (source_ifc.id, target_ifc.id if target_ifc else None)))
+            data = set([source_ifc, target_ifc])
+            graph.add_edge(source, target, key=key, data=data)
     return graph
 
 
