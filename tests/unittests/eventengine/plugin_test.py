@@ -1,7 +1,10 @@
 import pytest
 from mock import Mock
+from nav.eventengine.config import EventEngineConfig
+from nav.eventengine.engine import EventEngine
 from nav.eventengine.plugin import UnsupportedEvent, EventHandler
 from nav.eventengine.plugin import _find_package_modules
+from nav.eventengine.plugins.delayedstate import DelayedStateHandler
 
 class _EmptyHandler(EventHandler):
     handled_types = ()
@@ -32,3 +35,23 @@ def test_boxstate_plugin_should_be_found():
     from nav.eventengine.plugins.boxstate import BoxStateHandler
     classes = EventHandler.load_and_find_subclasses()
     assert BoxStateHandler in classes
+
+def test_delayedhandler_sets_timeouts_from_config():
+    class TestHandler(DelayedStateHandler):
+        handled_types = ('testState',)
+        ALERT_WAIT_TIME = 'test.alert'
+        WARNING_WAIT_TIME = 'test.warning'
+
+    class MockedConfig(EventEngineConfig):
+        DEFAULT_CONFIG_FILES = ()
+
+    config = MockedConfig()
+    config.set('timeouts', 'test.warning', '20s')
+    config.set('timeouts', 'test.alert', '1m')
+    engine = EventEngine(config=config)
+    event = Mock('Event')
+    event.event_type_id = 'testState'
+
+    handler = TestHandler(event, engine)
+    assert handler.WARNING_WAIT_TIME == 20
+    assert handler.ALERT_WAIT_TIME == 60

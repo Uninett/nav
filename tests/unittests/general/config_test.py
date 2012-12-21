@@ -42,8 +42,8 @@ class ConfigTestCase(unittest.TestCase):
          ]))
         self.mockinifile = mockinifile
 
-    def test_readConfig(self):
-        values = config.readConfig(self.mockfile)
+    def test_read_flat_config(self):
+        values = config.read_flat_config(self.mockfile)
         self.assertEquals(values['foo1'], 'bar1')
         self.assertEquals(values['foo2'], 'bar2')
         self.assertEquals(values['foo4'], 'bar4')

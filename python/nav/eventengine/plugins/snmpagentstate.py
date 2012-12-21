@@ -23,6 +23,7 @@ class SnmpAgentStateHandler(DelayedStateHandler):
     """Accepts snmpAgentState events"""
 
     HAS_WARNING_ALERT = False
+    ALERT_WAIT_TIME = 'snmpAgentDown.alert'
     handled_types = ('snmpAgentState', )
 
     __waiting_for_resolve = {}

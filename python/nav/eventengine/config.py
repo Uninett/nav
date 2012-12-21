@@ -15,7 +15,6 @@
 #
 """eventengengine config"""
 from nav.config import NAVConfigParser
-from nav.errors import GeneralException
 from nav.util import parse_interval
 from ConfigParser import NoSectionError, NoOptionError
 
@@ -35,7 +34,16 @@ snmpAgentDown.alert = 4m
 """
 
     def get_timeout_for(self, option):
-        """Gets an integer timeout value from option in the timeouts section"""
+        """Gets an integer timeout value from option in the timeouts section.
+
+        :param option: An option name in the timeouts section, or an integer.
+        :return: An integer number of seconds parsed from option. If the
+                 option is not present, None is returned.  If option itself is
+                 an int, option is returned unchanged.
+
+        """
+        if isinstance(option, (int, long)):
+            return option
         try:
             return parse_interval(self.get('timeouts', option))
         except (NoSectionError, NoOptionError):
@@ -46,9 +54,4 @@ snmpAgentDown.alert = 4m
         return [self.get_timeout_for(opt) for opt in options]
 
 
-class ConfigurationError(GeneralException):
-    """Configuration error"""
-    pass
-
-
-eventengine_conf = EventEngineConfig()
+EVENTENGINE_CONF = EventEngineConfig()
