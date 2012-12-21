@@ -59,6 +59,21 @@ class AlertGenerator(dict):
 
         self._messages = None
 
+    def __repr__(self):
+        dictrepr = super(AlertGenerator, self).__repr__()
+        attribs = [u"{0}={1!r}".format(key, value)
+                   for key, value in vars(self).items()
+                   if not key.startswith('_') and key != 'event']
+        return u"<AlertGenerator: {0} varmap={1}>".format(u" ".join(attribs),
+                                                          dictrepr)
+
+    def __nonzero__(self):
+        """AlertGenerator inherits from dict, but must always be
+        considered non-zero.
+
+        """
+        return True
+
     def make_alert(self):
         """Generates an alert object based on the current attributes"""
         attrs = {}
@@ -110,6 +125,7 @@ class AlertGenerator(dict):
 
     def post_alert(self, history=None):
         """Generates and posts an alert on the alert queue only"""
+        _logger.debug("posting to alert queue for %r", self)
         alert = self.make_alert()
         alert.history = history
         alert.save()
@@ -118,6 +134,7 @@ class AlertGenerator(dict):
 
     def post_alert_history(self):
         """Generates and posts an alert history record only"""
+        _logger.debug("posting to alert history for %r", self)
         history = self.make_alert_history()
         if history:
             history.save()

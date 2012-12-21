@@ -35,6 +35,16 @@ class DelayedStateHandler(EventHandler):
     def __init__(self, *args, **kwargs):
         super(DelayedStateHandler, self).__init__(*args, **kwargs)
         self.task = None
+        self._set_wait_times()
+
+    def _set_wait_times(self):
+        """Sets wait times from config options under the timeouts section"""
+        get_timeout_for = self.engine.config.get_timeout_for
+        for wait_var in ('WARNING_WAIT_TIME', 'ALERT_WAIT_TIME'):
+            new_value = get_timeout_for(getattr(self, wait_var))
+            if new_value:
+                setattr(self, wait_var, new_value)
+
 
     def handle(self):
         event = self.event
@@ -55,7 +65,7 @@ class DelayedStateHandler(EventHandler):
                 self.get_target())
             event.delete()
         else:
-            self._register_internal_down_state()
+            self._set_internal_state_down()
             if self.HAS_WARNING_ALERT:
                 self._logger.info(
                     "%s start event for %s; warning in %s seconds, declaring "
@@ -71,8 +81,18 @@ class DelayedStateHandler(EventHandler):
                     self.ALERT_WAIT_TIME)
                 self.schedule(self.ALERT_WAIT_TIME, self._make_down_alert)
 
-    def _register_internal_down_state(self):
-        """Registers any internal states necessary prior to posting alerts"""
+    def _set_internal_state_down(self):
+        """Called to set target's internal state to down as soon as start event
+        is received.
+
+        """
+        return
+
+    def _set_internal_state_up(self):
+        """Called to set target's internal state to up as soon as end event is
+        received.
+
+        """
         return
 
     def get_target(self):
@@ -85,6 +105,7 @@ class DelayedStateHandler(EventHandler):
 
         if is_unresolved or waiting_plugin:
             self._logger.info("%s is back up", self.get_target())
+            self._set_internal_state_up()
 
             if is_unresolved:
                 alert = self._get_up_alert()
@@ -141,18 +162,26 @@ class DelayedStateHandler(EventHandler):
 
     def _make_down_alert(self):
         alert = self._get_down_alert()
-        self._logger.info("%s: Posting %s alert", self.get_target(),
-                          alert.alert_type)
-        if self._box_is_on_maintenance():
-            alert.post_alert_history()
-        else:
-            alert.post()
+        if alert:
+            self._logger.info("%s: Posting %s alert", self.get_target(),
+                              alert.alert_type)
+            if self._box_is_on_maintenance():
+                alert.post_alert_history()
+            else:
+                alert.post()
 
         del self.__waiting_for_resolve[self.get_target()]
         self.task = None
         self.event.delete()
 
     def _get_down_alert(self):
+        """Returns a ready-made AlertGenerator that can be used to post a
+        down alert for the implementing plugin.
+
+        :return: An AlertGenerator instance, or None if no alert should be
+                 posted.
+
+        """
         raise NotImplementedError
 
     def _verify_shadow(self):

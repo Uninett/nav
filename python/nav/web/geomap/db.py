@@ -31,7 +31,7 @@ import re
 from datetime import datetime, timedelta
 
 import nav
-from nav.config import readConfig
+from nav.config import read_flat_config
 import rrdtool
 from django.core.cache import cache
 
@@ -41,7 +41,10 @@ from nav.web.geomap.utils import *
 logger = logging.getLogger('nav.web.geomap.db')
 
 
-_nav_conf = readConfig('nav.conf')
+try:
+    _nav_conf = read_flat_config('nav.conf')
+except IOError:
+    _nav_conf = {}
 _domain_suffix = _nav_conf.get('DOMAIN_SUFFIX', None)
 
 

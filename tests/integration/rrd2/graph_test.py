@@ -7,7 +7,7 @@ from nav.rrd2.presenter import Graph, time_last
 class TestGraph(unittest.TestCase):
 
     def setUp(self):
-        with patch('nav.config.readConfig'):
+        with patch('nav.config.read_flat_config'):
             self.graph = Graph()
             self.datasource = Mock()
             self.datasource.id = 1

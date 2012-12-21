@@ -16,13 +16,13 @@
 
 """Django configuration wrapper around the NAV configuration files"""
 
-from nav.config import readConfig
+from nav.config import read_flat_config
 from nav.db import get_connection_parameters
 import nav.buildconf
 import nav.path
 
 try:
-    nav_config = readConfig('nav.conf')
+    nav_config = read_flat_config('nav.conf')
 except IOError:
     nav_config = {}
 

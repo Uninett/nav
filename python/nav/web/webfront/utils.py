@@ -20,7 +20,7 @@ from datetime import datetime
 from django.db.models import Q
 
 from nav.web import webfrontConfig
-from nav.config import readConfig
+from nav.config import read_flat_config
 from nav.models.msgmaint import Message
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox
@@ -61,7 +61,7 @@ def tool_list(account):
     def load_tool(filename):
         if filename[0] != os.sep:
             filename = os.path.join(os.getcwd(), filename)
-        tool = readConfig(filename)
+        tool = read_flat_config(filename)
         if tool.has_key('priority'):
             tool['priority'] = int(tool['priority'])
         else:
