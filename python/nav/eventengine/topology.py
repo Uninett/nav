@@ -24,7 +24,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-def is_netbox_reachable(netbox):
+def netbox_appears_reachable(netbox):
     """Returns True if netbox appears to be reachable through the known
     topology.
 
