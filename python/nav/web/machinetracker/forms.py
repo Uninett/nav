@@ -83,3 +83,15 @@ class SwitchTrackerForm(forms.Form):
     days = forms.IntegerField(
         initial=7,
         widget=forms.TextInput(attrs={'size': 3}))
+
+
+class NetbiosTrackerForm(forms.Form):
+    search = forms.CharField()
+    dns = forms.BooleanField(required=False, initial=False)
+    days = forms.IntegerField(
+        initial=7,
+        widget=forms.TextInput(attrs={'size': 3}))
+
+    def clean_search(self):
+        """Make sure blank spaces and such is removed from search"""
+        return self.cleaned_data['search'].strip()

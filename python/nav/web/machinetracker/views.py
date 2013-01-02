@@ -24,7 +24,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.utils.datastructures import SortedDict
 
-from nav.models.manage import Arp, Cam
+from nav.models.manage import Arp, Cam, Netbios
 
 from nav import asyncdns
 
@@ -37,9 +37,11 @@ NAVBAR = [('Home', '/'), ('Machinetracker', None)]
 IP_TITLE = 'NAV - Machinetracker - IP Search'
 MAC_TITLE = 'NAV - Machinetracker - MAC Search'
 SWP_TITLE = 'NAV - Machinetracker - Switch Search'
+NBT_TITLE = 'NAV - Machinetracker - NetBIOS Search'
 IP_DEFAULTS = {'title': IP_TITLE, 'navpath': NAVBAR, 'active': {'ip': True}}
 MAC_DEFAULTS = {'title': MAC_TITLE, 'navpath': NAVBAR, 'active': {'mac': True}}
 SWP_DEFAULTS = {'title': SWP_TITLE, 'navpath': NAVBAR, 'active': {'swp': True}}
+NBT_DEFAULTS = {'title': NBT_TITLE, 'navpath': NAVBAR, 'active': {'netbios': True}}
 
 ADDRESS_LIMIT = 4096 # Value for when inactive gets disabled
 
@@ -315,3 +317,64 @@ def get_netbios_query(separator=', '):
               AND (arp.start_time, arp.end_time)
                    OVERLAPS (netbios.start_time,
                              netbios.end_time)""" % separator
+
+
+# NetBIOS
+def netbios_search(request):
+    """Controller for displaying search for NETBIOS name"""
+    if 'search' in request.GET:
+        return netbios_do_search(request)
+    info_dict = {
+        'form': forms.NetbiosTrackerForm()
+    }
+    info_dict.update(NBT_DEFAULTS)
+    return render_to_response(
+        'machinetracker/netbios_search.html',
+        info_dict,
+        RequestContext(request)
+    )
+
+
+def netbios_do_search(request):
+    """Handle a search for a NETBIOS name"""
+    form = forms.NetbiosTrackerForm(ProcessInput(request.GET).netbios())
+    info_dict = {
+        'form': form,
+        'form_data': None,
+        'netbios_tracker': None,
+        'netbios_tracker_count': 0,
+    }
+
+    if form.is_valid():
+        searchstring = form.cleaned_data['search']
+        days = form.cleaned_data['days']
+        dns = form.cleaned_data['dns']
+        from_time = date.today() - timedelta(days=days)
+
+        filters = (Q(mac__istartswith=searchstring) |
+                   Q(ip__istartswith=searchstring) |
+                   Q(name__icontains=searchstring))
+
+        result = Netbios.objects.filter(filters, end_time__gt=from_time)
+        result = result.order_by('name', 'mac','start_time')
+        result = result.values('ip', 'mac', 'name', 'server', 'username',
+                               'start_time', 'end_time')
+
+        nbt_count = len(result)
+
+        netbios_tracker = track_mac(('ip', 'mac', 'nbname', 'server',
+                                     'username', 'start_time', 'end_time'),
+                                    result, dns)
+
+        info_dict.update({
+            'form_data': form.cleaned_data,
+            'netbios_tracker': netbios_tracker, #nbt_result,
+            'netbios_tracker_count': nbt_count,
+        })
+
+    info_dict.update(NBT_DEFAULTS)
+    return render_to_response(
+        'machinetracker/netbios_search.html',
+        info_dict,
+        RequestContext(request)
+    )

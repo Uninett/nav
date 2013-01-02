@@ -153,3 +153,7 @@ class ProcessInput:
     def swp(self):
         self.__common()
         return self.input
+
+    def netbios(self):
+        self.__common()
+        return self.input

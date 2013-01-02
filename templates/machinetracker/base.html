@@ -17,6 +17,9 @@
         <li class="{{ active.swp|yesno:"tabactive," }}">
             <a href="{% url machinetracker-swp %}">Switch Search</a>
         </li>
+        <li class="{{ active.netbios|yesno:"tabactive," }}">
+            <a href="{% url machinetracker-netbios %}">Netbios Search</a>
+        </li>
     </ul>
 </div>
 
