@@ -22,14 +22,15 @@ from urllib import quote, unquote
 from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
 from django.template import RequestContext
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
 
 from nav.config import read_flat_config
 from nav.path import sysconfdir
 from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
-from nav.models.profiles import Account, AccountNavbar, NavbarLink
+from nav.models.profiles import Account, AccountNavbar, NavbarLink, Tool, \
+    AccountTool, AccountProperty
 from nav.models.manage import Netbox
 from nav.web.templates.DjangoCheetah import DjangoCheetah
 
@@ -37,6 +38,11 @@ from nav.web import ldapauth, auth
 from nav.web.state import deleteSessionCookie
 from nav.web.webfront.utils import quick_read, current_messages, boxes_down, tool_list
 from nav.web.webfront.forms import LoginForm, NavbarForm, PersonalNavbarForm
+
+import simplejson
+import logging
+
+_logger = logging.getLogger('nav.web.tools')
 
 WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
 WELCOME_ANONYMOUS_PATH = os.path.join(WEBCONF_DIR_PATH, "welcome-anonymous.txt")
@@ -153,17 +159,81 @@ def about(request):
     )
 
 def toolbox(request):
+    """Render the toolbox"""
     account = get_account(request)
-    tools = tool_list(account)
+    try:
+        layout_prop = AccountProperty.objects.get(account=account,
+                                            property='toolbox-layout')
+        layout = layout_prop.value
+    except AccountProperty.DoesNotExist:
+        layout = 'grid'
+
+    account_tools = account.get_tools()
+
+    # Fetch tools that this user has never seen if it has permission
+    other_tools = [tool for tool in
+                   Tool.objects.exclude(
+                       accounttool__in=account_tools).order_by('-priority')
+                   if account.has_perm('web_access', tool.uri)]
+
     return direct_to_template(
         request,
         'webfront/toolbox.html',
         {
             'navpath': [('Home', '/'), ('Toolbox', None)],
-            'tools': tools,
+            'layout': layout,
+            'account_tools': account_tools,
+            'other_tools': other_tools,
             'title': 'NAV toolbox',
         },
     )
+
+
+def save_tools(request):
+    """Save changes to tool setup for user"""
+    account = get_account(request)
+    if account.is_default_account():
+        return HttpResponse(status=401)
+
+    if 'data' in request.POST:
+        account = get_account(request)
+        tools = simplejson.loads(request.POST.get('data'))
+        for toolid, options in tools.items():
+            tool = Tool.objects.get(pk=toolid)
+            try:
+                atool = AccountTool.objects.get(account=account, tool=tool)
+            except AccountTool.DoesNotExist:
+                atool = AccountTool(account=account, tool=tool)
+
+            atool.priority = options['index']
+            atool.display = options['display']
+            atool.save()
+
+    return HttpResponse()
+
+
+def set_tool_layout(request):
+    """Save tool layout for user"""
+    account = get_account(request)
+    if account.is_default_account():
+        return HttpResponse(status=401)
+
+    if 'layout' in request.POST:
+        account = get_account(request)
+        layout = request.POST['layout']
+        if layout in ['grid', 'list']:
+            try:
+                layout_prop = AccountProperty.objects.get(
+                    account=account, property='toolbox-layout')
+            except AccountProperty.DoesNotExist:
+                layout_prop = AccountProperty(account=account,
+                                             property='toolbox-layout')
+
+            layout_prop.value = layout
+            layout_prop.save()
+
+    return HttpResponse()
+
 
 def preferences(request):
     return direct_to_template(

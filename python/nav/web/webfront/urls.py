@@ -17,7 +17,8 @@
 
 from django.conf.urls.defaults import url, patterns
 
-from nav.web.webfront.views import index, login, logout, about, toolbox
+from nav.web.webfront.views import (index, login, logout, about, toolbox,
+                                    save_tools, set_tool_layout)
 from nav.web.webfront.views import preferences, preferences_navigation
 
 urlpatterns = patterns('',
@@ -29,8 +30,12 @@ urlpatterns = patterns('',
         name='webfront-logout'),
     url(r'^about/', about,
         name='webfront-about'),
-    url(r'^toolbox/', toolbox,
+    url(r'^toolbox/$', toolbox,
         name='webfront-toolbox'),
+    url(r'^toolbox/savetools', save_tools,
+        name='webfront-save-toolbox'),
+    url(r'^toolbox/changelayout', set_tool_layout,
+        name='webfront-set-tool-layout'),
     url(r'^preferences/$', preferences,
         name='webfront-preferences'),
     url(r'^preferences/navigation/', preferences_navigation,

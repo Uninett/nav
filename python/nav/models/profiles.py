@@ -115,6 +115,12 @@ class Account(models.Model):
                 group__in=self.get_groups())
             return self._cached_privileges
 
+    def get_tools(self):
+        """Get the tool list for this account"""
+        return [tool for tool in
+                self.accounttool_set.all().order_by('priority')
+                if self.has_perm('web_access', tool.tool.uri)]
+
     def has_perm(self, action, target):
         '''Checks if user has permission to do action on target.'''
         groups = self.get_groups()
@@ -1332,3 +1338,34 @@ class NetmapViewNodePosition(models.Model):
 
     class Meta:
         db_table = u'netmap_view_nodeposition'
+
+
+class Tool(models.Model):
+    """Metainformation about NAV tools"""
+    id = models.AutoField(primary_key=True, db_column='toolid')
+    name = VarcharField(db_column='toolname')
+    uri = VarcharField()
+    icon = VarcharField()
+    description = VarcharField(null=True)
+    priority = models.IntegerField(null=True)
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        db_table = u'tool'
+
+
+class AccountTool(models.Model):
+    """Link between tool and account"""
+    id = models.AutoField(db_column='accounttoolid', primary_key=True)
+    tool = models.ForeignKey(Tool, db_column='toolid')
+    account = models.ForeignKey(Account, db_column='accountid')
+    display = models.BooleanField(default=True)
+    priority = models.IntegerField(default=0)
+
+    def __unicode__(self):
+        return "%s - %s" % (self.tool, self.account)
+
+    class Meta:
+        db_table = u'accounttool'
