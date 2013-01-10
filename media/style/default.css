@@ -143,28 +143,34 @@ div#navlogo h1 a:hover {
 
 
 /* Menu bar */
-div#navbar {
+#navbar {
 	background: #eee;
 	border: 1px solid #999;
 	color: black;
 	margin: 0.5em 0;
-}
-div#navbar table {
-	width: 100%;
-}
-div#navbar table td {
-	padding: 0.1em 0.5em;
-	white-space: nowrap;
-}
-div#navbar table td.spacer {
-	text-align: right;
-	width: 100%;
+    line-height: 3em;
 }
 
-/* Breadcrumbs path */
-div#navpath {
-	padding: 0.5em 0;
+#navbar > div {
+    margin: 0 0.5em;
 }
+
+#navpath {
+    float: left;
+}
+
+#navbarlogininfo, #navbarquicklinks, #navbarlinks, #navbarsearch {
+    float: right;
+}
+
+#navbarsearch form {
+    margin: 0;
+}
+
+#navbarlinks a {
+    margin: 0 0.3em;
+}
+
 
 /* Toolbar */
 div#toolbar {
@@ -528,3 +534,51 @@ p.paginator .active {
 .button-selected {
     font-weight: bold;
 }
+
+
+/************************************************
+ *
+ * MEDIA QUERIES FOR ADAPTION TO SMALLER SCREENS
+ *
+ ************************************************/
+
+/* Not so large screen */
+@media screen and (max-width: 900px) {
+    #navbarquicklinks {
+        clear: left;
+    }
+}
+
+/* Small screen */
+@media screen and (max-width: 768px) {
+    #navlogo {
+        overflow: auto;
+    }
+
+    #navlogo h1 span {
+        display: none;
+    }
+}
+
+/* Smartphone landscape */
+@media only screen
+and (max-width : 480px) {
+
+    #navbarlogininfo .logout {
+        display: none;
+    }
+
+    #navbar > div {
+        float: none;
+        text-align: center;
+    }
+
+    div.boxes {
+        display: none;
+    }
+
+}
+
+/* Smartphone portrait */
+@media only screen
+and (max-width : 320px) {}

@@ -1,49 +1,49 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
+    <link rel="stylesheet" href="/style/index.css" />
     <script type="text/javascript" data-main="src/webfront" src="/js/libs/require.js"></script>
 {% endblock %}
 
 
 {% block base_content %}
 
-<div class="boxes">
-    <table>
-        <tr>
-            <th>NAV Links</th>
-        </tr>
-        <tr>
-            <td>
-                {% for title,link in nav_links.items %}
-                <a href="{{ link }}">{{ title }}</a><br />
-                {% endfor %}
-            </td>
-        </tr>
-    </table>
-    <table>
-        <tr>
-            <th>External links</th>
-        </tr>
-        <tr>
-            <td>{{ external_links|safe }}</td>
-        </tr>
-    </table>
-    <table>
-        <tr>
-            <th>Contact information</th>
-        </tr>
-        <tr>
-            <td>{{ contact_information|safe }}</td>
-        </tr>
-    </table>
-</div>
+    <div class="boxes">
+        <table>
+            <tr>
+                <th>NAV Links</th>
+            </tr>
+            <tr>
+                <td>
+                    {% for title,link in nav_links.items %}
+                        <a href="{{ link }}">{{ title }}</a><br />
+                    {% endfor %}
+                </td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <th>External links</th>
+            </tr>
+            <tr>
+                <td>{{ external_links|safe }}</td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <th>Contact information</th>
+            </tr>
+            <tr>
+                <td>{{ contact_information|safe }}</td>
+            </tr>
+        </table>
+    </div>
 
-<div class="welcome">
-    {{ welcome|safe }}
-</div>
+    <div class="welcome">
+        {{ welcome|safe }}
+    </div>
 
-
-<table class="listtable">
+    <table class="listtable">
     <caption>
         <a href="/messages/">Messages</a><br />
         <span class="subtitle">
@@ -109,4 +109,5 @@
         </tbody>
     {% endif %}
 </table>
+
 {% endblock %}
