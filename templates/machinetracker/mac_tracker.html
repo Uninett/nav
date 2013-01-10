@@ -1,4 +1,4 @@
-<table class="listtable">
+<table id="tracker-table" class="listtable tablesorter">
     <caption>
         MAC Search results<br />
         <span class="subtitle">
@@ -16,10 +16,10 @@
         </tr>
     </thead>
 
-    {% for key, result in mac_tracker.items %}
     <tbody>
+    {% for key, result in mac_tracker.items %}
         {% for row in result %}
-        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+        <tr>
             {% if forloop.first %}
             <td>
                 {% if row.netbox__sysname %}
@@ -71,8 +71,8 @@
             </td>
         </tr>
         {% endfor %}
-    </tbody>
     {% endfor %}
+    </tbody>
 
     <tfoot>
         <tr>

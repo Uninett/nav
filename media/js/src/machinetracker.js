@@ -17,4 +17,11 @@ require(["libs/jquery.tablesorter.min"], function (tablesorter) {
                 headers: columnsToNotSort,
                 widgets: ['zebra']});
             });
+            
+            // If the form is reloaded, display correct data
+            if($('#id_days').val() == "-1") {
+                $('#id_hide').attr('checked', 'true');
+                $('#id_days').attr('disabled', 'disabled');
+                $('#id_days').val("7");
+            }
         });
