@@ -112,13 +112,7 @@ threshold.serverError = function(){
     return -1;
 };
 
-threshold.ajaxError = function( request, ErrMessage, errType){
-
-    // In this file, the ajaxError() from addGlobalAjaxHandlers is overwritten,
-    // and we must add it manually here. (Not cool..)
-    if(request.status == 401) {
-        window.location = '/index/login/?origin=' + encodeURIComponent(window.location.href);
-    }
+threshold.ajaxError = function( request, errMessage, errType){
     var errMsg = 'Error: ' + errMessage + '; ' + errType;
     threshold.updateMessages(errMsg, true);
     return -1;
