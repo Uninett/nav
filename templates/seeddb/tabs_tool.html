@@ -1,0 +1,10 @@
+<li class="{{ sub_active.list|yesno:"tabactive," }}">
+    <a href="{% url seeddb-tool %}">Tools</a></li>
+<li class="{{ sub_active.add|yesno:"tabactive," }}">
+    <a href="{% url seeddb-tool-add %}">Add new tool</a>
+</li>
+{% if object %}
+<li class="{{ sub_active.edit|yesno:"tabactive," }}">
+    <a href="{% url seeddb-tool-edit object.id %}">Edit tool "{{ object.name }}"</a>
+</li>
+{% endif %}
