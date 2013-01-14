@@ -16,6 +16,7 @@ Target --default--
     snmp                =    %snmp-community%@%snmp-host%:%snmp-port%:%snmp-timeout%:%snmp-retries%:%snmp-backoff%:%snmp-version%
     directory-desc      =    "Graphs for %auto-target-name%"
     show-path           =    yes
+    short-desc          =    ""
 
 OID    sysUptime           1.3.6.1.2.1.1.3.0
 OID    ifNumber            1.3.6.1.2.1.2.1.0
@@ -114,11 +115,6 @@ rra    2hrMax      MAX:0.5:24:600
 # one point every day, spanning 600 days
 rra    1dayAve     AVERAGE:0.5:288:600
 rra    1dayMax     MAX:0.5:288:600
-
-
-# Default target config
-target --default--
-    short-desc   =    ""
 
 
 # we will add datasources to each specific target-type later
