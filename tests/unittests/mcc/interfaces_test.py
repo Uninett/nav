@@ -81,9 +81,7 @@ class InterfaceTest(unittest.TestCase):
 
 
     def test_create_rrd_container(self):
-        with patch('nav.mcc.interfaces.get_unit') as getunit:
-            getunit.side_effect = lambda x: self.datasource_units[x]
-
+        with patch.dict('nav.mcc.interfaces.DATASOURCES', self.datasources):
             interface = Mock()
             netbox = Mock()
             netbox.sysname = 'uninett-gw'
@@ -105,8 +103,7 @@ class InterfaceTest(unittest.TestCase):
                     Datasource('ds' + str(index), datasource, 'DERIVE',
                                self.datasource_units[datasource]))
 
-            container = create_rrd_container(self.datasources, interface,
-                                             targetname, module)
+            container = create_rrd_container(interface, targetname, module)
             self.assertEqual(container.datasources, dummycontainer.datasources)
             self.assertEqual(container, dummycontainer)
 
