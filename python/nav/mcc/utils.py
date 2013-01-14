@@ -1,6 +1,8 @@
 """
 Contains help functions for the various config creation modules.
 """
+from functools import wraps
+from time import time
 import re
 import sys
 import logging
@@ -21,6 +23,33 @@ TARGETFILENAME = 'navTargets'
 
 class NoConfigRootException(GeneralException):
     "Could not find Crickets configroot ($gConfigRoot in cricket-conf.pl)"
+
+
+class Memoize(object):
+    """Basic memoization"""
+    def __init__(self, function):
+        self.function = function
+        self.memoized = {}
+
+    def __call__(self, *args):
+        try:
+            return self.memoized[args]
+        except KeyError:
+            self.memoized[args] = self.function(*args)
+            return self.memoized[args]
+
+
+def timed(f):
+    """Decorator to time execution of functions"""
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        """Decorator"""
+        start = time()
+        result = f(*args, **kwds)
+        elapsed = time() - start
+        LOGGER.debug("%s took %f seconds to finish" % (f.__name__, elapsed))
+        return result
+    return wrapper
 
 
 def start_config_creation(modules, config):
@@ -149,7 +178,7 @@ def check_file_existence(datadir, sysname):
     filename = join(datadir, sysname)
 
     if not os.path.exists(filename):
-        LOGGER.info("File %s does not exist, deleting tuple from database" \
+        LOGGER.info("File %s does not exist, deleting tuple from database"
                     % filename)
 
         conn = getConnection('default')
