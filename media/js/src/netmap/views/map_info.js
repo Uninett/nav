@@ -13,67 +13,40 @@ define([
     var MapInfoView = Backbone.View.extend({
         broker: Backbone.EventBroker,
         interests: {
-            'map:show_vlan': 'setSelectedVlan'
+            "netmap:selectNetbox": "setSelectedNetbox",
+            "netmap:selectedLink": "setSelectedLink"
         },
         events: {
         },
         initialize: function () {
+            this.linkInfoView = null;
+            this.netboxInfoView = null;
+
             this.broker.register(this);
             this.template = Handlebars.compile(mapInfoTemplate);
-            Handlebars.registerHelper('toLowerCase', function (value) {
-                return (value && typeof value === 'string') ? value.toLowerCase() : '';
-            });
 
             this.render();
 
         },
-        swap_to_link: function (link) {
-            if (this.netboxInfoView !== undefined) {
-                this.netboxInfoView.reset();
-            }
-            this.linkInfoView.setLink(link, this.selected_vlan);
-            this.linkInfoView.render();
-        },
-        swap_to_netbox: function (netbox) {
-            if (this.linkInfoView !== undefined) {
+        setSelectedNetbox: function (data) {
+            if (this.linkInfoView.hasLink()) {
                 this.linkInfoView.reset();
             }
-            this.netboxInfoView.setNode(netbox, this.selected_vlan);
-            this.netboxInfoView.render();
+            this.netboxInfoView.setNode(data.netbox, data.selectedVlan);
         },
-        setSelectedVlan: function (selected_vlan) {
-            this.selected_vlan = selected_vlan;
+        setSelectedLink: function (data) {
+            if (this.netboxInfoView.hasNode()) {
+                this.netboxInfoView.reset();
+            }
+
+            this.linkInfoView.setLink(data.link, data.selectedVlan);
         },
         render: function () {
             var self = this;
-
-            var netbox = null;
-            var link = null;
-
-            if (this.linkInfoView !== undefined && this.linkInfoView.link) {
-                link = this.linkInfoView.link;
-                this.linkInfoView.close();
-            } else if (this.netboxInfoView !== undefined && this.netboxInfoView.node) {
-                netbox = this.netboxInfoView.node;
-                this.netboxInfoView.close();
-            }
-
-            var out = null;
-            if ($("#netmap_link_to_admin").length !== 0) {
-                out = this.template({link_to_admin: $("#netmap_link_to_admin").html().trim()});
-            } else {
-                out = this.template({link_to_admin: false});
-            }
+            var out = this.template();
             this.$el.html(out);
-
-            this.linkInfoView = new LinkInfoView({el: $("#linkinfo", this.$el)});
-            this.netboxInfoView = new NetboxInfoView({el: $("#nodeinfo", this.$el)});
-            if (netbox !== null) {
-                this.swap_to_netbox(netbox);
-            } else if (link !== null) {
-                this.swap_to_link(link);
-            }
-
+            this.linkInfoView = this.attachSubView(this.linkInfoView, LinkInfoView, '#linkinfo');
+            this.netboxInfoView = this.attachSubView(this.netboxInfoView, NetboxInfoView, '#nodeinfo');
             return this;
         },
         close: function () {
