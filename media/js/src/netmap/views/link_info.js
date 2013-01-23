@@ -11,14 +11,20 @@ define([
 
     var LinkInfoView = Backbone.View.extend({
         broker: Backbone.EventBroker,
-
+        interests: {
+            "netmap:selectVlan": "setSelectedVlan"
+        },
         initialize: function () {
+            this.broker.register(this);
             this.template = Handlebars.compile(netmapTemplate);
             Handlebars.registerHelper('toLowerCase', function (value) {
                 return (value && typeof value === 'string') ? value.toLowerCase() : '';
             });
             this.link = this.options.link;
             this.vlanView = new VlanInfoView();
+        },
+        hasLink: function () {
+            return !!this.link;
         },
         render: function () {
             var self = this;
@@ -55,10 +61,15 @@ define([
 
             return this;
         },
+        setSelectedVlan: function (selected_vlan) {
+            this.vlanView.setSelectedVlan(selected_vlan);
+            this.render();
+        },
         setLink: function (link, selected_vlan) {
             this.link = link;
             this.vlanView.setVlans(link.data.uplink.vlans);
             this.vlanView.setSelectedVlan(selected_vlan);
+            this.render();
         },
         reset: function () {
             this.link = undefined;
