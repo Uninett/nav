@@ -13,6 +13,8 @@ require(['libs/jquery'], function () {
     var queue = new Array();
 
     $(document).ready(function(){
+        NAV.addGlobalAjaxHandlers();
+
         var interfaceTable = $('#portadmin-interfacecontainer');
         if (interfaceTable.length) {
             addChangeListener(interfaceTable);
