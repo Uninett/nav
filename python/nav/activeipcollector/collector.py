@@ -68,7 +68,7 @@ def get_interval_query(intervals):
     LEFT JOIN arp ON (
         ip << netaddr AND
         (timeentry >= start_time AND timeentry <= end_time))
-    WHERE vlan.nettype NOT IN ('loopback')
+    WHERE vlan.nettype NOT IN ('loopback') AND ip IS NOT NULL
     GROUP BY netaddr, timeentry
     ORDER BY timeentry
     """ % intervals
