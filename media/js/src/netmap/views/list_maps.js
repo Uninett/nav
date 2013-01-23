@@ -1,5 +1,6 @@
 define([
     'plugins/netmap-extras',
+    'netmap/resource',
     'netmap/collections/map',
     'netmap/models/map',
     'netmap/models/graph',
@@ -13,7 +14,7 @@ define([
     'libs/backbone-eventbroker',
     'libs/spin.min',
     'plugins/jquery_spinjs'
-], function (NetmapExtras, CollectionMapProperties, ModelMapProperties, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
+], function (NetmapExtras, Resources, CollectionMapProperties, ModelMapProperties, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
 
     var ListNetmapView = Backbone.View.extend({
         tagName: "div",
@@ -23,7 +24,9 @@ define([
         interests: {
             "netmap:mapProperties": "setMapProperties",
             "netmap:graph": "setGraph",
-            "netmap:setMapProperties:done": "enableView",
+            "netmap:setMapProperties:done": "render",
+            "netmap:save:removeUnsavedView": "removeUnsavedViewFromCollection",
+            "netmap:save:newMapProperties": "addMapPropertiesToCollection",
             "map:topology_change": "deactiveAndShowSpinnerWhileLoading",
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
         },
@@ -32,8 +35,7 @@ define([
             "click #save_new_view": "showSaveAsView",
             "click #delete_view": "deleteView",
             "click #set_as_user_favorite": "setFavorite",
-            "change #dropdown_view_id": "eventViewChanged",
-            'click #toggle_view': 'toggleView'
+            "change #dropdown_view_id": "eventChangeActiveMapProperties",
         },
         initialize: function () {
             var self = this;
@@ -42,55 +44,58 @@ define([
 
             this.template = Handlebars.compile(netmapTemplate);
 
-            this.isLoading = !!this.collection;
             if (this.collection) {
                 this.collection.bind("reset", this.render, this);
-                this.collection.bind("change", this.eventViewChanged, this);
+                this.collection.bind("change", this.eventChangeActiveMapProperties, this);
                 this.collection.bind("destroy", this.close, this);
             } else {
-                this.collection = new CollectionMapProperties();
-                this.collection.fetch({
-                    success: function (collection, attributes) {
-                        self.collection = collection;
-                        // if no netmap views loaded from API OR no active map property (read: netmap view is active)
-                        if (self.collection.length <= 1 || !self.options.activeMapProperty) {
-                            self.collection.unshift({}); // insert empty Map model
-                            self.options.activeMapProperty = self.collection.at(0);
+                if (!this.options.activeMapProperties) {
+                    this.options.activeMapProperties = Resources.getMapProperties();
+                    this.options.activeMapProperties.set({"is_selected": true});
+                }
+
+                this.options.activeMapProperties.bind("change", this.render, this);
+
+                this.collection = Resources.getMapPropertiesCollection();
+                if (!this.collection) {
+                    this.collection = new CollectionMapProperties();
+                    this.collection.fetch({
+                        success: function (collection, attributes) {
+                            self.collection = collection;
+                            // if no netmap views loaded from API OR no active map property (read: netmap view is active)
+                            if (self.collection.length <= 1 || !self.options.activeMapProperties) {
+                                self.collection.unshift({}); // insert empty Map model
+                                self.options.activeMapProperties = self.collection.at(0);
+                                self.options.activeMapProperties.bind("change", this.render, this);
+                            }
+                            self.collection.bind("change", self.render, self);
+                            self.render();
+                        },
+                        error:   function () {
+                            alert("error loading collection over available views");
                         }
-                        self.collection.bind("change", self.render, self);
-                        self.render();
-                    },
-                    error: function () {
-                        alert("error loading collection over available views");
-                    }
-                });
+                    });
+                }
             }
 
             this.broker.trigger("netmap:request:graph");
-
-            //ResourceManager.getInterest("mapProperties");
-
-
-            //this.options.mapProperties.map.bind("change", this.updateCollection, this);
-
         },
         setMapProperties: function (mapProperties) {
+            if (this.collection) {
+                this.collection.unbind("change");
+            }
             this.collection = mapProperties;
+            this.collection.bind("change", this.render, this);
             this.render();
         },
         setGraph: function (graph) {
             this.graph = graph;
-            this.isLoading = false;
             this.render();
         },
-        updateCollection: function () {
-            if (this.options.mapProperties.map.attributes.viewid !== undefined) {
-                var map = this.collection.get(this.options.mapProperties.map.attributes.viewid);
-                if (map === undefined) {
-                    this.collection.add(this.options.mapProperties.map);
-                }
-            }
-            this.render();
+        isLoading: function () {
+            return !this.options.activeMapProperties ||
+                !this.graph ||
+                !this.collection;
         },
         showCreateNewViewDialog: function () {
             this.showSaveModal(true);
@@ -104,72 +109,77 @@ define([
                 self.viewModalSave.close();
             }
 
-            self.viewModalSave = new SaveDialogView({
-                model: self.options.activeMapProperty,
-                graph: self.graph
-            });
+            var context = {
+                model: self.options.activeMapProperties,
+                graph: self.graph,
+                transactionAbortId: self.options.activeMapProperties.get('viewid'),
+                isNew: isNewView
+            };
 
+            self.viewModalSave = new SaveDialogView(context);
             self.viewModalSave.render();
+        },
+        addMapPropertiesToCollection: function (model) {
+            this.collection.add(model);
+            this.options.activeMapProperties = model;
+            this.render();
+        },
+        removeUnsavedViewFromCollection: function (model) {
+            this.collection.remove(model);
         },
         setFavorite: function (e) {
             e.preventDefault();
             var self = this;
             var user_id = $("#netmap_userid").html();
 
-            var updateUserDefaultMap = new DefaultMapModel({ownerid: parseInt(user_id, 10), viewid: self.options.activeMapProperty.get('viewid')});
+            var favoriteBeforeChanging = self.collection.getFavorite();
+            var updateUserDefaultMap = new DefaultMapModel({ownerid: parseInt(user_id, 10), viewid: self.options.activeMapProperties.get('viewid')});
             updateUserDefaultMap.save(this.attributes, {
                 success: function (model) {
-                    self.collection.setFavorite(model);
+                    self.collection.setFavorite(model.get('viewid'));
                     self.render();
+
                 },
                 error: function () {
+                    self.collection.setFavorite(favoriteBeforeChanging);
+                    self.render();
                     alert("Error while setting favorite view");
                 }
             });
 
         },
-        getPropertiesToKeep: function () {
-            var self = this;
-            return {
-                is_public: self.options.mapProperties.map.attributes.is_public,
-                topology: self.options.mapProperties.map.attributes.topology,
-                categories: self.options.mapProperties.map.attributes.categories,
-                zoom: self.options.mapProperties.map.attributes.zoom,
-                display_orphans: self.options.mapProperties.map.attributes.display_orphans
-            };
-        },
         showSaveView: function (e) {
             e.preventDefault();
-            //var self = this;
-            //var selected_id = $("#dropdown_view_id :selected", this.$el).val();
-            this.showUpdateViewDialog();
+
+            if (!this.isLoading()) {
+                this.showUpdateViewDialog();
+            }
         },
         showSaveAsView: function () {
-            var self = this;
-            if (!self.isLoading) {
-                var properties = self.getPropertiesToKeep();
-                self.options.mapProperties.map.unbind("change");
-                self.options.mapProperties.map = new MapModel();
-                self.options.mapProperties.map.set(properties);
-                self.options.mapProperties.map.bind("change", this.updateCollection, this);
+            if (!this.isLoading()) {
                 this.showCreateNewViewDialog();
             }
         },
         deleteView: function (e) {
             e.preventDefault();
             var self = this;
-            if (!self.isLoading) {
-                var selected_id = self.options.mapProperties.map.id;
-                self.options.mapProperties.map.destroy({
+            if (!self.isLoading()) {
+                self.options.activeMapProperties.destroy({
                     success: function () {
-                        var properties = self.getPropertiesToKeep();
-                        self.options.mapProperties.map.unbind("change");
-                        self.options.mapProperties.map = new MapModel();
-                        self.options.mapProperties.map.set(properties);
-                        self.options.mapProperties.map.bind("change", this.updateCollection, this);
-                        self.options.mapProperties.id = undefined;
-                        Backbone.history.navigate("");
-                        self.broker.trigger("map:mapProperties", self.options.mapProperties);
+                        var newClonedMapProperties = self.options.activeMapProperties.clone();
+                        self.options.activeMapProperties.unbind("change");
+                        newClonedMapProperties.unset('viewid', {silent: true});
+                        newClonedMapProperties.unset('isFavorite', {silent: true});
+                        newClonedMapProperties.set({'title': "Unsaved view"}, {silent: true});
+                        self.options.activeMapProperties = newClonedMapProperties;
+
+
+                        self.collection.resetIsSelected();
+                        self.collection.add(newClonedMapProperties);
+
+                        self.options.activeMapProperties.bind("change", self.render, self);
+                        Backbone.history.navigate("view/random");
+                        self.render();
                     },
                     error: function () {
                         alert("Failed to delete view");
@@ -178,25 +188,31 @@ define([
             }
 
         },
-        eventViewChanged: function (e) {
+        eventChangeActiveMapProperties: function (e) {
             var self = this;
-
-            // todo: make an option to check for not loading categories from
-            //       a saved map but keep what is already chosen.
-            //var keep_categories = self.options.context_selected_map.map.attributes.categories;
-
             var selected_id = parseInt(this.$("#dropdown_view_id :selected").val().trim(), 10);
 
             var model = this.collection.get(selected_id);
             if (model) {
-                this.options.activeMapProperty = model;
-                this.collection.forEach(function (element, index, list) {
-                   element.set({"is_selected": false}, {silent: true});
-                });
-                this.options.activeMapProperty.set({"is_selected": true});
-                this.broker.trigger("netmap:changeMapProperties", this.options.activeMapProperty);
+                this.options.activeMapProperties.unbind("change");
+
+                // remove 'Unsaved view' from dropdown if swapping to another saved view
+                if (this.options.activeMapProperties.isNew() && this.options.activeMapProperties.get('title') === 'Unsaved view') {
+                    this.collection.remove(this.options.activeMapProperties);
+                }
+
+                this.options.activeMapProperties = model;
+                this.options.activeMapProperties.bind("change", this.render, this);
+
+                this.collection.resetIsSelected();
+                this.options.activeMapProperties.set({"is_selected": true});
+
+                if (this.graph.get('viewid') !== selected_id) {
+                    this.graph = null; // changing view, need new graph
+                }
+                this.broker.trigger("netmap:changeMapProperties", this.options.activeMapProperties);
+
                 Backbone.View.navigate("view/" + selected_id);
-                this.isLoading = true;
                 this.render();
                 // setGraph should be triggered by event next by draw_map
             }
@@ -209,45 +225,6 @@ define([
             this.$el.find("#dropdown_view_id").attr('disabled', 'disabled');
             //self.broker.trigger('map:loading:context_selected_map');
         },
-        enableView: function () {
-            this.isLoading = false;
-            this.render();
-        },
-        headerFooterMinimizeRequest: function (options) {
-            if (options && options.name === 'header' && (options.isShowing !== this.isContentVisible)) {
-                this.toggleView();
-            }
-        },
-        toggleView: function (e) {
-            this.isContentVisible = !this.isContentVisible;
-            var margin = this.alignView();
-
-            this.broker.trigger('map:resize:animate', {marginRight: margin});
-        },
-        alignView: function () {
-            var $helper = $(this.$el.parent().parent());
-            //var $helper_content = $(".inner_wrap", this.$el);
-            var $helper_content = $(".inner_wrap.right_sidebar"); // hack until 'ScrollViewRightPane' is created!
-
-            var margin;
-
-            if (!this.isContentVisible) {
-                margin = 30;
-                $("a#toggle_view", this.$el).html("&lt;&lt;");
-
-                $helper_content.fadeOut('fast');
-                $helper.animate({'width': "{0}px".format(12) }, 400);
-            } else {
-                margin = 210;
-
-                $("a#toggle_view", this.$el).html("&gt;&gt;");
-
-                $helper_content.fadeIn('fast');
-                $helper.animate({'width': "{0}px".format(margin - 40) }, 400);
-            }
-            return margin;
-            //$("#netmap_main_view").animate({'margin-right': "{0}px".format(margin)}, 400);
-        },
         render: function () {
             var self = this;
             var context = {};
@@ -256,17 +233,9 @@ define([
             } else {
                 context.maps = null;
             }
-            context.mapProperties = (this.mapProperties && this.mapProperties.toJSON()) || null;
-            context.isNewOrIsloading = ((this.map && this.map.isNew()) || this.isLoading) || null;
-            context.isLoading = this.isLoading;
 
-            /*if (this.options.context_user_default_view && this.options.context_user_default_view.attributes.viewid === this.options.mapProperties.map.attributes.viewid) {
-                context.isFavorite = this.options.context_user_default_view;
-            } else {
-                context.isFavorite = false;
-            }*/
-            console.log("redner maps:");
-            console.log(context.maps);
+            context.isLoading = this.isLoading();
+            context.isFavorite = this.options.activeMapProperties.get('isFavorite', false);
 
             var out = this.template(context);
 
@@ -276,19 +245,12 @@ define([
                 $(".loading", this.$el).spin();
             }
 
-            self.alignView();
-
             return this;
         },
         close:function () {
             this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
-        },
-
-        // private methods
-        is_selected_view_really_changed: function (selected_id, selected_netmap)  {
-            return selected_netmap !== undefined && selected_id !== undefined && selected_id != selected_netmap.attributes.id;
         }
     });
     return ListNetmapView;
