@@ -203,8 +203,10 @@ def render_templates(alert):
 
     """
     ensure_alert_templates_are_available()
-    templates = get_list_of_templates_for(alert.event_type.id,
-                                          alert.alert_type)
+    templates = (
+        get_list_of_templates_for(alert.event_type.id, alert.alert_type)
+        or get_list_of_templates_for(alert.event_type.id)
+        )
     if not templates:
         _logger.error("no templates defined for %r, sending generic alert "
                       "message", alert)
@@ -225,14 +227,11 @@ def _render_template(details, alert):
     return details, template.render(Context(context)).strip()
 
 
-def get_list_of_templates_for(event_type, alert_type):
+def get_list_of_templates_for(event_type, alert_type="default"):
     """Returns a list of TemplateDetails objects for the available alert
     message templates for the given event_type and alert_type.
 
     """
-    if not alert_type:
-        alert_type = "default"
-
     def _matcher(name):
         match = TEMPLATE_PATTERN.search(name)
         if match and match.group('alert_type') == alert_type:
