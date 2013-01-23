@@ -48,7 +48,7 @@ define([
             if (positionToUpdate) {
                 this.collection.setAllUnselectedSilently();
                 positionToUpdate.set({'is_selected': $(event.currentTarget).prop('checked')}, {'error': function (error) {
-                    console.log(error);
+                    alert(error);
                 }});
             }
         },
