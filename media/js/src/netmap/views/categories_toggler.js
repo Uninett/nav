@@ -1,4 +1,5 @@
 define([
+    'netmap/resource',
     'netmap/collections/categories',
     'netmap/models/input_checkradio',
     'libs-amd/text!netmap/templates/checkradio.html',
@@ -7,12 +8,13 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Collection, Model, Template) {
+], function (Resources, Collection, Model, Template) {
     var CategoriesView = Backbone.View.extend({
 
         broker: Backbone.EventBroker,
         interests: {
-            "netmap:changeMapProperties": "updateFiltersFromBroadcast"
+            "netmap:changeMapProperties": "updateFiltersFromBroadcast",
+            "netmap:setMapProperties:done": "updateFiltersFromBroadcast"
         },
         events: {
             'click input[name="categories[]"]': 'updateFilters'
@@ -33,11 +35,11 @@ define([
                     {name: "EDGE",'is_selected': true},
                     {name: "ELINK"}
                 ]);
+
+                this.updateFiltersFromBroadcast(Resources.getMapProperties());
             }
 
             this.collection.bind("change", this.broadcastcategoriesFilters, this);
-            //this.model.bind("change:layer", this.updateSelection, this);
-            //this.model.bind("change", this.render, this);
 
             return this;
         },
@@ -74,11 +76,10 @@ define([
             this.collection.forEach(function (model) {
                 model.set({'is_selected': false}, {'silent': true});
             });
-
             // set's is_selected true on categories mentioned in mapProperties.categories which is in this.collection
             _.invoke(this.collection.filter(function (model) {
                 return _.contains(mapProperties.get('categories').pluck('name'), model.get('name'));
-            }), "set", {'is_selected': true});
+            }), "set", {'is_selected': true}, {'silent': true});
 
             this.render();
         },
