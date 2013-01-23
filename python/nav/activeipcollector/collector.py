@@ -31,10 +31,27 @@ def collect(days=None):
     when: a datetime.datetime object
     """
 
+    starttime = time.time()
     intervals = get_intervals(days) if days else 0
 
-    starttime = time.time()
-    LOG.debug('Collecting %s intervals' % intervals)
+    if intervals:
+        LOG.debug('Collecting %s intervals' % intervals)
+        query = get_interval_query(intervals)
+    else:
+        query = get_static_query()
+
+    LOG.debug(query)
+
+    cursor = connection.cursor()
+    cursor.execute(query)
+
+    LOG.debug('Query executed in %.2f seconds' % (time.time() - starttime))
+
+    return cursor.fetchall()
+
+
+def get_interval_query(intervals):
+    """Return query for collecting data for a time interval"""
 
     query = """
     SELECT
@@ -56,14 +73,27 @@ def collect(days=None):
     ORDER BY timeentry
     """ % intervals
 
-    LOG.debug(query)
+    return query
 
-    cursor = connection.cursor()
-    cursor.execute(query)
 
-    LOG.debug('Query executed in %.2f seconds' % (time.time() - starttime))
+def get_static_query():
+    """Return for query for doing a static collection"""
+    query = """
+    SELECT
+        netaddr,
+        now() AS timeentry,
+        COUNT(DISTINCT ip) AS ipcount,
+        COUNT(DISTINCT mac) AS maccount
+    FROM vlan
+    JOIN prefix USING (vlanid)
+    LEFT JOIN arp ON (ip << netaddr)
+    WHERE arp.end_time = 'infinity' AND
+          vlan.nettype NOT IN ('loopback')
+    GROUP BY netaddr, timeentry
+    ORDER BY timeentry
+    """
 
-    return cursor.fetchall()
+    return query
 
 
 def get_intervals(days):
