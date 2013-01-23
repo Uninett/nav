@@ -1,11 +1,12 @@
 define([
     'plugins/header_footer_minimize',
     'netmap/router', // Request router.js
+    'netmap/resource',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/handlebars'
-], function(PluginHeaderFooter, Router) {
+], function(PluginHeaderFooter, Router, Resource) {
     var initialize = function () {
         var IESanityTest = {
             Version: function() {
@@ -34,6 +35,8 @@ define([
             alert("Netmap requires Internet Explorer to have DocumentMode 9 or newer!");
         }
 
+        Resource.initialize();
+
         // Comment this one out when moving to mod_wsgi! mod_python
         // does not support PUT etc , only GET and POST. Silly mod_python!
         Backbone.emulateHTTP = true;
@@ -55,6 +58,10 @@ define([
             } else {
                 return type;
             }
+        });
+
+        Handlebars.registerHelper('toLowerCase', function (value) {
+            return (value && typeof value === 'string') ? value.toLowerCase() : '';
         });
 
         Handlebars.registerHelper('eachkeys', function(context, options) {
@@ -82,6 +89,18 @@ define([
                 return elseFn();
             }
         });
+
+
+        Backbone.View.prototype.attachSubView = function (view, viewClass, element_id) {
+            if (view) {
+                view.setElement($(element_id, this.$el));
+                view.render();
+            } else {
+                view = new viewClass({el: $(element_id, this.$el)});
+                view.render();
+            }
+            return view;
+        };
 
         //Backbone.emulateJSON = true;
         // Pass in our Router module and call it's initialize function
