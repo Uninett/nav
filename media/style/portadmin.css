@@ -40,7 +40,7 @@ table#portadmin-interfacecontainer input[type="text"] {
 /*
  * Styles for changed rows
  */
-table#portadmin-interfacecontainer tr td.changed {
+table#portadmin-interfacecontainer tr.changed td {
 	background-color: #BDE5F8;
 }
 
