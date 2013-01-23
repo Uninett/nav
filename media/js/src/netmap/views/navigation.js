@@ -3,6 +3,7 @@ define([
     'libs-amd/text!netmap/templates/navigation.html',
     'netmap/collections/traffic_gradient',
     'netmap/views/modal/traffic_gradient',
+    'netmap/views/searchbox',
     'netmap/views/layer_toggler',
     'netmap/views/categories_toggler',
     'netmap/views/orphans_toggler',
@@ -15,7 +16,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView, TopologyErrorView, MouseOverView) {
+], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, SearchView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView, TopologyErrorView, MouseOverView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
@@ -31,6 +32,7 @@ define([
         },
         initialize: function () {
             this.gradientView = null;
+            this.searchView = null;
             this.categoriesView = null;
             this.orphansView = null;
             this.positionView = null;
@@ -62,6 +64,7 @@ define([
             var out = this.template({ isVisible: this.isContentVisible, isLoading: this.isLoading });
             this.$el.html(out);
 
+            this.searchView = this.attachSubView(this.searchView, SearchView, '#search_view');
             this.layerView = this.attachSubView(this.layerView, LayerView, '#layer_view');
             this.categoriesView = this.attachSubView(this.categoriesView, CategoryView, '#categories_view');
             this.orphansView = this.attachSubView(this.orphansView, OrphanView, '#orphan_view');
@@ -72,18 +75,9 @@ define([
 
             return this;
         },
-        attachSubView: function (view, viewClass, element_id) {
-            if (view) {
-                view.setElement($(element_id, this.$el));
-                view.render();
-            } else {
-                view = new viewClass({el: $(element_id, this.$el)});
-            }
-            return view;
-        },
         alignView: function () {
-            var $helper = $(this.$el.parent());
-            var $helper_content = $(".inner_wrap.left_sidebar");
+            var $helper = $(this.$el);
+            var $helper_content = $(".inner_wrap.left_sidebar", this.$el);
 
             var margin;
 
