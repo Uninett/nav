@@ -51,16 +51,17 @@ define([
                 navVlanId: $(e.currentTarget).data().navVlan,
                 displayText: $(e.currentTarget).html()
             };
-            this.broker.trigger('map:show_vlan', this.selected_vlan);
+            this.broker.trigger('netmap:selectVlan', this.selected_vlan);
             this.render();
         },
         setSelectedVlan: function (selected_vlan) {
             this.selected_vlan = selected_vlan;
+            this.render();
         },
         reset: function () {
             this.vlans = undefined;
             this.selected_vlan = undefined;
-            this.broker.trigger('map:show_vlan', null);
+            this.broker.trigger('netmap:selectVlan', null);
             this.render();
         },
         close: function () {
