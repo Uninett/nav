@@ -1,5 +1,6 @@
 define([
     'plugins/netmap-extras',
+    'netmap/resource',
     'netmap/models/graph',
     'netmap/models/map',
     'netmap/models/default_map',
@@ -12,7 +13,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapExtras, GraphModel, MapModel, DefaultMapModel, LoadingSpinnerView, NetboxInfoView, netmapTemplate) {
+], function (NetmapExtras, Resources, GraphModel, MapModel, DefaultMapModel, LoadingSpinnerView, NetboxInfoView, netmapTemplate) {
 
     var drawNetmapView = Backbone.View.extend({
         tagName: "div",
@@ -25,7 +26,7 @@ define([
             'map:search': 'search',
             'map:centerGraph': 'centerGraph',
             'map:freezeNodes': 'freezeNodes',
-            'map:show_vlan': 'showVlan',
+            'netmap:selectVlan': 'showVlan',
             'map:ui:mouseover:nodes': 'toggleUIMouseoverNodes',
             'map:ui:mouseover:links': 'toggleUIMouseoverLinks',
             'map:loading:context_selected_map': 'clear',
@@ -53,9 +54,9 @@ define([
                     'links': false
                 }
             };
-            this.mapProperties = this.options.mapProperties;
-            if (!this.mapProperties) {
-                this.mapProperties = new MapModel();
+
+            if (!this.options.mapProperties) {
+                this.options.mapProperties = Resources.getMapProperties();
             }
             this.sidebar = this.options.view_map_info;
             // !this.mapProperties.display_orphans;
@@ -77,26 +78,13 @@ define([
             //this.model = this.options.context_selected_map.graph;
             //context_selected_map.graph = new GraphModel({id: context_selected_map.id, topology: context_selected_map.map.attributes.topology});
             var self = this;
-            if (this.options.viewid) {
 
-                if (this.options.mapProperties) {
-                    this.model = new GraphModel({
-                        viewid: this.options.mapProperties.get('viewid'),
-                        topology: this.options.mapProperties.topology
-                    });
-                    self.loadGraph();
-                } else {
-                    this.model = new GraphModel({
-                        viewid: this.options.viewid,
-                        topology: 2
-                    });
-                    self.loadGraph();
-                }
-            } else  {
-                // this.options.loadDefault contains userid to load default for!
-                this.model = new GraphModel({topology: 2});
-                this.loadGraph();
-            }
+            this.model = new GraphModel({
+              viewid: this.options.mapProperties.get('viewid', this.options.viewid),
+              topology: this.options.mapProperties.get('topology', 2)
+            });
+            self.loadGraph();
+
         },
         broadcastGraph: function () {
             this.broker.trigger("netmap:graph", this.model);
@@ -131,8 +119,8 @@ define([
         postInitialize: function () {
             this.clear();
 
-            if (!this.mapProperties.isNew() && this.mapProperties.attributes.zoom !== undefined) {
-                var tmp = this.mapProperties.attributes.zoom.split(";");
+            if (this.options.mapProperties && !this.options.mapProperties.isNew() && this.options.mapProperties.attributes.zoom !== undefined) {
+                var tmp = this.options.mapProperties.get('zoom').split(";");
                 this.trans = tmp[0].split(",");
                 this.scale = tmp[1];
                 this.validateTranslateScaleValues();
@@ -162,23 +150,25 @@ define([
 
 
             }
+            this.options.mapProperties.bind("change:topology change:categories change:zoom change:display_orphans", this.render, this);
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
-            this.mapProperties.bind("change", this.render, this);
 
             this.render();
+            this.broker.trigger("netmap:setMapProperties:done", this.options.mapProperties);
             this.showLoadingSpinner(false);
         },
         setMapProperties: function (mapPropertiesModel) {
             this.showLoadingSpinner(true);
             var self = this;
-            var currentViewId = this.mapProperties.get("viewid");
-            this.mapProperties = mapPropertiesModel;
+            var currentViewId = (this.options.mapProperties && this.options.mapProperties.get("viewid"));
+            this.options.mapProperties = mapPropertiesModel;
             if (currentViewId !== mapPropertiesModel.get("viewid")) {
-                this.mapProperties.fetch({success: function (model) {
-                    self.mapProperties = model;
+                this.options.mapProperties.fetch({success: function (model) {
+                    self.options.mapProperties.off("change");
+                    self.options.mapProperties = model;
+                    self.options.mapProperties.bind("change");
                     self.model = new GraphModel({viewid: mapPropertiesModel.get("viewid"), topology: mapPropertiesModel.get('topology')});
-                    console.log("loading graph");
                     self.loadGraph();
                 }});
 
@@ -187,10 +177,11 @@ define([
                 this.render();
                 this.showLoadingSpinner(false);
             }
+            this.options.mapProperties.bind("change:topology change:categories change:zoom change:display_orphans", this.render, this);
 
             // tell list_maps we're done updating our mapProperties
             // and loaded _graph_ :-)
-            this.broker.trigger("netmap:setMapProperties:done");
+            this.broker.trigger("netmap:setMapProperties:done", this.options.mapProperties);
 
         },
         setMapPropertyLayer: function (layer) {
@@ -208,13 +199,13 @@ define([
             });
         },
         setMapPropertyCategories: function (categoriesCollection) {
-            this.mapProperties.set({categories: categoriesCollection});
+            this.options.mapProperties.set({categories: categoriesCollection});
         },
         setMapPropertyOrphanFilter: function (orphanModel) {
-            this.mapProperties.set({display_orphans: !orphanModel.get('is_filtering_orphans')});
+            this.options.mapProperties.set({display_orphans: !orphanModel.get('is_filtering_orphans')});
         },
         setMapPropertyPositionFilter: function (positionCollection) {
-            this.mapProperties.set({'position': positionCollection});
+            this.options.mapProperties.set({'position': positionCollection});
             this.clear();
             this.render();
         },
@@ -425,7 +416,7 @@ define([
             function redraw() {
                 self.trans = d3.event.translate;
                 self.scale = d3.event.scale;
-                self.mapProperties.set({
+                self.options.mapProperties.set({
                     'zoom': self.trans + ";" + self.scale
                 }, {silent: true});
                 self.svg.attr("transform",
@@ -486,7 +477,7 @@ define([
 
 
             var draw = function (data) {
-                json = data;
+                var json = data;
 
                 svg.attr("transform",
                     "translate(" + self.trans + ") scale(" + self.scale + ")");
@@ -598,14 +589,14 @@ define([
                             if (self.selected_vlan) {
                                 removeVlanSelectionOnChanged(d.data.uplink.vlans);
                             }
-                            self.sidebar.swap_to_link(d);
+                            self.broker.trigger("netmap:selectedLink",  {'link': d, 'selectedVlan': self.selected_vlan});
                         })
                         .on("mouseover", function (d) {
                             if (self.ui.mouseover.links) {
                                 if (self.selected_vlan) {
                                     removeVlanSelectionOnChanged(d.data.uplink.vlans);
                                 }
-                                return self.sidebar.swap_to_link(d);
+                                self.broker.trigger("netmap:selectedLink",  {'link': d, 'selectedVlan': self.selected_vlan});
                             }
                         });
                 });
@@ -672,11 +663,11 @@ define([
                 var groupByPosition = function () {
                     var groupBy = null;
 
-                    if (self.mapProperties.get('position').get('room').get('is_selected')) {
+                    if (self.options.mapProperties.get('position').get('room').get('is_selected')) {
                         groupBy = self.modelJson.nodes.filter(function (d) {
                             return d.data.roomid === self.selected_node.data.roomid
                         });
-                    } else if (self.mapProperties.get('position').get('location').get('is_selected')) {
+                    } else if (self.options.mapProperties.get('position').get('location').get('is_selected')) {
                         groupBy = self.modelJson.nodes.filter(function (d) {
                             return d.data.locationid === self.selected_node.data.locationid
                         });
@@ -898,16 +889,18 @@ define([
                     //var netbox_info = new NetboxInfoView({node: node});
                     self.selected_node = node;
 
-                    if (self.mapProperties.get('position').has_targets()) {
+                    if (self.options.mapProperties.get('position').has_targets()) {
                         groupByPosition();
                     }
 
-                    self.sidebar.setSelectedVlan(self.selected_vlan);
+                    self.broker.trigger("netmap:selectNetbox", {
+                        'selectedVlan': self.selected_vlan,
+                        'netbox': node
+                    });
                     if (self.selected_vlan) {
                         removeVlanSelectionOnChanged(node.data.vlans);
                     }
 
-                    self.sidebar.swap_to_netbox(node);
                 }
 
                 var removeVlanSelectionOnChanged = function (vlans) {
@@ -1087,7 +1080,8 @@ define([
             if (self.force !== undefined) {
                 self.force.stop();
             }
-            var selected_categories = self.mapProperties.get('categories');
+            if (self.options.mapProperties) {
+            var selected_categories = self.options.mapProperties.get('categories');
 
             if (this.model && this.model.get('links')) {
                 self.modelJson = this.model.toJSON();
@@ -1128,7 +1122,7 @@ define([
                     return linkedByIndex[a.data.sysname + "," + b.data.sysname] || linkedByIndex[b.data.sysname + "," + a.data.sysname] || a.data.sysname == b.data.sysname;
                 }
 
-                if (!self.mapProperties.get('display_orphans')) {
+                if (!self.options.mapProperties.get('display_orphans')) {
                     for (var i = 0; i < self.modelJson.nodes.length; i++) {
                         var node = self.modelJson.nodes[i];
 
@@ -1153,6 +1147,7 @@ define([
 
                 self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
                 draw(self.modelJson);
+            }
             }
             self.broker.trigger("map:loading:done");
 
