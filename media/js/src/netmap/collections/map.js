@@ -14,13 +14,31 @@ define([
                 element.set({isFavorite: false}, {silent: true});
             });
         },
+        resetIsSelected: function () {
+            this.each(function (element) {
+                element.set({"is_selected": false}, {silent: true});
+            });
+        },
         setFavorite: function (model) {
             this.resetIsFavorite();
             var inCollection = this.get(model);
             if (inCollection) {
                 inCollection.set({isFavorite: true});
             }
+        },
+        getFavorite: function () {
+            var target = this.where({isFavorite: true});
+            if (_.size(target) === 1) { return target[0] ;}
+            return null;
+        },
+        parse: function (resp) {
+
+            _.each(resp, function (model) {
+               model = netmapModel.prototype.parse(model);
+            });
+            return resp;
         }
+
 
     });
 

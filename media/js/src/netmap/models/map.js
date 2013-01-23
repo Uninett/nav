@@ -10,6 +10,7 @@ define([
             title: "Unsaved view",
             description: null,
             is_public: true,
+            isFavorite: false,
             topology: 2,
             categories: new CategoryCollection([
                 {name: "GSW", is_selected: true},
