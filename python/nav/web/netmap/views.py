@@ -56,12 +56,13 @@ def backbone_app(request):
     response = render_to_response(
         'netmap/backbone.html',
         {
+            'bootstrap_mapproperties_collection': get_maps(request),
+            'bootstrap_isFavorite': get_global_defaultview(request),
             'auth_id': session_user.id,
             'link_to_admin': link_to_admin,
             'navpath': [('Home', '/'), ('Netmap', '/netmap')]
         },
         RequestContext(request))
-
     return response
 
 
@@ -129,7 +130,12 @@ def netmap_defaultview(request):
 
         return update_defaultview(request, map_id)
     elif request.method == 'GET':
-        return get_defaultview(request)
+        response = HttpResponse(get_defaultview(request))
+        response['Content-Type'] = 'application/json; charset=utf-8'
+        response['Cache-Control'] = 'no-cache'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
+        return response
     else:
         return HttpResponseBadRequest()
 
@@ -164,7 +170,12 @@ def netmap_defaultview_global(request):
             return response
 
     elif request.method == 'GET':
-        return get_global_defaultview(request)
+        response = HttpResponse(get_global_defaultview(request))
+        response['Content-Type'] = 'application/json; charset=utf-8'
+        response['Cache-Control'] = 'no-cache'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
+        return response
     else:
         return HttpResponseBadRequest()
 
@@ -210,15 +221,13 @@ def get_global_defaultview(request):
     try:
         view = NetmapViewDefaultView.objects.get(owner=session_user)
     except ObjectDoesNotExist:
-        view = get_object_or_404(NetmapViewDefaultView,
-            owner=Account(pk=Account.DEFAULT_ACCOUNT))
+        try:
+            view = NetmapViewDefaultView.objects.get(
+                owner=Account(pk=Account.DEFAULT_ACCOUNT))
+        except ObjectDoesNotExist:
+            view = None
 
-    response = HttpResponse(simplejson.dumps(view.to_json_dict()))
-    response['Content-Type'] = 'application/json; charset=utf-8'
-    response['Cache-Control'] = 'no-cache'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
-    return response
+    return simplejson.dumps(view.to_json_dict()) if view else 'null'
 
 def get_defaultview(request):
     session_user = get_account(request)
@@ -226,13 +235,8 @@ def get_defaultview(request):
     view = get_object_or_404(NetmapViewDefaultView, owner=session_user)
 
     #permission?
+    return simplejson.dumps(view.to_json_dict())
 
-    response = HttpResponse(simplejson.dumps(view.to_json_dict()))
-    response['Content-Type'] = 'application/json; charset=utf-8'
-    response['Cache-Control'] = 'no-cache'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT"
-    return response
 
 
 def _update_map_node_positions(fixed_nodes, view):
@@ -379,20 +383,19 @@ def maps(request):
     if request.method == 'POST':
         return create_map(request)
     elif request.method == 'GET':
-        return get_maps(request)
+        return HttpResponse(get_maps(request))
     else:
         return HttpResponseBadRequest()
 
 
 def get_maps(request):
     session_user = get_account(request)
-
     _maps = NetmapView.objects.filter(
         Q(is_public=True) | Q(owner=session_user.id))\
     .order_by('-is_public')
     json_views = []
     [json_views.append(view.to_json_dict()) for view in _maps]
-    return HttpResponse(simplejson.dumps(json_views))
+    return simplejson.dumps(json_views)
 
 
 def d3js_layer3(request, map_id=None):
