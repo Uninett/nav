@@ -35,13 +35,7 @@ define([
         },
         setDisplayTopologyErrors: function (event) {
             this.collection.at(0).set({'is_selected': $(event.currentTarget).prop('checked')});
-
-            // trigger with map:redraw for now
-            // todo: broadcast it under it's own changeTopologyErrorsFilter?
-            // do we want to work with collections for one property?
-            this.broker.trigger('map:redraw', {
-                topologyErrors: $(event.currentTarget).prop('checked')
-            });
+            this.broker.trigger('netmap:changeDisplayTopologyErrors', $(event.currentTarget).prop('checked'));
         },
 
         close:function () {

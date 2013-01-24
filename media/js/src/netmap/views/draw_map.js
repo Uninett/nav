@@ -38,6 +38,7 @@ define([
             'netmap:changeCategoriesFilters': 'setMapPropertyCategories',
             'netmap:changeOrphansFilters': 'setMapPropertyOrphanFilter',
             'netmap:changePositionFilter': 'setMapPropertyPositionFilter',
+            'netmap:changeDisplayTopologyErrors': 'setMapPropertyDisplayTopologyErrors',
             'headerFooterMinimize:trigger': 'resize'
         },
         initialize: function () {
@@ -207,6 +208,10 @@ define([
         setMapPropertyPositionFilter: function (positionCollection) {
             this.options.mapProperties.set({'position': positionCollection});
             this.groupByPosition();
+        },
+        setMapPropertyDisplayTopologyErrors: function (bool) {
+            this.options.mapProperties.set({'displayTopologyErrors': bool});
+            this.updateRenderTopologyErrors();
         },
         resizeAnimate: function (margin) {
             var self = this;
@@ -445,14 +450,7 @@ define([
             }
         },
         requestRedraw: function (options) {
-            if (options !== undefined) {
-                if (options.topologyErrors !== undefined) {
-                    this.ui.topologyErrors = options.topologyErrors;
-                }
-            }
-
             this.clear();
-
             this.render();
         },
         validateTranslateScaleValues: function () {
@@ -497,9 +495,10 @@ define([
             self.nodesInRoom.exit().remove();
         },
         updateRenderTopologyErrors: function () {
-            if (linkErrors !== undefined && !self.ui.topologyErrors) {
+            var self = this;
+            if (linkErrors !== undefined && !self.options.mapProperties.displayTopologyErrors) {
                 linkErrors.exit().remove();
-            } else if (self.ui.topologyErrors) {
+            } else if (self.options.mapProperties.displayTopologyErrors) {
 
                 var linksWithErrors = self.modelJson.links.filter(function (d) {
                     if (d.data.tip_inspect_link) {
