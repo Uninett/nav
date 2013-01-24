@@ -1038,7 +1038,7 @@ define([
                     'netbox': node
                 });
                 if (self.selected_vlan) {
-                    removeVlanSelectionOnChanged(node.data.vlans);
+                    self.updateRenderVLAN(node.data.vlans);
                 }
 
             }
