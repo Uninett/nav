@@ -69,8 +69,7 @@ define([
                 // category found!
                 categoryToUpdate.set({'is_selected': $(e.currentTarget).prop('checked')});
             }
-
-            this.broker.trigger('map:redraw');
+            this.broker.trigger("netmap:changeCategoriesFilters", this.collection);
         },
         updateFiltersFromBroadcast: function (mapProperties) {
             this.collection.forEach(function (model) {
