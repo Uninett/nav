@@ -779,15 +779,15 @@ define([
 
                 function highlightNodeNeighbors(d, opacity) {
                     node.style("stroke-opacity", function (o) {
-                        thisOpacity = isConnected(d, o) ? 1 : opacity;
+                        var thisOpacity = isConnected(d, o) ? 1 : opacity;
                         this.setAttribute('fill-opacity', thisOpacity);
                         this.setAttribute('opacity', thisOpacity);
 
-                        circle = (this.firstElementChild || this.children[0] || {})
+                        var circle = (this.firstElementChild || this.children[0] || {});
 
-                        text = (this.childNodes[1] || {})
+                        var text = (this.childNodes[1] || {});
 
-                        v = circle.textContent
+                        var v = circle.textContent;
                         if (d.name == v) {
                             circle.setAttribute("style", "fill: red");
                             text.setAttribute("style", "fill: red");
