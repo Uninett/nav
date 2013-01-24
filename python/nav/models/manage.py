@@ -242,7 +242,10 @@ class Netbox(models.Model):
 
     def get_prefix(self):
         """Returns the prefix address for this netbox' IP address."""
-        return self.netboxprefix.prefix
+        try:
+            return self.netboxprefix.prefix
+        except models.ObjectDoesNotExist:
+            return None
 
     def get_filtered_prefix(self):
         """Returns the netbox' prefix address only when the prefix is not a
