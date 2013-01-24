@@ -206,8 +206,7 @@ define([
         },
         setMapPropertyPositionFilter: function (positionCollection) {
             this.options.mapProperties.set({'position': positionCollection});
-            this.clear();
-            this.render();
+            this.groupByPosition();
         },
         resizeAnimate: function (margin) {
             var self = this;
@@ -465,6 +464,58 @@ define([
                 this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
             }
         },
+        groupByPosition: function () {
+            var self = this;
+            var groupBy = null;
+
+            if (self.options.mapProperties.get('position').get('room').get('is_selected')) {
+                groupBy = self.modelJson.nodes.filter(function (d) {
+                    return d.data.roomid === self.selected_node.data.roomid
+                });
+            } else if (self.options.mapProperties.get('position').get('location').get('is_selected')) {
+                groupBy = self.modelJson.nodes.filter(function (d) {
+                    return d.data.locationid === self.selected_node.data.locationid
+                });
+            } else {
+                groupBy = [];
+            }
+
+            self.nodesInRoom = self.svg.selectAll("g circle").data(groupBy, function (d) {
+                return d.data.sysname;
+            });
+
+            self.nodesInRoom.enter()
+                .append("svg:circle")
+                .attr("class", "grouped_by_room")
+                .attr("cx", function (d) {
+                    return d.px;
+                })
+                .attr("cy", function (d) {
+                    return d.py;
+                })
+                .attr("r", 34);
+            self.nodesInRoom.exit().remove();
+        },
+        updateRenderTopologyErrors: function () {
+            if (linkErrors !== undefined && !self.ui.topologyErrors) {
+                linkErrors.exit().remove();
+            } else if (self.ui.topologyErrors) {
+
+                var linksWithErrors = self.modelJson.links.filter(function (d) {
+                    if (d.data.tip_inspect_link) {
+                        return true;
+                    }
+                    return false;
+                });
+
+                var linkErrors = self.linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
+                    return d.source.id + "-" + d.target.id;
+                });
+
+                linkErrors.enter().append("svg:line").attr("class", "warning_inspect");
+                linkErrors.exit().remove();
+            }
+        },
         render: function () {
             var svg, self;
             self = this;
@@ -493,24 +544,7 @@ define([
                     self.broker.trigger("map:forceChangedStatus", false);
                 });
 
-                if (linkErrors !== undefined && !self.ui.topologyErrors) {
-                    linkErrors.exit().remove();
-                } else if (self.ui.topologyErrors) {
-
-                    var linksWithErrors = self.modelJson.links.filter(function (d) {
-                        if (d.data.tip_inspect_link) {
-                            return true;
-                        }
-                        return false;
-                    });
-
-                    var linkErrors = self.linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
-                        return d.source.id + "-" + d.target.id;
-                    });
-
-                    linkErrors.enter().append("svg:line").attr("class", "warning_inspect");
-                    linkErrors.exit().remove();
-                }
+                self.updateRenderTopologyErrors();
 
 
                 //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
@@ -660,39 +694,9 @@ define([
 
 
 
-                var groupByPosition = function () {
-                    var groupBy = null;
 
-                    if (self.options.mapProperties.get('position').get('room').get('is_selected')) {
-                        groupBy = self.modelJson.nodes.filter(function (d) {
-                            return d.data.roomid === self.selected_node.data.roomid
-                        });
-                    } else if (self.options.mapProperties.get('position').get('location').get('is_selected')) {
-                        groupBy = self.modelJson.nodes.filter(function (d) {
-                            return d.data.locationid === self.selected_node.data.locationid
-                        });
-                    } else {
-                        groupBy = [];
-                    }
-
-                    self.nodesInRoom = svg.selectAll("g circle").data(groupBy, function (d) {
-                        return d.data.sysname;
-                    });
-
-                    self.nodesInRoom.enter()
-                        .append("svg:circle")
-                        .attr("class", "grouped_by_room")
-                        .attr("cx", function (d) {
-                            return d.px;
-                        })
-                        .attr("cy", function (d) {
-                            return d.py;
-                        })
-                        .attr("r", 34);
-                    self.nodesInRoom.exit().remove();
-                };
                 if (self.selected_node!==null) {
-                    groupByPosition();
+                    self.groupByPosition();
                 }
                 //spinner.stop();
 
@@ -890,7 +894,7 @@ define([
                     self.selected_node = node;
 
                     if (self.options.mapProperties.get('position').has_targets()) {
-                        groupByPosition();
+                        self.groupByPosition();
                     }
 
                     self.broker.trigger("netmap:selectNetbox", {
