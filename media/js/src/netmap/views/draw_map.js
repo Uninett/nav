@@ -567,30 +567,30 @@ define([
                         .append("svg:stop")
                         .attr('offset', '0%')
                         .attr('style', function (d) {
-                            if (d.data.traffic.inOctets_css) return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'
-                            else return 'stop-color:rgb(0,0,0);stop-opacity:1'
+                            if (d.data.traffic.inOctets_css) { return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'; }
+                            else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
                         });
                     gradient
                         .append("svg:stop")
                         .attr('offset', '50%')
                         .attr('style', function (d) {
-                            if (d.data.traffic.inOctets_css) return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'
-                            else return 'stop-color:rgb(0,0,0);stop-opacity:1'
+                            if (d.data.traffic.inOctets_css) { return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'; }
+                            else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
                         });
                     gradient
                         .append("svg:stop")
                         .attr('offset', '51%')
                         .attr('style', function (d) {
-                            if (d.data.traffic.outOctets_css) return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'
-                            else return 'stop-color:rgb(0,0,0);stop-opacity:1'
+                            if (d.data.traffic.outOctets_css) { return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'; }
+                            else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
 
                         });
                     gradient
                         .append("svg:stop")
                         .attr('offset', '100%')
                         .attr('style', function (d) {
-                            if (d.data.traffic.outOctets_css) return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'
-                            else return 'stop-color:rgb(0,0,0);stop-opacity:1'
+                            if (d.data.traffic.outOctets_css) { return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'; }
+                            else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
                         });
                     s_link.append("svg:line")
                         .attr("class", function (d, i) {
