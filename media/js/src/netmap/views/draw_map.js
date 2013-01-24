@@ -207,7 +207,7 @@ define([
         },
         setMapPropertyPositionFilter: function (positionCollection) {
             this.options.mapProperties.set({'position': positionCollection});
-            this.groupByPosition();
+            this.updateRenderGroupByPosition();
         },
         setMapPropertyDisplayTopologyErrors: function (bool) {
             this.options.mapProperties.set({'displayTopologyErrors': bool});
@@ -462,7 +462,7 @@ define([
                 this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
             }
         },
-        groupByPosition: function () {
+        updateRenderGroupByPosition: function () {
             var self = this;
             var groupBy = null;
 
@@ -697,7 +697,7 @@ define([
 
 
                 if (self.selected_node!==null) {
-                    self.groupByPosition();
+                    self.updateRenderGroupByPosition();
                 }
                 //spinner.stop();
 
@@ -895,7 +895,7 @@ define([
                     self.selected_node = node;
 
                     if (self.options.mapProperties.get('position').has_targets()) {
-                        self.groupByPosition();
+                        self.updateRenderGroupByPosition();
                     }
 
                     self.broker.trigger("netmap:selectNetbox", {
