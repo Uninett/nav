@@ -503,10 +503,7 @@ define([
             } else if (self.options.mapProperties.displayTopologyErrors) {
 
                 var linksWithErrors = self.modelJson.links.filter(function (d) {
-                    if (d.data.tip_inspect_link) {
-                        return true;
-                    }
-                    return false;
+                    return d.data.tip_inspect_link;
                 });
 
                 self.linkErrors = self.linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
