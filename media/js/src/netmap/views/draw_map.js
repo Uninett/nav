@@ -498,8 +498,8 @@ define([
         },
         updateRenderTopologyErrors: function () {
             var self = this;
-            if (linkErrors !== undefined && !self.options.mapProperties.displayTopologyErrors) {
-                linkErrors.exit().remove();
+            if (self.linkErrors !== undefined && !self.options.mapProperties.displayTopologyErrors) {
+                self.linkErrors.exit().remove();
             } else if (self.options.mapProperties.displayTopologyErrors) {
 
                 var linksWithErrors = self.modelJson.links.filter(function (d) {
@@ -509,12 +509,12 @@ define([
                     return false;
                 });
 
-                var linkErrors = self.linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
+                self.linkErrors = self.linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
                     return d.source.id + "-" + d.target.id;
                 });
 
-                linkErrors.enter().append("svg:line").attr("class", "warning_inspect");
-                linkErrors.exit().remove();
+                self.linkErrors.enter().append("svg:line").attr("class", "warning_inspect");
+                self.linkErrors.exit().remove();
             }
         },
         render: function () {
@@ -686,28 +686,11 @@ define([
 
                     });
 
-
-
-                if (self.selected_vlan !== undefined && self.selected_vlan) {
-                    //markVlan(self.selected_vlan.navVlanId);
-
-                }
-
-
-
-
                 if (self.selected_node!==null) {
                     self.updateRenderGroupByPosition();
                 }
-                //spinner.stop();
-
 
                 function tick() {
-
-                    /*if (self.force.alpha()<0.03) {
-                        root_chart.attr("opacity", 1);
-                    }*/
-
                     node.attr("transform", function (d) {
                         return "translate(" + d.x + "," + d.y + ")";
                     });
@@ -729,8 +712,8 @@ define([
                             .attr("y2", function (d) { return d.target.y;});
                     }
 
-                    if (self.ui.topologyErrors) {
-                        linkErrors
+                    if (self.options.mapProperties.get('displayTopologyErrors', false)) {
+                        self.linkErrors
                             .attr("x1", function (d) { return d.source.x; })
                             .attr("y1", function (d) { return d.source.y; })
                             .attr("x2", function (d) { return d.target.x; })
