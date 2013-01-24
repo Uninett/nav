@@ -151,7 +151,7 @@ define([
 
 
             }
-            this.options.mapProperties.bind("change:topology change:categories change:zoom change:display_orphans", this.render, this);
+            this.options.mapProperties.bind("change:topology", this.render, this);
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
 
@@ -178,7 +178,7 @@ define([
                 this.render();
                 this.showLoadingSpinner(false);
             }
-            this.options.mapProperties.bind("change:topology change:categories change:zoom change:display_orphans", this.render, this);
+            this.options.mapProperties.bind("change:topology", this.render, this);
 
             // tell list_maps we're done updating our mapProperties
             // and loaded _graph_ :-)
@@ -201,6 +201,7 @@ define([
         },
         setMapPropertyCategories: function (categoriesCollection) {
             this.options.mapProperties.set({categories: categoriesCollection});
+            this.updateRenderCategories();
         },
         setMapPropertyOrphanFilter: function (orphanModel) {
             this.options.mapProperties.set({display_orphans: !orphanModel.get('is_filtering_orphans')});
@@ -462,6 +463,110 @@ define([
                 this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
             }
         },
+        updateRenderCategories: function () {
+            function filterNodes(json, selected_categories) {
+                var result = [];
+                for (var i = 0; i < json.nodes.length; i++) {
+                    var node = json.nodes[i];
+                    if (node !== null) {
+                        if (node.data.position) {
+                            node.x = node.data.position.x;
+                            node.y = node.data.position.y;
+                            node.fixed = true;
+                        }
+                        var selected_category = selected_categories.get(node.data.category.toUpperCase());
+                        if (selected_category && selected_category.get('is_selected')) {
+                            result.push(node);
+                        } else if (!node.fixed) {
+                            // reset it's coordinates if position is not fixed
+                            // and it doesn't match filter.
+
+                            /*node.x = 0;
+                             node.y = 0;*/
+
+                        }
+                    }
+                }
+                return result;
+            }
+
+            function categoryLinksFilter(data, filter_nodes, selected_categories) {
+                var json = data;
+
+                var filter_links = [];
+                var filter_nodes_indexes = filter_nodes;
+
+                function filterLinks() {
+                    var result = [];
+
+                    function isMatchingCriteria() {
+                        var sourceMatch = false;
+                        var targetMatch = false;
+                        var source, target;
+                        source = link.source;
+                        target = link.target;
+
+                        _.each(selected_categories.models, function (model) {
+                            if (source.data.category.toUpperCase() === model.get('name').toUpperCase() &&
+                                model.get('is_selected')) {
+                                sourceMatch = true;
+                            }
+                            if (target.data.category.toUpperCase() === model.get('name').toUpperCase() &&
+                                model.get('is_selected')) {
+                                targetMatch = true;
+                            }
+                        });
+                        return sourceMatch && targetMatch;
+
+                    }
+
+                    for (var x = 0; x < filter_nodes_indexes.length; x++) {
+                        var node = filter_nodes_indexes[x];
+                        for (var i = 0; i < json.links.length; i++) {
+                            var link = json.links[i];
+                            var source, target;
+                            source = link.source;
+                            target = link.target;
+
+                            if (target === node) {
+                                if (isMatchingCriteria(link)) {
+                                    result.push(link);
+                                }
+                            }
+                        }
+
+                    }
+                    return result;
+                }
+
+                filter_links = filterLinks();
+
+                return filter_links;
+            }
+
+
+            var self = this;
+            self.modelJson = self.model.toJSON();
+            self.force.nodes(self.modelJson.nodes).links(self.modelJson.links);
+            // Category filter, finds nodes to keep, filters em out and
+            // remaps links
+            var keepNodes = filterNodes(self.modelJson, self.options.mapProperties.get('categories'));
+            self.modelJson.nodes = self.intersectionObjects(
+                self.modelJson.nodes,
+                keepNodes,
+                function (a, b) {
+                    return a.data.sysname === b.data.sysname;
+                });
+            self.modelJson.links = categoryLinksFilter(self.modelJson, keepNodes, self.options.mapProperties.get('categories'));
+
+            var linkedByIndex = {};
+            self.modelJson.links.forEach(function (d) {
+                linkedByIndex[d.source.data.sysname + "," + d.target.data.sysname] = 1;
+            });
+            self.draw(self.modelJson);
+            //self.updateRenderLinks();
+            //self.updateRenderNodes();
+        },
         updateRenderGroupByPosition: function () {
             var self = this;
             var groupBy = null;
@@ -514,423 +619,11 @@ define([
                 self.linkErrors.exit().remove();
             }
         },
-        render: function () {
-            var svg, self;
-            self = this;
-
-            //root_chart.attr("opacity", 0.1);
-
-            svg = self.svg;
-
-            //json = {}
-
-
-            var draw = function (data) {
-                var json = data;
-
-                svg.attr("transform",
-                    "translate(" + self.trans + ") scale(" + self.scale + ")");
-
-
-                self.force.nodes(json.nodes).links(json.links).on("tick", tick);
-
-                self.force.on('start', function () {
-                    self.broker.trigger("map:forceChangedStatus", true);
-                });
-
-                self.force.on('end', function () {
-                    self.broker.trigger("map:forceChangedStatus", false);
-                });
-
-                self.updateRenderTopologyErrors();
-
-
-                //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
-                var s_link = self.linkGroup.selectAll("g line").data(json.links, function (d) {
-                    return d.source.id + "-" + d.target.id;
-                });
-
-                s_link.enter().append("svg:g").attr("class", "link").forEach(function (d, i) {
-                    var gradient = s_link
-                        .append("svg:linearGradient")
-                        .attr("id", function (d, i) {
-                            return 'linkload' + i;
-                        })
-                        .attr('x1', '0%')
-                        .attr('y1', '0%')
-                        .attr('x2', '0%')
-                        .attr('y2', '100%');
-                    gradient
-                        .append("svg:stop")
-                        .attr('offset', '0%')
-                        .attr('style', function (d) {
-                            if (d.data.traffic.inOctets_css) { return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'; }
-                            else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
-                        });
-                    gradient
-                        .append("svg:stop")
-                        .attr('offset', '50%')
-                        .attr('style', function (d) {
-                            if (d.data.traffic.inOctets_css) { return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'; }
-                            else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
-                        });
-                    gradient
-                        .append("svg:stop")
-                        .attr('offset', '51%')
-                        .attr('style', function (d) {
-                            if (d.data.traffic.outOctets_css) { return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'; }
-                            else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
-
-                        });
-                    gradient
-                        .append("svg:stop")
-                        .attr('offset', '100%')
-                        .attr('style', function (d) {
-                            if (d.data.traffic.outOctets_css) { return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'; }
-                            else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
-                        });
-                    s_link.append("svg:line")
-                        .attr("class", function (d, i) {
-                            var speed = d.data.link_speed;
-                            var classes = "";
-                            if (speed <= 100) {
-                                classes = 'speed0-100';
-                            }
-                            else if (speed > 100 && speed <= 512) {
-                                classes = 'speed100-512';
-                            }
-                            else if (speed > 512 && speed <= 2048) {
-                                classes = 'speed512-2048';
-                            }
-                            else if (speed > 2048 && speed <= 4096) {
-                                classes = 'speed2048-4096';
-                            }
-                            else if (speed > 4096) {
-                                classes = 'speed4096';
-                            }
-                            else {
-                                classes = 'speedunknown';
-                            }
-                            return classes;
-
-                        })
-                        .attr('stroke', function (d, i) {
-                            return 'url(#linkload' + i + ')';
-                        })
-                        .on("click", function(d) {
-                            if (self.selected_vlan) {
-                                removeVlanSelectionOnChanged(d.data.uplink.vlans);
-                            }
-                            self.broker.trigger("netmap:selectedLink",  {'link': d, 'selectedVlan': self.selected_vlan});
-                        })
-                        .on("mouseover", function (d) {
-                            if (self.ui.mouseover.links) {
-                                if (self.selected_vlan) {
-                                    removeVlanSelectionOnChanged(d.data.uplink.vlans);
-                                }
-                                self.broker.trigger("netmap:selectedLink",  {'link': d, 'selectedVlan': self.selected_vlan});
-                            }
-                        });
-                });
-
-                var link = self.linkGroup.selectAll("g.link line");
-
-                var node_s = self.nodeGroup.selectAll("g.node").data(json.nodes, function (d) {
-                    return d.data.sysname;
-                });
-
-                var node_drag =
-                    d3.behavior.drag()
-                        .on("dragstart", dragstart)
-                        .on("drag", dragmove)
-                        .on("dragend", dragend);
-
-
-                node_s.enter()
-                    .append("svg:g")
-                    .attr("class", "node")
-                    .append("svg:image")
-                    .attr("class", "circle node")
-                    .attr("xlink:href", function (d) {
-                        return "/images/netmap/" + d.data.category.toLowerCase() + ".png";
-                    })
-                    .attr("x", "-16px")
-                    .attr("y", "-16px")
-                    .attr("width", "32px")
-                    .attr("height", "32px");
-
-                node_s.enter().forEach(function (d) {
-                    node_s.append("svg:text")
-                        .attr("dy", "1.5em")
-                        .attr("class", "node")
-                        .attr("text-anchor", "middle")
-                        .attr("fill", "#000000")
-                        .attr("background", "#c0c0c0")
-                        .text(function (d) {
-                            return d.name;
-                        });
-                });
-                var node = svg.selectAll("g.node");
-
-                node
-                    .on("click", node_onClick)
-                    .call(node_drag)
-                    // doubleclick? http://jsfiddle.net/wfG6k/
-                    .on("mouseover", function (d) {
-                        if (self.ui.mouseover.nodes) {
-                            return node_onClick(d);
-                        }
-
-                    });
-
-                if (self.selected_node!==null) {
-                    self.updateRenderGroupByPosition();
-                }
-
-                function tick() {
-                    node.attr("transform", function (d) {
-                        return "translate(" + d.x + "," + d.y + ")";
-                    });
-
-                    if (self.nodesInRoom !== undefined) {
-                        self.nodesInRoom
-                            .attr("cx", function (d) { return d.px;})
-                            .attr("cy", function (d) { return d.py;});
-                    }
-
-                    if (self.selected_vlan) {
-                        self.nodesInVlan
-                            .attr("cx", function (d) { return d.px;})
-                            .attr("cy", function (d) { return d.py;});
-                        self.linksInVlan
-                            .attr("x1", function (d) { return d.source.x;})
-                            .attr("y1", function (d) { return d.source.y;})
-                            .attr("x2", function (d) { return d.target.x;})
-                            .attr("y2", function (d) { return d.target.y;});
-                    }
-
-                    if (self.options.mapProperties.get('displayTopologyErrors', false)) {
-                        self.linkErrors
-                            .attr("x1", function (d) { return d.source.x; })
-                            .attr("y1", function (d) { return d.source.y; })
-                            .attr("x2", function (d) { return d.target.x; })
-                            .attr("y2", function (d) { return d.target.y; });
-                    }
-
-                    link
-                        .attr("x1", function (d) {
-                            return d.source.x;
-                        })
-                        .attr("y1", function (d) {
-                            return d.source.y;
-                        })
-                        .attr("x2", function (d) {
-                            return d.target.x;
-                        })
-                        .attr("y2", function (d) {
-                            return d.target.y;
-                        }
-                    );
-
-
-
-                }
-
-                var isDragMovedTriggered;
-                function dragstart(d, i) {
-                    isDragMovedTriggered = false;
-                }
-
-                function dragmove(d, i) {
-                    isDragMovedTriggered = true;
-                    d.px += d3.event.dx;
-                    d.py += d3.event.dy;
-                    d.x += d3.event.dx;
-                    d.y += d3.event.dy;
-
-                    self.force.stop();
-                    d.fixed = true;
-
-                    tick();
-                }
-
-                function dragend(d, i) {
-                    tick();
-
-                    if (isDragMovedTriggered) {
-                        self.force.resume();
-                        // uncomment if you don't want node to be auto selected when it is dragged.
-                        //if (self.selected_node && d.data.sysname === self.selected_node.data.sysname) {
-                        node_onClick(d);
-                        //}
-
-                    }
-                }
-
-                function node_mouseOver(d) {
-                    mouseFocusInPopup({'title': d.name, 'description': '', 'css_description_width': 200});
-                    highlightNodeNeighbors(d, 0.1);
-                }
-
-                function node_mouseOut(d) {
-                    mouseFocusOutPopup(d);
-                    highlightNodeNeighbors(d, 1);
-                }
-
-                function highlightNodeNeighbors(d, opacity) {
-                    node.style("stroke-opacity", function (o) {
-                        var thisOpacity = isConnected(d, o) ? 1 : opacity;
-                        this.setAttribute('fill-opacity', thisOpacity);
-                        this.setAttribute('opacity', thisOpacity);
-
-                        var circle = (this.firstElementChild || this.children[0] || {});
-
-                        var text = (this.childNodes[1] || {});
-
-                        var v = circle.textContent;
-                        if (d.name == v) {
-                            circle.setAttribute("style", "fill: red");
-                            text.setAttribute("style", "fill: red");
-                        } else {
-                            circle.setAttribute('style', "fill: " + fill(d.group));
-                            text.setAttribute('style', "fill: #000");
-                        }
-
-
-                        return thisOpacity;
-                    });
-
-
-                    link.style("stroke-opacity", function (o) {
-                        return o.source === d || o.target === d ? 1 : opacity;
-                    });
-
-                }
-
-                function link_popup(d) {
-                    var inOctets, outOctets, inOctetsRaw, outOctetsRaw = "N/A"
-
-                    if (d.data.traffic['inOctets'] != null) {
-                        inOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['inOctets'].raw * 8);
-                        inOctetsRaw = d.data.traffic['inOctets'].raw;
-                    } else {
-                        inOctets = inOctetsRaw = 'N/A';
-                    }
-                    if (d.data.traffic['outOctets'] != null) {
-                        outOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['outOctets'].raw * 8);
-                        outOctetsRaw = d.data.traffic['outOctets'].raw;
-                    } else {
-                        outOctets = outOctetsRaw = 'N/A';
-                    }
-
-                    var thiss_vlans = (d.data.uplink.vlans !== null ? d.data.uplink.vlans : 'none');
-                    var vlans = [];
-                    _.each(thiss_vlans, function (num, key) { vlans.push(num.vlan); }, vlans);
-
-                    mouseFocusInPopup({
-                        'title':                 'link',
-                        'description':           d.data.uplink.thiss.interface + " -> " + d.data.uplink.other.interface +
-                            '<br />' + d.data.link_speed +
-                            '<br />In: ' + inOctets + " raw[" + inOctetsRaw + "]" +
-                            '<br />Out: ' + outOctets + " raw[" + outOctetsRaw + "]" +
-                            '<br />Vlans: ' + vlans.join() +
-                            '<br />Prefix: ' + d.data.uplink.prefix,
-                        'css_description_width': 400
-                    });
-
-                }
-
-                function link_popout(d) {
-                    mouseFocusOutPopup(d);
-                }
-
-                function mouseFocusInPopup(d) {
-                    //console.log('mouseFocusInPopup!');
-                    self.$("#pop-up").fadeOut(100, function () {
-                        // Popup content
-                        self.$("#pop-up-title").html(d.title);
-                        self.$("#pop-img").html("23");
-                        self.$("#pop-desc").html(d.description).css({'width': d.css_description_width});
-
-                        // Popup position
-
-                        //console.log(scale);
-                        //console.log(trans);
-
-                        var popLeft = (d.x * self.scale) + self.trans[0] - 10;//lE.cL[0] + 20;
-                        var popTop = (d.y * self.scale) + self.trans[1] + 70;//lE.cL[1] + 70;
-                        self.$("#pop-up").css({"left": popLeft, "top": popTop});
-                        self.$("#pop-up").fadeIn(100);
-                    });
-
-                }
-
-                function mouseFocusOutPopup(d) {
-                    $("#pop-up").fadeOut(50);
-                    //d3.select(this).attr("fill","url(#ten1)");
-                }
-
-                function node_onClick(node) {
-                    //var netbox_info = new NetboxInfoView({node: node});
-                    self.selected_node = node;
-
-                    if (self.options.mapProperties.get('position').has_targets()) {
-                        self.updateRenderGroupByPosition();
-                    }
-
-                    self.broker.trigger("netmap:selectNetbox", {
-                        'selectedVlan': self.selected_vlan,
-                        'netbox': node
-                    });
-                    if (self.selected_vlan) {
-                        removeVlanSelectionOnChanged(node.data.vlans);
-                    }
-
-                }
-
-                var removeVlanSelectionOnChanged = function (vlans) {
-                    var foundVlan = false;
-                    if (vlans !== undefined && vlans) {
-                        for (var i = 0; i < vlans.length; i++) {
-                            var vlan = vlans[i];
-                            if (self.selected_vlan.navVlanId === vlan.nav_vlan) {
-                                foundVlan = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!foundVlan) {
-                        self.selected_vlan = null;
-                        self.showVlan(self.selected_vlan);
-                    }
-                };
-
-                self.force.stop();
-                node_s.exit().remove();
-                s_link.exit().remove();
-
-                // coordinate helper box
-                /*svg
-                    .append('svg:rect')
-                    .attr('width', self.w)
-                    .attr('height', self.h)
-                    .attr('fill', 'd5d5d5');*/
-
-                //console.log("[Netmap][Debug] Nodes: {0}".format(json.nodes.length));
-                //console.log("[Netmap][Debug] Edges: {0}".format(json.links.length));
-                self.force.start();
-                /*svg.style("opacity", 1e-6)
-                 .transition()
-                 .duration(10000)
-                 .style("opacity", 1);*/
-
-            };
-
-
-            // http://stackoverflow.com/a/8683287/653233
-            // intersectionObjects() for the intersection of objects
-            // using your equality function of choice
-            function intersectionObjects2(a, b, areEqualFunction) {
+        // http://stackoverflow.com/a/8683287/653233
+        // intersectionObjects() for the intersection of objects
+        // using your equality function of choice
+        intersectionObjects: function () {
+            function intersectionObjects2 (a, b, areEqualFunction)  {
                 var Result = [];
 
                 for(var i = 0; i < a.length; i++) {
@@ -943,130 +636,448 @@ define([
 
                 return Result;
             }
+            var Results = arguments[0];
+            var LastArgument = arguments[arguments.length - 1];
+            var ArrayCount = arguments.length;
+            var areEqualFunction = _.isEqual;
 
-            function intersectionObjects() {
-                var Results = arguments[0];
-                var LastArgument = arguments[arguments.length - 1];
-                var ArrayCount = arguments.length;
-                var areEqualFunction = _.isEqual;
-
-                if(typeof LastArgument === "function") {
-                    areEqualFunction = LastArgument;
-                    ArrayCount--;
-                }
-
-                for(var i = 1; i < ArrayCount ; i++) {
-                    var array = arguments[i];
-                    Results = intersectionObjects2(Results, array, areEqualFunction);
-                    if(Results.length === 0) break;
-                }
-                return Results;
+            if(typeof LastArgument === "function") {
+                areEqualFunction = LastArgument;
+                ArrayCount--;
             }
 
-            function filterNodes(json, selected_categories) {
-                var result = [];
-                for (var i = 0; i < json.nodes.length; i++) {
-                    var node = json.nodes[i];
-                    if (node !== null) {
-                        if (node.data.position) {
-                            node.x = node.data.position.x;
-                            node.y = node.data.position.y;
-                            node.fixed = true;
-                        }
-                        var selected_category = selected_categories.get(node.data.category.toUpperCase());
-                        if (selected_category && selected_category.get('is_selected')) {
-                            result.push(node);
-                        } else if (!node.fixed) {
-                            // reset it's coordinates if position is not fixed
-                            // and it doesn't match filter.
-
-                            /*node.x = 0;
-                             node.y = 0;*/
-
-                        }
+            for(var i = 1; i < ArrayCount ; i++) {
+                var array = arguments[i];
+                Results = intersectionObjects2(Results, array, areEqualFunction);
+                if(Results.length === 0) break;
+            }
+            return Results;
+        },
+        updateRenderVLAN: function (vlans) {
+            var self = this;
+            var foundVlan = false;
+            if (vlans !== undefined && vlans) {
+                for (var i = 0; i < vlans.length; i++) {
+                    var vlan = vlans[i];
+                    if (self.selected_vlan.navVlanId === vlan.nav_vlan) {
+                        foundVlan = true;
+                        break;
                     }
                 }
-                return result;
+            }
+            if (!foundVlan) {
+                self.selected_vlan = null;
+                self.showVlan(self.selected_vlan);
+            }
+
+        },
+        updateRenderLinks: function () {
+            var self = this;
+            //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
+            self.s_link = self.linkGroup.selectAll("g line").data(self.modelJson.links, function (d) {
+                return d.source.id + "-" + d.target.id;
+            });
+
+            self.s_link.enter().append("svg:g").attr("class", "link").forEach(function (d, i) {
+                var gradient = self.s_link
+                    .append("svg:linearGradient")
+                    .attr("id", function (d, i) {
+                        return 'linkload' + i;
+                    })
+                    .attr('x1', '0%')
+                    .attr('y1', '0%')
+                    .attr('x2', '0%')
+                    .attr('y2', '100%');
+                gradient
+                    .append("svg:stop")
+                    .attr('offset', '0%')
+                    .attr('style', function (d) {
+                        if (d.data.traffic.inOctets_css) { return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'; }
+                        else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
+                    });
+                gradient
+                    .append("svg:stop")
+                    .attr('offset', '50%')
+                    .attr('style', function (d) {
+                        if (d.data.traffic.inOctets_css) { return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'; }
+                        else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
+                    });
+                gradient
+                    .append("svg:stop")
+                    .attr('offset', '51%')
+                    .attr('style', function (d) {
+                        if (d.data.traffic.outOctets_css) { return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'; }
+                        else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
+
+                    });
+                gradient
+                    .append("svg:stop")
+                    .attr('offset', '100%')
+                    .attr('style', function (d) {
+                        if (d.data.traffic.outOctets_css) { return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'; }
+                        else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
+                    });
+                self.s_link.append("svg:line")
+                    .attr("class", function (d, i) {
+                        var speed = d.data.link_speed;
+                        var classes = "";
+                        if (speed <= 100) {
+                            classes = 'speed0-100';
+                        }
+                        else if (speed > 100 && speed <= 512) {
+                            classes = 'speed100-512';
+                        }
+                        else if (speed > 512 && speed <= 2048) {
+                            classes = 'speed512-2048';
+                        }
+                        else if (speed > 2048 && speed <= 4096) {
+                            classes = 'speed2048-4096';
+                        }
+                        else if (speed > 4096) {
+                            classes = 'speed4096';
+                        }
+                        else {
+                            classes = 'speedunknown';
+                        }
+                        return classes;
+
+                    })
+                    .attr('stroke', function (d, i) {
+                        return 'url(#linkload' + i + ')';
+                    })
+                    .on("click", function(d) {
+                        if (self.selected_vlan) {
+                            self.updateRenderVLAN(d.data.uplink.vlans);
+                        }
+                        self.broker.trigger("netmap:selectedLink",  {'link': d, 'selectedVlan': self.selected_vlan});
+                    })
+                    .on("mouseover", function (d) {
+                        if (self.ui.mouseover.links) {
+                            if (self.selected_vlan) {
+                                self.updateRenderVLAN(d.data.uplink.vlans);
+                            }
+                            self.broker.trigger("netmap:selectedLink",  {'link': d, 'selectedVlan': self.selected_vlan});
+                        }
+                    });
+            });
+            self.s_link.exit().remove();
+        },
+        updateRenderNodes: function () {
+            var self = this;
+            self.node_s = self.nodeGroup.selectAll("g.node").data(self.modelJson.nodes, function (d) {
+                return d.data.sysname;
+            });
+            var nodeGroup = self.node_s.enter()
+                .append("svg:g")
+                .attr("class", "node");
+            nodeGroup.append("svg:image")
+                .attr("class", "circle node")
+                .attr("xlink:href", function (d) {
+                    return "/images/netmap/" + d.data.category.toLowerCase() + ".png";
+                })
+                .attr("x", "-16px")
+                .attr("y", "-16px")
+                .attr("width", "32px")
+                .attr("height", "32px");
+            nodeGroup.
+                append("svg:text")
+                    .attr("dy", "1.5em")
+                    .attr("class", "node")
+                    .attr("text-anchor", "middle")
+                    .attr("fill", "#000000")
+                    .attr("background", "#c0c0c0")
+                    .text(function (d) {
+                        return d.name;
+                    });
+
+            self.node_s.exit().remove();
+        },
+        draw: function (data) {
+            var self = this;
+            var json = data;
+
+            self.svg.attr("transform",
+                "translate(" + self.trans + ") scale(" + self.scale + ")");
+
+
+            self.force.nodes(json.nodes).links(json.links).on("tick", tick);
+
+            self.force.on('start', function () {
+                self.broker.trigger("map:forceChangedStatus", true);
+            });
+
+            self.force.on('end', function () {
+                self.broker.trigger("map:forceChangedStatus", false);
+            });
+
+            self.updateRenderTopologyErrors();
+
+            self.updateRenderLinks();
+
+            var link = self.linkGroup.selectAll("g.link line");
+
+            self.updateRenderNodes();
+
+            var node_drag =
+                d3.behavior.drag()
+                    .on("dragstart", dragstart)
+                    .on("drag", dragmove)
+                    .on("dragend", dragend);
+
+
+            var node = self.svg.selectAll("g.node");
+
+            node
+                .on("click", node_onClick)
+                .call(node_drag)
+                // doubleclick? http://jsfiddle.net/wfG6k/
+                .on("mouseover", function (d) {
+                    if (self.ui.mouseover.nodes) {
+                        return node_onClick(d);
+                    }
+
+                });
+
+            if (self.selected_node!==null) {
+                self.updateRenderGroupByPosition();
+            }
+
+            function tick() {
+                node.attr("transform", function (d) {
+                    return "translate(" + d.x + "," + d.y + ")";
+                });
+
+                if (self.nodesInRoom !== undefined) {
+                    self.nodesInRoom
+                        .attr("cx", function (d) { return d.px;})
+                        .attr("cy", function (d) { return d.py;});
+                }
+
+                if (self.selected_vlan) {
+                    self.nodesInVlan
+                        .attr("cx", function (d) { return d.px;})
+                        .attr("cy", function (d) { return d.py;});
+                    self.linksInVlan
+                        .attr("x1", function (d) { return d.source.x;})
+                        .attr("y1", function (d) { return d.source.y;})
+                        .attr("x2", function (d) { return d.target.x;})
+                        .attr("y2", function (d) { return d.target.y;});
+                }
+
+                if (self.linkErrors && self.options.mapProperties.get('displayTopologyErrors', false)) {
+                    self.linkErrors
+                        .attr("x1", function (d) { return d.source.x; })
+                        .attr("y1", function (d) { return d.source.y; })
+                        .attr("x2", function (d) { return d.target.x; })
+                        .attr("y2", function (d) { return d.target.y; });
+                }
+
+                link
+                    .attr("x1", function (d) {
+                        return d.source.x;
+                    })
+                    .attr("y1", function (d) {
+                        return d.source.y;
+                    })
+                    .attr("x2", function (d) {
+                        return d.target.x;
+                    })
+                    .attr("y2", function (d) {
+                        return d.target.y;
+                    }
+                );
+
+
+
+            }
+
+            var isDragMovedTriggered;
+            function dragstart(d, i) {
+                isDragMovedTriggered = false;
+            }
+
+            function dragmove(d, i) {
+                isDragMovedTriggered = true;
+                d.px += d3.event.dx;
+                d.py += d3.event.dy;
+                d.x += d3.event.dx;
+                d.y += d3.event.dy;
+
+                self.force.stop();
+                d.fixed = true;
+
+                tick();
+            }
+
+            function dragend(d, i) {
+                tick();
+
+                if (isDragMovedTriggered) {
+                    self.force.resume();
+                    // uncomment if you don't want node to be auto selected when it is dragged.
+                    //if (self.selected_node && d.data.sysname === self.selected_node.data.sysname) {
+                    node_onClick(d);
+                    //}
+
+                }
+            }
+
+            function node_mouseOver(d) {
+                mouseFocusInPopup({'title': d.name, 'description': '', 'css_description_width': 200});
+                highlightNodeNeighbors(d, 0.1);
+            }
+
+            function node_mouseOut(d) {
+                mouseFocusOutPopup(d);
+                highlightNodeNeighbors(d, 1);
+            }
+
+            function highlightNodeNeighbors(d, opacity) {
+                node.style("stroke-opacity", function (o) {
+                    var thisOpacity = isConnected(d, o) ? 1 : opacity;
+                    this.setAttribute('fill-opacity', thisOpacity);
+                    this.setAttribute('opacity', thisOpacity);
+
+                    var circle = (this.firstElementChild || this.children[0] || {});
+
+                    var text = (this.childNodes[1] || {});
+
+                    var v = circle.textContent;
+                    if (d.name == v) {
+                        circle.setAttribute("style", "fill: red");
+                        text.setAttribute("style", "fill: red");
+                    } else {
+                        circle.setAttribute('style', "fill: " + fill(d.group));
+                        text.setAttribute('style', "fill: #000");
+                    }
+
+
+                    return thisOpacity;
+                });
+
+
+                link.style("stroke-opacity", function (o) {
+                    return o.source === d || o.target === d ? 1 : opacity;
+                });
+
+            }
+
+            function link_popup(d) {
+                var inOctets, outOctets, inOctetsRaw, outOctetsRaw = "N/A"
+
+                if (d.data.traffic['inOctets'] != null) {
+                    inOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['inOctets'].raw * 8);
+                    inOctetsRaw = d.data.traffic['inOctets'].raw;
+                } else {
+                    inOctets = inOctetsRaw = 'N/A';
+                }
+                if (d.data.traffic['outOctets'] != null) {
+                    outOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['outOctets'].raw * 8);
+                    outOctetsRaw = d.data.traffic['outOctets'].raw;
+                } else {
+                    outOctets = outOctetsRaw = 'N/A';
+                }
+
+                var thiss_vlans = (d.data.uplink.vlans !== null ? d.data.uplink.vlans : 'none');
+                var vlans = [];
+                _.each(thiss_vlans, function (num, key) { vlans.push(num.vlan); }, vlans);
+
+                mouseFocusInPopup({
+                    'title':                 'link',
+                    'description':           d.data.uplink.thiss.interface + " -> " + d.data.uplink.other.interface +
+                                                 '<br />' + d.data.link_speed +
+                                                 '<br />In: ' + inOctets + " raw[" + inOctetsRaw + "]" +
+                                                 '<br />Out: ' + outOctets + " raw[" + outOctetsRaw + "]" +
+                                                 '<br />Vlans: ' + vlans.join() +
+                                                 '<br />Prefix: ' + d.data.uplink.prefix,
+                    'css_description_width': 400
+                });
+
+            }
+
+            function link_popout(d) {
+                mouseFocusOutPopup(d);
+            }
+
+            function mouseFocusInPopup(d) {
+                //console.log('mouseFocusInPopup!');
+                self.$("#pop-up").fadeOut(100, function () {
+                    // Popup content
+                    self.$("#pop-up-title").html(d.title);
+                    self.$("#pop-img").html("23");
+                    self.$("#pop-desc").html(d.description).css({'width': d.css_description_width});
+
+                    // Popup position
+
+                    //console.log(scale);
+                    //console.log(trans);
+
+                    var popLeft = (d.x * self.scale) + self.trans[0] - 10;//lE.cL[0] + 20;
+                    var popTop = (d.y * self.scale) + self.trans[1] + 70;//lE.cL[1] + 70;
+                    self.$("#pop-up").css({"left": popLeft, "top": popTop});
+                    self.$("#pop-up").fadeIn(100);
+                });
+
+            }
+
+            function mouseFocusOutPopup(d) {
+                $("#pop-up").fadeOut(50);
+                //d3.select(this).attr("fill","url(#ten1)");
+            }
+
+            function node_onClick(node) {
+                //var netbox_info = new NetboxInfoView({node: node});
+                self.selected_node = node;
+
+                if (self.options.mapProperties.get('position').has_targets()) {
+                    self.updateRenderGroupByPosition();
+                }
+
+                self.broker.trigger("netmap:selectNetbox", {
+                    'selectedVlan': self.selected_vlan,
+                    'netbox': node
+                });
+                if (self.selected_vlan) {
+                    removeVlanSelectionOnChanged(node.data.vlans);
+                }
+
             }
 
 
+            self.force.stop();
+            self.node_s.exit().remove();
+            self.s_link.exit().remove();
+            // coordinate helper box
+            /*svg
+             .append('svg:rect')
+             .attr('width', self.w)
+             .attr('height', self.h)
+             .attr('fill', 'd5d5d5');*/
 
+            //console.log("[Netmap][Debug] Nodes: {0}".format(json.nodes.length));
+            //console.log("[Netmap][Debug] Edges: {0}".format(json.links.length));
+            self.force.start();
+            /*svg.style("opacity", 1e-6)
+             .transition()
+             .duration(10000)
+             .style("opacity", 1);*/
 
-            function categoryLinksFilter(data, filter_nodes, selected_categories) {
-                var json = data;
+        },
+        render: function () {
+            var svg, self;
+            self = this;
 
-                var filter_links = [];
+            //root_chart.attr("opacity", 0.1);
 
+            svg = self.svg;
 
-
-
-                var filter_nodes_indexes = filter_nodes;
-
-                /**
-                 * Create new d3_json format:
-                 *
-                 *
-                 * add new node
-                 *   add links related to node matching CRITERIA with new index
-                 *   run thru already added links & update indexes
-                 *
-                 *
-                 */
-                function filterLinks() {
-                    var result = [];
-
-                    function isMatchingCriteria() {
-                        var sourceMatch = false;
-                        var targetMatch = false;
-                        var source, target;
-                        source = link.source;
-                        target = link.target;
-
-                        _.each(selected_categories.models, function (model) {
-                            if (source.data.category.toUpperCase() === model.get('name').toUpperCase() &&
-                                model.get('is_selected')) {
-                                sourceMatch = true;
-                            }
-                            if (target.data.category.toUpperCase() === model.get('name').toUpperCase() &&
-                                model.get('is_selected')) {
-                                targetMatch = true;
-                            }
-                        });
-                        return sourceMatch && targetMatch;
-
-                    }
-
-                    for (var x = 0; x < filter_nodes_indexes.length; x++) {
-                        var node = filter_nodes_indexes[x];
-                        for (var i = 0; i < json.links.length; i++) {
-                            var link = json.links[i];
-                            var source, target;
-                            source = link.source;
-                            target = link.target;
-
-                            if (target === node) {
-                                if (isMatchingCriteria(link)) {
-                                    result.push(link);
-                                }
-                            }
-                        }
-
-                    }
-                    return result;
-                }
-
-                filter_links = filterLinks();
-
-                return filter_links;
-            }
-
+            //json = {}
 
 
             if (self.force !== undefined) {
                 self.force.stop();
             }
             if (self.options.mapProperties) {
-            var selected_categories = self.options.mapProperties.get('categories');
 
             if (this.model && this.model.get('links')) {
                 self.modelJson = this.model.toJSON();
@@ -1087,21 +1098,7 @@ define([
                 }
 
 
-                // Category filter, finds nodes to keep, filters em out and
-                // remaps links
-                var keepNodes = filterNodes(self.modelJson, selected_categories);
-                self.modelJson.nodes = intersectionObjects(
-                    self.modelJson.nodes,
-                    keepNodes,
-                    function (a, b) {
-                        return a.data.sysname === b.data.sysname;
-                    });
-                self.modelJson.links = categoryLinksFilter(self.modelJson, keepNodes, selected_categories);
-
-                var linkedByIndex = {};
-                self.modelJson.links.forEach(function (d) {
-                    linkedByIndex[d.source.data.sysname + "," + d.target.data.sysname] = 1;
-                });
+                self.updateRenderCategories();
 
                 function isConnected(a, b) {
                     return linkedByIndex[a.data.sysname + "," + b.data.sysname] || linkedByIndex[b.data.sysname + "," + a.data.sysname] || a.data.sysname == b.data.sysname;
@@ -1131,7 +1128,7 @@ define([
 
 
                 self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
-                draw(self.modelJson);
+                self.draw(self.modelJson);
             }
             }
             self.broker.trigger("map:loading:done");
