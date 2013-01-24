@@ -468,11 +468,13 @@ define([
 
             if (self.options.mapProperties.get('position').get('room').get('is_selected')) {
                 groupBy = self.modelJson.nodes.filter(function (d) {
-                    return d.data.roomid === self.selected_node.data.roomid
+                    if (!self.selected_node) { return false; }
+                    return d.data.roomid === self.selected_node.data.roomid;
                 });
             } else if (self.options.mapProperties.get('position').get('location').get('is_selected')) {
                 groupBy = self.modelJson.nodes.filter(function (d) {
-                    return d.data.locationid === self.selected_node.data.locationid
+                    if (!self.selected_node) { return false; }
+                    return d.data.locationid === self.selected_node.data.locationid;
                 });
             } else {
                 groupBy = [];
