@@ -675,7 +675,7 @@ define([
         },
         updateRenderOrphanFilter: function (requireCategoriesUpdate) {
             var self = this;
-            console.log(self.options.mapProperties.get('displayOrphans'));
+
             if (!self.options.mapProperties.get('displayOrphans')) {
                 for (var i = 0; i < self.modelJson.nodes.length; i++) {
                     var node = self.modelJson.nodes[i];
