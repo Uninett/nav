@@ -23,7 +23,7 @@ define([
                 {name: "ELINK"}
             ]),
             zoom: "0,0;0.5",
-            display_orphans: false,
+            displayOrphans: false,
             displayTopologyErrors: false,
             /* properties that does not get saved */
             position: new PositionCollection([

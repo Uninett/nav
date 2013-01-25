@@ -1,12 +1,12 @@
 define([
-    'netmap/models/orphan',
+    'netmap/resource',
     'libs-amd/text!netmap/templates/orphans_toggler.html',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Model, Template) {
+], function (Resource, Template) {
     var OrphanView = Backbone.View.extend({
 
         broker: Backbone.EventBroker,
@@ -17,13 +17,10 @@ define([
             this.template = Handlebars.compile(Template);
             // todo: fetch collection from api.
             if (!this.model) {
-                this.model = new Model();
-
+                this.model = Resource.getMapProperties();
             }
 
-            this.model.bind("change", this.broadcastOrphanFilter, this);
-            this.model.bind("change", this.render, this);
-
+            this.model.bind("change:displayOrphans", this.render, this);
             return this;
         },
 
@@ -34,11 +31,8 @@ define([
 
             return this;
         },
-        broadcastOrphanFilter: function () {
-            this.broker.trigger("netmap:changeOrphansFilters", this.model);
-        },
         setOrphansFilter: function (e) {
-            this.model.set({'is_filtering_orphans': $(e.currentTarget).prop('checked')});
+            this.model.set({'displayOrphans': !($(e.currentTarget).prop('checked'))});
         },
 
         close:function () {

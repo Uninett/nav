@@ -1,4 +1,4 @@
 <div class="squaredTwo">
-    <input type="checkbox" name="filter_orphans" value="filter_orphans" id="filter_orphans" {{#if model.is_filtering_orphans }} checked{{/if}}  />
+    <input type="checkbox" name="filter_orphans" value="filter_orphans" id="filter_orphans" {{#unless model.displayOrphans }} checked{{/unless}}  />
     <label for="filter_orphans">Filter orphans (single instance nodes)</label>
 </div>

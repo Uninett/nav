@@ -60,7 +60,6 @@ define([
                 this.options.mapProperties = Resources.getMapProperties();
             }
             this.sidebar = this.options.view_map_info;
-            // !this.mapProperties.display_orphans;
 
             this.w = this.options.cssWidth;
             this.resize({width: this.w});
@@ -151,13 +150,17 @@ define([
 
 
             }
-            this.options.mapProperties.bind("change:topology", this.render, this);
+            this.bindMapProperties();
             this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
 
             this.render();
             this.broker.trigger("netmap:setMapProperties:done", this.options.mapProperties);
             this.showLoadingSpinner(false);
+        },
+        bindMapProperties: function () {
+            this.options.mapProperties.bind("change:topology", this.render, this);
+            this.options.mapProperties.bind("change:displayOrphans", this.updateRenderCategories, this);
         },
         setMapProperties: function (mapPropertiesModel) {
             this.showLoadingSpinner(true);
@@ -168,7 +171,7 @@ define([
                 this.options.mapProperties.fetch({success: function (model) {
                     self.options.mapProperties.off("change");
                     self.options.mapProperties = model;
-                    self.options.mapProperties.bind("change");
+                    self.bindMapProperties();
                     self.model = new GraphModel({viewid: mapPropertiesModel.get("viewid"), topology: mapPropertiesModel.get('topology')});
                     self.loadGraph();
                 }});
@@ -178,8 +181,7 @@ define([
                 this.render();
                 this.showLoadingSpinner(false);
             }
-            this.options.mapProperties.bind("change:topology", this.render, this);
-
+            this.bindMapProperties();
             // tell list_maps we're done updating our mapProperties
             // and loaded _graph_ :-)
             this.broker.trigger("netmap:setMapProperties:done", this.options.mapProperties);
@@ -202,9 +204,6 @@ define([
         setMapPropertyCategories: function (categoriesCollection) {
             this.options.mapProperties.set({categories: categoriesCollection});
             this.updateRenderCategories();
-        },
-        setMapPropertyOrphanFilter: function (orphanModel) {
-            this.options.mapProperties.set({display_orphans: !orphanModel.get('is_filtering_orphans')});
         },
         setMapPropertyPositionFilter: function (positionCollection) {
             this.options.mapProperties.set({'position': positionCollection});
@@ -563,7 +562,10 @@ define([
             self.modelJson.links.forEach(function (d) {
                 linkedByIndex[d.source.data.sysname + "," + d.target.data.sysname] = 1;
             });
+            self.updateRenderOrphanFilter();
             self.draw(self.modelJson);
+            self.force.start();
+
             //self.updateRenderLinks();
             //self.updateRenderNodes();
         },
@@ -670,6 +672,33 @@ define([
                 self.showVlan(self.selected_vlan);
             }
 
+        },
+        updateRenderOrphanFilter: function (requireCategoriesUpdate) {
+            var self = this;
+            console.log(self.options.mapProperties.get('displayOrphans'));
+            if (!self.options.mapProperties.get('displayOrphans')) {
+                for (var i = 0; i < self.modelJson.nodes.length; i++) {
+                    var node = self.modelJson.nodes[i];
+
+                    var hasNeighbors = false;
+                    for (var j = 0; j < self.modelJson.links.length; j++) {
+                        var link = self.modelJson.links[j];
+                        if (link.source === node || link.target === node) {
+                            hasNeighbors = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasNeighbors) {
+                        self.modelJson.nodes.splice(i, 1);
+                        i--;
+                    }
+                }
+
+            } else if (requireCategoriesUpdate) {
+                self.updateRenderCategories();
+            }
+            self.draw(self.modelJson);
         },
         updateRenderLinks: function () {
             var self = this;
@@ -1044,7 +1073,6 @@ define([
             }
 
 
-            self.force.stop();
             self.node_s.exit().remove();
             self.s_link.exit().remove();
             // coordinate helper box
@@ -1056,7 +1084,6 @@ define([
 
             //console.log("[Netmap][Debug] Nodes: {0}".format(json.nodes.length));
             //console.log("[Netmap][Debug] Edges: {0}".format(json.links.length));
-            self.force.start();
             /*svg.style("opacity", 1e-6)
              .transition()
              .duration(10000)
@@ -1104,33 +1131,11 @@ define([
                     return linkedByIndex[a.data.sysname + "," + b.data.sysname] || linkedByIndex[b.data.sysname + "," + a.data.sysname] || a.data.sysname == b.data.sysname;
                 }
 
-                if (!self.options.mapProperties.get('display_orphans')) {
-                    for (var i = 0; i < self.modelJson.nodes.length; i++) {
-                        var node = self.modelJson.nodes[i];
-
-                        var hasNeighbors = false;
-                        for (var j = 0; j < self.modelJson.links.length; j++) {
-                            var link = self.modelJson.links[j];
-                            if (link.source === node || link.target === node) {
-                                hasNeighbors = true;
-                                break;
-                            }
-                        }
-
-                        if (!hasNeighbors) {
-                            self.modelJson.nodes.splice(i, 1);
-                            i--;
-                        }
-                    }
-
-                }
-
-
-
                 self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
                 self.draw(self.modelJson);
             }
             }
+            self.force.start();
             self.broker.trigger("map:loading:done");
 
             return this;
