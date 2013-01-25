@@ -7,18 +7,23 @@ from shutil import move
 from nav.models.manage import Netbox
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.models.event import Subsystem
+from .utils import timed
 
 from django.db import transaction
 
 OCTET_COUNTERS = ['ifHCInOctets', 'ifHCOutOctets', 'ifInOctets', 'ifOutOctets']
 LOGGER = logging.getLogger(__name__)
 
+
+@timed
 @transaction.commit_on_success
 def updatedb(datadir, containers):
     """
     Update database with information given from a module in form of a list of
     objects containing information about each rrd file.
     """
+
+    LOGGER.debug('Updating database')
 
     for container in containers:
         datapath = datadir
@@ -74,16 +79,25 @@ def fix_filename(filename):
     return filename
 
 
+@timed
 def update_rrdfile(rrdfile, netbox, path_to_rrd, container):
     """ Update database with new info """
     key, value, category = get_key_value(container)
 
-    rrdfile.path = path_to_rrd
-    rrdfile.filename = fix_filename(container.filename)
-    rrdfile.netbox = netbox
-    rrdfile.key = key
-    rrdfile.value = value
-    rrdfile.category = category
+    if not (rrdfile.path == path_to_rrd and
+            rrdfile.filename == fix_filename(container.filename) and
+            rrdfile.netbox == netbox and
+            rrdfile.key == key and
+            rrdfile.value == value and
+            rrdfile.category == category):
+
+        rrdfile.path = path_to_rrd
+        rrdfile.filename = fix_filename(container.filename)
+        rrdfile.netbox = netbox
+        rrdfile.key = key
+        rrdfile.value = value
+        rrdfile.category = category
+        rrdfile.save()
 
     update_maxspeed(container, rrdfile)
     update_datasources(container, rrdfile)
@@ -93,9 +107,8 @@ def update_rrdfile(rrdfile, netbox, path_to_rrd, container):
     if not rrdfile.rrddatasource_set.all():
         insert_datasources(container, rrdfile)
 
-    rrdfile.save()
 
-
+@timed
 def insert_rrdfile(datapath, filename, container, netbox):
     """ Create a new tuple in the database """
     subsystem = Subsystem.objects.get(name='cricket')
@@ -116,6 +129,7 @@ def insert_rrdfile(datapath, filename, container, netbox):
     insert_datasources(container, rrdfile)
 
 
+@timed
 def get_key_value(container):
     """ Return key/value and category as a tuple """
     key = None
@@ -135,6 +149,7 @@ def is_octet_counter(datasource):
     return datasource in OCTET_COUNTERS
 
 
+@timed
 def insert_datasources(container, rrdfile):
     """ Insert this datasource in the database """
     LOGGER.debug("Inserting datasources for %s" % container.filename)
@@ -149,6 +164,7 @@ def insert_datasources(container, rrdfile):
         create_datasource(datasource, rrdfile, speed)
 
 
+@timed
 def update_datasources(container, rrdfile):
     """Update datasources based on container data
 
@@ -156,18 +172,22 @@ def update_datasources(container, rrdfile):
     - Update database if datasource with same name exists
     - Insert new if datasource name does not exist
     Finally we remove those who did not exist on the container
+
     """
     def is_equal(rrdds, datasource):
         """Is the rrd_datasource equal to container datasource?"""
-        return rrdds.units == datasource.unit and \
-            rrdds.type == datasource.dstype and \
-            rrdds.description == datasource.descr
-
+        return (rrdds.units == datasource.unit and
+                rrdds.type == datasource.dstype and
+                rrdds.description == datasource.descr)
 
     existing = []
+
+    rrd_datasources = rrdfile.rrddatasource_set.all()
+
     for datasource in container.datasources:
+        LOGGER.debug('Checking %s for differences', datasource.name)
         try:
-            rrdds = rrdfile.rrddatasource_set.get(name=datasource.name)
+            rrdds = rrd_datasources.get(name=datasource.name)
             if not is_equal(rrdds, datasource):
                 rrdds.units = datasource.unit
                 rrdds.type = datasource.dstype
@@ -175,7 +195,7 @@ def update_datasources(container, rrdfile):
                 rrdds.save()
                 LOGGER.debug(
                     'Updating datasource %s for %s' % (datasource.name,
-                        container.filename))
+                                                       container.filename))
             existing.append(rrdds)
         except RrdDataSource.DoesNotExist:
             existing.append(
@@ -185,25 +205,27 @@ def update_datasources(container, rrdfile):
         id__in=[x.id for x in existing])
 
     if len(rrds_to_delete) > 0:
-        LOGGER.info('Deleting %s' % (rrds_to_delete))
+        LOGGER.info('Deleting %s' % rrds_to_delete)
         rrds_to_delete.delete()
 
 
+@timed
 def create_datasource(datasource, rrdfile, speed):
     """Create a new rrd_datasource tuple"""
 
     LOGGER.info('Creating new datasource for %s - %s:%s' % (
         rrdfile, datasource.name, datasource.descr))
     rrdds = RrdDataSource(rrd_file=rrdfile, name=datasource.name,
-                               description=datasource.descr,
-                               type=datasource.dstype,
-                               units=datasource.unit, max=speed,
-                               threshold_state=None,
-                               delimiter=None)
+                          description=datasource.descr,
+                          type=datasource.dstype,
+                          units=datasource.unit, max=speed,
+                          threshold_state=None,
+                          delimiter=None)
     rrdds.save()
     return rrdds
 
 
+@timed
 def update_maxspeed(container, rrdfile):
     """ Update datasourcetuple regarding this container """
     if not container.speed > 0:
@@ -221,6 +243,7 @@ def update_maxspeed(container, rrdfile):
         needs_update.update(max=maxspeed)
 
 
+@timed
 def move_file(source, destination):
     """
     Move file to new place. If it does not exist, we assume it's ok and
@@ -234,7 +257,7 @@ def move_file(source, destination):
         if ioerror.errno == 2:
             LOGGER.info("File %s did not exist.", source)
         else:
-            LOGGER.error("Exception when moving file %s: %s" \
+            LOGGER.error("Exception when moving file %s: %s"
                          % (source, ioerror))
     except Exception, error:
         LOGGER.error("Exception when moving file %s: %s" % (source, error))

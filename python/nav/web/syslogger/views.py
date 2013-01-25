@@ -14,9 +14,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""macwatch view definitions"""
-import copy
-
+"""syslogger view definitions"""
 import logging
 from django.core.urlresolvers import reverse
 from django.db.models.aggregates import Count
@@ -25,8 +23,7 @@ import os
 import datetime
 from ConfigParser import ConfigParser
 
-from django.http import HttpResponseRedirect, HttpResponseForbidden, \
-    HttpResponse, QueryDict
+from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
@@ -38,12 +35,8 @@ from nav.django.utils import get_account
 from nav.models.logger import LogMessage
 from nav.models.logger import ErrorError
 from nav.web.syslogger.forms import LoggerGroupSearchForm
+from nav.web.utils import create_title
 
-
-
-
-NAVBAR = [('Home', '/'), ('Syslog Analyzer', None)]
-DEFAULT_VALUES = {'title': "Syslog Analyzer", 'navpath': NAVBAR}
 
 DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -69,6 +62,7 @@ def _strip_empty_arguments(request):
     return query
 
 def _build_context(request):
+    nav_path = [('Home', '/'), ('Syslogger', reverse('logger_index'))]
     results = []
     context = {}
     aggregates = {}
@@ -160,7 +154,9 @@ def _build_context(request):
         'bookmark': "{0}?{1}".format(reverse(index), strip_query_args),
         'aggregates': aggregates,
         'timestamp': datetime.datetime.now().strftime(DATEFORMAT),
-        'domain_strip': simplejson.dumps(DOMAIN_SUFFICES)
+        'domain_strip': simplejson.dumps(DOMAIN_SUFFICES),
+        'navpath': nav_path,
+        'title': create_title(nav_path)
     })
     return context
 

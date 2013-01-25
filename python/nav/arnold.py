@@ -244,10 +244,14 @@ def create_candidates(caminfos):
     for caminfo in caminfos:
         if 'ip' not in caminfo:
             caminfo['ip'] = '0.0.0.0'
-        interface = Interface.objects.get(pk=caminfo['interfaceid'])
-        candidates.append(Candidate(caminfo['camid'], caminfo['ip'],
-                                    caminfo['mac'], interface,
-                                    caminfo['endtime']))
+        try:
+            interface = Interface.objects.get(pk=caminfo['interfaceid'])
+        except Interface.DoesNotExist:
+            continue
+        else:
+            candidates.append(Candidate(caminfo['camid'], caminfo['ip'],
+                                        caminfo['mac'], interface,
+                                        caminfo['endtime']))
     return candidates
 
 

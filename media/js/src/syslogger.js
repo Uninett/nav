@@ -98,7 +98,7 @@ require([
             var suffixes = JSON.parse($('#domain_strip').text());
             stripDomainSuffixOrigin($('#id_origin option'), suffixes);
             updateFormFromRequestArguments();
-            attachButtonListeners()
+            attachButtonListeners();
         }
     }
 
@@ -179,8 +179,8 @@ require([
         if (request.show_log) { setSelectedCheckbox('show_log', request.show_log); }
     }
 
-    function showLogIfEnoughFilteringEnabled(target) {
-        var matches = {}
+    function showLogIfEnoughFilteringEnabled() {
+        var matches = {};
         $('#syslog_search_form select option:selected').each(function (index, value) {
             if ($(value).val()) {
                 matches[$(value).parent().attr('name')] = true;
@@ -189,9 +189,11 @@ require([
 
         if ((matches.facility && matches.priority && matches.mnemonic) ||
             (matches.origin && matches.priority)) {
-            $("#id_show_log").attr('checked', 'checked');
-            searchSyslog(target);
+            showLog();
         }
+    }
+    function showLog() {
+        $("#id_show_log").attr('checked', 'checked');
     }
 
     function searchSyslog(target) {
@@ -220,12 +222,15 @@ require([
                 if (data.priority) {
                     checkDataAndUpdateSelection('priority', data.priority);
                 }
-
-                showLogIfEnoughFilteringEnabled(target);
+                if (data.show_log) {
+                    showLog();
+                } else {
+                    showLogIfEnoughFilteringEnabled();
+                }
                 searchSyslog(target);
 
             });
-            attachButtonListeners()
+            attachButtonListeners();
         }).error(function (data) {
                 $('.results').html("<p>Failed to load search results, please try again</p>");
         }).complete(function () {

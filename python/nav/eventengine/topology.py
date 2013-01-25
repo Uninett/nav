@@ -47,7 +47,17 @@ def get_path_to_netbox(netbox):
 
     """
     prefix = netbox.get_prefix()
-    router_port = prefix.get_router_ports()[0]
+    if not prefix:
+        _logger.warning("couldn't find prefix for %s", netbox)
+        return True
+
+    router_ports = prefix.get_router_ports()
+    if router_ports:
+        router_port = router_ports[0]
+    else:
+        _logger.warning("couldn't find router ports for %s", prefix)
+        return True
+
     router = router_port.interface.netbox
     _logger.debug("reachability check for %s on %s (router: %s)",
                   netbox, prefix, router)

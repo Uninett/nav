@@ -20,6 +20,7 @@ from IPy import IP
 from operator import methodcaller, attrgetter
 import simplejson
 
+from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.http import HttpResponse
@@ -27,14 +28,26 @@ from django.http import HttpResponse
 from nav.models.manage import Prefix, Vlan
 from nav.models.rrd import RrdFile
 from nav.rrd2.presenter import Graph
+from nav.web.utils import create_title
 
 LOGGER = logging.getLogger('nav.web.info.vlan')
+
+
+def get_path(extra=None):
+    """Return breadcrumb list"""
+    if not extra:
+        extra = []
+    return [('Home', '/'), ('Info', reverse('info-search')),
+            ('Vlan', reverse('vlan-index'))] + extra
 
 
 def index(request):
     """Index of vlan"""
 
+    navpath = get_path()
     return render_to_response("info/vlan/base.html",
+                              {'navpath': navpath,
+                               'title': create_title(navpath)},
                               context_instance=RequestContext(request))
 
 
@@ -44,10 +57,14 @@ def vlan_details(request, vlanid):
     prefixes = sorted(vlan.prefix_set.all(),
                       key=methodcaller('get_prefix_size'))
 
+    navpath = get_path([(str(vlan), '')])
+
     return render_to_response('info/vlan/vlandetails.html',
                               {'vlan': vlan,
                                'prefixes': prefixes,
-                               'gwportprefixes': find_gwportprefixes(vlan)},
+                               'gwportprefixes': find_gwportprefixes(vlan),
+                               'navpath': navpath,
+                               'title': create_title(navpath)},
                               context_instance=RequestContext(request))
 
 

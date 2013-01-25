@@ -1,10 +1,10 @@
 {% if state == event.STATE_START %}
 
-Service {{handler}} on {{netbox.sysname}} is down since {{time}}
+Service {{service.handler}} on {{netbox.sysname}} is down since {{time}}
 
 {% else %}{% if state == event.STATE_END %}
 
-Service {{handler}} on {{netbox.sysname}} is up since {{time}}
+Service {{service.handler}} on {{netbox.sysname}} is up since {{time}}
 
 {% else %}
 

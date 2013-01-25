@@ -35,9 +35,8 @@ class BoxStateHandler(delayedstate.DelayedStateHandler):
 
     def _set_internal_state(self, state):
         netbox = self.get_target()
-        if netbox.up != state:
-            netbox.up = state
-            netbox.save()
+        netbox.up = state
+        Netbox.objects.filter(id=netbox.id).update(up=state)
 
     def get_target(self):
         return self.event.netbox
