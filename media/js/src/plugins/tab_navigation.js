@@ -25,12 +25,14 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
 
         /* Set title based on fragment. Remove other fragment */
         function setTitle(fragment) {
-            var old = document.title;
-            var hashIndex = old.lastIndexOf('#');
-            if (hashIndex === -1) {
-                document.title = old + fragment;
-            } else {
-                document.title = old.substring(0, hashIndex) + fragment;
+            if (fragment && fragment !== "#undefined") {
+                var old = document.title;
+                var hashIndex = old.lastIndexOf('#');
+                if (hashIndex === -1) {
+                    document.title = old + fragment;
+                } else {
+                    document.title = old.substring(0, hashIndex) + fragment;
+                }
             }
         }
 

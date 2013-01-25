@@ -23,7 +23,7 @@ from nav.web.syslogger.views import errors_response
 from nav.web.syslogger.views import group_search
 
 
-urlpatterns = patterns('',
+urlpatterns = patterns('nav.web.syslogger.views',
     # Default view
     url(r'^$', index, name='logger_index'),
     url(r'^search/group/$', group_search, name='logger_search_group'),

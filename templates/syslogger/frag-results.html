@@ -7,10 +7,10 @@
                     <caption>{{ name }}</caption>
                     <thead>
                         <tr>
+                            <th>Count</th>
                             {% for key in aggregate.headers %}
                                 <th>{{ key }}</th>
                             {% endfor %}
-                            <th>Count</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -19,8 +19,10 @@
                                 {# Someone find a better way to do this please #}
                                 {% for key, value in title.items %}
                                     {% if name == "Origin" %}
-                                        {% if key != "sum" %}
-                                            <td><a class="syslog_origin" data-origin="{{value}}" href="{{ bookmark }}&origin={{value}}">{{ value }}</a></td>
+                                        {% if key == "sum" %}
+                                            <td><a class="syslog_origin" data-show_log="on"  data-origin="{{title.origin__name}}" href="{{ bookmark }}&origin={{title.origin__name}}&show_log=on">{{ title.sum }}</a></td>
+                                        {% else %}
+                                            <td><a class="syslog_origin" data-origin="{{title.origin__name}}" href="{{ bookmark }}&origin={{title.origin__name}}">{{ title.origin__name }}</a></td>
                                         {% endif %}
                                     {% endif %}
                                     {% if name == "Type" %}
@@ -33,14 +35,19 @@
                                         {% if key == 'type__mnemonic' %}
                                             <td><a data-mnemonic="{{value}}" href="{{ bookmark }}&mnemonic={{value}}">{{ value }}</a></td>
                                         {% endif %}
-                                    {% endif %}
-                                    {% if name == "Priorities" %}
-                                        {% if key != "sum" %}
-                                            <td><a data-priority="{{value}}" href="{{ bookmark }}&priority={{value}}">{{ value }}</a></td>
+                                        {% if key == 'sum' %}
+                                            <td><a data-show_log="on" data-facility="{{title.type__priority__keyword}}" data-mnemonic="{{title.type__mnemonic}}" data-priority="{{title.type__priority__keyword}}" href="{{ bookmark }}&facility={{value}}">{{ value }}</a></td>
                                         {% endif %}
                                     {% endif %}
+                                    {% if name == "Priorities" %}
+                                        {% if key == "sum" %}
+                                            <td><a data-show_log="on" data-priority="{{title.newpriority__keyword}}" href="{{ bookmark }}&priority={{title.newpriority__keyword}}">{{ value }}</a></td>
+                                        {% else %}
+                                            <td><a data-priority="{{value}}" href="{{ bookmark }}&priority={{value}}">{{ value }}</a></td>
+                                        {% endif %}
+
+                                    {% endif %}
                                 {% endfor %}
-                                <td>{{ title.sum }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
