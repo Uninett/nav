@@ -11,7 +11,8 @@ if(!Array.indexOf){
 var queue = new Array();
 
 $(document).ready(function(){
-	add_change_listener_to_fields();
+    NAV.addGlobalAjaxHandlers();
+    add_change_listener_to_fields();
 });
 
 function add_change_listener_to_fields() {

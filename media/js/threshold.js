@@ -138,7 +138,7 @@ threshold.serverError = function(){
 }; /* serverError */
 
 
-threshold.ajaxError = function(request, errMessage, errType){
+threshold.ajaxError = function( request, errMessage, errType){
     var errMsg = 'Error: ' + errMessage + '; ' + errType;
     threshold.updateMessages(errMsg, true);
 }; /* ajaxError */
@@ -732,6 +732,7 @@ threshold.attachBulkListeners = function(){
 
 
 $(document).ready(function(){
+    NAV.addGlobalAjaxHandlers();
     $('#thresholdDescr').change(function(){
         threshold.removeMessages();
         var sval = $(this).val();
