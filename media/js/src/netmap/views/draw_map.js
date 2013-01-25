@@ -195,6 +195,7 @@ define([
                 success: function (model, attributes) {
                     self.model = model;
                     self.modelJson = self.model.toJSON();
+                    self.modelJSONRemap();
                     self.clear();
                     self.render();
                     self.showLoadingSpinner(false);
@@ -462,6 +463,27 @@ define([
                 this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
             }
         },
+        modelJSONRemap: function () {
+            var self = this;
+            // map links to node objects in modelJson!
+            // (identifiers in links are node sysnames!)
+            for (var i = 0; i < self.modelJson.links.length; i++) {
+                var link = self.modelJson.links[i];
+                for (var j = 0; j < self.modelJson.nodes.length; j++) {
+                    var node = self.modelJson.nodes[j];
+                    if (node.data.sysname === link.target) {
+                        link.target = node;
+                    }
+                    if (node.data.sysname === link.source) {
+                        link.source = node;
+                    }
+                }
+            }
+            self.linkedByIndex = {};
+            self.modelJson.links.forEach(function (d) {
+                self.linkedByIndex[d.source.data.sysname + "," + d.target.data.sysname] = 1;
+            });
+        },
         updateRenderCategories: function () {
             function filterNodes(json, selected_categories) {
                 var result = [];
@@ -545,7 +567,7 @@ define([
 
 
             var self = this;
-            self.modelJson = self.model.toJSON();
+            self.modelJson = this.model.toJSON();
             self.force.nodes(self.modelJson.nodes).links(self.modelJson.links);
             // Category filter, finds nodes to keep, filters em out and
             // remaps links
@@ -557,17 +579,11 @@ define([
                     return a.data.sysname === b.data.sysname;
                 });
             self.modelJson.links = categoryLinksFilter(self.modelJson, keepNodes, self.options.mapProperties.get('categories'));
-
-            var linkedByIndex = {};
-            self.modelJson.links.forEach(function (d) {
-                linkedByIndex[d.source.data.sysname + "," + d.target.data.sysname] = 1;
-            });
             self.updateRenderOrphanFilter();
-            self.draw(self.modelJson);
+            self.modelJSONRemap();
             self.force.start();
+            self.draw(self.modelJson);
 
-            //self.updateRenderLinks();
-            //self.updateRenderNodes();
         },
         updateRenderGroupByPosition: function () {
             var self = this;
@@ -698,7 +714,6 @@ define([
             } else if (requireCategoriesUpdate) {
                 self.updateRenderCategories();
             }
-            self.draw(self.modelJson);
         },
         updateRenderLinks: function () {
             var self = this;
@@ -952,13 +967,15 @@ define([
             }
 
             function node_mouseOver(d) {
-                mouseFocusInPopup({'title': d.name, 'description': '', 'css_description_width': 200});
                 highlightNodeNeighbors(d, 0.1);
             }
 
             function node_mouseOut(d) {
-                mouseFocusOutPopup(d);
                 highlightNodeNeighbors(d, 1);
+            }
+
+            function isConnected(a, b) {
+                return self.linkedByIndex[a.data.sysname + "," + b.data.sysname] || self.linkedByIndex[b.data.sysname + "," + a.data.sysname] || a.data.sysname == b.data.sysname;
             }
 
             function highlightNodeNeighbors(d, opacity) {
@@ -989,69 +1006,6 @@ define([
                     return o.source === d || o.target === d ? 1 : opacity;
                 });
 
-            }
-
-            function link_popup(d) {
-                var inOctets, outOctets, inOctetsRaw, outOctetsRaw = "N/A"
-
-                if (d.data.traffic['inOctets'] != null) {
-                    inOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['inOctets'].raw * 8);
-                    inOctetsRaw = d.data.traffic['inOctets'].raw;
-                } else {
-                    inOctets = inOctetsRaw = 'N/A';
-                }
-                if (d.data.traffic['outOctets'] != null) {
-                    outOctets = NetmapExtras.convert_bits_to_si(d.data.traffic['outOctets'].raw * 8);
-                    outOctetsRaw = d.data.traffic['outOctets'].raw;
-                } else {
-                    outOctets = outOctetsRaw = 'N/A';
-                }
-
-                var thiss_vlans = (d.data.uplink.vlans !== null ? d.data.uplink.vlans : 'none');
-                var vlans = [];
-                _.each(thiss_vlans, function (num, key) { vlans.push(num.vlan); }, vlans);
-
-                mouseFocusInPopup({
-                    'title':                 'link',
-                    'description':           d.data.uplink.thiss.interface + " -> " + d.data.uplink.other.interface +
-                                                 '<br />' + d.data.link_speed +
-                                                 '<br />In: ' + inOctets + " raw[" + inOctetsRaw + "]" +
-                                                 '<br />Out: ' + outOctets + " raw[" + outOctetsRaw + "]" +
-                                                 '<br />Vlans: ' + vlans.join() +
-                                                 '<br />Prefix: ' + d.data.uplink.prefix,
-                    'css_description_width': 400
-                });
-
-            }
-
-            function link_popout(d) {
-                mouseFocusOutPopup(d);
-            }
-
-            function mouseFocusInPopup(d) {
-                //console.log('mouseFocusInPopup!');
-                self.$("#pop-up").fadeOut(100, function () {
-                    // Popup content
-                    self.$("#pop-up-title").html(d.title);
-                    self.$("#pop-img").html("23");
-                    self.$("#pop-desc").html(d.description).css({'width': d.css_description_width});
-
-                    // Popup position
-
-                    //console.log(scale);
-                    //console.log(trans);
-
-                    var popLeft = (d.x * self.scale) + self.trans[0] - 10;//lE.cL[0] + 20;
-                    var popTop = (d.y * self.scale) + self.trans[1] + 70;//lE.cL[1] + 70;
-                    self.$("#pop-up").css({"left": popLeft, "top": popTop});
-                    self.$("#pop-up").fadeIn(100);
-                });
-
-            }
-
-            function mouseFocusOutPopup(d) {
-                $("#pop-up").fadeOut(50);
-                //d3.select(this).attr("fill","url(#ten1)");
             }
 
             function node_onClick(node) {
@@ -1108,28 +1062,9 @@ define([
 
             if (this.model && this.model.get('links')) {
                 self.modelJson = this.model.toJSON();
-
-                // map links to node objects in modelJson!
-                // (identifiers in links are node sysnames!)
-                for (var i = 0; i < self.modelJson.links.length; i++) {
-                    var link = self.modelJson.links[i];
-                    for (var j = 0; j < self.modelJson.nodes.length; j++) {
-                        var node = self.modelJson.nodes[j];
-                        if (node.data.sysname === link.target) {
-                            link.target = node;
-                        }
-                        if (node.data.sysname === link.source) {
-                            link.source = node;
-                        }
-                    }
-                }
-
+                self.modelJSONRemap();
 
                 self.updateRenderCategories();
-
-                function isConnected(a, b) {
-                    return linkedByIndex[a.data.sysname + "," + b.data.sysname] || linkedByIndex[b.data.sysname + "," + a.data.sysname] || a.data.sysname == b.data.sysname;
-                }
 
                 self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
                 self.draw(self.modelJson);
