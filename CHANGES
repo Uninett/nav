@@ -1,3 +1,31 @@
+Version 3.13.0b2
+(released 25 Jan 2013)
+
+Fixes:
+
+  * LP#735521  (Tracking machines behind a port where the name has changed
+                fails)
+  * LP#1062136 (linkState events should be sent only for redundant links)
+  * LP#1062197 (ipdevinfo DNS table should be on a separate tab)
+  * LP#1062200 (ipdevinfo needs a port view tab for physical ports)
+  * LP#1092154 (Portadmin crash when unicode characters in ifalias)
+  * LP#1092156 (Portadmin crash when it cannot find a netbox by name or ip,- and
+                interface by id)
+  * LP#1092848 (logengine regression: crash on various non-Cisco syslog entries)
+  * LP#1099393 (ipdevinfo room link should link to new room info)
+  * LP#1099412 (room opt fields with links should be clickable in room view)
+  * LP#1102923 (eventEngine doesn't fallback to default alert message template)
+  * LP#1102924 (Missing alert templates for upsPowerState alerts)
+  * LP#1103403 (servicestate plugin doesn't add service details to alerts)
+  * LP#1103455 (active ip collector is insanely slow)
+  * LP#1103459 (active ip collector does not detect that it is running)
+  * LP#1103505 (arnold crashes on manual detention)
+  * LP#1103923 (vlan view breadcrumbs missing)
+  * LP#1103926 (Unhandled errors in eventengine topology evaluation cause events
+                to be ignored)
+  * LP#1103929 (Netbox.up winds up out of sync with actual alert-based box
+                state)
+
 Version 3.13.0b1
 (released 14 Dec 2012)
 
