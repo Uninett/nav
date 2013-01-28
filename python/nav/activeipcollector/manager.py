@@ -65,7 +65,11 @@ def delete_files(datadir):
 
 
 def store(data, where):
-    """Store data"""
+    """Store data in rrd-files and update rrd-database
+
+    data: a cursor.fetchall object containing all database rows we are to store
+    where: the path to the rrd-files
+    """
     errors = 0
     successful = 0  # Number of successful rrd-file updates
     has_stored = []
@@ -91,7 +95,11 @@ def store(data, where):
 
 
 def store_tuple(db_tuple, where):
-    """Store this database tuple"""
+    """Store data from the db_tuple in an rrd file
+
+    db_tuple: a row from a rrd_fetchall object
+    where: path to rrd_files
+    """
     prefix, timestamp, ip_count, mac_count = db_tuple
     when = get_timestamp(timestamp)
     filename = convert_to_filename(prefix)

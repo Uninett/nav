@@ -27,8 +27,8 @@ LOG = logging.getLogger('ipcollector.collector')
 def collect(days=None):
     """Collect data from database
 
-    netaddr: a list of prefixes to collect from
-    when: a datetime.datetime object
+    Use either a quick query for updates only, or a slow one for walking
+    through historic data.
     """
 
     starttime = time.time()
