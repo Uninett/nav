@@ -74,10 +74,8 @@ def create_prefix_graph(request, prefixid):
     try:
         prefix = Prefix.objects.get(pk=prefixid)
         rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
-    except Prefix.DoesNotExist:
-        return None
-    except RrdFile.DoesNotExist:
-        return None
+    except (Prefix.DoesNotExist, RrdFile.DoesNotExist):
+        return HttpResponse(status=500)
 
     timeframe = request.GET.get('timeframe', 'day')
 
@@ -85,22 +83,10 @@ def create_prefix_graph(request, prefixid):
 
     options = {'-l': '0', '-v': 'IP-addresses', '-w': 300, '-h': 100}
     graph = Graph(title=prefix.net_address, time_frame=timeframe, opts=options)
-    for datasource in datasources:
-        if datasource.name == 'ip_count':
-            vname = graph.add_datasource(datasource, 'AREA', 'IP-addresses ')
-            add_graph_text(graph, vname)
-        if datasource.name == 'mac_count':
-            vname = graph.add_datasource(datasource, 'LINE2', 'MAC-addresses')
-            add_graph_text(graph, vname)
-        if datasource.name == 'ip_range':
-            if add_max(prefix):
-                vname = graph.add_datasource(datasource, 'LINE2',
-                                             'Max addresses')
-                add_graph_text(graph, vname)
-            else:
-                # Add an empty comment so that the graphs with and without
-                # max are equal in size
-                graph.add_argument("COMMENT:   ")
+
+    add_ip_count(graph, datasources.get(name='ip_count'))
+    add_mac_count(graph, datasources.get(name='mac_count'))
+    add_ip_range(graph, prefix, datasources.get(name='ip_range'))
 
     graphurl = graph.get_url()
     if graphurl:
@@ -108,6 +94,30 @@ def create_prefix_graph(request, prefixid):
         return HttpResponse(json, mimetype='application/json')
     else:
         return HttpResponse(status=500)
+
+
+def add_ip_count(graph, datasource):
+    """Add ip count to graph"""
+    vname = graph.add_datasource(datasource, 'AREA', 'IP-addresses ')
+    add_graph_text(graph, vname)
+
+
+def add_mac_count(graph, datasource):
+    """Add mac count to graph"""
+    vname = graph.add_datasource(datasource, 'LINE2', 'MAC-addresses')
+    add_graph_text(graph, vname)
+
+
+def add_ip_range(graph, prefix, datasource):
+    """Add ip range to graph if not ipv6 address or scope"""
+    if add_max(prefix):
+        vname = graph.add_datasource(datasource, 'LINE2',
+                                     'Max addresses')
+        add_graph_text(graph, vname)
+    else:
+        # Add an empty comment so that the graphs with and without
+        # max are equal in size
+        graph.add_argument("COMMENT:   ")
 
 
 def create_vlan_graph(request, vlanid, family=4):

@@ -31,7 +31,7 @@ from nav.models.manage import Prefix
 from nav.models.rrd import RrdFile, RrdDataSource
 
 from django.db import DatabaseError
-from django.db.transaction import commit_on_success, rollback
+from django.db.transaction import commit_on_success, set_dirty
 
 import nav.activeipcollector.collector as collector
 import nav.activeipcollector.rrdcontroller as rrdcontroller
@@ -164,16 +164,15 @@ def update_rrddb(element, datapath):
         return
 
     try:
-        rrdfile = RrdFile.objects.get(category=DATABASE_CATEGORY,
-                                      key='prefix', value=prefix.net_address)
-
-        LOG.debug('This rrdfile already exists: %s' % element.prefix)
-
-        rrdfile.path = datapath
-        rrdfile.filename = element.filename
-        rrdfile.save()
-    except RrdFile.DoesNotExist:
-        create_rrddb_file(element, prefix, datapath)
+        try:
+            rrdfile = RrdFile.objects.get(category=DATABASE_CATEGORY,
+                                          key='prefix', value=prefix.id)
+        except RrdFile.DoesNotExist:
+            create_rrddb_file(element, prefix, datapath)
+        else:
+            rrdfile.path = datapath
+            rrdfile.filename = element.filename
+            rrdfile.save()
     except DatabaseError, error:
         LOG.error(error)
 
@@ -190,28 +189,25 @@ def create_rrddb_file(element, prefix, datapath):
         filename=element.filename,
         step=1800,
         key='prefix',
-        value=prefix.net_address,
+        value=prefix.id,
         category=DATABASE_CATEGORY
     )
 
-    try:
-        rrdfile.save()
-    except DatabaseError, error:
-        LOG.error(error)
-        rollback()
-    else:
-        datasources = [
-            Datasource('ip_count', 'Number of ip-addresses on this prefix',
-                       'ip-addresses'),
-            Datasource('mac_count', 'Number of mac-addresses on this prefix',
-                       'mac-addresses'),
-            Datasource('ip_range',
-                       'Total number of ip-addresses available on this prefix',
-                       'ip-addresses'),
-        ]
+    set_dirty()  # Why do I need to do this?
+    rrdfile.save()
 
-        for datasource in datasources:
-            create_rrddb_datasource(rrdfile, datasource)
+    datasources = [
+        Datasource('ip_count', 'Number of ip-addresses on this prefix',
+                   'ip-addresses'),
+        Datasource('mac_count', 'Number of mac-addresses on this prefix',
+                   'mac-addresses'),
+        Datasource('ip_range',
+                   'Total number of ip-addresses available on this prefix',
+                   'ip-addresses'),
+    ]
+
+    for datasource in datasources:
+        create_rrddb_datasource(rrdfile, datasource)
 
 
 def create_rrddb_datasource(rrdfile, datasource):
@@ -227,7 +223,4 @@ def create_rrddb_datasource(rrdfile, datasource):
         threshold_state=None,
         delimiter=None
     )
-    try:
-        rrdds.save()
-    except DatabaseError, error:
-        LOG.error(error)
+    rrdds.save()
