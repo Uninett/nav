@@ -110,7 +110,7 @@ def create_prefix_graph(request, prefixid):
         return HttpResponse(status=500)
 
 
-def create_vlan_graph(request, vlanid):
+def create_vlan_graph(request, vlanid, family=4):
     """Create graph for this vlan"""
 
     try:
@@ -118,20 +118,28 @@ def create_vlan_graph(request, vlanid):
     except Vlan.DoesNotExist:
         return None
 
+    try:
+        family = int(family)
+    except ValueError:
+        family = 4
+
     timeframe = request.GET.get('timeframe', 'day')
 
-    prefixes = sorted(vlan.prefix_set.all(),
+    extra = {'where': ['family(netaddr) = %s' % family]}
+    prefixes = sorted(vlan.prefix_set.all().extra(**extra),
                       key=methodcaller('get_prefix_size'),
                       reverse=True)
 
+    if not prefixes:
+        return HttpResponse(status=503)
+
     options = {'-v': 'IP-addresses', '-l': '0'}
-    graph = Graph(title='Vlan %s' % vlan, time_frame=timeframe, opts=options)
+    graph = Graph(title='Total IPv%s addresses on vlan %s' % (family, vlan),
+                  time_frame=timeframe, opts=options)
 
     stack = False
     ipranges = []
     for prefix in prefixes:
-        if not is_ipv4(prefix):
-            continue
         rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
         ipcount = rrdfile.rrddatasource_set.get(name='ip_count')
 
@@ -144,8 +152,9 @@ def create_vlan_graph(request, vlanid):
 
         stack = True  # Stack all ip_counts after the first
 
-    graph.add_cdef('iprange', rpn_sum(ipranges))
-    graph.add_graph_element('iprange', draw_as='LINE2')
+    if family == 4:
+        graph.add_cdef('iprange', rpn_sum(ipranges))
+        graph.add_graph_element('iprange', draw_as='LINE2')
 
     graphurl = graph.get_url()
     if graphurl:

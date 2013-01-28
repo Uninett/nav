@@ -369,10 +369,13 @@ class Graph(object):
         """Add an element on the graph. """
         draw = [draw_as, "%s%s" % (vname, self._get_color())]
         if legend:
-            draw.append(legend)
+            draw.append(self._escape(legend))
         if stack:
             draw.append("STACK")
         self.args.append(":".join(draw))
+
+    def _escape(self, string):
+        return string.replace(':', '\:')
 
     def _get_color(self):
         color = self.color[self.colorindex]
