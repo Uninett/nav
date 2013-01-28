@@ -29,6 +29,10 @@ from os.path import exists, join
 
 from nav.models.manage import Prefix
 from nav.models.rrd import RrdFile, RrdDataSource
+
+from django.db import DatabaseError
+from django.db.transaction import commit_on_success, rollback
+
 import nav.activeipcollector.collector as collector
 import nav.activeipcollector.rrdcontroller as rrdcontroller
 
@@ -37,6 +41,7 @@ Element = namedtuple('Element',
                      'fullpath')
 
 LOG = logging.getLogger('ipcollector.manager')
+DATABASE_CATEGORY = 'activeip'
 
 
 def run(datadir, days=None, reset=False):
@@ -159,7 +164,8 @@ def update_rrddb(element, datapath):
         return
 
     try:
-        rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
+        rrdfile = RrdFile.objects.get(category=DATABASE_CATEGORY,
+                                      key='prefix', value=prefix.net_address)
 
         LOG.debug('This rrdfile already exists: %s' % element.prefix)
 
@@ -168,8 +174,11 @@ def update_rrddb(element, datapath):
         rrdfile.save()
     except RrdFile.DoesNotExist:
         create_rrddb_file(element, prefix, datapath)
+    except DatabaseError, error:
+        LOG.error(error)
 
 
+@commit_on_success
 def create_rrddb_file(element, prefix, datapath):
     """Create an rrd_file"""
     LOG.debug('Creating rrd_file for %s' % element.prefix)
@@ -181,23 +190,28 @@ def create_rrddb_file(element, prefix, datapath):
         filename=element.filename,
         step=1800,
         key='prefix',
-        value=prefix.id,
-        category='activeip'
+        value=prefix.net_address,
+        category=DATABASE_CATEGORY
     )
-    rrdfile.save()
 
-    datasources = [
-        Datasource('ip_count', 'Number of ip-addresses on this prefix',
-                   'ip-addresses'),
-        Datasource('mac_count', 'Number of mac-addresses on this prefix',
-                   'mac-addresses'),
-        Datasource('ip_range',
-                   'Total number of ip-addresses available on this prefix',
-                   'ip-addresses'),
-    ]
+    try:
+        rrdfile.save()
+    except DatabaseError, error:
+        LOG.error(error)
+        rollback()
+    else:
+        datasources = [
+            Datasource('ip_count', 'Number of ip-addresses on this prefix',
+                       'ip-addresses'),
+            Datasource('mac_count', 'Number of mac-addresses on this prefix',
+                       'mac-addresses'),
+            Datasource('ip_range',
+                       'Total number of ip-addresses available on this prefix',
+                       'ip-addresses'),
+        ]
 
-    for datasource in datasources:
-        create_rrddb_datasource(rrdfile, datasource)
+        for datasource in datasources:
+            create_rrddb_datasource(rrdfile, datasource)
 
 
 def create_rrddb_datasource(rrdfile, datasource):
@@ -213,4 +227,7 @@ def create_rrddb_datasource(rrdfile, datasource):
         threshold_state=None,
         delimiter=None
     )
-    rrdds.save()
+    try:
+        rrdds.save()
+    except DatabaseError, error:
+        LOG.error(error)
