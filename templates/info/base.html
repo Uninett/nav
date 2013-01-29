@@ -28,7 +28,12 @@
                 {% if searchprovider.results %}
 
                     <table class="searchprovider listtable {% if searchprovider.headers|length > 2 %}medium{% else %}small{% endif %}">
-                        <caption>{{ searchprovider.name }}</caption>
+                        <caption>
+                            {{ searchprovider.name }}
+                            <span class="resultcounter">
+                                {{ searchprovider.results|length }} result{{ searchprovider.results|pluralize:'s' }}
+                            </span>
+                        </caption>
 
                         <thead>
                         <tr>

@@ -1,7 +1,14 @@
-table.searchprovider {
+.searchprovider {
     float: left;
     margin-right: 1em;
 }
+
+.searchprovider .resultcounter {
+    float: right;
+    font-size: small;
+    line-height: 1.6em;
+}
+
 
 table.small {
     width: 320px;
@@ -12,5 +19,6 @@ table.medium {
 }
 
 table.medium td {
-    font-size: 0.9em;
+    font-size: small;
 }
+
