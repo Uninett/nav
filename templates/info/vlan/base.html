@@ -7,12 +7,14 @@
 
 {% block base_content %}
 
-    <h1>Vlan view</h1>
+    <h2>Vlan search</h2>
 
     {% block vlandetails %}
 
         <form action="{% url vlan-index %}" method="get">
-            {{ form.as_p }}
+            <p>{{ form.query }}
+                <button type="submit">Search</button>
+            </p>
         </form>
 
         {% if form.is_bound %}
