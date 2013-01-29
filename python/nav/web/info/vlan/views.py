@@ -21,6 +21,7 @@ from operator import methodcaller, attrgetter
 import simplejson
 
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.http import HttpResponse
@@ -29,6 +30,7 @@ from nav.models.manage import Prefix, Vlan
 from nav.models.rrd import RrdFile
 from nav.rrd2.presenter import Graph
 from nav.web.utils import create_title
+from nav.web.info.vlan.forms import SearchForm
 
 LOGGER = logging.getLogger('nav.web.info.vlan')
 
@@ -42,13 +44,41 @@ def get_path(extra=None):
 
 
 def index(request):
-    """Index of vlan"""
+    """Controller for vlan landing page and search"""
+    vlans = Vlan.objects.none()
 
     navpath = get_path()
+    if "query" in request.GET:
+        searchform = SearchForm(request.GET)
+        if searchform.is_valid():
+            navpath = get_path([('Search for "%s"' % request.GET['query'], )])
+            vlans = process_searchform(searchform)
+    else:
+        searchform = SearchForm()
+
+    LOGGER.debug(vlans)
+
     return render_to_response("info/vlan/base.html",
                               {'navpath': navpath,
-                               'title': create_title(navpath)},
+                               'title': create_title(navpath),
+                               'form': searchform,
+                               'vlans': vlans},
                               context_instance=RequestContext(request))
+
+
+def process_searchform(form):
+    """Find and return vlans based on searchform"""
+    query = form.cleaned_data['query']
+    LOGGER.debug('Processing searchform for vlans with query: %s' % query)
+    if query is None:
+        return Vlan.objects.all()
+    else:
+        return Vlan.objects.filter(
+            Q(vlan__icontains=query) |
+            Q(net_type__description__icontains=query) |
+            Q(description__icontains=query) |
+            Q(net_ident__icontains=query)
+        ).order_by("vlan")
 
 
 def vlan_details(request, vlanid):
