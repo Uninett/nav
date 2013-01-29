@@ -30,10 +30,14 @@ from nav.topology.layer2 import update_layer2_topology
 from nav.topology.analyze import AdjacencyReducer, build_candidate_graph_from_db
 from nav.topology.vlan import VlanGraphAnalyzer, VlanTopologyUpdater
 
+from nav.models.manage import Vlan, Prefix
+from django.db.models import Q
+
 LOGFILE_NAME = 'navtopology.log'
 LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
 PIDFILE_PATH = os.path.join(buildconf.localstatedir, 'run', 'navtopology.pid')
 
+_logger = logging.getLogger(__name__)
 
 def main():
     """Program entry point"""
@@ -52,6 +56,7 @@ def main():
         else:
             vlans = []
         do_vlan_detection(vlans)
+        delete_unused_prefixes()
         delete_unused_vlans()
 
 def make_option_parser():
@@ -80,6 +85,11 @@ def init_logging():
 
     root = logging.getLogger('')
     root.addHandler(handler)
+
+    if sys.stdout.isatty():
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+        root.addHandler(stdout_handler)
 
     import nav.logs
     nav.logs.set_log_levels()
@@ -121,10 +131,25 @@ def do_vlan_detection(vlans):
 
 @with_exception_logging
 def delete_unused_vlans():
-    "Deletes vlans unassociated with prefixes or switch ports"
-    from nav.models.manage import Vlan
+    """Deletes vlans unassociated with prefixes or switch ports"""
     unused = Vlan.objects.filter(prefix__isnull=True, swportvlan__isnull=True)
-    unused.delete()
+    if unused:
+        _logger.info("deleting unused vlans: %r", unused)
+        unused.delete()
+
+@with_exception_logging
+def delete_unused_prefixes():
+    """Deletes prefixes unassociated with any active vlan or router port"""
+    holy_vlans = Q(net_type__in=('scope', 'reserved'))
+    vlans_in_swports = Q(swportvlan__isnull=False)
+    vlans_in_use = Vlan.objects.filter(holy_vlans | vlans_in_swports)
+
+    unused_prefixes = Prefix.objects.filter(
+        gwportprefix__isnull=True).exclude(vlan__in=vlans_in_use)
+    if unused_prefixes:
+        _logger.info("deleting unused prefixes: %r", unused_prefixes)
+        unused_prefixes.delete()
+
 
 def verify_singleton():
     """Verifies that we are the single running navtopology process.
