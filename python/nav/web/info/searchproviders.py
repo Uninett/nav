@@ -72,7 +72,8 @@ class RoomSearchProvider(SearchProvider):
 class NetboxSearchProvider(SearchProvider):
     """Searchprovider for netboxes"""
     name = "Netboxes"
-    headers = [('Sysname', 'sysname')]
+    headers = [('Sysname', 'sysname'),
+               ('IP', 'ip')]
     link = 'Sysname'
 
     def fetch_results(self):

@@ -2,3 +2,15 @@ table.searchprovider {
     float: left;
     margin-right: 1em;
 }
+
+table.small {
+    width: 320px;
+}
+
+table.medium {
+    width: 480px;
+}
+
+table.medium td {
+    font-size: 0.9em;
+}

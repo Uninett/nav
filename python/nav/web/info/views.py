@@ -42,7 +42,7 @@ def index(request):
     if "query" in request.GET:
         form = SearchForm(request.GET, auto_id=False)
         if form.is_valid():
-            titles.append(("Search for %s" % request.GET["query"],))
+            titles.append(('Search for "%s"' % request.GET["query"],))
             searchproviders = process_form(form)
             if has_only_one_result(searchproviders):
                 return HttpResponseRedirect(searchproviders[0].results[0].href)

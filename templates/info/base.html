@@ -12,6 +12,8 @@
 
     <h2>Info</h2>
 
+    <p class="infobox">Search for netboxes, interfaces, rooms and vlans. This search is the same as searching in the navbar.</p>
+
     <form action="{% url info-search %}" method="get">
         <p>{{ form.query }}
             <button type="submit">Search</button>
@@ -24,7 +26,7 @@
             {% for searchprovider in searchproviders %}
                 {% if searchprovider.results %}
 
-                    <table class="searchprovider vertitable">
+                    <table class="searchprovider listtable {% if searchprovider.headers|length > 2 %}medium{% else %}small{% endif %}">
                         <caption>{{ searchprovider.name }}</caption>
 
                         <thead>
@@ -37,7 +39,7 @@
 
                         <tbody>
                         {% for result in searchprovider.results %}
-                            <tr>
+                            <tr class="{% cycle 'oddrow' 'evenrow' %}">
                                 {% for header, getter in searchprovider.headers %}
                                     <td>
                                         {% if header == searchprovider.link %}
