@@ -33,6 +33,7 @@ from nav.web.utils import create_title
 from nav.web.info.vlan.forms import SearchForm
 
 LOGGER = logging.getLogger('nav.web.info.vlan')
+ADDRESS_RESERVED_SPACE = 18
 
 
 def get_path(extra=None):
@@ -179,18 +180,24 @@ def create_vlan_graph(request, vlanid, family=4):
 
     stack = False
     ipranges = []
+    vnames = []
     for prefix in prefixes:
         rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
         ipcount = rrdfile.rrddatasource_set.get(name='ip_count')
 
-        vname = graph.add_datasource(ipcount, 'AREA',
-                                     prefix.net_address.ljust(18), stack)
+        vname = graph.add_datasource(
+            ipcount, 'AREA',
+            prefix.net_address.ljust(ADDRESS_RESERVED_SPACE), stack)
         add_graph_text(graph, vname)
+        vnames.append(vname)
 
         iprange = rrdfile.rrddatasource_set.get(name='ip_range')
         ipranges.append(graph.add_def(iprange))
 
         stack = True  # Stack all ip_counts after the first
+
+    if len(prefixes) > 1:
+        add_total_text(graph, vnames)
 
     if family == 4:
         graph.add_cdef('iprange', rpn_sum(ipranges))
@@ -245,3 +252,15 @@ def add_graph_text(graph, vname):
     graph.add_argument("GPRINT:avg_%s:%s" % (vname, r'Avg\: %-6.0lf'))
     graph.add_argument("VDEF:max_%s=%s,MAXIMUM" % (vname, vname))
     graph.add_argument("GPRINT:max_%s:%s" % (vname, r'Max\: %-6.0lf\l'))
+
+
+def add_total_text(graph, vnames):
+    """Total all values for all prefixes and print them"""
+    graph.add_cdef('total', rpn_sum(vnames))
+
+    # Add 2 to padding to compensate for legend image
+    graph.add_argument("COMMENT:%s" %
+                       'Total'.ljust(ADDRESS_RESERVED_SPACE + 2))
+    graph.add_argument("GPRINT:total:LAST:%s" % r'Now\: %-6.0lf')
+    graph.add_argument("GPRINT:total:AVERAGE:%s" % r'Avg\: %-6.0lf')
+    graph.add_argument("GPRINT:total:MAX:%s" % r'Max\: %-6.0lf\l')
