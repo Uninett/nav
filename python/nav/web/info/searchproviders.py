@@ -154,7 +154,8 @@ class VlanSearchProvider(SearchProvider):
 
     def fetch_results(self):
         results = Vlan.objects.exclude(net_type='loopback').filter(
-            Q(vlan__contains=self.query) | Q(net_ident__icontains=self.query))
+            Q(vlan__contains=self.query) | Q(net_ident__icontains=self.query) |
+            Q(net_type__description__icontains=self.query))
         for result in results:
             self.results.append(SearchResult(
                 reverse('vlan-details', kwargs={'vlanid': result.id}),
