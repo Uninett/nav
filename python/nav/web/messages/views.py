@@ -13,6 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from django.core.urlresolvers import reverse
 
 import time
 import datetime
@@ -73,7 +74,13 @@ def view(req):
     page = MessagesDetailsTemplate()
     page.title = 'Message'
     menu_dict = {'link': 'view', 'text': 'View', 'admin': False}
-    msgid = int(req.REQUEST.get('id'))
+    if 'id' not in req.REQUEST:
+        return HttpResponseRedirect(reverse('messages-active'))
+
+    try:
+        msgid = int(req.REQUEST.get('id'))
+    except ValueError:
+        msgid = 0
     page.msgs = nav.messages.getMsg(msgid)
 
     return build_menu_and_return(req, page, section, menu_dict)
