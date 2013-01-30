@@ -26,7 +26,6 @@ from nav.web.templates.MessagesListTemplate import MessagesListTemplate
 from nav.web.templates.MessagesDetailsTemplate import MessagesDetailsTemplate
 from nav.web.templates.MessagesNewTemplate import MessagesNewTemplate
 from nav.web.templates.MessagesFeedTemplate import MessagesFeedTemplate
-from nav.web.encoding import encoded_output
 from nav.django.utils import get_account
 
 def rss(req):
@@ -35,7 +34,9 @@ def rss(req):
 
     page.channeltitle = 'NAV Message Feed from ' + req.META['HTTP_HOST']
     page.channeldesc = page.channeltitle
-    page.channellink = 'http://' + req.META['HTTP_HOST'] + req.path
+    scheme = 'https' if req.is_secure() else 'http'
+    base_url = '%s://%s' % (scheme, req.META['HTTP_HOST'])
+    page.channellink = base_url + req.path
     page.channellang = 'en-us'
     page.channelttl = '60'
 
@@ -43,8 +44,8 @@ def rss(req):
     for i, msg in enumerate(page.msgs):
         if msg['publish_start'] > page.pubDate:
             page.pubDate = msg['publish_start']
-        page.msgs[i]['link'] = 'http://' + req.META['HTTP_HOST'] \
-            + '/messages/view?id=' + str(page.msgs[i]['messageid'])
+        link = reverse('messages-view', args=(str(page.msgs[i]['messageid']),))
+        page.msgs[i]['link'] = base_url + link
         page.msgs[i]['guid'] = page.msgs[i]['link']
     if page.pubDate == 0:
         page.pubDate = datetime.datetime.now()
@@ -52,56 +53,42 @@ def rss(req):
     return HttpResponse(page.respond(), mimetype='application/xml')
 
 def planned(req):
-    section = get_section(req)
-
     page = MessagesListTemplate()
     page.title = 'Planned Messages'
     page.msgs = nav.messages.getMsgs('publish_start > now() AND publish_end > now() AND replaced_by IS NULL')
-    return build_menu_and_return(req, page, section)
+    return build_menu_and_return(req, page, 'planned')
 
 def historic(req):
-    section = get_section(req)
-
     page = MessagesListTemplate()
     page.title = 'Historic Messages'
     page.msgs = nav.messages.getMsgs('publish_end < now() OR replaced_by IS NOT NULL', 'publish_end DESC')
 
-    return build_menu_and_return(req, page, section)
+    return build_menu_and_return(req, page, 'historic')
 
-def view(req):
-    section = get_section(req)
-
+def view(req, message_id):
     page = MessagesDetailsTemplate()
     page.title = 'Message'
-    menu_dict = {'link': 'view', 'text': 'View', 'admin': False}
-    if 'id' not in req.REQUEST:
-        return HttpResponseRedirect(reverse('messages-active'))
+    menu_dict = {'link': reverse('messages-view'),
+                 'text': 'View','admin': False}
 
-    try:
-        msgid = int(req.REQUEST.get('id'))
-    except ValueError:
-        msgid = 0
-    page.msgs = nav.messages.getMsg(msgid)
+    page.msgs = nav.messages.getMsg(message_id or 0)
 
-    return build_menu_and_return(req, page, section, menu_dict)
+    return build_menu_and_return(req, page, 'view', menu_dict)
 
 def expire(req):
-    section = get_section(req)
-
     page = MessagesDetailsTemplate()
     page.title = 'Expire message'
-    menu_dict = {'link': 'expire', 'text': 'Expire', 'admin': True}
+    menu_dict = {'link': reverse('messages-expire'), 'text': 'Expire',
+                 'admin': True}
     page.infomsgs = []
     msgid = int(req.REQUEST.get('id'))
     nav.messages.expireMsg(msgid)
     page.infomsgs.append('The following message was expired.')
     page.msgs = nav.messages.getMsg(msgid)
 
-    return build_menu_and_return(req, page, section, menu_dict)
+    return build_menu_and_return(req, page, 'expire', menu_dict)
 
 def new(req):
-    section = get_section(req)
-
     page = MessagesNewTemplate()
     page.title = 'Create New Message'
     page.tasks = nav.maintenance.getTasks('maint_end > now()')
@@ -109,20 +96,19 @@ def new(req):
     
     page.submit = req.REQUEST.has_key('submit')
     if page.submit:
-        return submit_form(req, page, section)
+        return submit_form(req, page, 'new')
     
-    return build_menu_and_return(req, page, section)
+    return build_menu_and_return(req, page, 'new')
 
 def edit(req):
-    section = get_section(req)
-
     page = MessagesNewTemplate()
     page.title = 'Edit Message'
     page.submittext = 'Save Message'
     page.tasks = nav.maintenance.getTasks('maint_end > now()')
     page.errors = []
 
-    menu_dict = {'link': 'edit', 'text': 'Edit', 'admin': True}
+    menu_dict = {'link': reverse('messages-edit'), 'text': 'Edit',
+                 'admin': True}
 
     if not req.REQUEST.get('id'):
         page.errors.append('Message ID in request is not a digit.')
@@ -163,13 +149,11 @@ def edit(req):
     
     page.submit = req.REQUEST.has_key('submit')
     if page.submit:
-        return submit_form(req, page, section, menu_dict)
+        return submit_form(req, page, 'edit', menu_dict)
 
-    return build_menu_and_return(req, page, section, menu_dict)
+    return build_menu_and_return(req, page, 'edit', menu_dict)
 
 def followup(req):
-    section = get_section(req)
-
     page = MessagesNewTemplate()
     page.title = 'Create New Message'
     page.tasks = nav.maintenance.getTasks('maint_end > now()')
@@ -199,18 +183,16 @@ def followup(req):
 
     page.submit = req.REQUEST.has_key('submit')
     if page.submit:
-        return submit_form(req, page, section)
+        return submit_form(req, page, 'followup')
 
-    return build_menu_and_return(req, page, section)
+    return build_menu_and_return(req, page, 'followup')
 
 def active(req):
-    section = get_section(req)
-
     page = MessagesListTemplate()
     page.title = 'Active Messages'
     page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
 
-    return build_menu_and_return(req, page, section)
+    return build_menu_and_return(req, page, 'active')
 
 ### Helpers ###
 def build_menu_and_return(req, page, section, menu_dict=None):
@@ -223,30 +205,38 @@ def build_menu_and_return(req, page, section, menu_dict=None):
         page.authorized = False
 
     menu = []
-    menu.append({'link': 'active', 'text': 'Active', 'admin': False})
-    menu.append({'link': 'planned', 'text': 'Planned', 'admin': False})
-    menu.append({'link': 'historic', 'text': 'Historic', 'admin': False})
+    menu.append({'link': reverse('messages-active'), 'text': 'Active',
+                 'admin': False})
+    menu.append({'link': reverse('messages-planned'), 'text': 'Planned',
+                 'admin': False})
+    menu.append({'link': reverse('messages-historic'), 'text': 'Historic',
+                 'admin': False})
 
     if menu_dict:
         menu.append(menu_dict)
 
     page.menu = menu
     if page.authorized:
-        page.menu.append({'link': 'new', 'text': 'Create new', 'admin': True})
+        page.menu.append({'link': reverse('messages-new'),
+                          'text': 'Create new', 'admin': True})
 
-    if not page.hasVar('current'):
-        page.current = section
+    page.current = section
     if not page.hasVar('submittext'):
         page.submittext = page.title
+
+    page.reverse = reverse
 
     return HttpResponse(page.respond())
 
 def submit_form(req, page, section, menu_dict=None):
     """ Form submission which redirects to view of submitted data """    
     menu = []
-    menu.append({'link': 'active', 'text': 'Active', 'admin': False})
-    menu.append({'link': 'planned', 'text': 'Planned', 'admin': False})
-    menu.append({'link': 'historic', 'text': 'Historic', 'admin': False})
+    menu.append({'link': reverse('messages-active'), 'text': 'Active', \
+                                                      'admin': False})
+    menu.append({'link': reverse('messages-planned'), 'text': 'Planned',
+                 'admin': False})
+    menu.append({'link': reverse('messages-historic'), 'text': 'Historic',
+                 'admin': False})
 
     if menu_dict:
         menu.append(menu_dict)
@@ -373,12 +363,5 @@ def submit_form(req, page, section, menu_dict=None):
             for taskid in maint_tasks:
                 nav.messages.setMsgTask(msgid, int(taskid))
 
-            return HttpResponseRedirect('/messages/view?id=' + str(msgid))
-
-def get_section(args):
-    """ Helper to get section you are in. Ex: 'active' """
-    # Get section
-    if len(args.path.split('/')[-1]):
-        return args.path.split('/')[-1]
-
-    return 'active'
+            return HttpResponseRedirect(
+                reverse('messages-view',args=(str(msgid),)))
