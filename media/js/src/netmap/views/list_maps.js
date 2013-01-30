@@ -236,6 +236,7 @@ define([
 
             context.isLoading = this.isLoading();
             context.isFavorite = this.options.activeMapProperties.get('isFavorite', false);
+            context.description = this.options.activeMapProperties.get('description', null);
 
             var out = this.template(context);
 
