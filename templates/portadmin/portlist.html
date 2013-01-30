@@ -10,7 +10,7 @@ PortAdmin - {{ netbox.get_short_sysname }}
 
 {% if interfaces %}
 
-<div id="infoboxcontainer" class="left">
+<div id="infoboxcontainer">
 
 	{% if errors %}
 	<div id="errors" class="infobox">
@@ -30,9 +30,9 @@ PortAdmin - {{ netbox.get_short_sysname }}
 	{% endif %}
 	
 	<div id="infobox" class="infobox">
-		<h4>Available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}</h4>
+		<h4><span>Show</span> available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}</h4>
 		
-		<ul>
+		<ul class="hidden">
 		{% for vlan in allowed_vlans %}
 			<li>{{ vlan }}</li>
 		{% endfor %}
@@ -43,17 +43,25 @@ PortAdmin - {{ netbox.get_short_sysname }}
 
 <div id="tablecontainer" class="text-right">
 <table id="portadmin-interfacecontainer" class="vertitable">
-	<caption><a href="/ipdevinfo/{{netbox.sysname}}">{{netbox.sysname}}</a></caption>
-	<tr>
-		<th class="ifname">Interface</th>
-		<th class="adminstatus" title="AdminStatus - If red the interface is down">A</th>
-		<th class="operstatus" title="OperStatus - If red there is no link on the interface">O</th>
-		<th class="ifalias">Port Description</th>
-		<th class="vlan">Vlan</th>
-		<th class="button">&nbsp;</th>
-	</tr>
-  
-   	{% for interface in interfaces %}
+	<caption><a href="/ipdevinfo/{{netbox.sysname}}">{{netbox.sysname}}</a><input type="button" class="saveall_button" value="Save all"/></caption>
+
+    <thead>
+    <tr>
+        <th class="ifname">Port</th>
+        <th class="text-center"
+            title="AdminStatus - If red the interface is down">A
+        </th>
+        <th class="text-center"
+            title="OperStatus - If red there is no link on the interface">O
+        </th>
+        <th class="ifalias">Port Description</th>
+        <th class="vlan">Vlan</th>
+        <th class="button">&nbsp;</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for interface in interfaces %}
 	<tr id="{{ interface.id }}">
 		<td>{{ interface.ifname }}</td>
 
@@ -68,8 +76,8 @@ PortAdmin - {{ netbox.get_short_sysname }}
         <td>
             {% if interface.iseditable %}
                 <input class="ifalias" type="text"
-                       value="{{ interface.ifalias }}"
-                       data-orig="{{ interface.ifalias }}"/>
+                       value="{{ interface.ifalias|default_if_none:'' }}"
+                       data-orig="{{ interface.ifalias|default_if_none:'' }}"/>
             {% else %}
                 {{ interface.ifalias }}
             {% endif %}
@@ -95,18 +103,19 @@ PortAdmin - {{ netbox.get_short_sysname }}
 
 		<td>
 			{% if interface.iseditable %}
-			<img src="/images/icons/edit-undo.png" class="undo hidden" alt="Undo" title="Undo"/>
-			<img src="/images/portadmin/save.png" class="save hidden" alt="Save" title="Save"/>
+			<img src="/images/icons/edit-undo.png" class="undo" alt="Undo" title="Undo"/>
+			<img src="/images/portadmin/save.png" class="save" alt="Save" title="Save"/>
 			{% endif %}
 		</td>
 	</tr>
 	{% endfor %}
+    </tbody>
+
 </table>
 
-<input type="button" class="saveall_button" value="Save all" onclick="bulk_save()"/>
 </div>
 
-<input type="button" class="saveall_button" value="Save all" onclick="bulk_save()"/>
+<input type="button" class="saveall_button" value="Save all"/>
 
 {% endif %}
 

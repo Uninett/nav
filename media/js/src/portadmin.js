@@ -16,11 +16,14 @@ require(['libs/jquery'], function () {
         NAV.addGlobalAjaxHandlers();
 
         var interfaceTable = $('#portadmin-interfacecontainer');
+        var infoBox = $('#infobox');
+
         if (interfaceTable.length) {
             addChangeListener(interfaceTable);
             addSaveListener(interfaceTable);
             addSaveAllListener(interfaceTable);
             addUndoListener(interfaceTable);
+            addToggleVlanInfoListener(infoBox);
         }
     });
 
@@ -63,6 +66,22 @@ require(['libs/jquery'], function () {
         });
     }
 
+    function addToggleVlanInfoListener(element) {
+        var helptext = $('h4 span', element);
+        $('h4', element).click(function () {
+            var vlanlist = $('ul', element);
+            if (vlanlist.is(':visible')) {
+                console.log('visible');
+                vlanlist.hide();
+                helptext.text('Show');
+            } else {
+                console.log('not visible');
+                vlanlist.show();
+                helptext.text('Hide');
+            }
+        });
+    }
+
     function textFieldChanged(row) {
         var element = $(row).find(".ifalias");
         return $(element).attr('data-orig') != $(element).val();
@@ -77,14 +96,10 @@ require(['libs/jquery'], function () {
 
     function markAsChanged(row) {
         $(row).addClass("changed");
-        $(row).find("img.save").removeClass("hidden");
-        $(row).find("img.undo").removeClass("hidden");
     }
 
     function markAsUnchanged(row) {
         $(row).removeClass("changed");
-        $(row).find("img.save").addClass("hidden");
-        $(row).find("img.undo").addClass("hidden");
     }
 
     function clearChangedState(row) {
