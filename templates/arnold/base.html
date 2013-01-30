@@ -2,7 +2,7 @@
 
 {% block base_header_additional_head %}
     <link href="/style/arnold.css" type="text/css" rel="stylesheet">
-    <script type="text/javascript" src="/js/libs/require.js" data-main="src/arnold"></script>
+    <script>require(["src/arnold"]);</script>
 {% endblock %}
 
 {% block base_content %}

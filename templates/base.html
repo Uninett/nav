@@ -24,6 +24,7 @@
     {% if debug %}
         <script type="text/javascript" src="/js/require_config.dev.js"></script>
     {% endif %}
+    <script src="/js/libs/require.js" data-main='src/main'></script>
     {% block base_header_additional_head %}
     {% endblock %}
 </head>
@@ -119,6 +120,11 @@ Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently logged in as 
                        size="12"/>
                 <button type="submit">Search</button>
             </form>
+        </div>
+
+        <div id="navbartoggler" class="hidden">
+            <img src="/images/icons/expand.png" class="expand" alt="Show navbar" title="Show navbar">
+            <img src="/images/icons/collapse.png" class="collapse" alt="Hide navbar" title="Hide navbar">
         </div>
 
         <div class="float-clear"></div>

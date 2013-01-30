@@ -3,7 +3,7 @@
 {% block base_header_additional_head %}
     <link rel="stylesheet" href="/style/tool.css" />
     <link rel="stylesheet" href="/style/jqueryui/jquery-ui-1.8.21.custom.css" />
-    <script src="/js/libs/require.js" data-main="src/toolbox"></script>
+    <script>require(["src/toolbox"]);</script>
 {% endblock %}
 
 {% block base_content %}

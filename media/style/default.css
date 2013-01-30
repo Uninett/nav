@@ -564,25 +564,34 @@ p.paginator .active {
 @media only screen
 and (max-width : 480px) {
 
-    #navbarlogininfo .logout {
+    #navpath, #navbarlogininfo, #navbarquicklinks, #navbarlinks  {
         display: none;
     }
 
-    #navbar > div {
+    #navbar {
         float: none;
         text-align: center;
+    }
+
+    #navbartoggler {
+        display: block;
+        float: left;
+    }
+
+    #navbartoggler .collapse {
+        display: none;
+    }
+
+    #navbarsearch input {
+        width: 180px;
     }
 
     div.boxes {
         display: none;
     }
 
-}
-
-/* Smartphone portrait */
-@media only screen
-and (max-width : 480px) {
     body {
         padding: 1px;
     }
+
 }
