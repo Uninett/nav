@@ -581,4 +581,8 @@ and (max-width : 480px) {
 
 /* Smartphone portrait */
 @media only screen
-and (max-width : 320px) {}
+and (max-width : 480px) {
+    body {
+        padding: 1px;
+    }
+}
