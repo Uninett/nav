@@ -351,8 +351,8 @@ def submit_form(req, page, section, menu_dict=None):
                 msgid = False
 
             # Update/Insert message
-            msgid = nav.messages.setMsg(msgid, str(title),
-                str(description), str(tech_description), publish_start,
+            msgid = nav.messages.setMsg(msgid, title,
+                description, tech_description, publish_start,
                 publish_end, author, replaces_messageid)
 
             # For updates, remove all existing task connections
