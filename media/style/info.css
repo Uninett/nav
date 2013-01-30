@@ -6,9 +6,11 @@
 .searchprovider .resultcounter {
     float: right;
     font-size: small;
-    line-height: 1.6em;
 }
 
+.searchprovider caption {
+    line-height: 100%;
+}
 
 table.small {
     width: 320px;
