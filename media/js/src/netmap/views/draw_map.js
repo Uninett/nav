@@ -80,7 +80,7 @@ define([
             var self = this;
 
             this.model = new GraphModel({
-              viewid: this.options.mapProperties.get('viewid', this.options.viewid),
+              id: this.options.mapProperties.get('viewid', this.options.viewid),
               topology: this.options.mapProperties.get('topology', 2)
             });
             self.loadGraph();
@@ -172,7 +172,7 @@ define([
                     self.options.mapProperties.off("change");
                     self.options.mapProperties = model;
                     self.bindMapProperties();
-                    self.model = new GraphModel({viewid: mapPropertiesModel.get("viewid"), topology: mapPropertiesModel.get('topology')});
+                    self.model = new GraphModel({id: mapPropertiesModel.get("viewid"), topology: mapPropertiesModel.get('topology')});
                     self.loadGraph();
                 }});
 
