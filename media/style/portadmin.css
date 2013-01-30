@@ -3,6 +3,7 @@
 
 .text-right { text-align: right; }
 .text-center { text-align: center;}
+.float-right { float: right; padding: 0; }
 
 #errors {
     background-color: #FFBABA;

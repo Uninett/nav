@@ -30,7 +30,11 @@ PortAdmin - {{ netbox.get_short_sysname }}
 	{% endif %}
 	
 	<div id="infobox" class="infobox">
-		<h4><span>Show</span> available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}</h4>
+		<h4>
+            <img src="/images/icons/expand.png" class="toggler expand float-right" alt="Show available vlans" title="Show available vlans">
+            <img src="/images/icons/collapse.png" class="toggler collapse float-right hidden" alt="Hide available vlans" title="Hide available vlans">
+            Available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}
+        </h4>
 		
 		<ul class="hidden">
 		{% for vlan in allowed_vlans %}

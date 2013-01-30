@@ -67,17 +67,19 @@ require(['libs/jquery'], function () {
     }
 
     function addToggleVlanInfoListener(element) {
-        var helptext = $('h4 span', element);
-        $('h4', element).click(function () {
-            var vlanlist = $('ul', element);
+        $('.toggler', element).click(function () {
+            var vlanlist = $('ul', element),
+                expandButton = $('.toggler.expand'),
+                collapseButton = $('.toggler.collapse');
+
             if (vlanlist.is(':visible')) {
-                console.log('visible');
                 vlanlist.hide();
-                helptext.text('Show');
+                expandButton.removeClass('hidden');
+                collapseButton.addClass('hidden');
             } else {
-                console.log('not visible');
                 vlanlist.show();
-                helptext.text('Hide');
+                expandButton.addClass('hidden');
+                collapseButton.removeClass('hidden');
             }
         });
     }
