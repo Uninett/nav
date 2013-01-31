@@ -31,7 +31,7 @@ from nav import asyncdns
 from nav.web.machinetracker import forms, iprange
 from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict
 from nav.web.machinetracker.utils import process_ip_row, track_mac, get_prefix_info
-from nav.web.machinetracker.utils import min_max_mac, ProcessInput
+from nav.web.machinetracker.utils import min_max_mac, ProcessInput, padd_ip_address_with_zeroes
 
 NAVBAR = [('Home', '/'), ('Machinetracker', None)]
 IP_TITLE = 'NAV - Machinetracker - IP Search'
@@ -115,11 +115,13 @@ def ip_do_search(request):
                             row.dns_lookup = ""
                         else:
                             row.dns_lookup = dns_lookups[ip][0]
+                    row.ip_int_value = padd_ip_address_with_zeroes(row.ip)
                     if (row.ip, row.mac) not in tracker:
                         tracker[(row.ip, row.mac)] = []
                     tracker[(row.ip, row.mac)].append(row)
             elif inactive and ip_key not in ip_result:
                 row = {'ip': ip}
+                row['ip_int_value'] = padd_ip_address_with_zeroes(ip)
                 if dns:
                     if not isinstance(dns_lookups[ip], Exception):
                         row['dns_lookup'] = dns_lookups[ip][0]
