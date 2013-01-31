@@ -20,7 +20,6 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ##
 ##
-## Author: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 ##
 
 #extends MainTemplate
@@ -30,14 +29,14 @@
 
 #def additionalHead
     <link rel="alternate" type="application/rss+xml"
-        title="Messages Feed (RSS 2.0)" href="/messages/rss" />
+        title="Messages Feed (RSS 2.0)" href="$reverse('messages-rss')" />
 #end def additionalHead
 
 #def $makeMenu($menu, $current = False)
 <div class="tabs">
 <ul>
 #for $item in $menu:
-    #if $item.link == $current:
+    #if $current in $item.link:
     <li class="tabactive"><a href="$item.link">$item.text</a></li>
     #else:
     <li><a href="$item.link">$item.text</a></li>
@@ -49,7 +48,7 @@
 
 #block content
 
-<h2>$title  <a href="/messages/rss"><img src="/images/icons/feed-icon-14x14.png" alt="RSS" /></a></h2>
+<h2>$title  <a href="$reverse('messages-rss')"><img src="/images/icons/feed-icon-14x14.png" alt="RSS" /></a></h2>
 
 $makeMenu($menu, $current)
 

@@ -21,6 +21,7 @@ from operator import methodcaller, attrgetter
 import simplejson
 
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.http import HttpResponse
@@ -29,8 +30,10 @@ from nav.models.manage import Prefix, Vlan
 from nav.models.rrd import RrdFile
 from nav.rrd2.presenter import Graph
 from nav.web.utils import create_title
+from nav.web.info.vlan.forms import SearchForm
 
 LOGGER = logging.getLogger('nav.web.info.vlan')
+ADDRESS_RESERVED_SPACE = 18
 
 
 def get_path(extra=None):
@@ -42,13 +45,41 @@ def get_path(extra=None):
 
 
 def index(request):
-    """Index of vlan"""
+    """Controller for vlan landing page and search"""
+    vlans = Vlan.objects.none()
 
     navpath = get_path()
+    if "query" in request.GET:
+        searchform = SearchForm(request.GET)
+        if searchform.is_valid():
+            navpath = get_path([('Search for "%s"' % request.GET['query'], )])
+            vlans = process_searchform(searchform)
+    else:
+        searchform = SearchForm()
+
+    LOGGER.debug(vlans)
+
     return render_to_response("info/vlan/base.html",
                               {'navpath': navpath,
-                               'title': create_title(navpath)},
+                               'title': create_title(navpath),
+                               'form': searchform,
+                               'vlans': vlans},
                               context_instance=RequestContext(request))
+
+
+def process_searchform(form):
+    """Find and return vlans based on searchform"""
+    query = form.cleaned_data['query']
+    LOGGER.debug('Processing searchform for vlans with query: %s' % query)
+    if query is None:
+        return Vlan.objects.all()
+    else:
+        return Vlan.objects.filter(
+            Q(vlan__icontains=query) |
+            Q(net_type__description__icontains=query) |
+            Q(description__icontains=query) |
+            Q(net_ident__icontains=query)
+        ).order_by("vlan")
 
 
 def vlan_details(request, vlanid):
@@ -74,10 +105,8 @@ def create_prefix_graph(request, prefixid):
     try:
         prefix = Prefix.objects.get(pk=prefixid)
         rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
-    except Prefix.DoesNotExist:
-        return None
-    except RrdFile.DoesNotExist:
-        return None
+    except (Prefix.DoesNotExist, RrdFile.DoesNotExist):
+        return HttpResponse(status=500)
 
     timeframe = request.GET.get('timeframe', 'day')
 
@@ -85,22 +114,10 @@ def create_prefix_graph(request, prefixid):
 
     options = {'-l': '0', '-v': 'IP-addresses', '-w': 300, '-h': 100}
     graph = Graph(title=prefix.net_address, time_frame=timeframe, opts=options)
-    for datasource in datasources:
-        if datasource.name == 'ip_count':
-            vname = graph.add_datasource(datasource, 'AREA', 'IP-addresses ')
-            add_graph_text(graph, vname)
-        if datasource.name == 'mac_count':
-            vname = graph.add_datasource(datasource, 'LINE2', 'MAC-addresses')
-            add_graph_text(graph, vname)
-        if datasource.name == 'ip_range':
-            if add_max(prefix):
-                vname = graph.add_datasource(datasource, 'LINE2',
-                                             'Max addresses')
-                add_graph_text(graph, vname)
-            else:
-                # Add an empty comment so that the graphs with and without
-                # max are equal in size
-                graph.add_argument("COMMENT:   ")
+
+    add_ip_count(graph, datasources.get(name='ip_count'))
+    add_mac_count(graph, datasources.get(name='mac_count'))
+    add_ip_range(graph, prefix, datasources.get(name='ip_range'))
 
     graphurl = graph.get_url()
     if graphurl:
@@ -110,7 +127,31 @@ def create_prefix_graph(request, prefixid):
         return HttpResponse(status=500)
 
 
-def create_vlan_graph(request, vlanid):
+def add_ip_count(graph, datasource):
+    """Add ip count to graph"""
+    vname = graph.add_datasource(datasource, 'AREA', 'IP-addresses ')
+    add_graph_text(graph, vname)
+
+
+def add_mac_count(graph, datasource):
+    """Add mac count to graph"""
+    vname = graph.add_datasource(datasource, 'LINE2', 'MAC-addresses')
+    add_graph_text(graph, vname)
+
+
+def add_ip_range(graph, prefix, datasource):
+    """Add ip range to graph if not ipv6 address or scope"""
+    if add_max(prefix):
+        vname = graph.add_datasource(datasource, 'LINE2',
+                                     'Max addresses')
+        add_graph_text(graph, vname)
+    else:
+        # Add an empty comment so that the graphs with and without
+        # max are equal in size
+        graph.add_argument("COMMENT:   ")
+
+
+def create_vlan_graph(request, vlanid, family=4):
     """Create graph for this vlan"""
 
     try:
@@ -118,34 +159,49 @@ def create_vlan_graph(request, vlanid):
     except Vlan.DoesNotExist:
         return None
 
+    try:
+        family = int(family)
+    except ValueError:
+        family = 4
+
     timeframe = request.GET.get('timeframe', 'day')
 
-    prefixes = sorted(vlan.prefix_set.all(),
+    extra = {'where': ['family(netaddr) = %s' % family]}
+    prefixes = sorted(vlan.prefix_set.all().extra(**extra),
                       key=methodcaller('get_prefix_size'),
                       reverse=True)
 
+    if not prefixes:
+        return HttpResponse(status=503)
+
     options = {'-v': 'IP-addresses', '-l': '0'}
-    graph = Graph(title='Vlan %s' % vlan, time_frame=timeframe, opts=options)
+    graph = Graph(title='Total IPv%s addresses on vlan %s' % (family, vlan),
+                  time_frame=timeframe, opts=options)
 
     stack = False
     ipranges = []
+    vnames = []
     for prefix in prefixes:
-        if not is_ipv4(prefix):
-            continue
         rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
         ipcount = rrdfile.rrddatasource_set.get(name='ip_count')
 
-        vname = graph.add_datasource(ipcount, 'AREA',
-                                     prefix.net_address.ljust(18), stack)
+        vname = graph.add_datasource(
+            ipcount, 'AREA',
+            prefix.net_address.ljust(ADDRESS_RESERVED_SPACE), stack)
         add_graph_text(graph, vname)
+        vnames.append(vname)
 
         iprange = rrdfile.rrddatasource_set.get(name='ip_range')
         ipranges.append(graph.add_def(iprange))
 
         stack = True  # Stack all ip_counts after the first
 
-    graph.add_cdef('iprange', rpn_sum(ipranges))
-    graph.add_graph_element('iprange', draw_as='LINE2')
+    if len(prefixes) > 1:
+        add_total_text(graph, vnames)
+
+    if family == 4:
+        graph.add_cdef('iprange', rpn_sum(ipranges))
+        graph.add_graph_element('iprange', draw_as='LINE2')
 
     graphurl = graph.get_url()
     if graphurl:
@@ -196,3 +252,15 @@ def add_graph_text(graph, vname):
     graph.add_argument("GPRINT:avg_%s:%s" % (vname, r'Avg\: %-6.0lf'))
     graph.add_argument("VDEF:max_%s=%s,MAXIMUM" % (vname, vname))
     graph.add_argument("GPRINT:max_%s:%s" % (vname, r'Max\: %-6.0lf\l'))
+
+
+def add_total_text(graph, vnames):
+    """Total all values for all prefixes and print them"""
+    graph.add_cdef('total', rpn_sum(vnames))
+
+    # Add 2 to padding to compensate for legend image
+    graph.add_argument("COMMENT:%s" %
+                       'Total'.ljust(ADDRESS_RESERVED_SPACE + 2))
+    graph.add_argument("GPRINT:total:LAST:%s" % r'Now\: %-6.0lf')
+    graph.add_argument("GPRINT:total:AVERAGE:%s" % r'Avg\: %-6.0lf')
+    graph.add_argument("GPRINT:total:MAX:%s" % r'Max\: %-6.0lf\l')

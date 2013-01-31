@@ -26,6 +26,6 @@ urlpatterns = patterns(
     url(r'^(?P<vlanid>\d+)/$', vlan_details, name='vlan-details'),
     url(r'^graph/prefix/(?P<prefixid>\d+)$', create_prefix_graph,
         name='vlan-graph-prefix'),
-    url(r'^graph/vlan/(?P<vlanid>\d+)$', create_vlan_graph,
+    url(r'^graph/vlan/(?P<vlanid>\d+)/(?P<family>\d)?$', create_vlan_graph,
         name='vlan-graph-prefix'),
 )

@@ -29,6 +29,10 @@ from os.path import exists, join
 
 from nav.models.manage import Prefix
 from nav.models.rrd import RrdFile, RrdDataSource
+
+from django.db import DatabaseError
+from django.db.transaction import commit_on_success, set_dirty
+
 import nav.activeipcollector.collector as collector
 import nav.activeipcollector.rrdcontroller as rrdcontroller
 
@@ -37,6 +41,7 @@ Element = namedtuple('Element',
                      'fullpath')
 
 LOG = logging.getLogger('ipcollector.manager')
+DATABASE_CATEGORY = 'activeip'
 
 
 def run(datadir, days=None, reset=False):
@@ -60,7 +65,11 @@ def delete_files(datadir):
 
 
 def store(data, where):
-    """Store data"""
+    """Store data in rrd-files and update rrd-database
+
+    data: a cursor.fetchall object containing all database rows we are to store
+    where: the path to the rrd-files
+    """
     errors = 0
     successful = 0  # Number of successful rrd-file updates
     has_stored = []
@@ -86,7 +95,11 @@ def store(data, where):
 
 
 def store_tuple(db_tuple, where):
-    """Store this database tuple"""
+    """Store data from the db_tuple in an rrd file
+
+    db_tuple: a row from a rrd_fetchall object
+    where: path to rrd_files
+    """
     prefix, timestamp, ip_count, mac_count = db_tuple
     when = get_timestamp(timestamp)
     filename = convert_to_filename(prefix)
@@ -159,17 +172,20 @@ def update_rrddb(element, datapath):
         return
 
     try:
-        rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
+        try:
+            rrdfile = RrdFile.objects.get(category=DATABASE_CATEGORY,
+                                          key='prefix', value=prefix.id)
+        except RrdFile.DoesNotExist:
+            create_rrddb_file(element, prefix, datapath)
+        else:
+            rrdfile.path = datapath
+            rrdfile.filename = element.filename
+            rrdfile.save()
+    except DatabaseError, error:
+        LOG.error(error)
 
-        LOG.debug('This rrdfile already exists: %s' % element.prefix)
 
-        rrdfile.path = datapath
-        rrdfile.filename = element.filename
-        rrdfile.save()
-    except RrdFile.DoesNotExist:
-        create_rrddb_file(element, prefix, datapath)
-
-
+@commit_on_success
 def create_rrddb_file(element, prefix, datapath):
     """Create an rrd_file"""
     LOG.debug('Creating rrd_file for %s' % element.prefix)
@@ -182,8 +198,10 @@ def create_rrddb_file(element, prefix, datapath):
         step=1800,
         key='prefix',
         value=prefix.id,
-        category='activeip'
+        category=DATABASE_CATEGORY
     )
+
+    set_dirty()  # Why do I need to do this?
     rrdfile.save()
 
     datasources = [

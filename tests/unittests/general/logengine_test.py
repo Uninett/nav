@@ -32,6 +32,7 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
     def test_parse_without_exceptions(self):
         for line in self.loglines:
             msg = logengine.createMessage(line)
+            self.assertTrue(msg, "unparseable: %s" % line)
             self.assertFalse(msg.facility is None,
                              "Message has no facility: {0!r}\n{1!r}"
                              .format(line, vars(msg)))
@@ -45,6 +46,7 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
                 return sql % params
             database.execute = execute
             message = logengine.createMessage(line)
+            self.assertTrue(message, "unparseable: %s" % line)
             logengine.insert_message(message, database,
                                      {}, {}, {},
                                      {}, {}, {})
@@ -142,13 +144,16 @@ class ParseMessageWithNoOriginTimestampTest(ParseTest):
         self.mnemonic = '321007'
         self.description = "'System is low on free memory blocks of size 8192 (0 CNT out of 250 MAX)'"
 
-class ParseNonConformingLinesTest(TestCase):
-    def test_non_specific_sntp_message_should_not_match(self):
-        line = "Dec 20 15:16:04 10.0.101.179 SNTP[141365768]: sntp_client.c(1917) 2945474 %% SNTP: system clock synchronized on THU DEC 20 15:16:04 2012 UTC. Indicates that SNTP has successfully synchronized the time of the box with the server."
+def test_non_conforming_lines():
+    def _line_doesnt_parse(line):
         msg = logengine.createMessage(line)
-        self.assertTrue(msg is None)
+        assert msg is None, "line shouldn't be parseable: %s" % line
 
-    def test_non_specific_cpu_message_should_not_match(self):
-        line = "Dec 20 16:23:37 10.0.3.15 2605010: CPU utilization for five seconds: 86%/14%; one minute: 33%; five minutes: 31%"
-        msg = logengine.createMessage(line)
-        self.assertTrue(msg is None)
+    badlines = [
+        "Dec 20 15:16:04 10.0.101.179 SNTP[141365768]: sntp_client.c(1917) 2945474 %% SNTP: system clock synchronized on THU DEC 20 15:16:04 2012 UTC. Indicates that SNTP has successfully synchronized the time of the box with the server.",
+        "Dec 20 16:23:37 10.0.3.15 2605010: CPU utilization for five seconds: 86%/14%; one minute: 33%; five minutes: 31%",
+        "Jan 29 10:21:26 10.0.129.61 %LINK-W-Down:  e30",
+    ]
+    for line in badlines:
+        yield _line_doesnt_parse, line
+

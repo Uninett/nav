@@ -27,8 +27,8 @@ LOG = logging.getLogger('ipcollector.collector')
 def collect(days=None):
     """Collect data from database
 
-    netaddr: a list of prefixes to collect from
-    when: a datetime.datetime object
+    Use either a quick query for updates only, or a slow one for walking
+    through historic data.
     """
 
     starttime = time.time()
@@ -86,9 +86,8 @@ def get_static_query():
         COUNT(DISTINCT mac) AS maccount
     FROM vlan
     JOIN prefix USING (vlanid)
-    LEFT JOIN arp ON (ip << netaddr)
-    WHERE arp.end_time = 'infinity' AND
-          vlan.nettype NOT IN ('loopback')
+    LEFT JOIN arp ON (ip << netaddr AND arp.end_time = 'infinity')
+    WHERE vlan.nettype NOT IN ('loopback')
     GROUP BY netaddr, timeentry
     ORDER BY timeentry
     """
