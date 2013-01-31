@@ -168,9 +168,13 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
     function indicateSuccess($row) {
         /* Animate row to indicate success */
+        var $cells = $row.find('td');
+
         $row.addClass('success');
-        $row.find('td').animate({'background-color': '#FFF'}, 4000);
-        $row.removeClass('success');
+        $cells.animate({'background-color': '#FFF'}, 4000, function () {
+            $cells.removeAttr('style');
+            $row.removeClass('success');
+        });
     }
 
     function indicateError($row, message) {
