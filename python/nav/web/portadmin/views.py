@@ -187,12 +187,11 @@ def save_interfaceinfo(request):
         if not correct_format:
             result = {'error': 1,
                       'message': 'IfAlias does not match the defined format.'}
-            return HttpResponse(simplejson.dumps(result),
-                                mimetype="application/json")
+            return response_based_on_result(result)
 
         account = get_account(request)
-        vlan_numbers = [v.vlan for v in find_allowed_vlans_for_user(account)]
-        if vlan in vlan_numbers or is_administrator(account):
+
+        if is_allowed_to_edit(vlan, account):
             try:
                 interface = Interface.objects.get(id=interfaceid)
                 netbox = interface.netbox
@@ -202,7 +201,8 @@ def save_interfaceinfo(request):
                 try:
                     fac.write_mem()
                 except TimeOutException, timeout_ex:
-                    _logger.error('TimeOutException = %s' % str(timeout_ex))
+                    _logger.error('TimeOutException on write mem = %s' %
+                                  str(timeout_ex))
 
                 result = {'error': 0, 'message': 'Save was successful'}
 
@@ -219,8 +219,7 @@ def save_interfaceinfo(request):
                     vlan)
             except TimeOutException:
                 result = {'error': 1,
-                          'message': 'TimeOutException - is read-write '
-                                     'community set?'}
+                          'message': 'TimeOut - is read-write community set?'}
             except Exception, error:
                 result = {'error': 1, 'message': str(error)}
         else:
@@ -229,4 +228,24 @@ def save_interfaceinfo(request):
     else:
         result = {'error': 1, 'message': "Wrong request type"}
 
-    return HttpResponse(simplejson.dumps(result), mimetype="application/json")
+    return response_based_on_result(result)
+
+
+def is_allowed_to_edit(vlan, account):
+    """Check is account is allowed to edit interface with this vlan"""
+    vlan_numbers = [v.vlan for v in find_allowed_vlans_for_user(account)]
+    return vlan in vlan_numbers or is_administrator(account)
+
+
+def response_based_on_result(result):
+    """Return response based on content of result
+
+    result: dict containing result and message keys
+
+    """
+    if result['error']:
+        return HttpResponse(simplejson.dumps(result), status=500,
+                            mimetype="application/json")
+    else:
+        return HttpResponse(simplejson.dumps(result),
+                            mimetype="application/json")

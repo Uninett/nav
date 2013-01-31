@@ -1,4 +1,4 @@
-require(['libs/jquery'], function () {
+require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
     if(!Array.indexOf){
         Array.prototype.indexOf = function(obj){
@@ -147,24 +147,27 @@ require(['libs/jquery'], function () {
             dataType: 'json',
             type: 'POST',
             success: function (data) {
-                displayCallbackInfo($row, data);
-                if (!data.error) {
-                    clearChangedState($row);
-                }
+                clearChangedState($row);
+                indicateSuccess($row);
             },
-            error: function (request, errorMessage, errortype) {
-                var data = {};
-                data.error = 1;
-                data.message = errorMessage + " - Hm, perhaps try to log in again?";
-                displayCallbackInfo($row, data);
+            error: function (jqXhr) {
+                console.log(jqXhr.responseText);
+                displayCallbackInfo($row, jqXhr.responseText);
             },
-            complete: function () {
+            complete: function (jqXhr) {
                 removeFromQueue(rowid);
                 if (queue.length == 0) {
                     enableSaveallButtons();
                 }
             }
         });
+    }
+
+    function indicateSuccess($row) {
+        /* Animate row to indicate success */
+        $row.addClass('success');
+        $row.find('td').animate({'background-color': '#FFF'}, 4000);
+        $row.removeClass('success');
     }
 
     function removeFromQueue(id) {
@@ -182,10 +185,6 @@ require(['libs/jquery'], function () {
         $("input.saveall_button").removeAttr('disabled');
     }
 
-
-    function indicateSuccess($row) {
-
-    }
 
     function displayCallbackInfo(row, data) {
         // Create new element
