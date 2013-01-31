@@ -147,8 +147,8 @@ class SNMPHandler(object):
 
     def set_if_alias(self, if_index, if_alias):
         """Set alias on a specific interface."""
-        if not (isinstance(if_alias, str) or isinstance(if_alias, unicode)):
-            raise TypeError('Illegal value for interface-alias: %s' % if_alias)
+        if isinstance(if_alias, unicode):
+            if_alias = if_alias.encode('utf8')
         return self._set_netbox_value(self.IF_ALIAS_OID, if_index, "s",
                                       if_alias)
 
