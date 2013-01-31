@@ -179,7 +179,7 @@ def save_interfaceinfo(request):
 
     """
     if request.method == 'POST':
-        ifalias = unicode(request.POST.get('ifalias', ''))
+        ifalias = request.POST.get('ifalias')
         vlan = int(request.POST.get('vlan'))
         interfaceid = request.POST.get('interfaceid')
 
