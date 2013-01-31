@@ -114,8 +114,16 @@ require(['libs/jquery'], function () {
          * when the save-button is clicked.
          */
 
-        var row = $(this).parents('tr');
-        var rowid = row.prop('id');
+        var $row = $(this);
+        if (!$row.is('tr')) {
+            $row = $row.parents('tr');
+        }
+        var rowid = $row.prop('id');
+
+        if (!rowid) {
+            console.log('Could not find id of row ' + $row);
+            return;
+        }
 
         // If a save on this row is already in progress, do nothing.
         if (queue.indexOf(rowid) > -1) {
@@ -125,30 +133,30 @@ require(['libs/jquery'], function () {
         disableSaveallButtons();
         queue.push(rowid);
 
-        var ifalias = $(row).find(".ifalias").val();
-        var vlan = $(row).find(".vlanlist").val();
+        var ifalias = $row.find(".ifalias").val();
+        var vlan = $row.find(".vlanlist").val();
 
         // Post data and wait for json-formatted returndata. Display status information to user
-        saveInterface(ifalias, vlan, rowid, row);
+        saveInterface(ifalias, vlan, rowid, $row);
     }
 
-    function saveInterface(ifalias, vlan, rowid, row) {
-        console.log({'row': row, 'rowid': rowid, 'ifalias': ifalias, 'vlan': vlan});
+    function saveInterface(ifalias, vlan, rowid, $row) {
+        console.log({'row': $row, 'rowid': rowid, 'ifalias': ifalias, 'vlan': vlan});
         $.ajax({url: "save_interfaceinfo",
             data: {'ifalias': ifalias, 'vlan': vlan, 'interfaceid': rowid},
             dataType: 'json',
             type: 'POST',
             success: function (data) {
-                displayCallbackInfo(row, data);
+                displayCallbackInfo($row, data);
                 if (!data.error) {
-                    clearChangedState(row);
+                    clearChangedState($row);
                 }
             },
             error: function (request, errorMessage, errortype) {
                 var data = {};
                 data.error = 1;
                 data.message = errorMessage + " - Hm, perhaps try to log in again?";
-                displayCallbackInfo(row, data);
+                displayCallbackInfo($row, data);
             },
             complete: function () {
                 removeFromQueue(rowid);
@@ -174,6 +182,10 @@ require(['libs/jquery'], function () {
         $("input.saveall_button").removeAttr('disabled');
     }
 
+
+    function indicateSuccess($row) {
+
+    }
 
     function displayCallbackInfo(row, data) {
         // Create new element

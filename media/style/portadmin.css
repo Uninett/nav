@@ -80,12 +80,14 @@ caption .saveall_button {
 
 .success {
 	color: #4F8A10;
-    background: #DFF2BF url('/images/lys/green.png');
+    background-color: #DFF2BF;
+    background-image: url('/images/lys/green.png');
 }
 
 .error {
 	color: #D8000C;
-    background: #FFBABA url('/images/lys/red.png');
+    background-color: #FFBABA;
+    background-image: url('/images/lys/red.png');
 }
 
 @media only screen and (max-width : 480px) {
