@@ -1,20 +1,29 @@
 require(["libs/jquery.tablesorter.min"], function (tablesorter) {
         $(document).ready(function () {
             
-            // Dict where key is the index of the column we do not want to sort
-            columnsToNotSort = {};
+            // Data parameters for tablesorter
+            headerData= {};
+            textExtractionData = {}
             // Get all the th elements in the table
             headings = $('#tracker-table').children('thead').children('tr').children('th');
 
-            // We do not want to sort columns without a heading, add them to dict
+            // We don't sort the icon cell and sort IP as text from the span
             $.each(headings, function(index, cell) {
                 if(cell.innerHTML == "") 
-                    columnsToNotSort[index] = {sorter : false};
+                    headerData[index] = {sorter : false};
+
+                if(cell.innerHTML == "IP") {
+                    textExtractionData[index] = function(node, table, cellIndex){
+                            return $(node).find('span').text()
+                        ;}
+                    headerData[index] = {sorter : 'text', string: 'min'};
+                }
             });
             
             // Enable tablesorter
             $('#tracker-table').tablesorter({
-                headers: columnsToNotSort,
+                headers: headerData,
+                textExtraction: textExtractionData,
                 widgets: ['zebra']});
             });
             
