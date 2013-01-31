@@ -188,7 +188,7 @@ require(['libs/jquery'], function () {
 
         // Calculate and set position
         var pos = $(row).find("td:last").offset(); // pos of last cell in row
-        var left = pos.left + 50;
+        var left = pos.left + 70;
         var top = pos.top - 1;
         $(div).css({ "left": left + "px", "top": top + "px" });
 

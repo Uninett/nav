@@ -71,10 +71,11 @@ caption .saveall_button {
 }
 
 .success, .error {
-	border: 1px solid;
-	margin: 2px 0;
-	padding:0 10px 0 30px;
-    background: no-repeat 10px center;
+    border: 1px solid;
+    margin: 2px 0;
+    padding: 0 10px 0 30px;
+    background-repeat: no-repeat;
+    background-position: 10px center;
 }
 
 .success {
