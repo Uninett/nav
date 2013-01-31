@@ -146,13 +146,16 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
             data: {'ifalias': ifalias, 'vlan': vlan, 'interfaceid': rowid},
             dataType: 'json',
             type: 'POST',
+            beforeSend: function () {
+                $('tr.error').remove();
+            },
             success: function (data) {
                 clearChangedState($row);
                 indicateSuccess($row);
             },
             error: function (jqXhr) {
                 console.log(jqXhr.responseText);
-                displayCallbackInfo($row, jqXhr.responseText);
+                indicateError($row, $.parseJSON(jqXhr.responseText).message);
             },
             complete: function (jqXhr) {
                 removeFromQueue(rowid);
@@ -170,6 +173,21 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         $row.removeClass('success');
     }
 
+    function indicateError($row, message) {
+        var $newRow = $('<tr/>').addClass('error'),
+            $cell = $('<td class="" colspan="10"/>'),
+            $message = $('<span/>').text(message);
+
+        $newRow.append($cell.append($message));
+        $newRow.insertAfter($row);
+
+        $newRow.click(function () {
+            $(this).hide(1000, function () {
+                $(this).remove();
+            });
+        });
+    }
+
     function removeFromQueue(id) {
         var index = queue.indexOf(id);
         if (index > -1) {
@@ -184,45 +202,6 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     function enableSaveallButtons() {
         $("input.saveall_button").removeAttr('disabled');
     }
-
-
-    function displayCallbackInfo(row, data) {
-        // Create new element
-        var div = $("<div></div>").addClass("saveinfo");
-        $("<p />").appendTo(div);
-        $("body").append(div);
-
-        // Add click-listener to remove element
-        $(div).click(function(){
-            $(this).remove();
-        });
-
-        // Calculate and set position
-        var pos = $(row).find("td:last").offset(); // pos of last cell in row
-        var left = pos.left + 70;
-        var top = pos.top - 1;
-        $(div).css({ "left": left + "px", "top": top + "px" });
-
-        // Add correct layout
-        if (data.error) {
-            $(div).addClass("error");
-        } else {
-            $(div).addClass("success");
-        }
-
-        // Set message and show element
-        $(div).find("p").html(data.message);
-        $(div).show();
-
-        // Automatically remove success messages
-        if (!data.error) {
-            $(div).fadeOut(6000, function(){
-                $(this).remove();
-            });
-        }
-    }
-
-
 
 });
 

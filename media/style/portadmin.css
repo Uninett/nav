@@ -55,7 +55,11 @@ div.infobox {
 }
 
 #portadmin-interfacecontainer tr.error td {
-    background-color: #FFBABA;
+    background: #FFBABA url('/images/lys/red.png') 10px no-repeat;
+}
+
+#portadmin-interfacecontainer tr.error td span {
+    margin-left: 30px;
 }
 
 /*
