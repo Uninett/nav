@@ -59,6 +59,17 @@ def get_prefix_info(addr):
     except:
         return None
 
+def padd_ip_address_with_zeroes(ip):
+    try:
+        ip = IP(ip)
+    except ValueError:
+        return
+
+    if ip.version() == 4:
+        ip = str(ip).strip().split('.')
+        return '4%s' % ('.'.join([str(i).zfill(3) for i in ip]))
+    else:
+        return '6%s' % (ip.strFullsize())
 
 def ip_dict(rows):
     result = SortedDict()
@@ -136,7 +147,10 @@ class ProcessInput:
             ip = Prefix.objects.get(id=self.input['prefixid'])
         except Prefix.DoesNotExist:
             return None
-        self.input['ip_range'] = ip.net_address
+	self.input['ip_range'] = ip.net_address
+        #subnet = IP(ip.net_address)
+        #self.input['ip_range'] = "%s-%s" % (unicode(subnet[0]), unicode(subnet[-1]))
+        #self.input['to_ip'] = unicode(subnet[-1])
 
     def ip(self):
         if self.input.get('prefixid', False):
