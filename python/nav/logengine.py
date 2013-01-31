@@ -153,7 +153,8 @@ def createMessage(line):
         try:
             return Message(timestamp, origin, msgtype, description)
         except ValueError, err:
-            logger.exception("syslog line parse error: %s", line)
+            logger.debug("syslog line parse error: %s", line,
+                         exc_info=True)
 
     # if this message shows sign of cisco format, put it in the error log
     typematch = typematchRe.search(line)
