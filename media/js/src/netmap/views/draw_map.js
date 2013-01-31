@@ -84,6 +84,7 @@ define([
               topology: this.options.mapProperties.get('topology', 2)
             });
             self.loadGraph();
+            self.refreshTimer = setInterval(function () { self.loadGraph(true); }, 5*1000);
 
         },
         broadcastGraph: function () {
@@ -103,11 +104,35 @@ define([
                 }
             }
         },
-        loadGraph: function () {
+        loadGraph: function (isRefreshingTopologyAndTrafficdata) {
             var self = this;
+
+            self.isRefreshingTopologyAndTrafficdata = isRefreshingTopologyAndTrafficdata;
+            if (isRefreshingTopologyAndTrafficdata) {
+                self.oldModel = $.extend(true, {}, self.model);
+            }
+
             this.model.fetch({
                success: function (model, attributes) {
                    self.model = model;
+                   if (self.isRefreshingTopologyAndTrafficdata) {
+                       for (var i = 0; i < self.oldModel.get('nodes').length; i++) {
+                           var o = self.oldModel.get('nodes')[i];
+                           var isFound = false;
+
+                           for (var j = 0; j < self.model.get('nodes').length; j++) {
+                               var m = self.model.get('nodes')[j];
+
+                               isFound = (m.data.sysname === o.data.sysname);
+                               if (isFound && o.isDirty) {
+                                   self.model.attributes.nodes[j] = o;
+                               } else if (isFound && _.isEqual(m.data, o.data)) {
+                                   self.model.attributes.nodes[j] = o;
+                               } else if (isFound) { break; }
+                           }
+                       }
+                   }
+                   self.isRefreshingTopologyAndTrafficdata = false;
                    self.postInitialize();
                    self.broker.trigger("netmap:graph", model);
                },
@@ -151,7 +176,6 @@ define([
 
             }
             this.bindMapProperties();
-            this.model.bind("change", this.render, this);
             this.model.bind("destroy", this.close, this);
 
             this.render();
@@ -957,12 +981,14 @@ define([
                 tick();
 
                 if (isDragMovedTriggered) {
+                    d.isDirty = true;
+
                     self.force.resume();
                     // uncomment if you don't want node to be auto selected when it is dragged.
                     //if (self.selected_node && d.data.sysname === self.selected_node.data.sysname) {
                     node_onClick(d);
                     //}
-
+                    self.oldModel = $.extend(true, {}, self.model);
                 }
             }
 
@@ -1068,10 +1094,10 @@ define([
 
                 self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
                 self.draw(self.modelJson);
+                self.force.start();
+                self.broker.trigger("map:loading:done");
             }
             }
-            self.force.start();
-            self.broker.trigger("map:loading:done");
 
             return this;
         },
