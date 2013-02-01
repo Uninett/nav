@@ -152,6 +152,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
             success: function (data) {
                 clearChangedState($row);
                 indicateSuccess($row);
+                updateDefaults($row, ifalias, vlan);
             },
             error: function (jqXhr) {
                 console.log(jqXhr.responseText);
@@ -190,6 +191,28 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
                 $(this).remove();
             });
         });
+    }
+
+    function updateDefaults($row, ifalias, vlan) {
+        updateIfAliasDefault($row, ifalias);
+        updateVlanDefault($row, vlan);
+    }
+
+    function updateIfAliasDefault($row, ifalias) {
+        var old_ifalias = $row.find(".ifalias").attr('data-orig');
+        if (old_ifalias !== ifalias) {
+            console.log('Updating ifalias default from ' + old_ifalias + ' to ' + ifalias);
+            $row.find(".ifalias").attr('data-orig', ifalias);
+        }
+    }
+
+    function updateVlanDefault($row, vlan) {
+        var old_vlan = $row.find('option[data-orig]').val();
+        if (old_vlan !== vlan) {
+            console.log('Updating vlan default from ' + old_vlan + ' to ' + vlan);
+            $row.find('option[data-orig]').removeAttr('data-orig');
+            $row.find('option[value=' + vlan + ']').attr('data-orig', vlan);
+        }
     }
 
     function removeFromQueue(id) {
