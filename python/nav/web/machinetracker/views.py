@@ -311,7 +311,7 @@ def get_netbios_query(separator=', '):
     Arp.objects.filter(..).extra(select={'netbiosname': get_netbios_query()})
 
     """
-    return """SELECT string_agg(DISTINCT name,'%s')
+    return """SELECT array_to_string(array_agg(DISTINCT name),'%s')
               FROM netbios
               WHERE arp.ip=netbios.ip
               AND (arp.start_time, arp.end_time)
