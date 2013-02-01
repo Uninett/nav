@@ -267,7 +267,7 @@ def switch_do_search(request):
                         ).values('ifindex')[0]
                 criteria['ifindex'] = cam_with_ifindex['ifindex']
             except IndexError:
-                pass
+                criteria['port'] = port_interface
 
         cam_result = Cam.objects.filter(
             Q(sysname__istartswith=switch) |
