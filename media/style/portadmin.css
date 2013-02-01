@@ -51,7 +51,7 @@ div.infobox {
 }
 
 #portadmin-interfacecontainer tr.success td {
-    background-color: #DFF2BF;
+    background-color: #228b22;
 }
 
 #portadmin-interfacecontainer tr.error td {
@@ -59,6 +59,7 @@ div.infobox {
 }
 
 #portadmin-interfacecontainer tr.error td span {
+    display: block;
     margin-left: 30px;
 }
 

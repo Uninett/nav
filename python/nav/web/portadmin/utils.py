@@ -199,6 +199,7 @@ def check_format_on_ifalias(ifalias):
         if ifalias_format.match(ifalias):
             return True
         else:
+            _logger.error('Wrong format on ifalias: %s', ifalias)
             return False
     else:
         return True

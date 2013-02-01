@@ -10,7 +10,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
             return -1;
         }
     }
-    var queue = new Array();
+    var nav_ajax_queue = [];
 
     $(document).ready(function(){
         NAV.addGlobalAjaxHandlers();
@@ -118,49 +118,59 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         if (!$row.is('tr')) {
             $row = $row.parents('tr');
         }
-        var rowid = $row.prop('id');
 
+        var rowid = $row.prop('id');
         if (!rowid) {
             console.log('Could not find id of row ' + $row);
             return;
         }
 
-        // If a save on this row is already in progress, do nothing.
-        if (queue.indexOf(rowid) > -1) {
-            return;
-        }
-
-        disableSaveallButtons();
-        queue.push(rowid);
-
-        var ifalias = $row.find(".ifalias").val();
-        var vlan = $row.find(".vlanlist").val();
-
         // Post data and wait for json-formatted returndata. Display status information to user
-        saveInterface(ifalias, vlan, rowid, $row);
+        saveInterface($row, create_ajax_data($row));
     }
 
-    function saveInterface(ifalias, vlan, rowid, $row) {
-        console.log({'row': $row, 'rowid': rowid, 'ifalias': ifalias, 'vlan': vlan});
+    function create_ajax_data($row) {
+        var data = {};
+        data['interfaceid'] = $row.prop('id');
+        if (textFieldChanged($row)) {
+            data['ifalias'] = $row.find(".ifalias").val();
+        }
+        if (dropDownChanged($row)) {
+            data['vlan'] = $row.find(".vlanlist").val();
+        }
+        return data;
+    }
+
+    function saveInterface($row, interfaceData) {
+        console.log({'row': $row, 'data': interfaceData});
+
+        var rowid = $row.prop('id');
+        // If a save on this row is already in progress, do nothing.
+        if (nav_ajax_queue.indexOf(rowid) > -1) {
+            return;
+        }
+        disableSaveallButtons();
+        nav_ajax_queue.push(rowid);
+
         $.ajax({url: "save_interfaceinfo",
-            data: {'ifalias': ifalias, 'vlan': vlan, 'interfaceid': rowid},
+            data: interfaceData,
             dataType: 'json',
             type: 'POST',
             beforeSend: function () {
                 $('tr.error').remove();
             },
-            success: function (data) {
+            success: function () {
                 clearChangedState($row);
                 indicateSuccess($row);
-                updateDefaults($row, ifalias, vlan);
+                updateDefaults($row, interfaceData);
             },
             error: function (jqXhr) {
                 console.log(jqXhr.responseText);
-                indicateError($row, $.parseJSON(jqXhr.responseText).message);
+                indicateError($row, $.parseJSON(jqXhr.responseText).messages);
             },
             complete: function (jqXhr) {
                 removeFromQueue(rowid);
-                if (queue.length == 0) {
+                if (nav_ajax_queue.length == 0) {
                     enableSaveallButtons();
                 }
             }
@@ -172,16 +182,16 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         var $cells = $row.find('td');
 
         $row.addClass('success');
-        $cells.animate({'background-color': '#FFF'}, 4000, function () {
+        $cells.animate({'background-color': '#FFF'}, 3000, function () {
             $cells.removeAttr('style');
             $row.removeClass('success');
         });
     }
 
-    function indicateError($row, message) {
+    function indicateError($row, messages) {
         var $newRow = $('<tr/>').addClass('error'),
             $cell = $('<td class="" colspan="10"/>'),
-            $message = $('<span/>').text(message);
+            $message = $('<span/>').text(messages.join('. '));
 
         $newRow.append($cell.append($message));
         $newRow.insertAfter($row);
@@ -193,9 +203,13 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         });
     }
 
-    function updateDefaults($row, ifalias, vlan) {
-        updateIfAliasDefault($row, ifalias);
-        updateVlanDefault($row, vlan);
+    function updateDefaults($row, data) {
+        if ('ifalias' in data) {
+            updateIfAliasDefault($row, data['ifalias']);
+        }
+        if ('vlan' in data) {
+            updateVlanDefault($row, data['vlan']);
+        }
     }
 
     function updateIfAliasDefault($row, ifalias) {
@@ -216,9 +230,9 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     function removeFromQueue(id) {
-        var index = queue.indexOf(id);
+        var index = nav_ajax_queue.indexOf(id);
         if (index > -1) {
-            queue.splice(index, 1);
+            nav_ajax_queue.splice(index, 1);
         }
     }
 
