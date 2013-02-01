@@ -39,5 +39,9 @@ First steps
   :doc:`Installation <intro/install>` |
   :doc:`Getting started <intro/getting-started>`
 
+* **Howto guides:**
+  :doc:`Troubleshooting topology problems <howto/debugging-topology>`
+
+
 * **For developers:**
   :doc:`Making a new release <release-procedure>`
