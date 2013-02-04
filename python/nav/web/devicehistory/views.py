@@ -264,17 +264,12 @@ def register_error(request):
     confirmed = request.POST.get('confirm', False)
 
     if not selection['netbox'] and not selection['module']:
-        new_message(request._req,
-            _("No devices selected."),
-            Messages.WARNING
-        )
+        new_message(request, _("No devices selected."), Messages.WARNING)
         return error_form(request)
     if not error_comment and not confirmed:
-        new_message(request._req,
-            _("There's no error message supplied. Are you sure you want to "
-              "continue?"),
-            Messages.WARNING,
-        )
+        new_message(request, _("There's no error message supplied. Are you "
+                               "sure you want to continue?"),
+                    Messages.WARNING)
         return confirm_error_form(request)
 
     register_error_events(request, selection=selection, comment=error_comment)
@@ -336,16 +331,10 @@ def do_delete_module(request):
     history = _get_unresolved_module_states(module_ids)
 
     if not history:
-        new_message(request._req,
-            _('No modules selected'),
-            Messages.NOTICE
-        )
+        new_message(request, _('No modules selected'), Messages.NOTICE)
         return HttpResponseRedirect(reverse('devicehistory-module'))
 
-    new_message(request._req,
-        _('Deleted selected modules.'),
-        Messages.SUCCESS,
-    )
+    new_message(request, _('Deleted selected modules.'), Messages.SUCCESS)
 
     cursor = connection.cursor()
     module_ids = tuple(h.module.id for h in history)
