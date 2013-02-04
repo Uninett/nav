@@ -272,7 +272,7 @@ def switch_do_search(request):
                         ).values('ifindex')[0]
                 criteria['ifindex'] = cam_with_ifindex['ifindex']
             except IndexError:
-                pass
+                criteria['port'] = port_interface
 
         cam_result = Cam.objects.filter(
             Q(sysname__istartswith=switch) |
@@ -311,7 +311,7 @@ def get_netbios_query(separator=', '):
     Arp.objects.filter(..).extra(select={'netbiosname': get_netbios_query()})
 
     """
-    return """SELECT string_agg(DISTINCT name,'%s')
+    return """SELECT array_to_string(array_agg(DISTINCT name),'%s')
               FROM netbios
               WHERE arp.ip=netbios.ip
               AND (arp.start_time, arp.end_time)

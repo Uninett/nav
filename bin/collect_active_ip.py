@@ -20,29 +20,46 @@ import ConfigParser
 from optparse import OptionParser
 import logging
 import time
-
+import sys
 from os.path import join
 
+import nav.daemon
 from nav import logs
 from nav.activeipcollector import manager
 from nav.path import localstatedir, sysconfdir
 
+PIDFILE = join(localstatedir, 'run', 'collect_active_ip.pid')
+LOGFILE = join(localstatedir, 'log', 'collect_active_ip.log')
+_logger = logging.getLogger('ipcollector')
+
 
 def main(days=None, reset=False):
     """Controller"""
-    init_logger(join(localstatedir, 'log/collect_active_ip.log'))
-    log = logging.getLogger('ipcollector')
+    init_logger(LOGFILE)
+    exit_if_already_running()
+    run(days, reset)
 
-    log.info('Starting active ip collector')
 
+def exit_if_already_running():
+    """Exits the process if another process is running or write pid if not"""
+    try:
+        nav.daemon.justme(PIDFILE)
+        nav.daemon.writepidfile(PIDFILE)
+    except nav.daemon.DaemonError, error:
+        print error
+        sys.exit(1)
+
+
+def run(days, reset):
+    """Run this collection"""
+    _logger.info('Starting active ip collector')
     starttime = time.time()
+
     datadir = join(get_datadir(), 'activeip')
     errors = manager.run(datadir, days, reset)
-
     if errors:
         print '%s errors - see log' % errors
-
-    log.info('Done in %.2f seconds' % (time.time() - starttime))
+    _logger.info('Done in %.2f seconds' % (time.time() - starttime))
 
 
 def init_logger(logfile):

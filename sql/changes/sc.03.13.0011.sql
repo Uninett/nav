@@ -1,17 +1,26 @@
--- Use the migrate_tools.py script to fill the tools table with tools from the tool files
-CREATE TABLE profiles.tool(
-  toolid SERIAL PRIMARY KEY,
-  toolname VARCHAR NOT NULL UNIQUE,
-  uri VARCHAR NOT NULL,
-  icon VARCHAR,
-  description VARCHAR,
-  priority integer DEFAULT 0
-);
+-- remove useless cam constraints/indexes to prevent index bloat
+-- On some installs, the index may already have been manually removed. "DROP
+-- CONSTRAINT IF EXISTS" wasn't introduced until PostgreSQL 9,
+-- so we make a conditional drop function to accomplish this without errors
+-- here:
 
-CREATE TABLE profiles.accounttool(
-  accounttoolid SERIAL PRIMARY KEY,
-  toolid INTEGER NOT NULL REFERENCES tool ON UPDATE CASCADE ON DELETE CASCADE,
-  accountid INTEGER NOT NULL REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  display BOOLEAN DEFAULT TRUE,
-  priority INTEGER DEFAULT 0
-);
+CREATE OR REPLACE FUNCTION manage.drop_constraint(tbl_schema VARCHAR, tbl_name VARCHAR, const_name VARCHAR) RETURNS void AS $$
+DECLARE
+    exec_string TEXT;
+BEGIN
+    exec_string := 'ALTER TABLE ';
+    IF tbl_schema != NULL THEN
+        exec_string := exec_string || quote_ident(tbl_schema) || '.';
+    END IF;
+    exec_string := exec_string || quote_ident(tb_name)
+        || ' DROP CONSTRAINT '
+        || quote_ident(const_name);
+    EXECUTE exec_string;
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT drop_constraint('manage', 'cam', 'cam_netboxid_key');
+DROP INDEX IF EXISTS cam_start_time_btree;

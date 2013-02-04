@@ -27,14 +27,31 @@ LOG = logging.getLogger('ipcollector.collector')
 def collect(days=None):
     """Collect data from database
 
-    netaddr: a list of prefixes to collect from
-    when: a datetime.datetime object
+    Use either a quick query for updates only, or a slow one for walking
+    through historic data.
     """
 
+    starttime = time.time()
     intervals = get_intervals(days) if days else 0
 
-    starttime = time.time()
-    LOG.debug('Collecting %s intervals' % intervals)
+    if intervals:
+        LOG.debug('Collecting %s intervals' % intervals)
+        query = get_interval_query(intervals)
+    else:
+        query = get_static_query()
+
+    LOG.debug(query)
+
+    cursor = connection.cursor()
+    cursor.execute(query)
+
+    LOG.debug('Query executed in %.2f seconds' % (time.time() - starttime))
+
+    return cursor.fetchall()
+
+
+def get_interval_query(intervals):
+    """Return query for collecting data for a time interval"""
 
     query = """
     SELECT
@@ -51,19 +68,31 @@ def collect(days=None):
     LEFT JOIN arp ON (
         ip << netaddr AND
         (timeentry >= start_time AND timeentry <= end_time))
-    WHERE vlan.nettype NOT IN ('loopback')
+    WHERE vlan.nettype NOT IN ('loopback') AND ip IS NOT NULL
     GROUP BY netaddr, timeentry
     ORDER BY timeentry
     """ % intervals
 
-    LOG.debug(query)
+    return query
 
-    cursor = connection.cursor()
-    cursor.execute(query)
 
-    LOG.debug('Query executed in %.2f seconds' % (time.time() - starttime))
+def get_static_query():
+    """Return for query for doing a static collection"""
+    query = """
+    SELECT
+        netaddr,
+        now() AS timeentry,
+        COUNT(DISTINCT ip) AS ipcount,
+        COUNT(DISTINCT mac) AS maccount
+    FROM vlan
+    JOIN prefix USING (vlanid)
+    LEFT JOIN arp ON (ip << netaddr AND arp.end_time = 'infinity')
+    WHERE vlan.nettype NOT IN ('loopback')
+    GROUP BY netaddr, timeentry
+    ORDER BY timeentry
+    """
 
-    return cursor.fetchall()
+    return query
 
 
 def get_intervals(days):

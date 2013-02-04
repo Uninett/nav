@@ -24,8 +24,10 @@ define(['libs/jquery'], function () {
 
         this.buttons = {'day': 'Day', 'week': 'Week', 'month': 'Month', 'year': 'Year'};
 
-        this.addButtons();
+        // Hide node before doing anything
+        this.node.hide();
         this.loadGraph('day');
+        this.addButtons();
     }
 
     GraphFetcher.prototype = {
@@ -91,7 +93,12 @@ define(['libs/jquery'], function () {
             });
             xhr.done(function () {
                 $('span.error', that).remove();
-            })
+            });
+            xhr.always(function () {
+                if (xhr.status != 503) {
+                    that.node.show();
+                }
+            });
         }
     };
 

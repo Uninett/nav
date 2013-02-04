@@ -4,7 +4,8 @@
 
 $(document).ready(
     function() {
-	$('#working').css('visibility', 'hidden');
+        NAV.addGlobalAjaxHandlers();
+        $('#working').css('visibility', 'hidden');
     }
 );
 

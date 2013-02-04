@@ -34,7 +34,8 @@ class ServiceStateHandler(EventHandler):
         if event.state in [event.STATE_START, event.STATE_END]:
             service = self._update_service()
             self._set_alert_type(alert, service)
-            self._populate_alert(alert)
+
+        self._populate_alert(alert)
 
         if self._box_is_on_maintenance():
             alert.post_alert_history()
@@ -60,6 +61,10 @@ class ServiceStateHandler(EventHandler):
 
     def _populate_alert(self, alert):
         """Populate alert-dict with variables used in alertmessage"""
-        event = self.event
-        alert['deviceup'] = ('Yes' if event.netbox.up == Netbox.UP_UP
+        alert['deviceup'] = ('Yes' if self.event.netbox.up == Netbox.UP_UP
                              else 'No')
+        try:
+            service = Service.objects.get(pk=self.event.subid)
+            alert['service'] = service
+        except Service.DoesNotExist:
+            pass

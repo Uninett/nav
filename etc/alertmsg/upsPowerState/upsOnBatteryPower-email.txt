@@ -1,0 +1,6 @@
+{{ sysname }} is operating on battery power.
+
+{{ sysname }} is operating on battery power.
+{% if batterytime %}
+Batterytime left: {{ batterytime }}
+{% endif %}

@@ -3,8 +3,6 @@ define(["libs/jquery"], function () {
     function TableUtil(node, limit) {
         this.node = node;
         this.limit = limit || 10;
-        this.nodeTextShow = "Show all";
-        this.nodeTextHide = "Show less";
     }
 
     TableUtil.prototype = {
@@ -15,18 +13,19 @@ define(["libs/jquery"], function () {
             if (rows.length > this.limit) {
                 var that = this;
                 var colspan = rows.first().find('td').length;
+                var numRows = rows.length;
                 var hiddenRows = rows.slice(this.limit);
-                var clickNode = createToggleRow(this.nodeTextShow, colspan);
+                var clickNode = createToggleRow(getShowText(numRows), colspan);
 
                 hiddenRows.hide();
                 clickNode.toggle(function () {
                     hiddenRows.show();
                     $('.hellip', clickNode).hide();
-                    $('.toggle-infotext', clickNode).text(that.nodeTextHide);
+                    $('.toggle-infotext', clickNode).text(getHideText());
                 }, function () {
                     hiddenRows.hide();
                     $('.hellip', clickNode).show();
-                    $('.toggle-infotext', clickNode).text(that.nodeTextShow);
+                    $('.toggle-infotext', clickNode).text(getShowText(numRows));
                 });
                 clickNode.appendTo(container);
             }
@@ -38,9 +37,19 @@ define(["libs/jquery"], function () {
         var toggleCell = $('<td></td>');
         toggleCell.attr('colspan', colspan);
         toggleRow.append(toggleCell);
-        toggleCell.append('<span class="hellip">&hellip;</span>',
-            '<span class="toggle-infotext">' + nodeText + '</span>');
+
+        var hellip = $('<span class="hellip">&hellip;</span>');
+        var infoText = $('<span class="toggle-infotext">' + nodeText + '</span>');
+        toggleCell.append(hellip, infoText);
         return toggleRow;
+    }
+
+    function getShowText(numRows) {
+        return "Show all " + numRows + " rows";
+    }
+
+    function getHideText() {
+        return "Show less";
     }
 
     return TableUtil

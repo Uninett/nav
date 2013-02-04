@@ -89,10 +89,10 @@ def get_module_view(module_object, perspective, activity_interval=None,
 
             if perspective == 'physportstatus':
                 # Add extra class to differentiate between layers.
-                if port_object.is_swport():
-                    port['oplayer'] = '2'
-                else:
+                if port_object.is_gwport():
                     port['oplayer'] = '3'
+                elif port_object.is_swport():
+                    port['oplayer'] = '2'
 
             module['ports'].append(port)
 

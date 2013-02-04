@@ -3,9 +3,10 @@ require(['plugins/graphfetcher', 'libs/jquery'], function (GraphFetcher) {
         NAV.addGlobalAjaxHandlers();
         $('.vlangraph').each(function (index, element) {
             var vlanid = $(element).attr('data-vlan');
-            var url = '/info/vlan/graph/vlan/' + vlanid;
+            var family = $(element).attr('data-family');
+            var url = '/info/vlan/graph/vlan/' + vlanid + '/' + family;
             var config = {
-                'title': "Total active ipv4-addresses on this vlan. This is the stacked values from each prefix."
+                'title': "Total active addresses on this vlan. This is the stacked values from each prefix."
             };
             new GraphFetcher($(element), url, config);
         });
