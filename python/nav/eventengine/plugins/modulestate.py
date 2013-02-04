@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """"moduleState event plugin"""
+import datetime
 
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.plugins import delayedstate
@@ -44,11 +45,13 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
     def _set_internal_state_down(self):
         module = self.get_target()
         module.up = module.UP_DOWN
+        module.down_since = datetime.datetime.now()
         module.save()
 
     def _set_internal_state_up(self):
         module = self.get_target()
         module.up = module.UP_UP
+        module.down_since = None
         module.save()
 
     def _get_down_alert(self):
