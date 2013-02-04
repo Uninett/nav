@@ -1,6 +1,6 @@
 -- create accounttool table for storing personal tool setup
-DROP TABLE IF EXISTS tool;
 DROP TABLE IF EXISTS accounttool;
+DROP TABLE IF EXISTS tool;
 
 CREATE TABLE profiles.accounttool(
   account_tool_id SERIAL PRIMARY KEY,
