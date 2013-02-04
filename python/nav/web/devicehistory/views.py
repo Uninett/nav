@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2009 UNINETT AS
+# Copyright (C) 2008-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,6 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Device history UI view functions"""
+
 from operator import attrgetter
 
 import time
@@ -42,12 +43,12 @@ from nav.web.devicehistory.utils.history import (get_selected_types,
                                                  describe_search_params)
 from nav.web.devicehistory.utils.error import register_error_events
 
-DeviceQuickSelect_view_history_kwargs = {
+DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS = {
     'button': 'View %s history',
     'module': True,
     'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
 }
-DeviceQuickSelect_post_error_kwargs = {
+DEVICEQUICKSELECT_POST_ERROR_KWARGS = {
     'button': 'Add %s error event',
     'location': False,
     'room': False,
@@ -66,9 +67,12 @@ ORPHANS = 10
 _ = lambda a: a
 
 def devicehistory_search(request):
-    DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_view_history_kwargs)
-    from_date = request.POST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
-    to_date = request.POST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
+    """Implements the device history landing page / search form"""
+    device_quickselect = QuickSelect(**DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS)
+    from_date = request.POST.get('from_date',
+                                 date.fromtimestamp(time.time() - ONE_WEEK))
+    to_date = request.POST.get('to_date',
+                               date.fromtimestamp(time.time() + ONE_DAY))
     types = request.POST.get('type', None)
     group_by = request.REQUEST.get('group_by', 'netbox')
 
@@ -77,7 +81,7 @@ def devicehistory_search(request):
 
     info_dict = {
         'active': {'device': {'search': True}},
-        'quickselect': DeviceQuickSelect,
+        'quickselect': device_quickselect,
         'selected_types': selected_types,
         'event_type': event_types,
         'from_date': from_date,
@@ -93,8 +97,11 @@ def devicehistory_search(request):
     )
 
 def devicehistory_view(request):
-    from_date = request.REQUEST.get('from_date', date.fromtimestamp(time.time() - ONE_WEEK))
-    to_date = request.REQUEST.get('to_date', date.fromtimestamp(time.time() + ONE_DAY))
+    """Device history search results view"""
+    from_date = request.REQUEST.get('from_date',
+                                    date.fromtimestamp(time.time() - ONE_WEEK))
+    to_date = request.REQUEST.get('to_date',
+                                  date.fromtimestamp(time.time() + ONE_DAY))
     types = request.REQUEST.get('type', None)
     group_by = request.REQUEST.get('group_by', 'netbox')
     selection = {
@@ -164,8 +171,8 @@ def devicehistory_view(request):
             attr = "org"
         if key == "category":
             attr = "cat"
-        for id in values:
-            url += "&%s=%s" % (attr, id)
+        for ident in values:
+            url += "&%s=%s" % (attr, ident)
 
     # Quickselect expects 'loc' and not 'location'
     selection['loc'] = selection['location']
@@ -198,7 +205,8 @@ def devicehistory_view(request):
     )
 
 def error_form(request):
-    DeviceQuickSelect = QuickSelect(**DeviceQuickSelect_post_error_kwargs)
+    """Implements the 'register error event' form"""
+    device_quickselect = QuickSelect(**DEVICEQUICKSELECT_POST_ERROR_KWARGS)
     error_comment = request.POST.get('error_comment', "")
 
     return render_to_response(
@@ -206,7 +214,7 @@ def error_form(request):
         {
             'active': {'error': True},
             'confirm': False,
-            'quickselect': DeviceQuickSelect,
+            'quickselect': device_quickselect,
             'error_comment': error_comment,
             'title': 'NAV - Device History - Register error',
             'navpath': [
@@ -218,6 +226,7 @@ def error_form(request):
     )
 
 def confirm_error_form(request):
+    """Implements confirmation form for device error event registration"""
     selection = {
         'netbox': request.POST.getlist('netbox'),
         'module': request.POST.getlist('module'),
@@ -238,13 +247,15 @@ def confirm_error_form(request):
             'title': 'NAV - Device History - Confirm error event',
             'navpath': [
                 ('Home', '/'),
-                ('Register error event', reverse('devicehistory-registererror')),
+                ('Register error event',
+                 reverse('devicehistory-registererror')),
             ],
         },
         RequestContext(request)
     )
 
 def register_error(request):
+    """Registers a device error event posted from a form"""
     selection = {
         'netbox': request.POST.getlist('netbox'),
         'module': request.POST.getlist('module'),
@@ -260,7 +271,8 @@ def register_error(request):
         return error_form(request)
     if not error_comment and not confirmed:
         new_message(request._req,
-            _("There's no error message supplied. Are you sure you want to continue?"),
+            _("There's no error message supplied. Are you sure you want to "
+              "continue?"),
             Messages.WARNING,
         )
         return confirm_error_form(request)
@@ -316,7 +328,8 @@ def do_delete_module(request):
     the delete_module() view.
 
     """
-    if request.method != 'POST' or not request.POST.get('confirm_delete', False):
+    confirm_delete = request.POST.get('confirm_delete', False)
+    if request.method != 'POST' or not confirm_delete:
         return HttpResponseRedirect(reverse('devicehistory-module'))
 
     module_ids = request.POST.getlist('module')
