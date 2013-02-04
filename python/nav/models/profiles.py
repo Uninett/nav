@@ -1340,22 +1340,6 @@ class NetmapViewNodePosition(models.Model):
         db_table = u'netmap_view_nodeposition'
 
 
-class Tool(models.Model):
-    """Metainformation about NAV tools"""
-    id = models.AutoField(primary_key=True, db_column='toolid')
-    name = VarcharField(db_column='toolname')
-    uri = VarcharField()
-    icon = VarcharField()
-    description = VarcharField(null=True)
-    priority = models.IntegerField(null=True)
-
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        db_table = u'tool'
-
-
 class AccountTool(models.Model):
     """Link between tool and account"""
     id = models.AutoField(primary_key=True, db_column='account_tool_id')
