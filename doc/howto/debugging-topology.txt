@@ -1,0 +1,61 @@
+##########################################
+ Troubleshooting topology problems in NAV
+##########################################
+
+After completing this howto, you should be able to track down the causes of
+physical topology detection problems in NAV, either solving them or collecting
+the necessary information to report the problem to the developers.
+
+.. WARNING:: This guide isn't finished yet. There's nothing to see here, move
+             along.
+
+********
+Overview
+********
+
+NAV provides several layers of topology information. 
+
+* The physical topology of your network (often referred to as layer 2 topology
+  in NAV, since the topology information comes from what is visible from an
+  OSI layer 2 standpoint - see Ethernet, or *IEEE 802.1D*).
+
+* The VLAN topology of your network. These are the virtual subtopologies of
+  your physical network topology, as implemented through *IEEE 802.1Q*.
+
+* Your IP (or layer 3) topology. This is simply derived from the IP addresses
+  and subnet prefixes configured on the interfaces of your routers and
+  switches.
+
+*****************
+Physical topology
+*****************
+
+Sources of physical topology information
+========================================
+
+NAV uses several sources of information to detect your physical topology, all
+collected from SNMP queries againts your monitored devices:
+
+1. The forwarding tables of your switches (CAM tables).
+2. LLDP (Link Layer Discovery Protocol, *IEEE 802.1AB*)
+3. CDP (Cisco Discovery Protocol)
+
+The most common issue
+=====================
+
+The most common issue reported to the NAV developers is that two devices that
+should be connected in the *Netmap* are not, or that two devices that aren't
+connected are presented as if they were indeed connected.
+
+In such a case, one must first ascertain whether the problem is in Netmap
+itself, or in the NAV database. It is only a problem with Netmap if what it
+draws is not consistent with NAV data.
+
+1. Search for one of the two devices in the NAVbar and click on it to open
+   it's information page.
+2. The "device info" box should mention a number of switch ports found on the
+   device. *Click the number* to go to the switch port report for this device.
+3. The report lists the detected switch ports on the device. In the two
+   rightmost columns of this report, the detected neighbor and it's connected
+   port is listed.
+
