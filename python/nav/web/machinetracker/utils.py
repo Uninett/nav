@@ -59,6 +59,26 @@ def get_prefix_info(addr):
     except:
         return None
 
+def normalize_ip_to_string(ipaddr):
+    """Normalizes an IP address to a a sortable string.
+
+    When sending IP addresses to a browser and asking JavaScript to sort them
+    as strings, this function will help.
+
+    An IPv4 address will be normalized to '4' + <15-character dotted quad>.
+    An IPv6 address will be normalized to '6' + <39 character IPv6 address>
+
+    """
+    try:
+        ipaddr = IP(ipaddr)
+    except ValueError:
+        return ipaddr
+
+    if ipaddr.version() == 4:
+        quad = str(ipaddr).split('.')
+        return '4%s' % '.'.join([i.zfill(3) for i in quad])
+    else:
+        return '6%s' % ipaddr.strFullsize()
 
 def ip_dict(rows):
     result = SortedDict()
