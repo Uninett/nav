@@ -1,7 +1,27 @@
+Version 3.13.0
+(released 07 Feb 2013)
+
+ Fixes:
+
+  * LP#1092848 (logengine regression: crash on various non-Cisco syslog entries)
+  * LP#1102831 (machine tracker ip sort does not work)
+  * LP#1104025 (vlan view needs a search page)
+  * LP#1104027 (vlan view does not draw a vlan graph if there are no ipv4
+                prefixes)
+  * LP#1107723 (collect_active_ip crashes when prefix ids has been changed)
+  * LP#1108647 (navbar search should search for vlan net types)
+  * LP#1108702 (Unused prefixes are never deleted)
+  * LP#1108880 (Physical port view annotates all non-switching ports as layer 3
+                ports)
+  * LP#1110368 (Messages UI crashes when entering non-ASCII characters in forms)
+  * LP#1115013 (Modules with status down don't show up in 'Delete modules' page)
+  * LP#1115109 (Machine tracker switch search lists all ports if no results are
+                found for the target port)
+
 Version 3.13.0b2
 (released 25 Jan 2013)
 
-Fixes:
+ Fixes:
 
   * LP#309705  (Add RSS feed for messages)
   * LP#735521  (Tracking machines behind a port where the name has changed
