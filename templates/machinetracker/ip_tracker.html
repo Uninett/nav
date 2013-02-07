@@ -30,8 +30,8 @@
             {% endif %}
             <td>
                 {% with form_data.dns|yesno:"True," as dns %}
-                <a href="{% url machinetracker-ip_short_search row.ip form_data.days dns %}" title="Search for this IP address">
-                {{ row.ip }}</a>
+                <span style="display:none;">{{ row.ip_int_value }}</span> <a href="{% url machinetracker-ip_short_search row.ip form_data.days dns %}" title="Search for this IP address">
+                    {{ row.ip }}</a>
             </td>
             <td>
                 <a href="{% url ipdevinfo-details-by-addr row.ip %}" title="Lookup this IP in IP Device Info">
