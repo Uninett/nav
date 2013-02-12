@@ -19,6 +19,10 @@
 
 /* --- Common --- */
 
+table.expand {
+    width: 100%;
+}
+
 /* Table caption */
 table.vertitable caption,
 table.listtable caption {
@@ -87,6 +91,9 @@ table.listtable {
 table.listtable tr {
 	text-align: left;
 	vertical-align: top;
+}
+table.listtable.middle tr {
+    vertical-align: middle;
 }
 table.listtable tr th {
 	background: #eee;

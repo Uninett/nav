@@ -5,54 +5,71 @@
 {% endblock %}
 
 {% block content %}
+    <p class="messages">Remember to edit your preferences to display all relevant statuses</p>
 
-{% for section in sections %}
-<table class="listtable">
-    <caption>
-        {{ section.prefs.name }}<br />
-        <span class="subtitle">
-        ({{ section.type_title }})
-        <a href="{{ section.devicehistory_url }}">history</a>
-        </span>
-    </caption>
+    {% comment %} Display all sections that have current statuses {% endcomment %}
+    {% for section in sections %}
+        {% if section.history %}
+            <table class="listtable expand middle">
+                <caption>
+                    {{ section.prefs.name }}<br />
+                    <span class="subtitle">
+                    ({{ section.type_title }})
+                    <a href="{{ section.devicehistory_url }}">history</a>
+                    </span>
+                </caption>
 
-    <thead>
-        <tr>
-        {% for head in section.columns %}
-            <th>{{ head }}</th>
-        {% endfor %}
-        </tr>
-    </thead>
+                <thead>
+                    <tr>
+                    {% for head in section.columns %}
+                        <th>{{ head }}</th>
+                    {% endfor %}
+                    </tr>
+                </thead>
 
-    {% if section.history %}
-        <tbody>
-        {% for row in section.history %}
-            <tr class="{% cycle 'oddrow' 'evenrow' %}">
-                {% for name, url in row.tabrow %}
-                <td>
-                    {% if url %}
-                    <a href="{{ url }}">
-                    {% endif %}
-                    {{ name }}
-                    {% if url %}
-                    </a>
-                    {% endif %}
-                </td>
-                {% endfor %}
-                {% ifequal section.devicehistory_type "a_boxDown" %}
-                <td>
-                    <form action="{% url maintenance-add-netbox %}" method="POST">
-                    <input type="hidden" name="netboxid" value="{{row.netboxid}}"/>
-                    <input type="submit" value="Put on maintenance"
-                            title="Set this device on maintenance until it is up and running again."/>
-                    </form>
-                </td>
-                {% endifequal %}
-            </tr>
-        {% endfor %}
-        </tbody>
-    {% endif %}
-</table>
-{% endfor %}
+
+                    <tbody>
+                    {% for row in section.history %}
+                        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                            {% for name, url in row.tabrow %}
+                            <td>
+                                {% if url %}
+                                <a href="{{ url }}">
+                                {% endif %}
+                                {{ name }}
+                                {% if url %}
+                                </a>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                            {% ifequal section.devicehistory_type "a_boxDown" %}
+                            <td>
+                                <form action="{% url maintenance-add-netbox %}" method="POST">
+                                <input type="hidden" name="netboxid" value="{{row.netboxid}}"/>
+                                <input type="submit" value="Put on maintenance"
+                                        title="Set this device on maintenance until it is up and running again."/>
+                                </form>
+                            </td>
+                            {% endifequal %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+            </table>
+        {% endif %}
+    {% endfor %}
+
+
+    {% comment %} Give access to history for other event types {% endcomment %}
+    <h2>History for events</h2>
+    <ul>
+    {% for section in sections %}
+        {% if not section.history %}
+            <li>
+                <a href="{{ section.devicehistory_url }}">{{ section.type_title }}</a>
+            </li>
+        {% endif %}
+    {% endfor %}
+    </ul>
+
 
 {% endblock %}
