@@ -36,7 +36,13 @@
                                 {% if url %}
                                 <a href="{{ url }}">
                                 {% endif %}
-                                {{ name }}
+
+                                {% if name.timetuple %}
+                                    {{ name|date:"DATETIME_FORMAT" }}
+                                {% else %}
+                                    {{ name }}
+                                {% endif %}
+
                                 {% if url %}
                                 </a>
                                 {% endif %}
