@@ -17,15 +17,18 @@
 
 import select
 import socket
+from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import  Event
 
 class PortChecker(AbstractChecker):
+    IPV6_SUPPORT = True
+
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, 'port', service, port=23, **kwargs)
     def execute(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s = socket.socket(socktype_from_addr(self.getIp()), socket.SOCK_STREAM)
         s.settimeout(self.getTimeout())
         s.connect(self.getAddress())
         f = s.makefile('r')

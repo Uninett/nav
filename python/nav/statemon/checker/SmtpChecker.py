@@ -18,6 +18,7 @@
 import re
 import socket
 import smtplib
+from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
@@ -26,8 +27,9 @@ class SMTP(smtplib.SMTP):
     def __init__(self, timeout, host = '', port = 25):
         self._timeout = timeout  # _ to avoid name collision with superclass
         smtplib.SMTP.__init__(self, host, port)
+
     def connect(self, host='localhost', port = 25):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = socket.socket(socktype_from_addr(host), socket.SOCK_STREAM)
         self.sock.settimeout(self._timeout)
         self.sock.connect((host, port))
         return self.getreply()
@@ -37,10 +39,12 @@ class SmtpChecker(AbstractChecker):
     # Most SMTP servers add a date after one of the characters
     # ",", ";" or "#", we don't need that part of the version
     # string
+    IPV6_SUPPORT = True
     versionMatch = re.compile(r'([^;,#]+)')
     
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "smtp", service, port=25, **kwargs)
+
     def execute(self):
         ip, port = self.getAddress()
         s = SMTP(self.getTimeout())

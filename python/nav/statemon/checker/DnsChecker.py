@@ -22,6 +22,8 @@ class DnsChecker(AbstractChecker):
     """
     Valid argument(s): request
     """
+    IPV6_SUPPORT = True
+
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "dns", service, port=42, **kwargs)
         # Please note that this handler doesn't obey the port directive

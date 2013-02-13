@@ -17,6 +17,7 @@
 
 import socket
 import imaplib
+from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import  Event
@@ -52,7 +53,7 @@ class IMAPSConnection(imaplib.IMAP4):
         self.host = host
         self.port = port
         # try with 2.3 socket
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = socket.socket(socktype_from_addr(host), socket.SOCK_STREAM)
         self.sock.connect((host, port))
         self.sslobj = socket.ssl(self.sock, self.keyfile, self.certfile)
 
@@ -116,8 +117,11 @@ class ImapsChecker(AbstractChecker):
     username
     password
     """
+    IPV6_SUPPORT = True
+
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "imaps", service, port=993, **kwargs)
+
     def execute(self):
         args = self.getArgs()
         user = args.get("username","")
