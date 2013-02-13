@@ -358,6 +358,8 @@ def _get_unresolved_module_states(limit_to=None):
         event_type__id='moduleState',
         alert_type__name='moduleDown',
         end_time__gte=INFINITY
+    ).exclude(
+        subid=''
     ).extra(
         select={'module': 'NULL'}
     )

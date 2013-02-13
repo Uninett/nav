@@ -125,6 +125,25 @@ Some changes are introduced:
   - LP#361530 Predefined detention does not exponentially increase detentions
   - LP#744932 Arnold should give warning if snmp write is not configured
 
+Files to remove
+---------------
+
+If any of the following files and directories are still in your installation
+after upgrading to NAV 3.13, they should be removed (installation prefix has
+been stripped from these file names).  If you installed and upgraded NAV using
+a packaging system, you should be able to safely ignore this section::
+
+  bin/arnold.py
+  bin/eventEngine.sh
+  etc/alertmsg.conf
+  etc/eventEngine.conf (new config format in lowercase eventengine.conf)
+  lib/java/
+  lib/python/nav/web/arnoldhandler.py
+  lib/python/nav/web/loggerhandler.py
+  lib/python/nav/web/radius/radius.py
+  lib/python/nav/web/report/handler.py
+  var/log/eventEngine/
+
 
 NAV 3.12
 ========
