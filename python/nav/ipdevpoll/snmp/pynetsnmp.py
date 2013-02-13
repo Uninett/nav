@@ -17,6 +17,7 @@
 # pylint: disable=C0103,C0111,W0703,R0903,W0611
 
 from __future__ import absolute_import
+from IPy import IP
 import sys
 import inspect
 
@@ -44,6 +45,18 @@ def pynetsnmp_limits_results():
 class AgentProxy(common.AgentProxyMixIn, twistedsnmp.AgentProxy):
     """pynetsnmp AgentProxy derivative to adjust the silly 1000 value
     limit imposed in getTable calls"""
+
+    def __init__(self, *args, **kwargs):
+        super(AgentProxy, self).__init__(*args, **kwargs)
+        self._ipv6_check()
+
+    def _ipv6_check(self):
+        try:
+            address = IP(self.ip)
+        except ValueError:
+            return
+        if address.version() == 6:
+            self.ip = 'udp6:[%s]' % self.ip
 
     if pynetsnmp_limits_results():
         def getTable(self, *args, **kwargs):
