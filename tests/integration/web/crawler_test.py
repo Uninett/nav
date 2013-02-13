@@ -51,6 +51,7 @@ html_store = {}
 queue = [HOST_URL]
 
 def test_webpages():
+    check_response(HOST_URL)
     result = login()
     if result:
         func, args = result[0], result[1:]
