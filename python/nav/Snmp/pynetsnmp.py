@@ -16,18 +16,23 @@
 """High level synchronouse NAV API for NetSNMP"""
 
 from __future__ import absolute_import
-from _ctypes import POINTER
 from pynetsnmp.CONSTANTS import SNMP_MSG_GETBULK
 from .import errors
 
+from IPy import IP
 from nav.oids import OID
+from pynetsnmp import netsnmp
 from pynetsnmp.netsnmp import (Session, SNMP_MSG_GETNEXT, mkoid, lib,
                                netsnmp_pdu_p, byref, getResult, cast,
-                               netsnmp_pdu)
+                               netsnmp_pdu, POINTER, c_char, c_char_p)
 
-from IPy import IP
+SNMPERR_MAP = dict(
+    (value, name)
+    for name, value in vars(netsnmp).items()
+    if name.startswith('SNMPERR_')
+)
 
-__all__ = ['Snmp', 'OID']
+__all__ = ['Snmp', 'OID', 'SNMPERR_MAP', 'snmp_api_errstring']
 
 class Snmp(object):
     """Provides simple, synchronouse snmpget, snmpwalk and snmpjog(tm)
@@ -258,6 +263,17 @@ class Snmp(object):
         return result
 
 class _MySnmpSession(Session):
+    """An extension of netsnmp.Session to provide multiple synchronous
+    operations.
+
+    """
+    def sget(self, oids):
+        result = super(_MySnmpSession, self).sget(oids)
+        if result is None:
+            _raise_on_error(self.sess.contents.s_snmp_errno)
+        else:
+            return result
+
     def sgetnext(self, root):
         req = self._create_request(SNMP_MSG_GETNEXT)
         oid = mkoid(root)
@@ -268,6 +284,8 @@ class _MySnmpSession(Session):
             result = dict(getResult(response.contents))
             lib.snmp_free_pdu(response)
             return result
+        else:
+            _raise_on_error(self.sess.contents.s_snmp_errno)
 
     def sgetbulk(self, nonrepeaters, maxrepetitions, oids):
         req = self._create_request(SNMP_MSG_GETBULK)
@@ -283,3 +301,29 @@ class _MySnmpSession(Session):
             result = getResult(response.contents)
             lib.snmp_free_pdu(response)
             return result
+        else:
+            _raise_on_error(self.sess.contents.s_snmp_errno)
+
+
+# Some global ctypes initializations needed for the snmp_api_errstring function
+_charptr = POINTER(c_char)
+netsnmp.lib.snmp_api_errstring.restype = _charptr
+
+def snmp_api_errstring(err_code):
+    """Converts an SNMP API error code to an error string"""
+    buf = netsnmp.lib.snmp_api_errstring(err_code)
+    return cast(buf, c_char_p).value
+
+def _raise_on_error(err_code):
+    """Raises an appropriate NAV exception for a non-null SNMP err_code value.
+
+    Does nothing if err_code is 0.
+
+    """
+    if err_code == 0:
+        return
+    elif err_code == netsnmp.SNMPERR_TIMEOUT:
+        raise errors.TimeOutException(snmp_api_errstring(err_code))
+    else:
+        raise errors.SnmpError("%s: %s" % (SNMPERR_MAP.get(err_code, ''),
+                                           snmp_api_errstring(err_code)))
