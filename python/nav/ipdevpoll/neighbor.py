@@ -67,6 +67,18 @@ def _mac_is_ignored(mac):
             return True
     return False
 
+@synchronized(threading.Lock())
+@cachedfor(timedelta(minutes=10))
+@autocommit
+def get_netbox_catids():
+    """Returns a dict of {netboxid: catid} pairs of NAV-monitored devices"""
+    return _get_netbox_catids()
+
+def _get_netbox_catids():
+    """Actual implementation of get_netbox_catids()"""
+    catids = dict((i['id'], i['category__id'])
+                  for i in manage.Netbox.objects.values('id', 'category__id'))
+    return catids
 
 INVALID_IPS = ('None', '0.0.0.0',)
 

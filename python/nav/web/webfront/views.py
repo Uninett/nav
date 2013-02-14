@@ -29,8 +29,8 @@ from nav.config import read_flat_config
 from nav.path import sysconfdir
 from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
-from nav.models.profiles import Account, AccountNavbar, NavbarLink, Tool, \
-    AccountTool, AccountProperty
+from nav.models.profiles import (Account, AccountNavbar, NavbarLink,
+                                 AccountTool, AccountProperty)
 from nav.models.manage import Netbox
 from nav.web.templates.DjangoCheetah import DjangoCheetah
 
@@ -168,13 +168,7 @@ def toolbox(request):
     except AccountProperty.DoesNotExist:
         layout = 'grid'
 
-    account_tools = account.get_tools()
-
-    # Fetch tools that this user has never seen if it has permission
-    other_tools = [tool for tool in
-                   Tool.objects.exclude(
-                       accounttool__in=account_tools).order_by('-priority')
-                   if account.has_perm('web_access', tool.uri)]
+    tools = sorted(get_account_tools(account, tool_list(account)))
 
     return direct_to_template(
         request,
@@ -182,11 +176,26 @@ def toolbox(request):
         {
             'navpath': [('Home', '/'), ('Toolbox', None)],
             'layout': layout,
-            'account_tools': account_tools,
-            'other_tools': other_tools,
+            'tools': tools,
             'title': 'NAV toolbox',
         },
     )
+
+
+def get_account_tools(account, all_tools):
+    """Get tools for this account"""
+    account_tools = account.accounttool_set.all()
+    tools = []
+    for tool in all_tools:
+        try:
+            account_tool = account_tools.get(toolname=tool.name)
+        except AccountTool.DoesNotExist:
+            tools.append(tool)
+        else:
+            tool.priority = account_tool.priority
+            tool.display = account_tool.display
+            tools.append(tool)
+    return tools
 
 
 def save_tools(request):
@@ -198,12 +207,12 @@ def save_tools(request):
     if 'data' in request.POST:
         account = get_account(request)
         tools = simplejson.loads(request.POST.get('data'))
-        for toolid, options in tools.items():
-            tool = Tool.objects.get(pk=toolid)
+        for toolname, options in tools.items():
             try:
-                atool = AccountTool.objects.get(account=account, tool=tool)
+                atool = AccountTool.objects.get(account=account,
+                                                toolname=toolname)
             except AccountTool.DoesNotExist:
-                atool = AccountTool(account=account, tool=tool)
+                atool = AccountTool(account=account, toolname=toolname)
 
             atool.priority = options['index']
             atool.display = options['display']

@@ -19,6 +19,7 @@ import sys
 import httplib
 import socket
 from urlparse import urlsplit
+from nav.statemon.DNS import socktype_from_addr
 from nav.statemon.event import Event
 from nav.statemon.abstractChecker import AbstractChecker
 
@@ -36,14 +37,18 @@ class HTTPSConnection(httplib.HTTPSConnection):
         self.timeout = timeout
         self.connect()
     def connect(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = socket.socket(socktype_from_addr(self.host),
+                                  socket.SOCK_STREAM)
         self.sock.settimeout(self.timeout)
         self.sock.connect((self.host, self.port))
         self.sock = wrap_socket(self.sock)
         
 class HttpsChecker(AbstractChecker):
+    IPV6_SUPPORT = True
+
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "https", service, port=0, **kwargs)
+
     def execute(self):
         ip, port = self.getAddress()
         args = self.getArgs()

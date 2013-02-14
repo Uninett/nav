@@ -150,16 +150,17 @@ def createMessage(line):
 
         timestamp = datetime.datetime(year, month, day, hour, minute, second)
 
-        return Message(timestamp, origin, msgtype, description)
+        try:
+            return Message(timestamp, origin, msgtype, description)
+        except ValueError, err:
+            logger.debug("syslog line parse error: %s", line,
+                         exc_info=True)
 
-    else:
-        # if this message shows sign of cisco format, put it in the error log
-        typematch = typematchRe.search(line)
-        if typematch:
-            database.execute("INSERT INTO errorerror (message) "
-                             "VALUES (%s)", (line,))
-
-        return
+    # if this message shows sign of cisco format, put it in the error log
+    typematch = typematchRe.search(line)
+    if typematch:
+        database.execute("INSERT INTO errorerror (message) "
+                         "VALUES (%s)", (line,))
 
 
 
@@ -174,6 +175,8 @@ class Message:
         self.type = type
         self.description = db.escape(description)
         self.facility, self.priorityid, self.mnemonic = self.find_priority(type)
+        if not self.facility:
+            raise ValueError("cannot parse message type: %s" % type)
 
     def find_priority(self, type):
         prioritymatch = self.prioritymatchRe.search(type)

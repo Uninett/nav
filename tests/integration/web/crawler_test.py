@@ -14,6 +14,8 @@ import tidy
 import urllib
 import urllib2
 import urlparse
+import time
+from itertools import chain
 
 HOST_URL = os.environ.get('TARGETURL', None)
 USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
@@ -63,13 +65,20 @@ def test_webpages():
 
 def handle_http_error(func):
     def _decorator(*args, **kwargs):
+        starttime = time.time()
+        funcinfo = "%s(%s)" % (func.__name__,
+                               ", ".join(map(repr,
+                                             chain(args, kwargs.values()))))
+        fmt = "%s - %s used %s seconds"
         try:
             return func(*args, **kwargs)
         except urllib2.HTTPError, error:
+            print fmt % ('HttpError', funcinfo, time.time() - starttime)
             print "%s :" % error.url
             print "-" * (len(error.url)+2)
             return failure, error.url, error.code, error
         except urllib2.URLError, error:
+            print fmt % ('URLError', funcinfo, time.time() - starttime)
             return urlerror, error
 
     return _decorator

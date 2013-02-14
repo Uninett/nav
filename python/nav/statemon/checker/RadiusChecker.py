@@ -61,6 +61,7 @@ class RadiusChecker(AbstractChecker):
     Failure to connect:
         return Event.DOWN, str(sys.exc_value)
     """
+    # TODO: Check for IPv6 compatibility in pyrad
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "radius", service, port=1812, **kwargs)
 

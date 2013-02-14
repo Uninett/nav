@@ -1149,8 +1149,17 @@ class Interface(models.Model):
             return ""
 
     def is_swport(self):
-        """Return true if port is configured as switch-port"""
+        """Returns True if the interface is configured as a switch-port"""
         return (self.baseport is not None)
+
+    def is_gwport(self):
+        """Returns True if the interface has an IP address.
+
+        NOTE: This doesn't necessarily mean the port forwards packets for
+        other hosts.
+
+        """
+        return (self.gwportprefix_set.count() > 0)
 
 
 class IanaIftype(models.Model):

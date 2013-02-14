@@ -68,6 +68,8 @@ class AbstractChecker:
         # and then we return status UP, and our version string.
         return Event.UP, version
     """
+    IPV6_SUPPORT = False
+
     def __init__(self, type, service, port=0, status=event.Event.UP):
         """
         type is the name of the handler (subclass)

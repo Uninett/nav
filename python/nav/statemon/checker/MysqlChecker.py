@@ -16,6 +16,7 @@
 #
 
 import socket
+from nav.statemon.DNS import socktype_from_addr
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
@@ -30,8 +31,9 @@ class MysqlConnection:
     """
     
     def __init__(self, addr, timeout=None):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if timeout != None:
+        host, _port = addr
+        sock = socket.socket(socktype_from_addr(host), socket.SOCK_STREAM)
+        if timeout is not None:
             sock.settimeout(timeout)
         sock.connect(addr)
         self.file = sock.makefile('r+')
@@ -77,6 +79,8 @@ class MysqlConnection:
         self.file.close()
             
 class MysqlChecker(AbstractChecker):
+    IPV6_SUPPORT = True
+
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "mysql", service, port=3306, **kwargs)
 

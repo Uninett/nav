@@ -30,7 +30,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      check_format_on_ifalias,
                                      is_administrator,
                                      find_allowed_vlans_for_user)
-from nav.Snmp.errors import TimeOutException
+from nav.Snmp.errors import SnmpError
 from nav.portadmin.snmputils import SNMPFactory
 
 NAVBAR = [('Home', '/'), ('PortAdmin', None)]
@@ -139,7 +139,7 @@ def populate_infodict(account, netbox, interfaces):
         get_and_populate_livedata(netbox, interfaces)
         allowed_vlans = find_and_populate_allowed_vlans(account, netbox,
                                                         interfaces)
-    except TimeOutException:
+    except SnmpError:
         errors.append("Timeout when contacting netbox.")
         if not netbox.read_only:
             errors.append("Read only community not set")
@@ -170,63 +170,100 @@ def populate_infodict(account, netbox, interfaces):
 
 
 def save_interfaceinfo(request):
-    """Used from an ajax call to set ifalias and vlan.
+    """Set ifalias and/or vlan on netbox
 
-    Message: message to user
+    messages: are returned as a part of the response object. If it is empty
+    the response is ok, otherwise an error has occured.
 
-    Use interfaceid to find connectiondata. The call expects error and
-    message to be set. Error=0 if everything ok
+    interfaceid must be a part of the request
+    ifalias and vlan are both optional
 
     """
+    messages = []
     if request.method == 'POST':
-        ifalias = unicode(request.POST.get('ifalias', ''))
-        vlan = int(request.POST.get('vlan'))
         interfaceid = request.POST.get('interfaceid')
-
-        correct_format = check_format_on_ifalias(ifalias)
-        if not correct_format:
-            result = {'error': 1,
-                      'message': 'IfAlias does not match the defined format.'}
-            return HttpResponse(simplejson.dumps(result),
-                                mimetype="application/json")
-
+        interface = Interface.objects.get(pk=interfaceid)
         account = get_account(request)
-        vlan_numbers = [v.vlan for v in find_allowed_vlans_for_user(account)]
-        if vlan in vlan_numbers or is_administrator(account):
+
+        if is_allowed_to_edit(interface, account):
             try:
-                interface = Interface.objects.get(id=interfaceid)
-                netbox = interface.netbox
-                fac = SNMPFactory.get_instance(netbox)
-                fac.set_vlan(interface.ifindex, vlan)
-                fac.set_if_alias(interface.ifindex, ifalias)
-                try:
-                    fac.write_mem()
-                except TimeOutException, timeout_ex:
-                    _logger.error('TimeOutException = %s' % str(timeout_ex))
-
-                result = {'error': 0, 'message': 'Save was successful'}
-
-                interface.vlan = vlan
-                interface.ifalias = ifalias
+                fac = SNMPFactory.get_instance(interface.netbox)
+            except SnmpError, error:
+                _logger.error('Error getting snmpfactory instance %s: %s',
+                              interface.netbox, error)
+                messages.append('Could not connect to netbox')
+            else:
+                messages.append(set_ifalias(account, fac, interface, request))
+                messages.append(set_vlan(account, fac, interface, request))
+                write_to_memory(fac)
                 save_to_database([interface])
-
-                _logger.info(
-                    "%s: %s:%s - port description set to %s, vlan set to %s",
-                    account.login,
-                    netbox.get_short_sysname(),
-                    interface.ifname,
-                    ifalias,
-                    vlan)
-            except TimeOutException:
-                result = {'error': 1,
-                          'message': 'TimeOutException - is read-write '
-                                     'community set?'}
-            except Exception, error:
-                result = {'error': 1, 'message': str(error)}
         else:
             # Should only happen if user tries to avoid gui restrictions
-            result = {'error': 1, 'message': "Not allowed to edit this port"}
+            messages.append('Not allowed to edit this interface')
     else:
-        result = {'error': 1, 'message': "Wrong request type"}
+        messages.append('Wrong request type')
 
-    return HttpResponse(simplejson.dumps(result), mimetype="application/json")
+    messages = [x for x in messages if x]
+    result = {"messages": messages} if messages else {}
+    return response_based_on_result(result)
+
+
+def is_allowed_to_edit(interface, account):
+    """Check is account is allowed to edit interface with this vlan"""
+    vlan_numbers = [v.vlan for v in find_allowed_vlans_for_user(account)]
+    return interface.vlan in vlan_numbers or is_administrator(account)
+
+
+def set_ifalias(account, fac, interface, request):
+    """Set ifalias on netbox if it is requested"""
+    if 'ifalias' in request.POST:
+        ifalias = request.POST.get('ifalias')
+        if check_format_on_ifalias(ifalias):
+            try:
+                fac.set_if_alias(interface.ifindex, ifalias)
+                interface.ifalias = ifalias
+                _logger.info('%s: %s:%s - ifalias set to "%s"' % (
+                    account.login, interface.netbox.get_short_sysname(),
+                    interface.ifname, ifalias))
+            except SnmpError, error:
+                _logger.error('Error setting ifalias: %s', error)
+                return "Error setting ifalias: %s" % error
+        else:
+            return "Wrong format on ifalias"
+
+
+def set_vlan(account, fac, interface, request):
+    """Set vlan on netbox if it is requested"""
+    if 'vlan' in request.POST:
+        vlan = int(request.POST.get('vlan'))
+        try:
+            fac.set_vlan(interface.ifindex, vlan)
+            interface.vlan = vlan
+            _logger.info('%s: %s:%s - vlan set to %s' % (
+                account.login, interface.netbox.get_short_sysname(),
+                interface.ifname, vlan))
+        except (SnmpError, TypeError), error:
+            _logger.error('Error setting vlan: %s', error)
+            return "Error setting vlan"
+
+
+def write_to_memory(fac):
+    """Write changes on netbox to memory using snmp"""
+    try:
+        fac.write_mem()
+    except SnmpError, error:
+        _logger.error('Error doing write mem on %s: %s' % (fac.netbox, error))
+
+
+def response_based_on_result(result):
+    """Return response based on content of result
+
+    result: dict containing result and message keys
+
+    """
+    if 'messages' in result:
+        return HttpResponse(simplejson.dumps(result), status=500,
+                            mimetype="application/json")
+    else:
+        return HttpResponse(simplejson.dumps(result),
+                            mimetype="application/json")

@@ -17,6 +17,7 @@
 
 import socket
 import poplib
+from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
@@ -25,7 +26,8 @@ class PopConnection(poplib.POP3):
     def __init__(self, timeout, ip, port):
         self.ip = ip
         self.port = port
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = socket.socket(socktype_from_addr(self.ip),
+                                  socket.SOCK_STREAM)
         self.sock.settimeout(timeout)
         self.sock.connect((self.ip, self.port))
         self.file = self.sock.makefile('rb')
@@ -40,8 +42,11 @@ class Pop3Checker(AbstractChecker):
     password
     port
     """
+    IPV6_SUPPORT = True
+
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "pop3", service, port=110, **kwargs)
+
     def execute(self):
         args = self.getArgs()
         user = args.get("username","")

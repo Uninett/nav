@@ -2,21 +2,12 @@
 
 {% block base_header_additional_head %}
 	<link rel="stylesheet" type="text/css" href="/style/portadmin.css" />
-	<script type="text/javascript" src="/js/libs/jquery-1.4.4.min.js"></script>
-	<script type="text/javascript" src="/js/portadmin.js"></script>
+    <script>require(['src/portadmin']);</script>
 {% endblock %}
 
 {% block base_content %}
 
 <h3>PortAdmin</h3>
-
-{% if errors %}
-<ul class="error">
-    {% for error in errors %}
-    <li>{{ error }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
 
 {% block content %}
 {% endblock %}

@@ -36,7 +36,6 @@ from nav.web.seeddb.page.netbox import netbox, netbox_bulk
 from nav.web.seeddb.page.netbox.edit import netbox_edit
 from nav.web.seeddb.page.service import service, service_bulk
 from nav.web.seeddb.page.service.edit import service_edit
-from nav.web.seeddb.page.tool import tool, tool_edit
 
 urlpatterns = patterns('',
     url(r'^$', index,
@@ -167,10 +166,5 @@ urlpatterns = patterns('',
         name='seeddb-patch-edit'),
     url(r'^patch/bulk/$', patch_bulk,
         name='seeddb-patch-bulk'),
-
-    # Tools
-    url(r'^tool/$', tool, name='seeddb-tool'),
-    url(r'^tool/edit/(?P<tool_id>\d+)/$', tool_edit, name='seeddb-tool-edit'),
-    url(r'^tool/edit/$', tool_edit, name='seeddb-tool-add'),
 
 )

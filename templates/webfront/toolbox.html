@@ -3,7 +3,7 @@
 {% block base_header_additional_head %}
     <link rel="stylesheet" href="/style/tool.css" />
     <link rel="stylesheet" href="/style/jqueryui/jquery-ui-1.8.21.custom.css" />
-    <script src="/js/libs/require.js" data-main="src/toolbox"></script>
+    <script>require(["src/toolbox"]);</script>
 {% endblock %}
 
 {% block base_content %}
@@ -28,11 +28,9 @@
     {% if layout == 'grid' %}
 
         <ul id="deselected_tools" class="gridlist ui-helper-hidden deselected toollist">
-            {% for accounttool in account_tools %}
-                {% if not accounttool.display %}
-                    {% with accounttool.tool as tool %}
-                        {% include "webfront/toolbox_big_frag.html" %}
-                    {% endwith %}
+            {% for tool in tools %}
+                {% if not tool.display %}
+                    {% include "webfront/toolbox_big_frag.html" %}
                 {% endif %}
             {% endfor %}
         </ul>
@@ -40,15 +38,10 @@
         <div class="float-clear"></div>
 
         <ul id="selected_tools" class="gridlist toollist">
-            {% for accounttool in account_tools %}
-                {% if accounttool.display %}
-                    {% with accounttool.tool as tool %}
-                        {% include "webfront/toolbox_big_frag.html" %}
-                    {% endwith %}
+            {% for tool in tools %}
+                {% if tool.display %}
+                    {% include "webfront/toolbox_big_frag.html" %}
                 {% endif %}
-            {% endfor %}
-            {% for tool in other_tools %}
-                {% include 'webfront/toolbox_big_frag.html' %}
             {% endfor %}
         </ul>
 
@@ -57,15 +50,10 @@
 
         <div class='linklistwrapper'>
             <ul id="selected_tools" class="linklist toollist">
-                {% for accounttool in account_tools %}
-                    {% if accounttool.display %}
-                        {% with accounttool.tool as tool %}
-                            {% include 'webfront/toolbox_small_frag.html' %}
-                        {% endwith %}
+                {% for tool in tools %}
+                    {% if tool.display %}
+                        {% include 'webfront/toolbox_small_frag.html' %}
                     {% endif %}
-                {% endfor %}
-                {% for tool in other_tools %}
-                    {% include 'webfront/toolbox_small_frag.html' %}
                 {% endfor %}
             </ul>
         </div>
@@ -76,11 +64,9 @@
                 <li class="permanent ui-state-highlight">
                     <span>Drag tools you do not want here</span>
                 </li>
-                {% for accounttool in account_tools %}
-                    {% if not accounttool.display %}
-                        {% with accounttool.tool as tool %}
-                            {% include 'webfront/toolbox_small_frag.html' %}
-                        {% endwith %}
+                {% for tool in tools %}
+                    {% if not tool.display %}
+                        {% include 'webfront/toolbox_small_frag.html' %}
                     {% endif %}
                 {% endfor %}
             </ul>

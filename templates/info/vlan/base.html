@@ -2,14 +2,62 @@
 
 {% block base_header_additional_head %}
     <link rel="stylesheet" href="/style/info_vlan.css"/>
-    <script src="/js/libs/require.js" data-main="src/info_vlan" ></script>
+    <script>require(["src/info_vlan"]);</script>
 {% endblock %}
 
 {% block base_content %}
 
-    <h1>Vlan view</h1>
+    <h2>Vlan search</h2>
 
     {% block vlandetails %}
+
+        <form action="{% url vlan-index %}" method="get">
+            <p>{{ form.query }}
+                <button type="submit">Search</button>
+            </p>
+        </form>
+
+        {% if form.is_bound %}
+            {% if vlans %}
+                <table class="listtable searchresults">
+                    <caption>{{ vlans|length }} result{{ vlans|pluralize:",s" }}
+                        for "{{ form.data.query }}"
+                    </caption>
+
+                    <thead>
+                    <tr>
+                        <th>Vlan</th>
+                        <th>Type</th>
+                        <th>Netident</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for vlan in vlans %}
+                        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                            <td>
+                                <a href="{% url vlan-details vlan.id %}">{{ vlan.vlan }}</a>
+                            </td>
+                            <td>
+                                {{ vlan.net_type }}
+                            </td>
+                            <td>
+                                {{ vlan.net_ident }}
+                            </td>
+                            <td>
+                                {{ vlan.description }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="messages">No vlans found</p>
+            {% endif %}
+
+        {% endif %}
+
     {% endblock %}
 
 {% endblock %}

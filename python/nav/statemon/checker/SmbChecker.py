@@ -34,8 +34,11 @@ class SmbChecker(AbstractChecker):
         'password'
         'port'
     """
+    IPV6_SUPPORT = True
+
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "smb", service, port=139, **kwargs)
+
     def execute(self):
         ip, port = self.getAddress()
         args = self.getArgs()
@@ -65,7 +68,7 @@ class SmbChecker(AbstractChecker):
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             p.wait()
-        except IOEerror, msg:
+        except IOError, msg:
             return Event.DOWN, 'could not run smbclient: %s' % msg
 
         output = p.stdout.read()

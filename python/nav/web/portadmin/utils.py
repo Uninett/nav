@@ -79,7 +79,7 @@ def update_interfaces_with_snmpdata(interfaces, ifalias, vlans, operstatus,
 def find_and_populate_allowed_vlans(account, netbox, interfaces):
     """Find allowed vlans and indicate which interface can be edited"""
     allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox)
-    set_editable_on_interfaces(interfaces, allowed_vlans)
+    set_editable_on_interfaces(netbox, interfaces, allowed_vlans)
     return allowed_vlans
 
 
@@ -152,14 +152,16 @@ def read_config():
     return config
 
 
-def set_editable_on_interfaces(interfaces, vlans):
+def set_editable_on_interfaces(netbox, interfaces, vlans):
     """
     Set a flag on the interface to indicate if user is allowed to edit it.
     """
     vlan_numbers = [vlan.vlan for vlan in vlans]
 
     for interface in interfaces:
-        if interface.vlan in vlan_numbers and not interface.trunk:
+        iseditable = (interface.vlan in vlan_numbers
+                      and not interface.trunk and netbox.read_write)
+        if iseditable:
             interface.iseditable = True
         else:
             interface.iseditable = False
@@ -197,6 +199,7 @@ def check_format_on_ifalias(ifalias):
         if ifalias_format.match(ifalias):
             return True
         else:
+            _logger.error('Wrong format on ifalias: %s', ifalias)
             return False
     else:
         return True

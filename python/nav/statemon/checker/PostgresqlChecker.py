@@ -20,6 +20,8 @@ from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
 class PostgresqlChecker(AbstractChecker):
+    IPV6_SUPPORT = True
+
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, 'postgresql', service,  port=5432, **kwargs)
 

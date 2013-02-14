@@ -20,7 +20,8 @@ from django.db.models import Q
 
 from nav.models.manage import Room, Category, Organization, Netbox
 from nav.models.manage import Subcategory, NetboxCategory
-from nav.Snmp import Snmp, TimeOutException, SnmpError
+from nav.Snmp import Snmp
+from nav.Snmp.errors import TimeOutException, SnmpError
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname, does_ip_exist
 from nav.web.seeddb.utils.edit import does_sysname_exist
 

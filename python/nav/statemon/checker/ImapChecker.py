@@ -17,6 +17,7 @@
 
 import socket
 import imaplib
+from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import  Event
@@ -30,7 +31,7 @@ class IMAPConnection(imaplib.IMAP4):
         """
         Overload imaplib's method to connect to the server
         """
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = socket.socket(socktype_from_addr(host), socket.SOCK_STREAM)
         self.sock.settimeout(self.timeout)
         self.sock.connect((host, port))
         self.file = self.sock.makefile("rb")
@@ -42,8 +43,11 @@ class ImapChecker(AbstractChecker):
     username
     password
     """
+    IPV6_SUPPORT = True
+
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "imap", service, port=143, **kwargs)
+
     def execute(self):
         args = self.getArgs()
         user = args.get("username","")
