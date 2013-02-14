@@ -11,6 +11,7 @@ from collections import namedtuple
 from nav.errors import GeneralException
 from os.path import join, abspath
 from subprocess import Popen, PIPE
+from IPy import IP
 
 from nav import path
 from nav.db import getConnection
@@ -325,6 +326,19 @@ def write_targets(path_to_config, targets):
     filehandle = open(join(path_to_config, TARGETFILENAME), 'w')
     filehandle.write("\n".join(targets))
     filehandle.close()
+
+
+def format_ip_address(ip):
+    """Return ip-address as string to be used as snmp-host argument"""
+    try:
+        address = IP(ip)
+        if address.version() == 6:
+            return "[%s]" % ip
+        else:
+            return str(ip)
+    except ValueError, error:
+        LOGGER.error("Error formatting %s: %s" % (ip, error))
+        return ip
 
 
 class RRDcontainer:

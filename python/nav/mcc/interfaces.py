@@ -175,7 +175,7 @@ def create_default_target(netbox, snmp_version, module):
     """Create common config for this netbox"""
 
     strings = ["target --default--\n",
-               "\tsnmp-host\t= %s\n" % netbox.ip,
+               "\tsnmp-host\t= %s\n" % utils.format_ip_address(netbox.ip),
                "\tsnmp-version\t= %s\n" % snmp_version]
 
     if module == IPV6MODULE:

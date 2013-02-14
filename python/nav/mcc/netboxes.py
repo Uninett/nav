@@ -33,6 +33,7 @@ def make_config(config):
 
     return True
 
+
 def create_subtree_config(configroot, dirname, views):
     """ Create config for this directory """
 
@@ -107,7 +108,7 @@ def create_target_config(netbox):
     config = [
         'target "%s"' % str(netbox.sysname),
         '\tdisplay-name\t= "%s"' % displayname,
-        '\tsnmp-host\t= %s' % str(netbox.ip),
+        '\tsnmp-host\t= %s' % utils.format_ip_address(netbox.ip),
         '\tsnmp-community\t= %s' % str(netbox.read_only),
         '\ttarget-type\t= %s' % str(netbox.sysname),
         '\tshort-desc\t= "%s"' % shortdesc,
@@ -128,5 +129,3 @@ def create_container(netbox, targetoids):
         counter = counter + 1
 
     return container
-
-
