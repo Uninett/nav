@@ -16,15 +16,16 @@
 """High level synchronouse NAV API for NetSNMP"""
 
 from __future__ import absolute_import
-from pynetsnmp.CONSTANTS import SNMP_MSG_GETBULK
 from .import errors
 
 from IPy import IP
 from nav.oids import OID
 from pynetsnmp import netsnmp
 from pynetsnmp.netsnmp import (Session, SNMP_MSG_GETNEXT, mkoid, lib,
-                               netsnmp_pdu_p, byref, getResult, cast,
-                               netsnmp_pdu, POINTER, c_char, c_char_p)
+                               netsnmp_pdu_p, getResult, netsnmp_pdu,
+                               SNMP_MSG_GETBULK, SNMP_MSG_SET)
+from ctypes import (c_int, sizeof, byref, cast, POINTER, c_char, c_char_p,
+                    c_uint, c_ulong, c_uint64)
 
 SNMPERR_MAP = dict(
     (value, name)
@@ -102,11 +103,10 @@ class Snmp(object):
         else:
             return ''
 
-    # FIXME: Implement a working version of this
-    def __set(self, query, type, value):
-        """Does snmpset query on the host.
+    def set(self, query, type, value):
+        """Performs an SNMP SET operations.
 
-        query: oid to use in snmpset
+        :param query: OID to set
         type: type of value to set. This may be
         i: INTEGER
         u: unsigned INTEGER
@@ -121,57 +121,23 @@ class Snmp(object):
         """
         # Translate type to fit backend library
         typemap = {
-            'i': 'Integer',
-            'u': 'Unsigned32',
-            't': 'TimeTicks',
-            'a': 'IpAddress',
-            'o': 'ObjectIdentifier',
-            's': 'OctetString',
-            'U': 'Counter64',
-            'x': 'OctetString',
+            'i': netsnmp.ASN_INTEGER,
+            'u': netsnmp.ASN_UNSIGNED,
+            't': netsnmp.ASN_TIMETICKS,
+            'a': netsnmp.ASN_IPADDRESS,
+            'o': netsnmp.ASN_OBJECT_ID,
+            's': netsnmp.ASN_OCTET_STR,
+            'U': netsnmp.ASN_COUNTER64,
+            'x': netsnmp.ASN_OCTET_STR,
         }
         if type in typemap:
-            value_class = typemap[type]
-            if not hasattr(self._ver, value_class):
-                raise ValueError("%s not supported in SNMP version %s" %
-                                 (value_class, self.version))
-            else:
-                value_class = getattr(self._ver, value_class)
+            value_type = typemap[type]
+            # TODO: verify that the type is defined for the selected SNMP ver
         else:
             raise ValueError("type must be one of %r, not %r" %
                              (typemap.keys(), type))
 
-        # Make request and responsehandler
-        pdu = self._ver.SetRequestPdu()
-        req = self._ver.Message()
-        req.apiAlphaSetCommunity(self.community)
-        req.apiAlphaSetPdu(pdu)
-
-        # Encode oids and values
-        obj = OID(query)
-        obj_val = value_class(value)
-        pdu.apiAlphaSetVarBindList((obj, obj_val))
-
-        # Try to send query and get response
-        try:
-            self.handle.send(
-                req.berEncode(), dst=(self.host, self.port))
-            (answer, src) = self.handle.receive()
-        except snmperror.NoResponseError, e:
-            raise errors.TimeOutException(e)
-        except snmperror.NetworkError, e:
-            raise errors.NetworkError(e)
-
-        # Decode raw response/answer
-        rsp = self._ver.Message()
-        rsp.berDecode(answer)
-
-        # ensure the response matches the request
-        if not req.apiAlphaMatch(rsp):
-            raise errors.SnmpError("Response did not match request")
-
-        # Check for errors in the response
-        self._error_check(rsp)
+        self.handle.sset(OID(query), value_type, value)
 
     def walk(self, query="1.3.6.1.2.1.1.1.0"):
         """Performs an SNMP walk operation.
@@ -304,6 +270,73 @@ class _MySnmpSession(Session):
         else:
             _raise_on_error(self.sess.contents.s_snmp_errno)
 
+    def sset(self, oid, data_type, value):
+        req = self._create_request(SNMP_MSG_SET)
+        oid = mkoid(oid)
+
+        converter = CONVERTER_MAP[data_type]
+        data, size = converter(value)
+        lib.snmp_pdu_add_variable(req, oid, len(oid), data_type, data, size)
+
+        response = netsnmp_pdu_p()
+        if lib.snmp_synch_response(self.sess, req, byref(response)) == 0:
+            result = dict(getResult(response.contents))
+            lib.snmp_free_pdu(response)
+            return result
+        else:
+            _raise_on_error(self.sess.contents.s_snmp_errno)
+
+##
+## Functions for converting Python values to C data types suitable for ASN
+## and BER encoding in the NET-SNMP library.
+##
+
+CONVERTER_MAP = {}
+def converts(asn_type):
+    """Decorator to register a function as a converter of a Python value to a
+    specific ASN data type.
+
+    """
+    def _register(func):
+        CONVERTER_MAP[asn_type] = func
+        return func
+    return _register
+
+@converts(netsnmp.ASN_INTEGER)
+def asn_integer(value):
+    value = c_int(value)
+    return byref(value), sizeof(value)
+
+@converts(netsnmp.ASN_UNSIGNED)
+def asn_unsigned(value):
+    value = c_uint(value)
+    return byref(value), sizeof(value)
+
+@converts(netsnmp.ASN_TIMETICKS)
+def asn_timeticks(value):
+    value = c_ulong(value)
+    return byref(value), sizeof(value)
+
+@converts(netsnmp.ASN_IPADDRESS)
+def asn_ipaddress(value):
+    ipaddr = IP(value)
+    value = c_ulong(ipaddr.int())
+    return byref(value), sizeof(value)
+
+@converts(netsnmp.ASN_OBJECT_ID)
+def asn_object_id(value):
+    value = mkoid(OID(value))
+    return byref(value), sizeof(value)
+
+@converts(netsnmp.ASN_OCTET_STR)
+def asn_octet_str(value):
+    string = c_char_p(value)
+    return string, len(value)
+
+@converts(netsnmp.ASN_COUNTER64)
+def asn_counter64(value):
+    value = c_uint64(value)
+    return byref(value), sizeof(value)
 
 # Some global ctypes initializations needed for the snmp_api_errstring function
 _charptr = POINTER(c_char)
