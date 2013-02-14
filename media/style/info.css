@@ -24,3 +24,8 @@ table.medium td {
     font-size: small;
 }
 
+@media only screen and (max-width: 480px) {
+    table.searchprovider {
+        width: 100%;
+    }
+}
