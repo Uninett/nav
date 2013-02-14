@@ -17,7 +17,7 @@
 import time
 import logging
 
-from nav.Snmp.pysnmp_se import Snmp
+from nav.Snmp import Snmp
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
 from nav.bitvector import BitVector
@@ -94,13 +94,7 @@ class SNMPHandler(object):
     @staticmethod
     def _get_legal_if_index(if_index):
         """Check if the given index is a legal interface-index."""
-        if isinstance(if_index, int):
-            if_index = str(if_index)
-        if not (isinstance(if_index, str) or isinstance(if_index, unicode)):
-            raise TypeError('Illegal value for interface-index')
-        if not if_index.isdigit():
-            raise TypeError('Illegal value for interface-index')
-        return if_index
+        return str(int(if_index))
 
     def _get_query(self, oid, if_index):
         """Concat given oid and interface-index."""
