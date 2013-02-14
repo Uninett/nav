@@ -37,6 +37,7 @@ table.listtable caption span.subtitle {
 }
 table.vertitable caption a,
 table.listtable caption a {
+    text-decoration:underline;
     background: transparent;
     color: white;
 }
