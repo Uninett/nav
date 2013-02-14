@@ -23,6 +23,7 @@ from nav.statemon.event import Event
 
 class SshChecker(AbstractChecker):
     """Checks for SSH availability"""
+    IPV6_SUPPORT = True
 
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "ssh", service, port=22, **kwargs)

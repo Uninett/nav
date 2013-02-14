@@ -14,6 +14,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.event import Event
 from nav.statemon.abstractChecker import AbstractChecker
@@ -27,13 +28,17 @@ class HTTPConnection(httplib.HTTPConnection):
         self.timeout = timeout
         self.connect()
     def connect(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = socket.socket(socktype_from_addr(self.host),
+                                  socket.SOCK_STREAM)
         self.sock.settimeout(self.timeout)
         self.sock.connect((self.host, self.port))
 
 class HttpChecker(AbstractChecker):
+    IPV6_SUPPORT = True
+
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "http", service, port=0, **kwargs)
+
     def execute(self):
         ip, port = self.getAddress()
         url = self.getArgs().get('url','')

@@ -14,6 +14,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from IPy import IP
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
@@ -45,9 +46,11 @@ class LdapChecker(AbstractChecker):
 
     NB! If compare is set/given - attrs and attr_val will be ignored!
     """
+    IPV6_SUPPORT = True
 
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "ldap", service, port=389, **kwargs)
+
     def execute(self):
         args = self.getArgs()
         versionstr = ""
@@ -120,3 +123,11 @@ class LdapChecker(AbstractChecker):
             l.unbind()
 
         return Event.UP, "Ok"
+
+    def getAddress(self):
+        ip, port = AbstractChecker.getAddress(self)
+        addr = IP(ip)
+        if addr.version() == 6:
+            ip = '[%s]' % ip
+        return ip, port
+

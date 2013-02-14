@@ -17,6 +17,7 @@
 
 import socket
 import ftplib
+from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
@@ -36,7 +37,8 @@ class FTP(ftplib.FTP):
         if host: self.host = host
         if port: self.port = port
         msg = "getaddrinfo returns an empty list"
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = socket.socket(socktype_from_addr(self.host),
+                                  socket.SOCK_STREAM)
         self.sock.settimeout(self.timeout)
         self.sock.connect((self.host, self.port))
         self.file = self.sock.makefile('rb')
@@ -50,6 +52,7 @@ class FtpChecker(AbstractChecker):
     password
     path (ACCT)
     """
+    IPV6_SUPPORT = True
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, "ftp", service, port=0, **kwargs)
 
