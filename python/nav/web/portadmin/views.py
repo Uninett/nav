@@ -244,7 +244,7 @@ def set_vlan(account, fac, interface, request):
                 interface.ifname, vlan))
         except (SnmpError, TypeError), error:
             _logger.error('Error setting vlan: %s', error)
-            return "Error setting vlan"
+            return "Error setting vlan: %s" % error
 
 
 def write_to_memory(fac):
