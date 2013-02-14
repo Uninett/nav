@@ -17,7 +17,7 @@
 import time
 import logging
 
-from nav.Snmp.pysnmp_se import Snmp
+from nav.Snmp import Snmp
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
 from nav.bitvector import BitVector
