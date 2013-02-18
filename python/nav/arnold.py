@@ -121,17 +121,22 @@ class NoSuchProgramError(GeneralException):
     pass
 
 
-class WrongCatidError(GeneralException):
+class DetainmentNotAllowedError(GeneralException):
+    """Detainment not allowed"""
+    pass
+
+
+class WrongCatidError(DetainmentNotAllowedError):
     """Arnold is not permitted to block ports on equipment of this category"""
     pass
 
 
-class AlreadyBlockedError(GeneralException):
+class AlreadyBlockedError(DetainmentNotAllowedError):
     """This port is already blocked or quarantined."""
     pass
 
 
-class InExceptionListError(GeneralException):
+class InExceptionListError(DetainmentNotAllowedError):
     """This ip-address is in the exceptionlist and cannot be blocked."""
     pass
 
@@ -141,7 +146,7 @@ class FileError(GeneralException):
     pass
 
 
-class BlockonTrunkError(GeneralException):
+class BlockonTrunkError(DetainmentNotAllowedError):
     """No action on trunked interface allowed"""
     pass
 
@@ -246,10 +251,8 @@ def create_candidates(caminfos):
             caminfo['ip'] = '0.0.0.0'
         try:
             interface = Interface.objects.get(pk=caminfo['interfaceid'])
-            # Do not EVER consider routers
-            if interface.netbox.category.id in ['GSW', 'GW']:
-                continue
-        except Interface.DoesNotExist:
+            raise_if_detainment_not_allowed(interface)
+        except (Interface.DoesNotExist, DetainmentNotAllowedError):
             continue
         else:
             candidates.append(Candidate(caminfo['camid'], caminfo['ip'],
@@ -322,7 +325,7 @@ def check_identity(candidate):
         identity.mac = candidate.mac
 
     # Check if we should not detain this interface for some reason
-    should_detain(identity.interface)
+    raise_if_detainment_not_allowed(identity.interface)
 
     return identity
 
@@ -349,8 +352,8 @@ def create_event(identity, comment, username):
     event.save()
 
 
-def should_detain(interface):
-    """Check if this interface should not be detained for some reason"""
+def raise_if_detainment_not_allowed(interface):
+    """Raises an exception if this interface should not be detained"""
     netbox = interface.netbox
     config = get_config(CONFIGFILE)
     allowtypes = [x.strip()

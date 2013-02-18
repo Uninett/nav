@@ -36,7 +36,8 @@ import nav.buildconf
 from nav.arnold import (find_computer_info, disable, quarantine,
                         is_inside_vlans, NoDatabaseInformationError,
                         GeneralException, init_logging, open_port,
-                        should_detain)
+                        raise_if_detainment_not_allowed,
+                        DetainmentNotAllowedError)
 from nav.models.arnold import Identity, DetentionProfile
 
 CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
@@ -103,8 +104,8 @@ def pursue(identity, candidate):
         return
 
     try:
-        should_detain(candidate.interface)
-    except Exception, error:
+        raise_if_detainment_not_allowed(candidate.interface)
+    except DetainmentNotAllowedError, error:
         LOGGER.error(error)
         return
 
