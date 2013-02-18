@@ -246,6 +246,9 @@ def create_candidates(caminfos):
             caminfo['ip'] = '0.0.0.0'
         try:
             interface = Interface.objects.get(pk=caminfo['interfaceid'])
+            # Do not EVER consider routers
+            if interface.netbox.category.id in ['GSW', 'GW']:
+                continue
         except Interface.DoesNotExist:
             continue
         else:
@@ -257,7 +260,7 @@ def create_candidates(caminfos):
 
 def find_computer_info(ip_or_mac):
     """Return the latest entry from the cam table for ip_or_mac"""
-    return find_id_information(ip_or_mac, 1)[0]
+    return find_id_information(ip_or_mac, 5)[0]
 
 
 def disable(candidate, justification, username, comment="", autoenablestep=0):
