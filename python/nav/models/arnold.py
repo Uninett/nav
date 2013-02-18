@@ -111,7 +111,7 @@ class Justification(models.Model):
 class QuarantineVlan(models.Model):
     """A quarantine vlan is a vlan where offenders are placed"""
     id = models.AutoField(db_column='quarantineid', primary_key=True)
-    vlan = models.IntegerField()
+    vlan = models.IntegerField(unique=True)
     description = VarcharField(blank=True)
 
     def __unicode__(self):
