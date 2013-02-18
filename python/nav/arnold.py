@@ -373,14 +373,14 @@ def open_port(identity, username, eventcomment=""):
 
     """
 
-    LOGGER.info("Trying to lift detention for %s on %s" % (identity.mac,
-                                                           identity.interface))
-
     try:
         identity.interface
     except Interface.DoesNotExist:
+        LOGGER.info("Interface did not exist, enabling in database only")
         pass
     else:
+        LOGGER.info("Trying to lift detention for %s on %s" % (
+            identity.mac, identity.interface))
         if identity.status == 'disabled':
             change_port_status('enable', identity)
         elif identity.status == 'quarantined':
