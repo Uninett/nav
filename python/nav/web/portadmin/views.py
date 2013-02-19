@@ -273,11 +273,18 @@ def response_based_on_result(result):
 def render_trunk_edit(request, interfaceid):
     """Controller for rendering trunk edit view"""
 
+    from nav.portadmin.snmputils import SNMPFactory
+
     interface = Interface.objects.get(pk=interfaceid)
-    bitvector = BitVector.from_hex(interface.swportallowedvlan.hex_string)
-    trunk_vlans = bitvector.get_set_bits()
+    agent = SNMPFactory().get_instance(interface.netbox)
+
+    available_vlans = agent.get_available_vlans()
+    native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
 
     return render_to_response('portadmin/trunk_edit.html',
                               {'interface': interface,
-                               'trunk_vlans': trunk_vlans},
+                               'available_vlans': available_vlans,
+                               'native_vlan': native_vlan,
+                               'trunked_vlans': trunked_vlans},
                               RequestContext(request))
+

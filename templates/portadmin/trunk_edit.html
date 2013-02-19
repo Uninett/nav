@@ -7,20 +7,30 @@
     <div>
         <h3>Interface {{ interface }}</h3>
 
-        <p>Native vlan: {{ interface.vlan }}</p>
+        <table class="listtable">
+            <caption>Configure trunk</caption>
+            <thead>
+                <tr>
+                    <th>Native vlan</th>
+                    <th>Trunked vlan</th>
+                    <th>Vlan</th>
+                </tr>
+            </thead>
 
-        <p>Trunk vlans</p>
-
-        <ul id="trunk_vlan_list">
-        {% for trunk_vlan in trunk_vlans %}
-            <li data-vlan="{{ trunk_vlan }}">
-                {{ trunk_vlan }}
-                <span class="remove_vlan"><button>Remove vlan</button></span>
-            </li>
-        {% endfor %}
-        </ul>
-
-        <input type="text" placeholder="Vlan" /><button>Add vlan</button>
+            <tbody>
+            {% for vlan in available_vlans %}
+                <tr data-vlan="{{ vlan }}">
+                    <td>
+                        <input type="radio" {% if vlan == native_vlan %}checked{% endif %}>
+                    </td>
+                    <td>
+                        <input type="checkbox" {% if vlan in trunked_vlans %}checked{% endif %}>
+                    </td>
+                    <td>{{ vlan }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
 
     </div>
 
