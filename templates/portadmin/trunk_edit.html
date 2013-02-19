@@ -7,30 +7,33 @@
     <div>
         <h3>Interface {{ interface }}</h3>
 
-        <table class="listtable">
-            <caption>Configure trunk</caption>
-            <thead>
-                <tr>
-                    <th>Native vlan</th>
-                    <th>Trunked vlan</th>
-                    <th>Vlan</th>
-                </tr>
-            </thead>
+        <form action="" method="post">
+            <table class="listtable">
+                <caption>Configure trunk</caption>
+                <thead>
+                    <tr>
+                        <th>Vlan</th>
+                        <th>Native</th>
+                        <th>Trunked</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-            {% for vlan in available_vlans %}
-                <tr data-vlan="{{ vlan }}">
-                    <td>
-                        <input type="radio" {% if vlan == native_vlan %}checked{% endif %}>
-                    </td>
-                    <td>
-                        <input type="checkbox" {% if vlan in trunked_vlans %}checked{% endif %}>
-                    </td>
-                    <td>{{ vlan }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                <tbody>
+                {% for vlan in available_vlans %}
+                    <tr data-vlan="{{ vlan }}">
+                        <td>{{ vlan }}</td>
+                        <td>
+                            <input type="radio" name="native_vlan" value="{{ vlan }}" {% if vlan == native_vlan %}checked{% endif %}>
+                        </td>
+                        <td>
+                            <input type="checkbox" name="trunk_vlans" value="{{ vlan }}" {% if vlan in trunked_vlans %}checked{% endif %}>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <input type="submit" value="Save changes">
+        </form>
 
     </div>
 

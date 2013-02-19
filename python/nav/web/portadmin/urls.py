@@ -32,5 +32,6 @@ urlpatterns = patterns('',
 
     url(r'^save_interfaceinfo', save_interfaceinfo),
     url(r'^trunk/(?P<interfaceid>\d+)', render_trunk_edit,
-        name="portadmin-trunk-edit"),
+        name="portadmin-render-trunk-edit"),
+
 )

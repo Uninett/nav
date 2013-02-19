@@ -293,7 +293,7 @@ class SNMPHandler(object):
                 vlans.append(vlan)
         return native_vlan, vlans
 
-    def set_trunk_vlans(self, interface, vlans):
+    def set_trunk_vlans(self, ifindex, vlans):
         """Trunk the vlans on interface
 
         Egress_Ports includes native vlan. Be sure to not alter that.
@@ -303,8 +303,10 @@ class SNMPHandler(object):
         this list based on if it is in the vlans list.
 
         """
-        native_vlan = self.get_vlan(interface.ifindex)
-        bitvector_index = interface.index - 1
+        native_vlan = self.get_vlan(ifindex)
+        bitvector_index = index - 1
+
+        vlans = [int(vlan) for vlan in vlans]
 
         for available_vlan in self.get_available_vlans():
             if native_vlan == available_vlan:
