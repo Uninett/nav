@@ -40,6 +40,7 @@ from nav import logs
 from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
+from nav.portadmin.snmputils import SNMPFactory
 from django.db import connection  # import this after any django models
 from nav.util import is_valid_ip
 
@@ -121,17 +122,22 @@ class NoSuchProgramError(GeneralException):
     pass
 
 
-class WrongCatidError(GeneralException):
+class DetainmentNotAllowedError(GeneralException):
+    """Detainment not allowed"""
+    pass
+
+
+class WrongCatidError(DetainmentNotAllowedError):
     """Arnold is not permitted to block ports on equipment of this category"""
     pass
 
 
-class AlreadyBlockedError(GeneralException):
+class AlreadyBlockedError(DetainmentNotAllowedError):
     """This port is already blocked or quarantined."""
     pass
 
 
-class InExceptionListError(GeneralException):
+class InExceptionListError(DetainmentNotAllowedError):
     """This ip-address is in the exceptionlist and cannot be blocked."""
     pass
 
@@ -141,7 +147,7 @@ class FileError(GeneralException):
     pass
 
 
-class BlockonTrunkError(GeneralException):
+class BlockonTrunkError(DetainmentNotAllowedError):
     """No action on trunked interface allowed"""
     pass
 
@@ -246,7 +252,8 @@ def create_candidates(caminfos):
             caminfo['ip'] = '0.0.0.0'
         try:
             interface = Interface.objects.get(pk=caminfo['interfaceid'])
-        except Interface.DoesNotExist:
+            raise_if_detainment_not_allowed(interface)
+        except (Interface.DoesNotExist, DetainmentNotAllowedError):
             continue
         else:
             candidates.append(Candidate(caminfo['camid'], caminfo['ip'],
@@ -257,7 +264,7 @@ def create_candidates(caminfos):
 
 def find_computer_info(ip_or_mac):
     """Return the latest entry from the cam table for ip_or_mac"""
-    return find_id_information(ip_or_mac, 1)[0]
+    return find_id_information(ip_or_mac, 5)[0]
 
 
 def disable(candidate, justification, username, comment="", autoenablestep=0):
@@ -319,7 +326,7 @@ def check_identity(candidate):
         identity.mac = candidate.mac
 
     # Check if we should not detain this interface for some reason
-    should_detain(identity.interface)
+    raise_if_detainment_not_allowed(identity.interface)
 
     return identity
 
@@ -346,8 +353,8 @@ def create_event(identity, comment, username):
     event.save()
 
 
-def should_detain(interface):
-    """Check if this interface should not be detained for some reason"""
+def raise_if_detainment_not_allowed(interface):
+    """Raises an exception if this interface should not be detained"""
     netbox = interface.netbox
     config = get_config(CONFIGFILE)
     allowtypes = [x.strip()
@@ -373,14 +380,14 @@ def open_port(identity, username, eventcomment=""):
 
     """
 
-    LOGGER.info("Trying to lift detention for %s on %s" % (identity.mac,
-                                                           identity.interface))
-
     try:
         identity.interface
     except Interface.DoesNotExist:
+        LOGGER.info("Interface did not exist, enabling in database only")
         pass
     else:
+        LOGGER.info("Trying to lift detention for %s on %s" % (
+            identity.mac, identity.interface))
         if identity.status == 'disabled':
             change_port_status('enable', identity)
         elif identity.status == 'quarantined':
@@ -444,78 +451,23 @@ def change_port_vlan(identity, vlan):
     - rw-community not set on netbox
     - port is a trunk
 
-    oid for getting and setting vlan
-    CISCO
-    cisco.ciscoMgmt.ciscoVlanMembershipMIB.ciscoVlanMembershipMIBObjects.
-    vmMembership.vmMembershipTable.vmMembershipEntry.vmVlan.<ifindex>
-
     """
-    # Check vlanformat
-    if not re.search('\d+', str(vlan)):
-        raise ChangePortVlanError("Wrong format on vlan %s" % vlan)
-
     interface = identity.interface
     netbox = interface.netbox
-    vendorid = netbox.type.vendor.id
 
-    if vendorid == 'cisco':
-        oid = "1.3.6.1.4.1.9.9.68.1.2.2.1.2"
-        variable_type = 'i'
-    elif vendorid == 'hp':
-        oid = "1.3.6.1.2.1.17.7.1.4.5.1.1"
-        variable_type = 'u'
+    agent = SNMPFactory().get_instance(netbox)
+    try:
+        fromvlan = agent.get_vlan(interface.ifindex)
+    except Exception as error:
+        raise ChangePortVlanError(error)
     else:
-        raise NotSupportedError(vendorid)
-
-    query = oid + '.' + str(interface.ifindex)
-
-    snmpget = nav.Snmp.Snmp(netbox.ip, netbox.read_only, netbox.snmp_version)
-    snmpset = nav.Snmp.Snmp(netbox.ip, netbox.read_write, netbox.snmp_version)
-
-    # Fetch the vlan currently on the port
-    try:
-        fromvlan = snmpget.get(query)
-    except (nav.Snmp.NoSuchObjectError, nav.Snmp.TimeOutException), why:
-        raise ChangePortVlanError(why)
-
-    # If the vlan on the interface is the same as we try to set, do
-    # nothing.
-    if fromvlan == int(vlan):
-        return fromvlan
-
-    try:
-        snmpset.set(query, variable_type, vlan)
         LOGGER.info('Setting vlan %s on interface %s' % (vlan, interface))
-    except nav.Snmp.AgentError, why:
-        raise ChangePortVlanError(why)
-
-    # Ok, here comes the tricky part. On HP if we change vlan on a
-    # port using dot1qPvid, the fromvlan will put the vlan in
-    # trunkmode. To remedy this we use dot1qVlanStaticEgressPorts to
-    # fetch and unset the tagged vlans.
-
-    # The good thing about this is that it should work on any netbox
-    # that supports Q-BRIDGE-MIB.
-
-    if vendorid == 'hp':
-        # Fetch dot1qVlanStaticEgressPorts
-        dot1qvlanstaticegressports = '1.3.6.1.2.1.17.7.1.4.3.1.2.' + \
-                                     str(fromvlan)
         try:
-            hexports = snmpget.get(dot1qvlanstaticegressports)
-        except nav.Snmp.NoSuchObjectError, why:
-            raise ChangePortVlanError(why)
-
-        # Create new octetstring and set it
-        newhexports = compute_octet_string(hexports, interface.ifindex,
-                                           'disable')
-
-        try:
-            snmpset.set(dot1qvlanstaticegressports, 's', newhexports)
-        except nav.Snmp.NoSuchObjectError, why:
-            raise ChangePortVlanError(why)
-
-    return fromvlan
+            agent.set_vlan(interface.ifindex, vlan)
+        except Exception as error:
+            raise ChangePortVlanError(error)
+        else:
+            return fromvlan
 
 
 def sendmail(fromaddr, toaddr, subject, msg):
