@@ -1,0 +1,35 @@
+{% extends 'portadmin/base.html' %}
+
+{% block content %}
+
+    {% if interface %}
+
+    <div>
+        <h3>Interface {{ interface }}</h3>
+
+        <p>Native vlan: {{ interface.vlan }}</p>
+
+        <p>Trunk vlans</p>
+
+        <ul id="trunk_vlan_list">
+        {% for trunk_vlan in trunk_vlans %}
+            <li data-vlan="{{ trunk_vlan }}">
+                {{ trunk_vlan }}
+                <span class="remove_vlan"><button>Remove vlan</button></span>
+            </li>
+        {% endfor %}
+        </ul>
+
+        <input type="text" placeholder="Vlan" /><button>Add vlan</button>
+
+    </div>
+
+
+    {% else %}
+        <p class="error">This interface does not exist</p>
+    {% endif %}
+
+
+
+
+{% endblock %}

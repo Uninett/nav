@@ -89,7 +89,13 @@ PortAdmin - {{ netbox.get_short_sysname }}
 
         <td>
 			{% if interface.trunk %}
+                {% if current_user_data.is_admin %}
+                    <a href="{% url portadmin-trunk-edit interface.id %}">
+                {% endif %}
 			    Trunk
+                {% if current_user_data.is_admin %}
+                    </a>
+                {% endif %}
             {% else %}
                 {% if interface.iseditable %}
                     <select class="vlanlist" name="{{ interface.ifname }}">

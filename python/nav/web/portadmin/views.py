@@ -32,6 +32,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_allowed_vlans_for_user)
 from nav.Snmp.errors import SnmpError
 from nav.portadmin.snmputils import SNMPFactory
+from nav.bitvector import BitVector
 
 NAVBAR = [('Home', '/'), ('PortAdmin', None)]
 DEFAULT_VALUES = {'title': "PortAdmin", 'navpath': NAVBAR}
@@ -267,3 +268,16 @@ def response_based_on_result(result):
     else:
         return HttpResponse(simplejson.dumps(result),
                             mimetype="application/json")
+
+
+def render_trunk_edit(request, interfaceid):
+    """Controller for rendering trunk edit view"""
+
+    interface = Interface.objects.get(pk=interfaceid)
+    bitvector = BitVector.from_hex(interface.swportallowedvlan.hex_string)
+    trunk_vlans = bitvector.get_set_bits()
+
+    return render_to_response('portadmin/trunk_edit.html',
+                              {'interface': interface,
+                               'trunk_vlans': trunk_vlans},
+                              RequestContext(request))
