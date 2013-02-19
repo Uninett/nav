@@ -59,9 +59,11 @@ class SNMPHandler(object):
     """A basic class for SNMP-read and -write to switches."""
     IF_ALIAS_OID = '1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
     VlAN_OID = '1.3.6.1.2.1.17.7.1.4.5.1.1'  # From Q-BRIDGE-MIB
+    # List of all available vlans on this netbox as by the command "show vlans"
+    AVAILABLE_VLANS_OID = '1.3.6.1.2.1.17.7.1.4.3.1.5'
     # oid for reading vlans om a stndard netbox (not cisco)
     DOT1Q_VLAN_STATIC_ROW_STATUS = '1.3.6.1.2.1.17.7.1.4.3.1.5'
-    # List of all ports on a vlan as a hexstring
+    # List of all ports on a vlan as a hexstring (including native vlan)
     DOT1Q_VLAN_STATIC_EGRESS_PORTS = '1.3.6.1.2.1.17.7.1.4.3.1.2'
     IF_ADMIN_STATUS = '1.3.6.1.2.1.2.2.1.7'
     IF_OPER_STATUS = '1.3.6.1.2.1.2.2.1.8'
@@ -258,6 +260,67 @@ class SNMPHandler(object):
         for swport in self.netbox.get_swports():
             available_vlans.extend(self._find_vlans_for_interface(swport))
         return list(set(available_vlans))
+
+    def get_available_vlans(self):
+        return [self._extract_vlan_from_oid(oid)
+                for oid, status in self._bulkwalk(self.AVAILABLE_VLANS_OID)
+                if status == 1]
+
+    def _extract_vlan_from_oid(self, oid):
+        return int(oid.split('.')[-1])
+
+    def get_native_and_trunked_vlans(self, interface):
+        """Get the trunked vlans on this interface
+
+        For each available vlan, fetch list of interfaces that forward this
+        vlan. If the interface index is in this list, add the vlan to the
+        return list.
+
+        :returns native vlan + list of trunked vlan
+
+        """
+        native_vlan = self.get_vlan(interface.ifindex)
+
+        bitvector_index = interface.ifindex - 1
+        vlans = []
+        for vlan in self.get_available_vlans():
+            if vlan == native_vlan:
+                continue
+            octet_string = self._query_netbox(
+                self.DOT1Q_VLAN_STATIC_EGRESS_PORTS, vlan)
+            b = BitVector(octet_string)
+            if b[bitvector_index]:
+                vlans.append(vlan)
+        return native_vlan, vlans
+
+    def set_trunk_vlans(self, interface, vlans):
+        """Trunk the vlans on interface
+
+        Egress_Ports includes native vlan. Be sure to not alter that.
+
+        Get all available vlans. For each available vlan fetch list of
+        interfaces that forward this vlan. Set or remove the interface from
+        this list based on if it is in the vlans list.
+
+        """
+        native_vlan = self.get_vlan(interface.ifindex)
+        bitvector_index = interface.index - 1
+
+        for available_vlan in self.get_available_vlans():
+            if native_vlan == available_vlan:
+                continue
+
+            octet_string = self._query_netbox(
+                self.DOT1Q_VLAN_STATIC_EGRESS_PORTS, available_vlan)
+            b = BitVector(octet_string)
+            if available_vlan in vlans:
+                b[bitvector_index] = 1
+            else:
+                b[bitvector_index] = 0
+
+            _logger.info(b.get_set_bits())
+            # self._set_netbox_value(self.DOT1Q_VLAN_STATIC_EGRESS_PORTS,
+            #                        available_vlan, 's', str(b))
 
     @staticmethod
     def _find_vlans_for_interface(interface):
