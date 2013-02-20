@@ -26,7 +26,7 @@ from __future__ import absolute_import
 import os
 os.environ['PYSNMP_API_VERSION'] = 'v3'
 
-_backend = None
+BACKEND = None
 
 try:
     # our highest preference is pynetsnmp, since it can support IPv6
@@ -44,24 +44,24 @@ except ImportError:
     try:
         from pysnmp import version
         version.verifyVersionRequirement(3, 4, 3)
-        _backend = 'se'
+        BACKEND = 'se'
     except ImportError:
         if hasattr(pysnmp, 'majorVersionId'):
             # pylint: disable=E1101
             raise ImportError('Unsupported PySNMP version ' %
                               pysnmp.majorVersionId)
         else:
-            _backend = 'v2'
+            BACKEND = 'v2'
 else:
-    _backend = 'pynetsnmp'
+    BACKEND = 'pynetsnmp'
 
 # These wildcard imports are informed, not just accidents.
 # pylint: disable=W0401
-if _backend == 'v2':
+if BACKEND == 'v2':
     from .pysnmp_v2 import *
-elif _backend == 'se':
+elif BACKEND == 'se':
     from .pysnmp_se import *
-elif _backend == 'pynetsnmp':
+elif BACKEND == 'pynetsnmp':
     from .pynetsnmp import *
 else:
     raise ImportError("No supported SNMP backend was found")
