@@ -142,7 +142,8 @@ def main():
 
         logger.addHandler(handler)
         traplogger.addHandler(handler)
-        
+
+    logger.debug("using %r as SNMP backend", agent.BACKEND)
 
     # Load handlermodules
     try:
