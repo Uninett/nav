@@ -278,7 +278,7 @@ def render_trunk_edit(request, interfaceid):
     interface = Interface.objects.get(pk=interfaceid)
     agent = SNMPFactory().get_instance(interface.netbox)
     if request.method == 'POST':
-        handle_edit_trunk(request, agent, interface)
+        handle_trunk_edit(request, agent, interface)
 
     available_vlans = agent.get_available_vlans()
     native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
@@ -291,7 +291,7 @@ def render_trunk_edit(request, interfaceid):
                               RequestContext(request))
 
 
-def handle_edit_trunk(request, agent, interface):
+def handle_trunk_edit(request, agent, interface):
     """Edit a trunk"""
 
     native_vlan = int(request.POST.get('native_vlan'))
