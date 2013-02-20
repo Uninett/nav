@@ -262,11 +262,17 @@ class SNMPHandler(object):
         return list(set(available_vlans))
 
     def get_available_vlans(self):
-        return [self._extract_vlan_from_oid(oid)
+        """Get available vlans from the box
+
+        This is similar to the terminal command "show vlans"
+
+        """
+        return [self._extract_index_from_oid(oid)
                 for oid, status in self._bulkwalk(self.AVAILABLE_VLANS_OID)
                 if status == 1]
 
-    def _extract_vlan_from_oid(self, oid):
+    @staticmethod
+    def _extract_index_from_oid(oid):
         return int(oid.split('.')[-1])
 
     def get_native_and_trunked_vlans(self, interface):
@@ -288,8 +294,8 @@ class SNMPHandler(object):
                 continue
             octet_string = self._query_netbox(
                 self.DOT1Q_VLAN_STATIC_EGRESS_PORTS, vlan)
-            b = BitVector(octet_string)
-            if b[bitvector_index]:
+            bitvector = BitVector(octet_string)
+            if bitvector[bitvector_index]:
                 vlans.append(vlan)
         return native_vlan, vlans
 
@@ -304,7 +310,7 @@ class SNMPHandler(object):
 
         """
         native_vlan = self.get_vlan(ifindex)
-        bitvector_index = index - 1
+        bitvector_index = ifindex - 1
 
         vlans = [int(vlan) for vlan in vlans]
 
@@ -314,13 +320,13 @@ class SNMPHandler(object):
 
             octet_string = self._query_netbox(
                 self.DOT1Q_VLAN_STATIC_EGRESS_PORTS, available_vlan)
-            b = BitVector(octet_string)
+            bitvector = BitVector(octet_string)
             if available_vlan in vlans:
-                b[bitvector_index] = 1
+                bitvector[bitvector_index] = 1
             else:
-                b[bitvector_index] = 0
+                bitvector[bitvector_index] = 0
 
-            _logger.info(b.get_set_bits())
+            _logger.info(bitvector.get_set_bits())
             # self._set_netbox_value(self.DOT1Q_VLAN_STATIC_EGRESS_PORTS,
             #                        available_vlan, 's', str(b))
 
@@ -341,6 +347,8 @@ class SNMPHandler(object):
 
 class Cisco(SNMPHandler):
     """A specialized class for handling ports in CISCO switches."""
+
+    from nav.smidumps.cisco_vtp_mib import MIB as vtb_mib
 
     def __init__(self, netbox):
         super(Cisco, self).__init__(netbox)
@@ -378,6 +386,35 @@ class Cisco(SNMPHandler):
         memory if 0."""
         handle = self._get_read_write_handle()
         return handle.set(self.write_mem_oid, 'i', 1)
+
+    def get_available_vlans(self):
+
+        vtp_vlan_state = self._get_oid('vtpVlanState')
+        return [self._extract_index_from_oid(oid) for oid, status in
+                self._bulkwalk(vtp_vlan_state) if status == 1]
+
+    def get_native_and_trunked_vlans(self, interface):
+        ifindex = interface.ifindex
+        vlan_trunk_port_native_vlan = self._get_oid('vlanTrunkPortNativeVlan')
+        native_vlan = self._query_netbox(vlan_trunk_port_native_vlan, ifindex)
+
+        octetstrings = ""
+        for oid in [self._get_oid('vlanTrunkPortVlansEnabled'),
+                    self._get_oid('vlanTrunkPortVlansEnabled2k'),
+                    self._get_oid('vlanTrunkPortVlansEnabled3k'),
+                    self._get_oid('vlanTrunkPortVlansEnabled4k')]:
+            octetstring = self._query_netbox(oid, ifindex)
+            if octetstring:
+                octetstrings += octetstring
+            else:
+                break
+
+        bitvector = BitVector(octetstrings)
+
+        return native_vlan, bitvector.get_set_bits()
+
+    def _get_oid(self, key):
+        return self.vtb_mib['nodes'][key]['oid']
 
 
 class HP(SNMPHandler):
