@@ -134,6 +134,18 @@ class SNMPHandler(object):
         handle = self._get_read_write_handle()
         return handle.set(self._get_query(oid, if_index), value_type, value)
 
+    @staticmethod
+    def _chunkify(bitvector, chunks):
+        """Divide bitvector into chunks number of chunks
+
+        :returns a new bitvector instance with the chunk
+
+        """
+        hexes = bitvector.to_hex()
+        chunksize = len(bitvector.to_hex()) / chunks
+        for i in xrange(0, len(hexes), chunksize):
+            yield BitVector.from_hex(hexes[i:i + chunksize])
+
     def get_if_alias(self, if_index):
         """ Get alias on a specific interface """
         return self._query_netbox(self.IF_ALIAS_OID, if_index)
@@ -194,6 +206,10 @@ class SNMPHandler(object):
                                                       'disable')
         return self._set_netbox_value(self.DOT1Q_VLAN_STATIC_EGRESS_PORTS,
                                       fromvlan, 's', modified_hexport)
+
+    def set_native_vlan(self, if_index, vlan):
+        """Set native vlan on a trunk interface"""
+        self.set_vlan(if_index, vlan)
 
     def set_if_up(self, if_index):
         """Set interface.to up"""
@@ -381,6 +397,18 @@ class Cisco(SNMPHandler):
             status = self._set_netbox_value(self.vlan_oid, if_index, "i", vlan)
         return status
 
+    def set_native_vlan(self, if_index, vlan):
+        """Set native vlan on a trunk interface"""
+        oid = self._get_oid('vlanTrunkPortNativeVlan')
+        try:
+            self._set_netbox_value(oid, if_index, 'i', vlan)
+        except SnmpError:
+            try:
+                self._set_netbox_value(oid, if_index, 'u', vlan)
+            except SnmpError:
+                _logger.error('Setting native vlan on %s ifindex %s failed',
+                              self.netbox, if_index)
+
     def write_mem(self):
         """Use OLD-CISCO-SYS-MIB (v1) writeMem to write tomemory.
         Write configuration into non-volatile memory / erase config
@@ -416,6 +444,33 @@ class Cisco(SNMPHandler):
 
     def _get_oid(self, key):
         return self.vtb_mib['nodes'][key]['oid']
+
+    def set_trunk_vlans(self, ifindex, vlans):
+        """Set trunk vlans
+
+        Initialize a BitVector with all 4096 vlans set to 0. Then fill in all
+        vlans. As Cisco has 4 different oids to set all vlans on the trunk,
+        we divide this bitvector into one bitvector for each oid, and set
+        each of those.
+
+        """
+        bitvector = BitVector(512 * '\000')  # initialize all-zero bitstring
+        for vlan in vlans:
+            bitvector[int(vlan)] = 1
+
+        chunks = self._chunkify(bitvector, 4)
+
+        for oid in [self._get_oid('vlanTrunkPortVlansEnabled'),
+                    self._get_oid('vlanTrunkPortVlansEnabled2k'),
+                    self._get_oid('vlanTrunkPortVlansEnabled3k'),
+                    self._get_oid('vlanTrunkPortVlansEnabled4k')]:
+            bitvector_chunk = chunks.next()
+            try:
+                self._set_netbox_value(oid, ifindex, 's', str(bitvector_chunk))
+            except SnmpError, error:
+                _logger.error('Error setting trunk vlans on %s ifindex %s: %s',
+                              self.netbox, ifindex, error)
+                break
 
 
 class HP(SNMPHandler):

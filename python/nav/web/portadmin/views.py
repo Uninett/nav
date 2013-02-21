@@ -314,5 +314,5 @@ def handle_trunk_edit(request, agent, interface):
     _logger.info('Native Vlan %s', native_vlan)
     _logger.info('Trunk vlans %s', trunked_vlans)
 
-    agent.set_vlan(interface.ifindex, native_vlan)
+    agent.set_native_vlan(interface.ifindex, native_vlan)
     agent.set_trunk_vlans(interface.ifindex, trunked_vlans)
