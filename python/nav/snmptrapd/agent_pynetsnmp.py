@@ -27,6 +27,8 @@ from nav.oids import OID
 
 from .trap import SNMPTrap
 
+__all__ = ['TrapListener', 'UnsupportedSnmpVersionError']
+
 _logger = logging.getLogger(__name__)
 
 
