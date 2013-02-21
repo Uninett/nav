@@ -1,3 +1,18 @@
+Version 3.13.1
+(released 21 Feb 2013)
+
+ The release notes were updated with more information about dependency changes
+ and the new alert message templates introduced with the Python-based event
+ engine.
+
+ Fixes:
+
+  * LP#1126340 (arnold t1000 crashes on pursuit)
+  * LP#1126341 (arnold autoenable crashes on missing interface)
+  * LP#1128868 (Arnold does not display a candidate for manual block)
+  * LP#1130093 (NetworkX 1.6 throws exception in eventengine)
+  * LP#1130103 (Typo in ReportListTemplate.tmpl)
+
 Version 3.13.0
 (released 07 Feb 2013)
 
