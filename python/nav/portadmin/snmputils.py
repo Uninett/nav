@@ -328,8 +328,8 @@ class SNMPHandler(object):
                 bitvector[bitvector_index] = 0
 
             _logger.info(bitvector.get_set_bits())
-            # self._set_netbox_value(self.DOT1Q_VLAN_STATIC_EGRESS_PORTS,
-            #                        available_vlan, 's', str(b))
+            self._set_netbox_value(self.DOT1Q_VLAN_STATIC_EGRESS_PORTS,
+                                   available_vlan, 's', str(bitvector))
 
     @staticmethod
     def _find_vlans_for_interface(interface):
