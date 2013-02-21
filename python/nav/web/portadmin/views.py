@@ -22,7 +22,7 @@ from django.template import RequestContext, Context
 from django.shortcuts import render_to_response
 
 from nav.django.utils import get_account
-from nav.models.manage import Netbox, Interface
+from nav.models.manage import Netbox, Interface, Vlan
 from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_and_populate_allowed_vlans,
                                      get_aliastemplate, get_ifaliasformat,
@@ -31,7 +31,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      is_administrator,
                                      find_allowed_vlans_for_user)
 from nav.Snmp.errors import SnmpError
-from nav.portadmin.snmputils import SNMPFactory
+from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
 from nav.bitvector import BitVector
 
 NAVBAR = [('Home', '/'), ('PortAdmin', None)]
@@ -280,12 +280,25 @@ def render_trunk_edit(request, interfaceid):
     if request.method == 'POST':
         handle_trunk_edit(request, agent, interface)
 
-    available_vlans = agent.get_available_vlans()
+    numerical_vlans = agent.get_available_vlans()
+    vlan_objects = Vlan.objects.filter(swportvlan__interface=interface)
+    vlans = []
+    for numerical_vlan in numerical_vlans:
+        try:
+            vlan_object = vlan_objects.get(vlan=numerical_vlan)
+        except (Vlan.DoesNotExist, Vlan.MultipleObjectsReturned):
+            fantasy_vlan = FantasyVlan(numerical_vlan)
+        else:
+            fantasy_vlan = FantasyVlan(numerical_vlan,
+                                       netident=vlan_object.net_ident,
+                                       descr=vlan_object.description)
+        vlans.append(fantasy_vlan)
+
     native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
 
     return render_to_response('portadmin/trunk_edit.html',
                               {'interface': interface,
-                               'available_vlans': available_vlans,
+                               'available_vlans': vlans,
                                'native_vlan': native_vlan,
                                'trunked_vlans': trunked_vlans},
                               RequestContext(request))

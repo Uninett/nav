@@ -8,11 +8,13 @@
         <h3>Interface {{ interface }}</h3>
 
         <form action="" method="post">
-            <table class="listtable">
+            <table class="listtable highlightover">
                 <caption>Configure trunk</caption>
                 <thead>
                     <tr>
                         <th>Vlan</th>
+                        <th>Description</th>
+                        <th>Net Ident</th>
                         <th>Native</th>
                         <th>Trunked</th>
                     </tr>
@@ -20,13 +22,15 @@
 
                 <tbody>
                 {% for vlan in available_vlans %}
-                    <tr data-vlan="{{ vlan }}">
-                        <td>{{ vlan }}</td>
+                    <tr data-vlan="{{ vlan.vlan }}">
+                        <td>{{ vlan.vlan }}</td>
+                        <td>{{ vlan.descr|default_if_none:"" }}</td>
+                        <td>{{ vlan.net_ident|default_if_none:"" }}</td>
                         <td>
-                            <input type="radio" name="native_vlan" value="{{ vlan }}" {% if vlan == native_vlan %}checked{% endif %}>
+                            <input type="radio" name="native_vlan" value="{{ vlan.vlan }}" {% if vlan.vlan == native_vlan %}checked{% endif %}>
                         </td>
                         <td>
-                            <input type="checkbox" name="trunk_vlans" value="{{ vlan }}" {% if vlan in trunked_vlans %}checked{% endif %}>
+                            <input type="checkbox" name="trunk_vlans" value="{{ vlan.vlan }}" {% if vlan.vlan in trunked_vlans %}checked{% endif %}>
                         </td>
                     </tr>
                 {% endfor %}

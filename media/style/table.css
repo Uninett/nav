@@ -23,6 +23,10 @@ table.expand {
     width: 100%;
 }
 
+table.highlightover tr:hover {
+    background-color: #EEEEEE;
+}
+
 /* Table caption */
 table.vertitable caption,
 table.listtable caption {

@@ -35,9 +35,10 @@ class FantasyVlan(object):
 
     """
 
-    def __init__(self, vlan, netident=None):
+    def __init__(self, vlan, netident=None, descr=None):
         self.vlan = vlan
         self.net_ident = netident
+        self.descr = descr
 
     def __unicode__(self):
         if self.net_ident:
