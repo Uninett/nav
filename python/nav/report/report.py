@@ -10,19 +10,16 @@
 # the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-# more details.  You should have received a copy of the GNU General Public
-# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
-#
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 """Representing a report object."""
 
 import re
-import string
 
-from nav.web.URI import URI
 
-class Field:
+class Field(object):
 
     def __init__(self):
         self.title = ""
@@ -31,20 +28,19 @@ class Field:
     def __repr__(self):
         return "<Field %s = %s>" % (self.title, self.raw)
 
-class Report:
-    """
-    A nice formatted Report object, ready for presentation
-    """
 
+class Report(object):
+    """A nice formatted Report object, ready for presentation"""
 
     def __init__(self, configuration, database, query_dict):
-        """
-        The constructor of the Report class
+        """The constructor of the Report class
 
-        - configuration : a ReportConfig object containing all the configuration
-        - database      : a DatabaseResult object that will be modified according
-                          to the configuration
-        - query_dict          : mutable Query Dict
+        :param configuration: a ReportConfig object containing all the
+                              configuration
+        :param database: a DatabaseResult object that will be modified
+                         according to the configuration
+        :param query_dict: mutable Query Dict
+
         """
 
         self.rowcount = database.rowcount
@@ -83,7 +79,7 @@ class Report:
         self.table.setFooters(footers)
         headers = self.makeTableHeaders(self.name, self.uri, self.query_args,
             self.explain,
-            configuration.orderBy)
+            configuration.order_by)
         self.table.setHeaders(headers)
 
         self.navigator = Navigator()
@@ -96,7 +92,8 @@ class Report:
             self.navigator.setMessage(database.error)
 
     def __repr__(self):
-        return "Report[Navigator: {0}]".format(self.navigator if self.navigator else None)
+        return "Report[Navigator: {0}]".format(
+            self.navigator if self.navigator else None)
 
     def setLimit(self, config):
         """
@@ -166,7 +163,6 @@ class Report:
 
         return fieldNum, fieldName
 
-
     def remakeURI(self, uri):
         """
         takes a hash of uris associated to their names, and returns a hash of uris associated to their field numbers. this is a more effective approach than doing queries to a dictionary.
@@ -189,7 +185,6 @@ class Report:
                     uri_new[key_index] = value
 
         return uri_new
-
 
     def makeTableHeaders(self, name, uri, query_dict, explain, sortList=[]):
         """
@@ -242,7 +237,6 @@ class Report:
 
         return headers
 
-
     def makeTableFooters(self, sum):
         """
         makes the table footers. ie. the sum of the columns if specified
@@ -288,7 +282,6 @@ class Report:
 
         return footers
 
-
     def hideIndex(self):
         """
         makes a copy of the list of all fields where those that will be hidden is ignored
@@ -306,7 +299,6 @@ class Report:
                 shown.append(field)
 
         return shown
-
 
     def makeTableContents(self):
         """
@@ -367,7 +359,6 @@ class Report:
 
         return newtable
 
-
     def makeForm(self, name):
 
         form = []
@@ -375,7 +366,9 @@ class Report:
         for no, field in self.fieldName.items():
             f = None
             ## does not use aggregate function elements
-            if not self.extra.count(field) and not self.sql_fields[no].count("("):
+            if (not self.extra.count(field)
+                and not self.sql_fields[no].count("(")
+                ):
                 f = Field()
                 f.raw = self.sql_fields[no]
                 if name.has_key(field):
@@ -402,7 +395,6 @@ class Navigator:
     def __repr__(self):
         return "Navigor[view = {0}, previous={1} next={2}]".format(
             self.view, self.previous, self.next)
-
 
     def setMessage(self, message):
         """
@@ -459,6 +451,7 @@ class Navigator:
                 self.view = view_from+" - "+view_to+" of "+number
         else:
             self.view = "Sorry, your search did not return any results"
+
 
 class Table:
     """
@@ -541,6 +534,7 @@ class Row:
 
         self.cells.append(cell)
 
+
 class Cell:
     """
     One cell of the table
@@ -563,7 +557,6 @@ class Cell:
 
         self.text = unicode_utf8(text)
 
-
     def setUri(self, uri):
         """
         Sets the uri of the cell to the text specified
@@ -573,7 +566,6 @@ class Cell:
         """
 
         self.uri = unicode_utf8(uri)
-
 
     def setExplanation(self, explanation):
         """
@@ -615,6 +607,7 @@ class Headers:
 
         self.cells.append(cell)
 
+
 class Footers:
     """
     The bottom row of the report table. Where the sum of some columns is displayed
@@ -633,6 +626,7 @@ class Footers:
         """
 
         self.cells.append(cell)
+
 
 def unicode_utf8(thing):
     """Casts thing to unicode, assuming utf-8 encoding if a string.
