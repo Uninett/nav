@@ -17,9 +17,10 @@
 """NAV daemon to receive and act upon SNMP traps."""
 
 import os
+import re
+import socket
 import sys
 from optparse import OptionParser
-from nav.db import getConnection
 import ConfigParser
 import logging
 import signal
@@ -28,6 +29,8 @@ import signal
 from nav import daemon
 import nav.buildconf
 from nav.errors import GeneralException
+from nav.util import is_valid_ip, address_to_string
+from nav.db import getConnection
 import nav.logs
 
 from nav.snmptrapd import agent
@@ -36,6 +39,21 @@ from nav.snmptrapd import agent
 configfile = nav.buildconf.sysconfdir + "/snmptrapd.conf"
 traplogfile = nav.buildconf.localstatedir + "/log/snmptraps.log"
 logfile = nav.buildconf.localstatedir + "/log/snmptrapd.log"
+
+
+DEFAULT_PORT = 162
+DEFAULT_ADDRESSES = (
+    ('0.0.0.0', DEFAULT_PORT),
+)
+ADDRESS_PATTERNS = (
+    re.compile(r"(?P<addr>[0-9\.]+) (:(?P<port>[0-9]+))?$", re.VERBOSE),
+)
+if socket.has_ipv6 and agent.BACKEND == 'pynetsnmp':
+    DEFAULT_ADDRESSES += (('::', DEFAULT_PORT),)
+    ADDRESS_PATTERNS += (
+        re.compile(r"(?P<addr>[0-9a-fA-F:]+)$"),
+        re.compile(r"\[(?P<addr>[^\]]+)\] (:(?P<port>[0-9]+))?$", re.VERBOSE),
+    )
 
 
 class ModuleLoadError(GeneralException):
@@ -48,39 +66,23 @@ def main():
     # Verify that subsystem exists, if not insert it into database
     verifySubsystem()
 
-    # Initialize defaults
-    port = 162
-    iface = ''
-    community = None
-
     # Initialize and read startupconfig
     global config
     config = ConfigParser.ConfigParser()
-    config.read(configfile)    
-
-    # Check if root
-    if os.geteuid() != 0:
-        print("Must be root to bind to ports, exiting")
-        sys.exit(-1)
+    config.read(configfile)
 
     # Create parser and define options
-    usage = "usage: %prog [options] [iface] [community]"
-    
-    parser = OptionParser(usage)
-    parser.add_option("-p", "--port", dest="port", help="Port to bind to, default 162")
-    parser.add_option("-d", "--daemon", action="store_true", dest="d", help="Run as daemon")
-
-    # Parse possible options
     global opts
-    (opts, args) = parser.parse_args()
+    opts, addresses = parse_args()
 
-    # Parse optional arguments
-    if len(args) > 0:
-        iface = args[0]
-    if len(args) > 1:
-        community = args[1]
+    # When binding to a port < 1024 we need to be root
+    minport = min(port for addr, port in addresses)
+    if minport < 1024:
+        if os.geteuid() != 0:
+            print("Must be root to bind to ports < 1024, exiting")
+            sys.exit(-1)
 
-    # Check if already running 
+    # Check if already running
     pidfile = nav.buildconf.localstatedir + "/run/snmptrapd.pid"
     try:
         daemon.justme(pidfile)
@@ -89,13 +91,14 @@ def main():
         sys.exit(-1)
 
     # Create SNMP agent object
-    server = agent.TrapListener((iface, port))
+    server = agent.TrapListener(*addresses)
     server.open()
 
-    # We have bound to a port and can safely swith user
+    # We have bound to a port and can safely drop privileges
     runninguser = config.get('snmptrapd','user')
     try:
-        daemon.switchuser(runninguser)
+        if os.geteuid() == 0:
+            daemon.switchuser(runninguser)
     except daemon.DaemonError, why:
         print why
         server.close()
@@ -110,7 +113,7 @@ def main():
 
     # Create logger based on if we are to daemonize or just run in
     # shell
-    if opts.d:
+    if opts.daemon:
 
         # Fetch loglevel from snmptrapd.conf
         loglevel = config.get('snmptrapd', 'loglevel')
@@ -153,15 +156,15 @@ def main():
         logger.error("Could not load handlermodules %s" %why)
         sys.exit(1)
 
-
-    if opts.d:
-        # Daemonize and listen for traps        
+    addresses_text = ", ".join(address_to_string(*addr) for addr in addresses)
+    if opts.daemon:
+        # Daemonize and listen for traps
         try:
             logger.debug("Going into daemon mode...")
             daemon.daemonize(pidfile,
                              stderr=nav.logs.get_logfile_from_logger())
         except daemon.DaemonError, why:
-            logger.error("Could not daemonize: " %why)
+            logger.error("Could not daemonize: %s", why)
             server.close()
             sys.exit(1)
 
@@ -180,9 +183,9 @@ def main():
         # Exit on SIGTERM
         signal.signal(signal.SIGTERM, signal_handler)
 
-        logger.info("Snmptrapd started, listening on port %s" %port)
+        logger.info("Snmptrapd started, listening on %s", addresses_text)
         try:
-            server.listen(community, trapHandler)
+            server.listen(opts.community, trapHandler)
         except SystemExit:
             raise
         except Exception, why:
@@ -191,11 +194,51 @@ def main():
     else:
         # Start listening and exit cleanly if interrupted.
         try:
-            logger.info ("Listening on port %s" %port)
-            server.listen(community, trapHandler)
+            logger.info ("Listening on %s", addresses_text)
+            server.listen(opts.community, trapHandler)
         except KeyboardInterrupt, why:
             logger.error("Received keyboardinterrupt, exiting.")
             server.close()
+
+
+def parse_args():
+    usage = "usage: %prog [options] [address1 [address2 ...]]"
+    parser = OptionParser(
+        usage,
+        epilog="One or more address specifications can be given to tell the "
+               "trap daemon which interface/port combinations it should "
+               "listen to. The default is 0.0.0.0:162, which means the daemon "
+               "will accept traps on any IPv4 interface, UDP port 162."
+    )
+    parser.add_option("-d", "--daemon", action="store_true", dest="daemon",
+                      help="Run as daemon")
+    parser.add_option("-c", "--community", dest="community", default="public",
+                      help="Which SNMP community incoming traps must use. "
+                           "The default is 'public'")
+
+    (opts, args) = parser.parse_args()
+    try:
+        addresses = parse_address_list(args) or DEFAULT_ADDRESSES
+    except ValueError as error:
+        parser.error(error)
+    return opts, addresses
+
+
+def parse_address_list(args):
+    return [parse_address(arg.strip()) for arg in args]
+
+
+def parse_address(address):
+    match = (pattern.match(address) for pattern in ADDRESS_PATTERNS)
+    match = reduce(lambda x, y: x or y, match)
+    if match:
+        match = match.groupdict()
+        addr = match['addr']
+        port = int(match.get('port', None) or DEFAULT_PORT)
+        if is_valid_ip(addr):
+            return addr, port
+
+    raise ValueError("%s is not a valid address" % address)
 
 
 def loginitfile(logfile, traplogfile, loglevel):
