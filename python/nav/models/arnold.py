@@ -61,7 +61,7 @@ class Identity(models.Model):
                                    choices=KEEP_CLOSED_CHOICES)
     fromvlan = models.IntegerField(null=True)
     tovlan = models.ForeignKey('QuarantineVlan', db_column='tovlan',
-                               null=True, default=None)
+                               to_field='vlan', null=True, default=None)
 
     def __unicode__(self):
         return "%s/%s %s" % (self.ip, self.mac, self.interface)
@@ -111,7 +111,7 @@ class Justification(models.Model):
 class QuarantineVlan(models.Model):
     """A quarantine vlan is a vlan where offenders are placed"""
     id = models.AutoField(db_column='quarantineid', primary_key=True)
-    vlan = models.IntegerField()
+    vlan = models.IntegerField(unique=True)
     description = VarcharField(blank=True)
 
     def __unicode__(self):

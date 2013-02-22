@@ -44,7 +44,8 @@ def main():
     init_logging(nav.buildconf.localstatedir + "/log/arnold/autoenable.log")
     LOGGER.info("Starting autoenable")
 
-    candidates = Identity.objects.filter(autoenable__lte=datetime.now())
+    candidates = Identity.objects.filter(
+        autoenable__lte=datetime.now(), status__in=['disabled', 'quarantined'])
 
     if len(candidates) <= 0:
         LOGGER.info("No ports ready for opening.")
