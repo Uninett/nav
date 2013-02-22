@@ -280,20 +280,7 @@ def render_trunk_edit(request, interfaceid):
     if request.method == 'POST':
         handle_trunk_edit(request, agent, interface)
 
-    numerical_vlans = agent.get_available_vlans()
-    vlan_objects = Vlan.objects.filter(swportvlan__interface=interface)
-    vlans = []
-    for numerical_vlan in numerical_vlans:
-        try:
-            vlan_object = vlan_objects.get(vlan=numerical_vlan)
-        except (Vlan.DoesNotExist, Vlan.MultipleObjectsReturned):
-            fantasy_vlan = FantasyVlan(numerical_vlan)
-        else:
-            fantasy_vlan = FantasyVlan(numerical_vlan,
-                                       netident=vlan_object.net_ident,
-                                       descr=vlan_object.description)
-        vlans.append(fantasy_vlan)
-
+    vlans = agent.get_netbox_vlans()
     native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
 
     return render_to_response('portadmin/trunk_edit.html',

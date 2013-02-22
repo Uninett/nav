@@ -16,11 +16,13 @@
 """This is a utility library made especially for PortAdmin."""
 import time
 import logging
+from operator import attrgetter
 
 from nav.Snmp import Snmp
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
 from nav.bitvector import BitVector
+from nav.models.manage import Vlan
 
 
 _logger = logging.getLogger("nav.portadmin.snmputils")
@@ -279,11 +281,23 @@ class SNMPHandler(object):
         return self._get_if_stats(if_oper_stats)
 
     def get_netbox_vlans(self):
-        """Find all available vlans on this netbox"""
-        available_vlans = []
-        for swport in self.netbox.get_swports():
-            available_vlans.extend(self._find_vlans_for_interface(swport))
-        return list(set(available_vlans))
+        """Create Fantasyvlans for all vlans on this netbox"""
+        numerical_vlans = self.get_available_vlans()
+        vlan_objects = Vlan.objects.filter(
+            swportvlan__interface__netbox=self.netbox)
+        vlans = []
+        for numerical_vlan in numerical_vlans:
+            try:
+                vlan_object = vlan_objects.get(vlan=numerical_vlan)
+            except (Vlan.DoesNotExist, Vlan.MultipleObjectsReturned):
+                fantasy_vlan = FantasyVlan(numerical_vlan)
+            else:
+                fantasy_vlan = FantasyVlan(numerical_vlan,
+                                           netident=vlan_object.net_ident,
+                                           descr=vlan_object.description)
+            vlans.append(fantasy_vlan)
+
+        return sorted(list(set(vlans)), key=attrgetter('vlan'))
 
     def get_available_vlans(self):
         """Get available vlans from the box
@@ -291,7 +305,7 @@ class SNMPHandler(object):
         This is similar to the terminal command "show vlans"
 
         """
-        return [self._extract_index_from_oid(oid)
+        return [int(self._extract_index_from_oid(oid))
                 for oid, status in self._bulkwalk(self.VLAN_ROW_STATUS)
                 if status == 1]
 
@@ -394,6 +408,7 @@ class Cisco(SNMPHandler):
     VTPNODES = vtp_mib['nodes']
 
     VTPVLANSTATE = VTPNODES['vtpVlanState']['oid']
+    VTPVLANTYPE = VTPNODES['vtpVlanType']['oid']
     TRUNKPORTNATIVEVLAN = VTPNODES['vlanTrunkPortNativeVlan']['oid']
     TRUNKPORTVLANSENABLED = VTPNODES['vlanTrunkPortVlansEnabled']['oid']
     TRUNKPORTVLANSENABLED2K = VTPNODES['vlanTrunkPortVlansEnabled2k']['oid']
@@ -454,8 +469,13 @@ class Cisco(SNMPHandler):
         return handle.set(self.write_mem_oid, 'i', 1)
 
     def get_available_vlans(self):
-        return [self._extract_index_from_oid(oid) for oid, status in
-                self._bulkwalk(self.VTPVLANSTATE) if status == 1]
+        """Fetch all vlans. Filter on operational and of type ethernet."""
+        vlan_states = [self._extract_index_from_oid(oid) for oid, status in
+                       self._bulkwalk(self.VTPVLANSTATE) if status == 1]
+        vlan_types = [self._extract_index_from_oid(oid) for oid, vlantype in
+                      self._bulkwalk(self.VTPVLANTYPE) if vlantype == 1]
+
+        return list(set(vlan_states) & set(vlan_types))
 
     def get_native_and_trunked_vlans(self, interface):
         ifindex = interface.ifindex
