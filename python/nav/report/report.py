@@ -46,8 +46,8 @@ class Report(object):
         self.rowcount = database.rowcount
         self.sums = database.sums
 
-        self.limit = int(str((self.setLimit(configuration.limit))))
-        self.offset = int(str(self.setOffset(configuration.offset)))
+        self.limit = int(str((self.set_limit(configuration.limit))))
+        self.offset = int(str(self.set_offset(configuration.offset)))
 
         # oh, the smell, it kills me!
         if self.limit:
@@ -56,7 +56,7 @@ class Report(object):
             self.formatted = database.result
         self.dbresult = database.result
         
-        self.query_args = self.stripPath(query_dict)
+        self.query_args = self.strip_pagination_arguments(query_dict)
 
         self.title = configuration.title
         self.hide = configuration.hidden
@@ -68,110 +68,94 @@ class Report(object):
 
         self.fields = configuration.sql_select + self.extra
         self.sql_fields = configuration.sql_select
-        self.fieldNum, self.fieldName = self.fieldNum(self.fields)
-        self.fieldsSum = len(self.fields)
-        self.shown = self.hideIndex()
+        (self.field_name_map,
+         self.field_num_map) = self.build_field_maps(self.fields)
+        self.fields_count = len(self.fields)
+        self.shown = self.hide_index()
 
-        self.uri = self.remakeURI(self.uri)
+        self.uri = self.remake_uri(self.uri)
 
-        self.table = self.makeTableContents()
-        footers = self.makeTableFooters(self.sums)
-        self.table.setFooters(footers)
-        headers = self.makeTableHeaders(self.name, self.uri, self.query_args,
-            self.explain,
-            configuration.order_by)
-        self.table.setHeaders(headers)
+        self.table = self.make_table_contents()
+        footers = self.make_table_footers(self.sums)
+        self.table.set_footers(footers)
+        headers = self.make_table_headers(self.name, self.explain,
+                                          configuration.order_by)
+        self.table.set_headers(headers)
 
         self.navigator = Navigator()
-        self.navigator.setNavigator(self.limit, self.offset, self.query_args,
-                                    self.rowcount)
+        self.navigator.set_navigator(self.limit, self.offset, self.query_args,
+                                     self.rowcount)
 
-        self.form = self.makeForm(self.name)
+        self.form = self.make_form(self.name)
 
         if database.error:
-            self.navigator.setMessage(database.error)
+            self.navigator.set_message(database.error)
 
     def __repr__(self):
         return "Report[Navigator: {0}]".format(
             self.navigator if self.navigator else None)
 
-    def setLimit(self, config):
+    def set_limit(self, limit):
+        """Returns the limit according to the configuration, or the default.
+
+        :param limit: the configured limit or None
+        :returns: the configured limit or 1000
+
         """
-        returns the limit according to the configuration or the default (1000)
-
-        - config : the limit of the configuration
-
-        returns the limit of the configuration or 1000
-        """
-
-        if config or config == 0:
-
-            return config
-
+        if limit or limit == 0:
+            return limit
         else:
-
             return 1000
 
-    def setOffset(self, config):
+    def set_offset(self, offset):
+        """Returns the offset according to the configuration, or the default.
+
+        :param offset: the configured offset or None
+        :returns: the configured offset or 0
         """
-        returns the offset according to the configuration or the default (0)
-
-        - config : the offset according th the configuration
-
-        returns the offset of the configuration or 0
-        """
-
-        if config:
-
-            return config
-
+        if offset:
+            return offset
         else:
-
             return 0
 
-    def stripPath(self, path):
+    def strip_pagination_arguments(self, query_dict):
+        """removes the 'limit' and 'offset' arguments from the query_dict
+
+        :param query_dict: a dict-like object.
+        :returns: the modified query_dict instance.
+
         """
-        removes the 'limit' and 'offset' arguments from the uri that will used on the page
+        strippable = ('limit', 'offset')
+        for field in strippable:
+            if field in query_dict:
+                del query_dict[field]
+        return query_dict
 
-        - path : the path that will get its 'limit' and 'offset'- fields removed
+    def build_field_maps(self, fields):
+        """Returns two dicts mapping field numbers and names to each other.a
 
-        returns the modified query dict
+        :param fields: a list containing the field names
+        :returns: (dict(fields_by_name), dict(fields_by_number)
+
         """
-        stripFields = ['limit','offset']
-        for field in stripFields:
-            if field in path:
-                del path[field]
-        return path
+        fields_by_name = {}
+        fields_by_number = {}
 
-    def fieldNum(self, fields):
+        for number, name in enumerate(fields):
+            fields_by_name[name] = number
+            fields_by_number[number] = name
+
+        return fields_by_name, fields_by_number
+
+    def remake_uri(self, uri):
+        """takes a dict of uris associated to their names, and returns a dict
+        of uris associated to their field numbers. this is a more effective
+        approach than doing queries to a dictionary.
+
+        :param uri: a dict of fieldnames and their uris
+        :returns: a dict of fieldnumbers and their uris
+
         """
-        returns a hash associating the field names to the field numbers
-
-        - fields : a list containing the field names
-
-        returns the hash with fieldname=>fieldnumber pairs
-        """
-
-        fieldNum = {}
-        fieldName = {}
-
-        for field in fields:
-
-            number = fields.index(field)
-            fieldNum[field] = number
-            fieldName[number] = field
-
-        return fieldNum, fieldName
-
-    def remakeURI(self, uri):
-        """
-        takes a hash of uris associated to their names, and returns a hash of uris associated to their field numbers. this is a more effective approach than doing queries to a dictionary.
-
-        - uri : a hash of fieldnames and their uris
-
-        returns a hash of fieldnumbers and their uris
-        """
-
         uri_hash = uri
         uri_new = {}
 
@@ -186,66 +170,52 @@ class Report(object):
 
         return uri_new
 
-    def makeTableHeaders(self, name, uri, query_dict, explain, sortList=[]):
+    def make_table_headers(self, names, explain, sort_fields=None):
+        """Makes the table headers.
+
+        :param names: a dict mapping field names to field numbers
+        :param explain: a dict mapping field names to their explanations
+
+        :returns: a list of cells that later will represent the headers of the
+                  table
+
         """
-        makes the table headers
-
-        - name    : a hash containing the numbers and names of the fields
-        - uri     : a hash containing the numbers of the fields and their uris
-        - querydict : QueryDict to work with query params with
-        - explain : a hash containing the numbers of the fields and the fields explicit explanations
-
-        returns a list of cells that later will represent the headers of the table
-        """
-
-        name_hash = name
-        explain_hash = explain
-
-        #bruker ikke uri enn�
-        uri_hash = uri
         headers = Headers()
+        sorted_field = sort_fields[0] if sort_fields else None
 
-        sorted = ""
-        if sortList:
-            sorted = sortList[0]
-
-        ## for each of the cols that will be displayed
+        # for each of the cols that will be displayed
         for header in self.shown:
-            ## get the name of it
+            # get the names of it
             title = self.fields[header]
-            explanation = ""
 
-            wtf=self.query_args
-            if sorted == title:
-                self.query_args['sort'] = '-'+title
-                self.query_args['order_by'] = '-'+title
+            if sorted_field == title:
+                self.query_args['sort'] = '-' + title
+                self.query_args['order_by'] = '-' + title
             else:
                 self.query_args['sort'] = title
                 self.query_args['order_by'] = title
 
             uri = "?{0}".format(self.query_args.urlencode())
 
-            ## change if the name exist in the overrider hash
-            if name_hash.has_key(title):
-                title = name_hash[title]
-
-            if explain_hash.has_key(title):
-                explanation = explain_hash[title]
+            # change if the names exist in the overrider hash
+            title = names.get(title, title)
+            explanation = explain.get(title, "")
 
             field = Cell(title, uri, explanation)
             headers.append(field)
 
         return headers
 
-    def makeTableFooters(self, sum):
+    def make_table_footers(self, sums):
+        """Makes the table footers. ie. the sums of the columns if specified.
+
+        :param sums: a list containing the numbers of the fields that will be
+                     summed.
+
+        :returns: a list of cells that later will represent the footers of the
+                  table
+
         """
-        makes the table footers. ie. the sum of the columns if specified
-
-        - sum : a list containing the numbers of the fields that will be summarized
-
-        returns a list of cells that later will represent the footers of the table
-        """
-
         footers = Footers()
 
         ## for each of the cols that will be displayed
@@ -253,61 +223,57 @@ class Report(object):
             ## get the name of it
             title = self.fields[footer]
 
-            thisSum = Cell()
+            this_sum = Cell()
 
             ## change if the name exist in the overrider hash
-            if sum.has_key(title):
+            if title in sums:
                 
-                ## Summmarize the results for a given title
+                ## Sum the results for a given title
                 part_sum = 0
-                for a in self.formatted: 
-                    if a[footer] != None:
-                        part_sum += int(str(a[footer]))
+                for fmt in self.formatted:
+                    if fmt[footer] is not None:
+                        part_sum += int(str(fmt[footer]))
                 
                 total_sum = 0
-                for a in self.dbresult: 
-                    if a[footer] != None:
-                        total_sum += int(str(a[footer]))
+                for res in self.dbresult:
+                    if res[footer] is not None:
+                        total_sum += int(str(res[footer]))
 
                 if part_sum == total_sum:
-                    thisSum.setSum(str(part_sum))
+                    this_sum.set_sum(str(part_sum))
                 
-                elif sum[title] == 0:
-                    thisSum.setSum("0")
+                elif sums[title] == 0:
+                    this_sum.set_sum("0")
                 
                 else:
-                    thisSum.setSum(str(part_sum) + "/" + str(total_sum))
+                    this_sum.set_sum(str(part_sum) + "/" + str(total_sum))
 
-            footers.append(thisSum)
+            footers.append(this_sum)
 
         return footers
 
-    def hideIndex(self):
+    def hide_index(self):
+        """Makes a copy of the list of all fields where those that will be
+        hidden is ignored
+
+        :returns: the list of fields that will be displayed in the report.
+
         """
-        makes a copy of the list of all fields where those that will be hidden is ignored
-
-        returns the list of fields that will be displayed in the report
-        """
-
-        #print self.fields
-
         shown = []
-        for field in range(0, self.fieldsSum):
-
+        for field in range(0, self.fields_count):
             if not self.hide.count(self.fields[field]):
-
                 shown.append(field)
 
         return shown
 
-    def makeTableContents(self):
-        """
-        makes the contents of the table of the report
+    def make_table_contents(self):
+        """Makes the contents of the table of the report.
 
-        returns a table containing the data of the report (without header and footer etc)
-        """
+        :returns: a table containing the data of the report (without header
+                  and footer etc)
 
-        linkFinder = re.compile(r"\$(.+?)(?:$|\$|\&|\"|\'|\s|\;|\/)", re.M)
+        """
+        link_pattern = re.compile(r"\$(.+?)(?:$|\$|&|\"|\'|\s|;|/)", re.M)
 
         newtable = Table()
         for line in self.formatted:
@@ -321,37 +287,34 @@ class Report(object):
                 ## of the tuple returned from the database
                 try:
 
-                    if self.extra.count(self.fieldName[field]):
+                    if self.extra.count(self.field_num_map[field]):
                         text = self.fields[field]
                     else:
-                        #if not field >= len(self.shown) - len(self.extra)+2:
                         text = line[field]
-                    #else:
-                        #text = self.fields[field]
 
-                except KeyError, e:
+                except KeyError:
                     text = "feil"
 
-                newfield.setText(text)
+                newfield.set_text(text)
 
-                if self.uri.has_key(field):
+                if field in self.uri:
 
                     uri = self.uri[field]
 
-                    links = linkFinder.findall(uri)
+                    links = link_pattern.findall(uri)
                     if links:
                         for link in links:
-                            to = line[self.fieldNum[link]]
-                            if to:
-                                to = unicode(to).encode('utf-8')
+                            href = line[self.field_name_map[link]]
+                            if href:
+                                href = unicode(href).encode('utf-8')
                             else:
-                                to = ""
-                            hei = re.compile(r"\$"+link)
+                                href = ""
+                            hei = re.compile(r"\$" + link)
                             try:
-                                uri = hei.sub(to, uri)
+                                uri = hei.sub(href, uri)
                             except TypeError:
-                                uri = uri + to
-                    newfield.setUri(uri)
+                                uri += href
+                    newfield.set_hyperlink(uri)
 
                 newline.append(newfield)
 
@@ -359,33 +322,29 @@ class Report(object):
 
         return newtable
 
-    def makeForm(self, name):
-
+    def make_form(self, name):
         form = []
 
-        for no, field in self.fieldName.items():
-            f = None
+        for num, field_name in self.field_num_map.items():
+            field = None
             ## does not use aggregate function elements
-            if (not self.extra.count(field)
-                and not self.sql_fields[no].count("(")
+            if (not self.extra.count(field_name)
+                and not self.sql_fields[num].count("(")
                 ):
-                f = Field()
-                f.raw = self.sql_fields[no]
-                if name.has_key(field):
-                    f.title = name[field]
+                field = Field()
+                field.raw = self.sql_fields[num]
+                if field_name in name:
+                    field.title = name[field_name]
                 else:
-                    f.title = field
+                    field.title = field_name
 
-                form.append(f)
+                form.append(field)
 
         return form
 
 
-class Navigator:
-    """
-    An object that represents the next-previous-status (navigation) parts of the page displayed
-    """
-
+class Navigator(object):
+    """A report pagination status object"""
     def __init__(self):
 
         self.view = ""
@@ -393,238 +352,200 @@ class Navigator:
         self.next = ""
 
     def __repr__(self):
-        return "Navigor[view = {0}, previous={1} next={2}]".format(
+        return "Navigator[view = {0}, previous={1} next={2}]".format(
             self.view, self.previous, self.next)
 
-    def setMessage(self, message):
-        """
-        Sets the view-field (the line under the title of the page) to "message"
+    def set_message(self, message):
+        """Sets the view-field (the line under the title of the page) to
+        "message"
 
-        - message : the new message to appear at the page
+        :param message: the new message to appear at the page.
         """
-
         self.view = message
 
-    def setNavigator(self, limit, offset, query_dict, number):
+    def set_navigator(self, limit, offset, query_dict, number):
+        """Sets the values of the navigator object
+
+        :param limit: the number of results per page
+        :param offset: the number of the first result displayed on the page
+        :param query_dict: mutable query_dict used used when making the next
+                           and previous buttons
+        :param number: total number of restults returned from the query
+
         """
-        Sets the values of the navigator object
-
-        - limit  : the number of results per page
-        - offset : the number of the first result displayed on the page
-        - query_dict : mutable query_dict used used when making the next an previous buttons
-        - number : total number of restults returned from the query
-
-        """
-
-        number_int = int(number)
-        number = str(number)
         offset_int = int(offset)
-        offset = str(offset)
         limit_int = int(limit)
         limit = str(limit)
         number_int = int(number)
         number = str(number)
 
-        next = str(offset_int+limit_int)
-        previous = str(offset_int-limit_int)
-        view_from = str(offset_int+1)
+        next_offset = str(offset_int + limit_int)
+        prev_offset = str(offset_int - limit_int)
+        view_from = str(offset_int + 1)
         view_to_int = offset_int + limit_int
         view_to = str(view_to_int)
 
-
         if offset_int:
             query_dict['limit'] = limit
-            query_dict['offset'] = previous
+            query_dict['offset'] = prev_offset
             self.previous = query_dict.copy().urlencode()
 
         if limit_int + offset_int < number_int:
             query_dict['limit'] = limit
-            query_dict['offset'] = next
+            query_dict['offset'] = next_offset
             self.next = query_dict.copy().urlencode()
 
         if number_int:
             if limit_int > number_int:
                 self.view = number+" hits"
             elif view_to_int > number_int:
-                self.view = view_from+" - "+number+" of "+number
+                self.view = view_from + " - " + number + " of " + number
             else:
-                self.view = view_from+" - "+view_to+" of "+number
+                self.view = view_from + " - " + view_to + " of " + number
         else:
             self.view = "Sorry, your search did not return any results"
 
 
-class Table:
-    """
-    A table that will contain the results of the report
-    """
-
+class Table(object):
+    """A table that will contain the results of the report"""
     def __init__(self):
-
         self.rows = []
         self.header = []
         self.footer = []
 
     def append(self, row):
+        """Appends a row to the table
+
+        :param row: the row to be appended to the table
+
         """
-        Appends a row to the table
-
-        - row : the row to be appended to the table
-
-        """
-
         self.rows.append(row)
 
-    def extend(self, listOfRows):
-        """
-        Extends the table with a list of rows
+    def extend(self, rows):
+        """Extends the table with a list of rows
 
-        - listOfRows : the list of rows to append to the table
-
-        """
-
-        self.rows.extend(listOfRows)
-
-    def setHeaders(self, header):
-        """
-        Sets the headers of the table
-
-        - header : the list of cells that represents the header
+        :param rows: the list of rows to append to the table
 
         """
+        self.rows.extend(rows)
 
-        self.header = header
+    def set_headers(self, headers):
+        """Sets the headers of the table
 
-    def setFooters(self, footer):
-        """
-        Sets the footers of the table
-
-        - footer : the list of cells that represents the footer (the bottom line)
+        :param headers: the list of cells that represents the headers
 
         """
+        self.header = headers
 
-        self.footer = footer
+    def set_footers(self, footers):
+        """Sets the footers of the table
 
-    def setContents(self, contents):
+        :param footers: the list of cells that represents the footers (the
+                        bottom line)
+
         """
-        Sets the contents of the table
+        self.footer = footers
 
-        - contents : the new contents of the table
+    def set_contents(self, contents):
+        """Sets the contents of the table
+
+        :param contents: the new contents of the table
 
         """
-
         self.rows = contents
 
 
-class Row:
-    """
-    A row of a table
-    """
+class Row(object):
+    """A row of a table"""
 
     def __init__(self):
-
         self.cells = []
 
     def append(self, cell):
+        """Appends a cell to the row
+
+        :param cell : the cell to be appended
+
         """
-        Appends a cell to the row
-
-        - cell : the cell to be appended
-
-        """
-
         self.cells.append(cell)
 
 
-class Cell:
-    """
-    One cell of the table
-    """
+class Cell(object):
+    """One cell of the table"""
+    text = uri = explanation = sum = None
 
     def __init__(self, text=u"", uri=u"", explanation=u""):
-
-        self.setText(text)
-        self.setUri(uri)
-        self.setExplanation(explanation)
+        self.set_text(text)
+        self.set_hyperlink(uri)
+        self.set_explanation(explanation)
         self.sum = u""
 
-    def setText(self, text):
+    def set_text(self, text):
+        """Sets the contents of the cell to the text specified
+
+        :param text : the text to be used
+
         """
-        Sets the contents of the cell to the text specified
-
-        - text : the text to be used
-
-        """
-
         self.text = unicode_utf8(text)
 
-    def setUri(self, uri):
-        """
-        Sets the uri of the cell to the text specified
+    def set_hyperlink(self, url):
+        """Sets an URL to use as a hyperlink from the cell
 
-        - uri : the text to be used as the uri
-
-        """
-
-        self.uri = unicode_utf8(uri)
-
-    def setExplanation(self, explanation):
-        """
-        Sets the explanation of the column to the text specified
-
-        - explanation : the text to be used as the explanation
+        :param url: the text to be used as the url
 
         """
+        self.uri = unicode_utf8(url)
 
+    def set_explanation(self, explanation):
+        """Sets the explanation of the column to the text specified
+
+        :param explanation : the text to be used as the explanation
+
+        """
         self.explanation = unicode_utf8(explanation)
 
-    def setSum(self, sum):
+    def set_sum(self, colsum):
+        """Sets the colsum of the column to the text specified
+
+        :param colsum: the text to be used as the colsum of the column
+
         """
-        Sets the sum of the column to the text specified
-
-        - sum : the text to be used as the sum of the column
-
-        """
-
-        self.sum = unicode_utf8(sum)
+        self.sum = unicode_utf8(colsum)
 
 
-class Headers:
-    """
-    The top row of the report table. Where the titles and descriptions etc, is displayed
+class Headers(object):
+    """The top row of the report table. Where the titles and descriptions
+    etc, is displayed.
+
     """
 
     def __init__(self):
-
         self.cells = []
 
     def append(self, cell):
+        """Appends a cell to the list of headers
+
+        :param cell: the cell to be appended
+
         """
-        Appends a cell to the list of headers
-
-        - cell : the cell to be appended
-
-        """
-
         self.cells.append(cell)
 
 
-class Footers:
-    """
-    The bottom row of the report table. Where the sum of some columns is displayed
+class Footers(object):
+    """The bottom row of the report table, where the sum of some columns is
+    displayed
+
     """
 
     def __init__(self):
-
         self.cells = []
 
     def append(self, cell):
+        """Appends a cell to the list of footers
+
+        :param cell: the cell to be appended
+
         """
-        Appends a cell to the list of footers
-
-        - cell : the cell to be appended
-
-        """
-
         self.cells.append(cell)
 
 

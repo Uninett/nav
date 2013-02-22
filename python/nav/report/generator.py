@@ -251,7 +251,7 @@ class ArgumentParser(object):
             elif key == "title":
                 config.title = value
             elif key == "order_by" or key == "sort":
-                config.orderBy = value.split(",") + config.orderBy
+                config.order_by = value.split(",") + config.order_by
             elif key == "skjul" or key == "hidden" or key == "hide":
                 config.hidden.extend(value.split(","))
             elif key == "ekstra" or key == "extra":
