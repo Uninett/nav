@@ -27,6 +27,7 @@ _logger = logging.getLogger("nav.portadmin.snmputils")
 
 # TODO: Fix get_vlans as it does not return all vlans, see get_available_vlans
 
+
 class FantasyVlan(object):
     """A container object for storing vlans for a netbox
 
@@ -399,6 +400,9 @@ class Cisco(SNMPHandler):
     TRUNKPORTVLANSENABLED3K = VTPNODES['vlanTrunkPortVlansEnabled3k']['oid']
     TRUNKPORTVLANSENABLED4K = VTPNODES['vlanTrunkPortVlansEnabled4k']['oid']
 
+    TRUNKPORTSTATE = VTPNODES['vlanTrunkPortDynamicState']['oid']
+    TRUNKPORTENCAPSULATION = VTPNODES['vlanTrunkPortEncapsulationType']['oid']
+
     def __init__(self, netbox):
         super(Cisco, self).__init__(netbox)
         self.vlan_oid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
@@ -420,13 +424,13 @@ class Cisco(SNMPHandler):
         # Add port to vlan. This makes the port active on both old and new vlan
         status = None
         try:
-            status = self._set_netbox_value(self.vlan_oid, if_index, "u", vlan)
+            status = self._set_netbox_value(self.vlan_oid, if_index, "i", vlan)
         except SnmpError, ex:
             # Ignore this exception,- some boxes want signed integer and
             # we do not know this beforehand.
             # If unsigned fail,- try with signed integer.
             _logger.debug("set_vlan: Exception = %s" % str(ex))
-            status = self._set_netbox_value(self.vlan_oid, if_index, "i", vlan)
+            status = self._set_netbox_value(self.vlan_oid, if_index, "u", vlan)
         return status
 
     def set_native_vlan(self, if_index, vlan):
@@ -498,6 +502,14 @@ class Cisco(SNMPHandler):
                 _logger.error('Error setting trunk vlans on %s ifindex %s: %s',
                               self.netbox, ifindex, error)
                 break
+
+    def set_access_mode(self, ifindex, access_vlan):
+        """Set interface trunking to off and set encapsulation to negotiate"""
+        self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i', 2)
+        self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i', 5)
+        self.set_trunk_vlans(ifindex, [])
+        self.set_vlan(ifindex, access_vlan)
+
 
 class HP(SNMPHandler):
     """A specialized class for handling ports in HP switches."""
