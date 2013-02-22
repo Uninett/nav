@@ -341,7 +341,7 @@ class SNMPHandler(object):
         octet_string = self._query_netbox(self.VLAN_EGRESS_PORTS, vlan)
         return BitVector(octet_string)
 
-    def set_trunk_vlans(self, ifindex, vlans):
+    def set_trunk_vlans(self, interface, vlans):
         """Trunk the vlans on interface
 
         Egress_Ports includes native vlan. Be sure to not alter that.
@@ -351,6 +351,7 @@ class SNMPHandler(object):
         this list based on if it is in the vlans list.
 
         """
+        ifindex = interface.ifindex
         native_vlan = self.get_vlan(ifindex)
         bitvector_index = ifindex - 1
 
@@ -369,22 +370,29 @@ class SNMPHandler(object):
 
             self._set_egress_interfaces(available_vlan, bitvector)
 
-    def set_access_mode(self, ifindex, access_vlan):
+    def _set_egress_interfaces(self, vlan, bitvector):
+        self._set_netbox_value(self.VLAN_EGRESS_PORTS, vlan, 's',
+                               str(bitvector))
+
+    def set_access(self, interface, access_vlan):
         """Set this port in access mode and set access vlan
 
         Means - remove all vlans except access vlan from this interface
 
         """
-        current_vlan = self.get_vlan(ifindex)
-        if current_vlan != access_vlan:
-            self.set_vlan(ifindex, access_vlan)
+        self.set_vlan(interface.ifindex, access_vlan)
+        self.set_trunk_vlans(interface, [])
+        interface.vlan = access_vlan
+        interface.trunk = False
+        interface.save()
 
-        self.set_trunk_vlans(ifindex, [])
-
-
-    def _set_egress_interfaces(self, vlan, bitvector):
-        self._set_netbox_value(self.VLAN_EGRESS_PORTS, vlan, 's',
-                               str(bitvector))
+    def set_trunk(self, interface, native_vlan, trunk_vlans):
+        """Set this port in trunk mode and set native vlan"""
+        self.set_vlan(interface.ifindex, native_vlan)
+        self.set_trunk_vlans(interface, trunk_vlans)
+        interface.vlan = native_vlan
+        interface.trunk = True
+        interface.save()
 
     @staticmethod
     def _find_vlans_for_interface(interface):
@@ -448,8 +456,9 @@ class Cisco(SNMPHandler):
             status = self._set_netbox_value(self.vlan_oid, if_index, "u", vlan)
         return status
 
-    def set_native_vlan(self, if_index, vlan):
+    def set_native_vlan(self, interface, vlan):
         """Set native vlan on a trunk interface"""
+        if_index = interface.ifindex
         try:
             self._set_netbox_value(self.TRUNKPORTNATIVEVLAN, if_index, 'i',
                                    vlan)
@@ -496,7 +505,7 @@ class Cisco(SNMPHandler):
 
         return native_vlan, bitvector.get_set_bits()
 
-    def set_trunk_vlans(self, ifindex, vlans):
+    def set_trunk_vlans(self, interface, vlans):
         """Set trunk vlans
 
         Initialize a BitVector with all 4096 vlans set to 0. Then fill in all
@@ -505,6 +514,7 @@ class Cisco(SNMPHandler):
         each of those.
 
         """
+        ifindex = interface.ifindex
         bitvector = BitVector(512 * '\000')  # initialize all-zero bitstring
         for vlan in vlans:
             bitvector[int(vlan)] = 1
@@ -523,13 +533,41 @@ class Cisco(SNMPHandler):
                               self.netbox, ifindex, error)
                 break
 
-    def set_access_mode(self, ifindex, access_vlan):
+    def set_access(self, interface, access_vlan):
         """Set interface trunking to off and set encapsulation to negotiate"""
+        if self._is_trunk(interface):
+            self._set_access_mode(interface)
+        self.set_trunk_vlans(interface, [])
+        self.set_vlan(interface.ifindex, access_vlan)
+        interface.vlan = access_vlan
+        interface.save()
+
+    def _set_access_mode(self, interface):
+        ifindex = interface.ifindex
         self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i', 2)
         self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i', 5)
-        self.set_trunk_vlans(ifindex, [])
-        self.set_vlan(ifindex, access_vlan)
+        interface.trunk = False
+        interface.save()
 
+    def set_trunk(self, interface, native_vlan, trunk_vlans):
+        """Check for trunk, set native vlan, set trunk vlans"""
+        if not self._is_trunk(interface):
+            self._set_trunk_mode(interface)
+
+        self.set_trunk_vlans(interface, trunk_vlans)
+        self.set_native_vlan(interface, native_vlan)
+
+    def _set_trunk_mode(self, interface):
+        ifindex = interface.ifindex
+        self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i', 1)
+        # Set encapsulation to dot1Q TODO: Support other encapsulations
+        self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i', 2)
+        interface.trunk = True
+        interface.save()
+
+    def _is_trunk(self, interface):
+        state = int(self._query_netbox(self.TRUNKPORTSTATE, interface.ifindex))
+        return state in [1, 5]
 
 class HP(SNMPHandler):
     """A specialized class for handling ports in HP switches."""

@@ -302,7 +302,6 @@ def handle_trunk_edit(request, agent, interface):
     _logger.info('Trunk vlans %s', trunked_vlans)
 
     if trunked_vlans:
-        agent.set_native_vlan(interface.ifindex, native_vlan)
-        agent.set_trunk_vlans(interface.ifindex, trunked_vlans)
+        agent.set_trunk(interface, native_vlan, trunked_vlans)
     else:
-        agent.set_access_mode(interface.ifindex, native_vlan)
+        agent.set_access(interface, native_vlan)
