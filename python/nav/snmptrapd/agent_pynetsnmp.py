@@ -20,10 +20,12 @@ import logging
 from socket import AF_INET, AF_INET6, inet_ntop
 from ctypes import (c_ushort, c_char, POINTER, cast, c_long)
 
+from IPy import IP
 from pynetsnmp import netsnmp
 
 from nav.errors import GeneralException
 from nav.oids import OID
+from nav.util import address_to_string
 
 from .trap import SNMPTrap
 
@@ -34,23 +36,26 @@ _logger = logging.getLogger(__name__)
 
 class TrapListener(object):
     """A pynetsnmp based implementation of a TrapListener"""
-    def __init__(self, iface):
+    def __init__(self, *addresses):
         """Initializes a TrapListener.
 
         iface -- A (srcadr, port) tuple.
 
         """
-        self.iface = iface
+        self.addresses = addresses
         self._client_callback = None
-        self._session = TrapSession(iface, self.callback)
+        self._sessions = [TrapSession(addr, self.callback)
+                          for addr in addresses]
 
     def open(self):
         """Opens the server socket at port 162."""
-        self._session.await_traps()
+        for session in self._sessions:
+            session.await_traps()
 
     def close(self):
         """Closes the server socket."""
-        self._session.close()
+        for session in self._sessions:
+            session.close()
 
     def listen(self, _community, callback):
         """Listens for and dispatches incoming traps to callback.
@@ -165,8 +170,22 @@ class TrapSession(netsnmp.Session):
 
     def await_traps(self):
         """Starts dispatch of incoming traps to the registered callback"""
-        addr = "%s:%s" % (self.addr, self.port)
-        return super(TrapSession, self).awaitTraps(addr)
+        addr = address_to_string(self.addr, self.port)
+        if IP(self.addr).version() == 6:
+            addr = "udp6:" + addr
+            self._initv6()
+        return self.awaitTraps(addr)
+
+    def _initv6(self):
+        lib = netsnmp.lib
+        sentinel = object()
+        if getattr(lib, "netsnmp_udpipv6_ctor", sentinel) is not sentinel:
+            lib.netsnmp_udpipv6_ctor()
+        elif getattr(lib, "netsnmp_udp6_ctor", sentinel) is not sentinel:
+            lib.netsnmp_udp6_ctor()
+        else:
+            _logger.warning("Cannot find constructor function for UDP/IPv6 "
+                            "transport domain object.")
 
     def callback(self, pdu):
         addr = get_transport_addr(pdu)
