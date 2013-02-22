@@ -2,7 +2,12 @@
 
 {% block content %}
 
+
     {% if interface %}
+
+    <a href="{% url portadmin-sysname interface.netbox.sysname %}">
+        Back to {{ interface.netbox.sysname }}
+    </a>
 
     <div>
         <h3>Interface {{ interface }}</h3>
