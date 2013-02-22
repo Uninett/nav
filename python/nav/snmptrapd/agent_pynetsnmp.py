@@ -77,6 +77,7 @@ class TrapListener(object):
 
         agent_addr = None
         generic_type = None
+        community = pdu.community[:pdu.community_len]
 
         varbinds = netsnmp.getResult(pdu)
 
@@ -98,13 +99,22 @@ class TrapListener(object):
         # Dump varbinds to debug log
         _logger.debug("varbinds: %r", varbinds)
         # Add remaining varbinds to dict
-        varbind_dict = dict((str(OID(oid)), value)
+        varbind_dict = dict((str(OID(oid)), value_to_str(value))
                             for oid, value in varbinds)
 
         trap = SNMPTrap(str(src), agent_addr or str(src), None, generic_type,
-                        str(snmp_trap_oid), uptime, pdu.community, version,
+                        str(snmp_trap_oid), uptime, community, version,
                         varbind_dict)
         self._client_callback(trap)
+
+def value_to_str(value):
+    """Converts a value from a varbind to a string, as that is what the
+    SNMPTrap API expects :-P
+    """
+    if isinstance(value, tuple):
+        return str(OID(value))
+    else:
+        return str(value)
 
 SNMP_TRAPS = OID('.1.3.6.1.6.3.1.1.5')
 TRAP_MAP = {
@@ -162,10 +172,10 @@ class TrapSession(netsnmp.Session):
         addr = get_transport_addr(pdu)
         self._callback(addr, pdu)
 
-IP_SIZE = 4
-IP6_SIZE = 16
-ADDR_OFFSET = 4
-
+IPADDR_SIZE = 4
+IP6ADDR_SIZE = 16
+IPADDR_OFFSET = 4
+IP6ADDR_OFFSET = 8
 
 def get_transport_addr(pdu):
     """Retrieves the IP source address from the PDU's reference to an opaque
@@ -186,12 +196,14 @@ def get_transport_addr(pdu):
     family = family_p.contents.value
     if family not in (AF_INET, AF_INET6):
         return
-    addr_size = IP_SIZE if family == AF_INET else IP6_SIZE
+
+    addr_size, offset = ((IPADDR_SIZE, IPADDR_OFFSET) if family == AF_INET
+                         else (IP6ADDR_SIZE, IP6ADDR_OFFSET))
 
     buffer_type = c_char * pdu.transport_data_length
     data_p = cast(pdu.transport_data, POINTER(buffer_type))
     data = data_p.contents
-    addr = data[ADDR_OFFSET:ADDR_OFFSET + addr_size]
+    addr = data[offset:offset + addr_size]
     return inet_ntop(family, addr)
 
 
