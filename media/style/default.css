@@ -346,6 +346,10 @@ table.toolbox4cols tr td {
   color: #A40000;
 }
 
+.messages li {
+    margin-bottom: 0;
+}
+
 /* Top bar information */
 div#top-bar {
 	width: 100%;

@@ -20,6 +20,7 @@ import logging
 from django.http import HttpResponse
 from django.template import RequestContext, Context
 from django.shortcuts import render_to_response
+from django.contrib import messages
 
 from nav.django.utils import get_account
 from nav.models.manage import Netbox, Interface, Vlan
@@ -278,7 +279,12 @@ def render_trunk_edit(request, interfaceid):
     interface = Interface.objects.get(pk=interfaceid)
     agent = SNMPFactory().get_instance(interface.netbox)
     if request.method == 'POST':
-        handle_trunk_edit(request, agent, interface)
+        try:
+            handle_trunk_edit(request, agent, interface)
+        except SnmpError, error:
+            messages.error(request, 'Error editing trunk: %s' % error)
+        else:
+            messages.success(request, 'Trunk edit successful')
 
     vlans = agent.get_netbox_vlans()
     native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
