@@ -19,6 +19,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         var infoBox = $('#infobox');
 
         if (interfaceTable.length) {
+            addTrunkSelectedListener(interfaceTable);
             addChangeListener(interfaceTable);
             addSaveListener(interfaceTable);
             addSaveAllListener(interfaceTable);
@@ -26,6 +27,19 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
             addToggleVlanInfoListener(infoBox);
         }
     });
+
+    /*
+     * If user selects the trunk value in a drop-down list, the user shall
+     * be redirected to the trunk edit page.
+     */
+    function addTrunkSelectedListener(table) {
+        $(table).find('.vlanlist').on('change', function () {
+            var $select = $(this);
+            if ($select.val() == 'trunk') {
+                location.href = $select.find(':selected').attr('data-url');
+            }
+        });
+    }
 
     function addChangeListener(element) {
         $('.ifalias, .vlanlist', element).on('change keyup keypress blur', function(){
