@@ -41,13 +41,21 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         });
     }
 
-    function addChangeListener(element) {
-        $('.ifalias, .vlanlist', element).on('change keyup keypress blur', function(){
-            var row = $(this).parents("tr");
-            if (textFieldChanged(row) || dropDownChanged(row)) {
-                markAsChanged(row);
-            } else {
-                markAsUnchanged(row);
+    /*
+     * When user changes either the textfield or the dropdown from it's
+     * original value, mark the row as changed. If the change results in the
+     * original value, mark the row as unchanged.
+     */
+    function addChangeListener(table) {
+        $(table).find('tbody').on('change keyup keypress blur', function (event) {
+            var $target = $(event.target);
+            if ($target.hasClass('ifalias') || $target.hasClass('vlanlist')) {
+                var row = $target.parents('tr');
+                if (textFieldChanged(row) || dropDownChanged(row)) {
+                    markAsChanged(row);
+                } else {
+                    markAsUnchanged(row);
+                }
             }
         });
     }
