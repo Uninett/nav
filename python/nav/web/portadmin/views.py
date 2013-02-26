@@ -166,10 +166,12 @@ def populate_infodict(account, netbox, interfaces):
 
     save_to_database(interfaces)
 
-    set_voice_vlan(interfaces)
+    voice_vlans = fetch_voice_vlans()
+    set_voice_vlan(voice_vlans, interfaces)
 
     info_dict = {'interfaces': interfaces,
                  'netbox': netbox,
+                 'voice_vlans': voice_vlans,
                  'allowed_vlans': allowed_vlans,
                  'account': account,
                  'aliastemplate': aliastemplate,
@@ -178,10 +180,8 @@ def populate_infodict(account, netbox, interfaces):
     return info_dict
 
 
-def set_voice_vlan(interfaces):
-    """Set an attribute on the interfaces to indicate voice vlan"""
-    voice_vlans = fetch_voice_vlans()
-
+def set_voice_vlan(voice_vlans, interfaces):
+    """Set an attribute on the interfaces to indicate voice vlan behavior"""
     if voice_vlans:
         for interface in interfaces:
             if not interface.trunk:

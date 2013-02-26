@@ -148,9 +148,11 @@ def fetch_voice_vlans():
     config = read_config()
     if config.has_section("general"):
         if config.has_option("general", "voice_vlans"):
-            return [int(v.strip()) for v in
-                    config.get("general", "voice_vlans").split(',')]
-
+            try:
+                return [int(v.strip()) for v in
+                        config.get("general", "voice_vlans").split(',')]
+            except ValueError:
+                pass
     return []
 
 

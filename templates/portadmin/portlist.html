@@ -60,7 +60,9 @@ PortAdmin - {{ netbox.get_short_sysname }}
         </th>
         <th class="ifalias">Port Description</th>
         <th class="vlan">Vlan</th>
-        <th class="vlan">Voice</th>
+        {% if voice_vlans %}
+            <th class="voicevlan">Tel</th>
+        {% endif %}
         <th class="button">&nbsp;</th>
     </tr>
     </thead>
@@ -88,6 +90,11 @@ PortAdmin - {{ netbox.get_short_sysname }}
             {% endif %}
         </td>
 
+        {% comment %}
+        If interface is a trunk, display link to trunk_edit if allowed
+        If interface is not a trunk, display dropdown to choose vlan, or if
+        not allowed to edit display access vlan
+        {% endcomment %}
         <td>
 			{% if interface.trunk %}
                 {% if current_user_data.is_admin %}
@@ -119,21 +126,27 @@ PortAdmin - {{ netbox.get_short_sysname }}
 
 
         {% comment %}
-        If voice is activated the interface is a trunk. Thus, display voice
-        vlan if voice is activated or it is not and interface is not a trunk
+        If voice is activated the interface is a trunk. This need to check
+        specifically for this.
         {% endcomment %}
-        {% if interface.voice_activated or not interface.trunk %}
-            <td class="text-center">
-                <input class="voicevlan"
-                       type="checkbox"
-                       name="voice_vlan"
-                       data-orig="{{ interface.voice_activated }}"
-                       {% if interface.voice_activated %}checked{% endif %}
-                       {% if not interface.iseditable %}disabled="disabled"{% endif %}>
-            </td>
+        {% if voice_vlans %}
+            {% if interface.voice_activated or not interface.trunk %}
+                <td class="text-center">
+                    <input class="voicevlan"
+                           type="checkbox"
+                           name="voice_vlan"
+                           data-orig="{{ interface.voice_activated }}"
+                           {% if interface.voice_activated %}checked{% endif %}
+                           {% if not interface.iseditable %}disabled="disabled"{% endif %}>
+                </td>
+            {% endif %}
         {% endif %}
 
 
+        {% comment %}
+        These images serves as buttons for saving and undoing changes. They
+        are initially hidden until a field is changed.
+        {% endcomment %}
         <td>
 			{% if interface.iseditable %}
 			<img src="/images/icons/edit-undo.png" class="undo" alt="Set as unchanged" title="Set as unchanged"/>
