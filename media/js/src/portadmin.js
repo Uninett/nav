@@ -173,6 +173,9 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         if (dropDownChanged($row)) {
             data['vlan'] = $row.find(".vlanlist").val();
         }
+        if (voiceVlanChanged($row)) {
+            data['voicevlan'] = $row.find(".voicevlan").prop('checked');
+        }
         return data;
     }
 
