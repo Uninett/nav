@@ -1338,7 +1338,7 @@ class IpdevpollJobLog(models.Model):
         db_table = 'ipdevpoll_job_log'
 
     def __unicode__(self):
-        return u"Job %s for %s ended in %s at %s, after %s seconds>" % (
+        return u"Job %s for %s ended in %s at %s, after %s seconds" % (
             self.job_name, self.netbox.sysname,
             'success' if self.success else 'failure',
             self.end_time, self.duration
