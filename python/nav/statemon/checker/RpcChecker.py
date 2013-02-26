@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003,2004 Norwegian University of Science and Technology
 #
@@ -14,41 +13,40 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""RPC portmapper service checker"""
 import os
 import subprocess
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.util import which
 
+
 class RpcChecker(AbstractChecker):
-    """
-    args:
-    requried
-    ex: nfs,nlockmgr
-    """
+    """RPC portmapper"""
     TYPENAME = "rpc"
     DESCRIPTION = "RPC portmapper"
     OPTARGS = (
-        ('required', ''),
+        ('required', 'A comma separated list of require services. Example: '
+                     'nfs,nlockmgr'),
     )
 
     def __init__(self, service, **kwargs):
+        """This handler doesn't obey the port argument"""
         AbstractChecker.__init__(self, service, port=111, **kwargs)
-        # This handler doesn't obey port argument
+
     def execute(self):
         args = self.getArgs()
         # map service to t=tcp or u=udp
-        mapper = {'nfs':'t',
-              'status':'t',
-              'nlockmgr':'u',
-              'mountd':'t',
-              'ypserv':'u',
-              'nfs':'u',
-              'ypbind':'u'
-              }
+        mapper = {
+            'nfs':      't',
+            'status':   't',
+            'nlockmgr': 'u',
+            'mountd':   't',
+            'ypserv':   'u',
+            'ypbind':   'u',
+        }
         default = ['nfs', 'nlockmgr', 'mountd', 'status']
-        required = args.get('required','')
+        required = args.get('required', '')
         if not required:
             required = default
         else:
@@ -57,26 +55,29 @@ class RpcChecker(AbstractChecker):
         cmd = 'rpcinfo'
         cmdpath = which(cmd)
         if not cmdpath:
-            return Event.DOWN, 'Command %s not found in %s' % (cmd, os.environ['PATH'])
+            return (Event.DOWN,
+                    'Command %s not found in %s' % (cmd, os.environ['PATH']))
 
-        ip, port = self.getAddress()
+        ip, _port = self.getAddress()
         for service in required:
             protocol = mapper.get(service, '')
             if not protocol:
-                return Event.DOWN, "Unknown argument: [%s], can only check %s" % (service, str(mapper.keys()))
+                return (Event.DOWN,
+                        "Unknown argument: [%s], can only check "
+                        "%s" % (service, str(mapper.keys())))
 
             try:
-                p = subprocess.Popen([cmdpath,
-                                      '-'+protocol,
-                                      ip,
-                                      service],
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
-                p.wait()
+                proc = subprocess.Popen([cmdpath,
+                                         '-'+protocol,
+                                         ip,
+                                         service],
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+                proc.wait()
             except OSError, msg:
                 return Event.DOWN, 'could not run rpcinfo: %s' % msg
 
-            output = p.stdout.read()
+            output = proc.stdout.read()
             if 'ready' in output:
                 continue
             if 'not available' in output:

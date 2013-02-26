@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003,2004 Norwegian University of Science and Technology
 #
@@ -14,11 +13,11 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Oracle database service checker"""
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
-import cx_Oracle, string, exceptions, sys
-import os
+import cx_Oracle
 
 class OracleChecker(AbstractChecker):
     """
@@ -73,7 +72,10 @@ class OracleChecker(AbstractChecker):
         ip, port = self.getAddress()
         passwd = args.get("password","")
         sid = args.get("sid","")
-        connect_string = "%s/%s@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(COMMUNITY=TCP)(PROTOCOL=TCP)(Host=%s)(Port=%s)))(CONNECT_DATA=(SID=%s)(GLOBAL_NAME=%s)))" % (user, passwd, ip, port, sid, sid)
+        connect_string = ("%s/%s@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=("
+                          "COMMUNITY=TCP)(PROTOCOL=TCP)(Host=%s)(Port=%s)))("
+                          "CONNECT_DATA=(SID=%s)(GLOBAL_NAME=%s)))") % (
+            user, passwd, ip, port, sid, sid)
         print "Connecting with: %s" % connect_string
         try:
             connection = cx_Oracle.connect(connect_string)
@@ -85,6 +87,7 @@ class OracleChecker(AbstractChecker):
             row = cursor.fetchone()
             version = row[0]
             connection.close()
-        except:
-            return Event.DOWN, str(sys.exc_value) 
+            #pylint: disable=W0703
+        except Exception as err:
+            return Event.DOWN, str(err)
         return Event.UP, "Oracle " + version

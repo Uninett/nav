@@ -13,6 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Dummy service checker: It will always report a success status"""
 
 from nav.daemon import safesleep as sleep
 from nav.statemon.abstractChecker import AbstractChecker
@@ -20,6 +21,7 @@ from nav.statemon.event import Event
 
 
 class DummyChecker(AbstractChecker):
+    """Dummy"""
     TYPENAME = "dummy"
     IPV6_SUPPORT = True
 
