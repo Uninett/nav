@@ -21,8 +21,10 @@ from django.http import HttpResponse
 from django.template import RequestContext, Context
 from django.shortcuts import render_to_response
 from django.contrib import messages
+from django.core.urlresolvers import reverse
 
 from nav.django.utils import get_account
+from nav.web.utils import create_title
 from nav.models.manage import Netbox, Interface, Vlan
 from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_and_populate_allowed_vlans,
@@ -286,6 +288,10 @@ def render_trunk_edit(request, interfaceid):
         else:
             messages.success(request, 'Trunk edit successful')
 
+    sysname = interface.netbox.sysname
+    navpath = [('Home', '/'), ('PortAdmin', reverse('portadmin-index')),
+               (sysname, reverse('portadmin-sysname',
+                                 kwargs={'sysname': sysname}))]
     vlans = agent.get_netbox_vlans()
     native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
 
@@ -293,7 +299,9 @@ def render_trunk_edit(request, interfaceid):
                               {'interface': interface,
                                'available_vlans': vlans,
                                'native_vlan': native_vlan,
-                               'trunked_vlans': trunked_vlans},
+                               'trunked_vlans': trunked_vlans,
+                               'navpath': navpath,
+                               'title': create_title(navpath)},
                               RequestContext(request))
 
 

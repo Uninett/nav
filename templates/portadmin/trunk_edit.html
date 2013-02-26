@@ -5,10 +5,6 @@
 
     {% if interface %}
 
-        <a href="{% url portadmin-sysname interface.netbox.sysname %}">
-            Back to {{ interface.netbox.sysname }}
-        </a>
-
         {% if messages %}
             <ul class="messages">
                 {% for message in messages %}
@@ -60,8 +56,6 @@
     {% else %}
         <p class="error">This interface does not exist</p>
     {% endif %}
-
-
 
 
 {% endblock %}

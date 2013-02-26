@@ -21,7 +21,7 @@ from nav.web.portadmin.views import (index, search_by_ip, search_by_sysname,
                                      save_interfaceinfo, render_trunk_edit)
 
 urlpatterns = patterns('',
-    url(r'^$', index),
+    url(r'^$', index, name='portadmin-index'),
 
     url(r'^ip=(?P<ip>[\d\.]+)', search_by_ip,
         name='portadmin-ip'),
