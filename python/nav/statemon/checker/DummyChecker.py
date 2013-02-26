@@ -21,8 +21,9 @@ from nav.statemon.event import Event
 
 class DummyChecker(AbstractChecker):
     TYPENAME = "dummy"
+    IPV6_SUPPORT = True
 
     def execute(self):
         import random
-        sleep(random.random()*10)
+        sleep(random.random() * 10)
         return Event.UP, 'OK'
