@@ -18,7 +18,6 @@
 
 from IPy import IP
 from datetime import date, datetime, timedelta
-
 from django.db.models import Q
 from django.template import RequestContext
 from django.shortcuts import render_to_response
@@ -93,6 +92,11 @@ def ip_do_search(request):
             where=['ip BETWEEN %s and %s'],
             params=[unicode(from_ip), unicode(to_ip)]
         ).order_by('ip', 'mac', '-start_time')
+       
+        # Flag records with jobs overdue as fishy
+        for row in result:
+            job_log = row.netbox.job_log.order_by('-end_time')[0]
+            row.fishy = (job_log.is_overdue(), unicode(job_log))
 
         ip_result = ip_dict(result)
 
