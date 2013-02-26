@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2003,2004 Norwegian University of Science and Technology
+# Copyright (C) 2003, 2004 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,10 +18,11 @@ from nav.daemon import safesleep as sleep
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
+
 class DummyChecker(AbstractChecker):
-    def __init__(self, *args, **kwargs):
-        AbstractChecker.__init__(self, 'dummy', *args, **kwargs)
+    TYPENAME = "dummy"
+
     def execute(self):
         import random
         sleep(random.random()*10)
-        return Event.UP,'OK'
+        return Event.UP, 'OK'

@@ -23,10 +23,16 @@ from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import  Event
 
 class PortChecker(AbstractChecker):
+    TYPENAME = "port"
     IPV6_SUPPORT = True
+    DESCRIPTION = "Generic port checker"
+    ARGS = (
+        ('port', ''),
+    )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, 'port', service, port=23, **kwargs)
+        AbstractChecker.__init__(self, service, port=23, **kwargs)
+
     def execute(self):
         s = socket.socket(socktype_from_addr(self.getIp()), socket.SOCK_STREAM)
         s.settimeout(self.getTimeout())

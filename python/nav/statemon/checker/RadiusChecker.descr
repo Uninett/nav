@@ -1,2 +1,0 @@
-description=RADIUS
-optargs=url username password port timeout secret dictionary identifier

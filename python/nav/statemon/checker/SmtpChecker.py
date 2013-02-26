@@ -39,11 +39,18 @@ class SmtpChecker(AbstractChecker):
     # Most SMTP servers add a date after one of the characters
     # ",", ";" or "#", we don't need that part of the version
     # string
+    TYPENAME = "smtp"
     IPV6_SUPPORT = True
+    DESCRIPTION = "Simple mail transport protocol"
+    OPTARGS = (
+        ('port', ''),
+        ('timeout', ''),
+    )
+
     versionMatch = re.compile(r'([^;,#]+)')
     
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "smtp", service, port=25, **kwargs)
+        AbstractChecker.__init__(self, service, port=25, **kwargs)
 
     def execute(self):
         ip, port = self.getAddress()

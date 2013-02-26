@@ -34,10 +34,20 @@ class SmbChecker(AbstractChecker):
         'password'
         'port'
     """
+    TYPENAME = "smb"
     IPV6_SUPPORT = True
+    DESCRIPTION = "Windows file sharing"
+    OPTARGS = (
+        ('hostname', ''),
+        ('username', ''),
+        ('password', ''),
+        ('workgroup', ''),
+        ('port', ''),
+        ('timeout', ''),
+    )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "smb", service, port=139, **kwargs)
+        AbstractChecker.__init__(self, service, port=139, **kwargs)
 
     def execute(self):
         ip, port = self.getAddress()

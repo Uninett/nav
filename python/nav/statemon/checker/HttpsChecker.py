@@ -44,10 +44,19 @@ class HTTPSConnection(httplib.HTTPSConnection):
         self.sock = wrap_socket(self.sock)
         
 class HttpsChecker(AbstractChecker):
+    TYPENAME = "https"
     IPV6_SUPPORT = True
+    DESCRIPTION = "HTTPS"
+    OPTARGS = (
+        ('url', ''),
+        ('username', ''),
+        ('password', ''),
+        ('port', ''),
+        ('timeout', ''),
+    )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "https", service, port=0, **kwargs)
+        AbstractChecker.__init__(self, service, port=0, **kwargs)
 
     def execute(self):
         ip, port = self.getAddress()

@@ -19,11 +19,23 @@ import psycopg2
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
+
 class PostgresqlChecker(AbstractChecker):
+    TYPENAME = "postgresql"
     IPV6_SUPPORT = True
+    DESCRIPTION = "Postgresql checker"
+    ARGS = (
+        ('user', ''),
+        ('password', ''),
+    )
+    OPTARGS = (
+        ('port', ''),
+        ('timeout', ''),
+        ('database', ''),
+    )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, 'postgresql', service,  port=5432, **kwargs)
+        AbstractChecker.__init__(self, service,  port=5432, **kwargs)
 
     def execute(self):
         kw = {}

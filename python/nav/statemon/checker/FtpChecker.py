@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003,2004 Norwegian University of Science and Technology
 #
@@ -23,6 +22,13 @@ from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
 class FTP(ftplib.FTP):
+    DESCRIPTION = "FTP"
+    OPTARGS = (
+        ('username', ''),
+        ('password', ''),
+        ('path', ''),
+    )
+
     def __init__(self, timeout, host='', user='', passwd='', acct=''):
         ftplib.FTP.__init__(self)
         if host:
@@ -52,9 +58,11 @@ class FtpChecker(AbstractChecker):
     password
     path (ACCT)
     """
+    TYPENAME = "ftp"
     IPV6_SUPPORT = True
+
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "ftp", service, port=0, **kwargs)
+        AbstractChecker.__init__(self, service, port=0, **kwargs)
 
     def execute(self):
         s = FTP(self.getTimeout())

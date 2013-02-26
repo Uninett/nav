@@ -62,8 +62,21 @@ class RadiusChecker(AbstractChecker):
         return Event.DOWN, str(sys.exc_value)
     """
     # TODO: Check for IPv6 compatibility in pyrad
+    TYPENAME = "radius"
+    DESCRIPTION = "RADIUS"
+    OPTARGS = (
+        ('url', ''),
+        ('username', ''),
+        ('password', ''),
+        ('port', ''),
+        ('timeout', ''),
+        ('secret', ''),
+        ('dictionary', ''),
+        ('identifier', ''),
+    )
+
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "radius", service, port=1812, **kwargs)
+        AbstractChecker.__init__(self, service, port=1812, **kwargs)
 
     def execute(self):
         args = self.getArgs()

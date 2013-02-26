@@ -79,10 +79,11 @@ class MysqlConnection:
         self.file.close()
             
 class MysqlChecker(AbstractChecker):
+    TYPENAME = "mysql"
     IPV6_SUPPORT = True
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "mysql", service, port=3306, **kwargs)
+        AbstractChecker.__init__(self, service, port=3306, **kwargs)
 
     def execute(self):
 

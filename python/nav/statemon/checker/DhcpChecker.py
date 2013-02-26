@@ -23,8 +23,14 @@ from nav.statemon.event import Event
 from nav.util import which, is_setuid_root
 
 class DhcpChecker(AbstractChecker):
+    TYPENAME = "dhcp"
+    DESCRIPTION = "DHCP"
+    OPTARGS = (
+        ('timeout', ''),
+    )
+
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "dhcp", service, port=0, **kwargs)
+        AbstractChecker.__init__(self, service, port=0, **kwargs)
 
     def execute(self):
         ip, port = self.getAddress()

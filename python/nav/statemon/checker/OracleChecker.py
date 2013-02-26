@@ -55,9 +55,18 @@ class OracleChecker(AbstractChecker):
         return Event.DOWN, str(sys.exc_value)
 
     """
+    TYPENAME = "oracle"
+    DESCRIPTION = "Oracle database"
+    OPTARGS = (
+        ('port', ''),
+        ('sid', ''),
+        ('username', ''),
+        ('password', ''),
+    )
 
-    def __init__(self, *args):
-        AbstractChecker.__init__(self, 'oracle', port=1521, *args)
+    def __init__(self, service, **kwargs):
+        AbstractChecker.__init__(self, service, port=1521, **kwargs)
+
     def execute(self):
         args = self.getArgs()
         user = args.get("username","")

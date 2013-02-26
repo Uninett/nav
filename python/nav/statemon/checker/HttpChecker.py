@@ -34,10 +34,17 @@ class HTTPConnection(httplib.HTTPConnection):
         self.sock.connect((self.host, self.port))
 
 class HttpChecker(AbstractChecker):
+    TYPENAME = "http"
     IPV6_SUPPORT = True
+    DESCRIPTION = "HTTP"
+    OPTARGS = (
+        ('url', ''),
+        ('port', ''),
+        ('timeout', ''),
+    )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "http", service, port=0, **kwargs)
+        AbstractChecker.__init__(self, service, port=0, **kwargs)
 
     def execute(self):
         ip, port = self.getAddress()

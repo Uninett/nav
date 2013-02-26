@@ -34,7 +34,15 @@ class IMAPSConnection(imaplib.IMAP4):
 
     for more documentation see the docstring of the parent class IMAP4.
     """
-
+    DESCRIPTION = "Internet mail application protocol (ssl)"
+    ARGS = (
+        ('username', ''),
+        ('password', ''),
+    )
+    OPTARGS = (
+        ('port', ''),
+        ('timeout', ''),
+    )
 
     def __init__(self, timeout, host = '', port = 993, keyfile = None, certfile = None):
         self.keyfile = keyfile
@@ -117,10 +125,11 @@ class ImapsChecker(AbstractChecker):
     username
     password
     """
+    TYPENAME = "imaps"
     IPV6_SUPPORT = True
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "imaps", service, port=993, **kwargs)
+        AbstractChecker.__init__(self, service, port=993, **kwargs)
 
     def execute(self):
         args = self.getArgs()

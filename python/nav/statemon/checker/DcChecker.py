@@ -26,8 +26,11 @@ class DcChecker(AbstractChecker):
     Required argument:
     username
     """
-    def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "dc", service, **kwargs)
+    TYPENAME = "dc"
+    DESCRIPTION = "Domain Controller"
+    ARGS = (
+        ('username', ''),
+    )
 
     def execute(self):
         args = self.getArgs()

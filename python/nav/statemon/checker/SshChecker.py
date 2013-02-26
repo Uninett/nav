@@ -21,12 +21,19 @@ import socket
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
+
 class SshChecker(AbstractChecker):
     """Checks for SSH availability"""
+    TYPENAME = "ssh"
     IPV6_SUPPORT = True
+    DESCRIPTION = "Secure shell server"
+    OPTARGS = (
+        ('port', ''),
+        ('timeout', ''),
+    )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "ssh", service, port=22, **kwargs)
+        AbstractChecker.__init__(self, service, port=22, **kwargs)
 
     def execute(self):
         s_family, s_sockaddr = self._get_sock_info()

@@ -42,10 +42,20 @@ class Pop3Checker(AbstractChecker):
     password
     port
     """
+    TYPENAME = "pop3"
     IPV6_SUPPORT = True
+    DESCRIPTION = "Post office protocol"
+    ARGS = (
+        ('username', ''),
+        ('password', ''),
+    )
+    OPTARGS = (
+        ('port', ''),
+        ('timeout', ''),
+    )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "pop3", service, port=110, **kwargs)
+        AbstractChecker.__init__(self, service, port=110, **kwargs)
 
     def execute(self):
         args = self.getArgs()

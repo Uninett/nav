@@ -43,10 +43,20 @@ class ImapChecker(AbstractChecker):
     username
     password
     """
+    TYPENAME = "imap"
     IPV6_SUPPORT = True
+    DESCRIPTION = "Internet mail application protocol"
+    ARGS = (
+        ('username', ''),
+        ('password', ''),
+    )
+    OPTARGS = (
+        ('port', ''),
+        ('timeout', ''),
+    )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "imap", service, port=143, **kwargs)
+        AbstractChecker.__init__(self, service, port=143, **kwargs)
 
     def execute(self):
         args = self.getArgs()

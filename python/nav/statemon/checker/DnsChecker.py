@@ -22,11 +22,21 @@ class DnsChecker(AbstractChecker):
     """
     Valid argument(s): request
     """
+    TYPENAME = "dns"
     IPV6_SUPPORT = True
+    DESCRIPTION = "Domain Name Service"
+    ARGS = (
+        ('request', ''),
+    )
+    OPTARGS = (
+        ('port', ''),
+        ('timeout', ''),
+    )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "dns", service, port=42, **kwargs)
+        AbstractChecker.__init__(self, service, port=42, **kwargs)
         # Please note that this handler doesn't obey the port directive
+
     def execute(self):
         ip, port = self.getAddress()
         d = DNS.DnsRequest(server=ip, timeout=self.getTimeout())
