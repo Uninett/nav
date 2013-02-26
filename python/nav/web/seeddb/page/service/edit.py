@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -24,7 +23,7 @@ from django.db import transaction
 
 from nav.models.service import Service, ServiceProperty
 from nav.models.manage import Netbox
-from nav.web.servicecheckers import get_checkers, get_description
+from nav.web.servicecheckers import get_description, load_checker_classes
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 
@@ -33,10 +32,25 @@ from nav.web.seeddb.page.service import ServiceInfo
 class ServiceChoiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
-        checkers = [(service, service) for service in get_checkers()]
-        checkers.sort()
-        self.fields['service'] = forms.ChoiceField(
-            choices=checkers)
+        checkers = self._build_checker_choices()
+        self.fields['service'] = forms.ChoiceField(choices=sorted(checkers))
+
+    @staticmethod
+    def _build_checker_choices():
+        checkers = load_checker_classes()
+        choices = []
+        for checker in checkers:
+            name = checker.getType()
+            descr = []
+            if checker.DESCRIPTION:
+                descr.append(checker.DESCRIPTION)
+            if not checker.IPV6_SUPPORT:
+                descr.append("Not IPv6 compatible")
+            descr = "; ".join(descr)
+            descr = "%s (%s)" % (name, descr) if descr else name
+            choices.append((name, descr))
+        return choices
+
 
 class ServiceForm(forms.Form):
     service = forms.IntegerField(
