@@ -32,7 +32,8 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      save_to_database,
                                      check_format_on_ifalias,
                                      is_administrator,
-                                     find_allowed_vlans_for_user)
+                                     find_allowed_vlans_for_user,
+                                     fetch_voice_vlans)
 from nav.Snmp.errors import SnmpError
 from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
 from nav.bitvector import BitVector
@@ -165,6 +166,8 @@ def populate_infodict(account, netbox, interfaces):
 
     save_to_database(interfaces)
 
+    set_voice_vlan(interfaces)
+
     info_dict = {'interfaces': interfaces,
                  'netbox': netbox,
                  'allowed_vlans': allowed_vlans,
@@ -173,6 +176,19 @@ def populate_infodict(account, netbox, interfaces):
                  'errors': errors}
     info_dict.update(DEFAULT_VALUES)
     return info_dict
+
+
+def set_voice_vlan(interfaces):
+    """Set an attribute on the interfaces to indicate voice vlan"""
+    voice_vlans = fetch_voice_vlans()
+
+    if voice_vlans:
+        for interface in interfaces:
+            if not interface.trunk:
+                continue
+            if len(set(voice_vlans) &
+                    interface.swportallowedvlan.get_allowed_vlans()):
+                interface.voice_activated = True
 
 
 def save_interfaceinfo(request):
