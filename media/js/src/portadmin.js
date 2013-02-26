@@ -229,7 +229,15 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     function indicateError($row, messages) {
         var $newRow = $('<tr/>').addClass('error'),
             $cell = $('<td class="" colspan="10"/>'),
-            $message = $('<span/>').text(messages.join('. '));
+            $message = $('<span/>');
+
+        var error = '';
+        for (var x = 0, message; message = messages[x]; x++) {
+            if (message.level === 40) {
+                error += message.message + '. ';
+            }
+        }
+        $message.text(error);
 
         $newRow.append($cell.append($message));
         $newRow.insertAfter($row);

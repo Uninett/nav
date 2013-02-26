@@ -25,7 +25,7 @@ from django.core.urlresolvers import reverse
 
 from nav.django.utils import get_account
 from nav.web.utils import create_title
-from nav.models.manage import Netbox, Interface, Vlan
+from nav.models.manage import Netbox, Interface
 from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_and_populate_allowed_vlans,
                                      get_aliastemplate, get_ifaliasformat,
@@ -35,8 +35,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_allowed_vlans_for_user,
                                      fetch_voice_vlans)
 from nav.Snmp.errors import SnmpError
-from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
-from nav.bitvector import BitVector
+from nav.portadmin.snmputils import SNMPFactory
 
 NAVBAR = [('Home', '/'), ('PortAdmin', None)]
 DEFAULT_VALUES = {'title': "PortAdmin", 'navpath': NAVBAR}
@@ -55,108 +54,96 @@ def index(request):
 
 def search_by_ip(request, ip):
     """View for showing a search done by ip-address"""
-    errors = []
     info_dict = {}
     account = get_account(request)
-    netbox = None
     try:
         netbox = Netbox.objects.get(ip=ip)
     except Netbox.DoesNotExist, do_not_exist_ex:
-        netbox = None
         _logger.error("Netbox with ip %s not found; DoesNotExist = %s",
                       ip, do_not_exist_ex)
-        errors.append('Could not find netbox with ip-address %s' % str(ip))
-
-    if not netbox:
+        messages.error(request,
+                       'Could not find netbox with ip-address %s' % str(ip))
         info_dict.update(DEFAULT_VALUES)
-        info_dict['errors'] = errors
         return render_to_response('portadmin/base.html',
                                   info_dict,
                                   RequestContext(request))
-    interfaces = netbox.get_swports_sorted()
-    info_dict = populate_infodict(account, netbox, interfaces)
-    return render_to_response(
-        'portadmin/portlist.html',
-        info_dict,
-        RequestContext(request))
+    else:
+        interfaces = netbox.get_swports_sorted()
+        info_dict = populate_infodict(request, account, netbox, interfaces)
+        return render_to_response(
+            'portadmin/portlist.html',
+            info_dict,
+            RequestContext(request))
 
 
 def search_by_sysname(request, sysname):
     """View for showing a search done by sysname"""
-    errors = []
     info_dict = {}
     account = get_account(request)
-    netbox = None
     try:
         netbox = Netbox.objects.get(sysname=sysname)
     except Netbox.DoesNotExist, do_not_exist_ex:
-        netbox = None
         _logger.error("Netbox %s not found; DoesNotExist = %s",
                       sysname, do_not_exist_ex)
-        errors.append('Could not find netbox with sysname %s' % sysname)
-
-    if not netbox:
+        messages.error(request,
+                       'Could not find netbox with sysname %s' % sysname)
         info_dict.update(DEFAULT_VALUES)
-        info_dict['errors'] = errors
         return render_to_response('portadmin/base.html',
                                   info_dict,
                                   RequestContext(request))
-    interfaces = netbox.get_swports_sorted()
-    info_dict = populate_infodict(account, netbox, interfaces)
-    return render_to_response('portadmin/portlist.html',
-                              info_dict,
-                              RequestContext(request))
+    else:
+        interfaces = netbox.get_swports_sorted()
+        info_dict = populate_infodict(request, account, netbox, interfaces)
+        return render_to_response('portadmin/portlist.html',
+                                  info_dict,
+                                  RequestContext(request))
 
 
 def search_by_interfaceid(request, interfaceid):
     """View for showing a search done by interface id"""
-    errors = []
     info_dict = {}
     account = get_account(request)
-    interface = None
     try:
         interface = Interface.objects.get(id=interfaceid)
     except Interface.DoesNotExist, do_not_exist_ex:
-        interface = None
         _logger.error("Interface %s not found; DoesNotExist = %s",
                       interfaceid, do_not_exist_ex)
-        errors.append('Could not find interface with id %s' % str(interfaceid))
-
-    if not interface:
+        messages.error(request,
+                       'Could not find interface with id %s' %
+                       str(interfaceid))
         info_dict.update(DEFAULT_VALUES)
-        info_dict['errors'] = errors
         return render_to_response('portadmin/base.html',
                                   info_dict,
                                   RequestContext(request))
-    netbox = interface.netbox
-    interfaces = [interface]
-    info_dict = populate_infodict(account, netbox, interfaces)
-    return render_to_response('portadmin/portlist.html',
-                              info_dict,
-                              RequestContext(request))
+    else:
+        netbox = interface.netbox
+        interfaces = [interface]
+        info_dict = populate_infodict(request, account, netbox, interfaces)
+        return render_to_response('portadmin/portlist.html',
+                                  info_dict,
+                                  RequestContext(request))
 
 
-def populate_infodict(account, netbox, interfaces):
+def populate_infodict(request, account, netbox, interfaces):
     """Populate a dictionary used in every http response"""
 
-    # TODO: Rewrite this to use djangos message framework
-    errors = []
     allowed_vlans = []
     try:
         get_and_populate_livedata(netbox, interfaces)
         allowed_vlans = find_and_populate_allowed_vlans(account, netbox,
                                                         interfaces)
     except SnmpError:
-        errors.append("Timeout when contacting netbox.")
+        messages.error(request, "Timeout when contacting %s" % netbox.sysname)
         if not netbox.read_only:
-            errors.append("Read only community not set")
-            errors.append("Values displayed are from database")
+            messages.error(request, "Read only community not set")
+            messages.error(request, "Values displayed are from database")
     except Exception, error:
-        errors.append(str(error))
+        messages.error(request, error)
 
     if not netbox.read_write:
-        errors.append("Write community not set for this device, "
-                      "changes cannot be saved")
+        messages.error(request,
+                       "Write community not set for this device, "
+                       "changes cannot be saved")
 
     ifaliasformat = get_ifaliasformat()
     aliastemplate = ''
@@ -174,8 +161,7 @@ def populate_infodict(account, netbox, interfaces):
                  'voice_vlans': voice_vlans,
                  'allowed_vlans': allowed_vlans,
                  'account': account,
-                 'aliastemplate': aliastemplate,
-                 'errors': errors}
+                 'aliastemplate': aliastemplate}
     info_dict.update(DEFAULT_VALUES)
     return info_dict
 
@@ -194,14 +180,12 @@ def set_voice_vlan_attribute(voice_vlans, interfaces):
 def save_interfaceinfo(request):
     """Set ifalias and/or vlan on netbox
 
-    messages: are returned as a part of the response object. If it is empty
-    the response is ok, otherwise an error has occured.
+    messages: created from the results from the messages framework
 
     interfaceid must be a part of the request
-    ifalias and vlan are both optional
+    ifalias, vlan and voicevlan are all optional
 
     """
-    messages = []
     if request.method == 'POST':
         interfaceid = request.POST.get('interfaceid')
         interface = Interface.objects.get(pk=interfaceid)
@@ -213,21 +197,31 @@ def save_interfaceinfo(request):
             except SnmpError, error:
                 _logger.error('Error getting snmpfactory instance %s: %s',
                               interface.netbox, error)
-                messages.append('Could not connect to netbox')
+                messages.info(request, 'Could not connect to netbox')
             else:
-                messages.append(set_ifalias(account, fac, interface, request))
-                messages.append(set_vlan(account, fac, interface, request))
+                set_ifalias(account, fac, interface, request)
+                set_vlan(account, fac, interface, request)
                 write_to_memory(fac)
                 save_to_database([interface])
         else:
             # Should only happen if user tries to avoid gui restrictions
-            messages.append('Not allowed to edit this interface')
+            messages.error(request, 'Not allowed to edit this interface')
     else:
-        messages.append('Wrong request type')
+        messages.error(request, 'Wrong request type')
 
-    messages = [x for x in messages if x]
-    result = {"messages": messages} if messages else {}
+    result = {"messages": build_ajax_messages(request)}
     return response_based_on_result(result)
+
+
+def build_ajax_messages(request):
+    ajax_messages = []
+    for message in messages.get_messages(request):
+        ajax_messages.append({
+            'level': message.level,
+            'message': message.message,
+            'extra_tags': message.tags
+        })
+    return ajax_messages
 
 
 def is_allowed_to_edit(interface, account):
@@ -249,15 +243,16 @@ def set_ifalias(account, fac, interface, request):
                     interface.ifname, ifalias))
             except SnmpError, error:
                 _logger.error('Error setting ifalias: %s', error)
-                return "Error setting ifalias: %s" % error
+                messages.error(request, "Error setting ifalias: %s" % error)
         else:
-            return "Wrong format on ifalias"
+            message.error(request, "Wrong format on ifalias")
 
 
 def set_vlan(account, fac, interface, request):
     """Set vlan on netbox if it is requested"""
     if 'vlan' in request.POST:
         vlan = int(request.POST.get('vlan'))
+        vlan = 'asd'
         try:
             fac.set_vlan(interface.ifindex, vlan)
             interface.vlan = vlan
@@ -266,7 +261,7 @@ def set_vlan(account, fac, interface, request):
                 interface.ifname, vlan))
         except (SnmpError, TypeError), error:
             _logger.error('Error setting vlan: %s', error)
-            return "Error setting vlan: %s" % error
+            messages.error(request, "Error setting vlan: %s" % error)
 
 
 def write_to_memory(fac):
@@ -293,8 +288,6 @@ def response_based_on_result(result):
 
 def render_trunk_edit(request, interfaceid):
     """Controller for rendering trunk edit view"""
-
-    from nav.portadmin.snmputils import SNMPFactory
 
     interface = Interface.objects.get(pk=interfaceid)
     agent = SNMPFactory().get_instance(interface.netbox)
