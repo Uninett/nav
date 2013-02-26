@@ -233,9 +233,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
         var error = '';
         for (var x = 0, message; message = messages[x]; x++) {
-            if (message.level === 40) {
-                error += message.message + '. ';
-            }
+            error += message.message + '. ';
         }
         $message.text(error);
 
