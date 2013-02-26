@@ -48,7 +48,7 @@ PortAdmin - {{ netbox.get_short_sysname }}
         </th>
         <th class="ifalias">Port Description</th>
         <th class="vlan">Vlan</th>
-        {% if voice_vlans %}
+        {% if voice_vlan %}
             <th class="voicevlan">Tel</th>
         {% endif %}
         <th class="button">&nbsp;</th>
@@ -117,7 +117,7 @@ PortAdmin - {{ netbox.get_short_sysname }}
         If voice is activated the interface is a trunk. This need to check
         specifically for this.
         {% endcomment %}
-        {% if voice_vlans %}
+        {% if voice_vlan %}
             {% if interface.voice_activated or not interface.trunk %}
                 <td class="text-center">
                     <input class="voicevlan"

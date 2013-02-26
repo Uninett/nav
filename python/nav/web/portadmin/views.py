@@ -33,7 +33,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      check_format_on_ifalias,
                                      is_administrator,
                                      find_allowed_vlans_for_user,
-                                     fetch_voice_vlans)
+                                     fetch_voice_vlan)
 from nav.Snmp.errors import SnmpError
 from nav.portadmin.snmputils import SNMPFactory
 
@@ -153,12 +153,12 @@ def populate_infodict(request, account, netbox, interfaces):
 
     save_to_database(interfaces)
 
-    voice_vlans = fetch_voice_vlans()
-    set_voice_vlan_attribute(voice_vlans, interfaces)
+    voice_vlan = fetch_voice_vlan()
+    set_voice_vlan_attribute(voice_vlan, interfaces)
 
     info_dict = {'interfaces': interfaces,
                  'netbox': netbox,
-                 'voice_vlans': voice_vlans,
+                 'voice_vlan': voice_vlan,
                  'allowed_vlans': allowed_vlans,
                  'account': account,
                  'aliastemplate': aliastemplate}
@@ -166,14 +166,13 @@ def populate_infodict(request, account, netbox, interfaces):
     return info_dict
 
 
-def set_voice_vlan_attribute(voice_vlans, interfaces):
+def set_voice_vlan_attribute(voice_vlan, interfaces):
     """Set an attribute on the interfaces to indicate voice vlan behavior"""
-    if voice_vlans:
+    if voice_vlan:
         for interface in interfaces:
             if not interface.trunk:
                 continue
-            if len(set(voice_vlans) &
-                    interface.swportallowedvlan.get_allowed_vlans()):
+            if voice_vlan in interface.swportallowedvlan.get_allowed_vlans():
                 interface.voice_activated = True
 
 
@@ -201,6 +200,7 @@ def save_interfaceinfo(request):
             else:
                 set_ifalias(account, fac, interface, request)
                 set_vlan(account, fac, interface, request)
+                set_voice_vlan(account, fac, interface, request)
                 write_to_memory(fac)
                 save_to_database([interface])
         else:
@@ -214,6 +214,7 @@ def save_interfaceinfo(request):
 
 
 def build_ajax_messages(request):
+    """Create a structure suitable for converting to json from messages"""
     ajax_messages = []
     for message in messages.get_messages(request):
         ajax_messages.append({
@@ -245,14 +246,13 @@ def set_ifalias(account, fac, interface, request):
                 _logger.error('Error setting ifalias: %s', error)
                 messages.error(request, "Error setting ifalias: %s" % error)
         else:
-            message.error(request, "Wrong format on ifalias")
+            messages.error(request, "Wrong format on ifalias")
 
 
 def set_vlan(account, fac, interface, request):
     """Set vlan on netbox if it is requested"""
     if 'vlan' in request.POST:
         vlan = int(request.POST.get('vlan'))
-        vlan = 'asd'
         try:
             fac.set_vlan(interface.ifindex, vlan)
             interface.vlan = vlan
@@ -262,6 +262,24 @@ def set_vlan(account, fac, interface, request):
         except (SnmpError, TypeError), error:
             _logger.error('Error setting vlan: %s', error)
             messages.error(request, "Error setting vlan: %s" % error)
+
+
+def set_voice_vlan(account, fac, interface, request):
+    """Set voicevlan on interface
+
+    A voice vlan is a normal vlan that is defined by the user of NAV as
+    a vlan that is used only for ip telephone traffic.
+
+    To set a voice vlan we have to make sure the interface is configured
+    to tag both the voicevlan and the "access-vlan".
+
+    """
+    if 'voicevlan' in request.POST:
+        voice_vlan = fetch_voice_vlan()
+        # Either the voicevlan is turned off or turned on
+        turn_on_voice_vlan = request.POST.get('voicevlan')
+        if turn_on_voice_vlan:
+            fac.set_voice_vlan()
 
 
 def write_to_memory(fac):
@@ -278,7 +296,7 @@ def response_based_on_result(result):
     result: dict containing result and message keys
 
     """
-    if 'messages' in result:
+    if result['messages']:
         return HttpResponse(simplejson.dumps(result), status=500,
                             mimetype="application/json")
     else:
