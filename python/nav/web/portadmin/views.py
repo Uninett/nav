@@ -137,6 +137,8 @@ def search_by_interfaceid(request, interfaceid):
 
 def populate_infodict(account, netbox, interfaces):
     """Populate a dictionary used in every http response"""
+
+    # TODO: Rewrite this to use djangos message framework
     errors = []
     allowed_vlans = []
     try:

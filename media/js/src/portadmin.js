@@ -47,14 +47,19 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
      * original value, mark the row as unchanged.
      */
     function addChangeListener(table) {
-        $(table).find('tbody').on('change keyup keypress blur', function (event) {
+        $(table).find('tbody').on('change keyup keypress blur click', function (event) {
             var $target = $(event.target);
-            if ($target.hasClass('ifalias') || $target.hasClass('vlanlist')) {
-                var row = $target.parents('tr');
-                if (textFieldChanged(row) || dropDownChanged(row)) {
-                    markAsChanged(row);
-                } else {
-                    markAsUnchanged(row);
+            var valid_classes = ['ifalias', 'vlanlist', 'voicevlan'];
+            var classString = $target.attr('class');
+            var classes = classString ? classString.split(' ') : [];
+            for (var cls in classes) {
+                if ($.inArray(cls, valid_classes)) {
+                    var row = $target.parents('tr');
+                    if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row)) {
+                        markAsChanged(row);
+                    } else {
+                        markAsUnchanged(row);
+                    }
                 }
             }
         });
@@ -116,6 +121,14 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         var origOption = $('[data-orig]', dropdown)[0];
         var selectedOption = $('option:selected', dropdown)[0];
         return origOption != selectedOption;
+    }
+
+    function voiceVlanChanged(row) {
+        var $checkbox = $(row).find('.voicevlan');
+        var origOption = $checkbox.attr('data-orig');
+        var checkedValue = $checkbox.prop('checked');
+        // NB: Misusing == here
+        return origOption != checkedValue;
     }
 
     function markAsChanged(row) {
