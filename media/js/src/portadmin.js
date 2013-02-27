@@ -144,10 +144,9 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
          * If box is not checked and original value is not checked, no change
          */
         var $checkbox = $(row).find('.voicevlan');
-        var origOption = $checkbox.attr('data-orig');
-        var checkedValue = $checkbox.prop('checked');
-        return !((checkedValue && origOption) ||
-                (!checkedValue && !origOption));
+        var origOption = Boolean($checkbox.attr('data-orig'));
+        var checkedValue = Boolean($checkbox.prop('checked'));
+        return checkedValue ^ origOption;
     }
 
     function markAsChanged(row) {

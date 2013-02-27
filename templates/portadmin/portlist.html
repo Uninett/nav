@@ -96,9 +96,11 @@ PortAdmin - {{ netbox.get_short_sysname }}
                 {% if interface.iseditable %}
                     <select class="vlanlist" name="{{ interface.ifname }}">
                         {% for vlan in allowed_vlans %}
-                            <option value="{{ vlan.vlan }}" {% if interface.vlan == vlan.vlan %}selected="selected" data-orig="{{ vlan.vlan }}"{% endif %}>
-                                {{ vlan.vlan }}
-                            </option>
+                            {% if not interface.voice_activated or vlan.vlan != voice_vlan %}
+                                <option value="{{ vlan.vlan }}" {% if interface.vlan == vlan.vlan %}selected="selected" data-orig="{{ vlan.vlan }}"{% endif %}>
+                                    {{ vlan.vlan }}
+                                </option>
+                            {% endif %}
                         {% endfor %}
                         {% if current_user_data.is_admin %}
                             <option value="trunk" data-url="{% url portadmin-render-trunk-edit interface.id %}">
