@@ -26,104 +26,105 @@ table.expand {
 /* Table caption */
 table.vertitable caption,
 table.listtable caption {
-	background: #567899;
-	color: white;
-	border-bottom: 2px solid white;
-	font-size: 1.2em;
-	font-weight: bolder;
-	padding: 0.3em 0.5em;
-	text-align: left;
+    background: #567899;
+    color: white;
+    border-bottom: 2px solid white;
+    font-size: 1.2em;
+    font-weight: bolder;
+    padding: 0.3em 0.5em;
+    text-align: left;
 }
 table.vertitable caption span.subtitle,
 table.listtable caption span.subtitle {
-	font-size: 0.9em;
-	font-weight: normal;
+    font-size: 0.9em;
+    font-weight: normal;
 }
 table.vertitable caption a,
 table.listtable caption a {
-	background: transparent;
-	color: white;
+    text-decoration:underline;
+    background: transparent;
+    color: white;
 }
 table.vertitable caption a:hover,
 table.listtable caption a:hover {
-	text-decoration: none;
+    text-decoration: none;
 }
 
 /* --- Details table --- */
 table.vertitable {
-	border: 1px solid #999;
-	border-collapse: separate;
-	border-spacing: 2px;
-	caption-side: top;
-	margin-bottom: 1em;
+    border: 1px solid #999;
+    border-collapse: separate;
+    border-spacing: 2px;
+    caption-side: top;
+    margin-bottom: 1em;
 }
 
 /* Table body */
 table.vertitable tr {
-	text-align: left;
-	vertical-align: top;
+    text-align: left;
+    vertical-align: top;
 }
 table.vertitable tr th {
-	background-color: #eee;
-	color: black;
-	font-weight: bolder;
-	padding: 0.1em 0.5em;
+    background-color: #eee;
+    color: black;
+    font-weight: bolder;
+    padding: 0.1em 0.5em;
 }
 table.vertitable tr th a {
-	color: black;
+    color: black;
 }
 table.vertitable tr td {
-	background-color: white;
-	padding: 0.1em 0.2em;
+    background-color: white;
+    padding: 0.1em 0.2em;
 }
 
 
 /* --- List table --- */
 table.listtable {
-	border: 1px solid #999;
-	border-collapse: separate;
-	border-spacing: 2px;
-	caption-side: top;
-	margin-bottom: 1em;
+    border: 1px solid #999;
+    border-collapse: separate;
+    border-spacing: 2px;
+    caption-side: top;
+    margin-bottom: 1em;
 }
 
 /* Table head */
 table.listtable tr {
-	text-align: left;
-	vertical-align: top;
+    text-align: left;
+    vertical-align: top;
 }
 table.listtable.middle tr {
     vertical-align: middle;
 }
 table.listtable tr th {
-	background: #eee;
-	color: black;
-	font-weight: bolder;
-	padding: 0.3em 0.5em;
-	vertical-align: middle;
+    background: #eee;
+    color: black;
+    font-weight: bolder;
+    padding: 0.3em 0.5em;
+    vertical-align: middle;
 }
 table.listtable tr th a {
-	background: transparent;
-	color: black;
-	text-decoration: underline;
+    background: transparent;
+    color: black;
+    text-decoration: underline;
 }
 
 /* Table body */
 table.listtable tr.evenrow {
-	background: #f6f6f6;
-	color: black;
+    background: #f6f6f6;
+    color: black;
 }
 table.listtable tr.oddrow {
-	background: white;
-	color: black;
+    background: white;
+    color: black;
 }
 table.listtable tr td {
-	padding: 0.1em 0.5em;
+    padding: 0.1em 0.5em;
 }
 
 /* Table footer */
 table.listtable tbody.footer tr th, table.listtable tfoot tr th {
-	text-align: left;
+    text-align: left;
 }
 
 /* --- List table with tablesorter --- */
@@ -157,13 +158,13 @@ table.listtable tbody.footer tr th, table.listtable tfoot tr th {
 
 /* Details table with full width */
 table.vertitablefull {
-	width: 100%;
+    width: 100%;
 }
 table.vertitablefull tr th {
-	width: 12em;
+    width: 12em;
 }
 
 /* Report table (also uses listtable) */
 table.reporttable tr td {
-	font-size: 0.8em;
+    font-size: 0.8em;
 }
