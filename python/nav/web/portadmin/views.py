@@ -25,7 +25,7 @@ from django.core.urlresolvers import reverse
 
 from nav.django.utils import get_account
 from nav.web.utils import create_title
-from nav.models.manage import Netbox, Interface
+from nav.models.manage import Netbox, Interface, SwPortAllowedVlan
 from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_and_populate_allowed_vlans,
                                      get_aliastemplate, get_ifaliasformat,
@@ -174,8 +174,11 @@ def fetch_voice_vlan_for_netbox(request, netbox):
     on this netbox. If multiple vlans exist, we cannot know which one to use.
 
     """
-    fac = SNMPFactory.get_instance(netbox)
     voice_vlans = fetch_voice_vlans()
+    if not voice_vlans:
+        return
+
+    fac = SNMPFactory.get_instance(netbox)
     voice_vlans_on_netbox = list(set(voice_vlans) &
                                  set(fac.get_available_vlans()))
     if not voice_vlans_on_netbox:
@@ -223,7 +226,7 @@ def save_interfaceinfo(request):
             else:
                 set_ifalias(account, fac, interface, request)
                 set_vlan(account, fac, interface, request)
-                set_voice_vlan(account, fac, interface, request)
+                set_voice_vlan(fac, interface, request)
                 write_to_memory(fac)
                 save_to_database([interface])
         else:
@@ -277,7 +280,13 @@ def set_vlan(account, fac, interface, request):
     if 'vlan' in request.POST:
         vlan = int(request.POST.get('vlan'))
         try:
-            fac.set_vlan(interface.ifindex, vlan)
+            # If Cisco and voice vlan, we have to set native vlan :(
+            if interface.netbox.type.vendor.id == 'cisco' and \
+                    _set_native_vlan(interface, request):
+                fac.set_native_vlan(interface, vlan)
+            else:
+                fac.set_vlan(interface.ifindex, vlan)
+
             interface.vlan = vlan
             _logger.info('%s: %s:%s - vlan set to %s' % (
                 account.login, interface.netbox.get_short_sysname(),
@@ -287,7 +296,18 @@ def set_vlan(account, fac, interface, request):
             messages.error(request, "Error setting vlan: %s" % error)
 
 
-def set_voice_vlan(account, fac, interface, request):
+def _set_native_vlan(interface, request):
+    """Find out if we have to set a native vlan or access vlan"""
+    voice_vlan = fetch_voice_vlan_for_netbox(request, interface.netbox)
+    try:
+        allowed = interface.swportallowedvlan.get_allowed_vlans()
+    except SwPortAllowedVlan.DoesNotExist:
+        return False
+    else:
+        return voice_vlan in allowed
+
+
+def set_voice_vlan(fac, interface, request):
     """Set voicevlan on interface
 
     A voice vlan is a normal vlan that is defined by the user of NAV as
