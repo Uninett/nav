@@ -69,7 +69,7 @@ PortAdmin - {{ netbox.get_short_sysname }}
         </td>
 
         <td>
-            {% if interface.iseditable %}
+            {% if interface.iseditable and not interface.trunk or interface.iseditable and interface.voice_activated %}
                 <input class="ifalias" type="text"
                        value="{{ interface.ifalias|default_if_none:'' }}"
                        data-orig="{{ interface.ifalias|default_if_none:'' }}"/>
@@ -84,7 +84,7 @@ PortAdmin - {{ netbox.get_short_sysname }}
         not allowed to edit display access vlan
         {% endcomment %}
         <td>
-			{% if interface.trunk %}
+			{% if interface.trunk and not interface.voice_activated %}
                 {% if current_user_data.is_admin %}
                     <a href="{% url portadmin-render-trunk-edit interface.id %}">
                 {% endif %}
@@ -136,7 +136,7 @@ PortAdmin - {{ netbox.get_short_sysname }}
         are initially hidden until a field is changed.
         {% endcomment %}
         <td>
-			{% if interface.iseditable %}
+			{% if interface.iseditable and not interface.trunk %}
 			<img src="/images/icons/edit-undo.png" class="undo" alt="Set as unchanged" title="Set as unchanged"/>
 			<img src="/images/portadmin/save.png" class="save" alt="Save" title="Save"/>
 			{% endif %}
