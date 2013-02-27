@@ -27,7 +27,7 @@
 <p>There are more than one prefix scope defined. Please select one of them</p>
 <select name="scope" onchange="this.form.submit()">
 #for $n in $scopes
-<option value="$n">$n</option>
+<option value="$n[0]">$n[0] ($n[1])</option>
 #end for
 </select>
 <input type="submit" value="View" />

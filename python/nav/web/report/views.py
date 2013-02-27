@@ -113,12 +113,12 @@ def matrix_report(request):
         # Find all scopes in database.
         connection = db.getConnection('webfront','manage')
         database = connection.cursor()
-        database.execute("SELECT netaddr FROM prefix INNER JOIN vlan USING (vlanid) WHERE nettype='scope'")
+        database.execute("SELECT netaddr, description FROM prefix INNER JOIN vlan USING (vlanid) WHERE nettype='scope'")
         databasescopes = database.fetchall()
 
         if len(databasescopes) == 1:
             # If there is a single scope in the db, display that
-            scope = IP(databasescopes[0][0])
+            scope = IP(databasescopes[0])
         else:
             # Otherwise, show an error or let the user select from
             # a list of scopes.
@@ -127,7 +127,7 @@ def matrix_report(request):
                          ("Subnet matrix", False)]
             page.scopes = []
             for scope in databasescopes:
-                page.scopes.append(scope[0])
+                page.scopes.append(scope)
 
             return HttpResponse(page.respond())
 
