@@ -153,7 +153,7 @@ def fetch_voice_vlans():
                         config.get("general", "voice_vlans").split(',')]
             except ValueError:
                 pass
-    return None
+    return []
 
 
 def read_config():
