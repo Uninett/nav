@@ -85,6 +85,7 @@ class SNMPHandler(object):
         self.netbox = netbox
         self.read_only_handle = None
         self.read_write_handle = None
+        self.available_vlans = None
 
     def __unicode__(self):
         return self.netbox.type.vendor.id
@@ -304,9 +305,12 @@ class SNMPHandler(object):
         This is similar to the terminal command "show vlans"
 
         """
-        return [int(self._extract_index_from_oid(oid))
+        if self.available_vlans is None:
+            self.available_vlans = [
+                int(self._extract_index_from_oid(oid))
                 for oid, status in self._bulkwalk(self.VLAN_ROW_STATUS)
                 if status == 1]
+        return self.available_vlans
 
     def set_voice_vlan(self, interface, voice_vlan):
         """Activate voice vlan on this interface"""
