@@ -313,12 +313,12 @@ class SNMPHandler(object):
         return self.available_vlans
 
     def set_voice_vlan(self, interface, voice_vlan):
-        """Activate voice vlan on this interface"""
-        current_vlan = self.get_vlan(interface.ifindex)
-        if current_vlan != 1:
-            self.set_trunk(interface, 1, [current_vlan, voice_vlan])
-        else:
-            self.set_trunk(interface, 1, [voice_vlan])
+        """Activate voice vlan on this interface
+
+        Use set_trunk to make sure the interface is put in trunk mode
+
+        """
+        self.set_trunk(interface, interface.vlan, [voice_vlan])
 
 
     @staticmethod
