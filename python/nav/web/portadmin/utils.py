@@ -144,12 +144,13 @@ def find_default_vlan(include_netident=False):
         return defaultvlan
 
 
-def fetch_voice_vlan():
+def fetch_voice_vlans():
     config = read_config()
     if config.has_section("general"):
-        if config.has_option("general", "voice_vlan"):
+        if config.has_option("general", "voice_vlans"):
             try:
-                return int(config.get("general", "voice_vlan"))
+                return [int(v) for v in
+                        config.get("general", "voice_vlans").split(',')]
             except ValueError:
                 pass
     return None

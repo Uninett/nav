@@ -33,7 +33,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      check_format_on_ifalias,
                                      is_administrator,
                                      find_allowed_vlans_for_user,
-                                     fetch_voice_vlan)
+                                     fetch_voice_vlans)
 from nav.Snmp.errors import SnmpError
 from nav.portadmin.snmputils import SNMPFactory
 
@@ -153,8 +153,9 @@ def populate_infodict(request, account, netbox, interfaces):
 
     save_to_database(interfaces)
 
-    voice_vlan = fetch_voice_vlan()
-    set_voice_vlan_attribute(voice_vlan, interfaces)
+    voice_vlan = fetch_voice_vlan_for_netbox(request, netbox)
+    if voice_vlan:
+        set_voice_vlan_attribute(voice_vlan, interfaces)
 
     info_dict = {'interfaces': interfaces,
                  'netbox': netbox,
@@ -164,6 +165,28 @@ def populate_infodict(request, account, netbox, interfaces):
                  'aliastemplate': aliastemplate}
     info_dict.update(DEFAULT_VALUES)
     return info_dict
+
+
+def fetch_voice_vlan_for_netbox(request, netbox):
+    """Fetch the voice vlan for this netbox
+
+    There may be multiple voice vlans configured. Pick the one that exists
+    on this netbox. If multiple vlans exist, we cannot know which one to use.
+
+    """
+    fac = SNMPFactory.get_instance(netbox)
+    voice_vlans = fetch_voice_vlans()
+    voice_vlans_on_netbox = list(set(voice_vlans) &
+                                 set(fac.get_available_vlans()))
+    if not voice_vlans_on_netbox:
+        # Should this be reported? At the moment I do not think so.
+        return
+    if len(voice_vlans_on_netbox) > 1:
+        messages.error(request, 'Multiple voice vlans configured on this '
+                                'netbox')
+        return
+
+    return voice_vlans_on_netbox[0]
 
 
 def set_voice_vlan_attribute(voice_vlan, interfaces):
@@ -275,11 +298,7 @@ def set_voice_vlan(account, fac, interface, request):
 
     """
     if 'voicevlan' in request.POST:
-        voice_vlan = fetch_voice_vlan()
-        if voice_vlan not in fac.get_available_vlans():
-            messages.error(request, 'Voice vlan is not enabled on this netbox')
-            return
-
+        voice_vlan = fetch_voice_vlan_for_netbox(request, interface.netbox)
         # Either the voicevlan is turned off or turned on
         turn_on_voice_vlan = request.POST.get('voicevlan')
         if turn_on_voice_vlan:
