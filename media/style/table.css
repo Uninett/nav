@@ -47,7 +47,7 @@ table.listtable caption a {
 }
 table.vertitable caption a:hover,
 table.listtable caption a:hover {
-    text-decoration: none;
+    color: lightyellow;
 }
 
 /* --- Details table --- */
