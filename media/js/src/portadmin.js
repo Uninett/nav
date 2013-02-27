@@ -84,12 +84,27 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
      */
     function addUndoListener(element) {
         $('.undo', element).click(function () {
-            var row = $(this).parents('tr');
-            var ifalias = $(row).find(".ifalias");
-            var vlan = $(row).find(".vlanlist");
-            $(ifalias).val($(ifalias).attr('data-orig'));
-            $(vlan).val($('[data-orig]', vlan).val());
-            clearChangedState(row);
+            var $row = $(this).parents('tr');
+            var $ifalias = $row.find(".ifalias");
+            var $vlan = $row.find(".vlanlist");
+            var $voicevlan = $row.find(".voicevlan");
+
+            // Set ifalias back to original value
+            $ifalias.val($ifalias.attr('data-orig'));
+
+            // Set vlan back to original value
+            $vlan.val($('[data-orig]', $vlan).val());
+
+            // Check or uncheck telephone checkbox
+            if ($voicevlan) {
+                if ($voicevlan.attr('data-orig')) {
+                    $voicevlan.prop('checked', 'checked');
+                } else {
+                    $voicevlan.prop('checked', false);
+                }
+            }
+
+            clearChangedState($row);
         });
     }
 
@@ -124,11 +139,15 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     function voiceVlanChanged(row) {
+        /*
+         * If box is checked and original value is checked, no change
+         * If box is not checked and original value is not checked, no change
+         */
         var $checkbox = $(row).find('.voicevlan');
         var origOption = $checkbox.attr('data-orig');
         var checkedValue = $checkbox.prop('checked');
-        // NB: Misusing == here
-        return origOption != checkedValue;
+        return !((checkedValue && origOption) ||
+                (!checkedValue && !origOption));
     }
 
     function markAsChanged(row) {

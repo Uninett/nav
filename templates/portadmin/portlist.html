@@ -136,7 +136,7 @@ PortAdmin - {{ netbox.get_short_sysname }}
         are initially hidden until a field is changed.
         {% endcomment %}
         <td>
-			{% if interface.iseditable and not interface.trunk %}
+			{% if interface.iseditable and not interface.trunk or interface.iseditable and interface.voice_activated %}
 			<img src="/images/icons/edit-undo.png" class="undo" alt="Set as unchanged" title="Set as unchanged"/>
 			<img src="/images/portadmin/save.png" class="save" alt="Save" title="Save"/>
 			{% endif %}
