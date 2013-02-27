@@ -276,10 +276,14 @@ def set_voice_vlan(account, fac, interface, request):
     """
     if 'voicevlan' in request.POST:
         voice_vlan = fetch_voice_vlan()
+        if voice_vlan not in fac.get_available_vlans():
+            messages.error(request, 'Voice vlan is not enabled on this netbox')
+            return
+
         # Either the voicevlan is turned off or turned on
         turn_on_voice_vlan = request.POST.get('voicevlan')
         if turn_on_voice_vlan:
-            fac.set_voice_vlan()
+            fac.set_voice_vlan(interface, voice_vlan)
 
 
 def write_to_memory(fac):

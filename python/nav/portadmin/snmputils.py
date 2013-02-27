@@ -22,7 +22,7 @@ from nav.Snmp import Snmp
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
 from nav.bitvector import BitVector
-from nav.models.manage import Vlan
+from nav.models.manage import Vlan, SwPortAllowedVlan
 
 
 _logger = logging.getLogger("nav.portadmin.snmputils")
@@ -197,11 +197,10 @@ class SNMPHandler(object):
     def set_vlan(self, if_index, vlan):
         """Set a new vlan on the given interface and remove
         the previous vlan"""
-        if isinstance(vlan, str) or isinstance(vlan, unicode):
-            if vlan.isdigit():
-                vlan = int(vlan)
-        if not isinstance(vlan, int):
-            raise TypeError('Illegal value for vlan: %s' % vlan)
+        try:
+            vlan = int(vlan)
+        except ValueError:
+            raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
         fromvlan = self.get_vlan(if_index)
         # fromvlan and vlan is the same, there's nothing to do
@@ -309,6 +308,15 @@ class SNMPHandler(object):
                 for oid, status in self._bulkwalk(self.VLAN_ROW_STATUS)
                 if status == 1]
 
+    def set_voice_vlan(self, interface, voice_vlan):
+        """Activate voice vlan on this interface"""
+        current_vlan = self.get_vlan(interface.ifindex)
+        if current_vlan != 1:
+            self.set_trunk(interface, 1, [current_vlan, voice_vlan])
+        else:
+            self.set_trunk(interface, 1, [voice_vlan])
+
+
     @staticmethod
     def _extract_index_from_oid(oid):
         return int(oid.split('.')[-1])
@@ -392,7 +400,20 @@ class SNMPHandler(object):
         self.set_trunk_vlans(interface, trunk_vlans)
         interface.vlan = native_vlan
         interface.trunk = True
+        bitvector = BitVector(128 * '\000')
+        for vlan in trunk_vlans:
+            bitvector[vlan] = 1
+        self._set_interface_hex(interface, bitvector)
         interface.save()
+
+    def _set_interface_hex(self, interface, bitvector):
+        try:
+            allowedvlan = interface.swportallowedvlan
+        except SwPortAllowedVlan.DoesNotExist:
+            allowedvlan = SwPortAllowedVlan(interface=interface)
+
+        allowedvlan.hex_string = bitvector.to_hex()
+        allowedvlan.save()
 
     @staticmethod
     def _find_vlans_for_interface(interface):
@@ -434,11 +455,10 @@ class Cisco(SNMPHandler):
     def set_vlan(self, if_index, vlan):
         """Set a new vlan for a specified interface,- and
         remove the previous vlan."""
-        if isinstance(vlan, str) or isinstance(vlan, unicode):
-            if vlan.isdigit():
-                vlan = int(vlan)
-        if not isinstance(vlan, int):
-            raise TypeError('Illegal value for vlan: %s' % vlan)
+        try:
+            vlan = int(vlan)
+        except ValueError:
+            raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
         fromvlan = self.get_vlan(if_index)
         # fromvlan and vlan is the same, there's nothing to do
