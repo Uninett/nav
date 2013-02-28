@@ -279,10 +279,13 @@ def set_vlan(account, fac, interface, request):
     """Set vlan on netbox if it is requested"""
     if 'vlan' in request.POST:
         vlan = int(request.POST.get('vlan'))
+
+        # If the voice_vlan flag is flagged we need to take some extra care
+        voice_activated = request.POST.get('voice_activated', False)
         try:
-            # If Cisco and voice vlan, we have to set native vlan :(
-            if interface.netbox.type.vendor.id == 'cisco' and \
-                    _set_native_vlan(interface, request):
+            # If Cisco and voice vlan, we have to set native vlan instead of
+            # access vlan
+            if interface.netbox.type.vendor.id == 'cisco' and voice_activated:
                 fac.set_native_vlan(interface, vlan)
             else:
                 fac.set_vlan(interface.ifindex, vlan)
@@ -294,17 +297,6 @@ def set_vlan(account, fac, interface, request):
         except (SnmpError, TypeError), error:
             _logger.error('Error setting vlan: %s', error)
             messages.error(request, "Error setting vlan: %s" % error)
-
-
-def _set_native_vlan(interface, request):
-    """Find out if we have to set a native vlan or access vlan"""
-    voice_vlan = fetch_voice_vlan_for_netbox(request, interface.netbox)
-    try:
-        allowed = interface.swportallowedvlan.get_allowed_vlans()
-    except SwPortAllowedVlan.DoesNotExist:
-        return False
-    else:
-        return voice_vlan in allowed
 
 
 def set_voice_vlan(fac, interface, request):

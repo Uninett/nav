@@ -194,6 +194,9 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         if (voiceVlanChanged($row)) {
             data['voicevlan'] = $row.find(".voicevlan").prop('checked');
         }
+        if ($row.find(".voicevlan").prop('checked')) {
+            data['voice_activated'] = true;
+        }
         return data;
     }
 
