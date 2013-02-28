@@ -11,6 +11,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         }
     }
     var nav_ajax_queue = [];
+    var queue_data = {};
 
     $(document).ready(function(){
         NAV.addGlobalAjaxHandlers();
@@ -209,7 +210,18 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         }
         disableSaveallButtons();
         nav_ajax_queue.push(rowid);
+        queue_data[rowid] = interfaceData;
 
+        if (nav_ajax_queue.length > 1) {
+            return;
+        }
+
+        doAjaxRequest(rowid);
+    }
+
+    function doAjaxRequest(rowid) {
+        var $row = $('#' + rowid);
+        var interfaceData = queue_data[rowid];
         $.ajax({url: "save_interfaceinfo",
             data: interfaceData,
             dataType: 'json',
@@ -230,6 +242,9 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
                 removeFromQueue(rowid);
                 if (nav_ajax_queue.length == 0) {
                     enableSaveallButtons();
+                } else {
+                    console.log('Processing next entry in queue');
+                    doAjaxRequest(nav_ajax_queue[0]);
                 }
             }
         });
@@ -305,6 +320,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     function removeFromQueue(id) {
+        delete queue_data[id];
         var index = nav_ajax_queue.indexOf(id);
         if (index > -1) {
             nav_ajax_queue.splice(index, 1);
