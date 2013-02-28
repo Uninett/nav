@@ -1,5 +1,5 @@
 #
-# Copyright 2012 (C) UNINETT AS
+# Copyright 2013 (C) UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -29,6 +29,9 @@ order.
 """
 
 import re
+
+# A range of left shift values for the 6 bytes in a MAC address
+_SHIFT_RANGE = tuple(x*8 for x in reversed(range(6)))
 
 
 class MacAddress(object):
@@ -91,43 +94,34 @@ class MacAddress(object):
     def _parse_address(self, addr):
         """Parse the mac-address string and return a tuple of the long-value
         for the address and the length of the address-string (number of nybbles
-        in the given address)."""
+        in the given address).
+        """
         if not isinstance(addr, (str, unicode)):
             raise TypeError('addr argument must be string or unicode')
         addr = ''.join(i for i in addr.strip()
                        if i not in self.DELIMS_AND_STEPS)
-        local_len = len(addr)
-        if local_len < self.MIN_MAC_ADDR_LEN:
+        orig_len = len(addr)
+        if orig_len < self.MIN_MAC_ADDR_LEN:
             raise ValueError('Mac-address too short; Minimum %d nybbles' %
                              self.MIN_MAC_ADDR_LEN)
-        if local_len > self.MAX_MAC_ADDR_LEN:
+        if orig_len > self.MAX_MAC_ADDR_LEN:
             raise ValueError('Mac-address too long; Maximum %d nybbles' %
                              self.MAX_MAC_ADDR_LEN)
         if not self.MAC_ADDRESS_PATTERN.match(addr):
             raise ValueError("Mac-address contain illegal values")
-        # Parse out all hex-numbers
-        addr_bytes = [addr[x:x + 2] for x in range(0, local_len, 2)]
-        for index, value in enumerate(addr_bytes):
-            # When only one figure is given,- assume it is
-            # the leftmost figure in a hex-humber.
-            addr_bytes[index] = addr_bytes[index].ljust(2, '0')
-        # Add the missing values to form a full mac-address with 12 nybbles
-        addr_bytes += ['00'] * ((self.MAX_MAC_ADDR_LEN / 2) - len(addr_bytes))
-        addr_bytes = [long(x, 16) for x in addr_bytes]
-        for value in addr_bytes:
-            if value > 255 or value < 0:
-                raise ValueError("Illegal value for byte")
-        addr = ((addr_bytes[0] << 40) + (addr_bytes[1] << 32) +
-                (addr_bytes[2] << 24) + (addr_bytes[3] << 16) +
-                (addr_bytes[4] << 8) + (addr_bytes[5]))
-        return addr, local_len
 
-    def _add_delimiter(self, mac_addr, prefix_len, delim, step):
+        addr = addr.ljust(self.MAX_MAC_ADDR_LEN, '0')
+        addr_bytes = [long(addr[x:x + 2], 16) for x in range(0, len(addr), 2)]
+        addr = sum(n << shift for n, shift in zip(addr_bytes, _SHIFT_RANGE))
+        return addr, orig_len
+
+    @classmethod
+    def _add_delimiter(cls, mac_addr, prefix_len, delim, step):
         """Format the mac-address to a string with delimiters"""
         mac_addr = ('%x' % mac_addr)
-        mac_addr = mac_addr.rjust(self.MAX_MAC_ADDR_LEN, '0')
-        if ((prefix_len >= self.MIN_MAC_ADDR_LEN) and
-           (prefix_len < self.MAX_MAC_ADDR_LEN)):
+        mac_addr = mac_addr.rjust(cls.MAX_MAC_ADDR_LEN, '0')
+        if ((prefix_len >= cls.MIN_MAC_ADDR_LEN) and
+           (prefix_len < cls.MAX_MAC_ADDR_LEN)):
             mac_addr = mac_addr[0:prefix_len]
         return delim.join(mac_addr[x:x + step]
                           for x in range(0, len(mac_addr), step))
@@ -228,8 +222,7 @@ class MacAddress(object):
         this method will always return less than zero.
         """
         mac_addr = other
-        if (isinstance(other, (str, unicode)) or
-                isinstance(other, (int, long))):
+        if isinstance(other, (str, unicode, int, long)):
             try:
                 mac_addr = MacAddress(other)
             except ValueError:
