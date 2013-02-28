@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -9,16 +8,14 @@
 # the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Machine tracker forms"""
 
 import re
-from IPy import IP
 from nav.web.machinetracker import iprange
 from django import forms
 from django.forms.util import ErrorList
@@ -46,12 +43,13 @@ class IpTrackerForm(forms.Form):
         return data
 
     def clean_ip_range(self):
-        data = str(self.cleaned_data['ip_range'])
+        data = self.cleaned_data['ip_range']
         try:
             data = iprange.MachinetrackerIPRange.from_string(data)
-        except ValueError, e:
-            raise forms.ValidationError("Invalid syntax: %s" % e)
+        except ValueError as error:
+            raise forms.ValidationError("Invalid syntax: %s" % error)
         return data
+
 
 class MacTrackerForm(forms.Form):
     mac = forms.CharField()
@@ -71,6 +69,7 @@ class MacTrackerForm(forms.Form):
         if len(bad_chars) > 0 or len(tmp_mac) > 12:
             raise forms.ValidationError(u"Invalid MAC address")
         return mac
+
 
 class SwitchTrackerForm(forms.Form):
     switch = forms.CharField()
