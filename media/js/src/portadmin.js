@@ -255,7 +255,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         var $cells = $row.find('td');
 
         $row.addClass('success');
-        $cells.animate({'background-color': '#FFF'}, 3000, function () {
+        $cells.animate({'background-color': '#FFF'}, 1000, function () {
             $cells.removeAttr('style');
             $row.removeClass('success');
         });
