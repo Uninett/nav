@@ -213,57 +213,34 @@ class MacAddress(object):
                           self.DEFAULT_DELIM,
                           self.DELIMS_AND_STEPS[self.DEFAULT_DELIM]))
 
-    def __cmp__(self, other):
-        """Called by comparison operations.
-
-        Should return a negative integer if self < other, zero if self
-        == other, a positive integer if self > other.
-        If other is not an object that can get converted to a mac-address
-        this method will always return less than zero.
-        """
-        mac_addr = other
-        if isinstance(other, (str, unicode, int, long)):
-            try:
-                mac_addr = MacAddress(other)
-            except ValueError:
-                mac_addr = None
-        # pylint: disable=W0212
-        if isinstance(mac_addr, MacAddress):
-            if self._addr < mac_addr._addr:
-                return -1
-            elif self._addr > mac_addr._addr:
-                return 1
-            else:
-                return 0
-        return -1
-
     def __lt__(self, other):
-        """Return True of this object is less than other"""
-        return self.__cmp__(other) < 0
+        return self._compare(other, lambda s, o: s < o)
 
     def __le__(self, other):
-        """Return True of this object is less than or equal other"""
-        return self.__cmp__(other) <= 0
+        return self._compare(other, lambda s, o: s <= o)
 
     def __eq__(self, other):
-        """Return True of this object is equal other"""
-        return self.__cmp__(other) == 0
+        return self._compare(other, lambda s, o: s == o)
 
     def __ne__(self, other):
-        """Return True of this object is not equal other"""
-        return self.__cmp__(other) != 0
+        return self._compare(other, lambda s, o: s != o)
 
     def __gt__(self, other):
-        """Return True of this object is greater than other"""
-        return self.__cmp__(other) > 0
+        return self._compare(other, lambda s, o: s > o)
 
     def __ge__(self, other):
-        """Return True of this object is greater than or equal other"""
-        if isinstance(other, MacAddress):
-            return self.__cmp__(other) >= 0
+        return self._compare(other, lambda s, o: s >= o)
+
+    def _compare(self, other, method):
+        try:
+            other = self.__class__(other)
+        except ValueError:
+            return NotImplemented
+        else:
+            #pylint: disable=W0212
+            return method(self._addr, other._addr)
 
     def __hash__(self):
-        """Return this object's hash-value"""
         return hash((self._addr, self._prefix_len))
 
     def to_string(self, delim=None):
