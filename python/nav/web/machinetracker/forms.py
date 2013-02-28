@@ -45,7 +45,7 @@ class IpTrackerForm(forms.Form):
         return data
 
     def clean_ip_range(self):
-        data = str(self.cleaned_data['ip_range'])
+        data = self.cleaned_data['ip_range']
         try:
             data = iprange.MachinetrackerIPRange.from_string(data)
         except ValueError, e:
