@@ -288,6 +288,9 @@ class Cisco(SNMPHandler):
         self.vlan_oid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
         self.write_mem_oid = '1.3.6.1.4.1.9.2.1.54.0'
 
+    def get_vlan(self, if_index):
+        return self._query_netbox(self.vlan_oid, if_index)
+
     def set_vlan(self, if_index, vlan):
         """Set a new vlan for a specified interface,- and
         remove the previous vlan."""
@@ -304,13 +307,13 @@ class Cisco(SNMPHandler):
         # Add port to vlan. This makes the port active on both old and new vlan
         status = None
         try:
-            status = self._set_netbox_value(self.vlan_oid, if_index, "u", vlan)
+            status = self._set_netbox_value(self.vlan_oid, if_index, "i", vlan)
         except SnmpError, ex:
             # Ignore this exception,- some boxes want signed integer and
             # we do not know this beforehand.
             # If unsigned fail,- try with signed integer.
             _logger.debug("set_vlan: Exception = %s" % str(ex))
-            status = self._set_netbox_value(self.vlan_oid, if_index, "i", vlan)
+            status = self._set_netbox_value(self.vlan_oid, if_index, "u", vlan)
         return status
 
     def write_mem(self):
