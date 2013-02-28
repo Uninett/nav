@@ -125,7 +125,7 @@ PortAdmin - {{ netbox.get_short_sysname }}
                     <input class="voicevlan"
                            type="checkbox"
                            name="voice_vlan"
-                           data-orig="{{ interface.voice_activated }}"
+                           data-orig="{{ interface.voice_activated|default:'False' }}"
                            {% if interface.voice_activated %}checked{% endif %}
                            {% if not interface.iseditable %}disabled="disabled"{% endif %}>
                 </td>

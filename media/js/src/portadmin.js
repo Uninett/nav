@@ -140,12 +140,11 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
     function voiceVlanChanged(row) {
         /*
-         * If box is checked and original value is checked, no change
-         * If box is not checked and original value is not checked, no change
+         * XOR checkbox checked and original value to see if changed
          */
         var $checkbox = $(row).find('.voicevlan');
-        var origOption = Boolean($checkbox.attr('data-orig'));
-        var checkedValue = Boolean($checkbox.prop('checked'));
+        var origOption = $checkbox.attr('data-orig').toLowerCase() == 'true';
+        var checkedValue = $checkbox.prop('checked');
         return checkedValue ^ origOption;
     }
 
@@ -275,6 +274,9 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         if ('vlan' in data) {
             updateVlanDefault($row, data['vlan']);
         }
+        if ('voicevlan' in data) {
+            updateVoiceDefault($row, data['voicevlan'])
+        }
     }
 
     function updateIfAliasDefault($row, ifalias) {
@@ -291,6 +293,14 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
             console.log('Updating vlan default from ' + old_vlan + ' to ' + vlan);
             $row.find('option[data-orig]').removeAttr('data-orig');
             $row.find('option[value=' + vlan + ']').attr('data-orig', vlan);
+        }
+    }
+
+    function updateVoiceDefault($row, new_value) {
+        var $voice_element = $row.find(".voicevlan");
+        var old_value = $voice_element.attr('data-orig');
+        if (old_value != new_value) {
+            $voice_element.attr('data-orig', new_value);
         }
     }
 

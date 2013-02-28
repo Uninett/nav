@@ -224,9 +224,10 @@ def save_interfaceinfo(request):
                               interface.netbox, error)
                 messages.info(request, 'Could not connect to netbox')
             else:
+                # Order is important here, set_voice need to be before set_vlan
+                set_voice_vlan(fac, interface, request)
                 set_ifalias(account, fac, interface, request)
                 set_vlan(account, fac, interface, request)
-                set_voice_vlan(fac, interface, request)
                 write_to_memory(fac)
                 save_to_database([interface])
         else:
@@ -312,9 +313,13 @@ def set_voice_vlan(fac, interface, request):
     if 'voicevlan' in request.POST:
         voice_vlan = fetch_voice_vlan_for_netbox(request, interface.netbox)
         # Either the voicevlan is turned off or turned on
-        turn_on_voice_vlan = request.POST.get('voicevlan')
+        turn_on_voice_vlan = request.POST.get('voicevlan') == 'true'
         if turn_on_voice_vlan:
+            _logger.info('Turning on voice vlan on %s', interface)
             fac.set_voice_vlan(interface, voice_vlan)
+        else:
+            _logger.info('Turning off voice vlan on %s', interface)
+            fac.set_access(interface, interface.vlan)
 
 
 def write_to_memory(fac):
