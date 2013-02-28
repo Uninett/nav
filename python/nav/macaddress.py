@@ -13,25 +13,28 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""A class that represents a Media Access Control address (MAC address).
-It may also be known as an Ethernet hardware address (EHA), hardware
-address or physical address.
+"""MAC address manipulation.
+
+MAC is a Media Access Control address. It may also be known as an Ethernet
+hardware address (EHA), hardware address or physical address.
 
 The standard (IEEE 802) format for printing MAC-48 addresses in human-
-friendly form is six groups of two hexadecimal digits, separated by
-hyphens (-) or colons (:), in transmission order (e.g. 01-23-45-67-89-ab
-or 01:23:45:67:89:ab).
-This form is also commonly used for EUI-64. Another convention used by
-networking equipment uses three groups of four hexadecimal digits separated
-by dots (.) (e.g. 0123.4567.89ab), again in transmission order.
+friendly form is six groups of two hexadecimal digits, separated by hyphens
+(-) or colons (:), in transmission order (e.g. 01-23-45-67-89-ab or
+01:23:45:67:89:ab). This form is also commonly used for EUI-64. Anotqher
+convention used by networking equipment uses three groups of four hexadecimal
+digits separated by dots (.) (e.g. 0123.4567.89ab), again in transmission
+order.
+
 """
 
 import re
 
 
 class MacAddress(object):
-    """Class for representing a mac-address or a partial mac-address
-    (mac-address prefix)
+    """A representation of either a single MAC address or a MAC address
+    prefix, loosely modeled on IPy.IP for IP addresses.
+
     """
     # Default delimiter for a mac-address as a string.
     DEFAULT_DELIM = ':'
@@ -58,6 +61,7 @@ class MacAddress(object):
     _addr_len = -1
 
     def __init__(self, addr):
+        # pylint: disable=W0212
         if isinstance(addr, MacAddress):
             self._addr = addr._addr
             self._prefix_len = addr._prefix_len
@@ -65,7 +69,7 @@ class MacAddress(object):
         else:
             if isinstance(addr, (int, long)):
                 self._addr = long(addr)
-                if (self._addr < 0 or self._addr > self.MAX_MAC_ADDR_VALUE):
+                if self._addr < 0 or self._addr > self.MAX_MAC_ADDR_VALUE:
                     raise ValueError('Illegal value for address')
                 self._prefix_len = self.MAX_MAC_ADDR_LEN
             elif isinstance(addr, (str, unicode)):
@@ -89,9 +93,9 @@ class MacAddress(object):
         for the address and the length of the address-string (number of nybbles
         in the given address)."""
         if not isinstance(addr, (str, unicode)):
-            raise ValueError('Illegal parameter-type')
-        addr = re.sub('\.', '', re.sub(':', '', re.sub('-', '', addr)))
-        addr.strip()
+            raise TypeError('addr argument must be string or unicode')
+        addr = ''.join(i for i in addr.strip()
+                       if i not in self.DELIMS_AND_STEPS)
         local_len = len(addr)
         if local_len < self.MIN_MAC_ADDR_LEN:
             raise ValueError('Mac-address too short; Minimum %d nybbles' %
@@ -116,7 +120,7 @@ class MacAddress(object):
         addr = ((addr_bytes[0] << 40) + (addr_bytes[1] << 32) +
                 (addr_bytes[2] << 24) + (addr_bytes[3] << 16) +
                 (addr_bytes[4] << 8) + (addr_bytes[5]))
-        return (addr, local_len)
+        return addr, local_len
 
     def _add_delimiter(self, mac_addr, prefix_len, delim, step):
         """Format the mac-address to a string with delimiters"""
@@ -227,9 +231,10 @@ class MacAddress(object):
         if (isinstance(other, (str, unicode)) or
                 isinstance(other, (int, long))):
             try:
-                mac_addr = self._to_mac_addr(other)
+                mac_addr = MacAddress(other)
             except ValueError:
                 mac_addr = None
+        # pylint: disable=W0212
         if isinstance(mac_addr, MacAddress):
             if self._addr < mac_addr._addr:
                 return -1
@@ -241,28 +246,28 @@ class MacAddress(object):
 
     def __lt__(self, other):
         """Return True of this object is less than other"""
-        return (self.__cmp__(other) < 0)
+        return self.__cmp__(other) < 0
 
     def __le__(self, other):
         """Return True of this object is less than or equal other"""
-        return (self.__cmp__(other) <= 0)
+        return self.__cmp__(other) <= 0
 
     def __eq__(self, other):
         """Return True of this object is equal other"""
-        return (self.__cmp__(other) == 0)
+        return self.__cmp__(other) == 0
 
     def __ne__(self, other):
         """Return True of this object is not equal other"""
-        return (self.__cmp__(other) != 0)
+        return self.__cmp__(other) != 0
 
     def __gt__(self, other):
         """Return True of this object is greater than other"""
-        return (self.__cmp__(other) > 0)
+        return self.__cmp__(other) > 0
 
     def __ge__(self, other):
         """Return True of this object is greater than or equal other"""
         if isinstance(other, MacAddress):
-            return (self.__cmp__(other) >= 0)
+            return self.__cmp__(other) >= 0
 
     def __hash__(self):
         """Return this object's hash-value"""
