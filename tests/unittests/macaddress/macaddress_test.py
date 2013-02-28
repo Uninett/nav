@@ -184,3 +184,12 @@ class MacAddressTest(unittest.TestCase):
         self.assertTrue(mac_addr1 <= mac_addr2)
         self.assertTrue(mac_addr2 >= mac_addr1)
         self.assertTrue(mac_addr1 != mac_addr2)
+
+    def test_mac_address_should_compare_with_int(self):
+        mac = MacAddress('01:23:45:67:89:ab')
+        self.assertTrue(mac != 5)
+
+    def test_mac_address_should_compare_with_string(self):
+        mac = MacAddress('01:23:45:67:89:ab')
+        self.assertTrue(mac == '01:23:45:67:89:ab')
+        self.assertFalse(mac == 'blah')
