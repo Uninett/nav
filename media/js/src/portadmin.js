@@ -1,4 +1,4 @@
-require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
+require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
     if(!Array.indexOf){
         Array.prototype.indexOf = function(obj){
@@ -10,8 +10,13 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
             return -1;
         }
     }
-    var nav_ajax_queue = [];
-    var queue_data = {};
+
+    var nav_ajax_queue = [];  // Queue for rows we are saving
+    var queue_data = {};  // Object containing data for ajax requests
+
+    /* Generic spinner created for display in the middle of a cell */
+    var spinner = new Spinner({length: 3, width: 2, radius: 5});
+
 
     $(document).ready(function(){
         NAV.addGlobalAjaxHandlers();
@@ -43,7 +48,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     /*
-     * When user changes either the textfield or the dropdown from it's
+     * When user changes a form field from it's
      * original value, mark the row as changed. If the change results in the
      * original value, mark the row as unchanged.
      */
@@ -53,8 +58,8 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
             var valid_classes = ['ifalias', 'vlanlist', 'voicevlan'];
             var classString = $target.attr('class');
             var classes = classString ? classString.split(' ') : [];
-            for (var cls in classes) {
-                if ($.inArray(cls, valid_classes)) {
+            for (var i=0, cls; cls=classes[i]; i++) {
+                if (valid_classes.indexOf(cls) >= 0) {
                     var row = $target.parents('tr');
                     if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row)) {
                         markAsChanged(row);
@@ -67,7 +72,14 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     function addSaveListener(element) {
-        $('.save', element).click(saveRow);
+        /*
+        Save when clicking on the save buttons. As the save button is in
+        another row than the form, find the correct row and run save on it.
+        */
+        $('.save', element).click(function (event) {
+            var motherId = $(event.target).parents('tr').attr('data-mother-row');
+            saveRow.call($('#' + motherId));
+        });
     }
 
     function addSaveAllListener(element) {
@@ -79,13 +91,12 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     /*
-     * Undo the changes the user has done on the ifalias and vlan dropdown
-     *
-     * Consider: If the user has saved, update the undo information?
+     * Undo the changes the user has done on the form fields
      */
     function addUndoListener(element) {
-        $('.undo', element).click(function () {
-            var $row = $(this).parents('tr');
+        $('.undo', element).click(function (event) {
+            var motherId = $(event.target).parents('tr').attr('data-mother-row');
+            var $row = $('#' + motherId);
             var $ifalias = $row.find(".ifalias");
             var $vlan = $row.find(".vlanlist");
             var $voicevlan = $row.find(".voicevlan");
@@ -98,7 +109,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
             // Check or uncheck telephone checkbox
             if ($voicevlan) {
-                if ($voicevlan.attr('data-orig')) {
+                if ($voicevlan.attr('data-orig').toLowerCase() == 'true') {
                     $voicevlan.prop('checked', 'checked');
                 } else {
                     $voicevlan.prop('checked', false);
@@ -110,6 +121,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     function addToggleVlanInfoListener(element) {
+        // Toggler for the available vlans list
         $('.toggler', element).click(function () {
             var vlanlist = $('ul', element),
                 expandButton = $('.toggler.expand'),
@@ -150,11 +162,28 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     function markAsChanged(row) {
-        $(row).addClass("changed");
+        var $row = $(row);
+        if (!$row.hasClass('changed')) {
+            showActionRow($row);
+            $row.addClass("changed");
+        }
+    }
+
+    function showActionRow($row) {
+        /* Slide down the actionrow */
+        $($row.nextAll('.actionrow')[0]).find('.slider').slideDown();
     }
 
     function markAsUnchanged(row) {
-        $(row).removeClass("changed");
+        var $row = $(row);
+        if ($row.hasClass('changed')) {
+            hideActionRow($row);
+            $row.removeClass("changed");
+        }
+    }
+
+    function hideActionRow($row) {
+        $($row.nextAll('.actionrow')[0]).find('.slider').slideUp();
     }
 
     function clearChangedState(row) {
@@ -183,6 +212,9 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     function create_ajax_data($row) {
+        /*
+         Create the object used in the ajax call.
+         */
         var data = {};
         data['interfaceid'] = $row.prop('id');
         if (textFieldChanged($row)) {
@@ -201,8 +233,6 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     function saveInterface($row, interfaceData) {
-        console.log({'row': $row, 'data': interfaceData});
-
         var rowid = $row.prop('id');
         // If a save on this row is already in progress, do nothing.
         if (nav_ajax_queue.indexOf(rowid) > -1) {
@@ -212,6 +242,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         nav_ajax_queue.push(rowid);
         queue_data[rowid] = interfaceData;
 
+        // Do not send more than one request at the time.
         if (nav_ajax_queue.length > 1) {
             return;
         }
@@ -222,12 +253,15 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     function doAjaxRequest(rowid) {
         var $row = $('#' + rowid);
         var interfaceData = queue_data[rowid];
+        var actionCell = $($row.nextAll('.actionrow')[0]).find('td').get(0);
         $.ajax({url: "save_interfaceinfo",
             data: interfaceData,
             dataType: 'json',
             type: 'POST',
             beforeSend: function () {
                 $('tr.error').remove();
+                disableButtons(actionCell);
+                spinner.spin(actionCell);
             },
             success: function () {
                 clearChangedState($row);
@@ -240,14 +274,24 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
             },
             complete: function (jqXhr) {
                 removeFromQueue(rowid);
+                enableButtons(actionCell);
+                spinner.stop();
                 if (nav_ajax_queue.length == 0) {
                     enableSaveallButtons();
                 } else {
-                    console.log('Processing next entry in queue');
+                    // Process next entry in queue
                     doAjaxRequest(nav_ajax_queue[0]);
                 }
             }
         });
+    }
+
+    function disableButtons(cell) {
+        $(cell).find('button').prop('disabled', true);
+    }
+
+    function enableButtons(cell) {
+        $(cell).find('button').prop('disabled', false);
     }
 
     function indicateSuccess($row) {
@@ -297,7 +341,6 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     function updateIfAliasDefault($row, ifalias) {
         var old_ifalias = $row.find(".ifalias").attr('data-orig');
         if (old_ifalias !== ifalias) {
-            console.log('Updating ifalias default from ' + old_ifalias + ' to ' + ifalias);
             $row.find(".ifalias").attr('data-orig', ifalias);
         }
     }

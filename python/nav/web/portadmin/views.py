@@ -314,12 +314,15 @@ def set_voice_vlan(fac, interface, request):
         voice_vlan = fetch_voice_vlan_for_netbox(request, interface.netbox)
         # Either the voicevlan is turned off or turned on
         turn_on_voice_vlan = request.POST.get('voicevlan') == 'true'
-        if turn_on_voice_vlan:
-            _logger.info('Turning on voice vlan on %s', interface)
-            fac.set_voice_vlan(interface, voice_vlan)
-        else:
-            _logger.info('Turning off voice vlan on %s', interface)
-            fac.set_access(interface, interface.vlan)
+        try:
+            if turn_on_voice_vlan:
+                _logger.info('Turning on voice vlan on %s', interface)
+                fac.set_voice_vlan(interface, voice_vlan)
+            else:
+                _logger.info('Turning off voice vlan on %s', interface)
+                fac.set_access(interface, interface.vlan)
+        except (SnmpError, ValueError) as error:
+            messages.error(request, "Error setting voicevlan: %s" % error)
 
 
 def write_to_memory(fac):

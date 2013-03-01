@@ -51,7 +51,6 @@ PortAdmin - {{ netbox.get_short_sysname }}
         {% if voice_vlan %}
             <th class="voicevlan">Tel</th>
         {% endif %}
-        <th class="button">&nbsp;</th>
     </tr>
     </thead>
 
@@ -125,25 +124,30 @@ PortAdmin - {{ netbox.get_short_sysname }}
                     <input class="voicevlan"
                            type="checkbox"
                            name="voice_vlan"
-                           data-orig="{{ interface.voice_activated|default:'False' }}"
+                           data-orig="{{ interface.voice_activated|default:'false' }}"
                            {% if interface.voice_activated %}checked{% endif %}
                            {% if not interface.iseditable %}disabled="disabled"{% endif %}>
                 </td>
             {% endif %}
         {% endif %}
-
-
-        {% comment %}
-        These images serves as buttons for saving and undoing changes. They
-        are initially hidden until a field is changed.
-        {% endcomment %}
-        <td>
-			{% if interface.iseditable and not interface.trunk or interface.iseditable and interface.voice_activated %}
-			<img src="/images/icons/edit-undo.png" class="undo" alt="Set as unchanged" title="Set as unchanged"/>
-			<img src="/images/portadmin/save.png" class="save" alt="Save" title="Save"/>
-			{% endif %}
-		</td>
 	</tr>
+
+
+    {% comment %}
+    This row is the "action" row that contains the buttons for saving and
+    undoing the changes in the above row.
+
+    The div is only there to make sure the slide functions work. If slide
+    functionality is removed, remove the div aswell.
+    {% endcomment %}
+    <tr class="actionrow" data-mother-row="{{ interface.id }}">
+        <td colspan="10">
+            <div class="slider" style="display: none">
+                <span><button class="save">Save</button></span>
+                <span><button class="undo">Undo</button></span>
+            </div>
+        </td>
+    </tr>
 	{% endfor %}
     </tbody>
 

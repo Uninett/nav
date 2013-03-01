@@ -38,11 +38,11 @@ div.infobox {
     width: 100%;
 }
 
-#portadmin-interfacecontainer td:last-child img {
+#portadmin-interfacecontainer td:last-child img.portadmin-action {
     visibility: hidden;
 }
 
-#portadmin-interfacecontainer tr.changed td:last-child img {
+#portadmin-interfacecontainer tr.changed td:last-child img.portadmin-action {
     visibility: visible;
 }
 
@@ -62,6 +62,26 @@ div.infobox {
     display: block;
     margin-left: 30px;
 }
+
+/* Action row styles */
+#portadmin-interfacecontainer tr.actionrow td {
+    height: 0;
+    margin: 0;
+}
+
+#portadmin-interfacecontainer tr.actionrow .slider span {
+    display: inline-block;
+    width: 45%;
+}
+
+#portadmin-interfacecontainer tr.actionrow button {
+    width: 80%;
+}
+
+#portadmin-interfacecontainer tr.actionrow div {
+    text-align: center;
+}
+
 
 /*
  * Styles for information boxes 
