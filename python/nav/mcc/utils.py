@@ -229,8 +229,16 @@ def encode_and_escape(string):
     """
     if isinstance(string, unicode):
         string = convert_unicode_to_latin1(string)
-    string = string.replace("\"", "&quot;")
-    string = string.replace("\n", " ")
+
+    replacements = {
+        "\"": "&quot;",
+        "{": "&#123;",
+        "}": "&#125;",
+        "\n": " "
+    }
+
+    for key, value in replacements.items():
+        string = string.replace(key, value)
 
     return string
 
