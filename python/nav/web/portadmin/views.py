@@ -364,14 +364,17 @@ def render_trunk_edit(request, interfaceid):
     navpath = [('Home', '/'), ('PortAdmin', reverse('portadmin-index')),
                (sysname, reverse('portadmin-sysname',
                                  kwargs={'sysname': sysname}))]
-    vlans = agent.get_netbox_vlans()
+
+    vlans = agent.get_netbox_vlans()  # All vlans on this netbox
     native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
+    allowed_vlans = find_allowed_vlans_for_user(get_account(request))
 
     return render_to_response('portadmin/trunk_edit.html',
                               {'interface': interface,
                                'available_vlans': vlans,
                                'native_vlan': native_vlan,
                                'trunked_vlans': trunked_vlans,
+                               'allowed_vlans': allowed_vlans,
                                'navpath': navpath,
                                'title': create_title(navpath)},
                               RequestContext(request))

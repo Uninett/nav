@@ -101,11 +101,9 @@ PortAdmin - {{ netbox.get_short_sysname }}
                                 </option>
                             {% endif %}
                         {% endfor %}
-                        {% if current_user_data.is_admin %}
-                            <option value="trunk" data-url="{% url portadmin-render-trunk-edit interface.id %}">
-                                Trunk
-                            </option>
-                        {% endif %}
+                        <option value="trunk" data-url="{% url portadmin-render-trunk-edit interface.id %}">
+                            Trunk
+                        </option>
                     </select>
                 {% else %}
                     {{ interface.vlan|default_if_none:'' }}
