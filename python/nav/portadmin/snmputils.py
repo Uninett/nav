@@ -56,9 +56,6 @@ class FantasyVlan(object):
     def __cmp__(self, other):
         return cmp(self.vlan, other.vlan)
 
-    def __eq__(self, other):
-        return self.vlan == other.vlan
-
 
 class SNMPHandler(object):
     """A basic class for SNMP-read and -write to switches."""
