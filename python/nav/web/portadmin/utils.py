@@ -41,6 +41,8 @@ def get_and_populate_livedata(netbox, interfaces):
     update_interfaces_with_snmpdata(interfaces, live_ifaliases, live_vlans,
                                     live_operstatus, live_adminstatus)
 
+    return handler
+
 
 def create_dict_from_tuplelist(tuplelist):
     """
@@ -76,20 +78,21 @@ def update_interfaces_with_snmpdata(interfaces, ifalias, vlans, operstatus,
             interface.ifadminstatus = adminstatus[interface.ifindex]
 
 
-def find_and_populate_allowed_vlans(account, netbox, interfaces):
+def find_and_populate_allowed_vlans(account, netbox, interfaces, factory):
     """Find allowed vlans and indicate which interface can be edited"""
-    allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox)
+    allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox,
+                                                          factory)
     set_editable_on_interfaces(netbox, interfaces, allowed_vlans)
     return allowed_vlans
 
 
-def find_allowed_vlans_for_user_on_netbox(account, netbox):
+def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
     """Find allowed vlans for this user on this netbox
 
     ::returns list of Fantasyvlans
 
     """
-    netbox_vlans = find_vlans_on_netbox(netbox)
+    netbox_vlans = find_vlans_on_netbox(netbox, factory=factory)
 
     if is_vlan_authorization_enabled():
         if is_administrator(account):
@@ -116,10 +119,16 @@ def is_vlan_authorization_enabled():
     return False
 
 
-def find_vlans_on_netbox(netbox):
-    """Find all the vlans on this netbox"""
-    fac = SNMPFactory.get_instance(netbox)
-    return fac.get_netbox_vlans()
+def find_vlans_on_netbox(netbox, factory=None):
+    """Find all the vlans on this netbox
+
+    fac: already instantiated factory instance. Use this if possible
+    to enable use of cached values
+
+    """
+    if not factory:
+        factory = SNMPFactory.get_instance(netbox)
+    return factory.get_netbox_vlans()
 
 
 def find_allowed_vlans_for_user(account):
@@ -149,6 +158,7 @@ def find_default_vlan(include_netident=False):
 
 
 def fetch_voice_vlans():
+    """Fetch the voice vlans (if any) from the config file"""
     config = read_config()
     if config.has_section("general"):
         if config.has_option("general", "voice_vlans"):
@@ -254,6 +264,7 @@ def filter_vlans(target_vlans, old_vlans, allowed_vlans):
     """
     return (list((set(target_vlans) | set(old_vlans)) &
                  (set(old_vlans) | set(allowed_vlans))))
+
 
 def should_check_access_rights(account):
     """Return boolean indicating that this user is restricted"""

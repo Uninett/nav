@@ -129,10 +129,12 @@ def populate_infodict(request, account, netbox, interfaces):
     """Populate a dictionary used in every http response"""
 
     allowed_vlans = []
+    voice_vlan = None
     try:
-        get_and_populate_livedata(netbox, interfaces)
+        fac = get_and_populate_livedata(netbox, interfaces)
         allowed_vlans = find_and_populate_allowed_vlans(account, netbox,
-                                                        interfaces)
+                                                        interfaces, fac)
+        voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
     except SnmpError:
         messages.error(request, "Timeout when contacting %s" % netbox.sysname)
         if not netbox.read_only:
@@ -154,7 +156,6 @@ def populate_infodict(request, account, netbox, interfaces):
 
     save_to_database(interfaces)
 
-    voice_vlan = fetch_voice_vlan_for_netbox(request, netbox)
     if voice_vlan:
         set_voice_vlan_attribute(voice_vlan, interfaces)
 
@@ -168,7 +169,7 @@ def populate_infodict(request, account, netbox, interfaces):
     return info_dict
 
 
-def fetch_voice_vlan_for_netbox(request, netbox):
+def fetch_voice_vlan_for_netbox(request, factory):
     """Fetch the voice vlan for this netbox
 
     There may be multiple voice vlans configured. Pick the one that exists
@@ -179,9 +180,8 @@ def fetch_voice_vlan_for_netbox(request, netbox):
     if not voice_vlans:
         return
 
-    fac = SNMPFactory.get_instance(netbox)
     voice_vlans_on_netbox = list(set(voice_vlans) &
-                                 set(fac.get_available_vlans()))
+                                 set(factory.get_available_vlans()))
     if not voice_vlans_on_netbox:
         # Should this be reported? At the moment I do not think so.
         return
@@ -237,7 +237,6 @@ def save_interfaceinfo(request):
 
 def set_interface_values(account, interface, request):
     """Use snmp to set the values in the request on the netbox"""
-    _logger.info('Setting interface values on %s', interface)
     try:
         fac = SNMPFactory.get_instance(interface.netbox)
     except SnmpError, error:
@@ -318,15 +317,20 @@ def set_voice_vlan(fac, interface, request):
 
     """
     if 'voicevlan' in request.POST:
-        voice_vlan = fetch_voice_vlan_for_netbox(request, interface.netbox)
+        voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
         # Either the voicevlan is turned off or turned on
         turn_on_voice_vlan = request.POST.get('voicevlan') == 'true'
+        account = get_account(request)
         try:
             if turn_on_voice_vlan:
-                _logger.info('Turning on voice vlan on %s', interface)
+                _logger.info('%s: %s:%s - %s', account.login,
+                             interface.netbox.get_short_sysname(),
+                             interface.ifname, 'voice vlan enabled')
                 fac.set_voice_vlan(interface, voice_vlan)
             else:
-                _logger.info('Turning off voice vlan on %s', interface)
+                _logger.info('%s: %s:%s - %s', account.login,
+                             interface.netbox.get_short_sysname(),
+                             interface.ifname, 'voice vlan disabled')
                 fac.set_access(interface, interface.vlan)
         except (SnmpError, ValueError) as error:
             messages.error(request, "Error setting voicevlan: %s" % error)
@@ -367,6 +371,7 @@ def render_trunk_edit(request, interfaceid):
         else:
             messages.success(request, 'Trunk edit successful')
 
+    account = get_account(request)
     sysname = interface.netbox.sysname
     navpath = [('Home', '/'), ('PortAdmin', reverse('portadmin-index')),
                (sysname, reverse('portadmin-sysname',
@@ -374,8 +379,12 @@ def render_trunk_edit(request, interfaceid):
 
     vlans = agent.get_netbox_vlans()  # All vlans on this netbox
     native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
-    allowed_vlans = find_allowed_vlans_for_user_on_netbox(
-        get_account(request), interface.netbox)
+    if should_check_access_rights(account):
+        allowed_vlans = find_allowed_vlans_for_user_on_netbox(account,
+                                                              interface.netbox,
+                                                              agent)
+    else:
+        allowed_vlans = vlans
 
     return render_to_response('portadmin/trunk_edit.html',
                               {'interface': interface,
@@ -406,9 +415,8 @@ def handle_trunk_edit(request, agent, interface):
         native_vlan = (native_vlan if native_vlan in allowed_vlans
                        else old_native)
 
-    _logger.info('Interface %s', interface)
-    _logger.info('Native Vlan %s', native_vlan)
-    _logger.info('Trunk vlans %s', trunked_vlans)
+    _logger.info('Interface %s - native: %s, trunk: %s', interface,
+                 native_vlan, trunked_vlans)
 
     if trunked_vlans:
         agent.set_trunk(interface, native_vlan, trunked_vlans)
