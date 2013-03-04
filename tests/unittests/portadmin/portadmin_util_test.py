@@ -2,7 +2,7 @@
 import unittest
 from mock import Mock
 from nav.web.portadmin.utils import (find_allowed_vlans_for_user,
-                                     find_vlans_in_org)
+                                     find_vlans_in_org, filter_vlans)
 from nav.portadmin.snmputils import FantasyVlan
 
 
@@ -77,3 +77,11 @@ class TestPortAdminUtil(unittest.TestCase):
                          sorted([FantasyVlan(self.vlan1.vlan),
                                  FantasyVlan(self.vlan2.vlan),
                                  FantasyVlan(self.vlan3.vlan)]))
+
+    def test_filter_vlans(self):
+        vlans_from_request = [1, 2, 3]
+        old_trunked_vlans = [3]  # Vlans from querying the netbox
+        allowed_vlans = [1]
+
+        self.assertEqual(filter_vlans(vlans_from_request, old_trunked_vlans,
+                                      allowed_vlans), [1, 3])

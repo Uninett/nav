@@ -386,6 +386,18 @@ def handle_trunk_edit(request, agent, interface):
     native_vlan = int(request.POST.get('native_vlan'))
     trunked_vlans = [int(vlan) for vlan in request.POST.getlist('trunk_vlans')]
 
+    if is_vlan_authorization_enabled() and not is_administrator(
+            get_account(request)):
+        # A user can avoid the form restrictions by sending a forged post
+        # request Make sure only the allowed vlans are set
+
+        old_native, old_trunked = agent.get_native_and_trunked_vlans(interface)
+        allowed_vlans = find_allowed_vlans_for_user(get_account(request))
+
+        trunked_vlans = filter_vlans(trunked_vlans, old_trunked, allowed_vlans)
+        native_vlan = (native_vlan if native_vlan in allowed_vlans
+                       else old_native)
+
     _logger.info('Interface %s', interface)
     _logger.info('Native Vlan %s', native_vlan)
     _logger.info('Trunk vlans %s', trunked_vlans)

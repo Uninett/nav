@@ -239,3 +239,14 @@ def save_to_database(interfaces):
     """Save changes for all interfaces to database"""
     for interface in interfaces:
         interface.save()
+
+
+def filter_vlans(target_vlans, old_vlans, allowed_vlans):
+    """Return a list of vlans that matches following criteria
+
+    - the vlans was on the trunk before
+    - or is set by user and in allowed_vlans
+
+    """
+    return (list((set(target_vlans) | set(old_vlans)) &
+                 (set(old_vlans) | set(allowed_vlans))))
