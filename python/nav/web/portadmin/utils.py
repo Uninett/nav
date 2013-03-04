@@ -84,7 +84,11 @@ def find_and_populate_allowed_vlans(account, netbox, interfaces):
 
 
 def find_allowed_vlans_for_user_on_netbox(account, netbox):
-    """Find allowed vlans for this user on this netbox"""
+    """Find allowed vlans for this user on this netbox
+
+    ::returns list of Fantasyvlans
+
+    """
     netbox_vlans = find_vlans_on_netbox(netbox)
 
     if is_vlan_authorization_enabled():
@@ -250,3 +254,8 @@ def filter_vlans(target_vlans, old_vlans, allowed_vlans):
     """
     return (list((set(target_vlans) | set(old_vlans)) &
                  (set(old_vlans) | set(allowed_vlans))))
+
+def should_check_access_rights(account):
+    """Return boolean indicating that this user is restricted"""
+    return (is_vlan_authorization_enabled() and
+            not is_administrator(account))

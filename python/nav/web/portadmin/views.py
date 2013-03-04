@@ -25,15 +25,16 @@ from django.core.urlresolvers import reverse
 
 from nav.django.utils import get_account
 from nav.web.utils import create_title
-from nav.models.manage import Netbox, Interface, SwPortAllowedVlan
+from nav.models.manage import Netbox, Interface
 from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_and_populate_allowed_vlans,
                                      get_aliastemplate, get_ifaliasformat,
                                      save_to_database,
                                      check_format_on_ifalias,
-                                     is_administrator,
+                                     find_allowed_vlans_for_user_on_netbox,
                                      find_allowed_vlans_for_user,
-                                     fetch_voice_vlans)
+                                     filter_vlans, fetch_voice_vlans,
+                                     should_check_access_rights)
 from nav.Snmp.errors import SnmpError
 from nav.portadmin.snmputils import SNMPFactory
 
@@ -212,32 +213,44 @@ def save_interfaceinfo(request):
 
     """
     if request.method == 'POST':
-        interfaceid = request.POST.get('interfaceid')
-        interface = Interface.objects.get(pk=interfaceid)
+        interface = Interface.objects.get(pk=request.POST.get('interfaceid'))
         account = get_account(request)
 
-        if is_allowed_to_edit(interface, account):
-            try:
-                fac = SNMPFactory.get_instance(interface.netbox)
-            except SnmpError, error:
-                _logger.error('Error getting snmpfactory instance %s: %s',
-                              interface.netbox, error)
-                messages.info(request, 'Could not connect to netbox')
+        # Skip a lot of queries if access_control is not turned on
+        if should_check_access_rights(account):
+            _logger.info('Checking access rights for %s', account)
+            if interface.vlan in [v.vlan for v in
+                                  find_allowed_vlans_for_user_on_netbox(
+                                      account, interface.netbox)]:
+                set_interface_values(account, interface, request)
             else:
-                # Order is important here, set_voice need to be before set_vlan
-                set_voice_vlan(fac, interface, request)
-                set_ifalias(account, fac, interface, request)
-                set_vlan(account, fac, interface, request)
-                write_to_memory(fac)
-                save_to_database([interface])
+                # Should only happen if user tries to avoid gui restrictions
+                messages.error(request, 'Not allowed to edit this interface')
         else:
-            # Should only happen if user tries to avoid gui restrictions
-            messages.error(request, 'Not allowed to edit this interface')
+            set_interface_values(account, interface, request)
     else:
         messages.error(request, 'Wrong request type')
 
     result = {"messages": build_ajax_messages(request)}
     return response_based_on_result(result)
+
+
+def set_interface_values(account, interface, request):
+    """Use snmp to set the values in the request on the netbox"""
+    _logger.info('Setting interface values on %s', interface)
+    try:
+        fac = SNMPFactory.get_instance(interface.netbox)
+    except SnmpError, error:
+        _logger.error('Error getting snmpfactory instance %s: %s',
+                      interface.netbox, error)
+        messages.info(request, 'Could not connect to netbox')
+    else:
+        # Order is important here, set_voice need to be before set_vlan
+        set_voice_vlan(fac, interface, request)
+        set_ifalias(account, fac, interface, request)
+        set_vlan(account, fac, interface, request)
+        write_to_memory(fac)
+        save_to_database([interface])
 
 
 def build_ajax_messages(request):
@@ -250,12 +263,6 @@ def build_ajax_messages(request):
             'extra_tags': message.tags
         })
     return ajax_messages
-
-
-def is_allowed_to_edit(interface, account):
-    """Check is account is allowed to edit interface with this vlan"""
-    vlan_numbers = [v.vlan for v in find_allowed_vlans_for_user(account)]
-    return interface.vlan in vlan_numbers or is_administrator(account)
 
 
 def set_ifalias(account, fac, interface, request):
@@ -367,7 +374,8 @@ def render_trunk_edit(request, interfaceid):
 
     vlans = agent.get_netbox_vlans()  # All vlans on this netbox
     native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
-    allowed_vlans = find_allowed_vlans_for_user(get_account(request))
+    allowed_vlans = find_allowed_vlans_for_user_on_netbox(
+        get_account(request), interface.netbox)
 
     return render_to_response('portadmin/trunk_edit.html',
                               {'interface': interface,
@@ -386,8 +394,7 @@ def handle_trunk_edit(request, agent, interface):
     native_vlan = int(request.POST.get('native_vlan'))
     trunked_vlans = [int(vlan) for vlan in request.POST.getlist('trunk_vlans')]
 
-    if is_vlan_authorization_enabled() and not is_administrator(
-            get_account(request)):
+    if should_check_access_rights(get_account(request)):
         # A user can avoid the form restrictions by sending a forged post
         # request Make sure only the allowed vlans are set
 

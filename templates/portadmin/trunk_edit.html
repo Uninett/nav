@@ -38,7 +38,7 @@
                             {% endcomment %}
 
                             <td>
-                                {% if vlan in allowed_vlans or current_user_data.is_admin %}
+                                {% if vlan in allowed_vlans %}
                                 <input type="radio" name="native_vlan" value="{{ vlan.vlan }}" {% if vlan.vlan == native_vlan %}checked{% endif %}>
                                 {% else %}
                                     <input type="radio"
@@ -54,7 +54,7 @@
 
                             {% comment %}Checkbox for tagging this vlan on this interface{% endcomment %}
                             <td>
-                                {% if vlan in allowed_vlans or current_user_data.is_admin %}
+                                {% if vlan in allowed_vlans %}
                                     <input type="checkbox" name="trunk_vlans" value="{{ vlan.vlan }}" {% if vlan.vlan in trunked_vlans %}checked{% endif %}>
                                 {% else %}
                                     <input type="checkbox"
