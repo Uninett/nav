@@ -39,9 +39,10 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
      * be redirected to the trunk edit page.
      */
     function addTrunkSelectedListener(table) {
-        $(table).find('.vlanlist').on('change', function () {
+        $(table).find('.vlanlist').on('change click', function (event) {
             var $select = $(this);
             if ($select.val() == 'trunk') {
+                event.stopPropagation();
                 location.href = $select.find(':selected').attr('data-url');
             }
         });
