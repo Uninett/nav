@@ -49,19 +49,31 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     }
 
     /*
-     * When user changes a form field from it's
-     * original value, mark the row as changed. If the change results in the
-     * original value, mark the row as unchanged.
+     * Add changelisteners to the tbody element to avoid adding 3
+     * listeners for each row. Also split up events to avoid acting
+     * on irrelevant changes.
      */
     function addChangeListener(table) {
-        $(table).find('tbody').on('change keyup keypress blur click', '.ifalias, .vlanlist, .voicevlan', function (event) {
-            var row = $(event.target).parents('tr');
-            if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row)) {
-                markAsChanged(row);
-            } else {
-                markAsUnchanged(row);
-            }
+        $(table).find('tbody').on('keyup' , '.ifalias', function (event) {
+            actOnChange($(event.target).parents('tr'));
         });
+        $(table).find('tbody').on('change', '.vlanlist', function (event) {
+            actOnChange($(event.target).parents('tr'));
+        });
+        $(table).find('tbody').on('click', '.voicevlan', function (event) {
+            actOnChange($(event.target).parents('tr'));
+        });
+    }
+
+    /*
+     * Mark row changed or not based on values in row
+     */
+    function actOnChange(row) {
+        if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row)) {
+            markAsChanged(row);
+        } else {
+            markAsUnchanged(row);
+        }
     }
 
     function addSaveListener(element) {
