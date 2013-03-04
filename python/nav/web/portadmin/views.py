@@ -399,7 +399,8 @@ def handle_trunk_edit(request, agent, interface):
         # request Make sure only the allowed vlans are set
 
         old_native, old_trunked = agent.get_native_and_trunked_vlans(interface)
-        allowed_vlans = find_allowed_vlans_for_user(get_account(request))
+        allowed_vlans = [v.vlan for v in
+                         find_allowed_vlans_for_user(get_account(request))]
 
         trunked_vlans = filter_vlans(trunked_vlans, old_trunked, allowed_vlans)
         native_vlan = (native_vlan if native_vlan in allowed_vlans
