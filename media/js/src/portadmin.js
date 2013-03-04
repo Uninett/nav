@@ -54,20 +54,12 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
      * original value, mark the row as unchanged.
      */
     function addChangeListener(table) {
-        $(table).find('tbody').on('change keyup keypress blur click', function (event) {
-            var $target = $(event.target);
-            var valid_classes = ['ifalias', 'vlanlist', 'voicevlan'];
-            var classString = $target.attr('class');
-            var classes = classString ? classString.split(' ') : [];
-            for (var i=0, cls; cls=classes[i]; i++) {
-                if (valid_classes.indexOf(cls) >= 0) {
-                    var row = $target.parents('tr');
-                    if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row)) {
-                        markAsChanged(row);
-                    } else {
-                        markAsUnchanged(row);
-                    }
-                }
+        $(table).find('tbody').on('change keyup keypress blur click', '.ifalias, .vlanlist, .voicevlan', function (event) {
+            var row = $(event.target).parents('tr');
+            if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row)) {
+                markAsChanged(row);
+            } else {
+                markAsUnchanged(row);
             }
         });
     }
