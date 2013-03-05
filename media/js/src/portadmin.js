@@ -161,9 +161,13 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
          * XOR checkbox checked and original value to see if changed
          */
         var $checkbox = $(row).find('.voicevlan');
-        var origOption = $checkbox.attr('data-orig').toLowerCase() == 'true';
-        var checkedValue = $checkbox.prop('checked');
-        return checkedValue ^ origOption;
+        if ($checkbox.length) {
+            var origOption = $checkbox.attr('data-orig').toLowerCase() == 'true';
+            var checkedValue = $checkbox.prop('checked');
+            return checkedValue ^ origOption;
+        } else {
+            return false;
+        }
     }
 
     function markAsChanged(row) {
@@ -361,9 +365,11 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
     function updateVoiceDefault($row, new_value) {
         var $voice_element = $row.find(".voicevlan");
-        var old_value = $voice_element.attr('data-orig');
-        if (old_value != new_value) {
-            $voice_element.attr('data-orig', new_value);
+        if ($voice_element.length) {
+            var old_value = $voice_element.attr('data-orig');
+            if (old_value != new_value) {
+                $voice_element.attr('data-orig', new_value);
+            }
         }
     }
 
