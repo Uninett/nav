@@ -24,14 +24,27 @@
             <tbody>
             {% for identity in identities %}
                 <tr>
-                    <td>{{ identity.ip }}</td>
+                    <td>
+                        <a href="{% url machinetracker-ip_short_search identity.ip 100 'on' %}"
+                           title="Link to Machine Tracker">
+                            {{ identity.ip }}
+                        </a>
+                    </td>
+
                     <td>{{ identity.dns }}</td>
-                    <td>{{ identity.mac }}</td>
+
+                    <td>
+                        <a href="{% url machinetracker-mac_search identity.mac 100 'on' %}"
+                           title="Link to Machine Tracker">
+                            {{ identity.mac }}
+                        </a>
+                    </td>
+
                     <td>{{ identity.netbios }}</td>
                     <td>{{ identity.organization|default_if_none:'' }}</td>
                     <td>{{ identity.status }}</td>
                     <td>{{ identity.justification.name }}</td>
-                    <td>{{ identity.last_changed|date:"Y-m-d H:i:s" }}</td>
+                    <td>{{ identity.last_changed|date:"DATETIME_FORMAT" }}</td>
                     <td>
                         <a href="{% url arnold-details identity.id %}">Details</a>
                     </td>
