@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -9,16 +8,14 @@
 # the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Common utility functions for Machine Tracker"""
 
-import re
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from socket import gethostbyaddr, herror
 from IPy import IP
 
@@ -28,7 +25,17 @@ from nav import asyncdns
 from nav.models.manage import Prefix
 
 _cached_hostname = {}
+
+
 def hostname(ip):
+    """
+    Performs a DNS reverse lookup for an IP address and caches the result in
+    a global variable, which is really, really stupid.
+
+    :param ip: And IP address string.
+    :returns: A hostname string or a False value if the lookup failed.
+
+    """
     addr = unicode(ip)
     if addr in _cached_hostname:
         return _cached_hostname[addr]
@@ -41,23 +48,24 @@ def hostname(ip):
     _cached_hostname[addr] = dns[0]
     return dns[0]
 
-def from_to_ip(from_ip, to_ip):
-    from_ip = IP(from_ip)
-    if to_ip:
-        to_ip = IP(to_ip)
-    else:
-        to_ip = from_ip
-    return (from_ip, to_ip)
 
 def get_prefix_info(addr):
+    """Returns the smallest prefix from the NAVdb that an IP address fits into.
+
+    :param addr: An IP address string.
+    :returns: A Prefix object or None if no prefixes matched.
+
+    """
     try:
         return Prefix.objects.select_related().extra(
-        select={"mask_size": "masklen(netaddr)"},
-        where=["%s << netaddr AND nettype <> 'scope'"],
-        order_by=["-mask_size"],
-        params=[addr])[0]
-    except:
+            select={"mask_size": "masklen(netaddr)"},
+            where=["%s << netaddr AND nettype <> 'scope'"],
+            order_by=["-mask_size"],
+            params=[addr]
+        )[0]
+    except IndexError:
         return None
+
 
 def normalize_ip_to_string(ipaddr):
     """Normalizes an IP address to a a sortable string.
@@ -80,7 +88,13 @@ def normalize_ip_to_string(ipaddr):
     else:
         return '6%s' % ipaddr.strFullsize()
 
+
 def ip_dict(rows):
+    """Converts IP search result rows to a dict keyed by IP addresses.
+
+    :param rows: IP search result rows.
+    :return: A dict mapping IP addresses to matching result rows.
+    """
     result = SortedDict()
     for row in rows:
         ip = IP(row.ip)
@@ -89,12 +103,15 @@ def ip_dict(rows):
         result[ip].append(row)
     return result
 
+
 def process_ip_row(row, dns):
+    """Processes an IP search result row"""
     if row.end_time > datetime.now():
         row.still_active = "Still active"
     if dns:
         row.dns_lookup = hostname(row.ip) or ""
     return row
+
 
 def min_max_mac(prefix):
     """Finds the minimum and maximum MAC addresses of a given prefix.
@@ -103,6 +120,7 @@ def min_max_mac(prefix):
 
     """
     return unicode(prefix[0]), unicode(prefix[-1])
+
 
 def track_mac(keys, resultset, dns):
     """Groups results from Query for the mac_search page.
@@ -138,7 +156,9 @@ def track_mac(keys, resultset, dns):
         tracker[key].append(row)
     return tracker
 
+
 class ProcessInput:
+    """Some sort of search form input processing class. Who the hell knows."""
     def __init__(self, input):
         self.input = input.copy()
 
@@ -157,7 +177,8 @@ class ProcessInput:
         if self.input.get('prefixid', False):
             self.__prefix()
         self.__common()
-        if not self.input.get('active', False) and not self.input.get('inactive', False):
+        if not (self.input.get('active', False)
+                or self.input.get('inactive', False)):
             self.input['active'] = "on"
         return self.input
 
