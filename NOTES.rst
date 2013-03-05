@@ -20,6 +20,31 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 3.14
+========
+
+To see the overview of scheduled features and reported bugs on the 3.14 series
+of NAV, please go to https://launchpad.net/nav/3.14 .
+
+Dependency changes
+------------------
+
+- The `pynetsnmp` library is still optional (for the time being), but is
+  **required** if IPv6 support is needed.
+
+Files to remove
+---------------
+
+If any of the following files and directories are still in your installation
+after upgrading to NAV 3.14, they should be removed (installation prefix has
+been stripped from these file names).  If you installed and upgraded NAV using
+a packaging system, you should be able to safely ignore this section::
+
+  etc/rrdviewer/
+  lib/python/nav/statemon/checker/*.descr
+  share/htdocs/js/portadmin.js
+
+
 NAV 3.13
 ========
 
