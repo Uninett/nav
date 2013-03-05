@@ -113,7 +113,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
             $vlan.val($('[data-orig]', $vlan).val());
 
             // Check or uncheck telephone checkbox
-            if ($voicevlan) {
+            if ($voicevlan.length) {
                 if ($voicevlan.attr('data-orig').toLowerCase() == 'true') {
                     $voicevlan.prop('checked', 'checked');
                 } else {
