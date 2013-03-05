@@ -38,6 +38,7 @@ TIDY_BLACKLIST = [
 BLACKLISTED_PATHS = [
     '/cricket',
     '/index/logout',
+    '/doc',
 ]
 
 if not HOST_URL:
