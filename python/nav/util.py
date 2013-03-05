@@ -15,7 +15,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """General utility functions for Network Administration Visualized"""
-
 import os
 import re
 import stat
@@ -388,3 +387,15 @@ def parse_interval(string):
         return string
 
     raise ValueError('Invalid time format: %s%s' % (string, unit))
+
+
+def address_to_string(ip, port):
+    """Converts an IP address and port pair into a printable string.
+
+    An IPv6 address will be encapsulated in square brackets to separate it
+    from the port number.
+
+    """
+    ip = IPy.IP(ip)
+    ip = str(ip) if ip.version() == 4 else "[%s]" % ip
+    return "%s:%s" % (ip, port)

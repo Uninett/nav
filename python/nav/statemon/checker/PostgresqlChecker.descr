@@ -1,3 +1,0 @@
-description=Postgresql checker
-args=user password
-optargs=port timeout database

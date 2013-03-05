@@ -2,7 +2,7 @@
 import unittest
 from mock import Mock, patch
 from nav.arnold import (InExceptionListError, WrongCatidError,
-                        BlockonTrunkError, should_detain, check_non_block)
+                        BlockonTrunkError, raise_if_detainment_not_allowed, check_non_block)
 
 @patch('nav.arnold.get_config')
 class TestArnoldShouldDetain(unittest.TestCase):
@@ -29,7 +29,7 @@ class TestArnoldShouldDetain(unittest.TestCase):
         category.id = 'GW'
 
         arguments = [interface]
-        self.assertRaises(WrongCatidError, should_detain, *arguments)
+        self.assertRaises(WrongCatidError, raise_if_detainment_not_allowed, *arguments)
 
     def test_should_detain_blockontrunk(self, mock_getconfig):
         """Test that BlockonTrunkError is properly thrown"""
@@ -40,7 +40,7 @@ class TestArnoldShouldDetain(unittest.TestCase):
         interface.trunk = True
         arguments = [interface]
 
-        self.assertRaises(BlockonTrunkError, should_detain, *arguments)
+        self.assertRaises(BlockonTrunkError, raise_if_detainment_not_allowed, *arguments)
 
 
 def create_interface():

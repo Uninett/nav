@@ -31,6 +31,8 @@ Dependency changes
 
 - NAV no longer requires Java. Consequently, the PostgreSQL JDBC driver is no
   longer needed either.
+- To use the new `netbiostracker` system, the program ``nbtscan`` must be
+  installed.
 
 New eventengine
 ---------------
@@ -42,6 +44,57 @@ There is now a single log file for the `eventengine`, the lower-cased
 ``eventengine.log``. The ``eventEngine.log`` log file and the ``eventEngine``
 log directory can safely be removed.
 
+New alert message template system
+---------------------------------
+
+As a consequence of the `eventEngine` rewrite, alert message templates are no
+longer stored in the ``alertmsg.conf`` file. Instead, `Django templates`_ are
+used as the basis of alert message templates, and each template is stored in
+an event/alert hierarchy below the ``alertmsg/`` directory.
+
+Also, NAV 3.13 no longer provides Norwegian translations of these templates.
+
+The hierarchy/naming conventions in the ``alertmsg/`` directory are as follows::
+
+  <event type>/<alert type>-<medium>.[<language>.]txt
+
+The `<event type>` is one of the available event types in NAV, whereas `<alert
+type>` is one of the alert types associated with the event type. `<medium>` is
+one of the supported alert mediums, such as `email`, `sms` or `jabber`. A two
+letter language code is optional; if omitted, English will be assumed.
+
+To make a Norwegian translation of the ``boxState/boxDown-email.txt``
+template, copy the file to ``boxState/boxDown-email.no.txt`` and translate the
+text inside the copied file.
+
+Variables available in the template context include:
+
+* `source`
+* `device`
+* `netbox`
+* `subid`
+* `time`
+* `event_type`
+* `alert_type`
+* `state`
+* `value`
+* `severity`
+
+Some of these, such as the `netbox` variable, are Django models, and will
+enable access to query related information in the NAV database. Various
+attributes accessible through the `netbox` variable include:
+
+* `netbox.sysname`
+* `netbox.room`
+* `netbox.room.location`
+* `netbox.category`
+* `netbox.organization`
+
+Also, since `Django templates`_ are used, you have the full power of its
+template tag library to control and customize the appearance of an alert
+message based on the available variables.
+
+.. `_Django templates`: https://docs.djangoproject.com/en/1.2/ref/templates/
 
 VLANs
 -----

@@ -44,7 +44,7 @@ def check_report(report_name):
     db.closeConnections() # Ensure clean connection for each test
 
     generator = Generator()
-    report, contents, neg, operator, adv, config, dbresult = generator.makeReport(
+    report, contents, neg, operator, adv, config, dbresult = generator.make_report(
         report_name, config_file, config_file_local, uri, None, None)
 
     assert dbresult, 'dbresult is None'

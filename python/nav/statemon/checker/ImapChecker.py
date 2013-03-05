@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003,2004 Norwegian University of Science and Technology
 #
@@ -14,6 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""IMAP service checker"""
 
 import socket
 import imaplib
@@ -22,15 +22,16 @@ from nav.statemon.DNS import socktype_from_addr
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import  Event
 
+
+# pylint: disable=R0904
 class IMAPConnection(imaplib.IMAP4):
+    """Customized IMAP protocol interface"""
     def __init__(self, timeout, host, port):
         self.timeout = timeout
         imaplib.IMAP4.__init__(self, host, port)
 
+    # pylint: disable=W0222
     def open(self, host, port):
-        """
-        Overload imaplib's method to connect to the server
-        """
         self.sock = socket.socket(socktype_from_addr(host), socket.SOCK_STREAM)
         self.sock.settimeout(self.timeout)
         self.sock.connect((host, port))
@@ -43,21 +44,31 @@ class ImapChecker(AbstractChecker):
     username
     password
     """
+    TYPENAME = "imap"
     IPV6_SUPPORT = True
+    DESCRIPTION = "Internet mail application protocol"
+    ARGS = (
+        ('username', ''),
+        ('password', ''),
+    )
+    OPTARGS = (
+        ('port', ''),
+        ('timeout', ''),
+    )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "imap", service, port=143, **kwargs)
+        AbstractChecker.__init__(self, service, port=143, **kwargs)
 
     def execute(self):
         args = self.getArgs()
-        user = args.get("username","")
+        user = args.get("username", "")
         ip, port = self.getAddress()
-        passwd = args.get("password","")
-        m = IMAPConnection(self.getTimeout(), ip, port)
-        ver = m.welcome
+        passwd = args.get("password", "")
+        session = IMAPConnection(self.getTimeout(), ip, port)
+        ver = session.welcome
         if user:
-            m.login(user, passwd)
-            m.logout()
+            session.login(user, passwd)
+            session.logout()
         version = ''
         ver = ver.split(' ')
         if len(ver) >= 2:
