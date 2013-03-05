@@ -96,18 +96,13 @@ def process_ip_row(row, dns):
         row.dns_lookup = hostname(row.ip) or ""
     return row
 
-def min_max_mac(mac):
-    """If max is shorter than 12 characters we pad the mac with 0 for the
-    min_mac and f for the max_mac.
+def min_max_mac(prefix):
+    """Finds the minimum and maximum MAC addresses of a given prefix.
 
-    Ie. if mac is 00:10:20:40
-    mac_min will be 00:10:20:40:00:00
-    mac_max will be 00:10:20:40:ff:ff
+    :returns: A tuple of (min_mac_string, max_mac_string)
+
     """
-    mac = re.sub("[^0-9a-fA-F]+", "", mac).lower()
-    mac_min = mac + '0' * (12 - len(mac))
-    mac_max = mac + 'f' * (12 - len(mac))
-    return (mac_min, mac_max)
+    return unicode(prefix[0]), unicode(prefix[-1])
 
 def track_mac(keys, resultset, dns):
     """Groups results from Query for the mac_search page.
