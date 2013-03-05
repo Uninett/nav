@@ -193,7 +193,7 @@ class MacPrefix(object):
     MIN_PREFIX_LEN = 6
 
     def __init__(self, prefix):
-        prefix = _clean_hexstring(prefix)
+        prefix = _clean_hexstring(unicode(prefix))
 
         self._mask_len = len(prefix)
         if self._mask_len < self.MIN_PREFIX_LEN:
