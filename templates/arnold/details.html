@@ -48,7 +48,7 @@
             <td>
                 {% if identity.interface %}
                     <a href="{% url ipdevinfo-interface-details identity.interface.netbox.sysname identity.interface.id %}"
-                       title="Link to interface details" target="_blank">
+                       title="Link to interface details">
                 {% endif %}
                     {{ identity.interface.ifname|default_if_none:'' }}
                 {% if identity.interface %}
