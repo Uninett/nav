@@ -336,11 +336,12 @@ def send_event(events, maxdate_boxes, boxes_off_maintenance):
                 if event_type == 'passed' and netbox['netboxid'] in maxdate_boxes:
                     netbox_id = netbox['netboxid']
                     if maxdate_boxes[netbox_id] > curr_event['maint_end']:
-                        get_logger().debug("Skip stop event for netbox " +
-                                            "%s. It's on maintenance " +
-                                            "until %s." %
-                                            (str(netbox['netboxid']),
-                                             str(curr_event['maint_end'])))
+                        get_logger().debug(
+                            "Skip stop event for netbox %s. It's on "
+                            "maintenance until %s.",
+                            str(netbox['netboxid']),
+                            str(curr_event['maint_end'])
+                        )
                         continue
                     # Append to list of boxes taken off maintenance
                     # during this run
