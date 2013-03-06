@@ -344,6 +344,7 @@ def asn_counter64(value):
 # Some global ctypes initializations needed for the snmp_api_errstring function
 _charptr = POINTER(c_char)
 netsnmp.lib.snmp_api_errstring.restype = _charptr
+netsnmp.lib.snmp_errstring.restype = _charptr
 
 def snmp_api_errstring(err_code):
     """Converts an SNMP API error code to an error string"""
