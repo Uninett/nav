@@ -49,17 +49,17 @@ class UtilTestCase(unittest.TestCase):
     def test_colortohex(self):
         self.assertEquals('ea702a', util.colortohex((234, 112, 42)))
 
-    def test_isValidIP(self):
+    def test_is_valid_ip(self):
         valid_ips = ['129.241.75.1', '10.0.25.62', '2001:700:1::abcd',
                      'fe80::baad']
         invalid_ips = ['www.uninett.no', '92835235', '5:4', '-5325']
 
         for ip in valid_ips:
-            self.assert_(util.isValidIP(ip),
+            self.assert_(util.is_valid_ip(ip),
                          msg="%s should be valid" % ip)
 
         for ip in invalid_ips:
-            self.assertFalse(util.isValidIP(ip),
+            self.assertFalse(util.is_valid_ip(ip),
                              msg="%s should be invalid" % ip)
 
 class IPRangeTests(unittest.TestCase):
