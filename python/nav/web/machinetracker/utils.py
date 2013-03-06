@@ -19,10 +19,12 @@ from datetime import datetime
 from socket import gethostbyaddr, herror
 from IPy import IP
 
-from django.utils.datastructures import SortedDict
-
 from nav import asyncdns
 from nav.models.manage import Prefix
+from nav.ipdevpoll.db import commit_on_success
+
+from django.utils.datastructures import SortedDict
+from django.db import DatabaseError
 
 _cached_hostname = {}
 
@@ -49,6 +51,7 @@ def hostname(ip):
     return dns[0]
 
 
+@commit_on_success
 def get_prefix_info(addr):
     """Returns the smallest prefix from the NAVdb that an IP address fits into.
 
@@ -63,7 +66,7 @@ def get_prefix_info(addr):
             order_by=["-mask_size"],
             params=[addr]
         )[0]
-    except IndexError:
+    except (IndexError, DatabaseError):
         return None
 
 
