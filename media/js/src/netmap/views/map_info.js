@@ -14,7 +14,8 @@ define([
         broker: Backbone.EventBroker,
         interests: {
             "netmap:selectNetbox": "setSelectedNetbox",
-            "netmap:selectedLink": "setSelectedLink"
+            "netmap:selectLink": "setSelectedLink",
+            "netmap:nodes:setFixedDone": "render"
         },
         events: {
         },
