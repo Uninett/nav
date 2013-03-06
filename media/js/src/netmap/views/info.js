@@ -67,8 +67,7 @@ define([
         toggleView: function (e) {
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
-
-            this.broker.trigger('map:resize:animate', {marginRight: margin});
+            this.broker.trigger('netmap:resize:animate', {marginRight: margin});
         },
         alignView: function () {
             var $helper = $(this.$el);
