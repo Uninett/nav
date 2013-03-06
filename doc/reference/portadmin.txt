@@ -90,7 +90,7 @@ native vlan to what you want the access vlan to be. Click "Save changes".
 
 Click one of the "Save all" buttons.
 
-**I want to active the voice vlan on an interface**
+**I want to activate the voice vlan on an interface**
 
 If no column for activating voice vlans appear,
 no voice vlans are configured in PortAdmins config file. This must be done
