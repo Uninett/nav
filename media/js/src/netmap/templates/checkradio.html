@@ -3,9 +3,9 @@
 {{#each collection}}
 <div>
     {{#if value}}
-        <input type="{{../../type}}" name="{{../../identifier}}[]" value="{{value}}" id="{{../../identifier}}_{{name}}" {{#if is_selected}} checked{{/if}} />
+        <input type="{{../../type}}" name="{{../../identifier}}[]" value="{{value}}" id="{{../../identifier}}_{{name}}" {{#if is_selected}} checked{{/if}} {{#unless ../../isViewEnabled}} disabled{{/unless}} />
     {{else}}
-        <input type="{{../../type}}" name="{{../../identifier}}[]" value="{{name}}" id="{{../../identifier}}_{{name}}" {{#if is_selected}} checked{{/if}} />
+        <input type="{{../../type}}" name="{{../../identifier}}[]" value="{{name}}" id="{{../../identifier}}_{{name}}" {{#if is_selected}} checked{{/if}} {{#unless ../../isViewEnabled}} disabled{{/unless}} />
     {{/if}}
     {{#if ../nameInUppercase}}
         <label for="{{../../identifier}}_{{name}}">{{uppercase name}}</label>
