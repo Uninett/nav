@@ -40,7 +40,7 @@ define([
             return this;
         },
         broadcastPositionFilter: function () {
-            this.broker.trigger("netmap:changePositionFilter", this.collection);
+            this.broker.trigger("netmap:changePosition", this.collection);
         },
         setPosition: function (event) {
 
