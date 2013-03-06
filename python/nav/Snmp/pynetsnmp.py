@@ -23,7 +23,7 @@ from nav.oids import OID
 from pynetsnmp import netsnmp
 from pynetsnmp.netsnmp import (Session, SNMP_MSG_GETNEXT, mkoid, lib,
                                netsnmp_pdu_p, getResult, netsnmp_pdu,
-                               SNMP_MSG_GETBULK, SNMP_MSG_SET)
+                               SNMP_MSG_GETBULK, SNMP_MSG_SET, SNMP_MSG_GET)
 from ctypes import (c_int, sizeof, byref, cast, POINTER, c_char, c_char_p,
                     c_uint, c_ulong, c_uint64)
 
@@ -234,11 +234,18 @@ class _MySnmpSession(Session):
 
     """
     def sget(self, oids):
-        result = super(_MySnmpSession, self).sget(oids)
-        if result is None:
-            _raise_on_error(self.sess.contents.s_snmp_errno)
-        else:
+        req = self._create_request(SNMP_MSG_GET)
+        for oid in oids:
+            oid = mkoid(oid)
+            lib.snmp_add_null_var(req, oid, len(oid))
+        response = netsnmp_pdu_p()
+        if lib.snmp_synch_response(self.sess, req, byref(response)) == 0:
+            _raise_on_protocol_error(response)
+            result = dict(getResult(response.contents))
+            lib.snmp_free_pdu(response)
             return result
+        else:
+            _raise_on_error(self.sess.contents.s_snmp_errno)
 
     def sgetnext(self, root):
         req = self._create_request(SNMP_MSG_GETNEXT)
@@ -383,3 +390,15 @@ def _raise_on_protocol_error(response):
             raise errors.NoSuchObjectError(errstring)
         if response.errstat > 0:
             raise errors.SnmpError(errstring)
+
+    # check for SNMP varbind exception values
+    var = response.variables
+    while var:
+        var = var.contents
+        oid = OID([var.name[i] for i in range(var.name_length)])
+        vtype = ord(var.type)
+        if vtype in (netsnmp.SNMP_NOSUCHINSTANCE, netsnmp.SNMP_NOSUCHOBJECT):
+            raise errors.NoSuchObjectError(oid)
+        elif vtype == netsnmp.SNMP_ENDOFMIBVIEW:
+            raise errors.EndOfMibViewError(oid)
+        var = var.next_variable
