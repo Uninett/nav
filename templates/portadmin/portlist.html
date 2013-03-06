@@ -67,8 +67,10 @@ PortAdmin - {{ netbox.get_short_sysname }}
             <img title="OperStatus - If red there is no link on the interface" src="/images/lys/{{ interface.ifoperstatus|drawLight }}" />
         </td>
 
+
+        {% comment %}IFALIAS{% endcomment %}
         <td>
-            {% if interface.iseditable and not interface.trunk or interface.iseditable and interface.voice_activated %}
+            {% if interface.iseditable %}
                 <input class="ifalias" type="text"
                        value="{{ interface.ifalias|default_if_none:'' }}"
                        data-orig="{{ interface.ifalias|default_if_none:'' }}"/>
