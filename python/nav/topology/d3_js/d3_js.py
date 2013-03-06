@@ -100,14 +100,14 @@ def d3_json(G, node_to_json_function, edge_to_json_function, group=None):
     # Build up node dictionary in JSON format
     if group is None:
         graph_json = {'nodes': map(
-            lambda n: {'name': str(node_labels[n][1]), 'group': 0,
+            lambda n: {'name': unicode(node_labels[n][1].sysname), 'group': 0,
                        'data': node_to_json_function(node_labels[n][1],
                            graph_nodes[n][1])},
             xrange(len(node_labels)))}
     else:
         try:
             graph_json = {'nodes': map(
-                lambda n: {'name': str(node_labels[n][1]),
+                lambda n: {'name': unicode(node_labels[n][1].sysname),
                            'group': graph_nodes[n][1][group],
                            'data': node_to_json_function(node_labels[n][1],
                                graph_nodes[n][1]['metadata'] if 'metadata' in
