@@ -143,10 +143,7 @@ def populate_infodict(request, account, netbox, interfaces):
     except Exception, error:
         messages.error(request, error)
 
-    if not netbox.read_write:
-        messages.error(request,
-                       "Write community not set for this device, "
-                       "changes cannot be saved")
+    check_read_write(netbox, request)
 
     ifaliasformat = get_ifaliasformat()
     aliastemplate = ''
@@ -201,6 +198,14 @@ def set_voice_vlan_attribute(voice_vlan, interfaces):
                 continue
             if voice_vlan in interface.swportallowedvlan.get_allowed_vlans():
                 interface.voice_activated = True
+
+
+def check_read_write(netbox, request):
+    """Add a message to user explaining why he can't edit anything"""
+    if not netbox.read_write:
+        messages.error(request,
+                       "Write community not set for this device, "
+                       "changes cannot be saved")
 
 
 def save_interfaceinfo(request):
@@ -372,10 +377,11 @@ def render_trunk_edit(request, interfaceid):
             messages.success(request, 'Trunk edit successful')
 
     account = get_account(request)
-    sysname = interface.netbox.sysname
+    netbox = interface.netbox
+    check_read_write(netbox, request)
     navpath = [('Home', '/'), ('PortAdmin', reverse('portadmin-index')),
-               (sysname, reverse('portadmin-sysname',
-                                 kwargs={'sysname': sysname}))]
+               (netbox.sysname, reverse('portadmin-sysname',
+                                        kwargs={'sysname': netbox.sysname}))]
 
     vlans = agent.get_netbox_vlans()  # All vlans on this netbox
     native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)

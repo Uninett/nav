@@ -71,7 +71,9 @@
                     {% endfor %}
                     </tbody>
                 </table>
-                <input type="submit" value="Save changes">
+                <input type="submit"
+                       value="Save changes"
+                       {% if not interface.netbox.rw %}disabled="disabled"{% endif %}>
             </form>
 
         </div>
