@@ -196,8 +196,9 @@ def set_voice_vlan_attribute(voice_vlan, interfaces):
         for interface in interfaces:
             if not interface.trunk:
                 continue
-            if voice_vlan in interface.swportallowedvlan.get_allowed_vlans():
-                interface.voice_activated = True
+            allowed_vlans = interface.swportallowedvlan.get_allowed_vlans()
+            interface.voice_activated = (len(allowed_vlans) == 1 and
+                                         voice_vlan in allowed_vlans)
 
 
 def check_read_write(netbox, request):
