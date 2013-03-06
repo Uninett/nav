@@ -47,7 +47,7 @@ PortAdmin - {{ netbox.get_short_sysname }}
             title="OperStatus - If red there is no link on the interface">O
         </th>
         <th class="ifalias">Port Description</th>
-        <th class="vlan">Vlan</th>
+        <th class="vlan text-center">Vlan</th>
         {% if voice_vlan %}
             <th class="voicevlan">Tel</th>
         {% endif %}
@@ -84,7 +84,7 @@ PortAdmin - {{ netbox.get_short_sysname }}
         If interface is not a trunk, display dropdown to choose vlan, or if
         not allowed to edit display access vlan
         {% endcomment %}
-        <td>
+        <td class="text-center">
 			{% if interface.trunk and not interface.voice_activated %}
                 <a href="{% url portadmin-render-trunk-edit interface.id %}">
     			    Trunk
@@ -115,16 +115,18 @@ PortAdmin - {{ netbox.get_short_sysname }}
         specifically for this.
         {% endcomment %}
         {% if voice_vlan %}
+            <td class="text-center">
             {% if interface.voice_activated or not interface.trunk %}
-                <td class="text-center">
-                    <input class="voicevlan"
-                           type="checkbox"
-                           name="voice_vlan"
-                           data-orig="{{ interface.voice_activated|default:'false' }}"
-                           {% if interface.voice_activated %}checked{% endif %}
-                           {% if not interface.iseditable %}disabled="disabled"{% endif %}>
-                </td>
+                <input class="voicevlan"
+                       type="checkbox"
+                       name="voice_vlan"
+                       data-orig="{{ interface.voice_activated|default:'false' }}"
+                       {% if interface.voice_activated %}checked{% endif %}
+                       {% if not interface.iseditable %}disabled="disabled"{% endif %}>
+            {% else %}
+                &nbsp;
             {% endif %}
+            </td>
         {% endif %}
 	</tr>
 

@@ -44,7 +44,7 @@
                                 values on the request.
                             {% endcomment %}
 
-                            <td>
+                            <td class="text-center">
                                 {% if vlan in allowed_vlans %}
                                 <input type="radio" name="native_vlan" value="{{ vlan.vlan }}" {% if vlan.vlan == native_vlan %}checked{% endif %}>
                                 {% else %}
@@ -60,7 +60,7 @@
                             </td>
 
                             {% comment %}Checkbox for tagging this vlan on this interface{% endcomment %}
-                            <td>
+                            <td class="text-center">
                                 {% if vlan in allowed_vlans %}
                                     <input type="checkbox" name="trunk_vlans" value="{{ vlan.vlan }}" {% if vlan.vlan in trunked_vlans %}checked{% endif %}>
                                 {% else %}
