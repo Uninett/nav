@@ -50,7 +50,10 @@ define([
             this.vlanView.setSelectedVlan(vlan);
         },
         notifyMap: function (e) {
-            this.broker.trigger('map:node:fixed', {sysname: this.node.data.sysname, fixed: $(e.currentTarget).prop('checked')});
+            this.broker.trigger('netmap:node:setFixed', {
+                sysname: this.node.data.sysname,
+                fixed: $(e.currentTarget).prop('checked')
+            });
         },
         reset: function () {
             this.node = undefined;
