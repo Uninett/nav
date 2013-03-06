@@ -67,12 +67,14 @@ define([
                 'mapProperties': null,
                 'mapPropertiesCollection': null,
                 'viewid': null,
-                'favorite': null
+                'favorite': null,
+                'availableCategories': null
             };
             var self = this;
 
             var bootstrapMapPropertiesCollectionEl = $('#netmap_bootstrap_mapPropertiesCollection');
             var bootstrapIsFavoriteEl = $('#netmap_bootstrap_favoriteView');
+            var bootstrapAvailableCategories = $('#netmap_bootstrap_availableCategories');
 
             if (bootstrapMapPropertiesCollectionEl) {
                 var bootstrapData = $.parseJSON(bootstrapMapPropertiesCollectionEl.text());
@@ -90,9 +92,17 @@ define([
                 }
             }
 
+            if (bootstrapAvailableCategories) {
+                var data = $.parseJSON(bootstrapAvailableCategories.text());
+                if (data) {
+                    this.resources.availableCategories = data;
+                }
+            }
 
-            //findDefaultView();
 
+        },
+        getAvailableCategories: function () {
+            return this.resources.availableCategories;
         },
         getMapProperties: function () {
             return this.resources.mapProperties;
