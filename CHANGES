@@ -27,6 +27,8 @@ Version 3.14.0
   * LP#1103376 (portadmin should highlight changes in a better way)
   * LP#1134390 (Machine tracker crashes when inputting non-ASCII characters in
                 search)
+  * LP#1134392 (Invalid IP search patterns cause abnormal Machine Tracker
+                behavior)
   * LP#1135699 (arnold fails to open quarantined ports on cisco devices)
   * LP#1137799 (cricket runs eval on config that contains curly braces)
   * LP#1146602 (Maintengine TypeError crash)
