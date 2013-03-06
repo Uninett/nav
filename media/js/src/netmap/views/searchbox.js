@@ -25,11 +25,11 @@ define([
         },
         searchMap: function (e) {
             e.preventDefault();
-            this.broker.trigger('map:search', $("input#searchbox_query", this.$el).val());
+            this.broker.trigger('netmap:search', $("input#searchbox_query", this.$el).val());
         },
         centerGraph: function (e) {
             e.preventDefault();
-            this.broker.trigger('map:centerGraph');
+            this.broker.trigger('netmap:centerGraph');
         },
         render: function () {
             var self = this;
