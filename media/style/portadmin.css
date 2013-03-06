@@ -83,20 +83,24 @@ caption .saveall_button {
 }
 
 @media only screen and (max-width : 480px) {
-    #infoboxcontainer, #portadmin-interfacecontainer {
+    #infoboxcontainer, #portadmin-interfacecontainer, #portadmin-trunktable {
         width: 100%;
     }
 }
 
 @media only screen and (max-width : 320px) {
 
+    /* Hide indicators on small screens */
     #portadmin-interfacecontainer td:nth-child(2),
-    #portadmin-interfacecontainer td:nth-child(3) {
+    #portadmin-interfacecontainer td:nth-child(3),
+    #portadmin-interfacecontainer th:nth-child(2),
+    #portadmin-interfacecontainer th:nth-child(3) {
         display: none;
     }
 
-    #portadmin-interfacecontainer th:nth-child(2),
-    #portadmin-interfacecontainer th:nth-child(3) {
+    /* Hide description column on small screens */
+    #portadmin-trunktable td:nth-child(2),
+    #portadmin-trunktable th:nth-child(2) {
         display: none;
     }
 
