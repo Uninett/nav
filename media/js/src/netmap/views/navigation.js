@@ -42,9 +42,6 @@ define([
             this.isContentVisible = true;
             this.broker.register(this);
 
-            _.bindAll(this, 'on_keypress');
-            $(document).bind('keypress', this.on_keypress);
-
             this.template = Handlebars.compile(netmapTemplate);
 
             this.isLoading = !!(this.options.isLoading);
@@ -110,14 +107,14 @@ define([
         toggleView: function (e) {
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
-            this.broker.trigger('map:resize:animate', {marginLeft: margin});
+            this.broker.trigger('netmap:resize:animate', {marginLeft: margin});
         },
         onNodesFixedClick: function (e) {
             var val = $(e.currentTarget).val();
             if (val === 'Fix') {
-                this.broker.trigger('map:fixNodes', true);
+                this.broker.trigger('netmap:nodes:setFixed', true);
             } else if (val === 'UnFix') {
-                this.broker.trigger('map:fixNodes', false);
+                this.broker.trigger('netmap:nodes:setFixed', false);
             }
         },
         onTrafficGradientClick: function (e) {
@@ -135,19 +132,8 @@ define([
             });
 
         },
-        on_keypress: function (e) {
-            if (e.charCode === 110) { // n
-                this.context.ui.mouseover.nodes.state = !this.context.ui.mouseover.nodes.state;
-                this.broker.trigger('map:ui:mouseover:nodes', this.context.ui.mouseover.nodes.state);
-            } else if (e.charCode === 108) { // l
-                this.context.ui.mouseover.links.state = !this.context.ui.mouseover.links.state;
-                this.broker.trigger('map:ui:mouseover:links', this.context.ui.mouseover.links.state);
-            }
-            this.render();
-        },
         close:function () {
             this.layerView.close();
-            $(document).unbind('keypress', 'on_keypress');
             this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
