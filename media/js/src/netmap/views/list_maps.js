@@ -210,7 +210,7 @@ define([
                 if (this.graph.get('viewid') !== selected_id) {
                     this.graph = null; // changing view, need new graph
                 }
-                this.broker.trigger("netmap:changeMapProperties", this.options.activeMapProperties);
+                this.broker.trigger("netmap:changeActiveMapProperty", this.options.activeMapProperties);
 
                 Backbone.View.navigate("view/" + selected_id);
                 this.render();
