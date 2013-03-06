@@ -17,6 +17,7 @@
 
 import datetime
 import logging
+from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -58,6 +59,7 @@ def backbone_app(request):
         {
             'bootstrap_mapproperties_collection': get_maps(request),
             'bootstrap_isFavorite': get_global_defaultview(request),
+            'bootstrap_availableCategories': serializers.serialize('json', Category.objects.all(), fields=('description')),
             'auth_id': session_user.id,
             'link_to_admin': link_to_admin,
             'navpath': [('Home', '/'), ('Netmap', '/netmap')]
