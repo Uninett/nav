@@ -5,6 +5,13 @@
 
     {% if interface %}
 
+        <p>
+            <a href="{% url portadmin-sysname interface.netbox.sysname %}"
+               title="Go back">
+                Back to {{ interface.netbox.sysname }}
+            </a>
+        </p>
+
         <div>
             <h3>Interface {{ interface }}</h3>
 
@@ -77,6 +84,13 @@
             </form>
 
         </div>
+
+        <p>
+            <a href="{% url portadmin-sysname interface.netbox.sysname %}"
+               title="Go back">
+                Back to {{ interface.netbox.sysname }}
+            </a>
+        </p>
 
 
     {% else %}
