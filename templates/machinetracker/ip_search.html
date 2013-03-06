@@ -8,7 +8,7 @@
             <tbody>
                 <tr>
                     <th><label for="id_ip_range">Ip range:</label></th>
-                    <td>{{ form.ip_range }}</td>
+                    <td>{{ form.ip_range.errors }}{{ form.ip_range }}</td>
                 </tr>
                 <tr>
                     <th><label for="id_active">Active:</label></th>
@@ -32,7 +32,7 @@
                 </tr>
                 <tr>
                     <th><label for="id_days">Days:</label></th>
-                    <td>{{ form.days }}</td>
+                    <td>{{ form.days.errors }}{{ form.days }}</td>
                 </tr>
                 <tr>
                     <th></th>
