@@ -82,10 +82,39 @@ caption .saveall_button {
     float: right;
 }
 
+
+/*
+ * Styles for small screens
+ */
+
 @media only screen and (max-width : 480px) {
     #infoboxcontainer, #portadmin-interfacecontainer, #portadmin-trunktable {
         width: 100%;
     }
+
+
+    #portadmin-trunktable {
+        table-layout: fixed;
+    }
+
+    /* Hide description column on small screens */
+    #portadmin-trunktable td:nth-child(2),
+    #portadmin-trunktable th:nth-child(2) {
+        display: none;
+    }
+
+    /* Make headers as small as possible */
+    #portadmin-trunktable th:nth-child(1),
+    #portadmin-trunktable th:nth-child(4),
+    #portadmin-trunktable th:nth-child(5) {
+        -o-text-overflow: ellipsis;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        width: 25px;
+    }
+
+
 }
 
 @media only screen and (max-width : 320px) {
@@ -98,11 +127,6 @@ caption .saveall_button {
         display: none;
     }
 
-    /* Hide description column on small screens */
-    #portadmin-trunktable td:nth-child(2),
-    #portadmin-trunktable th:nth-child(2) {
-        display: none;
-    }
 
 }
 
