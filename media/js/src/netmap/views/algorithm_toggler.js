@@ -10,7 +10,7 @@ define([
 
         broker: Backbone.EventBroker,
         interests: {
-            'map:forceChangedStatus': 'updateStatus'
+            'netmap:forceRunning': 'updateStatus'
         },
         events: {
             'click input[name="freezeNodes"]': 'pauseLayoutAlgorithm'
@@ -28,7 +28,7 @@ define([
             this.render();
         },
         pauseLayoutAlgorithm: function () {
-            this.broker.trigger('map:freezeNodes', true);
+            this.broker.trigger('netmap:stopLayoutForceAlgorithm', true);
             this.isLayoutEngineRunning = false;
             this.render();
         },
