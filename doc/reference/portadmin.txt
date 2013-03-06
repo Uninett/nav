@@ -6,7 +6,7 @@
 Introduction
 ============
 
-PortAdmin is a tool for configuring your interfaces by the help of a web
+PortAdmin is a tool for configuring your switch ports by the help of a web
 interface. It does so by communicating with a network device over SNMP [#f1]_
 
 
@@ -15,7 +15,7 @@ What can PortAdmin do?
 
 Currently you can
 
-* change ifalias
+* change port description
 * change access vlan
 * convert between trunk and access mode
 * when an interface is a trunk you can change which vlans are tagged on the
@@ -60,7 +60,7 @@ If the row flashes green after saving, that means the change went well. If a
 red error message appears, this means there was an error making the change.
 
 
-**I want to change the ifAlias**
+**I want to change the port description**
 
 Start writing in the text field. The row should turn blue and a save and
 undo button should appear. Click save to save the changes,
@@ -106,28 +106,44 @@ If you edit an interface but want to revert the changes,
 click the undo button. The button will not revert the changes if you have
 already saved them.
 
+**I cannot edit an interface**
+
+If an interface is not editable the admins of NAV have turned on vlan
+authorization. This means you can only edit interfaces that have a
+vlan that you are organizationally connected to.
+
+**Some parts of the interface is disabled/greyed out**
+
+See above.
+
 
 The Config File
 ===============
 
 PortAdmin has a config file. The options that can be set in this file are:
 
-* `voice_vlans`: Voice vlans are the vlans you use for ip telephone traffic.
-  If  you define several vlans here, make sure only one of them is available
-  on the netbox. Otherwise there is no way of knowing which one you want. If
-  this option is set, the interface will display a checkbox to enable and
-  disable voice vlan on the interface. :ref:`more_about_voice_vlan`
+**voice_vlans**
+    Voice vlans are the vlans you use for ip telephone traffic.  If
+    you define several vlans here, make sure only one of them is
+    available on the netbox. Otherwise there is no way of knowing
+    which one you want. If this option is set, the interface will
+    display a checkbox to enable and disable voice vlan on the
+    interface. :ref:`more_about_voice_vlan`
 
-* `vlan_auth`: If you want to limit what users can do in PortAdmin you
-  activate this option. What this does is limit the choice of vlans to the
-  ones connected to the users organization.
+**vlan_auth**
+    If you want to limit what users can do in PortAdmin you activate
+    this option. What this does is limit the choice of vlans to the
+    ones connected to the users organization.
 
-* `vlan and netident`: Some network admins want to use a separate vlan to
-  indicate that this interface does not route traffic. Use these options to
-  define that vlan. The vlan will be available for configuration for all users.
+**vlan and netident**
+    Some network admins want to use a separate vlan to indicate that
+    this interface does not route traffic. Use these options to define
+    that vlan.  The vlan will be available for configuration for all
+    users.
 
-* `format`: Experimental feature. Makes you enforce a specific input format on
-  the ifalias.
+**format**
+    Experimental feature. Makes you enforce a specific input format on
+    the port description.
 
 
 .. _more_about_voice_vlan:
