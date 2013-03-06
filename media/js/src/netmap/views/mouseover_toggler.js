@@ -11,11 +11,17 @@ define([
     var MouseOverView = Backbone.View.extend({
 
         broker: Backbone.EventBroker,
+        interests: {
+            "netmap:graph:isDoneLoading": "setIsViewEnabled"
+        },
         events: {
             'click input[name="mouseOver[]"]': 'setMouseOverOptions'
         },
         initialize: function () {
+            this.broker.register(this);
             this.template = Handlebars.compile(Template);
+            _.bindAll(this, 'onKeypress');
+            $(document).bind('keypress', this.onKeypress);
 
             if (!this.collection) {
                 this.collection = new Collection([
@@ -28,7 +34,10 @@ define([
 
             return this;
         },
-
+        setIsViewEnabled: function (boolValue) {
+            this.isViewEnabled = boolValue;
+            this.render();
+        },
         render: function () {
             this.$el.html(
                 this.template({
@@ -36,7 +45,8 @@ define([
                     title_help: 'Enable &quot;auto clicking&quot; when hovering a node or a link',
                     type: 'checkbox',
                     identifier: 'mouseOver',
-                    collection: this.collection.toJSON()
+                    collection: this.collection.toJSON(),
+                    isViewEnabled: this.isViewEnabled
                 })
             );
 
@@ -48,14 +58,29 @@ define([
         setMouseOverOptions: function (e) {
             var itemInCollection = this.collection.get($(e.currentTarget).val());
             if (itemInCollection) {
-                itemInCollection.is_selected = $(e.currentTarget).prop('checked');
-                //this.broker.trigger('map:ui:mouseover:'+$(e.currentTarget).val(), $(e.currentTarget).prop('checked'));
-            }
+                itemInCollection.set('is_selected', $(e.currentTarget).prop('checked'));
 
-            //this.render();
+                this.broker.trigger('netmap:ui:mouseover', itemInCollection);
+            }
+            // render not needed.. done by browser.
+        },
+        onKeypress: function (e) {
+            var itemInCollection = null;
+            if (e.charCode === 110) { // n
+                itemInCollection = this.collection.get('nodes');
+            } else if (e.charCode === 108) { // l
+                itemInCollection = this.collection.get('links');
+            }
+            if (itemInCollection) {
+                itemInCollection.set("is_selected", !itemInCollection.get("is_selected"));
+                this.broker.trigger('netmap:ui:mouseover', itemInCollection);
+                this.render();
+            }
         },
 
         close:function () {
+            this.broker.unregister(this);
+            $(document).unbind('keypress', 'onKeypress');
             $(this.el).unbind();
             $(this.el).remove();
         }
