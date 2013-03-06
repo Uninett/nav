@@ -13,6 +13,7 @@ define([
 
         broker: Backbone.EventBroker,
         interests: {
+            "netmap:graph:isDoneLoading": "setIsViewEnabled",
             "netmap:changeMapProperties": "updateFiltersFromBroadcast",
             "netmap:setMapProperties:done": "updateFiltersFromBroadcast"
         },
@@ -20,30 +21,36 @@ define([
             'click input[name="categories[]"]': 'updateFilters'
         },
         initialize: function () {
+            var self = this;
             this.broker.register(this);
             this.template = Handlebars.compile(Template);
-            // todo: fetch collection from api.
-            if (!this.collection) {
-                // also see map model file!
-                this.collection = new Collection([
-                    {name: "GSW", 'is_selected': true},
-                    {name: "GW", 'is_selected': true},
-                    {name: "SW", 'is_selected': true},
-                    {name: "OTHER", 'is_selected': true},
-                    {name: "WLAN", 'is_selected': true},
-                    {name: "SRV", 'is_selected': true},
-                    {name: "EDGE",'is_selected': true},
-                    {name: "ELINK"}
-                ]);
 
-                this.updateFiltersFromBroadcast(Resources.getMapProperties());
+            if (!this.model) {
+                this.model = Resources.getMapProperties();
+
+                var missingDjangoCategoriesModels = _.reject(Resources.getAvailableCategories(), function (r) {
+                    return self.model.get('categories').find(function (c) {
+                        return c.get('name') === r.pk;
+                    });
+                });
+
+                _.each(missingDjangoCategoriesModels, function (m) {
+                    self.model.get('categories').add({name: m.pk, is_selected: false});
+                });
+
             }
 
-            this.collection.bind("change", this.broadcastcategoriesFilters, this);
+            this.model.get("categories").bind("change", this.render, this);
+            this.model.get("categories").each(function(category){
+                category.bind("change", function(){ self.trigger("change:categories:" + category.id, category) });
+            });
 
             return this;
         },
-
+        setIsViewEnabled: function (boolValue) {
+            this.isViewEnabled = boolValue;
+            this.render();
+        },
         render: function () {
             this.$el.html(
                 this.template({
@@ -51,34 +58,24 @@ define([
                     type: 'checkbox',
                     identifier: 'categories',
                     nameInUppercase: true,
-                    collection: this.collection.toJSON()
+                    collection: this.model.get('categories').toJSON(),
+                    isViewEnabled: this.isViewEnabled
                 })
             );
 
             return this;
         },
-        broadcastcategoriesFilters: function () {
-            this.broker.trigger("netmap:changeCategoriesFilters", this.collection);
-            this.render();
-        },
         updateFilters: function (e) {
             // jQuery<=1.6
             var categoryToUpdate = null;
-            categoryToUpdate = this.collection.get($(e.currentTarget).val().toUpperCase());
+            categoryToUpdate = this.model.get('categories').get($(e.currentTarget).val().toUpperCase());
             if (categoryToUpdate) {
                 // category found!
                 categoryToUpdate.set({'is_selected': $(e.currentTarget).prop('checked')});
             }
-            this.broker.trigger("netmap:changeCategoriesFilters", this.collection);
         },
         updateFiltersFromBroadcast: function (mapProperties) {
-            this.collection.forEach(function (model) {
-                model.set({'is_selected': false}, {'silent': true});
-            });
-            // set's is_selected true on categories mentioned in mapProperties.categories which is in this.collection
-            _.invoke(this.collection.filter(function (model) {
-                return _.contains(mapProperties.get('categories').pluck('name'), model.get('name'));
-            }), "set", {'is_selected': true}, {'silent': true});
+            this.model.set('categories', mapProperties.get('categories'));
 
             this.render();
         },
