@@ -15,7 +15,7 @@
 #
 """Machine tracker forms"""
 
-import re
+from nav.macaddress import MacPrefix
 from nav.web.machinetracker import iprange
 from django import forms
 from django.forms.util import ErrorList
@@ -60,14 +60,10 @@ class MacTrackerForm(forms.Form):
         widget=forms.TextInput(attrs={'size': 3}))
 
     def clean_mac(self):
-        # FIXME Better MAC validation?
-        # Checks for length (should not be longer than 12)
-        # Checks for bad chars, valid chars are "0-9", "A-F", ":", "." and "-"
-        mac = self.cleaned_data['mac']
-        tmp_mac = re.sub("[^0-9a-fA-F]", "", mac)
-        bad_chars = re.sub(r"[0-9a-fA-F:\-\.]", "", mac)
-        if len(bad_chars) > 0 or len(tmp_mac) > 12:
-            raise forms.ValidationError(u"Invalid MAC address")
+        try:
+            mac = MacPrefix(self.cleaned_data['mac'])
+        except ValueError as error:
+            raise forms.ValidationError(error)
         return mac
 
 
