@@ -247,6 +247,7 @@ class _MySnmpSession(Session):
 
         response = netsnmp_pdu_p()
         if lib.snmp_synch_response(self.sess, req, byref(response)) == 0:
+            _raise_on_protocol_error(response)
             result = dict(getResult(response.contents))
             lib.snmp_free_pdu(response)
             return result
@@ -264,6 +265,7 @@ class _MySnmpSession(Session):
 
         response = netsnmp_pdu_p()
         if lib.snmp_synch_response(self.sess, req, byref(response)) == 0:
+            _raise_on_protocol_error(response)
             result = getResult(response.contents)
             lib.snmp_free_pdu(response)
             return result
@@ -280,6 +282,7 @@ class _MySnmpSession(Session):
 
         response = netsnmp_pdu_p()
         if lib.snmp_synch_response(self.sess, req, byref(response)) == 0:
+            _raise_on_protocol_error(response)
             result = dict(getResult(response.contents))
             lib.snmp_free_pdu(response)
             return result
@@ -347,6 +350,11 @@ def snmp_api_errstring(err_code):
     buf = netsnmp.lib.snmp_api_errstring(err_code)
     return cast(buf, c_char_p).value
 
+def snmp_errstring(err_status):
+    """Converts an SNMP protocol error status to an error string"""
+    buf = netsnmp.lib.snmp_errstring(err_status)
+    return cast(buf, c_char_p).value
+
 def _raise_on_error(err_code):
     """Raises an appropriate NAV exception for a non-null SNMP err_code value.
 
@@ -360,3 +368,17 @@ def _raise_on_error(err_code):
     else:
         raise errors.SnmpError("%s: %s" % (SNMPERR_MAP.get(err_code, ''),
                                            snmp_api_errstring(err_code)))
+
+
+def _raise_on_protocol_error(response):
+    """Raises an appropriate NAV exception for a non-zero SNMP protocol error
+     status value.
+
+    """
+    response = response.contents
+    if response.errstat > 0:
+        errstring = snmp_errstring(response.errstat)
+        if response.errstat == netsnmp.SNMP_ERR_NOSUCHNAME:
+            raise errors.NoSuchObjectError(errstring)
+        if response.errstat > 0:
+            raise errors.SnmpError(errstring)
