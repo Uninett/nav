@@ -54,7 +54,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
      * on irrelevant changes.
      */
     function addChangeListener(table) {
-        $(table).find('tbody').on('keyup' , '.ifalias', function (event) {
+        $(table).find('tbody').on('keyup change', '.ifalias', function (event) {
             actOnChange($(event.target).parents('tr'));
         });
         $(table).find('tbody').on('change', '.vlanlist', function (event) {
