@@ -3,11 +3,20 @@ Version 3.14.0
 
  User-visible features and improvements:
 
-  * NAV now fully supports SNMP communication over IPv6.
+  * NAV now fully supports SNMP communication over IPv6. Please see the
+    release notes for more information.
+
   * Most of the service monitor plugins now support IPv6.
+
   * NAV documentation is slowly moving out of the wiki and into Sphinx. Now,
     every NAV installation includes a link from the front page to the
     browseable, locally installed documentation.
+
+  * The Toolbox can now be collapsed into an icon/title-based list if the tool
+    descriptions aren't needed or wanted.
+
+  * The ordering of tools in the Toolbox can now be customized individually by
+    each user.
 
  Fixes and features:
 

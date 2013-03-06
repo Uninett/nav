@@ -29,8 +29,29 @@ of NAV, please go to https://launchpad.net/nav/3.14 .
 Dependency changes
 ------------------
 
-- The `pynetsnmp` library is still optional (for the time being), but is
-  **required** if IPv6 support is needed.
+- The `pynetsnmp` library is still optional (for the time being) and
+  recommended, but is **required** if IPv6 SNMP support is needed.
+
+IPv6
+----
+
+NAV 3.14 supports SNMP over IPv6, and most of the service monitors can now
+also support IP devices with an IPv6 address in NAV. When adding a service
+monitor in SeedDB, any monitor that doesn't support IPv6 will be marked as
+such.
+
+NAV will also properly configure Cricket with IPv6 addresses, but Cricket's
+underlying SNMP library *needs two optional Perl modules* to be installed to
+enable IPv6. These modules are:
+
+* `Socket6`
+* `IO::Socket::INET6`
+
+On Debian/Ubuntu these two are already in the Recommends list of the
+`libsnmp-session-perl` package (Cricket's underlying SNMP library); depending
+on your Apt configuration, they may or may not have been installed
+automatically when the `cricket` package was installed.
+
 
 Files to remove
 ---------------
