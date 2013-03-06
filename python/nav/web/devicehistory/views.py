@@ -107,7 +107,7 @@ def devicehistory_view(request):
     selection = {
         'organization': request.REQUEST.getlist('org'),
         'category': request.REQUEST.getlist('cat'),
-        'location': request.REQUEST.getlist('loc'),
+        'room__location': request.REQUEST.getlist('loc'),
         'room': request.REQUEST.getlist('room'),
         'netbox': request.REQUEST.getlist('netbox'),
         'module': request.REQUEST.getlist('module'),
@@ -165,7 +165,7 @@ def devicehistory_view(request):
 
     for key, values in selection.items():
         attr = key
-        if key == "location":
+        if key == "room__location":
             attr = "loc"
         if key == "organization":
             attr = "org"
@@ -175,8 +175,8 @@ def devicehistory_view(request):
             url += "&%s=%s" % (attr, ident)
 
     # Quickselect expects 'loc' and not 'location'
-    selection['loc'] = selection['location']
-    del selection['location']
+    selection['loc'] = selection['room__location']
+    del selection['room__location']
 
     info_dict = {
         'active': {'device': {'history': True}},
