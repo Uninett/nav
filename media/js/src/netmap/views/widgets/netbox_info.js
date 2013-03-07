@@ -1,7 +1,7 @@
 define([
     'plugins/netmap-extras',
     'netmap/views/info/vlan',
-    'libs-amd/text!netmap/templates/netbox_info.html',
+    'libs-amd/text!netmap/templates/widgets/netbox_info.html',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',

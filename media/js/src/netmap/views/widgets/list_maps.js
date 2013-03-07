@@ -6,7 +6,7 @@ define([
     'netmap/models/graph',
     'netmap/models/default_map',
     'netmap/views/modal/save_new_map',
-    'libs-amd/text!netmap/templates/list_maps.html',
+    'libs-amd/text!netmap/templates/widgets/list_maps.html',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',

@@ -1,6 +1,6 @@
 define([
     'netmap/resource',
-    'libs-amd/text!netmap/templates/orphans_toggler.html',
+    'libs-amd/text!netmap/templates/widgets/orphans.html',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',

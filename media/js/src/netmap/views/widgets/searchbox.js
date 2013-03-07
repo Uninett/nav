@@ -1,6 +1,6 @@
 define([
     'plugins/netmap-extras',
-    'libs-amd/text!netmap/templates/searchbox.html',
+    'libs-amd/text!netmap/templates/widgets/searchbox.html',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',

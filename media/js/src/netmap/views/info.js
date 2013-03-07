@@ -1,8 +1,8 @@
 define([
     'plugins/netmap-extras',
     'libs-amd/text!netmap/templates/info.html',
-    'netmap/views/list_maps',
-    'netmap/views/map_info',
+    'netmap/views/widgets/list_maps',
+    'netmap/views/widgets/map_info',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',

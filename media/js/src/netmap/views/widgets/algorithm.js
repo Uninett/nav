@@ -1,5 +1,5 @@
 define([
-    'libs-amd/text!netmap/templates/algorithm_toggler.html',
+    'libs-amd/text!netmap/templates/widgets/algorithm.html',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',

@@ -3,14 +3,14 @@ define([
     'libs-amd/text!netmap/templates/navigation.html',
     'netmap/collections/traffic_gradient',
     'netmap/views/modal/traffic_gradient',
-    'netmap/views/searchbox',
-    'netmap/views/layer_toggler',
-    'netmap/views/categories_toggler',
-    'netmap/views/orphans_toggler',
-    'netmap/views/position_toggler',
-    'netmap/views/algorithm_toggler',
-    'netmap/views/topology_error_toggler',
-    'netmap/views/mouseover_toggler',
+    'netmap/views/widgets/searchbox',
+    'netmap/views/widgets/layer',
+    'netmap/views/widgets/categories',
+    'netmap/views/widgets/orphans',
+    'netmap/views/widgets/position',
+    'netmap/views/widgets/algorithm',
+    'netmap/views/widgets/topology_error',
+    'netmap/views/widgets/mouseover',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
@@ -22,7 +22,7 @@ define([
         broker: Backbone.EventBroker,
         interests: {
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest',
-            "netmap:graph:isDoneLoading": "setIsViewEnabled",
+            "netmap:graph:isDoneLoading": "setIsViewEnabled"
         },
         events: {
             'click #toggle_view':      'toggleView',
@@ -51,8 +51,6 @@ define([
             this.render();
         },
         render: function () {
-            var self = this;
-
             var out = this.template({ isVisible: this.isContentVisible, isViewEnabled: this.isViewEnabled });
             this.$el.html(out);
 
