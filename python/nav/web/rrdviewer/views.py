@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008 UNINETT AS
 #
@@ -14,23 +13,24 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""RRDviewer view functions"""
 
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 
-from nav.config import read_flat_config
 from nav.models.manage import Interface
-from nav.models.rrd import RrdFile, RrdDataSource
+from nav.models.rrd import RrdDataSource
 from nav.rrd import presenter
 
-def rrd_index(request):
-    """Redirect to the IP Device Info search page"""
 
+def rrd_index(_request):
+    """Redirect to the IP Device Info search page"""
     return HttpResponseRedirect(reverse('ipdevinfo-search'))
+
 
 def rrd_details(request, rrddatasource_id, time_frame='week'):
     """Show the RRD graph corresponding to the given datasource ID"""
@@ -47,10 +47,10 @@ def rrd_details(request, rrddatasource_id, time_frame='week'):
         port = None
 
     # Check if RRD file exists
-    fs = FileSystemStorage(location=rrddatasource.rrd_file.path)
-    if not fs.exists(rrddatasource.rrd_file.get_file_path()):
+    fsys = FileSystemStorage(location=rrddatasource.rrd_file.path)
+    if not fsys.exists(rrddatasource.rrd_file.get_file_path()):
         errors.append('Cannot find the RRD file "%s".' %
-            rrddatasource.rrd_file.get_file_path())
+                      rrddatasource.rrd_file.get_file_path())
         presenter_page = None
     else:
         # Play along with the very legacy nav.rrd.presenter
@@ -70,7 +70,8 @@ def rrd_details(request, rrddatasource_id, time_frame='week'):
         },
         context_instance=RequestContext(request))
 
-def rrd_image(request, rrdfile_id):
+
+def rrd_image(_request, rrdfile_id):
     """Return the graph image of an RRD file"""
 
     # Get file name
@@ -79,5 +80,5 @@ def rrd_image(request, rrdfile_id):
         config['file_prefix'], rrdfile_id, config['file_suffix'])
 
     # Return file content
-    file = File(open(file_name))
-    return HttpResponse(file.read(), mimetype='image/gif')
+    image_file = File(open(file_name))
+    return HttpResponse(image_file.read(), mimetype='image/gif')
