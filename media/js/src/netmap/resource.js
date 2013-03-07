@@ -9,19 +9,6 @@ define([
     'libs/backbone-eventbroker'
 ], function(CategoriesCollection, MapCollection, MapPropertiesModel, DefaultMapModel) {
 
-    var self = this;
-
-    var resources = {
-    };
-
-    var listeners = {
-        'graph': [],
-        'mapProperties': []
-    };
-
-    /*var broker = Backbone.EventBroker;
-    broker.register(this);*/
-
     function checkDefaultMapSetByAdministrator() {
         var self = this;
         // todo add a map the administrator can set to be default view
