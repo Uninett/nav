@@ -1020,8 +1020,6 @@ define([
                 .call(nodeDragAndDrop);
         },
         update: function () {
-            var self = this;
-
             this.bounding_box
                 .attr("transform",
                     "translate(" + this.trans + ") scale(" + this.scale + ")");
