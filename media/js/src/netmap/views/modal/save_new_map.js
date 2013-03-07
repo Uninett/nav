@@ -11,11 +11,15 @@ define([
 
     var modalSaveNew = Backbone.View.extend({
         broker: Backbone.EventBroker,
+        interests: {
+            "netmap:graph": "setGraph"
+        },
         events: {
             "click #modal_save_view_button": "save_view",
             "submit": function () { return false; }
         },
         initialize: function () {
+            this.broker.register(this);
             this.template_post = Handlebars.compile(template);
             if (!this.options.graph || !this.options.model) {
                 alert("Missing graph data or view properties, cannot save!");
@@ -36,6 +40,9 @@ define([
                 this.model.bind("change", this.render, this);
                 this.model.bind("destroy", this.close, this);
             }
+        },
+        setGraph: function (graphModel) {
+            this.options.graph = graphModel;
         },
         render: function () {
             this.el.dialog('open');
@@ -64,7 +71,7 @@ define([
                 topology: self.model.get('topology'),
                 categories: self.model.get('categories'),
                 zoom: self.model.get('zoom'),
-                display_orphans: !self.model.get('display_orphans')
+                display_orphans: self.model.get('displayOrphans')
             });
 
             this.model.save(this.model.attributes, {
@@ -94,6 +101,7 @@ define([
             this.close();
         },
         close: function () {
+            this.broker.unregister(this);
             $('#modal_new_view').dialog('destroy').remove();
             $(this.el).unbind();
             $(this.el).remove();
