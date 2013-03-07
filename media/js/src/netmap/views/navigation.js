@@ -42,9 +42,6 @@ define([
             this.broker.register(this);
 
             this.template = Handlebars.compile(netmapTemplate);
-
-            this.isLoading = !!(this.options.isLoading);
-
         },
         setIsViewEnabled: function (boolValue) {
             this.isViewEnabled = boolValue;
