@@ -139,6 +139,11 @@ define([
             }
         },
         loadTopologyGraph: function (shouldRezoomAndTranslate) {
+            // shouldRezoomAndTranslate can be set to true
+            // when you want to zoom and translate from activeMapProperties
+            // ie: when changing a saved mapProperties view
+            // and you want to use it's new saved zoom and translate
+            // values from the new activeMapProperties to change the perspective
             var self = this;
             this.broker.trigger("netmap:graph:isDoneLoading", false);
 
