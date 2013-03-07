@@ -67,10 +67,10 @@ def get_last_job_log_from_netboxes(rows, job_type):
     The job_type is a string with job type such as 'ip2mac' or 'topo'
 
     """ 
-    netboxes = dict((row.netbox,None) for row in rows)
-    for netbox in netboxes:
-        netboxes[netbox] = netbox.job_log.filter(job_name=job_type).order_by('-end_time')[0]
-    return netboxes
+    netboxes_job = dict((row.netbox,None) for row in rows)
+    for netbox in netboxes_job:
+        netboxes_job[netbox] = netbox.job_log.filter(job_name=job_type).order_by('-end_time')[0]
+    return netboxes_job
 
 
 def normalize_ip_to_string(ipaddr):

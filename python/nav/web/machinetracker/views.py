@@ -33,7 +33,7 @@ from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict
 from nav.web.machinetracker.utils import process_ip_row, track_mac, get_prefix_info
 from nav.web.machinetracker.utils import (min_max_mac, ProcessInput,
                                           normalize_ip_to_string, 
-                                          get_last_job_log_from_netboxes,)
+                                          get_last_job_log_from_netboxes)
 
 NAVBAR = [('Home', '/'), ('Machinetracker', None)]
 IP_TITLE = 'NAV - Machinetracker - IP Search'
