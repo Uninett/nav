@@ -10,10 +10,14 @@ define([
     var TopologyErrorView = Backbone.View.extend({
 
         broker: Backbone.EventBroker,
+        interests: {
+            "netmap:graph:isDoneLoading": "setIsViewEnabled"
+        },
         events: {
             'click input[name="topologyErrors[]"]': 'setDisplayTopologyErrors'
         },
         initialize: function () {
+            this.broker.register(this);
             this.template = Handlebars.compile(Template);
 
             if (!this.collection) {
@@ -21,14 +25,18 @@ define([
             }
             return this;
         },
-
+        setIsViewEnabled: function (boolValue) {
+            this.isViewEnabled = boolValue;
+            this.render();
+        },
         render: function () {
             this.$el.html(
                 this.template({
                     title: 'Topology errors',
                     type: 'checkbox',
                     identifier: 'topologyErrors',
-                    collection: this.collection.toJSON()
+                    collection: this.collection.toJSON(),
+                    isViewEnabled: this.isViewEnabled
                 })
             );
             return this;
@@ -39,6 +47,7 @@ define([
         },
 
         close:function () {
+            this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         }

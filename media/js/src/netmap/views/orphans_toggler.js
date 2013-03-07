@@ -10,10 +10,14 @@ define([
     var OrphanView = Backbone.View.extend({
 
         broker: Backbone.EventBroker,
+        interests: {
+            "netmap:graph:isDoneLoading": "setIsViewEnabled"
+        },
         events: {
             'click input[name="filter_orphans"]': 'setOrphansFilter'
         },
         initialize: function () {
+            this.broker.register(this);
             this.template = Handlebars.compile(Template);
             // todo: fetch collection from api.
             if (!this.model) {
@@ -23,7 +27,10 @@ define([
             this.model.bind("change:displayOrphans", this.render, this);
             return this;
         },
-
+        setIsViewEnabled: function (boolValue) {
+            this.isViewEnabled = boolValue;
+            this.render();
+        },
         render: function () {
             this.$el.html(
                 this.template({model: this.model.toJSON()})
@@ -36,6 +43,7 @@ define([
         },
 
         close:function () {
+            this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         }

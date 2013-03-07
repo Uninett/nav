@@ -5,12 +5,12 @@
                 <div id="form_view" class="control-group">
                     <label class="control-label"
                            for="dropdown_view_id">Views</label>
-                    <a class="save_view" id="save_new_view" title="Save new view" {{#if isLoading}}disabled="disabled"{{/if}}><img src="/images/threshold/plus-button.png"/></a>
+                    <a class="save_view" id="save_new_view" title="Save new view" {{#unless ../isViewEnabled}} disabled{{/unless}}><img src="/images/threshold/plus-button.png"/></a>
                     {{#if isNew}}
                     {{else}}
-                        <a class="save_view" id="delete_view" title="Delete view" {{#if isLoading}}disabled="disabled"{{/if}}><img src="/images/threshold/minus-button.png"/></a>
+                        <a class="save_view" id="delete_view" title="Delete view" {{#unless ../isViewEnabled}} disabled{{/unless}}><img src="/images/threshold/minus-button.png"/></a>
                     {{/if}}
-                    <select id="dropdown_view_id" {{#if isLoading}}disabled="disabled"{{/if}}>
+                    <select id="dropdown_view_id" {{#unless ../isViewEnabled}} disabled{{/unless}}>
                         {{#maps}}
                             {{#if is_selected}}
                                 <option value="{{../viewid}}" selected="selected">
@@ -24,10 +24,10 @@
 
                     <!-- Debug: context.viewid {{context_selected_map.viewid}} -->
 
-                    <button id="save_view" {{#if isLoading}}disabled="disabled"{{/if}}
+                    <button id="save_view" {{#unless ../isViewEnabled}} disabled{{/unless}}
                             class="btn save_view">Save
                     </button>
-                    <button id="set_as_user_favorite" {{#if isNewOrIsloading}}disabled=disabled{{/if}}
+                    <button id="set_as_user_favorite" {{#unless ../isViewEnabled}} disabled{{/unless}}
                             class="btn save_view">Favorite
                     </button>
                     <div id="save_view_spinner"></div>

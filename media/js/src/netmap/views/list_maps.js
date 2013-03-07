@@ -22,12 +22,13 @@ define([
 
         broker: Backbone.EventBroker,
         interests: {
+            "netmap:graph:isDoneLoading": "setIsViewEnabled",
             "netmap:mapProperties": "setMapProperties",
             "netmap:graph": "setGraph",
             "netmap:setMapProperties:done": "render",
+
             "netmap:save:removeUnsavedView": "removeUnsavedViewFromCollection",
             "netmap:save:newMapProperties": "addMapPropertiesToCollection",
-            "map:topology_change": "deactiveAndShowSpinnerWhileLoading",
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
         },
         events: {
@@ -35,7 +36,7 @@ define([
             "click #save_new_view": "showSaveAsView",
             "click #delete_view": "deleteView",
             "click #set_as_user_favorite": "setFavorite",
-            "change #dropdown_view_id": "eventChangeActiveMapProperties",
+            "change #dropdown_view_id": "eventChangeActiveMapProperties"
         },
         initialize: function () {
             var self = this;
@@ -79,6 +80,10 @@ define([
             }
 
             this.broker.trigger("netmap:request:graph");
+        },
+        setIsViewEnabled: function (boolValue) {
+            this.isViewEnabled = boolValue;
+            this.render();
         },
         setMapProperties: function (mapProperties) {
             if (this.collection) {
@@ -217,16 +222,7 @@ define([
                 // setGraph should be triggered by event next by draw_map
             }
         },
-        deactiveAndShowSpinnerWhileLoading: function () {
-            var self = this;
-            self.isLoading = true;
-            this.$el.find("#set_as_user_favorite").attr('disabled', 'disabled');
-            this.$el.find("#save_view").attr('disabled', 'disabled');
-            this.$el.find("#dropdown_view_id").attr('disabled', 'disabled');
-            //self.broker.trigger('map:loading:context_selected_map');
-        },
         render: function () {
-            var self = this;
             var context = {};
             if (this.collection) {
                 context.maps = this.collection.toJSON();
@@ -237,7 +233,7 @@ define([
             context.isLoading = this.isLoading();
             context.isFavorite = this.options.activeMapProperties.get('isFavorite', false);
             context.description = this.options.activeMapProperties.get('description', null);
-
+            context.isViewEnabled = this.isViewEnabled;
             var out = this.template(context);
 
             this.$el.html(out);

@@ -19,8 +19,8 @@
     <div class="fix_options">
         <span>Fix or unfix all nodes</span>
         <div class="squaredTwo">
-            <input type="button" name="nodesFixed" value="Fix" id="setNodesFixed"  {{#if isLoading}}disabled='disabled'{{/if}} />
-            <input type="button" name="nodesFixed" value="UnFix" id="unsetNodesFixed"  {{#if isLoading}}disabled='disabled'{{/if}} />
+            <input type="button" name="nodesFixed" value="Fix" id="setNodesFixed"  {{#unless isViewEnabled}} disabled{{/unless}} />
+            <input type="button" name="nodesFixed" value="UnFix" id="unsetNodesFixed"  {{#unless isViewEnabled}} disabled{{/unless}} />
         </div>
     </div>
 

@@ -11,11 +11,15 @@ define([
     var LayerView = Backbone.View.extend({
 
         broker: Backbone.EventBroker,
+        interests: {
+            "netmap:graph:isDoneLoading": "setIsViewEnabled"
+        },
         events: {
             'click input[name="topology[]"]': 'setTopology'
 
         },
         initialize: function () {
+            this.broker.register(this);
             this.template = Handlebars.compile(Template);
             if (!this.collection) {
                 this.collection = new Collection([
@@ -28,14 +32,18 @@ define([
 
             return this;
         },
-
+        setIsViewEnabled: function (boolValue) {
+            this.isViewEnabled = boolValue;
+            this.render();
+        },
         render: function () {
             this.$el.html(
                 this.template({
                     title: 'Layer',
                     type: 'radio',
                     identifier: 'topology',
-                    collection: this.collection.toJSON()
+                    collection: this.collection.toJSON(),
+                    isViewEnabled: this.isViewEnabled
                 })
             );
 
@@ -60,6 +68,7 @@ define([
         },
 
         close:function () {
+            this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         }

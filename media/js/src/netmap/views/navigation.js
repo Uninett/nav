@@ -22,8 +22,7 @@ define([
         broker: Backbone.EventBroker,
         interests: {
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest',
-            'map:loading:done': 'eventLoadingDone',
-            'map:topology_change:loading': 'setLoading'
+            "netmap:graph:isDoneLoading": "setIsViewEnabled",
         },
         events: {
             'click #toggle_view':      'toggleView',
@@ -47,18 +46,14 @@ define([
             this.isLoading = !!(this.options.isLoading);
 
         },
-        setLoading: function (state) {
-            this.isLoading = state;
-            this.render();
-        },
-        eventLoadingDone: function () {
-            this.isLoading = false;
+        setIsViewEnabled: function (boolValue) {
+            this.isViewEnabled = boolValue;
             this.render();
         },
         render: function () {
             var self = this;
 
-            var out = this.template({ isVisible: this.isContentVisible, isLoading: this.isLoading });
+            var out = this.template({ isVisible: this.isContentVisible, isViewEnabled: this.isViewEnabled });
             this.$el.html(out);
 
             this.searchView = this.attachSubView(this.searchView, SearchView, '#search_view');

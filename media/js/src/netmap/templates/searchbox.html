@@ -3,11 +3,11 @@
             <div id="form_view" class="control-group">
                 <label class="control-label"
                        for="searchbox_query">Search</label>
-                <input type="input" name="searchbox_query" id="searchbox_query" />
+                <input type="input" name="searchbox_query" id="searchbox_query" {{#unless isViewEnabled}} disabled{{/unless}} />
                 <button id="searchbox_search"
-                        class="btn">Search
+                        class="btn" {{#unless isViewEnabled}} disabled{{/unless}}>Search
                 </button>
-                <button id="center_graph">Zoom to extent</button>
+                <button id="center_graph" {{#unless isViewEnabled}} disabled{{/unless}}>Zoom to extent</button>
             </div>
     </form>
 </div>

@@ -10,18 +10,25 @@ define([
 
     var SearchboxView = Backbone.View.extend({
         broker: Backbone.EventBroker,
+        interests: {
+            "netmap:graph:isDoneLoading": "setIsViewEnabled"
+        },
         events: {
             "click #searchbox_search": "searchMap",
             "click #center_graph": "centerGraph"
         },
         initialize: function () {
-
+            this.broker.register(this);
             this.template = Handlebars.compile(netmapTemplate);
 
             //this.searchbox = this.options.node;
             /*this.model.bind("change", this.render, this);
              this.model.bind("destroy", this.close, this);*/
 
+        },
+        setIsViewEnabled: function (boolValue) {
+            this.isViewEnabled = boolValue;
+            this.render();
         },
         searchMap: function (e) {
             e.preventDefault();
@@ -32,12 +39,12 @@ define([
             this.broker.trigger('netmap:centerGraph');
         },
         render: function () {
-            var self = this;
-            var out = this.template({ node: self.node});
+            var out = this.template({ node: this.node, isViewEnabled: this.isViewEnabled});
             this.$el.html(out);
             return this;
         },
         close:function () {
+            this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         }
