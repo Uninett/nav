@@ -74,7 +74,7 @@ def rrd_image(request, rrdfile_id):
     """Return the graph image of an RRD file"""
 
     # Get file name
-    config = read_flat_config('rrdviewer/rrdviewer.conf')
+    config = presenter.get_rrdviewer_config()
     file_name = '%s%s%s' % (
         config['file_prefix'], rrdfile_id, config['file_suffix'])
 
