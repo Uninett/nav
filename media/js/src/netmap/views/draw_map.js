@@ -762,6 +762,9 @@ define([
 
         },
         updateRenderOrphanFilter: function () {
+            // actually doesn't render anything,
+            // it's removing links and nodes after other
+            // updateRender* functions that modify this.links and this.nodes!
             var self = this;
 
             if (!self.options.mapProperties.get('displayOrphans')) {
