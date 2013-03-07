@@ -17,6 +17,7 @@
 
 import logging
 import networkx as nx
+from IPy import IP
 
 from nav.models.manage import GwPortPrefix, Interface, SwPortVlan, SwPortBlocked, Prefix
 
@@ -41,8 +42,18 @@ class VlanGraphAnalyzer(object):
 
     @staticmethod
     def _build_vlan_router_dict():
-        addrs = get_active_addresses_of_routed_vlans()
-        return dict((addr.prefix.vlan, addr) for addr in addrs)
+        """Builds a dictionary of {vlan: GwPortPrefix} mappings.
+
+        For each VLAN, and IPv4 address is preferred over an IPv6 address,
+        and lower addresses are preferred over higher ones.
+
+        """
+        def _sortkey(gwp):
+            ip = IP(gwp.gw_ip)
+            return (ip.version(), ip)
+
+        addrs = sorted(get_active_addresses_of_routed_vlans(), key=_sortkey)
+        return dict((addr.prefix.vlan, addr) for addr in reversed(addrs))
 
     def analyze_all(self):
         """Analyze all VLAN topologies"""
@@ -498,7 +509,8 @@ def get_router_addresses():
 
     """
     return GwPortPrefix.objects.filter(
-        interface__netbox__category__id__in=('GW', 'GSW'))
+        interface__netbox__category__id__in=('GW', 'GSW')
+    )
 
 def get_stp_blocked_ports():
     """Returns a dictionary of ports in STP blocking mode.

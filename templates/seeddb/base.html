@@ -2,7 +2,7 @@
 
 {% block base_header_additional_head %}
     <link rel="stylesheet" type="text/css" href="/style/seeddb.css" />
-        <script type="text/javascript" src="/js/libs/require.js" data-main="src/seeddb"></script>
+    <script>require(["src/seeddb"]);</script>
     {% block additional_seeddb_head %}
     {% endblock %}
 {% endblock %}

@@ -1,5 +1,6 @@
 {% load info %}
 
+<div id="deviceinfo">
 <table id="ipdevinfo" class="vertitable">
 {% if netbox %}
     <caption>
@@ -55,7 +56,7 @@
     <tr>
         <th>Room</th>
         <td>
-            <a href="{% url report-netbox-room netbox.room.id|urlencode %}">
+            <a href="{% url room-info netbox.room.id %}">
                 {{ netbox.room }}</a></td>
     </tr>
 
@@ -402,3 +403,4 @@
 
 {% endif %}
 </table>
+</div>

@@ -1,0 +1,27 @@
+<div id="syslog_search">
+    <div id="domain_strip" class="hidden">{{ domain_strip }}</div>
+    {% if form %}
+    <form id="syslog_search_form" method="get" action="{{ form_target }}">
+        <table class="vertitable">
+            <caption>Search syslog<a href="http://www.cisco.com/en/US/docs/ios/system/messages/guide/sm_cnovr.html"><img class="float-right no-padding" title="Link to cisco manual explaining message types" src="/images/helpers/question.png" /></a></caption>
+            <tbody>
+            {% for field in form %}
+            <tr>
+                <th>{{ field.label }}</th>
+                <td>{{ field }} {% if field.errors %}{{ field.errors }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <th></th>
+                <td>
+                    <button type="submit" name="send" data-target="{{ form_target }}">Filter</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
+    <div id="syslog_loader"></div>
+    {% endif %}
+
+    {% include "syslogger/frag-results.html" %}
+</div>

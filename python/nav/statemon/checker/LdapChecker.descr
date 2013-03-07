@@ -1,2 +1,0 @@
-description=LDAP
-optargs=url base scope filter compare version username password port timeout

@@ -1,0 +1,33 @@
+/* Styles for / */
+
+@media screen and (max-width: 900px) {
+
+    div.boxes {
+        display: table;
+        float: none;
+        width: 100%;
+    }
+
+    div.boxes table {
+        display: table-cell;
+        width: auto;
+        border-right: 1px solid white;
+    }
+
+    div.boxes table:last-child {
+        border: none;
+    }
+
+    div.boxes table th {
+        white-space: nowrap;
+    }
+
+}
+
+/* Smartphone landscape */
+@media only screen
+and (max-width : 480px) {
+    div.boxes {
+        display: none;
+    }
+}

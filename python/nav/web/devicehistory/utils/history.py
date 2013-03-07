@@ -72,7 +72,7 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
 
     def make_selection_filter(and_mode=False):
         dicts = ({'%s__in' % (arg if arg != 'netbox' else 'id'): selection[arg]}
-                 for arg in ('netbox', 'room', 'location', 'organization',
+                 for arg in ('netbox', 'room', 'room__location', 'organization',
                              'category', 'module')
                  if selection[arg])
         filters = [Q(**d) for d in dicts]
@@ -168,14 +168,15 @@ def group_history_and_messages(history, messages, group_by=None):
 
 def describe_search_params(selection):
     data = {}
-    for arg, model in (('location', Location),
+    for arg, model in (('room__location', Location),
                        ('room', Room),
                        ('netbox', Netbox),
                        ('module', Module),
                        ('organization', Organization),
                        ('category', Category)):
         if arg in selection and selection[arg]:
-            data[arg] = _get_data_to_search_terms(selection, arg, model)
+            name = getattr(model, '_meta').verbose_name
+            data[name] = _get_data_to_search_terms(selection, arg, model)
 
     # Special case with netboxes
     if 'netbox' not in data:

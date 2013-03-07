@@ -48,8 +48,43 @@
             </td>
         </tr>
 
-
-        {{ task_form }}
+        <tr>
+            <td></td>
+            <td>{{ task_form.non_field_errors }}</td>
+        </tr>
+        <tr>
+            <th>
+                <label for="id_start_time">Start time:</label>
+            </th>
+            <td>
+                {{ task_form.start_time.errors }}
+                {{ task_form.start_time }}
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <label for="id_end_time">End time:</label>
+            </th>
+            <td>
+                {{ task_form.end_time.errors }}
+                {{ task_form.end_time }}
+                &nbsp;
+                {{ task_form.no_end_time.errors }}
+                {{ task_form.no_end_time }}
+                <label for="id_no_end_time"
+                    title="This task will automatically get closed when the chosen devices are up again.">
+                Automatically detect end time</label>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <label for="id_description">Description:</label>
+            </th>
+            <td>
+                {{ task_form.description.errors }}
+                {{ task_form.description }}
+            </td>
+    </tr>
 
     <tr>
         <th></th>
@@ -57,4 +92,5 @@
     </tr>
 </table>
 </form>
+
 {% endblock %}

@@ -25,6 +25,8 @@ from django.core import exceptions
 from nav.util import is_valid_cidr, is_valid_ip
 from nav.django import validators, forms as navforms
 
+INFINITY = datetime.max
+
 class DateTimeInfinityField(models.DateTimeField):
     def get_db_prep_value(self, value, connection=None, prepared=False):
         if value == datetime.max:

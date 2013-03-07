@@ -1,0 +1,1 @@
+Box {{netbox.sysname}} ({{netbox.ip}}) is up since {{time}}.

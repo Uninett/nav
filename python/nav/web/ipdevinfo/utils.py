@@ -13,11 +13,16 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Utility methods to get extract extra characteristics from ports."""
 
 import nav.util
+import logging
 
 from nav.models.manage import SwPortVlan, SwPortBlocked
 from nav.models.manage import Netbox
+
+_logger = logging.getLogger('nav.web.ipdevinfo.utils')
+
 
 def get_module_view(module_object, perspective, activity_interval=None,
                     netbox=None):
@@ -35,7 +40,8 @@ def get_module_view(module_object, perspective, activity_interval=None,
 
     """
 
-    assert perspective in ('swportstatus', 'swportactive', 'gwportstatus')
+    assert perspective in ('swportstatus', 'swportactive',
+                           'gwportstatus', 'physportstatus')
 
     module = {
         'object': module_object,
@@ -53,13 +59,19 @@ def get_module_view(module_object, perspective, activity_interval=None,
             ports = [p for p in netbox.get_gwports_sorted() if not p.module]
         else:
             ports = module_object.get_gwports_sorted()
+    elif perspective == 'physportstatus':
+        if not module_object and netbox:
+            ports = [p for p in netbox.get_physical_ports_sorted()
+                            if not p.module]
+        else:
+            ports = module_object.get_physical_ports_sorted()
 
     if ports:
         _cache_vlan_data_in_ports(ports)
         for port_object in ports:
             port = {'object': port_object}
 
-            if perspective == 'swportstatus':
+            if perspective in ('swportstatus', 'physportstatus'):
                 port['class'] = _get_swportstatus_class(port_object)
                 port['style'] = ''
                 port['title'] = _get_swportstatus_title(port_object)
@@ -75,9 +87,17 @@ def get_module_view(module_object, perspective, activity_interval=None,
                 port['style'] = ''
                 port['title'] = _get_gwportstatus_title(port_object)
 
+            if perspective == 'physportstatus':
+                # Add extra class to differentiate between layers.
+                if port_object.is_gwport():
+                    port['oplayer'] = '3'
+                elif port_object.is_swport():
+                    port['oplayer'] = '2'
+
             module['ports'].append(port)
 
     return module
+
 
 def _cache_vlan_data_in_ports(ports):
     """Loads and caches vlan data associated with an Interface queryset.
@@ -102,6 +122,7 @@ def _cache_vlan_data_in_ports(ports):
                                         for blocked_vlan in blocked_vlans
                                         if blocked_vlan.interface == port)
 
+
 def _get_swportstatus_class(swport):
     """Classes for the swportstatus port view"""
 
@@ -119,6 +140,7 @@ def _get_swportstatus_class(swport):
     if swport._blocked_vlans_cache:
         classes.append('blocked')
     return ' '.join(classes)
+
 
 def _get_swportstatus_title(swport):
     """Title for the swportstatus port view"""
@@ -160,12 +182,14 @@ def _get_swportstatus_title(swport):
 
     return ', '.join(title)
 
+
 def _get_vlan_numbers(swport):
     """Returns active vlans on an swport, using cached data, if available."""
     if hasattr(swport, '_vlan_cache'):
         return swport._vlan_cache
     else:
         return swport.get_vlan_numbers()
+
 
 def _get_swportactive_class(swport, interval=30):
     """Classes for the swportactive port view"""
@@ -183,6 +207,7 @@ def _get_swportactive_class(swport, interval=30):
             classes.append('inactive')
 
     return ' '.join(classes)
+
 
 def _get_swportactive_style(swport, interval=30):
     """Style for the swportactive port view"""
@@ -205,6 +230,7 @@ def _get_swportactive_style(swport, interval=30):
                 gradient[active.days])
 
     return style
+
 
 def _get_swportactive_title(swport, interval=30):
     """Title for the swportactive port view"""
@@ -233,6 +259,7 @@ def _get_swportactive_title(swport, interval=30):
 
     return ', '.join(title)
 
+
 def _get_gwportstatus_class(gwport):
     """Classes for the gwportstatus port view"""
 
@@ -240,6 +267,7 @@ def _get_gwportstatus_class(gwport):
     if gwport.speed:
         classes.append('Mb%d' % gwport.speed)
     return ' '.join(classes)
+
 
 def _get_gwportstatus_title(gwport):
     """Title for the gwportstatus port view"""

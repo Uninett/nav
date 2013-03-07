@@ -1,0 +1,17 @@
+
+#tablecontainer {
+    overflow: auto;
+}
+
+#tablecontainer > table {
+    float: left;
+    margin-right: 1em;
+}
+
+table caption {
+    white-space: nowrap;
+}
+
+table.searchresults {
+    width: 500px;
+}

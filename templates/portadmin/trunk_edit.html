@@ -1,0 +1,101 @@
+{% extends 'portadmin/base.html' %}
+
+{% block content %}
+
+
+    {% if interface %}
+
+        <p>
+            <a href="{% url portadmin-sysname interface.netbox.sysname %}"
+               title="Go back">
+                Back to {{ interface.netbox.sysname }}
+            </a>
+        </p>
+
+        <div>
+            <h3>Interface {{ interface }}</h3>
+
+            <form action="" method="post">
+                <table id="portadmin-trunktable" class="listtable highlightover">
+                    <caption>Configure trunk</caption>
+                    <thead>
+                        <tr>
+                            <th>Vlan</th>
+                            <th>Description</th>
+                            <th>Net Ident</th>
+                            <th>Native</th>
+                            <th>Trunked</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for vlan in available_vlans %}
+                        <tr data-vlan="{{ vlan.vlan }}">
+                            <td>{{ vlan.vlan }}</td>
+                            <td>{{ vlan.descr|default_if_none:"" }}</td>
+                            <td>{{ vlan.net_ident|default_if_none:"" }}</td>
+
+                            {% comment %}
+                                Users are only allowed to set vlans that is related to their organization.
+                                We set the fields to disabled if they should not be able to change the.
+
+                                As checkboxes and radio buttons does not provide their values to POST
+                                requests when they are disabled, we need to provide a hidden field to submit the
+                                values on the request.
+                            {% endcomment %}
+
+                            <td class="text-center">
+                                {% if vlan in allowed_vlans %}
+                                <input type="radio" name="native_vlan" value="{{ vlan.vlan }}" {% if vlan.vlan == native_vlan %}checked{% endif %}>
+                                {% else %}
+                                    <input type="radio"
+                                           name="native_vlan"
+                                           value="{{ vlan.vlan }}"
+                                           {% if vlan.vlan == native_vlan %}checked{% endif %}
+                                           disabled="disabled">
+                                    {% if vlan.vlan == native_vlan %}
+                                        <input type="hidden" name="native_vlan" value="{{ vlan.vlan }}">
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+
+                            {% comment %}Checkbox for tagging this vlan on this interface{% endcomment %}
+                            <td class="text-center">
+                                {% if vlan in allowed_vlans %}
+                                    <input type="checkbox" name="trunk_vlans" value="{{ vlan.vlan }}" {% if vlan.vlan in trunked_vlans %}checked{% endif %}>
+                                {% else %}
+                                    <input type="checkbox"
+                                           name="trunk_vlans"
+                                           value="{{ vlan.vlan }}"
+                                           {% if vlan.vlan in trunked_vlans %}checked{% endif %}
+                                           disabled="disabled">
+                                    {% if vlan.vlan in trunked_vlans %}
+                                        <input type="hidden" name="trunk_vlans" value="{{ vlan.vlan }}">
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <input type="submit"
+                       value="Save changes"
+                       {% if not interface.netbox.read_write %}disabled="disabled"{% endif %}>
+            </form>
+
+        </div>
+
+        <p>
+            <a href="{% url portadmin-sysname interface.netbox.sysname %}"
+               title="Go back">
+                Back to {{ interface.netbox.sysname }}
+            </a>
+        </p>
+
+
+    {% else %}
+        <p class="error">This interface does not exist</p>
+    {% endif %}
+
+
+{% endblock %}

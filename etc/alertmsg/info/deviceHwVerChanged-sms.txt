@@ -1,0 +1,1 @@
+HW Ver changed: {{netbox.sysname}} from {{old_hwver}} to {{new_hwver}}

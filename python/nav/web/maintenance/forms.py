@@ -16,7 +16,26 @@
 
 from django import forms
 
+
 class MaintenanceTaskForm(forms.Form):
-    start_time = forms.DateTimeField()
-    end_time = forms.DateTimeField()
-    description = forms.CharField(widget=forms.Textarea)
+    start_time = forms.DateTimeField(required=True)
+    end_time = forms.DateTimeField(required=False)
+    no_end_time = forms.BooleanField(initial=False, required=False)
+    description = forms.CharField(widget=forms.Textarea, required=True)
+
+    def clean(self):
+        if any(self.errors):
+            # Don't bother validating the formset unless each form
+            # is valid on its own
+            return
+        end_time = self.cleaned_data['end_time']
+        no_end_time = self.cleaned_data['no_end_time']
+        if not no_end_time and not end_time:
+            raise forms.ValidationError(
+                "End time or no end time must be specified")
+        return self.cleaned_data
+
+class MaintenanceAddSingleNetbox(forms.Form):
+    """A form used for error-checking only; less code than writing
+    a custom variable-checker"""
+    netboxid = forms.IntegerField(required=True)

@@ -1,3 +1,0 @@
-description=Domain Name Service
-args=request
-optargs=port timeout

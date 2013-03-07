@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2005 Norwegian University of Science and Technology
-# Copyright (C) 2007, 2011, 2012 UNINETT AS
+# Copyright (C) 2007, 2011-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,14 +15,14 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """General utility functions for Network Administration Visualized"""
-
 import os
-import stat
+import re
 import datetime
 from functools import wraps
 from itertools import chain, tee
 
 import IPy
+
 
 def gradient(start, stop, steps):
     """Create and return a sequence of steps representing an integer
@@ -40,15 +40,17 @@ def gradient(start, stop, steps):
     grad.append(stop)
     return grad
 
+
 def color_gradient(start, stop, steps):
     """Does the same as the gradient function, but the start and
     stop values are RGB triplets (3-element tuples)"""
-    r = gradient(start[0], stop[0], steps)
-    g = gradient(start[1], stop[1], steps)
-    b = gradient(start[2], stop[2], steps)
+    red = gradient(start[0], stop[0], steps)
+    green = gradient(start[1], stop[1], steps)
+    blue = gradient(start[2], stop[2], steps)
 
-    grad = zip(r, g, b)
+    grad = zip(red, green, blue)
     return grad
+
 
 def colortohex(triplet):
     """Returns a hexadecimal string representation of a 3-tuple RGB
@@ -56,9 +58,10 @@ def colortohex(triplet):
 
     Useful for converting internal color triplets to web
     representation."""
-    return ('%02x'*3) % triplet
+    return ('%02x' * 3) % triplet
 
-def isValidIP(ip):
+
+def is_valid_ip(ip):
     """Verifies that a string is a single, valid IPv4 or IPv6 address.
 
     A cleaned up version of the IP address string is returned if it is
@@ -68,16 +71,13 @@ def isValidIP(ip):
     """
     if isinstance(ip, (str, unicode)) and not ip.isdigit():
         try:
-            validIP = IPy.IP(ip)
-            if len(validIP) == 1:
-                return str(validIP)
+            valid_ip = IPy.IP(ip)
+            if len(valid_ip) == 1:
+                return str(valid_ip)
         except ValueError:
             pass
     return False
 
-# copy to more PEP8-friendly name
-# FIXME: update callers and rename original
-is_valid_ip = isValidIP
 
 def is_valid_cidr(cidr):
     """Verifies that a string is valid IPv4 or IPv6 CIDR specification.
@@ -96,15 +96,21 @@ def is_valid_cidr(cidr):
             return valid_cidr
     return False
 
+
+def is_valid_mac(mac):
+    """Verify that this mac-address is valid"""
+    if re.match("[0-9a-f]{2}([-:][0-9a-f]{2}){5}$", mac.lower()):
+        return True
+    return False
+
+
 def which(cmd):
     """Return full path to cmd (if found in $PATH and is executable),
     or None."""
     pathstr = os.environ['PATH']
-    dirs = pathstr.split(':')
+    paths = [os.path.join(path, cmd) for path in pathstr.split(':')]
 
-    for d in dirs:
-        path = os.path.join(d, cmd)
-
+    for path in paths:
         if not os.path.isfile(path):
             continue
 
@@ -115,6 +121,7 @@ def which(cmd):
 
     return None
 
+
 def is_setuid_root(path):
     """Return True if the file is owned by root and has
     the setuid bit set."""
@@ -123,14 +130,14 @@ def is_setuid_root(path):
     if not os.path.isfile(path):
         return False
 
-    s = os.stat(path)
+    stat = os.stat(path)
 
     # Owned by root?
-    if s.st_uid != 0:
+    if stat.st_uid != 0:
         return False
 
     # Setuid bit set?
-    if s.st_mode & stat.S_ISUID == 0:
+    if stat.st_mode & stat.S_ISUID == 0:
         return False
 
     # Yay, passed all test!
@@ -152,6 +159,7 @@ def mergedicts(*dicts):
     return dict((k, [d.get(k, None) for d in dicts])
                 for k in keys)
 
+
 def splitby(predicate, iterable):
     """Splits an iterable in two iterables, based on a predicate.
 
@@ -161,6 +169,7 @@ def splitby(predicate, iterable):
     predicated = ((v, predicate(v)) for v in iterable)
     iter1, iter2 = tee(predicated)
     return (v for (v, p) in iter1 if p), (v for (v, p) in iter2 if not p)
+
 
 class IPRange(object):
     """An IP range representation.
@@ -243,7 +252,7 @@ class IPRange(object):
             return cls._parse_as_network(rangestring)
         else:
             addr = IPy.IP(rangestring)
-            return (addr, addr)
+            return addr, addr
 
     @classmethod
     def _parse_as_range(cls, rangestring):
@@ -258,7 +267,7 @@ class IPRange(object):
             from_ip = IPy.IP(from_ip)
             to_ip = IPy.IP(to_ip)
 
-        return (from_ip, to_ip)
+        return from_ip, to_ip
 
     @staticmethod
     def _assemble_range(from_ip, to_ip):
@@ -271,7 +280,7 @@ class IPRange(object):
         prefix, _suffix = from_ip.rsplit(sep, 1)
         assembled = sep.join([prefix, to_ip])
         ip2 = IPy.IP(assembled)
-        return (ip1, ip2)
+        return ip1, ip2
 
     @classmethod
     def _parse_as_network(cls, rangestring):
@@ -283,7 +292,7 @@ class IPRange(object):
             mask = cls.get_mask_for_network(network)
 
         iprange = IPy.IP(network).make_net(mask)
-        return (iprange[0], iprange[-1])
+        return iprange[0], iprange[-1]
 
     # pylint: disable=W0613
     @classmethod
@@ -295,6 +304,7 @@ class IPRange(object):
 
         """
         return '24'
+
 
 # pylint: disable=C0103,R0903
 class cachedfor(object):
@@ -320,6 +330,7 @@ class cachedfor(object):
 
         return _wrapper
 
+
 def synchronized(lock):
     """Synchronization decorator.
 
@@ -340,3 +351,56 @@ def synchronized(lock):
         return _wrapper
     return _decorator
 
+
+def parse_interval(string):
+    """Parses a string for simple time interval definitions and returns a
+    number of seconds represented.
+
+    Examples::
+    >>> parse_interval('1s')
+    1
+    >>> parse_interval('1m')
+    60
+    >>> parse_interval('1h')
+    3600
+    >>> parse_interval('1d')
+    86400
+    >>>
+
+
+    :param string: A string specifying an interval
+    :return: A number of seconds as an int
+
+    """
+    string = string.strip()
+
+    if string == '':
+        return 0
+
+    if string.isdigit():
+        return int(string)
+
+    string, unit = int(string[:-1]), string[-1:].lower()
+
+    if unit == 'd':
+        return string * 60*60*24
+    elif unit == 'h':
+        return string * 60*60
+    elif unit == 'm':
+        return string * 60
+    elif unit == 's':
+        return string
+
+    raise ValueError('Invalid time format: %s%s' % (string, unit))
+
+
+def address_to_string(ip, port):
+    """Converts an IP address and port pair into a printable string.
+
+    An IPv6 address will be encapsulated in square brackets to separate it
+    from the port number.
+
+    """
+    ip = IPy.IP(ip)
+    ip = str(ip) if ip.version() == 4 else "[%s]" % ip
+    return "%s:%s" % (ip, port)

@@ -1,0 +1,64 @@
+{% extends "arnold/base.html" %}
+
+{% block content %}
+
+    <table class="listtable tablesorter arnold-detainedports">
+        <caption>Currently detained ports</caption>
+
+        <thead>
+        <tr>
+            <th>Ip</th>
+            <th>DNS</th>
+            <th>Netbios</th>
+            <th>Status</th>
+            <th>Reason</th>
+            <th>Switch</th>
+            <th>Last Changed</th>
+            <th>_</th>
+            <th>_</th>
+        </tr>
+        </thead>
+
+        {% if identities %}
+            <tbody>
+            {% for identity in identities %}
+                <tr>
+                    <td>
+                        <a href="{% url machinetracker-ip_short_search identity.ip 100 'on' %}" title="Link to Machine Tracker">
+                            {{ identity.ip }}
+                        </a>
+                    </td>
+
+                    <td>{{ identity.dns }}</td>
+                    <td>{{ identity.netbios }}</td>
+                    <td>{{ identity.status }}</td>
+                    <td>{{ identity.justification.name }}</td>
+                    <td>
+                        <a href="{% url ipdevinfo-details-by-name identity.interface.netbox.sysname %}"
+                           title="Link to Ip Device Info">
+                            {{ identity.interface.netbox.sysname }}
+                        </a>
+                    </td>
+                    <td>{{ identity.last_changed|date:"DATETIME_FORMAT" }}</td>
+                    <td>
+                        <a href="{% url arnold-choose-detentions identity.id %}">Enable</a>
+                    </td>
+                    <td>
+                        <a href="{% url arnold-details identity.id %}">Details</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        {% endif %}
+
+        <tfoot>
+        <tr>
+            <th colspan="9">{{ identities|length }}
+                port{{ identities|pluralize:'s' }} detained
+            </th>
+        </tr>
+        </tfoot>
+
+    </table>
+
+{% endblock %}

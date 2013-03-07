@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003,2004 Norwegian University of Science and Technology
 #
@@ -14,6 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Domain Controller service checker"""
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
@@ -21,44 +21,48 @@ from nav.util import which
 import os
 import subprocess
 
+
 class DcChecker(AbstractChecker):
-    """
-    Required argument:
-    username
-    """
-    def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "dc", service, **kwargs)
+    """Domain Controller"""
+    TYPENAME = "dc"
+    DESCRIPTION = "Domain Controller"
+    ARGS = (
+        ('username', ''),
+    )
 
     def execute(self):
         args = self.getArgs()
-        username = args.get('username','')
+        username = args.get('username', '')
         if not username:
             return Event.DOWN, "Missing required argument: username"
 
-        ip, host = self.getAddress()
+        ip, _port = self.getAddress()
 
         cmd = 'rpcclient'
         cmdpath = which(cmd)
         if not cmdpath:
-            return Event.DOWN, 'Command %s not found in %s' % (cmd, os.environ['PATH'])
+            return (Event.DOWN,
+                    'Command %s not found in %s' % (cmd, os.environ['PATH']))
 
         try:
-            p = subprocess.Popen([cmdpath,
-                                  '-U', '%',
-                                  '-c', 'lookupnames '+username,
-                                  ip],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+            proc = subprocess.Popen([cmdpath,
+                                     '-U', '%',
+                                     '-c',
+                                     'lookupnames ' + username,
+                                     ip],
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
             
-            p.wait()
+            proc.wait()
         except OSError, msg:
             return Event.DOWN, 'could not run rpcclient: %s' % msg
 
-        if p.returncode != 0:
-            errline = p.stdout.readline()
-            return Event.DOWN, "rpcclient returned %s: %s" % (p.returncode, errline)
+        if proc.returncode != 0:
+            errline = proc.stdout.readline()
+            return (Event.DOWN,
+                    "rpcclient returned %s: %s" % (proc.returncode, errline))
 
-        output = p.stdout.readlines()
+        output = proc.stdout.readlines()
         lastline = output[-1]
         if lastline.split()[0] == username:
             return Event.UP, 'Ok'

@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -9,16 +8,14 @@
 # the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Machine tracker forms"""
 
-import re
-from IPy import IP
+from nav.macaddress import MacPrefix
 from nav.web.machinetracker import iprange
 from django import forms
 from django.forms.util import ErrorList
@@ -30,6 +27,7 @@ class IpTrackerForm(forms.Form):
     active = forms.BooleanField(required=False, initial=True)
     inactive = forms.BooleanField(required=False)
     dns = forms.BooleanField(required=False, initial=False)
+    netbios = forms.BooleanField(required=False, initial=False)
     days = forms.IntegerField(
         initial=7,
         widget=forms.TextInput(attrs={'size': 3}))
@@ -45,30 +43,29 @@ class IpTrackerForm(forms.Form):
         return data
 
     def clean_ip_range(self):
-        data = str(self.cleaned_data['ip_range'])
+        data = self.cleaned_data['ip_range']
         try:
             data = iprange.MachinetrackerIPRange.from_string(data)
-        except ValueError, e:
-            raise forms.ValidationError("Invalid syntax: %s" % e)
+        except ValueError as error:
+            raise forms.ValidationError("Invalid syntax: %s" % error)
         return data
+
 
 class MacTrackerForm(forms.Form):
     mac = forms.CharField()
     dns = forms.BooleanField(required=False, initial=False)
+    netbios = forms.BooleanField(required=False, initial=False)
     days = forms.IntegerField(
         initial=7,
         widget=forms.TextInput(attrs={'size': 3}))
 
     def clean_mac(self):
-        # FIXME Better MAC validation?
-        # Checks for length (should not be longer than 12)
-        # Checks for bad chars, valid chars are "0-9", "A-F", ":", "." and "-"
-        mac = self.cleaned_data['mac']
-        tmp_mac = re.sub("[^0-9a-fA-F]", "", mac)
-        bad_chars = re.sub(r"[0-9a-fA-F:\-\.]", "", mac)
-        if len(bad_chars) > 0 or len(tmp_mac) > 12:
-            raise forms.ValidationError(u"Invalid MAC address")
+        try:
+            mac = MacPrefix(self.cleaned_data['mac'])
+        except ValueError as error:
+            raise forms.ValidationError(error)
         return mac
+
 
 class SwitchTrackerForm(forms.Form):
     switch = forms.CharField()
@@ -81,3 +78,15 @@ class SwitchTrackerForm(forms.Form):
     days = forms.IntegerField(
         initial=7,
         widget=forms.TextInput(attrs={'size': 3}))
+
+
+class NetbiosTrackerForm(forms.Form):
+    search = forms.CharField()
+    dns = forms.BooleanField(required=False, initial=False)
+    days = forms.IntegerField(
+        initial=7,
+        widget=forms.TextInput(attrs={'size': 3}))
+
+    def clean_search(self):
+        """Make sure blank spaces and such is removed from search"""
+        return self.cleaned_data['search'].strip()

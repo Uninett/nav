@@ -2,6 +2,7 @@
 
 {% block base_header_additional_head %}
 <link rel="stylesheet" type="text/css" href="/style/machinetracker.css" />
+<script>require(['src/machinetracker']);</script>
 {% endblock %}
 
 {% block base_content %}
@@ -16,6 +17,9 @@
         </li>
         <li class="{{ active.swp|yesno:"tabactive," }}">
             <a href="{% url machinetracker-swp %}">Switch Search</a>
+        </li>
+        <li class="{{ active.netbios|yesno:"tabactive," }}">
+            <a href="{% url machinetracker-netbios %}">Netbios Search</a>
         </li>
     </ul>
 </div>

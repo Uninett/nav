@@ -143,28 +143,34 @@ div#navlogo h1 a:hover {
 
 
 /* Menu bar */
-div#navbar {
+#navbar {
 	background: #eee;
 	border: 1px solid #999;
 	color: black;
 	margin: 0.5em 0;
-}
-div#navbar table {
-	width: 100%;
-}
-div#navbar table td {
-	padding: 0.1em 0.5em;
-	white-space: nowrap;
-}
-div#navbar table td.spacer {
-	text-align: right;
-	width: 100%;
+    line-height: 3em;
 }
 
-/* Breadcrumbs path */
-div#navpath {
-	padding: 0.5em 0;
+#navbar > div {
+    margin: 0 0.5em;
 }
+
+#navpath {
+    float: left;
+}
+
+#navbarlogininfo, #navbarquicklinks, #navbarlinks, #navbarsearch {
+    float: right;
+}
+
+#navbarsearch form {
+    margin: 0;
+}
+
+#navbarlinks a {
+    margin: 0 0.3em;
+}
+
 
 /* Toolbar */
 div#toolbar {
@@ -340,6 +346,10 @@ table.toolbox4cols tr td {
   color: #A40000;
 }
 
+.messages li {
+    margin-bottom: 0;
+}
+
 /* Top bar information */
 div#top-bar {
 	width: 100%;
@@ -398,6 +408,10 @@ div#top-bar + div#header {
 
 .hidden {
     display: none;
+}
+
+.no-padding {
+    padding: 0;
 }
 
 /* Pagination */
@@ -518,4 +532,70 @@ p.paginator .active {
 
 .horizontal-button-list a span.matrix {
     background-image: url("/images/icons/grid.png");
+}
+
+/* GraphFetcher styles */
+.button-selected {
+    font-weight: bold;
+}
+
+
+/************************************************
+ *
+ * MEDIA QUERIES FOR ADAPTION TO SMALLER SCREENS
+ *
+ ************************************************/
+
+/* Not so large screen */
+@media screen and (max-width: 900px) {
+    #navbarquicklinks {
+        clear: left;
+    }
+}
+
+/* Small screen */
+@media screen and (max-width: 768px) {
+    #navlogo {
+        overflow: auto;
+    }
+
+    #navlogo h1 span {
+        display: none;
+    }
+}
+
+/* Smartphone landscape */
+@media only screen
+and (max-width : 480px) {
+
+    #navpath, #navbarlogininfo, #navbarquicklinks, #navbarlinks  {
+        display: none;
+    }
+
+    #navbar {
+        float: none;
+        text-align: center;
+    }
+
+    #navbartoggler {
+        display: block;
+        float: left;
+    }
+
+    #navbartoggler .collapse {
+        display: none;
+    }
+
+    #navbarsearch input {
+        width: 180px;
+    }
+
+    div.boxes {
+        display: none;
+    }
+
+    body {
+        padding: 1px;
+    }
+
 }

@@ -20,7 +20,6 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ##
 ##
-## Author: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 ##
 
 #extends MessagesTemplate
@@ -66,7 +65,7 @@
         <th>Related maintenance tasks</th>
         <td><ul>
         #for $task in $msg.tasks
-            <li><a href="/maintenance/view?id=$task.maint_taskid">$task.description</a>,
+            <li><a href="$reverse('maintenance-view', args=($task.maint_taskid, ))">$task.description</a>,
             from $task.maint_start.strftime('%Y-%m-%d %H:%M')
             to $task.maint_end.strftime('%Y-%m-%d %H:%M'),
             current state is <em>$task.state</em></li>
@@ -84,7 +83,7 @@
         #end if
         <td>$msg.publish_end.strftime('%Y-%m-%d %H:%M') 
         #if $msg.publish_end > datetime.datetime.now()
-            | <a href="expire?id=$msg.messageid">Expire now</a>
+            | <a href="$reverse('messages-expire')?id=$msg.messageid">Expire now</a>
         #end if
         </td>
     </tr>
@@ -93,7 +92,7 @@
     <tr>
         <th>Replaces message</th>
         <td>
-            <a href="view?id=$msg.replaces_message">$msg.replaces_message_title.replace('<', '&lt;').replace('>', '&gt;')</a>
+            <a href="$reverse('messages-view', args=($msg.replaces_message, ))">$msg.replaces_message_title.replace('<', '&lt;').replace('>', '&gt;')</a>
             from $msg.replaces_message_publish_start.strftime('%Y-%m-%d %H:%M')
             by $msg.replaces_message_author
         </td>
@@ -103,7 +102,7 @@
     <tr>
         <th>Replaced by</th>
         <td>
-            <a href="view?id=$msg.replaced_by">$msg.replaced_by_title.replace('<', '&lt;').replace('>', '&gt;')</a>
+            <a href="$reverse('messages-view', args=($msg.replaced_by, ))">$msg.replaced_by_title.replace('<', '&lt;').replace('>', '&gt;')</a>
             from $msg.replaced_by_publish_start.strftime('%Y-%m-%d %H:%M')
             by $msg.replaced_by_author
         </td>
@@ -111,10 +110,10 @@
     #end if
     <tr>
         <th>Actions</th>
-        <td><a href="edit?id=$msg.messageid">Edit</a>
-            | <a href="followup?id=$msg.messageid">Followup</a>
+        <td><a href="$reverse('messages-edit')?id=$msg.messageid">Edit</a>
+            | <a href="$reverse('messages-followup')?id=$msg.messageid">Followup</a>
     #if not $msg.publish_end
-            | <a href="expire?id=$msg.messageid">Expire now</a>
+            | <a href="$reverse('messages-expire')?id=$msg.messageid">Expire now</a>
     #end if
         </td>
     </tr>

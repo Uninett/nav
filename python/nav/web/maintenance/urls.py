@@ -19,6 +19,7 @@ from django.conf.urls.defaults import patterns, url
 
 from nav.web.maintenance.views import active, planned, historic, calendar
 from nav.web.maintenance.views import view, cancel, edit
+from nav.web.maintenance.views import add_box_to_maintenance
 
 dummy = lambda *args, **kwargs: None
 
@@ -45,6 +46,8 @@ urlpatterns = patterns('',
         name='maintenance-view'),
     url(r'^cancel/(?P<task_id>\d+)/$', cancel,
         name='maintenance-cancel'),
+    url(r'^addnetbox/$', add_box_to_maintenance,
+        name='maintenance-add-netbox'),
 
     url(r'^new\?netbox=(?P<netbox_id>\d+)$', dummy,
         name='maintenance-new-netbox'),

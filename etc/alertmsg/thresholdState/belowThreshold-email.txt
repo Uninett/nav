@@ -1,0 +1,4 @@
+Subject: Threshold for box {{ netbox.sysname }} (normal again)
+
+Threshold ({{ descr }}, {{ threshold }}) for box {{ netbox.sysname }}
+is below the limit since {{ time }}.

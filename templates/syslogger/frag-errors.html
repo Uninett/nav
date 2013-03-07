@@ -1,0 +1,22 @@
+{% if errors %}
+<table class="listtable">
+    <caption>Parsing errors</caption>
+    <tbody>
+    {% for err in errors %}
+    <tr class="rowcycler">
+        <td>{{ err }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    <tbody class="footer">
+    <tr>
+        <th>Total {{ errors_count }} error conditions</th>
+    </tr>
+    </tbody>
+</table>
+{% else %}
+<div>
+    <p>No error conditions from the parsing of the syslog files has been saved.
+        This probably means all the log messages have been parsed successfully.</p>
+</div>
+{% endif %}

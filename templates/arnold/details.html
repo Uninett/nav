@@ -1,0 +1,110 @@
+{% extends 'arnold/base.html' %}
+
+{% block content %}
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    {% comment %} Display info for this identity {% endcomment %}
+    <table class="listtable">
+        <caption>Details for {{ identity.ip }}</caption>
+
+        <thead>
+        <tr>
+            <th>Ip</th>
+            <th>Dns</th>
+            <th>Netbios</th>
+            <th>Mac</th>
+            <th>Switch</th>
+            <th>Port</th>
+            <th>Vlan</th>
+            <th>Status</th>
+            <th>Autoenable</th>
+            <th>Mail</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td>
+                <a href="{% url machinetracker-ip_short_search identity.ip 100 'on' %}" title="Link to Machine Tracker">
+                    {{ identity.ip }}
+                </a>
+            </td>
+            <td>{{ identity.dns }}</td>
+            <td>{{ identity.netbios }}</td>
+            <td>
+                <a href="{% url machinetracker-mac_search identity.mac 100 'on' %}" title="Link to Machine Tracker">
+                    {{ identity.mac }}
+                </a>
+            </td>
+            <td>
+                <a href="{% url ipdevinfo-details-by-name identity.interface.netbox.sysname %}"
+                   title="Link to Ip Device Info">
+                    {{ identity.interface.netbox.sysname }}
+                </a>
+            </td>
+            <td>
+                {% if identity.interface %}
+                    <a href="{% url ipdevinfo-interface-details identity.interface.netbox.sysname identity.interface.id %}"
+                       title="Link to interface details">
+                {% endif %}
+                    {{ identity.interface.ifname|default_if_none:'' }}
+                {% if identity.interface %}
+                    </a>
+                {% endif %}
+
+
+            </td>
+            <td>{{ identity.interface.vlan|default_if_none:'' }}</td>
+            <td>{{ identity.status }}</td>
+            <td>
+                {{ identity.autoenable|date:'DATETIME_FORMAT'|default_if_none:'' }}
+            </td>
+            <td>{{ identity.mail }}</td>
+        </tr>
+        </tbody>
+
+    </table>
+
+
+    {% comment %}Display list of events regarding this identity{% endcomment %}
+    {% with identity.event_set.all as events %}
+
+    <table class="listtable">
+        <caption>History</caption>
+
+        <thead>
+            <tr>
+                <th>Eventtime</th>
+                <th>Action</th>
+                <th>Reason</th>
+                <th>Comment</th>
+                <th>User</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for event in events %}
+            <tr>
+                <td>{{ event.event_time|date:"Y-m-d H:i:s" }}</td>
+                <td>{{ event.action }}</td>
+                <td>{{ event.justification }}</td>
+                <td>{{ event.comment }}</td>
+                <td>{{ event.executor }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <th colspan="5">{{ events|length }} entr{{ events|pluralize:'y,ies' }} in history</th>
+            </tr>
+        </tfoot>
+
+    </table>
+
+    {% endwith %}
+
+{% endblock %}

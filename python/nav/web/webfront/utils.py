@@ -16,14 +16,40 @@
 
 import os
 from datetime import datetime
+import logging
 
 from django.db.models import Q
 
 from nav.web import webfrontConfig
-from nav.config import readConfig
+from nav.config import read_flat_config
 from nav.models.msgmaint import Message
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox
+
+_logger = logging.getLogger('nav.web.tools.utils')
+
+class Tool(object):
+    """Class representing a tool"""
+    def __init__(self, name, uri, icon, description, priority=0, display=True):
+        self.name = name
+        self.uri = uri
+        self.icon = icon
+        self.description = description
+        self.priority = int(priority)
+        self.display = display
+
+    def __unicode__(self):
+        return self.name
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __cmp__(self, other):
+        return cmp(self.priority, other.priority)
+
+    def __repr__(self):
+        return "Tool('%s')" % self.name
+
 
 def quick_read(filename):
     """Read and return the contents of a file, or None if something went wrong.
@@ -58,24 +84,13 @@ def boxes_down():
     return boxes_down
 
 def tool_list(account):
-    def load_tool(filename):
-        if filename[0] != os.sep:
-            filename = os.path.join(os.getcwd(), filename)
-        tool = readConfig(filename)
-        if tool.has_key('priority'):
-            tool['priority'] = int(tool['priority'])
-        else:
-            tool['priority'] = 0
-        return tool
+    """Get the list of tools existing in the tool directories"""
 
-    def compare_tools(x, y):
-        # Do a standard comparison of priority values (to accomplish an
-        # ascendingg sort, we negate the priorities)
-        ret = cmp(-x['priority'], -y['priority'])
-        # If priorities were equal, sort by name instead
-        if not ret:
-            ret = cmp(x['name'].upper(), y['name'].upper())
-        return ret
+    def parse_tool(tool_file):
+        """Parse the tool file and return a Tool object"""
+        lines = open(tool_file).read().splitlines()
+        return Tool(**dict(
+            [[y.strip() for y in x.split('=')] for x in lines if x]))
 
     paths = {}
     if webfrontConfig.has_option('toolbox', 'path'):
@@ -83,15 +98,21 @@ def tool_list(account):
     else:
         return None
     
-    list = []
+    tool_list = []
     for path in paths:
         if os.access(path, os.F_OK):
             filelist = os.listdir(path)
             for filename in filelist:
                 if filename[-5:] == '.tool':
                     fullpath = os.path.join(path, filename)
-                    tool = load_tool(fullpath)
-                    if account.has_perm('web_access', tool['uri']):
-                        list.append(tool)
-    list.sort(compare_tools)
-    return list
+                    try:
+                        tool = parse_tool(fullpath)
+                    except Exception, error:
+                        _logger.error('Error parsing tool in %s: %s',
+                                      filename, error)
+                        continue
+
+                    if account.has_perm('web_access', tool.uri):
+                        tool_list.append(tool)
+    tool_list.sort()
+    return tool_list

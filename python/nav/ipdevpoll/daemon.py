@@ -33,6 +33,7 @@ from twisted.internet.defer import maybeDeferred
 
 from nav import buildconf
 import nav.daemon
+from nav.daemon import signame
 import nav.logs
 from nav.models import manage
 from django.db.models import Q
@@ -97,12 +98,12 @@ class IPDevPollProcess(object):
             job_handler = JobHandler(job.name, self.options.netbox,
                                      plugins=job.plugins)
             deferred = maybeDeferred(job_handler.run)
-            deferred.addBoth(_log_job, job_handler)
+            deferred.addBoth(_log_job, job_handler, interval=job.interval)
             deferred.addBoth(lambda x: reactor.stop())
 
-        def _log_job(result, handler):
+        def _log_job(result, handler, interval):
             success = not isinstance(result, Failure)
-            schedule.log_job_to_db(handler, success)
+            schedule.log_job_to_db(handler, success, interval)
 
         plugins.import_plugins()
         self._logger.info("Running single %r job for %s",
@@ -310,11 +311,6 @@ class CommandProcessor(object):
 
         sys.exit(1)
 
-def signame(signum):
-    """Looks up signal name from signal number"""
-    lookup = dict((num, name) for name, num in vars(signal).items()
-                  if name.startswith('SIG'))
-    return lookup.get(signum, signum)
 
 def main():
     """Main execution function"""

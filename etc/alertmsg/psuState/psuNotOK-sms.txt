@@ -1,0 +1,1 @@
+PSU not OK on {{ netbox.sysname }} ({{ unitname }})

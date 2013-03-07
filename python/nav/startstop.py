@@ -282,7 +282,7 @@ class Crontab(object):
         # Set up a default MAILTO directive
         mailto = 'root@localhost'
         try:
-            navConf = nav.config.readConfig('nav.conf')
+            navConf = nav.config.read_flat_config('nav.conf')
             if navConf.has_key('ADMIN_MAIL'):
                 mailto = navConf['ADMIN_MAIL']
         except IOError:

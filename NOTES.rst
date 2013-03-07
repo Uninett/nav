@@ -20,6 +20,230 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 3.14
+========
+
+To see the overview of scheduled features and reported bugs on the 3.14 series
+of NAV, please go to https://launchpad.net/nav/3.14 .
+
+Dependency changes
+------------------
+
+- The `pynetsnmp` library is still optional (for the time being) and
+  recommended, but is **required** if IPv6 SNMP support is needed.
+
+IPv6
+----
+
+NAV 3.14 supports SNMP over IPv6, and most of the service monitors can now
+also support IP devices with an IPv6 address in NAV. When adding a service
+monitor in SeedDB, any monitor that doesn't support IPv6 will be marked as
+such.
+
+NAV will also properly configure Cricket with IPv6 addresses, but Cricket's
+underlying SNMP library *needs two optional Perl modules* to be installed to
+enable IPv6. These modules are:
+
+* `Socket6`
+* `IO::Socket::INET6`
+
+On Debian/Ubuntu these two are already in the Recommends list of the
+`libsnmp-session-perl` package (Cricket's underlying SNMP library); depending
+on your Apt configuration, they may or may not have been installed
+automatically when the `cricket` package was installed.
+
+
+Files to remove
+---------------
+
+If any of the following files and directories are still in your installation
+after upgrading to NAV 3.14, they should be removed (installation prefix has
+been stripped from these file names).  If you installed and upgraded NAV using
+a packaging system, you should be able to safely ignore this section::
+
+  etc/rrdviewer/
+  lib/python/nav/statemon/checker/*.descr
+  share/htdocs/js/portadmin.js
+
+
+NAV 3.13
+========
+
+To see the overview of scheduled features and reported bugs on the 3.13 series
+of NAV, please go to https://launchpad.net/nav/3.13 .
+
+Dependency changes
+------------------
+
+- NAV no longer requires Java. Consequently, the PostgreSQL JDBC driver is no
+  longer needed either.
+- To use the new `netbiostracker` system, the program ``nbtscan`` must be
+  installed.
+
+New eventengine
+---------------
+
+The `eventengine` was rewritten in Python. The beta version does not yet
+support a config file, but this will come.
+
+There is now a single log file for the `eventengine`, the lower-cased
+``eventengine.log``. The ``eventEngine.log`` log file and the ``eventEngine``
+log directory can safely be removed.
+
+New alert message template system
+---------------------------------
+
+As a consequence of the `eventEngine` rewrite, alert message templates are no
+longer stored in the ``alertmsg.conf`` file. Instead, `Django templates`_ are
+used as the basis of alert message templates, and each template is stored in
+an event/alert hierarchy below the ``alertmsg/`` directory.
+
+Also, NAV 3.13 no longer provides Norwegian translations of these templates.
+
+The hierarchy/naming conventions in the ``alertmsg/`` directory are as follows::
+
+  <event type>/<alert type>-<medium>.[<language>.]txt
+
+The `<event type>` is one of the available event types in NAV, whereas `<alert
+type>` is one of the alert types associated with the event type. `<medium>` is
+one of the supported alert mediums, such as `email`, `sms` or `jabber`. A two
+letter language code is optional; if omitted, English will be assumed.
+
+To make a Norwegian translation of the ``boxState/boxDown-email.txt``
+template, copy the file to ``boxState/boxDown-email.no.txt`` and translate the
+text inside the copied file.
+
+Variables available in the template context include:
+
+* `source`
+* `device`
+* `netbox`
+* `subid`
+* `time`
+* `event_type`
+* `alert_type`
+* `state`
+* `value`
+* `severity`
+
+Some of these, such as the `netbox` variable, are Django models, and will
+enable access to query related information in the NAV database. Various
+attributes accessible through the `netbox` variable include:
+
+* `netbox.sysname`
+* `netbox.room`
+* `netbox.room.location`
+* `netbox.category`
+* `netbox.organization`
+
+Also, since `Django templates`_ are used, you have the full power of its
+template tag library to control and customize the appearance of an alert
+message based on the available variables.
+
+.. `_Django templates`: https://docs.djangoproject.com/en/1.2/ref/templates/
+
+VLANs
+-----
+
+It is now possible to search for VLANs in the navbar search. The search triggers
+on VLAN numbers and netidents.
+
+The VLAN page contains details about the VLAN and its related router ports and
+prefixes. The information is linked to the more extensive reports for each
+port and prefix.
+
+The page also contains graphs of the number of hosts on the VLAN over time
+(both IPv4 and IPv6 hosts, as well as number of unique MAC addresses seen).
+Historic information is easily accessible by utilizing the buttons next to the
+graphs.
+
+Bootstrapping host count graphs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Collection of the number of active hosts on each VLAN starts as you upgrade to
+NAV 3.13. The graphs will therefore have no information prior to this point.
+
+The source information comes from NAV's logs of ARP and ND caches from your
+routers. If you upgraded to 3.13 from a previous version, you can bootstrap
+your graphs with historical information from NAV's database.
+
+To do this, use the ``collect_active_ip.py`` program provided with NAV 3.13::
+
+  Usage: collect_active_ip.py [options]
+
+  Options:
+    -h, --help            show this help message and exit
+    -d DAYS, --days=DAYS  Days back in time to start collecting from
+    -r, --reset           Delete existing rrd-files. Use it with --days to
+                          refill
+
+To bootstrap your graphs with data from the last year (this may take a while),
+run::
+
+  sudo -u navcron collect_active_ip.py -d 365 -r
+
+.. NOTE:: NAV does not have historical information about prefixes. If your
+          subnet allocations have changed considerably recently, you shouldn't
+          bootstrap your graphs further back than this if you want your graphs
+          to be as close to the truth as possible.
+
+
+Arnold
+------
+
+Arnold was rewritten to not use ``mod_python`` and to use Django's ORM for
+database access. The rewrite has tried to be as transparent as possible and at
+the same time fix any open bugs reports.
+
+Some changes are introduced:
+
+- The shell script for interacting directly with Arnold is gone. If there is an
+  outcry for it, it will be reintroduced. The other scripts for automatic
+  detentions and pursuit are a part of the core functionality and are of course
+  still present.
+
+- The workflow when manually detaining has been slightly improved.
+
+- The reasons used for automatic detentions are no longer available when
+  manually detaining. This is done to be able to differ between manual and
+  automatic detentions. If you detain for the same reason both manually and
+  automatically, just create two similar reasons.
+
+- Log levels are no longer set in ``arnold.conf``. Use ``logging.conf`` to
+  alter loglevels for the scripts and web.
+
+- Some unreported bugs are fixed.
+
+- The “Open on move”-option in a predefined detention was never used. This is
+  fixed.
+
+- Pursuing was not done in some cases.
+
+- Reported bugs that were fixed:
+  - LP#341703 Manual detention does not pursue client
+  - LP#361530 Predefined detention does not exponentially increase detentions
+  - LP#744932 Arnold should give warning if snmp write is not configured
+
+Files to remove
+---------------
+
+If any of the following files and directories are still in your installation
+after upgrading to NAV 3.13, they should be removed (installation prefix has
+been stripped from these file names).  If you installed and upgraded NAV using
+a packaging system, you should be able to safely ignore this section::
+
+  bin/arnold.py
+  bin/eventEngine.sh
+  etc/alertmsg.conf
+  etc/eventEngine.conf (new config format in lowercase eventengine.conf)
+  lib/java/
+  lib/python/nav/web/arnoldhandler.py
+  lib/python/nav/web/loggerhandler.py
+  lib/python/nav/web/radius/radius.py
+  lib/python/nav/web/report/handler.py
+  var/log/eventEngine/
+
+
 NAV 3.12
 ========
 

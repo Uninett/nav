@@ -1,82 +1,132 @@
-.right { float: right; }
-.left { float: left; }
+
+/* Media queries  for small screens */
+
 .text-right { text-align: right; }
 .text-center { text-align: center;}
+.float-right { float: right; padding: 0; }
 
-.hidden { visibility: hidden; }
+#errors {
+    background-color: #FFBABA;
+}
 
-h4 { text-align: center; }
+#infoboxcontainer h4 {
+    text-align: center;
+}
 
 div.infobox {
 	margin-bottom: 1em;	
 }
 
-div#tablecontainer {
-	float: left;
-	margin: 0px 0px 0px 20px;
-}
-
-div#errors {
-	background-color: #FFBABA;
+#infoboxcontainer, #portadmin-interfacecontainer {
+    width: 480px;
 }
 
 /*
  * Styles for the table
- */ 
+ */
 
-table#portadmin-interfacecontainer td {
+#portadmin-interfacecontainer {
+    border-spacing: 0;
+}
+
+#portadmin-interfacecontainer td {
 	height: 30px;
 	vertical-align: middle;
 }
 
-table#portadmin-interfacecontainer {
-	margin-bottom: 0px;
+#portadmin-interfacecontainer input[type="text"] {
+    width: 100%;
 }
 
-table#portadmin-interfacecontainer input[type="text"] {
-	width: 250px;
-}
-
-/*
- * Styles for changed rows
- */
-table#portadmin-interfacecontainer tr td.changed {
+#portadmin-interfacecontainer tr.changed td {
 	background-color: #BDE5F8;
+}
+
+#portadmin-interfacecontainer tr.success td {
+    background-color: #228b22;
+}
+
+#portadmin-interfacecontainer tr.error td {
+    background: #FFBABA url('/images/lys/red.png') 10px no-repeat;
+}
+
+#portadmin-interfacecontainer tr.error td span {
+    display: block;
+    margin-left: 30px;
+}
+
+/* Action row styles */
+#portadmin-interfacecontainer tr.actionrow td {
+    height: 0;
+    margin: 0;
+}
+
+#portadmin-interfacecontainer tr.actionrow .slider span {
+    display: inline-block;
+    width: 45%;
+}
+
+#portadmin-interfacecontainer tr.actionrow button {
+    width: 80%;
+}
+
+#portadmin-interfacecontainer tr.actionrow div {
+    text-align: center;
 }
 
 
 /*
  * Styles for information boxes 
  */
-div.saveinfo {
-	position: absolute;
-	display: none;
+caption .saveall_button {
+    float: right;
 }
 
-div#summary h4 {
-	text-align: center;
+
+/*
+ * Styles for small screens
+ */
+
+@media only screen and (max-width : 480px) {
+    #infoboxcontainer, #portadmin-interfacecontainer, #portadmin-trunktable {
+        width: 100%;
+    }
+
+
+    #portadmin-trunktable {
+        table-layout: fixed;
+    }
+
+    /* Hide description column on small screens */
+    #portadmin-trunktable td:nth-child(2),
+    #portadmin-trunktable th:nth-child(2) {
+        display: none;
+    }
+
+    /* Make headers as small as possible */
+    #portadmin-trunktable th:nth-child(1),
+    #portadmin-trunktable th:nth-child(4),
+    #portadmin-trunktable th:nth-child(5) {
+        -o-text-overflow: ellipsis;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        width: 25px;
+    }
+
+
 }
 
-div#summary ul {
-	list-style: none;
+@media only screen and (max-width : 320px) {
+
+    /* Hide indicators on small screens */
+    #portadmin-interfacecontainer td:nth-child(2),
+    #portadmin-interfacecontainer td:nth-child(3),
+    #portadmin-interfacecontainer th:nth-child(2),
+    #portadmin-interfacecontainer th:nth-child(3) {
+        display: none;
+    }
+
+
 }
 
-.success, .error {
-	border: 1px solid;
-	margin: 2px 0px;
-	padding:0px 10px 0px 30px;
-	background-repeat: no-repeat;
-	background-position: 10px center;
-}
-
-.success {
-	color: #4F8A10;
-	background-color: #DFF2BF;
-	background-image:url('/images/lys/green.png');
-}
-
-.error {
-	color: #D8000C;
-	background-color: #FFBABA;
-	background-image: url('/images/lys/red.png');
-}

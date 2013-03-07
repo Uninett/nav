@@ -1,0 +1,5 @@
+Subject: Box {{netbox.sysname}}  does not reply to ping requests (shadow).
+
+Box {{netbox.sysname}} ({{netbox.ip}}) does not reply to ping request and
+will be declared in shadow soon if the situation does not change.
+Detected at {{time}}.

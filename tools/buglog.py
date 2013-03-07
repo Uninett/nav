@@ -35,8 +35,8 @@ import re
 import sys
 import textwrap
 
-BUG_URL = 'https://launchpad.net/bugs/%d/+text'
-COMMITLOG_PATTERN = re.compile(r'((bug)?fix for|fix(es)?|closes?) '
+BUG_URL = 'https://launchpad.net/bugs/{bug_id}/+text'
+COMMITLOG_PATTERN = re.compile(r'((bug)?fix for|fix(es|ed)?|close(s|d)?):? '
                                r'+(lp)? *# *(?P<bug_id>[0-9]{6,})', re.I)
 
 def get_bug_details(bug_id):
@@ -46,7 +46,7 @@ def get_bug_details(bug_id):
 
     Returns a list of strings detailing the bug.
     """
-    url = BUG_URL % bug_id
+    url = BUG_URL.format(bug_id=bug_id)
     info = urllib2.urlopen(url)
     return info.readlines()
 
@@ -60,9 +60,9 @@ def get_bug_title(bug_id):
 def bugfix_format(bug_id):
     """Return bugfix details formatted for NAV's CHANGES file."""
     title = get_bug_title(bug_id)
-    lead_in = "  * LP#%d (" % bug_id
+    lead_in = "  * LP#{:<7} (".format(bug_id)
     indent = " " * len(lead_in)
-    line = "%s%s)" % (lead_in, title)
+    line = "{}{})".format(lead_in, title)
 
     return '\n'.join(textwrap.wrap(line, width=80, subsequent_indent=indent))
 

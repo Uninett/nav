@@ -1,0 +1,23 @@
+{% if state == event.STATE_START %}
+
+Subject: Service {{service.handler}} is down on {{netbox.sysname}}
+
+Service {{service.handler}} on {{netbox.sysname}} is down since {{time}}.
+Server up: {{deviceup}}
+Status: {{descr}}
+
+{% else %}{% if state == event.STATE_END %}
+
+Subject: Service {{service.handler}} is up on {{netbox.sysname}}
+
+Service {{service.handler}} on {{netbox.sysname}} is up since {{time}}.
+Server up: {{deviceup}}
+Status: {{descr}}
+
+{% else %}
+
+Unrecognized service alert on {{netbox.sysname}}
+{% debug %}
+
+{% endif %}
+{% endif %}

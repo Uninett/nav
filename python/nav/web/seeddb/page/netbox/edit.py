@@ -27,7 +27,8 @@ from django.db import transaction
 from nav.models.manage import Netbox, Device, NetboxCategory, NetboxType
 from nav.models.manage import NetboxInfo
 from nav.models.oid import SnmpOid
-from nav.Snmp import Snmp, SnmpError
+from nav.Snmp import Snmp
+from nav.Snmp.errors import SnmpError
 from nav.web.message import new_message, Messages
 
 from nav.web.seeddb import reverse_lazy

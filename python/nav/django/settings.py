@@ -16,13 +16,13 @@
 
 """Django configuration wrapper around the NAV configuration files"""
 
-from nav.config import readConfig
+from nav.config import read_flat_config
 from nav.db import get_connection_parameters
 import nav.buildconf
 import nav.path
 
 try:
-    nav_config = readConfig('nav.conf')
+    nav_config = read_flat_config('nav.conf')
 except IOError:
     nav_config = {}
 
@@ -64,6 +64,7 @@ TEMPLATE_DIRS = (
 # Context processors
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
     'nav.django.context_processors.debug',
     'nav.django.context_processors.account_processor',
     'nav.django.context_processors.nav_version',
@@ -72,10 +73,15 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 # Middleware
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
 )
+
+# Message storage for the messages framework
+MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 # Email sending
 DEFAULT_FROM_EMAIL = nav_config.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 EMAIL_HOST = nav_config.get('EMAIL_HOST', 'localhost')
 EMAIL_PORT = nav_config.get('EMAIL_PORT', 25)

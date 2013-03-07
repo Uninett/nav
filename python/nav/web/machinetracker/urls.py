@@ -21,6 +21,8 @@ from django.conf.urls.defaults import url, patterns
 from nav.web.machinetracker.views import ip_search, ip_do_search
 from nav.web.machinetracker.views import mac_search, mac_do_search
 from nav.web.machinetracker.views import switch_search, switch_do_search
+from nav.web.machinetracker.views import netbios_search
+
 
 dummy = lambda *args, **kwargs: None
 
@@ -61,7 +63,11 @@ urlpatterns = patterns('',
         switch_do_search,
         name='machinetracker-swp_search'),
 
-     # Old machinetrakcer links.
+    # NetBIOS
+    url(r'^netbios/$', netbios_search,
+        name='machinetracker-netbios'),
+
+    # Old machinetrakcer links.
      url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)'
          r'&module=(?P<module_number>\d+)'
          r'&port=(?P<port_interface>[^&]+)&days=7$',
@@ -70,3 +76,4 @@ urlpatterns = patterns('',
          r'&port=(?P<port_interface>[^&]+)&days=7$',
          switch_do_search, name='machinetracker-swport'),
 )
+

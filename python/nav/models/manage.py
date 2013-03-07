@@ -55,7 +55,8 @@ class Netbox(models.Model):
     id = models.AutoField(db_column='netboxid', primary_key=True)
     ip = models.IPAddressField(unique=True)
     room = models.ForeignKey('Room', db_column='roomid')
-    type = models.ForeignKey('NetboxType', db_column='typeid', blank=True, null=True)
+    type = models.ForeignKey('NetboxType', db_column='typeid',
+                             blank=True, null=True)
     device = models.ForeignKey('Device', db_column='deviceid')
     sysname = VarcharField(unique=True)
     category = models.ForeignKey('Category', db_column='catid')
@@ -128,26 +129,27 @@ class Netbox(models.Model):
         """Returns gwports naturally sorted by interface name"""
 
         ports = self.get_gwports().select_related('module', 'netbox')
-        interface_names = [p.ifname for p in ports]
-        unsorted = dict(zip(interface_names, ports))
-        interface_names.sort(key=nav.natsort.split)
-        sorted_ports = [unsorted[i] for i in interface_names]
-        return sorted_ports
+        return Interface.sort_ports_by_ifname(ports)
 
     def get_swports(self):
         """Returns all interfaces that are switch ports."""
         return Interface.objects.filter(netbox=self,
                                         baseport__isnull=False).distinct()
-    
+
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
-
         ports = self.get_swports().select_related('module', 'netbox')
-        interface_names = [p.ifname for p in ports]
-        unsorted = dict(zip(interface_names, ports))
-        interface_names.sort(key=nav.natsort.split)
-        sorted_ports = [unsorted[i] for i in interface_names]
-        return sorted_ports
+        return Interface.sort_ports_by_ifname(ports)
+
+    def get_physical_ports(self):
+        """Return all ports that are present."""
+        return Interface.objects.filter(netbox=self,
+                                        ifconnectorpresent=True).distinct()
+
+    def get_physical_ports_sorted(self):
+        """Return all ports that are present sorted by interface name."""
+        ports = self.get_physical_ports().select_related('module', 'netbox')
+        return Interface.sort_ports_by_ifname(ports)
 
     def get_sensors(self):
         """ Returns sensors associated with this netbox """
@@ -240,7 +242,10 @@ class Netbox(models.Model):
 
     def get_prefix(self):
         """Returns the prefix address for this netbox' IP address."""
-        return self.netboxprefix.prefix
+        try:
+            return self.netboxprefix.prefix
+        except models.ObjectDoesNotExist:
+            return None
 
     def get_filtered_prefix(self):
         """Returns the netbox' prefix address only when the prefix is not a
@@ -277,21 +282,25 @@ class Netbox(models.Model):
 
     def get_unresolved_alerts(self, kind=None):
         "Returns a queryset of unresolved alert states"
-        unresolved = self.alerthistory_set.filter(end_time__gte=dt.datetime.max)
+        unresolved = self.alerthistory_set.filter(
+            end_time__gte=dt.datetime.max)
         if kind:
             return unresolved.filter(event_type__id=kind)
         else:
             return unresolved
 
     def get_powersupplies(self):
-        return self.powersupplyorfan_set.filter(physical_class='powerSupply').order_by('name')
+        return self.powersupplyorfan_set.filter(
+            physical_class='powerSupply').order_by('name')
 
     def get_fans(self):
-        return self.powersupplyorfan_set.filter(physical_class='fan').order_by('name')
+        return self.powersupplyorfan_set.filter(
+            physical_class='fan').order_by('name')
+
 
 class NetboxInfo(models.Model):
-    """From NAV Wiki: The netboxinfo table is the place to store additional info
-    on a netbox."""
+    """From NAV Wiki: The netboxinfo table is the place
+    to store additional info on a netbox."""
 
     id = models.AutoField(db_column='netboxinfoid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid',
@@ -306,6 +315,7 @@ class NetboxInfo(models.Model):
 
     def __unicode__(self):
         return u'%s="%s"' % (self.variable, self.value)
+
 
 class NetboxPrefix(models.Model):
     """Which prefix a netbox is connected to.
@@ -329,6 +339,7 @@ class NetboxPrefix(models.Model):
         """Does nothing, since this models a database view."""
         raise Exception("Cannot save to a view.")
 
+
 class Device(models.Model):
     """From NAV Wiki: The device table contains all physical devices in the
     network. As opposed to the netbox table, the device table focuses on the
@@ -347,6 +358,7 @@ class Device(models.Model):
 
     def __unicode__(self):
         return self.serial or ''
+
 
 class Module(models.Model):
     """From NAV Wiki: The module table defines modules. A module is a part of a
@@ -378,7 +390,8 @@ class Module(models.Model):
         unique_together = (('netbox', 'name'),)
 
     def __unicode__(self):
-        return u'%s, at %s' % (self.name or self.module_number, self.netbox)
+        return u'Module {name}, at {netbox}'.format(
+            name=self.name or self.module_number, netbox=self.netbox)
 
     def get_absolute_url(self):
         kwargs = {
@@ -396,11 +409,7 @@ class Module(models.Model):
         """Returns gwports naturally sorted by interface name"""
 
         ports = self.get_gwports()
-        interface_names = [p.ifname for p in ports]
-        unsorted = dict(zip(interface_names, ports))
-        interface_names.sort(key=nav.natsort.split)
-        sorted_ports = [unsorted[i] for i in interface_names]
-        return sorted_ports
+        return Interface.sort_ports_by_ifname(ports)
 
     def get_swports(self):
         """Returns all interfaces that are switch ports."""
@@ -411,15 +420,22 @@ class Module(models.Model):
         """Returns swports naturally sorted by interface name"""
 
         ports = self.get_swports()
-        interface_names = [p.ifname for p in ports]
-        unsorted = dict(zip(interface_names, ports))
-        interface_names.sort(key=nav.natsort.split)
-        sorted_ports = [unsorted[i] for i in interface_names]
-        return sorted_ports
+        return Interface.sort_ports_by_ifname(ports)
+
+    def get_physical_ports(self):
+        """Return all ports that are present."""
+        return Interface.objects.filter(
+            module=self, ifconnectorpresent=True).distinct()
+
+    def get_physical_ports_sorted(self):
+        """Return all ports that are present sorted by interface name."""
+        ports = self.get_physical_ports()
+        return Interface.sort_ports_by_ifname(ports)
+
 
 class Memory(models.Model):
-    """From NAV Wiki: The mem table describes the memory (memory and nvram) of a
-    netbox."""
+    """From NAV Wiki: The mem table describes the memory
+    (memory and nvram) of a netbox."""
 
     id = models.AutoField(db_column='memid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
@@ -438,12 +454,14 @@ class Memory(models.Model):
         else:
             return self.type
 
+
 class Room(models.Model):
     """From NAV Wiki: The room table defines a wiring closes / network room /
     server room."""
 
     id = models.CharField(db_column='roomid', max_length=30, primary_key=True)
-    location = models.ForeignKey('Location', db_column='locationid', blank=True, null=True)
+    location = models.ForeignKey('Location', db_column='locationid',
+                                 blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
     optional_1 = VarcharField(db_column='opt1', blank=True)
     optional_2 = VarcharField(db_column='opt2', blank=True)
@@ -457,6 +475,7 @@ class Room(models.Model):
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
+
 
 class Location(models.Model):
     """From NAV Wiki: The location table defines a group of rooms; i.e. a
@@ -473,13 +492,16 @@ class Location(models.Model):
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
 
+
 class Organization(models.Model):
     """From NAV Wiki: The org table defines an organization which is in charge
     of a given netbox and is the user of a given prefix."""
 
     id = models.CharField(db_column='orgid', max_length=30, primary_key=True)
-    parent = models.ForeignKey('self', db_column='parent', blank=True, null=True)
+    parent = models.ForeignKey('self', db_column='parent',
+                               blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
+    contact = VarcharField(db_column='contact', blank=True)
     optional_1 = VarcharField(db_column='opt1', blank=True)
     optional_2 = VarcharField(db_column='opt2', blank=True)
     optional_3 = VarcharField(db_column='opt3', blank=True)
@@ -490,6 +512,7 @@ class Organization(models.Model):
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
+
 
 class Category(models.Model):
     """From NAV Wiki: The cat table defines the categories of a netbox
@@ -531,6 +554,7 @@ class Category(models.Model):
         """Is this an uncategorized device?"""
         return self.id == 'OTHER'
 
+
 class Subcategory(models.Model):
     """From NAV Wiki: The subcat table defines subcategories within a category.
     A category may have many subcategories. A subcategory belong to one and
@@ -549,6 +573,7 @@ class Subcategory(models.Model):
         except Category.DoesNotExist:
             return self.id
 
+
 class NetboxCategory(models.Model):
     """From NAV Wiki: A netbox may be in many subcategories. This relation is
     defined here."""
@@ -556,16 +581,17 @@ class NetboxCategory(models.Model):
     # TODO: This should be a ManyToMany-field in Netbox, but at this time
     # Django only supports specifying the name of the M2M-table, and not the
     # column names.
-    id = models.AutoField(primary_key=True) # Serial for faking a primary key
+    id = models.AutoField(primary_key=True)  # Serial for faking a primary key
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     category = models.ForeignKey('Subcategory', db_column='category')
 
     class Meta:
         db_table = 'netboxcategory'
-        unique_together = (('netbox', 'category'),) # Primary key
+        unique_together = (('netbox', 'category'),)  # Primary key
 
     def __unicode__(self):
         return u'%s in category %s' % (self.netbox, self.category)
+
 
 class NetboxType(models.Model):
     """From NAV Wiki: The type table defines the type of a netbox, the
@@ -603,16 +629,19 @@ class NetboxType(models.Model):
             enterprise = specific.split('.')[0]
             return long(enterprise)
         else:
-            raise ValueError("%r is not a valid sysObjectID" % self.sysobjectid)
+            raise ValueError("%r is not a valid sysObjectID" %
+                             self.sysobjectid)
 
 #######################################################################
 ### Device management
 
-class Vendor(models.Model):
-    """From NAV Wiki: The vendor table defines vendors. A type is of a vendor. A
-    product is of a vendor."""
 
-    id = models.CharField(db_column='vendorid', max_length=15, primary_key=True)
+class Vendor(models.Model):
+    """From NAV Wiki: The vendor table defines vendors. A
+    type is of a vendor. A product is of a vendor."""
+
+    id = models.CharField(db_column='vendorid', max_length=15,
+                          primary_key=True)
 
     class Meta:
         db_table = 'vendor'
@@ -622,6 +651,7 @@ class Vendor(models.Model):
 
 #######################################################################
 ### Router/topology
+
 
 class GwPortPrefix(models.Model):
     """Defines IP addresses assigned to Interfaces, with a relation to the
@@ -639,8 +669,25 @@ class GwPortPrefix(models.Model):
     def __unicode__(self):
         return self.gw_ip
 
+class PrefixManager(models.Manager):
+    def contains_ip(self, ipaddr):
+        """Gets all prefixes that contain the given IP address,
+        ordered by descending network mask length.
+
+        """
+        return self.get_query_set().exclude(
+            vlan__net_type="loopback"
+        ).extra(
+            select={'mlen': 'masklen(netaddr)'},
+            where=["%s <<= netaddr"],
+            params=[ipaddr],
+            order_by=["-mlen"]
+        ).select_related('vlan')
+
 class Prefix(models.Model):
     """From NAV Wiki: The prefix table stores IP prefixes."""
+
+    objects = PrefixManager()
 
     id = models.AutoField(db_column='prefixid', primary_key=True)
     net_address = CIDRField(db_column='netaddr', unique=True)
@@ -660,6 +707,19 @@ class Prefix(models.Model):
         ip = IPy.IP(self.net_address)
         return ip.prefixlen()
 
+    def get_prefix_size(self):
+        ip = IPy.IP(self.net_address)
+        return ip.len()
+
+    def get_router_ports(self):
+        """Returns a ordered list of GwPortPrefix objects on this prefix"""
+        return self.gwportprefix_set.filter(
+            interface__netbox__category__id__in=('GSW', 'GW')
+        ).select_related(
+            'interface', 'interface__netbox'
+        ).order_by('-virtual', 'gw_ip')
+
+
 class Vlan(models.Model):
     """From NAV Wiki: The vlan table defines the IP broadcast domain / vlan. A
     broadcast domain often has a vlan value, it may consist of many IP
@@ -671,7 +731,8 @@ class Vlan(models.Model):
     net_type = models.ForeignKey('NetType', db_column='nettype')
     organization = models.ForeignKey('Organization', db_column='orgid',
         null=True, blank=True)
-    usage = models.ForeignKey('Usage', db_column='usageid', null=True, blank=True)
+    usage = models.ForeignKey('Usage', db_column='usageid',
+                              null=True, blank=True)
     net_ident = VarcharField(db_column='netident', null=True, blank=True)
     description = VarcharField(null=True, blank=True)
 
@@ -688,6 +749,7 @@ class Vlan(models.Model):
             result += ' (%s)' % self.net_ident
         return result
 
+
 class NetType(models.Model):
     """From NAV Wiki: The nettype table defines network type;lan, core, link,
     elink, loopback, closed, static, reserved, scope. The network types are
@@ -703,6 +765,7 @@ class NetType(models.Model):
     def __unicode__(self):
         return self.id
 
+
 class Usage(models.Model):
     """From NAV Wiki: The usage table defines the user group (student, staff
     etc). Usage categories are maintained in the edit database tool."""
@@ -717,8 +780,10 @@ class Usage(models.Model):
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
 
+
 class Arp(models.Model):
-    """From NAV Wiki: The arp table contains (ip, mac, time start, time end)."""
+    """From NAV Wiki: The arp table contains (ip, mac, time
+    start, time end)."""
 
     id = models.AutoField(db_column='arpid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
@@ -739,9 +804,11 @@ class Arp(models.Model):
 #######################################################################
 ### Switch/topology
 
+
 class SwPortVlan(models.Model):
-    """From NAV Wiki: The swportvlan table defines the vlan values on all switch
-    ports. dot1q trunk ports typically have several rows in this table."""
+    """From NAV Wiki: The swportvlan table defines the
+    vlan values on all switch ports. dot1q trunk ports
+    typically have several rows in this table."""
 
     DIRECTION_UNDEFINED = 'x'
     DIRECTION_UP = 'o'
@@ -766,6 +833,7 @@ class SwPortVlan(models.Model):
 
     def __unicode__(self):
         return u'%s, on vlan %s' % (self.interface, self.vlan)
+
 
 class SwPortAllowedVlan(models.Model):
     """Stores a hexstring that encodes the list of VLANs that are allowed to
@@ -798,7 +866,7 @@ class SwPortAllowedVlan(models.Model):
         return self._cached_vlan_set or set()
 
     def _calculate_allowed_vlans(self):
-        octets = [self.hex_string[x:x+2]
+        octets = [self.hex_string[x:x + 2]
                   for x in xrange(0, len(self.hex_string), 2)]
         string = ''.join(chr(int(o, 16)) for o in octets)
         bits = BitVector(string)
@@ -806,6 +874,7 @@ class SwPortAllowedVlan(models.Model):
 
     def __unicode__(self):
         return u'Allowed vlans for swport %s' % self.interface
+
 
 class SwPortBlocked(models.Model):
     """This table defines the spanning tree blocked ports for a given vlan for
@@ -817,10 +886,11 @@ class SwPortBlocked(models.Model):
 
     class Meta:
         db_table = 'swportblocked'
-        unique_together = (('interface', 'vlan'),) # Primary key
+        unique_together = (('interface', 'vlan'),)  # Primary key
 
     def __unicode__(self):
         return '%d, at %s' % (self.vlan, self.interface)
+
 
 class AdjacencyCandidate(models.Model):
     """A candidate for netbox/interface adjacency.
@@ -846,7 +916,9 @@ class AdjacencyCandidate(models.Model):
     def __unicode__(self):
         return u'%s:%s %s candidate %s:%s' % (self.netbox, self.interface,
                                               self.source,
-                                              self.to_netbox, self.to_interface)
+                                              self.to_netbox,
+                                              self.to_interface)
+
 
 class NetboxVtpVlan(models.Model):
     """From NAV Wiki: A help table that contains the vtp vlan database of a
@@ -855,7 +927,7 @@ class NetboxVtpVlan(models.Model):
     active on a switch. The vtp vlan table is an extra source of
     information."""
 
-    id = models.AutoField(primary_key=True) # Serial for faking a primary key
+    id = models.AutoField(primary_key=True)  # Serial for faking a primary key
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     vtp_vlan = models.IntegerField(db_column='vtpvlan')
 
@@ -865,6 +937,7 @@ class NetboxVtpVlan(models.Model):
 
     def __unicode__(self):
         return u'%d, at %s' % (self.vtp_vlan, self.netbox)
+
 
 class Cam(models.Model):
     """From NAV Wiki: The cam table defines (swport, mac, time start, time
@@ -974,6 +1047,14 @@ class Interface(models.Model):
     def __unicode__(self):
         return u'%s at %s' % (self.ifname, self.netbox)
 
+    @classmethod
+    def sort_ports_by_ifname(cls, ports):
+        interface_names = [p.ifname for p in ports]
+        unsorted = dict(zip(interface_names, ports))
+        interface_names.sort(key=nav.natsort.split)
+        sorted_ports = [unsorted[i] for i in interface_names]
+        return sorted_ports
+
     def get_absolute_url(self):
         kwargs = {
             'netbox_sysname': self.netbox.sysname,
@@ -1060,12 +1141,25 @@ class Interface(models.Model):
                 return '{0}'.format(l[0])
 
         if self.trunk:
-            return ",".join(as_range(y) for x,y in groupby(
+            return ",".join(as_range(y) for x, y in groupby(
                 sorted(self.swportallowedvlan.get_allowed_vlans()),
-                lambda n, c=count(): n-next(c))
+                lambda n, c=count(): n - next(c))
             )
         else:
             return ""
+
+    def is_swport(self):
+        """Returns True if the interface is configured as a switch-port"""
+        return (self.baseport is not None)
+
+    def is_gwport(self):
+        """Returns True if the interface has an IP address.
+
+        NOTE: This doesn't necessarily mean the port forwards packets for
+        other hosts.
+
+        """
+        return (self.gwportprefix_set.count() > 0)
 
 
 class IanaIftype(models.Model):
@@ -1099,21 +1193,21 @@ class Sensor(models.Model):
     statistics.
     """
 
-    UNIT_OTHER = 'other'        # Other than those listed
-    UNIT_UNKNOWN = 'unknown'    # unknown measurement, or arbitrary,
-                                # relative numbers
-    UNIT_VOLTS_AC = 'voltsAC'   # electric potential
+    UNIT_OTHER = 'other'         # Other than those listed
+    UNIT_UNKNOWN = 'unknown'     # unknown measurement, or arbitrary,
+                                 # relative numbers
+    UNIT_VOLTS_AC = 'voltsAC'    # electric potential
     UNIT_VOLTS_DC = 'voltsDC'    # electric potential
-    UNIT_AMPERES = 'amperes'    # electric current
-    UNIT_WATTS = 'watts'        # power
-    UNIT_HERTZ = 'hertz'        # frequency
-    UNIT_CELSIUS = 'celsius'    # temperature
-    UNIT_PERCENT_RELATIVE_HUMIDITY = 'percentRH' # percent relative humidity
-    UNIT_RPM = 'rpm'            # shaft revolutions per minute
-    UNIT_CMM = 'cmm'            # cubic meters per minute (airflow)
-    UNIT_TRUTHVALUE = 'boolean' # value takes { true(1), false(2) }
-    
-    UNIT_OF_MEASUREMENTS_CHOICES =(
+    UNIT_AMPERES = 'amperes'     # electric current
+    UNIT_WATTS = 'watts'         # power
+    UNIT_HERTZ = 'hertz'         # frequency
+    UNIT_CELSIUS = 'celsius'     # temperature
+    UNIT_PERCENT_RELATIVE_HUMIDITY = 'percentRH'  # percent relative humidity
+    UNIT_RPM = 'rpm'             # shaft revolutions per minute
+    UNIT_CMM = 'cmm'             # cubic meters per minute (airflow)
+    UNIT_TRUTHVALUE = 'boolean'  # value takes { true(1), false(2) }
+
+    UNIT_OF_MEASUREMENTS_CHOICES = (
         (UNIT_OTHER, 'Other'),
         (UNIT_UNKNOWN, 'Unknown'),
         (UNIT_VOLTS_AC, 'VoltsAC'),
@@ -1128,23 +1222,23 @@ class Sensor(models.Model):
         (UNIT_TRUTHVALUE, 'Boolean'),
     )
 
-    SCALE_YOCTO = 'yocto' # 10^-24
-    SCALE_ZEPTO = 'zepto' # 10^-21
-    SCALE_ATTO = 'atto'   # 10^-18
-    SCALE_FEMTO = 'femto' # 10^-15
-    SCALE_PICO = 'pico'   # 10^-12
-    SCALE_NANO = 'nano'   # 10^-9
-    SCALE_MICRO = 'micro' # 10^-6
-    SCALE_MILLI = 'milli' # 10^-3
-    SCALE_UNITS = 'units' # 10^0
-    SCALE_KILO = 'kilo'   # 10^3
-    SCALE_MEGA = 'mega'   # 10^6
-    SCALE_GIGA = 'giga'   # 10^9
-    SCALE_TERA = 'tera'   # 10^12
-    SCALE_EXA = 'exa'     # 10^15
-    SCALE_PETA = 'peta'   # 10^18
-    SCALE_ZETTA = 'zetta' # 10^21
-    SCALE_YOTTA = 'yotta' # 10^24
+    SCALE_YOCTO = 'yocto'  # 10^-24
+    SCALE_ZEPTO = 'zepto'  # 10^-21
+    SCALE_ATTO = 'atto'    # 10^-18
+    SCALE_FEMTO = 'femto'  # 10^-15
+    SCALE_PICO = 'pico'    # 10^-12
+    SCALE_NANO = 'nano'    # 10^-9
+    SCALE_MICRO = 'micro'  # 10^-6
+    SCALE_MILLI = 'milli'  # 10^-3
+    SCALE_UNITS = 'units'  # 10^0
+    SCALE_KILO = 'kilo'    # 10^3
+    SCALE_MEGA = 'mega'    # 10^6
+    SCALE_GIGA = 'giga'    # 10^9
+    SCALE_TERA = 'tera'    # 10^12
+    SCALE_EXA = 'exa'      # 10^15
+    SCALE_PETA = 'peta'    # 10^18
+    SCALE_ZETTA = 'zetta'  # 10^21
+    SCALE_YOTTA = 'yotta'  # 10^24
 
     DATA_SCALE_CHOICES = (
         (SCALE_YOCTO, 'Yocto'),
@@ -1182,6 +1276,7 @@ class Sensor(models.Model):
     class Meta:
         db_table = 'sensor'
 
+
 class PowerSupplyOrFan(models.Model):
     STATE_UP = u'y'
     STATE_DOWN = u'n'
@@ -1209,6 +1304,7 @@ class PowerSupplyOrFan(models.Model):
     class Meta:
         db_table = 'powersupply_or_fan'
 
+
 class UnrecognizedNeighbor(models.Model):
     id = models.AutoField(primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
@@ -1226,6 +1322,7 @@ class UnrecognizedNeighbor(models.Model):
             self.netbox.sysname, self.interface.ifname,
             self.source,
             self.remote_id, self.remote_name)
+
 
 class IpdevpollJobLog(models.Model):
     id = models.AutoField(primary_key=True)
@@ -1272,3 +1369,20 @@ class IpdevpollJobLog(models.Model):
             return prev
         except IndexError:
             return None
+
+
+class Netbios(models.Model):
+    """Model representing netbios names collected by the netbios tracker"""
+    import datetime
+
+    id = models.AutoField(db_column='netbiosid', primary_key=True)
+    ip = models.IPAddressField()
+    mac = models.CharField(max_length=17)
+    name = VarcharField()
+    server = VarcharField()
+    username = VarcharField()
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = DateTimeInfinityField(default=datetime.datetime.max)
+
+    class Meta:
+        db_table = 'netbios'

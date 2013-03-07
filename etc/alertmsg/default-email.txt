@@ -1,0 +1,3 @@
+{{event_type}}/{{ alert_type }} on {{ netbox.sysname }} from NAV, but no message template is defined.
+Variable dump:
+{{ context_dump|safe }}

@@ -1,0 +1,1 @@
+Fan OK on {{ netbox.sysname }} ({{ unitname }})

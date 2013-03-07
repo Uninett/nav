@@ -7,9 +7,10 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+# Public License for more details.
 # You should have received a copy of the GNU General Public License along with
 # NAV. If not, see <http://www.gnu.org/licenses/>.
 #
@@ -22,10 +23,9 @@ from datetime import datetime
 
 from django.db.models import Q
 from django.core.urlresolvers import reverse
-from django.utils.encoding import smart_unicode, smart_str, force_unicode
 
-from nav.models.profiles import StatusPreference, StatusPreferenceCategory, \
-    StatusPreferenceOrganization
+from nav.models.profiles import StatusPreference, StatusPreferenceCategory
+from nav.models.profiles import StatusPreferenceOrganization
 from nav.models.event import AlertHistory, AlertType, AlertHistoryVariable
 from nav.models.manage import Netbox, Module, Category, Organization
 
@@ -46,7 +46,7 @@ SNMP_STATE = 'snmpAgentState'
 PSU_STATE = 'psuState'
 
 def get_section_model(section_type):
-    # Dispatch table
+    """Dispatch table"""
     dtable = {
         StatusPreference.SECTION_NETBOX: NetboxSection,
         StatusPreference.SECTION_NETBOX_MAINTENANCE: NetboxMaintenanceSection,
@@ -147,9 +147,12 @@ class _Section(object):
                 break
 
     def fetch_history(self):
+        """Empty method,- should get overridden in
+        sub-classes"""
         self.history = []
 
     def devicehistory_url(self):
+        """Make history urls for this device"""
         url = reverse('devicehistory-view')
         url += "?type=%s" % self.devicehistory_type
         url += "&group_by=datetime"
@@ -169,10 +172,12 @@ class _Section(object):
 
     @staticmethod
     def form_class():
+        """Return the chosen form"""
         return SectionForm
 
     @staticmethod
     def form_data(status_prefs):
+        """Insert data in the form for the view"""
         data = {
             'id': status_prefs.id,
             'name': status_prefs.name,
@@ -187,6 +192,7 @@ class _Section(object):
 
     @classmethod
     def form(cls, status_prefs):
+        """Get the appropriate form"""
         form_model = cls.form_class()
         data = cls.form_data(status_prefs)
         return form_model(data)
@@ -197,7 +203,8 @@ class NetboxSection(_Section):
         'IP',
         'Down since',
         'Downtime',
-        '',
+        'History',
+        'Actions',
     ]
     devicehistory_type = 'a_boxDown'
 
@@ -216,7 +223,7 @@ class NetboxSection(_Section):
             ~Q(netbox__in=maintenance),
             Q(netbox__up='n') | Q(netbox__up='s'),
             alert_type__name__in=alert_types,
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
         ).extra(
@@ -225,29 +232,32 @@ class NetboxSection(_Section):
 
         history = []
         for h in netbox_history:
-            row = (
-                (
-                    h.netbox.sysname,
-                    reverse('ipdevinfo-details-by-name', args=[h.netbox.sysname])
-                ),
-                (h.netbox.ip, None),
-                (h.start_time, None),
-                (h.downtime, None),
-                (
-                    'history',
-                    reverse('devicehistory-view') +
-                    '?netbox=%(id)s&type=a_boxDown&group_by=datetime' % {
+            row = {'netboxid': h.netbox.id,
+                   'tabrow': (
+                    (
+                            h.netbox.sysname,
+                        reverse('ipdevinfo-details-by-name',
+                            args=[h.netbox.sysname])
+                    ),
+                    (h.netbox.ip, None),
+                    (h.start_time, None),
+                    (h.downtime, None),
+                    (
+                        'history',
+                        reverse('devicehistory-view') +
+                        '?netbox=%(id)s&type=a_boxDown&group_by=datetime' % {
                         'id': h.netbox.id,
-                    }
+                        }
+                    ),
                 ),
-            )
+            }
             history.append(row)
         self.history = history
 
     def _maintenance(self):
         return AlertHistory.objects.filter(
             event_type=MAINTENANCE_STATE,
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             netbox__isnull=False,
         ).values('netbox').query
 
@@ -296,22 +306,25 @@ class NetboxMaintenanceSection(_Section):
                     down_since = 'N/A'
                     downtime = 'N/A'
 
-            row = (
-                (
-                    m.alert_history.netbox.sysname,
-                    reverse('ipdevinfo-details-by-name', args=[m.alert_history.netbox.sysname])
+            row = {'netboxid': m.alert_history.netbox.id,
+                   'tabrow': (
+                    (
+                        m.alert_history.netbox.sysname,
+                        reverse('ipdevinfo-details-by-name',
+                            args=[m.alert_history.netbox.sysname])
+                    ),
+                    (m.alert_history.netbox.ip, None),
+                    (down_since, None),
+                    (downtime, None),
+                    (
+                        'history',
+                        reverse('devicehistory-view') +
+                        ('?netbox=%(id)s&type=e_maintenanceState'
+                         '&group_by=datetime' %
+                         {'id': m.alert_history.netbox.id})
+                    ),
                 ),
-                (m.alert_history.netbox.ip, None),
-                (down_since, None),
-                (downtime, None),
-                (
-                    'history',
-                    reverse('devicehistory-view') +\
-                    '?netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
-                        'id': m.alert_history.netbox.id,
-                    }
-                ),
-            )
+            }
             history.append(row)
         self.history = history
 
@@ -322,7 +335,7 @@ class NetboxMaintenanceSection(_Section):
             alert_history__netbox__category__in=self.categories,
             alert_history__netbox__organization__in=self.organizations,
             alert_history__netbox__up__in=self.states,
-            alert_history__end_time__gt=datetime.max,
+            alert_history__end_time__gte=datetime.max,
             alert_history__event_type=MAINTENANCE_STATE,
             variable='maint_taskid',
         ).order_by('-alert_history__start_time')
@@ -331,7 +344,7 @@ class NetboxMaintenanceSection(_Section):
         history = AlertHistory.objects.select_related(
             'netbox'
         ).filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=BOX_STATE,
         ).extra(
             select={'downtime': "date_trunc('second', NOW() - start_time)"}
@@ -380,7 +393,7 @@ class ServiceSection(_Section):
 
     def fetch_history(self):
         maintenance = AlertHistory.objects.filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=MAINTENANCE_STATE,
         ).values('netbox').query
 
@@ -388,7 +401,7 @@ class ServiceSection(_Section):
             'netbox'
         ).filter(
             ~Q(netbox__in=maintenance),
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=SERVICE_STATE,
             netbox__organization__in=self.organizations,
         ).extra(
@@ -406,29 +419,31 @@ class ServiceSection(_Section):
 
         history = []
         for s in services:
-            row = (
-                (
-                    s.netbox.sysname,
-                    reverse('ipdevinfo-details-by-name', args=[
+            row = {'netboxid': s.netbox.id,
+                   'tabrow': (
+                    (
+                        s.netbox.sysname,
+                        reverse('ipdevinfo-details-by-name', args=[
                         s.netbox.sysname
-                    ])
+                        ])
+                    ),
+                    (
+                        s.handler,
+                        reverse('ipdevinfo-service-list-handler', args=[
+                            s.handler
+                        ])
+                    ),
+                    (s.start_time, None),
+                    (s.downtime, None),
+                    (
+                        'history',
+                        reverse('devicehistory-view') +
+                        ('?netbox=%(id)s&type=e_serviceState'
+                         '&group_by=datetime' %
+                         {'id': s.netbox.id})
+                    )
                 ),
-                (
-                    s.handler,
-                    reverse('ipdevinfo-service-list-handler', args=[
-                        s.handler
-                    ])
-                ),
-                (s.start_time, None),
-                (s.downtime, None),
-                (
-                    'history',
-                    reverse('devicehistory-view') +\
-                    '?netbox=%(id)s&type=e_serviceState&group_by=datetime' % {
-                        'id': s.netbox.id,
-                    }
-                )
-            )
+            }
             history.append(row)
         self.history = history
 
@@ -459,7 +474,7 @@ class ServiceMaintenanceSection(ServiceSection):
         maintenance = AlertHistoryVariable.objects.select_related(
             'alert_history', 'alert_history__netbox'
         ).filter(
-            alert_history__end_time__gt=datetime.max,
+            alert_history__end_time__gte=datetime.max,
             alert_history__event_type=MAINTENANCE_STATE,
             variable='maint_taskid',
         ).extra(
@@ -473,7 +488,7 @@ class ServiceMaintenanceSection(ServiceSection):
         ).order_by('-alert_history__start_time')
 
         service_history = AlertHistory.objects.filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=SERVICE_STATE,
         ).extra(
             select={'downtime': "date_trunc('second', NOW() - start_time)"}
@@ -498,22 +513,26 @@ class ServiceMaintenanceSection(ServiceSection):
                     down_since = 'N/A'
                     downtime = 'N/A'
 
-            row = (
-                (
-                    m.alert_history.netbox.sysname,
-                    reverse('ipdevinfo-details-by-name', args=[m.alert_history.netbox.sysname])
+            row = {'netboxid': m.alert_history.netbox.id,
+                    'tabrow': (
+                    (
+                        m.alert_history.netbox.sysname,
+                        reverse('ipdevinfo-details-by-name',
+                            args=[m.alert_history.netbox.sysname])
+                    ),
+                    (m.handler, reverse('ipdevinfo-service-list-handler',
+                        args=[m.handler])),
+                    (down_since, None),
+                    (downtime, None),
+                    (
+                        'history',
+                        reverse('devicehistory-view') +
+                        ('?netbox=%(id)s&type=e_maintenanceState'
+                         '&group_by=datetime' %
+                         {'id': m.alert_history.netbox.id})
+                    ),
                 ),
-                (m.handler, reverse('ipdevinfo-service-list-handler', args=[m.handler])),
-                (down_since, None),
-                (downtime, None),
-                (
-                    'history',
-                    reverse('devicehistory-view') +\
-                    '?netbox=%(id)s&type=e_maintenanceState&group_by=datetime' % {
-                        'id': m.alert_history.netbox.id,
-                    }
-                ),
-            )
+            }
             history.append(row)
         self.history = history
 
@@ -536,7 +555,7 @@ class ModuleSection(_Section):
         module_history = AlertHistory.objects.select_related(
             'netbox', 'device'
         ).filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=MODULE_STATE,
             alert_type__name='moduleDown',
             netbox__organization__in=self.organizations,
@@ -557,29 +576,32 @@ class ModuleSection(_Section):
 
         history = []
         for module in module_history:
-            row = (
-                (
-                    module.netbox.sysname,
-                    reverse('ipdevinfo-details-by-name', args=[module.netbox.sysname])
-                ),
-                (module.netbox.ip, None),
-                (
-                    module.module_name,
-                    reverse('ipdevinfo-module-details', args=[
+            row = {'netboxid': module.netbox.id,
+                   'tabrow': (
+                    (
+                        module.netbox.sysname,
+                        reverse('ipdevinfo-details-by-name',
+                            args=[module.netbox.sysname])
+                    ),
+                    (module.netbox.ip, None),
+                    (
+                        module.module_name,
+                        reverse('ipdevinfo-module-details', args=[
                         module.netbox.sysname,
                         module.module_name
-                    ]) if module.module_name else None
+                        ]) if module.module_name else None
+                    ),
+                    (module.start_time, None),
+                    (module.downtime, None),
+                    (
+                        'history',
+                        reverse('devicehistory-view') +
+                        '?module=%(id)s&type=a_moduleDown&group_by=datetime' % {
+                            'id': module.module_id,
+                        }
+                    ),
                 ),
-                (module.start_time, None),
-                (module.downtime, None),
-                (
-                    'history',
-                    reverse('devicehistory-view') +
-                    '?module=%(id)s&type=a_moduleDown&group_by=datetime' % {
-                        'id': module.module_id,
-                    }
-                ),
-            )
+            }
             history.append(row)
         self.history = history
 
@@ -614,7 +636,7 @@ class ThresholdSection(_Section):
         thresholds = AlertHistory.objects.select_related(
             'netbox'
         ).filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=THRESHOLD_STATE,
             alert_type__name='exceededThreshold',
             netbox__organization__in=self.organizations,
@@ -641,23 +663,26 @@ class ThresholdSection(_Section):
                 'units': t.rrd_units,
             }
 
-            row = (
-                (
-                    t.netbox.sysname,
-                    reverse('ipdevinfo-details-by-name', args=[t.netbox.sysname])
+            row = {'netboxid': t.netbox.id,
+                   'tabrow': (
+                    (
+                        t.netbox.sysname,
+                        reverse('ipdevinfo-details-by-name',
+                            args=[t.netbox.sysname])
+                    ),
+                    (description, None),
+                    (t.start_time, None),
+                    (t.downtime, None),
+                    (
+                        'history',
+                        reverse('devicehistory-view') +
+                        '?netbox=%(id)s&type=a_exceededThreshold'
+                        '&group_by=datetime' % {
+                            'id': t.netbox.id,
+                        }
+                    ),
                 ),
-                (description, None),
-                (t.start_time, None),
-                (t.downtime, None),
-                (
-                    'history',
-                    reverse('devicehistory-view') +
-                    '?netbox=%(id)s&type=a_exceededThreshold'
-                    '&group_by=datetime' % {
-                        'id': t.netbox.id,
-                    }
-                ),
-            )
+            }
             history.append(row)
         self.history = history
 
@@ -681,7 +706,7 @@ class LinkStateSection(_Section):
             'netbox'
         ).filter(
             event_type=LINK_STATE,
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
         ).extra(
@@ -696,26 +721,30 @@ class LinkStateSection(_Section):
 
         history = []
         for h in netbox_history:
-            row = (
-                (
-                    h.netbox.sysname,
-                    reverse('ipdevinfo-details-by-name', args=[h.netbox.sysname])
+            row = {'netboxid': h.netbox.id,
+                   'tabrow': (
+                    (
+                        h.netbox.sysname,
+                        reverse('ipdevinfo-details-by-name',
+                            args=[h.netbox.sysname])
+                    ),
+                    (h.netbox.ip, None),
+                    (
+                        h.ifname,
+                        reverse('ipdevinfo-interface-details',
+                            args=[h.netbox.sysname, h.interfaceid])
+                    ),
+                    (h.start_time, None),
+                    (h.downtime, None),
+                    (
+                        'history',
+                        reverse('devicehistory-view') +
+                        '?netbox=%(id)s&type=a_linkDown&group_by=datetime' % {
+                            'id': h.netbox.id,
+                        }
+                    ),
                 ),
-                (h.netbox.ip, None),
-                (
-                    h.ifname,
-                    reverse('ipdevinfo-interface-details', args=[h.netbox.sysname, h.interfaceid])
-                ),
-                (h.start_time, None),
-                (h.downtime, None),
-                (
-                    'history',
-                    reverse('devicehistory-view') +\
-                    '?netbox=%(id)s&type=a_linkDown&group_by=datetime' % {
-                        'id': h.netbox.id,
-                    }
-                ),
-            )
+            }
             history.append(row)
         self.history = history
 
@@ -751,7 +780,7 @@ class SNMPAgentSection(_Section):
             'netbox'
         ).filter(
             event_type=SNMP_STATE,
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             netbox__category__in=self.categories,
             netbox__organization__in=self.organizations,
         ).extra(
@@ -762,22 +791,24 @@ class SNMPAgentSection(_Section):
 
         history = []
         for h in netbox_history:
-            row = (
-                (
-                    h.netbox.sysname,
-                    reverse('ipdevinfo-details-by-name', args=[h.netbox.sysname])
+            row = {'netboxid': h.netbox.id,
+                   'tabrow': (
+                    (
+                        h.netbox.sysname,
+                        reverse('ipdevinfo-details-by-name',
+                            args=[h.netbox.sysname])
+                    ),
+                    (h.netbox.ip, None),
+                    (h.start_time, None),
+                    (h.downtime, None),
+                    (
+                        'history',
+                        reverse('devicehistory-view') +
+                        ('?netbox=%(id)s&type=a_snmpAgentDown'
+                         '&group_by=datetime' % {'id': h.netbox.id})
+                    ),
                 ),
-                (h.netbox.ip, None),
-                (h.start_time, None),
-                (h.downtime, None),
-                (
-                    'history',
-                    reverse('devicehistory-view') +\
-                    '?netbox=%(id)s&type=a_snmpAgentDown&group_by=datetime' % {
-                        'id': h.netbox.id,
-                    }
-                ),
-            )
+            }
             history.append(row)
         self.history = history
 
@@ -800,7 +831,7 @@ class PSUSection(_Section):
         psu_history = AlertHistory.objects.select_related(
             'netbox', 'device'
         ).filter(
-            end_time__gt=datetime.max,
+            end_time__gte=datetime.max,
             event_type=PSU_STATE,
             alert_type__name='psuNotOK',
             netbox__organization__in=self.organizations,

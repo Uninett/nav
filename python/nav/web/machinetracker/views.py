@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009, 2011 UNINETT AS
+# Copyright (C) 2009, 2011-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -8,40 +8,43 @@
 # the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Machine Tracker view functions"""
 
 from IPy import IP
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 from django.db.models import Q
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.utils.datastructures import SortedDict
 
-from nav.models.manage import Arp, Cam
+from nav.models.manage import Arp, Cam, Netbios
 
 from nav import asyncdns
 
-from nav.web.machinetracker import forms, iprange
-from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict
-from nav.web.machinetracker.utils import process_ip_row, track_mac, get_prefix_info
-from nav.web.machinetracker.utils import min_max_mac, ProcessInput
+from nav.web.machinetracker import forms
+from nav.web.machinetracker.utils import ip_dict
+from nav.web.machinetracker.utils import process_ip_row, track_mac
+from nav.web.machinetracker.utils import (min_max_mac, ProcessInput,
+                                          normalize_ip_to_string)
 
 NAVBAR = [('Home', '/'), ('Machinetracker', None)]
 IP_TITLE = 'NAV - Machinetracker - IP Search'
 MAC_TITLE = 'NAV - Machinetracker - MAC Search'
 SWP_TITLE = 'NAV - Machinetracker - Switch Search'
+NBT_TITLE = 'NAV - Machinetracker - NetBIOS Search'
 IP_DEFAULTS = {'title': IP_TITLE, 'navpath': NAVBAR, 'active': {'ip': True}}
 MAC_DEFAULTS = {'title': MAC_TITLE, 'navpath': NAVBAR, 'active': {'mac': True}}
 SWP_DEFAULTS = {'title': SWP_TITLE, 'navpath': NAVBAR, 'active': {'swp': True}}
+NBT_DEFAULTS = {'title': NBT_TITLE, 'navpath': NAVBAR,
+                'active': {'netbios': True}}
 
-ADDRESS_LIMIT = 4096 # Value for when inactive gets disabled
+ADDRESS_LIMIT = 4096  # Value for when inactive gets disabled
 
 
 def ip_search(request):
@@ -56,6 +59,7 @@ def ip_search(request):
         info_dict,
         RequestContext(request)
     )
+
 
 def ip_do_search(request):
     input = ProcessInput(request.GET).ip()
@@ -86,6 +90,7 @@ def ip_do_search(request):
         result = Arp.objects.filter(
             end_time__gt=from_time,
         ).extra(
+            select={'netbiosname': get_netbios_query()},
             where=['ip BETWEEN %s and %s'],
             params=[unicode(from_ip), unicode(to_ip)]
         ).order_by('ip', 'mac', '-start_time')
@@ -102,6 +107,7 @@ def ip_do_search(request):
             dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
         
         tracker = SortedDict()
+
         for ip_key in ip_range:
             ip = unicode(ip_key)
             if active and ip_key in ip_result:
@@ -113,18 +119,17 @@ def ip_do_search(request):
                             or not dns_lookups[ip]):
                             row.dns_lookup = ""
                         else:
-                            row.dns_lookup = dns_lookups[ip].pop()
+                            row.dns_lookup = dns_lookups[ip][0]
+                    row.ip_int_value = normalize_ip_to_string(row.ip)
                     if (row.ip, row.mac) not in tracker:
                         tracker[(row.ip, row.mac)] = []
-                    else:
-                        if dns:
-                            row.dns_lookup = ""
                     tracker[(row.ip, row.mac)].append(row)
             elif inactive and ip_key not in ip_result:
                 row = {'ip': ip}
+                row['ip_int_value'] = normalize_ip_to_string(ip)
                 if dns:
                     if not isinstance(dns_lookups[ip], Exception):
-                        row['dns_lookup'] = dns_lookups[ip].pop()
+                        row['dns_lookup'] = dns_lookups[ip][0]
                     else:
                         row['dns_lookup'] = ""
                 tracker[(ip, "")] = [row]
@@ -146,11 +151,13 @@ def ip_do_search(request):
         'display_no_results': display_no_results,
     }
     info_dict.update(IP_DEFAULTS)
+        
     return render_to_response(
         'machinetracker/ip_search.html',
         info_dict,
         RequestContext(request)
     )
+
 
 def mac_search(request):
     if request.GET.has_key('mac'):
@@ -164,6 +171,7 @@ def mac_search(request):
         info_dict,
         RequestContext(request)
     )
+
 
 def mac_do_search(request):
     input = ProcessInput(request.GET).mac()
@@ -198,8 +206,10 @@ def mac_do_search(request):
         arp_result = Arp.objects.filter(
             end_time__gt=from_time,
             mac__range=(mac_min, mac_max)
+        ).extra(
+            select={'netbiosname': get_netbios_query()},
         ).order_by('mac', 'ip', '-start_time').values(
-            'ip', 'mac', 'start_time', 'end_time'
+            'ip', 'mac', 'start_time', 'end_time', 'netbiosname'
         )
 
         mac_count = len(cam_result)
@@ -223,6 +233,7 @@ def mac_do_search(request):
         RequestContext(request)
     )
 
+
 def switch_search(request):
     if request.GET.has_key('switch'):
         return switch_do_search(request)
@@ -235,6 +246,7 @@ def switch_search(request):
         info_dict,
         RequestContext(request)
     )
+
 
 def switch_do_search(request):
     input = ProcessInput(request.GET).swp()
@@ -255,8 +267,20 @@ def switch_do_search(request):
 
         if module:
             criteria['module'] = module
+
+        # If port is specified, match on ifindex
         if port_interface:
-            criteria['port'] = port_interface
+            try:
+                cam_with_ifindex = Cam.objects.filter(
+                        Q(sysname__istartswith=switch) |
+                        Q(netbox__sysname__istartswith=switch),
+                        end_time__gt=from_time,
+                        port=port_interface,
+                        **criteria
+                        ).values('ifindex')[0]
+                criteria['ifindex'] = cam_with_ifindex['ifindex']
+            except IndexError:
+                criteria['port'] = port_interface
 
         cam_result = Cam.objects.filter(
             Q(sysname__istartswith=switch) |
@@ -267,6 +291,7 @@ def switch_do_search(request):
             'sysname', 'module', 'port', 'start_time', 'end_time', 'mac',
             'netbox__sysname'
         )
+
         swp_count = len(cam_result)
         swp_tracker = track_mac(('mac', 'sysname', 'module', 'port'),
                                 cam_result, dns=False)
@@ -280,6 +305,85 @@ def switch_do_search(request):
     info_dict.update(SWP_DEFAULTS)
     return render_to_response(
         'machinetracker/switch_search.html',
+        info_dict,
+        RequestContext(request)
+    )
+
+
+def get_netbios_query(separator=', '):
+    """Return a query that populates netbios names on an arp query
+
+    Multiple netbiosnames are joined with separator to a single string.
+    Populates only if the arp tuple overlaps netbios tuple regarding time.
+
+    Ex:
+    Arp.objects.filter(..).extra(select={'netbiosname': get_netbios_query()})
+
+    """
+    return """SELECT array_to_string(array_agg(DISTINCT name),'%s')
+              FROM netbios
+              WHERE arp.ip=netbios.ip
+              AND (arp.start_time, arp.end_time)
+                   OVERLAPS (netbios.start_time,
+                             netbios.end_time)""" % separator
+
+
+# NetBIOS
+def netbios_search(request):
+    """Controller for displaying search for NETBIOS name"""
+    if 'search' in request.GET:
+        return netbios_do_search(request)
+    info_dict = {
+        'form': forms.NetbiosTrackerForm()
+    }
+    info_dict.update(NBT_DEFAULTS)
+    return render_to_response(
+        'machinetracker/netbios_search.html',
+        info_dict,
+        RequestContext(request)
+    )
+
+
+def netbios_do_search(request):
+    """Handle a search for a NETBIOS name"""
+    form = forms.NetbiosTrackerForm(ProcessInput(request.GET).netbios())
+    info_dict = {
+        'form': form,
+        'form_data': None,
+        'netbios_tracker': None,
+        'netbios_tracker_count': 0,
+    }
+
+    if form.is_valid():
+        searchstring = form.cleaned_data['search']
+        days = form.cleaned_data['days']
+        dns = form.cleaned_data['dns']
+        from_time = date.today() - timedelta(days=days)
+
+        filters = (Q(mac__istartswith=searchstring) |
+                   Q(ip__istartswith=searchstring) |
+                   Q(name__icontains=searchstring))
+
+        result = Netbios.objects.filter(filters, end_time__gt=from_time)
+        result = result.order_by('name', 'mac', 'start_time')
+        result = result.values('ip', 'mac', 'name', 'server', 'username',
+                               'start_time', 'end_time')
+
+        nbt_count = len(result)
+
+        netbios_tracker = track_mac(('ip', 'mac', 'nbname', 'server',
+                                     'username', 'start_time', 'end_time'),
+                                    result, dns)
+
+        info_dict.update({
+            'form_data': form.cleaned_data,
+            'netbios_tracker': netbios_tracker,
+            'netbios_tracker_count': nbt_count,
+        })
+
+    info_dict.update(NBT_DEFAULTS)
+    return render_to_response(
+        'machinetracker/netbios_search.html',
         info_dict,
         RequestContext(request)
     )

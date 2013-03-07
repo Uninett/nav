@@ -19,7 +19,9 @@
   {% for macwatch in macwatches %}
 
   <tr>
-    <td>{{ macwatch.mac }}</td>
+    <td>
+        <a href="{% url machinetracker-mac_search mac=macwatch.get_mac_addr,days=-1,dns=on %}">
+        {{ macwatch.get_mac_addr }}</a></td>
     <td>{{ macwatch.description }}</td>
     <td>{{ macwatch.userid.name }}</td>
     <td>{{ macwatch.created|default_datetime }}</td>

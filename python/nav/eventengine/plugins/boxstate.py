@@ -13,93 +13,61 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"boxState event plugin"
+""""boxState event plugin"""
+from nav.eventengine.alerts import AlertGenerator
+from nav.eventengine.plugins import delayedstate
+from nav.models.manage import Netbox
 
-from nav.eventengine.plugin import EventHandler
+class BoxStateHandler(delayedstate.DelayedStateHandler):
+    """Accepts boxState events"""
+    handled_types = ('boxState',)
+    WARNING_WAIT_TIME = 'boxDown.warning'
+    ALERT_WAIT_TIME = 'boxDown.alert'
+    __waiting_for_resolve = {}
 
-WARNING_WAIT_TIME = 20
-ALERT_WAIT_TIME = 60
+    def _set_internal_state_down(self):
+        shadow = self._verify_shadow()
+        state = Netbox.UP_SHADOW if shadow else Netbox.UP_DOWN
+        self._set_internal_state(state)
 
-class BoxStateHandler(EventHandler):
-    "Accepts boxState events"
-    handles_types = ('boxState',)
-    waiting_for_resolve = {}
+    def _set_internal_state_up(self):
+        self._set_internal_state(Netbox.UP_UP)
 
-    def __init__(self, *args, **kwargs):
-        super(BoxStateHandler, self).__init__(*args, **kwargs)
-        self.task = None
+    def _set_internal_state(self, state):
+        netbox = self.get_target()
+        netbox.up = state
+        Netbox.objects.filter(id=netbox.id).update(up=state)
 
-    def handle(self):
-        event = self.event
-        if event.state == event.STATE_START:
-            return self._handle_start()
-        elif event.state == event.STATE_END:
-            return self._handle_end()
+    def get_target(self):
+        return self.event.netbox
 
-    def _handle_start(self):
-        event = self.event
-        if self._is_duplicate():
-            self._logger.info(
-                "%s is already down, ignoring duplicate down event",
-                event.netbox)
-            event.delete()
+    def _get_up_alert(self):
+        alert = AlertGenerator(self.event)
+        is_shadow = self.event.netbox.up == self.event.netbox.UP_SHADOW
+        alert.alert_type = "boxSunny" if is_shadow else "boxUp"
+        return alert
+
+    def _post_down_warning(self):
+        """Posts the actual warning alert"""
+        alert = AlertGenerator(self.event)
+        alert.state = self.event.STATE_STATELESS
+
+        shadow = self._verify_shadow()
+        if shadow:
+            alert.alert_type = 'boxShadowWarning'
+            self._set_internal_state(Netbox.UP_SHADOW)
         else:
-            self._logger.info("%s is not responding to ping requests; "
-                              "holding possibly transient event",
-                              event.netbox)
-            event.netbox.up = event.netbox.UP_DOWN
-            event.netbox.save()
-            self.schedule(WARNING_WAIT_TIME, self._make_down_warning)
+            alert.alert_type = 'boxDownWarning'
 
-    def _handle_end(self):
-        event = self.event
-        if event.netbox.up == event.netbox.UP_UP:
-            self._logger.info("%s is already up; ignoring up event",
-                              event.netbox)
+        self._logger.info("%s: Posting %s alert",
+                          self.event.netbox, alert.alert_type)
+        alert.post()
+
+    def _get_down_alert(self):
+        alert = AlertGenerator(self.event)
+        if self._verify_shadow():
+            alert.alert_type = 'boxShadow'
+            self._set_internal_state(Netbox.UP_SHADOW)
         else:
-            self._logger.info("%s is back up", event.netbox)
-            event.netbox.up = event.netbox.UP_UP
-            event.netbox.save()
-            waiter = self._get_waiting()
-            if waiter:
-                self._logger.info("ignoring transient down state for %s",
-                                  self.event.netbox)
-                waiter.deschedule()
-            # TODO: post alert, update alert state
-        event.delete()
-
-    def _is_duplicate(self):
-        return (self._box_already_has_down_state()
-                or self._get_waiting())
-
-    def _box_already_has_down_state(self):
-        return self.event.netbox.get_unresolved_alerts('boxState').count() > 0
-
-    def _get_waiting(self):
-        return self.waiting_for_resolve.get(self.event.netbox, False)
-
-    def _make_down_warning(self):
-        self._logger.info("%s boxDownWarning not posted", self.event.netbox)
-        self.task = self.engine.schedule(
-            max(ALERT_WAIT_TIME-WARNING_WAIT_TIME, 0),
-            self._make_down_alert)
-
-    def _make_down_alert(self):
-        self._logger.info("%s boxDown final alert not posted",
-                          self.event.netbox)
-        del self.waiting_for_resolve[self.event.netbox]
-        self.task = None
-        self.event.delete()
-
-    def schedule(self, delay, action):
-        "Schedules a callback and makes a note of it in a class variable"
-        self.task = self.engine.schedule(delay, action)
-        self.waiting_for_resolve[self.event.netbox] = self
-
-    def deschedule(self):
-        "Deschedules any outstanding task and deletes the associated event"
-        self._logger.debug("descheduling waiting callback for %s",
-                           self.event.netbox)
-        self.engine.cancel(self.task)
-        self.task = None
-        self.event.delete()
+            alert.alert_type = 'boxDown'
+        return alert

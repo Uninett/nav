@@ -1,0 +1,4 @@
+Subject: Weathergoose {{ goosename }}: temperature threshold exceeded
+
+Threshold: {{ triptype }}
+{{ climatedescr }}: {{ climatevalue }}

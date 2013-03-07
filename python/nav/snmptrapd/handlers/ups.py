@@ -89,13 +89,10 @@ def handleTrap(trap, config=None):
             except Exception, e:
                 logger.info("Could not get battery time from %s: %s" \
                             %(trap.agent, e))
-                batterytime = 'N/A'
-                
-            # Batterytime is returned in various formats. Create a more human
-            # readable format
-            if batterytime != 'N/A':
+                batterytime = False
+            else:
                 batterytime = format_batterytime(batterytime, format)
-                logger.debug("batterytime: %s" %(batterytime))
+                logger.debug("batterytime: %s" % batterytime)
                 
             # Get netboxid from database
             c = db.cursor()

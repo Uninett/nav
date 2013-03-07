@@ -22,7 +22,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 
-from nav.config import readConfig
+from nav.config import read_flat_config
 from nav.models.manage import Interface
 from nav.models.rrd import RrdFile, RrdDataSource
 from nav.rrd import presenter
@@ -74,7 +74,7 @@ def rrd_image(request, rrdfile_id):
     """Return the graph image of an RRD file"""
 
     # Get file name
-    config = readConfig('rrdviewer/rrdviewer.conf')
+    config = read_flat_config('rrdviewer/rrdviewer.conf')
     file_name = '%s%s%s' % (
         config['file_prefix'], rrdfile_id, config['file_suffix'])
 

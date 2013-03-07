@@ -8,193 +8,177 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
-#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 """Generates the query and makes the report."""
 
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
 from urllib import unquote_plus
-from urlparse import urlsplit
 import nav.db
-import re, string
+import re
 
 
-class Generator:
-    """
-    The maker and controller of the generating of a report
-    """
+class Generator(object):
+    """The maker and controller of the generating of a report"""
+    sql = None
 
-    def makeReport(self, reportName, configFile, configFileLocal, query_dict, config,
-                   dbresult):
+    def make_report(self, report_name, config_file, config_file_local,
+                   query_dict, config, dbresult):
+        """Makes a report
+
+        :param report_name: the name of the report that will be represented
+        :param config_file: the configuration file where the definition resides
+        :param config_file_local: the local configuration file where changes to
+                                the default definition resides
+        :param queryDict: mutable QueryDict
+        :param config: the parsed configuration object, if cached
+        :param dbresult: the database result, if cached
+
+        :returns: a formatted report object and search parameters. Also returns
+                  a parsed ReportConfig object and a DatabaseResult object to
+                  be cached.
+
         """
-        Makes a report
-
-        - reportName      : the name of the report that will be represented
-        - configFile      : the configuration file where the definition resides
-        - configFileLocal : the local configuration file where changes to the default definition resides
-        - queryDict       : mutable QueryDict
-        - config          : the parsed configuration object, if cached
-        - dbresult        : the database result, if cached
-
-        Returns a formatted report object and search parameters. Also returns a
-        parsed ReportConfig object and a DatabaseResult object to be cached.
-        """
-
-        args = query_dict
-        adv = 0
+        args = dict(query_dict.items())
+        advanced = 0
 
         if not config:
-            configParser = ConfigParser(configFile, configFileLocal)
-            parseOK = configParser.parseReport(reportName)
-            config = configParser.configuration
-            if not parseOK:
-                return (None, None, None, None, None, None, None)
+            conf_parser = ConfigParser(config_file, config_file_local)
+            parse_ok = conf_parser.parse_report(report_name)
+            config = conf_parser.configuration
+            if not parse_ok:
+                return None, None, None, None, None, None, None
 
-        argumentParser = ArgumentParser(config)
-        argumentHash = argumentParser.parseArguments(args)
+        arg_parser = ArgumentParser(config)
 
         # Remove non-query arguments
-        if argumentHash.has_key("export"):
-            del argumentHash["export"]
+        if "export" in args:
+            del args["export"]
 
-        if argumentHash.has_key("exportcsv"):
-            del argumentHash["exportcsv"]
+        if "exportcsv" in args:
+            del args["exportcsv"]
             # Export *everything* in CSV file
-            argumentHash["offset"] = 0
-            argumentHash["limit"] = 0
+            args["offset"] = 0
+            args["limit"] = 0
 
-        if argumentHash.has_key("adv"):
-            if argumentHash["adv"]:
-                adv = 1
-            del argumentHash["adv"]
+        if "adv" in args:
+            if args["adv"]:
+                advanced = 1
+            del args["adv"]
 
-        (contents, neg, operator) = argumentParser.parseQuery(argumentHash)
+        (contents, neg, operator) = arg_parser.parse_query(args)
 
         # Check if there exists a cached database result for this query
-        if dbresult: # Cached
+        if dbresult:  # Cached
             report = Report(config, dbresult, query_dict)
-            report.titlebar = reportName + " - report - NAV"
+            report.titlebar = report_name + " - report - NAV"
 
-            return (report, contents, neg, operator, adv)
+            return report, contents, neg, operator, advanced
 
-        else: # Not cached
+        else:  # Not cached
             dbresult = DatabaseResult(config)
             self.sql = dbresult.sql
 
             report = Report(config, dbresult, query_dict)
-            report.titlebar = reportName + " - report - NAV"
+            report.titlebar = report_name + " - report - NAV"
 
-            return (report, contents, neg, operator, adv, config, dbresult)
+            return report, contents, neg, operator, advanced, config, dbresult
 
 
-class ReportList:
+class ReportList(object):
 
-    def __init__(self, configFile):
+    def __init__(self, config_file):
 
         self.reports = []
 
-        reportRe = re.compile(r"^\s*(\S+)\s*\{(.*?)\}$", re.M|re.S|re.I)
-        fileContents = file(configFile).read()
-        list = reportRe.findall(fileContents)
+        report_pattern = re.compile(r"^\s*(\S+)\s*\{(.*?)\}$",
+                                    re.M | re.S | re.I)
+        contents = file(config_file).read()
+        reports = report_pattern.findall(contents)
 
-        configParser = ConfigParser(configFile, None)
+        parser = ConfigParser(config_file, None)
 
-        for rep in list:
+        for rep in reports:
             configtext = rep[1]
             rep = rep[0]
             
-            configParser.parseConfiguration(configtext)
-            report = configParser.configuration
+            parser.parse_configuration(configtext)
+            report = parser.configuration
 
-            if report.title != '' and report.description != '':
-                self.reports.append((rep, report.title, report.description))
-            
-            elif report.title != '':
-                self.reports.append((rep, report.title, None))
+            self.reports.append((rep, report.title or rep,
+                                 report.description or None))
 
-            elif report.description != '':
-                self.reports.append((rep, rep, report.description))
-
-            else:
-                self.reports.append((rep, rep, None))
-
-    def getReportList(self):
+    def get_report_list(self):
         return self.reports
 
 
-
-class ConfigParser:
-    """
-    Loads the configuration files, parses the contents - the local
+class ConfigParser(object):
+    """Loads the configuration files, parses the contents - the local
     configuration the default, and returns the results as a ReportConfig object
     instance
+
     """
 
-    def __init__(self, configFile, configFileLocal):
-        """
-        Loads the configuration files
-        """
-
-        self.configFile = configFile
-        self.configFileLocal = configFileLocal
+    def __init__(self, config_file, config_file_local):
+        """Loads the configuration files"""
+        self.config_file = config_file
+        self.config_file_local = config_file_local
         self.config = None
-        self.configLocal = None
+        self.config_local = None
         self.configuration = ReportConfig()
 
+    def parse_report(self, report_name):
+        """Parses the configuration file and returns a Report object according
+        to the report_name.
 
-    def parseReport(self, reportName):
-        """
-        Parses the configuration file and returns a Report object
-        according to the reportName.
+        :param report_name: the name of the report, tells which part of
+                            configuration files to use when making a
+                            ReportConfig
 
-        - reportName : the name of the report, tells which part of configuration files to use when making a ReportConfig
-
-        returns 1 when there was a report with that name, 0 otherwise
+        :returns: 1 when there was a report with that name, 0 otherwise
 
         the access methods will probably fit here
         """
 
         if self.config is None:
-            self.config = file(self.configFile).read()
-            self.configLocal = file(self.configFileLocal).read()
-        reportRe = re.compile(r"^\s*" + reportName + r"\s*\{(.*?)\}$",
-                              re.M|re.S|re.I)
-        reResult = reportRe.search(self.config)
-        reResultLocal = reportRe.search(self.configLocal)
+            self.config = file(self.config_file).read()
+            self.config_local = file(self.config_file_local).read()
+        report_pattern = re.compile(r"^\s*" + report_name + r"\s*\{(.*?)\}$",
+                                    re.M | re.S | re.I)
+        match = report_pattern.search(self.config)
+        local_match = report_pattern.search(self.config_local)
 
-        if reResult:
-            self.parseConfiguration(reResult.group(1))
-        if reResultLocal:
+        if match:
+            self.parse_configuration(match.group(1))
+        if local_match:
             # Local report config overloads default report config.
-            self.parseConfiguration(reResultLocal.group(1))
+            self.parse_configuration(local_match.group(1))
 
-        if reResult or reResultLocal:
+        if match or local_match:
             return True
         
         else:
             return False
 
+    def parse_configuration(self, report_config):
+        """Parses the right portion of the configuration and builds a
+        ReportConfig object, stone by stone.
 
-    def parseConfiguration(self, reportConfig):
+        :param report_config: the part of the configuration to build the
+                             configuration from
+
         """
-        Parses the right portion of the configuration and builds a ReportConfig object, stone by stone.
 
-        - reportConfig : the part of the configuration to build the configuration from
-
-        """
-
-        configurationRe = re.compile(r'^\s*\$(\S*)\s*\=\s*"(.*?)"\;?',
-                                     re.M|re.S)
-        reResult = configurationRe.findall(reportConfig)
+        conf_pattern = re.compile(r'^\s*\$(\S*)\s*\=\s*"(.*?)"\;?', re.M|re.S)
+        conf_match = conf_pattern.findall(report_config)
 
         config = self.configuration
 
-        for line in reResult:
+        for line in conf_match:
 
             key = line[0]
             value = line[1].replace('\n',' ').strip()
@@ -204,47 +188,51 @@ class ConfigParser:
             elif key == "title":
                 config.title = value
             elif key == "order_by" or key == "sort":
-                config.orderBy = string.split(value,",") + config.orderBy
+                config.order_by = value.split(",") + config.order_by
             elif key == "skjul" or key == "hidden" or key == "hide":
-                config.hidden.extend(string.split(value,","))
+                config.hidden.extend(value.split(","))
             elif key == "ekstra" or key == "extra":
-                config.extra.extend(string.split(value,","))
+                config.extra.extend(value.split(","))
             elif key == "sum" or key == "total":
-                config.sum.extend(string.split(value,","))
+                config.sum.extend(value.split(","))
             elif key == "description":
                 config.description = value
             else:
-                reObject = re.compile(r"^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
-                reResult = reObject.search(key)
+                group_pattern = re.compile(
+                    r'^(?P<group>\S+?)_(?P<groupkey>\S+?)$')
+                match = group_pattern.search(key)
 
-                if reResult:
-                    if reResult.group('group') == "navn" or reResult.group('group') == "name":
-                        config.name[reResult.group('groupkey')] = value
-                    elif reResult.group('group') == "url" or reResult.group('group') == "uri":
-                        config.uri[reResult.group('groupkey')] = value
-                    elif reResult.group('group') == "forklar" or reResult.group('group') == "explain" or reResult.group('group') == "description":
-                        config.explain[reResult.group('groupkey')] = value
+                if match:
+                    if (match.group('group') == "navn"
+                        or match.group('group') == "name"
+                        ):
+                        config.name[match.group('groupkey')] = value
+                    elif (match.group('group') == "url"
+                          or match.group('group') == "uri"
+                          ):
+                        config.uri[match.group('groupkey')] = value
+                    elif (match.group('group') == "forklar"
+                          or match.group('group') == "explain"
+                          or match.group('group') == "description"
+                          ):
+                        config.explain[match.group('groupkey')] = value
 
                 else:
                     config.where.append(key + "=" + value)
 
-class ArgumentParser:
-    """
-    Handler of the uri arguments
-    """
+
+class ArgumentParser(object):
+    """Handler of the uri arguments"""
 
     def __init__(self, configuration):
-        """
-        Initializes the configuration
-        """
-
+        """Initializes the configuration"""
         self.configuration = configuration
 
-    def parseQuery(self, query):
-        """
-        Parses the arguments of the uri, and modifies the ReportConfig-object configuration
+    def parse_query(self, query):
+        """Parses the arguments of the uri, and modifies the
+        ReportConfig-object configuration.
 
-        - query : a hash representing the argument-part of the uri
+        :param query: a dict representing the argument-part of the uri
 
         """
 
@@ -263,49 +251,49 @@ class ArgumentParser:
             elif key == "title":
                 config.title = value
             elif key == "order_by" or key == "sort":
-                config.orderBy = string.split(value,",") + config.orderBy
+                config.order_by = value.split(",") + config.order_by
             elif key == "skjul" or key == "hidden" or key == "hide":
-                config.hidden.extend(string.split(value,","))
+                config.hidden.extend(value.split(","))
             elif key == "ekstra" or key == "extra":
-                config.extra.extend(string.split(value,","))
+                config.extra.extend(value.split(","))
             elif key == "sum" or key == "total":
-                config.sum.extend(string.split(value,","))
+                config.sum.extend(value.split(","))
             elif key == "offset":
                 config.offset = value
             elif key == "limit":
                 config.limit = value
             else:
-                reObject = re.compile(r"^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
-                reResult = reObject.search(key)
+                pattern = re.compile(r"^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
+                match = pattern.search(key)
 
-                if reResult:
-                    g = unquote_plus(reResult.group('group'))
-                    gk = unquote_plus(reResult.group('groupkey'))
-                    if g == "navn" or g == "name":
-                        config.name[gk] = value
-                    elif g == "url" or g == "uri":
-                        config.uri[gk] = value
-                    elif g == "forklar" or g == "explain" or g == "description":
-                        config.explain[gk] = value
-                    elif g == "not":
-                        nott[gk] = value
-                    elif g == "op":
-                        operator[gk] = value
+                if match:
+                    group = unquote_plus(match.group('group'))
+                    group_key = unquote_plus(match.group('groupkey'))
+                    if group in ("navn", "name"):
+                        config.name[group_key] = value
+                    elif group in ("url", "uri"):
+                        config.uri[group_key] = value
+                    elif group in ("forklar", "explain", "description"):
+                        config.explain[group_key] = value
+                    elif group == "not":
+                        nott[group_key] = value
+                    elif group == "op":
+                        operator[group_key] = value
                     else:
-                        reResult = None
+                        match = None
 
-                if not reResult:
+                if not match:
                     if value:
                         fields[unquote_plus(key)] = unquote_plus(value)
 
         for key, value in fields.items():
 
-            if not operator.has_key(key):
+            if not key in operator:
                 operator[key] = "eq"
             # Set a default operator
             operat = "="
 
-            if nott.has_key(key):
+            if key in nott:
                 neg = "not "
             else:
                 neg = ""
@@ -318,7 +306,8 @@ class ArgumentParser:
                     operat = "is"
             else:
                 if safere.search(value):
-                    config.error = "You are not allowed to make advanced sql terms"
+                    config.error = ("You are not allowed to make advanced sql"
+                                    " terms")
                 else:
                     if operator[key] == "eq":
                         if neg:
@@ -326,17 +315,17 @@ class ArgumentParser:
                             neg = ""
                         else:
                             operat = "="
-                        value = self.intstr(value)
+                        value = intstr(value)
                     elif operator[key] == "like":
                         operat = "ilike"
-                        value = self.intstr(value.replace("*","%"))
+                        value = intstr(value.replace("*","%"))
                     elif operator[key] == "gt":
                         if neg:
                             operat = "<="
                             neg = ""
                         else:
                             operat = ">"
-                        value = self.intstr(value)
+                        value = intstr(value)
 
                     elif operator[key] == "geq":
                         if neg:
@@ -344,28 +333,30 @@ class ArgumentParser:
                             neg = ""
                         else:
                             operat = ">="
-                        value = self.intstr(value)
+                        value = intstr(value)
                     elif operator[key] == "lt":
                         if neg:
                             operat = ">="
                             neg = ""
                         else:
                             operat = "<"
-                        value = self.intstr(value)
+                        value = intstr(value)
                     elif operator[key] == "leq":
                         if neg:
                             operat = ">"
                             neg = ""
                         else:
                             operat = "<="
-                        value = self.intstr(value)
+                        value = intstr(value)
                     elif operator[key] == "in":
                         operat = "in"
                         inlist = value.split(",")
                         if inlist:
-                            value = "(" + ",".join([ self.intstr(a.strip()) for a in inlist]) + ")"
+                            value = "(%s)" % ",".join(intstr(a.strip())
+                                                      for a in inlist)
                         else:
-                            config.error = "The arguments to 'in' must be comma separated"
+                            config.error = ("The arguments to 'in' must be "
+                                            "comma separated")
 
                     elif operator[key] == "between":
                         operat = "between"
@@ -373,34 +364,25 @@ class ArgumentParser:
                         if not len(between) == 2:
                             between = value.split(":")
                         if len(between) == 2:
-                            value = self.intstr(between[0]) + " and " + self.intstr(between[1])
+                            value = "%s and %s" % (intstr(between[0]),
+                                                   intstr(between[1]))
                         else:
-                            config.error = "The arguments to 'between' must be comma separated"
+                            config.error = ("The arguments to 'between' must "
+                                            "be comma separated")
 
             # query is now a unicode QueryDict to dict()...
             # here be DRAGONS, cute shoulder dragons!
             key = key.encode('UTF8')
-            config.where.append(key+" "+neg+operat+" "+value)
-        return (fields, nott, operator)
-
-    def parseArguments(self, query_dict):
-        """
-        Parses the argument part of the uri and makes a hash representation of it
-
-        - query_dict : query_dict from uri
-
-        returns a hash of the query dict
-        """
-        return dict((key, query_dict[key]) for key in query_dict)
+            config.where.append(key + " " + neg + operat + " " + value)
+        return fields, nott, operator
 
 
+def intstr(arg):
+    """Escapes a value for use in an SQL query"""
+    return nav.db.escape(arg)
 
 
-    def intstr(self, arg):
-        return nav.db.escape(arg)
-
-
-class ReportConfig:
+class ReportConfig(object):
 
     def __init__(self):
         self.description = ""
@@ -410,7 +392,7 @@ class ReportConfig:
         self.limit = ""
         self.name = {}
         self.offset = ""
-        self.orderBy = []
+        self.order_by = []
         self.sql = None
         self.sql_select = []
         self.sum = []
@@ -419,11 +401,15 @@ class ReportConfig:
         self.where = []
 
     def __repr__(self):
-        return "ReportConfig(sql({0}) sql_select({1}) where({2}) orderBy({3}))".format(self.sql, self.sql_select, self.where, self.orderBy)
+        template = ("ReportConfig(sql({0}) sql_select({1}) where({2}) "
+                    "order_by({3}))")
+        return template.format(self.sql, self.sql_select, self.where,
+                               self.order_by)
 
-    def makeSQL(self):
-        # Group bys are not configured nor supported through the web interface - therefore dropped.
-        sql = "SELECT * FROM (" + self.sql + ") AS foo " + self.wherestring() + self.orderstring()
+    def make_sql(self):
+        sql = "SELECT * FROM (%s) AS foo %s%s" % (self.sql,
+                                                  self.wherestring(),
+                                                  self.orderstring())
         return sql
 
     def wherestring(self):
@@ -431,19 +417,15 @@ class ReportConfig:
         if where:
             alias_remover = re.compile(r"(.+)\s+AS\s+\S+", re.I)
             where = [alias_remover.sub(r"\g<1>", word) for word in where]
-            return " WHERE " + string.join(where," AND ")
+            return " WHERE " + " AND ".join(where)
         else:
             return ""
 
     def orderstring(self):
-        sort = self.orderBy
-        if sort:
-            for s in sort:
-                if s.startswith("-"):
-                    index = sort.index(s)
-                    s = s.replace("-","")
-                    s += " DESC"
-                    sort[index] = s
-            return " ORDER BY " + string.join(sort,",")
-        else:
-            return ""
+        def _transform(arg):
+            if arg.startswith("-"):
+                arg = "%s DESC" % arg.replace("-","")
+            return arg
+
+        sort = [_transform(s) for s in self.order_by]
+        return " ORDER BY %s" % ",".join(sort) if sort else ""

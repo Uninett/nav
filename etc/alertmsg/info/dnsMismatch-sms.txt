@@ -1,0 +1,1 @@
+DNS {{dnsname}} does not match {{snmpsysname}}

@@ -166,4 +166,5 @@ urlpatterns = patterns('',
         name='seeddb-patch-edit'),
     url(r'^patch/bulk/$', patch_bulk,
         name='seeddb-patch-bulk'),
+
 )

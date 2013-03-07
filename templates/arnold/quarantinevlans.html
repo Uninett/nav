@@ -1,0 +1,50 @@
+{% extends "arnold/base.html" %}
+
+{% block content %}
+
+    {% comment %} List all existing quarantine vlans{% endcomment %}
+    <table class="listtable">
+        <caption>Current quarantine vlans</caption>
+
+        <thead>
+        <tr>
+            <th>Vlan</th>
+            <th>Description</th>
+            <th>&nbsp;</th>
+        </tr>
+        </thead>
+
+        {% if qvlans %}
+            <tbody>
+            {% for qvlan in qvlans %}
+                <tr>
+                    <td>{{ qvlan.vlan }}</td>
+                    <td>{{ qvlan.description }}</td>
+                    <td>
+                        <a href="{% url arnold-quarantinevlans-edit qvlan.id %}">
+                            Edit
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        {% endif %}
+
+    </table>
+
+    {% comment %} Display form for creating a new quarantine vlan {% endcomment %}
+    <form action="{% url arnold-quarantinevlans %}" method="POST">
+        <table class="vertitable">
+            <tbody>
+            {{ form.as_table }}
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <input type="submit" value="{{ form.initial.qid|yesno:'Save changes, Add vlan' }}">
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
+
+{% endblock %}

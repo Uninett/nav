@@ -9,12 +9,13 @@ additional test.
 """
 from lxml.html import fromstring
 import os
-import socket
 import pytest
 import tidy
 import urllib
 import urllib2
 import urlparse
+import time
+from itertools import chain
 
 HOST_URL = os.environ.get('TARGETURL', None)
 USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
@@ -37,13 +38,13 @@ TIDY_BLACKLIST = [
 BLACKLISTED_PATHS = [
     '/cricket',
     '/index/logout',
+    '/doc',
 ]
 
 if not HOST_URL:
     pytest.skip(msg="Missing environment variable TARGETURL (ADMINUSERNAME, ADMINPASSWORD) , skipping crawler tests!")
 
-socket.setdefaulttimeout(5)
-
+TIMEOUT = 90
 HOST = urlparse.urlsplit(HOST_URL).hostname
 
 seen_paths = {}
@@ -65,13 +66,20 @@ def test_webpages():
 
 def handle_http_error(func):
     def _decorator(*args, **kwargs):
+        starttime = time.time()
+        funcinfo = "%s(%s)" % (func.__name__,
+                               ", ".join(map(repr,
+                                             chain(args, kwargs.values()))))
+        fmt = "%s - %s used %s seconds"
         try:
             return func(*args, **kwargs)
         except urllib2.HTTPError, error:
+            print fmt % ('HttpError', funcinfo, time.time() - starttime)
             print "%s :" % error.url
             print "-" * (len(error.url)+2)
             return failure, error.url, error.code, error
         except urllib2.URLError, error:
+            print fmt % ('URLError', funcinfo, time.time() - starttime)
             return urlerror, error
 
     return _decorator
@@ -91,7 +99,7 @@ def login():
     login_url = '%sindex/login/' % HOST_URL
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
     data = urllib.urlencode({'username': USERNAME, 'password': PASSWORD})
-    opener.open(login_url, data)
+    opener.open(login_url, data, TIMEOUT)
     urllib2.install_opener(opener)
     return success, login_url
 
@@ -135,7 +143,7 @@ def filter_errors(errors):
 
 @handle_http_error
 def check_response(current_url):
-    resp = urllib2.urlopen(current_url)
+    resp = urllib2.urlopen(current_url, timeout=TIMEOUT)
 
     if is_html(resp):
         html_store[current_url] = resp.read()
