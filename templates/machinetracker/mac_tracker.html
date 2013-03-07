@@ -22,16 +22,16 @@
         <tr>
             {% if forloop.first %}
             <td>
-                {% if row.netbox__sysname %}
-                <a href="{% url machinetracker-swp_search row.netbox__sysname None None form_data.days %}" title="Search for other machines on this switch">
-                {{ row.netbox__sysname }}</a>
+                {% if row.netbox.sysname %}
+                <a href="{% url machinetracker-swp_search row.netbox.sysname None None form_data.days %}" title="Search for other machines on this switch">
+                {{ row.netbox.sysname }}</a>
                 {% else %}
                 {{ row.sysname }}
                 {% endif %}
             </td>
             <td>
-                {% if row.netbox__sysname %}
-                <a href="{% url ipdevinfo-details-by-name row.netbox__sysname %}" title="Browse this switch (IP Device Info)">
+                {% if row.netbox.sysname %}
+                <a href="{% url ipdevinfo-details-by-name row.netbox.sysname %}" title="Browse this switch (IP Device Info)">
                 <img src="/images/arpcam/ipinfolink.png" alt="IP Device info search" /></a>
                 {% endif %}
             </td>
@@ -45,8 +45,8 @@
                 {% endwith %}
             </td>
             <td>
-                {% if row.netbox__sysname and row.port %}
-                <a href="{% url ipdevinfo-interface-details-by-name row.netbox__sysname row.port %}" title="Browse this interface (IP Device Info)">
+                {% if row.netbox.sysname and row.port %}
+                <a href="{% url ipdevinfo-interface-details-by-name row.netbox.sysname row.port %}" title="Browse this interface (IP Device Info)">
                 <img src="/images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
                 {% endif %}
             </td>
@@ -57,6 +57,10 @@
             <td>
                 {% if row.still_active %}
                 {{ row.still_active }}
+                    {% if row.fishy.0 %}  
+                        <img src="/images/icons/exclamation-red.png" class="fishy-item" title="This record can be outdated! Last job record: {{ row.fishy.1 }}">
+                        {{ netbox_jobs.row.fishy.1 }}
+                    {% endif %}
                 {% else %}
                 {{ row.end_time|date:"Y-m-d H:i" }}
                 {% endif %}
