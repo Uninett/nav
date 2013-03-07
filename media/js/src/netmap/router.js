@@ -54,7 +54,7 @@ define([
                 view_map_info: self.view_map_info,
                 cssWidth: $('#netmap_main_view').width()
             });
-            $('#netmap_main_view #wrapper_chart').html(self.view_map.render().el);
+            $('#wrapper_chart').html(self.view_map.render().el);
         }
 
     });
