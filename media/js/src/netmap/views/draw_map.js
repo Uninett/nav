@@ -2,8 +2,6 @@ define([
     'plugins/netmap-extras',
     'netmap/resource',
     'netmap/models/graph',
-    'netmap/models/map',
-    'netmap/models/default_map',
     'netmap/views/loading_spinner',
     // Pull in the Collection module from above
     'libs-amd/text!netmap/templates/draw_map.html',
@@ -12,7 +10,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapExtras, Resources, GraphModel, MapModel, DefaultMapModel, LoadingSpinnerView, netmapTemplate) {
+], function (NetmapExtras, Resources, GraphModel, LoadingSpinnerView, netmapTemplate) {
 
     var drawNetmapView = Backbone.View.extend({
         tagName: "div",
