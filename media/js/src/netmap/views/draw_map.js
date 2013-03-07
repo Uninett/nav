@@ -21,74 +21,112 @@ define([
 
         broker: Backbone.EventBroker,
         interests: {
-            'map:resize:animate': 'resizeAnimate',
-            'map:redraw': 'requestRedraw',
-            'map:search': 'search',
-            'map:centerGraph': 'centerGraph',
-            'map:freezeNodes': 'freezeNodes',
-            'netmap:selectVlan': 'showVlan',
-            'map:ui:mouseover:nodes': 'toggleUIMouseoverNodes',
-            'map:ui:mouseover:links': 'toggleUIMouseoverLinks',
-            'map:loading:context_selected_map': 'clear',
-            'map:node:fixed': 'updateNodeFixedStatus',
-            'map:fixNodes': 'updateAllNodePositions',
-            'netmap:request:graph': 'broadcastGraph',
-            'netmap:changeMapProperties': 'setMapProperties',
-            'netmap:changeTopology': 'setMapPropertyLayer',
-            'netmap:changeCategoriesFilters': 'setMapPropertyCategories',
-            'netmap:changeOrphansFilters': 'setMapPropertyOrphanFilter',
-            'netmap:changePositionFilter': 'setMapPropertyPositionFilter',
+            'netmap:changeTopology': 'setMapPropertyTopology',
+            'netmap:changePosition': 'setMapPropertyPositionFilter',
             'netmap:changeDisplayTopologyErrors': 'setMapPropertyDisplayTopologyErrors',
+            'netmap:ui:mouseover': 'setUIMouseOver',
+            'netmap:selectVlan': 'setUIVLANSelection',
+            'netmap:stopLayoutForceAlgorithm': 'stopLayoutForce',
+            'netmap:node:setFixed': 'setGraphNodeFixedStatus',
+            'netmap:nodes:setFixed': 'setGraphNodesCollectionFixedStatus',
+            'netmap:search': 'search',
+            'netmap:centerGraph': 'centerGraph',
+            'netmap:resize:animate': 'resizeAnimate',
+            'netmap:changeActiveMapProperty': 'setMapProperty',
+            'netmap:request:graph': 'broadcastGraphCopy',
             'headerFooterMinimize:trigger': 'resize'
         },
         initialize: function () {
-            this.broker.register(this);
+            // Settings
+            this.imagesPrefix = "/images/netmap/";
 
-            this.$el.append(netmapTemplate);
-            this.showLoadingSpinner(true);
+            // Initial states
+            this.isGraphLoadingForFirstTime = true;
+            this.trans = [0,0];
+            this.scale = 1;
+            this.zoom = d3.behavior.zoom();
+
             this.selected_node = null;
             this.selected_vlan = null;
             this.ui = {
-                'topologyErrors': false,
                 'mouseover': {
                     'nodes': false,
                     'links': false
                 }
             };
 
+
+            this.svg = null;
+            this.$el.append(netmapTemplate);
+            this.showLoadingSpinner(true);
+
             if (!this.options.mapProperties) {
                 this.options.mapProperties = Resources.getMapProperties();
             }
-            this.sidebar = this.options.view_map_info;
 
             this.w = this.options.cssWidth;
             this.resize({width: this.w});
-            this.force = d3.layout.force()
-                .gravity(0.5)
-                .distance(2000)
-                .charge(-100)
-                .size([this.w, this.h]);
 
-            this.trans = [0,0];
-            this.scale = 1;
-            this.zoom = d3.behavior.zoom();
+            this.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([this.w, this.h]);
+            this.nodes = this.force.nodes();
+            this.links = this.force.links();
+
             // swap .on with .bind for jQuery<1.7
             $(window).on("resize.app", _.bind(this.resize, this));
-
-            //this.model = this.options.context_selected_map.graph;
-            //context_selected_map.graph = new GraphModel({id: context_selected_map.id, topology: context_selected_map.map.attributes.topology});
-            var self = this;
 
             this.model = new GraphModel({
               id: this.options.mapProperties.get('viewid', this.options.viewid),
               topology: this.options.mapProperties.get('topology', 2)
             });
-            self.loadGraph();
-            self.refreshTimer = setInterval(function () { self.loadGraph(true); }, 5*1000);
+
+            this.initializeDOM();
+
+            this.loadTopologyGraph();
+
+            this.broker.register(this);
+            this.bindMapProperties();
+        },
+        initializeDOM: function () {
+            var self = this;
+            // fixes standard structure in svg.
+            // <svg>
+            //   <rect (background)
+            //   <g>
+            //     <g id=boundingbox
+            //        <g class=links
+            //        <g class=nodes
+            // ...
+            var vis = this.vis = d3.select(this.el)
+                .append("svg:svg")
+                .attr('id', 'svg-netmap')
+                .attr("width", this.w).attr("height", this.h)
+                .attr("pointer-events", "all")
+                .attr("overflow", "hidden");
+            vis.append('svg:rect')
+                .attr('width', this.w)
+                .attr('height', this.h)
+                .attr('fill', 'white')
+                .call(this.zoom.on("zoom", function () { self.zoomRescale.call(self);}));
+            var root = vis.append("svg:g");
+            var bounding_box = this.bounding_box = root
+                .append('svg:g')
+                .attr('id', 'boundingbox');
+
+
+            // Grouping elements
+            this.linkErrorsGroupRoot = bounding_box.append("g").attr("class", "linksmeta");
+            var selectedNodeGroupRoot = this.selectedNodeGroupRoot = bounding_box.append("g").attr("class", "selected_nodes");
+            var selectedLinkGroupRoot = this.selectedLinkGroupRoot = bounding_box.append("g").attr("class", "selected_links");
+            this.linkGroupRoot = bounding_box.append("g").attr("class", "links");
+            this.nodeGroupRoot = bounding_box.append("g").attr("class", "nodes");
+
+            // Zero initalizes, so it doesn't crash on tick(). etc.
+            this.nodesInVLAN = selectedNodeGroupRoot.selectAll("g circle").data([]);
+            this.linksInVLAN = selectedLinkGroupRoot.selectAll("g line").data([]);
 
         },
-        broadcastGraph: function () {
-            this.broker.trigger("netmap:graph", this.model);
+        broadcastGraphCopy: function () {
+            this.broker.trigger("netmap:graph", new GraphModel({ 'nodes': this.nodes, 'links': this.links }));
         },
         showLoadingSpinner: function (bool) {
             if (bool) {
@@ -96,7 +134,6 @@ define([
 
                 this.spinnerView = new LoadingSpinnerView();
                 this.$el.prepend(this.spinnerView.render().el);
-                //debugger;
             } else {
                 if (this.spinnerView) {
                     this.spinnerView.close();
@@ -104,131 +141,332 @@ define([
                 }
             }
         },
-        loadGraph: function (isRefreshingTopologyAndTrafficdata) {
+        loadTopologyGraph: function (shouldRezoomAndTranslate) {
             var self = this;
-
-            self.isRefreshingTopologyAndTrafficdata = isRefreshingTopologyAndTrafficdata;
-            if (isRefreshingTopologyAndTrafficdata) {
-                self.oldModel = $.extend(true, {}, self.model);
-            }
+            this.broker.trigger("netmap:graph:isDoneLoading", false);
 
             this.model.fetch({
-               success: function (model, attributes) {
-                   self.model = model;
-                   if (self.isRefreshingTopologyAndTrafficdata) {
-                       for (var i = 0; i < self.oldModel.get('nodes').length; i++) {
-                           var o = self.oldModel.get('nodes')[i];
-                           var isFound = false;
-
-                           for (var j = 0; j < self.model.get('nodes').length; j++) {
-                               var m = self.model.get('nodes')[j];
-
-                               isFound = (m.data.sysname === o.data.sysname);
-                               if (isFound && o.isDirty) {
-                                   self.model.attributes.nodes[j] = o;
-                               } else if (isFound && _.isEqual(m.data, o.data)) {
-                                   self.model.attributes.nodes[j] = o;
-                               } else if (isFound) { break; }
-                           }
-                       }
-                   }
-                   self.isRefreshingTopologyAndTrafficdata = false;
-                   self.postInitialize();
-                   self.broker.trigger("netmap:graph", model);
-               },
-               error: function () {
-                    alert("Error loading graph, please try to reload the page");
-               }
-            });
-        },
-        postInitialize: function () {
-            this.clear();
-
-            if (this.options.mapProperties && !this.options.mapProperties.isNew() && this.options.mapProperties.attributes.zoom !== undefined) {
-                var tmp = this.options.mapProperties.get('zoom').split(";");
-                this.trans = tmp[0].split(",");
-                this.scale = tmp[1];
-                this.validateTranslateScaleValues();
-                this.zoom.translate(this.trans);
-                this.zoom.scale(this.scale);
-
-                this.svg.attr("transform",
-                    "translate(" + this.trans + ") scale(" + this.scale + ")");
-
-            } else {
-                // adjust scale and translated according to how many nodes
-                // we're trying to draw
-
-                // Guess a good estimated scaling factor
-                // (can't use self.baseScale , since svg is not drawn yet)
-                //this.scale = 1 / Math.log(nodesCount);
-                this.scale = 0.5;
-
-                // translate ( -centerX*(factor-1) , -centerY*(factor-1) ) scale(factor)
-                // Example: SVG view pot 800x600, center is 400,300
-                // Reduce 30%, translate( -400*(0.7-1), -300*(0.7-1) ) scale(0.7)
-                this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
-
-                this.validateTranslateScaleValues();
-                this.zoom.scale(this.scale);
-                this.zoom.translate(this.trans);
-
-
-            }
-            this.bindMapProperties();
-            this.model.bind("destroy", this.close, this);
-
-            this.render();
-            this.broker.trigger("netmap:setMapProperties:done", this.options.mapProperties);
-            this.showLoadingSpinner(false);
-        },
-        bindMapProperties: function () {
-            this.options.mapProperties.bind("change:topology", this.render, this);
-            this.options.mapProperties.bind("change:displayOrphans", this.updateRenderCategories, this);
-        },
-        setMapProperties: function (mapPropertiesModel) {
-            this.showLoadingSpinner(true);
-            var self = this;
-            var currentViewId = (this.options.mapProperties && this.options.mapProperties.get("viewid"));
-            this.options.mapProperties = mapPropertiesModel;
-            if (currentViewId !== mapPropertiesModel.get("viewid")) {
-                this.options.mapProperties.fetch({success: function (model) {
-                    self.options.mapProperties.off("change");
-                    self.options.mapProperties = model;
-                    self.bindMapProperties();
-                    self.model = new GraphModel({id: mapPropertiesModel.get("viewid"), topology: mapPropertiesModel.get('topology')});
-                    self.loadGraph();
-                }});
-
-            } else {
-                this.clear();
-                this.render();
-                this.showLoadingSpinner(false);
-            }
-            this.bindMapProperties();
-            // tell list_maps we're done updating our mapProperties
-            // and loaded _graph_ :-)
-            this.broker.trigger("netmap:setMapProperties:done", this.options.mapProperties);
-
-        },
-        setMapPropertyLayer: function (layer) {
-            var self = this;
-            self.showLoadingSpinner(true);
-            this.model.set({topology: layer});
-            this.model.fetch({
-                success: function (model, attributes) {
+                success: function (model) {
                     self.model = model;
-                    self.modelJson = self.model.toJSON();
-                    self.modelJSONRemap();
-                    self.clear();
-                    self.render();
-                    self.showLoadingSpinner(false);
+                    var newModel = model.toJSON();
+
+                    if (self.isGraphLoadingForFirstTime) {
+                        _.each(newModel.nodes, function(d, i) {
+                            self.addNode(d.data.sysname, d);
+                        });
+                        _.each(newModel.links, function (d) {
+                            self.addLink(d.source, d.target, d.data);
+                        });
+
+                        self.zoomRescaleFromActiveProperty(self.options.mapProperties.get('zoom'));
+                        self.isGraphLoadingForFirstTime = false;
+                    } else {
+                        self.updateTopologyGraph(newModel);
+                    }
+
+                    if (shouldRezoomAndTranslate) {
+                        self.zoomRescaleFromActiveProperty(self.options.mapProperties.get('zoom'));
+                    }
+                    self.update(); // calls rest of the updateRender functions which updates the SVG.
+                    self.broadcastGraphCopy();
+                    self.broker.trigger("netmap:graph:isDoneLoading", true);
+                },
+                error: function () {
+                    alert("Error loading graph, please try to reload the page");
+                    self.broker.trigger("netmap:graph:isDoneLoading", true);
                 }
             });
         },
-        setMapPropertyCategories: function (categoriesCollection) {
-            this.options.mapProperties.set({categories: categoriesCollection});
-            this.updateRenderCategories();
+
+        sysnameFromLinkObjectOrGraphModelFetch: function (source, target) {
+            var sourceSysname = (_.isObject(source) ? source.data.sysname : source);
+            var targetSysname = (_.isObject(target) ? target.data.sysname : target);
+            return sourceSysname+"-"+targetSysname;
+        },
+        updateTopologyGraph: function (newTopologyGraphJSON) {
+            var self = this;
+
+            // nodes in this.nodes not present in newTopologyGraphJSON.nodes
+            var toRemove = this.difference(this.nodes, newTopologyGraphJSON.nodes, function (a, b) {
+                return a.data.sysname === b.data.sysname;
+            });
+
+            // nodes present in newTopologyGraphJSON.nodes and not in this.nodes
+            var toAdd = this.difference(newTopologyGraphJSON.nodes, this.nodes, function (a, b) {
+                return a.data.sysname === b.data.sysname;
+            });
+
+
+            // delete existing nodes not in new model json
+            for (var i = 0; i < toRemove.length; i++) {
+                var nodeToRemove = toRemove[i];
+                this.removeNode(nodeToRemove.data.sysname);
+            }
+
+            for (var j = 0; j < toAdd.length; j++) {
+                var nodeToAdd = toAdd[j];
+                this.addNode(nodeToAdd.data.sysname, nodeToAdd);
+            }
+
+
+            // LINKS handling starts here
+            // newTopologyGraphJSOn.links (source and target) is not objects
+            // when comming from a GraphModel (model) fetch operation.
+
+
+
+            // links to remove that are not present in newTopologyGraphJSON.links, but in this.links
+            // (even if removeNode clears links from it, it might be that node is available in this.nodes
+            // but should have it links removed...)
+            var linksToRemove = this.difference(this.links, newTopologyGraphJSON.links, function (a, b) {
+                return self.sysnameFromLinkObjectOrGraphModelFetch(b) === a.source.data.sysname+"-"+a.target.data.sysname;
+            });
+
+            for (var k = 0; k < linksToRemove.length; k++) {
+                var kx = linksToRemove[k];
+                this.removeLink(kx.source.data.sysname, kx.target.data.sysname);
+            }
+
+            // new links present in newTopologyGraphJSON.links add to this.links
+            var linksToAdd = this.difference(newTopologyGraphJSON.links, this.links, function (a, b) {
+                return self.sysnameFromLinkObjectOrGraphModelFetch(a) === b.source.data.sysname+"-"+b.target.data.sysname;
+            });
+
+            for (var m = 0; m < linksToAdd.length; m++) {
+                var mx = linksToAdd[m];
+                this.addLink(mx.source, mx.target, mx.data);
+            }
+
+
+            // Done adding new nodes and links, and removed non-existing nodes and links not in NewModel.
+
+            // Pull over data form nodes and links from graph
+            // and update this.nodes and this.links with it.
+            // kinda a duplicate job but hey ho.
+            for (var x = 0; x < newTopologyGraphJSON.nodes.length; x++) {
+                var xx = newTopologyGraphJSON.nodes[x];
+                this.updateNode(this.findNode(xx.data.sysname), xx.data);
+            }
+
+            for (var n = 0; n < newTopologyGraphJSON.links.length; n++) {
+                var nx = newTopologyGraphJSON.links[n];
+                this.updateLink(nx);
+            }
+            // all updates done, now hopefully self.update() is called! ;-)
+        },
+        // Private graph functions that works on this.nodes and this.links
+        // (this.force algorithm uses this.nodes and this.links)
+        addNode: function (id, data) {
+            data.id = id;
+            this.nodes.push(data);
+            //update()
+        },
+        updateNode: function (node, data) {
+            // node must be a node from this.nodes
+            node.data = data;
+            if (!!node.data.position && !node.isDirty) {
+                node.x = node.data.position.x;
+                node.y = node.data.position.y;
+                node.fixed = true;
+            }
+        },
+        removeNode: function (id) {
+            var i = 0;
+            var n = this.findNode(id);
+            while (i < this.links.length) {
+                if ((this.links[i].source === n) || (this.links[i].target) === n) {
+                    this.links.splice(i,1); // remove from links if found.
+                } else {
+                    i++;
+                }
+            }
+            this.nodes.splice(this.findNodeIndex(n.id), 1);
+            //update()
+        },
+        removeLink: function (a, b) {
+            var linkIndex = this.findLinkIndex(a, b);
+            if (linkIndex) {
+                this.links.splice(linkIndex,1);
+            }
+            /// reassign indexes in this.nodes?
+        },
+        addLink: function (source, target, data) {
+            function copyMeta(forceNode, newNode) {
+                if (newNode.x) {
+                    forceNode.x = newNode.x;
+                }
+                if (newNode.y) {
+                    forceNode.y = newNode.y;
+                }
+                forceNode.data = newNode.data;
+            }
+
+            function getNode(x) {
+                var xNode = null;
+                if (_.isObject(x)) {
+                    xNode = this.findNode(x.id);
+                    if (!xNode) {
+                        xNode = x;
+                    } else {
+                        copyMeta(xNode, x);
+                    }
+                } else {
+                    xNode = this.findNode(x);
+                }
+                return xNode;
+            }
+
+            var sourceNode = getNode.call(this, source);
+            var targetNode = getNode.call(this, target);
+
+            this.links.push({
+                "source": sourceNode,
+                "target": targetNode,
+                "data": data, "value": 1});
+
+            //update()
+        },
+        findNode: function (id) {
+            for (var i in this.nodes) {
+                if (this.nodes[i].id === id) {
+                    return this.nodes[i];
+                }
+            }
+            return null;
+        },
+        findNodeIndex: function (sysname) {
+          for (var i in this.nodes) {
+              if (this.nodes[i].id === sysname) {
+                  return i;
+              }
+          }
+            return null;
+        },
+        findLink: function (sourceId, targetId) {
+
+            var linkIndex = this.findLinkIndex(sourceId, targetId);
+            if (linkIndex) {
+                return this.links[linkIndex];
+            }
+            return null;
+        },
+        findLinkIndex: function (sourceId, targetId) {
+
+            for (var i in this.links) {
+                if ((this.links[i].source.id === sourceId) && (this.links[i].target.id === targetId)) {
+                    return i;
+                }
+            }
+            return null;
+        },
+        updateLink: function (update) {
+            //sourceSysname-targetSysname
+
+            var linkObject = this.findLink(
+                (_.isObject(update.source) ? update.source.data.sysname : update.source),
+                (_.isObject(update.target) ? update.target.data.sysname : update.target)
+            );
+            linkObject.data = update.data;
+        },
+
+        // Set operations with equality functions
+        // todo: probably move into it's own module.
+        difference: function (a, b, equality) {
+            // Things that are in A and not in B
+            // if A = {1, 2, 3, 4} and B = {2, 4, 6, 8}, then A - B = {1, 3}.
+            var diff = [];
+
+            /*
+             ax = element in a (delta)
+             bx = element in b (delta)
+             x = list of elements
+             b = list of elements
+             */
+
+
+            for (var i = 0; i < a.length; i++) {
+                var ax = a[i];
+
+                var isFound = false;
+                for (var j = 0; j < b.length; j++) {
+                    var bx = b[j];
+                    isFound = equality(ax, bx);
+                    if (isFound) {
+                        // No need to traverse rest of b, if element ax is found in b
+                        break;
+                    }
+                }
+                if (!isFound) {
+                    // push element from a if not found in list b
+                    diff.push(ax);
+                }
+            }
+
+            return diff;
+        },
+        intersection: function (a, b, equality) {
+            // Things that are in A and in B
+            // if A= {1, 2, 3, 4} and B = {2, 4, 5},
+            // then A ∩ B = {2, 4}
+            var intersection = [];
+
+            /*
+             ax = element in a
+             bx = element in b
+             a = list of elements
+             b = list of elements
+             */
+
+
+            var lookupHelper = {};
+
+            for (var i = 0; i < a.length; i++) {
+                var ax = a[i];
+
+                for (var j = 0; j < b.length; j++) {
+                    var bx = b[j];
+                    if (!!!lookupHelper[ax] && !!!lookupHelper[bx]) {
+                        // neither element ax or element bx is in lookuphelper
+                        // consider if bx should be added to intersection
+                        if (equality(ax, bx)) {
+                            // lookup helpers, hopefully makes us fast skip
+                            // some elements from equality checking
+                            lookupHelper[ax] = 1;
+                            lookupHelper[bx] = 1;
+                            // bx is is in a , storing it in intersection
+                            intersection.push(bx);
+                        }
+                    }
+
+
+                }
+            }
+            return intersection;
+        },
+        bindMapProperties: function () {
+            var self = this;
+            this.options.mapProperties.bind("change:displayOrphans", this.update, this);
+            this.options.mapProperties.get("categories").each(function(category){
+                category.bind("change", self.update, self);
+            });
+            this.options.mapProperties.bind("change:displayOrphans", this.update, this);
+            this.options.mapProperties.bind("change:displayTopologyErrors", this.updateRenderTopologyErrors, this);
+            this.options.mapProperties.get("position").each(function (position) {
+                position.bind("change", self.updateRenderGroupByPosition, self);
+            });
+        },
+        unbindMapProperties: function () {
+            this.options.mapProperties.unbind("change");
+            this.options.mapProperties.get("categories").each(function(category){
+                category.unbind("change");
+            });
+            this.options.mapProperties.get("position").each(function (position) {
+                position.unbind("change");
+            });
+        },
+        setMapPropertyTopology: function (layer) {
+            this.model.set({topology: layer});
+            this.loadTopologyGraph();
         },
         setMapPropertyPositionFilter: function (positionCollection) {
             this.options.mapProperties.set({'position': positionCollection});
@@ -238,19 +476,682 @@ define([
             this.options.mapProperties.set({'displayTopologyErrors': bool});
             this.updateRenderTopologyErrors();
         },
-        resizeAnimate: function (margin) {
+        setGraphNodeFixedStatus: function (data) {
+            // data should contain a hashmap with 'sysname' and 'fixed'
+
+            for (var i = 0; i < this.nodes.length; i++) {
+                var node = this.nodes[i];
+                if (node.data.sysname === data.sysname) {
+                    node.fixed = data.fixed;
+                    break;
+                }
+            }
+            if (!data.fixed) {
+                this.force.resume();
+            }
+        },
+        setGraphNodesCollectionFixedStatus: function (boolValue) {
+            _.each(this.nodes, function (node) {
+                node.fixed = boolValue;
+            });
+
+            this.broker.trigger("netmap:nodes:setFixedDone");
+
+            // re-heat force layout only when fixed positions for
+            // all nodes get unset.
+            if (!boolValue) {
+                this.force.resume();
+            }
+        },
+        setUIMouseOver: function (mouseOverModel) {
+            this.ui.mouseover[mouseOverModel.get('name')] = mouseOverModel.get('is_selected');
+        },
+        setUIVLANSelection: function (navVlanID) {
+            this.selected_vlan = navVlanID;
+            this.updateRenderVLAN(navVlanID);
+        },
+        isSelectedVlanInList: function (vlansList) {
+            var self = this;
+            return _.some(vlansList, function (vlan) {
+                return self.selected_vlan.navVlanId === vlan.nav_vlan;
+            });
+        },
+        setMapProperty: function (newActiveMapPropertyModel) {
+            this.unbindMapProperties();
+            this.options.mapProperties = newActiveMapPropertyModel;
+            this.bindMapProperties();
+
+            if (this.model.get('viewid') !== this.options.mapProperties.get('viewid')) {
+                this.model = new GraphModel({
+                    id: this.options.mapProperties.get('viewid', this.options.viewid),
+                    topology: this.options.mapProperties.get('topology', 2)
+                });
+                this.loadTopologyGraph(true);
+            }
+
+        },
+        nodeDragStart: function (node) {
+            this.isDragMoveTriggered = false;
+        },
+        nodeDragMove: function (node) {
+            this.isDragMoveTriggered = true;
+            node.px += d3.event.dx;
+            node.py += d3.event.dy;
+            node.x += d3.event.dx;
+            node.y += d3.event.dy;
+
+            this.force.stop();
+            node.fixed = true;
+            this.tick();
+        },
+        nodeDragEnd: function (node) {
+            this.tick();
+            if (this.isDragMoveTriggered) {
+                node.isDirty = true;
+                this.force.resume();
+                this.nodeOnClick(node);
+            }
+        },
+        nodeOnClick: function (node) {
+            this.selected_node = node;
+            if (this.options.mapProperties.get('position').has_targets()) {
+              this.updateRenderGroupByPosition();
+            }
+
+            this.unselectVLANSelectionOnConditionsAndRender(node.data.vlans);
+
+            this.broker.trigger("netmap:selectNetbox", {
+             'selectedVlan': this.selected_vlan,
+             'netbox': node
+             });
+        },
+        linkOnClick: function (link) {
+            this.unselectVLANSelectionOnConditionsAndRender(link.data.uplink.vlans);
+
+            this.broker.trigger("netmap:selectLink", {
+                'selectedVlan': this.selected_vlan,
+                'link': link
+            });
+        },
+        unselectVLANSelectionOnConditionsAndRender: function (vlansList) {
+            // Unselect vlan selection if new node/link doesn't contain selected_vlan
+            if (this.selected_vlan && !this.isSelectedVlanInList(vlansList)) {
+                this.selected_vlan = null;
+                this.updateRenderVLAN(this.selected_vlan);
+            }
+        },
+        search: function (query) {
+            this.searchQuery = {
+                query: query,
+                zoomTarget: null
+            };
+            // find related box
+            for (var i = 0; i < this.nodes.length; i++) {
+                var node = this.nodes[i];
+                if (node.data.sysname.search(query) !== -1) {
+                    this.searchQuery.zoomTarget = node;
+                    break;
+                }
+            }
+            if (this.searchQuery.zoomTarget) {
+                this.trans = [ (-(this.searchQuery.zoomTarget.x * this.scale) + (this.w / 2)), (-(this.searchQuery.zoomTarget.y * this.scale) + (this.h / 2))];
+                this.zoom.translate(this.trans);
+                this.bounding_box.attr("transform",
+                    "translate(" + this.trans + ") scale(" + this.scale + ")");
+            }
+        },
+        updateRenderVLAN: function (vlan) {
+            var self = this;
+            self.selected_vlan = vlan;
+
+            var markVlanNodes = self.nodes.filter(function (d) {
+
+                if (d.data.vlans !== undefined && d.data.vlans && self.selected_vlan) {
+                    for (var i = 0; i < d.data.vlans.length; i++) {
+                        var vlan = d.data.vlans[i];
+                        if (vlan.nav_vlan === self.selected_vlan.navVlanId) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            });
+
+            var markVlanLinks = self.links.filter(function (d) {
+                if (d.data.uplink.vlans !== undefined && d.data.uplink.vlans && self.selected_vlan) {
+                    for (var i = 0; i < d.data.uplink.vlans.length; i++) {
+                        var vlan = d.data.uplink.vlans[i];
+                        if (vlan.nav_vlan === self.selected_vlan.navVlanId) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            });
+
+            var nodesInVLAN = self.nodesInVLAN = self.selectedNodeGroupRoot.selectAll("g circle").data(markVlanNodes, function (d) {
+                return d.data.sysname;
+            });
+
+            var linksInVlan = self.linksInVLAN = self.selectedLinkGroupRoot.selectAll("g line").data(markVlanLinks, function (d) {
+                return d.source.id + "-" + d.target.id;
+            });
+
+
+
+            nodesInVLAN.enter()
+                .append("svg:circle")
+                .attr("class", "grouped_by_vlan")
+                .attr("cx", function (d) {
+                    return d.px;
+                })
+                .attr("cy", function (d) {
+                    return d.py;
+                })
+                .attr("r", 38);
+            linksInVlan.enter()
+                .append("svg:line")
+                .attr("class", "grouped_by_vlan")
+                .attr("x1", function (d) { return d.source.x;})
+                .attr("y1", function (d) { return d.source.y;})
+                .attr("x2", function (d) { return d.target.x;})
+                .attr("y2", function (d) { return d.target.y;});
+            nodesInVLAN.exit().remove();
+            linksInVlan.exit().remove();
+
+        },
+        baseScale:      function () {
+            var boundingBox = document.getElementById('boundingbox').getBoundingClientRect();
+
+            var baseWidth = (boundingBox.width+40) / this.scale;
+            var baseHeight = (boundingBox.height+40) / this.scale;
+
+            var baseScaleWidth = this.w / baseWidth;
+            var baseScaleHeight = this.h / baseHeight;
+
+            var requiredScale = 1;
+            if (baseScaleWidth < baseScaleHeight) {
+                requiredScale = baseScaleWidth;
+            } else {
+                requiredScale = baseScaleHeight;
+            }
+            return requiredScale;
+        },
+        centerGraph: function () {
+            var requiredScale = this.baseScale();
+            this.scale = requiredScale;
+            this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
+            this.zoom.scale(requiredScale);
+            this.zoom.translate(this.trans);
+            this.bounding_box.attr("transform",
+                "translate(" + this.trans + ") scale(" + this.scale + ")");
+
+        },
+        validateTranslateScaleValues: function () {
+            if (isNaN(this.scale)) {
+                this.scale = 0.5;
+            }
+            if (this.trans.length !== 2 || isNaN(this.trans[0]) || isNaN(this.trans[1])) {
+                //console.log("[Netmap][WARNING] Received invalid translate values, centering graph: {0}".format(self.trans));
+                this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
+            }
+        },
+        updateRenderGroupByPosition: function () {
+            var self = this;
+            var groupBy = [];
+
+            if (!!self.selected_node) {
+                if (self.options.mapProperties.get('position').get('room').get('is_selected')) {
+                    groupBy = self.nodes.filter(function (d) {
+                        return d.data.roomid === self.selected_node.data.roomid;
+                    });
+                } else if (self.options.mapProperties.get('position').get('location').get('is_selected')) {
+                    groupBy = self.nodes.filter(function (d) {
+                        return d.data.locationid === self.selected_node.data.locationid;
+                    });
+                }
+            }
+            var nodePositionSelection = this.nodePositionSelection = this.selectedNodeGroupRoot.selectAll("circle.grouped_by_room").data(groupBy, function (d)  {
+                return d.data.sysname;
+            });
+
+            nodePositionSelection.enter()
+                .append("svg:circle")
+                .attr("class", "grouped_by_room")
+                .attr("r", 34);
+            nodePositionSelection
+                .attr("cx", function (d) { return d.px; })
+                .attr("cy", function (d) { return d.py; });
+            nodePositionSelection.exit().remove();
+        },
+        updateRenderTopologyErrors: function () {
+
+            var linksWithErrors = [];
+
+            if (this.options.mapProperties.get('displayTopologyErrors', false)) {
+                linksWithErrors = this.links.filter(function (d) {
+                    return d.data.tip_inspect_link;
+                });
+            }
+
+            var linkErrors = this.linkErrors = this.linkErrorsGroupRoot.selectAll("g line").data(linksWithErrors, function (d) {
+                    return d.source.id + "-" + d.target.id;
+            });
+
+            linkErrors.enter()
+                .append("svg:line")
+                .attr("class", "warning_inspect");
+            linkErrors
+                .attr("x1", function (d) {
+                    return d.source.x;
+                })
+                .attr("y1", function (d) {
+                    return d.source.y;
+                })
+                .attr("x2", function (d) {
+                    return d.target.x;
+                })
+                .attr("y2", function (d) {
+                    return d.target.y;
+                });
+            linkErrors.exit()
+                .remove();
+
+
+        },
+        updateRenderOrphanFilter: function () {
             var self = this;
 
-            var marginRight = margin.marginRight;
-            var marginLeft = margin.marginLeft;
+            if (!self.options.mapProperties.get('displayOrphans')) {
+                for (var i = 0; i < self.nodes.length; i++) {
+                    var node = self.nodes[i];
+
+                    var hasNeighbors = false;
+                    for (var j = 0; j < self.links.length; j++) {
+                        var link = self.links[j];
+                        if (link.source === node || link.target === node) {
+                            hasNeighbors = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasNeighbors) {
+                        self.nodes.splice(i, 1);
+                        i--;
+                    }
+                }
+            }
+
+        },
+        updateRenderCategories: function () {
+            var self = this;
+
+            // selected categories
+            var categories = self.options.mapProperties.get('categories').filter(function (category) {
+                return category.get('is_selected', false);
+            });
+
+            this.updateTopologyGraph(this.model.toJSON());
+            // nodes left after filtering out non-selected categories
+            var nodesToKeep = _.filter(this.nodes, function (node) {
+                return isNodeInCategorySet(node);
+            });
+
+            var linksToKeep = _.filter(this.links, function (link) {
+               return isNodeInCategorySet(link.source) && isNodeInCategorySet(link.target);
+            });
+
+
+            this.updateTopologyGraph({
+                'nodes': nodesToKeep,
+                'links': linksToKeep
+            });
+
+            function isNodeInCategorySet(node) {
+                return _.some(categories, function (category) {
+                    return category.get('name').toUpperCase() === (node.data.category + "").toUpperCase();
+                });
+            }
+        },
+
+        updateRenderLinks: function () {
+            var self = this;
+
+            var linkGroup = self.linkGroupRoot.selectAll("g.link").data(self.links, function (k) {
+                return k.source.id + "-" + k.target.id;
+            });
+
+            // Create group element for a link.
+            var group = linkGroup.enter()
+                .append("svg:g")
+                .attr("class", "link");
+
+            var gradient = updateGradient(linkGroup);
+            updateStopsInGradient(gradient);
+            updateLinkLines(group);
+
+            linkGroup.exit().transition()
+                .duration(750)
+                .style("fill-opacity", 1e-6).remove();
+
+
+
+            // link lines updated for force.tick() movement.
+            self.link = linkGroup.selectAll("line");
+            self.link
+                .on("click", function (d) {
+                    self.linkOnClick.call(self, d);
+                })
+                .on("mouseover", function (d) {
+                    if (self.ui.mouseover.links) {
+                        self.linkOnClick.call(self, d);
+                    }
+                });
+
+
+            // NOTICE: Helper Functions below only.
+
+            // Stops in the gradient to make a nice 0-100% flow on traffic load average
+            function updateGradient(linkGroup) {
+                var gradient = linkGroup.selectAll(".linkload").data(function (d) {
+                    return [d];
+                }, function (key) {
+                    return key.source.id + "-" + key.target.id;
+                });
+                gradient.enter()
+                    .append("svg:linearGradient")
+                    .attr("class", "linkload")
+                    .attr("id", function (d) {
+                        return "linkload" + d.source.id + "-" + d.target.id;
+                    })
+                    .attr('x1', '0%')
+                    .attr('y1', '0%')
+                    .attr('x2', '0%')
+                    .attr('y2', '100%');
+                gradient.exit().remove();
+                return gradient;
+            }
+
+            function updateStopsInGradient(gradient) {
+                var stops = gradient.selectAll("stop").data(function (d) {
+                    return [
+                        {percent: 0, css: d.data.traffic.inOctets_css},
+                        {percent: 50, css: d.data.traffic.inOctets_css },
+                        {percent: 51, css: d.data.traffic.outOctets_css},
+                        {percent: 100, css: d.data.traffic.outOctets_css}
+                    ];
+                });
+                stops.enter()
+                    .append("svg:stop")
+                    .attr("class", "foo")
+                    .attr("offset", function (d) {
+                        return d.percent + "%";
+                    });
+                stops.attr("style", function (d) {
+                    if (d.css) {
+                        return 'stop-color:rgb(' + d.css + '); stop-opacity:1';
+                    }
+                    else {
+                        return 'stop-color:rgb(0,0,0);stop-opacity:1';
+                    }
+                });
+                stops.exit().transition()
+                    .duration(750)
+                    .style("fill-opacity", 1e-6).remove();
+            }
+
+            // Defined link speeds
+            //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
+            function updateLinkLines(group) {
+                group
+                    .append("svg:line")
+                    .attr("class", function (d) {
+                        var speed = d.data.link_speed;
+                        var classes = "link ";
+                        if (speed <= 100) {
+                            classes = 'speed0-100';
+                        }
+                        else if (speed > 100 && speed <= 512) {
+                            classes = 'speed100-512';
+                        }
+                        else if (speed > 512 && speed <= 2048) {
+                            classes = 'speed512-2048';
+                        }
+                        else if (speed > 2048 && speed <= 4096) {
+                            classes = 'speed2048-4096';
+                        }
+                        else if (speed > 4096) {
+                            classes = 'speed4096';
+                        }
+                        else {
+                            classes = 'speedunknown';
+                        }
+                        return classes;
+                    })
+                    .attr('stroke', function (d) {
+                        return 'url(#linkload' + d.source.id + "-" + d.target.id + ')';
+
+                    })
+                    .attr("x1", function (d) {
+                        return d.source.x;
+                    })
+                    .attr("y1", function (d) {
+                        return d.source.y;
+                    })
+                    .attr("x2", function (d) {
+                        return d.target.x;
+                    })
+                    .attr("y2", function (d) {
+                        return d.target.y;
+                    });
+            }
+        },
+        updateRenderNodes: function () {
+            var self = this;
+
+            var nodeData = this.node = this.nodeGroupRoot.selectAll("g.node").data(self.nodes, function (d) {
+                return d.data.sysname;
+            });
+
+            var nodeGroup = nodeData.enter()
+                .append("svg:g")
+                .attr("class", "node");
+
+            var nodeCategoryImage = nodeGroup.selectAll("image.node").data(function (d) { return [d]; }).enter()
+                .append("svg:image")
+                .attr("class", "circle node")
+                .attr("x", "-16px")
+                .attr("y", "-16px")
+                .attr("width", "32px")
+                .attr("height", "32px");
+            nodeCategoryImage
+                .attr("xlink:href", function (d) {
+                    return self.imagesPrefix + d.data.category.toLowerCase() + ".png";
+                });
+
+            var nodeSysname = nodeGroup.selectAll("text.sysname").data(function (d) { return [d]; }).enter()
+                .append("svg:text")
+                .attr("class", "sysname")
+                .attr("dy", "1.5em")
+                .attr("class", "node")
+                .attr("text-anchor", "middle")
+                .attr("fill", "#000000")
+                .attr("background", "#c0c0c0");
+            nodeSysname.text(function (d) {
+                return d.data.sysname;
+            });
+
+            var nodeIp = nodeGroup.selectAll("text.ip").data(function (d) { return [d]; }).enter()
+                .append("svg:text")
+                .attr("class", "ip")
+                .attr("dy", "3em")
+                .attr("fill", "red");
+            nodeIp.text(function (d) {
+                return d.data.ip;
+            });
+
+
+
+            nodeData.exit().transition()
+                .duration(750)
+                .attr("y", 60)
+                .style("fill-opacity", 1e-6)
+                .remove();
+
+
+            var nodeDragAndDrop = d3.behavior.drag()
+                .on("dragstart", function (d) { self.nodeDragStart.call(self,d); })
+                .on("drag", function (d) { self.nodeDragMove.call(self,d); })
+                .on("dragend", function (d) { self.nodeDragEnd.call(self,d); });
+            nodeGroup
+                .on("click", function (node) {
+                    self.nodeOnClick.call(self, node);
+                })
+                .on("mouseover", function (d) {
+                    if (self.ui.mouseover.nodes) {
+                        self.nodeOnClick.call(self, d);
+                    }
+                })
+                .call(nodeDragAndDrop);
+        },
+        update: function () {
+            var self = this;
+
+            this.bounding_box
+                .attr("transform",
+                    "translate(" + this.trans + ") scale(" + this.scale + ")");
+
+            this.updateRenderTopologyErrors();
+            this.updateRenderCategories();
+            this.updateRenderOrphanFilter();
+            this.updateRenderVLAN();
+            this.updateRenderNodes();
+            this.updateRenderLinks();
+            this.updateRenderGroupByPosition();
+
+            // coordinate helper box
+            /*svg
+             .append('svg:rect')
+             .attr('width', self.w)
+             .attr('height', self.h)
+             .attr('fill', 'd5d5d5');*/
+
+            this.force.start();
+        },
+        zoomRescaleFromActiveProperty: function (mapPropertyZoom) {
+            var tmp = mapPropertyZoom.split(";");
+            this.trans = tmp[0].split(",");
+            this.scale = tmp[1];
+            this.validateTranslateScaleValues();
+            this.zoom.translate(this.trans);
+            this.zoom.scale(this.scale);
+            this.bounding_box
+                .attr("transform",
+                    "translate(" + this.trans + ") scale(" + this.scale + ")");
+        },
+        zoomRescale: function () {
+            this.trans = d3.event.translate;
+            this.scale = d3.event.scale;
+            this.options.mapProperties.set({
+                'zoom': this.trans + ";" + this.scale
+            }, {silent: true});
+            this.bounding_box.attr("transform",
+                "translate(" + this.trans + ") scale(" + this.scale + ")");
+        },
+        tick: function () {
+
+            this.node.attr("transform", function (d, i) {
+                return "translate(" + d.x + "," + d.y + ")";
+            });
+
+            this.link
+                .attr("x1", function (d) {
+                    return d.source.x;
+                })
+                .attr("y1", function (d) {
+                    return d.source.y;
+                })
+                .attr("x2", function (d) {
+                    return d.target.x;
+                })
+                .attr("y2", function (d) {
+                    return d.target.y;
+                }
+            );
+
+
+            this.nodePositionSelection
+                    .attr("cx", function (d) {
+                        return d.px;
+                    })
+                    .attr("cy", function (d) {
+                        return d.py;
+                    });
+
+            this.linkErrors
+                .attr("x1", function (d) {
+                    return d.source.x;
+                })
+                .attr("y1", function (d) {
+                    return d.source.y;
+                })
+                .attr("x2", function (d) {
+                    return d.target.x;
+                })
+                .attr("y2", function (d) {
+                    return d.target.y;
+                });
+
+            this.nodesInVLAN
+                .attr("cx", function (d) {
+                    return d.px;
+                })
+                .attr("cy", function (d) {
+                    return d.py;
+                });
+            this.linksInVLAN
+                .attr("x1", function (d) { return d.source.x;})
+                .attr("y1", function (d) { return d.source.y;})
+                .attr("x2", function (d) { return d.target.x;})
+                .attr("y2", function (d) { return d.target.y;});
+        },
+        stopLayoutForce: function () {
+            this.force.stop();
+        },
+        render: function () {
+            var self = this;
+
+            this.force.on('start', function () {
+                self.broker.trigger("netmap:forceRunning", true);
+            });
+
+            this.force.on('end', function () {
+                self.broker.trigger("netmap:forceRunning", false);
+            });
+            this.force.on("tick", function () {
+                self.tick.apply(self);
+            });
+
+
+            return this;
+        },
+        resizeAnimate: function (margin) {
+            // margin contains either marginLeft or marginRight in it's
+            // hashmap with a numeric px value for what to use as a margin
+            var self = this;
+
+            var animates = {};
+            if (margin.marginLeft) {
+                animates['margin-left'] = "{0}px".format(margin.marginLeft);
+            }
+            if (margin.marginRight) {
+                animates['margin-right'] = "{0}px".format(margin.marginRight);
+            }
 
             // parent is $("#netmap_main_view"), required due to 3col collapse
             // layout. This breaks container principle, but it's django
             // who renders backbone.html template.
-            this.$el.parent().parent().animate({
-                    'margin-right': "{0}px".format(marginRight),
-                    'margin-left':  "{0}px".format(marginLeft)
-                },
+            this.$el.parent().parent().animate(animates,
                 {   duration: 400,
                     step:     function () {
                         self.resize({width: self.$el.innerWidth() - 100});
@@ -262,7 +1163,9 @@ define([
             //$("#netmap_main_view").animate({'margin-left': "{0}px".format(margin)}, 400);
         },
         resize: function (options) {
+
             var padding = 93; // make sure it renders in IE by toggling fullscreen and non fullscreen
+
             if (options && options.width && !isNaN(options.width)) {
                 this.w = options.width;
             } else {
@@ -290,820 +1193,8 @@ define([
             (this.$el).find('#svg-netmap rect').attr('height', this.h);
 
         },
-        search: function (query) {
-            this.searchQuery = {
-                query: query,
-                zoomTarget: null
-            };
-            // find related box
-            for (var i = 0; i < this.modelJson.nodes.length; i++) {
-                var node = this.modelJson.nodes[i];
-                if (node.data.sysname.search(query) !== -1) {
-                    this.searchQuery.zoomTarget = node;
-                    break;
-                }
-            }
-            if (this.searchQuery.zoomTarget) {
-                this.trans = [ (-(this.searchQuery.zoomTarget.x * this.scale) + (this.w / 2)), (-(this.searchQuery.zoomTarget.y * this.scale) + (this.h / 2))];
-                this.zoom.translate(this.trans);
-                this.svg.attr("transform",
-                    "translate(" + this.trans + ") scale(" + this.scale + ")");
-            }
-        },
-        showVlan: function (vlan) {
-            var self = this;
-            self.selected_vlan = vlan;
-
-            if (!self.selected_vlan) {
-                self.nodesInVlan.exit().remove();
-                self.linksInVlan.exit().remove();
-            }
-
-            var markVlanNodes = self.modelJson.nodes.filter(function (d) {
-
-                if (d.data.vlans !== undefined && d.data.vlans && self.selected_vlan) {
-                    for (var i = 0; i < d.data.vlans.length; i++) {
-                        var vlan = d.data.vlans[i];
-                        if (vlan.nav_vlan === self.selected_vlan.navVlanId) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            });
-
-            var markVlanLinks = self.modelJson.links.filter(function (d) {
-                if (d.data.uplink.vlans !== undefined && d.data.uplink.vlans && self.selected_vlan) {
-                    for (var i = 0; i < d.data.uplink.vlans.length; i++) {
-                        var vlan = d.data.uplink.vlans[i];
-                        if (vlan.nav_vlan === self.selected_vlan.navVlanId) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            });
-
-            self.nodesInVlan = self.selectedNodeGroup.selectAll("g circle").data(markVlanNodes, function (d) {
-                return d.data.sysname;
-            });
-
-            self.linksInVlan = self.selectedLinkGroup.selectAll("g line").data(markVlanLinks, function (d) {
-                return d.source.id + "-" + d.target.id;
-            });
-
-
-
-            self.nodesInVlan.enter()
-                .append("svg:circle")
-                .attr("class", "grouped_by_vlan")
-                .attr("cx", function (d) {
-                    return d.px;
-                })
-                .attr("cy", function (d) {
-                    return d.py;
-                })
-                .attr("r", 38);
-            self.linksInVlan.enter()
-                .append("svg:line")
-                .attr("class", "grouped_by_vlan")
-                .attr("x1", function (d) { return d.source.x;})
-                .attr("y1", function (d) { return d.source.y;})
-                .attr("x2", function (d) { return d.target.x;})
-                .attr("y2", function (d) { return d.target.y;});
-            self.nodesInVlan.exit().remove();
-            self.linksInVlan.exit().remove();
-
-        },
-        baseScale:      function () {
-            var boundingBox = document.getElementById('boundingbox').getBoundingClientRect();
-
-            var baseWidth = (boundingBox.width+40) / this.scale;
-            var baseHeight = (boundingBox.height+40) / this.scale;
-
-            var baseScaleWidth = this.w / baseWidth;
-            var baseScaleHeight = this.h / baseHeight;
-
-            var requiredScale = 1;
-            if (baseScaleWidth < baseScaleHeight) {
-                requiredScale = baseScaleWidth;
-            } else {
-                requiredScale = baseScaleHeight;
-            }
-            return requiredScale;
-        },
-        centerGraph: function () {
-            var requiredScale = this.baseScale();
-            this.scale = requiredScale;
-            this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
-            this.zoom.scale(requiredScale);
-            this.zoom.translate(this.trans);
-            this.svg.attr("transform",
-                "translate(" + this.trans + ") scale(" + this.scale + ")");
-
-        },
-        freezeNodes: function (isFreezing) {
-            if (isFreezing) {
-                this.force.stop();
-            } else {
-                this.force.resume();
-            }
-        },
-        toggleUIMouseoverNodes: function (boolean) {
-            this.ui.mouseover.nodes = boolean;
-        },
-        toggleUIMouseoverLinks: function (boolean) {
-            this.ui.mouseover.links = boolean;
-        },
-        clear: function () {
-            this.force.stop();
-            (this.$el).find('#svg-netmap').remove();
-            var self = this;
-
-            this.root_chart = d3.select(this.el)
-                .append("svg:svg")
-                .attr('id', 'svg-netmap')
-                .attr("width", self.w).attr("height", self.h)
-                .attr("pointer-events", "all")
-                .attr("overflow", "hidden");
-            this.root_chart
-                .append('svg:rect')
-                .attr('width', self.w)
-                .attr('height', self.h)
-                .attr('fill', 'white')
-                .call(self.zoom.on("zoom", redraw));
-            this.svg = this.root_chart.append('svg:g')
-                .append('svg:g')
-                .attr('id', 'boundingbox')
-            ;
-            this.linkGroupMeta = this.svg.append("svg:g").attr("class", "linksmeta");
-            this.selectedNodeGroup = this.svg.append("svg:g").attr("class", "selected_nodes");
-            this.selectedLinkGroup = this.svg.append("svg:g").attr("class", "selected_links");
-            this.linkGroup = this.svg.append("svg:g").attr("class", "links");
-            this.nodeGroup = this.svg.append("svg:g").attr("class", "nodes");
-
-            function redraw() {
-                self.trans = d3.event.translate;
-                self.scale = d3.event.scale;
-                self.options.mapProperties.set({
-                    'zoom': self.trans + ";" + self.scale
-                }, {silent: true});
-                self.svg.attr("transform",
-                    "translate(" + self.trans + ") scale(" + self.scale + ")");
-            }
-        },
-        updateNodeFixedStatus: function (data) {
-            for (var i = 0; i < this.modelJson.nodes.length; i++) {
-                var node = this.modelJson.nodes[i];
-                if (node.data.sysname === data.sysname) {
-                    node.fixed = data.fixed;
-                    break;
-                }
-            }
-            if (!data.fixed) {
-                this.force.resume();
-            }
-        },
-        updateAllNodePositions: function (boolean) {
-            for (var i = 0; i < this.modelJson.nodes.length; i++) {
-                var node = this.modelJson.nodes[i];
-                node.fixed = boolean;
-            }
-            this.sidebar.render();
-            if (!boolean) {
-                this.force.resume();
-            }
-        },
-        requestRedraw: function (options) {
-            this.clear();
-            this.render();
-        },
-        validateTranslateScaleValues: function () {
-            if (isNaN(this.scale)) {
-                this.scale = this.baseScale();
-            }
-            if (this.trans.length !== 2 || isNaN(this.trans[0]) || isNaN(this.trans[1])) {
-                //console.log("[Netmap][WARNING] Received invalid translate values, centering graph: {0}".format(self.trans));
-                this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
-            }
-        },
-        modelJSONRemap: function () {
-            var self = this;
-            // map links to node objects in modelJson!
-            // (identifiers in links are node sysnames!)
-            for (var i = 0; i < self.modelJson.links.length; i++) {
-                var link = self.modelJson.links[i];
-                for (var j = 0; j < self.modelJson.nodes.length; j++) {
-                    var node = self.modelJson.nodes[j];
-                    if (node.data.sysname === link.target) {
-                        link.target = node;
-                    }
-                    if (node.data.sysname === link.source) {
-                        link.source = node;
-                    }
-                }
-            }
-            self.linkedByIndex = {};
-            self.modelJson.links.forEach(function (d) {
-                self.linkedByIndex[d.source.data.sysname + "," + d.target.data.sysname] = 1;
-            });
-        },
-        updateRenderCategories: function () {
-            function filterNodes(json, selected_categories) {
-                var result = [];
-                for (var i = 0; i < json.nodes.length; i++) {
-                    var node = json.nodes[i];
-                    if (node !== null) {
-                        if (node.data.position) {
-                            node.x = node.data.position.x;
-                            node.y = node.data.position.y;
-                            node.fixed = true;
-                        }
-                        var selected_category = selected_categories.get(node.data.category.toUpperCase());
-                        if (selected_category && selected_category.get('is_selected')) {
-                            result.push(node);
-                        } else if (!node.fixed) {
-                            // reset it's coordinates if position is not fixed
-                            // and it doesn't match filter.
-
-                            /*node.x = 0;
-                             node.y = 0;*/
-
-                        }
-                    }
-                }
-                return result;
-            }
-
-            function categoryLinksFilter(data, filter_nodes, selected_categories) {
-                var json = data;
-
-                var filter_links = [];
-                var filter_nodes_indexes = filter_nodes;
-
-                function filterLinks() {
-                    var result = [];
-
-                    function isMatchingCriteria() {
-                        var sourceMatch = false;
-                        var targetMatch = false;
-                        var source, target;
-                        source = link.source;
-                        target = link.target;
-
-                        _.each(selected_categories.models, function (model) {
-                            if (source.data.category.toUpperCase() === model.get('name').toUpperCase() &&
-                                model.get('is_selected')) {
-                                sourceMatch = true;
-                            }
-                            if (target.data.category.toUpperCase() === model.get('name').toUpperCase() &&
-                                model.get('is_selected')) {
-                                targetMatch = true;
-                            }
-                        });
-                        return sourceMatch && targetMatch;
-
-                    }
-
-                    for (var x = 0; x < filter_nodes_indexes.length; x++) {
-                        var node = filter_nodes_indexes[x];
-                        for (var i = 0; i < json.links.length; i++) {
-                            var link = json.links[i];
-                            var source, target;
-                            source = link.source;
-                            target = link.target;
-
-                            if (target === node) {
-                                if (isMatchingCriteria(link)) {
-                                    result.push(link);
-                                }
-                            }
-                        }
-
-                    }
-                    return result;
-                }
-
-                filter_links = filterLinks();
-
-                return filter_links;
-            }
-
-
-            var self = this;
-            self.modelJson = this.model.toJSON();
-            self.force.nodes(self.modelJson.nodes).links(self.modelJson.links);
-            // Category filter, finds nodes to keep, filters em out and
-            // remaps links
-            var keepNodes = filterNodes(self.modelJson, self.options.mapProperties.get('categories'));
-            self.modelJson.nodes = self.intersectionObjects(
-                self.modelJson.nodes,
-                keepNodes,
-                function (a, b) {
-                    return a.data.sysname === b.data.sysname;
-                });
-            self.modelJson.links = categoryLinksFilter(self.modelJson, keepNodes, self.options.mapProperties.get('categories'));
-            self.updateRenderOrphanFilter();
-            self.modelJSONRemap();
-            self.force.start();
-            self.draw(self.modelJson);
-
-        },
-        updateRenderGroupByPosition: function () {
-            var self = this;
-            var groupBy = null;
-
-            if (self.options.mapProperties.get('position').get('room').get('is_selected')) {
-                groupBy = self.modelJson.nodes.filter(function (d) {
-                    if (!self.selected_node) { return false; }
-                    return d.data.roomid === self.selected_node.data.roomid;
-                });
-            } else if (self.options.mapProperties.get('position').get('location').get('is_selected')) {
-                groupBy = self.modelJson.nodes.filter(function (d) {
-                    if (!self.selected_node) { return false; }
-                    return d.data.locationid === self.selected_node.data.locationid;
-                });
-            } else {
-                groupBy = [];
-            }
-
-            self.nodesInRoom = self.svg.selectAll("g circle").data(groupBy, function (d) {
-                return d.data.sysname;
-            });
-
-            self.nodesInRoom.enter()
-                .append("svg:circle")
-                .attr("class", "grouped_by_room")
-                .attr("cx", function (d) {
-                    return d.px;
-                })
-                .attr("cy", function (d) {
-                    return d.py;
-                })
-                .attr("r", 34);
-            self.nodesInRoom.exit().remove();
-        },
-        updateRenderTopologyErrors: function () {
-            var self = this;
-            if (self.linkErrors !== undefined && !self.options.mapProperties.displayTopologyErrors) {
-                self.linkErrors.exit().remove();
-            } else if (self.options.mapProperties.displayTopologyErrors) {
-
-                var linksWithErrors = self.modelJson.links.filter(function (d) {
-                    return d.data.tip_inspect_link;
-                });
-
-                self.linkErrors = self.linkGroupMeta.selectAll("g line").data(linksWithErrors, function (d) {
-                    return d.source.id + "-" + d.target.id;
-                });
-
-                self.linkErrors.enter().append("svg:line").attr("class", "warning_inspect");
-                self.linkErrors.exit().remove();
-            }
-        },
-        // http://stackoverflow.com/a/8683287/653233
-        // intersectionObjects() for the intersection of objects
-        // using your equality function of choice
-        intersectionObjects: function () {
-            function intersectionObjects2 (a, b, areEqualFunction)  {
-                var Result = [];
-
-                for(var i = 0; i < a.length; i++) {
-                    var aElement = a[i];
-                    var existsInB = _.any(b, function(bElement) { return areEqualFunction(bElement, aElement); });
-                    if(existsInB) {
-                        Result.push(aElement);
-                    }
-                }
-
-                return Result;
-            }
-            var Results = arguments[0];
-            var LastArgument = arguments[arguments.length - 1];
-            var ArrayCount = arguments.length;
-            var areEqualFunction = _.isEqual;
-
-            if(typeof LastArgument === "function") {
-                areEqualFunction = LastArgument;
-                ArrayCount--;
-            }
-
-            for(var i = 1; i < ArrayCount ; i++) {
-                var array = arguments[i];
-                Results = intersectionObjects2(Results, array, areEqualFunction);
-                if(Results.length === 0) break;
-            }
-            return Results;
-        },
-        updateRenderVLAN: function (vlans) {
-            var self = this;
-            var foundVlan = false;
-            if (vlans !== undefined && vlans) {
-                for (var i = 0; i < vlans.length; i++) {
-                    var vlan = vlans[i];
-                    if (self.selected_vlan.navVlanId === vlan.nav_vlan) {
-                        foundVlan = true;
-                        break;
-                    }
-                }
-            }
-            if (!foundVlan) {
-                self.selected_vlan = null;
-                self.showVlan(self.selected_vlan);
-            }
-
-        },
-        updateRenderOrphanFilter: function (requireCategoriesUpdate) {
-            var self = this;
-
-            if (!self.options.mapProperties.get('displayOrphans')) {
-                for (var i = 0; i < self.modelJson.nodes.length; i++) {
-                    var node = self.modelJson.nodes[i];
-
-                    var hasNeighbors = false;
-                    for (var j = 0; j < self.modelJson.links.length; j++) {
-                        var link = self.modelJson.links[j];
-                        if (link.source === node || link.target === node) {
-                            hasNeighbors = true;
-                            break;
-                        }
-                    }
-
-                    if (!hasNeighbors) {
-                        self.modelJson.nodes.splice(i, 1);
-                        i--;
-                    }
-                }
-
-            } else if (requireCategoriesUpdate) {
-                self.updateRenderCategories();
-            }
-        },
-        updateRenderLinks: function () {
-            var self = this;
-            //0-100, 100-512,512-2048,2048-4096,>4096 Mbit/s
-            self.s_link = self.linkGroup.selectAll("g line").data(self.modelJson.links, function (d) {
-                return d.source.id + "-" + d.target.id;
-            });
-
-            self.s_link.enter().append("svg:g").attr("class", "link").forEach(function (d, i) {
-                var gradient = self.s_link
-                    .append("svg:linearGradient")
-                    .attr("id", function (d, i) {
-                        return 'linkload' + i;
-                    })
-                    .attr('x1', '0%')
-                    .attr('y1', '0%')
-                    .attr('x2', '0%')
-                    .attr('y2', '100%');
-                gradient
-                    .append("svg:stop")
-                    .attr('offset', '0%')
-                    .attr('style', function (d) {
-                        if (d.data.traffic.inOctets_css) { return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'; }
-                        else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
-                    });
-                gradient
-                    .append("svg:stop")
-                    .attr('offset', '50%')
-                    .attr('style', function (d) {
-                        if (d.data.traffic.inOctets_css) { return 'stop-color:rgb(' + d.data.traffic.inOctets_css + ');stop-opacity:1'; }
-                        else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
-                    });
-                gradient
-                    .append("svg:stop")
-                    .attr('offset', '51%')
-                    .attr('style', function (d) {
-                        if (d.data.traffic.outOctets_css) { return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'; }
-                        else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
-
-                    });
-                gradient
-                    .append("svg:stop")
-                    .attr('offset', '100%')
-                    .attr('style', function (d) {
-                        if (d.data.traffic.outOctets_css) { return 'stop-color:rgb(' + d.data.traffic.outOctets_css + ');stop-opacity:1'; }
-                        else { return 'stop-color:rgb(0,0,0);stop-opacity:1'; }
-                    });
-                self.s_link.append("svg:line")
-                    .attr("class", function (d, i) {
-                        var speed = d.data.link_speed;
-                        var classes = "";
-                        if (speed <= 100) {
-                            classes = 'speed0-100';
-                        }
-                        else if (speed > 100 && speed <= 512) {
-                            classes = 'speed100-512';
-                        }
-                        else if (speed > 512 && speed <= 2048) {
-                            classes = 'speed512-2048';
-                        }
-                        else if (speed > 2048 && speed <= 4096) {
-                            classes = 'speed2048-4096';
-                        }
-                        else if (speed > 4096) {
-                            classes = 'speed4096';
-                        }
-                        else {
-                            classes = 'speedunknown';
-                        }
-                        return classes;
-
-                    })
-                    .attr('stroke', function (d, i) {
-                        return 'url(#linkload' + i + ')';
-                    })
-                    .on("click", function(d) {
-                        if (self.selected_vlan) {
-                            self.updateRenderVLAN(d.data.uplink.vlans);
-                        }
-                        self.broker.trigger("netmap:selectedLink",  {'link': d, 'selectedVlan': self.selected_vlan});
-                    })
-                    .on("mouseover", function (d) {
-                        if (self.ui.mouseover.links) {
-                            if (self.selected_vlan) {
-                                self.updateRenderVLAN(d.data.uplink.vlans);
-                            }
-                            self.broker.trigger("netmap:selectedLink",  {'link': d, 'selectedVlan': self.selected_vlan});
-                        }
-                    });
-            });
-            self.s_link.exit().remove();
-        },
-        updateRenderNodes: function () {
-            var self = this;
-            self.node_s = self.nodeGroup.selectAll("g.node").data(self.modelJson.nodes, function (d) {
-                return d.data.sysname;
-            });
-            var nodeGroup = self.node_s.enter()
-                .append("svg:g")
-                .attr("class", "node");
-            nodeGroup.append("svg:image")
-                .attr("class", "circle node")
-                .attr("xlink:href", function (d) {
-                    return "/images/netmap/" + d.data.category.toLowerCase() + ".png";
-                })
-                .attr("x", "-16px")
-                .attr("y", "-16px")
-                .attr("width", "32px")
-                .attr("height", "32px");
-            nodeGroup.
-                append("svg:text")
-                    .attr("dy", "1.5em")
-                    .attr("class", "node")
-                    .attr("text-anchor", "middle")
-                    .attr("fill", "#000000")
-                    .attr("background", "#c0c0c0")
-                    .text(function (d) {
-                        return d.name;
-                    });
-
-            self.node_s.exit().remove();
-        },
-        draw: function (data) {
-            var self = this;
-            var json = data;
-
-            self.svg.attr("transform",
-                "translate(" + self.trans + ") scale(" + self.scale + ")");
-
-
-            self.force.nodes(json.nodes).links(json.links).on("tick", tick);
-
-            self.force.on('start', function () {
-                self.broker.trigger("map:forceChangedStatus", true);
-            });
-
-            self.force.on('end', function () {
-                self.broker.trigger("map:forceChangedStatus", false);
-            });
-
-            self.updateRenderTopologyErrors();
-
-            self.updateRenderLinks();
-
-            var link = self.linkGroup.selectAll("g.link line");
-
-            self.updateRenderNodes();
-
-            var node_drag =
-                d3.behavior.drag()
-                    .on("dragstart", dragstart)
-                    .on("drag", dragmove)
-                    .on("dragend", dragend);
-
-
-            var node = self.svg.selectAll("g.node");
-
-            node
-                .on("click", node_onClick)
-                .call(node_drag)
-                // doubleclick? http://jsfiddle.net/wfG6k/
-                .on("mouseover", function (d) {
-                    if (self.ui.mouseover.nodes) {
-                        return node_onClick(d);
-                    }
-
-                });
-
-            if (self.selected_node!==null) {
-                self.updateRenderGroupByPosition();
-            }
-
-            function tick() {
-                node.attr("transform", function (d) {
-                    return "translate(" + d.x + "," + d.y + ")";
-                });
-
-                if (self.nodesInRoom !== undefined) {
-                    self.nodesInRoom
-                        .attr("cx", function (d) { return d.px;})
-                        .attr("cy", function (d) { return d.py;});
-                }
-
-                if (self.selected_vlan) {
-                    self.nodesInVlan
-                        .attr("cx", function (d) { return d.px;})
-                        .attr("cy", function (d) { return d.py;});
-                    self.linksInVlan
-                        .attr("x1", function (d) { return d.source.x;})
-                        .attr("y1", function (d) { return d.source.y;})
-                        .attr("x2", function (d) { return d.target.x;})
-                        .attr("y2", function (d) { return d.target.y;});
-                }
-
-                if (self.linkErrors && self.options.mapProperties.get('displayTopologyErrors', false)) {
-                    self.linkErrors
-                        .attr("x1", function (d) { return d.source.x; })
-                        .attr("y1", function (d) { return d.source.y; })
-                        .attr("x2", function (d) { return d.target.x; })
-                        .attr("y2", function (d) { return d.target.y; });
-                }
-
-                link
-                    .attr("x1", function (d) {
-                        return d.source.x;
-                    })
-                    .attr("y1", function (d) {
-                        return d.source.y;
-                    })
-                    .attr("x2", function (d) {
-                        return d.target.x;
-                    })
-                    .attr("y2", function (d) {
-                        return d.target.y;
-                    }
-                );
-
-
-
-            }
-
-            var isDragMovedTriggered;
-            function dragstart(d, i) {
-                isDragMovedTriggered = false;
-            }
-
-            function dragmove(d, i) {
-                isDragMovedTriggered = true;
-                d.px += d3.event.dx;
-                d.py += d3.event.dy;
-                d.x += d3.event.dx;
-                d.y += d3.event.dy;
-
-                self.force.stop();
-                d.fixed = true;
-
-                tick();
-            }
-
-            function dragend(d, i) {
-                tick();
-
-                if (isDragMovedTriggered) {
-                    d.isDirty = true;
-
-                    self.force.resume();
-                    // uncomment if you don't want node to be auto selected when it is dragged.
-                    //if (self.selected_node && d.data.sysname === self.selected_node.data.sysname) {
-                    node_onClick(d);
-                    //}
-                    self.oldModel = $.extend(true, {}, self.model);
-                }
-            }
-
-            function node_mouseOver(d) {
-                highlightNodeNeighbors(d, 0.1);
-            }
-
-            function node_mouseOut(d) {
-                highlightNodeNeighbors(d, 1);
-            }
-
-            function isConnected(a, b) {
-                return self.linkedByIndex[a.data.sysname + "," + b.data.sysname] || self.linkedByIndex[b.data.sysname + "," + a.data.sysname] || a.data.sysname == b.data.sysname;
-            }
-
-            function highlightNodeNeighbors(d, opacity) {
-                node.style("stroke-opacity", function (o) {
-                    var thisOpacity = isConnected(d, o) ? 1 : opacity;
-                    this.setAttribute('fill-opacity', thisOpacity);
-                    this.setAttribute('opacity', thisOpacity);
-
-                    var circle = (this.firstElementChild || this.children[0] || {});
-
-                    var text = (this.childNodes[1] || {});
-
-                    var v = circle.textContent;
-                    if (d.name == v) {
-                        circle.setAttribute("style", "fill: red");
-                        text.setAttribute("style", "fill: red");
-                    } else {
-                        circle.setAttribute('style', "fill: " + fill(d.group));
-                        text.setAttribute('style', "fill: #000");
-                    }
-
-
-                    return thisOpacity;
-                });
-
-
-                link.style("stroke-opacity", function (o) {
-                    return o.source === d || o.target === d ? 1 : opacity;
-                });
-
-            }
-
-            function node_onClick(node) {
-                //var netbox_info = new NetboxInfoView({node: node});
-                self.selected_node = node;
-
-                if (self.options.mapProperties.get('position').has_targets()) {
-                    self.updateRenderGroupByPosition();
-                }
-
-                self.broker.trigger("netmap:selectNetbox", {
-                    'selectedVlan': self.selected_vlan,
-                    'netbox': node
-                });
-                if (self.selected_vlan) {
-                    self.updateRenderVLAN(node.data.vlans);
-                }
-
-            }
-
-
-            self.node_s.exit().remove();
-            self.s_link.exit().remove();
-            // coordinate helper box
-            /*svg
-             .append('svg:rect')
-             .attr('width', self.w)
-             .attr('height', self.h)
-             .attr('fill', 'd5d5d5');*/
-
-            //console.log("[Netmap][Debug] Nodes: {0}".format(json.nodes.length));
-            //console.log("[Netmap][Debug] Edges: {0}".format(json.links.length));
-            /*svg.style("opacity", 1e-6)
-             .transition()
-             .duration(10000)
-             .style("opacity", 1);*/
-
-        },
-        render: function () {
-            var svg, self;
-            self = this;
-
-            //root_chart.attr("opacity", 0.1);
-
-            svg = self.svg;
-
-            //json = {}
-
-
-            if (self.force !== undefined) {
-                self.force.stop();
-            }
-            if (self.options.mapProperties) {
-
-            if (this.model && this.model.get('links')) {
-                self.modelJson = this.model.toJSON();
-                self.modelJSONRemap();
-
-                self.updateRenderCategories();
-
-                self.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([self.w, self.h]);
-                self.draw(self.modelJson);
-                self.force.start();
-                self.broker.trigger("map:loading:done");
-            }
-            }
-
-            return this;
-        },
         close:function () {
             this.force.stop();
-            context_selected_map = undefined;
             this.broker.unregister(this);
             $(window).off("resize.app");
             this.$el.unbind();
@@ -1112,8 +1203,3 @@ define([
     });
     return drawNetmapView;
 });
-
-
-
-
-
