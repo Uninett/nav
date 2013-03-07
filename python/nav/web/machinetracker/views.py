@@ -32,7 +32,8 @@ from nav.web.machinetracker import forms, iprange
 from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict
 from nav.web.machinetracker.utils import process_ip_row, track_mac, get_prefix_info
 from nav.web.machinetracker.utils import (min_max_mac, ProcessInput,
-                                          normalize_ip_to_string)
+                                          normalize_ip_to_string, 
+                                          get_last_job_log_from_netboxes,)
 
 NAVBAR = [('Home', '/'), ('Machinetracker', None)]
 IP_TITLE = 'NAV - Machinetracker - IP Search'
@@ -94,10 +95,14 @@ def ip_do_search(request):
             params=[unicode(from_ip), unicode(to_ip)]
         ).order_by('ip', 'mac', '-start_time')
        
-        # Flag records with jobs overdue as fishy
+        # Get last ip2mac jobs on netboxes
+        netboxes = get_last_job_log_from_netboxes(result, 'ip2mac')
+        
+        # Flag rows overdue as fishy
         for row in result:
-            job_log = row.netbox.job_log.order_by('-end_time')[0]
-            row.fishy = (job_log.is_overdue(), unicode(job_log))
+            if row.netbox in netboxes:
+                job_log = netboxes[row.netbox]
+                row.fishy = (job_log.is_overdue(), unicode(job_log))
 
         ip_result = ip_dict(result)
 
@@ -200,19 +205,29 @@ def mac_do_search(request):
         ).extra(
             where=['mac BETWEEN %s and %s'],
             params=[mac_min, mac_max]
-        ).order_by('mac', 'sysname', 'module', 'port', '-start_time').values(
-            'sysname', 'module', 'port', 'start_time', 'end_time', 'mac',
-            'netbox__sysname'
-        )
-
-        arp_result = Arp.objects.filter(
+        ).order_by('mac', 'sysname', 'module', 'port', '-start_time')
+        
+        arp_result = Arp.objects.select_related('netbox').filter(
             end_time__gt=from_time,
             mac__range=(mac_min, mac_max)
         ).extra(
             select={'netbiosname': get_netbios_query()},
-        ).order_by('mac', 'ip', '-start_time').values(
-            'ip', 'mac', 'start_time', 'end_time', 'netbiosname'
-        )
+        ).order_by('mac', 'ip', '-start_time')
+
+        # Get last ip2mac and topo jobs on netboxes
+        netboxes_ip2mac = get_last_job_log_from_netboxes(arp_result, 'ip2mac')
+        netboxes_topo = get_last_job_log_from_netboxes(cam_result, 'topo')
+
+        # Flag rows overdue as fishy
+        for row in arp_result:
+            if row.netbox in netboxes_ip2mac:
+                job_log = netboxes_ip2mac[row.netbox]
+                row.fishy = (job_log.is_overdue(), unicode(job_log))
+
+        for row in cam_result:
+            if row.netbox in netboxes_topo:
+                job_log = netboxes_topo[row.netbox]
+                row.fishy = (job_log.is_overdue(), unicode(job_log))
 
         mac_count = len(cam_result)
         ip_count = len(arp_result)
@@ -282,15 +297,21 @@ def switch_do_search(request):
             except IndexError:
                 criteria['port'] = port_interface
 
-        cam_result = Cam.objects.filter(
+        cam_result = Cam.objects.select_related('netbox').filter(
             Q(sysname__istartswith=switch) |
             Q(netbox__sysname__istartswith=switch),
             end_time__gt=from_time,
             **criteria
-        ).order_by('sysname', 'module', 'mac', '-start_time').values(
-            'sysname', 'module', 'port', 'start_time', 'end_time', 'mac',
-            'netbox__sysname'
-        )
+        ).order_by('sysname', 'module', 'mac', '-start_time')
+
+        # Get last topo jobs on netboxes
+        netboxes_topo = get_last_job_log_from_netboxes(cam_result, 'topo')
+
+        # Flag rows overdue as fishy
+        for row in cam_result:
+            if row.netbox in netboxes_topo:
+                job_log = netboxes_topo[row.netbox]
+                row.fishy = (job_log.is_overdue(), unicode(job_log))
 
         swp_count = len(cam_result)
         swp_tracker = track_mac(('mac', 'sysname', 'module', 'port'),
