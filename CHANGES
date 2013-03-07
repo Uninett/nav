@@ -18,6 +18,14 @@ Version 3.14.0
   * The ordering of tools in the Toolbox can now be customized individually by
     each user.
 
+  * The status page and portadmin have been adapted to work well on small
+    screens/mobile devices.
+
+  * Portadmin now supports editing trunks. 
+
+  * Portadmin includes a new feature to enable trunking of predefined voice
+    VLANs on access ports, for SIP phones that support 802.1Q trunking
+
  Fixes and features:
 
   * LP#483534  (Subnet Matrix: Display description of prefix in dropdown)
@@ -29,6 +37,7 @@ Version 3.14.0
   * LP#1062317 (Support SNMP over IPv6)
   * LP#1062318 (Servicemon plugins should be reviewed for IPv6 support)
   * LP#1069770 (Want a mobile version of the status page)
+  * LP#1069771 (Want a mobile version of port admin)
   * LP#1092154 (Portadmin crash when unicode characters in ifalias)
   * LP#1092156 (Portadmin crash when it cannot find a netbox by name or ip,-
                 and interface by id)
@@ -40,8 +49,10 @@ Version 3.14.0
                 behavior)
   * LP#1135699 (arnold fails to open quarantined ports on cisco devices)
   * LP#1137799 (cricket runs eval on config that contains curly braces)
+  * LP#1143962 (Device history search for location crashes)
   * LP#1146602 (Maintengine TypeError crash)
   * LP#1146604 (arnold lacks links to relevant information)
+
 
 Version 3.13.1
 (released 21 Feb 2013)
