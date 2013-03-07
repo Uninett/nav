@@ -26,23 +26,10 @@ define([
             this.broker.register(this);
 
             this.template = Handlebars.compile(Template);
-
-            this.isLoading = !!(this.options.isLoading);
-
-        },
-        setLoading: function (state) {
-            this.isLoading = state;
-            this.render();
-        },
-        eventLoadingDone: function () {
-            this.isLoading = false;
-            this.render();
         },
         render: function () {
-            var self = this;
             var context = {
-                isVisible: this.isContentVisible,
-                isLoading: this.isLoading
+                isVisible: this.isContentVisible
             };
 
             if ($("#netmap_link_to_admin").length !== 0) {
