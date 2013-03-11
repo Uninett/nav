@@ -165,10 +165,7 @@ def save_preferences(request):
             section.categories = Category.objects.filter(
                 id__in=form.cleaned_data['categories'])
 
-        new_message(request._req,
-            'Saved preferences',
-            Messages.SUCCESS
-        )
+        new_message(request, 'Saved preferences', Messages.SUCCESS)
         return HttpResponseRedirect(reverse('status-preferences'))
     else:
         if 'id' in request.POST and request.POST.get('id'):
@@ -180,10 +177,8 @@ def save_preferences(request):
                 request.POST.get('type'))
             type = None
 
-        new_message(request._req,
-            'There were errors in the form below.',
-            Messages.ERROR,
-        )
+        new_message(request, 'There were errors in the form below.',
+                    Messages.ERROR)
         return render_to_response(
             'status/edit_preferences.html',
             {
@@ -222,10 +217,7 @@ def move_section(request):
             account=account,
         )
     except StatusPreference.DoesNotExist:
-        new_message(request._req,
-            'Could not find selected filter',
-            Messages.ERROR
-        )
+        new_message(request, 'Could not find selected filter', Messages.ERROR)
         return HttpResponseRedirect(reverse('status-preferences'))
 
     # Find the section we should swap places with.
@@ -237,10 +229,7 @@ def move_section(request):
             account=account,
         )
     except StatusPreference.DoesNotExist:
-        new_message(request._req,
-            'New position is out of bounds.',
-            Messages.ERROR
-        )
+        new_message(request, 'New position is out of bounds.', Messages.ERROR)
         return HttpResponseRedirect(reverse('status-preferences'))
 
     # Swap places
@@ -251,13 +240,9 @@ def move_section(request):
     other_section.save()
     section.save()
 
-    new_message(request._req,
-        'Moved section "%(section)s" %(direction)s' % {
-            'section': section.name,
-            'direction': direction,
-        },
-        Messages.SUCCESS
-    )
+    new_message(request,
+                'Moved section "%s" %s' % (section.name, direction),
+                Messages.SUCCESS)
     return HttpResponseRedirect(reverse('status-preferences'))
 
 def delete_section(request):
@@ -272,8 +257,5 @@ def delete_section(request):
         account=account,
     ).delete()
 
-    new_message(request._req,
-        'Deleted selected sections',
-        Messages.SUCCESS
-    )
+    new_message(request, 'Deleted selected sections', Messages.SUCCESS)
     return HttpResponseRedirect(reverse('status-preferences'))
