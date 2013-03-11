@@ -29,7 +29,9 @@ def create_rrdfile(element, when):
     rras = ['RRA:AVERAGE:0.5:1:600',
             'RRA:AVERAGE:0.5:6:600',
             'RRA:AVERAGE:0.5:24:600',
-            'RRA:AVERAGE:0.5:240:600']
+            'RRA:MAX:0.5:24:600',
+            'RRA:AVERAGE:0.5:96:600',
+            'RRA:MAX:0.5:96:600']
     datasources = ['DS:ip_count:GAUGE:3600:0:100000',
                    'DS:mac_count:GAUGE:3600:0:100000',
                    'DS:ip_range:GAUGE:3600:0:100000']
