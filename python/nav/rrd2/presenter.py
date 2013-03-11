@@ -315,9 +315,9 @@ class Graph(object):
         return "Graph(%r, %r)" % (self.args, self.opts)
 
     def add_datasource(self, datasource, draw_as='LINE1', legend=None,
-                       stack=False):
+                       stack=False, consolidation='AVERAGE'):
         """Add a datasource to display in graph"""
-        vname = self.add_def(datasource)
+        vname = self.add_def(datasource, consolidation)
         self.add_graph_element(vname, draw_as, legend, stack)
         return vname
 
@@ -329,7 +329,7 @@ class Graph(object):
         """Add an option to the graph"""
         self.opts = dict(self.opts.items() + option.items())
 
-    def add_def(self, datasource):
+    def add_def(self, datasource, consolidation='AVERAGE'):
         """Add a variable used for fetching data from a rrd-file
 
         The vname cannot be an integer as it may be used in a CDEF. Thus
@@ -343,7 +343,7 @@ class Graph(object):
         defs = ['DEF',
                 "%s=%s" % (vname, datasource.rrd_file.get_file_path()),
                 datasource.name,
-                "AVERAGE"]
+                consolidation]
         self.args.append(":".join(defs))
         return vname
 
