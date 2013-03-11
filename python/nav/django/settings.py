@@ -73,8 +73,12 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 # Middleware
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'nav.django.auth.AuthMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 
 # Message storage for the messages framework
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'

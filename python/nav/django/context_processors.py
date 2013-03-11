@@ -49,9 +49,9 @@ def account_processor(request):
     """
     account = get_account(request)
     admin = is_admin(account)
-    messages = Messages(request._req)
+    messages = Messages(request)
     messages = messages.get_and_delete()
-    sudo = sudoer(request._req)
+    sudo = sudoer(request)
 
     navbar = []
     qlink1 = []

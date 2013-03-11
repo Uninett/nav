@@ -50,13 +50,11 @@ class Messages(list):
     session = None
 
     def __init__(self, request=None):
-        self.session = _get_request(request).session
+        self.session = request.session
 
     def __new__(cls, request=None):
         # We try to fetch a Messages object from this users session.
         # If it doesn't exist we make a new one.
-        request = _get_request(request)
-        setupSession(request)
         messages = request.session.get('messages', None)
 
         if not messages or not isinstance(messages, Messages):
@@ -79,18 +77,3 @@ class Messages(list):
         self.session['messages'] = []
         self.session.save()
         return messages
-
-def _get_request(request):
-    """Returns the mod_python request object from request.
-
-    If request is a Django request, the underlyding mod_python request object
-    is extracted and returned. Otherwise, request itself will be returned.
-
-    """
-    try:
-        # yes, we know this is dirty, but this is they way it has to be until
-        # we ditch mod_python completely
-        # pylint: disable=W0212
-        return request._req
-    except AttributeError:
-        return request

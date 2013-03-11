@@ -55,7 +55,7 @@ def index(request):
     # Read files that will be displayed on front page
     external_links = quick_read(EXTERNAL_LINKS_PATH)
     contact_information = quick_read(CONTACT_INFORMATION_PATH)
-    if request._req.session['user']['id'] == Account.DEFAULT_ACCOUNT:
+    if request.session['user']['id'] == Account.DEFAULT_ACCOUNT:
         welcome = quick_read(WELCOME_ANONYMOUS_PATH)
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
