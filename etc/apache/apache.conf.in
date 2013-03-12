@@ -20,3 +20,7 @@ AliasMatch ^/((images|js|style)/.*) @webrootdir@/$1
 Include @sysconfdir@/apache/subsystems/*.conf
 
 WSGIScriptAlias / @pythonlibdir@/nav/wsgi.py
+<Directory "@pythonlibdir@/nav">
+    Order allow,deny
+    Allow from all
+</Directory>
