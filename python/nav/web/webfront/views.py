@@ -26,7 +26,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
 
 from nav.config import read_flat_config
-from nav.django.auth import ACCOUNT_ID_VAR
+from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
 from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
@@ -142,7 +142,7 @@ def do_login(request):
 
 def logout(request):
     if request.method == 'POST' and 'submit_desudo' in request.POST:
-        auth.desudo(request)
+        desudo(request)
         return HttpResponseRedirect(reverse('webfront-index'))
     else:
         del request.session[ACCOUNT_ID_VAR]

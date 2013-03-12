@@ -19,12 +19,15 @@ import urllib
 from logging import getLogger
 
 from nav.models.profiles import Account
+from nav.django.utils import is_admin, get_account
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 
 _logger = getLogger(__name__)
+
 ACCOUNT_ID_VAR = 'account_id'
+SUDOER_ID_VAR = 'sudoer'
 
 
 class AuthenticationMiddleware(object):
@@ -64,3 +67,63 @@ class AuthorizationMiddleware(object):
             reverse('webfront-login'),
             urllib.quote(request.get_full_path()))
         return HttpResponseRedirect(new_url)
+
+
+#
+# sudo-related functionality
+#
+
+
+def sudo(request, other_user):
+    """Switches the current session to become other_user"""
+    if SUDOER_ID_VAR in request.session:
+        # Already logged in as another user.
+        raise SudoRecursionError()
+    if not is_admin(get_account(request)):
+        # Check if sudoer is acctually admin
+        raise SudoNotAdminError()
+    request.session[SUDOER_ID_VAR] = request.account.id
+    request.session[ACCOUNT_ID_VAR] = other_user.id
+    request.session.save()
+    request.account = other_user
+
+
+def desudo(request):
+    """Switches the current session to become the original user from before a
+    call to sudo().
+
+    """
+    if not SUDOER_ID_VAR in request.session:
+        # We are not sudoing
+        return
+
+    original_user_id = request.session[SUDOER_ID_VAR]
+    original_user = Account.objects.get(id=original_user_id)
+
+    del request.session[ACCOUNT_ID_VAR]
+    del request.session[SUDOER_ID_VAR]
+    request.session[ACCOUNT_ID_VAR] = original_user_id
+    request.session.save()
+    request.account = original_user
+
+
+def get_sudoer(request):
+    """Returns a sudoer's Account, if current session is in sudo-mode"""
+    if SUDOER_ID_VAR in request.session:
+        return Account.objects.get(id=request.session[SUDOER_ID_VAR])
+
+
+class SudoRecursionError(Exception):
+    msg = u"Already posing as another user"
+
+    def __unicode__(self):
+        return self.msg
+
+
+class SudoNotAdminError(Exception):
+    msg = u"Not admin"
+
+    def __unicode__(self):
+        return self.msg
+
+

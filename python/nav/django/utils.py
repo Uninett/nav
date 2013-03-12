@@ -17,7 +17,6 @@
 
 """Utility methods for django used in NAV"""
 
-from copy import copy
 import django
 from django.http import HttpResponseForbidden
 from django.db.models.fields import FieldDoesNotExist
@@ -48,13 +47,6 @@ def get_account(request):
         request.account = account
     return account
 
-def sudoer(req):
-    if hasattr(req, 'session') and req.session.has_key('user'):
-        user = req.session['user']
-        if user.has_key('sudoer'):
-            account = Account.objects.get(id=user['sudoer']['id'])
-            return account
-    return None
 
 def is_admin(account):
     """Check if user is a member of the administrator group"""

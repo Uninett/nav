@@ -24,7 +24,7 @@ from django.views.generic.list_detail import object_list
 from nav.models.profiles import Account, AccountGroup
 from nav.django.utils import get_account
 
-from nav.web.auth import sudo
+from nav.django.auth import sudo
 from nav.web.message import new_message, Messages
 from nav.web.useradmin.forms import *
 
