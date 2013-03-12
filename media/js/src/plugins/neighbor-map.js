@@ -27,16 +27,23 @@ define(["libs/jquery", "libs/d3.v2"], function () {
 
     NeighbourMap.prototype = {
         initialize: function () {
+            /* Create svg element and define force algorithm */
+            this.createSvg();
+            this.defineForceAlgorithm();
+        },
+        createSvg: function () {
             this.svg = d3.select(this.node).append("svg")
                 .attr("width", this.width)
                 .attr("height", this.height);
-
+        },
+        defineForceAlgorithm: function() {
             this.force = d3.layout.force()
                 .charge(-10)
                 .linkDistance(this.linkDistance)
                 .size([this.width, this.height]);
         },
         fetchData: function () {
+            /* Fetch neibourhood data for this netbox */
             this.data = {
                 "nodes": [
                     {netboxid: 35, 'sysname': 'uninett-gw', 'category': 'GSW'},
@@ -50,9 +57,10 @@ define(["libs/jquery", "libs/d3.v2"], function () {
             };
         },
         render: function () {
+            /* Create and display all objects and svg elements */
             var that = this,
-                dataNodes = this.createNodes(),
-                dataLinks = this.createLinks();
+                dataNodes = this.updateNodes(),
+                dataLinks = this.updateLinks();
 
             this.force.nodes(dataNodes).links(dataLinks).start();
             this.createSvgLinks(dataLinks);
@@ -62,23 +70,23 @@ define(["libs/jquery", "libs/d3.v2"], function () {
                 that.tick.call(that);
             });
         },
-        createNodes: function () {
+        updateNodes: function () {
+            /* Update all datanodes and a hash used when creating the links */
             var nodes = this.data.nodes;
             this.nodeHash = {};
             for (var i=0, node; node=nodes[i]; i++) {
                 if (node.netboxid == this.netboxid) {
-                    node.fixed = true;
+                    node.fixed = true;  // Fix the main node
                 }
-                node.x = 300;
-                node.y = 200;
+                node.x = this.width / 2;
+                node.y = this.height / 2;
                 this.nodeHash[node.netboxid] = node;
             }
-
             return nodes;
         },
-        createLinks: function () {
+        updateLinks: function () {
+            /* Set source and target for all links based on node hash */
             var links = this.data.links;
-
             for (var i=0, link; link=links[i]; i++) {
                 link.source = this.nodeHash[link.sourceId];
                 link.target = this.nodeHash[link.targetId];
@@ -86,6 +94,7 @@ define(["libs/jquery", "libs/d3.v2"], function () {
             return links;
         },
         createSvgLinks: function (dataLinks) {
+            /* Create all the visible links between the nodes */
             this.svgLinks = this.svg.selectAll('.link')
                 .data(dataLinks)
                 .enter()
@@ -95,6 +104,7 @@ define(["libs/jquery", "libs/d3.v2"], function () {
                 .style('stroke', '#999');
         },
         createSvgNodes: function (dataNodes) {
+            /* Create all the visible nodes */
             var svgNodes = this.svg.selectAll('.node')
                 .data(dataNodes, function (node) {
                     return node.netboxid;
@@ -109,6 +119,7 @@ define(["libs/jquery", "libs/d3.v2"], function () {
             this.svgNodes = svgNodes;
         },
         tick: function () {
+            /* Update all positions for each tick of the force algorithm */
             this.svgLinks
                 .attr('x1', function (link) { return link.source.x; })
                 .attr('y1', function (link) { return link.source.y; })
@@ -124,6 +135,7 @@ define(["libs/jquery", "libs/d3.v2"], function () {
             });
         },
         appendImagesToNodes: function (svgNodes) {
+            /* Append the correct images to the nodes */
             var that = this;
             svgNodes.append('image')
                 .attr('xlink:href', function (node) {
@@ -135,6 +147,7 @@ define(["libs/jquery", "libs/d3.v2"], function () {
                 .attr('height', 32);
         },
         appendTextToNodes: function (svgNodes) {
+            /* Append correct text to the nodes */
             svgNodes.append("text")
                 .attr("dx", 25)
                 .attr("dy", "0.3em")
