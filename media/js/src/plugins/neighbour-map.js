@@ -10,10 +10,10 @@ define(["libs/jquery", "libs/d3.v2"], function () {
 
         /* Size of svg container */
         this.width = 600;
-        this.height = 400;
+        this.height = 600;
 
         /* Node and link properties */
-        this.linkDistance = 120;
+        this.linkDistance = 200;
         this.nodeImages = {
             'GSW': '/images/netmap/gsw.png',
             'SW': '/images/netmap/sw.png',
@@ -22,7 +22,6 @@ define(["libs/jquery", "libs/d3.v2"], function () {
 
         this.initialize();
         this.fetchData();
-        this.render();
     }
 
     NeighbourMap.prototype = {
@@ -44,6 +43,15 @@ define(["libs/jquery", "libs/d3.v2"], function () {
         },
         fetchData: function () {
             /* Fetch neibourhood data for this netbox */
+            var that = this;
+            d3.json('/ajax/open/neighbourmap/' + this.netboxid, function (json) {
+                if (json) {
+                    console.log('ok');
+                    that.data = json;
+                    that.render();
+                }
+            });
+/*
             this.data = {
                 "nodes": [
                     {netboxid: 35, 'sysname': 'uninett-gw', 'category': 'GSW'},
@@ -55,6 +63,7 @@ define(["libs/jquery", "libs/d3.v2"], function () {
                     {"sourceId": 35, "targetId": 540}
                 ]
             };
+*/
         },
         render: function () {
             /* Create and display all objects and svg elements */
@@ -150,10 +159,10 @@ define(["libs/jquery", "libs/d3.v2"], function () {
         appendTextToNodes: function (svgNodes) {
             /* Append correct text to the nodes */
             svgNodes.append("text")
-                .attr("dx", 25)
-                .attr("dy", "0.3em")
+                .attr("dx", -16)
+                .attr("dy", 25)
                 .text(function (node) {
-                    return node.sysname;
+                    return node.name;
                 })
         },
         appendClickListeners: function (svgNodes) {

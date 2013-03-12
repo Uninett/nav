@@ -22,7 +22,7 @@ The view definitions does not necessarily need to be placed here.
 from django.http import HttpResponse
 from django.utils import simplejson
 
-from nav.models.manage import Room
+from nav.models.manage import Room, Netbox
 
 
 def get_rooms_with_position(request, roomid=None):
@@ -60,5 +60,36 @@ def netbox_down_in(room):
     return len(room.netbox_set.filter(up='n'))
 
 
+def get_neighbours(request, netboxid):
+    """Get neighbours for this netboxid
+
+    Used in neighbour-map
+
+    """
+
+    nodes = []
+    links = []
+
+    netbox = Netbox.objects.get(pk=netboxid)
+    netboxes = [netbox]
+    interfaces = netbox.interface_set.filter(to_netbox__isnull=False)
+    for interface in interfaces:
+        netboxes.append(interface.to_netbox)
+        links.append({"sourceId": netbox.id,
+                      "targetId": interface.to_netbox.id})
+
+    netboxes = set(netboxes)
+    for n in netboxes:
+        nodes.append({"netboxid": n.id,
+                      "name": n.get_short_sysname(),
+                      "sysname": n.sysname,
+                      "category": n.category.id})
+
+    data = {
+        "nodes": nodes,
+        "links": links
+    }
+
+    return HttpResponse(simplejson.dumps(data), mimetype="application/json")
 
 
