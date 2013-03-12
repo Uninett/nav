@@ -22,7 +22,8 @@ from nav.models.profiles import Account
 from nav.django.utils import is_admin, get_account
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.http import (HttpResponseForbidden, HttpResponseRedirect,
+                         HttpResponse)
 
 _logger = getLogger(__name__)
 
@@ -62,7 +63,14 @@ class AuthorizationMiddleware(object):
                 del os.environ['REMOTE_USER']
 
     def redirect_to_login(self, request):
-        # TODO: check for X-AJAX header
+        """Redirects a request to the NAV login page, unless it was detected
+        to be an AJAX request, in which case return a 401 Not Authorized
+        response.
+
+        """
+        if request.is_ajax():
+            return HttpResponse(status=401)
+
         new_url = '{0}?origin={1}'.format(
             reverse('webfront-login'),
             urllib.quote(request.get_full_path()))
