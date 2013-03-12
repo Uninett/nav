@@ -1,5 +1,4 @@
-require([
-    "plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
+require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbour-map", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
 ], function (TableUtil, TabNavigation, NeighbourMap) {
 
     var mainTabsSelector = '#ipdevinfotabs';
