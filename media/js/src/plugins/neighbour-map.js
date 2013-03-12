@@ -46,24 +46,10 @@ define(["libs/jquery", "libs/d3.v2"], function () {
             var that = this;
             d3.json('/ajax/open/neighbourmap/' + this.netboxid, function (json) {
                 if (json) {
-                    console.log('ok');
                     that.data = json;
                     that.render();
                 }
             });
-/*
-            this.data = {
-                "nodes": [
-                    {netboxid: 35, 'sysname': 'uninett-gw', 'category': 'GSW'},
-                    {netboxid: 560, 'sysname': 'teknobyen-5etg-sw1', 'category': 'GW'},
-                    {netboxid: 540, 'sysname': 'teknobyen-5etg-sw2', 'category': 'SW'}
-                ],
-                "links": [
-                    {"sourceId": 35, "targetId": 560},
-                    {"sourceId": 35, "targetId": 540}
-                ]
-            };
-*/
         },
         render: function () {
             /* Create and display all objects and svg elements */
@@ -108,20 +94,24 @@ define(["libs/jquery", "libs/d3.v2"], function () {
                 .data(dataLinks)
                 .enter()
                 .append('line')
-                .attr('class', '.link')
-                .style('stroke-width', 2)
-                .style('stroke', '#999');
+                .attr('class', 'link')
         },
         createSvgNodes: function (dataNodes) {
             /* Create all the visible nodes */
+            var that = this;
             var svgNodes = this.svg.selectAll('.node')
                 .data(dataNodes, function (node) {
                     return node.netboxid;
                 })
                 .enter()
                 .append('g')
-                .attr('class', '.node')
+                .attr('class', function (node) {
+                    return node.netboxid == that.netboxid ? 'node main' : 'node'
+                })
                 .call(this.force.drag);
+
+            // Prevent dragging on main node
+            d3.select('.node.main').on('mousedown.drag', null);
 
             this.appendImagesToNodes(svgNodes);
             this.appendTextToNodes(svgNodes);

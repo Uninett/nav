@@ -1,0 +1,9 @@
+
+.node image:hover {
+    cursor: pointer;
+}
+
+.link {
+    stroke-width: 2;
+    stroke: #ddd;
+}
