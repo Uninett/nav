@@ -19,6 +19,8 @@ AliasMatch ^/((images|js|style)/.*) @webrootdir@/$1
 
 Include @sysconfdir@/apache/subsystems/*.conf
 
+WSGIDaemonProcess NAV user=@nav_user@ processes=2 display-name=%{GROUP}
+WSGIProcessGroup NAV
 WSGIScriptAlias / @pythonlibdir@/nav/wsgi.py
 <Directory "@pythonlibdir@/nav">
     Order allow,deny
