@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
-# Copyright (C) 2006, 2007, 2009, 2011 UNINETT AS
+# Copyright (C) 2006, 2007, 2009, 2011, 2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,80 +14,24 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-This module encompasses modules with web functionality for NAV.
-"""
-import sys
-import traceback
-import nav
-import time
+"""This package encompasses modules with web functionality for NAV"""
 import ConfigParser
-import os.path, nav.path
-import base64
-import urllib
+import os.path
 import cgi
 import logging
-import nav.logs
 
-from nav.models.profiles import Account
 import django.db
+
+import nav
+import nav.path
+from nav.models.profiles import Account
+
 
 logger = logging.getLogger("nav.web")
 webfrontConfig = ConfigParser.ConfigParser()
 webfrontConfig.read(os.path.join(nav.path.sysconfdir, 'webfront',
                                  'webfront.conf'))
 
-def headerparserhandler(req):
-    """
-    This is a header parser handler for Apache.  It will parse all
-    requests to NAV and perform various tasks to exert a certain
-    degree of control over the NAV web site.  It makes sure the
-    session dictionary is associated with the request object, and
-    performs authentication and authorization functions for each
-    request.
-    """
-    import nav.web.auth
-    import state
-    from mod_python import apache
-
-    state.setupSession(req)
-    authenticated = 'user' in req.session
-    if authenticated:
-        # We don't consider the default user as authenticated
-        authenticated = req.session['user']['id'] != 0
-    authorized = nav.web.auth.authorize(req)
-
-    if not authorized and not authenticated:
-        nav.web.auth.redirectToLogin(req)
-    elif not authorized and authenticated:
-        raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
-    user = req.session['user']
-
-    # Make sure the user's session file has its mtime updated every
-    # once in a while, even though no new data is saved to the session
-    # (this is so the session won't expire for no apparent reason)
-    if (req.session.mtime()+30) < time.time():
-        req.session.touch()
-
-    # Make sure the main web template knows which user to produce
-    # output for.
-    from nav.web.templates.MainTemplate import MainTemplate
-    MainTemplate.user = user
-
-    # Fake a HTTP Authorization header, with username and an empty
-    # password, for third-party and non-Python apps running om this
-    # server.  This way NAV can authenticate for them
-    authHeader = 'Authorization'
-    if authHeader in req.headers_in:
-        # Delete any existing Authorization headers
-        logger.debug("Request already had an Authorization header, removing it")
-        del req.headers_in[authHeader]
-    if user['id'] > 0:
-        # Only fake the header if we're not the public user
-        basicCookie = base64.encodestring(user['login'] + ':').strip()
-        req.headers_in.add(authHeader, 'Basic ' + basicCookie)
-
-    return apache.OK
 
 def cleanuphandler(req):
     from nav import db
@@ -111,26 +55,6 @@ def cleanuphandler(req):
         req.session.save()
     return 0
 
-def redirect(req, url, temporary=False, seeOther=False):
-    """
-    Immediately redirects the request to the given url. If the
-    seeOther parameter is set, 303 See Other response is sent, if the
-    temporary parameter is set, the server issues a 307 Temporary
-    Redirect. Otherwise a 301 Moved Permanently response is issued.
-    """
-    from mod_python import apache
-
-    if seeOther:
-        status = apache.HTTP_SEE_OTHER
-    elif temporary:
-        status = apache.HTTP_TEMPORARY_REDIRECT
-    else:
-        status = apache.HTTP_MOVED_PERMANENTLY
-
-    logger.debug("Redirect to %s using status code %s", url, status)
-    req.headers_out['Location'] = url
-    req.status = status
-    raise apache.SERVER_RETURN, status
 
 def should_show(url, user):
     """Verifies whether a hyperlink should be shown to a specific user.
@@ -158,6 +82,7 @@ def should_show(url, user):
     except Account.DoesNotExist:
         return False
 
+
 def escape(s):
     """Replace special characters '&', '<' and '>' by SGML entities.
     Wraps cgi.escape, but allows False values of s to be converted to
@@ -166,80 +91,3 @@ def escape(s):
         return cgi.escape(str(s))
     else:
         return ''
-
-def loginit():
-    """Initialize a logging setup for the web interface.
-
-    All logging is directed to stderr, which should end up in Apache's
-    error log.
-    """
-    global _loginited
-    try:
-        # Make sure we don't initialize logging setup several times (in case
-        # of module reloads and such)
-        if _loginited:
-            return
-    except:
-        pass
-
-    root = logging.getLogger('')
-
-    # Attempt to mimic Apache's standard log time format
-    formatter = logging.Formatter(
-        "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s",
-        "%a %b %d %H:%M:%S %Y")
-    try:
-        handler = logging.StreamHandler(sys.stderr)
-    except IOError, e:
-        # Something went terribly wrong. Maybe stderr is closed?
-        # We silently ignore it and log nothing :-P
-        pass
-    else:
-        handler.setFormatter(formatter)
-
-        root.addHandler(handler)
-        nav.logs.set_log_levels()
-        _loginited = True
-
-def exceptionhandler(handler):
-    """Decorator for mod_python handler functions, to catch unhandled
-    exceptions and display them in a "pretty" template ;-)
-    """
-    from mod_python import apache
-    def handlerfunc(req, *args, **kwargs):
-        from nav.web.templates.ExceptionTemplate import ExceptionTemplate
-        try:
-            result = handler(req, *args, **kwargs)
-        except Exception, e:
-            tracelines = traceback.format_exception(*sys.exc_info())
-            # We don't want to see the exception handler itself in the
-            # traceback data, remove it:
-            del tracelines[1]
-
-            if req.sent_bodyct > 0:
-                # We've already sent body data to the client, so there is
-                # no use in trying to output a full HTML template now.. 
-                # Just print it as raw text enclosed in a <pre> element.
-                req.write("<pre>\nUnhandled NAV Exception occurred:\n\n")
-                req.write(escape("\n".join(tracelines)))
-                req.write("\n</pre>\n")
-            else:
-                page = ExceptionTemplate()
-                page.traceback = escape("\n".join(tracelines))
-                page.path = [("Home", "/"), ("NAV Exception", False)]
-                req.content_type = 'text/html'
-                req.status = apache.HTTP_INTERNAL_SERVER_ERROR
-                req.write(page.respond())
-            return apache.OK
-        else:
-            return result
-    return handlerfunc
-
-# Module initialization
-try:
-    from mod_python import apache
-except:
-    # Not running inside mod_python - do nothing
-    pass
-else:
-    loginit()
