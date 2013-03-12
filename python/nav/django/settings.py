@@ -16,7 +16,7 @@
 
 """Django configuration wrapper around the NAV configuration files"""
 
-from nav.config import read_flat_config
+from nav.config import read_flat_config, getconfig
 from nav.db import get_connection_parameters
 import nav.buildconf
 import nav.path
@@ -25,6 +25,12 @@ try:
     nav_config = read_flat_config('nav.conf')
 except IOError:
     nav_config = {}
+
+try:
+    webfront_config = getconfig('webfront/webfront.conf',
+                                configfolder=nav.path.sysconfdir)
+except IOError:
+    webfront_config = {}
 
 DEBUG = nav_config.get('DJANGO_DEBUG', False)
 TEMPLATE_DEBUG = DEBUG
@@ -80,6 +86,8 @@ MIDDLEWARE_CLASSES = (
 )
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+SESSION_COOKIE_AGE = int(
+    webfront_config.get('sessions', {}).get('timeout', 3600))
 
 # Message storage for the messages framework
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
