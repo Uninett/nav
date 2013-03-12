@@ -116,6 +116,7 @@ define(["libs/jquery", "libs/d3.v2"], function () {
 
             this.appendImagesToNodes(svgNodes);
             this.appendTextToNodes(svgNodes);
+            this.appendClickListeners(svgNodes);
             this.svgNodes = svgNodes;
         },
         tick: function () {
@@ -154,6 +155,11 @@ define(["libs/jquery", "libs/d3.v2"], function () {
                 .text(function (node) {
                     return node.sysname;
                 })
+        },
+        appendClickListeners: function (svgNodes) {
+            svgNodes.on('click', function (node) {
+                location.href = '/ipdevinfo/' + node.sysname;
+            })
         }
 
     };
