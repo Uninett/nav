@@ -19,4 +19,4 @@ AliasMatch ^/((images|js|style)/.*) @webrootdir@/$1
 
 Include @sysconfdir@/apache/subsystems/*.conf
 
-WSGIScriptAlias / /usr/local/nav/lib/python/nav/wsgi.py
+WSGIScriptAlias / @pythonlibdir@/nav/wsgi.py
