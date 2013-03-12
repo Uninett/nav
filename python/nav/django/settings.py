@@ -90,7 +90,7 @@ SESSION_COOKIE_AGE = int(
     webfront_config.get('sessions', {}).get('timeout', 3600))
 
 # Message storage for the messages framework
-MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Email sending
 DEFAULT_FROM_EMAIL = nav_config.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
