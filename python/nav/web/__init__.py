@@ -20,8 +20,6 @@ import os.path
 import cgi
 import logging
 
-import django.db
-
 import nav
 import nav.path
 from nav.models.profiles import Account
@@ -31,29 +29,6 @@ logger = logging.getLogger("nav.web")
 webfrontConfig = ConfigParser.ConfigParser()
 webfrontConfig.read(os.path.join(nav.path.sysconfdir, 'webfront',
                                  'webfront.conf'))
-
-
-def cleanuphandler(req):
-    from nav import db
-    # Let's make sure we commit any open transactions at the end of each
-    # request
-    conns = [v.object for v in db._connectionCache.values()]
-    for conn in conns:
-        conn.commit()
-
-    # Sometimes django ORM is invoked while inside legacy mod_python handlers,
-    # which causes dangling Django connections and transactions.  Close the
-    # Django connection here to avoid troubles.
-    django.db.connection.close()
-
-    # Also make sure the session data is fully persisted
-    try:
-        req.session.save
-    except:
-        pass
-    else:
-        req.session.save()
-    return 0
 
 
 def should_show(url, user):
