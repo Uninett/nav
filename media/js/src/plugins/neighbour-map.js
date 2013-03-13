@@ -17,7 +17,12 @@ define(["libs/d3.v2"], function () {
         this.nodeImages = {
             'GSW': '/images/netmap/gsw.png',
             'SW': '/images/netmap/sw.png',
-            'GW': '/images/netmap/gw.png'
+            'GW': '/images/netmap/gw.png',
+            'ELINK': '/images/netmap/elink.png',
+            'EDGE': '/images/netmap/edge.png',
+            'OTHER': '/images/netmap/other.png',
+            'SRV': '/images/netmap/srv.png',
+            'WLAN': '/images/netmap/wlan.png'
         };
 
         this.initialize();
