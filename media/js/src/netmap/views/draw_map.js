@@ -85,7 +85,7 @@ define([
             this.loadTopologyGraph();
 
             this.broker.register(this);
-            this.bindMapProperties();
+            this.bindActiveMapModel();
         },
         initializeDOM: function () {
             var self = this;
@@ -267,7 +267,7 @@ define([
         },
         // Private graph functions that works on this.nodes and this.links
         // (this.force algorithm uses this.nodes and this.links)
-        bindMapProperties: function () {
+        bindActiveMapModel: function () {
             var self = this;
             this.options.activeMapModel.bind("change:displayOrphans", this.update, this);
             this.options.activeMapModel.get("categories").each(function(category){
@@ -279,7 +279,7 @@ define([
                 position.bind("change", self.updateRenderGroupByPosition, self);
             });
         },
-        unbindMapProperties: function () {
+        unbindActiveMapModel: function () {
             this.options.activeMapModel.unbind("change");
             this.options.activeMapModel.get("categories").each(function(category){
                 category.unbind("change");
@@ -341,9 +341,9 @@ define([
             });
         },
         setMapProperty: function (newActiveMapPropertyModel) {
-            this.unbindMapProperties();
+            this.unbindActiveMapModel();
             this.options.activeMapModel = newActiveMapPropertyModel;
-            this.bindMapProperties();
+            this.bindActiveMapModel();
 
             if (this.model.get('viewid') !== this.options.activeMapModel.get('viewid')) {
                 this.model = new GraphModel({
