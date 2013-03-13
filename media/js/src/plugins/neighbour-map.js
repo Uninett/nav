@@ -1,8 +1,8 @@
-define(["libs/jquery", "libs/d3.v2"], function () {
+define(["libs/d3.v2"], function () {
 
     function NeighbourMap(node) {
         this.node = node;
-        this.netboxid = $(this.node).attr('data-netboxid');
+        this.netboxid = d3.select(this.node).attr('data-netboxid');
         if (!this.netboxid) {
             console.log('No netboxid found');
             return;
@@ -37,7 +37,8 @@ define(["libs/jquery", "libs/d3.v2"], function () {
         },
         defineForceAlgorithm: function() {
             this.force = d3.layout.force()
-                .charge(-10)
+                .charge(-500)
+                .friction(0.7)
                 .linkDistance(this.linkDistance)
                 .size([this.width, this.height]);
         },
