@@ -1,4 +1,5 @@
 define([
+    'netmap/resource',
     'netmap/collections/checkradio',
     'libs-amd/text!netmap/templates/checkradio.html',
     'plugins/netmap-extras',
@@ -7,7 +8,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Collection, Template, NetmapHelpers) {
+], function (Resources, Collection, Template, NetmapHelpers) {
     var LayerView = Backbone.View.extend({
 
         broker: Backbone.EventBroker,
@@ -21,12 +22,14 @@ define([
         initialize: function () {
             this.broker.register(this);
             this.template = Handlebars.compile(Template);
+
             if (!this.collection) {
                 this.collection = new Collection([
-                    {name:"Layer 2", value: 2, "is_selected":true},
+                    {name:"Layer 2", value: 2},
                     {name:"Layer 3", value: 3}
                 ]);
             }
+            this.collection.get(Resources.getActiveMapModel().get('topology', 2)).set("is_selected", true);
 
             this.collection.bind("change", this.broadcastTopologyChange, this);
 
