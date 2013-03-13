@@ -1,8 +1,8 @@
 define(["libs/d3.v2"], function () {
 
     function NeighbourMap(node) {
-        this.node = node;
-        this.netboxid = d3.select(this.node).attr('data-netboxid');
+        this.motherNode = d3.select(node);  // Use this for selecting prior to svg
+        this.netboxid = this.motherNode.attr('data-netboxid');
         if (!this.netboxid) {
             console.log('No netboxid found');
             return;
@@ -31,7 +31,7 @@ define(["libs/d3.v2"], function () {
             this.defineForceAlgorithm();
         },
         createSvg: function () {
-            this.svg = d3.select(this.node).append("svg")
+            this.svg = this.motherNode.append("svg")
                 .attr("width", this.width)
                 .attr("height", this.height);
         },
@@ -112,7 +112,7 @@ define(["libs/d3.v2"], function () {
                 .call(this.force.drag);
 
             // Prevent dragging on main node
-            d3.select('.node.main').on('mousedown.drag', null);
+            this.svg.select('.node.main').on('mousedown.drag', null);
 
             this.appendImagesToNodes(svgNodes);
             this.appendTextToNodes(svgNodes);
