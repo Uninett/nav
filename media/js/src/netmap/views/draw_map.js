@@ -55,6 +55,7 @@ define([
 
             this.svg = null;
             this.$el.append(netmapTemplate);
+            this.spinnerView = new LoadingSpinnerView({el: 'body'});
             this.showLoadingSpinner(true);
 
             if (!this.options.mapProperties) {
@@ -128,14 +129,12 @@ define([
         showLoadingSpinner: function (bool) {
             if (bool) {
                 (this.$el).find('#svg-netmap').hide();
-
-                this.spinnerView = new LoadingSpinnerView();
-                this.$el.prepend(this.spinnerView.render().el);
+                this.spinnerView.start();
             } else {
                 if (this.spinnerView) {
-                    this.spinnerView.close();
-                    $(this.svg).show();
+                    this.spinnerView.stop();
                 }
+                (this.$el).find('#svg-netmap').show();
             }
         },
         loadTopologyGraph: function (shouldRezoomAndTranslate) {
@@ -145,7 +144,9 @@ define([
             // and you want to use it's new saved zoom and translate
             // values from the new activeMapProperties to change the perspective
             var self = this;
+            this.showLoadingSpinner(true);
             this.broker.trigger("netmap:graph:isDoneLoading", false);
+
 
             this.model.fetch({
                 success: function (model) {
@@ -172,10 +173,12 @@ define([
                     self.update(); // calls rest of the updateRender functions which updates the SVG.
                     self.broadcastGraphCopy();
                     self.broker.trigger("netmap:graph:isDoneLoading", true);
+                    self.showLoadingSpinner(false);
                 },
                 error: function () {
                     alert("Error loading graph, please try to reload the page");
                     self.broker.trigger("netmap:graph:isDoneLoading", true);
+                    self.showLoadingSpinner(false);
                 }
             });
         },
