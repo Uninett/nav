@@ -1,5 +1,7 @@
 define([
     'plugins/netmap-extras',
+    'plugins/d3force',
+    'plugins/set_equality',
     'netmap/resource',
     'netmap/models/graph',
     'netmap/views/loading_spinner',
@@ -10,7 +12,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapExtras, Resources, GraphModel, LoadingSpinnerView, netmapTemplate) {
+], function (NetmapExtras, D3ForceHelper, SetEquality, Resources, GraphModel, LoadingSpinnerView, netmapTemplate) {
 
     var drawNetmapView = Backbone.View.extend({
         tagName: "div",
@@ -55,7 +57,7 @@ define([
 
             this.svg = null;
             this.$el.append(netmapTemplate);
-            this.spinnerView = new LoadingSpinnerView({el: 'body'});
+            this.spinnerView = new LoadingSpinnerView({el: '#netmap_main_view'});
             this.showLoadingSpinner(true);
 
             if (!this.options.mapProperties) {
@@ -68,6 +70,7 @@ define([
             this.force = d3.layout.force().gravity(0.1).charge(-2500).linkDistance(250).size([this.w, this.h]);
             this.nodes = this.force.nodes();
             this.links = this.force.links();
+            this.forceHelper = new D3ForceHelper(this.nodes, this.links);
 
             // swap .on with .bind for jQuery<1.7
             $(window).on("resize.app", _.bind(this.resize, this));
@@ -155,10 +158,10 @@ define([
 
                     if (self.isGraphLoadingForFirstTime) {
                         _.each(newModel.nodes, function(d, i) {
-                            self.addNode(d.data.sysname, d);
+                            self.forceHelper.addNode(d.data.sysname, d);
                         });
                         _.each(newModel.links, function (d) {
-                            self.addLink(d.source, d.target, d.data);
+                            self.forceHelper.addLink(d.source, d.target, d.data);
                         });
 
                         self.zoomRescaleFromActiveProperty(self.options.mapProperties.get('zoom'));
@@ -192,12 +195,12 @@ define([
             var self = this;
 
             // nodes in this.nodes not present in newTopologyGraphJSON.nodes
-            var toRemove = this.difference(this.nodes, newTopologyGraphJSON.nodes, function (a, b) {
+            var toRemove = SetEquality.difference(this.nodes, newTopologyGraphJSON.nodes, function (a, b) {
                 return a.data.sysname === b.data.sysname;
             });
 
             // nodes present in newTopologyGraphJSON.nodes and not in this.nodes
-            var toAdd = this.difference(newTopologyGraphJSON.nodes, this.nodes, function (a, b) {
+            var toAdd = SetEquality.difference(newTopologyGraphJSON.nodes, this.nodes, function (a, b) {
                 return a.data.sysname === b.data.sysname;
             });
 
@@ -205,12 +208,12 @@ define([
             // delete existing nodes not in new model json
             for (var i = 0; i < toRemove.length; i++) {
                 var nodeToRemove = toRemove[i];
-                this.removeNode(nodeToRemove.data.sysname);
+                this.forceHelper.removeNode(nodeToRemove.data.sysname);
             }
 
             for (var j = 0; j < toAdd.length; j++) {
                 var nodeToAdd = toAdd[j];
-                this.addNode(nodeToAdd.data.sysname, nodeToAdd);
+                this.forceHelper.addNode(nodeToAdd.data.sysname, nodeToAdd);
             }
 
 
@@ -223,23 +226,23 @@ define([
             // links to remove that are not present in newTopologyGraphJSON.links, but in this.links
             // (even if removeNode clears links from it, it might be that node is available in this.nodes
             // but should have it links removed...)
-            var linksToRemove = this.difference(this.links, newTopologyGraphJSON.links, function (a, b) {
+            var linksToRemove = SetEquality.difference(this.links, newTopologyGraphJSON.links, function (a, b) {
                 return self.sysnameFromLinkObjectOrGraphModelFetch(b) === a.source.data.sysname+"-"+a.target.data.sysname;
             });
 
             for (var k = 0; k < linksToRemove.length; k++) {
                 var kx = linksToRemove[k];
-                this.removeLink(kx.source.data.sysname, kx.target.data.sysname);
+                this.forceHelper.removeLink(kx.source.data.sysname, kx.target.data.sysname);
             }
 
             // new links present in newTopologyGraphJSON.links add to this.links
-            var linksToAdd = this.difference(newTopologyGraphJSON.links, this.links, function (a, b) {
+            var linksToAdd = SetEquality.difference(newTopologyGraphJSON.links, this.links, function (a, b) {
                 return self.sysnameFromLinkObjectOrGraphModelFetch(a) === b.source.data.sysname+"-"+b.target.data.sysname;
             });
 
             for (var m = 0; m < linksToAdd.length; m++) {
                 var mx = linksToAdd[m];
-                this.addLink(mx.source, mx.target, mx.data);
+                this.forceHelper.addLink(mx.source, mx.target, mx.data);
             }
 
 
@@ -250,204 +253,17 @@ define([
             // kinda a duplicate job but hey ho.
             for (var x = 0; x < newTopologyGraphJSON.nodes.length; x++) {
                 var xx = newTopologyGraphJSON.nodes[x];
-                this.updateNode(this.findNode(xx.data.sysname), xx.data);
+                this.forceHelper.updateNode(self.forceHelper.findNode(xx.data.sysname), xx.data);
             }
 
             for (var n = 0; n < newTopologyGraphJSON.links.length; n++) {
                 var nx = newTopologyGraphJSON.links[n];
-                this.updateLink(nx);
+                this.forceHelper.updateLink(nx);
             }
             // all updates done, now hopefully self.update() is called! ;-)
         },
         // Private graph functions that works on this.nodes and this.links
         // (this.force algorithm uses this.nodes and this.links)
-        addNode: function (id, data) {
-            data.id = id;
-            this.nodes.push(data);
-            //update()
-        },
-        updateNode: function (node, data) {
-            // node must be a node from this.nodes
-            node.data = data;
-            if (!!node.data.position && !node.isDirty) {
-                node.x = node.data.position.x;
-                node.y = node.data.position.y;
-                node.fixed = true;
-            }
-        },
-        removeNode: function (id) {
-            var i = 0;
-            var n = this.findNode(id);
-            while (i < this.links.length) {
-                if ((this.links[i].source === n) || (this.links[i].target) === n) {
-                    this.links.splice(i,1); // remove from links if found.
-                } else {
-                    i++;
-                }
-            }
-            this.nodes.splice(this.findNodeIndex(n.id), 1);
-            //update()
-        },
-        removeLink: function (a, b) {
-            var linkIndex = this.findLinkIndex(a, b);
-            if (linkIndex) {
-                this.links.splice(linkIndex,1);
-            }
-            /// reassign indexes in this.nodes?
-        },
-        addLink: function (source, target, data) {
-            function copyMeta(forceNode, newNode) {
-                if (newNode.x) {
-                    forceNode.x = newNode.x;
-                }
-                if (newNode.y) {
-                    forceNode.y = newNode.y;
-                }
-                forceNode.data = newNode.data;
-            }
-
-            function getNode(x) {
-                var xNode = null;
-                if (_.isObject(x)) {
-                    xNode = this.findNode(x.id);
-                    if (!xNode) {
-                        xNode = x;
-                    } else {
-                        copyMeta(xNode, x);
-                    }
-                } else {
-                    xNode = this.findNode(x);
-                }
-                return xNode;
-            }
-
-            var sourceNode = getNode.call(this, source);
-            var targetNode = getNode.call(this, target);
-
-            this.links.push({
-                "source": sourceNode,
-                "target": targetNode,
-                "data": data, "value": 1});
-
-            //update()
-        },
-        findNode: function (id) {
-            for (var i in this.nodes) {
-                if (this.nodes[i].id === id) {
-                    return this.nodes[i];
-                }
-            }
-            return null;
-        },
-        findNodeIndex: function (sysname) {
-          for (var i in this.nodes) {
-              if (this.nodes[i].id === sysname) {
-                  return i;
-              }
-          }
-            return null;
-        },
-        findLink: function (sourceId, targetId) {
-
-            var linkIndex = this.findLinkIndex(sourceId, targetId);
-            if (linkIndex) {
-                return this.links[linkIndex];
-            }
-            return null;
-        },
-        findLinkIndex: function (sourceId, targetId) {
-
-            for (var i in this.links) {
-                if ((this.links[i].source.id === sourceId) && (this.links[i].target.id === targetId)) {
-                    return i;
-                }
-            }
-            return null;
-        },
-        updateLink: function (update) {
-            //sourceSysname-targetSysname
-
-            var linkObject = this.findLink(
-                (_.isObject(update.source) ? update.source.data.sysname : update.source),
-                (_.isObject(update.target) ? update.target.data.sysname : update.target)
-            );
-            linkObject.data = update.data;
-        },
-
-        // Set operations with equality functions
-        // todo: probably move into it's own module.
-        difference: function (a, b, equality) {
-            // Things that are in A and not in B
-            // if A = {1, 2, 3, 4} and B = {2, 4, 6, 8}, then A - B = {1, 3}.
-            var diff = [];
-
-            /*
-             ax = element in a (delta)
-             bx = element in b (delta)
-             x = list of elements
-             b = list of elements
-             */
-
-
-            for (var i = 0; i < a.length; i++) {
-                var ax = a[i];
-
-                var isFound = false;
-                for (var j = 0; j < b.length; j++) {
-                    var bx = b[j];
-                    isFound = equality(ax, bx);
-                    if (isFound) {
-                        // No need to traverse rest of b, if element ax is found in b
-                        break;
-                    }
-                }
-                if (!isFound) {
-                    // push element from a if not found in list b
-                    diff.push(ax);
-                }
-            }
-
-            return diff;
-        },
-        intersection: function (a, b, equality) {
-            // Things that are in A and in B
-            // if A= {1, 2, 3, 4} and B = {2, 4, 5},
-            // then A ∩ B = {2, 4}
-            var intersection = [];
-
-            /*
-             ax = element in a
-             bx = element in b
-             a = list of elements
-             b = list of elements
-             */
-
-
-            var lookupHelper = {};
-
-            for (var i = 0; i < a.length; i++) {
-                var ax = a[i];
-
-                for (var j = 0; j < b.length; j++) {
-                    var bx = b[j];
-                    if (!!!lookupHelper[ax] && !!!lookupHelper[bx]) {
-                        // neither element ax or element bx is in lookuphelper
-                        // consider if bx should be added to intersection
-                        if (equality(ax, bx)) {
-                            // lookup helpers, hopefully makes us fast skip
-                            // some elements from equality checking
-                            lookupHelper[ax] = 1;
-                            lookupHelper[bx] = 1;
-                            // bx is is in a , storing it in intersection
-                            intersection.push(bx);
-                        }
-                    }
-
-
-                }
-            }
-            return intersection;
-        },
         bindMapProperties: function () {
             var self = this;
             this.options.mapProperties.bind("change:displayOrphans", this.update, this);
