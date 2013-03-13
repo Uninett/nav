@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2007-2009 UNINETT AS
+# Copyright (C) 2007-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,20 +15,35 @@
 #
 """Main Django URL configuration"""
 
-# pylint: disable=W0401
+from django.conf.urls.defaults import patterns, include, url
+from nav.web.webfront.urls import urlpatterns
 
-# Import all submodules in the urls package
-import os
-__all__ = []
-for file_name in os.listdir(os.path.dirname(__file__)):
-    if file_name.endswith('.py') and not file_name.startswith('__init__'):
-        module_name = file_name.replace('.py', '')
-        __all__.append(module_name)
-from nav.django.urls import *
+urlpatterns += patterns('',
+    (r'^status/', include('nav.web.status.urls')),
+    (r'^ajax/', include('nav.web.ajax.urls')),
+    (r'^alertprofiles/', include('nav.web.alertprofiles.urls')),
+    (r'^arnold/', include('nav.web.arnold.urls')),
+    (r'^devicehistory/', include('nav.web.devicehistory.urls')),
+    (r'^geomap/', include('nav.web.geomap.urls')),
+    (r'^info/', include('nav.web.info.urls')),
+    (r'^ipdevinfo/', include('nav.web.ipdevinfo.urls')),
+    (r'^l2trace/', include('nav.web.l2trace.urls')),
+    (r'^machinetracker/', include('nav.web.machinetracker.urls')),
+    (r'^macwatch/', include('nav.web.macwatch.urls')),
+    (r'^maintenance/', include('nav.web.maintenance.urls')),
+    (r'^messages/', include('nav.web.messages.urls')),
+    (r'^netmap/', include('nav.web.netmap.urls')),
+    (r'^networkexplorer/', include('nav.web.networkexplorer.urls')),
+    (r'^portadmin/', include('nav.web.portadmin.urls')),
+    (r'^powersupplies/', include('nav.web.powersupplies.urls')),
+    (r'^radius/', include('nav.web.radius.urls')),
+    (r'^report/', include('nav.web.report.urls')),
+    (r'^rrd/', include('nav.web.rrdviewer.urls')),
+    (r'^seeddb/', include('nav.web.seeddb.urls')),
+    (r'^stats/', include('nav.web.sortedstats.urls')),
+    (r'^syslogger/', include('nav.web.syslogger.urls')),
+    (r'^threshold/', include('nav.web.threshold.urls')),
 
-# Combine urlpatterns from all the submodules
-from django.conf.urls.defaults import *
-urlpatterns = patterns('')
-for module_name in __all__:
-    urlpatterns += eval(module_name + '.get_urlpatterns()')
-
+    (r'^useradmin/', include('nav.web.useradmin.urls')),
+    url(r'^userinfo/', 'nav.web.useradmin.views.userinfo', name='userinfo'),
+)
