@@ -101,6 +101,8 @@ define(["libs/d3.v2"], function () {
                 .enter()
                 .append('line')
                 .attr('class', 'link')
+                .style('stroke-width', 2)
+                .style('stroke', '#ddd');
         },
         createSvgNodes: function (dataNodes) {
             /* Create all the visible nodes */
@@ -150,7 +152,8 @@ define(["libs/d3.v2"], function () {
                 .attr("x", -16)
                 .attr("y", -16)
                 .attr('width', 32)
-                .attr('height', 32);
+                .attr('height', 32)
+                .style('cursor', 'pointer');
         },
         appendTextToNodes: function (svgNodes) {
             /* Append correct text to the nodes */
