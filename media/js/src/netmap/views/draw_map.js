@@ -129,8 +129,8 @@ define([
         broadcastGraphCopy: function () {
             this.broker.trigger("netmap:graph", new GraphModel({ 'nodes': this.nodes, 'links': this.links }));
         },
-        showLoadingSpinner: function (bool) {
-            if (bool) {
+        showLoadingSpinner: function (boolValue) {
+            if (boolValue) {
                 (this.$el).find('#svg-netmap').hide();
                 this.spinnerView.start();
             } else {
@@ -157,11 +157,11 @@ define([
                     var newModel = model.toJSON();
 
                     if (self.isGraphLoadingForFirstTime) {
-                        _.each(newModel.nodes, function(d, i) {
-                            self.forceHelper.addNode(d.data.sysname, d);
+                        _.each(newModel.nodes, function(nodeObject, i) {
+                            self.forceHelper.addNode(nodeObject.data.sysname, nodeObject);
                         });
-                        _.each(newModel.links, function (d) {
-                            self.forceHelper.addLink(d.source, d.target, d.data);
+                        _.each(newModel.links, function (linkObject) {
+                            self.forceHelper.addLink(linkObject.source, linkObject.target, linkObject.data);
                         });
 
                         self.zoomRescaleFromActiveProperty(self.options.mapProperties.get('zoom'));
@@ -195,13 +195,13 @@ define([
             var self = this;
 
             // nodes in this.nodes not present in newTopologyGraphJSON.nodes
-            var toRemove = SetEquality.difference(this.nodes, newTopologyGraphJSON.nodes, function (a, b) {
-                return a.data.sysname === b.data.sysname;
+            var toRemove = SetEquality.difference(this.nodes, newTopologyGraphJSON.nodes, function (aNode, bNode) {
+                return aNode.data.sysname === bNode.data.sysname;
             });
 
             // nodes present in newTopologyGraphJSON.nodes and not in this.nodes
-            var toAdd = SetEquality.difference(newTopologyGraphJSON.nodes, this.nodes, function (a, b) {
-                return a.data.sysname === b.data.sysname;
+            var toAdd = SetEquality.difference(newTopologyGraphJSON.nodes, this.nodes, function (aNode, bNode) {
+                return aNode.data.sysname === bNode.data.sysname;
             });
 
 
@@ -226,8 +226,9 @@ define([
             // links to remove that are not present in newTopologyGraphJSON.links, but in this.links
             // (even if removeNode clears links from it, it might be that node is available in this.nodes
             // but should have it links removed...)
-            var linksToRemove = SetEquality.difference(this.links, newTopologyGraphJSON.links, function (a, b) {
-                return self.sysnameFromLinkObjectOrGraphModelFetch(b) === a.source.data.sysname+"-"+a.target.data.sysname;
+            var linksToRemove = SetEquality.difference(this.links, newTopologyGraphJSON.links, function (aLink, bLink) {
+                // bLink can be either string or link object.
+                return self.sysnameFromLinkObjectOrGraphModelFetch(bLink) === self.sysnameFromLinkObjectOrGraphModelFetch(aLink);
             });
 
             for (var k = 0; k < linksToRemove.length; k++) {
@@ -236,13 +237,14 @@ define([
             }
 
             // new links present in newTopologyGraphJSON.links add to this.links
-            var linksToAdd = SetEquality.difference(newTopologyGraphJSON.links, this.links, function (a, b) {
-                return self.sysnameFromLinkObjectOrGraphModelFetch(a) === b.source.data.sysname+"-"+b.target.data.sysname;
+            var linksToAdd = SetEquality.difference(newTopologyGraphJSON.links, this.links, function (aLink, bLink) {
+                // aLink can be either string or link object
+                return self.sysnameFromLinkObjectOrGraphModelFetch(aLink) === self.sysnameFromLinkObjectOrGraphModelFetch(bLink);
             });
 
             for (var m = 0; m < linksToAdd.length; m++) {
-                var mx = linksToAdd[m];
-                this.forceHelper.addLink(mx.source, mx.target, mx.data);
+                var linkToAdd = linksToAdd[m];
+                this.forceHelper.addLink(linkToAdd.source, linkToAdd.target, linkToAdd.data);
             }
 
 
@@ -252,13 +254,14 @@ define([
             // and update this.nodes and this.links with it.
             // kinda a duplicate job but hey ho.
             for (var x = 0; x < newTopologyGraphJSON.nodes.length; x++) {
-                var xx = newTopologyGraphJSON.nodes[x];
-                this.forceHelper.updateNode(self.forceHelper.findNode(xx.data.sysname), xx.data);
+                var nodeToUpdate = newTopologyGraphJSON.nodes[x];
+                // findNode used to get the instance already in this.nodes instead of the new one coming from data refresh.
+                this.forceHelper.updateNode(self.forceHelper.findNode(nodeToUpdate.data.sysname), nodeToUpdate.data);
             }
 
             for (var n = 0; n < newTopologyGraphJSON.links.length; n++) {
-                var nx = newTopologyGraphJSON.links[n];
-                this.forceHelper.updateLink(nx);
+                var linkToUpdate = newTopologyGraphJSON.links[n];
+                this.forceHelper.updateLink(linkToUpdate);
             }
             // all updates done, now hopefully self.update() is called! ;-)
         },
@@ -293,8 +296,8 @@ define([
             this.options.mapProperties.set({'position': positionCollection});
             this.updateRenderGroupByPosition();
         },
-        setMapPropertyDisplayTopologyErrors: function (bool) {
-            this.options.mapProperties.set({'displayTopologyErrors': bool});
+        setMapPropertyDisplayTopologyErrors: function (boolValue) {
+            this.options.mapProperties.set({'displayTopologyErrors': boolValue});
             this.updateRenderTopologyErrors();
         },
         setGraphNodeFixedStatus: function (data) {
@@ -351,47 +354,47 @@ define([
             }
 
         },
-        nodeDragStart: function (node) {
+        nodeDragStart: function (nodeObject) {
             this.isDragMoveTriggered = false;
         },
-        nodeDragMove: function (node) {
+        nodeDragMove: function (nodeObject) {
             this.isDragMoveTriggered = true;
-            node.px += d3.event.dx;
-            node.py += d3.event.dy;
-            node.x += d3.event.dx;
-            node.y += d3.event.dy;
+            nodeObject.px += d3.event.dx;
+            nodeObject.py += d3.event.dy;
+            nodeObject.x += d3.event.dx;
+            nodeObject.y += d3.event.dy;
 
             this.force.stop();
-            node.fixed = true;
+            nodeObject.fixed = true;
             this.tick();
         },
-        nodeDragEnd: function (node) {
+        nodeDragEnd: function (nodeObject) {
             this.tick();
             if (this.isDragMoveTriggered) {
-                node.isDirty = true;
+                nodeObject.isDirty = true;
                 this.force.resume();
-                this.nodeOnClick(node);
+                this.nodeOnClick(nodeObject);
             }
         },
-        nodeOnClick: function (node) {
-            this.selected_node = node;
+        nodeOnClick: function (nodeObject) {
+            this.selected_node = nodeObject;
             if (this.options.mapProperties.get('position').has_targets()) {
               this.updateRenderGroupByPosition();
             }
 
-            this.unselectVLANSelectionOnConditionsAndRender(node.data.vlans);
+            this.unselectVLANSelectionOnConditionsAndRender(nodeObject.data.vlans);
 
             this.broker.trigger("netmap:selectNetbox", {
              'selectedVlan': this.selected_vlan,
-             'netbox': node
+             'netbox': nodeObject
              });
         },
-        linkOnClick: function (link) {
-            this.unselectVLANSelectionOnConditionsAndRender(link.data.uplink.vlans);
+        linkOnClick: function (linkObject) {
+            this.unselectVLANSelectionOnConditionsAndRender(linkObject.data.uplink.vlans);
 
             this.broker.trigger("netmap:selectLink", {
                 'selectedVlan': this.selected_vlan,
-                'link': link
+                'link': linkObject
             });
         },
         unselectVLANSelectionOnConditionsAndRender: function (vlansList) {
@@ -425,11 +428,11 @@ define([
             var self = this;
             self.selected_vlan = vlan;
 
-            var markVlanNodes = self.nodes.filter(function (d) {
+            var markVlanNodes = self.nodes.filter(function (nodeObject) {
 
-                if (d.data.vlans !== undefined && d.data.vlans && self.selected_vlan) {
-                    for (var i = 0; i < d.data.vlans.length; i++) {
-                        var vlan = d.data.vlans[i];
+                if (nodeObject.data.vlans !== undefined && nodeObject.data.vlans && self.selected_vlan) {
+                    for (var i = 0; i < nodeObject.data.vlans.length; i++) {
+                        var vlan = nodeObject.data.vlans[i];
                         if (vlan.nav_vlan === self.selected_vlan.navVlanId) {
                             return true;
                         }
@@ -438,10 +441,10 @@ define([
                 return false;
             });
 
-            var markVlanLinks = self.links.filter(function (d) {
-                if (d.data.uplink.vlans !== undefined && d.data.uplink.vlans && self.selected_vlan) {
-                    for (var i = 0; i < d.data.uplink.vlans.length; i++) {
-                        var vlan = d.data.uplink.vlans[i];
+            var markVlanLinks = self.links.filter(function (linkObject) {
+                if (linkObject.data.uplink.vlans !== undefined && linkObject.data.uplink.vlans && self.selected_vlan) {
+                    for (var i = 0; i < linkObject.data.uplink.vlans.length; i++) {
+                        var vlan = linkObject.data.uplink.vlans[i];
                         if (vlan.nav_vlan === self.selected_vlan.navVlanId) {
                             return true;
                         }
@@ -450,12 +453,12 @@ define([
                 return false;
             });
 
-            var nodesInVLAN = self.nodesInVLAN = self.selectedNodeGroupRoot.selectAll("g circle").data(markVlanNodes, function (d) {
-                return d.data.sysname;
+            var nodesInVLAN = self.nodesInVLAN = self.selectedNodeGroupRoot.selectAll("g circle").data(markVlanNodes, function (nodeObject) {
+                return nodeObject.data.sysname;
             });
 
-            var linksInVlan = self.linksInVLAN = self.selectedLinkGroupRoot.selectAll("g line").data(markVlanLinks, function (d) {
-                return d.source.id + "-" + d.target.id;
+            var linksInVlan = self.linksInVLAN = self.selectedLinkGroupRoot.selectAll("g line").data(markVlanLinks, function (linkObject) {
+                return linkObject.source.id + "-" + linkObject.target.id;
             });
 
 
@@ -463,20 +466,20 @@ define([
             nodesInVLAN.enter()
                 .append("svg:circle")
                 .attr("class", "grouped_by_vlan")
-                .attr("cx", function (d) {
-                    return d.px;
+                .attr("cx", function (nodeObject) {
+                    return nodeObject.px;
                 })
-                .attr("cy", function (d) {
-                    return d.py;
+                .attr("cy", function (nodeObject) {
+                    return nodeObject.py;
                 })
                 .attr("r", 38);
             linksInVlan.enter()
                 .append("svg:line")
                 .attr("class", "grouped_by_vlan")
-                .attr("x1", function (d) { return d.source.x;})
-                .attr("y1", function (d) { return d.source.y;})
-                .attr("x2", function (d) { return d.target.x;})
-                .attr("y2", function (d) { return d.target.y;});
+                .attr("x1", function (linkObject) { return linkObject.source.x;})
+                .attr("y1", function (linkObject) { return linkObject.source.y;})
+                .attr("x2", function (linkObject) { return linkObject.target.x;})
+                .attr("y2", function (linkObject) { return linkObject.target.y;});
             nodesInVLAN.exit().remove();
             linksInVlan.exit().remove();
 
@@ -523,17 +526,17 @@ define([
 
             if (!!self.selected_node) {
                 if (self.options.mapProperties.get('position').get('room').get('is_selected')) {
-                    groupBy = self.nodes.filter(function (d) {
-                        return d.data.roomid === self.selected_node.data.roomid;
+                    groupBy = self.nodes.filter(function (nodeObject) {
+                        return nodeObject.data.roomid === self.selected_node.data.roomid;
                     });
                 } else if (self.options.mapProperties.get('position').get('location').get('is_selected')) {
-                    groupBy = self.nodes.filter(function (d) {
-                        return d.data.locationid === self.selected_node.data.locationid;
+                    groupBy = self.nodes.filter(function (nodeObject) {
+                        return nodeObject.data.locationid === self.selected_node.data.locationid;
                     });
                 }
             }
-            var nodePositionSelection = this.nodePositionSelection = this.selectedNodeGroupRoot.selectAll("circle.grouped_by_room").data(groupBy, function (d)  {
-                return d.data.sysname;
+            var nodePositionSelection = this.nodePositionSelection = this.selectedNodeGroupRoot.selectAll("circle.grouped_by_room").data(groupBy, function (nodeObject)  {
+                return nodeObject.data.sysname;
             });
 
             nodePositionSelection.enter()
@@ -541,8 +544,8 @@ define([
                 .attr("class", "grouped_by_room")
                 .attr("r", 34);
             nodePositionSelection
-                .attr("cx", function (d) { return d.px; })
-                .attr("cy", function (d) { return d.py; });
+                .attr("cx", function (nodeObject) { return nodeObject.px; })
+                .attr("cy", function (nodeObject) { return nodeObject.py; });
             nodePositionSelection.exit().remove();
         },
         updateRenderTopologyErrors: function () {
@@ -550,30 +553,30 @@ define([
             var linksWithErrors = [];
 
             if (this.options.mapProperties.get('displayTopologyErrors', false)) {
-                linksWithErrors = this.links.filter(function (d) {
-                    return d.data.tip_inspect_link;
+                linksWithErrors = this.links.filter(function (linkObject) {
+                    return linkObject.data.tip_inspect_link;
                 });
             }
 
-            var linkErrors = this.linkErrors = this.linkErrorsGroupRoot.selectAll("g line").data(linksWithErrors, function (d) {
-                    return d.source.id + "-" + d.target.id;
+            var linkErrors = this.linkErrors = this.linkErrorsGroupRoot.selectAll("g line").data(linksWithErrors, function (linkObject) {
+                    return linkObject.source.id + "-" + linkObject.target.id;
             });
 
             linkErrors.enter()
                 .append("svg:line")
                 .attr("class", "warning_inspect");
             linkErrors
-                .attr("x1", function (d) {
-                    return d.source.x;
+                .attr("x1", function (linkObject) {
+                    return linkObject.source.x;
                 })
-                .attr("y1", function (d) {
-                    return d.source.y;
+                .attr("y1", function (linkObject) {
+                    return linkObject.source.y;
                 })
-                .attr("x2", function (d) {
-                    return d.target.x;
+                .attr("x2", function (linkObject) {
+                    return linkObject.target.x;
                 })
-                .attr("y2", function (d) {
-                    return d.target.y;
+                .attr("y2", function (linkObject) {
+                    return linkObject.target.y;
                 });
             linkErrors.exit()
                 .remove();
@@ -617,12 +620,12 @@ define([
 
             this.updateTopologyGraph(this.model.toJSON());
             // nodes left after filtering out non-selected categories
-            var nodesToKeep = _.filter(this.nodes, function (node) {
-                return isNodeInCategorySet(node);
+            var nodesToKeep = _.filter(this.nodes, function (nodeObject) {
+                return isNodeInCategorySet(nodeObject);
             });
 
-            var linksToKeep = _.filter(this.links, function (link) {
-               return isNodeInCategorySet(link.source) && isNodeInCategorySet(link.target);
+            var linksToKeep = _.filter(this.links, function (linkObject) {
+               return isNodeInCategorySet(linkObject.source) && isNodeInCategorySet(linkObject.target);
             });
 
 
@@ -631,9 +634,9 @@ define([
                 'links': linksToKeep
             });
 
-            function isNodeInCategorySet(node) {
-                return _.some(categories, function (category) {
-                    return category.get('name').toUpperCase() === (node.data.category + "").toUpperCase();
+            function isNodeInCategorySet(nodeObject) {
+                return _.some(categories, function (categoryAsCheckRadioModel) {
+                    return categoryAsCheckRadioModel.get('name').toUpperCase() === (nodeObject.data.category + "").toUpperCase();
                 });
             }
         },
@@ -641,8 +644,8 @@ define([
         updateRenderLinks: function () {
             var self = this;
 
-            var linkGroup = self.linkGroupRoot.selectAll("g.link").data(self.links, function (k) {
-                return k.source.id + "-" + k.target.id;
+            var linkGroup = self.linkGroupRoot.selectAll("g.link").data(self.links, function (linkObject) {
+                return linkObject.source.id + "-" + linkObject.target.id;
             });
 
             // Create group element for a link.
@@ -663,12 +666,12 @@ define([
             // link lines updated for force.tick() movement.
             self.link = linkGroup.selectAll("line");
             self.link
-                .on("click", function (d) {
-                    self.linkOnClick.call(self, d);
+                .on("click", function (linkObject) {
+                    self.linkOnClick.call(self, linkObject);
                 })
-                .on("mouseover", function (d) {
+                .on("mouseover", function (linkObject) {
                     if (self.ui.mouseover.links) {
-                        self.linkOnClick.call(self, d);
+                        self.linkOnClick.call(self, linkObject);
                     }
                 });
 
@@ -677,16 +680,16 @@ define([
 
             // Stops in the gradient to make a nice 0-100% flow on traffic load average
             function updateGradient(linkGroup) {
-                var gradient = linkGroup.selectAll(".linkload").data(function (d) {
-                    return [d];
-                }, function (key) {
-                    return key.source.id + "-" + key.target.id;
+                var gradient = linkGroup.selectAll(".linkload").data(function (linkObject) {
+                    return [linkObject];
+                }, function (linkObject) {
+                    return linkObject.source.id + "-" + linkObject.target.id;
                 });
                 gradient.enter()
                     .append("svg:linearGradient")
                     .attr("class", "linkload")
-                    .attr("id", function (d) {
-                        return "linkload" + d.source.id + "-" + d.target.id;
+                    .attr("id", function (linkObject) {
+                        return "linkload" + linkObject.source.id + "-" + linkObject.target.id;
                     })
                     .attr('x1', '0%')
                     .attr('y1', '0%')
@@ -697,23 +700,23 @@ define([
             }
 
             function updateStopsInGradient(gradient) {
-                var stops = gradient.selectAll("stop").data(function (d) {
+                var stops = gradient.selectAll("stop").data(function (linkObject) {
                     return [
-                        {percent: 0, css: d.data.traffic.inOctets_css},
-                        {percent: 50, css: d.data.traffic.inOctets_css },
-                        {percent: 51, css: d.data.traffic.outOctets_css},
-                        {percent: 100, css: d.data.traffic.outOctets_css}
+                        {percent: 0, css: linkObject.data.traffic.inOctets_css},
+                        {percent: 50, css: linkObject.data.traffic.inOctets_css },
+                        {percent: 51, css: linkObject.data.traffic.outOctets_css},
+                        {percent: 100, css: linkObject.data.traffic.outOctets_css}
                     ];
                 });
                 stops.enter()
                     .append("svg:stop")
                     .attr("class", "foo")
-                    .attr("offset", function (d) {
-                        return d.percent + "%";
+                    .attr("offset", function (gradientData) {
+                        return gradientData.percent + "%";
                     });
-                stops.attr("style", function (d) {
-                    if (d.css) {
-                        return 'stop-color:rgb(' + d.css + '); stop-opacity:1';
+                stops.attr("style", function (gradientData) {
+                    if (gradientData.css) {
+                        return 'stop-color:rgb(' + gradientData.css + '); stop-opacity:1';
                     }
                     else {
                         return 'stop-color:rgb(0,0,0);stop-opacity:1';
@@ -729,8 +732,8 @@ define([
             function updateLinkLines(group) {
                 group
                     .append("svg:line")
-                    .attr("class", function (d) {
-                        var speed = d.data.link_speed;
+                    .attr("class", function (linkObject) {
+                        var speed = linkObject.data.link_speed;
                         var classes = "link ";
                         if (speed <= 100) {
                             classes = 'speed0-100';
@@ -752,36 +755,36 @@ define([
                         }
                         return classes;
                     })
-                    .attr('stroke', function (d) {
-                        return 'url(#linkload' + d.source.id + "-" + d.target.id + ')';
+                    .attr('stroke', function (linkObject) {
+                        return 'url(#linkload' + linkObject.source.id + "-" + linkObject.target.id + ')';
 
                     })
-                    .attr("x1", function (d) {
-                        return d.source.x;
+                    .attr("x1", function (linkObject) {
+                        return linkObject.source.x;
                     })
-                    .attr("y1", function (d) {
-                        return d.source.y;
+                    .attr("y1", function (linkObject) {
+                        return linkObject.source.y;
                     })
-                    .attr("x2", function (d) {
-                        return d.target.x;
+                    .attr("x2", function (linkObject) {
+                        return linkObject.target.x;
                     })
-                    .attr("y2", function (d) {
-                        return d.target.y;
+                    .attr("y2", function (linkObject) {
+                        return linkObject.target.y;
                     });
             }
         },
         updateRenderNodes: function () {
             var self = this;
 
-            var nodeData = this.node = this.nodeGroupRoot.selectAll("g.node").data(self.nodes, function (d) {
-                return d.data.sysname;
+            var nodeData = this.node = this.nodeGroupRoot.selectAll("g.node").data(self.nodes, function (nodeObject) {
+                return nodeObject.data.sysname;
             });
 
             var nodeGroup = nodeData.enter()
                 .append("svg:g")
                 .attr("class", "node");
 
-            var nodeCategoryImage = nodeGroup.selectAll("image.node").data(function (d) { return [d]; }).enter()
+            var nodeCategoryImage = nodeGroup.selectAll("image.node").data(function (nodeObject) { return [nodeObject]; }).enter()
                 .append("svg:image")
                 .attr("class", "circle node")
                 .attr("x", "-16px")
@@ -789,11 +792,11 @@ define([
                 .attr("width", "32px")
                 .attr("height", "32px");
             nodeCategoryImage
-                .attr("xlink:href", function (d) {
-                    return self.imagesPrefix + d.data.category.toLowerCase() + ".png";
+                .attr("xlink:href", function (nodeObject) {
+                    return self.imagesPrefix + nodeObject.data.category.toLowerCase() + ".png";
                 });
 
-            var nodeSysname = nodeGroup.selectAll("text.sysname").data(function (d) { return [d]; }).enter()
+            var nodeSysname = nodeGroup.selectAll("text.sysname").data(function (nodeObject) { return [nodeObject]; }).enter()
                 .append("svg:text")
                 .attr("class", "sysname")
                 .attr("dy", "1.5em")
@@ -801,17 +804,17 @@ define([
                 .attr("text-anchor", "middle")
                 .attr("fill", "#000000")
                 .attr("background", "#c0c0c0");
-            nodeSysname.text(function (d) {
-                return d.data.sysname;
+            nodeSysname.text(function (nodeObject) {
+                return nodeObject.data.sysname;
             });
 
-            var nodeIp = nodeGroup.selectAll("text.ip").data(function (d) { return [d]; }).enter()
+            var nodeIp = nodeGroup.selectAll("text.ip").data(function (nodeObject) { return [nodeObject]; }).enter()
                 .append("svg:text")
                 .attr("class", "ip")
                 .attr("dy", "3em")
                 .attr("fill", "red");
-            nodeIp.text(function (d) {
-                return d.data.ip;
+            nodeIp.text(function (nodeObject) {
+                return nodeObject.data.ip;
             });
 
 
@@ -824,16 +827,16 @@ define([
 
 
             var nodeDragAndDrop = d3.behavior.drag()
-                .on("dragstart", function (d) { self.nodeDragStart.call(self,d); })
-                .on("drag", function (d) { self.nodeDragMove.call(self,d); })
-                .on("dragend", function (d) { self.nodeDragEnd.call(self,d); });
+                .on("dragstart", function (nodeObject) { self.nodeDragStart.call(self, nodeObject); })
+                .on("drag", function (nodeObject) { self.nodeDragMove.call(self, nodeObject); })
+                .on("dragend", function (nodeObject) { self.nodeDragEnd.call(self, nodeObject); });
             nodeGroup
-                .on("click", function (node) {
-                    self.nodeOnClick.call(self, node);
+                .on("click", function (nodeObject) {
+                    self.nodeOnClick.call(self, nodeObject);
                 })
-                .on("mouseover", function (d) {
+                .on("mouseover", function (nodeObject) {
                     if (self.ui.mouseover.nodes) {
-                        self.nodeOnClick.call(self, d);
+                        self.nodeOnClick.call(self, nodeObject);
                     }
                 })
                 .call(nodeDragAndDrop);
@@ -882,60 +885,60 @@ define([
         },
         tick: function () {
 
-            this.node.attr("transform", function (d, i) {
-                return "translate(" + d.x + "," + d.y + ")";
+            this.node.attr("transform", function (nodeObject, i) {
+                return "translate(" + nodeObject.x + "," + nodeObject.y + ")";
             });
 
             this.link
-                .attr("x1", function (d) {
-                    return d.source.x;
+                .attr("x1", function (linkObject) {
+                    return linkObject.source.x;
                 })
-                .attr("y1", function (d) {
-                    return d.source.y;
+                .attr("y1", function (linkObject) {
+                    return linkObject.source.y;
                 })
-                .attr("x2", function (d) {
-                    return d.target.x;
+                .attr("x2", function (linkObject) {
+                    return linkObject.target.x;
                 })
-                .attr("y2", function (d) {
-                    return d.target.y;
+                .attr("y2", function (linkObject) {
+                    return linkObject.target.y;
                 }
             );
 
 
             this.nodePositionSelection
-                    .attr("cx", function (d) {
-                        return d.px;
+                    .attr("cx", function (nodeObject) {
+                        return nodeObject.px;
                     })
-                    .attr("cy", function (d) {
-                        return d.py;
+                    .attr("cy", function (nodeObject) {
+                        return nodeObject.py;
                     });
 
             this.linkErrors
-                .attr("x1", function (d) {
-                    return d.source.x;
+                .attr("x1", function (linkObject) {
+                    return linkObject.source.x;
                 })
-                .attr("y1", function (d) {
-                    return d.source.y;
+                .attr("y1", function (linkObject) {
+                    return linkObject.source.y;
                 })
-                .attr("x2", function (d) {
-                    return d.target.x;
+                .attr("x2", function (linkObject) {
+                    return linkObject.target.x;
                 })
-                .attr("y2", function (d) {
-                    return d.target.y;
+                .attr("y2", function (linkObject) {
+                    return linkObject.target.y;
                 });
 
             this.nodesInVLAN
-                .attr("cx", function (d) {
-                    return d.px;
+                .attr("cx", function (nodeObject) {
+                    return nodeObject.px;
                 })
-                .attr("cy", function (d) {
-                    return d.py;
+                .attr("cy", function (nodeObject) {
+                    return nodeObject.py;
                 });
             this.linksInVLAN
-                .attr("x1", function (d) { return d.source.x;})
-                .attr("y1", function (d) { return d.source.y;})
-                .attr("x2", function (d) { return d.target.x;})
-                .attr("y2", function (d) { return d.target.y;});
+                .attr("x1", function (linkObject) { return linkObject.source.x;})
+                .attr("y1", function (linkObject) { return linkObject.source.y;})
+                .attr("x2", function (linkObject) { return linkObject.target.x;})
+                .attr("y2", function (linkObject) { return linkObject.target.y;});
         },
         stopLayoutForce: function () {
             this.force.stop();
