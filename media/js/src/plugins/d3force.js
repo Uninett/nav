@@ -1,6 +1,9 @@
 define([
     'libs/jquery'
 ], function () {
+
+    // nodes and links should be the same object instances
+    // used in a D3.force layout algorithm!
     function NAVD3Force(nodes, links) {
         this.nodes = nodes;
         this.links = links;
