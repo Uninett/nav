@@ -26,7 +26,7 @@ define([
             this.template = Handlebars.compile(Template);
 
             if (!this.model) {
-                this.model = Resources.getMapProperties();
+                this.model = Resources.getActiveMapModel();
 
                 var missingDjangoCategoriesModels = _.reject(Resources.getAvailableCategories(), function (r) {
                     return self.model.get('categories').find(function (c) {

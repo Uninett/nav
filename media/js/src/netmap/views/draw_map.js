@@ -60,8 +60,8 @@ define([
             this.spinnerView = new LoadingSpinnerView({el: '#netmap_main_view'});
             this.showLoadingSpinner(true);
 
-            if (!this.options.mapProperties) {
-                this.options.mapProperties = Resources.getMapProperties();
+            if (!this.options.activeMapModel) {
+                this.options.activeMapModel = Resources.getActiveMapModel();
             }
 
             this.w = this.options.cssWidth;
@@ -76,8 +76,8 @@ define([
             $(window).on("resize.app", _.bind(this.resize, this));
 
             this.model = new GraphModel({
-              id: this.options.mapProperties.get('viewid', this.options.viewid),
-              topology: this.options.mapProperties.get('topology', 2)
+              id: this.options.activeMapModel.get('viewid', this.options.viewid),
+              topology: this.options.activeMapModel.get('topology', 2)
             });
 
             this.initializeDOM();
@@ -164,14 +164,14 @@ define([
                             self.forceHelper.addLink(linkObject.source, linkObject.target, linkObject.data);
                         });
 
-                        self.zoomRescaleFromActiveProperty(self.options.mapProperties.get('zoom'));
+                        self.zoomRescaleFromActiveProperty(self.options.activeMapModel.get('zoom'));
                         self.isGraphLoadingForFirstTime = false;
                     } else {
                         self.updateTopologyGraph(newModel);
                     }
 
                     if (shouldRezoomAndTranslate) {
-                        self.zoomRescaleFromActiveProperty(self.options.mapProperties.get('zoom'));
+                        self.zoomRescaleFromActiveProperty(self.options.activeMapModel.get('zoom'));
                     }
                     self.update(); // calls rest of the updateRender functions which updates the SVG.
                     self.broadcastGraphCopy();
@@ -269,22 +269,22 @@ define([
         // (this.force algorithm uses this.nodes and this.links)
         bindMapProperties: function () {
             var self = this;
-            this.options.mapProperties.bind("change:displayOrphans", this.update, this);
-            this.options.mapProperties.get("categories").each(function(category){
+            this.options.activeMapModel.bind("change:displayOrphans", this.update, this);
+            this.options.activeMapModel.get("categories").each(function(category){
                 category.bind("change", self.update, self);
             });
-            this.options.mapProperties.bind("change:displayOrphans", this.update, this);
-            this.options.mapProperties.bind("change:displayTopologyErrors", this.updateRenderTopologyErrors, this);
-            this.options.mapProperties.get("position").each(function (position) {
+            this.options.activeMapModel.bind("change:displayOrphans", this.update, this);
+            this.options.activeMapModel.bind("change:displayTopologyErrors", this.updateRenderTopologyErrors, this);
+            this.options.activeMapModel.get("position").each(function (position) {
                 position.bind("change", self.updateRenderGroupByPosition, self);
             });
         },
         unbindMapProperties: function () {
-            this.options.mapProperties.unbind("change");
-            this.options.mapProperties.get("categories").each(function(category){
+            this.options.activeMapModel.unbind("change");
+            this.options.activeMapModel.get("categories").each(function(category){
                 category.unbind("change");
             });
-            this.options.mapProperties.get("position").each(function (position) {
+            this.options.activeMapModel.get("position").each(function (position) {
                 position.unbind("change");
             });
         },
@@ -293,11 +293,11 @@ define([
             this.loadTopologyGraph();
         },
         setMapPropertyPositionFilter: function (positionCollection) {
-            this.options.mapProperties.set({'position': positionCollection});
+            this.options.activeMapModel.set({'position': positionCollection});
             this.updateRenderGroupByPosition();
         },
         setMapPropertyDisplayTopologyErrors: function (boolValue) {
-            this.options.mapProperties.set({'displayTopologyErrors': boolValue});
+            this.options.activeMapModel.set({'displayTopologyErrors': boolValue});
             this.updateRenderTopologyErrors();
         },
         setGraphNodeFixedStatus: function (data) {
@@ -342,13 +342,13 @@ define([
         },
         setMapProperty: function (newActiveMapPropertyModel) {
             this.unbindMapProperties();
-            this.options.mapProperties = newActiveMapPropertyModel;
+            this.options.activeMapModel = newActiveMapPropertyModel;
             this.bindMapProperties();
 
-            if (this.model.get('viewid') !== this.options.mapProperties.get('viewid')) {
+            if (this.model.get('viewid') !== this.options.activeMapModel.get('viewid')) {
                 this.model = new GraphModel({
-                    id: this.options.mapProperties.get('viewid', this.options.viewid),
-                    topology: this.options.mapProperties.get('topology', 2)
+                    id: this.options.activeMapModel.get('viewid', this.options.viewid),
+                    topology: this.options.activeMapModel.get('topology', 2)
                 });
                 this.loadTopologyGraph(true);
             }
@@ -378,7 +378,7 @@ define([
         },
         nodeOnClick: function (nodeObject) {
             this.selected_node = nodeObject;
-            if (this.options.mapProperties.get('position').has_targets()) {
+            if (this.options.activeMapModel.get('position').has_targets()) {
               this.updateRenderGroupByPosition();
             }
 
@@ -525,11 +525,11 @@ define([
             var groupBy = [];
 
             if (!!self.selected_node) {
-                if (self.options.mapProperties.get('position').get('room').get('is_selected')) {
+                if (self.options.activeMapModel.get('position').get('room').get('is_selected')) {
                     groupBy = self.nodes.filter(function (nodeObject) {
                         return nodeObject.data.roomid === self.selected_node.data.roomid;
                     });
-                } else if (self.options.mapProperties.get('position').get('location').get('is_selected')) {
+                } else if (self.options.activeMapModel.get('position').get('location').get('is_selected')) {
                     groupBy = self.nodes.filter(function (nodeObject) {
                         return nodeObject.data.locationid === self.selected_node.data.locationid;
                     });
@@ -552,7 +552,7 @@ define([
 
             var linksWithErrors = [];
 
-            if (this.options.mapProperties.get('displayTopologyErrors', false)) {
+            if (this.options.activeMapModel.get('displayTopologyErrors', false)) {
                 linksWithErrors = this.links.filter(function (linkObject) {
                     return linkObject.data.tip_inspect_link;
                 });
@@ -589,7 +589,7 @@ define([
             // updateRender* functions that modify this.links and this.nodes!
             var self = this;
 
-            if (!self.options.mapProperties.get('displayOrphans')) {
+            if (!self.options.activeMapModel.get('displayOrphans')) {
                 for (var i = 0; i < self.nodes.length; i++) {
                     var node = self.nodes[i];
 
@@ -614,7 +614,7 @@ define([
             var self = this;
 
             // selected categories
-            var categories = self.options.mapProperties.get('categories').filter(function (category) {
+            var categories = self.options.activeMapModel.get('categories').filter(function (category) {
                 return category.get('is_selected', false);
             });
 
@@ -877,7 +877,7 @@ define([
         zoomRescale: function () {
             this.trans = d3.event.translate;
             this.scale = d3.event.scale;
-            this.options.mapProperties.set({
+            this.options.activeMapModel.set({
                 'zoom': this.trans + ";" + this.scale
             }, {silent: true});
             this.bounding_box.attr("transform",

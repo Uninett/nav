@@ -51,13 +51,13 @@ define([
                 this.collection.bind("destroy", this.close, this);
             } else {
                 if (!this.options.activeMapProperties) {
-                    this.options.activeMapProperties = Resources.getMapProperties();
+                    this.options.activeMapProperties = Resources.getActiveMapModel();
                     this.options.activeMapProperties.set({"is_selected": true});
                 }
 
                 this.options.activeMapProperties.bind("change", this.render, this);
 
-                this.collection = Resources.getMapPropertiesCollection();
+                this.collection = Resources.getMapCollection();
                 if (!this.collection) {
                     this.collection = new CollectionMapProperties();
                     this.collection.fetch({

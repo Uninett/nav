@@ -35,7 +35,7 @@ define([
             this.loadUi(mapIdAsInteger);
         },
         showFavoriteViewOrLoadGeneric: function() {
-            var favorite = Resources.getMapPropertiesCollection().getFavorite();
+            var favorite = Resources.getMapCollection().getFavorite();
             if (favorite) {
                 this.navigate("view/"+favorite.get('viewid'), true);
             } else {

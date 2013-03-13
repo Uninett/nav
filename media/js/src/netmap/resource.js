@@ -51,8 +51,8 @@ define([
         initialize: function () {
             this.resources = {
                 'graph': null,
-                'mapProperties': null,
-                'mapPropertiesCollection': null,
+                "activeMapModel": null,
+                "mapCollection": null,
                 'viewid': null,
                 'favorite': null,
                 'availableCategories': null
@@ -67,10 +67,10 @@ define([
                 var bootstrapData = $.parseJSON(bootstrapMapPropertiesCollectionEl.text());
 
                 if (bootstrapData) {
-                    self.resources.mapPropertiesCollection = new MapCollection(MapCollection.prototype.parse(bootstrapData));
+                    self.resources.mapCollection = new MapCollection(MapCollection.prototype.parse(bootstrapData));
                 }
             } else {
-                this.resources.mapPropertiesCollection = new MapCollection();
+                this.resources.mapCollection = new MapCollection();
             }
             if (bootstrapIsFavoriteEl) {
                 var bootstrapDataFavorite = $.parseJSON(bootstrapIsFavoriteEl.text());
@@ -91,26 +91,26 @@ define([
         getAvailableCategories: function () {
             return this.resources.availableCategories;
         },
-        getMapProperties: function () {
-            return this.resources.mapProperties;
+        getActiveMapModel: function () {
+            return this.resources.activeMapModel;
         },
-        getMapPropertiesCollection: function () {
-            return this.resources.mapPropertiesCollection;
+        getMapCollection: function () {
+            return this.resources.mapCollection;
         },
-        getMapPropertiesByViewId: function (viewid) {
-            return this.resources.mapPropertiesCollection.get(viewid);
+        getMapByViewId: function (viewid) {
+            return this.resources.mapCollection.get(viewid);
         },
         setViewId: function (viewid) {
             this.resources.viewid = viewid;
             if (!viewid) {
-                this.resources.mapPropertiesCollection.unshift({});
-                this.resources.mapProperties = this.resources.mapPropertiesCollection.at(0);
+                this.resources.mapCollection.unshift({});
+                this.resources.activeMapModel = this.resources.mapCollection.at(0);
             } else {
-                this.resources.mapProperties = this.resources.mapPropertiesCollection.get(viewid);
+                this.resources.activeMapModel = this.resources.mapCollection.get(viewid);
             }
         },
         setFavoriteView: function (viewid) {
-            this.resources.mapPropertiesCollection.setFavorite(viewid);
+            this.resources.mapCollection.setFavorite(viewid);
         }
 
     };

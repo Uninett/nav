@@ -21,7 +21,7 @@ define([
             this.template = Handlebars.compile(Template);
             // todo: fetch collection from api.
             if (!this.model) {
-                this.model = Resource.getMapProperties();
+                this.model = Resource.getActiveMapModel();
             }
 
             this.model.bind("change:displayOrphans", this.render, this);
