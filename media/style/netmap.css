@@ -225,7 +225,9 @@ div.isFavorite span.description {
     padding-right: 33px;
 }
 
-
+#wrapper_chart {
+    min-height: 400px;
+}
 
 /* D3JS Netmap style */
 
