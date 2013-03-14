@@ -19,7 +19,7 @@
     <tbody>
     {% for key, result in mac_tracker.items %}
         {% for row in result %}
-        <tr>
+        {% if row.fishy %}<tr class="fishy-item">{% else %}<tr>{% endif %}
             {% if forloop.first %}
             <td>
                 {% if row.netbox.sysname %}
@@ -57,10 +57,7 @@
             <td>
                 {% if row.still_active %}
                 {{ row.still_active }}
-                    {% if row.fishy.0 %}  
-                        <img src="/images/icons/exclamation-red.png" class="fishy-item" title="This record can be outdated! Last job record: {{ row.fishy.1 }}">
-                        {{ netbox_jobs.row.fishy.1 }}
-                    {% endif %}
+                    {% if row.fishy %}{% include "machinetracker/fishy.html" %}{% endif %}
                 {% else %}
                 {{ row.end_time|date:"Y-m-d H:i" }}
                 {% endif %}
