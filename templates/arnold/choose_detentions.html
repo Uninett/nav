@@ -24,12 +24,36 @@
             <tbody>
             {% for detention in detentions %}
                 <tr class="$rowcycler">
-                    <td>{{ detention.ip }}</td>
-                    <td>{{ detention.mac }}</td>
+                    <td>
+                        <a href="{% url machinetracker-ip_short_search detention.ip 100 'on' %}"
+                           title="Link to Machine Tracker" target="_blank">
+                            {{ detention.ip }}
+                        </a>
+                    </td>
+
+                    <td>
+                        <a href="{% url machinetracker-mac_search detention.mac 100 'on' %}"
+                           title="Link to Machine Tracker" target="_blank">
+                            {{ detention.mac }}
+                        </a>
+                    </td>
+
                     <td>{{ detention.dns }}</td>
                     <td>{{ detention.netbios }}</td>
-                    <td>{{ detention.interface.netbox.sysname }}</td>
-                    <td>{{ detention.interface.ifname }}</td>
+
+                    <td>
+                        <a href="{% url ipdevinfo-details-by-name detention.interface.netbox.sysname %}"
+                           title="Link to Ip Device Info" target="_blank">
+                            {{ detention.interface.netbox.sysname }}
+                        </a>
+                    </td>
+
+                    <td>
+                        <a href="{% url ipdevinfo-interface-details detention.interface.netbox.sysname detention.interface.id %}"
+                           title="Link to interface details" target="_blank">
+                            {{ detention.interface.ifname }}
+                        </a>
+                    </td>
 
                     <td><input type="checkbox" name="detentions" value="{{ detention.id }}" checked="checked"/>
                 </tr>

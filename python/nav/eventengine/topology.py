@@ -18,6 +18,7 @@ import socket
 import datetime
 
 import networkx
+from networkx.exception import NetworkXException
 from nav.models.manage import SwPortVlan, Netbox, Prefix, Arp, Cam
 
 import logging
@@ -79,8 +80,14 @@ def get_path_to_netbox(netbox):
                       netbox, graph.edges())
         return False
 
-    path = networkx.shortest_path(graph, netbox, router)
-    _logger.debug("path to %s: %r", netbox, path)
+    try:
+        path = networkx.shortest_path(graph, netbox, router)
+    except NetworkXException as error:
+        _logger.debug("an internal networkx exception was raised in "
+                      "shortest_path, assuming no path was found: %s", error)
+        path = []
+    else:
+        _logger.debug("path to %s: %r", netbox, path)
     return path
 
 

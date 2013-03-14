@@ -3,6 +3,7 @@ from twisted.internet import defer
 from nav.bitvector import BitVector
 import mibretriever
 
+
 class CiscoVTPMib(mibretriever.MibRetriever):
     from nav.smidumps.cisco_vtp_mib import MIB as mib
 
@@ -11,16 +12,17 @@ class CiscoVTPMib(mibretriever.MibRetriever):
         """Get a mapping of the native VLANs of trunk ports."""
         dw = defer.waitForDeferred(
             self.retrieve_columns((
-                    'vlanTrunkPortNativeVlan',
-                    'vlanTrunkPortDynamicStatus',
-                    ))
-            )
+                'vlanTrunkPortNativeVlan',
+                'vlanTrunkPortDynamicState',
+            ))
+        )
         yield dw
         trunkports = self.translate_result(dw.getResult())
-        
-        result = dict([(index[0], row['vlanTrunkPortNativeVlan'])
-                       for index, row in trunkports.items()
-                       if row['vlanTrunkPortDynamicStatus'] == 'trunking'])
+
+        result = dict(
+            [(index[0], row['vlanTrunkPortNativeVlan'])
+             for index, row in trunkports.items() if
+             row['vlanTrunkPortDynamicState'] in ['on', 'onNoNegotiate']])
         yield result
 
 
@@ -50,19 +52,20 @@ class CiscoVTPMib(mibretriever.MibRetriever):
 
         dw = defer.waitForDeferred(
             self.retrieve_columns((
-                    'vlanTrunkPortVlansEnabled',
-                    'vlanTrunkPortDynamicStatus',
-                    'vlanTrunkPortVlansEnabled2k',
-                    'vlanTrunkPortVlansEnabled3k',
-                    'vlanTrunkPortVlansEnabled4k',
-                    ))
-            )
+                'vlanTrunkPortVlansEnabled',
+                'vlanTrunkPortDynamicState',
+                'vlanTrunkPortVlansEnabled2k',
+                'vlanTrunkPortVlansEnabled3k',
+                'vlanTrunkPortVlansEnabled4k',
+            ))
+        )
         yield dw
         trunkports = self.translate_result(dw.getResult())
 
-        result = dict([(index[0], get_vlan_list(row))
-                       for index, row in trunkports.items()
-                       if row['vlanTrunkPortDynamicStatus'] == 'trunking'])
+        result = dict(
+            [(index[0], get_vlan_list(row))
+             for index, row in trunkports.items() if
+             row['vlanTrunkPortDynamicState'] in ['on', 'onNoNegotiate']])
         yield result
 
     @defer.inlineCallbacks

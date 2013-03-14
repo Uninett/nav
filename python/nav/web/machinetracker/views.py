@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009, 2011 UNINETT AS
+# Copyright (C) 2009, 2011-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -8,16 +8,15 @@
 # the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Machine Tracker view functions"""
 
 from IPy import IP
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 from django.db.models import Q
 from django.template import RequestContext
@@ -28,9 +27,9 @@ from nav.models.manage import Arp, Cam, Netbios
 
 from nav import asyncdns
 
-from nav.web.machinetracker import forms, iprange
-from nav.web.machinetracker.utils import hostname, from_to_ip, ip_dict
-from nav.web.machinetracker.utils import process_ip_row, track_mac, get_prefix_info
+from nav.web.machinetracker import forms
+from nav.web.machinetracker.utils import ip_dict
+from nav.web.machinetracker.utils import process_ip_row, track_mac
 from nav.web.machinetracker.utils import (min_max_mac, ProcessInput,
                                           normalize_ip_to_string, 
                                           get_last_job_log_from_netboxes)
@@ -43,9 +42,10 @@ NBT_TITLE = 'NAV - Machinetracker - NetBIOS Search'
 IP_DEFAULTS = {'title': IP_TITLE, 'navpath': NAVBAR, 'active': {'ip': True}}
 MAC_DEFAULTS = {'title': MAC_TITLE, 'navpath': NAVBAR, 'active': {'mac': True}}
 SWP_DEFAULTS = {'title': SWP_TITLE, 'navpath': NAVBAR, 'active': {'swp': True}}
-NBT_DEFAULTS = {'title': NBT_TITLE, 'navpath': NAVBAR, 'active': {'netbios': True}}
+NBT_DEFAULTS = {'title': NBT_TITLE, 'navpath': NAVBAR,
+                'active': {'netbios': True}}
 
-ADDRESS_LIMIT = 4096 # Value for when inactive gets disabled
+ADDRESS_LIMIT = 4096  # Value for when inactive gets disabled
 
 
 def ip_search(request):
@@ -60,6 +60,7 @@ def ip_search(request):
         info_dict,
         RequestContext(request)
     )
+
 
 def ip_do_search(request):
     input = ProcessInput(request.GET).ip()
@@ -167,6 +168,7 @@ def ip_do_search(request):
         RequestContext(request)
     )
 
+
 def mac_search(request):
     if request.GET.has_key('mac'):
         return mac_do_search(request)
@@ -179,6 +181,7 @@ def mac_search(request):
         info_dict,
         RequestContext(request)
     )
+
 
 def mac_do_search(request):
     input = ProcessInput(request.GET).mac()
@@ -250,6 +253,7 @@ def mac_do_search(request):
         RequestContext(request)
     )
 
+
 def switch_search(request):
     if request.GET.has_key('switch'):
         return switch_do_search(request)
@@ -262,6 +266,7 @@ def switch_search(request):
         info_dict,
         RequestContext(request)
     )
+
 
 def switch_do_search(request):
     input = ProcessInput(request.GET).swp()
@@ -330,6 +335,7 @@ def switch_do_search(request):
         RequestContext(request)
     )
 
+
 def get_netbios_query(separator=', '):
     """Return a query that populates netbios names on an arp query
 
@@ -385,7 +391,7 @@ def netbios_do_search(request):
                    Q(name__icontains=searchstring))
 
         result = Netbios.objects.filter(filters, end_time__gt=from_time)
-        result = result.order_by('name', 'mac','start_time')
+        result = result.order_by('name', 'mac', 'start_time')
         result = result.values('ip', 'mac', 'name', 'server', 'username',
                                'start_time', 'end_time')
 
@@ -397,7 +403,7 @@ def netbios_do_search(request):
 
         info_dict.update({
             'form_data': form.cleaned_data,
-            'netbios_tracker': netbios_tracker, #nbt_result,
+            'netbios_tracker': netbios_tracker,
             'netbios_tracker_count': nbt_count,
         })
 

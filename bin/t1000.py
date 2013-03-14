@@ -35,7 +35,9 @@ from datetime import datetime, timedelta
 import nav.buildconf
 from nav.arnold import (find_computer_info, disable, quarantine,
                         is_inside_vlans, NoDatabaseInformationError,
-                        GeneralException, init_logging, open_port)
+                        GeneralException, init_logging, open_port,
+                        raise_if_detainment_not_allowed,
+                        DetainmentNotAllowedError)
 from nav.models.arnold import Identity, DetentionProfile
 
 CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
@@ -72,7 +74,10 @@ def main():
 
         # If this mac-address is active behind another port, block it.
         if candidate.endtime > datetime.now():
-            pursue(identity, candidate)
+            if candidate.interface == identity.interface:
+                LOGGER.info('Active on detained interface, will not pursue')
+            else:
+                pursue(identity, candidate)
         else:
             LOGGER.info("%s is not active." % candidate.mac)
 
@@ -95,13 +100,19 @@ def pursue(identity, candidate):
     # one of those vlans or have to be skipped.
 
     profile = is_detained_by_profile(identity)
-    if profile and not should_detain(identity, profile):
+    if profile and not should_pursue(identity, profile):
+        return
+
+    try:
+        raise_if_detainment_not_allowed(candidate.interface)
+    except DetainmentNotAllowedError, error:
+        LOGGER.error(error)
         return
 
     identity.autoenablestep = find_autoenable_step(identity)
     detain(identity, candidate)
 
-    if profile.keep_closed == 'n':
+    if profile and profile.keep_closed == 'n':
         try:
             open_port(identity, getpass.getuser(),
                       'Blocked on another interface')
@@ -130,7 +141,7 @@ def find_autoenable_step(identity):
         return 0
 
 
-def should_detain(identity, profile):
+def should_pursue(identity, profile):
     """Verify that this identity is inside the defined vlans for the profile"""
     LOGGER.debug('%s is %s by a profile' % (identity.mac, identity.status))
     if profile.active_on_vlans:

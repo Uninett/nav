@@ -24,25 +24,31 @@ class EntityMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_mib import MIB as mib
 
     def retrieve_alternate_bridge_mibs(self):
-        """Retrieve a list of alternate bridge mib instances.
+        """Retrieves a list of alternate bridge mib instances.
 
         This is accomplished by looking at entLogicalTable.  Returns a
         deferred whose result value is a list of tuples:: 
 
           (entity_description, community)
 
-        NOTE: Some devices will return entities with the same
-        community.  These should effectively be filtered out for
-        polling purposes.
+        :NOTE: Some devices will return entities with the same community.
+               These should effectively be filtered out for polling purposes.
+               A Cisco WS-C3560CG-8PC-S running IOS 15.0(2)SE has also been
+               shown to return communities with null bytes,
+               which are unusable and will be filtered.
 
         """
         # Define this locally to avoid external overhead
         bridge_mib_oid = OID('.1.3.6.1.2.1.17')
         def bridge_mib_filter(result):
+            def _is_bridge_mib_instance_with_valid_community(row):
+                return (row['entLogicalType']
+                        and OID(row['entLogicalType']) == bridge_mib_oid
+                        and '\x00' not in row['entLogicalCommunity'])
+
             new_result = [(r['entLogicalDescr'], r['entLogicalCommunity'])
                           for r in result.values()
-                          if r['entLogicalType']
-                          and OID(r['entLogicalType']) == bridge_mib_oid]
+                          if _is_bridge_mib_instance_with_valid_community(r)]
             return new_result
 
         df = self.retrieve_columns([

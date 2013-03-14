@@ -36,8 +36,18 @@
                         {% for choice in form.camtuple.field.choices %}
                             {% with camtuples|lookup:choice.0 as camtuple %}
                             <tr>
-                                <td>{{ camtuple.interface.netbox.sysname }}</td>
-                                <td>{{ camtuple.interface.ifname }}</td>
+                                <td>
+                                    <a href="{% url ipdevinfo-details-by-name camtuple.interface.netbox.sysname %}"
+                                       title="Link to Ip Device Info" target="_blank">
+                                        {{ camtuple.interface.netbox.sysname }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{% url ipdevinfo-interface-details camtuple.interface.netbox.sysname camtuple.interface.id %}"
+                                       title="Link to interface details" target="_blank">
+                                        {{ camtuple.interface.ifname }}
+                                    </a>
+                                </td>
                                 <td>
                                     {% if camtuple.endtime >= now %}
                                         Still active

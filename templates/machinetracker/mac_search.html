@@ -9,7 +9,7 @@
             <tbody>
             <tr>
                 <th><label for="id_mac">Mac:</label></th>
-                <td>{{ form.mac }}</td>
+                <td>{{ form.mac.errors }}{{ form.mac }}</td>
             </tr>
             <tr>
                 <th><label for="id_dns">Dns:</label></th>
@@ -25,7 +25,7 @@
             </tr>
             <tr>
                 <th><label for="id_days">Days:</label></th>
-                <td>{{ form.days }}</td>
+                <td>{{ form.days.errors }}{{ form.days }}</td>
             </tr>
                 <tr>
                     <th></th>

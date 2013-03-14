@@ -68,9 +68,13 @@ class AbstractChecker:
         # and then we return status UP, and our version string.
         return Event.UP, version
     """
+    TYPENAME = None
     IPV6_SUPPORT = False
+    DESCRIPTION = ""
+    ARGS = ()
+    OPTARGS = ()
 
-    def __init__(self, type, service, port=0, status=event.Event.UP):
+    def __init__(self, service, port=0, status=event.Event.UP):
         """
         type is the name of the handler (subclass)
         service is a dict containing ip, sysname, netboxid, serviceid,
@@ -78,7 +82,6 @@ class AbstractChecker:
         status defaults to up, but can be overridden.
         """
         self._conf = config.serviceconf()
-        self.setType(type)
         self.setServiceid(service['id'])
         self.setIp(service['ip'])
         self.setNetboxid(service['netboxid'])
@@ -276,14 +279,10 @@ class AbstractChecker:
         other argument a handler might need."""
         return self._args
 
-    def setType(self, type):
-        """Sets the name of the handler. This is used by the
-        constructor."""
-        self._type = type
-
-    def getType(self):
+    @classmethod
+    def getType(cls):
         """Returns the name of the handler. """
-        return self._type
+        return cls.TYPENAME
 
     def setIp(self, ip):
         """Sets the ip address to connect to """

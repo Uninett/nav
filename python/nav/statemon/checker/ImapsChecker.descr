@@ -1,3 +1,0 @@
-description=Internet mail application protocol (ssl)
-args=username password
-optargs=port timeout

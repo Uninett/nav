@@ -113,12 +113,12 @@ def matrix_report(request):
         # Find all scopes in database.
         connection = db.getConnection('webfront','manage')
         database = connection.cursor()
-        database.execute("SELECT netaddr FROM prefix INNER JOIN vlan USING (vlanid) WHERE nettype='scope'")
+        database.execute("SELECT netaddr, description FROM prefix INNER JOIN vlan USING (vlanid) WHERE nettype='scope'")
         databasescopes = database.fetchall()
 
         if len(databasescopes) == 1:
             # If there is a single scope in the db, display that
-            scope = IP(databasescopes[0][0])
+            scope = IP(databasescopes[0])
         else:
             # Otherwise, show an error or let the user select from
             # a list of scopes.
@@ -127,7 +127,7 @@ def matrix_report(request):
                          ("Subnet matrix", False)]
             page.scopes = []
             for scope in databasescopes:
-                page.scopes.append(scope[0])
+                page.scopes.append(scope)
 
             return HttpResponse(page.respond())
 
@@ -181,12 +181,12 @@ def report_list(request):
     request.content_type = "text/html"
 
     # Default config
-    report_list = ReportList(config_file_package).getReportList()
+    report_list = ReportList(config_file_package).get_report_list()
     map(itemgetter(1), report_list)
     report_list = sorted(report_list, key=itemgetter(1))
 
     # Local config
-    report_list_local = ReportList(config_file_local).getReportList()
+    report_list_local = ReportList(config_file_local).get_report_list()
     map(itemgetter(1), report_list_local)
     report_list_local = sorted(report_list_local, key=itemgetter(1))
 
@@ -225,7 +225,7 @@ def make_report(request, report_name, export_delimiter, query_dict):
     cache_name = 'report_' + username + '_' + '_' + report_name + str(mtime_config)
 
     def _fetch_data_from_db():
-        (report, contents, neg, operator, adv, config, dbresult) = gen.makeReport(report_name, config_file_package, config_file_local, query_dict, None, None)
+        (report, contents, neg, operator, adv, config, dbresult) = gen.make_report(report_name, config_file_package, config_file_local, query_dict, None, None)
         if not report:
             raise Http404
         result_time = strftime("%H:%M:%S", localtime())
@@ -244,7 +244,7 @@ def make_report(request, report_name, export_delimiter, query_dict):
             # then ends up being None.
             (report, contents, neg, operator, adv, result_time) = _fetch_data_from_db()
         else:
-            (report, contents, neg, operator, adv) = gen.makeReport(report_name, None, None, query_dict, config_cache, dbresult_cache)
+            (report, contents, neg, operator, adv) = gen.make_report(report_name, None, None, query_dict, config_cache, dbresult_cache)
             result_time = cache.get(cache_name)[8]
             dbresult = dbresult_cache
 

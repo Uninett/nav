@@ -7,21 +7,9 @@ PortAdmin - {{ netbox.get_short_sysname }}
 
 {% block content %}
 
-
 {% if interfaces %}
 
 <div id="infoboxcontainer">
-
-	{% if errors %}
-	<div id="errors" class="infobox">
-		<h4>ERROR</h4>
-		<ul>
-		{% for error in errors %}
-			<li>{{ error }}</li>
-		{% endfor %}
-		</ul>
-	</div>
-	{% endif %}
 
 	{% if aliastemplate %}
 	<div class="infobox">
@@ -59,8 +47,10 @@ PortAdmin - {{ netbox.get_short_sysname }}
             title="OperStatus - If red there is no link on the interface">O
         </th>
         <th class="ifalias">Port Description</th>
-        <th class="vlan">Vlan</th>
-        <th class="button">&nbsp;</th>
+        <th class="vlan text-center">Vlan</th>
+        {% if voice_vlan %}
+            <th class="voicevlan">Tel</th>
+        {% endif %}
     </tr>
     </thead>
 
@@ -77,6 +67,8 @@ PortAdmin - {{ netbox.get_short_sysname }}
             <img title="OperStatus - If red there is no link on the interface" src="/images/lys/{{ interface.ifoperstatus|drawLight }}" />
         </td>
 
+
+        {% comment %}IFALIAS{% endcomment %}
         <td>
             {% if interface.iseditable %}
                 <input class="ifalias" type="text"
@@ -87,17 +79,29 @@ PortAdmin - {{ netbox.get_short_sysname }}
             {% endif %}
         </td>
 
-        <td>
-			{% if interface.trunk %}
-			    Trunk
+        {% comment %}
+        If interface is a trunk, display link to trunk_edit if allowed
+        If interface is not a trunk, display dropdown to choose vlan, or if
+        not allowed to edit display access vlan
+        {% endcomment %}
+        <td class="text-center">
+			{% if interface.trunk and not interface.voice_activated %}
+                <a href="{% url portadmin-render-trunk-edit interface.id %}">
+    			    Trunk
+                </a>
             {% else %}
                 {% if interface.iseditable %}
                     <select class="vlanlist" name="{{ interface.ifname }}">
                         {% for vlan in allowed_vlans %}
-                            <option value="{{ vlan.vlan }}" {% if interface.vlan == vlan.vlan %}selected="selected" data-orig="{{ vlan.vlan }}"{% endif %}>
-                                {{ vlan.vlan }}
-                            </option>
+                            {% if not interface.voice_activated or vlan.vlan != voice_vlan %}
+                                <option value="{{ vlan.vlan }}" {% if interface.vlan == vlan.vlan %}selected="selected" data-orig="{{ vlan.vlan }}"{% endif %}>
+                                    {{ vlan.vlan }}
+                                </option>
+                            {% endif %}
                         {% endfor %}
+                        <option value="trunk" data-url="{% url portadmin-render-trunk-edit interface.id %}">
+                            Trunk
+                        </option>
                     </select>
                 {% else %}
                     {{ interface.vlan|default_if_none:'' }}
@@ -105,13 +109,43 @@ PortAdmin - {{ netbox.get_short_sysname }}
             {% endif %}
 		</td>
 
-		<td>
-			{% if interface.iseditable %}
-			<img src="/images/icons/edit-undo.png" class="undo" alt="Set as unchanged" title="Set as unchanged"/>
-			<img src="/images/portadmin/save.png" class="save" alt="Save" title="Save"/>
-			{% endif %}
-		</td>
+
+        {% comment %}
+        If voice is activated the interface is a trunk. This need to check
+        specifically for this.
+        {% endcomment %}
+        {% if voice_vlan %}
+            <td class="text-center">
+            {% if interface.voice_activated or not interface.trunk %}
+                <input class="voicevlan"
+                       type="checkbox"
+                       name="voice_vlan"
+                       data-orig="{{ interface.voice_activated|default:'false' }}"
+                       {% if interface.voice_activated %}checked{% endif %}
+                       {% if not interface.iseditable %}disabled="disabled"{% endif %}>
+            {% else %}
+                &nbsp;
+            {% endif %}
+            </td>
+        {% endif %}
 	</tr>
+
+
+    {% comment %}
+    This row is the "action" row that contains the buttons for saving and
+    undoing the changes in the above row.
+
+    The div is only there to make sure the slide functions work. If slide
+    functionality is removed, remove the div aswell.
+    {% endcomment %}
+    <tr class="actionrow" data-mother-row="{{ interface.id }}">
+        <td colspan="10">
+            <div class="slider" style="display: none">
+                <span><button class="save">Save</button></span>
+                <span><button class="undo">Undo</button></span>
+            </div>
+        </td>
+    </tr>
 	{% endfor %}
     </tbody>
 

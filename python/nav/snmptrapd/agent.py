@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010 UNINETT AS
+# Copyright (C) 2010, 2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,11 +14,15 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Trap manager functionality for snmptrapd."""
-from nav.Snmp import backend
+import logging
+from nav.Snmp import BACKEND
 
-if backend == 'v2':
-    from agent_v2 import *
-elif backend == 'se':
-    from agent_se import *
+if BACKEND == 'v2':
+    from .agent_v2 import *
+elif BACKEND == 'se':
+    from .agent_se import *
+elif BACKEND == 'pynetsnmp':
+    from .agent_pynetsnmp import *
 else:
-    raise ImportError("No supported version of PySNMP available")
+    raise ImportError("No supported SNMP backend was found")
+

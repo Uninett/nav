@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2004,2005 Norwegian University of Science and Technology
 #
@@ -14,9 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
-# Python Standard library
-import sys, string, os, exceptions
+"""RADIUS service checker"""
 
 # NAV ServiceMonitor-modules
 from nav.statemon.abstractChecker import AbstractChecker
@@ -27,6 +24,7 @@ from nav.statemon.event import Event
 import pyrad.packet
 from pyrad.client import Client
 from pyrad.dictionary import Dictionary
+
 
 class RadiusChecker(AbstractChecker):
     """
@@ -62,28 +60,43 @@ class RadiusChecker(AbstractChecker):
         return Event.DOWN, str(sys.exc_value)
     """
     # TODO: Check for IPv6 compatibility in pyrad
+    TYPENAME = "radius"
+    DESCRIPTION = "RADIUS"
+    ARGS = (
+        ('dictionary', 'Full path to a file containing the dictionary for '
+                       'this radius server'),
+    )
+    OPTARGS = (
+        ('username', 'A valid RADIUS username'),
+        ('password', 'Clear-text password for username'),
+        ('identifier', "This client's RADIUS identifier"),
+        ('secret', 'A RADIUS secret for this client'),
+    )
+
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "radius", service, port=1812, **kwargs)
+        AbstractChecker.__init__(self, service, port=1812, **kwargs)
 
     def execute(self):
         args = self.getArgs()
+        #pylint: disable=W0703
         try:
-            username = args.get("username","")
-            password = args.get("password","")
-            rad_secret = args.get("secret","")
-            identifier = args.get("identifier","")
-            dictionary = args.get("dictionary","") # or "dictionary"
-            ip, port = self.getAddress()
+            username = args.get("username", "")
+            password = args.get("password", "")
+            rad_secret = args.get("secret", "")
+            identifier = args.get("identifier", "")
+            dictionary = args.get("dictionary", "")  # or "dictionary"
+            ip, _port = self.getAddress()
             srv = Client(server=ip, secret=rad_secret,
                          dict=Dictionary(dictionary))
             req = srv.CreateAuthPacket(code=pyrad.packet.AccessRequest,
-                    User_Name=username, NAS_Identifier=identifier)
+                                       User_Name=username,
+                                       NAS_Identifier=identifier)
             req["User-Password"] = req.PwCrypt(password)
-            reply = srv.SendPacket(req)
-        except Exception, e:
+            srv.SendPacket(req)
+        except Exception as err:
             return (Event.DOWN,
                     "Failed connecting to %s: %s)" %
-                    (self.getAddress(), str(e)))
-        version = "FreeRadius 1.0" # Fetch from radiusmonitor later.
+                    (self.getAddress(), str(err)))
+        version = "FreeRadius 1.0"  # Fetch from radiusmonitor later.
         self.setVersion(version) 
         return Event.UP, "Radius: " + version

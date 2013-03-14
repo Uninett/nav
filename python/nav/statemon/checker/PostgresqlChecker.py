@@ -14,19 +14,33 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""PostgreSQL service checker"""
 
 import psycopg2
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
+
 class PostgresqlChecker(AbstractChecker):
+    """PostgreSQL"""
+    TYPENAME = "postgresql"
     IPV6_SUPPORT = True
+    DESCRIPTION = "PostgreSQL"
+    ARGS = (
+        ('user', ''),
+        ('password', ''),
+    )
+    OPTARGS = (
+        ('port', ''),
+        ('timeout', ''),
+        ('database', ''),
+    )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, 'postgresql', service,  port=5432, **kwargs)
+        AbstractChecker.__init__(self, service,  port=5432, **kwargs)
 
     def execute(self):
-        kw = {}
+        kwargs = {}
 
         # Build keywords from arguments
         args = self.getArgs()
@@ -34,17 +48,16 @@ class PostgresqlChecker(AbstractChecker):
             if name in ('user', 'password', 'database'):
                 # Must convert to str here because psycopg2 complains
                 # if keywords are unicode. ("Keywords must be strings")
-                kw[str(name)] = value
+                kwargs[str(name)] = value
                 
-        (kw['host'], kw['port']) = self.getAddress()
-        
-        print(kw)
+        (kwargs['host'], kwargs['port']) = self.getAddress()
 
+        #pylint: disable=W0703
         try:
-            psycopg2.connect(**kw)
-        except Exception, e:
+            psycopg2.connect(**kwargs)
+        except Exception as err:
             # Get first line of exception message
-            msg = str(e).split('\n')[0]
-            return (Event.DOWN, msg)
+            msg = str(err).split('\n')[0]
+            return Event.DOWN, msg
 
-        return (Event.UP, 'alive')
+        return Event.UP, 'alive'

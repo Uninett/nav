@@ -20,6 +20,52 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 3.14
+========
+
+To see the overview of scheduled features and reported bugs on the 3.14 series
+of NAV, please go to https://launchpad.net/nav/3.14 .
+
+Dependency changes
+------------------
+
+- The `pynetsnmp` library is still optional (for the time being) and
+  recommended, but is **required** if IPv6 SNMP support is needed.
+
+IPv6
+----
+
+NAV 3.14 supports SNMP over IPv6, and most of the service monitors can now
+also support IP devices with an IPv6 address in NAV. When adding a service
+monitor in SeedDB, any monitor that doesn't support IPv6 will be marked as
+such.
+
+NAV will also properly configure Cricket with IPv6 addresses, but Cricket's
+underlying SNMP library *needs two optional Perl modules* to be installed to
+enable IPv6. These modules are:
+
+* `Socket6`
+* `IO::Socket::INET6`
+
+On Debian/Ubuntu these two are already in the Recommends list of the
+`libsnmp-session-perl` package (Cricket's underlying SNMP library); depending
+on your Apt configuration, they may or may not have been installed
+automatically when the `cricket` package was installed.
+
+
+Files to remove
+---------------
+
+If any of the following files and directories are still in your installation
+after upgrading to NAV 3.14, they should be removed (installation prefix has
+been stripped from these file names).  If you installed and upgraded NAV using
+a packaging system, you should be able to safely ignore this section::
+
+  etc/rrdviewer/
+  lib/python/nav/statemon/checker/*.descr
+  share/htdocs/js/portadmin.js
+
+
 NAV 3.13
 ========
 
@@ -31,6 +77,8 @@ Dependency changes
 
 - NAV no longer requires Java. Consequently, the PostgreSQL JDBC driver is no
   longer needed either.
+- To use the new `netbiostracker` system, the program ``nbtscan`` must be
+  installed.
 
 New eventengine
 ---------------
@@ -42,6 +90,57 @@ There is now a single log file for the `eventengine`, the lower-cased
 ``eventengine.log``. The ``eventEngine.log`` log file and the ``eventEngine``
 log directory can safely be removed.
 
+New alert message template system
+---------------------------------
+
+As a consequence of the `eventEngine` rewrite, alert message templates are no
+longer stored in the ``alertmsg.conf`` file. Instead, `Django templates`_ are
+used as the basis of alert message templates, and each template is stored in
+an event/alert hierarchy below the ``alertmsg/`` directory.
+
+Also, NAV 3.13 no longer provides Norwegian translations of these templates.
+
+The hierarchy/naming conventions in the ``alertmsg/`` directory are as follows::
+
+  <event type>/<alert type>-<medium>.[<language>.]txt
+
+The `<event type>` is one of the available event types in NAV, whereas `<alert
+type>` is one of the alert types associated with the event type. `<medium>` is
+one of the supported alert mediums, such as `email`, `sms` or `jabber`. A two
+letter language code is optional; if omitted, English will be assumed.
+
+To make a Norwegian translation of the ``boxState/boxDown-email.txt``
+template, copy the file to ``boxState/boxDown-email.no.txt`` and translate the
+text inside the copied file.
+
+Variables available in the template context include:
+
+* `source`
+* `device`
+* `netbox`
+* `subid`
+* `time`
+* `event_type`
+* `alert_type`
+* `state`
+* `value`
+* `severity`
+
+Some of these, such as the `netbox` variable, are Django models, and will
+enable access to query related information in the NAV database. Various
+attributes accessible through the `netbox` variable include:
+
+* `netbox.sysname`
+* `netbox.room`
+* `netbox.room.location`
+* `netbox.category`
+* `netbox.organization`
+
+Also, since `Django templates`_ are used, you have the full power of its
+template tag library to control and customize the appearance of an alert
+message based on the available variables.
+
+.. `_Django templates`: https://docs.djangoproject.com/en/1.2/ref/templates/
 
 VLANs
 -----
