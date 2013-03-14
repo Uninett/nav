@@ -47,6 +47,11 @@ Quick example:
 """
 
 CONFIG_FILE = 'rrdviewer/rrdviewer.conf'
+DEFAULT_CONFIG = {
+    'file_prefix': '/tmp/rrd_',
+    'file_suffix': '.gif',
+}
+
 import nav.db
 import nav.config
 import time
@@ -520,7 +525,7 @@ class Presentation(object):
         """ generates a image using rrdtool of given data sources in
          a Presenter() instance
         """
-        config = nav.config.read_flat_config(CONFIG_FILE)
+        config = get_rrdviewer_config()
         id = str(random.randint(1, 10 ** 9))
         image_filename = config['file_prefix'] + id + config['file_suffix']
         rrd_params = (image_filename,) + rrd_params
@@ -586,10 +591,20 @@ def graph(request, id):
     """ Renders a graph request from mod_python
     :param id id of stored graph to render
     """
-    config = nav.config.read_flat_config(CONFIG_FILE)
+    config = get_rrdviewer_config()
     filename = config['file_prefix'] + id + config['file_suffix']
     request.content_type = 'image/gif'
     request.send_http_header()
     file = open(filename)
     request.write(file.read())
     file.close()
+
+
+def get_rrdviewer_config():
+    """Returns an rrdviewer config dictionary"""
+    config = DEFAULT_CONFIG.copy()
+    try:
+        config.update(nav.config.read_flat_config(CONFIG_FILE))
+    except IOError:
+        pass
+    return config
