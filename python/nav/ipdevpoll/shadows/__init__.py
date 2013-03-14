@@ -40,6 +40,8 @@ from .swportblocked import SwPortBlocked
 from .cam import Cam
 from .adjacency import AdjacencyCandidate, UnrecognizedNeighbor
 
+PREFIX_AUTHORITATIVE_CATEGORIES = ('GW', 'GSW')
+
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
 
@@ -488,6 +490,15 @@ class Prefix(Shadow):
     __shadowclass__ = manage.Prefix
     __lookups__ = [('net_address', 'vlan'), 'net_address']
 
+    def save(self, containers):
+        if self.get_existing_model():  # I already exist in the db
+            netbox = containers.get(None, Netbox).get_existing_model()
+            if netbox.category_id not in PREFIX_AUTHORITATIVE_CATEGORIES:
+                self._logger.debug(
+                    "not updating existing prefix %s for box of category %s",
+                    self.net_address, netbox.category_id)
+                return
+        return super(Prefix, self).save(containers)
 
 class GwPortPrefix(Shadow):
     __shadowclass__ = manage.GwPortPrefix
