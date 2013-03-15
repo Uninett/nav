@@ -186,9 +186,9 @@ define([
             });
         },
 
-        sysnameFromLinkObjectOrGraphModelFetch: function (source, target) {
-            var sourceSysname = (_.isObject(source) ? source.data.sysname : source);
-            var targetSysname = (_.isObject(target) ? target.data.sysname : target);
+        sysnameFromLinkObjectOrGraphModelFetch: function (linkOrGraph) {
+            var sourceSysname = (_.isObject(linkOrGraph.source) ? linkOrGraph.source.data.sysname : linkOrGraph);
+            var targetSysname = (_.isObject(linkOrGraph.target) ? linkOrGraph.target.data.sysname : linkOrGraph);
             return sourceSysname+"-"+targetSysname;
         },
         updateTopologyGraph: function (newTopologyGraphJSON) {
