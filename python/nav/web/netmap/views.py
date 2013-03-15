@@ -54,12 +54,19 @@ def backbone_app(request):
     if AccountGroup.ADMIN_GROUP in session_user.get_groups():
         link_to_admin = reverse('netmap-admin-views')
 
+    available_categories = serializers.serialize('json',
+                          Category.objects.all(),
+                          fields=('description'))
+
+    # add fictive category ELINK
+    available_categories = available_categories[:-1] + ',{"pk": "ELINK", "model": "models.category", "fields": {"description": "ELINK"}}]'
+
     response = render_to_response(
         'netmap/backbone.html',
         {
             'bootstrap_mapproperties_collection': get_maps(request),
             'bootstrap_isFavorite': get_global_defaultview(request),
-            'bootstrap_availableCategories': serializers.serialize('json', Category.objects.all(), fields=('description')),
+            'bootstrap_availableCategories': available_categories,
             'auth_id': session_user.id,
             'link_to_admin': link_to_admin,
             'navpath': [('Home', '/'), ('Netmap', '/netmap')]
