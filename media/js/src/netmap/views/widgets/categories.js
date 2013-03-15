@@ -14,8 +14,7 @@ define([
         broker: Backbone.EventBroker,
         interests: {
             "netmap:graph:isDoneLoading": "setIsViewEnabled",
-            "netmap:changeMapProperties": "updateFiltersFromBroadcast",
-            "netmap:setMapProperties:done": "updateFiltersFromBroadcast"
+            "netmap:changeActiveMapProperty": "updateFiltersFromBroadcast"
         },
         events: {
             'click input[name="categories[]"]': 'updateFilters'
@@ -27,17 +26,7 @@ define([
 
             if (!this.model) {
                 this.model = Resources.getActiveMapModel();
-
-                var missingDjangoCategoriesModels = _.reject(Resources.getAvailableCategories(), function (r) {
-                    return self.model.get('categories').find(function (c) {
-                        return c.get('name') === r.pk;
-                    });
-                });
-
-                _.each(missingDjangoCategoriesModels, function (m) {
-                    self.model.get('categories').add({name: m.pk, is_selected: false});
-                });
-
+                this.addMissingDjangoCategoriesModels();
             }
 
             this.model.get("categories").bind("change", this.render, this);
@@ -74,9 +63,21 @@ define([
                 categoryToUpdate.set({'is_selected': $(e.currentTarget).prop('checked')});
             }
         },
-        updateFiltersFromBroadcast: function (mapProperties) {
-            this.model.set('categories', mapProperties.get('categories'));
+        addMissingDjangoCategoriesModels: function () {
+            var self = this;
+            var missingDjangoCategoriesModels = _.reject(Resources.getAvailableCategories(), function (r) {
+                return self.model.get('categories').find(function (c) {
+                    return c.get('name') === r.pk;
+                });
+            });
 
+            _.each(missingDjangoCategoriesModels, function (m) {
+                self.model.get('categories').add({name: m.pk, is_selected: false});
+            });
+        },
+        updateFiltersFromBroadcast: function (mapProperties) {
+            this.model = mapProperties;
+            this.addMissingDjangoCategoriesModels();
             this.render();
         },
 
