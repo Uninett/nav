@@ -23,16 +23,28 @@ define([
         routes: {
             'view/random': 'showRandomView',
             'view/:map_id': 'showView',
+            'view/:map_id/vlan/:vlan_id': 'showViewWithVlanSelected',
+            'vlan/:vlan_id': 'showRandomViewWithVlanSelected',
             '': 'showFavoriteViewOrLoadGeneric'
+        },
+        _setMapId: function (mapId) {
+            var mapIdAsInteger = parseInt(mapId, 10);
+            Resources.setViewId(mapIdAsInteger);
+            return mapIdAsInteger;
         },
         // Routes below here
         showRandomView: function () {
             this.showView(null);
         },
+        showRandomViewWithVlanSelected: function (vlanId) {
+            this.showViewWithVlanSelected(null, vlanId);
+        },
         showView: function(mapId) {
-            var mapIdAsInteger = parseInt(mapId, 10);
-            Resources.setViewId(mapIdAsInteger);
-            this.loadUi(mapIdAsInteger);
+            this.loadUi(this._setMapId(mapId), null);
+        },
+        showViewWithVlanSelected: function(mapId, vlanId) {
+            var vlanIdAsInteger= parseInt(vlanId, 10);
+            this.loadUi(this._setMapId(mapId), vlanIdAsInteger);
         },
         showFavoriteViewOrLoadGeneric: function() {
             var favorite = Resources.getMapCollection().getFavorite();
@@ -44,13 +56,14 @@ define([
 
         },
 
-        loadUi: function (viewId) {
+        loadUi: function (viewId, vlanId) {
             var self = this;
             this.viewInfo = Backbone.View.prototype.attachSubView(this.viewInfo, InfoView, '#netmap_infopanel');
             this.viewNavigation = Backbone.View.prototype.attachSubView(this.viewNavigation, NavigationView, '#netmap_left_sidebar');
 
             self.view_map = new DrawNetmapView({
                 viewid: viewId,
+                nav_vlanid: {'navVlanId': vlanId },
                 view_map_info: self.view_map_info,
                 cssWidth: $('#netmap_main_view').width()
             });

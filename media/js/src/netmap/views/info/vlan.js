@@ -17,24 +17,24 @@ define([
                 return (value && typeof value === 'string') ? value.toLowerCase() : '';
             });
             this.vlans = this.options.vlans;
-            this.selected_vlan = undefined;
+            this.selectedVLANObject = undefined;
         },
         render: function () {
             var self = this;
 
             if (self.vlans !== undefined && self.vlans) {
                 // Mark selected vlan in metadata for template.
-                if (self.selected_vlan !== undefined && self.selected_vlan) {
+                if (self.selectedVLANObject !== undefined && self.selectedVLANObject) {
                     for (var i = 0; i < self.vlans.length; i++) {
                         var vlan = self.vlans[i];
-                        vlan.is_selected = vlan.nav_vlan === self.selected_vlan.navVlanId;
+                        vlan.is_selected = vlan.nav_vlan === self.selectedVLANObject.navVlanId;
                     }
                 } else {
                     _.each(self.vlans, function (vlan) {
                         vlan.is_selected = false;
                     });
                 }
-                var out = this.template({ vlans: self.vlans, selected_vlan: self.selected_vlan});
+                var out = this.template({ vlans: self.vlans, selectedVLANObject: self.selectedVLANObject});
                 this.$el.html(out);
             } else {
                 this.$el.empty();
@@ -47,20 +47,20 @@ define([
         },
         showVlan: function (e) {
             e.stopPropagation();
-            this.selected_vlan = {
+            this.selectedVLANObject = {
                 navVlanId: $(e.currentTarget).data().navVlan,
                 displayText: $(e.currentTarget).html()
             };
-            this.broker.trigger('netmap:selectVlan', this.selected_vlan);
+            this.broker.trigger('netmap:selectVlan', this.selectedVLANObject);
             this.render();
         },
         setSelectedVlan: function (selected_vlan) {
-            this.selected_vlan = selected_vlan;
+            this.selectedVLANObject = selected_vlan;
             this.render();
         },
         reset: function () {
             this.vlans = undefined;
-            this.selected_vlan = undefined;
+            this.selectedVLANObject = undefined;
             this.broker.trigger('netmap:selectVlan', null);
             this.render();
         },

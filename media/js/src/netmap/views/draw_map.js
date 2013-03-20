@@ -46,7 +46,7 @@ define([
             this.zoom = d3.behavior.zoom();
 
             this.selected_node = null;
-            this.selected_vlan = null;
+            this.selectedVLANObject = (!!this.options.nav_vlanid ? this.options.nav_vlanid : null);
             this.ui = {
                 'mouseover': {
                     'nodes': false,
@@ -331,13 +331,13 @@ define([
             this.ui.mouseover[mouseOverModel.get('name')] = mouseOverModel.get('is_selected');
         },
         setUIVLANSelection: function (navVlanID) {
-            this.selected_vlan = navVlanID;
+            this.selectedVLANObject = navVlanID;
             this.updateRenderVLAN(navVlanID);
         },
         isSelectedVlanInList: function (vlansList) {
             var self = this;
             return _.some(vlansList, function (vlan) {
-                return self.selected_vlan.navVlanId === vlan.nav_vlan;
+                return self.selectedVLANObject.navVlanId === vlan.nav_vlan;
             });
         },
         setMapProperty: function (newActiveMapPropertyModel) {
@@ -385,7 +385,7 @@ define([
             this.unselectVLANSelectionOnConditionsAndRender(nodeObject.data.vlans);
 
             this.broker.trigger("netmap:selectNetbox", {
-             'selectedVlan': this.selected_vlan,
+             'selectedVlan': this.selectedVLANObject,
              'netbox': nodeObject
              });
         },
@@ -393,15 +393,15 @@ define([
             this.unselectVLANSelectionOnConditionsAndRender(linkObject.data.uplink.vlans);
 
             this.broker.trigger("netmap:selectLink", {
-                'selectedVlan': this.selected_vlan,
+                'selectedVlan': this.selectedVLANObject,
                 'link': linkObject
             });
         },
         unselectVLANSelectionOnConditionsAndRender: function (vlansList) {
             // Unselect vlan selection if new node/link doesn't contain selected_vlan
-            if (this.selected_vlan && !this.isSelectedVlanInList(vlansList)) {
-                this.selected_vlan = null;
-                this.updateRenderVLAN(this.selected_vlan);
+            if (this.selectedVLANObject && !this.isSelectedVlanInList(vlansList)) {
+                this.selectedVLANObject = null;
+                this.updateRenderVLAN(this.selectedVLANObject);
             }
         },
         search: function (query) {
@@ -424,16 +424,16 @@ define([
                     "translate(" + this.trans + ") scale(" + this.scale + ")");
             }
         },
-        updateRenderVLAN: function (vlan) {
+        updateRenderVLAN: function (vlanObject) {
             var self = this;
-            self.selected_vlan = vlan;
+            self.selectedVLANObject = vlanObject;
 
             var markVlanNodes = self.nodes.filter(function (nodeObject) {
 
-                if (nodeObject.data.vlans !== undefined && nodeObject.data.vlans && self.selected_vlan) {
+                if (nodeObject.data.vlans !== undefined && nodeObject.data.vlans && self.selectedVLANObject) {
                     for (var i = 0; i < nodeObject.data.vlans.length; i++) {
                         var vlan = nodeObject.data.vlans[i];
-                        if (vlan.nav_vlan === self.selected_vlan.navVlanId) {
+                        if (vlan.nav_vlan === self.selectedVLANObject.navVlanId) {
                             return true;
                         }
                     }
@@ -442,10 +442,10 @@ define([
             });
 
             var markVlanLinks = self.links.filter(function (linkObject) {
-                if (linkObject.data.uplink.vlans !== undefined && linkObject.data.uplink.vlans && self.selected_vlan) {
+                if (linkObject.data.uplink.vlans !== undefined && linkObject.data.uplink.vlans && self.selectedVLANObject) {
                     for (var i = 0; i < linkObject.data.uplink.vlans.length; i++) {
                         var vlan = linkObject.data.uplink.vlans[i];
-                        if (vlan.nav_vlan === self.selected_vlan.navVlanId) {
+                        if (vlan.nav_vlan === self.selectedVLANObject.navVlanId) {
                             return true;
                         }
                     }
@@ -460,7 +460,6 @@ define([
             var linksInVlan = self.linksInVLAN = self.selectedLinkGroupRoot.selectAll("g line").data(markVlanLinks, function (linkObject) {
                 return linkObject.source.id + "-" + linkObject.target.id;
             });
-
 
 
             nodesInVLAN.enter()
@@ -849,7 +848,7 @@ define([
             this.updateRenderTopologyErrors();
             this.updateRenderCategories();
             this.updateRenderOrphanFilter();
-            this.updateRenderVLAN();
+            this.updateRenderVLAN(this.selectedVLANObject);
             this.updateRenderNodes();
             this.updateRenderLinks();
             this.updateRenderGroupByPosition();

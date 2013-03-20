@@ -73,7 +73,7 @@ define([
         },
         reset: function () {
             this.link = undefined;
-            this.selected_vlan = undefined;
+            this.selectedVLANObject = undefined;
             this.vlanView.setVlans(undefined);
             this.render();
         },
