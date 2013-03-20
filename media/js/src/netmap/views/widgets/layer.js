@@ -13,10 +13,11 @@ define([
 
         broker: Backbone.EventBroker,
         interests: {
-            "netmap:graph:isDoneLoading": "setIsViewEnabled"
+            "netmap:graph:isDoneLoading": "setIsViewEnabled",
+            "netmap:changeActiveMapProperty": "setTopologyFromChangedActiveMapProperty"
         },
         events: {
-            'click input[name="topology[]"]': 'setTopology'
+            'click input[name="topology[]"]': 'setTopologyFromDOM'
 
         },
         initialize: function () {
@@ -58,14 +59,18 @@ define([
             // so user's using graph model can update selected topology
             this.broker.trigger("netmap:changeTopology", model.get('value'));
         },
-
-        setTopology: function (e) {
+        setTopologyFromChangedActiveMapProperty: function (newActiveMapProperty) {
+            this.setTopology(newActiveMapProperty.get("topology"));
+        },
+        setTopologyFromDOM: function (e) {
             this.broker.trigger("map:topology_change:loading");
-
-            var itemInCollection = this.collection.get($(e.currentTarget).val());
+            this.setTopology($(e.currentTarget).val());
+        },
+        setTopology: function (layerID) {
+            var itemInCollection = this.collection.get(layerID);
             if (itemInCollection) {
                 this.collection.clearIsSelectedStatus();
-                itemInCollection.set({'is_selected': $(e.currentTarget).prop('checked')});
+                itemInCollection.set({'is_selected': true});
                 this.render();
             }
         },
