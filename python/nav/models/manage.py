@@ -1377,7 +1377,7 @@ class Netbios(models.Model):
 
     id = models.AutoField(db_column='netbiosid', primary_key=True)
     ip = models.IPAddressField()
-    mac = models.CharField(max_length=17)
+    mac = models.CharField(max_length=17, blank=False, null=True)
     name = VarcharField()
     server = VarcharField()
     username = VarcharField()
