@@ -11,10 +11,11 @@ define([
 
         broker: Backbone.EventBroker,
         interests: {
-            "netmap:graph:isDoneLoading": "setIsViewEnabled"
+            "netmap:graph:isDoneLoading": "setIsViewEnabled",
+            "netmap:changeActiveMapProperty": "setOrphansFilterFromChangedActiveMapProperty"
         },
         events: {
-            'click input[name="filter_orphans"]': 'setOrphansFilter'
+            'click input[name="filter_orphans"]': 'setOrphansFilterFromDOM'
         },
         initialize: function () {
             this.broker.register(this);
@@ -23,7 +24,6 @@ define([
             if (!this.model) {
                 this.model = Resource.getActiveMapModel();
             }
-
             this.model.bind("change:displayOrphans", this.render, this);
             return this;
         },
@@ -38,7 +38,10 @@ define([
 
             return this;
         },
-        setOrphansFilter: function (e) {
+        setOrphansFilterFromChangedActiveMapProperty: function (newActiveMapProperty) {
+            this.model = newActiveMapProperty;
+        },
+        setOrphansFilterFromDOM: function (e) {
             this.model.set({'displayOrphans': !($(e.currentTarget).prop('checked'))});
         },
 
