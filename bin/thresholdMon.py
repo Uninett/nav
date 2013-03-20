@@ -52,8 +52,6 @@ start = time.time()
 exceptions = ['cpu5min', 'c5000BandwidthMax']
 # Default log-level, correspond to INFO
 log_level = 2
-# Extra slack in calculations
-downmodifier = 20
 logger = None
 
 
@@ -167,6 +165,10 @@ def _init_logger():
 def main(argv):
     """
     Main
+
+    TODO: Refactor this beast
+    - Find a sane way to introduce hysteresis
+
     """
     global log_level
     # First we get options from the commandline
@@ -197,13 +199,6 @@ def main(argv):
 
         logger.debug("-- NEW DATASOURCE (%s) --" % rrd_datasourceid)
         surpassed = 0
-
-        # These values are silly. They just show how much the maximum value
-        # ever in the life of the unit has been, which is totally useless to
-        # the thresholdMonitor
-        if exceptions.count(descr):
-            logger.debug("%s is in exceptions" % descr)
-            continue
 
         if threshold_max:
             try:
@@ -250,15 +245,6 @@ def main(argv):
             except ValueError, val_err:
                 logger.error("Illegal threshold %s: %s" % (str(threshold), val_err.message))
                 continue
-
-        # To prevent oscillation in case the value is just below the threshold
-        # we create a lower limit that has to be passed to really say that the
-        # crisis os over.
-        if thresholdstate == 'active':
-            if delimiter == '>':
-                threshold = threshold - downmodifier
-            elif delimiter == '<':
-                threshold = threshold + downmodifier
 
         if is_percent:
             logger.debug('Threshold is set as %s%%' % threshold)
