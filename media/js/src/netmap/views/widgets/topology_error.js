@@ -14,7 +14,7 @@ define([
             "netmap:graph:isDoneLoading": "setIsViewEnabled"
         },
         events: {
-            'click input[name="topologyErrors[]"]': 'setDisplayTopologyErrors'
+            'click input[name="topologyErrors[]"]': 'setDisplayTopologyErrorsFromDOM'
         },
         initialize: function () {
             this.broker.register(this);
@@ -41,11 +41,13 @@ define([
             );
             return this;
         },
-        setDisplayTopologyErrors: function (event) {
-            this.collection.at(0).set({'is_selected': $(event.currentTarget).prop('checked')});
+        setDisplayTopologyErrorsFromDOM: function (event) {
+            this.setDisplayTopology($(event.currentTarget).prop('checked'));
             this.broker.trigger('netmap:changeDisplayTopologyErrors', $(event.currentTarget).prop('checked'));
         },
-
+        setDisplayTopology: function (boolValue) {
+            this.collection.at(0).set({'is_selected': boolValue});
+        },
         close:function () {
             this.broker.unregister(this);
             $(this.el).unbind();
