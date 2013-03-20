@@ -1232,7 +1232,7 @@ class StatusPreferenceCategory(models.Model):
 
 
 # Make sure you update netmap-extras.js too if you change this! ;-)
-LINK_TYPES = (1, 'Layer 2'), \
+LINK_TYPES = (2, 'Layer 2'), \
 (3, 'Layer 3')
 
 class NetmapView(models.Model):
