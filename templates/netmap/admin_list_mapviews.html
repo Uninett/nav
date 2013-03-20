@@ -21,6 +21,7 @@
             <th>Description</th>
             <th>Topology</th>
             <th>Is public?</th>
+            <th>Owner</th>
             <th>Action</th>
         </tr>
 
@@ -33,6 +34,7 @@
         <td class="netmapview_description">{% if view.description %}{{view.description}}{% else %}N/A{% endif %}</td>
         <td class="netmapview_topology">{{view.topology_unicode}}</td>
         <td class="netmapview_is_public">{{view.is_public}}</td>
+        <td class="netmapview_owner">{{view.owner}}</td>
         <td class="netmapview_action">
             <form action="{{view.get_set_defaultview_url}}" method="post">
                 <input name="map_id" type="hidden" value="{{view.viewid}}" />
