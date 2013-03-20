@@ -330,9 +330,19 @@ define([
         setUIMouseOver: function (mouseOverModel) {
             this.ui.mouseover[mouseOverModel.get('name')] = mouseOverModel.get('is_selected');
         },
-        setUIVLANSelection: function (navVlanID) {
-            this.selectedVLANObject = navVlanID;
-            this.updateRenderVLAN(navVlanID);
+
+        setUIVLANSelection: function (vlanObject) {
+            if (!!vlanObject) {
+                if (Backbone.history.getFragment().match(/vlan\/\d+/g)) {
+                    Backbone.View.navigate(Backbone.history.getFragment().replace(/vlan\/\d+/g, "vlan/" + vlanObject.navVlanId));
+                } else {
+                    Backbone.View.navigate(Backbone.history.getFragment() + "/vlan/" + vlanObject.navVlanId);
+                }
+            }
+
+            this.selectedVLANObject = vlanObject;
+
+            this.updateRenderVLAN(vlanObject);
         },
         isSelectedVlanInList: function (vlansList) {
             var self = this;
@@ -343,6 +353,7 @@ define([
         setMapProperty: function (newActiveMapPropertyModel) {
             this.unbindActiveMapModel();
             this.options.activeMapModel = newActiveMapPropertyModel;
+            this.setUIVLANSelection(null);
             this.bindActiveMapModel();
 
             if (this.model.get('viewid') !== this.options.activeMapModel.get('viewid')) {
@@ -401,6 +412,7 @@ define([
             // Unselect vlan selection if new node/link doesn't contain selected_vlan
             if (this.selectedVLANObject && !this.isSelectedVlanInList(vlansList)) {
                 this.selectedVLANObject = null;
+                Backbone.View.navigate(Backbone.history.stripTrailingSlash(Backbone.history.getFragment().replace(/vlan\/\d+/g, "")));
                 this.updateRenderVLAN(this.selectedVLANObject);
             }
         },

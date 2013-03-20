@@ -218,6 +218,7 @@ define([
                 this.broker.trigger("netmap:changeActiveMapProperty", this.options.activeMapProperties);
 
                 Backbone.View.navigate("view/" + selected_id);
+                this.broker.trigger("netmap:selectVlan", null);
                 this.render();
                 // setGraph should be triggered by event next by draw_map
             }

@@ -79,6 +79,9 @@ define([
 
         // Extend the View class to include a navigation method goTo
         Backbone.View.navigate = self.app_router.navigate;
+        Backbone.history.stripTrailingSlash = function (stringValue) {
+            return stringValue.replace(/\/$/, "");
+        };
         Backbone.history.start();
     };
 
