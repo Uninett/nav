@@ -43,12 +43,6 @@ define([
             if (resp.categories) {
                 resp.categories = new CategoryCollection(resp.categories);
             }
-            if (resp.topology && resp.topology === 1) {
-                // see nav.models.profiles TOPOLOGY_TYPES , 1 == layer 2 topology
-                // todo: change topology value to 2 and ship a SQL migration
-                // and remove this hack.
-                resp.topology = 2;
-            }
             return resp;
         }
 
