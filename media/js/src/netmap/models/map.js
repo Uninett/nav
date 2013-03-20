@@ -43,6 +43,12 @@ define([
             if (resp.categories) {
                 resp.categories = new CategoryCollection(resp.categories);
             }
+            if (!!resp.display_orphans) {
+                resp.displayOrphans = resp.display_orphans;
+            }
+            if (!!resp.is_public) {
+                resp.isPublic = resp.is_public;
+            }
             return resp;
         }
 
