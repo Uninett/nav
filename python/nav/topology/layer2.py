@@ -20,6 +20,7 @@ from nav.topology.analyze import Port
 
 from nav.models.manage import Interface, Netbox
 from django.db import transaction
+from django.db.models import Q
 
 @transaction.commit_on_success
 def update_layer2_topology(links):
@@ -59,14 +60,17 @@ def _update_interface_topology(source_node, dest_node):
     ifc.update(**kwargs)
 
 def _clear_topology_for_nontouched(touched_ifc_ids):
-    """Clears topology information for all interfaces that are up, except for
-    those in the touched_ifc_ids list and those who currently have no
-    associated topology information.
+    """Clears topology information for all interfaces that are administratively
+    up, except for those in the touched_ifc_ids list and those who currently
+    have no associated topology information.
 
     """
-    touched_ifcs = Interface.objects.filter(ifadminstatus=Interface.ADM_UP,
-                                            netbox__up=Netbox.UP_UP)
-    nontouched_ifcs = touched_ifcs.exclude(id__in=touched_ifc_ids)
-    clearable_ifcs = nontouched_ifcs.exclude(to_netbox__isnull=True,
-                                             to_interface__isnull=True)
+    up_or_disabled = (
+        Q(ifoperstatus=Interface.OPER_UP) |
+        Q(ifadminstatus=Interface.ADM_DOWN)
+    )
+    up_or_disabled_ifcs = Interface.objects.filter(up_or_disabled,
+                                                   netbox__up=Netbox.UP_UP)
+    nontouched_ifcs = up_or_disabled_ifcs.exclude(id__in=touched_ifc_ids)
+    clearable_ifcs = nontouched_ifcs.exclude(to_netbox__isnull=True)
     clearable_ifcs.update(to_netbox=None, to_interface=None)

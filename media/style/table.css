@@ -140,13 +140,11 @@ table.listtable tbody.footer tr th, table.listtable tfoot tr th {
     padding-right: 1.5em;  /* Prevent text from overlapping image */
     cursor: pointer;
 }
-.tablesorter tbody td {
-    color: black;
+.tablesorter .even {
     background-color: white;
 }
-.tablesorter tbody tr.odd td {
+.tablesorter .odd {
     background-color:#f6f6f6;
-    color:black;
 }
 .tablesorter .headerSortUp {
     background-image: url('/images/tablesorter/asc.gif');

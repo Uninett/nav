@@ -1,4 +1,4 @@
-define(['libs/jquery'], function () {
+define(['libs/jquery', 'libs/spin.min'], function () {
     /*
      * GraphFetcher
      *
@@ -23,11 +23,10 @@ define(['libs/jquery'], function () {
         this.config = config;
 
         this.buttons = {'day': 'Day', 'week': 'Week', 'month': 'Month', 'year': 'Year'};
+        this.spinner = this.createSpinner();
 
-        // Hide node before doing anything
-        this.node.hide();
-        this.loadGraph('day');
         this.addButtons();
+        this.loadGraph('day');
     }
 
     GraphFetcher.prototype = {
@@ -65,11 +64,14 @@ define(['libs/jquery'], function () {
         },
         loadGraph: function (timeframe) {
             var that = this;
-            var jqxhr = $.get(this.url, {'timeframe': timeframe}, function (data) {
-                that.displayGraph(data.url);
-                that.selectButton(timeframe);
+            var requestData = {'timeframe': timeframe};
+            var jqxhr = $.ajax(this.url, {
+                data: requestData,
+                beforeSend: function () {
+                    that.spinner.spin(that.node.get(0));
+                }
             });
-            this.handleXhr(jqxhr);
+            this.handleXhr(jqxhr, requestData);
         },
         displayGraph: function (url) {
             var title = this.config.title || '';
@@ -84,21 +86,30 @@ define(['libs/jquery'], function () {
                 $('<img/>').attr(attrs).appendTo(this.node);
             }
         },
-        handleXhr: function (xhr) {
+        handleXhr: function (xhr, requestData) {
             var that = this;
             xhr.fail(function () {
                 if (!$('span.error', that.node).length) {
                     $('<span class="error"/>').text('Failed to load graph').appendTo(that.node);
                 }
             });
-            xhr.done(function () {
+            xhr.done(function (data) {
+                that.displayGraph(data.url);
+                that.selectButton(requestData.timeframe);
                 $('span.error', that).remove();
             });
             xhr.always(function () {
                 if (xhr.status != 503) {
                     that.node.show();
                 }
+                that.spinner.stop();
             });
+        },
+        createSpinner: function () {
+            var options = {};  // Who knows, maybe in the future?
+            /* Set a minimum height on the container so that the spinner displays properly */
+            this.node.css('min-height', '100px');
+            return new Spinner(options);
         }
     };
 

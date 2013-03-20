@@ -101,7 +101,7 @@ def _build_context(request):
                 if not isinstance(form.cleaned_data['category'], list):
                     categories = [form.cleaned_data['category']]
 
-                results = results.filter(category__in=categories)
+                results = results.filter(origin__category__in=categories)
 
             if 'origin' in form.cleaned_data and form.cleaned_data['origin']:
                 origin_name = form.cleaned_data['origin']
