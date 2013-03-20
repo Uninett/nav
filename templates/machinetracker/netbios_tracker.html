@@ -36,9 +36,13 @@
                     {{ row.name }}
                 </td>
                 <td>
-                    <a href="{% url machinetracker-mac_search row.mac form_data.days dns %}"
-                       title="Search for this MAC address">{{ row.mac }}
-                    </a>
+                    {% if row.mac %}
+                        <a href="{% url machinetracker-mac_search row.mac form_data.days dns %}"
+                           title="Search for this MAC address">{{ row.mac }}
+                        </a>
+                    {% else %}
+                        N/A
+                    {% endif %}
                 </td>
                 <td>
                     {{ row.server }}

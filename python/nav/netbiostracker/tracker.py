@@ -156,6 +156,6 @@ def create_entries(entries_to_create):
     """Create new netbios entries for the data given"""
     _logger.debug('Creating %s new entries', len(entries_to_create))
     for entry in entries_to_create:
-        netbios = Netbios(ip=entry.ip, mac=entry.mac, name=entry.name,
+        netbios = Netbios(ip=entry.ip, mac=entry.mac or None, name=entry.name,
                           server=entry.server, username=entry.username)
         netbios.save()
