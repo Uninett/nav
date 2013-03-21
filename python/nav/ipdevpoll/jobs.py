@@ -44,6 +44,11 @@ class AbortedJobError(Exception):
         Exception.__init__(self, msg, cause)
         self.cause = cause
 
+    def __str__(self):
+        return (str(self.args[0]) +
+                (" (cause=%r)" % self.cause if self.cause else ""))
+
+
 class SuggestedReschedule(AbortedJobError):
     """Can be raised by plugins to abort and reschedule a job at a specific
     later time, without necessarily logging it as a job failure.
@@ -177,7 +182,9 @@ class JobHandler(object):
         def log_plugin_failure(failure, plugin_instance):
             if failure.check(TimeoutError, defer.TimeoutError):
                 self._logger.debug("Plugin %s reported a timeout",
-                                   plugin_instance)
+                                   plugin_instance.alias,exc_info=True)
+                raise AbortedJobError(
+                    "Plugin %s reported a timeout" % plugin_instance.alias)
             elif failure.check(SuggestedReschedule):
                 self._logger.debug("Plugin %s suggested a reschedule in "
                                    "%d seconds",
