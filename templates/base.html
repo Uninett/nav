@@ -37,10 +37,28 @@
         <li class="name">
             <h1><a href="/">Network Administration Visualized</a></h1>
         </li>
+        <li class="toggle-topbar menu-icon">
+            <a href="#"><span>Menu</span></a>
+        </li>
     </ul>
 
 
     <section class="top-bar-section">
+        <ul class="left">
+            <li class="has-form">
+                <form action="/info/" method="get">
+                    <div class="row collapse">
+                        <div class="small-10 columns">
+                            <input id="query" type="text" name="query" maxlength="100" size="12"/>
+                        </div>
+                        <div class="small-2 columns">
+                            <input class="button" type="submit" value="Search" />
+                        </div>
+                    </div>
+                </form>
+            </li>
+        </ul>
+
         <ul class="right">
             <li><a href="#">Uninett</a></li>
             <li><a href="#">NAV Documentation</a></li>
