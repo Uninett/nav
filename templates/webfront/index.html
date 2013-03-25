@@ -9,36 +9,6 @@
 
 {% block base_content %}
 
-    <div class="boxes">
-        <table>
-            <tr>
-                <th>NAV Links</th>
-            </tr>
-            <tr>
-                <td>
-                    {% for title,link in nav_links.items %}
-                        <a href="{{ link }}">{{ title }}</a><br />
-                    {% endfor %}
-                </td>
-            </tr>
-        </table>
-        <table>
-            <tr>
-                <th>External links</th>
-            </tr>
-            <tr>
-                <td>{{ external_links|safe }}</td>
-            </tr>
-        </table>
-        <table>
-            <tr>
-                <th>Contact information</th>
-            </tr>
-            <tr>
-                <td>{{ contact_information|safe }}</td>
-            </tr>
-        </table>
-    </div>
 
     <div class="welcome">
         {{ welcome|safe }}
