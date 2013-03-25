@@ -1,5 +1,9 @@
 /* Custom base page styles */
 
+#sidebar .navlogo {
+    margin-top: 0.875em;
+}
+
 #sidebartools img {
     vertical-align: text-bottom;
 }
