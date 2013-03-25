@@ -60,9 +60,7 @@
 
 <div class="row">
 
-    {% comment %}
-      SIDEBAR
-    {% endcomment %}
+    {% comment %} SIDEBAR {% endcomment %}
     <div class="large-2 columns sidebar">
 
         <ul class="side-nav">
@@ -88,10 +86,7 @@
 
     </div>
 
-
-    {% comment %}
-      MAIN CONTENT
-    {% endcomment %}
+    {% comment %} MAIN CONTENT {% endcomment %}
     <div class="large-10 columns">
 
         {% block base_navbody_start %}<div id="navbody">{% endblock %}
@@ -100,21 +95,25 @@
         {% block base_navbody_end %}</div>{% endblock %}
 
     </div>
+
 </div>
 
-
+<hr />
 
 <footer class="row">
     <div class="large-12 columns">
-        <hr />
-        <a href="/about/">Network Administration Visualized</a>
-        version {{ nav_version }}
-        <br />
-        {% if current_user_data.account.is_default_account %}
-        You are not logged in.
-        {% else %}
-        You are logged in as <a href="/userinfo/">{{ current_user_data.account.name }}</a>.
-        {% endif %}
+        <p>
+            <a href="/about/">Network Administration Visualized</a>
+            version {{ nav_version }}
+        </p>
+
+        <p>
+            {% if current_user_data.account.is_default_account %}
+                You are not logged in.
+            {% else %}
+                You are logged in as <a href="/userinfo/">{{ current_user_data.account.name }}</a>.
+            {% endif %}
+        </p>
     </div>
 </footer>
 
