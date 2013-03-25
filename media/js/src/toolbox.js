@@ -63,16 +63,26 @@ require(['libs/jquery-ui-1.8.21.custom.min'], function () {
 
         function handleSaveClick() {
             /* Toggle visibility states and send current state to server */
-            $editbutton.show();
+            var jqxhr = $.post('savetools',
+                {'data': JSON.stringify(getTools())}
+            );
 
-            $savebutton.hide();
-            $info.hide();
-            $switchcells.hide();
+            jqxhr.done(function () {
+                $editbutton.show();
 
-            fadeAllIn();
+                $savebutton.hide();
+                $info.hide();
+                $switchcells.hide();
 
-            $.post('savetools', {'data': JSON.stringify(getTools())}, function () {
+                fadeAllIn();
+
                 $tbody.sortable('disable');
+
+                alertUser(true);
+            });
+
+            jqxhr.fail(function () {
+                alertUser(false);
             });
         }
 
@@ -92,6 +102,25 @@ require(['libs/jquery-ui-1.8.21.custom.min'], function () {
             /* Get the selected input element from the switch */
             var textState = $(row).find("input:checked").attr('data-state');
             return textState === "on";
+        }
+
+        function alertUser(success) {
+            var $alertBox = $('<div/>').addClass('alert-box');
+
+            if (success) {
+                $alertBox.addClass('success');
+                $alertBox.text('Changes saved');
+            } else {
+                $alertBox.addClass('alert');
+                $alertBox.text('Failed to save changes');
+            }
+
+            $alertBox.on('click', function () {
+                $(this).remove();
+            });
+
+            $('.buttoncontainer').before($alertBox);
+
         }
 
     });
