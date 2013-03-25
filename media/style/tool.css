@@ -15,4 +15,5 @@
 .switch-cell {
     font-size: 1em !important;  /* To fix layout for switch */
     vertical-align: middle;
+    display: none;
 }

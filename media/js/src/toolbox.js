@@ -6,10 +6,12 @@ require(['libs/jquery-ui-1.8.21.custom.min'], function () {
         var $savebutton = $('.buttoncontainer .savebutton');
         var $info = $('.buttoncontainer .info');
         var $tbody = $('#tool_list').find('tbody');
+        var $switchcells = $tbody.find('.switch-cell');
 
         $editbutton.click(handleEditClick);
         $savebutton.click(handleSaveClick);
 
+        /* Prepare sortable plugin - start disabled */
         $tbody.sortable({
             disabled: true
         }).disableSelection();
@@ -18,8 +20,11 @@ require(['libs/jquery-ui-1.8.21.custom.min'], function () {
         function handleEditClick() {
             /* Toggle visibility state and enable sorting  */
             $editbutton.hide();
+
             $savebutton.show();
             $info.show();
+            $switchcells.show();
+
             $tbody.sortable('enable');
         }
 
@@ -27,10 +32,14 @@ require(['libs/jquery-ui-1.8.21.custom.min'], function () {
         function handleSaveClick() {
             /* Toggle visibility states and send current state to server */
             $editbutton.show();
+
             $savebutton.hide();
             $info.hide();
+            $switchcells.hide();
+
+
             $.post('savetools', {'data': JSON.stringify(getTools())}, function () {
-                $('.toollist').sortable('disable');
+                $tbody.sortable('disable');
             });
         }
 
@@ -47,6 +56,7 @@ require(['libs/jquery-ui-1.8.21.custom.min'], function () {
         }
 
         function getState(row) {
+            /* Get the selected input element from the switch */
             var textState = $(row).find("input:checked").attr('data-state');
             return textState === "on";
         }
