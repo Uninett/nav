@@ -88,6 +88,16 @@
 
     {% comment %} MAIN CONTENT {% endcomment %}
     <div class="large-10 columns">
+        <ul class="breadcrumbs">
+            {% for title, url in navpath %}
+                {% if url %}
+                    <li><a href="{{ url }}">{{ title }}</a></li>
+                {% else %}
+                    <li class="unavailable"><a href="#">{{ title }}</a></li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+
 
         {% block base_navbody_start %}<div id="navbody">{% endblock %}
         {% block base_content %}
