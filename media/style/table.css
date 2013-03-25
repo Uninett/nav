@@ -23,7 +23,7 @@ table.expand {
     width: 100%;
 }
 
-table.highlightover tr:hover {
+.table-hover tbody tr:hover {
     background-color: #EEEEEE;
 }
 
@@ -31,10 +31,9 @@ table.highlightover tr:hover {
 table.vertitable caption,
 table.listtable caption {
     background: #567899;
-    color: white;
     border-bottom: 2px solid white;
-    font-size: 1.2em;
-    font-weight: bolder;
+    color: white;
+    font-weight: bold;
     padding: 0.3em 0.5em;
     text-align: left;
 }
@@ -49,12 +48,9 @@ table.listtable caption a {
     background: transparent;
     color: white;
 }
-table.vertitable caption a:hover,
-table.listtable caption a:hover {
-    color: lightyellow;
-}
 
-/* --- Details table --- */
+/* --- Details table --- *//*
+
 table.vertitable {
     border: 1px solid #999;
     border-collapse: separate;
@@ -63,7 +59,9 @@ table.vertitable {
     margin-bottom: 1em;
 }
 
-/* Table body */
+*/
+/* Table body *//*
+
 table.vertitable tr {
     text-align: left;
     vertical-align: top;
@@ -83,7 +81,9 @@ table.vertitable tr td {
 }
 
 
-/* --- List table --- */
+*/
+/* --- List table --- *//*
+
 table.listtable {
     border: 1px solid #999;
     border-collapse: separate;
@@ -92,7 +92,9 @@ table.listtable {
     margin-bottom: 1em;
 }
 
-/* Table head */
+*/
+/* Table head *//*
+
 table.listtable tr {
     text-align: left;
     vertical-align: top;
@@ -113,7 +115,9 @@ table.listtable tr th a {
     text-decoration: underline;
 }
 
-/* Table body */
+*/
+/* Table body *//*
+
 table.listtable tr.evenrow {
     background: #f6f6f6;
     color: black;
@@ -126,18 +130,24 @@ table.listtable tr td {
     padding: 0.1em 0.5em;
 }
 
-/* Table footer */
+*/
+/* Table footer *//*
+
 table.listtable tbody.footer tr th, table.listtable tfoot tr th {
     text-align: left;
 }
 
-/* --- List table with tablesorter --- */
+*/
+/* --- List table with tablesorter --- *//*
+
 
 .tablesorter .header {
     background-image: url('/images/tablesorter/bg.gif');
     background-repeat: no-repeat;
     background-position: center right;
-    padding-right: 1.5em;  /* Prevent text from overlapping image */
+    padding-right: 1.5em;  */
+/* Prevent text from overlapping image *//*
+
     cursor: pointer;
 }
 .tablesorter .even {
@@ -156,9 +166,13 @@ table.listtable tbody.footer tr th, table.listtable tfoot tr th {
     background-color: #8dbdd8;
 }
 
-/* --- Custom table additions --- */
+*/
+/* --- Custom table additions --- *//*
 
-/* Details table with full width */
+
+*/
+/* Details table with full width *//*
+
 table.vertitablefull {
     width: 100%;
 }
@@ -166,7 +180,10 @@ table.vertitablefull tr th {
     width: 12em;
 }
 
-/* Report table (also uses listtable) */
+*/
+/* Report table (also uses listtable) *//*
+
 table.reporttable tr td {
     font-size: 0.8em;
 }
+*/

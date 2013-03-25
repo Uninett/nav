@@ -20,14 +20,18 @@ footer {
 
 /* Custom global styles */
 
+table caption {
+    text-align: left;
+}
 
 .full-width {
     max-width: 100%;
 }
 
 li.list-header {
-    background-color: #567899;
+    background: #567899;
     color: white;
     font-weight: bold;
-    padding: 0.2em 0.5em 0.2em 0.5em;
+    padding: 0.3em 0.5em;
+    text-align: left;
 }
