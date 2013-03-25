@@ -11,13 +11,13 @@
 
     {% if not current_user_data.account.is_default_account %}
         <div class="buttoncontainer">
-            <button class="editbutton button">Edit</button>
-            <button class="savebutton button">Save</button>
+            <button class="editbutton button small">Edit</button>
+            <button class="savebutton button small">Save</button>
             <span class="info">Drag to sort existing tools. Click to make them available in the your tools list when you leave the page.</span>
         </div>
     {% endif %}
 
-    <table id="tool_list">
+    <table id="tool_list" class="table-hover">
         <tbody>
         {% for tool in tools %}
             <tr data-toolid="{{ tool.name }}">
