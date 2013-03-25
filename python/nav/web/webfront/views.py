@@ -15,16 +15,15 @@
 #
 
 import os
-from ConfigParser import ConfigParser
 from datetime import datetime
-from urllib import quote, unquote
+import simplejson
+import logging
 
 from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
-
 from nav.config import read_flat_config
 from nav.path import sysconfdir
 from nav.django.shortcuts import render_to_response
@@ -33,14 +32,12 @@ from nav.models.profiles import (Account, AccountNavbar, NavbarLink,
                                  AccountTool, AccountProperty)
 from nav.models.manage import Netbox
 from nav.web.templates.DjangoCheetah import DjangoCheetah
-
 from nav.web import ldapauth, auth
 from nav.web.state import deleteSessionCookie
-from nav.web.webfront.utils import quick_read, current_messages, boxes_down, tool_list
+from nav.web.webfront.utils import (quick_read, current_messages, boxes_down,
+                                    tool_list, get_account_tools)
 from nav.web.webfront.forms import LoginForm, NavbarForm, PersonalNavbarForm
 
-import simplejson
-import logging
 
 _logger = logging.getLogger('nav.web.tools')
 
@@ -180,22 +177,6 @@ def toolbox(request):
             'title': 'NAV toolbox',
         },
     )
-
-
-def get_account_tools(account, all_tools):
-    """Get tools for this account"""
-    account_tools = account.accounttool_set.all()
-    tools = []
-    for tool in all_tools:
-        try:
-            account_tool = account_tools.get(toolname=tool.name)
-        except AccountTool.DoesNotExist:
-            tools.append(tool)
-        else:
-            tool.priority = account_tool.priority
-            tool.display = account_tool.display
-            tools.append(tool)
-    return tools
 
 
 def save_tools(request):

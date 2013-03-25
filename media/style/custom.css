@@ -1,4 +1,25 @@
+/* Custom base page styles */
+
+#sidebartools img {
+    vertical-align: text-bottom;
+}
+
+footer {
+    font-size: 0.9em;
+    text-align: center;
+}
+
+
+/* Custom global styles */
+
+
 .full-width {
     max-width: 100%;
 }
 
+li.list-header {
+    background-color: #567899;
+    color: white;
+    font-weight: bold;
+    padding: 0.2em 0.5em 0.2em 0.5em;
+}

@@ -30,6 +30,7 @@
 {% endblock %}
 
 
+{% comment %} TOP BAR {% endcomment %}
 <nav class="top-bar">
     <ul class="title-area">
         <li class="name">
@@ -40,12 +41,19 @@
 
     <section class="top-bar-section">
         <ul class="right">
+            <li><a href="#">Uninett</a></li>
+            <li><a href="#">NAV Documentation</a></li>
+            <li><a href="#">About NAV</a></li>
             <li class="divider"></li>
-            <li><a href="#">Main Item 1</a></li>
-            <li class="divider"></li>
-            <li><a href="#">Main Item 2</a></li>
-            <li class="divider"></li>
-            <li><a href="#" class="button">Main Item 3</a></li>
+            {% if current_user_data.account.is_default_account %}
+                <li>
+                    <a class="navbar login button" href="/index/login">Login</a>
+                </li>
+            {% else %}
+                <li>
+                    <a class="navbar logout button" href="/index/logout">Logout {{ current_user_data.account.login }}</a>
+                </li>
+            {% endif %}
         </ul>
     </section>
 </nav>
@@ -55,24 +63,28 @@
     {% comment %}
       SIDEBAR
     {% endcomment %}
-    <div class="large-3 columns sidebar">
+    <div class="large-2 columns sidebar">
 
         <ul class="side-nav">
-            <li class="list-header">NAV links</li>
-            {% for title,link in nav_links.items %}
-                <li><a href="{{ link }}">{{ title }}</a></li>
+            <li class="list-header">Your links</li>
+            {% for link in current_user_data.navbar %}
+                <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
             {% endfor %}
         </ul>
 
-        <h4>External links</h4>
-        <ul class="side-nav">
-            <li>
-                {{ external_links|safe }}
-            </li>
+        <ul id="sidebartools" class="side-nav">
+            <li class="list-header">Your tools</li>
+            {% for tool in current_user_data.tools %}
+                {% if tool.display %}
+                    <li>
+                        <a href="{{ tool.uri }}">
+                            <img src="{{ tool.icon }}" width="16px" height="16px">
+                            {{ tool.name }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
         </ul>
-
-        <h4>Contant information</h4>
-        {{ contact_information|safe }}
 
     </div>
 
@@ -80,7 +92,7 @@
     {% comment %}
       MAIN CONTENT
     {% endcomment %}
-    <div class="large-9 columns">
+    <div class="large-10 columns">
 
         {% block base_navbody_start %}<div id="navbody">{% endblock %}
         {% block base_content %}

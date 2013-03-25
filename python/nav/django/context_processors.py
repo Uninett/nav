@@ -21,7 +21,7 @@ from django.conf import settings
 
 from nav.django.utils import get_account, is_admin, sudoer
 from nav.web.message import new_message, Messages
-from nav.web.webfront.utils import tool_list
+from nav.web.webfront.utils import get_account_tools, tool_list
 from nav.models.profiles import AccountNavbar
 from nav.buildconf import VERSION
 
@@ -57,6 +57,8 @@ def account_processor(request):
     qlink1 = []
     qlink2 = []
 
+    tools = sorted(get_account_tools(account, tool_list(account)))
+
     preferences = AccountNavbar.objects.select_related(
         'navbarlink'
     ).filter(account=account)
@@ -85,6 +87,7 @@ def account_processor(request):
         'navbar': navbar,
         'qlink1': qlink1,
         'qlink2': qlink2,
+        'tools': tools
     }
     return {
         'current_user_data': current_user_data,

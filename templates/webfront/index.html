@@ -2,7 +2,6 @@
 
 {% block base_header_additional_head %}
     <link rel="stylesheet" href="/style/index.css" />
-    <link rel="stylesheet" href="/style/webfront.css" />
     <script>require(["src/webfront"]);</script>
 {% endblock %}
 
@@ -15,6 +14,8 @@
     </div>
 
     <div id="webfrontmain">
+
+        {% comment %} MESSAGES {% endcomment %}
         {% if current_messages %}
             <table class="listtable expand">
                 <caption>
@@ -49,6 +50,7 @@
             </table>
         {% endif %}
 
+        {% comment %} STATUS NOW {% endcomment %}
         <table class="listtable expand">
             <caption>
                 <a href="{% url status-index %}">Status now</a><br />
@@ -81,5 +83,13 @@
                 </tbody>
             {% endif %}
         </table>
+
+
+        {% comment %} CONTACT INFORMATION {% endcomment %}
+        <h5>Contact Information</h5>
+        <div id="contact-information">
+            {{ contact_information|safe }}
+        </div>
+
     </div>
 {% endblock %}
