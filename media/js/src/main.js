@@ -1,3 +1,3 @@
-require(['libs/jquery', 'libs/foundation.min'], function () {
+require(['libs/foundation.min'], function () {
     $(document).foundation();
 });

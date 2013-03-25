@@ -10,6 +10,7 @@ var require = {
         "netmap": "src/netmap"
     },
     shim: {
+        'libs/foundation.min': ['libs/jquery'],
         'libs/jquery-ui-1.8.21.custom.min': ['libs/jquery'],
         'libs/jquery.dataTables.min': ['libs/jquery'],
         'libs/jquery.tablesorter.min': ['libs/jquery'],
