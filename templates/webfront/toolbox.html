@@ -34,8 +34,16 @@
                 <td>
                     {{ tool.description }}
                 </td>
-                <td>
-                    stuff
+                <td class="switch-cell">
+                    <div class="switch small">
+                        <input id="{{ forloop.counter }}" name="switch-{{ forloop.counter }}" data-state="off" type="radio" {% if not tool.display %}checked{% endif %} >
+                        <label for="{{ forloop.counter }}" onclick="">Off</label>
+
+                        <input id="{{ forloop.counter }}100" name="switch-{{ forloop.counter }}" data-state="on" type="radio" {% if tool.display %}checked{% endif %} >
+                        <label for="{{ forloop.counter }}100" onclick="">On</label>
+
+                        <span></span>
+                    </div>
                 </td>
             </tr>
         {% endfor %}

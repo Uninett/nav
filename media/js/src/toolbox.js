@@ -38,11 +38,17 @@ require(['libs/jquery-ui-1.8.21.custom.min'], function () {
         function getTools() {
             /* Find all tools, their index and display setting */
             var tools = {};
-            $('#tool_list').find('tbody tr').each(function (index, tool) {
-                var toolid = $(tool).attr('data-toolid');
-                tools[toolid] = {"display": true, "index": index}
+            $('#tool_list').find('tbody tr').each(function (index, row) {
+                var toolid = $(row).attr('data-toolid');
+
+                tools[toolid] = {"display": getState(row), "index": index}
             });
             return tools;
+        }
+
+        function getState(row) {
+            var textState = $(row).find("input:checked").attr('data-state');
+            return textState === "on";
         }
 
     });
