@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="/style/treeselect.css" />
     <link rel="stylesheet" href="/style/quickselect.css" />
     <link rel="stylesheet" href="/style/table.css" />
+    <link rel="stylesheet" href="/style/foundation_icon_fonts/stylesheets/general_foundicons.css" />
     <script type="text/javascript" src="/js/default.js"></script>
     <script type="text/javascript" src="/js/require_config.js"></script>
     {% if debug %}
@@ -87,14 +88,24 @@
         </a>
 
         <ul class="side-nav">
-            <li class="list-header">Your links</li>
+            <li class="list-header">
+                Your links
+                <a href="{% url webfront-preferences-navigation %}" class="right">
+                    <i class="foundicon-settings"></i>
+                </a>
+            </li>
             {% for link in current_user_data.navbar %}
                 <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
             {% endfor %}
         </ul>
 
         <ul id="sidebartools" class="side-nav">
-            <li class="list-header">Your tools</li>
+            <li class="list-header">
+                Your tools
+                <a href="{% url webfront-toolbox %}" class="right">
+                    <i class="foundicon-settings"></i>
+                </a>
+            </li>
             {% for tool in current_user_data.tools %}
                 {% if tool.display %}
                     <li>

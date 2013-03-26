@@ -1,15 +1,15 @@
 /* Custom base page styles */
 
-#sidebar .navlogo {
+#sidebar .navlogo, .breadcrumbs {
     margin-top: 0.875em;
+}
+
+#sidebar li.list-header a {
+    color: inherit;  /* To make icon-font inherit color from this */
 }
 
 #sidebartools img {
     vertical-align: text-bottom;
-}
-
-.breadcrumbs {
-    margin-top: 0.875em;
 }
 
 footer {
@@ -20,13 +20,12 @@ footer {
 
 /* Custom global styles */
 
-table caption {
-    text-align: left;
-}
-
 .full-width {
     max-width: 100%;
 }
+
+
+/* List styles */
 
 li.list-header {
     background: #567899;
