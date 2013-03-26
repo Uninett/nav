@@ -8,12 +8,21 @@
 {% endblock %}
 
 {% block base_content %}
-    <h2>{{ heading }}</h2>
+    <ul class="button-group right">
+        <li>
+            <a href="{% url ipdevinfo-service-list-all %}" class="button small">
+                Service List
+            </a>
+        </li>
+        <li>
+            <a href="{% url ipdevinfo-service-matrix %}" class="button small">
+                Service matrix
+            </a>
+        </li>
+    </ul>
 
-    <div id="service-matrix-links" class="horizontal-button-list">
-            <a href="{% url ipdevinfo-service-list-all %}"><span class="list">Service List</span></a>
-            <a href="{% url ipdevinfo-service-matrix %}"><span class="matrix">Service matrix</span></a>
-    </div>
+    <h3>{{ heading }}</h3>
+
 
     {% if errors %}
         <ul class="error">
