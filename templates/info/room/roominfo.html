@@ -2,11 +2,26 @@
 
 {% block roominfo %}
 
-    <div class="horizontal-button-list">
-        <a href="{% url seeddb-room-edit room.id %}"><span class="edit">Edit room</span></a>
-        <a href="{% url maintenance-new-room room.id %}"><span class="maintenance">Schedule Maintenance</span></a>
-        <a href="{% url devicehistory-view-room room.id %}"><span class="history">View room history</span></a>
-    </div>
+    <ul class="button-group">
+        <li>
+            <a href="{% url seeddb-room-edit room.id %}" class="button secondary small">
+                Edit room
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url maintenance-new-room room.id %}" class="button secondary small">
+                Schedule Maintenance
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url devicehistory-view-room room.id %}" class="button secondary small">
+                View room history
+            </a>
+        </li>
+
+    </ul>
 
     <div id="infotabs" class="ui-helper-hidden">
         <ul>
