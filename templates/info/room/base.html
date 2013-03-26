@@ -8,15 +8,20 @@
 {% endblock %}
 
 {% block base_content %}
-    <h2>{% if room %} Room view for {{ room.id }} {% else %}
-        Room search{% endif %}</h2>
+    <h3>{% if room %} Room view for {{ room.id }} {% else %}
+        Room search{% endif %}</h3>
 
     {% block roominfo %}
 
         <form action="{% url room-search %}" method="get">
-            <p>{{ searchform.query }}
-                <button type="submit">Search</button>
-            </p>
+            <div class="row collapse">
+                <div class="small-10 columns">
+                    {{ searchform.query }}
+                </div>
+                <div class="small-2 columns">
+                    <input type="submit" class="button prefix" value="Search">
+                </div>
+            </div>
         </form>
 
         {% if searchform.is_bound %}
@@ -56,7 +61,7 @@
 
         {% endif %}
 
-        <div id="mapcontainer" class="smallmap"></div>
+        <div id="mapcontainer" class="mapwrapper smallmap"></div>
         <div id="coordinates"></div>
 
     {% endblock %}
