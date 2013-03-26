@@ -52,7 +52,7 @@ require(
         function request_success() {
             enrich_tables();
             add_filters();
-            add_csv_download();
+//            add_csv_download();
             add_helper_dialog();
         }
 

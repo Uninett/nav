@@ -37,19 +37,6 @@ img.textbottom {
     vertical-align: text-bottom;
 }
 
-.input-filter {
-    float: left;
-    margin: 1em 1em 1em 0;
-}
-
-.input-filter input {
-    width: 150px;
-}
-
-.input-filter .input-filter-desc {
-    font-style: italic;
-}
-
 #downloadify {
     padding-top: 5px;
 }

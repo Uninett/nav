@@ -1,3 +1,10 @@
+/* Custom global styles */
+
+.full-width {
+    max-width: 100%;
+}
+
+
 /* Custom base page styles */
 
 #sidebar .navlogo, .breadcrumbs {
@@ -18,19 +25,13 @@ footer {
 }
 
 
-/* Custom global styles */
-
-.full-width {
-    max-width: 100%;
-}
-
-/* Openlayers maps need this to override a foundation style to display properly */
+/* Map styles */
 .mapwrapper {
     margin: 1em 0;
 }
 
 .mapwrapper img {
-    max-width: none;
+    max-width: none; /* Openlayers maps need this to override a foundation style to display properly */
 }
 
 .smallmap {
@@ -42,6 +43,12 @@ footer {
     height: 600px;
 }
 
+
+/* jquery ui tabs */
+
+ul.ui-tabs-nav {
+    font-size: 0.9em;
+}
 
 /* List styles */
 
