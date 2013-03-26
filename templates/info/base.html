@@ -11,14 +11,19 @@
 
 {% block base_content %}
 
-    <h2>Info</h2>
+    <h3>Info</h3>
 
-    <p class="infobox">Search for netboxes, interfaces, rooms and vlans. This search is the same as searching in the navbar.</p>
+    <div class="panel">Search for netboxes, interfaces, rooms and vlans. This search is the same as searching in the navbar.</div>
 
     <form action="{% url info-search %}" method="get">
-        <p>{{ form.query }}
-            <button type="submit">Search</button>
-        </p>
+        <div class="row collapse">
+            <div class="small-10 columns">
+                {{ form.query }}
+            </div>
+            <div class="small-2 columns">
+                <input type="submit" class="button prefix" value="Search">
+            </div>
+        </div>
     </form>
 
     {% if form.is_bound %}
