@@ -25,6 +25,7 @@ from nav.config import read_flat_config
 from nav.models.msgmaint import Message
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox
+from nav.models.profiles import AccountTool
 
 _logger = logging.getLogger('nav.web.tools.utils')
 
