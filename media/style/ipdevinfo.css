@@ -25,6 +25,11 @@
 
 /* Device details table */
 
+
+#ipdevinfotabs ul {
+    font-size: 0.9em;
+}
+
 .multitable {
     overflow: auto;
 }
