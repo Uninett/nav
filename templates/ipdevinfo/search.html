@@ -5,7 +5,14 @@
 <h4>Search for {{ search_form.query.label }}</h4>
 
 <form action="{% url ipdevinfo-search %}" method="get">
-<p>{{ search_form.query }} <button type="submit">Search</button></p>
+    <div class="row collapse">
+        <div class="large-10 columns">
+            {{ search_form.query }}
+        </div>
+        <div class="large-2 columns">
+            <input type="submit" class="button prefix" value="Search">
+        </div>
+    </div>
 </form>
 
 {% if netboxes %}
