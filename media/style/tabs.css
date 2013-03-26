@@ -21,10 +21,12 @@
 
 .tabs {
 	margin-top: 1em;
+    font-size: 0.9em;
 }
 .tabs ul {
 	margin: 0;
 	padding: 0;
+    line-height: 1.3em;
 }
 .tabs ul li {
 	display: inline;

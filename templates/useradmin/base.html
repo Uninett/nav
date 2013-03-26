@@ -2,6 +2,10 @@
 
 {% block base_header_title %}NAV - User Administration{% endblock %}
 
+{% block base_header_additional_head %}
+    <link rel="stylesheet" href="/style/tabs.css"/>
+{% endblock %}
+
 {% block base_header_navpath %}
 <a href="/">Home</a> > <a href="/useradmin/">User Administration</a>
 {% endblock %}
@@ -11,6 +15,7 @@
 <h2>User Administration</h2>
 
 {% block tabs %}
+
     <div class="tabs">
         <ul>
             <li{% if active.account_list %} class="tabactive"{% endif %}>
@@ -30,6 +35,7 @@
         </ul>
     </div>
 {% endblock %}
+
 {% block outercontent %}
     <div class="tabcontent">
         {% if current_user_data.messages %}
