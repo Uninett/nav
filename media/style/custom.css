@@ -24,6 +24,24 @@ footer {
     max-width: 100%;
 }
 
+/* Openlayers maps need this to override a foundation style to display properly */
+.mapwrapper {
+    margin: 1em 0;
+}
+
+.mapwrapper img {
+    max-width: none;
+}
+
+.smallmap {
+    height: 400px;
+    width: 600px;
+}
+
+.bigmap {
+    height: 600px;
+}
+
 
 /* List styles */
 
