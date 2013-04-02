@@ -7,16 +7,8 @@
 
 /* Custom base page styles */
 
-#sidebar .navlogo, .breadcrumbs {
-    margin-top: 0.875em;
-}
-
-#sidebar li.list-header a {
-    color: inherit;  /* To make icon-font inherit color from this */
-}
-
-#sidebartools img {
-    vertical-align: text-bottom;
+.top-bar .title-area img {
+    height: 100%;
 }
 
 footer {
