@@ -83,7 +83,7 @@ select {
   margin-right: auto;
   margin-top: 0;
   margin-bottom: 0;
-  max-width: 200em;
+  max-width: 85em;
   *zoom: 1; }
   .row:before, .row:after {
     content: " ";
