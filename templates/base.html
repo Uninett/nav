@@ -46,7 +46,7 @@
 
     <section class="top-bar-section">
         <ul class="left">
-            <li class="has-form">
+            <li class="has-form search">
                 <form action="/info/" method="get">
                     <div class="row collapse">
                         <div class="small-10 columns">
@@ -61,9 +61,30 @@
         </ul>
 
         <ul class="right">
-            <li><a href="#">Uninett</a></li>
-            <li><a href="#">NAV Documentation</a></li>
-            <li><a href="#">About NAV</a></li>
+            <li class="has-dropdown"><a href="{% url webfront-preferences-navigation %}">Your links</a>
+                <ul class="dropdown">
+                    {% for link in current_user_data.navbar %}
+                        <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </li>
+
+            <li class="has-dropdown"><a href="{% url webfront-toolbox %}">Your tools</a>
+                <ul class="dropdown">
+                    {% for tool in current_user_data.tools %}
+                        {% if tool.display %}
+                            <li>
+                                <a href="{{ tool.uri }}">
+                                    <img src="{{ tool.icon }}" width="16px" height="16px">
+                                    {{ tool.name }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </li>
+
+            <li><a href="#">Documentation</a></li>
             <li class="divider"></li>
             {% if current_user_data.account.is_default_account %}
                 <li>
@@ -80,48 +101,7 @@
 
 <div class="row">
 
-    {% comment %} SIDEBAR {% endcomment %}
-    <div id="sidebar" class="large-2 columns">
-
-        <a href="/" title="NAV">
-            <img class="navlogo" src="/images/main/navlogo-141x50.png" alt="NAV">
-        </a>
-
-        <ul class="side-nav">
-            <li class="list-header">
-                Your links
-                <a href="{% url webfront-preferences-navigation %}" class="right">
-                    <i class="foundicon-settings"></i>
-                </a>
-            </li>
-            {% for link in current_user_data.navbar %}
-                <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
-            {% endfor %}
-        </ul>
-
-        <ul id="sidebartools" class="side-nav">
-            <li class="list-header">
-                Your tools
-                <a href="{% url webfront-toolbox %}" class="right">
-                    <i class="foundicon-settings"></i>
-                </a>
-            </li>
-            {% for tool in current_user_data.tools %}
-                {% if tool.display %}
-                    <li>
-                        <a href="{{ tool.uri }}">
-                            <img src="{{ tool.icon }}" width="16px" height="16px">
-                            {{ tool.name }}
-                        </a>
-                    </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-
-    </div>
-
-    {% comment %} MAIN CONTENT {% endcomment %}
-    <div class="large-10 columns">
+    <div class="large-12 columns">
         <ul class="breadcrumbs">
             {% for title, url in navpath %}
                 {% if url %}
@@ -131,16 +111,22 @@
                 {% endif %}
             {% endfor %}
         </ul>
-
-
-        {% block base_navbody_start %}<div id="navbody">{% endblock %}
-        {% block base_content %}
-        {% endblock %}
-        {% block base_navbody_end %}</div>{% endblock %}
-
     </div>
 
 </div>
+
+{% comment %} MAIN CONTENT {% endcomment %}
+<div class="row">
+    <div class="large-12 columns">
+
+    {% block base_navbody_start %}<div id="navbody">{% endblock %}
+    {% block base_content %}
+    {% endblock %}
+    {% block base_navbody_end %}</div>{% endblock %}
+
+    </div>
+</div>
+
 
 <hr />
 
