@@ -6,6 +6,10 @@
 
 /* Custom base page styles */
 
+#nav-breadcrumbs {
+    margin-top: 0.875em;
+}
+
 .top-bar .title-area img {
     height: 100%;
 }

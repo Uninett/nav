@@ -100,7 +100,7 @@
 <div class="row">
 
     <div class="large-12 columns">
-        <ul class="breadcrumbs">
+        <ul id="nav-breadcrumbs" class="breadcrumbs">
             {% for title, url in navpath %}
                 {% if url %}
                     <li><a href="{{ url }}">{{ title }}</a></li>
