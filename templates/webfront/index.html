@@ -8,11 +8,11 @@
 
 {% block base_content %}
 
+    <div class="large-9 columns">
 
-    <div class="welcome">
-        {{ welcome|safe }}
-    </div>
-
+        <div class="welcome">
+            {{ welcome|safe }}
+        </div>
 
 {% comment %}
     <div class="mapwrapper">
@@ -20,86 +20,117 @@
     </div>
 {% endcomment %}
 
-    <div id="webfrontmain">
+        <div id="webfrontmain">
 
-        {% comment %} MESSAGES {% endcomment %}
-        {% if current_messages %}
-            <table class="listtable expand">
+            {% comment %} MESSAGES {% endcomment %}
+            {% if current_messages %}
+                <table class="listtable expand">
+                    <caption>
+                        <a href="{% url messages-active %}">Messages</a>
+                        &ndash;
+                        <span class="subtitle">
+                            {{ current_messages|length }} active
+                            message{{ current_messages|pluralize }}
+                        </span>
+                    </caption>
+
+                    <thead>
+                        <tr>
+                            <th>Published</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Tasks</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for m in current_messages %}
+                        <tr>
+                            <td>{{ m.publish_start }}</td>
+                            <td><a href="{% url messages-view m.id %}">{{ m.title }}</a> </td>
+                            <td>{{ m.description }}</td>
+                            <td>
+                                <img src="/images/status/wrench.gif" alt="Tasks" />
+                                {{ m.maintenance_tasks.all|length }}
+                            </td>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+
+            {% comment %} STATUS NOW {% endcomment %}
+            {% if boxes_down %}
+                <table class="listtable expand table-hover">
+
                 <caption>
-                    <a href="{% url messages-active %}">Messages</a>
+                    <a href="{% url status-index %}">Status now</a>
                     &ndash;
                     <span class="subtitle">
-                        {{ current_messages|length }} active
-                        message{{ current_messages|pluralize }}
+                        {{ boxes_down|length }} IP device{{ boxes_down|pluralize }} down,
+                        {{ num_shadow }} in shadow
                     </span>
                 </caption>
 
                 <thead>
                     <tr>
-                        <th>Published</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Tasks</th>
+                        <th>Sysname</th>
+                        <th>IP</th>
+                        <th>Down since</th>
+                        <th>Downtime</th>
                     </tr>
                 </thead>
 
-                <tbody>
-                    {% for m in current_messages %}
-                    <tr>
-                        <td>{{ m.publish_start }}</td>
-                        <td><a href="{% url messages-view m.id %}">{{ m.title }}</a> </td>
-                        <td>{{ m.description }}</td>
-                        <td>
-                            <img src="/images/status/wrench.gif" alt="Tasks" />
-                            {{ m.maintenance_tasks.all|length }}
-                        </td>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
+                    <tbody>
+                        {% for b in boxes_down %}
+                        <tr>
+                            <td><a href="{% url ipdevinfo-details-by-name b.netbox.sysname %}">
+                                {{ b.netbox.sysname }}</a></td>
+                            <td>{{ b.netbox.ip }}</td>
+                            <td>{{ b.start_time|date:"DATETIME_FORMAT" }}</td>
+                            <td>{{ b.start_time|timesince:date_now }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
 
-        {% comment %} STATUS NOW {% endcomment %}
-        {% if boxes_down %}
-            <table class="listtable expand table-hover">
-
-            <caption>
-                <a href="{% url status-index %}">Status now</a>
-                &ndash;
-                <span class="subtitle">
-                    {{ boxes_down|length }} IP device{{ boxes_down|pluralize }} down,
-                    {{ num_shadow }} in shadow
-                </span>
-            </caption>
-
-            <thead>
-                <tr>
-                    <th>Sysname</th>
-                    <th>IP</th>
-                    <th>Down since</th>
-                    <th>Downtime</th>
-                </tr>
-            </thead>
-
-                <tbody>
-                    {% for b in boxes_down %}
-                    <tr>
-                        <td><a href="{% url ipdevinfo-details-by-name b.netbox.sysname %}">
-                            {{ b.netbox.sysname }}</a></td>
-                        <td>{{ b.netbox.ip }}</td>
-                        <td>{{ b.start_time|date:"DATETIME_FORMAT" }}</td>
-                        <td>{{ b.start_time|timesince:date_now }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
-
-
-        {% comment %} CONTACT INFORMATION {% endcomment %}
-        <h5>Contact Information</h5>
-        <div id="contact-information" class="panel">
-            {{ contact_information|safe }}
         </div>
+
+    </div>
+
+
+    {% comment %} Right side {% endcomment %}
+    <div class="large-3 columns">
+        <table class="expand">
+            <tr>
+                <th>NAV Links</th>
+            </tr>
+            <tr>
+                <td>
+                    {% for title,link in nav_links.items %}
+                        <a href="{{ link }}">{{ title }}</a><br />
+                    {% endfor %}
+                </td>
+            </tr>
+        </table>
+
+        <table class="expand">
+            <tr>
+                <th>External links</th>
+            </tr>
+            <tr>
+                <td>{{ external_links|safe }}</td>
+            </tr>
+        </table>
+
+        <table class="expand">
+            <tr>
+                <th>Contact information</th>
+            </tr>
+            <tr>
+                <td>{{ contact_information|safe }}</td>
+            </tr>
+        </table>
 
     </div>
 {% endblock %}
