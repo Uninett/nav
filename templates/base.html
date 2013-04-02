@@ -48,7 +48,7 @@
                 <form action="/info/" method="get">
                     <div class="row collapse">
                         <div class="small-10 columns">
-                            <input id="query" type="text" name="query" maxlength="100" size="12"/>
+                            <input id="query" type="text" name="query" maxlength="100"/>
                         </div>
                         <div class="small-2 columns">
                             <input class="button" type="submit" value="Search" />
@@ -97,6 +97,7 @@
     </section>
 </nav>
 
+{% comment %} BREADCRUMB {% endcomment %}
 <div class="row">
 
     <div class="large-12 columns">
@@ -149,145 +150,3 @@
 </body>
 </html>
 
-{% comment %}
-
-{% if current_user_data.sudoer %}
-<div id="top-bar">
-<form action="{% url webfront-logout %}" method="post">
-<img src="/images/main/emblem-important.png" alt="Important information" />
-Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently logged in as <em>{{ current_user_data.account.name }}</em>.
-    <input type="submit" name="submit_desudo" value="Log back in as {{ current_user_data.sudoer.login }}" />
-</form>
-</div>
-{% endif %}
-
-<div id="header">
-    {% block base_header_logo %}
-        <div id="navlogo">
-            <h1>
-                <a href="/">
-                    <img src="/images/main/navlogo-141x50.png" width="141"
-                         height="50" alt="NAV"/>
-                    <span>Network Administration Visualized</span>
-                </a>
-            </h1>
-        </div>
-    {% endblock %}
-
-    {% block base_header_navbar %}
-    <div id="navbar">
-
-        <div id="navpath">
-            {% block base_header_navpath %}
-                {% for title, url in navpath %}
-                    {% if url %}
-                        <a href="{{ url }}">{{ title }}</a>
-                    {% else %}
-                        {{ title }}
-                    {% endif %}
-                    {% if not forloop.last %}
-                        &gt;
-                    {% endif %}
-                {% endfor %}
-            {% endblock %}
-        </div>
-
-        <div id="navbarlogininfo">
-            {% if current_user_data.account.is_default_account %}
-                <a class="navbar login" href="/index/login">Login</a>
-            {% else %}
-                <a class="navbar logout" href="/index/logout">
-                    Logout {{ current_user_data.account.login }}
-                </a>
-            {% endif %}
-        </div>
-
-        <div id="navbarquicklinks">
-            {% if current_user_data.qlink1 %}
-                <select onchange="return NAV.jump(this);">
-                    <option selected="selected">Quicklink #1</option>
-                    {% for link in current_user_data.qlink1 %}
-                        <option value="{{ link.uri }}">{{ link.name }}</option>
-                    {% endfor %}
-                </select>
-            {% endif %}
-
-            {% if current_user_data.qlink2 %}
-                <select onchange="return NAV.jump(this);">
-                    <option selected="selected">Quicklink #2</option>
-                    {% for link in current_user_data.qlink2 %}
-                        <option value="{{ link.uri }}">{{ link.name }}</option>
-                    {% endfor %}
-                </select>
-            {% endif %}
-
-        </div>
-
-        <div id="navbarlinks">
-            {% for link in current_user_data.navbar %}
-                <a href="{{ link.uri }}" class="navbar">
-                    {{ link.name }}
-                </a>
-            {% endfor %}
-        </div>
-
-        <div id="navbarsearch">
-            <form action="/info/" method="get">
-                <input id="query" type="text" name="query" maxlength="100"
-                       size="12"/>
-                <button type="submit">Search</button>
-            </form>
-        </div>
-
-        <div id="navbartoggler" class="hidden">
-            <img src="/images/icons/expand.png" class="expand" alt="Show navbar" title="Show navbar">
-            <img src="/images/icons/collapse.png" class="collapse" alt="Hide navbar" title="Hide navbar">
-        </div>
-
-        <div class="float-clear"></div>
-
-    </div>
-
-    {% endblock base_header_navbar %}
-</div>
-{% endblock base_header %}
-
-{% block base_toolbar %}
-    {% if available_tools %}
-        {% include "toolbar.html" %}
-    {% endif %}
-{% endblock %}
-
-{% block base_navbody_start %}<div id="navbody">{% endblock %}
-{% block base_content %}
-{% endblock %}
-{% block base_navbody_end %}</div>{% endblock %}
-
-{% block base_debug %}
-    {% if debug %}
-        {% if not current_user_data.account.is_default_account %}
-            {% include "debug.html" %}
-        {% endif %}
-    {% endif %}
-{% endblock %}
-
-{% block base_footer %}
-<div id="footer">
-    <hr />
-    <p>
-        <a href="/about/">Network Administration Visualized</a>
-        version {{ nav_version }}
-        <br />
-        {% if current_user_data.account.is_default_account %}
-        You are not logged in.
-        {% else %}
-        You are logged in as <a href="/userinfo/">{{ current_user_data.account.name }}</a>.
-        {% endif %}
-    </p>
-</div>
-
-</body>
-</html>
-
-{% endblock %}
-{% endcomment %}
