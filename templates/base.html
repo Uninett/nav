@@ -68,7 +68,7 @@
             </li>
 
             <li class="has-dropdown"><a href="{% url webfront-toolbox %}">Your tools</a>
-                <ul class="dropdown">
+                <ul id="toolboxdropdown" class="dropdown">
                     {% for tool in current_user_data.tools %}
                         {% if tool.display %}
                             <li>

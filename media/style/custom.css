@@ -10,8 +10,14 @@
     margin-top: 0.875em;
 }
 
+#toolboxdropdown img {
+    height: 24px;
+    width: 24px;
+    vertical-align: middle;
+}
+
 .top-bar .title-area img {
-    height: 100%;
+    height: 55px;
 }
 
 footer {
