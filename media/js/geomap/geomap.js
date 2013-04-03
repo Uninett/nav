@@ -70,7 +70,7 @@ function init(mapElementId, url) {
     } );
 
     mapnikLayer = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
-    themap.addLayer(mapnikLayer);
+    themap.addLayer(mapnikLayer, '/info/osm_map_redirect/${z}/${x}/${y}.png');
 
     netLayer = new NetworkLayer(
 	'Networks', url,
