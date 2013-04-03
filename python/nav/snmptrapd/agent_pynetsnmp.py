@@ -17,7 +17,7 @@
 
 import select
 import logging
-from socket import AF_INET, AF_INET6, inet_ntop
+from socket import AF_INET, AF_INET6, inet_ntop, EINTR
 from ctypes import (c_ushort, c_char, POINTER, cast, c_long)
 
 from IPy import IP
@@ -68,7 +68,13 @@ class TrapListener(object):
         self._client_callback = callback
         while 1:
             fdlist, timeout = netsnmp.snmp_select_info()
-            rlist, _wlist, _xlist = select.select(fdlist, [], [], timeout)
+            try:
+                rlist, _wlist, _xlist = select.select(fdlist, [], [], timeout)
+            except select.error as error:
+                if error.args[0] == EINTR:
+                    continue
+                else:
+                    raise
             if rlist:
                 for fdescr in rlist:
                     netsnmp.snmp_read(fdescr)
