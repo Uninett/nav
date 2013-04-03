@@ -34,21 +34,50 @@ var mapElemId;
 // Boolean variable determining whether the map should cover the whole
 // viewport:
 var mapFullscreen = false;
+var nav = nav || {};
 
 
-/*
- * Called when the web page which should show the map is loaded.
- *
- * Creates a map with the OpenStreetMap Mapnik base layer, as well as a layer
- * showing networks (with data from url).  The map is placed in the HTML
- * element with mapElementId as id.
- *
- * Arguments:
- *
- * mapElementId -- id of HTML element for map
- *
- * url -- URL for network data requests
- */
+function create_bounding_box() {
+    /*
+     * We're hacking away to make this work. This function must be called
+     * instead of the original init function. Also, this function should
+     * end by calling init
+     */
+    $.getJSON('/ajax/open/roommapper/rooms/', function (data) {
+        var roomPosArray = [];
+        for (var i=0, room; room = data.rooms[i]; i++) {
+            roomPosArray.push(new OpenLayers.Geometry.Point(getLong(room.position), getLat(room.position)));
+        }
+
+        var roomPositions = new OpenLayers.Geometry.MultiPoint(roomPosArray);
+        nav.geomapBBox = roomPositions.getBounds();
+
+        init('map', 'data');
+    });
+}
+
+function getLat(position) {
+    return parseFloat(position.split(',')[0]);
+}
+
+function getLong(position) {
+    return parseFloat(position.split(',')[1]);
+}
+
+
+    /*
+     * Called when the web page which should show the map is loaded.
+     *
+     * Creates a map with the OpenStreetMap Mapnik base layer, as well as a layer
+     * showing networks (with data from url).  The map is placed in the HTML
+     * element with mapElementId as id.
+     *
+     * Arguments:
+     *
+     * mapElementId -- id of HTML element for map
+     *
+     * url -- URL for network data requests
+     */
 function init(mapElementId, url) {
     var parameters = OpenLayers.Util.getParameters();
 
@@ -66,11 +95,12 @@ function init(mapElementId, url) {
 	    //new OpenLayers.Control.NavToolbar(),
 	    new OpenLayers.Control.Attribution(),
 	    new OpenLayers.Control.LayerSwitcher()],
-        displayProjection: new OpenLayers.Projection("EPSG:4326")
+        displayProjection: new OpenLayers.Projection("EPSG:4326"),
+        theme: '/style/openlayers.css'
     } );
 
-    mapnikLayer = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
-    themap.addLayer(mapnikLayer, '/info/osm_map_redirect/${z}/${x}/${y}.png');
+    mapnikLayer = new OpenLayers.Layer.OSM("OpenStreetMap", '/info/osm_map_redirect/${z}/${x}/${y}.png');
+    themap.addLayer(mapnikLayer);
 
     netLayer = new NetworkLayer(
 	'Networks', url,
