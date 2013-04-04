@@ -57,7 +57,7 @@ try:
 except IOError:
     pass
 
-INSTALLED_APPS = ('nav.django',)
+INSTALLED_APPS = ('nav.django', 'django.contrib.sessions')
 
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
@@ -86,7 +86,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = int(
     webfront_config.get('sessions', {}).get('timeout', 3600))
 
