@@ -23,18 +23,18 @@
 	margin-top: 1em;
     font-size: 0.9em;
 }
-.tabs ul {
+.tabs > ul {
 	margin: 0;
 	padding: 0;
-    line-height: 1.3em;
+    line-height: 1.1em;
 }
-.tabs ul li {
+.tabs > ul li {
 	display: inline;
 	list-style: none;
 	margin: 0;
 	padding: 0;
 }
-.tabs ul li a {
+.tabs > ul li a {
 	background: #dae1e6;
 	border: 1px solid #999;
 	color: #333;
@@ -43,18 +43,59 @@
 	padding-right: 1em;
 	text-decoration: none;
 }
-.tabs ul li a:hover {
+.tabs > ul li a:hover {
 	background: #eee;
 	color: black;
 }
-.tabs ul li.tabactive a, .tabs ul li.tabactive a:hover {
+.tabs > ul li.tabactive a, .tabs > ul li.tabactive a:hover {
 	background: white;
 	border-bottom: 1px solid white;
 	color: black;
 }
-.tabs ul, .tabs ul li, .tabs ul li a {
-	padding-top: 0.3em;
-	padding-bottom: 0.3em;
+.tabs > ul, .tabs > ul li, .tabs > ul li a {
+	padding-top: 0.6em;
+	padding-bottom: 0.6em;
+}
+
+
+/*
+ * Vertical tabs
+ */
+
+.tabs.tabs-vertical {
+    margin-top: 0;
+    border: 1px solid #999;
+    overflow: auto;
+}
+
+.tabs.tabs-vertical > ul {
+    float: left;
+    line-height: 1.6em;
+    padding-top: 0;
+}
+
+.tabs.tabs-vertical > ul li {
+    box-sizing: content-box;
+    display: block;
+    padding: 0;
+}
+
+.tabs.tabs-vertical > ul li a {
+    display: block;
+    width: 100%;
+    border-width: 0;
+    border-right: 1px solid #999;
+    border-bottom: 1px solid #999;
+}
+
+.tabs.tabs-vertical > ul li.tabactive a, .tabs.tabs-vertical > ul li.tabactive a:hover {
+    border-right: 1px solid white;
+    border-bottom: 1px solid #999;
+}
+
+.tabcontent.tabs-vertical {
+    border: none;
+    float: left;
 }
 
 .tabcontent {
