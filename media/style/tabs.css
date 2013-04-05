@@ -60,42 +60,43 @@
 
 /*
  * Vertical tabs
+ *
+ * To adjust size of tabs, override the two marked styles
  */
 
-.tabs.tabs-vertical {
-    margin-top: 0;
-    border: 1px solid #999;
-    overflow: auto;
-}
 
 .tabs.tabs-vertical > ul {
     float: left;
     line-height: 1.6em;
     padding-top: 0;
+    width: 200px;  /* Override to adjust tabsize */
 }
 
 .tabs.tabs-vertical > ul li {
-    box-sizing: content-box;
+    border-bottom: 1px solid #999;
+    border-left: 1px solid #999999;
     display: block;
     padding: 0;
+
+}
+
+.tabs.tabs-vertical > ul li:first-child {
+    border-top: 1px solid #999;
 }
 
 .tabs.tabs-vertical > ul li a {
     display: block;
-    width: 100%;
     border-width: 0;
-    border-right: 1px solid #999;
-    border-bottom: 1px solid #999;
 }
 
 .tabs.tabs-vertical > ul li.tabactive a, .tabs.tabs-vertical > ul li.tabactive a:hover {
-    border-right: 1px solid white;
-    border-bottom: 1px solid #999;
+    border-bottom: 0;
+    position: relative;
+    left: 1px;
 }
 
 .tabcontent.tabs-vertical {
-    border: none;
-    float: left;
+    margin-left: 200px;  /* Override to adjust tabsize */
 }
 
 .tabcontent {
