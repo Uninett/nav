@@ -20,6 +20,7 @@
  * Opera 9.20 on Linux and Internet Explorer 6.0 on Windows */
 
 .tabs {
+    display: none;
 	margin-top: 1em;
     overflow: auto;
 }
