@@ -22,41 +22,59 @@
 .tabs {
 	margin-top: 1em;
     font-size: 0.9em;
+    overflow: auto;
 }
 .tabs > ul {
 	margin: 0;
 	padding: 0;
-    line-height: 1.1em;
 }
 .tabs > ul li {
-	display: inline;
+    border-left: 1px solid #999999;
+    border-top: 1px solid #999999;
+    float: left;
 	list-style: none;
 	margin: 0;
 	padding: 0;
+    position: relative;
 }
+
+.tabs > ul li:last-child {
+    border-right: 1px solid #999999;
+}
+
+.tabs > ul li.tabactive {
+    position: relative;
+    z-index: 10;
+}
+
 .tabs > ul li a {
 	background: #dae1e6;
-	border: 1px solid #999;
 	color: #333;
-	margin: 0;
-	padding-left: 1em;
-	padding-right: 1em;
-	text-decoration: none;
+    display: block;
+    line-height: 1.3em;
+    margin: 0;
+    padding: 0.6em 1em;
+    text-decoration: none;
 }
 .tabs > ul li a:hover {
 	background: #eee;
 	color: black;
 }
-.tabs > ul li.tabactive a, .tabs > ul li.tabactive a:hover {
-	background: white;
-	border-bottom: 1px solid white;
+
+.tabs > ul li.tabactive a,
+.tabs > ul li.tabactive a:hover {
+    background: white;
 	color: black;
 }
-.tabs > ul, .tabs > ul li, .tabs > ul li a {
-	padding-top: 0.6em;
-	padding-bottom: 0.6em;
-}
 
+.tabcontent {
+    border: 1px solid #999999;
+    margin-bottom: 1em;
+    padding: 1em;
+    position: relative;
+    top: -1px;
+    z-index: 9;
+}
 
 /*
  * Vertical tabs
@@ -64,43 +82,35 @@
  * To adjust size of tabs, override the two marked styles
  */
 
-
 .tabs.tabs-vertical > ul {
+    border: 1px solid #999999;
+    border-right-width: 0;
     float: left;
     line-height: 1.6em;
-    padding-top: 0;
+    padding: 0;
     width: 200px;  /* Override to adjust tabsize */
 }
 
 .tabs.tabs-vertical > ul li {
-    border-bottom: 1px solid #999;
-    border-left: 1px solid #999999;
+    border: none;
+    border-bottom: 1px solid #999999;
     display: block;
-    padding: 0;
-
+    float: none;
 }
 
-.tabs.tabs-vertical > ul li:first-child {
-    border-top: 1px solid #999;
+.tabs.tabs-vertical > ul li:last-child {
+    border-bottom: none;
 }
 
-.tabs.tabs-vertical > ul li a {
-    display: block;
-    border-width: 0;
-}
-
-.tabs.tabs-vertical > ul li.tabactive a, .tabs.tabs-vertical > ul li.tabactive a:hover {
-    border-bottom: 0;
-    position: relative;
-    left: 1px;
-}
-
-.tabcontent.tabs-vertical {
+.tabs-vertical > .tabcontent {
     margin-left: 200px;  /* Override to adjust tabsize */
+    min-height: 550px;  /* Override to adjust for long ass vertical tabs */
+    top: 0;
+    left: -1px;
 }
 
-.tabcontent {
-	border: 1px solid #999;
-	padding: 1em;
-	margin-bottom: 1em;
+/* Tabs inside tabs */
+
+.tabs .tabs {
+    margin-top: 0;
 }
