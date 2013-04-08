@@ -42,30 +42,31 @@
         {% endif %}
     </ul>
     {% endblock %}
-</div>
 
-<div class="tabcontent">
-
-{% if current_user_data.messages %}
-<ul class="messages">
-    {% for m in current_user_data.messages %}
-    <li class="{{ m.type }}">{{ m.message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
-
-{% if subsection %}
-    {% include "alertprofiles/subsection_tabs.html" %}
     <div class="tabcontent">
-{% endif %}
 
-{% block tabcontent %}
-{% endblock %}
+        {% if current_user_data.messages %}
+        <ul class="messages">
+            {% for m in current_user_data.messages %}
+            <li class="{{ m.type }}">{{ m.message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
 
-{% if subsection %}
+        {% if subsection %}
+        <div class="tabs">
+            {% include "alertprofiles/subsection_tabs.html" %}
+
+            <div class="tabcontent">
+                {% block tabcontent %}
+                {% endblock %}
+            </div>
+        </div>
+        {% endif %}
+
     </div>
-{% endif %}
 
 </div>
+
 
 {% endblock %}

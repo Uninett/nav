@@ -2,7 +2,6 @@
 
 {% block base_header_additional_head %}
     <link href="/style/arnold.css" rel="stylesheet">
-    <link href="/style/tabs.css" rel="stylesheet">
     <script>require(["src/arnold"]);</script>
 {% endblock %}
 
@@ -22,13 +21,13 @@
             <li class="{{ active.quarantinevlans|yesno:"tabactive," }}"><a href="{% url arnold-quarantinevlans %}">Add quarantine vlan</a></li>
         </ul>
 
+        <div class="tabcontent">
+            {% block content %}
+            {% endblock %}
+        </div>
+
     </div>
 
 
-
-    <div class="tabcontent">
-        {% block content %}
-        {% endblock %}
-    </div>
 
 {% endblock %}
