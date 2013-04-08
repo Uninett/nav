@@ -128,7 +128,7 @@ def ip_do_search(request):
                 row = {'ip': ip}
                 row['ip_int_value'] = normalize_ip_to_string(ip)
                 if dns:
-                    if not isinstance(dns_lookups[ip], Exception):
+                    if dns_lookups[ip] and not isinstance(dns_lookups[ip], Exception):
                         row['dns_lookup'] = dns_lookups[ip][0]
                     else:
                         row['dns_lookup'] = ""
