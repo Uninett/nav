@@ -42,13 +42,13 @@
         </li>
         {% endif %}
     </ul>
+    <div class="tabcontent">
+
+        {% block content %}
+        {% endblock %}
+
+    </div>
 </div>
 
-<div class="tabcontent">
-
-{% block content %}
-{% endblock %}
-
-</div>
 {% endblock %}
 
