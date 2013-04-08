@@ -21,10 +21,10 @@
 
 .tabs {
 	margin-top: 1em;
-    font-size: 0.9em;
     overflow: auto;
 }
 .tabs > ul {
+    font-size: 0.9em;
 	margin: 0;
 	padding: 0;
 }
