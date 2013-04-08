@@ -67,8 +67,9 @@
 	color: black;
 }
 
-.tabcontent {
+.tabs > .tabcontent {
     border: 1px solid #999999;
+    clear: both;
     margin-bottom: 1em;
     padding: 1em;
     position: relative;
@@ -103,6 +104,7 @@
 }
 
 .tabs-vertical > .tabcontent {
+    clear: none;
     margin-left: 200px;  /* Override to adjust tabsize */
     min-height: 550px;  /* Override to adjust for long ass vertical tabs */
     top: 0;
