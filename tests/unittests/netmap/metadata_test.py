@@ -25,7 +25,7 @@ class NetmapMetadataTests(unittest.TestCase):
         netbox_a = Mock('Netbox')
         netbox_b = Mock('Netbox')
         results = edge_metadata(netbox_a,  None, netbox_b, None)
-        self.assertIsNone(results['link_speed'])
+        self.assertTrue(results['link_speed'] is None)
 
     def test_json_edge_is_NA_if_speed_is_undefined(self):
         netbox_a = Mock('Netbox')
