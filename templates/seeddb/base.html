@@ -2,7 +2,6 @@
 
 {% block base_header_additional_head %}
     <link rel="stylesheet" type="text/css" href="/style/seeddb.css" />
-    <link rel="stylesheet" type="text/css" href="/style/tabs.css" />
     <script>require(["src/seeddb"]);</script>
     {% block additional_seeddb_head %}
     {% endblock %}
@@ -22,7 +21,7 @@
 
 <h2>Seed Database</h2>
 
-<div class="tabs">
+<div class="tabs tabs-vertical">
     <ul>
         <li class="{{ active.index|yesno:"tabactive," }}">
             <a href="{% url seeddb-index %}">Seed DB</a>
@@ -67,25 +66,27 @@
             <a href="{% url seeddb-patch %}">Patch</a>
         </li>
     </ul>
+
+    <div class="tabcontent">
+
+        {% if tab_template %}
+        <div class="tabs">
+            <ul>
+                {% include tab_template %}
+            </ul>
+            <div class="tabcontent">
+                {% endif %}
+
+                {% block content %}
+                {% endblock %}
+
+                {% if tab_template %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
 </div>
 
-<div class="tabcontent">
-
-{% if tab_template %}
-<div class="tabs">
-<ul>
-{% include tab_template %}
-</ul>
-</div>
-<div class="tabcontent">
-{% endif %}
-
-{% block content %}
-{% endblock %}
-
-{% if tab_template %}
-</div>
-{% endif %}
-
-</div>
 {% endblock %}

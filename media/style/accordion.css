@@ -1,0 +1,29 @@
+.accordion > ul {
+    border: 1px solid #999999;
+}
+
+.accordion > ul > li {
+    list-style-type: none;
+}
+
+.accordion > ul > li > a {
+    background-color: #dae1e6;
+    border-bottom: 1px solid #999999;
+    color: #333333;
+    display: block;
+    padding: 0.6em 1em;
+}
+
+.accordion > ul > li:last-child > a {
+    border-bottom: none;
+}
+
+.accordion > ul > li > a:hover {
+    background-color: #eee;
+;
+}
+
+.accordion .accordion-content {
+    border-bottom: 1px solid #999999;
+    padding: 1em;
+}
