@@ -16,6 +16,7 @@
 """Import seed data in bulk."""
 # no importer implementations have public methods, disable R0903 warning
 # pylint: disable=R0903
+from __future__ import absolute_import
 
 from nav.models.manage import Device, Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo, Subcategory
@@ -29,6 +30,7 @@ from nav.web.servicecheckers import get_description
 from nav.bulkparse import BulkParseError
 
 from nav.models.manage import models
+from django.core.exceptions import ValidationError
 
 class BulkImporter(object):
     """Abstract bulk import iterator"""
@@ -193,6 +195,10 @@ class RoomImporter(BulkImporter):
                     description=row['descr'], optional_1=row['opt1'],
                     optional_2=row['opt2'], optional_3=row['opt3'],
                     optional_4=row['opt4'])
+        try:
+            room.position = row['position']
+        except (ValidationError, ValueError):
+            raise InvalidValue(row['position'])
         return [room]
 
 class OrgImporter(BulkImporter):
@@ -343,6 +349,11 @@ class MultipleObjectsReturned(BulkImportError):
 
 class AlreadyExists(BulkImportError):
     "Object already exist in database"
+    pass
+
+
+class InvalidValue(BulkImportError):
+    """Invalid value"""
     pass
 
 def reset_object_foreignkeys(obj):

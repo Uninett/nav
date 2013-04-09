@@ -195,7 +195,7 @@ def create_target(interface, targetname, reversecounter):
     displayname = utils.encode_and_escape(interface.ifname)
     shortdesc = utils.encode_and_escape(ifalias)
 
-    LOGGER.info('Creating target %s (%s)' % (targetname, displayname))
+    LOGGER.debug('Creating target %s (%s)' % (targetname, displayname))
 
     strings = ["target \"%s\"\n" % targetname,
                "\tdisplay-name = \"%s\"\n" % displayname,
@@ -268,7 +268,7 @@ def write_to_file(targetdir, strings):
     """
     try:
         targetfile = join(targetdir, utils.TARGETFILENAME)
-        LOGGER.info('Writing config to %s' % targetfile)
+        LOGGER.debug('Writing config to %s' % targetfile)
         handle = open(targetfile, 'w')
     except IOError, error:
         LOGGER.error("Could not open targetsfile for writing: %s" % error)

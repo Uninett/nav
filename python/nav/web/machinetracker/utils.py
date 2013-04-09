@@ -155,7 +155,7 @@ def track_mac(keys, resultset, dns):
         if row.end_time > datetime.now():
             row.still_active = "Still active"
         if dns:
-            if not isinstance(dns_lookups[row.ip], Exception):
+            if dns_lookups[row.ip] and not isinstance(dns_lookups[row.ip], Exception):
                 row.dns_lookup = dns_lookups[row.ip].pop()
             else:
                 row.dns_lookup = ""
