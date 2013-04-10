@@ -54,7 +54,7 @@ define([
                 }
             };
 
-
+            this.debug = !!(window.location.hash.search("debug")!==-1);
             this.svg = null;
             this.$el.append(netmapTemplate);
             this.spinnerView = new LoadingSpinnerView({el: '#netmap_main_view'});
@@ -118,6 +118,10 @@ define([
             this.linkErrorsGroupRoot = bounding_box.append("g").attr("class", "linksmeta");
             var selectedNodeGroupRoot = this.selectedNodeGroupRoot = bounding_box.append("g").attr("class", "selected_nodes");
             var selectedLinkGroupRoot = this.selectedLinkGroupRoot = bounding_box.append("g").attr("class", "selected_links");
+            if (this.debug) {
+                var debugSearchBoundingBox = this.debugSearchBoundingBox = bounding_box.append("g").attr("class", "debugSearchBoundingBox");
+                var debugSearchCenterBoundingBox = this.debugSearchCenterBoundingBox = bounding_box.append("g").attr("class", "demoRootCenter");
+            }
             this.linkGroupRoot = bounding_box.append("g").attr("class", "links");
             this.nodeGroupRoot = bounding_box.append("g").attr("class", "nodes");
 
@@ -417,24 +421,122 @@ define([
             }
         },
         search: function (query) {
-            this.searchQuery = {
-                query: query,
-                zoomTarget: null
-            };
+
+            function getCenter(bounds) {
+                return {
+                    xCenter: (bounds.topLeft.x + bounds.bottomRight.x)/2,
+                    yCenter: (bounds.topRight.y + bounds.bottomLeft.y)/2
+                };
+            }
+
+            function getArea(bounds) {
+                return {
+                    width:  Math.abs(bounds.bottomLeft.x - bounds.topRight.x),
+                    height: Math.abs(bounds.bottomRight.y - bounds.topLeft.y)
+                };
+            }
+
+            function findBoundingBox(listOfnetboxes) {
+                var topRight, bottomRight, bottomLeft, topLeft;
+                topLeft = {x: Number.MAX_VALUE, y: Number.MAX_VALUE};
+                topRight = {x: -Number.MAX_VALUE, y: Number.MAX_VALUE};
+                bottomLeft = {x: Number.MAX_VALUE, y: -Number.MAX_VALUE};
+                bottomRight = {x: -Number.MAX_VALUE, y: -Number.MAX_VALUE};
+
+                _.each(listOfnetboxes, function (netbox) {
+                    if (netbox.y < (topLeft.y && topRight.y)) {
+                        // top of bounding box (-y)
+                        topLeft.y = topRight.y = netbox.y;
+                    }
+                    if (netbox.y > (bottomLeft.y && bottomRight.y)) {
+                        // bottom of bounding box (y)
+                        bottomLeft.y = bottomRight.y = netbox.y;
+                    }
+                    if (netbox.x < (topLeft.x && bottomLeft.x)) {
+                        // left side of bounding box  (-x)
+                        topLeft.x = bottomLeft.x = netbox.x;
+                    }
+                    if (netbox.x > (topRight.x && bottomRight.x)) {
+                        // right side of bounding box (x)
+                        topRight.x = bottomRight.x = netbox.x;
+                    }
+                });
+
+                var rectangle = {
+                    topLeft: topLeft,
+                    topRight: topRight,
+                    bottomRight: bottomRight,
+                    bottomLeft: bottomLeft
+                };
+                var area = getArea(rectangle);
+                var center = getCenter(rectangle);
+                return _.extend(rectangle, area, center);
+            }
+
+
+
+            var matchingNetboxes = [];
+
             // find related box
             for (var i = 0; i < this.nodes.length; i++) {
                 var node = this.nodes[i];
                 if (node.data.sysname.search(query) !== -1) {
-                    this.searchQuery.zoomTarget = node;
-                    break;
+                    matchingNetboxes.push(node);
                 }
             }
-            if (this.searchQuery.zoomTarget) {
-                this.trans = [ (-(this.searchQuery.zoomTarget.x * this.scale) + (this.w / 2)), (-(this.searchQuery.zoomTarget.y * this.scale) + (this.h / 2))];
+
+            if (matchingNetboxes.length === 1) {
+                this.scale = 1; // zoom into netbox
+                this.trans = [ (-(matchingNetboxes[0].x * this.scale) + (this.w / 2)), (-(matchingNetboxes[0].y * this.scale) + (this.h / 2))];
                 this.zoom.translate(this.trans);
-                this.bounding_box.attr("transform",
-                    "translate(" + this.trans + ") scale(" + this.scale + ")");
+                this.zoom.scale(this.scale);
+            } else if (matchingNetboxes.length >= 2) {
+                var bounds = findBoundingBox(matchingNetboxes);
+
+                if (this.debug) {
+                    var debugSearchBoundingBox = this.debugSearchBoundingBox.selectAll("g rect").data([[bounds.topLeft.x, bounds.topLeft.y, bounds.height, bounds.width]], function (d) { return d;});
+                    debugSearchBoundingBox
+                        .enter()
+                        .append("svg:rect")
+                        .attr("fill", "red");
+                    debugSearchBoundingBox
+                        .attr("fill", "blue")
+                        .attr("x", function (d) { return d[0]; })
+                        .attr("y", function (d) { return d[1]; })
+                        .attr("height", function (d) { return d[2]; })
+                        .attr("width", function (d) { return d[3]; });
+                    debugSearchBoundingBox.exit().remove();
+
+                    var debugSearchCenterBoundingBox = this.debugSearchCenterBoundingBox.selectAll("g circle").data([[(bounds.xCenter), (bounds.yCenter)]]);
+                    debugSearchCenterBoundingBox
+                        .enter()
+                        .append("svg:circle")
+                        .attr("fill", "red");
+                    debugSearchCenterBoundingBox
+                        .attr("cx", function (d) { return d[0];})
+                        .attr("cy", function (d) { return d[1];})
+                        .attr("r", "15");
+                    debugSearchCenterBoundingBox.exit().remove();
+                }
+
+                var margin = 200; // so you see sysnames approxly on the edges.
+                var widthRatio = this.scale*(this.w/((bounds.width+margin)*this.scale));
+                var heightRatio = this.scale*(this.h/((bounds.height+margin)*this.scale));
+                if (widthRatio < heightRatio) {
+                    this.scale = widthRatio;
+                } else {
+                    this.scale = heightRatio;
+                }
+
+                this.trans = [ (-(bounds.xCenter * this.scale) + (this.w / 2)), (-(bounds.yCenter * this.scale) + (this.h / 2))];
+                this.zoom.translate(this.trans);
+                this.zoom.scale(this.scale);
+            } else {
+                console.log("no matches found");
             }
+
+            this.bounding_box.attr("transform",
+                    "translate(" + this.trans + ") scale(" + this.scale + ")");
         },
         updateRenderVLAN: function (vlanObject) {
             var self = this;
