@@ -1,0 +1,12 @@
+{% extends "info/room/base.html" %}
+
+{% block base_content %}
+
+    <h2>Edit images in {{ room.id }}</h2>
+
+    <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
+        {{ uploadform }}
+        <input type="submit" value="Upload image">
+    </form>
+
+{% endblock %}

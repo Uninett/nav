@@ -17,6 +17,12 @@
 
 from django import forms
 
+
 class SearchForm(forms.Form):
     query = forms.CharField(max_length=100, label='Room', required=False)
 
+
+class UploadForm(forms.Form):
+    """Form to upload images for a room"""
+    title = forms.CharField(max_length=50)
+    roomimage = forms.ImageField()

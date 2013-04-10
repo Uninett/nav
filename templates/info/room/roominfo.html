@@ -4,6 +4,7 @@
 
     <div class="horizontal-button-list">
         <a href="{% url seeddb-room-edit room.id %}"><span class="edit">Edit room</span></a>
+        <a href="{% url room-info-upload room.id %}"><span class="edit">Edit images</span></a>
         <a href="{% url maintenance-new-room room.id %}"><span class="maintenance">Schedule Maintenance</span></a>
         <a href="{% url devicehistory-view-room room.id %}"><span class="history">View room history</span></a>
     </div>
@@ -43,6 +44,12 @@
                 </tr>
                 </tbody>
             </table>
+
+            {% for image in images %}
+                <img src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}">
+                Uploaded by {{ image.uploader.login }}
+            {% endfor %}
+
 
             <div id="room_map" class="smallmap"></div>
             <div id="coordinates"></div>

@@ -15,22 +15,35 @@
 #
 """Viev functions for the roominfo subsystem"""
 
+import hashlib
+import logging
+import os
+from os.path import join, exists
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 
 from nav.models.manage import Room
-from nav.web.info.room.forms import SearchForm
+from nav.models.roommeta import Image
+from nav.web.info.room.forms import SearchForm, UploadForm
 from nav.web.utils import create_title
+from nav.path import localstatedir
 
 
 CATEGORIES = ("GW", "GSW", "SW", "EDGE")
+ROOMIMAGEPATH = join(localstatedir, 'uploads', 'images', 'rooms')
+_logger = logging.getLogger('nav.web.info.room')
+
+
+def get_path():
+    return [('Home', '/'), ('Info', reverse('info-search')),
+            ('Room', reverse('room-search'))]
+
 
 def search(request):
     """Controller for searching for rooms"""
-    navpath = [('Home', '/'), ('Info', reverse('info-search')),
-        ('Room', reverse('room-search'))]
+    navpath = get_path()
 
     rooms = Room.objects.none()
     titles = navpath
@@ -75,16 +88,73 @@ def roominfo(request, roomid):
     room = Room.objects.get(id=roomid)
     all_netboxes = room.netbox_set.order_by("sysname")
     add_availability(all_netboxes)
+    images = room.image_set.all()
 
-    navpath = [('Home', '/'), ('Info', reverse('info-search')),
-        ('Room', reverse('room-search')), (room.id,)]
+    navpath = get_path() + [(room.id,)]
 
     return render_to_response("info/room/roominfo.html",
                               {"room": room,
                                "all_netboxes": all_netboxes,
                                "navpath": navpath,
-                               "title": create_title(navpath)},
+                               "title": create_title(navpath),
+                               "images": images},
                               context_instance=RequestContext(request))
+
+
+def upload_image(request, roomid):
+    """Controller for uploading an image"""
+
+    room = Room.objects.get(pk=roomid)
+    navpath = get_path() + [
+        (room.id, reverse('room-info', kwargs={'roomid': room.id})),
+        ('Edit images',)
+    ]
+
+    if request.method == 'POST':
+        _logger.debug('Uploading image')
+
+        uploadform = UploadForm(request.POST, request.FILES)
+        if uploadform.is_valid():
+            image = request.FILES['roomimage'].read()
+            imagename = create_hash(image)
+            imagedirectory = create_hash(room.id)
+            imagedirectorypath = join(ROOMIMAGEPATH, imagedirectory)
+            title = request.POST.get('title')
+
+            create_image_directory(imagedirectorypath)
+            save_image(image, join(imagedirectorypath, imagename))
+
+            metaimage = Image(title=title, path=imagedirectory, name=imagename,
+                              room=room)
+            metaimage.save()
+
+            return redirect("room-info", roomid=room.id)
+    else:
+        _logger.debug('Showing upload form')
+        uploadform = UploadForm()
+        return render_to_response("info/room/upload.html",
+                                  {"room": room, "navpath": navpath,
+                                   "title": create_title(navpath),
+                                   'uploadform': uploadform},
+                                  context_instance=RequestContext(request))
+
+
+def create_hash(something):
+    """Create a hash from something"""
+    return hashlib.sha1(something).hexdigest()
+
+
+def create_image_directory(imagedirectory):
+    if not exists(imagedirectory):
+        _logger.debug('Creating directory %s', imagedirectory)
+        os.mkdir(imagedirectory)
+        os.chmod(imagedirectory, 0755)
+
+
+def save_image(image, imagefullpath):
+    with open(imagefullpath, 'wb+') as destination:
+        destination.write(image)
+        os.chmod(imagefullpath, 0644)
 
 
 def render_netboxes(request, roomid):
@@ -105,9 +175,9 @@ def render_netboxes(request, roomid):
             iftype=6).order_by("ifindex").extra(select=cam_query)
 
     return render_to_response("info/room/netboxview.html",
-            {"netboxes": netboxes,
-             "room": room},
-        context_instance=RequestContext(request))
+                              {"netboxes": netboxes,
+                               "room": room},
+                              context_instance=RequestContext(request))
 
 
 def add_availability(netboxes):
