@@ -2,6 +2,7 @@ define([
     'plugins/netmap-extras',
     'plugins/d3force',
     'plugins/set_equality',
+    'plugins/message',
     'netmap/resource',
     'netmap/models/graph',
     'netmap/views/loading_spinner',
@@ -12,7 +13,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapExtras, D3ForceHelper, SetEquality, Resources, GraphModel, LoadingSpinnerView, netmapTemplate) {
+], function (NetmapExtras, D3ForceHelper, SetEquality, Tooltip, Resources, GraphModel, LoadingSpinnerView, netmapTemplate) {
 
     var drawNetmapView = Backbone.View.extend({
         tagName: "div",
@@ -533,7 +534,7 @@ define([
                 this.zoom.translate(this.trans);
                 this.zoom.scale(this.scale);
             } else {
-                console.log("no matches found");
+                Tooltip.messageTooltip("#search_view", "No matches found");
             }
 
             this.updateRenderHighlightNodes(matchingNetboxes);
