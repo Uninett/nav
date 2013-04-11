@@ -11,12 +11,13 @@ define([
     'netmap/views/widgets/algorithm',
     'netmap/views/widgets/topology_error',
     'netmap/views/widgets/mouseover',
+    'netmap/views/widgets/data_refresh',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, SearchView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView, TopologyErrorView, MouseOverView) {
+], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, SearchView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView, TopologyErrorView, MouseOverView, DataRefreshView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
@@ -59,6 +60,7 @@ define([
             this.algorithmView = this.attachSubView(this.algorithmView, AlgorithmView, '#algorithm_view');
             this.topologyErrorsView = this.attachSubView(this.topologyErrorsView, TopologyErrorView, '#topology_errors_view');
             this.mouseOverView = this.attachSubView(this.mouseOverView, MouseOverView, '#mouseover_view');
+            this.dataRefreshView = this.attachSubView(this.dataRefreshView, DataRefreshView, '#datarefresh_view');
 
             return this;
         },

@@ -15,14 +15,50 @@ define([
     'libs/backbone-eventbroker'
 ], function (NetmapExtras, D3ForceHelper, SetEquality, Tooltip, Resources, GraphModel, LoadingSpinnerView, netmapTemplate) {
 
+    var dataRefreshTimer = function (interval) {
+        this.context = this;
+        this.stop();
+        this.changeInterval(interval);
+    };
+    dataRefreshTimer.prototype = {
+        changeInterval: function (newInterval) {
+            var self = this;
+            this.interval = newInterval;
+            this.stop();
+            this.counter = this.interval*60;
+
+            if (newInterval !== 0) {
+                this.timerCounter = setInterval(function () {
+                    if (self.counter <= 0) {
+                        self.counter = self.interval * 60;
+                        Backbone.EventBroker.trigger("netmap:reloadTopologyGraph");
+                    } else {
+                        self.counter = self.counter - 1;
+                    }
+                    Backbone.EventBroker.trigger("netmap:refreshIntervalCounter", self.counter);
+                }, 1000);
+            } else {
+                Backbone.EventBroker.trigger("netmap:refreshIntervalCounter", 0);
+            }
+        },
+        stop: function () {
+            if (this.timerCounter) {
+                clearInterval(this.timerCounter);
+            }
+        }
+    };
+
     var drawNetmapView = Backbone.View.extend({
         tagName: "div",
         id: "chart",
 
         broker: Backbone.EventBroker,
         interests: {
+            'netmap:reloadTopologyGraph': 'loadTopologyGraph',
             'netmap:changeTopology': 'setMapPropertyTopology',
             'netmap:changePosition': 'setMapPropertyPositionFilter',
+            'netmap:changeDataRefreshInterval': 'setMapPropertyDataRefreshInterval',
+            'netmap:refreshIntervalCounter': 'counter',
             'netmap:changeDisplayTopologyErrors': 'setMapPropertyDisplayTopologyErrors',
             'netmap:ui:mouseover': 'setUIMouseOver',
             'netmap:selectVlan': 'setUIVLANSelection',
@@ -64,6 +100,7 @@ define([
             if (!this.options.activeMapModel) {
                 this.options.activeMapModel = Resources.getActiveMapModel();
             }
+            this.dataRefreshInterval = new dataRefreshTimer(this.options.activeMapModel.get("dataRefreshInterval", 0));
 
             this.w = this.options.cssWidth;
             this.resize({width: this.w});
@@ -297,6 +334,10 @@ define([
         setMapPropertyTopology: function (layer) {
             this.model.set({topology: layer});
             this.loadTopologyGraph();
+        },
+        setMapPropertyDataRefreshInterval: function (intervalInMinutes) {
+            this.model.set({dataRefreshInterval: intervalInMinutes});
+            this.dataRefreshInterval.changeInterval(intervalInMinutes);
         },
         setMapPropertyPositionFilter: function (positionCollection) {
             this.options.activeMapModel.set({'position': positionCollection});
