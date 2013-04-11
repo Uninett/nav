@@ -12,7 +12,7 @@ define([
         initialize: function (attributes) {
             // Sets the idAttribute to "value" if there a value present
             // in the model. Normally defaults to "name"
-            if (attributes.value) {
+            if ("value" in attributes) {
                 this.idAttribute = "value";
                 this.id = this.get("value");
             }
