@@ -2,11 +2,36 @@
 
 {% block base_content %}
 
-    <h2>Edit images in {{ room.id }}</h2>
+    <h2>Images in {{ room.id }}</h2>
 
-    <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
-        {{ uploadform }}
-        <input type="submit" value="Upload image">
-    </form>
+    <table id="editimages" class="listtable middle highlightover">
+        <caption>Edit images <button>Click to change order</button></caption>
+        <thead>
+            <th>Image</th>
+            <th>Image title</th>
+            <th>Actions</th>
+        </thead>
+        <tbody>
+            <tr class="formcontainer">
+                {% comment %} Note from the future: This is really ugly {% endcomment %}
+                <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
+                <td>{{ uploadform.roomimage }}</td>
+                <td>{{ uploadform.title }}</td>
+                <td><input type="submit" value="Upload image"></td>
+                </form>
+            </tr>
+            {% for image in room.image_set.all %}
+            <tr>
+                <td class="thumbnail"><img src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}"></td>
+                <td class="imagetitle">{{ image.title }}</td>
+                <td class="actions">
+                    <button class="edit">Edit title</button>
+                    <button class="delete">Delete image</button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
 
 {% endblock %}

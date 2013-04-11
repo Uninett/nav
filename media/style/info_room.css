@@ -59,3 +59,41 @@ img.textbottom {
     padding: 1em;
     margin: 1em 0;
 }
+
+
+/* Styles for the edit image table */
+
+.formcontainer input[type=text] {
+    min-width: 200px;
+    width: 100%;
+}
+
+.formcontainer input[type=submit] {
+    width: 100%;
+}
+
+#editimages {
+    border-collapse: collapse;
+}
+
+#editimages caption {
+    line-height: 1.5em;
+}
+
+#editimages caption button {
+    float: right;
+}
+
+#editimages td {
+    padding-bottom: 0.7em;
+    padding-top: 0.7em;
+    padding-right: 1em;
+}
+
+#editimages .actions button, .formcontainer input[type=submit] {
+    padding: 0.8em 1em;
+}
+
+#editimages .thumbnail img {
+    height: 75px;
+}
