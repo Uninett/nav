@@ -29,7 +29,7 @@
     <tbody>
     {% for key, result in ip_tracker.items %}
         {% for row in result %}
-        <tr>
+        {% if row.fishy %}<tr class="fishy-item">{% else %}<tr>{% endif %}
             {% if form_data.dns %}
             <td>{{ row.dns_lookup }}</td>
             {% endif %}
@@ -57,9 +57,10 @@
             <td>{{ row.start_time|date:"Y-m-d H:i:s" }}</td>
             <td>
                 {% if row.still_active %}
-                {{ row.still_active }}
+                    {{ row.still_active }}
+                    {% if row.fishy %}{% include "machinetracker/fishy.html" %}{% endif %}
                 {% else %}
-                {{ row.end_time|date:"Y-m-d H:i:s" }}
+                    {{ row.end_time|date:"Y-m-d H:i:s" }}
                 {% endif %}
             </td>
         </tr>

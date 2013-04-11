@@ -1,3 +1,21 @@
+Version 3.14.15
+(released 21 Mar 2013)
+
+ Bugfixes:
+
+  * LP#1152173 (Deleting rrdviewer.conf causes crash when attempting to view
+                graphs from ipdevinfo)
+  * LP#1152599 (VLANs periodically lose one or more prefixes)
+  * LP#1154626 (Threshold bulk config UI unresponsive, with javascript console
+                error)
+  * LP#1155096 (Filtering by category in syslog analyzer doesn't work)
+  * LP#1156647 (Topology is not cleared when ports are shut down)
+  * LP#1157154 (Netmap stopped working in NAV 3.14.1)
+  * LP#1157594 (netbiostracker crashes when a netbios host reports an empty mac
+                address)
+  * LP#1157658 (Failing ipdevpoll plugin should be identified in log messages at
+                the ERROR level)
+
 Version 3.14.1
 (released 07 Mar 2013)
 

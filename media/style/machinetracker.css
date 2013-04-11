@@ -14,3 +14,6 @@ background-color:#ed6a6a;
 border:1px solid #999;
 }
 
+.tablesorter .fishy-item {
+    background-color: #ffe4e4 !important;
+}

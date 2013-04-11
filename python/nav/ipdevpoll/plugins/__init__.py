@@ -73,6 +73,7 @@ def import_plugin(config, alias):
         _logger.exception("Failed to import plugin %s", full_class_name)
         raise PluginImportError(error)
 
+    class_.alias = alias
     plugin_registry[alias] = class_
     class_.on_plugin_load()
 

@@ -10,7 +10,7 @@ from nav.mcc import dbutils, utils
 from nav.mcc.utils import encode_and_escape, Datasource
 from os.path import join, isdir
 
-LOGGER = logging.getLogger('mcc.sensors')
+LOGGER = logging.getLogger(__name__)
 
 
 def make_config(globalconfig):

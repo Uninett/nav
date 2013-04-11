@@ -21,6 +21,10 @@ import logging
 import ConfigParser
 import nav.path
 
+DEFAULT_LOG_FORMATTER = logging.Formatter('[%(asctime)s] [%(levelname)s] '
+                                          '[%(name)s] %(message)s')
+
+
 def set_log_levels():
     """Read the logging config file and set up log levels for the different
     loggers."""
@@ -108,3 +112,13 @@ def get_logfile_from_logger(logger=logging.root):
         if isinstance(handler, logging.FileHandler):
             return handler.stream
 
+
+def init_file_logging(logfile, formatter=None):
+    """Create logger for logging to file"""
+    set_log_levels()
+
+    filehandler = logging.FileHandler(logfile)
+    formatter = formatter or DEFAULT_LOG_FORMATTER
+    filehandler.setFormatter(formatter)
+    root = logging.getLogger('')
+    root.addHandler(filehandler)

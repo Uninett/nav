@@ -69,6 +69,19 @@ def get_prefix_info(addr):
     except (IndexError, DatabaseError):
         return None
 
+def get_last_job_log_from_netboxes(rows, job_type):
+    """Returns a dict with netbox object as key and job_log object as value.
+    
+    Takes rows and a job type as parameters.
+    The rows should needs a .netbox object on them from eg. CAM or ARP.
+    The job_type is a string with job type such as 'ip2mac' or 'topo'
+
+    """ 
+    netboxes_job = dict((row.netbox,None) for row in rows)
+    for netbox in netboxes_job:
+        netboxes_job[netbox] = netbox.job_log.filter(job_name=job_type).order_by('-end_time')[0]
+    return netboxes_job
+
 
 def normalize_ip_to_string(ipaddr):
     """Normalizes an IP address to a a sortable string.
@@ -134,25 +147,25 @@ def track_mac(keys, resultset, dns):
         dns         - should we lookup the hostname?
     """
     if dns:
-        ips_to_lookup = [row['ip'] for row in resultset]
+        ips_to_lookup = [row.ip for row in resultset]
         dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
 
     tracker = SortedDict()
     for row in resultset:
-        if row['end_time'] > datetime.now():
-            row['still_active'] = "Still active"
+        if row.end_time > datetime.now():
+            row.still_active = "Still active"
         if dns:
-            if not isinstance(dns_lookups[row['ip']], Exception):
-                row['dns_lookup'] = dns_lookups[row['ip']].pop()
+            if dns_lookups[row.ip] and not isinstance(dns_lookups[row.ip], Exception):
+                row.dns_lookup = dns_lookups[row.ip].pop()
             else:
-                row['dns_lookup'] = ""
-        if 'module' not in row or not row['module']:
-            row['module'] = ''
-        if 'port' not in row or not row['port']:
-            row['port'] = ''
+                row.dns_lookup = ""
+        if not hasattr(row, 'module'):
+            row.module = ''
+        if not hasattr(row, 'port'):
+            row.port = ''
         key = []
         for k in keys:
-            key.append(row.get(k))
+            key.append(getattr(row,k))
         key = tuple(key)
         if key not in tracker:
             tracker[key] = []
