@@ -31,16 +31,7 @@ require(
             }
 
             if ($('.camera_wrap').length) {
-                $('.camera_wrap').camera({
-                    autoAdvance: false,
-                    easing: 'easeOutQuad',
-                    height: '400px',
-                    fx: 'simpleFade',
-                    overlayer: false,
-                    playPause: false,
-                    portrait: true,
-                    transPeriod: 500
-                });
+                addImageSlider($('.camera_wrap'));
             }
         });
 
@@ -164,6 +155,19 @@ require(
         function fetchRoomPositions(mapcontainer) {
             $.getJSON('/ajax/open/roommapper/rooms/', function (data) {
                 new RoomMapper(mapcontainer.get(0), data.rooms).createMap();
+            });
+        }
+
+        function addImageSlider($element) {
+            $element.camera({
+                autoAdvance: false,
+                easing: 'easeOutQuad',
+                height: '400px',
+                fx: 'simpleFade',
+                overlayer: false,
+                playPause: false,
+                portrait: true,
+                transPeriod: 500
             });
         }
 
