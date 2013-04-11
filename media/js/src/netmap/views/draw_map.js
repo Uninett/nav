@@ -118,6 +118,7 @@ define([
             this.linkErrorsGroupRoot = bounding_box.append("g").attr("class", "linksmeta");
             var selectedNodeGroupRoot = this.selectedNodeGroupRoot = bounding_box.append("g").attr("class", "selected_nodes");
             var selectedLinkGroupRoot = this.selectedLinkGroupRoot = bounding_box.append("g").attr("class", "selected_links");
+            this.highlightNodesAnimationRoot = bounding_box.append("g").attr("class", "highlight_nodes");
             if (this.debug) {
                 var debugSearchBoundingBox = this.debugSearchBoundingBox = bounding_box.append("g").attr("class", "debugSearchBoundingBox");
                 var debugSearchCenterBoundingBox = this.debugSearchCenterBoundingBox = bounding_box.append("g").attr("class", "demoRootCenter");
@@ -535,8 +536,59 @@ define([
                 console.log("no matches found");
             }
 
+            this.updateRenderHighlightNodes(matchingNetboxes);
+
             this.bounding_box.attr("transform",
                     "translate(" + this.trans + ") scale(" + this.scale + ")");
+        },
+        updateRenderHighlightNodes: function (listNetboxes) {
+            var highLightNodes = this.highlightNodesAnimationRoot.selectAll("circle")
+                .data(listNetboxes, function (netbox) {
+                    return netbox.data.sysname;
+                });
+
+            highLightNodes.enter()
+                .append("svg:circle")
+                .attr("class", "highlight")
+                .attr("cx", function (nodeObject) {
+                    return nodeObject.px;
+                })
+                .attr("cy", function (nodeObject) {
+                    return nodeObject.py;
+                })
+                .attr("r", 38);
+            highLightNodes
+                .transition()
+                .attr("r", 68)
+                .duration(500)
+                .delay(200)
+                .each("end", function () {
+                    d3.select(this).transition()
+                        .attr("r", 38)
+                        .duration(500)
+                        .delay(200)
+                        .each("end", function () {
+                            d3.select(this).transition()
+                                .attr("r", 68)
+                                .duration(500)
+                                .delay(200)
+                                .each("end", function () {
+                                    d3.select(this).transition()
+                                        .attr("r", 38)
+                                        .duration(500)
+                                        .delay(200)
+                                        .each("end", function () {
+                                            d3.select(this).transition()
+                                                .attr("r", 0)
+                                                .duration(1000)
+                                                .delay(200)
+                                                .remove();
+                                        });
+                                });
+
+                        });
+                });
+            highLightNodes.exit().remove();
         },
         updateRenderVLAN: function (vlanObject) {
             var self = this;
