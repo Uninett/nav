@@ -6,7 +6,6 @@ define([
         idAttribute: "name",
         defaults: {
             name: null,
-            value: null,
             is_selected: false
         },
         initialize: function (attributes) {
