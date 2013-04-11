@@ -18,3 +18,4 @@ class Image(models.Model):
 
     class Meta:
         db_table = 'image'
+        ordering = ['created']

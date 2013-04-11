@@ -46,6 +46,7 @@
             </table>
 
 
+            {% if images|length > 0 %}
             <div id="#roomimages" style="max-width: 800px">
                 <div class="camera_wrap">
                     {% for image in images %}
@@ -58,6 +59,7 @@
             </div>
 
             <div class="float-clear"></div>
+            {% endif %}
 
 
 

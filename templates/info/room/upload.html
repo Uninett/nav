@@ -1,5 +1,10 @@
 {% extends "info/room/base.html" %}
 
+{% block base_header_additional_head %}
+    <link href="/style/info_room.css" type="text/css" rel="stylesheet">
+    <script>require(["src/info_room_upload"]);</script>
+{% endblock %}
+
 {% block base_content %}
 
     <h2>Images in {{ room.id }}</h2>
@@ -21,11 +26,12 @@
                 </form>
             </tr>
             {% for image in room.image_set.all %}
-            <tr>
+            <tr data-imageid='{{ image.id }}'>
                 <td class="thumbnail"><img src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}"></td>
                 <td class="imagetitle">{{ image.title }}</td>
                 <td class="actions">
                     <button class="edit">Edit title</button>
+                    <button class="save hidden">Save title</button>
                     <button class="delete">Delete image</button>
                 </td>
             </tr>

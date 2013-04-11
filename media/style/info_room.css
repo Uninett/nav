@@ -63,12 +63,12 @@ img.textbottom {
 
 /* Styles for the edit image table */
 
-.formcontainer input[type=text] {
+#editimages input[type=text] {
     min-width: 200px;
     width: 100%;
 }
 
-.formcontainer input[type=submit] {
+#editimages .formcontainer input[type=submit] {
     width: 100%;
 }
 
@@ -92,6 +92,15 @@ img.textbottom {
 
 #editimages .actions button, .formcontainer input[type=submit] {
     padding: 0.8em 1em;
+}
+
+#editimages .actions button.save {
+    background-color: #99FF99;
+    border-color: #66FF99;
+}
+
+.actions button.save, .actions button.edit {
+    width: 90px;  /* Make sure they are same size */
 }
 
 #editimages .thumbnail img {

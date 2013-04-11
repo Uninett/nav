@@ -21,6 +21,7 @@ import os
 from os.path import join, exists
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 
@@ -129,7 +130,7 @@ def upload_image(request, roomid):
                               room=room)
             metaimage.save()
 
-            return redirect("room-info", roomid=room.id)
+            return redirect("room-info-upload", roomid=room.id)
     else:
         _logger.debug('Showing upload form')
         uploadform = UploadForm()
@@ -157,6 +158,45 @@ def save_image(image, imagefullpath):
     with open(imagefullpath, 'wb+') as destination:
         destination.write(image)
         os.chmod(imagefullpath, 0644)
+
+
+def update_title(request, roomid):
+    if request.method == 'POST':
+        imageid = int(request.POST['id'])
+        title = request.POST.get('title', '')
+        try:
+            image = Image.objects.get(pk=imageid)
+        except Image.DoesNotExist:
+            return HttpResponse(status=500)
+        else:
+            image.title = title
+            image.save()
+
+    return HttpResponse(status=200)
+
+
+def delete_image(request, roomid):
+    if request.method == 'POST':
+        imageid = int(request.POST['id'])
+
+        _logger.debug('Deleting image %s', imageid)
+
+        try:
+            image = Image.objects.get(pk=imageid)
+        except Image.DoesNotExist:
+            return HttpResponse(status=500)
+        else:
+            filepath = join(ROOMIMAGEPATH, image.path, image.name)
+            try:
+                _logger.debug('Deleting file %s', filepath)
+                os.unlink(filepath)
+            except OSError:
+                return HttpResponse(status=500)
+
+            # Fetch all image instances that uses this image and delete them
+            Image.objects.filter(path=image.path, name=image.name).delete()
+
+    return HttpResponse(status=200)
 
 
 def render_netboxes(request, roomid):
