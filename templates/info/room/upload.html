@@ -15,8 +15,8 @@
             <tr class="formcontainer">
                 {% comment %} Note from the future: This is really ugly {% endcomment %}
                 <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
-                <td>{{ uploadform.roomimage }}</td>
-                <td>{{ uploadform.title }}</td>
+                <td>{{ uploadform.roomimage }}{{ uploadform.roomimage.errors }}</td>
+                <td>{{ uploadform.title }}{{ uploadform.title.errors }}</td>
                 <td><input type="submit" value="Upload image"></td>
                 </form>
             </tr>

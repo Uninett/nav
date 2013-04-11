@@ -119,7 +119,8 @@ def upload_image(request, roomid):
             imagename = create_hash(image)
             imagedirectory = create_hash(room.id)
             imagedirectorypath = join(ROOMIMAGEPATH, imagedirectory)
-            title = request.POST.get('title')
+            title = (request.POST.get('title') or
+                     request.FILES['roomimage'].name)
 
             create_image_directory(imagedirectorypath)
             save_image(image, join(imagedirectorypath, imagename))
@@ -132,11 +133,12 @@ def upload_image(request, roomid):
     else:
         _logger.debug('Showing upload form')
         uploadform = UploadForm()
-        return render_to_response("info/room/upload.html",
-                                  {"room": room, "navpath": navpath,
-                                   "title": create_title(navpath),
-                                   'uploadform': uploadform},
-                                  context_instance=RequestContext(request))
+
+    return render_to_response("info/room/upload.html",
+                              {"room": room, "navpath": navpath,
+                               "title": create_title(navpath),
+                               'uploadform': uploadform},
+                              context_instance=RequestContext(request))
 
 
 def create_hash(something):

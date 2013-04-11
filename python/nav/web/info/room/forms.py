@@ -24,5 +24,5 @@ class SearchForm(forms.Form):
 
 class UploadForm(forms.Form):
     """Form to upload images for a room"""
-    title = forms.CharField(max_length=50)
+    title = forms.CharField(max_length=50, required=False)
     roomimage = forms.ImageField(label='Select image')
