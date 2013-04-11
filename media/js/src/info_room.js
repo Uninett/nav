@@ -9,6 +9,7 @@ require(
         "dt_plugins/date_title_sort",
         "dt_plugins/modulesort",
         "libs/jquery",
+        "libs/camera.min",
         "libs/jquery-ui-1.8.21.custom.min",
         "libs/jquery.dataTables.min",
         "libs/downloadify.min",
@@ -27,6 +28,19 @@ require(
 
             if ($('#mapcontainer').length > 0) {
                 fetchRoomPositions($('#mapcontainer'));
+            }
+
+            if ($('.camera_wrap').length) {
+                $('.camera_wrap').camera({
+                    autoAdvance: false,
+                    easing: 'easeOutQuad',
+                    height: '400px',
+                    fx: 'simpleFade',
+                    overlayer: false,
+                    playPause: false,
+                    portrait: true,
+                    transPeriod: 500
+                });
             }
         });
 

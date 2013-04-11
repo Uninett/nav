@@ -45,14 +45,26 @@
                 </tbody>
             </table>
 
-            {% for image in images %}
-                <img src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}">
-                Uploaded by {{ image.uploader.login }}
-            {% endfor %}
+
+            <div id="#roomimages" style="max-width: 800px">
+                <div class="camera_wrap">
+                    {% for image in images %}
+                        <div data-src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}"
+                             data-link="/uploads/images/rooms/{{ image.path }}/{{ image.name }}">
+                            <div class="camera_caption">{{ image.title }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="float-clear"></div>
 
 
+
+{% comment %}
             <div id="room_map" class="smallmap"></div>
             <div id="coordinates"></div>
+{% endcomment %}
 
         </div>
 
