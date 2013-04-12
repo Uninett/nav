@@ -98,6 +98,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
             $this.hide();
             $this.siblings('.save').show();
             $sortable.sortable('option', 'disabled', false);
+            $(tableSelector).find('.imagerow').addClass('sortable')
         });
 
         $element.on('click', '.save', function () {
@@ -108,6 +109,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
                 $this.hide();
                 $this.siblings('.activate').show();
                 $sortable.sortable('option', 'disabled', true);
+                $(tableSelector).find('.imagerow').removeClass('sortable')
             });
 
             jqxhr.fail(function () {

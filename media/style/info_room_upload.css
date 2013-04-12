@@ -53,6 +53,10 @@ This page is entirely standalone
     width: 300px;
 }
 
+#editimages .sortable {
+    background-color: #EED5D2;
+}
+
 
 /* IMAGE STYLES */
 
