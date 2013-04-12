@@ -162,7 +162,6 @@ require(
             $element.camera({
                 autoAdvance: false,
                 easing: 'easeOutQuad',
-                height: '400px',
                 fx: 'simpleFade',
                 overlayer: false,
                 playPause: false,

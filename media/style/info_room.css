@@ -62,6 +62,10 @@ img.textbottom {
 
 
 /* Camera slides styles */
+#roomimages {
+    width: 800px;
+}
+
 .camera_wrap .camera_caption a {
     color: #B0C4DE;
 }
