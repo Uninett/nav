@@ -18,7 +18,8 @@
 
 from django.conf.urls.defaults import url, patterns
 from nav.web.info.room.views import (search, roominfo, render_netboxes,
-                                     upload_image, update_title, delete_image)
+                                     upload_image, update_title, delete_image,
+                                     update_priority)
 
 urlpatterns = patterns('',
     url(r'^$', search, name='room-search'),
@@ -28,6 +29,8 @@ urlpatterns = patterns('',
         name='room-info-update-title'),
     url(r'^(?P<roomid>.+)/upload/delete_image', delete_image,
         name='room-info-update-title'),
+    url(r'^(?P<roomid>.+)/upload/update_priority', update_priority,
+        name='room-info-update-priority'),
     url(r'^(?P<roomid>.+)/upload/', upload_image, name='room-info-upload'),
     url(r'^(?P<roomid>.+)/$', roominfo, name='room-info'),
 

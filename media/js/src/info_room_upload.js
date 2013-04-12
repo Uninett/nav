@@ -1,6 +1,9 @@
 require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
+
+    var tableSelector = '#editimages';
+
     $(function () {
-        var $table = $('#editimages'),
+        var $table = $(tableSelector),
             $orderButtons = $('#orderbuttons')
 
         addButtonListeners($table);
@@ -80,8 +83,34 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
     function addOrdering($element, $sortable) {
         $element.on('click', '.activate', function () {
+            var $this = $(this);
+            $this.hide();
+            $this.siblings('.save').show();
             $sortable.sortable('option', 'disabled', false);
         });
+
+        $element.on('click', '.save', function () {
+            var $this = $(this),
+                jqxhr = $.post('update_priority', get_image_priorities());
+
+            jqxhr.done(function () {
+                $this.hide();
+                $this.siblings('.activate').show();
+                $sortable.sortable('option', 'disabled', true);
+            });
+
+            jqxhr.fail(function () {
+                alert('Could not save image order');
+            });
+        });
+    }
+
+    function get_image_priorities() {
+        var priorities = {};
+        $(tableSelector).find('.imagerow').each(function (index, element) {
+            priorities[$(element).attr('data-imageid')] = index;
+        });
+        return priorities;
     }
 
 });

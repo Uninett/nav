@@ -127,7 +127,7 @@ def upload_image(request, roomid):
             save_image(image, join(imagedirectorypath, imagename))
 
             metaimage = Image(title=title, path=imagedirectory, name=imagename,
-                              room=room)
+                              room=room, priority=room.image_set.all().count())
             metaimage.save()
 
             return redirect("room-info-upload", roomid=room.id)
@@ -195,6 +195,18 @@ def delete_image(request, roomid):
 
             # Fetch all image instances that uses this image and delete them
             Image.objects.filter(path=image.path, name=image.name).delete()
+
+    return HttpResponse(status=200)
+
+
+def update_priority(request, roomid):
+    """Update the order of image objects"""
+    if request.method == 'POST':
+        for key, value in request.POST.items():
+            _logger.debug('%s=%s', key, value)
+            image = Image.objects.get(pk=key)
+            image.priority = value
+            image.save()
 
     return HttpResponse(status=200)
 

@@ -15,7 +15,8 @@ class Image(models.Model):
     name = VarcharField()
     created = models.DateTimeField(auto_now_add=True)
     uploader = models.ForeignKey(Account, db_column='uploader')
+    priority = models.IntegerField()
 
     class Meta:
         db_table = 'image'
-        ordering = ['created']
+        ordering = ['priority']
