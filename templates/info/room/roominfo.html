@@ -47,22 +47,26 @@
 
 
             {% if images|length > 0 %}
-            <div id="roomimages">
-                <div class="camera_wrap">
-                    {% for image in images %}
-                        <div data-src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}"
-                             data-thumb="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}"
-                             data-link="/uploads/images/rooms/{{ image.path }}/{{ image.name }}">
-                            <div class="camera_caption">{{ image.title|safe }}</div>
-                        </div>
-                    {% endfor %}
+                <div class="slider-wrapper theme-default">
+                    <div id="slider" class="nivoSlider">
+                        {% for image in images %}
+                            <a href="/uploads/images/rooms/{{ image.path }}/{{ image.name }}">
+                                <img src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}"
+                                     data-thumb="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}"
+                                     title="#{{ image.id }}" />
+                            </a>
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
 
-            <div class="float-clear"></div>
+                {% comment %} To support html captions we need to create an element for each image {% endcomment %}
+                {% for image in images %}
+                    <div id="{{ image.id }}" class="nivo-html-caption">
+                        {{ image.title|safe }}
+                    </div>
+                {% endfor %}
+
             {% endif %}
-
-
 
 {% comment %}
             <div id="room_map" class="smallmap"></div>

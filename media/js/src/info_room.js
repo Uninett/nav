@@ -9,7 +9,7 @@ require(
         "dt_plugins/date_title_sort",
         "dt_plugins/modulesort",
         "libs/jquery",
-        "libs/camera.min",
+        "libs/jquery.nivo.slider.pack",
         "libs/jquery-ui-1.8.21.custom.min",
         "libs/jquery.dataTables.min",
         "libs/downloadify.min",
@@ -30,8 +30,9 @@ require(
                 fetchRoomPositions($('#mapcontainer'));
             }
 
-            if ($('.camera_wrap').length) {
-                addImageSlider($('.camera_wrap'));
+            var $slider = $('#slider');
+            if ($slider.length) {
+                addImageSlider($slider);
             }
         });
 
@@ -159,16 +160,10 @@ require(
         }
 
         function addImageSlider($element) {
-            $element.camera({
-                autoAdvance: false,
-                easing: 'easeOutQuad',
-                fx: 'simpleFade',
-                overlayer: false,
-                playPause: false,
-                portrait: true,
-                transPeriod: 500,
-                pagination: false,
-                thumbnails: true
+            $element.nivoSlider({
+                controlNavThumbs: true,
+                effect: 'fade',
+                manualAdvance: true
             });
         }
 
