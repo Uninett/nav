@@ -15,12 +15,11 @@
 #
 """Viev functions for the roominfo subsystem"""
 
-import hashlib
 import logging
 import os
-from os.path import join, exists
+from os.path import join
 from django.core.urlresolvers import reverse
-from django.db.models import Q, Max
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
@@ -29,6 +28,9 @@ from nav.django.utils import get_account
 from nav.models.manage import Room
 from nav.models.roommeta import Image
 from nav.web.info.room.forms import SearchForm, UploadForm
+from nav.web.info.room.utils import (get_extension, create_hash,
+                                     create_image_directory,
+                                     get_highest_priority, save_image)
 from nav.web.utils import create_title
 from nav.path import localstatedir
 
@@ -39,6 +41,7 @@ _logger = logging.getLogger('nav.web.info.room')
 
 
 def get_path():
+    """Get the path for this subsystem"""
     return [('Home', '/'), ('Info', reverse('info-search')),
             ('Room', reverse('room-search'))]
 
@@ -146,38 +149,8 @@ def upload_image(request, roomid):
                               context_instance=RequestContext(request))
 
 
-def create_hash(something):
-    """Create a hash from something"""
-    return hashlib.sha1(something).hexdigest()
-
-
-def get_extension(filename):
-    """Get the file extension from a file (with the dot)"""
-    try:
-        return filename[filename.rindex('.'):]
-    except ValueError:
-        return ""
-
-
-def get_highest_priority(room):
-    """Get the highest priority value for the images in this room"""
-    return room.image_set.all().aggregate(Max('priority'))['priority__max']
-
-
-def create_image_directory(imagedirectory):
-    if not exists(imagedirectory):
-        _logger.debug('Creating directory %s', imagedirectory)
-        os.mkdir(imagedirectory)
-        os.chmod(imagedirectory, 0755)
-
-
-def save_image(image, imagefullpath):
-    with open(imagefullpath, 'wb+') as destination:
-        destination.write(image)
-        os.chmod(imagefullpath, 0644)
-
-
 def update_title(request, roomid):
+    """Update the title for a room image"""
     if request.method == 'POST':
         imageid = int(request.POST['id'])
         title = request.POST.get('title', '')
@@ -193,6 +166,7 @@ def update_title(request, roomid):
 
 
 def delete_image(request, roomid):
+    """Delete an image from a room"""
     if request.method == 'POST':
         imageid = int(request.POST['id'])
 
