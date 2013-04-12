@@ -1,0 +1,56 @@
+/*
+CSS for the edit images page in room info
+
+This page is entirely standalone
+*/
+
+
+/* BUTTONS */
+#navbody button, input[type=submit] {
+    padding: 0.8em 1em;
+}
+
+button.save {
+    background-color: #9BCD9B;
+    border-color: #9BCD9B;
+}
+
+.actions button.save, .actions button.edit {
+    width: 90px;  /* Make sure they are same size, adjust if altering text */
+}
+
+#orderbuttons button {
+    width: 200px;
+}
+
+
+/* FORM FIELDS */
+
+input[type=text] {
+    min-width: 200px;
+    width: 100%;
+}
+
+.formcontainer input[type=submit] {
+    width: 100%;
+}
+
+
+/* TABLE STYLES */
+
+#editimages {
+    border-collapse: collapse;
+}
+
+#editimages td {
+    padding-bottom: 0.7em;
+    padding-top: 0.7em;
+    padding-right: 1em;
+}
+
+
+/* IMAGE STYLES */
+
+#editimages .thumbnail img {
+    height: 75px;
+}

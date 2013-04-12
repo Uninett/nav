@@ -2,12 +2,20 @@
 
 {% block base_header_additional_head %}
     <link href="/style/info_room.css" type="text/css" rel="stylesheet">
+    <link href="/style/info_room_upload.css" type="text/css" rel="stylesheet">
     <script>require(["src/info_room_upload"]);</script>
 {% endblock %}
 
 {% block base_content %}
 
     <h2>Images in {{ room.id }}</h2>
+
+    {% if room.image_set.all.count > 0 %}
+        <div id="orderbuttons">
+            <button class="activate">Order images</button>
+            <button class="save">Save order</button>
+        </div>
+    {% endif %}
 
     <table id="editimages" class="listtable middle highlightover">
         <thead>
