@@ -30,7 +30,8 @@ from nav.models.roommeta import Image
 from nav.web.info.room.forms import SearchForm, UploadForm
 from nav.web.info.room.utils import (get_extension, create_hash,
                                      create_image_directory,
-                                     get_highest_priority, save_image)
+                                     get_next_priority, save_image,
+                                     save_thumbnail)
 from nav.web.utils import create_title
 from nav.path import localstatedir
 
@@ -132,9 +133,11 @@ def upload_image(request, roomid):
 
             create_image_directory(imagedirectorypath)
             save_image(image, join(imagedirectorypath, imagename))
+            save_thumbnail(imagename, imagedirectorypath,
+                           join(imagedirectorypath, 'thumbs'))
 
             Image(title=title, path=imagedirectory, name=imagename, room=room,
-                  priority=get_highest_priority(room) + 1,
+                  priority=get_next_priority(room),
                   uploader=account).save()
 
             return redirect("room-info-upload", roomid=room.id)

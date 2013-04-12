@@ -16,8 +16,11 @@
 """Utils for the info room views"""
 import hashlib
 import os
-from os.path import exists
+from os.path import exists, join
+from wand.image import Image
 from django.db.models import Max
+
+THUMBNAILHEIGHT = 75
 
 
 def get_extension(filename):
@@ -33,9 +36,10 @@ def create_hash(something):
     return hashlib.sha1(something).hexdigest()
 
 
-def get_highest_priority(room):
-    """Get the highest priority value for the images in this room"""
-    return room.image_set.all().aggregate(Max('priority'))['priority__max']
+def get_next_priority(room):
+    """Get the next priority value for the images in this room"""
+    priority = room.image_set.all().aggregate(Max('priority'))['priority__max']
+    return priority + 1 if priority else 0
 
 
 def create_image_directory(imagedirectory):
@@ -50,3 +54,13 @@ def save_image(image, imagefullpath):
     with open(imagefullpath, 'wb+') as destination:
         destination.write(image)
         os.chmod(imagefullpath, 0644)
+
+
+def save_thumbnail(imagename, imagedirectory, thumb_dir):
+    """Save a thumbnail for this image"""
+    create_image_directory(thumb_dir)
+    handle = open(join(imagedirectory, imagename), 'rb')
+    image = Image(file=handle)
+    image.transform(resize="x%s" % THUMBNAILHEIGHT)
+    image.save(filename=join(thumb_dir, imagename))
+    handle.close()

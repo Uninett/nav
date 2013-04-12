@@ -51,6 +51,7 @@
                 <div class="camera_wrap">
                     {% for image in images %}
                         <div data-src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}"
+                             data-thumb="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}"
                              data-link="/uploads/images/rooms/{{ image.path }}/{{ image.name }}">
                             <div class="camera_caption">{{ image.title|safe }}</div>
                         </div>

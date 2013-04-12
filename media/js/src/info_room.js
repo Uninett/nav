@@ -166,7 +166,9 @@ require(
                 overlayer: false,
                 playPause: false,
                 portrait: true,
-                transPeriod: 500
+                transPeriod: 500,
+                pagination: false,
+                thumbnails: true
             });
         }
 
