@@ -10,7 +10,7 @@
 
     <h2>Images in {{ room.id }}</h2>
 
-    {% if room.image_set.all.count > 0 %}
+    {% if room.image_set.all.count >= 2 %}
         <div id="orderbuttons">
             <button class="activate">Order images</button>
             <button class="save">Save order</button>

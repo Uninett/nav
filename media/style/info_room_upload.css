@@ -10,12 +10,12 @@ This page is entirely standalone
     padding: 0.8em 1em;
 }
 
-button.save {
+#navbody button.save {
     background-color: #9BCD9B;
     border-color: #9BCD9B;
 }
 
-.actions button.save, .actions button.edit {
+#navbody .actions button.save, .actions button.edit {
     width: 90px;  /* Make sure they are same size, adjust if altering text */
 }
 
@@ -26,12 +26,14 @@ button.save {
 
 /* FORM FIELDS */
 
-input[type=text] {
-    min-width: 200px;
+#navbody input[type=text] {
+    font-size: 1em;
+    min-width: 300px;
     width: 100%;
+    padding: 0.3em;
 }
 
-.formcontainer input[type=submit] {
+#navbody .formcontainer input[type=submit] {
     width: 100%;
 }
 
