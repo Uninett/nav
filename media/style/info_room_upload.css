@@ -28,7 +28,6 @@ This page is entirely standalone
 
 #navbody input[type=text] {
     font-size: 1em;
-    min-width: 300px;
     width: 100%;
     padding: 0.3em;
 }
@@ -48,6 +47,10 @@ This page is entirely standalone
     padding-bottom: 0.7em;
     padding-top: 0.7em;
     padding-right: 1em;
+}
+
+#editimages .imagetitle {
+    width: 300px;
 }
 
 
