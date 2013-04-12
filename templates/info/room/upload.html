@@ -22,6 +22,7 @@
             <th>Image</th>
             <th>Image title</th>
             <th>Actions</th>
+            <th>Uploadinfo</th>
         </thead>
         <tbody>
             <tr class="formcontainer">
@@ -30,6 +31,7 @@
                 <td>{{ uploadform.roomimage }}{{ uploadform.roomimage.errors }}</td>
                 <td>{{ uploadform.title }}{{ uploadform.title.errors }}</td>
                 <td><input type="submit" value="Upload image"></td>
+                <td>&nbsp;</td>
                 </form>
             </tr>
             {% for image in room.image_set.all %}
@@ -41,6 +43,8 @@
                     <button class="save hidden">Save title</button>
                     <button class="delete">Delete image</button>
                 </td>
+                <td class="meta">Uploaded {{ image.created|date:"DATETIME_FORMAT" }}<br/>by {{ image.uploader.name }}</td>
+
             </tr>
         {% endfor %}
         </tbody>

@@ -25,6 +25,7 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 
+from nav.django.utils import get_account
 from nav.models.manage import Room
 from nav.models.roommeta import Image
 from nav.web.info.room.forms import SearchForm, UploadForm
@@ -110,6 +111,7 @@ def upload_image(request, roomid):
         (room.id, reverse('room-info', kwargs={'roomid': room.id})),
         ('Edit images',)
     ]
+    account = get_account(request)
 
     if request.method == 'POST':
         _logger.debug('Uploading image')
@@ -129,7 +131,8 @@ def upload_image(request, roomid):
             save_image(image, join(imagedirectorypath, imagename))
 
             Image(title=title, path=imagedirectory, name=imagename, room=room,
-                  priority=room.image_set.all().count()).save()
+                  priority=room.image_set.all().count(),
+                  uploader=account).save()
 
             return redirect("room-info-upload", roomid=room.id)
     else:
