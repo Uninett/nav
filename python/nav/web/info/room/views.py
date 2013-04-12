@@ -20,7 +20,7 @@ import logging
 import os
 from os.path import join, exists
 from django.core.urlresolvers import reverse
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
@@ -131,7 +131,7 @@ def upload_image(request, roomid):
             save_image(image, join(imagedirectorypath, imagename))
 
             Image(title=title, path=imagedirectory, name=imagename, room=room,
-                  priority=room.image_set.all().count(),
+                  priority=get_highest_priority(room) + 1,
                   uploader=account).save()
 
             return redirect("room-info-upload", roomid=room.id)
@@ -157,6 +157,11 @@ def get_extension(filename):
         return filename[filename.rindex('.'):]
     except ValueError:
         return ""
+
+
+def get_highest_priority(room):
+    """Get the highest priority value for the images in this room"""
+    return room.image_set.all().aggregate(Max('priority'))['priority__max']
 
 
 def create_image_directory(imagedirectory):
