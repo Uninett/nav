@@ -88,6 +88,6 @@ Supports Thumbs: true
 }
 .theme-default .nivo-controlNav.nivo-thumbs-enabled img {
 	display: block;
-	width: 120px;
-	height: auto;
+	height: 75px;
+	width: auto;
 }
