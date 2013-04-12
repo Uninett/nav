@@ -117,18 +117,19 @@ def upload_image(request, roomid):
         uploadform = UploadForm(request.POST, request.FILES)
         if uploadform.is_valid():
             image = request.FILES['roomimage'].read()
-            imagename = create_hash(image)
+            original_name = request.FILES['roomimage'].name
+            imagename = "%s%s" % (create_hash(image),
+                                  get_extension(original_name))
             imagedirectory = create_hash(room.id)
             imagedirectorypath = join(ROOMIMAGEPATH, imagedirectory)
             title = (request.POST.get('title') or
-                     request.FILES['roomimage'].name)
+                     original_name)
 
             create_image_directory(imagedirectorypath)
             save_image(image, join(imagedirectorypath, imagename))
 
-            metaimage = Image(title=title, path=imagedirectory, name=imagename,
-                              room=room, priority=room.image_set.all().count())
-            metaimage.save()
+            Image(title=title, path=imagedirectory, name=imagename, room=room,
+                  priority=room.image_set.all().count()).save()
 
             return redirect("room-info-upload", roomid=room.id)
     else:
@@ -145,6 +146,14 @@ def upload_image(request, roomid):
 def create_hash(something):
     """Create a hash from something"""
     return hashlib.sha1(something).hexdigest()
+
+
+def get_extension(filename):
+    """Get the file extension from a file (with the dot)"""
+    try:
+        return filename[filename.rindex('.'):]
+    except ValueError:
+        return ""
 
 
 def create_image_directory(imagedirectory):
