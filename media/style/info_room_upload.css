@@ -16,7 +16,7 @@ This page is entirely standalone
 }
 
 #navbody .actions button.save, .actions button.edit {
-    width: 90px;  /* Make sure they are same size, adjust if altering text */
+    width: 120px;  /* Make sure they are same size, adjust if altering text */
 }
 
 #orderbuttons button {
