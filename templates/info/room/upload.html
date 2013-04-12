@@ -36,7 +36,7 @@
             </tr>
             {% for image in room.image_set.all %}
             <tr data-imageid='{{ image.id }}' class="imagerow">
-                <td class="thumbnail"><img src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}"></td>
+                <td class="thumbnail"><img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}"></td>
                 <td class="imagetitle">{{ image.title|safe }}</td>
                 <td class="actions">
                     <button class="edit">Edit title</button>
