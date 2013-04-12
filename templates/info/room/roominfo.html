@@ -52,7 +52,7 @@
                     {% for image in images %}
                         <div data-src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}"
                              data-link="/uploads/images/rooms/{{ image.path }}/{{ image.name }}">
-                            <div class="camera_caption">{{ image.title }}</div>
+                            <div class="camera_caption">{{ image.title|safe }}</div>
                         </div>
                     {% endfor %}
                 </div>
