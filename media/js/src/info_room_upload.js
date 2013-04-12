@@ -71,7 +71,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
                     jqxhr = $.post('delete_image', {'id': $imageid});
 
                 jqxhr.done(function () {
-                    $row.remove();
+                    location.reload();
                 });
 
                 jqxhr.fail(function () {
