@@ -1,7 +1,19 @@
 require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     $(function () {
-        if ($('#editimages').length) {
-            addButtonListeners($('#editimages'));
+        var $table = $('#editimages'),
+            $orderButtons = $('#orderbuttons')
+
+        addButtonListeners($table);
+
+        if ($orderButtons) {
+            var $tbody = $table.find('tbody');
+
+            var $sortable = $tbody.sortable({
+                items: '.imagerow',
+                disabled: true
+            });
+            $tbody.disableSelection();
+            addOrdering($orderButtons, $sortable);
         }
     });
 
@@ -63,6 +75,12 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
                     alert('Failed to delete image');
                 });
             }
+        });
+    }
+
+    function addOrdering($element, $sortable) {
+        $element.on('click', '.activate', function () {
+            $sortable.sortable('option', 'disabled', false);
         });
     }
 
