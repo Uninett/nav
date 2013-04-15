@@ -19,10 +19,6 @@ This page is entirely standalone
     width: 125px;  /* Make sure they are same size, adjust if altering text */
 }
 
-#orderbuttons button {
-    width: 200px;
-}
-
 /* FORM FIELDS */
 
 #navbody input[type=text] {
