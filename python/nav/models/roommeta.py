@@ -1,9 +1,12 @@
 """Models for room meta information"""
+from os.path import exists, join
 from django.db import models
 from nav.models.profiles import Account
 from nav.models.manage import Room
-
 from nav.models.fields import VarcharField
+from nav.path import localstatedir
+
+ROOMIMAGEPATH = join(localstatedir, 'uploads', 'images', 'rooms')
 
 
 class Image(models.Model):
@@ -20,3 +23,14 @@ class Image(models.Model):
     class Meta:
         db_table = 'image'
         ordering = ['priority']
+
+    def _check_image_existance(self):
+        return exists(join(ROOMIMAGEPATH, self.path, self.name))
+
+    def _check_thumb_existance(self):
+        """Relies on static thumb directory"""
+        return exists(join(ROOMIMAGEPATH, self.path, 'thumbs', self.name))
+
+    image_exists = property(_check_image_existance)
+    thumb_exists = property(_check_thumb_existance)
+

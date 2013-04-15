@@ -26,7 +26,7 @@ from django.template import RequestContext
 
 from nav.django.utils import get_account
 from nav.models.manage import Room
-from nav.models.roommeta import Image
+from nav.models.roommeta import Image, ROOMIMAGEPATH
 from nav.web.info.room.forms import SearchForm, UploadForm
 from nav.web.info.room.utils import (get_extension, create_hash,
                                      create_image_directory,
@@ -37,7 +37,6 @@ from nav.path import localstatedir
 
 
 CATEGORIES = ("GW", "GSW", "SW", "EDGE")
-ROOMIMAGEPATH = join(localstatedir, 'uploads', 'images', 'rooms')
 _logger = logging.getLogger('nav.web.info.room')
 
 
