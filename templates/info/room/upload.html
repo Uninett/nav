@@ -22,7 +22,8 @@
             <th>Image</th>
             <th>Image title</th>
             <th>Actions</th>
-            <th>Uploadinfo</th>
+            <th>Uploader</th>
+            <th>Date</th>
         </thead>
         <tbody>
             <tr class="formcontainer">
@@ -31,6 +32,7 @@
                 <td>{{ uploadform.roomimage }}{{ uploadform.roomimage.errors }}</td>
                 <td>{{ uploadform.title }}{{ uploadform.title.errors }}</td>
                 <td><input type="submit" value="Upload image"></td>
+                <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 </form>
             </tr>
@@ -43,7 +45,8 @@
                     <button class="save hidden">Save title</button>
                     <button class="delete">Delete image</button>
                 </td>
-                <td class="meta">Uploaded {{ image.created|date:"DATETIME_FORMAT" }}<br/>by {{ image.uploader.name }}</td>
+                <td class="meta">{{ image.uploader.name }}</td>
+                <td class="meta">{{ image.created|date:"DATETIME_FORMAT" }}</td>
 
             </tr>
         {% endfor %}
