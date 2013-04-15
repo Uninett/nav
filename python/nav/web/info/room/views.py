@@ -180,12 +180,18 @@ def delete_image(request, roomid):
         except Image.DoesNotExist:
             return HttpResponse(status=500)
         else:
-            filepath = join(ROOMIMAGEPATH, image.path, image.name)
+            filepath = join(ROOMIMAGEPATH, image.path)
             try:
                 _logger.debug('Deleting file %s', filepath)
-                os.unlink(filepath)
+                os.unlink(join(filepath, image.name))
             except OSError:
                 return HttpResponse(status=500)
+
+            try:
+                os.unlink(join(filepath, 'thumbs', image.name))
+            except OSError:
+                # We don't really care if the thumbnail is not deleted
+                pass
 
             # Fetch all image instances that uses this image and delete them
             Image.objects.filter(path=image.path, name=image.name).delete()
