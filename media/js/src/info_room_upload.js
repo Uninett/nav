@@ -85,7 +85,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         });
     }
 
-    function addOrdering($element) {
+    function addOrdering() {
         var $table = $(tableSelector),
             $tbody = $table.find('tbody'),
             $lastColumn = $table.find('td:last-child,th:last-child');
