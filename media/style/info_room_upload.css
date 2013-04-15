@@ -23,7 +23,6 @@ This page is entirely standalone
     width: 200px;
 }
 
-
 /* FORM FIELDS */
 
 #navbody input[type=text] {
@@ -59,6 +58,10 @@ This page is entirely standalone
 
 .formcontainer {
     border-bottom: 1px solid #999999;
+}
+
+#editimages td:last-child, #editimages th:last-child {
+    display: none;
 }
 
 

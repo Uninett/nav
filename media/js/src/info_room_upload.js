@@ -8,15 +8,8 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
         addButtonListeners($table);
 
-        if ($orderButtons) {
-            var $tbody = $table.find('tbody');
-
-            var $sortable = $tbody.sortable({
-                items: '.imagerow',
-                disabled: true
-            });
-            $tbody.disableSelection();
-            addOrdering($orderButtons, $sortable);
+        if ($table.find('.imagerow').length >= 2) {
+            addOrdering();
         }
     });
 
@@ -92,29 +85,24 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         });
     }
 
-    function addOrdering($element, $sortable) {
-        $element.on('click', '.activate', function () {
-            var $this = $(this);
-            $this.hide();
-            $this.siblings('.save').show();
-            $sortable.sortable('option', 'disabled', false);
-            $(tableSelector).find('.imagerow').addClass('sortable')
+    function addOrdering($element) {
+        var $table = $(tableSelector),
+            $tbody = $table.find('tbody'),
+            $lastColumn = $table.find('td:last-child,th:last-child');
+        $lastColumn.show();
+        $tbody.sortable({
+            items: '.imagerow',
+            handle: '.drag',
+            update: saveOrder
         });
+        $tbody.find('.drag').disableSelection();
+    }
 
-        $element.on('click', '.save', function () {
-            var $this = $(this),
-                jqxhr = $.post('update_priority', get_image_priorities());
-
-            jqxhr.done(function () {
-                $this.hide();
-                $this.siblings('.activate').show();
-                $sortable.sortable('option', 'disabled', true);
-                $(tableSelector).find('.imagerow').removeClass('sortable')
-            });
-
-            jqxhr.fail(function () {
-                alert('Could not save image order');
-            });
+    function saveOrder() {
+        var jqxhr = $.post('update_priority', get_image_priorities());
+        jqxhr.done(function () {});
+        jqxhr.fail(function () {
+            alert('Could not save image order');
         });
     }
 
