@@ -16,8 +16,8 @@
 """Utils for the info room views"""
 import hashlib
 import os
-from os.path import exists, join
-from wand.image import Image
+from os.path import exists, join, splitext
+from PIL import Image
 from django.db.models import Max
 
 THUMBNAILHEIGHT = 75
@@ -25,10 +25,7 @@ THUMBNAILHEIGHT = 75
 
 def get_extension(filename):
     """Get the file extension from a file (with the dot)"""
-    try:
-        return filename[filename.rindex('.'):]
-    except ValueError:
-        return ""
+    return splitext(filename)[-1]
 
 
 def create_hash(something):
@@ -59,8 +56,6 @@ def save_image(image, imagefullpath):
 def save_thumbnail(imagename, imagedirectory, thumb_dir):
     """Save a thumbnail for this image"""
     create_image_directory(thumb_dir)
-    handle = open(join(imagedirectory, imagename), 'rb')
-    image = Image(file=handle)
-    image.transform(resize="x%s" % THUMBNAILHEIGHT)
-    image.save(filename=join(thumb_dir, imagename))
-    handle.close()
+    image = Image.open(join(imagedirectory, imagename))
+    image.thumbnail((300, THUMBNAILHEIGHT))
+    image.save(join(thumb_dir, imagename))
