@@ -65,3 +65,7 @@ img.textbottom {
 .slider-wrapper {
     width: 600px;
 }
+
+#roominfo .infobox {
+    float: left;
+}

@@ -45,7 +45,6 @@
                 </tbody>
             </table>
 
-
             {% if images|length > 0 %}
                 <div class="slider-wrapper theme-default">
                     <div id="slider" class="nivoSlider">
@@ -66,9 +65,14 @@
                     </div>
                 {% endfor %}
 
+            {% else %}
+                <span class="infobox"><a href="{% url room-info-upload room.id %}">Click here</a> to add images to this room.</span>
             {% endif %}
 
-{% comment %}
+            <div class="float-clear"></div>
+
+
+            {% comment %}
             <div id="room_map" class="smallmap"></div>
             <div id="coordinates"></div>
 {% endcomment %}
