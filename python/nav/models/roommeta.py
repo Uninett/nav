@@ -1,4 +1,5 @@
 """Models for room meta information"""
+import os
 from os.path import exists, join
 from django.db import models
 from nav.models.profiles import Account
@@ -31,6 +32,10 @@ class Image(models.Model):
         """Relies on static thumb directory"""
         return exists(join(ROOMIMAGEPATH, self.path, 'thumbs', self.name))
 
+    def _check_readable(self):
+        return os.access(join(ROOMIMAGEPATH, self.path, self.name), os.R_OK)
+
     image_exists = property(_check_image_existance)
     thumb_exists = property(_check_thumb_existance)
+    is_readable = property(_check_readable)
 

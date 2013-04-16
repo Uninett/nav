@@ -39,10 +39,14 @@
             </tr>
             {% for image in room.image_set.all %}
             <tr data-imageid='{{ image.id }}' class="imagerow">
-                {% if image.image_exists %}
+                {% if image.image_exists and image.is_readable %}
                     <td class="thumbnail"><img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}"></td>
                 {% else %}
-                    <td>Image does not exist</td>
+                    {% if not image.image_exists %}
+                        <td>Image does not exist</td>
+                    {% else %}
+                        <td>Image exists but is not readable</td>
+                    {% endif %}
                 {% endif %}
                 <td class="imagetitle">{{ image.title|safe }}</td>
                 <td class="actions">
