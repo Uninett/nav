@@ -183,8 +183,10 @@ def delete_image(request, roomid):
             try:
                 _logger.debug('Deleting file %s', filepath)
                 os.unlink(join(filepath, image.name))
-            except OSError:
-                return HttpResponse(status=500)
+            except OSError, error:
+                # If the file is not found, then this is ok, otherwise not ok
+                if error.errno != 2:
+                    return HttpResponse(status=500)
 
             try:
                 os.unlink(join(filepath, 'thumbs', image.name))
