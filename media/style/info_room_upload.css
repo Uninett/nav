@@ -66,3 +66,8 @@ This page is entirely standalone
 #editimages .thumbnail img {
     height: 75px;
 }
+
+#navbody .infobox img {
+    margin: 0 5px;
+    vertical-align: sub;
+}
