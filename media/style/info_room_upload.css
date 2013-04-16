@@ -15,7 +15,8 @@ This page is entirely standalone
     border-color: #9BCD9B;
 }
 
-#navbody .actions button.save, .actions button.edit {
+#navbody .actions button {
+    white-space: nowrap;
     width: 125px;  /* Make sure they are same size, adjust if altering text */
 }
 
