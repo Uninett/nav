@@ -95,6 +95,32 @@ def get_neighbours(request, netboxid):
                       "sysname": n.sysname,
                       "category": n.category.id})
 
+    # Unrecognized neighbours
+    unrecognized_nodes = []
+    un_candidates = {}
+    for unrecognized in netbox.unrecognizedneighbor_set.all():
+        if unrecognized.remote_id in un_candidates:
+            un_candidates[unrecognized.remote_id]['ifname'].append(unrecognized.interface.ifname)
+        else:
+            unrecognized_nodes.append(unrecognized)
+            un_candidates[unrecognized.remote_id] = {
+                "sourceId": netbox.id,
+                "targetId": unrecognized.remote_id,
+                "ifname": [unrecognized.interface.ifname],
+                "to_ifname": ""
+            }
+
+    for i in un_candidates.values():
+        links.append(i)
+
+    for u in unrecognized_nodes:
+        nodes.append({
+            "netboxid": u.remote_id,
+            "name": u.remote_name,
+            "sysname": u.remote_name,
+            "category": 'UNRECOGNIZED'
+        })
+
     data = {
         "nodes": nodes,
         "links": links

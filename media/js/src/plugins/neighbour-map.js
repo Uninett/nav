@@ -25,7 +25,8 @@ define(["libs/d3.v2"], function () {
             'EDGE': '/images/netmap/edge.png',
             'OTHER': '/images/netmap/other.png',
             'SRV': '/images/netmap/srv.png',
-            'WLAN': '/images/netmap/wlan.png'
+            'WLAN': '/images/netmap/wlan.png',
+            'UNRECOGNIZED': '/images/netmap/unrecognized.png'
         };
 
         this.initialize();
