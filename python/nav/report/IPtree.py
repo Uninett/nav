@@ -78,17 +78,16 @@ def insertIntoTree(tree, ip):
             return
     tree[ip] = {}
 
-def getSubnets(network, min_length=None, max_length=128):
+def getSubnets(network, min_length=None):
     """Retrieves all the subnets of the argument ``network''.
 
     Arguments:
         ``min_length'': minimum subnet mask length, defaults to network.prefixlen().
-        ``max_length'': maximum subnet mask length, defaults to 128.
 
     Returns:
         List with IPy.IP objects
     """
-
+    max_length = 128 if network.version() == 6 else 32
     if min_length is None:
         min_length = network.prefixlen()
     assert min_length < max_length
