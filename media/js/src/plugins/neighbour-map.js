@@ -192,6 +192,8 @@ define(["libs/d3.v2"], function () {
 
             svgNodes.exit().remove();
 
+            svgNodes.order();  // Reorder nodes to make sure new lines does not overwrite old nodes
+
             // Prevent dragging on main node
             this.svg.select('.node.main').on('mousedown.drag', null);
 
