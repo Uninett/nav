@@ -134,10 +134,8 @@ def service_add(request):
         try:
             netbox = Netbox.objects.get(pk=netbox_id)
         except Netbox.DoesNotExist:
-            new_message(
-                request._req,
-                "Netbox does not exist in database",
-                Messages.ERROR)
+            new_message(request,
+                        "Netbox does not exist in database", Messages.ERROR)
         else:
             if choice_form.is_valid():
                 property_form = ServicePropertyForm(
@@ -191,8 +189,8 @@ def service_save(request, service_form, property_form):
                 property=prop,
                 value=value
             )
-    new_message(
-        request._req,
-        "Saved service for handler %s on %s" % (service.handler, netbox),
-        Messages.SUCCESS)
+    new_message(request,
+                "Saved service for handler %s on %s" % (service.handler,
+                                                        netbox),
+                Messages.SUCCESS)
     return HttpResponseRedirect(reverse('seeddb-service'))

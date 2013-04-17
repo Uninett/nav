@@ -100,7 +100,7 @@ def prefix_edit(request, prefix_id=None):
             prefix.vlan = vlan
             prefix.save()
             msg = "Saved prefix %s" % prefix.net_address
-            new_message(request._req, msg, Messages.SUCCESS)
+            new_message(request, msg, Messages.SUCCESS)
             return HttpResponseRedirect(reverse('seeddb-prefix-edit', args=(prefix.id,)))
     else:
         prefix_form = PrefixForm(instance=prefix)

@@ -52,9 +52,9 @@ def render_edit(request, model, form_model, object_id, redirect, \
             obj = form.save()
             (identifier, title) = _get_identifier_title(
                 obj, identifier_attr, title_attr)
-            new_message(request._req,
-                 "Saved %s %s" % (verbose_name, title),
-                 Messages.SUCCESS)
+            new_message(request,
+                        "Saved %s %s" % (verbose_name, title),
+                        Messages.SUCCESS)
             try:
                 return HttpResponseRedirect(reverse(redirect, args=(identifier,)))
             except NoReverseMatch:

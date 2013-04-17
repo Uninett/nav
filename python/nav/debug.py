@@ -16,31 +16,22 @@
 #
 """This module provides some useful debugging tools for NAV developers"""
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 import logging
 import pprint
 from traceback import print_stack
 from cStringIO import StringIO
 
-try:
-    from mod_python import apache
-except ImportError:
-    apache = None
-    apache_log = None
-else:
-    apache_loglevel = apache.APLOG_WARNING
-    def apache_log(s):
-        """Log s to apaches error log"""
-        apache.log_error(s, apache_loglevel)
 
-def calltracer(function, logfunction=apache_log):
+def calltracer(function, logfunction=print):
     """Decorator to trace function calls.
 
     Decorate any function/method with calltracer to log tracebacks
-    of each call to the function.  The logfunction parameter
-    specifices which log function to use.  The default logfunction
-    logs to Apache's errorlog (if mod_python.apache is available),
-    which makes this suitable for debugging the web modules of NAV.
+    of each call to the function.
+
+    :param logfunction: A function that accepts a string argument. The
+                        default function will just print to stdout.
+
     """
     def tracer(*args, **kwargs):
         logfunction('TRACE: Call to %s, args=%s, kwargs=%s' %

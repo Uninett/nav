@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 Norwegian University of Science and Technology
+# Copyright (C) 2013 UNINETT
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,13 +13,22 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""macwatch Django URL configuration"""
+"""Various functionality to bridge legacy NAV code with Django"""
+from nav import db
 
-from django.conf.urls.defaults import patterns, include
 
-def get_urlpatterns():
-    urlpatterns = patterns('',
-        # Give the macwatch namespace to the macwatch subsystem
-        (r'^macwatch/', include('nav.web.macwatch.urls')),
-    )
-    return urlpatterns
+class LegacyCleanupMiddleware(object):
+    """Django middleware to clean up NAV legacy database connections at the
+    end of each request cycle.
+
+    """
+    def process_response(self, request, response):
+        """Rolls back any uncommitted legacy database connections,
+        to avoid idling indefinitely in transactions.
+
+        """
+        connections = (v.object for v in db._connectionCache.values())
+        for conn in connections:
+            conn.rollback()
+
+        return response
