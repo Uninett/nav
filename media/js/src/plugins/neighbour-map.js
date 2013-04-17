@@ -27,6 +27,7 @@ define(["libs/d3.v2"], function () {
         };
 
         this.initialize();
+        this.activatePanel();
         this.fetchData();
     }
 
@@ -49,11 +50,24 @@ define(["libs/d3.v2"], function () {
                 .linkDistance(this.linkDistance)
                 .size([this.width, this.height]);
         },
+        activatePanel: function () {
+            var that = this;
+            d3.select('#unrecognized').on('change', function () {
+                if (this.checked) {
+                    console.log('checked');
+                    that.data = that.originalData;
+                    that.render();
+                } else {
+                    console.log('unchecked');
+                }
+            })
+        },
         fetchData: function () {
             /* Fetch neighbourhood data for this netbox */
             var that = this;
             d3.json('/ajax/open/neighbourmap/' + this.netboxid, function (json) {
                 if (json) {
+                    that.originalData = json;
                     that.data = json;
                     that.render();
                 }
@@ -99,8 +113,8 @@ define(["libs/d3.v2"], function () {
         },
         createSvgLinks: function (dataLinks) {
             /* Create all the visible links between the nodes */
-            this.svgLinks = this.svg.selectAll('.link')
-                .data(dataLinks)
+            this.svgLinks = this.svg.selectAll('.link').data(dataLinks);
+            this.svgLinks
                 .enter()
                 .append('line')
                 .attr('class', 'link')
@@ -112,30 +126,38 @@ define(["libs/d3.v2"], function () {
                     }
                 })
                 .style('stroke', '#ddd');
+            this.svgLinks.exit().remove();
         },
         createLinkLabels: function (dataLinks) {
             /* Create the link labels, in this case interface names */
-            this.svgLinkLabelFromCenter = this.svg.selectAll('.linkLabelFromCenter')
-                .data(dataLinks)
+            var svgLinkLabelFromCenter = this.svg.selectAll('.linkLabelFromCenter').data(dataLinks);
+            svgLinkLabelFromCenter
                 .enter()
                 .append('g')
+                .attr('class','linkLabelFromCenter')
                 .append('text')
                 .style('font-size', '0.8em')
                 .attr('text-anchor', 'middle')
                 .text(function (link) {
                     return link.ifname;
                 });
+            svgLinkLabelFromCenter.exit().remove();
 
-            this.svgLinkLabelToCenter = this.svg.selectAll('.linkLabelToCenter')
-                .data(dataLinks)
+            var svgLinkLabelToCenter = this.svg.selectAll('.linkLabelToCenter').data(dataLinks);
+            svgLinkLabelToCenter
                 .enter()
                 .append('g')
+                .attr('class','linkLabelToCenter')
                 .append('text')
                 .style('font-size', '0.8em')
                 .attr('text-anchor', 'middle')
                 .text(function (link) {
                     return link.to_ifname;
                 });
+            svgLinkLabelToCenter.exit().remove();
+
+            this.svgLinkLabelFromCenter = svgLinkLabelFromCenter;
+            this.svgLinkLabelToCenter = svgLinkLabelToCenter;
         },
         createSvgNodes: function (dataNodes) {
             /* Create all the visible nodes */
@@ -143,20 +165,24 @@ define(["libs/d3.v2"], function () {
             var svgNodes = this.svg.selectAll('.node')
                 .data(dataNodes, function (node) {
                     return node.netboxid;
-                })
+                });
+
+            var newNodes = svgNodes
                 .enter()
                 .append('g')
                 .attr('class', function (node) {
-                    return node.netboxid == that.netboxid ? 'node main' : 'node'
+                    return node.netboxid == that.netboxid ? node.category + ' node main' : node.category + ' node'
                 })
                 .call(this.force.drag);
+
+            svgNodes.exit().remove();
 
             // Prevent dragging on main node
             this.svg.select('.node.main').on('mousedown.drag', null);
 
-            this.appendImagesToNodes(svgNodes);
-            this.appendTextToNodes(svgNodes);
-            this.appendClickListeners(svgNodes);
+            this.appendImagesToNodes(newNodes);
+            this.appendTextToNodes(newNodes);
+            this.appendClickListeners(newNodes);
             this.svgNodes = svgNodes;
         },
         tick: function () {
