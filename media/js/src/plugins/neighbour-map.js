@@ -54,13 +54,29 @@ define(["libs/d3.v2"], function () {
             var that = this;
             d3.select('#unrecognized').on('change', function () {
                 if (this.checked) {
-                    console.log('checked');
                     that.data = that.originalData;
                     that.render();
                 } else {
-                    console.log('unchecked');
+                    that.data = that.filterUncategorized();
+                    that.render();
                 }
             })
+        },
+        filterUncategorized: function () {
+            var data = this.originalData,
+                nodes = [],
+                links = [];
+            for (var node in data.nodes) {
+                if (data.nodes.hasOwnProperty(node) && data.nodes[node].category !== 'UNRECOGNIZED') {
+                    nodes.push(data.nodes[node]);
+                }
+            }
+            for (var link in data.links) {
+                if (data.links.hasOwnProperty(link) && data.links[link].target.category !== 'UNRECOGNIZED') {
+                    links.push(data.links[link]);
+                }
+            }
+            return {'nodes': nodes, 'links': links};
         },
         fetchData: function () {
             /* Fetch neighbourhood data for this netbox */
@@ -69,6 +85,7 @@ define(["libs/d3.v2"], function () {
                 if (json) {
                     that.originalData = json;
                     that.data = json;
+                    console.log(json);
                     that.render();
                 }
             });
@@ -96,8 +113,8 @@ define(["libs/d3.v2"], function () {
                 if (node.netboxid == this.netboxid) {
                     node.fixed = true;  // Fix the main node
                 }
-                node.x = this.width / 2;
-                node.y = this.height / 2;
+                node.x = node.x || this.width / 2;
+                node.y = node.y || this.height / 2;
                 this.nodeHash[node.netboxid] = node;
             }
             return nodes;
