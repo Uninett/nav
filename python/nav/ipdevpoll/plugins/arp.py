@@ -39,14 +39,14 @@ import operator
 from IPy import IP
 from datetime import datetime, timedelta
 
-from twisted.internet import defer, threads
+from twisted.internet import defer
 
 from nav.mibs.ip_mib import IpMib
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.models import manage
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import Plugin, db
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.db import autocommit
 
@@ -135,7 +135,7 @@ class Arp(Plugin):
         open_arp_records_queryset = manage.Arp.objects.filter(
             netbox__id=self.netbox.id,
             end_time__gte=datetime.max).values('id', 'ip', 'mac')
-        open_arp_records = yield threads.deferToThread(
+        open_arp_records = yield db.run_in_thread(
             storage.shadowify_queryset_and_commit,
             open_arp_records_queryset)
         self._logger.debug("Loaded %d open records from arp",
@@ -149,7 +149,7 @@ class Arp(Plugin):
     @classmethod
     def _update_prefix_cache(cls):
         cls.prefix_cache_update_time = datetime.now()
-        df = threads.deferToThread(cls._load_prefixes_synchronously)
+        df = db.run_in_thread(cls._load_prefixes_synchronously)
         df.addCallback(cls._update_prefix_cache_with_result)
         return df
 
