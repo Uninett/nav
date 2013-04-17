@@ -9,14 +9,11 @@ define(["libs/d3.v2"], function () {
         }
 
         /* Size of svg container */
-        this.width = 600;
-        this.height = 600;
-
-        /* Distance of link labels from link endpoints */
-        this.linklabeldistance = 50;
+        this.width = 800;
+        this.height = 700;
 
         /* Node and link properties */
-        this.linkDistance = 200;
+        this.linkDistance = 250;
         this.nodeImages = {
             'GSW': '/images/netmap/gsw.png',
             'SW': '/images/netmap/sw.png',
@@ -42,7 +39,8 @@ define(["libs/d3.v2"], function () {
         createSvg: function () {
             this.svg = this.motherNode.append("svg")
                 .attr("width", this.width)
-                .attr("height", this.height);
+                .attr("height", this.height)
+                .style("border", '1px solid black');
         },
         defineForceAlgorithm: function() {
             this.force = d3.layout.force()
@@ -172,11 +170,11 @@ define(["libs/d3.v2"], function () {
                 .attr('y2', function (link) { return link.target.y; });
 
             this.svgLinkLabelFromCenter.attr('transform', function (link) {
-                return that.calculateLinePoint(link.source, link.target);
+                return that.calculateLinePoint(link.source, link.target, that.getLabelDistance(link));
             });
 
             this.svgLinkLabelToCenter.attr('transform', function (link) {
-                return that.calculateLinePoint(link.target, link.source);
+                return that.calculateLinePoint(link.target, link.source, 50);
             });
 
             this.svgNodes
@@ -211,10 +209,10 @@ define(["libs/d3.v2"], function () {
         },
         appendClickListeners: function (svgNodes) {
             svgNodes.on('click', function (node) {
-                location.href = '/ipdevinfo/' + node.sysname;
+                location.href = '/ipdevinfo/' + node.sysname + '/#!neighbours';
             })
         },
-        calculateLinePoint: function(source, target) {
+        calculateLinePoint: function(source, target, distance) {
             /*
              Given source and target coords - calculate a point along the line
              between source and target with length 'distance' from the source
@@ -227,12 +225,17 @@ define(["libs/d3.v2"], function () {
 
             m = (y1 - y0) / (x1 - x0);  // Line gradient
             if (x0 < x1) {
-                x = x0 + (this.linklabeldistance / Math.sqrt(1 + (m * m)));
+                x = x0 + (distance / Math.sqrt(1 + (m * m)));
             } else {
-                x = x0 - (this.linklabeldistance / Math.sqrt(1 + (m * m)));
+                x = x0 - (distance / Math.sqrt(1 + (m * m)));
             }
             y = m * (x - x0) + y0;
             return "translate(" + x + ',' +  y + ')';
+        },
+        getLabelDistance: function(link) {
+            var baseDistance = 70,
+                ifnameBasedDistance = baseDistance * (1 + (link.ifname.length - 1) * 0.3);
+            return ifnameBasedDistance < this.linkDistance ? ifnameBasedDistance : this.linkDistance;
         }
     };
 
