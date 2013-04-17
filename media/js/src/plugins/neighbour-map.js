@@ -12,6 +12,9 @@ define(["libs/d3.v2"], function () {
         this.width = 600;
         this.height = 600;
 
+        /* Distance of link labels from link endpoints */
+        this.linklabeldistance = 50;
+
         /* Node and link properties */
         this.linkDistance = 200;
         this.nodeImages = {
@@ -48,7 +51,7 @@ define(["libs/d3.v2"], function () {
                 .size([this.width, this.height]);
         },
         fetchData: function () {
-            /* Fetch neibourhood data for this netbox */
+            /* Fetch neighbourhood data for this netbox */
             var that = this;
             d3.json('/ajax/open/neighbourmap/' + this.netboxid, function (json) {
                 if (json) {
@@ -65,6 +68,7 @@ define(["libs/d3.v2"], function () {
 
             this.force.nodes(dataNodes).links(dataLinks).start();
             this.createSvgLinks(dataLinks);
+            this.createLinkLabels(dataLinks);
             this.createSvgNodes(dataNodes);
 
             this.force.on('tick', function () {
@@ -104,6 +108,30 @@ define(["libs/d3.v2"], function () {
                 .style('stroke-width', 2)
                 .style('stroke', '#ddd');
         },
+        createLinkLabels: function (dataLinks) {
+            /* Create the link labels, in this case interface names */
+            this.svgLinkLabelFromCenter = this.svg.selectAll('.linkLabelFromCenter')
+                .data(dataLinks)
+                .enter()
+                .append('g')
+                .append('text')
+                .style('font-size', '0.8em')
+                .attr('text-anchor', 'middle')
+                .text(function (link) {
+                    return link.ifname;
+                });
+
+            this.svgLinkLabelToCenter = this.svg.selectAll('.linkLabelToCenter')
+                .data(dataLinks)
+                .enter()
+                .append('g')
+                .append('text')
+                .style('font-size', '0.8em')
+                .attr('text-anchor', 'middle')
+                .text(function (link) {
+                    return link.to_ifname;
+                });
+        },
         createSvgNodes: function (dataNodes) {
             /* Create all the visible nodes */
             var that = this;
@@ -133,6 +161,14 @@ define(["libs/d3.v2"], function () {
                 .attr('y1', function (link) { return link.source.y; })
                 .attr('x2', function (link) { return link.target.x; })
                 .attr('y2', function (link) { return link.target.y; });
+
+            this.svgLinkLabelFromCenter.attr('transform', function (link) {
+                return calculateLinePoint(link.source, link.target, this.linklabeldistance);
+            });
+
+            this.svgLinkLabelToCenter.attr('transform', function (link) {
+                return calculateLinePoint(link.target, link.source, this.linklabeldistance);
+            });
 
             this.svgNodes
                 .attr('cx', function (node) { return node.x; })
@@ -171,6 +207,27 @@ define(["libs/d3.v2"], function () {
         }
 
     };
+
+    function calculateLinePoint(source, target, distance) {
+        /*
+         Given source and target coords - calculate a point along the line
+         between source and target with length 'distance' from the source
+         */
+        var m, x, y,
+            x0 = source.x,
+            x1 = target.x,
+            y0 = source.y,
+            y1 = target.y;
+
+        m = (y1 - y0) / (x1 - x0);  // Line gradient
+        if (x0 < x1) {
+            x = x0 + (distance / Math.sqrt(1 + (m * m)));
+        } else {
+            x = x0 - (distance / Math.sqrt(1 + (m * m)));
+        }
+        y = m * (x - x0) + y0;
+        return "translate(" + x + ',' +  y + ')';
+    }
 
     return NeighbourMap;
 

@@ -69,16 +69,26 @@ def get_neighbours(request, netboxid):
 
     nodes = []
     links = []
+    link_candidates = {}
 
     netbox = Netbox.objects.get(pk=netboxid)
     netboxes = [netbox]
     interfaces = netbox.interface_set.filter(to_netbox__isnull=False)
     for interface in interfaces:
-        netboxes.append(interface.to_netbox)
-        links.append({"sourceId": netbox.id,
-                      "targetId": interface.to_netbox.id})
+        if interface.to_netbox in link_candidates:
+            link_candidates[interface.to_netbox]['ifname'].append(interface.ifname)
+            link_candidates[interface.to_netbox]['to_ifname'].append(interface.to_interface.ifname)
+        else:
+            netboxes.append(interface.to_netbox)
+            link_candidates[interface.to_netbox] = {
+                "sourceId": netbox.id,
+                "targetId": interface.to_netbox.id,
+                "ifname": [interface.ifname],
+                "to_ifname": [interface.to_interface.ifname]}
 
-    netboxes = set(netboxes)
+    for i in link_candidates.values():
+        links.append(i)
+
     for n in netboxes:
         nodes.append({"netboxid": n.id,
                       "name": n.get_short_sysname(),
