@@ -105,7 +105,13 @@ define(["libs/d3.v2"], function () {
                 .enter()
                 .append('line')
                 .attr('class', 'link')
-                .style('stroke-width', 2)
+                .style('stroke-width', function (link) {
+                    if (link.ifname.length > 1) {
+                        return 4;
+                    } else {
+                        return 2;
+                    }
+                })
                 .style('stroke', '#ddd');
         },
         createLinkLabels: function (dataLinks) {
@@ -156,6 +162,8 @@ define(["libs/d3.v2"], function () {
         },
         tick: function () {
             /* Update all positions for each tick of the force algorithm */
+            var that = this;
+
             this.svgLinks
                 .attr('x1', function (link) { return link.source.x; })
                 .attr('y1', function (link) { return link.source.y; })
@@ -163,11 +171,11 @@ define(["libs/d3.v2"], function () {
                 .attr('y2', function (link) { return link.target.y; });
 
             this.svgLinkLabelFromCenter.attr('transform', function (link) {
-                return calculateLinePoint(link.source, link.target, this.linklabeldistance);
+                return that.calculateLinePoint(link.source, link.target);
             });
 
             this.svgLinkLabelToCenter.attr('transform', function (link) {
-                return calculateLinePoint(link.target, link.source, this.linklabeldistance);
+                return that.calculateLinePoint(link.target, link.source);
             });
 
             this.svgNodes
@@ -204,30 +212,29 @@ define(["libs/d3.v2"], function () {
             svgNodes.on('click', function (node) {
                 location.href = '/ipdevinfo/' + node.sysname;
             })
-        }
+        },
+        calculateLinePoint: function(source, target) {
+            /*
+             Given source and target coords - calculate a point along the line
+             between source and target with length 'distance' from the source
+             */
+            var m, x, y,
+                x0 = source.x,
+                x1 = target.x,
+                y0 = source.y,
+                y1 = target.y;
 
+            m = (y1 - y0) / (x1 - x0);  // Line gradient
+            if (x0 < x1) {
+                x = x0 + (this.linklabeldistance / Math.sqrt(1 + (m * m)));
+            } else {
+                x = x0 - (this.linklabeldistance / Math.sqrt(1 + (m * m)));
+            }
+            y = m * (x - x0) + y0;
+            return "translate(" + x + ',' +  y + ')';
+        }
     };
 
-    function calculateLinePoint(source, target, distance) {
-        /*
-         Given source and target coords - calculate a point along the line
-         between source and target with length 'distance' from the source
-         */
-        var m, x, y,
-            x0 = source.x,
-            x1 = target.x,
-            y0 = source.y,
-            y1 = target.y;
-
-        m = (y1 - y0) / (x1 - x0);  // Line gradient
-        if (x0 < x1) {
-            x = x0 + (distance / Math.sqrt(1 + (m * m)));
-        } else {
-            x = x0 - (distance / Math.sqrt(1 + (m * m)));
-        }
-        y = m * (x - x0) + y0;
-        return "translate(" + x + ',' +  y + ')';
-    }
 
     return NeighbourMap;
 
