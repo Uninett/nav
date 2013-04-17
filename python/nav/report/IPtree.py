@@ -91,12 +91,17 @@ def getSubnets(network, min_length=None):
     if min_length is None:
         min_length = network.prefixlen()
     assert min_length < max_length
-    sql = ("SELECT netaddr FROM prefix WHERE family(netaddr)=%d AND "
-           "netaddr << '%s' AND masklen(netaddr) >= %d AND "
-           "masklen(netaddr) < %d" %
-           (network.version(),str(network),min_length,max_length))
+    sql = """
+        SELECT netaddr
+        FROM prefix
+        WHERE family(netaddr)=%s
+          AND netaddr << %s
+          AND masklen(netaddr) >= %s
+          AND masklen(netaddr) < %s
+    """
+    args = (network.version(), str(network), min_length, max_length)
     db_cursor = db.getConnection('default').cursor()
-    db_cursor.execute(sql)
+    db_cursor.execute(sql.strip(), args)
     db_result = db_cursor.fetchall()
     return [IP(i[0]) for i in db_result]
 
