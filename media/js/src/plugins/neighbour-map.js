@@ -26,6 +26,8 @@ define(["libs/d3.v2"], function () {
             'UNRECOGNIZED': '/images/netmap/unrecognized.png'
         };
 
+        this.unrecognized = 'UNRECOGNIZED'
+
         this.unrecognizedToggler = d3.select('#unrecognized');
         this.initialize();
         this.activatePanel();
@@ -114,12 +116,12 @@ define(["libs/d3.v2"], function () {
                 nodes = [],
                 links = [];
             for (var node in data.nodes) {
-                if (data.nodes.hasOwnProperty(node) && data.nodes[node].category !== 'UNRECOGNIZED') {
+                if (data.nodes.hasOwnProperty(node) && data.nodes[node].category !== this.unrecognized) {
                     nodes.push(data.nodes[node]);
                 }
             }
             for (var link in data.links) {
-                if (data.links.hasOwnProperty(link) && data.links[link].target.category !== 'UNRECOGNIZED') {
+                if (data.links.hasOwnProperty(link) && data.links[link].target.category !== this.unrecognized) {
                     links.push(data.links[link]);
                 }
             }
@@ -251,8 +253,11 @@ define(["libs/d3.v2"], function () {
                 })
         },
         appendClickListeners: function (svgNodes) {
+            var that = this;
             svgNodes.on('click', function (node) {
-                location.href = '/ipdevinfo/' + node.sysname + '/#!neighbours';
+                if (node.category !== that.unrecognized) {
+                    location.href = '/ipdevinfo/' + node.sysname + '/#!neighbours';
+                }
             })
         },
         calculateLinePoint: function(source, target, distance) {
