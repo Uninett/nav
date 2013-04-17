@@ -26,6 +26,7 @@ define(["libs/d3.v2"], function () {
             'UNRECOGNIZED': '/images/netmap/unrecognized.png'
         };
 
+        this.unrecognizedToggler = d3.select('#unrecognized');
         this.initialize();
         this.activatePanel();
         this.fetchData();
@@ -52,18 +53,64 @@ define(["libs/d3.v2"], function () {
         },
         activatePanel: function () {
             var that = this;
-            d3.select('#unrecognized').on('change', function () {
-                if (this.checked) {
-                    that.data = that.originalData;
-                    that.render();
-                } else {
-                    that.data = that.filterUncategorized();
-                    that.render();
-                }
+            this.unrecognizedToggler.on('change', function () {
+                that.render();
             })
         },
+        fetchData: function () {
+            /* Fetch neighbourhood data for this netbox */
+            var that = this;
+            d3.json('/ajax/open/neighbourmap/' + this.netboxid, function (json) {
+                if (json) {
+                    that.data = json;
+                    that.render();
+                }
+            });
+        },
+        render: function () {
+            /* Create and display all objects and svg elements */
+            var that = this,
+                data = this.data;
+
+            this.updateNodes(data.nodes);
+            this.updateLinks(data.links);
+
+            if (!this.unrecognizedToggler.property('checked')) {
+                data = this.filterUncategorized();
+            }
+
+            this.force.nodes(data.nodes).links(data.links).start();
+            this.createSvgLinks(data.links);
+            this.createLinkLabels(data.links);
+            this.createSvgNodes(data.nodes);
+
+            this.force.on('tick', function () {
+                that.tick.call(that);
+            });
+        },
+        updateNodes: function (nodes) {
+            /* Update all datanodes and a hash used when creating the links */
+            this.nodeHash = {};
+            for (var i=0, node; node=nodes[i]; i++) {
+                if (node.netboxid == this.netboxid) {
+                    node.fixed = true;  // Fix the main node
+                }
+                node.x = node.x || this.width / 2;
+                node.y = node.y || this.height / 2;
+                this.nodeHash[node.netboxid] = node;
+            }
+            return nodes;
+        },
+        updateLinks: function (links) {
+            /* Set source and target for all links based on node hash */
+            for (var i=0, link; link=links[i]; i++) {
+                link.source = this.nodeHash[link.sourceId];
+                link.target = this.nodeHash[link.targetId];
+            }
+            return links;
+        },
         filterUncategorized: function () {
-            var data = this.originalData,
+            var data = this.data,
                 nodes = [],
                 links = [];
             for (var node in data.nodes) {
@@ -77,56 +124,6 @@ define(["libs/d3.v2"], function () {
                 }
             }
             return {'nodes': nodes, 'links': links};
-        },
-        fetchData: function () {
-            /* Fetch neighbourhood data for this netbox */
-            var that = this;
-            d3.json('/ajax/open/neighbourmap/' + this.netboxid, function (json) {
-                if (json) {
-                    that.originalData = json;
-                    that.data = json;
-                    console.log(json);
-                    that.render();
-                }
-            });
-        },
-        render: function () {
-            /* Create and display all objects and svg elements */
-            var that = this,
-                dataNodes = this.updateNodes(),
-                dataLinks = this.updateLinks();
-
-            this.force.nodes(dataNodes).links(dataLinks).start();
-            this.createSvgLinks(dataLinks);
-            this.createLinkLabels(dataLinks);
-            this.createSvgNodes(dataNodes);
-
-            this.force.on('tick', function () {
-                that.tick.call(that);
-            });
-        },
-        updateNodes: function () {
-            /* Update all datanodes and a hash used when creating the links */
-            var nodes = this.data.nodes;
-            this.nodeHash = {};
-            for (var i=0, node; node=nodes[i]; i++) {
-                if (node.netboxid == this.netboxid) {
-                    node.fixed = true;  // Fix the main node
-                }
-                node.x = node.x || this.width / 2;
-                node.y = node.y || this.height / 2;
-                this.nodeHash[node.netboxid] = node;
-            }
-            return nodes;
-        },
-        updateLinks: function () {
-            /* Set source and target for all links based on node hash */
-            var links = this.data.links;
-            for (var i=0, link; link=links[i]; i++) {
-                link.source = this.nodeHash[link.sourceId];
-                link.target = this.nodeHash[link.targetId];
-            }
-            return links;
         },
         createSvgLinks: function (dataLinks) {
             /* Create all the visible links between the nodes */
@@ -144,6 +141,7 @@ define(["libs/d3.v2"], function () {
                 })
                 .style('stroke', '#ddd');
             this.svgLinks.exit().remove();
+
         },
         createLinkLabels: function (dataLinks) {
             /* Create the link labels, in this case interface names */
