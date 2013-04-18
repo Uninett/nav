@@ -15,19 +15,14 @@ define([
             "netmap:graph:isDoneLoading": "setIsViewEnabled"
         },
         events: {
-            'click .header': 'toggleWidget',
-            "click #searchbox_search": "searchMap",
-            "click #center_graph": "centerGraph"
+            'click .header .title': 'toggleWidget',
+            'click #searchbox_search': 'searchMap',
+            'click #center_graph': 'centerGraph'
         },
         initialize: function () {
             this.broker.register(this);
             this.template = Handlebars.compile(netmapTemplate);
             this.isWidgetVisible = true;
-
-            //this.searchbox = this.options.node;
-            /*this.model.bind("change", this.render, this);
-             this.model.bind("destroy", this.close, this);*/
-
         },
         setIsViewEnabled: function (boolValue) {
             this.isViewEnabled = boolValue;
@@ -36,10 +31,12 @@ define([
         searchMap: function (e) {
             e.preventDefault();
             this.broker.trigger('netmap:search', $("input#searchbox_query", this.$el).val());
+            return true;
         },
         centerGraph: function (e) {
             e.preventDefault();
             this.broker.trigger('netmap:centerGraph');
+            return true;
         },
         render: function () {
             var out = this.template({ node: this.node, isViewEnabled: this.isViewEnabled, isWidgetVisible: this.isWidgetVisible});
