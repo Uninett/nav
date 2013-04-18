@@ -44,7 +44,8 @@ define([
                     type: 'radio',
                     identifier: 'group_position',
                     collection: this.collection.toJSON(),
-                    isViewEnabled: this.isViewEnabled
+                    isViewEnabled: this.isViewEnabled,
+                    isWidgetVisible: this.isWidgetVisible
                 })
             );
             return this;
