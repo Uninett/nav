@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2003-2005 Norwegian University of Science and Technology
-# Copyright (C) 2008-2012 UNINETT AS
+# Copyright (C) 2008-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -8,11 +8,11 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Handling web requests for the Report subsystem."""
 
@@ -27,6 +27,8 @@ import os
 import re
 from nav.django.utils import get_account
 
+# this is just here to make sure Django finds NAV's settings file
+# pylint: disable=W0611
 from nav.models import manage
 from django.core.cache import cache
 
@@ -41,17 +43,21 @@ from nav.web.templates.ReportListTemplate import ReportListTemplate
 from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
 import nav.path
 
-config_file_package = os.path.join(nav.path.sysconfdir, "report/report.conf")
-config_file_local = os.path.join(nav.path.sysconfdir, "report/report.local.conf")
-frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
+CONFIG_FILE_PACKAGE = os.path.join(nav.path.sysconfdir, "report/report.conf")
+CONFIG_FILE_LOCAL = os.path.join(nav.path.sysconfdir,
+                                 "report/report.local.conf")
+FRONT_FILE = os.path.join(nav.path.sysconfdir, "report/front.html")
+
 
 def index(request):
+    """Report front page"""
     page = MainTemplate()
     request.content_type = "text/html"
     page.path = [("Home", "/"), ("Report", False)]
     page.title = "Report - Index"
-    page.content = lambda:file(frontFile).read()
+    page.content = file(FRONT_FILE).read
     return HttpResponse(page.respond())
+
 
 def get_report(request, report_name):
     """Loads and displays a specific reports with optional search arguments"""
@@ -64,6 +70,7 @@ def get_report(request, report_name):
             "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode()))
 
     return make_report(request, report_name, export_delimiter, query)
+
 
 def _strip_empty_arguments(request):
     """Strips empty arguments and their related operator arguments from the
@@ -81,6 +88,7 @@ def _strip_empty_arguments(request):
             del query["not_{0}".format(key)]
 
     return query
+
 
 def _get_export_delimiter(query):
     """Retrieves the CSV export delimiter from a QueryDict, but only if the
@@ -100,8 +108,9 @@ def _get_export_delimiter(query):
             del query['export']
             del query['exportcsv']
 
-def matrix_report(request):
 
+def matrix_report(request):
+    """Subnet matrix view"""
     request.content_type = "text/html"
 
     argsdict = request.GET or {}
@@ -113,7 +122,12 @@ def matrix_report(request):
         # Find all scopes in database.
         connection = db.getConnection('webfront','manage')
         database = connection.cursor()
-        database.execute("SELECT netaddr, description FROM prefix INNER JOIN vlan USING (vlanid) WHERE nettype='scope'")
+        database.execute("""
+            SELECT netaddr, description
+            FROM prefix
+            INNER JOIN vlan USING (vlanid)
+            WHERE nettype='scope'
+            """.strip())
         databasescopes = database.fetchall()
 
         if len(databasescopes) == 1:
@@ -165,7 +179,8 @@ def matrix_report(request):
                                     bits_in_matrix=bits_in_matrix)
 
         else:
-            raise UnknownNetworkTypeException, "version: " + str(scope.version())
+            raise UnknownNetworkTypeException(
+                "version: " + str(scope.version()))
         matrix_template_response = matrix.getTemplateResponse()
 
         # Invalidating the MetaIP cache to get rid of processed data.
@@ -174,63 +189,71 @@ def matrix_report(request):
         return HttpResponse(matrix_template_response)
 
 
-
-def report_list(request):
-
+def report_list(_request):
+    """Automated report list view"""
     page = ReportListTemplate()
-    request.content_type = "text/html"
 
     # Default config
-    report_list = ReportList(config_file_package).get_report_list()
-    map(itemgetter(1), report_list)
-    report_list = sorted(report_list, key=itemgetter(1))
+    reports = ReportList(CONFIG_FILE_PACKAGE).get_report_list()
+    reports.sort(key=itemgetter(1))
 
     # Local config
-    report_list_local = ReportList(config_file_local).get_report_list()
-    map(itemgetter(1), report_list_local)
-    report_list_local = sorted(report_list_local, key=itemgetter(1))
+    local_reports = ReportList(CONFIG_FILE_LOCAL).get_report_list()
+    local_reports.sort(key=itemgetter(1))
 
     name = "Report List"
     name_link = "reportlist"
-    page.path = [("Home", "/"), ("Report", "/report/"), (name, "/report/" + name_link)]
+    page.path = [("Home", "/"),
+                 ("Report", "/report/"),
+                 (name, "/report/" + name_link)]
     page.title = "Report - " + name
-    page.report_list = report_list
-    page.report_list_local = report_list_local
+    page.report_list = reports
+    page.report_list_local = local_reports
 
     return HttpResponse(page.respond())
 
 
-
 def make_report(request, report_name, export_delimiter, query_dict):
-
+    """Makes a report"""
     # Initiating variables used when caching
-    report = contents = neg = operator = adv = dbresult = result_time = None
+    report = contents = neg = operator = adv = result_time = None
 
     query_dict_no_meta = query_dict.copy()
     # Deleting meta variables from uri to help identifying if the report
     # asked for is in the cache or not.
-    if 'offset' in query_dict_no_meta: del query_dict_no_meta['offset']
-    if 'limit' in query_dict_no_meta: del query_dict_no_meta['limit']
-    if 'export' in query_dict_no_meta: del query_dict_no_meta['export']
-    if 'exportcsv' in query_dict_no_meta: del query_dict_no_meta['exportcsv']
+    if 'offset' in query_dict_no_meta:
+        del query_dict_no_meta['offset']
+    if 'limit' in query_dict_no_meta:
+        del query_dict_no_meta['limit']
+    if 'export' in query_dict_no_meta:
+        del query_dict_no_meta['export']
+    if 'exportcsv' in query_dict_no_meta:
+        del query_dict_no_meta['exportcsv']
 
-    helper_remove = dict((key, query_dict_no_meta[key]) for key in query_dict_no_meta)
+    helper_remove = dict((key, query_dict_no_meta[key])
+                         for key in query_dict_no_meta)
     for key, val in helper_remove.items():
         if val == "":
             del query_dict_no_meta[key]
 
-    uri_strip = dict((key, query_dict_no_meta[key]) for key in query_dict_no_meta)
+    uri_strip = dict((key, query_dict_no_meta[key])
+                     for key in query_dict_no_meta)
     username = get_account(request).login
-    mtime_config = os.stat(config_file_package).st_mtime + os.stat(config_file_local).st_mtime
-    cache_name = 'report_' + username + '_' + '_' + report_name + str(mtime_config)
+    mtime_config = (os.stat(CONFIG_FILE_PACKAGE).st_mtime +
+                    os.stat(CONFIG_FILE_LOCAL).st_mtime)
+    cache_name = 'report_%s__%s%s' % (username, report_name, mtime_config)
 
     def _fetch_data_from_db():
-        (report, contents, neg, operator, adv, config, dbresult) = gen.make_report(report_name, config_file_package, config_file_local, query_dict, None, None)
+        (report, contents, neg, operator, adv, config, dbresult) = (
+            gen.make_report(report_name, CONFIG_FILE_PACKAGE,
+                            CONFIG_FILE_LOCAL, query_dict, None, None))
         if not report:
             raise Http404
         result_time = strftime("%H:%M:%S", localtime())
-        cache.set(cache_name, (uri_strip, report, contents, neg, operator, adv, config, dbresult, result_time))
-        return (report, contents, neg, operator, adv, result_time)
+        cache.set(cache_name,
+                  (uri_strip, report, contents, neg, operator, adv, config,
+                   dbresult, result_time))
+        return report, contents, neg, operator, adv, result_time
 
     gen = Generator()
     # Caching. Checks if cache exists for this user, that the cached report is
@@ -242,14 +265,17 @@ def make_report(request, report_name, export_delimiter, query_dict):
         if not config_cache or not dbresult_cache or not report_cache:
             # Might happen if last report was N/A or invalid request, config
             # then ends up being None.
-            (report, contents, neg, operator, adv, result_time) = _fetch_data_from_db()
+            (report, contents, neg, operator, adv,
+             result_time) = _fetch_data_from_db()
         else:
-            (report, contents, neg, operator, adv) = gen.make_report(report_name, None, None, query_dict, config_cache, dbresult_cache)
+            (report, contents, neg, operator, adv) = (
+                gen.make_report(report_name, None, None, query_dict,
+                                config_cache, dbresult_cache))
             result_time = cache.get(cache_name)[8]
-            dbresult = dbresult_cache
 
-    else: # Report not in cache, fetch data from DB
-        (report, contents, neg, operator, adv, result_time) = _fetch_data_from_db()
+    else:  # Report not in cache, fetch data from DB
+        (report, contents, neg, operator, adv,
+         result_time) = _fetch_data_from_db()
 
     if cache.get(cache_name) and not report:
         raise RuntimeWarning("Found cache entry, but no report. Ooops, panic!")
@@ -313,8 +339,8 @@ def make_report(request, report_name, export_delimiter, query_dict):
         return HttpResponse(page.respond())
 
 
-
-def generate_export(request, report, report_name, export_delimiter):
+def generate_export(_request, report, report_name, export_delimiter):
+    """Generates a CSV export version of a report"""
     def _cellformatter(cell):
         if isinstance(cell.text, unicode):
             return cell.text.encode('utf-8')
@@ -343,5 +369,6 @@ def generate_export(request, report, report_name, export_delimiter):
     return response
 
 
-
-class UnknownNetworkTypeException(Exception): pass
+class UnknownNetworkTypeException(Exception):
+    """Unknown network type"""
+    pass
