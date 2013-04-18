@@ -118,7 +118,7 @@ def matrix_report(request):
 
         if len(databasescopes) == 1:
             # If there is a single scope in the db, display that
-            scope = IP(databasescopes[0])
+            scope = IP(databasescopes[0][0])
         else:
             # Otherwise, show an error or let the user select from
             # a list of scopes.
