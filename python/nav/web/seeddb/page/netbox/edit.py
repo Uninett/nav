@@ -67,9 +67,8 @@ def netbox_edit(request, netbox_id=None):
 
             if forms_are_valid:
                 netbox = netbox_do_save(netbox_form, serial_form, subcat_form)
-                new_message(request._req,
-                    "Saved netbox %s" % netbox.sysname,
-                    Messages.SUCCESS)
+                new_message(request, "Saved netbox %s" % netbox.sysname,
+                            Messages.SUCCESS)
                 return HttpResponseRedirect(reverse('seeddb-netbox'))
     else:
         netbox_form = get_netbox_form(netbox)

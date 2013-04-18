@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008 UNINETT AS
+# Copyright (C) 2008, 2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,12 +18,14 @@
 A message is stored in a user's session and can be displayed to the
 user to give confirmation, warnings or other types of messages.
 
-NOTE: This works with mod_python based NAV sessions.
+This was originally written to work with NAV sessions under mod_python,
+before we supported a Django version with its on Message framework. Most
+usage of this module can be replaced with Django's Message framework instead.
+
 """
 
 from copy import copy
 
-from nav.web.state import setupSession
 
 def new_message(request, message, type):
     """Convenience method for fetching Messages object and adding a new message
@@ -38,6 +39,7 @@ def new_message(request, message, type):
     messages.append({'message': message, 'type': type})
     messages.save()
 
+
 class Messages(list):
     """List object that stores messsages for the user accross page views.
     Uses sessions.
@@ -50,13 +52,11 @@ class Messages(list):
     session = None
 
     def __init__(self, request=None):
-        self.session = _get_request(request).session
+        self.session = request.session
 
     def __new__(cls, request=None):
         # We try to fetch a Messages object from this users session.
         # If it doesn't exist we make a new one.
-        request = _get_request(request)
-        setupSession(request)
         messages = request.session.get('messages', None)
 
         if not messages or not isinstance(messages, Messages):
@@ -79,18 +79,3 @@ class Messages(list):
         self.session['messages'] = []
         self.session.save()
         return messages
-
-def _get_request(request):
-    """Returns the mod_python request object from request.
-
-    If request is a Django request, the underlyding mod_python request object
-    is extracted and returned. Otherwise, request itself will be returned.
-
-    """
-    try:
-        # yes, we know this is dirty, but this is they way it has to be until
-        # we ditch mod_python completely
-        # pylint: disable=W0212
-        return request._req
-    except AttributeError:
-        return request

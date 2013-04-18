@@ -48,7 +48,7 @@ def requires_post(redirect='alertprofiles-overview', required_args=None):
             else:
                 error = _('There was no post-data')
 
-            new_message(request._req, error, Messages.ERROR)
+            new_message(request, error, Messages.ERROR)
             return HttpResponseRedirect(reverse(redirect))
 
         return wraps(func)(_handler)

@@ -35,7 +35,7 @@ from nav.models.profiles import Account, AccountGroup, AccountProperty, \
     AlertSubscription, FilterGroupContent, Operator, Expression, \
     Filter, FilterGroup, MatchField, SMSQueue, AccountAlertQueue
 from nav.django.utils import get_account, is_admin
-from nav.web.message import Messages
+from nav.web.message import Messages, new_message
 
 from nav.web.alertprofiles.forms import AccountPropertyForm, TimePeriodForm
 from nav.web.alertprofiles.forms import AlertProfileForm, AlertSubscriptionForm
@@ -43,7 +43,7 @@ from nav.web.alertprofiles.forms import AlertAddressForm, FilterForm
 from nav.web.alertprofiles.forms import ExpressionForm, FilterGroupForm
 from nav.web.alertprofiles.forms import MatchFieldForm
 
-from nav.web.alertprofiles.utils import new_message, alert_subscriptions_table
+from nav.web.alertprofiles.utils import alert_subscriptions_table
 from nav.web.alertprofiles.utils import read_time_period_templates
 from nav.web.alertprofiles.utils import resolve_account_admin_and_owner
 from nav.web.alertprofiles.utils import account_owns_filters

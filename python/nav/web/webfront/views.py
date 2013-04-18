@@ -26,6 +26,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
 
 from nav.config import read_flat_config
+from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
 from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
@@ -35,7 +36,6 @@ from nav.models.manage import Netbox
 from nav.web.templates.DjangoCheetah import DjangoCheetah
 
 from nav.web import ldapauth, auth
-from nav.web.state import deleteSessionCookie
 from nav.web.webfront.utils import quick_read, current_messages, boxes_down, tool_list
 from nav.web.webfront.forms import LoginForm, NavbarForm, PersonalNavbarForm
 
@@ -55,7 +55,7 @@ def index(request):
     # Read files that will be displayed on front page
     external_links = quick_read(EXTERNAL_LINKS_PATH)
     contact_information = quick_read(CONTACT_INFORMATION_PATH)
-    if request._req.session['user']['id'] == Account.DEFAULT_ACCOUNT:
+    if request.account.is_default_account():
         welcome = quick_read(WELCOME_ANONYMOUS_PATH)
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
@@ -117,9 +117,8 @@ def do_login(request):
         else:
             if account:
                 try:
-                    # Pass the mod_python request structure to legacy
-                    # auth.login
-                    auth.login(request._req, account)
+                    request.session[ACCOUNT_ID_VAR] = account.id
+                    request.account = account
                 except ldapauth.Error, e:
                     errors.append('Error while talking to LDAP:\n%s' % e)
                 else:
@@ -142,10 +141,13 @@ def do_login(request):
 
 def logout(request):
     if request.method == 'POST' and 'submit_desudo' in request.POST:
-        auth.desudo(request)
+        desudo(request)
         return HttpResponseRedirect(reverse('webfront-index'))
     else:
-        auth.logout(request._req)
+        del request.session[ACCOUNT_ID_VAR]
+        del request.account
+        request.session.set_expiry(datetime.now())
+        request.session.save()
     return HttpResponseRedirect('/')
 
 def about(request):

@@ -16,7 +16,7 @@
 
 """Django configuration wrapper around the NAV configuration files"""
 
-from nav.config import read_flat_config
+from nav.config import read_flat_config, getconfig
 from nav.db import get_connection_parameters
 import nav.buildconf
 import nav.path
@@ -25,6 +25,12 @@ try:
     nav_config = read_flat_config('nav.conf')
 except IOError:
     nav_config = {}
+
+try:
+    webfront_config = getconfig('webfront/webfront.conf',
+                                configfolder=nav.path.sysconfdir)
+except IOError:
+    webfront_config = {}
 
 DEBUG = nav_config.get('DJANGO_DEBUG', False)
 TEMPLATE_DEBUG = DEBUG
@@ -51,7 +57,7 @@ try:
 except IOError:
     pass
 
-INSTALLED_APPS = ('nav.django',)
+INSTALLED_APPS = ('nav.django', 'django.contrib.sessions')
 
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
@@ -73,11 +79,19 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 # Middleware
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'nav.django.auth.AuthenticationMiddleware',
+    'nav.django.auth.AuthorizationMiddleware',
+    'nav.django.legacy.LegacyCleanupMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = int(
+    webfront_config.get('sessions', {}).get('timeout', 3600))
+
 # Message storage for the messages framework
-MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Email sending
 DEFAULT_FROM_EMAIL = nav_config.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
