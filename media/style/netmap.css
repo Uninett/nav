@@ -67,7 +67,6 @@ quote http://www.bluerobot.com/web/layouts/
     top:0px;
     left:0px;
     border:1px dashed black;
-    /*background-color:#eee;*/
     padding:10px;
     z-index:2;
 
@@ -79,7 +78,6 @@ below. See http://glish.com/css/hacks.asp for details. */
     voice-family: "\"}\"";
     voice-family:inherit;
     width:128px;
-    /*background-color: #eee;*/
 }
 /* I've heard this called the "be nice to Opera 5" rule. Basically, it feeds correct
 length values to user agents that exhibit the parsing error exploited above yet get
@@ -97,7 +95,6 @@ body>#netmap_left_sidebar {width:128px;}
     top:0px;
     right:0px;
     border:1px dashed black;
-    background-color:#eee;
     padding:10px;
     z-index:1;
     /* Again, the ugly brilliant hack. */
