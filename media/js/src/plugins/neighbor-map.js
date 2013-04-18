@@ -1,6 +1,6 @@
 define(["libs/d3.v2"], function () {
 
-    function NeighbourMap(node) {
+    function NeighborMap(node) {
         this.motherNode = d3.select(node);  // Use this for selecting prior to svg
         this.netboxid = this.motherNode.attr('data-netboxid');
         if (!this.netboxid) {
@@ -34,7 +34,7 @@ define(["libs/d3.v2"], function () {
         this.fetchData();
     }
 
-    NeighbourMap.prototype = {
+    NeighborMap.prototype = {
         initialize: function () {
             /* Create svg element and define force algorithm */
             this.createSvg();
@@ -62,7 +62,7 @@ define(["libs/d3.v2"], function () {
         fetchData: function () {
             /* Fetch neighbourhood data for this netbox */
             var that = this;
-            d3.json('/ajax/open/neighbourmap/' + this.netboxid, function (json) {
+            d3.json('/ajax/open/neighbormap/' + this.netboxid, function (json) {
                 if (json) {
                     that.data = json;
                     that.render();
@@ -256,7 +256,7 @@ define(["libs/d3.v2"], function () {
             var that = this;
             svgNodes.on('click', function (node) {
                 if (node.category !== that.unrecognized) {
-                    location.href = '/ipdevinfo/' + node.sysname + '/#!neighbours';
+                    location.href = '/ipdevinfo/' + node.sysname + '/#!neighbors';
                 }
             })
         },
@@ -288,6 +288,6 @@ define(["libs/d3.v2"], function () {
     };
 
 
-    return NeighbourMap;
+    return NeighborMap;
 
 });

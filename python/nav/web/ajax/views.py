@@ -60,7 +60,7 @@ def netbox_down_in(room):
     return len(room.netbox_set.filter(up='n'))
 
 
-def get_neighbours(request, netboxid):
+def get_neighbors(request, netboxid):
     """Get neighbours for this netboxid
 
     Used in neighbour-map
