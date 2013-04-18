@@ -94,10 +94,10 @@ body {
 
 /* Footer styles */
 #footer {
-    clear: both;
-    float: left;
-    width: 100%;
-    border-top: 1px solid #000;
+    display: none;
+}
+#debug {
+    display: none;
 }
 
 #footer p {
@@ -322,7 +322,13 @@ li.selected_vlan a {
 }
 .netmapWidget .header .title {
     font-size: 14pt;
+    background: url('/images/icons/expand.png') no-repeat right top;
+    padding-right: 16px;
 }
+.netmapWidget .header .title img {
+    margin-top: 6px; /* helper icon to be aligned properly */
+}
+
 .netmapWidget .body {
     margin-top: 1em;
     background: #fff;
