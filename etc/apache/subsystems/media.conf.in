@@ -1,0 +1,22 @@
+Alias /uploads/images/rooms/ @localstatedir@/uploads/images/rooms/
+
+<Location /uploads>
+    SetHandler none
+    Options -Indexes
+    PythonHeaderParserHandler nav.web.noauth
+</Location>
+
+<Location /images>
+    SetHandler none
+    PythonHeaderParserHandler nav.web.noauth
+</Location>
+
+<Location /js>
+    SetHandler none
+    PythonHeaderParserHandler nav.web.noauth
+</Location>
+
+<Location /style>
+    SetHandler none
+    PythonHeaderParserHandler nav.web.noauth
+</Location>
