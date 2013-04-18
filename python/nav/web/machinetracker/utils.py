@@ -142,8 +142,9 @@ def track_mac(keys, resultset, dns):
         if row['end_time'] > datetime.now():
             row['still_active'] = "Still active"
         if dns:
-            if dns_lookups[row.ip] and not isinstance(dns_lookups[row.ip], Exception):
-                row.dns_lookup = dns_lookups[row.ip].pop()
+            ip = row['ip']
+            if dns_lookups[ip] and not isinstance(dns_lookups[ip], Exception):
+                row['dns_lookup'] = dns_lookups[ip].pop()
             else:
                 row['dns_lookup'] = ""
         if 'module' not in row or not row['module']:
