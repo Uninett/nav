@@ -24,7 +24,7 @@ from nav.report.IPtools import getMask, sort_nets_by_prefixlength, andIpMask
 tree = None
 
 def buildTree(start_net, end_net=None, bits_in_matrix=0,
-			  add_missing_nets=False, forceBuild=False):
+              add_missing_nets=False, forceBuild=False):
     """Builds a tree from start_net to (and included) end_net.
 
     Arguments:
@@ -78,26 +78,30 @@ def insertIntoTree(tree, ip):
             return
     tree[ip] = {}
 
-def getSubnets(network, min_length=None, max_length=128):
+def getSubnets(network, min_length=None):
     """Retrieves all the subnets of the argument ``network''.
 
     Arguments:
         ``min_length'': minimum subnet mask length, defaults to network.prefixlen().
-        ``max_length'': maximum subnet mask length, defaults to 128.
 
     Returns:
         List with IPy.IP objects
     """
-
+    max_length = 128 if network.version() == 6 else 32
     if min_length is None:
         min_length = network.prefixlen()
     assert min_length < max_length
-    sql = ("SELECT netaddr FROM prefix WHERE family(netaddr)=%d AND "
-		   "netaddr << '%s' AND masklen(netaddr) >= %d AND "
-		   "masklen(netaddr) < %d" %
-		   (network.version(),str(network),min_length,max_length))
+    sql = """
+        SELECT netaddr
+        FROM prefix
+        WHERE family(netaddr)=%s
+          AND netaddr << %s
+          AND masklen(netaddr) >= %s
+          AND masklen(netaddr) < %s
+    """
+    args = (network.version(), str(network), min_length, max_length)
     db_cursor = db.getConnection('default').cursor()
-    db_cursor.execute(sql)
+    db_cursor.execute(sql.strip(), args)
     db_result = db_cursor.fetchall()
     return [IP(i[0]) for i in db_result]
 
@@ -152,14 +156,14 @@ def getMaxLeaf(tree, maximum_prefix_length=128):
         for node in tree.keys():
             if isLeafNode(tree[node]):
                 if (node.prefixlen() > max.prefixlen() and
-					node.prefixlen() <= maximum_prefix_length
-					):
+                    node.prefixlen() <= maximum_prefix_length
+                    ):
                     max = node
             else:
                 result = dfs(tree[node], max)
                 if (result.prefixlen() > max.prefixlen() and
-					result.prefixlen() <= maximum_prefix_length
-					):
+                    result.prefixlen() <= maximum_prefix_length
+                    ):
                     max = result
         return max
 

@@ -16,7 +16,7 @@
 "SNMP timestamps and sysUpTime comparisons"
 import cPickle as pickle
 
-from twisted.internet import defer, threads
+from twisted.internet import defer
 
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 
@@ -102,7 +102,7 @@ class TimestampChecker(object):
             except Exception:
                 return None
 
-        self.loaded_times = yield threads.deferToThread(_unpickle)
+        self.loaded_times = yield db.run_in_thread(_unpickle)
         defer.returnValue(self.loaded_times)
 
     def save(self):

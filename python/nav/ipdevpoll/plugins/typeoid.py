@@ -21,9 +21,7 @@ netbox.
 
 """
 
-from twisted.internet import threads
-
-from nav.ipdevpoll import Plugin, storage, shadows, signals
+from nav.ipdevpoll import Plugin, storage, shadows, signals, db
 from nav.oids import OID
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
@@ -72,8 +70,8 @@ class TypeOid(Plugin):
 
         # Look up existing type entry
         types = manage.NetboxType.objects.filter(sysobjectid=self.sysobjectid)
-        df = threads.deferToThread(storage.shadowify_queryset_and_commit,
-                                   types)
+        df = db.run_in_thread(storage.shadowify_queryset_and_commit,
+                              types)
         df.addCallback(_single_result)
         return df
 
