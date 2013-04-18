@@ -1,4 +1,5 @@
 define([
+    'netmap/views/widget_mixin',
     'netmap/resource',
     'netmap/collections/checkradio',
     'libs-amd/text!netmap/templates/checkradio.html',
@@ -8,8 +9,8 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Resources, Collection, Template, NetmapHelpers) {
-    var LayerView = Backbone.View.extend({
+], function (WidgetMixin, Resources, Collection, Template, NetmapHelpers) {
+    var LayerView = Backbone.View.extend(_.extend({}, WidgetMixin, {
 
         broker: Backbone.EventBroker,
         interests: {
@@ -17,6 +18,7 @@ define([
             "netmap:changeActiveMapProperty": "setTopologyFromChangedActiveMapProperty"
         },
         events: {
+            'click .header': 'toggleWidget',
             'click input[name="topology[]"]': 'setTopologyFromDOM'
 
         },
@@ -47,9 +49,11 @@ define([
                     type: 'radio',
                     identifier: 'topology',
                     collection: this.collection.toJSON(),
-                    isViewEnabled: this.isViewEnabled
+                    isViewEnabled: this.isViewEnabled,
+                    isWidgetVisible: this.isWidgetVisible
                 })
             );
+            console.log(this.isWidgetVisible);
 
             return this;
         },
@@ -80,7 +84,7 @@ define([
             $(this.el).unbind();
             $(this.el).remove();
         }
-    });
+    }));
 
     return LayerView;
 });

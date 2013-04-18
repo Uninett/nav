@@ -1,4 +1,5 @@
 define([
+    'netmap/views/widget_mixin',
     'netmap/resource',
     'libs-amd/text!netmap/templates/widgets/orphans.html',
     'libs/handlebars',
@@ -6,8 +7,8 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Resource, Template) {
-    var OrphanView = Backbone.View.extend({
+], function (WidgetMixin, Resource, Template) {
+    var OrphanView = Backbone.View.extend(_.extend({}, WidgetMixin, {
 
         broker: Backbone.EventBroker,
         interests: {
@@ -15,6 +16,7 @@ define([
             "netmap:changeActiveMapProperty": "setOrphansFilterFromChangedActiveMapProperty"
         },
         events: {
+            'click .header': 'toggleWidget',
             'click input[name="filter_orphans"]': 'setOrphansFilterFromDOM'
         },
         initialize: function () {
@@ -50,7 +52,7 @@ define([
             $(this.el).unbind();
             $(this.el).remove();
         }
-    });
+    }));
 
     return OrphanView;
 });

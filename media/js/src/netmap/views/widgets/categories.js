@@ -1,4 +1,5 @@
 define([
+    'netmap/views/widget_mixin',
     'netmap/resource',
     'netmap/collections/categories',
     'netmap/models/input_checkradio',
@@ -8,15 +9,16 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Resources, Collection, Model, Template) {
-    var CategoriesView = Backbone.View.extend({
-
+], function (WidgetMixin, Resources, Collection, Model, Template) {
+    var CategoriesView = Backbone.View.extend(
+        _.extend({}, WidgetMixin, {
         broker: Backbone.EventBroker,
         interests: {
             "netmap:graph:isDoneLoading": "setIsViewEnabled",
             "netmap:changeActiveMapProperty": "updateFiltersFromBroadcast"
         },
         events: {
+            'click .header': 'toggleWidget',
             'click input[name="categories[]"]': 'updateFilters'
         },
         initialize: function () {
@@ -86,7 +88,7 @@ define([
             $(this.el).unbind();
             $(this.el).remove();
         }
-    });
+    }));
 
     return CategoriesView;
 });

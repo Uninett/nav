@@ -1,13 +1,18 @@
-<div>
-    <form class="well form-inline" action="#">
-            <div id="form_view" class="control-group">
-                <label class="control-label"
-                       for="searchbox_query">Search</label>
-                <input type="input" name="searchbox_query" id="searchbox_query" {{#unless isViewEnabled}} disabled{{/unless}} />
-                <button id="searchbox_search"
-                        class="btn" {{#unless isViewEnabled}} disabled{{/unless}}>Search
-                </button>
-                <button id="center_graph" {{#unless isViewEnabled}} disabled{{/unless}}>Zoom to extent</button>
-            </div>
-    </form>
+<div class="netmapWidget">
+    <div class="header">
+        <div class="title">Search <img class="float-right" title="Toggle widget" src="/images/icons/expand.png" />
+    </div>
+    <div class="body" {{#unless isWidgetVisible}}style="display: none"{{/unless}}>
+        <form class="well form-inline" action="#">
+                <div id="form_view" class="control-group">
+                    <label class="control-label"
+                           for="searchbox_query">Search</label>
+                    <input type="input" name="searchbox_query" id="searchbox_query" {{#unless isViewEnabled}} disabled{{/unless}} />
+                    <button id="searchbox_search"
+                            class="btn" {{#unless isViewEnabled}} disabled{{/unless}}>Search
+                    </button>
+                    <button id="center_graph" {{#unless isViewEnabled}} disabled{{/unless}}>Zoom to extent</button>
+                </div>
+        </form>
+    </div>
 </div>

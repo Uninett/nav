@@ -1,4 +1,5 @@
 define([
+    'netmap/views/widget_mixin',
     'netmap/collections/position',
     'libs-amd/text!netmap/templates/checkradio.html',
     'libs/handlebars',
@@ -6,14 +7,15 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Collection, Template) {
-    var PositionView = Backbone.View.extend({
+], function (WidgetMixin, Collection, Template) {
+    var PositionView = Backbone.View.extend(_.extend({}, WidgetMixin, {
 
         broker: Backbone.EventBroker,
         interests: {
             "netmap:graph:isDoneLoading": "setIsViewEnabled"
         },
         events: {
+            'click .header': 'toggleWidget',
             'click input[name="group_position[]"]': 'setPosition'
         },
         initialize: function () {
@@ -66,7 +68,7 @@ define([
             $(this.el).unbind();
             $(this.el).remove();
         }
-    });
+    }));
 
     return PositionView;
 });

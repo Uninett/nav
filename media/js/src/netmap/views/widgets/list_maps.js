@@ -1,4 +1,5 @@
 define([
+    'netmap/views/widget_mixin',
     'plugins/netmap-extras',
     'netmap/resource',
     'netmap/collections/map',
@@ -14,7 +15,7 @@ define([
     'libs/backbone-eventbroker',
     'libs/spin.min',
     'plugins/jquery_spinjs'
-], function (NetmapExtras, Resources, CollectionMapProperties, ModelMapProperties, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
+], function (WidgetMixin, NetmapExtras, Resources, CollectionMapProperties, ModelMapProperties, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
 
     var ListNetmapView = Backbone.View.extend({
         tagName: "div",

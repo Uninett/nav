@@ -1,4 +1,5 @@
 define([
+    'netmap/views/widget_mixin',
     'plugins/netmap-extras',
     'libs-amd/text!netmap/templates/widgets/searchbox.html',
     'libs/handlebars',
@@ -6,20 +7,22 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate) {
+], function (WidgetMixin, NetmapHelpers, netmapTemplate) {
 
-    var SearchboxView = Backbone.View.extend({
+    var SearchboxView = Backbone.View.extend(_.extend({}, WidgetMixin, {
         broker: Backbone.EventBroker,
         interests: {
             "netmap:graph:isDoneLoading": "setIsViewEnabled"
         },
         events: {
+            'click .header': 'toggleWidget',
             "click #searchbox_search": "searchMap",
             "click #center_graph": "centerGraph"
         },
         initialize: function () {
             this.broker.register(this);
             this.template = Handlebars.compile(netmapTemplate);
+            this.isWidgetVisible = true;
 
             //this.searchbox = this.options.node;
             /*this.model.bind("change", this.render, this);
@@ -39,7 +42,7 @@ define([
             this.broker.trigger('netmap:centerGraph');
         },
         render: function () {
-            var out = this.template({ node: this.node, isViewEnabled: this.isViewEnabled});
+            var out = this.template({ node: this.node, isViewEnabled: this.isViewEnabled, isWidgetVisible: this.isWidgetVisible});
             this.$el.html(out);
             return this;
         },
@@ -48,7 +51,7 @@ define([
             $(this.el).unbind();
             $(this.el).remove();
         }
-    });
+    }));
     return SearchboxView;
 });
 

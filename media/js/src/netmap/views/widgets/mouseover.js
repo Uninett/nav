@@ -1,4 +1,5 @@
 define([
+    'netmap/views/widget_mixin',
     'netmap/collections/checkradio',
     'netmap/models/input_checkradio',
     'libs-amd/text!netmap/templates/checkradio.html',
@@ -7,14 +8,15 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Collection, Model, Template) {
-    var MouseOverView = Backbone.View.extend({
+], function (WidgetMixin, Collection, Model, Template) {
+    var MouseOverView = Backbone.View.extend(_.extend({}, WidgetMixin, {
 
         broker: Backbone.EventBroker,
         interests: {
             "netmap:graph:isDoneLoading": "setIsViewEnabled"
         },
         events: {
+            'click .header': 'toggleWidget',
             'click input[name="mouseOver[]"]': 'setMouseOverOptions'
         },
         initialize: function () {
@@ -84,7 +86,7 @@ define([
             $(this.el).unbind();
             $(this.el).remove();
         }
-    });
+    }));
 
     return MouseOverView;
 });
