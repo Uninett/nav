@@ -27,7 +27,6 @@ define([
         },
         events: {
             'click #toggle_view':      'toggleView',
-            'click input[name="nodesFixed"]': 'onNodesFixedClick',
             'click input[name="trafficGradient"]': 'onTrafficGradientClick'
         },
         initialize: function () {
@@ -100,14 +99,6 @@ define([
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
             this.broker.trigger('netmap:resize:animate', {marginLeft: margin});
-        },
-        onNodesFixedClick: function (e) {
-            var val = $(e.currentTarget).val();
-            if (val === 'Fix') {
-                this.broker.trigger('netmap:nodes:setFixed', true);
-            } else if (val === 'UnFix') {
-                this.broker.trigger('netmap:nodes:setFixed', false);
-            }
         },
         onTrafficGradientClick: function (e) {
             var self = this;

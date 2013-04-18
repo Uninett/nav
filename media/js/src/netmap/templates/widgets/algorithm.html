@@ -1,5 +1,9 @@
 <div class="netmapWidget" id="pauseForce">
-    <div class="header">Pause force algorithm?</div>
+    <div class="header">
+        <div class="title">Pause force algorithm?
+            <img class="float-clear" title="Toggle widget" src="/images/icons/expand.png"/>
+        </div>
+    </div>
     <div class="body" {{#unless isWidgetVisible }}style="display: none"{{/unless}}>
         <div style="float: right;">
             {{#if isLayoutEngineRunning}}
@@ -10,6 +14,13 @@
         </div>
         <div class="center-content">
             <input type="button" name="freezeNodes" value="Pause" id="freezeNodes"  />
+        </div>
+        <div class="fix_options">
+            <span>Fix or unfix all nodes</span>
+            <div class="squaredTwo">
+                <input type="button" name="nodesFixed" value="Fix" id="setNodesFixed"  {{#unless isViewEnabled}} disabled{{/unless}} />
+                <input type="button" name="nodesFixed" value="UnFix" id="unsetNodesFixed"  {{#unless isViewEnabled}} disabled{{/unless}} />
+            </div>
         </div>
     </div>
 </div>

@@ -15,7 +15,8 @@ define([
         },
         events: {
             'click .header': 'toggleWidget',
-            'click input[name="freezeNodes"]': 'pauseLayoutAlgorithm'
+            'click input[name="freezeNodes"]': 'pauseLayoutAlgorithm',
+            'click input[name="nodesFixed"]': 'onNodesFixedClick'
         },
         initialize: function () {
             this.isLayoutEngineRunning = true;
@@ -34,9 +35,17 @@ define([
             this.isLayoutEngineRunning = false;
             this.render();
         },
+        onNodesFixedClick: function (e) {
+            var val = $(e.currentTarget).val();
+            if (val === 'Fix') {
+                this.broker.trigger('netmap:nodes:setFixed', true);
+            } else if (val === 'UnFix') {
+                this.broker.trigger('netmap:nodes:setFixed', false);
+            }
+        },
         render: function () {
             this.$el.html(
-                this.template({isLayoutEngineRunning: this.isLayoutEngineRunning, isWidgetVisible: this.isWidgetVisible})
+                this.template({isLayoutEngineRunning: this.isLayoutEngineRunning, isViewEnabled: this.isViewEnabled, isWidgetVisible: this.isWidgetVisible})
             );
 
             return this;
