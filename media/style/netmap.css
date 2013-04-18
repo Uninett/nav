@@ -168,6 +168,10 @@ the CSS box model right and understand the CSS2 parent-child selector. ALWAYS in
 a "be nice to Opera 5" rule every time you use the Tantek Celik hack (above). */
 body>#netmap_left_sidebar {width:128px;}
 
+#netmap_left_sidebar div.inner_wrap {
+    margin-top: 20px;
+}
+
 #netmap_infopanel {
     position:absolute;
     width:190px;
