@@ -28,15 +28,46 @@ import select
 import time
 from functools import wraps
 import errno
+from psycopg2 import OperationalError, InterfaceError
 from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.config import EVENTENGINE_CONF
 from nav.eventengine import unresolved
 from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import EventQueue as Event
-from django.db import connection
+from django.db import connection, DatabaseError
 
 _logger = logging.getLogger(__name__)
+
+
+def retry_on_db_loss(count=3, delay=2):
+    """Decorates functions to retry them a set number of times in the face of
+    exceptions that appear to be database connection related. If the function
+    still fails with database errors after the set number of retries,
+    the entire event engine process is aborted.
+
+    :param count: Maximum number of times to retry the function
+    :param delay: The number of seconds to sleep between each retry
+
+    """
+    def _retry_decorator(func):
+        def _retrier(*args, **kwargs):
+            remaining = count
+            while remaining:
+                try:
+                    return func(*args, **kwargs)
+                except (OperationalError, InterfaceError, DatabaseError):
+                    _logger.error("cannot establish db connection. "
+                                  "retries remaining: %d", remaining)
+                    remaining -= 1
+                    time.sleep(delay)
+                    continue
+            # Die a horrible death if unsuccessful
+            _logger.fatal("unable to establish database connection, qutting...")
+            raise SystemExit(1)
+        return wraps(func)(_retrier)
+    return _retry_decorator
+
 
 def swallow_unhandled_exceptions(func):
     """Decorates a function to log and ignore any exceptions thrown by it
@@ -92,7 +123,12 @@ class EventEngine(object):
             except select.error, err:
                 if err.args[0] != errno.EINTR:
                     raise
-            conn.poll()
+            try:
+                conn.poll()
+            except OperationalError:
+                connection.connection = None
+                self._listen()
+                return
             if conn.notifies:
                 self._logger.debug("got event notification from database")
                 self._schedule_next_queuecheck()
@@ -108,12 +144,14 @@ class EventEngine(object):
         self._scheduler.run()
 
     @staticmethod
+    @retry_on_db_loss(count=3, delay=5)
     @commit_on_success
     def _listen():
         """Ensures that we subscribe to new_event notifications on our
         PostgreSQL connection.
 
         """
+        _logger.debug("registering event listener with PostgreSQL")
         cursor = connection.cursor()
         cursor.execute('LISTEN new_event')
 
