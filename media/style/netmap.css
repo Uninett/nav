@@ -15,94 +15,13 @@ body {
     margin: 0 1em 0 1em;
 }
 
-/* 'widths' sub menu */
-#layoutdims {
-    clear: both;
-    background: #eee;
-    border-top: 4px solid #000;
-    margin: 0;
-    padding: 6px 15px !important;
-    text-align: right;
-}
-
-/* column container */
-.colmask {
-    position: relative; /* This fixes the IE7 overflow hidden bug and stops the layout jumping out of place */
-    clear: both;
-    float: left;
-    width: 100%; /* width of whole page */
-    overflow: hidden; /* This chops off any overhanging divs */
-}
-
-/* holy grail 3 column settings */
-.holygrail {
-    background: #EEE; /* Right column background colour */
-}
-
-.holygrail .colmid {
-    float: left;
-    width: 200%;
-    margin-left: -200px; /* Width of right column */
-    position: relative;
-    right: 100%;
-    background: #fff; /* Centre column background colour */
-}
-
-.holygrail .colleft {
-    float: left;
-    width: 100%;
-    margin-left: -50%;
-    position: relative;
-    left: 400px; /* Left column width + right column width */
-    background: #EEE; /* Left column background colour */
-}
-
-.holygrail .col1wrap {
-    float: left;
-    width: 50%;
-    position: relative;
-    right: 200px; /* Width of left column */
-    padding-bottom: 1em; /* Centre column bottom padding. Leave it out if it's zero */
-}
-
-.holygrail .col1 {
-    margin: 0 215px;
-    /* Centre column side padding:
-                                 Left padding = left column width + centre column left padding width
-                                 Right padding = right column width + centre column right padding width */
-    position: relative;
-    left: 200%;
-    overflow: hidden;
-}
-
-.holygrail .col2 {
-    float: left;
-    float: right; /* This overrides the float:left above */
-    width: 170px; /* Width of left column content (left column width minus left and right padding) */
-    position: relative;
-    right: 15px; /* Width of the left-had side padding on the left column */
-}
-
-.holygrail .col3 {
-    float: left;
-    float: right; /* This overrides the float:left above */
-    width: 170px; /* Width of right column content (right column width minus left and right padding) */
-    margin-right: 45px; /* Width of right column right-hand padding + left column left and right padding */
-    position: relative;
-    left: 50%;
-}
-
 /* Footer styles */
-#footer {
+#footer hr {
     display: none;
+
 }
 #debug {
     display: none;
-}
-
-#footer p {
-    padding: 10px;
-    margin: 0;
 }
 
 #save_new_view {
