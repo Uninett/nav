@@ -148,7 +148,7 @@ quote http://www.bluerobot.com/web/layouts/
     top:0px;
     left:0px;
     border:1px dashed black;
-    background-color:#eee;
+    /*background-color:#eee;*/
     padding:10px;
     z-index:2;
 
@@ -160,7 +160,7 @@ below. See http://glish.com/css/hacks.asp for details. */
     voice-family: "\"}\"";
     voice-family:inherit;
     width:128px;
-    background-color: #eee;
+    /*background-color: #eee;*/
 }
 /* I've heard this called the "be nice to Opera 5" rule. Basically, it feeds correct
 length values to user agents that exhibit the parsing error exploited above yet get
@@ -311,6 +311,25 @@ li.selected_vlan a {
 .fix_options div input {
     width: 45%;
 }
+.netmapWidget {
+    margin-top: 0.4em;
+}
+.netmapWidget .header {
+    display: block;
+    width: 100%;
+    background: #567899;
+    color: #fff;
+}
+.netmapWidget .header .title {
+    font-size: 14pt;
+}
+.netmapWidget .body {
+    margin-top: 1em;
+    background: #fff;
+}
+
+
+
 
 #pauseForce {
     margin-top: 0.5em;
