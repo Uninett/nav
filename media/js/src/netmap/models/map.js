@@ -26,7 +26,7 @@ define([
             displayOrphans: false,
             displayTopologyErrors: false,
             /* properties that does not get saved */
-            dataRefreshInterval: 0,
+            dataRefreshInterval: -1,
             position: new PositionCollection([
                 {name: "none", is_selected: true},
                 {name: "room"},

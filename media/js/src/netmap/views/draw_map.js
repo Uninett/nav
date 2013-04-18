@@ -27,7 +27,7 @@ define([
             this.stop();
             this.counter = this.interval*60;
 
-            if (newInterval !== 0) {
+            if (newInterval !== -1) {
                 this.timerCounter = setInterval(function () {
                     if (self.counter <= 0) {
                         self.counter = self.interval * 60;
@@ -58,7 +58,6 @@ define([
             'netmap:changeTopology': 'setMapPropertyTopology',
             'netmap:changePosition': 'setMapPropertyPositionFilter',
             'netmap:changeDataRefreshInterval': 'setMapPropertyDataRefreshInterval',
-            'netmap:refreshIntervalCounter': 'counter',
             'netmap:changeDisplayTopologyErrors': 'setMapPropertyDisplayTopologyErrors',
             'netmap:ui:mouseover': 'setUIMouseOver',
             'netmap:selectVlan': 'setUIVLANSelection',
