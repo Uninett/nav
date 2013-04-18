@@ -18,7 +18,7 @@ define([
             "netmap:changeActiveMapProperty": "updateFiltersFromBroadcast"
         },
         events: {
-            'click .header': 'toggleWidget',
+            'click div.header': 'toggleWidget',
             'click input[name="categories[]"]': 'updateFilters'
         },
         initialize: function () {
@@ -50,7 +50,8 @@ define([
                     identifier: 'categories',
                     nameInUppercase: true,
                     collection: this.model.get('categories').toJSON(),
-                    isViewEnabled: this.isViewEnabled
+                    isViewEnabled: this.isViewEnabled,
+                    isWidgetVisible: this.isWidgetVisible
                 })
             );
 
@@ -64,6 +65,7 @@ define([
                 // category found!
                 categoryToUpdate.set({'is_selected': $(e.currentTarget).prop('checked')});
             }
+            return true;
         },
         addMissingDjangoCategoriesModels: function () {
             var self = this;
