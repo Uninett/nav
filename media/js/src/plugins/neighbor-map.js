@@ -2,7 +2,7 @@ define(["libs/d3.v2"], function () {
 
     function NeighborMap(node) {
         this.motherNode = d3.select(node);  // Use this for selecting prior to svg
-        this.netboxid = this.motherNode.attr('data-netboxid');
+        this.netboxid = parseInt(this.motherNode.attr('data-netboxid'), 10);
         if (!this.netboxid) {
             console.log('No netboxid found');
             return;
@@ -26,7 +26,7 @@ define(["libs/d3.v2"], function () {
             'UNRECOGNIZED': '/images/netmap/unrecognized.png'
         };
 
-        this.unrecognized = 'UNRECOGNIZED'
+        this.unrecognized = 'UNRECOGNIZED';
 
         this.unrecognizedToggler = d3.select('#unrecognized');
         this.initialize();
@@ -46,7 +46,7 @@ define(["libs/d3.v2"], function () {
                 .attr("height", this.height)
                 .style("border", '1px solid black');
         },
-        defineForceAlgorithm: function() {
+        defineForceAlgorithm: function () {
             this.force = d3.layout.force()
                 .charge(-500)
                 .friction(0.7)
@@ -57,7 +57,7 @@ define(["libs/d3.v2"], function () {
             var that = this;
             this.unrecognizedToggler.on('change', function () {
                 that.render();
-            })
+            });
         },
         fetchData: function () {
             /* Fetch neighbourhood data for this netbox */
@@ -92,9 +92,11 @@ define(["libs/d3.v2"], function () {
         },
         updateNodes: function (nodes) {
             /* Update all datanodes and a hash used when creating the links */
+            var i, l, node;
             this.nodeHash = {};
-            for (var i=0, node; node=nodes[i]; i++) {
-                if (node.netboxid == this.netboxid) {
+            for (i = 0, l = nodes.length; i < l; i++) {
+                node = nodes[i];
+                if (node.netboxid === this.netboxid) {
                     node.fixed = true;  // Fix the main node
                 }
                 node.x = node.x || this.width / 2;
@@ -105,7 +107,9 @@ define(["libs/d3.v2"], function () {
         },
         updateLinks: function (links) {
             /* Set source and target for all links based on node hash */
-            for (var i=0, link; link=links[i]; i++) {
+            var i, l, link;
+            for (i = 0, l = links.length; i < l; i++) {
+                link = links[i];
                 link.source = this.nodeHash[link.sourceId];
                 link.target = this.nodeHash[link.targetId];
             }
@@ -113,14 +117,16 @@ define(["libs/d3.v2"], function () {
         },
         filterUncategorized: function () {
             var data = this.data,
+                node,
+                link,
                 nodes = [],
                 links = [];
-            for (var node in data.nodes) {
+            for (node in data.nodes) {
                 if (data.nodes.hasOwnProperty(node) && data.nodes[node].category !== this.unrecognized) {
                     nodes.push(data.nodes[node]);
                 }
             }
-            for (var link in data.links) {
+            for (link in data.links) {
                 if (data.links.hasOwnProperty(link) && data.links[link].target.category !== this.unrecognized) {
                     links.push(data.links[link]);
                 }
@@ -135,11 +141,11 @@ define(["libs/d3.v2"], function () {
                 .append('line')
                 .attr('class', 'link')
                 .style('stroke-width', function (link) {
+                    var strokeWidth = 2;
                     if (link.ifname.length > 1) {
-                        return 4;
-                    } else {
-                        return 2;
+                        strokeWidth = 4;
                     }
+                    return strokeWidth;
                 })
                 .style('stroke', '#ddd');
             this.svgLinks.exit().remove();
@@ -147,11 +153,13 @@ define(["libs/d3.v2"], function () {
         },
         createLinkLabels: function (dataLinks) {
             /* Create the link labels, in this case interface names */
-            var svgLinkLabelFromCenter = this.svg.selectAll('.linkLabelFromCenter').data(dataLinks);
+            var svgLinkLabelFromCenter, svgLinkLabelToCenter;
+
+            svgLinkLabelFromCenter = this.svg.selectAll('.linkLabelFromCenter').data(dataLinks);
             svgLinkLabelFromCenter
                 .enter()
                 .append('g')
-                .attr('class','linkLabelFromCenter')
+                .attr('class', 'linkLabelFromCenter')
                 .append('text')
                 .style('font-size', '0.8em')
                 .attr('text-anchor', 'middle')
@@ -160,11 +168,11 @@ define(["libs/d3.v2"], function () {
                 });
             svgLinkLabelFromCenter.exit().remove();
 
-            var svgLinkLabelToCenter = this.svg.selectAll('.linkLabelToCenter').data(dataLinks);
+            svgLinkLabelToCenter = this.svg.selectAll('.linkLabelToCenter').data(dataLinks);
             svgLinkLabelToCenter
                 .enter()
                 .append('g')
-                .attr('class','linkLabelToCenter')
+                .attr('class', 'linkLabelToCenter')
                 .append('text')
                 .style('font-size', '0.8em')
                 .attr('text-anchor', 'middle')
@@ -178,19 +186,18 @@ define(["libs/d3.v2"], function () {
         },
         createSvgNodes: function (dataNodes) {
             /* Create all the visible nodes */
-            var that = this;
-            var svgNodes = this.svg.selectAll('.node')
-                .data(dataNodes, function (node) {
-                    return node.netboxid;
-                });
-
-            var newNodes = svgNodes
-                .enter()
-                .append('g')
-                .attr('class', function (node) {
-                    return node.netboxid == that.netboxid ? node.category + ' node main' : node.category + ' node'
-                })
-                .call(this.force.drag);
+            var that = this,
+                svgNodes = this.svg.selectAll('.node')
+                    .data(dataNodes, function (node) {
+                        return node.netboxid;
+                    }),
+                newNodes = svgNodes
+                    .enter()
+                    .append('g')
+                    .attr('class', function (node) {
+                        return node.netboxid === that.netboxid ? node.category + ' node main' : node.category + ' node';
+                    })
+                    .call(this.force.drag);
 
             svgNodes.exit().remove();
 
@@ -226,7 +233,7 @@ define(["libs/d3.v2"], function () {
                 .attr('cx', function (node) { return node.x; })
                 .attr('cy', function (node) { return node.y; });
 
-            this.svgNodes.attr("transform", function(node) {
+            this.svgNodes.attr("transform", function (node) {
                 return "translate(" + node.x + "," + node.y + ")";
             });
         },
@@ -250,7 +257,7 @@ define(["libs/d3.v2"], function () {
                 .attr("dy", 25)
                 .text(function (node) {
                     return node.name;
-                })
+                });
         },
         appendClickListeners: function (svgNodes) {
             var that = this;
@@ -258,9 +265,9 @@ define(["libs/d3.v2"], function () {
                 if (node.category !== that.unrecognized) {
                     location.href = '/ipdevinfo/' + node.sysname + '/#!neighbors';
                 }
-            })
+            });
         },
-        calculateLinePoint: function(source, target, distance) {
+        calculateLinePoint: function (source, target, distance) {
             /*
              Given source and target coords - calculate a point along the line
              between source and target with length 'distance' from the source
@@ -280,7 +287,7 @@ define(["libs/d3.v2"], function () {
             y = m * (x - x0) + y0;
             return "translate(" + x + ',' +  y + ')';
         },
-        getLabelDistance: function(link) {
+        getLabelDistance: function (link) {
             var baseDistance = 70,
                 ifnameBasedDistance = baseDistance * (1 + (link.ifname.length - 1) * 0.3);
             return ifnameBasedDistance < this.linkDistance ? ifnameBasedDistance : this.linkDistance;
