@@ -236,6 +236,7 @@ define([
             context.isFavorite = this.options.activeMapProperties.get('isFavorite', false);
             context.description = this.options.activeMapProperties.get('description', null);
             context.isViewEnabled = this.isViewEnabled;
+            context.isWidgetVisible = this.isWidgetVisible;
             var out = this.template(context);
 
             this.$el.html(out);
