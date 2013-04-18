@@ -14,7 +14,7 @@ define([
             'netmap:forceRunning': 'updateStatus'
         },
         events: {
-            'click .header': 'toggleWidget',
+            'click div.header .title': 'toggleWidget',
             'click input[name="freezeNodes"]': 'pauseLayoutAlgorithm',
             'click input[name="nodesFixed"]': 'onNodesFixedClick'
         },
