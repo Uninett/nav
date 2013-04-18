@@ -1,3 +1,19 @@
+Version 3.14.159
+
+(released 11 Apr 2013)
+
+ Bugfixes:
+
+  * LP#1155128 (IndexError crash in Machine Tracker)
+  * LP#1158214 (mcc.py does debug logging even when configured not to)
+  * LP#1160921 (Geomap won't load map data over HTTPS in Chrome)
+  * LP#1161108 (Room bulk import format doesn't include geo position)
+  * LP#1163256 (snmptrapd crashes with "interrupted system call" error)
+  * LP#1164582 (netmap bails on fetching network graph if interface.speed
+                missing)
+  * LP#1165017 (Adding 0.0.0.0/0 as excepted range causes netbiostracker to
+                hang)
+
 Version 3.14.15
 (released 21 Mar 2013)
 

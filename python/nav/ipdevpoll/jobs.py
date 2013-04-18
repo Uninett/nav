@@ -22,7 +22,7 @@ import threading
 import gc
 from itertools import cycle
 
-from twisted.internet import defer, threads, reactor
+from twisted.internet import defer, reactor
 from twisted.internet.error import TimeoutError
 
 from nav.ipdevpoll import ContextLogger
@@ -365,7 +365,7 @@ class JobHandler(object):
             # Do cleanup for the known container classes.
             self.cleanup_containers_after_save()
 
-        df = threads.deferToThread(complete_save_cycle)
+        df = db.run_in_thread(complete_save_cycle)
         return df
 
     def prepare_containers_for_save(self):

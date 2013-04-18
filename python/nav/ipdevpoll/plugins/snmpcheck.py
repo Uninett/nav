@@ -17,14 +17,13 @@
 
 import datetime
 
-from twisted.internet import error, defer, threads
+from twisted.internet import error, defer
 from twisted.internet.defer import returnValue
 
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import AlertHistory
-from nav.ipdevpoll import Plugin
-from nav.ipdevpoll import shadows
+from nav.ipdevpoll import Plugin, shadows, db
 from nav.ipdevpoll.snmp import AgentProxy
 from nav.ipdevpoll.jobs import SuggestedReschedule
 
@@ -116,7 +115,7 @@ class SnmpCheck(Plugin):
         if self.netbox.id not in self.down_set:
             self._logger.warning("SNMP agent down on %s", self.netbox.sysname)
             self.down_set.add(self.netbox.id)
-            yield threads.deferToThread(self._dispatch_down_event)
+            yield db.run_in_thread(self._dispatch_down_event)
 
     @defer.inlineCallbacks
     def _mark_as_up(self):
@@ -124,7 +123,7 @@ class SnmpCheck(Plugin):
             self._logger.warning("SNMP agent up again on %s",
                                  self.netbox.sysname)
             self.down_set.remove(self.netbox.id)
-            yield threads.deferToThread(self._dispatch_up_event)
+            yield db.run_in_thread(self._dispatch_up_event)
 
     @commit_on_success
     def _dispatch_down_event(self):

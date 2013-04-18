@@ -1,12 +1,7 @@
--- Create table for images
-
-CREATE TABLE image (
-  imageid SERIAL PRIMARY KEY,
-  roomid VARCHAR REFERENCES room(roomid) NOT NULL,
-  title VARCHAR NOT NULL,
-  path VARCHAR NOT NULL,
-  name VARCHAR NOT NULL,
-  created TIMESTAMP NOT NULL,
-  uploader INT REFERENCES account(id),
-  priority INT
-);
+-- fix view that gives wrong ip count in VRRP/HSRP environments
+CREATE OR REPLACE VIEW manage.prefix_active_ip_cnt AS
+(SELECT prefix.prefixid, COUNT(DISTINCT arp.ip) AS active_ip_cnt
+ FROM prefix
+ LEFT JOIN arp ON arp.ip << prefix.netaddr
+ WHERE arp.end_time = 'infinity'
+ GROUP BY prefix.prefixid);

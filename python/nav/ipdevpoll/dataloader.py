@@ -34,12 +34,10 @@ interfering with the daemon's asynchronous operations.
 """
 from collections import defaultdict
 
-from twisted.internet import threads
-
 from nav.models import manage
 from nav import ipdevpoll
 from . import storage
-from nav.ipdevpoll.db import autocommit, django_debug_cleanup
+from nav.ipdevpoll.db import autocommit, django_debug_cleanup, run_in_thread
 import django.db
 
 class NetboxLoader(dict):
@@ -128,7 +126,7 @@ class NetboxLoader(dict):
 
     def load_all(self):
         """Asynchronously load netboxes from database."""
-        return threads.deferToThread(self.load_all_s)
+        return run_in_thread(self.load_all_s)
 
 
 def is_netbox_changed(netbox1, netbox2):
