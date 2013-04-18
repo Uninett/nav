@@ -1,8 +1,6 @@
 define([
     'plugins/netmap-extras',
     'libs-amd/text!netmap/templates/navigation.html',
-    'netmap/collections/traffic_gradient',
-    'netmap/views/modal/traffic_gradient',
     'netmap/views/widgets/searchbox',
     'netmap/views/widgets/layer',
     'netmap/views/widgets/categories',
@@ -12,12 +10,13 @@ define([
     'netmap/views/widgets/topology_error',
     'netmap/views/widgets/mouseover',
     'netmap/views/widgets/data_refresh',
+    'netmap/views/widgets/traffic_gradient',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, SearchView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView, TopologyErrorView, MouseOverView, DataRefreshView) {
+], function (NetmapHelpers, netmapTemplate, SearchView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView, TopologyErrorView, MouseOverView, DataRefreshView, TrafficGradientView) {
 
     var NavigationView = Backbone.View.extend({
         broker: Backbone.EventBroker,
@@ -26,11 +25,9 @@ define([
             "netmap:graph:isDoneLoading": "setIsViewEnabled"
         },
         events: {
-            'click #toggle_view':      'toggleView',
-            'click input[name="trafficGradient"]': 'onTrafficGradientClick'
+            'click #toggle_view':      'toggleView'
         },
         initialize: function () {
-            this.gradientView = null;
             this.searchView = null;
             this.categoriesView = null;
             this.orphansView = null;
@@ -60,6 +57,7 @@ define([
             this.topologyErrorsView = this.attachSubView(this.topologyErrorsView, TopologyErrorView, '#topology_errors_view');
             this.mouseOverView = this.attachSubView(this.mouseOverView, MouseOverView, '#mouseover_view');
             this.dataRefreshView = this.attachSubView(this.dataRefreshView, DataRefreshView, '#datarefresh_view');
+            this.trafficGradientView = this.attachSubView(this.trafficGradientView, TrafficGradientView, '#traffic_gradient_view');
 
             return this;
         },
@@ -99,21 +97,6 @@ define([
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
             this.broker.trigger('netmap:resize:animate', {marginLeft: margin});
-        },
-        onTrafficGradientClick: function (e) {
-            var self = this;
-            if (this.gradientView) {
-                this.gradientView.close();
-            }
-
-            var gradientModel = new TrafficGradientCollection();
-            gradientModel.fetch({
-                success: function (model) {
-                    self.gradientView = new TrafficGradientView({collection: model});
-                    self.gradientView.render();
-                }
-            });
-
         },
         close:function () {
             this.layerView.close();
