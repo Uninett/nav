@@ -241,6 +241,9 @@ li.selected_vlan a {
     background: url('/images/icons/expand.png') no-repeat right top;
     padding-right: 16px;
 }
+.netmapWidget .header >.no-icon {
+    background: none;
+}
 .netmapWidget .header .title img {
     margin-top: 6px; /* helper icon to be aligned properly */
 }
