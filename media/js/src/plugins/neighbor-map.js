@@ -93,6 +93,7 @@ define(["libs/d3.v2"], function () {
         updateNodes: function (nodes) {
             /* Update all datanodes and a hash used when creating the links */
             var i, l, node;
+
             this.nodeHash = {};
             for (i = 0, l = nodes.length; i < l; i++) {
                 node = nodes[i];
