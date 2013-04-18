@@ -53,7 +53,6 @@ define([
                     isWidgetVisible: this.isWidgetVisible
                 })
             );
-            console.log(this.isWidgetVisible);
 
             return this;
         },
