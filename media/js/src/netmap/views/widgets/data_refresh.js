@@ -56,7 +56,8 @@ define([
                     type: 'radio',
                     identifier: 'dataRefreshInterval',
                     collection: this.collection.toJSON(),
-                    isViewEnabled: this.isViewEnabled
+                    isViewEnabled: this.isViewEnabled,
+                    isWidgetVisible: this.isWidgetVisible
                 }) +
                 this.templateCounter({counter: this.counter })
             );
