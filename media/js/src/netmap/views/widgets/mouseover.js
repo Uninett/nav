@@ -48,7 +48,8 @@ define([
                     type: 'checkbox',
                     identifier: 'mouseOver',
                     collection: this.collection.toJSON(),
-                    isViewEnabled: this.isViewEnabled
+                    isViewEnabled: this.isViewEnabled,
+                    isWidgetVisible: this.isWidgetVisible
                 })
             );
 
