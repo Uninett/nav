@@ -27,7 +27,7 @@
     "nonew":    true,
     "regexp":   true,
     "undef":    true,
-    "strict":   true,
+    "strict":   false,
     "trailing": true,
     "node":     true
 }
