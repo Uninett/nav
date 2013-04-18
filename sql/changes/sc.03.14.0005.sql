@@ -7,6 +7,6 @@ CREATE TABLE image (
   path VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
   created TIMESTAMP NOT NULL,
-  uploader VARCHAR REFERENCES account(id),
+  uploader INT REFERENCES account(id),
   priority INT
 );
