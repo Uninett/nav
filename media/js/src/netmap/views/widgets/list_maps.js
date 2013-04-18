@@ -17,7 +17,7 @@ define([
     'plugins/jquery_spinjs'
 ], function (WidgetMixin, NetmapExtras, Resources, CollectionMapProperties, ModelMapProperties, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
 
-    var ListNetmapView = Backbone.View.extend({
+    var ListNetmapView = Backbone.View.extend(_.extend({}, WidgetMixin, {
         tagName: "div",
         id: "choose_netview",
 
@@ -33,6 +33,7 @@ define([
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest'
         },
         events: {
+            "click .header .title": "toggleWidget",
             "click #save_view": "showSaveView",
             "click #save_new_view": "showSaveAsView",
             "click #delete_view": "deleteView",
@@ -42,6 +43,7 @@ define([
         initialize: function () {
             var self = this;
             this.isContentVisible = true;
+            this.isWidgetVisible = true;
             this.broker.register(this);
 
             this.template = Handlebars.compile(netmapTemplate);
@@ -252,7 +254,7 @@ define([
             $(this.el).unbind();
             $(this.el).remove();
         }
-    });
+    }));
     return ListNetmapView;
 });
 
