@@ -38,7 +38,8 @@ define([
                     type: 'checkbox',
                     identifier: 'topologyErrors',
                     collection: this.collection.toJSON(),
-                    isViewEnabled: this.isViewEnabled
+                    isViewEnabled: this.isViewEnabled,
+                    isWidgetVisible: this.isWidgetVisible
                 })
             );
             return this;
