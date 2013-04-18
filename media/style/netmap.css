@@ -285,6 +285,13 @@ li.selected_vlan a {
     width: 100%;
 }
 
+/* templates/info/vlan.html */
+#infoVlanContainer {
+    min-height: 350px;
+    height: 350px;
+    overflow-y: scroll;
+}
+
 /* Navigation styles */
 
 .fix_options {
