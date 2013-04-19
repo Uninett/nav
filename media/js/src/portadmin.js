@@ -3,12 +3,12 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     if(!Array.indexOf){
         Array.prototype.indexOf = function(obj){
             for(var i=0; i<this.length; i++){
-                if(this[i]==obj){
+                if (this[i] === obj) {
                     return i;
                 }
             }
             return -1;
-        }
+        };
     }
 
     var nav_ajax_queue = [];  // Queue for rows we are saving
@@ -41,7 +41,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     function addTrunkSelectedListener(table) {
         $(table).find('.vlanlist').on('change click', function (event) {
             var $select = $(this);
-            if ($select.val() == 'trunk') {
+            if ($select.val() === 'trunk') {
                 event.stopPropagation();
                 location.href = $select.find(':selected').attr('data-url');
             }
@@ -114,7 +114,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
             // Check or uncheck telephone checkbox
             if ($voicevlan.length) {
-                if ($voicevlan.attr('data-orig').toLowerCase() == 'true') {
+                if ($voicevlan.attr('data-orig').toLowerCase() === 'true') {
                     $voicevlan.prop('checked', 'checked');
                 } else {
                     $voicevlan.prop('checked', false);
@@ -146,14 +146,14 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
     function textFieldChanged(row) {
         var element = $(row).find(".ifalias");
-        return $(element).attr('data-orig') != $(element).val();
+        return $(element).attr('data-orig') !== $(element).val();
     }
 
     function dropDownChanged(row) {
         var dropdown = $(row).find(".vlanlist");
         var origOption = $('[data-orig]', dropdown)[0];
         var selectedOption = $('option:selected', dropdown)[0];
-        return origOption != selectedOption;
+        return origOption !== selectedOption;
     }
 
     function voiceVlanChanged(row) {
@@ -162,7 +162,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
          */
         var $checkbox = $(row).find('.voicevlan');
         if ($checkbox.length) {
-            var origOption = $checkbox.attr('data-orig').toLowerCase() == 'true';
+            var origOption = $checkbox.attr('data-orig').toLowerCase() === 'true';
             var checkedValue = $checkbox.prop('checked');
             return checkedValue ^ origOption;
         } else {
@@ -225,18 +225,18 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
          Create the object used in the ajax call.
          */
         var data = {};
-        data['interfaceid'] = $row.prop('id');
+        data.interfaceid = $row.prop('id');
         if (textFieldChanged($row)) {
-            data['ifalias'] = $row.find(".ifalias").val();
+            data.ifalias = $row.find(".ifalias").val();
         }
         if (dropDownChanged($row)) {
-            data['vlan'] = $row.find(".vlanlist").val();
+            data.vlan = $row.find(".vlanlist").val();
         }
         if (voiceVlanChanged($row)) {
-            data['voicevlan'] = $row.find(".voicevlan").prop('checked');
+            data.voicevlan = $row.find(".voicevlan").prop('checked');
         }
         if ($row.find(".voicevlan").prop('checked')) {
-            data['voice_activated'] = true;
+            data.voice_activated = true;
         }
         return data;
     }
@@ -285,7 +285,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
                 removeFromQueue(rowid);
                 enableButtons(actionCell);
                 spinner.stop();
-                if (nav_ajax_queue.length == 0) {
+                if (nav_ajax_queue.length === 0) {
                     enableSaveallButtons();
                 } else {
                     // Process next entry in queue
@@ -320,8 +320,8 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
             $message = $('<span/>');
 
         var error = '';
-        for (var x = 0, message; message = messages[x]; x++) {
-            error += message.message + '. ';
+        for (var x = 0, l = messages.length; x < l; x++) {
+            error += messages[x].message + '. ';
         }
         $message.text(error);
 
@@ -337,13 +337,13 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
     function updateDefaults($row, data) {
         if ('ifalias' in data) {
-            updateIfAliasDefault($row, data['ifalias']);
+            updateIfAliasDefault($row, data.ifalias);
         }
         if ('vlan' in data) {
-            updateVlanDefault($row, data['vlan']);
+            updateVlanDefault($row, data.vlan);
         }
         if ('voicevlan' in data) {
-            updateVoiceDefault($row, data['voicevlan'])
+            updateVoiceDefault($row, data.voicevlan);
         }
     }
 
@@ -367,7 +367,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         var $voice_element = $row.find(".voicevlan");
         if ($voice_element.length) {
             var old_value = $voice_element.attr('data-orig');
-            if (old_value != new_value) {
+            if (old_value !== new_value) {
                 $voice_element.attr('data-orig', new_value);
             }
         }
