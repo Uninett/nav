@@ -45,14 +45,15 @@ class ConnectionObject(nav.CacheableObject):
         having been terminated without our knowledge or consent.
         """
         try:
-            if self.ping():
-                self.lastValidated = time.time()
-                return False
-        except (psycopg2.ProgrammingError, psycopg2.OperationalError):
-            logger.debug('Invalid connection object (%r), age=%s',
-                         self.key, self.age())
-            self.object.close()
-            return True
+            try:
+                if self.ping():
+                    self.lastValidated = time.time()
+                    return False
+            except (psycopg2.ProgrammingError, psycopg2.OperationalError):
+                logger.debug('Invalid connection object (%r), age=%s',
+                             self.key, self.age())
+                self.object.close()
+                return True
         except psycopg2.InterfaceError:
             logger.debug('Connection may already be closed (%r)',
                          self.key)
