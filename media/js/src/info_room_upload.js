@@ -3,8 +3,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     var tableSelector = '#editimages';
 
     $(function () {
-        var $table = $(tableSelector),
-            $orderButtons = $('#orderbuttons')
+        var $table = $(tableSelector);
 
         addButtonListeners($table);
 
@@ -28,7 +27,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
                 $input = $('<input type="text">').val(titletext);
 
             $input.keypress(function (event) {
-                if (event.which == 13) {
+                if (event.which === 13) {
                     saveTitle($(this));
                 }
             });

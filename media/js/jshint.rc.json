@@ -17,6 +17,7 @@
         "NAV"
     ],
     "browser":  true,
+    "devel":    true,
     "bitwise":  true,
     "curly":    false,
     "eqeqeq":   true,
