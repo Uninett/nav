@@ -35,8 +35,8 @@ from nav.eventengine.config import EVENTENGINE_CONF
 from nav.eventengine import unresolved
 from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import EventQueue as Event
-from nav.db import retry_on_db_loss
-from django.db import connection
+import nav.db
+from django.db import connection, DatabaseError
 
 _logger = logging.getLogger(__name__)
 
@@ -45,6 +45,14 @@ def harakiri():
     """Kills the entire daemon when no database is available"""
     _logger.fatal("unable to establish database connection, qutting...")
     raise SystemExit(1)
+
+
+def retry_on_db_loss():
+    """Returns a nav.db.retry_on_db_loss decorator with eventengine's default
+    parameters.
+    """
+    return nav.db.retry_on_db_loss(count=3, delay=5, fallback=harakiri,
+                                   also_handled=(DatabaseError,))
 
 
 def swallow_unhandled_exceptions(func):
@@ -122,7 +130,7 @@ class EventEngine(object):
         self._scheduler.run()
 
     @staticmethod
-    @retry_on_db_loss(count=3, delay=5, fallback=harakiri)
+    @retry_on_db_loss()
     @commit_on_success
     def _listen():
         """Ensures that we subscribe to new_event notifications on our

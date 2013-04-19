@@ -17,9 +17,6 @@
 """
 Provides common database functionality for NAV.
 """
-import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
-
 import atexit
 from functools import wraps
 import time
@@ -28,9 +25,6 @@ import psycopg2.extensions
 import nav
 from nav import config
 import logging
-
-from psycopg2 import OperationalError, InterfaceError
-from django.db import DatabaseError
 
 logger = logging.getLogger('nav.db')
 driver = psycopg2
@@ -168,8 +162,7 @@ def closeConnections():
             pass
 
 
-def retry_on_db_loss(count=3, delay=2, fallback=None,
-                     handled=(OperationalError, InterfaceError, DatabaseError)):
+def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
     """Decorates functions to retry them a set number of times in the face of
     exceptions that appear to be database connection related. If the function
     still fails with database errors after the set number of retries,
@@ -179,12 +172,15 @@ def retry_on_db_loss(count=3, delay=2, fallback=None,
     :param delay: The number of seconds to sleep between each retry
     :param fallback: A function to run when all retry attempts fail. If
                      set to None, the caught exception will be re-raised.
-    :param handled: A list of exception classes to catch. The default is to
-                    catch relevant exception from both psycopg2 and Django.
+    :param also_handled: A list of exception classes to catch in addition to
+                         the relevant ones from the psycopg2 library.
 
     """
     if fallback:
         assert callable(fallback)
+    handled = (psycopg2.OperationalError, psycopg2.InterfaceError)
+    if also_handled:
+        handled = handled + tuple(also_handled)
 
     def _retry_decorator(func):
         def _retrier(*args, **kwargs):
