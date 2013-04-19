@@ -17,13 +17,20 @@
 """
 Provides common database functionality for NAV.
 """
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
+
 import atexit
+from functools import wraps
 import time
 import psycopg2
 import psycopg2.extensions
 import nav
 from nav import config
 import logging
+
+from psycopg2 import OperationalError, InterfaceError
+from django.db import DatabaseError
 
 logger = logging.getLogger('nav.db')
 driver = psycopg2
@@ -159,6 +166,45 @@ def closeConnections():
             connection.object.close()
         except psycopg2.InterfaceError:
             pass
+
+
+def retry_on_db_loss(count=3, delay=2, fallback=None,
+                     handled=(OperationalError, InterfaceError, DatabaseError)):
+    """Decorates functions to retry them a set number of times in the face of
+    exceptions that appear to be database connection related. If the function
+    still fails with database errors after the set number of retries,
+    a fallback function is called, or the caught exception is re-raised.
+
+    :param count: Maximum number of times to retry the function
+    :param delay: The number of seconds to sleep between each retry
+    :param fallback: A function to run when all retry attempts fail. If
+                     set to None, the caught exception will be re-raised.
+    :param handled: A list of exception classes to catch. The default is to
+                    catch relevant exception from both psycopg2 and Django.
+
+    """
+    if fallback:
+        assert callable(fallback)
+
+    def _retry_decorator(func):
+        def _retrier(*args, **kwargs):
+            remaining = count
+            while remaining:
+                try:
+                    return func(*args, **kwargs)
+                except handled:
+                    remaining -= 1
+                    logger.error("cannot establish db connection. "
+                                 "retries remaining: %d", remaining)
+                    if remaining:
+                        time.sleep(delay)
+                        continue
+                    elif fallback:
+                        fallback()
+                    else:
+                        raise
+        return wraps(func)(_retrier)
+    return _retry_decorator
 
 ###### Initialization ######
 
