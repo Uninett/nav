@@ -12,7 +12,9 @@
         "_",
         "Backbone",
         "Backbone.EventBroker",
-        "Handlebars"
+        "Handlebars",
+        "Spinner",
+        "NAV"
     ],
     "browser":  true,
     "bitwise":  true,
