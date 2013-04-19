@@ -660,6 +660,36 @@ define([
                 return false;
             });
 
+            if (!!vlanObject && !!vlanObject.navVlanId) {
+                var nodesToFadeData = SetEquality.difference(self.nodes, markVlanNodes, function (a, b) {
+                    return a.data.sysname === b.data.sysname;
+                });
+
+                var nodesToFade = self.nodeGroupRoot.selectAll("g.node").data(nodesToFadeData, function (nodeObject) {
+                    return nodeObject.data.sysname;
+                });
+
+                var linksToFadeData = SetEquality.difference(self.links, markVlanLinks, function (aLink, bLink) {
+                    return self.sysnameFromLinkObjectOrGraphModelFetch(aLink) === self.sysnameFromLinkObjectOrGraphModelFetch(bLink);
+                });
+
+                var linksToFade = self.linkGroupRoot.selectAll("g.link").data(linksToFadeData, function (linkObject) {
+                    return self.sysnameFromLinkObjectOrGraphModelFetch(linkObject);
+                });
+
+                nodesToFade.enter();
+                nodesToFade.attr("class", "node fade");
+                nodesToFade.exit()
+                    .attr("class", "node");
+
+                linksToFade.enter();
+                linksToFade.attr("class", "link fade");
+                linksToFade.exit().attr("class", "link");
+            } else {
+                self.nodeGroupRoot.selectAll("g.node").attr("class", "node");
+                self.linkGroupRoot.selectAll("g.link").attr("class", "link");
+            }
+
             var nodesInVLAN = self.nodesInVLAN = self.selectedNodeGroupRoot.selectAll("g circle").data(markVlanNodes, function (nodeObject) {
                 return nodeObject.data.sysname;
             });
@@ -1055,9 +1085,9 @@ define([
             this.updateRenderTopologyErrors();
             this.updateRenderCategories();
             this.updateRenderOrphanFilter();
-            this.updateRenderVLAN(this.selectedVLANObject);
             this.updateRenderNodes();
             this.updateRenderLinks();
+            this.updateRenderVLAN(this.selectedVLANObject);
             this.updateRenderGroupByPosition();
 
             // coordinate helper box
