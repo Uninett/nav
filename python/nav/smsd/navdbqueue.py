@@ -209,5 +209,6 @@ class NAVDBQueue(object):
         return db.rowcount
 
     @staticmethod
+    @nav.db.retry_on_db_loss(delay=5)
     def _connect():
         return nav.db.getConnection('smsd', 'navprofile')
