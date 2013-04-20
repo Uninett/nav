@@ -9,7 +9,8 @@ define([
     var VlanInfoView = Backbone.View.extend({
         broker: Backbone.EventBroker,
         events: {
-            "click .vlan": "showVlan"
+            "click .vlan": "showVlan",
+            "click #unselectVlan": "unshowVlan"
         },
         initialize: function () {
             this.template = Handlebars.compile(netmapTemplate);
@@ -54,15 +55,21 @@ define([
             this.broker.trigger('netmap:selectVlan', this.selectedVLANObject);
             this.render();
         },
+        unshowVlan: function (e) {
+            if (!!e) {
+                e.preventDefault();
+            }
+            this.selectedVLANObject = undefined;
+            this.broker.trigger('netmap:selectVlan', null);
+            this.render();
+        },
         setSelectedVlan: function (selected_vlan) {
             this.selectedVLANObject = selected_vlan;
             this.render();
         },
         reset: function () {
             this.vlans = undefined;
-            this.selectedVLANObject = undefined;
-            this.broker.trigger('netmap:selectVlan', null);
-            this.render();
+            this.unshowVlan();
         },
         close: function () {
             $(this.el).unbind();
