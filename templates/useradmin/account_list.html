@@ -1,6 +1,8 @@
 {% extends "useradmin/base.html" %}
 
 {% block content %}
+    <a href="{% url useradmin-account_new %}" class="button small right">Create new account</a>
+
     <table class="listtable">
         <caption>
             Account List<br />
@@ -32,7 +34,4 @@
             </tr>
         </tfoot>
     </table>
-    <p>
-        <a href="{% url useradmin-account_new %}" class="button small">Create new account</a>
-    </p>
 {% endblock %}

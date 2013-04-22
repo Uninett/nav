@@ -14,6 +14,28 @@
     {% else %}
         <h3>Create new account</h3>
     {% endif %}
+
+    <ul class="button-group right">
+        {% if account and current_user_data.is_admin and not current_user_data.sudoer %}
+            {% ifnotequal current_user_data.account.id account.id %}
+                <li>
+                    <form action="." method="post">
+                        <input type="hidden" name="account" value="{{ account.id }}" />
+                        <input type="submit" value="Switch to this user" name="submit_sudo" class="button small"/>
+                    </form>
+                </li>
+            {% endifnotequal %}
+        {% endif %}
+
+        {% if account and not account.is_system_account %}
+            <li>
+                <a href="{% url useradmin-account_delete account.id %}" class="button alert small">
+                    Delete account
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+
     {% if account_form %}
         <form action="." method="post">
             <table class="vertitable">
@@ -35,76 +57,63 @@
             </table>
         </form>
     {% endif %}
+
     {% if account %}
-        {% if not account.is_system_account %}
-            <p>
-                <a href="{% url useradmin-account_delete account.id %}">
-                    Delete account
-                </a>
-            </p>
-        {% endif %}
 
-        <h3>Organizations</h3>
-        {% if account.organizations.all %}
-            <ul>
-                {% for org in account.organizations.all %}
-                    <li>
-                        {{ org }}
-                        - [<a href="{% url useradmin-account_organization_remove account.id,org.id %}">Remove</a>]
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Not member of any organizations.</p>
-        {% endif %}
+        {% comment %} ORGANIZATIONS {% endcomment %}
+        <div class="panel">
+            <h3>Organizations</h3>
+            {% if account.organizations.all %}
+                <ul>
+                    {% for org in account.organizations.all %}
+                        <li>
+                            {{ org }}
+                            - [<a href="{% url useradmin-account_organization_remove account.id,org.id %}">Remove</a>]
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Not member of any organizations.</p>
+            {% endif %}
 
-        {% if org_form %}
-            <form action="." method="post">
-                {{ org_form.organization.errors }}
-                <p>
+            {% if org_form %}
+                <form action="." method="post" class="nav">
+                    {{ org_form.organization.errors }}
                     {{ org_form.organization }}
-                    <input type="submit" value="Add to organization" name="submit_org" />
-                </p>
-            </form>
-        {% endif %}
+                    <input type="submit" value="Add to organization" name="submit_org"  class="button tiny"/>
+                </form>
+            {% endif %}
+        </div>
 
-        <h3>Group memberships</h3>
-        {% if account.accountgroup_set.all %}
-            <ul>
-                {% for group in account.accountgroup_set.all %}
-                    <li>
-                        <a href="{% url useradmin-group_detail group.id %}">{{ group }}</a>
-                        - {{ group.description }}
-                        {% if not group.is_protected_group %}
-                            [<a href="{% url useradmin-account_group_remove account.id,group.id %}">Remove</a>]
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Not member of any groups.</p>
-        {% endif %}
 
-        {% if group_form %}
-            <form action="." method="post">
-                {{ group_form.group.errors }}
-                <p>
+        {% comment %} GROUP MEMBERSHIPS {% endcomment %}
+        <div class="panel">
+            <h3>Group memberships</h3>
+            {% if account.accountgroup_set.all %}
+                <ul>
+                    {% for group in account.accountgroup_set.all %}
+                        <li>
+                            <a href="{% url useradmin-group_detail group.id %}">{{ group }}</a>
+                            - {{ group.description }}
+                            {% if not group.is_protected_group %}
+                                [<a href="{% url useradmin-account_group_remove account.id,group.id %}">Remove</a>]
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Not member of any groups.</p>
+            {% endif %}
+
+            {% if group_form %}
+                <form action="." method="post" class="nav">
+                    {{ group_form.group.errors }}
                     {{ group_form.group }}
-                    <input type="submit" value="Add to group" name="submit_group" />
-                </p>
-            </form>
-        {% endif %}
+                    <input type="submit" value="Add to group" name="submit_group" class="button tiny"/>
+                </form>
+            {% endif %}
+        </div>
 
-        {% if current_user_data.is_admin and not current_user_data.sudoer %}
-        {% ifnotequal current_user_data.account.id account.id %}
-        <h3>Switch user</h3>
-            <form action="." method="post">
-                <input type="hidden" name="account" value="{{ account.id }}" />
-                <p>
-                    <input type="submit" value="Switch to this user" name="submit_sudo" />
-                </p>
-            </form>
-        {% endifnotequal %}
-        {% endif %}
     {% endif %}
+
 {% endblock %}

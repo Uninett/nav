@@ -33,21 +33,22 @@
             </li>
             {% block extra_tab_group %}{% endblock %}
         </ul>
-    </div>
-{% endblock %}
 
-{% block outercontent %}
-    <div class="tabcontent">
-        {% if current_user_data.messages %}
-            <ul class="messages">
-                {% for m in current_user_data.messages %}
-                    <li class="{{ m.type }}">{{ m.message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        {% block content %}
-            Replace me!
+        {% block outercontent %}
+        <div class="tabcontent">
+            {% if current_user_data.messages %}
+                <ul class="messages">
+                    {% for m in current_user_data.messages %}
+                        <li class="{{ m.type }}">{{ m.message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% block content %}
+                Replace me!
+            {% endblock %}
+        </div>
         {% endblock %}
+
     </div>
 {% endblock %}
 

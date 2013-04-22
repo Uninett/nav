@@ -14,6 +14,7 @@
     {% else %}
         <h3>Create new group</h3>
     {% endif %}
+
     {% if group_form %}
         <form action="." method="post">
             <table class="vertitable">
@@ -25,13 +26,13 @@
             </table>
         </form>
     {% endif %}
+
     {% if group %}
+
         {% if not group.is_system_group %}
-            <p>
-                [<a href="{% url useradmin-group_delete group.id %}">
-                    Delete group
-                </a>]
-            </p>
+            [<a href="{% url useradmin-group_delete group.id %}">
+                Delete group
+            </a>]
         {% endif %}
 
         <h3>Privileges</h3>
