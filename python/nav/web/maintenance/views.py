@@ -202,8 +202,7 @@ def cancel(request, task_id):
     if request.method == 'POST':
         task.state = 'canceled'
         task.save()
-        new_message(request._req,
-            "This task is now cancelled.", Messages.SUCCESS)
+        new_message(request, "This task is now cancelled.", Messages.SUCCESS)
         return HttpResponseRedirect(reverse('maintenance-view',
                                                 args=[task_id]))
     else:
@@ -294,13 +293,13 @@ def edit(request, task_id=None, start_time=None):
                             key=key,
                             value="%s" % component['id'])
                         task_component.save()
-                new_message(request._req,
-                    "Saved task %s" % new_task.description, Messages.SUCCESS)
+                new_message(request,
+                            "Saved task %s" % new_task.description,
+                            Messages.SUCCESS)
                 return HttpResponseRedirect(reverse('maintenance-view',
                                                     args=[new_task.id]))
             if num_components <= 0:
-                new_message(request._req,
-                    "No components selected.", Messages.ERROR)
+                new_message(request, "No components selected.", Messages.ERROR)
         else:
             task_form = MaintenanceTaskForm(initial=request.POST)
 

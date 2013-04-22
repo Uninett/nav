@@ -73,7 +73,7 @@ npmModule jshint
 
 
 echo "Running jshint"
-JAVASCRIPT_FILES=( $(find ${JSDIR} \( \( -path "${JSDIR}/node_modules*" \) -o \( -path "${JSDIR}/libs/*" \) -o \( -path "${JSDIR}/geomap/*" \) -prune \) -o -iname "*.js" -print) )
+JAVASCRIPT_FILES=( $(find ${JSDIR}/src -iname "*.js" -print) )
 jshint() {
     local JSHINTDIR=${JSDIR}/node_modules/jshint/bin
     for cmd in hint jshint; do

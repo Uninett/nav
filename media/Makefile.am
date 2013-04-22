@@ -18,6 +18,7 @@ nobase_webroot_DATA = $(wildcard images/*/*.gif \
 				 js/src/netmap/templates/*.html \
 				 js/src/netmap/templates/*/*.html \
 				 style/*.css        \
+				 style/nivo/*.css   \
 				 style/jqueryui/*.css \
 				 style/jqueryui/images/*.png \
 				 */.htaccess)

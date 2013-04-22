@@ -16,6 +16,7 @@ define(['libs/jquery.dataTables.min'], function(){
             xN = x.replace(re, '\0$1\0').replace(/\0$/,'').replace(/^\0/,'').split('\0'),
             yN = y.replace(re, '\0$1\0').replace(/\0$/,'').replace(/^\0/,'').split('\0');
         // natural sorting through split numeric strings and default strings
+        var oFxNcL, oFyNcL;
         for(var cLoc=0, numS=Math.max(xN.length, yN.length); cLoc < numS; cLoc++) {
             // find floats not starting with '0', string or 0 if not defined (Clint Priest)
             oFxNcL = !(xN[cLoc] || '').match(ore) && parseFloat(xN[cLoc]) || xN[cLoc] || 0;

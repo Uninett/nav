@@ -33,10 +33,9 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None):
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
     if not len(request.POST.getlist('object')):
-        new_message(
-            request._req,
-            "You need to select at least one object to edit",
-            Messages.ERROR)
+        new_message(request,
+                    "You need to select at least one object to edit",
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse(redirect))
 
     if not whitelist:
@@ -61,17 +60,15 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None):
             # Some of the objects we want to delete is referenced by another
             # table without any ON DELETE rules.
             msg = "Integrity failed: %s" % ex
-            new_message(request._req, msg, Messages.ERROR)
+            new_message(request, msg, Messages.ERROR)
         except Exception, ex:
             # Something else went wrong
             LOGGER.exception("Unhandled exception during delete: %r", request)
             msg = "Error: %s" % ex
-            new_message(request._req, msg, Messages.ERROR)
+            new_message(request, msg, Messages.ERROR)
         else:
-            new_message(
-                request._req,
-                "Deleted %i rows" % len(objects),
-                Messages.SUCCESS)
+            new_message(request,
+                        "Deleted %i rows" % len(objects), Messages.SUCCESS)
             return HttpResponseRedirect(reverse(redirect))
 
     info_dict = {

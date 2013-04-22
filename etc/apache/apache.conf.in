@@ -12,25 +12,23 @@ DocumentRoot @webrootdir@
     Allow from all
 </Directory>
 
-<Location />
-    SetHandler python-program
-    PythonHandler django.core.handlers.modpython
-    SetEnv DJANGO_SETTINGS_MODULE nav.django.settings
-    PythonDebug On
-    PythonHeaderParserHandler nav.web
-    PythonCleanupHandler nav.web
-</Location>
-
 Alias /favicon.ico @webrootdir@/images/main/favicon.ico
-<Location /favicon.ico>
-    SetHandler none
-    PythonHeaderParserHandler nav.web.noauth
+Alias /doc @docdir@/html
+
+Alias /uploads @localstatedir@/uploads
+<Location /uploads>
+    # Files here may be sensitive. Do not allow browsing.
+    Options -Indexes
 </Location>
 
-Alias /doc @docdir@/html
-<Location /doc>
-    SetHandler none
-    PythonHeaderParserHandler nav.web.noauth
-</Location>
+AliasMatch ^/((images|js|style)/.*) @webrootdir@/$1 
 
 Include @sysconfdir@/apache/subsystems/*.conf
+
+WSGIDaemonProcess NAV user=@nav_user@ processes=2 display-name=%{GROUP}
+WSGIProcessGroup NAV
+WSGIScriptAlias / @pythonlibdir@/nav/wsgi.py
+<Directory "@pythonlibdir@/nav">
+    Order allow,deny
+    Allow from all
+</Directory>

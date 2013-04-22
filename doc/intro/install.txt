@@ -29,7 +29,7 @@ Runtime requirements
 To run NAV, these software packages are required:
 
  * Apache2
- * mod_python
+ * mod_wsgi
  * Cricket
  * PostgreSQL >= 8.3
  * rrdtool
@@ -52,6 +52,7 @@ The following python modules are required:
  * :mod:`simplejson` >= 2.0.6
  * :mod:`twisted` >= 8.1
  * :mod:`pynetsnmp` (or less preferably, :mod:`twistedsnmp` >= 0.3)
+ * :mod:`PIL` 1.1.7 (python-imaging)
 
 The following python modules are optional:
 
@@ -163,13 +164,13 @@ You should now be able to run the python command line interpreter and run
 Configuring Apache
 ------------------
 
-Legacy parts of NAV uses `mod_python`, and therefore requires an Apache 2
-server.  For the time being, NAV also requires being at the document root of
-its own Apache virtualhost.
+NAV's web interface is implemented using the Django framework,
+and can be served in any web server environment supported by Django.
 
-NAV provides an Apache config file, with the minimum settings required for
-getting a NAV virtualhost to work.  This can be included in your virtualhost
-config file, which needn't contain much more than this:
+NAV does, however, come with Apache configuration to serve the web interface
+using `mod_wsgi`. For legacy reasons, NAV requires being served at the
+document root of the web server domain. The apache config file can be
+included in your virtualhost config, which needn't contain much more than this:
 
 .. code-block:: apacheconf
 
