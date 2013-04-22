@@ -24,7 +24,7 @@ table.expand {
 }
 
 .table-hover tbody tr:hover {
-    background-color: #EEEEEE;
+    background-color: #FFF5E0;
 }
 
 /* Table caption */

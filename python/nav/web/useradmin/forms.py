@@ -113,6 +113,7 @@ class PrivilegeForm(forms.ModelForm):
     class Meta:
         model = Privilege
         exclude = ('group',)
+        widgets = {'type': forms.RadioSelect()}
 
 class OrganizationAddForm(forms.Form):
     organization = forms.models.ModelChoiceField(
