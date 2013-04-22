@@ -41,10 +41,6 @@ table .button {
     margin: 0;
 }
 
-form.nav select {
-    width: auto;
-}
-
 /* Map styles */
 .mapwrapper {
     margin: 1em 0;
