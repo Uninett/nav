@@ -4,6 +4,21 @@
     width: 100%;
 }
 
+.sudoer-bar {
+    background-color: #d3d7cf;
+    border-bottom: 1px solid #555753;
+    padding-left: 2em;
+    line-height: 3em;
+}
+
+.sudoer-bar form, .sudoer-bar input {
+    margin: 0;
+}
+
+.sudoer-bar img {
+    vertical-align: middle;
+}
+
 /* Custom base page styles */
 
 #nav-breadcrumbs {
