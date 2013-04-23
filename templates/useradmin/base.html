@@ -37,8 +37,8 @@
         {% block outercontent %}
         <div class="tabcontent">
             {% if current_user_data.messages %}
-                <div class="panel callout radius">
-                    <ul class="messages">
+                <div class="alert-box secondary">
+                    <ul class="no-bullet">
                         {% for m in current_user_data.messages %}
                             <li class="{{ m.type }}">{{ m.message }}</li>
                         {% endfor %}
