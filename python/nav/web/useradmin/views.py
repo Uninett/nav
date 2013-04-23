@@ -57,7 +57,7 @@ def account_detail(request, account_id=None):
 
     account_form = AccountForm(instance=account)
     org_form = OrganizationAddForm(account)
-    group_form = GroupAddForm()
+    group_form = GroupAddForm(account)
 
     if request.method == 'POST':
         if 'submit_account' in request.POST:
@@ -100,7 +100,7 @@ def account_detail(request, account_id=None):
                                                     args=[account.id]))
 
         elif 'submit_group' in request.POST:
-            group_form = GroupAddForm(request.POST)
+            group_form = GroupAddForm(account, request.POST)
 
             if group_form.is_valid():
                 group = group_form.cleaned_data['group']
@@ -303,7 +303,7 @@ def group_detail(request, group_id=None):
         group = None
 
     group_form = AccountGroupForm(instance=group)
-    account_form = AccountAddForm()
+    account_form = AccountAddForm(group)
     privilege_form = PrivilegeForm()
 
     if request.method == 'POST':
@@ -340,7 +340,7 @@ def group_detail(request, group_id=None):
                 return HttpResponseRedirect(reverse('useradmin-group_detail',
                                                     args=[group.id]))
         elif 'submit_account' in request.POST:
-            account_form = AccountAddForm(request.POST)
+            account_form = AccountAddForm(group, request.POST)
 
             if account_form.is_valid():
                 try:

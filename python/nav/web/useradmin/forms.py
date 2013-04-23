@@ -141,11 +141,26 @@ class OrganizationAddForm(forms.Form):
 
 class GroupAddForm(forms.Form):
     """Form for adding or editing a group"""
-    group = forms.models.ModelChoiceField(AccountGroup.objects.all(),
-                                          required=True)
+    def __init__(self, account, *args, **kwargs):
+        super(GroupAddForm, self).__init__(*args, **kwargs)
+        if account:
+            query = AccountGroup.objects.exclude(
+                id__in=account.accountgroup_set.all())
+        else:
+            query = AccountGroup.objects.all()
+
+        self.fields['group'] = forms.models.ModelChoiceField(queryset=query,
+                                                             required=True)
 
 
 class AccountAddForm(forms.Form):
     """Form for adding a user to a group from the group page"""
-    account = forms.models.ModelChoiceField(Account.objects.all(),
-                                            required=True)
+    def __init__(self, group, *args, **kwargs):
+        super(AccountAddForm, self).__init__(*args, **kwargs)
+        if group:
+            query = Account.objects.exclude(id__in=group.accounts.all())
+        else:
+            query = Account.objects.all()
+
+        self.fields['account'] = forms.models.ModelChoiceField(query,
+                                                               required=True)
