@@ -28,13 +28,18 @@ from nav.django.auth import sudo
 from nav.web.message import new_message, Messages
 from nav.web.useradmin.forms import *
 
-# FIXME make this global
+
 class UserAdminContext(RequestContext):
     def __init__(self, *args, **kwargs):
         # account_processor is in the settings file.
-        # if 'processors' not in kwargs:
-        #     kwargs['processors'] = [account_processor]
+        if 'processors' not in kwargs:
+            kwargs['processors'] = [custom_processor]
         super(UserAdminContext, self).__init__(*args, **kwargs)
+
+
+def custom_processor(request):
+    """Return some always available variables"""
+    return {'navpath': [('Home', '/'), ('User Administration', )]}
 
 def account_list(request):
     return object_list(request, Account.objects.all(),
