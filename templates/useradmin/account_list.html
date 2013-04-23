@@ -5,10 +5,7 @@
 
     <table class="listtable">
         <caption>
-            Account List<br />
-            <span class="subtitle">
-                {{ account_list|length}} accounts
-            </span>
+            Account List
         </caption>
         <thead>
             <tr>
@@ -19,7 +16,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for account in account_list %}
+            {% for account in accounts %}
                 <tr class="{% cycle oddrow,evenrow %}">
                     <td><a href="{% url useradmin-account_detail account.id %}">{{ account.login }}</a></td>
                     <td>{{ account.name }}</td>
@@ -30,7 +27,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="4">{{ account_list|length}} accounts</th>
+                <th colspan="4">{{ accounts|length}} accounts</th>
             </tr>
         </tfoot>
     </table>

@@ -42,10 +42,12 @@ def custom_processor(request):
     return {'navpath': [('Home', '/'), ('User Administration', )]}
 
 def account_list(request):
-    return object_list(request, Account.objects.all(),
-                        template_object_name='account',
-                        template_name='useradmin/account_list.html',
-                        extra_context={'active': {'account_list': 1}})
+    accounts = Account.objects.all()
+    return render_to_response('useradmin/account_list.html',
+                              {'active': {'account_list': 1},
+                               'accounts': accounts},
+                              UserAdminContext(request))
+
 
 def account_detail(request, account_id=None):
     try:
@@ -284,10 +286,15 @@ def account_group_remove(request, account_id, group_id, missing_redirect=None,
 
 
 def group_list(request):
-    return object_list(request, AccountGroup.objects.all(),
-                        template_object_name='group',
-                        template_name='useradmin/group_list.html',
-                        extra_context={'active': {'group_list': True}})
+    groups = AccountGroup.objects.all()
+    return render_to_response('useradmin/group_list.html',
+                              {'active': {'group_list': True},
+                               'groups': groups},
+                              UserAdminContext(request))
+    # return object_list(request, AccountGroup.objects.all(),
+    #                     template_object_name='group',
+    #                     template_name='useradmin/group_list.html',
+    #                     extra_context={'active': {'group_list': True}})
 
 def group_detail(request, group_id=None):
     try:
