@@ -79,9 +79,22 @@
                             targets for privileges like 'web_access'.
                         </p>
 
-                        {{ privilege_form.errors }}
-
                         <form action="." method="post">
+                            {% if privilege_form.type.errors %}
+                                <div class="alert-box alert">{{ privilege_form.type.errors }}</div>
+                            {% endif %}
+
+                            <ul class="inline-list">
+                            {% for value, text in privilege_form.type.field.choices %}
+                                <li>
+                                    <label><input type="radio" value="{{ value }}" name="type"> {{ text }}</label>
+                                </li>
+                            {% endfor %}
+                            </ul>
+
+                            {% if privilege_form.target.errors %}
+                                <div class="alert-box alert">{{ privilege_form.target.errors }}</div>
+                            {% endif %}
                             {{ privilege_form.target }}
                             <input type="submit" value="Grant" name="submit_privilege" class="button small"/>
                         </form>

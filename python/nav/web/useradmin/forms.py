@@ -13,10 +13,11 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=R0903
 """Forms for the user admin system"""
 from django import forms
 
-from nav.models.profiles import Account, AccountGroup, Privilege
+from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
 
 
@@ -116,14 +117,12 @@ class ChangePasswordForm(forms.Form):
         return True
 
 
-class PrivilegeForm(forms.ModelForm):
+class PrivilegeForm(forms.Form):
     """Form for adding a privilege to a group"""
+    type = forms.models.ModelChoiceField(PrivilegeType.objects.all(),
+                                         widget=forms.RadioSelect(),
+                                         empty_label=None)
     target = forms.CharField(required=True)
-
-    class Meta:
-        model = Privilege
-        exclude = ('group',)
-        widgets = {'type': forms.RadioSelect()}
 
 
 class OrganizationAddForm(forms.Form):

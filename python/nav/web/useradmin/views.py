@@ -21,7 +21,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.generic.list_detail import object_list
 
-from nav.models.profiles import Account, AccountGroup
+from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.django.utils import get_account
 
 from nav.django.auth import sudo
