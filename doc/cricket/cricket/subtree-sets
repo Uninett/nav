@@ -4,8 +4,7 @@
 set normal:
 	/routers
 	/switches
-	/switch-ports
-	/router-interfaces
+	/ports
 	/servers
 	/sensors
 	/ipv6-interfaces
