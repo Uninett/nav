@@ -22,7 +22,7 @@
 .tabs {
     display: none;
 	margin-top: 1em;
-    overflow: auto;
+    overflow: visible;
 }
 .tabs > ul {
     font-size: 0.9em;
@@ -116,4 +116,5 @@
 
 .tabs .tabs {
     margin-top: 0;
+    overflow: auto;
 }
