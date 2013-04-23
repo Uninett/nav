@@ -509,6 +509,7 @@ class Organization(models.Model):
     class Meta:
         db_table = 'org'
         verbose_name = 'organization'
+        ordering = ['id']
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)

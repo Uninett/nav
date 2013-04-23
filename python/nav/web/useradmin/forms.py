@@ -127,8 +127,16 @@ class PrivilegeForm(forms.Form):
 
 class OrganizationAddForm(forms.Form):
     """Form for adding an organization to an account"""
-    organization = forms.models.ModelChoiceField(
-        Organization.objects.all().order_by('id'), required=True)
+    def __init__(self, account, *args, **kwargs):
+        super(OrganizationAddForm, self).__init__(*args, **kwargs)
+        if account:
+            query = Organization.objects.exclude(
+                id__in=account.organizations.all())
+        else:
+            query = Organization.objects.all()
+
+        self.fields['organization'] = forms.models.ModelChoiceField(
+            queryset=query, required=True)
 
 
 class GroupAddForm(forms.Form):

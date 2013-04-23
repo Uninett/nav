@@ -56,7 +56,7 @@ def account_detail(request, account_id=None):
         account = None
 
     account_form = AccountForm(instance=account)
-    org_form = OrganizationAddForm()
+    org_form = OrganizationAddForm(account)
     group_form = GroupAddForm()
 
     if request.method == 'POST':
@@ -78,7 +78,7 @@ def account_detail(request, account_id=None):
                                                     args=[account.id]))
 
         elif 'submit_org' in request.POST:
-            org_form = OrganizationAddForm(request.POST)
+            org_form = OrganizationAddForm(account, request.POST)
 
             if org_form.is_valid():
                 organization = org_form.cleaned_data['organization']
