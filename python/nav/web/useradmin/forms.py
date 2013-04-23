@@ -13,13 +13,15 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""Forms for the user admin system"""
 from django import forms
 
 from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
 
+
 class AccountGroupForm(forms.ModelForm):
+    """Form for adding an account to a group from account page"""
     name = forms.CharField(required=True)
     description = forms.CharField(required=True)
 
@@ -27,7 +29,9 @@ class AccountGroupForm(forms.ModelForm):
         model = AccountGroup
         fields = ('name', 'description')
 
+
 class AccountForm(forms.ModelForm):
+    """Form for creating and editing an account"""
     password1 = forms.CharField(label='New password',
                                 min_length=Account.MIN_PASSWD_LENGTH,
                                 widget=forms.widgets.PasswordInput)
@@ -50,8 +54,8 @@ class AccountForm(forms.ModelForm):
                 del self.fields['password2']
                 del self.fields['login']
 
-
     def clean_password1(self):
+        """Validate password"""
         password1 = self.data.get('password1')
         password2 = self.data.get('password2')
 
@@ -73,7 +77,9 @@ class AccountForm(forms.ModelForm):
         model = Account
         exclude = ('password', 'ext_sync', 'organizations')
 
+
 class ChangePasswordForm(forms.Form):
+    """Form for changing password for an account"""
     old_password = forms.CharField(label='Old password',
                                    widget=forms.widgets.PasswordInput)
     new_password1 = forms.CharField(label='New password',
@@ -85,6 +91,7 @@ class ChangePasswordForm(forms.Form):
                                     required=False)
 
     def clean_password1(self):
+        """Validate password for an account"""
         password1 = self.data.get('new_password1')
         password2 = self.data.get('new_password2')
 
@@ -93,6 +100,7 @@ class ChangePasswordForm(forms.Form):
         return password1
 
     def clear_passwords(self):
+        """Clear passwords from the form"""
         self.data = self.data.copy()
         if 'new_password1' in self.data:
             del self.data['new_password1']
@@ -107,7 +115,9 @@ class ChangePasswordForm(forms.Form):
             return False
         return True
 
+
 class PrivilegeForm(forms.ModelForm):
+    """Form for adding a privilege to a group"""
     target = forms.CharField(required=True)
 
     class Meta:
@@ -115,14 +125,20 @@ class PrivilegeForm(forms.ModelForm):
         exclude = ('group',)
         widgets = {'type': forms.RadioSelect()}
 
+
 class OrganizationAddForm(forms.Form):
+    """Form for adding an organization to an account"""
     organization = forms.models.ModelChoiceField(
         Organization.objects.all().order_by('id'), required=True)
 
+
 class GroupAddForm(forms.Form):
+    """Form for adding or editing a group"""
     group = forms.models.ModelChoiceField(AccountGroup.objects.all(),
                                           required=True)
 
+
 class AccountAddForm(forms.Form):
+    """Form for adding a user to a group from the group page"""
     account = forms.models.ModelChoiceField(Account.objects.all(),
                                             required=True)
