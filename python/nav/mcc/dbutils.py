@@ -1,5 +1,6 @@
 """ Helper functions for handling database actions """
 import logging
+import os
 
 from os.path import join
 from shutil import move
@@ -249,18 +250,16 @@ def move_file(source, destination):
     Move file to new place. If it does not exist, we assume it's ok and
     keep the change in the database
     """
+    LOGGER.info("Renaming %s to %s" % (source, destination))
+    dirname = os.path.dirname(destination)
     try:
-        LOGGER.info("Renaming %s to %s" % (source, destination))
+        if not os.path.exists(os.path.dirname(destination)):
+            LOGGER.info("Creating missing directory %s first", dirname)
+            os.makedirs(dirname)
         move(source, destination)
-    except IOError, ioerror:
-        # If file did not exist, accept that and continue
-        if ioerror.errno == 2:
-            LOGGER.info("File %s did not exist.", source)
-        else:
-            LOGGER.error("Exception when moving file %s: %s"
-                         % (source, ioerror))
-    except Exception, error:
-        LOGGER.error("Exception when moving file %s: %s" % (source, error))
+    except Exception as error:
+        LOGGER.error("Error when moving %s to %s: %s",
+                     source, destination, error)
 
 
 def convert_megabit_to_bytes(mbit):
