@@ -109,10 +109,10 @@
         {% comment %} GROUP MEMBERSHIPS {% endcomment %}
         <div class="panel">
             <h3>Group memberships</h3>
-            {% if group.accounts.all %}
-                <div class="row">
+            <div class="row">
 
-                    <div class="large-6 columns">
+                <div class="large-6 columns">
+                    {% if group.accounts.all %}
                         <table class="table-hover expand">
                             <tbody>
                                 {% for account in group.accounts.all %}
@@ -129,30 +129,26 @@
                                 {% endfor %}
                             </tbody>
                         </table>
-                    </div>
-
-                    <div class="large-6 columns">
-
-                        {% if account_form %}
-                            {{ account_form.account.errors }}
-                            <form action="." method="post" class="custom">
-                                <div class="row collapse">
-                                    <div class="large-8 columns">
-                                        {{ account_form.account }}
-                                    </div>
-                                    <div class="large-4 columns">
-                                        <input type="submit" value="Add to group" name="submit_account" class="button postfix"/>
-                                    </div>
-                                </div>
-                            </form>
-                        {% endif %}
-
-                    </div>
-
+                    {% else %}
+                        <p>Group does not have any members.</p>
+                    {% endif %}
                 </div>
-            {% else %}
-                <p>Group does not have any members.</p>
-            {% endif %}
+
+                <div class="large-6 columns">
+                    {{ account_form.account.errors }}
+                    <form action="." method="post" class="custom">
+                        <div class="row collapse">
+                            <div class="large-8 columns">
+                                {{ account_form.account }}
+                            </div>
+                            <div class="large-4 columns">
+                                <input type="submit" value="Add to group" name="submit_account" class="button postfix"/>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
         </div>  {% comment %} PANEL GROUP MEMBERSHIPS{% endcomment %}
 
     {% endif %}
