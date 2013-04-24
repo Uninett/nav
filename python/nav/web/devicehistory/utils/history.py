@@ -14,14 +14,13 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from datetime import datetime
+from django.core.paginator import InvalidPage
 
 from django.db.models import Q
 from django.utils.datastructures import SortedDict
 
 from nav.models.event import AlertHistory, AlertHistoryMessage
 from nav.models.manage import Netbox, Device, Location, Room, Module, Organization, Category
-from nav.web.quickselect import QuickSelect
 
 LOCATION_GROUPING = {
     'order_by': 'netbox__room__location__description',
