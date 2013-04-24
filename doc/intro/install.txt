@@ -220,29 +220,6 @@ following:
 
   $gConfigRoot = "PATH_TO_NAV/etc/cricket-config"
 
-Make sure that the ``navcron`` user has write permissions to whatever directory
-the ``$logDir`` option points to.
-
-Cricket has a file called :file:`subtree-sets` that determines what directories
-in the config-tree it will use when collecting data. You should replace
-Cricket's default version with this file:
-``PATH_TO_NAV/doc/cricket/cricket/subtree-sets``.
-
-Next, Cricket needs to know where to store its RRD data. We suggest in NAV's
-``var`` directory. Create a suitable directory here::
-
-  sudo mkdir PATH_TO_NAV/var/cricket-data
-  sudo chown navcron PATH_TO_NAV/var/cricket-data
-
-Now tell Cricket to put the collected data there by editing
-:file:`PATH_TO_NAV/etc/cricket-config/Defaults` and making sure that it
-contains:
-
-.. code-block:: none
-
-  Target  --default--
-      dataDir = PATH_TO_NAV/var/cricket-data/%auto-target-path%
-
 To test that things work so far, have Cricket compile its configuration::
 
   sudo -u navcron cricket-compile
@@ -272,7 +249,7 @@ following::
   sudo ln -s $PWD/images PATH_TO_NAV/share/htdocs/cricket
   cd PATH_TO_NAV/share/htdocs/cricket
   sudo ln -s grapher.cgi index.cgi
-  sudo cp PATH_TO_NAV/doc/cricket/public_html/cricket.css .
+  sudo cp PATH_TO_NAV/doc/cricket/cricket.css .
 
 You should now have a completely installed and integrated NAV. For a guide on
 how to get started using NAV, please refer to the :doc:`getting-started`
