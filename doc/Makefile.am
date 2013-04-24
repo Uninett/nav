@@ -3,7 +3,6 @@ htmldocfiles := $(shell test -e html && find html/ -type f)
 nobase_dist_doc_DATA = \
 	$(wildcard cricket/cricket-config/Defaults cricket/cricket-config/*/Defaults cricket/cricket-config/*/*/Defaults) \
 	cricket/README \
-	cricket/cricket/subtree-sets \
 	cricket/public_html/cricket.css \
 	$(wildcard mailin/alertmsg.d/*) \
 	$(wildcard intro/*.txt) \

@@ -11,6 +11,7 @@ install-data-local: installdirs
 installdirs-local:
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/arnold
+	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/log/cricket
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/run
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/rrd
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/rrd/activeip
