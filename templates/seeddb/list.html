@@ -19,8 +19,7 @@
 </form>
 {% endif %}
 
-{% include "seeddb/paginator.html" %}
-
+{% comment %}
 <form action="{{ request.path }}" method="post">
     {% if not hide_move or not hide_delete %}
     <div>
@@ -32,13 +31,11 @@
     {% endif %}
     </div>
     {% endif %}
+{% endcomment %}
 
-<table class="listtable">
+<table id="seeddb-content" class="listtable">
     <caption>
-        {{ caption }}<br />
-        <span class="subtitle">
-            {{ page.paginator.count }} found in database, showing {{ page.start_index }} to {{ page.end_index }}.
-        </span>
+        {{ caption }}
     </caption>
 
     <thead>
@@ -87,6 +84,8 @@
 
 </table>
 
+
+    {% comment %}
     {% if not hide_move %}
         <input type="submit" name="move" value="Move selected" />
     {% endif %}
@@ -95,6 +94,5 @@
     {% endif %}
 </form>
 
-{% include "seeddb/paginator.html" %}
-
+{% endcomment %}
 {% endblock %}

@@ -96,3 +96,22 @@ li.list-header {
 .alert-box ul {
     margin-bottom: 0;
 }
+
+
+/* Custom styles for datatables */
+.dataTables_wrapper select {
+    width: auto;
+}
+
+.dataTables_wrapper label {
+    display: inline;
+}
+
+.dataTables_scroll table {
+    border: 0;
+    margin-bottom: 0;
+}
+
+.dataTables_scroll th {
+    box-sizing: content-box;  /* Override when using scrolling in datatables */
+}
