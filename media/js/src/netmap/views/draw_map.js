@@ -378,17 +378,25 @@ define([
         },
 
         setUIVLANSelection: function (vlanObject) {
+            this.updateRenderVLAN(vlanObject);
             if (!!vlanObject) {
+
+                if (!!vlanObject.zoomAndTranslate) {
+                    //zoomAndTranslate contains a list of netboxes it should zoom and translate to if wanted
+                    var vlanNodes = this.getVLANNodes();
+
+                    if (vlanNodes.length > 0) {
+                        var boundingBox = this.findBoundingBox(vlanNodes, 200);
+                        this.zoomRescaleFromBounds(boundingBox);
+                    }
+                }
+
                 if (Backbone.history.getFragment().match(/vlan\/\d+/g)) {
                     Backbone.View.navigate(Backbone.history.getFragment().replace(/vlan\/\d+/g, "vlan/" + vlanObject.navVlanId));
                 } else {
                     Backbone.View.navigate(Backbone.history.getFragment() + "/vlan/" + vlanObject.navVlanId);
                 }
             }
-
-            this.selectedVLANObject = vlanObject;
-
-            this.updateRenderVLAN(vlanObject);
         },
         isSelectedVlanInList: function (vlansList) {
             var self = this;
@@ -462,23 +470,19 @@ define([
                 this.updateRenderVLAN(this.selectedVLANObject);
             }
         },
-        search: function (query) {
-
-            function getCenter(bounds) {
+        getCenter: function (bounds) {
                 return {
                     xCenter: (bounds.topLeft.x + bounds.bottomRight.x)/2,
                     yCenter: (bounds.topRight.y + bounds.bottomLeft.y)/2
                 };
-            }
-
-            function getArea(bounds) {
+        },
+        getArea: function (bounds) {
                 return {
                     width:  Math.abs(bounds.bottomLeft.x - bounds.topRight.x),
                     height: Math.abs(bounds.bottomRight.y - bounds.topLeft.y)
                 };
-            }
-
-            function findBoundingBox(listOfnetboxes) {
+        },
+        findBoundingBox: function (listOfnetboxes) {
                 var topRight, bottomRight, bottomLeft, topLeft;
                 topLeft = {x: Number.MAX_VALUE, y: Number.MAX_VALUE};
                 topRight = {x: -Number.MAX_VALUE, y: Number.MAX_VALUE};
@@ -510,13 +514,11 @@ define([
                     bottomRight: bottomRight,
                     bottomLeft: bottomLeft
                 };
-                var area = getArea(rectangle);
-                var center = getCenter(rectangle);
+                var area = this.getArea(rectangle);
+                var center = this.getCenter(rectangle);
                 return _.extend(rectangle, area, center);
-            }
-
-
-
+        },
+        search: function (query) {
             var matchingNetboxes = [];
 
             // find related box
@@ -533,7 +535,7 @@ define([
                 this.zoom.translate(this.trans);
                 this.zoom.scale(this.scale);
             } else if (matchingNetboxes.length >= 2) {
-                var bounds = findBoundingBox(matchingNetboxes);
+                var bounds = this.findBoundingBox(matchingNetboxes);
 
                 if (this.debug) {
                     var debugSearchBoundingBox = this.debugSearchBoundingBox.selectAll("g rect").data([[bounds.topLeft.x, bounds.topLeft.y, bounds.height, bounds.width]], function (d) { return d;});
@@ -561,18 +563,7 @@ define([
                     debugSearchCenterBoundingBox.exit().remove();
                 }
 
-                var margin = 200; // so you see sysnames approxly on the edges.
-                var widthRatio = this.scale*(this.w/((bounds.width+margin)*this.scale));
-                var heightRatio = this.scale*(this.h/((bounds.height+margin)*this.scale));
-                if (widthRatio < heightRatio) {
-                    this.scale = widthRatio;
-                } else {
-                    this.scale = heightRatio;
-                }
-
-                this.trans = [ (-(bounds.xCenter * this.scale) + (this.w / 2)), (-(bounds.yCenter * this.scale) + (this.h / 2))];
-                this.zoom.translate(this.trans);
-                this.zoom.scale(this.scale);
+                this.zoomRescaleFromBounds(bounds, 200);
             } else {
                 Tooltip.messageTooltip("#search_view", "No matches found");
             }
@@ -631,11 +622,9 @@ define([
                 });
             highLightNodes.exit().remove();
         },
-        updateRenderVLAN: function (vlanObject) {
+        getVLANNodes: function () {
             var self = this;
-            self.selectedVLANObject = vlanObject;
-
-            var markVlanNodes = self.nodes.filter(function (nodeObject) {
+            return this.nodes.filter(function (nodeObject) {
 
                 if (nodeObject.data.vlans !== undefined && nodeObject.data.vlans && self.selectedVLANObject) {
                     for (var i = 0; i < nodeObject.data.vlans.length; i++) {
@@ -647,6 +636,12 @@ define([
                 }
                 return false;
             });
+        },
+        updateRenderVLAN: function (vlanObject) {
+            var self = this;
+            self.selectedVLANObject = vlanObject;
+
+            var markVlanNodes = this.getVLANNodes();
 
             var markVlanLinks = self.links.filter(function (linkObject) {
                 if (linkObject.data.uplink.vlans !== undefined && linkObject.data.uplink.vlans && self.selectedVLANObject) {
@@ -1085,9 +1080,9 @@ define([
             this.updateRenderTopologyErrors();
             this.updateRenderCategories();
             this.updateRenderOrphanFilter();
+            this.updateRenderVLAN(this.selectedVLANObject);
             this.updateRenderNodes();
             this.updateRenderLinks();
-            this.updateRenderVLAN(this.selectedVLANObject);
             this.updateRenderGroupByPosition();
 
             // coordinate helper box
@@ -1109,6 +1104,31 @@ define([
             this.bounding_box
                 .attr("transform",
                     "translate(" + this.trans + ") scale(" + this.scale + ")");
+        },
+        zoomRescaleFromBounds: function (bounds, margin) {
+            // bounds is boundsObject created from findBoundingBox
+            // margin is wanted margin to add for padding to edges, ie so you see sysnames
+            // on netboxes close to the edges.
+
+            // evaluate true or false value for undefined, null etc and set default value if not set
+            if (!!!margin) {
+                margin = 200;
+            }
+            var widthRatio = this.scale * (this.w / ((bounds.width + margin) * this.scale));
+            var heightRatio = this.scale * (this.h / ((bounds.height + margin) * this.scale));
+            if (widthRatio < heightRatio) {
+                this.scale = widthRatio;
+            } else {
+                this.scale = heightRatio;
+            }
+            this.trans = [ (-(bounds.xCenter * this.scale) + (this.w / 2)), (-(bounds.yCenter * this.scale) + (this.h / 2))];
+            this.zoom.translate(this.trans);
+            this.zoom.scale(this.scale);
+                this.options.activeMapModel.set({
+                'zoom': this.trans + ";" + this.scale
+            }, {silent: true});
+            this.bounding_box.attr("transform",
+                "translate(" + this.trans + ") scale(" + this.scale + ")");
         },
         zoomRescale: function () {
             this.trans = d3.event.translate;

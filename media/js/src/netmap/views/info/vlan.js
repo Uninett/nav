@@ -10,7 +10,8 @@ define([
         broker: Backbone.EventBroker,
         events: {
             "click .vlan": "showVlan",
-            "click #unselectVlan": "unshowVlan"
+            "click #unselectVlan": "unshowVlan",
+            "click #zoomAndTranslateVlanSelection": "setZoomAndTranslate"
         },
         initialize: function () {
             this.template = Handlebars.compile(netmapTemplate);
@@ -19,6 +20,16 @@ define([
             });
             this.vlans = this.options.vlans;
             this.selectedVLANObject = undefined;
+            this.isZoomAndTranslate = false;
+        },
+        setZoomAndTranslate: function (event) {
+            this.isZoomAndTranslate = $(event.currentTarget).prop('checked');
+            if (this.isZoomAndTranslate) {
+                if (!!this.selectedVLANObject) {
+                    this.selectedVLANObject.zoomAndTranslate = this.isZoomAndTranslate;
+                }
+                this.broker.trigger('netmap:selectVlan', this.selectedVLANObject);
+            }
         },
         render: function () {
             var self = this;
@@ -35,7 +46,7 @@ define([
                         vlan.is_selected = false;
                     });
                 }
-                var out = this.template({ vlans: self.vlans, selectedVLANObject: self.selectedVLANObject});
+                var out = this.template({ vlans: self.vlans, selectedVLANObject: self.selectedVLANObject, isZoomAndTranslate: this.isZoomAndTranslate});
                 this.$el.html(out);
             } else {
                 this.$el.empty();
@@ -50,7 +61,8 @@ define([
             e.stopPropagation();
             this.selectedVLANObject = {
                 navVlanId: $(e.currentTarget).data().navVlan,
-                displayText: $(e.currentTarget).html()
+                displayText: $(e.currentTarget).html(),
+                zoomAndTranslate: this.isZoomAndTranslate
             };
             this.broker.trigger('netmap:selectVlan', this.selectedVLANObject);
             this.render();
