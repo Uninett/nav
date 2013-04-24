@@ -51,7 +51,10 @@
                             {% for privilege in group.privilege_set.all %}
                                 <tr>
                                     <td>
-                                        {{ privilege.type }} for {{ privilege.target|add_zwsp|safe }}
+                                        {{ privilege.type }}
+                                    </td>
+                                    <td class="break-word">
+                                        {{ privilege.target }}
                                     </td>
                                     <td class="text-right">
                                         <a href="{% url useradmin-group_privilege_remove group.id,privilege.id %}" class="button secondary small">

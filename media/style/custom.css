@@ -19,6 +19,10 @@
     vertical-align: middle;
 }
 
+.break-word {
+    word-break: break-all;
+}
+
 /* Custom base page styles */
 
 #nav-breadcrumbs {
