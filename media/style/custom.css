@@ -111,11 +111,11 @@ li.list-header {
     display: inline;
 }
 
-.dataTables_scroll table {
+.dataTables_scroll table, .DTFC_ScrollWrapper table {
     border: 0;
     margin-bottom: 0;
 }
 
-.dataTables_scroll th {
+.dataTables_scroll th, .DTFC_ScrollWrapper th {
     box-sizing: content-box;  /* Override when using scrolling in datatables */
 }

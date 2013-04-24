@@ -44,16 +44,7 @@
             </th>
             {% for label in labels %}
             <th>
-            {% ifequal label.1 current_sort_label %}
-                {% if sort_asc %}
-                    <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
-                {% else %}
-                    <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
-                {% endif %}
-                <a href="{% url_parameters sort other_sort %}">{{ label.0|capfirst }}</a>
-            {% else %}
-                <a href="{% url_parameters sort label.1 %}">{{ label.0|capfirst }}</a>
-            {% endifequal %}
+                {{ label.0|capfirst }}
             </th>
             {% endfor %}
         </tr>

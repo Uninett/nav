@@ -1,8 +1,9 @@
 /* Styling for using datatables plugin on tables */
 
 /* Sorting indicators */
-table.dataTable tr th {
-    padding: 0.1em 16px 0.1em 0.5em;
+
+table.dataTable th {
+    padding-right: 1.4em;
 }
 
 table.dataTable tr th.sorting_asc {

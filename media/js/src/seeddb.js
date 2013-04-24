@@ -13,8 +13,13 @@ require([
                 "bInfo": true,
                 "bAutoWidth": true,
                 "sDom": '<"top-left-side"i><"top-right-side"pl>t<"F">',
-                "sScrollX": '100%'
+                "sScrollX": '100%',
+                "aoColumnDefs": [
+                    { 'bSortable': false, 'aTargets': [ 0 ] }
+                ]
             });
-            new FixedColumns(table);
+            new FixedColumns(table, {
+                "iLeftColumns": 2
+            });
         });
     });
