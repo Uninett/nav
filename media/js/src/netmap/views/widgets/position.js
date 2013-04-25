@@ -45,7 +45,8 @@ define([
                     identifier: 'group_position',
                     collection: this.collection.toJSON(),
                     isViewEnabled: this.isViewEnabled,
-                    isWidgetVisible: this.isWidgetVisible
+                    isWidgetVisible: this.isWidgetVisible,
+                    isWidgetCollapsible: !!this.options.isWidgetCollapsible
                 })
             );
             return this;

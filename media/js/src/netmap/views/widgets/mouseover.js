@@ -49,7 +49,8 @@ define([
                     identifier: 'mouseOver',
                     collection: this.collection.toJSON(),
                     isViewEnabled: this.isViewEnabled,
-                    isWidgetVisible: this.isWidgetVisible
+                    isWidgetVisible: this.isWidgetVisible,
+                    isWidgetCollapsible: !!this.options.isWidgetCollapsible
                 })
             );
 

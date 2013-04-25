@@ -239,6 +239,7 @@ define([
             context.description = this.options.activeMapProperties.get('description', null);
             context.isViewEnabled = this.isViewEnabled;
             context.isWidgetVisible = this.isWidgetVisible;
+            context.isWidgetCollapsible = !!this.options.isWidgetCollapsible;
             var out = this.template(context);
 
             this.$el.html(out);

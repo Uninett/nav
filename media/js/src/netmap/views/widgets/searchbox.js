@@ -39,7 +39,12 @@ define([
             return true;
         },
         render: function () {
-            var out = this.template({ node: this.node, isViewEnabled: this.isViewEnabled, isWidgetVisible: this.isWidgetVisible});
+            var out = this.template({
+                node: this.node,
+                isViewEnabled: this.isViewEnabled,
+                isWidgetVisible: this.isWidgetVisible,
+                isWidgetCollapsible: !!this.options.isWidgetCollapsible
+            });
             this.$el.html(out);
             return this;
         },

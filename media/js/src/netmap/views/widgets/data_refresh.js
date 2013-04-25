@@ -57,7 +57,8 @@ define([
                     identifier: 'dataRefreshInterval',
                     collection: this.collection.toJSON(),
                     isViewEnabled: this.isViewEnabled,
-                    isWidgetVisible: this.isWidgetVisible
+                    isWidgetVisible: this.isWidgetVisible,
+                    isWidgetCollapsible: !!this.options.isWidgetCollapsible
                 }) +
                 this.templateCounter({counter: this.counter })
             );

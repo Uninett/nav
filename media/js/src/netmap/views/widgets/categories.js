@@ -51,7 +51,8 @@ define([
                     nameInUppercase: true,
                     collection: this.model.get('categories').toJSON(),
                     isViewEnabled: this.isViewEnabled,
-                    isWidgetVisible: this.isWidgetVisible
+                    isWidgetVisible: this.isWidgetVisible,
+                    isWidgetCollapsible: !!this.options.isWidgetCollapsible
                 })
             );
 

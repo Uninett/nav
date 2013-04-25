@@ -40,7 +40,8 @@ define([
         render: function () {
             this.$el.html(
                 this.template({
-                    isWidgetVisible: this.isWidgetVisible
+                    isWidgetVisible: this.isWidgetVisible,
+                    isWidgetCollapsible: !!this.options.isWidgetCollapsible
                 })
             );
             return this;
