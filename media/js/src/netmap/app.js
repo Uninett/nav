@@ -91,12 +91,18 @@ define([
         });
 
 
-        Backbone.View.prototype.attachSubView = function (view, viewClass, element_id) {
+        Backbone.View.prototype.attachSubView = function (view, viewClass, viewOptions) {
+            if (!!viewOptions && !_.isObject(viewOptions)) {
+                viewOptions = {
+                    el: $(viewOptions, this.$el)
+                };
+            }
+
             if (view) {
-                view.setElement($(element_id, this.$el));
+                view.setElement(viewOptions.el);
                 view.render();
             } else {
-                view = new viewClass({el: $(element_id, this.$el)});
+                view = new viewClass(viewOptions);
                 view.render();
             }
             return view;
