@@ -24,3 +24,7 @@ table.seeddbtable .info {
     white-space: nowrap;
 }
 
+#tablewrapper {
+    margin-bottom: 1em;
+}
+
