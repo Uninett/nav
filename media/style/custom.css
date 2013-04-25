@@ -23,6 +23,7 @@
     word-break: break-all;
 }
 
+.float-clear { clear: both; }
 .hidden {display: none; }
 .notvisible {visibility: hidden; }
 

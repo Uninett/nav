@@ -28,10 +28,10 @@ require([
             "bAutoWidth": true,     // Resize table
             "sScrollX": '100%',     // Scroll when table is bigger than viewport
             "aoColumnDefs": [
-                { 'bSortable': false, 'aTargets': [ 0 ] }  // Do not sort on first column
+                { 'bSortable': false, 'sWidth': '16px', 'aTargets': [ 0 ] }  // Do not sort on first column
             ],
             "sPaginationType": "full_numbers", // Display page numbers in pagination
-            "sDom": "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
+            "sDom": "<li>t<p>",   // display order of metainfo (lengthchange, info, pagination)
             "fnDrawCallback": function (oSettings) {
                 /* Run this on redraw of table */
                 $('.paginate_button').removeClass('disabled').addClass('button tiny');
@@ -42,12 +42,14 @@ require([
         });
 
         /* if the number of columns are bigger than two, fix the two first columns */
+/*
         if (table.fnGetData(0).length > 2) {
             var fixed = new FixedColumns(table, {
                 "iLeftColumns": 2,       // Fix the two first columns
                 "sHeightMatch": "auto"   // Calculate new height every time
             });
         }
+*/
 
     }
 

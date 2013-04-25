@@ -41,7 +41,7 @@
 
         <thead>
             <tr>
-                <th id="select" width="16px"></th>
+                <th id="select"></th>
                 {% for label in labels %}
                 <th>
                     {{ label.0|capfirst }}
@@ -69,8 +69,8 @@
                 </tr>
                 {% endfor %}
             {% else %}
-            <tr><td colspan=100>No entries</td></tr>
-          {% endif %}
+                <tr><td colspan=100>No entries</td></tr>
+            {% endif %}
         </tbody>
 
     </table>

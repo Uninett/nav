@@ -44,7 +44,7 @@ table.dataTable tr th.sorting {
 }
 
 .dataTables_paginate {
-    float : right;
+    float : left;
 }
 
 a.paginate_button,
