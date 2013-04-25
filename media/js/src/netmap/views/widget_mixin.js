@@ -7,8 +7,10 @@ define([
 
     var WidgetContaierMixin = {
         toggleWidget: function () {
-            this.$el.find(".body").toggle();
-            this.isWidgetVisible = !this.isWidgetVisible;
+            if (!!this.options && !!this.options.isWidgetCollapsible) {
+                this.$el.find(".body:first").toggle();
+                this.isWidgetVisible = !this.isWidgetVisible;
+            }
             return true;
         },
         setIsViewEnabled: function (boolValue) {
@@ -16,6 +18,7 @@ define([
             this.render();
         }
     };
-    WidgetContaierMixin.isWidgetVisible = false;
+    // widget default value should always be visible if widget isn't collapsable
+    WidgetContaierMixin.isWidgetVisible = (!!this.options && !!this.options.isWidgetCollapsible && this.options.isWidgetCollapsible ? false : true);
     return WidgetContaierMixin;
 });
