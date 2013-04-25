@@ -83,3 +83,13 @@ class PowerNetMib(UpsMib):
                 mib=self.get_module_name()
             ))
         defer.returnValue(result)
+
+    @defer.inlineCallbacks
+    def get_serial_number(self):
+        """Tries to get a serial number from an APC device"""
+        candidates = [k for k in self.nodes.keys()
+                      if 'IdentSerialNumber' in k]
+        for c in candidates:
+            serial = yield self.get_next(c)
+            if serial:
+                defer.returnValue(serial)
