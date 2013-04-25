@@ -23,6 +23,9 @@
     word-break: break-all;
 }
 
+.hidden {display: none; }
+.notvisible {visibility: hidden; }
+
 /* Custom base page styles */
 
 #nav-breadcrumbs {
@@ -101,21 +104,3 @@ li.list-header {
     margin-bottom: 0;
 }
 
-
-/* Custom styles for datatables */
-.dataTables_wrapper select {
-    width: auto;
-}
-
-.dataTables_wrapper label {
-    display: inline;
-}
-
-.dataTables_scroll table, .DTFC_ScrollWrapper table {
-    border: 0;
-    margin-bottom: 0;
-}
-
-.dataTables_scroll th, .DTFC_ScrollWrapper th {
-    box-sizing: content-box;  /* Override when using scrolling in datatables */
-}

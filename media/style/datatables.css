@@ -2,9 +2,11 @@
 
 /* Sorting indicators */
 
-table.dataTable th {
+.dataTable th {
     padding-right: 1.4em;
 }
+
+/* Set up the sorting indicators */
 
 table.dataTable tr th.sorting_asc {
     background: url('/images/datatables/sort_asc.png') no-repeat right center #EEEEEE;
@@ -17,3 +19,78 @@ table.dataTable tr th.sorting_desc {
 table.dataTable tr th.sorting {
     background: url('/images/datatables/sort_both.png') no-repeat right center #EEEEEE ;
 }
+
+.dataTables_wrapper {
+    background-color: #eeeeee;
+    border-radius: 3px;
+    border: 1px solid #dddddd;
+}
+
+
+/* Styles for the elements surrounding the table */
+
+.dataTables_length, .dataTables_info, .dataTables_paginate {
+    padding: 0.7em;
+}
+
+.dataTables_length {
+    float : left;
+}
+
+.dataTables_info {
+    float: left;
+    font-size: 0.9em;
+    line-height: 1.6em;
+}
+
+.dataTables_paginate {
+    float : right;
+}
+
+a.paginate_button,
+a.paginate_active {
+    display: inline-block;
+    padding: 2px 6px;
+    margin-left: 2px;
+    cursor: pointer;
+}
+
+a.paginate_button_disabled {
+    color: #999999;
+    cursor: default;
+}
+
+
+/* Special styles for overriding global styles */
+
+.dataTables_wrapper select {
+    width: auto;
+}
+
+.dataTables_wrapper label {
+    display: inline;
+}
+
+.dataTables_scroll table, .DTFC_ScrollWrapper table {
+    border: 0;
+    margin-bottom: 0;
+}
+
+.dataTables_scroll th, .DTFC_ScrollWrapper th {
+    box-sizing: content-box;  /*Override when using scrolling in datatables*/
+}
+
+.dataTables_paginate .button {
+    margin-bottom: 0;
+}
+
+/* Self clearing */
+div.dataTables_wrapper:after {
+    content: ".";
+    display: block;
+    clear: both;
+    visibility: hidden;
+    line-height: 0;
+    height: 0;
+}
+

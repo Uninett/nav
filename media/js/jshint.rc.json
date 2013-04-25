@@ -14,7 +14,8 @@
         "Backbone.EventBroker",
         "Handlebars",
         "Spinner",
-        "NAV"
+        "NAV",
+        "FixedColumns"
     ],
     "browser":  true,
     "devel":    true,

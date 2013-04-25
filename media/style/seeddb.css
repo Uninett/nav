@@ -19,3 +19,7 @@ table.seeddbtable .info {
 	color: #F00;
 	font-weight: bold;
 }
+
+#seeddb-content td, #seeddb-content th {
+    white-space: nowrap;
+}

@@ -33,47 +33,50 @@
     {% endif %}
 {% endcomment %}
 
-<table id="seeddb-content" class="listtable">
-    <caption>
-        {{ caption }}
-    </caption>
+<div id="tablewrapper" class="notvisible">
+    <table id="seeddb-content" class="listtable">
+        <caption>
+            {{ caption }}
+        </caption>
 
-    <thead>
-        <tr>
-            <th id="select">
-            </th>
-            {% for label in labels %}
-            <th>
-                {{ label.0|capfirst }}
-            </th>
-            {% endfor %}
-        </tr>
-    </thead>
+        <thead>
+            <tr>
+                <th id="select" width="16px"></th>
+                {% for label in labels %}
+                <th>
+                    {{ label.0|capfirst }}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
 
-    <tbody>
-      {% if object_list %}
-        {% for object in object_list %}
-        <tr class="{% cycle 'oddrow' 'evenrow' %}">
-            <td><input type="checkbox" name="object" value="{{ object.pk }}" class="selector" /></td>
-            {% for element in object.values_list %}
-            {% if forloop.first %}
-                {% if object.url %}
-                    <td><a href="{{ object.url }}">{{ element }}</a></td>
-                {% else %}
-                    <td>{{ element }}</td>
-                {% endif %}
+        <tbody>
+            {% if object_list %}
+                {% for object in object_list %}
+                <tr>
+                    <td><input type="checkbox" name="object" value="{{ object.pk }}" class="selector" /></td>
+                    {% for element in object.values_list %}
+                        {% if forloop.first %}
+                            {% if object.url %}
+                                <td><a href="{{ object.url }}">{{ element }}</a></td>
+                            {% else %}
+                                <td>{{ element }}</td>
+                            {% endif %}
+                        {% else %}
+                        <td>{{ element|default_if_none:"" }}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
             {% else %}
-            <td>{{ element|default_if_none:"" }}</td>
-            {% endif %}
-            {% endfor %}
-        </tr>
-        {% endfor %}
-      {% else %}
-	<tr><td></td></tr>
-      {% endif %}
-    </tbody>
+            <tr><td colspan=100>No entries</td></tr>
+          {% endif %}
+        </tbody>
 
-</table>
+    </table>
+
+</div>
+
 
 
     {% comment %}
