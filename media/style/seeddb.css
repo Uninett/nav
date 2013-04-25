@@ -2,6 +2,8 @@
 		border: none;
 }
 
+/* Style the tables on the index page */
+
 .seeddbtable td:first-child {
     width: 15%;
 }
@@ -24,11 +26,18 @@
 	font-weight: bold;
 }
 
-#seeddb-content th {
-    white-space: nowrap;
-}
+/* Style the general info tables */
 
 #tablewrapper {
     margin-bottom: 1em;
 }
 
+#seeddb-content th {
+    white-space: nowrap;
+}
+
+/* Style the form for bulk upload */
+
+#id_bulk_data {
+    height: 20em;
+}

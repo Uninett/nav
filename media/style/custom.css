@@ -101,7 +101,6 @@ li.list-header {
 
 /* Alert-box style */
 
-.alert-box ul {
+.alert-box ul, .error ul {
     margin-bottom: 0;
 }
-
