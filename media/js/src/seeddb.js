@@ -38,19 +38,19 @@ require([
                 $('.paginate_active').addClass('button tiny secondary');
                 $('.paginate_button_disabled').addClass('disabled');
                 $(tableWrapper).removeClass('notvisible');
-            }
+            },
+            "aLengthMenu": [
+                [10, 25, 50, -1],   // Choices for number of entries to display
+                [10, 25, 50, "All"] // Text for the choices
+            ],
+            "oLanguage": {"sInfo": "_START_-_END_ of _TOTAL_"}  // Format of number of entries visibile
         });
 
-        /* if the number of columns are bigger than two, fix the two first columns */
-/*
-        if (table.fnGetData(0).length > 2) {
-            var fixed = new FixedColumns(table, {
-                "iLeftColumns": 2,       // Fix the two first columns
-                "sHeightMatch": "auto"   // Calculate new height every time
-            });
-        }
-*/
-
+        table.fnSort([[1, 'asc']]);  // When loaded, sort ascending on second column
+        $(window).bind('resize', function () {
+            /* Adjust table size when resizing window */
+            table.fnAdjustColumnSizing();
+        });
     }
 
 });
