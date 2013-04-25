@@ -2,16 +2,20 @@
 		border: none;
 }
 
-table.seeddbtable {
-	width: 80%;
+.seeddbtable td:first-child {
+    width: 15%;
 }
 
-table.seeddbtable tr td:first-child {
-	width: 10%;
+.seeddbtable td:nth-child(2) {
+    width: 70%;
 }
 
-table.seeddbtable .info {
-	width: 60%;
+.seeddbtable td:nth-child(3) {
+    width: 5%;
+}
+
+.seeddbtable td:last-child {
+    width: 10%;
 }
 
 .required:after {
