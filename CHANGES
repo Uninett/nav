@@ -7,7 +7,7 @@ Version 3.14.1592
     consolidated into a single `ports` tree, where all physical ports' traffic
     stats now also are collected. After running the usual `syncdb.py` command,
     you should run `mcc.py` once manually (as the navcron) user to ensure the
-    Cricket config tree is updated.
+    Cricket config tree is updated right away.
 
     When everything is up and running again, you can optionally delete the
     `switch-ports` and `router-interfaces` directories from your
@@ -33,6 +33,7 @@ Version 3.14.1592
   * LP#1170329 (eventengine dies on loss of database connection)
   * LP#1170374 (Alertengine dies on loss of database connection)
   * LP#1170634 (The SMS daemon dies when database connection is lost)
+  * LP#1172204 (Device history crashes with NameError on invalid date input)
 
 Version 3.14.159
 (released 11 Apr 2013)
