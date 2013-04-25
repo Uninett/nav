@@ -1,7 +1,6 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007, 2008, 2011 UNINETT AS
+# Copyright (C) 2007, 2008, 2011, 2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -35,6 +34,7 @@ import signal
 import socket
 import sys
 import time
+from psycopg2 import InterfaceError
 
 import nav.config
 import nav.daemon
@@ -172,7 +172,10 @@ def main(args):
             logger.debug('', exc_info=True)
             if connection.queries:
                 logger.debug(connection.queries[-1]['sql'])
-            connection.close()
+            try:
+                connection.close()
+            except InterfaceError:
+                connection.connection = None
 
         except Exception, e:
             logger.critical('Unhandled error: %s' % e, exc_info=True)
