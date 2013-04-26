@@ -8,7 +8,7 @@ body {
     min-width: 600px; /* Minimum width of layout - remove line if not required */
     /* The min-width property does not work in old versions of Internet Explorer */
 }
-
+html {overflow-y: scroll} /* always render a vertical scrollbar so width doesn't keep changing */
 
 /* Header styles */
 #header {
