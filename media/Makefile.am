@@ -21,4 +21,5 @@ nobase_webroot_DATA = $(wildcard images/*/*.gif \
 				 style/nivo/*.css   \
 				 style/jqueryui/*.css \
 				 style/jqueryui/images/*.png \
+				 style/foundation_icon_fonts/stylesheets/*.css \
 				 */.htaccess)
