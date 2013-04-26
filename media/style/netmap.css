@@ -197,6 +197,10 @@ li.selected_vlan a {
     cursor: pointer;
 }
 
+#search_view label {
+    display: none;
+}
+
 #searchbox_search {
      cursor: pointer;
 }
@@ -237,20 +241,33 @@ li.selected_vlan a {
     color: #fff;
 }
 .netmapWidget .header .title {
-    font-size: 14pt;
+    font-size: 12pt;
     background: url('/images/icons/expand.png') no-repeat right top;
     padding-right: 16px;
 }
-.netmapWidget .header >.no-icon {
-    background: none;
-}
-
 .netmapWidget .body {
-    margin-top: 1em;
+    margin-top: 0.5em;
     background: #fff;
 }
 
+.netmapWidget .header >.no-icon {
+    background: none;
+}
+.netmapWidget .no_collapse > .title {
+    background: none;
+}
 
+.hideSubWidgets .netmapWidget .header {
+    background: none;
+}
+
+.hideSubWidgets .netmapWidget .title {
+    color: #000;
+    font-weight: bold;
+}
+.hideSubWidgets .netmapWidget .body {
+    margin-top: 0.1em;
+}
 
 
 #pauseForce {
