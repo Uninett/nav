@@ -1,24 +1,18 @@
 define([
+    'netmap/views/widget_mixin',
     'plugins/netmap-extras',
     'libs-amd/text!netmap/templates/navigation.html',
     'netmap/views/widgets/searchbox',
-    'netmap/views/widgets/layer',
-    'netmap/views/widgets/categories',
-    'netmap/views/widgets/orphans',
-    'netmap/views/widgets/position',
-    'netmap/views/widgets/algorithm',
-    'netmap/views/widgets/topology_error',
-    'netmap/views/widgets/mouseover',
-    'netmap/views/widgets/data_refresh',
-    'netmap/views/widgets/traffic_gradient',
+    'netmap/views/navigation_filters_options',
+    'netmap/views/navigation_others',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, SearchView, LayerView, CategoryView, OrphanView, PositionView, AlgorithmView, TopologyErrorView, MouseOverView, DataRefreshView, TrafficGradientView) {
+], function (WidgetMixin, NetmapHelpers, netmapTemplate, SearchView, FiltersOptionsContainerView, OthersContainerView) {
 
-    var NavigationView = Backbone.View.extend({
+    var NavigationView = Backbone.View.extend(_.extend({}, WidgetMixin, {
         broker: Backbone.EventBroker,
         interests: {
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest',
@@ -28,13 +22,6 @@ define([
             'click #toggle_view':      'toggleView'
         },
         initialize: function () {
-            this.searchView = null;
-            this.categoriesView = null;
-            this.orphansView = null;
-            this.positionView = null;
-            this.layerView = null;
-            this.algorithmView = null;
-
             this.isContentVisible = true;
             this.broker.register(this);
 
@@ -48,16 +35,29 @@ define([
             var out = this.template({ isVisible: this.isContentVisible, isViewEnabled: this.isViewEnabled });
             this.$el.html(out);
 
-            this.searchView = this.attachSubView(this.searchView, SearchView, '#search_view');
-            this.layerView = this.attachSubView(this.layerView, LayerView, '#layer_view');
-            this.categoriesView = this.attachSubView(this.categoriesView, CategoryView, '#categories_view');
-            this.orphansView = this.attachSubView(this.orphansView, OrphanView, '#orphan_view');
-            this.positionView = this.attachSubView(this.positionView, PositionView, '#position_view');
-            this.algorithmView = this.attachSubView(this.algorithmView, AlgorithmView, '#algorithm_view');
-            this.topologyErrorsView = this.attachSubView(this.topologyErrorsView, TopologyErrorView, '#topology_errors_view');
-            this.mouseOverView = this.attachSubView(this.mouseOverView, MouseOverView, '#mouseover_view');
-            this.dataRefreshView = this.attachSubView(this.dataRefreshView, DataRefreshView, '#datarefresh_view');
-            this.trafficGradientView = this.attachSubView(this.trafficGradientView, TrafficGradientView, '#traffic_gradient_view');
+            this.searchWidget = this.attachSubView(this.searchWidget,
+                SearchView,
+                {
+                    el: '#search_view',
+                    isWidgetCollapsible: true,
+                    isWidgetVisible: true
+                }
+            );
+
+            this.containerFilterOptions = this.attachSubView(this.containerFilterOptions,
+                FiltersOptionsContainerView,
+                {
+                    el: '#widget_container_filter_options',
+                    isWidgetCollapsible: true
+                }
+            );
+            this.containerOthers = this.attachSubView(this.containerOthers,
+                OthersContainerView,
+                {
+                    el: '#widget_container_others',
+                    isWidgetCollapsible: true
+                }
+            );
 
             return this;
         },
@@ -99,12 +99,11 @@ define([
             this.broker.trigger('netmap:resize:animate', {marginLeft: margin});
         },
         close:function () {
-            this.layerView.close();
             this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         }
-    });
+    }));
     return NavigationView;
 });
 
