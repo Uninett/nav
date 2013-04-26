@@ -6,6 +6,10 @@ define([
 ], function () {
 
     var WidgetContaierMixin = {
+        initWidget: function (options) {
+            // widget default value should always be visible if widget isn't collapsable
+            this.isWidgetVisible = !!(!!options && (!options.isWidgetCollapsible || options.isWidgetVisible));
+        },
         toggleWidget: function () {
             if (!!this.options && !!this.options.isWidgetCollapsible) {
                 this.$el.find(".body:first").toggle();
@@ -18,7 +22,5 @@ define([
             this.render();
         }
     };
-    // widget default value should always be visible if widget isn't collapsable
-    WidgetContaierMixin.isWidgetVisible = (!!this.options && !!this.options.isWidgetCollapsible && this.options.isWidgetCollapsible ? false : true);
     return WidgetContaierMixin;
 });
