@@ -38,7 +38,13 @@
 {% comment %} TOP BAR {% endcomment %}
 <nav class="top-bar">
     <ul class="title-area">
-        <li><h1 class="name"><a href="/"><img src="/images/main/navlogo.png" title="Network Administration Visualized"></a></h1></li>
+        <li>
+            <h1 class="name">
+                <a href="/">
+                    <img src="/images/main/navlogo.png" title="Network Administration Visualized" alt="Network Administration Visualized">
+                </a>
+            </h1>
+        </li>
         <li class="toggle-topbar menu-icon">
             <a href="#"><span>Menu</span></a>
         </li>
@@ -86,7 +92,6 @@
             </li>
 
             <li><a href="#">Documentation</a></li>
-            <li class="divider"></li>
             {% if current_user_data.account.is_default_account %}
                 <li>
                     <a class="navbar login button" href="/index/login">Login</a>
