@@ -1,8 +1,8 @@
 <div class="netmapWidget">
-    <div class="header">
+    <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
         <div class="title">Views</div>
     </div>
-    <div class="body" {{#unless isWidgetVisible}}style="display: none"{{/unless}}>
+    <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
         {{#if maps}}
             <form class="well form-inline" action="#">
                 <fieldset>

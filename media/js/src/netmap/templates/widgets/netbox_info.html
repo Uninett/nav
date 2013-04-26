@@ -1,8 +1,8 @@
 <div class="netmapWidget">
-    <div class="header">
-        <div class="header"><div class="title no-icon">Netbox info</div></div>
+    <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
+        <div class="title no-icon">Netbox info</div>
     </div>
-    <div class="body">
+    <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
         {{#if isElink}}
         <h4 class="node_sysname">{{node.data.sysname}}</h4>
         {{else}}
