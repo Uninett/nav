@@ -45,7 +45,12 @@ define([
         },
         render: function () {
             this.$el.html(
-                this.template({isLayoutEngineRunning: this.isLayoutEngineRunning, isViewEnabled: this.isViewEnabled, isWidgetVisible: this.isWidgetVisible})
+                this.template({
+                    isLayoutEngineRunning: this.isLayoutEngineRunning,
+                    isViewEnabled: this.isViewEnabled,
+                    isWidgetVisible: this.isWidgetVisible,
+                    isWidgetCollapsible: !!this.options.isWidgetCollapsible
+                })
             );
 
             return this;
