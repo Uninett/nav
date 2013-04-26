@@ -22,7 +22,7 @@
         {% for tool in tools %}
             <tr data-toolid="{{ tool.name }}">
                 <td>
-                    <a href="{{ too.uri }}" title="{{ tool.description }}">
+                    <a href="{{ tool.uri }}" title="{{ tool.description }}">
                         <img src="{{ tool.icon }}" alt="{{ tool.name }}">
                     </a>
                 </td>
@@ -42,7 +42,7 @@
                         <input id="{{ forloop.counter }}100" name="switch-{{ forloop.counter }}" data-state="on" type="radio" {% if tool.display %}checked{% endif %} >
                         <label for="{{ forloop.counter }}100" onclick="">On</label>
 
-                        <span></span>
+                        <span>&nbsp;</span>
                     </div>
                 </td>
             </tr>
