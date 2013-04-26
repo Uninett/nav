@@ -41,10 +41,6 @@ define([
 
             return this;
         },
-        setIsViewEnabled: function (boolValue) {
-            this.isViewEnabled = boolValue;
-            this.render();
-        },
         updateCounter: function (newValue) {
             this.counter = newValue;
             this.render();

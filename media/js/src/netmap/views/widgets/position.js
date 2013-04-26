@@ -33,10 +33,6 @@ define([
             this.collection.bind("change", this.broadcastPositionFilter, this);
             return this;
         },
-        setIsViewEnabled: function (boolValue) {
-            this.isViewEnabled = boolValue;
-            this.render();
-        },
         render: function () {
             this.$el.html(
                 this.template({

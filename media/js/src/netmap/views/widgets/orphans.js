@@ -29,10 +29,6 @@ define([
             this.model.bind("change:displayOrphans", this.render, this);
             return this;
         },
-        setIsViewEnabled: function (boolValue) {
-            this.isViewEnabled = boolValue;
-            this.render();
-        },
         render: function () {
             this.$el.html(
                 this.template({model: this.model.toJSON()})

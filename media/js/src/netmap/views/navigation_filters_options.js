@@ -26,10 +26,6 @@ define([
 
             this.template = Handlebars.compile(netmapTemplate);
         },
-        setIsViewEnabled: function (boolValue) {
-            this.isViewEnabled = boolValue;
-            this.render();
-        },
         render: function () {
             var out = this.template({
                 isVisible: this.isContentVisible,

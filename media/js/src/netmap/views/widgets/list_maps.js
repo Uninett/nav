@@ -84,10 +84,6 @@ define([
 
             this.broker.trigger("netmap:request:graph");
         },
-        setIsViewEnabled: function (boolValue) {
-            this.isViewEnabled = boolValue;
-            this.render();
-        },
         setMapProperties: function (mapProperties) {
             if (this.collection) {
                 this.collection.unbind("change");

@@ -24,10 +24,6 @@ define([
             this.template = Handlebars.compile(netmapTemplate);
             this.isWidgetVisible = true;
         },
-        setIsViewEnabled: function (boolValue) {
-            this.isViewEnabled = boolValue;
-            this.render();
-        },
         searchMap: function (e) {
             e.preventDefault();
             this.broker.trigger('netmap:search', $("input#searchbox_query", this.$el).val());
