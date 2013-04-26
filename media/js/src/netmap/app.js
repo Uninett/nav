@@ -99,12 +99,17 @@ define([
             }
 
             if (view) {
+                if (view.options) {
+                    _.extend({}, view.options, viewOptions);
+                }
                 view.setElement(viewOptions.el);
-                view.render();
             } else {
                 view = new viewClass(viewOptions);
-                view.render();
             }
+            if (typeof view["initWidget"] === "function") {
+                view.initWidget(viewOptions);
+            }
+            view.render();
             return view;
         };
 
