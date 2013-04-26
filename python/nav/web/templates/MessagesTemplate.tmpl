@@ -32,17 +32,25 @@
         title="Messages Feed (RSS 2.0)" href="$reverse('messages-rss')" />
 #end def additionalHead
 
-#def $makeMenu($menu, $current = False)
+#def $makeStartMenu($menu, $current = False)
 <div class="tabs">
-<ul>
-#for $item in $menu:
-    #if $current in $item.link:
-    <li class="tabactive"><a href="$item.link">$item.text</a></li>
-    #else:
-    <li><a href="$item.link">$item.text</a></li>
-    #end if
-#end for
-</ul>
+    <ul>
+    #for $item in $menu:
+        #if $current in $item.link:
+        <li class="tabactive"><a href="$item.link">$item.text</a></li>
+        #else:
+        <li><a href="$item.link">$item.text</a></li>
+        #end if
+    #end for
+    </ul>
+
+    <div class="tabcontent">
+
+#end def
+
+#def $makeEndMenu()
+
+    </div>
 </div>
 #end def
 
@@ -50,9 +58,8 @@
 
 <h2>$title  <a href="$reverse('messages-rss')"><img src="/images/icons/feed-icon-14x14.png" alt="RSS" /></a></h2>
 
-$makeMenu($menu, $current)
+$makeStartMenu($menu, $current)
 
-<div class="tabcontent">
 
 
 #set $infomsgs = $getVar('infomsgs', [])
@@ -79,7 +86,7 @@ $makeMenu($menu, $current)
 <p>Intentionally left blank.</p>
 #end block tabcontent
 
-</div> <!-- tabcontent -->
+$makeEndMenu()
 
 #end block content
 
