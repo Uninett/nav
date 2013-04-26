@@ -15,12 +15,12 @@ define([
     'libs/backbone-eventbroker'
 ], function (NetmapExtras, D3ForceHelper, SetEquality, Tooltip, Resources, GraphModel, LoadingSpinnerView, netmapTemplate) {
 
-    var dataRefreshTimer = function (interval) {
+    var DataRefreshTimer = function (interval) {
         this.context = this;
         this.stop();
         this.changeInterval(interval);
     };
-    dataRefreshTimer.prototype = {
+    DataRefreshTimer.prototype = {
         changeInterval: function (newInterval) {
             var self = this;
             this.interval = newInterval;
@@ -99,7 +99,7 @@ define([
             if (!this.options.activeMapModel) {
                 this.options.activeMapModel = Resources.getActiveMapModel();
             }
-            this.dataRefreshInterval = new dataRefreshTimer(this.options.activeMapModel.get("dataRefreshInterval", 0));
+            this.dataRefreshInterval = new DataRefreshTimer(this.options.activeMapModel.get("dataRefreshInterval", 0));
 
             this.w = this.options.cssWidth;
             this.resize({width: this.w});
