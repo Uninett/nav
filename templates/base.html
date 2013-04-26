@@ -1,3 +1,5 @@
+{% block base_header %}
+
 <!DOCTYPE html>
 <html>
 
@@ -134,19 +136,25 @@
 
 </div>
 
+{% endblock base_header %}
+
 {% comment %} MAIN CONTENT {% endcomment %}
+{% block base_navbody_start %}
 <div class="row">
     <div class="large-12 columns">
+        <div class="navbody">
+{% endblock %}
 
-    {% block base_navbody_start %}<div id="navbody">{% endblock %}
     {% block base_content %}
     {% endblock %}
-    {% block base_navbody_end %}</div>{% endblock %}
 
+{% block base_navbody_end %}</div>
+        </div>
     </div>
 </div>
+{% endblock %}
 
-
+{% block base_footer %}
 <hr />
 
 <footer class="row">
@@ -170,3 +178,4 @@
 </body>
 </html>
 
+{% endblock base_footer %}
