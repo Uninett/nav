@@ -86,7 +86,7 @@ def get_configroot(configfile):
     if not configroot:
         raise NoConfigRootException
 
-    LOGGER.info("Found configroot to be %s", configroot)
+    LOGGER.debug("Found configroot to be %s", configroot)
     return configroot
 
 

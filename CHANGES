@@ -1,3 +1,73 @@
+Version 3.14.1592
+(released 25 Apr 2013)
+
+ Important upgrade note:
+
+  * The Cricket trees `switch-ports` and `router-interfaces` have been
+    consolidated into a single `ports` tree, where all physical ports' traffic
+    stats now also are collected. After running the usual `syncdb.py` command,
+    you should run `mcc.py` once manually (as the navcron) user to ensure the
+    Cricket config tree is updated right away.
+
+    When everything is up and running again, you can optionally delete the
+    `switch-ports` and `router-interfaces` directories from your
+    `cricket-config` directory, as they are no longer used by NAV.
+
+  * NAV now supplies its own `subtree-sets` configuration to Cricket. If you
+    have made manual changes to your Cricket collection setup and/or this
+    file, you may need to update your setup accordingly.
+
+ Bugfixes:
+
+  * LP#1165193 (Prefix Matrix Doesn't Handle HSRP)
+  * LP#1165206 (ARP Entries on HSRP Subnets are Double Counted)
+  * LP#1169553 (Consolidate switch-ports, router-interfaces and physical port
+                traffic statistics in Cricket)
+  * LP#1169837 (servicemon debug logs no matter what the log level is set to)
+  * LP#1169872 (VRRP/HSRP plugin is not enabled by default)
+  * LP#1169986 (ipdevpoll spins in its tracks and doesn't reconnect on database
+                connection loss)
+  * LP#1170221 (Subnet matrix crashes with AttributeError when only one scope
+                prefix is registered)
+  * LP#1170291 (Mac search + DNS crashes with AttributeError in NAV 3.14.159)
+  * LP#1170329 (eventengine dies on loss of database connection)
+  * LP#1170374 (Alertengine dies on loss of database connection)
+  * LP#1170634 (The SMS daemon dies when database connection is lost)
+  * LP#1172204 (Device history crashes with NameError on invalid date input)
+
+Version 3.14.159
+(released 11 Apr 2013)
+
+ Bugfixes:
+
+  * LP#1155128 (IndexError crash in Machine Tracker)
+  * LP#1158214 (mcc.py does debug logging even when configured not to)
+  * LP#1160921 (Geomap won't load map data over HTTPS in Chrome)
+  * LP#1161108 (Room bulk import format doesn't include geo position)
+  * LP#1163256 (snmptrapd crashes with "interrupted system call" error)
+  * LP#1164582 (netmap bails on fetching network graph if interface.speed
+                missing)
+  * LP#1165017 (Adding 0.0.0.0/0 as excepted range causes netbiostracker to
+                hang)
+
+Version 3.14.15
+(released 21 Mar 2013)
+
+ Bugfixes:
+
+  * LP#1152173 (Deleting rrdviewer.conf causes crash when attempting to view
+                graphs from ipdevinfo)
+  * LP#1152599 (VLANs periodically lose one or more prefixes)
+  * LP#1154626 (Threshold bulk config UI unresponsive, with javascript console
+                error)
+  * LP#1155096 (Filtering by category in syslog analyzer doesn't work)
+  * LP#1156647 (Topology is not cleared when ports are shut down)
+  * LP#1157154 (Netmap stopped working in NAV 3.14.1)
+  * LP#1157594 (netbiostracker crashes when a netbios host reports an empty mac
+                address)
+  * LP#1157658 (Failing ipdevpoll plugin should be identified in log messages at
+                the ERROR level)
+
 Version 3.14.1
 (released 07 Mar 2013)
 

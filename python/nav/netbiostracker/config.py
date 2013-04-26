@@ -55,6 +55,6 @@ def create_list(exceptions):
             _logger.error('Skipping exception %s: %s', element, error)
             continue
         else:
-            addresses.extend([str(x) for x in address])
+            addresses.append(address)
 
     return list(set(addresses))

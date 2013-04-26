@@ -326,8 +326,10 @@ def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface):
     else:
         if thiss_interface and thiss_interface.speed:
             link_speed = thiss_interface.speed
-        else:
+        elif other_interface and other_interface.speed:
             link_speed = other_interface.speed
+        else:
+            link_speed = None
 
     return {
         'uplink': uplink,

@@ -17,6 +17,7 @@
 
         <ul>
             <li><a href="#deviceinfo">Device Info</a></li>
+            <li><a href="#neighbors">Neighbors</a></li>
             <li><a href="#ports">Ports</a></li>
             <li><a href="#datasources">Datasources</a></li>
             <li data-mark-as-error="{{ alert_info.has_unresolved_alerts }}">
@@ -27,6 +28,7 @@
             <li><a href="#hostinfo">DNS</a></li>
         </ul>
         {% include "ipdevinfo/frag-ipdevinfo.html" %}
+        {% include "ipdevinfo/frag-neighbors.html" %}
         {% include "ipdevinfo/frag-ports.html" %}
         {% include "ipdevinfo/frag-datasources.html" %}
         {% include "ipdevinfo/frag-alerts.html" %}

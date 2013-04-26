@@ -9,7 +9,7 @@ from os.path import join, isdir
 from nav.mcc import utils, dbutils
 from nav.models.manage import Netbox
 from nav.models.oid import NetboxSnmpOid, SnmpOid
-#from django.db import connection
+from django.db.models import Q
 
 LOGGER = logging.getLogger(__name__)
 
@@ -19,19 +19,15 @@ CONFIG = {
     IPV6MODULE: {
         'dirname': 'ipv6-interfaces',
         'categories': ['GW', 'GSW'],
-        'filter': {'gwportprefix__isnull': False},
+        'filter': Q(gwportprefix__isnull=False),
         'extra': {'where': ['family(gwip)=6']}
     },
-    'router-interfaces-counters': {
-        'dirname': 'router-interfaces',
-        'categories': ['GW', 'GSW'],
-        'filter': {'gwportprefix__isnull': False}
+    'port-counters': {
+        'dirname': 'ports',
+        'filter': (Q(gwportprefix__isnull=False) |
+                   Q(baseport__isnull=False) |
+                   Q(ifconnectorpresent=True)),
     },
-    'switch-port-counters': {
-        'dirname': 'switch-ports',
-        'categories': ['SW', 'GSW'],
-        'filter': {'baseport__isnull': False}
-    }
 }
 
 DATASOURCES = {}
@@ -53,9 +49,6 @@ def make_config(config):
     for module in CONFIG:
         LOGGER.info("Starting module %s" % module)
         results.append(start_config_creation(module, configroot))
-
-#    from pprint import pformat
-#    LOGGER.debug(pformat(connection.queries))
 
     return all(results)
 
@@ -83,7 +76,10 @@ def start_config_creation(module, configroot):
         return False
 
     configdirs = []  # The directories we have created config in
-    netboxes = Netbox.objects.filter(category__in=config['categories'])
+    query = Q(interface__isnull=False)
+    if 'categories' in config:
+        query = query & Q(category__in=config['categories'])
+    netboxes = Netbox.objects.filter(query).distinct()
     containers = []  # containers are objects used for database storage
     for netbox in netboxes:
         # Special handling of IPV6 module
@@ -129,7 +125,7 @@ def create_interface_config(netbox, targetdir, module):
 
     config = CONFIG[module]
     interfaces = netbox.interface_set.select_related('netbox').filter(
-        **config['filter']).distinct().order_by('ifindex')
+        config['filter']).distinct().order_by('ifindex')
     if 'extra' in config:
         interfaces = interfaces.extra(**config['extra'])
 
@@ -195,7 +191,7 @@ def create_target(interface, targetname, reversecounter):
     displayname = utils.encode_and_escape(interface.ifname)
     shortdesc = utils.encode_and_escape(ifalias)
 
-    LOGGER.info('Creating target %s (%s)' % (targetname, displayname))
+    LOGGER.debug('Creating target %s (%s)' % (targetname, displayname))
 
     strings = ["target \"%s\"\n" % targetname,
                "\tdisplay-name = \"%s\"\n" % displayname,
@@ -268,7 +264,7 @@ def write_to_file(targetdir, strings):
     """
     try:
         targetfile = join(targetdir, utils.TARGETFILENAME)
-        LOGGER.info('Writing config to %s' % targetfile)
+        LOGGER.debug('Writing config to %s' % targetfile)
         handle = open(targetfile, 'w')
     except IOError, error:
         LOGGER.error("Could not open targetsfile for writing: %s" % error)

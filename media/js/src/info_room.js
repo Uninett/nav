@@ -9,6 +9,7 @@ require(
         "dt_plugins/date_title_sort",
         "dt_plugins/modulesort",
         "libs/jquery",
+        "libs/jquery.nivo.slider.pack",
         "libs/jquery-ui-1.8.21.custom.min",
         "libs/jquery.dataTables.min",
         "libs/downloadify.min",
@@ -27,6 +28,11 @@ require(
 
             if ($('#mapcontainer').length > 0) {
                 fetchRoomPositions($('#mapcontainer'));
+            }
+
+            var $slider = $('#slider');
+            if ($slider.length) {
+                addImageSlider($slider);
             }
         });
 
@@ -150,6 +156,14 @@ require(
         function fetchRoomPositions(mapcontainer) {
             $.getJSON('/ajax/open/roommapper/rooms/', function (data) {
                 new RoomMapper(mapcontainer.get(0), data.rooms).createMap();
+            });
+        }
+
+        function addImageSlider($element) {
+            $element.nivoSlider({
+                controlNavThumbs: true,
+                effect: 'fade',
+                manualAdvance: true
             });
         }
 

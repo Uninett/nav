@@ -13,6 +13,7 @@ var require = {
         'libs/jquery-ui-1.8.21.custom.min': ['libs/jquery'],
         'libs/jquery.dataTables.min': ['libs/jquery'],
         'libs/jquery.tablesorter.min': ['libs/jquery'],
+        'libs/jquery.nivo.slider.pack': ['libs/jquery'],
         'libs/downloadify.min': ['libs/jquery', 'libs/swfobject'],
         'libs/spin.min': ['libs/jquery'],
         'libs/underscore': {

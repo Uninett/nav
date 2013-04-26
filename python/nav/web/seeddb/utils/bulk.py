@@ -68,7 +68,7 @@ def bulk_save(importer):
     return saved
 
 def post_save_message(request, saved):
-    messages = Messages(request._req)
+    messages = Messages(request)
     for objects in saved:
         for obj in objects:
             msg = "Saved %s %s " % (obj._meta.verbose_name, obj)

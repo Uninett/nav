@@ -534,6 +534,10 @@ p.paginator .active {
     background-image: url("/images/icons/grid.png");
 }
 
+.horizontal-button-list a span.photo {
+    background-image: url("/images/icons/camera-photo.png");
+}
+
 /* GraphFetcher styles */
 .button-selected {
     font-weight: bold;

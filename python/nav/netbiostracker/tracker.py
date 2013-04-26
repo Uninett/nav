@@ -55,15 +55,19 @@ def get_addresses_to_scan(exclude_list=None):
     database excluding the ip-addresses from the exclude list.
 
     """
-
     _logger.debug('Getting addresses to scan')
     if not exclude_list:
         exclude_list = []
 
-    addresses = Arp.objects.filter(end_time__gte=datetime.max).extra(
-        where=['family(ip)=4']).values_list('ip', flat=True)
-    return list(set(addresses) - set(exclude_list))
+    def _is_excluded(ip):
+        for excluded_addr in exclude_list:
+            if ip in excluded_addr:
+                return True
+        return False
 
+    addresses = Arp.objects.filter(end_time__gte=datetime.max).extra(
+        where=['family(ip)=4']).distinct('ip').values_list('ip', flat=True)
+    return [str(ip) for ip in addresses if not _is_excluded(ip)]
 
 @timed
 def scan(addresses):

@@ -23,7 +23,7 @@ from random import randint
 from math import ceil
 
 from twisted.python.failure import Failure
-from twisted.internet import task, threads, reactor
+from twisted.internet import task, reactor
 from twisted.internet.defer import Deferred, maybeDeferred, inlineCallbacks
 
 from nav import ipdevpoll
@@ -339,8 +339,8 @@ class JobScheduler(object):
                           sysname)
         self.cancel_netbox_scheduler(netbox_id)
 
-        df = threads.deferToThread(shadows.Netbox.cleanup_replaced_netbox,
-                                   netbox_id, new_type)
+        df = db.run_in_thread(shadows.Netbox.cleanup_replaced_netbox,
+                              netbox_id, new_type)
         return df.addCallback(lambda x: self._start_netbox_reload_loop())
 
     def _setup_active_job_logging(self):
@@ -433,6 +433,6 @@ def log_job_to_db(job_handler, success=True, interval=None):
 
     timestamp = datetime.datetime.now()
     try:
-        yield threads.deferToThread(_create_record, timestamp)
+        yield db.run_in_thread(_create_record, timestamp)
     except Exception, error:
         _logger.warning("failed to log job to database: %s", error)

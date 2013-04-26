@@ -1,5 +1,5 @@
-require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbour-map", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
-], function (TableUtil, TabNavigation, NeighbourMap) {
+require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
+], function (TableUtil, TabNavigation, NeighborMap) {
 
     var mainTabsSelector = '#ipdevinfotabs';
     var moduleTabsSelector = '#moduletabs';
@@ -15,9 +15,9 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbour-map
             addMainTabs();
         }
 
-        var $neighbournode = $('.neighbourmap');
-        if ($neighbournode.length) {
-            new NeighbourMap($neighbournode.get(0));
+        var $neighbornode = $('.neighbormap');
+        if ($neighbornode.length) {
+            new NeighborMap($neighbornode.get(0));
         }
 
     });

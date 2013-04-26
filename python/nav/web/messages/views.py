@@ -337,7 +337,7 @@ def submit_form(req, page, section, menu_dict=None):
                 page.errors.append('ID of edited message is missing.')
 
         # Get session data
-        author = req._req.session['user']['login']
+        author = req.account.login
 
         # If any data not okay, form is showed with list of errors on top.
         # There is no need to do anything further here.

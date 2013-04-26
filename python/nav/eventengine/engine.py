@@ -28,15 +28,32 @@ import select
 import time
 from functools import wraps
 import errno
+from psycopg2 import OperationalError
 from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.config import EVENTENGINE_CONF
 from nav.eventengine import unresolved
 from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import EventQueue as Event
-from django.db import connection
+import nav.db
+from django.db import connection, DatabaseError
 
 _logger = logging.getLogger(__name__)
+
+
+def harakiri():
+    """Kills the entire daemon when no database is available"""
+    _logger.fatal("unable to establish database connection, qutting...")
+    raise SystemExit(1)
+
+
+def retry_on_db_loss():
+    """Returns a nav.db.retry_on_db_loss decorator with eventengine's default
+    parameters.
+    """
+    return nav.db.retry_on_db_loss(count=3, delay=5, fallback=harakiri,
+                                   also_handled=(DatabaseError,))
+
 
 def swallow_unhandled_exceptions(func):
     """Decorates a function to log and ignore any exceptions thrown by it
@@ -92,7 +109,12 @@ class EventEngine(object):
             except select.error, err:
                 if err.args[0] != errno.EINTR:
                     raise
-            conn.poll()
+            try:
+                conn.poll()
+            except OperationalError:
+                connection.connection = None
+                self._listen()
+                return
             if conn.notifies:
                 self._logger.debug("got event notification from database")
                 self._schedule_next_queuecheck()
@@ -108,12 +130,14 @@ class EventEngine(object):
         self._scheduler.run()
 
     @staticmethod
+    @retry_on_db_loss()
     @commit_on_success
     def _listen():
         """Ensures that we subscribe to new_event notifications on our
         PostgreSQL connection.
 
         """
+        _logger.debug("registering event listener with PostgreSQL")
         cursor = connection.cursor()
         cursor.execute('LISTEN new_event')
 

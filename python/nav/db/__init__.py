@@ -18,6 +18,7 @@
 Provides common database functionality for NAV.
 """
 import atexit
+from functools import wraps
 import time
 import psycopg2
 import psycopg2.extensions
@@ -45,14 +46,15 @@ class ConnectionObject(nav.CacheableObject):
         having been terminated without our knowledge or consent.
         """
         try:
-            if self.ping():
-                self.lastValidated = time.time()
-                return False
-        except (psycopg2.ProgrammingError, psycopg2.OperationalError):
-            logger.debug('Invalid connection object (%r), age=%s',
-                         self.key, self.age())
-            self.object.close()
-            return True
+            try:
+                if self.ping():
+                    self.lastValidated = time.time()
+                    return False
+            except (psycopg2.ProgrammingError, psycopg2.OperationalError):
+                logger.debug('Invalid connection object (%r), age=%s',
+                             self.key, self.age())
+                self.object.close()
+                return True
         except psycopg2.InterfaceError:
             logger.debug('Connection may already be closed (%r)',
                          self.key)
@@ -158,6 +160,47 @@ def closeConnections():
             connection.object.close()
         except psycopg2.InterfaceError:
             pass
+
+
+def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
+    """Decorates functions to retry them a set number of times in the face of
+    exceptions that appear to be database connection related. If the function
+    still fails with database errors after the set number of retries,
+    a fallback function is called, or the caught exception is re-raised.
+
+    :param count: Maximum number of times to retry the function
+    :param delay: The number of seconds to sleep between each retry
+    :param fallback: A function to run when all retry attempts fail. If
+                     set to None, the caught exception will be re-raised.
+    :param also_handled: A list of exception classes to catch in addition to
+                         the relevant ones from the psycopg2 library.
+
+    """
+    if fallback:
+        assert callable(fallback)
+    handled = (psycopg2.OperationalError, psycopg2.InterfaceError)
+    if also_handled:
+        handled = handled + tuple(also_handled)
+
+    def _retry_decorator(func):
+        def _retrier(*args, **kwargs):
+            remaining = count
+            while remaining:
+                try:
+                    return func(*args, **kwargs)
+                except handled:
+                    remaining -= 1
+                    logger.error("cannot establish db connection. "
+                                 "retries remaining: %d", remaining)
+                    if remaining:
+                        time.sleep(delay)
+                        continue
+                    elif fallback:
+                        fallback()
+                    else:
+                        raise
+        return wraps(func)(_retrier)
+    return _retry_decorator
 
 ###### Initialization ######
 

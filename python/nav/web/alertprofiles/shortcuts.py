@@ -19,10 +19,8 @@
 from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.template import RequestContext
 
-from nav.web.message import Messages
+from nav.web.message import Messages, new_message
 from django.shortcuts import render_to_response
-
-from nav.web.alertprofiles.utils import new_message
 
 BASE_PATH = [
     ('Home', '/'),

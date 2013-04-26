@@ -22,6 +22,7 @@ etc/logger.conf
 etc/pping.conf
 etc/servicemon.conf
 etc/cricket-config/Defaults
+etc/subtree-sets
 
 # Compiled Cheetah templates
 python/nav/web/templates/*.py
