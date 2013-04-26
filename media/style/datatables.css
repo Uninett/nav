@@ -34,17 +34,17 @@ table.dataTable tr th.sorting {
 }
 
 .dataTables_length {
-    float : left;
+    display: inline-block;
 }
 
 .dataTables_info {
-    float: left;
+    display: inline-block;
     font-size: 0.9em;
     line-height: 1.6em;
+    clear: right;
 }
 
 .dataTables_paginate {
-    float : left;
 }
 
 a.paginate_button,
