@@ -13,35 +13,41 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""ipdevpoll plugin to get serial numbers from APC devices"""
+"""retrieves chassis serial numbers from various proprietary MIBs"""
 
 from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.shadows import Netbox, Device
+
+from nav.mibs.juniper_mib import JuniperMib
 from nav.mibs.powernet_mib import PowerNetMib
 
 VENDORID_APC = 318
+VENDORID_JUNIPER = 2636
 
-class ApcSerial(Plugin):
-    """Collects serial numbers from APC devices"""
+VENDOR_MIBS = {
+    VENDORID_APC: PowerNetMib,
+    VENDORID_JUNIPER: JuniperMib,
+}
 
-    @classmethod
-    def can_handle(cls, netbox):
-        daddy_says_ok = super(ApcSerial, cls).can_handle(netbox)
-        if netbox.type:
-            vendor_id = netbox.type.get_enterprise_id()
-            if vendor_id != VENDORID_APC:
-                return False
-        return daddy_says_ok
+
+class ProprietarySerial(Plugin):
+    """retrieves chassis serial numbers from various proprietary MIBs"""
+    RESTRICT_TO_VENDORS = [VENDORID_APC, VENDORID_JUNIPER]
 
     @defer.inlineCallbacks
     def handle(self):
-        mib = PowerNetMib(self.agent)
-        serial = yield mib.get_serial_number()
-        if serial:
-            self._logger.debug("got an APC serial number: %r", serial)
-            self._set_chassis_serial(serial)
+        vendor_id = self.netbox.type.get_enterprise_id()
+        mibclass = VENDOR_MIBS.get(vendor_id, None)
+        if mibclass:
+            mib = mibclass(self.agent)
+            serial = yield mib.get_serial_number()
+            if serial:
+                self._logger.debug("got a chassis serial number from %s: %r",
+                                   mib.mib.get('moduleName', None), serial)
+                self._set_chassis_serial(serial)
+
 
     def _set_chassis_serial(self, serial):
         netbox = self.containers.factory(None, Netbox)
