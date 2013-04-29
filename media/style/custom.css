@@ -27,6 +27,10 @@
 .hidden {display: none; }
 .notvisible {visibility: hidden; }
 
+.error small.nomargin {
+    margin: 0;
+}
+
 ul.errorlist {
     margin-bottom: 0;
     list-style-type: none;

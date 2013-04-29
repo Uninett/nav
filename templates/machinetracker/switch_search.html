@@ -2,47 +2,64 @@
 
 {% block content %}
 
-<div id="search_form">
     <form action="{% url machinetracker-swp %}" method="get">
-        <table class="listtable">
-            <caption>Switch search</caption>
-            <tbody>
-                <tr>
-                    <th><label for="id_switch">Switch:</label></th>
-                    <td>{{ form.switch.errors }}{{ form.switch }}</td>
-                </tr>
-                <tr>
-                    <th><label for="id_module">Module:</label></th>
-                    <td>{{ form.module.errors }}{{ form.module }}</td>
-                </tr>
-                <tr>
-                    <th><label for="id_port">Port:</label></th>
-                    <td>{{ form.port.errors }}{{ form.port }}</td>
-                </tr>
-                <tr>
-                    <th><label for="id_hide">Show only active records:</label></th>
-                    <td><input id="id_hide" type="checkbox" name="days" value="-1" onclick="document.getElementById('id_days').disabled = this.checked;" /></td>
-                </tr>
-                <tr>
-                    <th><label for="id_days">Days:</label></th>
-                    <td>{{ form.days.errors }}{{ form.days }}</td>
-                </tr>
-                <tr>
-                    <th></th>
-                    <td><input type="submit" value="Search" /></td>
-                </tr>
-            </tbody>
-        </table>
+        <div id="search_form" class="row">
+            <div class="large-8 column">
+                <table class="listtable expand">
+                    <caption>Switch search</caption>
+                    <tbody>
+                        <tr>
+                            <th><label for="id_switch">Switch</label></th>
+                            <td {% if form.switch.errors %}class="error"{% endif %} >
+                                <small class="nomargin">{{ form.switch.errors }}</small>
+                                {{ form.switch }}
+                            </td>
+
+                            <th><label for="id_hide">Only active</label></th>
+                            <td><input id="id_hide" type="checkbox" name="days" value="-1" onclick="document.getElementById('id_days').disabled = this.checked;" /></td>
+                        </tr>
+
+                        <tr>
+                            <th><label for="id_module">Module</label></th>
+                            <td {% if form.module.errors %}class="error"{% endif %}>
+                                <small class="nomargin">{{ form.module.errors }}</small>
+                                {{ form.module }}
+                            </td>
+
+                            <th><label for="id_days">Days</label></th>
+                            <td {% if form.days.errors %}class="error"{% endif %}>
+                                <small class="nomargin">{{ form.days.errors }}</small>
+                                {{ form.days }}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th><label for="id_port">Port</label></th>
+                            <td {% if form.port.errors %}class="error"{% endif %}>
+                                <small class="nomargin">{{ form.port.errors }}</small>
+                                {{ form.port }}
+                            </td>
+                            <td colspan="2"><input type="submit" value="Search" class="button small right"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="large-4 column">
+                <a href="#" data-reveal-id="valid-search-terms" title="Help"
+                   class="button small right">Help</a>
+            </div>
+
+        </div>
     </form>
-</div>
 
 {% if mac_tracker %}
-<div class="results">
-    {% include "machinetracker/mac_tracker.html" %}
-</div>
+    <div class="results">
+        {% include "machinetracker/mac_tracker.html" %}
+    </div>
 {% else %}
 
-<div class="infobox">
+<div id="valid-search-terms" class="reveal-modal">
     <h4>Search Hints</h4>
     <ul>
         <li>
