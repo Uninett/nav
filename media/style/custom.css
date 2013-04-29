@@ -27,6 +27,11 @@
 .hidden {display: none; }
 .notvisible {visibility: hidden; }
 
+ul.errorlist {
+    margin-bottom: 0;
+    list-style-type: none;
+}
+
 /* Custom base page styles */
 
 #nav-breadcrumbs {
