@@ -31,8 +31,8 @@
             </div>
         </div>
 
-        <div id="ip-search-filters" class="row collapse">
-            <div class="large-2 columns">
+        <div class="row collapse machinetracker-filters">
+            <div class="large-2 column">
                 <div>
                     <label for="id_active" title="Show ip-addresses active in the time period">Active</label>
                     {{ form.active }}
@@ -40,7 +40,7 @@
 
             </div>
 
-            <div class="large-2 columns">
+            <div class="large-2 column">
                 <div>
                     <label for="id_inactive" title="Show ip-addresses not active in the period">Inactive</label>
                     {{ form.inactive }}
@@ -48,7 +48,7 @@
 
             </div>
 
-            <div class="large-2 columns">
+            <div class="large-2 column">
                 <div>
                     <label for="id_dns" title="Show dns (if any)">Dns</label>
                     {{ form.dns }}
@@ -56,7 +56,7 @@
 
             </div>
 
-            <div class="large-2 columns">
+            <div class="large-2 column">
                 <div>
                     <label for="id_netbios" title="Show netbios name (if any)">Netbios</label>
                     {{ form.netbios }}
@@ -64,7 +64,7 @@
 
             </div>
 
-            <div class="large-2 columns">
+            <div class="large-2 column">
                 <div>
                     <label for="id_hide" title="Only show ip-addresses active now">Only Active</label>
                     <input id="id_hide" name="days" type="checkbox"
@@ -74,7 +74,7 @@
 
             </div>
 
-            <div class="large-2 columns">
+            <div class="large-2 column">
                 <div class="machinetracker-filter-days">
                     <label for="id_days">Days:</label>
                     {{ form.days }}

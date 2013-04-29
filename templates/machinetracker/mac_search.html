@@ -2,65 +2,106 @@
 
 {% block content %}
 
-<div id="search_form">
     <form action="{% url machinetracker-mac %}" method="get">
-        <table class="listtable">
-            <caption>MAC search</caption>
-            <tbody>
-            <tr>
-                <th><label for="id_mac">Mac:</label></th>
-                <td>{{ form.mac.errors }}{{ form.mac }}</td>
-            </tr>
-            <tr>
-                <th><label for="id_dns">Dns:</label></th>
-                <td>{{ form.dns }}</td>
-            </tr>
-            <tr>
-                <th><label>Netbios:</label></th>
-                <td>{{ form.netbios }}</td>
-            </tr>
-            <tr>
-                <th><label for="id_hide">Show only active records:</label></th>
-                <td><input type="checkbox" id="id_hide" name="days" value="-1" onclick="document.getElementById('id_days').disabled = this.checked;" /></td>
-            </tr>
-            <tr>
-                <th><label for="id_days">Days:</label></th>
-                <td>{{ form.days.errors }}{{ form.days }}</td>
-            </tr>
-                <tr>
-                    <th></th>
-                    <td><input type="submit" value="Search" /></td>
-                </tr>
-            </tbody>
-        </table>
+        <div id="search_form">
+            <div class="row">
+                <div class="large-6 column">
+                    <div class="row collapse">
+
+                        <div class="large-3 column">
+                            <span class="prefix">Mac</span>
+                        </div>
+                        <div class="large-7 column">
+                            {{ form.mac }}
+                        </div>
+                        <div class="large-2 column">
+                            <input type="submit" value="Search" class="button postfix"/>
+                        </div>
+
+                        {% if form.mac.errors %}
+                            <div class="large-12 column">
+                                <small class="error">{{ form.mac.errors }}</small>
+                            </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <div class="large-6 column">
+                    <a href="#" data-reveal-id="valid-search-terms"
+                       title="Help"
+                       class="button small right">Help</a>
+                </div>
+            </div>
+
+
+            {% comment %} FILTERS FOR MAC SEARCH {% endcomment %}
+            <div class="row collapse machinetracker-filters">
+                <div class="large-3 column">
+                    <div>
+                        <label for="id_dns">Dns:</label>
+                        {{ form.dns }}
+                    </div>
+                </div>
+
+                <div class="large-3 column">
+                    <div>
+                        <label for="id_netbios">Netbios:</label>
+                        {{ form.netbios }}
+                    </div>
+                </div>
+
+                <div class="large-3 column">
+                    <div>
+                        <label for="id_hide">Show only active records:</label>
+                        <input type="checkbox" id="id_hide" name="days"
+                               value="-1"
+                               onclick="document.getElementById('id_days').disabled = this.checked;"/>
+                    </div>
+
+                </div>
+
+                <div class="large-3 column">
+                    <div class="machinetracker-filter-days">
+                        <label for="id_days">Days:</label>
+                        {{ form.days }}
+                    </div>
+
+                    {% if form.days.errors %}
+                        <small class="error">{{ form.days.errors }}</small>
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </div>
     </form>
-</div>
 
-{% if mac_tracker or ip_tracker %}
-<div class="results">
-    {% include "machinetracker/mac_tracker.html" %}
-</div>
-<div class="results">
-    {% include "machinetracker/ip_tracker.html" %}
-</div>
-{% else %}
+    {% if mac_tracker or ip_tracker %}
+        <div class="results">
+            {% include "machinetracker/mac_tracker.html" %}
+        </div>
 
-<div class="infobox">
-    <h4>Search Hints</h4>
-    <ul>
-        <li>
-            MAC search allows searching for a MAC prefix, e.g. a search for
-            &quot;<tt>00aabbcc</tt>&quot; will return all matches between
-            <tt>00:aa:bb:cc:00:00</tt> and <tt>00:aa:bb:cc:ff:ff</tt>.
-        </li>
-        <li>
-            The use of colon in the MAC search is optional, e.g.
-            &quot;<tt>00aabbcc</tt>&quot; and &quot;<tt>00:aa:bb:cc</tt>&quot;
-            are equal.
-        </li>
-    </ul>
-</div>
+        <div class="results">
+            {% include "machinetracker/ip_tracker.html" %}
+        </div>
+    {% endif %}
 
-{% endif %}
+    <div id="valid-search-terms" class="reveal-modal">
+        <h4>Search Hints</h4>
+        <ul>
+            <li>
+                MAC search allows searching for a MAC prefix, e.g. a search for
+                &quot;<tt>00aabbcc</tt>&quot; will return all matches between
+                <tt>00:aa:bb:cc:00:00</tt> and <tt>00:aa:bb:cc:ff:ff</tt>.
+            </li>
+            <li>
+                The use of colon in the MAC search is optional, e.g.
+                &quot;<tt>00aabbcc</tt>&quot; and &quot;<tt>00:aa:bb:cc</tt>&quot;
+                are equal.
+            </li>
+        </ul>
+    </div>
+
 
 {% endblock %}

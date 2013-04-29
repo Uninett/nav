@@ -1,8 +1,9 @@
 <table id="tracker-table" class="listtable tablesorter">
     <caption>
-        MAC Search results<br />
-        <span class="subtitle">
-        {{ mac_tracker_count }} hit{{ mac_tracker_count|pluralize }}</span>
+        MAC Search results
+        <span class="subtitle right">
+            {{ mac_tracker_count }} hit{{ mac_tracker_count|pluralize }}
+        </span>
     </caption>
 
     <thead>
@@ -77,17 +78,17 @@
 
     <tfoot>
         <tr>
-            <th colspan="0">{{ mac_tracker_count }}
+            <th colspan="8">{{ mac_tracker_count }}
             hit{{ mac_tracker_count|pluralize }}</th>
         </tr>
     </tfoot>
 </table>
 
-<div class="infobox">
-<h4>Interface details</h4>
+<div class="alert-box secondary">
+    <h4>Interface details</h4>
 
-<p>Please note that the MAC search results are <em>historic</em> data, while
-the information found at the interface details link is the <em>current</em>
-data on the interface. They may have no other connection than being related to
-the same interface at different points in time.</p>
+    <p>Please note that the MAC search results are <em>historic</em> data, while
+    the information found at the interface details link is the <em>current</em>
+    data on the interface. They may have no other connection than being related to
+    the same interface at different points in time.</p>
 </div>
