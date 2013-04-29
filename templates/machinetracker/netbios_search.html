@@ -2,20 +2,47 @@
 
 {% block content %}
 
-    <div id="search_form">
         <form action="{% url machinetracker-netbios %}" method="get">
-            <table class="listtable">
-                <caption>NetBIOS search</caption>
-                <tbody>
-                {{ form }}
-                <tr>
-                    <th></th>
-                    <td><input type="submit" value="Search"/></td>
-                </tr>
-                </tbody>
-            </table>
+            <div id="search_form" class="row">
+                <div class="large-6 column">
+
+                    <div class="row collapse">
+                        <div class="large-3 column">
+                            <span class="prefix">Netbios</span>
+                        </div>
+                        <div class="large-7 column">
+                            {{ form.search }}
+                        </div>
+                        <div class="large-2 column">
+                            <input type="submit" value="Search" class="button postfix"/>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="large-2 column machinetracker-filter">
+                    <div>
+                        <label for="{{ form.dns.auto_id }}">{{ form.dns.label }}</label>
+                        {{ form.dns }}
+                    </div>
+                </div>
+
+                <div class="large-2 column machinetracker-filter">
+                    <div class="machinetracker-filter-days">
+                        <label for="{{ form.days.auto_id }}">{{ form.days.label }}</label>
+                        {{ form.days }}
+                    </div>
+
+                </div>
+
+                <div class="large-2 column">
+                    <a href="#" data-reveal-id="valid-search-terms"
+                       title="Help"
+                       class="button small right">Help</a>
+                </div>
+
+            </div>
         </form>
-    </div>
 
     {% if netbios_tracker %}
 
@@ -23,20 +50,19 @@
             {% include "machinetracker/netbios_tracker.html" %}
         </div>
 
-    {% else %}
-
-        <div class="infobox">
-            <h4>Search Hints</h4>
-            <ul>
-                <li>Search for NetBIOS-name, MAC or IP</li>
-                <li>NetBIOS Search does not use the ARP and CAM information
-                    collected by NAV, but utilize the <code>netbscan</code>
-                    tool to collect NetBIOS over TCP/IP information over the
-                    network
-                </li>
-            </ul>
-        </div>
-
     {% endif %}
+
+    <div id="valid-search-terms" class="reveal-modal">
+        <h4>Search Hints</h4>
+        <ul>
+            <li>Search for NetBIOS-name, MAC or IP</li>
+            <li>NetBIOS Search does not use the ARP and CAM information
+                collected by NAV, but utilize the <code>netbscan</code>
+                tool to collect NetBIOS over TCP/IP information over the
+                network
+            </li>
+        </ul>
+    </div>
+
 
 {% endblock %}

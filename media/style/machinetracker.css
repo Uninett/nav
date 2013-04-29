@@ -19,7 +19,7 @@ border:1px solid #999;
 }
 
 /* Style the filters on the ip-address search */
-.machinetracker-filters .column > div {
+.machinetracker-filters .column > div, .machinetracker-filter {
     background-color: #eeeeee;
     border: 1px solid #d9d9d9;
     min-height: 3em;
