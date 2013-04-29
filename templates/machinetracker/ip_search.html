@@ -1,86 +1,129 @@
 {% extends "machinetracker/base.html" %}
 
 {% block content %}
-<div id="search_form">
     <form action="{% url machinetracker-ip %}" method="get">
-        <table class="listtable">
-            <caption>IP search</caption>
-            <tbody>
-                <tr>
-                    <th><label for="id_ip_range">Ip range:</label></th>
-                    <td>{{ form.ip_range.errors }}{{ form.ip_range }}</td>
-                </tr>
-                <tr>
-                    <th><label for="id_active">Active:</label></th>
-                    <td>{{ form.active }}</td>
-                </tr>
-                <tr>
-                    <th><label for="id_inactive">Inactive:</label></th>
-                    <td>{{ form.inactive }}</td>
-                </tr>
-                <tr>
-                    <th><label for="id_dns">DNS:</label></th>
-                    <td>{{ form.dns }}</td>
-                </tr>
-                <tr>
-                    <th><label>Netbios:</label></th>
-                    <td>{{ form.netbios }}</td>
-                </tr>
-                <tr>
-                    <th><label for="id_hide">Show only active records:</label></th>
-                    <td><input id="id_hide" name="days" type="checkbox" value="-1" onclick="document.getElementById('id_days').disabled = this.checked;" /></td>
-                </tr>
-                <tr>
-                    <th><label for="id_days">Days:</label></th>
-                    <td>{{ form.days.errors }}{{ form.days }}</td>
-                </tr>
-                <tr>
-                    <th></th>
-                    <td><input type="submit" value="Search" /></td>
-                </tr>
-            </tbody>
-        </table>
-    </form>
-</div>
-{% if display_no_results %}
-    <div class="errorbox">
-        <p>Your search did not give any results. ({{ subnet_start }}-{{ subnet_end }})</p>
-    </div>
-{% endif %}
-{% if ip_tracker %}
-<div class="results">
-    {% include "machinetracker/ip_tracker.html" %}
-</div>
-{% else %}
-<div class="infobox">
-    <h4>Valid Search terms</h4>
-    <ul>
-        <li>Single IP addresses</li>
-        <li>Ranges like 10.0.0.0-10.0.1.255, 10.0.0.0-255 or 2001:701::AAA-FFF.</li>
-        <li>CIDR addresses like 129.241.105.0/24.</li>
-        <li>Single addresses with a CIDR slash, 129.241.105.0/ will add subnet mask based on prefixes collected by NAV.</li>
-    </ul>
-    <h4>Accuracy of the Results</h4>
-    <ul>
-        <li>
-            IP search results are based on ARP data from routers. Typically ARP
-            data entries are kept by the routers 4 hours after the last packet
-            seen.  Also keep in mind, the ARP collector only runs twice an hour
-            (0,30).  Subtracting 4-4.5 hours from the end time gives you a
-            fairly good idea.
-        </li>
-        <li>
-            Since NAV 3.3 port numbers have been removed from the search in
-            favor of interface names.  Historical search results will still
-            contain port numbers instead of interface names, as historical port
-            number data cannot be accurately mapped to interface names.
-        </li>
-        <li>
-            Searches will not return more than 4096 results, equivalent to an IPv4 /20 subnet.
-        </li>
-    </ul>
-</div>
+        <div id="search_form" class="row">
+            <div class="large-6 columns">
+                <div class="row collapse">
+                    <div class="large-3 columns">
+                        <span class="prefix">Ip range</span>
+                    </div>
+                    <div class="large-7 columns">
+                        {{ form.ip_range.errors }}{{ form.ip_range }}
+                    </div>
+                    <div class="large-2 columns">
+                        <input type="submit" value="Search" class="button postfix"/>
+                    </div>
+                </div>
 
-{% endif %}
+            </div>
+
+            <div class="large-6 columns">
+                <a href="#" data-reveal-id="valid-search-terms" title="Help"
+                   class="button small right">Help</a>
+            </div>
+        </div>
+
+        <div id="ip-search-filters" class="row collapse">
+            <div class="large-2 columns">
+                <div>
+                    <label for="id_active" title="Show ip-addresses active in the time period">Active</label>
+                    {{ form.active }}
+                </div>
+
+            </div>
+
+            <div class="large-2 columns">
+                <div>
+                    <label for="id_inactive" title="Show ip-addresses not active in the period">Inactive</label>
+                    {{ form.inactive }}
+                </div>
+
+            </div>
+
+            <div class="large-2 columns">
+                <div>
+                    <label for="id_dns" title="Show dns (if any)">Dns</label>
+                    {{ form.dns }}
+                </div>
+
+            </div>
+
+            <div class="large-2 columns">
+                <div>
+                    <label for="id_netbios" title="Show netbios name (if any)">Netbios</label>
+                    {{ form.netbios }}
+                </div>
+
+            </div>
+
+            <div class="large-2 columns">
+                <div>
+                    <label for="id_hide" title="Only show ip-addresses active now">Only Active</label>
+                    <input id="id_hide" name="days" type="checkbox"
+                               value="-1"
+                               onclick="document.getElementById('id_days').disabled = this.checked;"/>
+                </div>
+
+            </div>
+
+            <div class="large-2 columns">
+                <div class="machinetracker-filter-days">
+                    <label for="id_days">Days:</label>
+                    {{ form.days.errors }}{{ form.days }}
+                </div>
+
+            </div>
+        </div>
+
+    </form>
+
+    {% if display_no_results %}
+        <div class="errorbox">
+            <p>Your search did not give any results. ({{ subnet_start }}-{{ subnet_end }})</p>
+        </div>
+    {% endif %}
+
+    {% if display_no_results %}
+        <div class="errorbox">
+            <p>Your search did not give any results. ({{ subnet_start }}-{{ subnet_end }})</p>
+        </div>
+    {% endif %}
+
+    {% if ip_tracker %}
+        <div class="results">
+            {% include "machinetracker/ip_tracker.html" %}
+        </div>
+    {% endif %}
+
+    <div id="valid-search-terms" class="reveal-modal">
+        <h4>Valid Search terms</h4>
+        <ul>
+            <li>Single IP addresses</li>
+            <li>Ranges like 10.0.0.0-10.0.1.255, 10.0.0.0-255 or 2001:701::AAA-FFF.</li>
+            <li>CIDR addresses like 129.241.105.0/24.</li>
+            <li>Single addresses with a CIDR slash, 129.241.105.0/ will add subnet mask based on prefixes collected by NAV.</li>
+        </ul>
+        <h4>Accuracy of the Results</h4>
+        <ul>
+            <li>
+                IP search results are based on ARP data from routers. Typically ARP
+                data entries are kept by the routers 4 hours after the last packet
+                seen.  Also keep in mind, the ARP collector only runs twice an hour
+                (0,30).  Subtracting 4-4.5 hours from the end time gives you a
+                fairly good idea.
+            </li>
+            <li>
+                Since NAV 3.3 port numbers have been removed from the search in
+                favor of interface names.  Historical search results will still
+                contain port numbers instead of interface names, as historical port
+                number data cannot be accurately mapped to interface names.
+            </li>
+            <li>
+                Searches will not return more than 4096 results, equivalent to an IPv4 /20 subnet.
+            </li>
+        </ul>
+    </div>
+
 
 {% endblock %}
