@@ -21,16 +21,26 @@ from django import forms
 from django.forms.util import ErrorList
 
 
-class IpTrackerForm(forms.Form):
+class MachineTrackerForm(forms.Form):
+    """General fields for forms in machinetracker"""
+    dns = forms.BooleanField(required=False, initial=False,
+                             help_text="Show dns (if any)")
+    days = forms.IntegerField(initial=7,
+                              widget=forms.TextInput(attrs={'size': 3}),
+                              help_text="Days back in time to search")
+
+
+class IpTrackerForm(MachineTrackerForm):
     # IPAddressField only supports IPv4 as of Django 1.1
     ip_range = forms.CharField()
-    active = forms.BooleanField(required=False, initial=True)
-    inactive = forms.BooleanField(required=False)
-    dns = forms.BooleanField(required=False, initial=False)
-    netbios = forms.BooleanField(required=False, initial=False)
-    days = forms.IntegerField(
-        initial=7,
-        widget=forms.TextInput(attrs={'size': 3}))
+    active = forms.BooleanField(
+        required=False, initial=True,
+        help_text="Show ip-addresses active in the time period")
+    inactive = forms.BooleanField(
+        required=False,
+        help_text="Show ip-addresses not active in the period")
+    netbios = forms.BooleanField(required=False, initial=False,
+                                 help_text="Show netbios name (if any)")
 
     def clean(self):
         data = self.cleaned_data
@@ -51,13 +61,10 @@ class IpTrackerForm(forms.Form):
         return data
 
 
-class MacTrackerForm(forms.Form):
+class MacTrackerForm(MachineTrackerForm):
     mac = forms.CharField()
-    dns = forms.BooleanField(required=False, initial=False)
-    netbios = forms.BooleanField(required=False, initial=False)
-    days = forms.IntegerField(
-        initial=7,
-        widget=forms.TextInput(attrs={'size': 3}))
+    netbios = forms.BooleanField(required=False, initial=False,
+                                 help_text="Netbios name (if any)")
 
     def clean_mac(self):
         try:
@@ -80,12 +87,8 @@ class SwitchTrackerForm(forms.Form):
         widget=forms.TextInput(attrs={'size': 3}))
 
 
-class NetbiosTrackerForm(forms.Form):
+class NetbiosTrackerForm(MachineTrackerForm):
     search = forms.CharField()
-    dns = forms.BooleanField(required=False, initial=False)
-    days = forms.IntegerField(
-        initial=7,
-        widget=forms.TextInput(attrs={'size': 3}))
 
     def clean_search(self):
         """Make sure blank spaces and such is removed from search"""
