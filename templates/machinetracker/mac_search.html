@@ -39,31 +39,33 @@
             <div class="row collapse machinetracker-filters">
                 <div class="large-3 column">
                     <div>
-                        <label for="{{ form.dns.auto_id }}">{{ form.dns.label }}</label>
+                        <label for="{{ form.dns.auto_id }}"
+                               title="{{ form.dns.help_text }}">{{ form.dns.label }}</label>
                         {{ form.dns }}
                     </div>
                 </div>
 
                 <div class="large-3 column">
                     <div>
-                        <label for="id_netbios">Netbios:</label>
+                        <label for="{{ form.netbios.auto_id }}"
+                               title="{{ form.netbios.help_text }}">{{ form.netbios.label }}</label>
                         {{ form.netbios }}
                     </div>
                 </div>
 
                 <div class="large-3 column">
                     <div>
-                        <label for="id_hide">Show only active records:</label>
+                        <label for="id_hide" title="Only show ip-addresses active now">Only active</label>
                         <input type="checkbox" id="id_hide" name="days"
                                value="-1"
                                onclick="document.getElementById('id_days').disabled = this.checked;"/>
                     </div>
-
                 </div>
 
                 <div class="large-3 column">
                     <div class="machinetracker-filter-days">
-                        <label for="id_days">Days:</label>
+                        <label for="{{ form.days.auto_id }}"
+                               title="{{ form.days.help_text }}">{{ form.days.label }}</label>
                         {{ form.days }}
                     </div>
                     {% if form.days.errors %}

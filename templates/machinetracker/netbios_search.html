@@ -22,14 +22,16 @@
 
                 <div class="large-2 column machinetracker-filter">
                     <div>
-                        <label for="{{ form.dns.auto_id }}">{{ form.dns.label }}</label>
+                        <label for="{{ form.dns.auto_id }}"
+                               title="{{ form.dns.help_text }}">{{ form.dns.label }}</label>
                         {{ form.dns }}
                     </div>
                 </div>
 
                 <div class="large-2 column machinetracker-filter">
                     <div class="machinetracker-filter-days">
-                        <label for="{{ form.days.auto_id }}">{{ form.days.label }}</label>
+                        <label for="{{ form.days.auto_id }}"
+                               title="{{ form.days.help_text }}">{{ form.days.label }}</label>
                         {{ form.days }}
                     </div>
 
