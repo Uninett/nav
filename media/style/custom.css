@@ -27,7 +27,7 @@
 .hidden {display: none; }
 .notvisible {visibility: hidden; }
 
-.error small.nomargin {
+.error small.nomargin, small.error.nomargin {
     margin: 0;
 }
 
