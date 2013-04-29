@@ -18,7 +18,7 @@ define([
             "netmap:graph:isDoneLoading": "setIsViewEnabled"
         },
         events: {
-            'click .netmapWidget.hideSubWidgets div.header': 'toggleWidget'
+            'click .netmapWidget.hideSubWidgets > div.header': 'toggleWidget'
         },
         initialize: function () {
             this.isContentVisible = true;
@@ -35,8 +35,8 @@ define([
             });
             this.$el.html(out);
             this.layerView = this.attachSubView(this.layerView, LayerView, {el: '#layer_view'});
-            this.categoriesView = this.attachSubView(this.categoriesView, CategoryView, '#categories_view');
-            this.orphansView = this.attachSubView(this.orphansView, OrphanView, '#orphan_view');
+            this.categoriesView = this.attachSubView(this.categoriesView, CategoryView, {el: '#categories_view'});
+            this.orphansView = this.attachSubView(this.orphansView, OrphanView, {el: '#orphan_view'});
 
             return this;
         },

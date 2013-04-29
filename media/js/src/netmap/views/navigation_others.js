@@ -21,7 +21,7 @@ define([
             "netmap:graph:isDoneLoading": "setIsViewEnabled"
         },
         events: {
-            'click .netmapWidget.hideSubWidgets div.header': 'toggleWidget'
+            'click .netmapWidget.hideSubWidgets > div.header': 'toggleWidget'
         },
         initialize: function () {
             this.isContentVisible = true;
