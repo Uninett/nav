@@ -5,16 +5,12 @@
         <div id="search_form" class="row">
             <div class="large-6 columns">
                 <div class="row collapse">
-                    {% if form.ip_range.errors %}
-                        <div class="large-12 column">
-                            <small class="error nomargin">{{ form.ip_range.errors }}</small>
-                        </div>
-                    {% endif %}
                     <div class="large-3 columns">
                         <span class="prefix">Ip range</span>
                     </div>
-                    <div class="large-7 columns">
+                    <div class="large-7 columns {% if form.ip_range.errors %}error{% endif %}">
                         {{ form.ip_range }}
+                        <small>{{ form.ip_range.errors }}</small>
                     </div>
                     <div class="large-2 columns">
                         <input type="submit" value="Search" class="button postfix"/>

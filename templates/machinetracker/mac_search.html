@@ -8,17 +8,12 @@
                 <div class="large-6 column">
                     <div class="row collapse">
 
-                        {% if form.mac.errors %}
-                            <div class="large-12 column">
-                                <small class="error nomargin">{{ form.mac.errors }}</small>
-                            </div>
-                        {% endif %}
-
                         <div class="large-3 column">
                             <span class="prefix">Mac</span>
                         </div>
-                        <div class="large-7 column">
+                        <div class="large-7 column {% if form.mac.errors %}error{% endif %}">
                             {{ form.mac }}
+                            <small>{{ form.mac.errors }}</small>
                         </div>
                         <div class="large-2 column">
                             <input type="submit" value="Search" class="button postfix"/>

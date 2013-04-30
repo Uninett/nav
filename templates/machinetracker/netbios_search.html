@@ -7,17 +7,12 @@
                 <div class="large-6 column">
 
                     <div class="row collapse">
-                        {% if form.search.errors %}
-                            <div class="large-12 column">
-                                <small class="error nomargin">{{ form.search.errors }}</small>
-                            </div>
-                        {% endif %}
-
                         <div class="large-3 column">
                             <span class="prefix">Netbios</span>
                         </div>
-                        <div class="large-7 column">
+                        <div class="large-7 column {% if form.search.errors %}error{% endif %}">
                             {{ form.search }}
+                            <small>{{ form.search.errors }}</small>
                         </div>
                         <div class="large-2 column">
                             <input type="submit" value="Search" class="button postfix"/>
