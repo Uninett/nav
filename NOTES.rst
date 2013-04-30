@@ -41,6 +41,24 @@ Dependency changes
 - The `pynetsnmp` library is still optional (for the time being) and
   recommended, but is **required** if IPv6 SNMP support is needed.
 
+Manual upgrade steps required
+-----------------------------
+
+In NAV 3.14.1592, the Cricket trees `switch-ports` and `router-interfaces`
+have been consolidated into a single `ports` tree, where all physical ports'
+traffic stats now also are collected. After running the usual `syncdb.py`
+command, you should run `mcc.py` once manually (as the navcron) user to ensure
+the Cricket config tree is updated.
+
+When everything is up and running again, you can optionally delete the
+`switch-ports` and `router-interfaces` directories from your `cricket-config`
+directory, as they are no longer used by NAV.
+
+NAV now supplies its own `subtree-sets` configuration to Cricket. If you have
+made manual changes to your Cricket collection setup and/or this file, you may
+need to update your setup accordingly.
+
+
 IPv6
 ----
 
