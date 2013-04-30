@@ -24,22 +24,28 @@
                         <tr>
                             <th><label for="id_module">Module</label></th>
                             <td {% if form.module.errors %}class="error"{% endif %}>
-                                <small class="nomargin">{{ form.module.errors }}</small>
                                 {{ form.module }}
+                                {% if form.module.errors %}
+                                    <small class="nomargin">{{ form.module.errors }}</small>
+                                {% endif %}
                             </td>
 
                             <th><label for="id_days">Days</label></th>
                             <td {% if form.days.errors %}class="error"{% endif %}>
-                                <small class="nomargin">{{ form.days.errors }}</small>
                                 {{ form.days }}
+                                {% if form.days.errors %}
+                                    <small class="nomargin">{{ form.days.errors }}</small>
+                                {% endif %}
                             </td>
                         </tr>
 
                         <tr>
                             <th><label for="id_port">Port</label></th>
                             <td {% if form.port.errors %}class="error"{% endif %}>
-                                <small class="nomargin">{{ form.port.errors }}</small>
                                 {{ form.port }}
+                                {% if form.port.errors %}
+                                    <small class="nomargin">{{ form.port.errors }}</small>
+                                {% endif %}
                             </td>
                             <td colspan="2"><input type="submit" value="Search" class="button small right"/></td>
                         </tr>
