@@ -7,6 +7,12 @@
                 <div class="large-6 column">
 
                     <div class="row collapse">
+                        {% if form.search.errors %}
+                            <div class="large-12 column">
+                                <small class="error nomargin">{{ form.search.errors }}</small>
+                            </div>
+                        {% endif %}
+
                         <div class="large-3 column">
                             <span class="prefix">Netbios</span>
                         </div>
@@ -34,7 +40,9 @@
                                title="{{ form.days.help_text }}">{{ form.days.label }}</label>
                         {{ form.days }}
                     </div>
-
+                    {% if form.days.errors %}
+                        <small class="error nomargin">{{ form.days.errors }}</small>
+                    {% endif %}
                 </div>
 
                 <div class="large-2 column">
