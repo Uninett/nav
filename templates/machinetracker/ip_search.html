@@ -10,7 +10,9 @@
                     </div>
                     <div class="large-7 columns {% if form.ip_range.errors %}error{% endif %}">
                         {{ form.ip_range }}
-                        <small>{{ form.ip_range.errors }}</small>
+                        {% if form.ip_range.errors %}
+                            <small>{{ form.ip_range.errors }}</small>
+                        {% endif %}
                     </div>
                     <div class="large-2 columns">
                         <input type="submit" value="Search" class="button postfix"/>

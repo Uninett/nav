@@ -12,7 +12,9 @@
                         </div>
                         <div class="large-7 column {% if form.search.errors %}error{% endif %}">
                             {{ form.search }}
-                            <small>{{ form.search.errors }}</small>
+                            {% if form.search.errors %}
+                                <small>{{ form.search.errors }}</small>
+                            {% endif %}
                         </div>
                         <div class="large-2 column">
                             <input type="submit" value="Search" class="button postfix"/>

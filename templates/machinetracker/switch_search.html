@@ -12,7 +12,9 @@
                             <th><label for="id_switch">Switch</label></th>
                             <td {% if form.switch.errors %}class="error"{% endif %} >
                                 {{ form.switch }}
-                                <small class="nomargin">{{ form.switch.errors }}</small>
+                                {% if form.switch.errors %}
+                                    <small class="nomargin">{{ form.switch.errors }}</small>
+                                {% endif %}
                             </td>
 
                             <th><label for="id_hide">Only active</label></th>

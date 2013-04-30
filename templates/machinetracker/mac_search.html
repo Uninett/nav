@@ -13,7 +13,9 @@
                         </div>
                         <div class="large-7 column {% if form.mac.errors %}error{% endif %}">
                             {{ form.mac }}
-                            <small>{{ form.mac.errors }}</small>
+                            {% if form.mac.errors %}
+                                <small>{{ form.mac.errors }}</small>
+                            {% endif %}
                         </div>
                         <div class="large-2 column">
                             <input type="submit" value="Search" class="button postfix"/>
