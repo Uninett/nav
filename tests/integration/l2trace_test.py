@@ -2,7 +2,7 @@ import datetime
 
 from nav.models.manage import Netbox, Device, Room, Category, Organization
 from nav.models.manage import NetType, Vlan, Prefix, Interface, SwPortVlan
-from nav.models.manage import Arp, Cam, GwPortPrefix
+from nav.models.manage import Arp, Cam, GwPortPrefix, Location
 from mock import patch
 
 from nav.web import l2trace
