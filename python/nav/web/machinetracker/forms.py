@@ -32,25 +32,15 @@ class MachineTrackerForm(forms.Form):
 
 class IpTrackerForm(MachineTrackerForm):
     # IPAddressField only supports IPv4 as of Django 1.1
+    choices = [('active', 'Active'), ('inactive', 'Inactive'),
+               ('both', 'Both')]
+
     ip_range = forms.CharField()
-    active = forms.BooleanField(
-        required=False, initial=True,
-        help_text="Show ip-addresses active in the time period")
-    inactive = forms.BooleanField(
-        required=False,
-        help_text="Show ip-addresses not active in the period")
+    period_filter = forms.ChoiceField(widget=forms.RadioSelect(),
+                                      choices=choices,
+                                      initial='active')
     netbios = forms.BooleanField(required=False, initial=False,
                                  help_text="Show netbios name (if any)")
-
-    def clean(self):
-        data = self.cleaned_data
-
-        if not data['active'] and not data['inactive']:
-            msg = u"Either active, inactive or both must be checked."
-            self._errors['active'] = ErrorList([msg])
-            del data['active']
-            del data['inactive']
-        return data
 
     def clean_ip_range(self):
         data = self.cleaned_data['ip_range']
