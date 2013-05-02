@@ -33,15 +33,9 @@
                 <fieldset>
                     <legend>Filters</legend>
                     <div class="row">
-                        {% for period_filter in form.fields.period_filter.choices %}
+                        {% for filter in form.period_filter %}
                             <div class="large-4 column">
-                                <label>
-                                    <input type="radio"
-                                           name="{{ form.period_filter.name }}"
-                                           value="{{ period_filter.0 }}" >
-                                    &nbsp;{{ period_filter.1 }}
-
-                                </label>
+                                {{ filter }}
                             </div>
                         {% endfor %}
                     </div>
