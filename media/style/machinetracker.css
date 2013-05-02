@@ -19,8 +19,16 @@ border:1px solid #999;
 }
 
 /* Style the filters on the ip-address search */
-fieldset .row {
+#search_form fieldset {
+    padding: 0.35em 0.625em 0.75em;
+}
+
+.machinetracker-filter {
     line-height: 2em;
+}
+
+.machinetracker-filter .column {
+    text-align: center;
 }
 
 .machinetracker-filter-days label {

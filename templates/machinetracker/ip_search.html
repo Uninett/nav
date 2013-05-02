@@ -2,99 +2,100 @@
 
 {% block content %}
     <form action="{% url machinetracker-ip %}" method="get">
-        <div id="search_form" class="row">
-            <div class="large-6 columns">
-                <div class="row collapse">
-                    <div class="large-3 columns">
-                        <span class="prefix">Ip range</span>
+        <div id="search_form">
+            <div class="row">
+                <div class="large-6 columns">
+                    <div class="row collapse">
+                        <div class="large-3 columns">
+                            <span class="prefix">Ip range</span>
+                        </div>
+                        <div class="large-7 columns {% if form.ip_range.errors %}error{% endif %}">
+                            {{ form.ip_range }}
+                            {% if form.ip_range.errors %}
+                                <small>{{ form.ip_range.errors }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="large-2 columns">
+                            <input type="submit" value="Search" class="button postfix"/>
+                        </div>
                     </div>
-                    <div class="large-7 columns {% if form.ip_range.errors %}error{% endif %}">
-                        {{ form.ip_range }}
-                        {% if form.ip_range.errors %}
-                            <small>{{ form.ip_range.errors }}</small>
-                        {% endif %}
-                    </div>
-                    <div class="large-2 columns">
-                        <input type="submit" value="Search" class="button postfix"/>
-                    </div>
+
+                </div>
+
+                <div class="large-6 columns">
+                    <a href="#" data-reveal-id="valid-search-terms" title="Help"
+                       class="button small right">Help</a>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="large-4 columns">
+                    <fieldset>
+                        <legend>Filters</legend>
+                        <div class="row machinetracker-filter">
+                            {% for filter in form.period_filter %}
+                                <div class="large-4 column">
+                                    {{ filter }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="large-4 columns">
+                    <fieldset>
+                        <legend>Period</legend>
+                        <div class="row machinetracker-filter">
+
+                            <div class="large-6 column machinetracker-filter-days">
+                                <label for="{{ form.days.auto_id }}" title="{{ form.days.help_text }}">
+                                    {{ form.days.label }}
+                                </label>
+                                {{ form.days }}
+                                {% if form.days.errors %}
+                                    <small class="error nomargin">{{ form.days.errors }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="large-6 column">
+                                <label for="id_hide" title="Only show ip-addresses active now">
+                                    <input id="id_hide" name="days" type="checkbox"
+                                           value="-1"
+                                           onclick="document.getElementById('id_days').disabled = this.checked;"/>
+                                    &nbsp;Only Active
+                                </label>
+                            </div>
+                        </div>
+
+                    </fieldset>
+                </div>
+
+                <div class="large-4 columns">
+                    <fieldset>
+                        <legend>Columns</legend>
+                        <div class="row machinetracker-filter">
+
+                            <div class="large-6 column">
+                                <label for="{{ form.netbios.auto_id }}"
+                                       title="{{ form.netbios.help_text }}">
+                                    {{ form.netbios }}
+                                    {{ form.netbios.label }}
+                                </label>
+                            </div>
+
+                            <div class="large-6 column">
+                                <label for="{{ form.dns.auto_id }}" title="{{ form.dns.help_text }}">
+                                    {{ form.dns }}
+                                    {{ form.dns.label }}
+                                </label>
+                            </div>
+
+                        </div>
+
+                    </fieldset>
                 </div>
 
             </div>
-
-            <div class="large-6 columns">
-                <a href="#" data-reveal-id="valid-search-terms" title="Help"
-                   class="button small right">Help</a>
-            </div>
-        </div>
-
-        <div class="row">
-
-            <div class="large-4 columns">
-                <fieldset>
-                    <legend>Filters</legend>
-                    <div class="row">
-                        {% for filter in form.period_filter %}
-                            <div class="large-4 column">
-                                {{ filter }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                </fieldset>
-            </div>
-
-            <div class="large-4 columns">
-                <fieldset>
-                    <legend>Period</legend>
-                    <div class="row">
-
-                        <div class="large-6 column machinetracker-filter-days">
-                            <label for="{{ form.days.auto_id }}" title="{{ form.days.help_text }}">
-                                {{ form.days.label }}
-                            </label>
-                            {{ form.days }}
-                            {% if form.days.errors %}
-                                <small class="error nomargin">{{ form.days.errors }}</small>
-                            {% endif %}
-                        </div>
-
-                        <div class="large-6 column">
-                            <label for="id_hide" title="Only show ip-addresses active now">
-                                <input id="id_hide" name="days" type="checkbox"
-                                       value="-1"
-                                       onclick="document.getElementById('id_days').disabled = this.checked;"/>
-                                &nbsp;Only Active
-                            </label>
-                        </div>
-                    </div>
-
-                </fieldset>
-            </div>
-
-            <div class="large-4 columns">
-                <fieldset>
-                    <legend>Extra</legend>
-                    <div class="row">
-
-                        <div class="large-6 column">
-                            <label for="{{ form.netbios.auto_id }}"
-                                   title="{{ form.netbios.help_text }}">
-                                {{ form.netbios }}
-                                {{ form.netbios.label }}
-                            </label>
-                        </div>
-
-                        <div class="large-6 column">
-                            <label for="{{ form.dns.auto_id }}" title="{{ form.dns.help_text }}">
-                                {{ form.dns }}
-                                {{ form.dns.label }}
-                            </label>
-                        </div>
-
-                    </div>
-
-                </fieldset>
-            </div>
-
         </div>
 
 

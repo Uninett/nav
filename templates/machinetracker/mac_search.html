@@ -33,44 +33,54 @@
 
 
             {% comment %} FILTERS FOR MAC SEARCH {% endcomment %}
-            <div class="row collapse machinetracker-filters">
-                <div class="large-3 column">
-                    <div>
-                        <label for="{{ form.dns.auto_id }}"
-                               title="{{ form.dns.help_text }}">{{ form.dns.label }}</label>
-                        {{ form.dns }}
-                    </div>
+            <div class="row">
+                <div class="large-6 column">
+                    <fieldset>
+                        <legend>Period</legend>
+
+                        <div class="row machinetracker-filter">
+                            <div class="large-6 column">
+                                <div class="machinetracker-filter-days">
+                                    <label for="{{ form.days.auto_id }}"
+                                           title="{{ form.days.help_text }}">{{ form.days.label }}</label>
+                                    {{ form.days }}
+                                </div>
+                                {% if form.days.errors %}
+                                    <small class="error nomargin">{{ form.days.errors }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="large-6 column">
+                                <label for="id_hide" title="Only show ip-addresses active now">Only active
+                                    <input type="checkbox" id="id_hide"
+                                           name="days" value="-1"
+                                           onclick="document.getElementById('id_days').disabled = this.checked;"/>
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
                 </div>
 
-                <div class="large-3 column">
-                    <div>
-                        <label for="{{ form.netbios.auto_id }}"
-                               title="{{ form.netbios.help_text }}">{{ form.netbios.label }}</label>
-                        {{ form.netbios }}
-                    </div>
+                <div class="large-6 column">
+                    <fieldset>
+                        <legend>Columns</legend>
+
+                        <div class="row machinetracker-filter">
+                            <div class="large-6 column">
+                                <label for="{{ form.dns.auto_id }}" title="{{ form.dns.help_text }}">{{ form.dns.label }}
+                                    {{ form.dns }}
+                                </label>
+                            </div>
+
+                            <div class="large-6 column">
+                                <label for="{{ form.netbios.auto_id }}" title="{{ form.netbios.help_text }}">{{ form.netbios.label }}
+                                    {{ form.netbios }}
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
                 </div>
 
-                <div class="large-3 column">
-                    <div>
-                        <label for="id_hide" title="Only show ip-addresses active now">Only active</label>
-                        <input type="checkbox" id="id_hide" name="days"
-                               value="-1"
-                               onclick="document.getElementById('id_days').disabled = this.checked;"/>
-                    </div>
-                </div>
-
-                <div class="large-3 column">
-                    <div class="machinetracker-filter-days">
-                        <label for="{{ form.days.auto_id }}"
-                               title="{{ form.days.help_text }}">{{ form.days.label }}</label>
-                        {{ form.days }}
-                    </div>
-                    {% if form.days.errors %}
-                        <small class="error nomargin">{{ form.days.errors }}</small>
-                    {% endif %}
-                </div>
             </div>
-
         </div>
     </form>
 

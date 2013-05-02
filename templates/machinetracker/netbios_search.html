@@ -23,21 +23,21 @@
 
                 </div>
 
-
-
                 <div class="large-2 column machinetracker-filter">
                     <div>
                         <label for="{{ form.dns.auto_id }}"
-                               title="{{ form.dns.help_text }}">{{ form.dns.label }}</label>
-                        {{ form.dns }}
+                               title="{{ form.dns.help_text }}">{{ form.dns.label }}
+                            {{ form.dns }}
+                        </label>
                     </div>
                 </div>
 
                 <div class="large-2 column machinetracker-filter">
                     <div class="machinetracker-filter-days">
                         <label for="{{ form.days.auto_id }}"
-                               title="{{ form.days.help_text }}">{{ form.days.label }}</label>
-                        {{ form.days }}
+                               title="{{ form.days.help_text }}">{{ form.days.label }}
+                            {{ form.days }}
+                        </label>
                     </div>
                     {% if form.days.errors %}
                         <small class="error nomargin">{{ form.days.errors }}</small>
