@@ -31,7 +31,7 @@ from nav.web.machinetracker import forms
 from nav.web.machinetracker.utils import ip_dict
 from nav.web.machinetracker.utils import process_ip_row, track_mac
 from nav.web.machinetracker.utils import (min_max_mac, ProcessInput,
-                                          normalize_ip_to_string, 
+                                          normalize_ip_to_string,
                                           get_last_job_log_from_netboxes)
 
 NAVBAR = [('Home', '/'), ('Machinetracker', None)]
@@ -49,7 +49,8 @@ ADDRESS_LIMIT = 4096  # Value for when inactive gets disabled
 
 
 def ip_search(request):
-    if request.GET.has_key('ip_range') or request.GET.has_key('prefixid'):
+    """Controller for ip search"""
+    if 'ip_range' in request.GET or 'prefixid' in request.GET:
         return ip_do_search(request)
     info_dict = {
         'form': forms.IpTrackerForm(),
@@ -63,6 +64,7 @@ def ip_search(request):
 
 
 def ip_do_search(request):
+    """Do a search based on form data"""
     input = ProcessInput(request.GET).ip()
     form = forms.IpTrackerForm(input)
     tracker = None
@@ -86,7 +88,7 @@ def ip_do_search(request):
 
         from_ip, to_ip = (ip_range[0], ip_range[-1])
 
-        if (to_ip.int()-from_ip.int()) > ADDRESS_LIMIT:
+        if (to_ip.int() - from_ip.int()) > ADDRESS_LIMIT:
             inactive = False
 
         from_time = date.today() - timedelta(days=days)
@@ -98,10 +100,10 @@ def ip_do_search(request):
             where=['ip BETWEEN %s and %s'],
             params=[unicode(from_ip), unicode(to_ip)]
         ).order_by('ip', 'mac', '-start_time')
-       
+
         # Get last ip2mac jobs on netboxes
         netboxes = get_last_job_log_from_netboxes(result, 'ip2mac')
-        
+
         # Flag rows overdue as fishy
         for row in result:
             if row.netbox in netboxes:
@@ -114,11 +116,11 @@ def ip_do_search(request):
             ip_range = [IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1)]
         else:
             ip_range = [key for key in ip_result]
-       
+
         if dns:
             ips_to_lookup = [str(ip) for ip in ip_range]
             dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
-        
+
         tracker = SortedDict()
 
         for ip_key in ip_range:
@@ -129,7 +131,7 @@ def ip_do_search(request):
                     row = process_ip_row(row, dns=False)
                     if dns:
                         if (isinstance(dns_lookups[ip], Exception)
-                            or not dns_lookups[ip]):
+                                or not dns_lookups[ip]):
                             row.dns_lookup = ""
                         else:
                             row.dns_lookup = dns_lookups[ip][0]
@@ -141,7 +143,8 @@ def ip_do_search(request):
                 row = {'ip': ip}
                 row['ip_int_value'] = normalize_ip_to_string(ip)
                 if dns:
-                    if dns_lookups[ip] and not isinstance(dns_lookups[ip], Exception):
+                    if dns_lookups[ip] and not isinstance(
+                            dns_lookups[ip], Exception):
                         row['dns_lookup'] = dns_lookups[ip][0]
                     else:
                         row['dns_lookup'] = ""
@@ -164,7 +167,7 @@ def ip_do_search(request):
         'display_no_results': display_no_results,
     }
     info_dict.update(IP_DEFAULTS)
-        
+
     return render_to_response(
         'machinetracker/ip_search.html',
         info_dict,
@@ -173,7 +176,8 @@ def ip_do_search(request):
 
 
 def mac_search(request):
-    if request.GET.has_key('mac'):
+    """Controller for mac search"""
+    if 'mac' in request.GET:
         return mac_do_search(request)
     info_dict = {
         'form': forms.MacTrackerForm()
@@ -187,6 +191,7 @@ def mac_search(request):
 
 
 def mac_do_search(request):
+    """Do a mac search based on form data"""
     input = ProcessInput(request.GET).mac()
     form = forms.MacTrackerForm(input)
     info_dict = {
@@ -196,7 +201,7 @@ def mac_do_search(request):
         'ip_tracker': None,
         'mac_tracker_count': 0,
         'ip_tracker_count': 0,
-        'disable_ip_context' : True,
+        'disable_ip_context': True,
     }
     if form.is_valid():
         mac = form.cleaned_data['mac']
@@ -212,7 +217,7 @@ def mac_do_search(request):
             where=['mac BETWEEN %s and %s'],
             params=[mac_min, mac_max]
         ).order_by('mac', 'sysname', 'module', 'port', '-start_time')
-        
+
         arp_result = Arp.objects.select_related('netbox').filter(
             end_time__gt=from_time,
             mac__range=(mac_min, mac_max)
@@ -258,7 +263,8 @@ def mac_do_search(request):
 
 
 def switch_search(request):
-    if request.GET.has_key('switch'):
+    """Controller for switch search"""
+    if 'switch' in request.GET:
         return switch_do_search(request)
     info_dict = {
         'form': forms.SwitchTrackerForm(),
@@ -272,6 +278,7 @@ def switch_search(request):
 
 
 def switch_do_search(request):
+    """Do a switch search based on form data"""
     input = ProcessInput(request.GET).swp()
     form = forms.SwitchTrackerForm(input)
     info_dict = {
@@ -295,12 +302,12 @@ def switch_do_search(request):
         if port_interface:
             try:
                 cam_with_ifindex = Cam.objects.filter(
-                        Q(sysname__istartswith=switch) |
-                        Q(netbox__sysname__istartswith=switch),
-                        end_time__gt=from_time,
-                        port=port_interface,
-                        **criteria
-                        ).values('ifindex')[0]
+                    Q(sysname__istartswith=switch) |
+                    Q(netbox__sysname__istartswith=switch),
+                    end_time__gt=from_time,
+                    port=port_interface,
+                    **criteria
+                ).values('ifindex')[0]
                 criteria['ifindex'] = cam_with_ifindex['ifindex']
             except IndexError:
                 criteria['port'] = port_interface
