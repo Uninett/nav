@@ -15,7 +15,6 @@
 #
 """Machine Tracker view functions"""
 
-import logging
 from IPy import IP
 from datetime import date, timedelta
 
@@ -47,7 +46,6 @@ NBT_DEFAULTS = {'title': NBT_TITLE, 'navpath': NAVBAR,
                 'active': {'netbios': True}}
 
 ADDRESS_LIMIT = 4096  # Value for when inactive gets disabled
-_logger = logging.getLogger('nav.web.machinetracker')
 
 
 def ip_search(request):
@@ -77,15 +75,19 @@ def ip_do_search(request):
         ip_range = form.cleaned_data['ip_range']
         dns = form.cleaned_data['dns']
         period_filter = form.cleaned_data['period_filter']
+        active = inactive = False
+        if period_filter in ['active', 'both']:
+            active = True
+        if period_filter in ['inactive', 'both']:
+            inactive = True
+
         days = form.cleaned_data['days']
         form_data = form.cleaned_data
 
-        _logger.debug(period_filter)
-
         from_ip, to_ip = (ip_range[0], ip_range[-1])
 
-        if (to_ip.int() - from_ip.int()) > ADDRESS_LIMIT:
-            period_filter = 'active'
+        if (to_ip.int()-from_ip.int()) > ADDRESS_LIMIT:
+            inactive = False
 
         from_time = date.today() - timedelta(days=days)
 
@@ -108,7 +110,7 @@ def ip_do_search(request):
 
         ip_result = ip_dict(result)
 
-        if period_filter in ['inactive','all']:
+        if inactive:
             ip_range = [IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1)]
         else:
             ip_range = [key for key in ip_result]
@@ -121,7 +123,7 @@ def ip_do_search(request):
 
         for ip_key in ip_range:
             ip = unicode(ip_key)
-            if period_filter in ['active', 'all'] and ip_key in ip_result:
+            if active and ip_key in ip_result:
                 rows = ip_result[ip_key]
                 for row in rows:
                     row = process_ip_row(row, dns=False)
@@ -135,8 +137,9 @@ def ip_do_search(request):
                     if (row.ip, row.mac) not in tracker:
                         tracker[(row.ip, row.mac)] = []
                     tracker[(row.ip, row.mac)].append(row)
-            elif period_filter == 'inactive' and ip_key not in ip_result:
-                row = {'ip': ip, 'ip_int_value': normalize_ip_to_string(ip)}
+            elif inactive and ip_key not in ip_result:
+                row = {'ip': ip}
+                row['ip_int_value'] = normalize_ip_to_string(ip)
                 if dns:
                     if dns_lookups[ip] and not isinstance(dns_lookups[ip], Exception):
                         row['dns_lookup'] = dns_lookups[ip][0]
