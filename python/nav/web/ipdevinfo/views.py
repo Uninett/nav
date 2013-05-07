@@ -560,8 +560,7 @@ def what_happens(request, netboxid):
     """Controller for the what happens tab in ipdevinfo"""
     netbox = Netbox.objects.get(pk=netboxid)
     netboxes = find_children(netbox)
-    contacts = list(set(find_contacts(netboxes)) |
-                    set(find_vlan_contacts(netboxes)))
+    contacts = find_contacts(netboxes)
 
     return render_to_response(
         'ipdevinfo/frag-what-happens.html', {
@@ -586,6 +585,17 @@ def find_children(netbox, netboxes=None):
     return netboxes
 
 
+def find_contacts(netboxes):
+    """Find all contact addresses for the netboxes"""
+    return filter_email(set(find_vlan_contacts(netboxes)) |
+                        set(find_netbox_contacts(netboxes)))
+
+
+def find_netbox_contacts(netboxes):
+    """Find direct contacts for the netboxes"""
+    return [n.organization.contact for n in netboxes if n.organization]
+
+
 def find_vlan_contacts(netboxes):
     """Find contacts for the vlans on the downlinks on the netboxes"""
     vlans = []
@@ -601,21 +611,27 @@ def find_vlan_contacts(netboxes):
     return [v.organization.contact for v in set(vlans) if v.organization]
 
 
-def find_contacts(netboxes):
-    """Find all contact addresses for the netboxes"""
-    contacts = [n.organization.contact for n in netboxes]
-    return filter_email(contacts)
-
-
-def filter_email(addresses):
+def filter_email(contacts):
     """Filter the list of addresses to make sure it's an email-address"""
     valid_emails = []
-    for address in addresses:
+    for contact in contacts:
         try:
-            validate_email(address)
+            validate_email(contact)
         except ValidationError:
-            pass
+            try:
+                extracted_email = extract_email(contact)
+                validate_email(extracted_email)
+            except ValidationError:
+                continue
+            else:
+                valid_emails.append(extracted_email)
         else:
-            valid_emails.append(address)
+            valid_emails.append(contact)
 
     return valid_emails
+
+
+def extract_email(contact):
+    """Extract an email address from the contact string"""
+    email = re.compile(r'(\b[\w.]+@+[\w.]+.+[\w.]\b)')
+    return email.search(contact).group()

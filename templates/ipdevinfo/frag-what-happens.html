@@ -1,1 +1,15 @@
-So, what
+
+<ul>
+    {% for netbox in netboxes %}
+    <li>
+        {{ netbox.sysname }} - {{ netbox.ip }}
+    </li>
+    {% endfor %}
+</ul>
+
+<ul>
+    {% for contact in contacts %}
+        <li>{{ contact }}</li>
+    {% endfor %}
+
+</ul>
