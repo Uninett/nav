@@ -22,6 +22,7 @@ import datetime as dt
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.core.validators import validate_email, ValidationError
 from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q
 from django.shortcuts import render_to_response, get_object_or_404
@@ -553,3 +554,68 @@ def service_matrix(request):
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
+
+
+def what_happens(request, netboxid):
+    """Controller for the what happens tab in ipdevinfo"""
+    netbox = Netbox.objects.get(pk=netboxid)
+    netboxes = find_children(netbox)
+    contacts = list(set(find_contacts(netboxes)) |
+                    set(find_vlan_contacts(netboxes)))
+
+    return render_to_response(
+        'ipdevinfo/frag-what-happens.html', {
+            'netboxes': netboxes,
+            'contacts': contacts
+        },
+        context_instance=RequestContext(request))
+
+
+def find_children(netbox, netboxes=None):
+    """Recursively find all children from this netbox"""
+    if not netboxes:
+        netboxes = []
+
+    interfaces = netbox.interface_set.filter(to_netbox__isnull=False,
+                                             swportvlan__direction='n')
+    for interface in interfaces:
+        if interface.to_netbox not in netboxes:
+            netboxes.append(interface.to_netbox)
+            find_children(interface.to_netbox, netboxes)
+
+    return netboxes
+
+
+def find_vlan_contacts(netboxes):
+    """Find contacts for the vlans on the downlinks on the netboxes"""
+    vlans = []
+    for netbox in netboxes:
+        interfaces = netbox.interface_set.filter(
+            to_netbox__isnull=False, swportvlan__direction='n',
+            swportvlan__vlan__organization__isnull=False)
+        for interface in interfaces:
+            vlans.extend([v.vlan
+                          for v in
+                          interface.swportvlan_set.exclude(vlan__in=vlans)])
+
+    return [v.organization.contact for v in set(vlans) if v.organization]
+
+
+def find_contacts(netboxes):
+    """Find all contact addresses for the netboxes"""
+    contacts = [n.organization.contact for n in netboxes]
+    return filter_email(contacts)
+
+
+def filter_email(addresses):
+    """Filter the list of addresses to make sure it's an email-address"""
+    valid_emails = []
+    for address in addresses:
+        try:
+            validate_email(address)
+        except ValidationError:
+            pass
+        else:
+            valid_emails.append(address)
+
+    return valid_emails
