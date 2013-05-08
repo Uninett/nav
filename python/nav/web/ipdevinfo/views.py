@@ -567,7 +567,7 @@ def affected(request, netboxid):
     services = Service.objects.filter(netbox__in=netboxes).order_by('netbox')
 
     return render_to_response(
-        'ipdevinfo/frag-what-happens.html', {
+        'ipdevinfo/frag-affected.html', {
             'netboxes': network_equipment,
             'servers': servers,
             'services': services,
