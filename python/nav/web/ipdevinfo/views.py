@@ -561,7 +561,8 @@ def affected(request, netboxid):
     # Sort on sysname, then category.id
     netboxes = sorted(utils.find_children(netbox),
                       key=attrgetter('category.id', 'sysname'))
-    contacts = utils.find_contacts(netboxes)
+    organizations = utils.find_organizations(netboxes)
+    contacts = utils.filter_email(organizations)
 
     services = Service.objects.filter(netbox__in=netboxes).order_by('netbox')
 
@@ -569,6 +570,7 @@ def affected(request, netboxid):
         'ipdevinfo/frag-affected.html', {
             'netboxes': netboxes,
             'services': services,
+            'organizations': organizations,
             'contacts': contacts
         },
         context_instance=RequestContext(request))

@@ -15,7 +15,6 @@
 #
 """Utility methods to get extract extra characteristics from ports."""
 
-import re
 import nav.util
 import logging
 
@@ -310,18 +309,18 @@ def find_children(netbox, netboxes=None):
     return netboxes
 
 
-def find_contacts(netboxes):
+def find_organizations(netboxes):
     """Find all contact addresses for the netboxes"""
-    return filter_email(set(find_vlan_contacts(netboxes)) |
-                        set(find_netbox_contacts(netboxes)))
+    return (set(find_vlan_organizations(netboxes)) |
+            set(find_netbox_organizations(netboxes)))
 
 
-def find_netbox_contacts(netboxes):
+def find_netbox_organizations(netboxes):
     """Find direct contacts for the netboxes"""
-    return [n.organization.contact for n in netboxes if n.organization]
+    return [n.organization for n in netboxes if n.organization]
 
 
-def find_vlan_contacts(netboxes):
+def find_vlan_organizations(netboxes):
     """Find contacts for the vlans on the downlinks on the netboxes"""
     vlans = []
     for netbox in netboxes:
@@ -333,17 +332,17 @@ def find_vlan_contacts(netboxes):
                           for v in
                           interface.swportvlan_set.exclude(vlan__in=vlans)])
 
-    return [v.organization.contact for v in set(vlans) if v.organization]
+    return [v.organization for v in set(vlans) if v.organization]
 
 
-def filter_email(contacts):
+def filter_email(organizations):
     """Filter the list of addresses to make sure it's an email-address"""
     valid_emails = []
-    for contact in contacts:
+    for organization in organizations:
         try:
-            validate_email(contact)
+            validate_email(organization.contact)
         except ValidationError:
-            for extracted_email in extract_emails(contact):
+            for extracted_email in organization.extract_emails():
                 try:
                     validate_email(extracted_email)
                 except ValidationError:
@@ -351,12 +350,6 @@ def filter_email(contacts):
                 else:
                     valid_emails.append(extracted_email)
         else:
-            valid_emails.append(contact)
+            valid_emails.append(organization.contact)
 
     return list(set(valid_emails))
-
-
-def extract_emails(contact):
-    """Naively extract email addresses from the contact string"""
-    contact = contact if contact else ""
-    return re.findall(r'(\b[\w.]+@[\w.]+\b)', contact)

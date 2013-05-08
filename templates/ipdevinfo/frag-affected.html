@@ -1,5 +1,3 @@
-<h2>Affected</h2>
-
 <p>
     If this ip-device stops working the following will likely be affected.
 </p>
@@ -17,10 +15,10 @@
     {% endif %}
 
     {% if contacts %}
-        <h3>CONTACTS</h3>
+        <h3>ORGANIZATIONS</h3>
         <ul>
-        {% for contact in contacts %}
-            <li>{{ contact }}</li>
+        {% for organization in organizations %}
+            <li>{{ organization }} - {{ organization.contact }}</li>
         {% endfor %}
         </ul>
         <br/>
@@ -28,7 +26,7 @@
     {% endif %}
 
     <form action="mailto:{{ contacts|join:"," }}">
-        <input type="submit" value="Send mail to contacts">
+        <input type="submit" value="Send mail to affected organizations">
     </form>
 
 </div>
