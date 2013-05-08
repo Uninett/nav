@@ -15,8 +15,11 @@
 #
 """Utility methods to get extract extra characteristics from ports."""
 
+import re
 import nav.util
 import logging
+
+from django.core.validators import validate_email, ValidationError
 
 from nav.models.manage import SwPortVlan, SwPortBlocked
 from nav.models.manage import Netbox
@@ -290,3 +293,70 @@ def _get_gwportstatus_title(gwport):
         pass
 
     return ', '.join(title)
+
+
+def find_children(netbox, netboxes=None):
+    """Recursively find all children from this netbox"""
+    if not netboxes:
+        netboxes = []
+
+    interfaces = netbox.interface_set.filter(to_netbox__isnull=False,
+                                             swportvlan__direction='n')
+    for interface in interfaces:
+        if interface.to_netbox not in netboxes:
+            netboxes.append(interface.to_netbox)
+            find_children(interface.to_netbox, netboxes)
+
+    return netboxes
+
+
+def find_contacts(netboxes):
+    """Find all contact addresses for the netboxes"""
+    return filter_email(set(find_vlan_contacts(netboxes)) |
+                        set(find_netbox_contacts(netboxes)))
+
+
+def find_netbox_contacts(netboxes):
+    """Find direct contacts for the netboxes"""
+    return [n.organization.contact for n in netboxes if n.organization]
+
+
+def find_vlan_contacts(netboxes):
+    """Find contacts for the vlans on the downlinks on the netboxes"""
+    vlans = []
+    for netbox in netboxes:
+        interfaces = netbox.interface_set.filter(
+            to_netbox__isnull=False, swportvlan__direction='n',
+            swportvlan__vlan__organization__isnull=False)
+        for interface in interfaces:
+            vlans.extend([v.vlan
+                          for v in
+                          interface.swportvlan_set.exclude(vlan__in=vlans)])
+
+    return [v.organization.contact for v in set(vlans) if v.organization]
+
+
+def filter_email(contacts):
+    """Filter the list of addresses to make sure it's an email-address"""
+    valid_emails = []
+    for contact in contacts:
+        try:
+            validate_email(contact)
+        except ValidationError:
+            try:
+                extracted_email = extract_email(contact)
+                validate_email(extracted_email)
+            except ValidationError:
+                continue
+            else:
+                valid_emails.append(extracted_email)
+        else:
+            valid_emails.append(contact)
+
+    return valid_emails
+
+
+def extract_email(contact):
+    """Extract an email address from the contact string"""
+    email = re.compile(r'(\b[\w.]+@+[\w.]+.+[\w.]\b)')
+    return email.search(contact).group()
