@@ -343,20 +343,19 @@ def filter_email(contacts):
         try:
             validate_email(contact)
         except ValidationError:
-            try:
-                extracted_email = extract_email(contact)
-                validate_email(extracted_email)
-            except ValidationError:
-                continue
-            else:
-                valid_emails.append(extracted_email)
+            for extracted_email in extract_emails(contact):
+                try:
+                    validate_email(extracted_email)
+                except ValidationError:
+                    continue
+                else:
+                    valid_emails.append(extracted_email)
         else:
             valid_emails.append(contact)
 
-    return valid_emails
+    return list(set(valid_emails))
 
 
-def extract_email(contact):
-    """Extract an email address from the contact string"""
-    email = re.compile(r'(\b[\w.]+@+[\w.]+.+[\w.]\b)')
-    return email.search(contact).group()
+def extract_emails(contact):
+    """Naively extract email addresses from the contact string"""
+    return re.findall(r'(\b[\w.]+@[\w.]+\b)', contact)
