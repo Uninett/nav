@@ -1,15 +1,45 @@
 
-<ul>
-    {% for netbox in netboxes %}
-    <li>
-        {{ netbox.sysname }} - {{ netbox.ip }}
-    </li>
-    {% endfor %}
-</ul>
+<h2>Equipment affected</h2>
 
-<ul>
-    {% for contact in contacts %}
-        <li>{{ contact }}</li>
-    {% endfor %}
+<p>
+    If this netbox stops working this will affect the following equipment
+</p>
 
-</ul>
+<div id="whathappens">
+
+    {% if netboxes %}
+        <h3>ROUTERS AND SWITCHES</h3>
+        <ul>
+            {% for netbox in netboxes %}
+                <li>{{ netbox }}</li>
+            {% endfor %}
+        </ul>
+        <br/>
+    {% endif %}
+
+
+    {% if servers %}
+        <h3>SERVERS</h3>
+        <ul>
+            {% for server in servers %}
+                <li>{{ server }}</li>
+            {% endfor %}
+        </ul>
+        <br/>
+    {% endif %}
+
+
+    {% if services %}
+        <h3>SERVICES</h3>
+        <ul>
+        {% for service in services %}
+            <li>{{ service }}</li>
+        {% endfor %}
+        </ul>
+        <br/>
+
+    {% endif %}
+
+</div>
+
+<button id="copyaffected">Copy</button>

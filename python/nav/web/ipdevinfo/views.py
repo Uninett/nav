@@ -562,9 +562,16 @@ def what_happens(request, netboxid):
     netboxes = find_children(netbox)
     contacts = find_contacts(netboxes)
 
+    network_equipment = [n for n in netboxes if any(
+        [n.category.is_sw(), n.category.is_gw(), n.category.is_gsw()])]
+    servers = [n for n in netboxes if n.category.is_srv()]
+    services = Service.objects.filter(netbox__in=netboxes)
+
     return render_to_response(
         'ipdevinfo/frag-what-happens.html', {
-            'netboxes': netboxes,
+            'netboxes': network_equipment,
+            'servers': servers,
+            'services': services,
             'contacts': contacts
         },
         context_instance=RequestContext(request))
