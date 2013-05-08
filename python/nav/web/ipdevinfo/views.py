@@ -556,8 +556,8 @@ def service_matrix(request):
             processors=[search_form_processor]))
 
 
-def what_happens(request, netboxid):
-    """Controller for the what happens tab in ipdevinfo"""
+def affected(request, netboxid):
+    """Controller for the affected tab in ipdevinfo"""
     netbox = Netbox.objects.get(pk=netboxid)
     netboxes = find_children(netbox)
     contacts = find_contacts(netboxes)

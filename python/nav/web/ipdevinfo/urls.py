@@ -20,7 +20,7 @@ from django.conf.urls.defaults import url, patterns
 
 from nav.web.ipdevinfo.views import search, service_list, service_matrix
 from nav.web.ipdevinfo.views import (ipdev_details, module_details,
-                                     port_details, get_port_view, what_happens)
+                                     port_details, get_port_view, affected)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
@@ -62,6 +62,6 @@ urlpatterns = patterns('',
     ),
 
     # What happens if the device goes down
-    url(r'(?P<netboxid>\d+)/what-happens', what_happens,
-        name="ipdevinfo-what-happens")
+    url(r'(?P<netboxid>\d+)/affected', affected,
+        name="ipdevinfo-affected")
 )
