@@ -558,18 +558,16 @@ def service_matrix(request):
 def affected(request, netboxid):
     """Controller for the affected tab in ipdevinfo"""
     netbox = Netbox.objects.get(pk=netboxid)
-    netboxes = sorted(utils.find_children(netbox), key=attrgetter('sysname'))
+    # Sort on sysname, then category.id
+    netboxes = sorted(utils.find_children(netbox),
+                      key=attrgetter('category.id', 'sysname'))
     contacts = utils.find_contacts(netboxes)
 
-    network_equipment = [n for n in netboxes if any(
-        [n.category.is_sw(), n.category.is_gw(), n.category.is_gsw()])]
-    servers = [n for n in netboxes if n.category.is_srv()]
     services = Service.objects.filter(netbox__in=netboxes).order_by('netbox')
 
     return render_to_response(
         'ipdevinfo/frag-affected.html', {
-            'netboxes': network_equipment,
-            'servers': servers,
+            'netboxes': netboxes,
             'services': services,
             'contacts': contacts
         },
