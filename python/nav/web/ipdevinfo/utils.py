@@ -358,4 +358,5 @@ def filter_email(contacts):
 
 def extract_emails(contact):
     """Naively extract email addresses from the contact string"""
+    contact = contact if contact else ""
     return re.findall(r'(\b[\w.]+@[\w.]+\b)', contact)
