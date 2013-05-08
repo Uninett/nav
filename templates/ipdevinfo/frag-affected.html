@@ -1,7 +1,7 @@
 <h2>Affected</h2>
 
 <p>
-    If this netbox stops working this will affect the following
+    If this ip-device stops working the following will likely be affected.
 </p>
 
 <div id="affected">
@@ -39,6 +39,19 @@
 
     {% endif %}
 
-</div>
+    {% if contacts %}
+        <h3>CONTACTS</h3>
+        <ul>
+        {% for contact in contacts %}
+            <li>{{ contact }}</li>
+        {% endfor %}
+        </ul>
+        <br/>
 
-<a href="mailto:{{ contacts|join:"," }}">Send mail</a>
+    {% endif %}
+
+    <form action="mailto:{{ contacts|join:"," }}">
+        <input type="submit" value="Send mail to contacts">
+    </form>
+
+</div>
