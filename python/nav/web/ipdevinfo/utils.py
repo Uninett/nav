@@ -298,7 +298,7 @@ def _get_gwportstatus_title(gwport):
 def find_children(netbox, netboxes=None):
     """Recursively find all children from this netbox"""
     if not netboxes:
-        netboxes = []
+        netboxes = [netbox]
 
     interfaces = netbox.interface_set.filter(
         to_netbox__isnull=False,
