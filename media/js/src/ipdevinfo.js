@@ -32,7 +32,10 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
     }
 
     function addMainTabs() {
-        var tabs = $(mainTabsSelector).tabs();
+        var tabs = $(mainTabsSelector).tabs({
+            cache: true,
+            spinner: '<img src="/images/main/process-working.gif">'
+        });
         markErrorTabs(tabs);
         tabs.show();
         TabNavigation.add(mainTabsSelector);
