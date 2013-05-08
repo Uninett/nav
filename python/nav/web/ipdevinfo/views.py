@@ -558,7 +558,6 @@ def service_matrix(request):
 def affected(request, netboxid):
     """Controller for the affected tab in ipdevinfo"""
     netbox = Netbox.objects.get(pk=netboxid)
-    # Sort on sysname, then category.id
     netboxes = sorted(utils.find_children(netbox),
                       key=attrgetter('category.id', 'sysname'))
     organizations = utils.find_organizations(netboxes)
