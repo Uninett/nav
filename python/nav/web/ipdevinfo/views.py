@@ -14,11 +14,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Views for ipdevinfo"""
-
 import IPy
 import re
 import logging
 import datetime as dt
+from operator import attrgetter
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -558,13 +558,13 @@ def service_matrix(request):
 def affected(request, netboxid):
     """Controller for the affected tab in ipdevinfo"""
     netbox = Netbox.objects.get(pk=netboxid)
-    netboxes = utils.find_children(netbox)
+    netboxes = sorted(utils.find_children(netbox), key=attrgetter('sysname'))
     contacts = utils.find_contacts(netboxes)
 
     network_equipment = [n for n in netboxes if any(
         [n.category.is_sw(), n.category.is_gw(), n.category.is_gsw()])]
     servers = [n for n in netboxes if n.category.is_srv()]
-    services = Service.objects.filter(netbox__in=netboxes)
+    services = Service.objects.filter(netbox__in=netboxes).order_by('netbox')
 
     return render_to_response(
         'ipdevinfo/frag-what-happens.html', {
