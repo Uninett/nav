@@ -17,10 +17,11 @@
 
 import nav.util
 import logging
+from datetime import datetime
 
 from django.core.validators import validate_email, ValidationError
 
-from nav.models.manage import SwPortVlan, SwPortBlocked
+from nav.models.manage import SwPortVlan, SwPortBlocked, Cam
 from nav.models.manage import Netbox
 
 _logger = logging.getLogger('nav.web.ipdevinfo.utils')
@@ -355,3 +356,9 @@ def filter_email(organizations):
             valid_emails.append(organization.contact)
 
     return list(set(valid_emails))
+
+
+def get_affected_host_count(netboxes):
+    """Return the total number of active hosts on the netboxes"""
+    return Cam.objects.filter(netbox__in=netboxes,
+                              end_time__gte=datetime.max).count()

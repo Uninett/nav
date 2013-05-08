@@ -562,14 +562,15 @@ def affected(request, netboxid):
                       key=attrgetter('category.id', 'sysname'))
     organizations = utils.find_organizations(netboxes)
     contacts = utils.filter_email(organizations)
-
     services = Service.objects.filter(netbox__in=netboxes).order_by('netbox')
+    affected_hosts = utils.get_affected_host_count(netboxes)
 
     return render_to_response(
         'ipdevinfo/frag-affected.html', {
             'netboxes': netboxes,
             'services': services,
             'organizations': organizations,
-            'contacts': contacts
+            'contacts': contacts,
+            'affected_hosts': affected_hosts
         },
         context_instance=RequestContext(request))

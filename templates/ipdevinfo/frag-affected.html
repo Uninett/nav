@@ -5,13 +5,19 @@
 <div id="affected">
 
     {% if netboxes %}
+
         <h3>IP-DEVICES</h3>
         <ul>
             {% for netbox in netboxes %}
                 <li>{{ netbox }} ({{ netbox.category.id }})</li>
             {% endfor %}
         </ul>
+
+        <h3>Affected hosts</h3>
+        {{ affected_hosts }} active hosts/users
+
         <br/>
+
     {% endif %}
 
     {% if contacts %}
