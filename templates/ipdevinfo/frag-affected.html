@@ -9,7 +9,7 @@
         <h3>IP-DEVICES</h3>
         <ul>
             {% for netbox in netboxes %}
-                <li>{{ netbox }} ({{ netbox.category.id }})</li>
+                <li><a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a> ({{ netbox.category.id }})</li>
             {% endfor %}
         </ul>
 
