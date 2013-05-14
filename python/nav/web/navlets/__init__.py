@@ -26,14 +26,17 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.views.generic.base import TemplateView
 
+from nav.models.profiles import AccountNavlet
+from nav.django.utils import get_account
 
-NavletContainer = namedtuple('NavletContainer', 'id url')
+NavletContainer = namedtuple('NavletContainer', 'id title description url')
 
 
 class Navlet(TemplateView):
     """Base class for navlets"""
 
     title = 'Navlet'
+    description = 'No description'
     is_editable = False
 
     def get_template_names(self):
@@ -53,25 +56,48 @@ class Navlet(TemplateView):
 
 
 def list_navlets(request):
+    """Give a response with all navlets"""
+    return HttpResponse(simplejson.dumps(get_navlets()))
+
+
+def get_navlets():
+    """Get all navlets"""
     navlets = []
+
     for navletmodule in settings.NAVLETS:
         lastmod, clsname = navletmodule.split('.')[-2:]
         module = __import__(navletmodule[:navletmodule.rfind('.')],
                             fromlist=[lastmod])
         cls = getattr(module, clsname)
         navlets.append(NavletContainer(cls.__name__,
+                                       cls.title,
+                                       cls.description,
                                        reverse('navlet-%s' % cls.base)))
-
-    return HttpResponse(simplejson.dumps(navlets))
-
-
-def get_user_navlets(request, user):
-    pass
+    return navlets
 
 
-def add_navlet_to_user(request, user, navlet):
-    pass
+def get_user_navlets(request):
+    """Fetch all navlets that this user subscribes to"""
+    account = get_account(request)
+    navlets = AccountNavlet.objects.filter(account=account)
+    if navlets:
+        return HttpResponse(simplejson.dumps(navlets))
+    else:
+        return HttpResponse()
 
 
-def remove_navlet_from_user(request, user, navlet):
-    pass
+def add_navlet_to_user(request):
+    """Add a navlet subscription to this user"""
+    if request.method == 'POST' and 'navlet' in request.POST:
+        account = get_account(request)
+        accountnavlet = AccountNavlet(account=account,
+                                      navlet=request.POST.get('navlet'))
+        accountnavlet.save()
+
+    return HttpResponse()
+
+
+def remove_navlet_from_user(request, navletid):
+    """Remove a navlet-subscription from this user"""
+    if request.method == 'POST' and 'navletid' in request.POST:
+        account = get_account(request)

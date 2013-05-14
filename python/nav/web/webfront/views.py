@@ -36,6 +36,7 @@ from nav.web.templates.DjangoCheetah import DjangoCheetah
 from nav.web import ldapauth, auth
 from nav.web.webfront.utils import quick_read, current_messages, boxes_down, tool_list
 from nav.web.webfront.forms import LoginForm, NavbarForm, PersonalNavbarForm
+from nav.web.navlets import get_navlets
 
 import simplejson
 import logging
@@ -80,6 +81,7 @@ def index(request):
             'current_messages': current_messages(),
             'boxes_down': down,
             'num_shadow': num_shadow,
+            'navlets': get_navlets(),
             'title': 'Welcome to NAV',
         }
     )

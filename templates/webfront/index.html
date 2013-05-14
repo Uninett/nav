@@ -23,7 +23,27 @@
 
         <div id="webfrontmain">
 
-            <div id="navlets" data-list-navlets="{% url list-navlets %}"></div>
+            <div id="navlets" data-list-navlets="{% url get-user-navlets %}"></div>
+            <a href="#" data-reveal-id="navlet-list" class="button">Add new Navlet</a>
+            <div id="navlet-list" class="reveal-modal">
+                <h4>Add a navlet to your page</h4>
+                <table class="expand">
+                    {% for navlet in navlets %}
+                        <tbody>
+                        <tr>
+                            <td>{{ navlet.title }}</td>
+                            <td>{{ navlet.description }}</td>
+                            <td>
+                                <button class="button tiny"
+                                        data-id="{{ navlet.id }}">Add
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    {% endfor %}
+                </table>
+
+            </div>
 
 {% comment %}
             {% endcomment %}

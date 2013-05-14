@@ -16,13 +16,14 @@
 """Module comment"""
 
 from django.conf.urls import patterns, include, url
-from . import list_navlets
+from . import list_navlets, get_user_navlets
 from .portadmin import NavletPortadmin
 from .machinetracker import MachineTrackerNavlet
 from .status import StatusNavlet
 
 urlpatterns = patterns('',
     url(r'^list-navlets/', list_navlets, name='list-navlets'),
+    url(r'^get-user-navlets/', get_user_navlets, name='get-user-navlets'),
     url(r'^portadmin/', NavletPortadmin.as_view(),
         name='navlet-portadmin'),
     url(r'^machinetracker/', MachineTrackerNavlet.as_view(),
