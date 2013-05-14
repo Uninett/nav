@@ -1353,3 +1353,17 @@ class AccountTool(models.Model):
 
     class Meta:
         db_table = u'accounttool'
+
+
+class AccountNavlet(models.Model):
+    """Store information about a users navlets"""
+    navlet = VarcharField()
+    order = models.IntegerField(default=0, db_column='displayorder')
+    account = models.ForeignKey(Account, db_column='account')
+    options = VarcharField(null=True)
+
+    def __unicode__(self):
+        return "%s - %s" % (self.navlet, self.account)
+
+    class Meta:
+        db_table = 'account_navlet'
