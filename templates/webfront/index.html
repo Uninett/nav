@@ -22,14 +22,7 @@
 
         <div id="webfrontmain">
 
-            <div id="navlets">
-                <div class="navlet" data-navlet="machinetracker">
-
-                </div>
-                <div class="navlet" data-navlet="status">
-
-                </div>
-            </div>
+            <div id="navlets" data-list-navlets="{% url list-navlets %}"></div>
 
             {% comment %} MESSAGES {% endcomment %}
             {% if current_messages %}

@@ -28,5 +28,5 @@ urlpatterns = patterns('',
     url(r'^machinetracker/', MachineTrackerNavlet.as_view(),
         name='navlet-machinetracker'),
     url(r'^status/', StatusNavlet.as_view(),
-        name='navlet-machinetracker')
+        name='navlet-status')
 )

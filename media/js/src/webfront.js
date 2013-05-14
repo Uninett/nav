@@ -1,6 +1,6 @@
 require(['plugins/room_mapper', 'libs/jquery'], function (RoomMapper) {
 
-    $(function () {
+    function addRoomMap() {
         var mapper_node = $('#room_map');
         var wrapper = mapper_node.parent('.mapwrapper');
         if (mapper_node.length > 0) {
@@ -11,6 +11,36 @@ require(['plugins/room_mapper', 'libs/jquery'], function (RoomMapper) {
                 }
             });
         }
+    }
+
+    function fetchNavlets() {
+        var $container = $('#navlets'),
+            url = $container.attr('data-list-navlets');
+
+        $.getJSON(url, function (data) {
+            var navlets = data, i, l;
+            for (i=0, l=data.length; i<l; i++) {
+                appendNavlet($container, data[i]);
+            }
+        });
+    }
+
+    function appendNavlet($container, navlet) {
+        console.log(navlet);
+        var $div = $('<div/>');
+        $div.attr({
+            'data-id': navlet.id,
+            'class': 'navlet'
+        });
+        $.get(navlet.url, function (html) {
+            $container.append($div.html(html));
+        });
+
+    }
+
+    $(function () {
+        addRoomMap();
+        fetchNavlets();
     });
 
 });

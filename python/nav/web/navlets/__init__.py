@@ -19,9 +19,15 @@ NAVLET_MODE_VIEW = 'VIEW'
 NAVLET_MODE_EDIT = 'EDIT'
 
 import simplejson
+from collections import namedtuple
+
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.views.generic.base import TemplateView
+
+
+NavletContainer = namedtuple('NavletContainer', 'id url')
 
 
 class Navlet(TemplateView):
@@ -51,9 +57,11 @@ def list_navlets(request):
         lastmod, clsname = navletmodule.split('.')[-2:]
         module = __import__(navletmodule[:navletmodule.rfind('.')],
                             fromlist=[lastmod])
-        navlets.append(getattr(module, clsname))
+        cls = getattr(module, clsname)
+        navlets.append(NavletContainer(cls.__name__,
+                                       reverse('navlet-%s' % cls.base)))
 
-    return HttpResponse(simplejson.dumps([n.__name__ for n in navlets]))
+    return HttpResponse(simplejson.dumps(navlets))
 
 
 def get_user_navlets(request, user):
