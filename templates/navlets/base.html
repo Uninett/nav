@@ -1,3 +1,14 @@
+{% if navlet.is_editable %}
+    <div class="navlet-mode-switch button tiny right" data-mode="{{ navlet.mode }}">
+        {% if navlet.mode == 'VIEW' %}
+            Edit
+        {% else %}
+            View
+        {% endif %}
+    </div>
+{% endif %}
+
+
 <h3>{{ navlet.title }}</h3>
 
 {% block navlet-content %}

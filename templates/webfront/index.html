@@ -2,6 +2,7 @@
 
 {% block base_header_additional_head %}
     <link rel="stylesheet" href="/style/index.css" />
+    <link rel="stylesheet" href="/style/navlets.css" />
     <script>require(["src/webfront"]);</script>
 {% endblock %}
 
@@ -24,7 +25,10 @@
 
             <div id="navlets" data-list-navlets="{% url list-navlets %}"></div>
 
-            {% comment %} MESSAGES {% endcomment %}
+{% comment %}
+            {% endcomment %}
+{% comment %} MESSAGES {% endcomment %}{% comment %}
+
             {% if current_messages %}
                 <table class="listtable expand">
                     <caption>
@@ -60,7 +64,9 @@
                 </table>
             {% endif %}
 
-            {% comment %} STATUS NOW {% endcomment %}
+            {% endcomment %}
+{% comment %} STATUS NOW {% endcomment %}{% comment %}
+
             {% if boxes_down %}
                 <table class="listtable expand table-hover">
 
@@ -95,6 +101,7 @@
                     </tbody>
                 </table>
             {% endif %}
+{% endcomment %}
 
         </div>
 

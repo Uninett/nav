@@ -2,11 +2,21 @@
 
 {% block navlet-content %}
 
-    <form action="" method="post">
-        <input type="text" name="from_ip" value="Steigen">
-        <input type="text" name="days" value="7">
-        <input type="checkbox" name="dns">
-        <input type="submit" value="Search">
+    <form action="{% url navlet-machinetracker %}" method="post">
+        <div class="row">
+            <div class="large-7 column">
+                <input type="text" name="from_ip" placeholder="IP-address">
+            </div>
+            <div class="large-2 column">
+                <input type="text" name="days" value="7">
+            </div>
+            <div class="large-1 column">
+                <input type="checkbox" name="dns">Dns
+            </div>
+            <div class="large-2 column">
+                <input type="submit" value="Search" class="button small">
+            </div>
+        </div>
     </form>
 
 {% endblock %}

@@ -34,13 +34,14 @@ class Navlet(TemplateView):
     """Base class for navlets"""
 
     title = 'Navlet'
+    is_editable = False
 
     def get_template_names(self):
         """Get template name based on navlet mode"""
-        mode = self.request.GET.get('mode', NAVLET_MODE_VIEW)
-        if mode == NAVLET_MODE_VIEW:
+        self.mode = self.request.GET.get('mode', NAVLET_MODE_VIEW)
+        if self.mode == NAVLET_MODE_VIEW:
             return 'navlets/%s_view.html' % self.base
-        elif mode == NAVLET_MODE_EDIT:
+        elif self.mode == NAVLET_MODE_EDIT:
             return 'navlets/%s_edit.html' % self.base
         else:
             return 'navlets/%s_view.html' % self.base

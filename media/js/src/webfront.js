@@ -1,4 +1,4 @@
-require(['plugins/room_mapper', 'libs/jquery'], function (RoomMapper) {
+require(['plugins/room_mapper', 'plugins/navlet_controller', 'libs/jquery'], function (RoomMapper, NavletController) {
 
     function addRoomMap() {
         var mapper_node = $('#room_map');
@@ -20,22 +20,9 @@ require(['plugins/room_mapper', 'libs/jquery'], function (RoomMapper) {
         $.getJSON(url, function (data) {
             var navlets = data, i, l;
             for (i=0, l=data.length; i<l; i++) {
-                appendNavlet($container, data[i]);
+                var controller = new NavletController($container, data[i]);
             }
         });
-    }
-
-    function appendNavlet($container, navlet) {
-        console.log(navlet);
-        var $div = $('<div/>');
-        $div.attr({
-            'data-id': navlet.id,
-            'class': 'navlet'
-        });
-        $.get(navlet.url, function (html) {
-            $container.append($div.html(html));
-        });
-
     }
 
     $(function () {

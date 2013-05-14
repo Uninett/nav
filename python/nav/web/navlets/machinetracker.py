@@ -24,6 +24,7 @@ class MachineTrackerNavlet(Navlet):
 
     title = "MachineTracker"
     base = "machinetracker"
+    is_editable = True
 
     def post(self, request):
         return redirect('machinetracker-ip_short_search', **{
