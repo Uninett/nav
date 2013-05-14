@@ -18,6 +18,9 @@
 NAVLET_MODE_VIEW = 'VIEW'
 NAVLET_MODE_EDIT = 'EDIT'
 
+import simplejson
+from django.conf import settings
+from django.http import HttpResponse
 from django.views.generic.base import TemplateView
 
 
@@ -40,3 +43,26 @@ class Navlet(TemplateView):
         context = super(Navlet, self).get_context_data(**kwargs)
         context['navlet'] = self
         return context
+
+
+def list_navlets(request):
+    navlets = []
+    for navletmodule in settings.NAVLETS:
+        lastmod, clsname = navletmodule.split('.')[-2:]
+        module = __import__(navletmodule[:navletmodule.rfind('.')],
+                            fromlist=[lastmod])
+        navlets.append(getattr(module, clsname))
+
+    return HttpResponse(simplejson.dumps([n.__name__ for n in navlets]))
+
+
+def get_user_navlets(request, user):
+    pass
+
+
+def add_navlet_to_user(request, user, navlet):
+    pass
+
+
+def remove_navlet_from_user(request, user, navlet):
+    pass

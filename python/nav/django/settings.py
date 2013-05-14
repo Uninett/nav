@@ -115,3 +115,8 @@ DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
 # Cache backend. Used only for report subsystem in NAV 3.5.
 # FIXME: Make this configurable in nav.conf (or possibly webfront.conf)
 CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'	
+
+NAVLETS = (
+    'nav.web.navlets.machinetracker.MachineTrackerNavlet',
+    'nav.web.navlets.status.StatusNavlet',
+)
