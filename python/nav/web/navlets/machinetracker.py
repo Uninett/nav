@@ -11,17 +11,23 @@
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 # FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.  You should have received a copy of the GNU General Public
-# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>
 #
-"""Module comment"""
+"""Machinetracker navlet"""
 
-from django.conf.urls import patterns, include, url
-from .portadmin import NavletPortadmin
-from .machinetracker import MachineTrackerNavlet
+from nav.web.navlets import Navlet
+from django.shortcuts import redirect
 
-urlpatterns = patterns('',
-    url(r'^portadmin/', NavletPortadmin.as_view(),
-        name='navlet-portadmin'),
-    url(r'^machinetracker/', MachineTrackerNavlet.as_view(),
-        name='navlet-machinetracker')
-)
+
+class MachineTrackerNavlet(Navlet):
+    """Controller for machinetracker navlet"""
+
+    title = "MachineTracker"
+    base = "machinetracker"
+
+    def post(self, request):
+        return redirect('machinetracker-ip_short_search', **{
+            'from_ip': request.POST.get('from_ip'),
+            'days': int(request.POST.get('days', 7)),
+            'dns': request.POST.get('dns', '')
+        })
