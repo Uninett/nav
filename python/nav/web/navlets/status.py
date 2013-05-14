@@ -13,18 +13,13 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Module comment"""
+"""Status navlet"""
 
-from django.conf.urls import patterns, include, url
-from .portadmin import NavletPortadmin
-from .machinetracker import MachineTrackerNavlet
-from .status import StatusNavlet
+from nav.web.navlets import Navlet
 
-urlpatterns = patterns('',
-    url(r'^portadmin/', NavletPortadmin.as_view(),
-        name='navlet-portadmin'),
-    url(r'^machinetracker/', MachineTrackerNavlet.as_view(),
-        name='navlet-machinetracker'),
-    url(r'^status/', StatusNavlet.as_view(),
-        name='navlet-machinetracker')
-)
+
+class StatusNavlet(Navlet):
+    """Navlet for displaying status"""
+
+    title = "Status"
+    base = "status"
