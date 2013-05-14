@@ -22,14 +22,24 @@ from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
 from pprint import pformat
 
-COUNTERS = (
+OCTET_COUNTERS = (
+    "ifInOctets",
+    "ifOutOctets",
+)
+
+HC_OCTET_COUNTERS = (
     "ifHCInOctets",
     "ifHCOutOctets",
+)
+
+OTHER_COUNTERS = (
     "ifInErrors",
     "ifOutErrors",
     "ifInUcastPkts",
     "ifOutUcastPkts",
 )
+
+USED_COUNTERS = OCTET_COUNTERS + OTHER_COUNTERS
 
 
 class StatPorts(Plugin):
@@ -44,7 +54,8 @@ class StatPorts(Plugin):
     @defer.inlineCallbacks
     def _get_stats(self):
         mib = IfMib(self.agent)
-        stats = yield mib.retrieve_columns(("ifName", "ifDescr") + COUNTERS)
+        stats = yield mib.retrieve_columns(("ifName", "ifDescr") +
+                                           USED_COUNTERS)
         defer.returnValue(reduce_index(stats))
 
     def _make_metrics(self, stats):
@@ -53,10 +64,11 @@ class StatPorts(Plugin):
 
         for row in stats.itervalues():
             ifname = escape_metric_name(row['ifName'] or row['ifDescr'])
-            for key in COUNTERS:
+            use_hc_counters(row)
+            for key in USED_COUNTERS:
                 if key not in row:
                     continue
-                path = "nav.ports.%s.%s.%s" % (sysname, ifname, key)
+                path = "nav.devices.%s.ports.%s.%s" % (sysname, ifname, key)
                 value = row[key]
                 if value is not None:
                     yield (path, (timestamp, value))
@@ -66,3 +78,13 @@ def escape_metric_name(string):
     for char in "./ ":
         string = string.replace(char, "_")
     return string
+
+
+def use_hc_counters(row):
+    """
+    Replaces octet counter values with high capacity counter values, if present
+    """
+    for hc, nonhc in zip(HC_OCTET_COUNTERS, OCTET_COUNTERS):
+        if row.get(hc, None) is not None:
+            row[nonhc] = row[hc]
+
