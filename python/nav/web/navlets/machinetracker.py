@@ -15,7 +15,7 @@
 #
 """Machinetracker navlet"""
 
-from nav.web.navlets import Navlet
+from nav.web.navlets import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
 from django.shortcuts import redirect
 
 
@@ -27,8 +27,18 @@ class MachineTrackerNavlet(Navlet):
     is_editable = True
 
     def post(self, request):
+        if self.mode == NAVLET_MODE_VIEW:
+            return redirect_to_machinetracker(request)
+        elif self.mode == NAVLET_MODE_EDIT:
+            return handle_form()
+
+    def redirect_to_machinetracker(self, request):
         return redirect('machinetracker-ip_short_search', **{
             'from_ip': request.POST.get('from_ip'),
             'days': int(request.POST.get('days', 7)),
             'dns': request.POST.get('dns', '')
         })
+
+    def handle_form(self, request):
+        pass
+
