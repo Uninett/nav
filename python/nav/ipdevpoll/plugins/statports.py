@@ -16,11 +16,14 @@
 """Collects port traffic counters and pushes to Graphite"""
 import time
 from twisted.internet import defer
+from pprint import pformat
+
 from nav import graphite
+from nav.graphite import escape_metric_name
 from nav.ipdevpoll import Plugin
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
-from pprint import pformat
+
 
 OCTET_COUNTERS = (
     "ifInOctets",
@@ -72,12 +75,6 @@ class StatPorts(Plugin):
                 value = row[key]
                 if value is not None:
                     yield (path, (timestamp, value))
-
-
-def escape_metric_name(string):
-    for char in "./ ":
-        string = string.replace(char, "_")
-    return string
 
 
 def use_hc_counters(row):

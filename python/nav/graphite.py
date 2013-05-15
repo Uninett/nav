@@ -92,3 +92,9 @@ def metrics_to_packets(metric_tuples):
 def _metric_to_line(metric_tuple):
     path, (timestamp, value) = metric_tuple
     return str("%s %s %s\n" % (path, value, timestamp))
+
+
+def escape_metric_name(string):
+    for char in "./ ":
+        string = string.replace(char, "_")
+    return string
