@@ -27,10 +27,7 @@ class MachineTrackerNavlet(Navlet):
     is_editable = True
 
     def post(self, request):
-        if self.mode == NAVLET_MODE_VIEW:
-            return redirect_to_machinetracker(request)
-        elif self.mode == NAVLET_MODE_EDIT:
-            return handle_form()
+        return self.redirect_to_machinetracker(request)
 
     def redirect_to_machinetracker(self, request):
         return redirect('machinetracker-ip_short_search', **{
@@ -38,7 +35,3 @@ class MachineTrackerNavlet(Navlet):
             'days': int(request.POST.get('days', 7)),
             'dns': request.POST.get('dns', '')
         })
-
-    def handle_form(self, request):
-        pass
-

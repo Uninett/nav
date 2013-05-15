@@ -28,19 +28,20 @@
             <div id="navlet-list" class="reveal-modal">
                 <h4>Add a navlet to your page</h4>
                 <table class="expand">
+                    <tbody>
                     {% for navlet in navlets %}
-                        <tbody>
                         <tr>
                             <td>{{ navlet.title }}</td>
                             <td>{{ navlet.description }}</td>
                             <td>
-                                <button class="button tiny"
-                                        data-id="{{ navlet.id }}">Add
-                                </button>
+                                <form action="{% url add-user-navlet %}" method="post">
+                                    <input type="hidden" name="navlet" value="{{ navlet.id }}">
+                                    <input type="submit" class="button tiny" value="Add">
+                                </form>
                             </td>
                         </tr>
-                        </tbody>
                     {% endfor %}
+                    </tbody>
                 </table>
 
             </div>

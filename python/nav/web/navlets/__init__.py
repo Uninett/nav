@@ -24,6 +24,7 @@ from collections import namedtuple
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.views.generic.base import TemplateView
 
 from nav.models.profiles import AccountNavlet
@@ -69,7 +70,7 @@ def get_navlets():
         module = __import__(navletmodule[:navletmodule.rfind('.')],
                             fromlist=[lastmod])
         cls = getattr(module, clsname)
-        navlets.append(NavletContainer(cls.__name__,
+        navlets.append(NavletContainer(cls.base,
                                        cls.title,
                                        cls.description,
                                        reverse('navlet-%s' % cls.base)))
@@ -79,14 +80,18 @@ def get_navlets():
 def get_user_navlets(request):
     """Fetch all navlets that this user subscribes to"""
     account = get_account(request)
-    navlets = AccountNavlet.objects.filter(account=account)
-    if navlets:
-        return HttpResponse(simplejson.dumps(navlets))
-    else:
-        return HttpResponse()
+    usernavlets = AccountNavlet.objects.filter(account=account)
+
+    navlets = []
+    for usernavlet in usernavlets:
+        navlets.append(
+            {'id': usernavlet.id,
+             'url': reverse('navlet-%s' % usernavlet.navlet)}
+        )
+    return HttpResponse(simplejson.dumps(navlets))
 
 
-def add_navlet_to_user(request):
+def add_user_navlet(request):
     """Add a navlet subscription to this user"""
     if request.method == 'POST' and 'navlet' in request.POST:
         account = get_account(request)
@@ -94,7 +99,7 @@ def add_navlet_to_user(request):
                                       navlet=request.POST.get('navlet'))
         accountnavlet.save()
 
-    return HttpResponse()
+    return redirect('webfront-index')
 
 
 def remove_navlet_from_user(request, navletid):
