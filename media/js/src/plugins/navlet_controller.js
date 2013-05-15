@@ -4,11 +4,21 @@ define([], function () {
         this.mainNode = node;
         this.navlet = navlet;
         this.node = this.createNode();
+        this.removeUrl = this.mainNode.attr('data-remove-navlet');
 
         this.renderNavlet('VIEW');
     };
 
     NavletController.prototype = {
+        createNode: function () {
+            var $div = $('<div/>');
+            $div.attr({
+                'class': 'navlet'
+            });
+
+            this.mainNode.append($div);
+            return $div;
+        },
         renderNavlet: function (mode) {
             var that = this;
 
@@ -18,18 +28,12 @@ define([], function () {
             });
 
         },
-        createNode: function () {
-            var $div = $('<div/>');
-            $div.attr({
-                'data-id': this.navlet.id,
-                'class': 'navlet'
-            });
-
-            this.mainNode.append($div);
-            return $div;
-        },
         applyListeners: function () {
             console.log('Applying listeners to ' + this.navlet.id);
+            this.applyModeListener();
+            this.applyRemoveListener();
+        },
+        applyModeListener: function () {
             var that = this,
                 modeSwitch = this.node.find('.navlet-mode-switch');
 
@@ -39,6 +43,18 @@ define([], function () {
                     that.renderNavlet(mode);
                 });
             }
+        },
+        applyRemoveListener: function () {
+            var that = this,
+                removeButton = this.node.find('.navlet-remove-button'),
+                url = this.mainNode.attr('data-remove-navlet');
+
+            removeButton.click(function () {
+                $.post(that.removeUrl, {'navletid': that.navlet.id}, function () {
+                    window.location.reload();
+                });
+            });
+
         }
 
     };

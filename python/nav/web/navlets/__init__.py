@@ -102,7 +102,16 @@ def add_user_navlet(request):
     return redirect('webfront-index')
 
 
-def remove_navlet_from_user(request, navletid):
+def remove_user_navlet(request):
     """Remove a navlet-subscription from this user"""
     if request.method == 'POST' and 'navletid' in request.POST:
         account = get_account(request)
+        navlet = int(request.POST.get('navletid'))
+        try:
+            accountnavlet = AccountNavlet(pk=navlet, account=account)
+        except AccountNavlet.DoesNotExist:
+            pass
+        else:
+            accountnavlet.delete()
+
+    return HttpResponse()

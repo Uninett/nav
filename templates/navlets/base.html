@@ -1,12 +1,21 @@
-{% if navlet.is_editable %}
-    <div class="navlet-mode-switch button tiny right" data-mode="{{ navlet.mode }}">
-        {% if navlet.mode == 'VIEW' %}
-            Edit
-        {% else %}
-            View
-        {% endif %}
-    </div>
-{% endif %}
+<ul class="button-group right">
+    {% if navlet.is_editable %}
+        <li>
+            <a href="#" class="navlet-mode-switch button tiny right"
+               data-mode="{{ navlet.mode }}">
+                {% if navlet.mode == 'VIEW' %}
+                    Edit
+                {% else %}
+                    View
+                {% endif %}
+            </a>
+        </li>
+    {% endif %}
+    <li>
+        <a href="#" class="navlet-remove-button button tiny right">Remove</a>
+    </li>
+</ul>
+
 
 
 <h3>{{ navlet.title }}</h3>

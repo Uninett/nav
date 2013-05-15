@@ -16,7 +16,8 @@
 """Module comment"""
 
 from django.conf.urls import patterns, include, url
-from . import list_navlets, get_user_navlets, add_user_navlet
+from . import (list_navlets, get_user_navlets, add_user_navlet,
+               remove_user_navlet)
 from .portadmin import NavletPortadmin
 from .machinetracker import MachineTrackerNavlet
 from .status import StatusNavlet
@@ -25,6 +26,8 @@ urlpatterns = patterns('',
     url(r'^list-navlets/', list_navlets, name='list-navlets'),
     url(r'^get-user-navlets/', get_user_navlets, name='get-user-navlets'),
     url(r'^add-user-navlet/', add_user_navlet, name='add-user-navlet'),
+    url(r'^remove-user-navlet/', remove_user_navlet,
+        name='remove-user-navlet'),
     url(r'^portadmin/', NavletPortadmin.as_view(),
         name='navlet-portadmin'),
     url(r'^machinetracker/', MachineTrackerNavlet.as_view(),
