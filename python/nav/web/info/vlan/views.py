@@ -151,7 +151,24 @@ def add_ip_range(graph, prefix, datasource):
         graph.add_argument("COMMENT:   ")
 
 
-def create_vlan_graph(request, vlanid, family=4):
+def handle_vlan_graph(request, vlanid, family=4):
+    """Controller for fetching a vlan graph"""
+
+    timeframe = request.GET.get('timeframe', 'day')
+
+    graph = create_vlan_graph(vlanid, timeframe, family)
+    if not graph:
+        return HttpResponse(status=503)
+
+    graphurl = graph.get_url()
+    if graphurl:
+        json = simplejson.dumps({'url': graphurl})
+        return HttpResponse(json, mimetype='application/json')
+    else:
+        return HttpResponse(status=500)
+
+
+def create_vlan_graph(vlanid, timeframe='day', family=4):
     """Create graph for this vlan"""
 
     try:
@@ -164,15 +181,13 @@ def create_vlan_graph(request, vlanid, family=4):
     except ValueError:
         family = 4
 
-    timeframe = request.GET.get('timeframe', 'day')
-
     extra = {'where': ['family(netaddr) = %s' % family]}
     prefixes = sorted(vlan.prefix_set.all().extra(**extra),
                       key=methodcaller('get_prefix_size'),
                       reverse=True)
 
     if not prefixes:
-        return HttpResponse(status=503)
+        return None
 
     options = {'-v': 'IP-addresses', '-l': '0'}
     graph = Graph(title='Total IPv%s addresses on vlan %s' % (family, vlan),
@@ -203,12 +218,7 @@ def create_vlan_graph(request, vlanid, family=4):
         graph.add_cdef('iprange', rpn_sum(ipranges))
         graph.add_graph_element('iprange', draw_as='LINE2')
 
-    graphurl = graph.get_url()
-    if graphurl:
-        json = simplejson.dumps({'url': graphurl})
-        return HttpResponse(json, mimetype='application/json')
-    else:
-        return HttpResponse(status=500)
+    return graph
 
 
 def find_gwportprefixes(vlan):

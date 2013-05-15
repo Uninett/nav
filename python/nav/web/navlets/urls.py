@@ -21,6 +21,7 @@ from . import (list_navlets, get_user_navlets, add_user_navlet,
 from .portadmin import NavletPortadmin
 from .machinetracker import MachineTrackerNavlet
 from .status import StatusNavlet
+from .vlangraph import VlanGraphNavlet
 
 urlpatterns = patterns('',
     url(r'^list-navlets/', list_navlets, name='list-navlets'),
@@ -33,5 +34,7 @@ urlpatterns = patterns('',
     url(r'^machinetracker/', MachineTrackerNavlet.as_view(),
         name='navlet-machinetracker'),
     url(r'^status/', StatusNavlet.as_view(),
-        name='navlet-status')
+        name='navlet-status'),
+    url(r'^vlangraph/', VlanGraphNavlet.as_view(),
+        name='navlet-vlangraph')
 )

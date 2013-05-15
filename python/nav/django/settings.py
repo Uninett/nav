@@ -119,4 +119,5 @@ CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'
 NAVLETS = (
     'nav.web.navlets.machinetracker.MachineTrackerNavlet',
     'nav.web.navlets.status.StatusNavlet',
+    'nav.web.navlets.vlangraph.VlanGraphNavlet',
 )

@@ -18,7 +18,7 @@
 
 from django.conf.urls.defaults import url, patterns
 from nav.web.info.vlan.views import (index, vlan_details,
-                                     create_prefix_graph, create_vlan_graph)
+                                     create_prefix_graph, handle_vlan_graph)
 
 urlpatterns = patterns(
     '',
@@ -26,6 +26,6 @@ urlpatterns = patterns(
     url(r'^(?P<vlanid>\d+)/$', vlan_details, name='vlan-details'),
     url(r'^graph/prefix/(?P<prefixid>\d+)$', create_prefix_graph,
         name='vlan-graph-prefix'),
-    url(r'^graph/vlan/(?P<vlanid>\d+)/(?P<family>\d)?$', create_vlan_graph,
+    url(r'^graph/vlan/(?P<vlanid>\d+)/(?P<family>\d)?$', handle_vlan_graph,
         name='vlan-graph-prefix'),
 )
