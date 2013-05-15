@@ -20,6 +20,17 @@
 
     {% endif %}
 
+    {% if services %}
+
+        <h3>SERVICES</h3>
+        <ul>
+            {% for service in services %}
+                <li>{{ service }}</li>
+            {% endfor %}
+        </ul>
+
+    {% endif %}
+
     {% if contacts %}
         <h3>ORGANIZATIONS</h3>
         <ul>
