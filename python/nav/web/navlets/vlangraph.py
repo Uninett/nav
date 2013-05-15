@@ -15,9 +15,15 @@
 #
 """Navlet for displaying an ip count for a vlan"""
 import logging
+import pickle
+from django.shortcuts import redirect
+
+from nav.django.utils import get_account
+from nav.models.profiles import AccountNavlet
 from nav.web.navlets import Navlet
 from nav.web.info.vlan.views import create_vlan_graph
 _logger = logging.getLogger(__name__)
+
 
 class VlanGraphNavlet(Navlet):
     """Controller for vlangraphnavlet"""
@@ -25,10 +31,35 @@ class VlanGraphNavlet(Navlet):
     description = "Displays a graph over active ip-addresses on a vlan"
     base = "vlangraph"
     title = "Vlan Graph"
+    is_editable = True
 
     def get_context_data(self, **kwargs):
         context = super(VlanGraphNavlet, self).get_context_data(**kwargs)
-        graph = create_vlan_graph(322)
-        _logger.error(graph.get_url())
-        context['graph_url'] = graph.get_url()
+
+        navlet_id = int(self.request.GET.get('id'))
+        account = get_account(self.request)
+        account_navlet = AccountNavlet.objects.get(pk=navlet_id,
+                                                   account=account)
+
+        try:
+            options = pickle.loads(account_navlet.options)
+        except TypeError:
+            context['graph_url'] = ''
+        else:
+            graph = create_vlan_graph(options['vlanid'])
+            context['graph_url'] = graph.get_url()
+            context['vlanid'] = options['vlanid']
+
         return context
+
+    def post(self, request):
+        account = get_account(self.request)
+        nid = int(self.request.POST.get('id'))
+        vlanid = self.request.POST.get('vlanid')
+
+        account_navlet = AccountNavlet.objects.get(pk=nid, account=account)
+        options = pickle.dumps({'vlanid': vlanid})
+        account_navlet.options = options
+        account_navlet.save()
+
+        return redirect('webfront-index')

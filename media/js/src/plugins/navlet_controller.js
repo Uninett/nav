@@ -22,7 +22,7 @@ define([], function () {
         renderNavlet: function (mode) {
             var that = this;
 
-            $.get(this.navlet.url, {'mode': mode}, function (html) {
+            $.get(this.navlet.url, {'mode': mode, 'id': this.navlet.id}, function (html) {
                 that.node.html(html);
                 that.applyListeners();
             });

@@ -1,0 +1,11 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+    <form action="{% url navlet-vlangraph %}" method="post">
+        <input type="hidden" name="id" value="{{ navlet.id }}">
+        <input type="text" name="vlanid" value="{{ vlanid }}">Id of vlan to graph
+        <input type="submit" value="Save">
+    </form>
+
+{% endblock %}
