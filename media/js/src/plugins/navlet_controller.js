@@ -50,9 +50,11 @@ define([], function () {
                 url = this.mainNode.attr('data-remove-navlet');
 
             removeButton.click(function () {
-                $.post(that.removeUrl, {'navletid': that.navlet.id}, function () {
-                    window.location.reload();
-                });
+                if(confirm('Do you want to remove this navlet from the page?')) {
+                    $.post(that.removeUrl, {'navletid': that.navlet.id}, function () {
+                        window.location.reload();
+                    });
+                }
             });
 
         }

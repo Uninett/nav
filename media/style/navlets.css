@@ -2,4 +2,11 @@
     border: 1px solid #999;
     margin-bottom: 1em;
     padding: 1em;
+    position: relative;
+}
+
+.navlet .navlet-action-group {
+    position: absolute;
+    right: 0;
+    top: 0;
 }
