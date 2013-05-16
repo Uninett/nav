@@ -1,5 +1,13 @@
 define([], function () {
 
+    /*
+    * Controller for a specific Navlet
+    *
+    * node: The parent node for all the navlets. The navlet will be inserted here
+    * navlet: An object containing the id for the navlet and the url to display it
+    *
+    */
+
     var NavletController = function (node, navlet) {
         this.mainNode = node;
         this.navlet = navlet;
@@ -11,6 +19,7 @@ define([], function () {
 
     NavletController.prototype = {
         createNode: function () {
+            /* Creates the node that the navlet will loaded into */
             var $div = $('<div/>');
             $div.attr({
                 'class': 'navlet'
@@ -20,6 +29,7 @@ define([], function () {
             return $div;
         },
         renderNavlet: function (mode) {
+            /* Fetches the navlet and inserts the html */
             var that = this;
 
             $.get(this.navlet.url, {'mode': mode, 'id': this.navlet.id}, function (html) {
@@ -29,11 +39,12 @@ define([], function () {
 
         },
         applyListeners: function () {
-            console.log('Applying listeners to ' + this.navlet.id);
+            /* Applies listeners to the relevant elements */
             this.applyModeListener();
             this.applyRemoveListener();
         },
         applyModeListener: function () {
+            /* Renders the navlet in the correct mode (view or edit) when clicking the switch button */
             var that = this,
                 modeSwitch = this.node.find('.navlet-mode-switch');
 
@@ -45,6 +56,7 @@ define([], function () {
             }
         },
         applyRemoveListener: function () {
+            /* Removes the navlet when user clicks the remove button */
             var that = this,
                 removeButton = this.node.find('.navlet-remove-button'),
                 url = this.mainNode.attr('data-remove-navlet');
@@ -56,7 +68,6 @@ define([], function () {
                     });
                 }
             });
-
         }
 
     };
