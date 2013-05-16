@@ -1,8 +1,12 @@
 .navlet {
-    border: 1px solid #cccccc;
+    box-shadow: 2px 2px 6px #999;
     margin-bottom: 1em;
     padding: 1em;
     position: relative;
+}
+
+.navlet.outline {
+    border: 2px solid red;
 }
 
 .navlet .navlet-action-group {
