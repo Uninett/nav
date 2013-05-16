@@ -14,36 +14,30 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Navlet for displaying an ip count for a vlan"""
-import logging
 from django.shortcuts import redirect
 
 from nav.django.utils import get_account
 from nav.models.profiles import AccountNavlet
 from nav.web.navlets import Navlet
 from nav.web.info.vlan.views import create_vlan_graph
-_logger = logging.getLogger(__name__)
 
 
 class VlanGraphNavlet(Navlet):
-    """Controller for vlangraphnavlet"""
+    """Controller for vlangraph navlet"""
 
     description = "Displays a graph over active ip-addresses on a vlan"
-    base = "vlangraph"
     title = "Vlan Graph"
     is_editable = True
+
+    def get_template_basename(self):
+        return "vlangraph"
 
     def get_context_data(self, **kwargs):
         context = super(VlanGraphNavlet, self).get_context_data(**kwargs)
 
-        navlet_id = int(self.request.GET.get('id'))
-        account = get_account(self.request)
-        account_navlet = AccountNavlet.objects.get(pk=navlet_id,
-                                                   account=account)
-
         if self.preferences:
-            graph = create_vlan_graph(account_navlet.options['vlanid'])
+            graph = create_vlan_graph(self.preferences['vlanid'])
             context['graph_url'] = graph.get_url()
-            context['vlanid'] = self.preferences['vlanid']
 
         return context
 
