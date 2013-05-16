@@ -175,3 +175,15 @@ def remove_user_navlet(request):
             accountnavlet.delete()
 
     return HttpResponse()
+
+
+def save_navlet_order(request):
+    """Save the order of the navlets after a sort"""
+    if request.method == 'POST':
+        account = get_account(request)
+        for key, value in request.POST.items():
+            navlet = AccountNavlet.objects.get(account=account, pk=key)
+            navlet.order = value
+            navlet.save()
+
+    return HttpResponse()

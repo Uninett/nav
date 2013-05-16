@@ -17,7 +17,7 @@
 
 from django.conf.urls import patterns, include, url
 from . import (list_navlets, get_user_navlets, add_user_navlet,
-               remove_user_navlet, dispatcher)
+               remove_user_navlet, dispatcher, save_navlet_order)
 
 urlpatterns = patterns('',
     url(r'^list-navlets/', list_navlets, name='list-navlets'),
@@ -27,5 +27,6 @@ urlpatterns = patterns('',
         name='remove-user-navlet'),
     url(r'^get_user_navlet/(?P<navlet_id>\d+)', dispatcher,
         name='get-user-navlet'),
+    url(r'^save-navlet-order', save_navlet_order, name='save-navlet-order'),
 
 )

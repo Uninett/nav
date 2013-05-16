@@ -22,6 +22,7 @@ define([], function () {
             /* Creates the node that the navlet will loaded into */
             var $div = $('<div/>');
             $div.attr({
+                'data-id': this.navlet.id,
                 'class': 'navlet'
             });
 
