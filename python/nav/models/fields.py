@@ -63,7 +63,10 @@ class PickleField(models.TextField):
 
     def to_python(self, value):
         if value:
-            return pickle.loads(value)
+            if isinstance(value, dict):
+                return value
+            else:
+                return pickle.loads(value)
 
     def get_prep_value(self, value):
         if value is not None:
