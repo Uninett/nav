@@ -1367,3 +1367,4 @@ class AccountNavlet(models.Model):
 
     class Meta:
         db_table = 'account_navlet'
+        ordering = ['order']

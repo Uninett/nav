@@ -46,6 +46,7 @@ from collections import namedtuple
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.db.models import Max
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.views.generic.base import TemplateView
@@ -152,6 +153,9 @@ def add_user_navlet(request):
         account = get_account(request)
         accountnavlet = AccountNavlet(account=account,
                                       navlet=request.POST.get('navlet'))
+        max_order = AccountNavlet.objects.filter(
+            account=account).aggregate(Max('order'))['order__max']
+        accountnavlet.order = 0 if max_order is None else max_order + 1
         accountnavlet.save()
 
     return redirect('webfront-index')
