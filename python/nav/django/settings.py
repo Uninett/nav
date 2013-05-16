@@ -120,4 +120,5 @@ NAVLETS = (
     'nav.web.navlets.machinetracker.MachineTrackerNavlet',
     'nav.web.navlets.status.StatusNavlet',
     'nav.web.navlets.vlangraph.VlanGraphNavlet',
+    'nav.web.navlets.portadmin.PortadminNavlet',
 )
