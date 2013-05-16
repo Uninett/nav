@@ -27,9 +27,13 @@
                  data-list-navlets="{% url get-user-navlets %}"
                  data-remove-navlet="{% url remove-user-navlet %}"
                  data-save-order-url="{% url save-navlet-order %}"></div>
-            <button data-reveal-id="navlet-list" class="button">Add new Navlet</button>
-            <button id="navlet-ordering-activate" class="button" title="Click to be able to drag and sort navlets">Sort navlets</button>
-            <button id="navlet-ordering-save" class="hidden button alert">Save order</button>
+
+            <a href="javascript:void(0);" data-reveal-id="navlet-list" class="button">Add new Navlet</a>
+
+            <a href="javascript:void(0);" id="navlet-ordering-activate" class="button" title="Click to be able to drag and sort navlets">Sort navlets</a>
+
+            <a href="javascript:void(0);" id="navlet-ordering-save" class="hidden button alert">Save order</a>
+
             <div id="navlet-list" class="reveal-modal">
                 <h4>Add a navlet to your page</h4>
                 <table class="expand">

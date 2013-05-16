@@ -14,3 +14,7 @@
     right: 0;
     top: 0;
 }
+
+.navlet .navlet-action-group .button {
+    margin-bottom: 0;
+}
