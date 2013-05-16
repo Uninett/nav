@@ -17,11 +17,7 @@
 
 from django.conf.urls import patterns, include, url
 from . import (list_navlets, get_user_navlets, add_user_navlet,
-               remove_user_navlet)
-from .portadmin import NavletPortadmin
-from .machinetracker import MachineTrackerNavlet
-from .status import StatusNavlet
-from .vlangraph import VlanGraphNavlet
+               remove_user_navlet, dispatcher)
 
 urlpatterns = patterns('',
     url(r'^list-navlets/', list_navlets, name='list-navlets'),
@@ -29,12 +25,7 @@ urlpatterns = patterns('',
     url(r'^add-user-navlet/', add_user_navlet, name='add-user-navlet'),
     url(r'^remove-user-navlet/', remove_user_navlet,
         name='remove-user-navlet'),
-    url(r'^portadmin/', NavletPortadmin.as_view(),
-        name='navlet-portadmin'),
-    url(r'^machinetracker/', MachineTrackerNavlet.as_view(),
-        name='navlet-machinetracker'),
-    url(r'^status/', StatusNavlet.as_view(),
-        name='navlet-status'),
-    url(r'^vlangraph/', VlanGraphNavlet.as_view(),
-        name='navlet-vlangraph')
+    url(r'^get_user_navlet/(?P<navlet_id>\d+)', dispatcher,
+        name='get-user-navlet'),
+
 )

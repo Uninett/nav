@@ -15,7 +15,6 @@
 #
 """Navlet for displaying an ip count for a vlan"""
 import logging
-import pickle
 from django.shortcuts import redirect
 
 from nav.django.utils import get_account
@@ -41,25 +40,21 @@ class VlanGraphNavlet(Navlet):
         account_navlet = AccountNavlet.objects.get(pk=navlet_id,
                                                    account=account)
 
-        try:
-            options = pickle.loads(account_navlet.options)
-        except TypeError:
-            context['graph_url'] = ''
-        else:
-            graph = create_vlan_graph(options['vlanid'])
+        if self.preferences:
+            graph = create_vlan_graph(account_navlet.options['vlanid'])
             context['graph_url'] = graph.get_url()
-            context['vlanid'] = options['vlanid']
+            context['vlanid'] = self.preferences['vlanid']
 
         return context
 
     def post(self, request):
-        account = get_account(self.request)
-        nid = int(self.request.POST.get('id'))
-        vlanid = self.request.POST.get('vlanid')
+        """Saves user preferences from edit mode"""
+        account = get_account(request)
+        nid = int(request.POST.get('id'))
+        vlanid = int(request.POST.get('vlanid'))
 
         account_navlet = AccountNavlet.objects.get(pk=nid, account=account)
-        options = pickle.dumps({'vlanid': vlanid})
-        account_navlet.options = options
+        account_navlet.preferences = {'vlanid': vlanid}
         account_navlet.save()
 
         return redirect('webfront-index')

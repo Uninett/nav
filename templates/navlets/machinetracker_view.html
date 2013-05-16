@@ -2,7 +2,7 @@
 
 {% block navlet-content %}
 
-    <form action="{% url navlet-machinetracker %}" method="post">
+    <form action="{% url get-user-navlet navlet.id %}" method="post">
         <div class="row">
             <div class="large-7 column">
                 <input type="text" name="from_ip" placeholder="IP-address">

@@ -18,6 +18,7 @@
 NAVLET_MODE_VIEW = 'VIEW'
 NAVLET_MODE_EDIT = 'EDIT'
 
+import logging
 import simplejson
 from collections import namedtuple
 
@@ -30,7 +31,10 @@ from django.views.generic.base import TemplateView
 from nav.models.profiles import AccountNavlet
 from nav.django.utils import get_account
 
-NavletContainer = namedtuple('NavletContainer', 'id title description url')
+_logger = logging.getLogger(__name__)
+
+
+NavletContainer = namedtuple('NavletContainer', 'identifier title description')
 
 
 class Navlet(TemplateView):
@@ -39,6 +43,7 @@ class Navlet(TemplateView):
     title = 'Navlet'
     description = 'No description'
     is_editable = False
+    preferences = {}
 
     def get_template_names(self):
         """Get template name based on navlet mode"""
@@ -63,33 +68,51 @@ def list_navlets(request):
 
 
 def get_navlets():
-    """Get all navlets"""
+    """Gets all installed navlet classes"""
     navlets = []
 
     for navletmodule in settings.NAVLETS:
-        lastmod, clsname = navletmodule.split('.')[-2:]
-        module = __import__(navletmodule[:navletmodule.rfind('.')],
-                            fromlist=[lastmod])
-        cls = getattr(module, clsname)
-        navlets.append(NavletContainer(cls.base,
+        cls = get_navlet_from_name(navletmodule)
+        navlets.append(NavletContainer(navletmodule,
                                        cls.title,
-                                       cls.description,
-                                       reverse('navlet-%s' % cls.base)))
+                                       cls.description))
     return navlets
 
 
+def get_navlet_from_name(navletmodule):
+    lastmod, clsname = navletmodule.split('.')[-2:]
+    module = __import__(navletmodule[:navletmodule.rfind('.')],
+                        fromlist=[lastmod])
+    cls = getattr(module, clsname)
+    return cls
+
+
 def get_user_navlets(request):
-    """Fetch all navlets that this user subscribes to"""
+    """Gets all navlets that this user subscribes to"""
     account = get_account(request)
     usernavlets = AccountNavlet.objects.filter(account=account)
 
     navlets = []
     for usernavlet in usernavlets:
+        url = reverse('get-user-navlet', kwargs={'navlet_id': usernavlet.id})
         navlets.append(
             {'id': usernavlet.id,
-             'url': reverse('navlet-%s' % usernavlet.navlet)}
+             'url': url}
         )
     return HttpResponse(simplejson.dumps(navlets))
+
+
+def dispatcher(request, navlet_id):
+    """Dispatch the correct navlet based on navlet_id
+
+    The as_view method takes any attribute and adds it to the instance.
+    """
+
+    account = get_account(request)
+    account_navlet = AccountNavlet.objects.get(account=account, pk=navlet_id)
+    cls = get_navlet_from_name(account_navlet.navlet)
+    view = cls.as_view(preferences=account_navlet.preferences)
+    return view(request)
 
 
 def add_user_navlet(request):

@@ -35,7 +35,7 @@
                             <td>{{ navlet.description }}</td>
                             <td>
                                 <form action="{% url add-user-navlet %}" method="post">
-                                    <input type="hidden" name="navlet" value="{{ navlet.id }}">
+                                    <input type="hidden" name="navlet" value="{{ navlet.identifier }}">
                                     <input type="submit" class="button tiny" value="Add">
                                 </form>
                             </td>
