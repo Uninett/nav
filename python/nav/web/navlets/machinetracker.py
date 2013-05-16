@@ -23,8 +23,10 @@ class MachineTrackerNavlet(Navlet):
     """Controller for machinetracker navlet"""
 
     title = "MachineTracker"
-    base = "machinetracker"
-    is_editable = True
+    description = "Navlet for searching in Machine Tracker"
+
+    def get_template_basename(self):
+        return 'machinetracker'
 
     def post(self, request):
         return self.redirect_to_machinetracker(request)

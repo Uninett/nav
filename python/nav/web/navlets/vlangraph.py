@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Navlet for displaying an ip count for a vlan"""
+"""Navlet for displaying a graph giving ip count for a vlan"""
 from django.shortcuts import redirect
 
 from nav.django.utils import get_account

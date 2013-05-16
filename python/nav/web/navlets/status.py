@@ -22,4 +22,7 @@ class StatusNavlet(Navlet):
     """Navlet for displaying status"""
 
     title = "Status"
-    base = "status"
+    description = "Show status for your ip-devices and services"
+
+    def get_template_basename(self):
+        return "status"
