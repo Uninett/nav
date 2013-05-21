@@ -1,3 +1,14 @@
+#navlets .highlight {
+    background-color: greenyellow;
+}
+
+
+/* Is a column is empty, make sure it has some size to be visible */
+.navletColumn {
+    min-width: 1px;
+    min-height: 1px;
+}
+
 .navlet {
     box-shadow: 2px 2px 6px #999;
     margin-bottom: 1em;

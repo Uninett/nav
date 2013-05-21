@@ -44,7 +44,7 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
                 disabled: true,
                 connectWith: '.navletColumn',
                 forcePlaceholderSize: true,
-                placeholder: 'ui-state-highlight'
+                placeholder: 'highlight'
             });
 
             this.activateOrderingButton.click(function () {
