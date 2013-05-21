@@ -1361,6 +1361,7 @@ class AccountNavlet(models.Model):
     order = models.IntegerField(default=0, db_column='displayorder')
     account = models.ForeignKey(Account, db_column='account')
     preferences = PickleField(null=True)
+    column = models.IntegerField(db_column='col')
 
     def __unicode__(self):
         return "%s - %s" % (self.navlet, self.account)

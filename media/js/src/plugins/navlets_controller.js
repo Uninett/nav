@@ -28,7 +28,7 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
             $.getJSON(this.fetch_navlets_url, function (data) {
                 var navlets = data, i, l;
                 for (i = 0, l = data.length; i < l; i++) {
-                    if (i % 2 === 0) {
+                    if (data[i].column === 1) {
                         new NavletController(that.column1, data[i]);
                     } else {
                         new NavletController(that.column2, data[i]);
@@ -42,7 +42,9 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
 
             this.container.find(this.sorterSelector).sortable({
                 disabled: true,
-                connectWith: '.navletColumn'
+                connectWith: '.navletColumn',
+                forcePlaceholderSize: true,
+                placeholder: 'ui-state-highlight'
             });
 
             this.activateOrderingButton.click(function () {
@@ -61,23 +63,32 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
             this.saveOrderingButton.show();
         },
         findOrder: function () {
-            var ordering = {};
-            this.getNavlets().each(function (index, navlet) {
-                ordering[$(navlet).attr('data-id')] = index;
+            var ordering = {column1: {}, column2: {}};
+            this.getNavlets(this.column1).each(function (index, navlet) {
+                ordering.column1[$(navlet).attr('data-id')] = index;
+            });
+            this.getNavlets(this.column2).each(function (index, navlet) {
+                ordering.column2[$(navlet).attr('data-id')] = index;
             });
             return ordering;
         },
         saveOrder: function (ordering) {
-            var that = this;
-            $.post(this.save_ordering_url, ordering, function () {
-                that.container.sortable('option', 'disabled', true);
-                that.getNavlets().removeClass('outline');
-                that.activateOrderingButton.show();
-                that.saveOrderingButton.hide();
-            });
+            var that = this,
+                jqxhr = $.post(this.save_ordering_url, JSON.stringify(ordering));
+
+             jqxhr.done(function () {
+                 that.container.sortable('option', 'disabled', true);
+                 that.getNavlets().removeClass('outline');
+                 that.activateOrderingButton.show();
+                 that.saveOrderingButton.hide();
+             });
         },
-        getNavlets: function () {
-            return this.container.find(this.navletSelector);
+        getNavlets: function (column) {
+            if (column) {
+                return column.find(this.navletSelector);
+            } else {
+                return this.container.find(this.navletSelector);
+            }
         }
 
     };

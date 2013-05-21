@@ -40,6 +40,9 @@ If you want the navlet to have prefereneces:
 NAVLET_MODE_VIEW = 'VIEW'
 NAVLET_MODE_EDIT = 'EDIT'
 
+NAVLET_COLUMN_1 = 1
+NAVLET_COLUMN_2 = 2
+
 import logging
 import simplejson
 from collections import namedtuple
@@ -131,7 +134,8 @@ def get_user_navlets(request):
     navlets = []
     for usernavlet in usernavlets:
         url = reverse('get-user-navlet', kwargs={'navlet_id': usernavlet.id})
-        navlets.append({'id': usernavlet.id, 'url': url})
+        navlets.append({'id': usernavlet.id, 'url': url,
+                        'column': usernavlet.column})
     return HttpResponse(simplejson.dumps(navlets))
 
 
@@ -177,13 +181,24 @@ def remove_user_navlet(request):
     return HttpResponse()
 
 
+def update_navlet(account, key, value, column):
+    key = int(key)
+    navlet = AccountNavlet.objects.get(account=account, pk=key)
+    navlet.order = value
+    navlet.column = column
+    navlet.save()
+
+
 def save_navlet_order(request):
     """Save the order of the navlets after a sort"""
     if request.method == 'POST':
         account = get_account(request)
-        for key, value in request.POST.items():
-            navlet = AccountNavlet.objects.get(account=account, pk=key)
-            navlet.order = value
-            navlet.save()
+        orders = simplejson.loads(request.body)
+
+        for key, value in orders['column1'].items():
+            update_navlet(account, key, value, NAVLET_COLUMN_1)
+
+        for key, value in orders['column2'].items():
+            update_navlet(account, key, value, NAVLET_COLUMN_2)
 
     return HttpResponse()
