@@ -3,18 +3,27 @@
 {% block navlet-content %}
 
     <form action="{% url get-user-navlet navlet.id %}" method="post">
-        <div class="row">
-            <div class="large-7 column">
+        <div class="row collapse">
+            <div class="large-8 column">
                 <input type="text" name="from_ip" placeholder="IP-address">
             </div>
-            <div class="large-2 column">
-                <input type="text" name="days" value="7">
+            <div class="large-4 column">
+                <input type="submit" value="Search" class="button postfix">
+
             </div>
-            <div class="large-1 column">
-                <input type="checkbox" name="dns">Dns
-            </div>
-            <div class="large-2 column">
-                <input type="submit" value="Search" class="button small">
+            <div class="row">
+                <div class="large-2 column">
+                    <label for="machinetracker_days" class="right inline">Days</label>
+                </div>
+                <div class="large-4 column">
+                    <input id="machinetracker_days" type="text" name="days" value="7">
+                </div>
+                <div class="large-6 column">
+                    <label for="machinetracker_dns" class="inline text-center">
+                        DNS:
+                        <input id="machinetracker_dns" type="checkbox" name="dns">
+                    </label>
+                </div>
             </div>
         </div>
     </form>
