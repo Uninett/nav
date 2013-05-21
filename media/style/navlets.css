@@ -2,6 +2,12 @@
     background-color: greenyellow;
 }
 
+.navlet .subheader {
+    font-size: 1.1em;
+    position: relative;
+    top: -10px;
+    left: -8px;
+}
 
 /* Is a column is empty, make sure it has some size to be visible */
 .navletColumn {
