@@ -5,7 +5,7 @@
 .navlet .subheader {
     font-size: 1.1em;
     position: relative;
-    top: -10px;
+    top: -20px;
     left: -8px;
 }
 
@@ -18,7 +18,7 @@
 .navlet {
     box-shadow: 2px 2px 6px #999;
     margin-bottom: 1em;
-    padding: 1em;
+    padding: 1.5em 1em 1em 1em;
     position: relative;
 }
 
