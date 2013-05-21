@@ -9,7 +9,7 @@
 
 {% block base_content %}
 
-    <div class="large-9 columns">
+    <div class="large-12 columns">
 
         <div class="welcome">
             {{ welcome|safe }}
@@ -54,6 +54,11 @@
                 </table>
 
             </div>
+
+        </div>
+
+    </div>
+
 
 {% comment %}
             {% endcomment %}
@@ -133,12 +138,12 @@
             {% endif %}
 {% endcomment %}
 
-        </div>
-
-    </div>
 
 
-    {% comment %} Right side {% endcomment %}
+{% comment %}
+    {% endcomment %}
+{% comment %} Right side {% endcomment %}{% comment %}
+
     <div class="large-3 columns">
         <table class="expand">
             <tr>
@@ -172,4 +177,5 @@
         </table>
 
     </div>
+{% endcomment %}
 {% endblock %}
