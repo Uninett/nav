@@ -8,11 +8,12 @@ define([], function () {
     *
     */
 
-    var NavletController = function (node, navlet) {
-        this.mainNode = node;
+    var NavletController = function (container, renderNode, navlet) {
+        this.container = container;
+        this.renderNode = renderNode;
         this.navlet = navlet;
         this.node = this.createNode();
-        this.removeUrl = this.mainNode.attr('data-remove-navlet');
+        this.removeUrl = this.container.attr('data-remove-navlet');
 
         this.renderNavlet('VIEW');
     };
@@ -26,7 +27,7 @@ define([], function () {
                 'class': 'navlet'
             });
 
-            this.mainNode.append($div);
+            this.renderNode.append($div);
             return $div;
         },
         renderNavlet: function (mode) {
@@ -59,8 +60,7 @@ define([], function () {
         applyRemoveListener: function () {
             /* Removes the navlet when user clicks the remove button */
             var that = this,
-                removeButton = this.node.find('.navlet-remove-button'),
-                url = this.mainNode.attr('data-remove-navlet');
+                removeButton = this.node.find('.navlet-remove-button');
 
             removeButton.click(function () {
                 if(confirm('Do you want to remove this navlet from the page?')) {

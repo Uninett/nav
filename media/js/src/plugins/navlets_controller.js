@@ -29,9 +29,9 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
                 var navlets = data, i, l;
                 for (i = 0, l = data.length; i < l; i++) {
                     if (data[i].column === 1) {
-                        new NavletController(that.column1, data[i]);
+                        new NavletController(that.container, that.column1, data[i]);
                     } else {
-                        new NavletController(that.column2, data[i]);
+                        new NavletController(that.container, that.column2, data[i]);
                     }
                 }
                 that.addNavletOrdering();
