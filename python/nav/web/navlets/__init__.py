@@ -169,8 +169,25 @@ def add_navlet(account, request):
                                   navlet=request.POST.get('navlet'))
     max_order = AccountNavlet.objects.filter(
         account=account).aggregate(Max('order'))['order__max']
-    accountnavlet.order = 0 if max_order is None else max_order + 1
+    accountnavlet.column, accountnavlet.order = find_new_placement(account)
     accountnavlet.save()
+
+
+def find_new_placement(account):
+    """Determines the best placement for a new account navlet"""
+    colcount1 = account.accountnavlet_set.filter(
+        column=NAVLET_COLUMN_1).count()
+    colcount2 = account.accountnavlet_set.filter(
+        column=NAVLET_COLUMN_2).count()
+
+    if colcount1 <= colcount2:
+        column = 1
+        order = colcount1 + 1
+    else:
+        column = 2
+        order = colcount2 + 1
+
+    return column, order
 
 
 def can_modify_navlet(account, request):
