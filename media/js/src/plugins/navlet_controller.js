@@ -34,10 +34,12 @@ define([], function () {
             /* Fetches the navlet and inserts the html */
             var that = this;
 
-            $.get(this.navlet.url, {'mode': mode}, function (html) {
+            var request = $.get(this.navlet.url, {'mode': mode});
+            request.done(function (html) {
                 that.node.html(html);
                 that.applyListeners();
             });
+            request.fail(this.displayError);
 
         },
         getModeSwitch: function () {
@@ -77,9 +79,9 @@ define([], function () {
 
             removeButton.click(function () {
                 if(confirm('Do you want to remove this navlet from the page?')) {
-                    $.post(that.removeUrl, {'navletid': that.navlet.id}, function () {
-                        window.location.reload();
-                    });
+                    var request = $.post(that.removeUrl, {'navletid': that.navlet.id});
+                    request.done(window.location.reload);
+                    request.fail(that.displayError);
                 }
             });
         },
@@ -87,12 +89,22 @@ define([], function () {
             if (this.getRenderMode() === 'EDIT') {
                 var that = this,
                     form = this.node.find('form');
+
                 form.submit(function (event) {
                     event.preventDefault();
-                    $.post(form.attr('action'), $(this).serialize(), function () {
+                    var request = $.post(form.attr('action'), $(this).serialize());
+                    request.done(function () {
                         that.renderNavlet('VIEW');
                     });
+                    request.fail(that.displayError);
                 });
+            }
+        },
+        displayError: function (jqxhr, textStatus, errorThrown) {
+            if (jqxhr.responseText) {
+                alert(jqxhr.responseText);
+            } else {
+                alert(errorThrown);
             }
         }
 

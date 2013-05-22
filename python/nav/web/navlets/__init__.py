@@ -202,38 +202,44 @@ def can_modify_navlet(account, request):
     return not (account.is_default_account() and not get_sudoer(request))
 
 
+def modify_navlet(func, account, request, error_message):
+    """Modify the navlet using func"""
+    if can_modify_navlet(account, request):
+        try:
+            func(account, request)
+        except AccountNavlet.DoesNotExist:
+            return HttpResponse(content=error_message, status=500)
+        else:
+            return HttpResponse()
+    else:
+        return HttpResponse(status=401)
+
+
 def remove_user_navlet(request):
     """Remove a navlet-subscription from this user"""
     if request.method == 'POST' and 'navletid' in request.POST:
         account = get_account(request)
+        return modify_navlet(remove_navlet, account, request,
+                             "Error removing Navlet")
 
-        if can_modify_navlet(account, request):
-            remove_navlet(account, request)
-
-    return HttpResponse()
+    return HttpResponse(status=400)
 
 
 def remove_navlet(account, request):
     """Remove accountnavlet based on request data"""
     navlet_id = int(request.POST.get('navletid'))
-    try:
-        accountnavlet = AccountNavlet(pk=navlet_id, account=account)
-    except AccountNavlet.DoesNotExist:
-        _logger.error('Could not find navlet with id %s for account %s',
-                      navlet_id, account)
-    else:
-        accountnavlet.delete()
+    accountnavlet = AccountNavlet(pk=navlet_id, account=account)
+    accountnavlet.delete()
 
 
 def save_navlet_order(request):
     """Save the order of the navlets after a sort"""
     if request.method == 'POST':
         account = get_account(request)
+        return modify_navlet(save_order, account, request,
+                             "Error saving order")
 
-        if can_modify_navlet(account, request):
-            save_order(account, request)
-
-    return HttpResponse()
+    return HttpResponse(status=400)
 
 
 def save_order(account, request):
