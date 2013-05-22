@@ -29,10 +29,12 @@
                  data-remove-navlet="{% url remove-user-navlet %}"
                  data-save-order-url="{% url save-navlet-order %}"></div>
 
-            {% comment %} Buttons for adding and sorting navlets {% endcomment %}
-            <a href="javascript:void(0);" data-reveal-id="navlet-list" class="button">Add new Navlet</a>
-            <a href="javascript:void(0);" id="navlet-ordering-activate" class="button" title="Click to be able to drag and sort navlets">Sort navlets</a>
-            <a href="javascript:void(0);" id="navlet-ordering-save" class="hidden button alert">Save order</a>
+            {% if not current_user_data.account.is_default_account %}
+                {% comment %} Buttons for adding and sorting navlets {% endcomment %}
+                <a href="javascript:void(0);" data-reveal-id="navlet-list" class="button">Add new Navlet</a>
+                <a href="javascript:void(0);" id="navlet-ordering-activate" class="button" title="Click to be able to drag and sort navlets">Sort navlets</a>
+                <a href="javascript:void(0);" id="navlet-ordering-save" class="hidden button alert">Save order</a>
+            {% endif %}
 
             {% comment %} List of navlets to add {% endcomment %}
             <div id="navlet-list" class="reveal-modal">
