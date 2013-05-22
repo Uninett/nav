@@ -55,6 +55,7 @@ from django.shortcuts import redirect
 from django.views.generic.base import TemplateView
 
 from nav.models.profiles import AccountNavlet
+from nav.django.auth import get_sudoer
 from nav.django.utils import get_account
 
 _logger = logging.getLogger(__name__)
@@ -155,33 +156,73 @@ def add_user_navlet(request):
     """Add a navlet subscription to this user"""
     if request.method == 'POST' and 'navlet' in request.POST:
         account = get_account(request)
-        accountnavlet = AccountNavlet(account=account,
-                                      navlet=request.POST.get('navlet'))
-        max_order = AccountNavlet.objects.filter(
-            account=account).aggregate(Max('order'))['order__max']
-        accountnavlet.order = 0 if max_order is None else max_order + 1
-        accountnavlet.save()
+
+        if can_modify_navlet(account, request):
+            add_navlet(account, request)
 
     return redirect('webfront-index')
+
+
+def add_navlet(account, request):
+    """Create new accountnavlet based on request data"""
+    accountnavlet = AccountNavlet(account=account,
+                                  navlet=request.POST.get('navlet'))
+    max_order = AccountNavlet.objects.filter(
+        account=account).aggregate(Max('order'))['order__max']
+    accountnavlet.order = 0 if max_order is None else max_order + 1
+    accountnavlet.save()
+
+
+def can_modify_navlet(account, request):
+    """Determine if this account can modify navlets"""
+    return not (account.is_default_account() and not get_sudoer(request))
 
 
 def remove_user_navlet(request):
     """Remove a navlet-subscription from this user"""
     if request.method == 'POST' and 'navletid' in request.POST:
         account = get_account(request)
-        navlet_id = int(request.POST.get('navletid'))
-        try:
-            accountnavlet = AccountNavlet(pk=navlet_id, account=account)
-        except AccountNavlet.DoesNotExist:
-            _logger.error('Could not find navlet with id %s for account %s',
-                          navlet_id, account)
-        else:
-            accountnavlet.delete()
+
+        if can_modify_navlet(account, request):
+            remove_navlet(account, request)
 
     return HttpResponse()
 
 
+def remove_navlet(account, request):
+    """Remove accountnavlet based on request data"""
+    navlet_id = int(request.POST.get('navletid'))
+    try:
+        accountnavlet = AccountNavlet(pk=navlet_id, account=account)
+    except AccountNavlet.DoesNotExist:
+        _logger.error('Could not find navlet with id %s for account %s',
+                      navlet_id, account)
+    else:
+        accountnavlet.delete()
+
+
+def save_navlet_order(request):
+    """Save the order of the navlets after a sort"""
+    if request.method == 'POST':
+        account = get_account(request)
+
+        if can_modify_navlet(account, request):
+            save_order(account, request)
+
+    return HttpResponse()
+
+
+def save_order(account, request):
+    """Update navlets with new placement data"""
+    orders = simplejson.loads(request.body)
+    for key, value in orders['column1'].items():
+        update_navlet(account, key, value, NAVLET_COLUMN_1)
+    for key, value in orders['column2'].items():
+        update_navlet(account, key, value, NAVLET_COLUMN_2)
+
+
 def update_navlet(account, key, value, column):
+    """Save the column and order of an account navlet"""
     key = int(key)
     navlet = AccountNavlet.objects.get(account=account, pk=key)
     navlet.order = value
@@ -189,16 +230,3 @@ def update_navlet(account, key, value, column):
     navlet.save()
 
 
-def save_navlet_order(request):
-    """Save the order of the navlets after a sort"""
-    if request.method == 'POST':
-        account = get_account(request)
-        orders = simplejson.loads(request.body)
-
-        for key, value in orders['column1'].items():
-            update_navlet(account, key, value, NAVLET_COLUMN_1)
-
-        for key, value in orders['column2'].items():
-            update_navlet(account, key, value, NAVLET_COLUMN_2)
-
-    return HttpResponse()

@@ -29,33 +29,34 @@
                  data-remove-navlet="{% url remove-user-navlet %}"
                  data-save-order-url="{% url save-navlet-order %}"></div>
 
-            {% if not current_user_data.account.is_default_account %}
+            {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
                 {% comment %} Buttons for adding and sorting navlets {% endcomment %}
                 <a href="javascript:void(0);" data-reveal-id="navlet-list" class="button">Add new Navlet</a>
                 <a href="javascript:void(0);" id="navlet-ordering-activate" class="button" title="Click to be able to drag and sort navlets">Sort navlets</a>
                 <a href="javascript:void(0);" id="navlet-ordering-save" class="hidden button alert">Save order</a>
+
+                {% comment %} List of navlets to add {% endcomment %}
+                <div id="navlet-list" class="reveal-modal">
+                    <h4>Add a navlet to your page</h4>
+                    <table class="expand">
+                        <tbody>
+                        {% for navlet in navlets %}
+                            <tr>
+                                <td>{{ navlet.title }}</td>
+                                <td>{{ navlet.description }}</td>
+                                <td>
+                                    <form action="{% url add-user-navlet %}" method="post">
+                                        <input type="hidden" name="navlet" value="{{ navlet.identifier }}">
+                                        <input type="submit" class="button tiny" value="Add">
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             {% endif %}
 
-            {% comment %} List of navlets to add {% endcomment %}
-            <div id="navlet-list" class="reveal-modal">
-                <h4>Add a navlet to your page</h4>
-                <table class="expand">
-                    <tbody>
-                    {% for navlet in navlets %}
-                        <tr>
-                            <td>{{ navlet.title }}</td>
-                            <td>{{ navlet.description }}</td>
-                            <td>
-                                <form action="{% url add-user-navlet %}" method="post">
-                                    <input type="hidden" name="navlet" value="{{ navlet.identifier }}">
-                                    <input type="submit" class="button tiny" value="Add">
-                                </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
         </div>
     </div>
 

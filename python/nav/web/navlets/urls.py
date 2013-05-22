@@ -25,7 +25,7 @@ urlpatterns = patterns('',
     url(r'^add-user-navlet/', add_user_navlet, name='add-user-navlet'),
     url(r'^remove-user-navlet/', remove_user_navlet,
         name='remove-user-navlet'),
-    url(r'^get_user_navlet/(?P<navlet_id>\d+)', dispatcher,
+    url(r'^get-user-navlet/(?P<navlet_id>\d+)', dispatcher,
         name='get-user-navlet'),
     url(r'^save-navlet-order', save_navlet_order, name='save-navlet-order'),
 
