@@ -11,8 +11,8 @@
 
 /* Is a column is empty, make sure it has some size to be visible */
 .navletColumn {
-    min-width: 1px;
-    min-height: 1px;
+    min-width: 20px;
+    min-height: 20px;
 }
 
 .navlet {
