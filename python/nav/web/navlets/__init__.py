@@ -27,13 +27,20 @@ To use create a Navlet do the following:
 
 Context:
 - context is added by overriding 'get_context_data'
+  - remember to call super
   - remember to return the new context
 
 If you want the navlet to have prefereneces:
 - set class attribute is_editable to True in your class
 - create a template for the edit mode that submits a form with the preferences
+  - This form will be submitted by javascript, see below
 - create at least a post method for storing the preferences
 - the preferences are available as navlet.preferences in the template
+
+Templates
+- A form in editmode will be submitted automatically by javascript. Make sure
+  to return a HttpResponse from the post method. This is done to
+  allow reloading only the navlet to display the changes after the post
 
 """
 
@@ -70,6 +77,7 @@ class Navlet(TemplateView):
     description = 'No description'
     is_editable = False
     preferences = {}
+    navlet_id = None
 
     def get_template_basename(self):
         """Should return the base template name
@@ -81,7 +89,6 @@ class Navlet(TemplateView):
 
     def get_template_names(self):
         """Get template name based on navlet mode"""
-        self.id = self.request.REQUEST.get('id')
         self.mode = self.request.REQUEST.get('mode', NAVLET_MODE_VIEW)
         if self.mode == NAVLET_MODE_VIEW:
             return 'navlets/%s_view.html' % self.get_template_basename()
@@ -143,12 +150,14 @@ def get_user_navlets(request):
 def dispatcher(request, navlet_id):
     """Dispatch the correct navlet based on navlet_id
 
-    The as_view method takes any attribute and adds it to the instance.
+    The as_view method takes any attribute and adds it to the instance
+    as long as it is defined on the Navlet class
     """
     account = get_account(request)
     account_navlet = AccountNavlet.objects.get(account=account, pk=navlet_id)
     cls = get_navlet_from_name(account_navlet.navlet)
-    view = cls.as_view(preferences=account_navlet.preferences)
+    view = cls.as_view(preferences=account_navlet.preferences,
+                       navlet_id=navlet_id)
     return view(request)
 
 
@@ -167,8 +176,6 @@ def add_navlet(account, request):
     """Create new accountnavlet based on request data"""
     accountnavlet = AccountNavlet(account=account,
                                   navlet=request.POST.get('navlet'))
-    max_order = AccountNavlet.objects.filter(
-        account=account).aggregate(Max('order'))['order__max']
     accountnavlet.column, accountnavlet.order = find_new_placement(account)
     accountnavlet.save()
 

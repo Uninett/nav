@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Navlet for displaying a graph giving ip count for a vlan"""
-from django.shortcuts import redirect
+from django.http import HttpResponse
 
 from nav.django.utils import get_account
 from nav.models.profiles import AccountNavlet
@@ -51,4 +51,4 @@ class VlanGraphNavlet(Navlet):
         account_navlet.preferences = {'vlanid': vlanid}
         account_navlet.save()
 
-        return redirect('webfront-index')
+        return HttpResponse()

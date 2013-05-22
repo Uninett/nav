@@ -34,24 +34,37 @@ define([], function () {
             /* Fetches the navlet and inserts the html */
             var that = this;
 
-            $.get(this.navlet.url, {'mode': mode, 'id': this.navlet.id}, function (html) {
+            $.get(this.navlet.url, {'mode': mode}, function (html) {
                 that.node.html(html);
                 that.applyListeners();
             });
 
         },
+        getModeSwitch: function () {
+            return this.node.find('.navlet-mode-switch');
+        },
+        getRenderMode: function () {
+            var modeSwitch = this.getModeSwitch(),
+                mode = 'VIEW';
+            if (modeSwitch.length) {
+                mode = modeSwitch.attr('data-mode');
+            }
+            return mode;
+        },
         applyListeners: function () {
             /* Applies listeners to the relevant elements */
             this.applyModeListener();
             this.applyRemoveListener();
+            this.applySubmitListener();
         },
         applyModeListener: function () {
             /* Renders the navlet in the correct mode (view or edit) when clicking the switch button */
             var that = this,
-                modeSwitch = this.node.find('.navlet-mode-switch');
+                modeSwitch = this.getModeSwitch();
 
             if (modeSwitch.length > 0) {
-                var mode = modeSwitch.attr('data-mode') === 'VIEW' ? 'EDIT' : 'VIEW';
+                var mode = this.getRenderMode() === 'VIEW' ? 'EDIT' : 'VIEW';
+
                 modeSwitch.click(function () {
                     that.renderNavlet(mode);
                 });
@@ -69,6 +82,18 @@ define([], function () {
                     });
                 }
             });
+        },
+        applySubmitListener: function () {
+            if (this.getRenderMode() === 'EDIT') {
+                var that = this,
+                    form = this.node.find('form');
+                form.submit(function (event) {
+                    event.preventDefault();
+                    $.post(form.attr('action'), $(this).serialize(), function () {
+                        that.renderNavlet('VIEW');
+                    });
+                });
+            }
         }
 
     };
