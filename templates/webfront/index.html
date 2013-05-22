@@ -138,44 +138,44 @@
             {% endif %}
 {% endcomment %}
 
+    <div class="row">
+        <div class="large-4 columns">
+            <table class="expand">
+                <tr>
+                    <th>NAV Links</th>
+                </tr>
+                <tr>
+                    <td>
+                        {% for title,link in nav_links.items %}
+                            <a href="{{ link }}">{{ title }}</a><br/>
+                        {% endfor %}
+                    </td>
+                </tr>
+            </table>
 
+        </div>
+        <div class="large-4 columns">
+            <table class="expand">
+                <tr>
+                    <th>External links</th>
+                </tr>
+                <tr>
+                    <td>{{ external_links|safe }}</td>
+                </tr>
+            </table>
 
-{% comment %}
-    {% endcomment %}
-{% comment %} Right side {% endcomment %}{% comment %}
+        </div>
+        <div class="large-4 columns">
+            <table class="expand">
+                <tr>
+                    <th>Contact information</th>
+                </tr>
+                <tr>
+                    <td>{{ contact_information|safe }}</td>
+                </tr>
+            </table>
 
-    <div class="large-3 columns">
-        <table class="expand">
-            <tr>
-                <th>NAV Links</th>
-            </tr>
-            <tr>
-                <td>
-                    {% for title,link in nav_links.items %}
-                        <a href="{{ link }}">{{ title }}</a><br />
-                    {% endfor %}
-                </td>
-            </tr>
-        </table>
-
-        <table class="expand">
-            <tr>
-                <th>External links</th>
-            </tr>
-            <tr>
-                <td>{{ external_links|safe }}</td>
-            </tr>
-        </table>
-
-        <table class="expand">
-            <tr>
-                <th>Contact information</th>
-            </tr>
-            <tr>
-                <td>{{ contact_information|safe }}</td>
-            </tr>
-        </table>
-
+        </div>
     </div>
-{% endcomment %}
+
 {% endblock %}
