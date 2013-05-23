@@ -44,11 +44,15 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 }
             });
             request.done(function (html) {
-                that.spinner.stop();
                 that.node.html(html);
                 that.applyListeners();
             });
-            request.fail(this.displayError);
+            request.fail(function (jqxhr, textStatus, errorThrown) {
+                that.displayError('Could not load Navlet');
+            });
+            request.always(function () {
+                that.spinner.stop();
+            });
 
         },
         getModeSwitch: function () {
@@ -89,7 +93,9 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             removeButton.click(function () {
                 if(confirm('Do you want to remove this navlet from the page?')) {
                     var request = $.post(that.removeUrl, {'navletid': that.navlet.id});
-                    request.fail(that.displayError);
+                    request.fail(function () {
+                        that.displayError('Could not remove Navlet, maybe it has become self aware...!');
+                    });
                     request.done(function () {
                         that.node.remove();
                     });
@@ -107,17 +113,29 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                     request.done(function () {
                         that.renderNavlet('VIEW');
                     });
-                    request.fail(that.displayError);
+                    request.fail(function () {
+                        that.displayError('Could not save changes');
+                    });
                 });
             }
         },
-        displayError: function (jqxhr, textStatus, errorThrown) {
-            this.spinner.stop();
-            if (jqxhr.responseText) {
-                alert(jqxhr.responseText);
-            } else {
-                alert(errorThrown);
+        displayError: function (errorMessage) {
+            this.getOrCreateErrorElement().text(errorMessage);
+        },
+        getOrCreateErrorElement: function () {
+            var $element = this.node.find('.alert-box.alert'),
+                $header = this.node.find('.subheader');
+
+            if (!$element.length) {
+                $element = $('<span class="alert-box alert"/>');
+                if ($header.length) {
+                    $element.insertAfter($header);
+                } else {
+                    $element.appendTo(this.node);
+                }
             }
+
+            return $element;
         }
 
     };
