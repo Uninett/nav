@@ -14,13 +14,17 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Navlet for displaying a graph giving ip count for a vlan"""
+import logging
+
 from django.http import HttpResponse
 
 from nav.django.utils import get_account
 from nav.models.manage import Vlan
 from nav.models.profiles import AccountNavlet
-from nav.web.navlets import Navlet
+from nav.web.navlets import Navlet, NAVLET_MODE_VIEW, NAVLET_MODE_EDIT
 from nav.web.info.vlan.views import create_vlan_graph
+
+_logger = logging.getLogger(__name__)
 
 
 class VlanGraphNavlet(Navlet):
@@ -36,9 +40,16 @@ class VlanGraphNavlet(Navlet):
     def get_context_data(self, **kwargs):
         context = super(VlanGraphNavlet, self).get_context_data(**kwargs)
 
-        if self.preferences:
-            graph = create_vlan_graph(self.preferences['vlanid'])
+        mode = self.get_mode()
+        vlanid = (self.preferences['vlanid']
+                  if 'vlanid' in self.preferences else None)
+        if mode == NAVLET_MODE_VIEW and vlanid:
+            graph = create_vlan_graph(vlanid)
             context['graph_url'] = graph.get_url()
+        elif mode == NAVLET_MODE_EDIT:
+            context['vlans'] = Vlan.objects.filter(
+                vlan__isnull=False).order_by('vlan')
+            context['vlanid'] = vlanid
 
         return context
 

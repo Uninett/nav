@@ -79,6 +79,10 @@ class Navlet(TemplateView):
     preferences = {}
     navlet_id = None
 
+    def get_mode(self):
+        """Fetch the mode of this request"""
+        return self.request.REQUEST.get('mode', NAVLET_MODE_VIEW)
+
     def get_template_basename(self):
         """Should return the base template name
 
@@ -89,7 +93,7 @@ class Navlet(TemplateView):
 
     def get_template_names(self):
         """Get template name based on navlet mode"""
-        self.mode = self.request.REQUEST.get('mode', NAVLET_MODE_VIEW)
+        self.mode = self.get_mode()
         if self.mode == NAVLET_MODE_VIEW:
             return 'navlets/%s_view.html' % self.get_template_basename()
         elif self.mode == NAVLET_MODE_EDIT:
