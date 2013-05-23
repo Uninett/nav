@@ -77,7 +77,7 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
                 jqxhr = $.post(this.save_ordering_url, JSON.stringify(ordering));
 
              jqxhr.done(function () {
-                 that.container.sortable('option', 'disabled', true);
+                 that.container.find(that.sorterSelector).sortable('option', 'disabled', true);
                  that.getNavlets().removeClass('outline');
                  that.activateOrderingButton.show();
                  that.saveOrderingButton.hide();
