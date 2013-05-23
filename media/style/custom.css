@@ -100,6 +100,11 @@ ul.ui-tabs-nav {
 
 /* List styles */
 
+ul.clean, ol.clean, dl.clean {
+    margin: 0;
+    list-style-type: none;
+}
+
 li.list-header {
     background: #567899;
     color: white;
