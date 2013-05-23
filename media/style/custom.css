@@ -60,7 +60,7 @@ footer {
 
 /* Custom form styles */
 
-table input[type="text"], table input[type="password"],
+table form, table input[type="text"], table input[type="password"],
 table input[type="date"], table input[type="datetime"],
 table input[type="datetime-local"], table input[type="month"],
 table input[type="week"], table input[type="email"],
