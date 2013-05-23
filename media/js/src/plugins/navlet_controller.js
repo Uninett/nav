@@ -80,8 +80,10 @@ define([], function () {
             removeButton.click(function () {
                 if(confirm('Do you want to remove this navlet from the page?')) {
                     var request = $.post(that.removeUrl, {'navletid': that.navlet.id});
-                    request.done(window.location.reload);
                     request.fail(that.displayError);
+                    request.done(function () {
+                        that.node.remove();
+                    });
                 }
             });
         },
