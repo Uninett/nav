@@ -14,8 +14,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Status navlet"""
+from datetime import datetime
 
+from nav.models.manage import Netbox
 from nav.web.navlets import Navlet
+from nav.web.webfront.utils import boxes_down
 
 
 class StatusNavlet(Navlet):
@@ -26,3 +29,18 @@ class StatusNavlet(Navlet):
 
     def get_template_basename(self):
         return "status"
+
+    def get_context_data(self, **kwargs):
+        context = super(StatusNavlet, self).get_context_data(**kwargs)
+
+        down = boxes_down()
+        num_shadow = 0
+        for box in down:
+            if box.netbox.up == Netbox.UP_SHADOW:
+                num_shadow += 1
+
+        context['boxes_down'] = down
+        context['num_shadow'] = num_shadow
+        context['date_now'] = datetime.today()
+
+        return context
