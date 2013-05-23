@@ -113,8 +113,8 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                     request.done(function () {
                         that.renderNavlet('VIEW');
                     });
-                    request.fail(function () {
-                        that.displayError('Could not save changes');
+                    request.fail(function (jqxhr) {
+                        that.displayError('Could not save changes: ' + jqxhr.responseText);
                     });
                 });
             }

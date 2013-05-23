@@ -17,6 +17,7 @@
 from django.http import HttpResponse
 
 from nav.django.utils import get_account
+from nav.models.manage import Vlan
 from nav.models.profiles import AccountNavlet
 from nav.web.navlets import Navlet
 from nav.web.info.vlan.views import create_vlan_graph
@@ -47,8 +48,13 @@ class VlanGraphNavlet(Navlet):
         nid = int(request.POST.get('id'))
         vlanid = int(request.POST.get('vlanid'))
 
-        account_navlet = AccountNavlet.objects.get(pk=nid, account=account)
-        account_navlet.preferences = {'vlanid': vlanid}
-        account_navlet.save()
+        try:
+            Vlan.objects.get(pk=vlanid)
+        except Vlan.DoesNotExist:
+            return HttpResponse('This vlan does not exist', status=400)
+        else:
+            account_navlet = AccountNavlet.objects.get(pk=nid, account=account)
+            account_navlet.preferences = {'vlanid': vlanid}
+            account_navlet.save()
 
         return HttpResponse()
