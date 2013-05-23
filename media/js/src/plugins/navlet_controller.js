@@ -1,18 +1,20 @@
-define([], function () {
+define(['libs/jquery', 'libs/spin.min'], function () {
 
     /*
     * Controller for a specific Navlet
     *
-    * node: The parent node for all the navlets. The navlet will be inserted here
+    * container: A wrapper for all Navlets containing data-attributes useful for the navlet
+    * renderNode: In case of columns or other structures, this is the node the navlet should render in
     * navlet: An object containing the id for the navlet and the url to display it
     *
     */
 
     var NavletController = function (container, renderNode, navlet) {
-        this.container = container;
-        this.renderNode = renderNode;
-        this.navlet = navlet;
-        this.node = this.createNode();
+        this.container = container;    // Navlet container
+        this.renderNode = renderNode;  // The column this navlet should render in
+        this.navlet = navlet;          // Object containing navlet information
+        this.spinner = new Spinner();  // Spinner showing on load
+        this.node = this.createNode(); // The complete node for this navlet
         this.removeUrl = this.container.attr('data-remove-navlet');
 
         this.renderNavlet('VIEW');
@@ -31,11 +33,18 @@ define([], function () {
             return $div;
         },
         renderNavlet: function (mode) {
-            /* Fetches the navlet and inserts the html */
+            /* Renders the navlet and inserts the html */
             var that = this;
 
-            var request = $.get(this.navlet.url, {'mode': mode});
+            var request = $.ajax({
+                url: this.navlet.url,
+                data: {'mode': mode},
+                beforeSend: function () {
+                    that.spinner.spin(that.node.get(0));
+                }
+            });
             request.done(function (html) {
+                that.spinner.stop();
                 that.node.html(html);
                 that.applyListeners();
             });
@@ -103,6 +112,7 @@ define([], function () {
             }
         },
         displayError: function (jqxhr, textStatus, errorThrown) {
+            this.spinner.stop();
             if (jqxhr.responseText) {
                 alert(jqxhr.responseText);
             } else {
