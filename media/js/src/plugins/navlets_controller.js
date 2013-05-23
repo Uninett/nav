@@ -57,7 +57,7 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
 
         },
         activateOrdering: function () {
-            this.container.find(this.sorterSelector).sortable('option', 'disabled', false);
+            this.getSorter().sortable('option', 'disabled', false);
             this.getNavlets().addClass('outline');
             this.activateOrderingButton.hide();
             this.saveOrderingButton.show();
@@ -77,7 +77,7 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
                 jqxhr = $.post(this.save_ordering_url, JSON.stringify(ordering));
 
              jqxhr.done(function () {
-                 that.container.find(that.sorterSelector).sortable('option', 'disabled', true);
+                 that.getSorter().sortable('option', 'disabled', true);
                  that.getNavlets().removeClass('outline');
                  that.activateOrderingButton.show();
                  that.saveOrderingButton.hide();
@@ -89,6 +89,9 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
             } else {
                 return this.container.find(this.navletSelector);
             }
+        },
+        getSorter: function () {
+            return this.container.find(this.sorterSelector);
         }
 
     };
