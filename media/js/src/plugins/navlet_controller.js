@@ -46,6 +46,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             request.done(function (html) {
                 that.node.html(html);
                 that.applyListeners();
+                that.node.foundation();  // Initialize Foundation script on this node
             });
             request.fail(function (jqxhr, textStatus, errorThrown) {
                 that.displayError('Could not load Navlet');
