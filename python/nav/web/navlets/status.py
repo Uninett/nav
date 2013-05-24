@@ -26,6 +26,7 @@ class StatusNavlet(Navlet):
 
     title = "Status"
     description = "Show status for your ip-devices and services"
+    refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
 
     def get_template_basename(self):
         return "status"

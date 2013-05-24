@@ -36,6 +36,10 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             /* Renders the navlet and inserts the html */
             var that = this;
 
+            if (mode === undefined) {
+                mode = 'VIEW';
+            }
+
             var request = $.ajax({
                 url: this.navlet.url,
                 data: {'mode': mode},
@@ -47,6 +51,12 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 that.node.html(html);
                 that.applyListeners();
                 that.node.foundation();  // Initialize Foundation script on this node
+                var preferences = that.navlet.preferences;
+                if (preferences && preferences.refresh_interval) {
+                    setTimeout(function () {
+                        that.renderNavlet.call(that);
+                    }, preferences.refresh_interval);
+                }
             });
             request.fail(function (jqxhr, textStatus, errorThrown) {
                 that.displayError('Could not load Navlet');

@@ -50,6 +50,9 @@ NAVLET_MODE_EDIT = 'EDIT'
 NAVLET_COLUMN_1 = 1
 NAVLET_COLUMN_2 = 2
 
+# These class members will be automatically added to preferences if they exist
+DEFAULT_PREFERENCES = ['refresh_interval']
+
 import logging
 import simplejson
 from collections import namedtuple
@@ -76,7 +79,7 @@ class Navlet(TemplateView):
     title = 'Navlet'
     description = 'No description'
     is_editable = False
-    preferences = {}
+    preferences = {}  # See DEFAULT PREFERENCES for adding default values here
     navlet_id = None
 
     def get_mode(self):
@@ -147,7 +150,8 @@ def get_user_navlets(request):
     for usernavlet in usernavlets:
         url = reverse('get-user-navlet', kwargs={'navlet_id': usernavlet.id})
         navlets.append({'id': usernavlet.id, 'url': url,
-                        'column': usernavlet.column})
+                        'column': usernavlet.column,
+                        'preferences': usernavlet.preferences})
     return HttpResponse(simplejson.dumps(navlets))
 
 
@@ -178,10 +182,24 @@ def add_user_navlet(request):
 
 def add_navlet(account, request):
     """Create new accountnavlet based on request data"""
+    navlet = request.POST.get('navlet')
     accountnavlet = AccountNavlet(account=account,
-                                  navlet=request.POST.get('navlet'))
+                                  navlet=navlet)
     accountnavlet.column, accountnavlet.order = find_new_placement(account)
+    accountnavlet.preferences = get_default_preferences(
+        get_navlet_from_name(navlet))
     accountnavlet.save()
+
+
+def get_default_preferences(navlet):
+    """Check if navlet has predetermined preferences that must be applied"""
+    preferences = {}
+    for preference in DEFAULT_PREFERENCES:
+        if hasattr(navlet, preference):
+            preferences[preference] = getattr(navlet, preference)
+
+    if preferences:
+        return preferences
 
 
 def find_new_placement(account):
@@ -262,5 +280,3 @@ def update_navlet(account, key, value, column):
     navlet.order = value
     navlet.column = column
     navlet.save()
-
-

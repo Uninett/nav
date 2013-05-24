@@ -33,6 +33,7 @@ class VlanGraphNavlet(Navlet):
     description = "Displays a graph over active ip-addresses on a vlan"
     title = "Vlan Graph"
     is_editable = True
+    refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
 
     def get_template_basename(self):
         return "vlangraph"
@@ -65,7 +66,10 @@ class VlanGraphNavlet(Navlet):
             return HttpResponse('This vlan does not exist', status=400)
         else:
             account_navlet = AccountNavlet.objects.get(pk=nid, account=account)
-            account_navlet.preferences = {'vlanid': vlanid}
+            if not account_navlet.preferences:
+                account_navlet.preferences = {'vlanid': vlanid}
+            else:
+                account_navlet.preferences['vlanid'] = vlanid
             account_navlet.save()
 
         return HttpResponse()
