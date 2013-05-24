@@ -9,103 +9,102 @@
 
 {% block base_content %}
 
-    <div class="large-12 columns">
+    <div id="webfrontmain" class="large-12 columns">
 
-        <div class="welcome">
-            {{ welcome|safe }}
-        </div>
+        <div class="row">
+            <div class="large-12 columns">
+                {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
+                    {% comment %} Buttons for adding and sorting navlets {% endcomment %}
+                    <div class="right">
+                        <a href="javascript:void(0);" data-reveal-id="navlet-list"
+                           class="button small">Add new Navlet</a>
+                        <a href="javascript:void(0);" id="navlet-ordering-activate"
+                           class="button small"
+                           title="Click to be able to drag and sort navlets">Sort
+                            navlets</a>
+                        <a href="javascript:void(0);" id="navlet-ordering-save"
+                           class="hidden button alert small">Save order</a>
+                    </div>
 
-{% comment %}
-        <div class="mapwrapper">
-            <div id="room_map" class="smallmap"></div>
-        </div>
-{% endcomment %}
+                    {% comment %} List of navlets to add {% endcomment %}
+                    <div id="navlet-list" class="reveal-modal">
+                        <h4>Add a navlet to your page</h4>
+                        <table class="expand table-hover">
+                            <tbody>
+                            {% for navlet in navlets %}
+                                <tr>
+                                    <td>{{ navlet.title }}</td>
+                                    <td>{{ navlet.description }}</td>
+                                    <td>
+                                        <form action="{% url add-user-navlet %}"
+                                              method="post">
+                                            <input type="hidden" name="navlet"
+                                                   value="{{ navlet.identifier }}">
+                                            <input type="submit"
+                                                   class="button tiny" value="Add">
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
 
-        <div id="webfrontmain">
-
-            {% comment %} Main container for navlets {% endcomment %}
-            <div id="navlets"
-                 data-list-navlets="{% url get-user-navlets %}"
-                 data-remove-navlet="{% url remove-user-navlet %}"
-                 data-save-order-url="{% url save-navlet-order %}"></div>
-
-            {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
-                {% comment %} Buttons for adding and sorting navlets {% endcomment %}
-                <a href="javascript:void(0);" data-reveal-id="navlet-list" class="button">Add new Navlet</a>
-                <a href="javascript:void(0);" id="navlet-ordering-activate" class="button" title="Click to be able to drag and sort navlets">Sort navlets</a>
-                <a href="javascript:void(0);" id="navlet-ordering-save" class="hidden button alert">Save order</a>
-
-                {% comment %} List of navlets to add {% endcomment %}
-                <div id="navlet-list" class="reveal-modal">
-                    <h4>Add a navlet to your page</h4>
-                    <table class="expand table-hover">
-                        <tbody>
-                        {% for navlet in navlets %}
-                            <tr>
-                                <td>{{ navlet.title }}</td>
-                                <td>{{ navlet.description }}</td>
-                                <td>
-                                    <form action="{% url add-user-navlet %}" method="post">
-                                        <input type="hidden" name="navlet" value="{{ navlet.identifier }}">
-                                        <input type="submit" class="button tiny" value="Add">
-                                    </form>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="welcome">
+                    {{ welcome|safe }}
                 </div>
-            {% endif %}
 
+
+            </div>
+        </div>
+
+        {% comment %} Main container for navlets {% endcomment %}
+        <div id="navlets"
+             data-list-navlets="{% url get-user-navlets %}"
+             data-remove-navlet="{% url remove-user-navlet %}"
+             data-save-order-url="{% url save-navlet-order %}"></div>
+
+        <div class="row">
+            <div class="large-4 columns">
+                <table class="expand">
+                    <tr>
+                        <th>NAV Links</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            {% for title,link in nav_links.items %}
+                                <a href="{{ link }}">{{ title }}</a><br/>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+            <div class="large-4 columns">
+                <table class="expand">
+                    <tr>
+                        <th>External links</th>
+                    </tr>
+                    <tr>
+                        <td>{{ external_links|safe }}</td>
+                    </tr>
+                </table>
+
+            </div>
+            <div class="large-4 columns">
+                <table class="expand">
+                    <tr>
+                        <th>Contact information</th>
+                    </tr>
+                    <tr>
+                        <td>{{ contact_information|safe }}</td>
+                    </tr>
+                </table>
+
+            </div>
         </div>
     </div>
 
-
-{% comment %}
-            {% endcomment %}
-{% comment %} MESSAGES {% endcomment %}{% comment %}
-
-
-            {% endcomment %}
-
-    <div class="row">
-        <div class="large-4 columns">
-            <table class="expand">
-                <tr>
-                    <th>NAV Links</th>
-                </tr>
-                <tr>
-                    <td>
-                        {% for title,link in nav_links.items %}
-                            <a href="{{ link }}">{{ title }}</a><br/>
-                        {% endfor %}
-                    </td>
-                </tr>
-            </table>
-
-        </div>
-        <div class="large-4 columns">
-            <table class="expand">
-                <tr>
-                    <th>External links</th>
-                </tr>
-                <tr>
-                    <td>{{ external_links|safe }}</td>
-                </tr>
-            </table>
-
-        </div>
-        <div class="large-4 columns">
-            <table class="expand">
-                <tr>
-                    <th>Contact information</th>
-                </tr>
-                <tr>
-                    <td>{{ contact_information|safe }}</td>
-                </tr>
-            </table>
-
-        </div>
-    </div>
 
 {% endblock %}
