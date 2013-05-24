@@ -23,7 +23,7 @@ from nav.web.webfront.views import NAV_LINKS_PATH
 
 class LinkListNavlet(Navlet):
 
-    title = "Linklist"
+    title = "Links"
     description = "Displays a list of links from the admins"
 
     def get_context_data(self, **kwargs):

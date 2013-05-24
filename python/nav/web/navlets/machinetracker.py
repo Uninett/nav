@@ -22,8 +22,8 @@ from django.shortcuts import redirect
 class MachineTrackerNavlet(Navlet):
     """Controller for machinetracker navlet"""
 
-    title = "MachineTracker"
-    description = "Navlet for searching in Machine Tracker"
+    title = "Machine Tracker"
+    description = "Searches in Machine Tracker"
 
     def get_template_basename(self):
         return 'machinetracker'

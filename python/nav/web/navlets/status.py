@@ -31,7 +31,7 @@ class StatusNavlet(Navlet):
     """Navlet for displaying status"""
 
     title = "Status"
-    description = "Show status for your ip-devices and services"
+    description = "Shows status for your ip-devices and services"
     refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
     is_editable = True
 

@@ -24,8 +24,8 @@ from nav.web.navlets import Navlet
 class PortadminNavlet(Navlet):
     """The PortAdmin navlet"""
 
-    title = 'PortAdmin'
-    description = 'Navlet for searching in Portadmin'
+    title = 'Port Admin'
+    description = 'Searches in Port Admin'
 
     def get_template_basename(self):
         return "portadmin"
