@@ -126,7 +126,11 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 form.submit(function (event) {
                     event.preventDefault();
                     var request = $.post(form.attr('action'), $(this).serialize());
-                    request.done(function () {
+                    request.done(function (data) {
+                        // Update preferences if they are sent back from controller
+                        if (data) {
+                            that.navlet.preferences = JSON.parse(data);
+                        }
                         that.renderNavlet('VIEW');
                     });
                     request.fail(function (jqxhr) {

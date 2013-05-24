@@ -50,8 +50,9 @@ NAVLET_MODE_EDIT = 'EDIT'
 NAVLET_COLUMN_1 = 1
 NAVLET_COLUMN_2 = 2
 
+REFRESH_INTERVAL = 'refresh_interval'
 # These class members will be automatically added to preferences if they exist
-DEFAULT_PREFERENCES = ['refresh_interval']
+DEFAULT_PREFERENCES = [REFRESH_INTERVAL]
 
 import logging
 import simplejson
@@ -82,7 +83,8 @@ class Navlet(TemplateView):
     preferences = {}  # See DEFAULT PREFERENCES for adding default values here
     navlet_id = None
 
-    def get_mode(self):
+    @property
+    def mode(self):
         """Fetch the mode of this request"""
         return self.request.REQUEST.get('mode', NAVLET_MODE_VIEW)
 
@@ -96,7 +98,6 @@ class Navlet(TemplateView):
 
     def get_template_names(self):
         """Get template name based on navlet mode"""
-        self.mode = self.get_mode()
         if self.mode == NAVLET_MODE_VIEW:
             return 'navlets/%s_view.html' % self.get_template_basename()
         elif self.mode == NAVLET_MODE_EDIT:

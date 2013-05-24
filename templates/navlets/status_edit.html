@@ -1,0 +1,11 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+    <form action="{% url get-user-navlet navlet.navlet_id %}">
+        <label for="status_refresh_interval">
+            Refresh interval (in seconds)
+            <input id="status_refresh_interval" type="text" name="interval" value="{{ interval }}">
+        </label>
+        <input type="submit" value="Set interval">
+    </form>
+{% endblock %}
