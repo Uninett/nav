@@ -51,11 +51,16 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 that.node.html(html);
                 that.applyListeners();
                 that.node.foundation();  // Initialize Foundation script on this node
+
+                // Reload periodically based on preferences
+                // Remember to stop refreshing on edit
                 var preferences = that.navlet.preferences;
-                if (preferences && preferences.refresh_interval) {
-                    setTimeout(function () {
+                if (mode === 'VIEW' && preferences && preferences.refresh_interval) {
+                    that.refresh = setTimeout(function () {
                         that.renderNavlet.call(that);
                     }, preferences.refresh_interval);
+                } else if (mode === 'EDIT' && that.refresh) {
+                    clearTimeout(that.refresh);
                 }
             });
             request.fail(function (jqxhr, textStatus, errorThrown) {
