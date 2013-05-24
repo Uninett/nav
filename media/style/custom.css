@@ -1,7 +1,9 @@
 /* Custom global styles */
 
 #nav-breadcrumbs {
-    margin: 0;
+    margin-bottom: 0.3em;
+    padding-top: 0.15em;
+    padding-bottom: 0.2em;
 }
 
 footer {
