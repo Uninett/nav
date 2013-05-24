@@ -48,20 +48,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 }
             });
             request.done(function (html) {
-                that.node.html(html);
-                that.applyListeners();
-                that.node.foundation();  // Initialize Foundation script on this node
-
-                // Reload periodically based on preferences
-                // Remember to stop refreshing on edit
-                var preferences = that.navlet.preferences;
-                if (mode === 'VIEW' && preferences && preferences.refresh_interval) {
-                    that.refresh = setTimeout(function () {
-                        that.renderNavlet.call(that);
-                    }, preferences.refresh_interval);
-                } else if (mode === 'EDIT' && that.refresh) {
-                    clearTimeout(that.refresh);
-                }
+                that.handleSuccessfulRequest(html, mode);
             });
             request.fail(function (jqxhr, textStatus, errorThrown) {
                 that.displayError('Could not load Navlet');
@@ -70,6 +57,28 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 that.spinner.stop();
             });
 
+        },
+        handleSuccessfulRequest: function (html, mode) {
+            this.node.html(html);
+            this.applyListeners();
+            this.node.foundation();  // Initialize Foundation script on this node
+            this.addReloader(mode);
+        },
+        addReloader: function (mode) {
+            /*
+             * Reload periodically based on preferences
+             * Remember to stop refreshing on edit
+             */
+            var that = this,
+                preferences = this.navlet.preferences;
+
+            if (mode === 'VIEW' && preferences && preferences.refresh_interval) {
+                this.refresh = setTimeout(function () {
+                    that.renderNavlet.call(that);
+                }, preferences.refresh_interval);
+            } else if (mode === 'EDIT' && this.refresh) {
+                clearTimeout(this.refresh);
+            }
         },
         getModeSwitch: function () {
             return this.node.find('.navlet-mode-switch');
