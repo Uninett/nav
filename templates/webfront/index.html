@@ -65,45 +65,6 @@
              data-remove-navlet="{% url remove-user-navlet %}"
              data-save-order-url="{% url save-navlet-order %}"></div>
 
-        <div class="row">
-            <div class="large-4 columns">
-                <table class="expand">
-                    <tr>
-                        <th>NAV Links</th>
-                    </tr>
-                    <tr>
-                        <td>
-                            {% for title,link in nav_links.items %}
-                                <a href="{{ link }}">{{ title }}</a><br/>
-                            {% endfor %}
-                        </td>
-                    </tr>
-                </table>
-
-            </div>
-            <div class="large-4 columns">
-                <table class="expand">
-                    <tr>
-                        <th>External links</th>
-                    </tr>
-                    <tr>
-                        <td>{{ external_links|safe }}</td>
-                    </tr>
-                </table>
-
-            </div>
-            <div class="large-4 columns">
-                <table class="expand">
-                    <tr>
-                        <th>Contact information</th>
-                    </tr>
-                    <tr>
-                        <td>{{ contact_information|safe }}</td>
-                    </tr>
-                </table>
-
-            </div>
-        </div>
     </div>
 
 

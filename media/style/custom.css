@@ -1,5 +1,13 @@
 /* Custom global styles */
 
+#nav-breadcrumbs {
+    margin: 0;
+}
+
+footer {
+    font-size: 0.9em;
+}
+
 .full-width {
     width: 100%;
 }
@@ -38,10 +46,6 @@ ul.errorlist {
 
 /* Custom base page styles */
 
-#nav-breadcrumbs {
-    margin-top: 0.875em;
-}
-
 #toolboxdropdown img {
     height: 24px;
     width: 24px;
@@ -50,11 +54,6 @@ ul.errorlist {
 
 .top-bar .title-area img {
     height: 55px;
-}
-
-footer {
-    font-size: 0.9em;
-    text-align: center;
 }
 
 

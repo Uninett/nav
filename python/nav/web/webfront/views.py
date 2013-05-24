@@ -15,45 +15,36 @@
 #
 
 import os
-from ConfigParser import ConfigParser
 from datetime import datetime
-from urllib import quote, unquote
+import simplejson
+import logging
 
 from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
-from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
-from nav.config import read_flat_config
+
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
-from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
 from nav.models.profiles import (Account, AccountNavbar, NavbarLink,
                                  AccountTool, AccountProperty)
-from nav.models.manage import Netbox
-from nav.web.templates.DjangoCheetah import DjangoCheetah
 from nav.web import ldapauth, auth
-from nav.web.webfront.utils import quick_read, current_messages, boxes_down, tool_list
+from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import LoginForm, NavbarForm, PersonalNavbarForm
 from nav.web.navlets import get_navlets
 
-import simplejson
-import logging
 
 _logger = logging.getLogger('nav.web.tools')
 
 WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
 WELCOME_ANONYMOUS_PATH = os.path.join(WEBCONF_DIR_PATH, "welcome-anonymous.txt")
 WELCOME_REGISTERED_PATH = os.path.join(WEBCONF_DIR_PATH, "welcome-registered.txt")
-CONTACT_INFORMATION_PATH = os.path.join(WEBCONF_DIR_PATH, "contact-information.txt")
-EXTERNAL_LINKS_PATH = os.path.join(WEBCONF_DIR_PATH, "external-links.txt")
 NAV_LINKS_PATH = os.path.join(WEBCONF_DIR_PATH, "nav-links.conf")
+
 
 def index(request):
     # Read files that will be displayed on front page
-    external_links = quick_read(EXTERNAL_LINKS_PATH)
-    contact_information = quick_read(CONTACT_INFORMATION_PATH)
     if request.account.is_default_account():
         welcome = quick_read(WELCOME_ANONYMOUS_PATH)
     else:
@@ -65,10 +56,7 @@ def index(request):
         {
             'navpath': [('Home', '/')],
             'date_now': datetime.today(),
-            'external_links': external_links,
-            'contact_information': contact_information,
             'welcome': welcome,
-            'current_messages': current_messages(),
             'navlets': get_navlets(),
             'title': 'Welcome to NAV',
         }
