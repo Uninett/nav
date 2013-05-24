@@ -59,15 +59,6 @@ def index(request):
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
-    # Read nav-links
-    nav_links = read_flat_config(NAV_LINKS_PATH)
-
-    down = boxes_down()
-    num_shadow = 0
-    for box in down:
-        if box.netbox.up == Netbox.UP_SHADOW:
-            num_shadow += 1
-
     return direct_to_template(
         request,
         'webfront/index.html',
@@ -77,10 +68,7 @@ def index(request):
             'external_links': external_links,
             'contact_information': contact_information,
             'welcome': welcome,
-            'nav_links': nav_links,
             'current_messages': current_messages(),
-            'boxes_down': down,
-            'num_shadow': num_shadow,
             'navlets': get_navlets(),
             'title': 'Welcome to NAV',
         }

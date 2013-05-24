@@ -122,4 +122,5 @@ NAVLETS = (
     'nav.web.navlets.vlangraph.VlanGraphNavlet',
     'nav.web.navlets.portadmin.PortadminNavlet',
     'nav.web.navlets.linklist.LinkListNavlet',
+    'nav.web.navlets.messages.MessagesNavlet',
 )
