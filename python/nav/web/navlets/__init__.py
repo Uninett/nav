@@ -149,11 +149,17 @@ def get_user_navlets(request):
 
     navlets = []
     for usernavlet in usernavlets:
-        url = reverse('get-user-navlet', kwargs={'navlet_id': usernavlet.id})
-        navlets.append({'id': usernavlet.id, 'url': url,
-                        'column': usernavlet.column,
-                        'preferences': usernavlet.preferences})
-    return HttpResponse(simplejson.dumps(navlets))
+        navlets.append(create_navlet_object(usernavlet))
+    return HttpResponse(simplejson.dumps(navlets),
+                        content_type="application/json")
+
+
+def create_navlet_object(usernavlet):
+    """Create a structure suitable for json transfer of a navlet"""
+    url = reverse('get-user-navlet', kwargs={'navlet_id': usernavlet.id})
+    return {'id': usernavlet.id, 'url': url,
+            'column': usernavlet.column,
+            'preferences': usernavlet.preferences}
 
 
 def dispatcher(request, navlet_id):
@@ -176,9 +182,11 @@ def add_user_navlet(request):
         account = get_account(request)
 
         if can_modify_navlet(account, request):
-            add_navlet(account, request)
+            navlet = add_navlet(account, request)
+            return HttpResponse(simplejson.dumps(create_navlet_object(navlet)),
+                                content_type="application/json")
 
-    return redirect('webfront-index')
+    return HttpResponse(status=400)
 
 
 def add_navlet(account, request):
@@ -190,6 +198,8 @@ def add_navlet(account, request):
     accountnavlet.preferences = get_default_preferences(
         get_navlet_from_name(navlet))
     accountnavlet.save()
+
+    return accountnavlet
 
 
 def get_default_preferences(navlet):

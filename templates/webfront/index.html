@@ -36,7 +36,7 @@
                                     <td>{{ navlet.title }}</td>
                                     <td>{{ navlet.description }}</td>
                                     <td>
-                                        <form action="{% url add-user-navlet %}"
+                                        <form class="add-user-navlet" action="{% url add-user-navlet %}"
                                               method="post">
                                             <input type="hidden" name="navlet"
                                                    value="{{ navlet.identifier }}">

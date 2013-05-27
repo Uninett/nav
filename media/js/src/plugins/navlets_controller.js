@@ -15,6 +15,7 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
         this.sorterSelector = '.navletColumn';
 
         this.fetchNavlets();
+        this.addAddNavletListener();
     }
 
     NavletsController.prototype = {
@@ -28,14 +29,31 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
             $.getJSON(this.fetch_navlets_url, function (data) {
                 var navlets = data, i, l;
                 for (i = 0, l = data.length; i < l; i++) {
-                    if (data[i].column === 1) {
-                        new NavletController(that.container, that.column1, data[i]);
-                    } else {
-                        new NavletController(that.container, that.column2, data[i]);
-                    }
+                    that.addNavlet(data[i]);
                 }
                 that.addNavletOrdering();
             });
+        },
+        addAddNavletListener: function () {
+            var that = this;
+            $('.add-user-navlet').submit(function (event) {
+                event.preventDefault();
+                var request = $.post($(this).attr('action'), $(this).serialize(), 'json');
+                request.done(function (data) {
+                    that.addNavlet(data);
+                    $('#navlet-list').foundation('reveal', 'close');
+                });
+                request.fail(function () {
+                    alert('Failed to add Navlet');
+                });
+            });
+        },
+        addNavlet: function (data) {
+            var column = this.column1;
+            if (data.column === 2) {
+                column = this.column2;
+            }
+            new NavletController(this.container, column, data);
         },
         addNavletOrdering: function () {
             var that = this;
