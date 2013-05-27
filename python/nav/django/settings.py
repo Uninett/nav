@@ -124,4 +124,5 @@ NAVLETS = (
     'nav.web.navlets.portadmin.PortadminNavlet',
     'nav.web.navlets.linklist.LinkListNavlet',
     'nav.web.navlets.messages.MessagesNavlet',
+    'nav.web.navlets.welcome.WelcomeNavlet',
 )

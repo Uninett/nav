@@ -36,3 +36,7 @@
 .navlet .navlet-action-group .button {
     margin-bottom: 0;
 }
+
+.navlet .panel {
+    font-size: 0.9em;
+}
