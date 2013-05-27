@@ -26,10 +26,15 @@ from nav.mibs.esswitch_mib import ESSwitchMib
 from nav.mibs.cisco_c2900_mib import CiscoC2900Mib
 from nav.mibs.cisco_stack_mib import CiscoStackMib
 
+# TODO: Implement CPU stats from OLD-CISCO-CPU-MIB
+# TODO: Implement CPU stats from CISCO-PROCESS-MIB
+# TODO: Implement CPU stats from HP
+# TODO: Implement CPU stats from Juniper?
+
 
 class StatSystem(Plugin):
     """Collects system statistics and pushes to Graphite"""
-
+    BANDWIDTH_MIBS = [CiscoStackMib, CiscoC2900Mib, ESSwitchMib]
 
     @defer.inlineCallbacks
     def handle(self):
@@ -38,7 +43,7 @@ class StatSystem(Plugin):
 
     @defer.inlineCallbacks
     def _collect_bandwidth(self):
-        for mibclass in self.MIBS:
+        for mibclass in self.BANDWIDTH_MIBS:
             mib = mibclass(self.agent)
             try:
                 bandwidth = yield mib.get_bandwidth()
