@@ -25,21 +25,28 @@ from nav.ipdevpoll import Plugin
 from nav.mibs.esswitch_mib import ESSwitchMib
 from nav.mibs.cisco_c2900_mib import CiscoC2900Mib
 from nav.mibs.cisco_stack_mib import CiscoStackMib
+from nav.mibs.old_cisco_cpu_mib import OldCiscoCpuMib
 
 # TODO: Implement CPU stats from OLD-CISCO-CPU-MIB
 # TODO: Implement CPU stats from CISCO-PROCESS-MIB
 # TODO: Implement CPU stats from HP
 # TODO: Implement CPU stats from Juniper?
 
+SYSTEM_PREFIX = "nav.devices.{sysname}.system"
+
 
 class StatSystem(Plugin):
     """Collects system statistics and pushes to Graphite"""
     BANDWIDTH_MIBS = [CiscoStackMib, CiscoC2900Mib, ESSwitchMib]
+    CPU_MIBS = [OldCiscoCpuMib]
 
     @defer.inlineCallbacks
     def handle(self):
         bandwidth = yield self._collect_bandwidth()
-        graphite.send_metrics_to(bandwidth, '127.0.0.1')
+        cpu = yield self._collect_cpu()
+        metrics = bandwidth + cpu
+        if metrics:
+            graphite.send_metrics_to(metrics, '127.0.0.1')
 
     @defer.inlineCallbacks
     def _collect_bandwidth(self):
@@ -58,8 +65,8 @@ class StatSystem(Plugin):
                 self._logger.debug("Found bandwidth values from %s: %s, %s",
                                    mib.mib['moduleName'], bandwidth,
                                    bandwidth_peak)
-                path_prefix = ("nav.devices.%s.system" %
-                               escape_metric_name(self.netbox.sysname))
+                path_prefix = SYSTEM_PREFIX.format(
+                    sysname=escape_metric_name(self.netbox.sysname))
                 path_suffix = "_percent" if percent else ""
                 timestamp = time.time()
                 metrics = [
@@ -69,3 +76,32 @@ class StatSystem(Plugin):
                      (timestamp, bandwidth_peak)),
                 ]
                 defer.returnValue(metrics)
+        defer.returnValue([])
+
+    @defer.inlineCallbacks
+    def _collect_cpu(self):
+        for mibclass in self.CPU_MIBS:
+            mib = mibclass(self.agent)
+            try:
+                avgbusy = yield mib.get_avgbusy()
+            except AttributeError:
+                pass
+
+            timestamp = time.time()
+            if avgbusy:
+                self._logger.debug("Found CPU values from %s: %s",
+                                   mib.mib['moduleName'], avgbusy)
+                metrics = []
+                for cpuname, (avgbusy1, avgbusy5) in avgbusy.items():
+                    path_prefix = SYSTEM_PREFIX.format(
+                        sysname=escape_metric_name(self.netbox.sysname))
+                    cpu_path = "%s.%s" % (path_prefix,
+                                          escape_metric_name(cpuname))
+                    metrics.extend((
+                        ("%s.%s" % (cpu_path, 'avgbusy5'),
+                         (timestamp, avgbusy5)),
+                        ("%s.%s" % (cpu_path, 'avgbusy1'),
+                         (timestamp, avgbusy1)),
+                    ))
+                defer.returnValue(metrics)
+        defer.returnValue([])
