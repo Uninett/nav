@@ -298,8 +298,8 @@ def render_base_template(request):
     """Render only base template with navlet info
 
     This is used to render only buttons and title of the navlet,
-    and is used when an error occured rendering the whole navlet. For the
-    user to be able to delete or go to edit-mode.
+    and is used when an error occured rendering the whole navlet. See
+    doc in navlet_controller.js for more info
 
     """
     try:
