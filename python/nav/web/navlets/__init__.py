@@ -62,7 +62,8 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db.models import Max
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render_to_response
+from django.template.context import RequestContext
 from django.views.generic.base import TemplateView
 
 from nav.models.profiles import AccountNavlet
@@ -291,3 +292,27 @@ def update_navlet(account, key, value, column):
     navlet.order = value
     navlet.column = column
     navlet.save()
+
+
+def render_base_template(request):
+    """Render only base template with navlet info
+
+    This is used to render only buttons and title of the navlet,
+    and is used when an error occured rendering the whole navlet. For the
+    user to be able to delete or go to edit-mode.
+
+    """
+    try:
+        navlet_id = int(request.REQUEST.get('id'))
+    except ValueError:
+        # We're fucked
+        return HttpResponse(status=400)
+    else:
+        account = get_account(request)
+        accountnavlet = AccountNavlet.objects.get(account=account,
+                                                  pk=navlet_id)
+        _logger.error(accountnavlet)
+        cls = get_navlet_from_name(accountnavlet.navlet)
+        return render_to_response('navlets/base.html', {'navlet': cls},
+                                  RequestContext(request))
+

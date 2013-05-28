@@ -34,7 +34,6 @@ class LinkListNavlet(Navlet):
         context['half'] = math.ceil(len(nav_links) / 2.0)
         return context
 
-
     def get_template_basename(self):
         return "linklist"
 

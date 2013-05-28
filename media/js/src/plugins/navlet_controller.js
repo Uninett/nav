@@ -7,6 +7,13 @@ define(['libs/jquery', 'libs/spin.min'], function () {
     * renderNode: In case of columns or other structures, this is the node the navlet should render in
     * navlet: An object containing the id for the navlet and the url to display it
     *
+    * The controller initiates a request to the url given in the navlet object,
+    * puts the result in its own node and add it to the renderNode.
+    *
+    * If the request fails for some reason, we need to make another request to
+    * fetch the base template with the buttons and title rendered. This is
+    * suboptimal, but only leads to overhead on errors.
+    *
     */
 
     var NavletController = function (container, renderNode, navlet) {
@@ -15,7 +22,8 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         this.navlet = navlet;          // Object containing navlet information
         this.spinner = new Spinner();  // Spinner showing on load
         this.node = this.createNode(); // The complete node for this navlet
-        this.removeUrl = this.container.attr('data-remove-navlet');
+        this.removeUrl = this.container.attr('data-remove-navlet');           // Url to use to remove a navlet from this user
+        this.baseTemplateUrl = this.container.attr('data-base-template-url'); // Url to use to fetch base template for this navlet
 
         this.renderNavlet('VIEW');
     };
@@ -51,7 +59,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 that.handleSuccessfulRequest(html, mode);
             });
             request.fail(function (jqxhr, textStatus, errorThrown) {
-                that.displayError('Could not load Navlet');
+                that.handleErrorRequest(jqxhr);
             });
             request.always(function () {
                 that.spinner.stop();
@@ -63,6 +71,25 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.applyListeners();
             this.node.foundation();  // Initialize Foundation script on this node
             this.addReloader(mode);
+        },
+        handleErrorRequest: function (jqxhr) {
+            /*
+             * Fetch base template for this navlet, display that and error
+             */
+            var that = this,
+                request = $.get(this.baseTemplateUrl, {id: this.navlet.id});
+            request.done(function (html) {
+                that.node.html(html);
+                that.applyListeners();
+                if (jqxhr.status === 401 || jqxhr.status === 403) {
+                    that.displayError('Not allowed');
+                } else {
+                    that.displayError('Could not load Navlet');
+                }
+            });
+            request.fail(function () {
+                that.displayError('Could not load Navlet');
+            });
         },
         addReloader: function (mode) {
             /*
@@ -81,9 +108,11 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             }
         },
         getModeSwitch: function () {
+            /* Return edit-button */
             return this.node.find('.navlet-mode-switch');
         },
         getRenderMode: function () {
+            /* Return mode based on edit-button. If it does not exist return VIEW */
             var modeSwitch = this.getModeSwitch(),
                 mode = 'VIEW';
             if (modeSwitch.length) {
@@ -128,6 +157,12 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             });
         },
         applySubmitListener: function () {
+            /*
+             * Make sure a form in edit-mode is submitted by ajax, so that the
+             * page does not reload.
+             *
+             * Preferences may be returned, handle and store them
+             */
             if (this.getRenderMode() === 'EDIT') {
                 var that = this,
                     form = this.node.find('form');
@@ -152,16 +187,12 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.getOrCreateErrorElement().text(errorMessage);
         },
         getOrCreateErrorElement: function () {
-            var $element = this.node.find('.alert-box.alert'),
-                $header = this.node.find('.subheader');
+            /* If error element is already created, return existing element */
+            var $element = this.node.find('.alert-box.alert');
 
             if (!$element.length) {
                 $element = $('<span class="alert-box alert"/>');
-                if ($header.length) {
-                    $element.insertAfter($header);
-                } else {
-                    $element.appendTo(this.node);
-                }
+                $element.appendTo(this.node);
             }
 
             return $element;

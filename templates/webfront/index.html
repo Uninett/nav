@@ -58,7 +58,9 @@
         <div id="navlets"
              data-list-navlets="{% url get-user-navlets %}"
              data-remove-navlet="{% url remove-user-navlet %}"
-             data-save-order-url="{% url save-navlet-order %}"></div>
+             data-save-order-url="{% url save-navlet-order %}"
+             data-base-template-url={% url navlet-base-template %}
+                ></div>
 
     </div>
 
