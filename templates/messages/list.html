@@ -1,0 +1,23 @@
+{% extends "messages/base.html" %}
+{% block content %}
+<table class="listtable">
+    <caption>{{ caption }}</caption>
+    <thead>
+        <tr>
+            <th>Published</th>
+            <th>Title</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                <td>{{ message.publish_start|date:"Y-m-d H:i" }}</td>
+                <td><a href="{% url messages-view message.id %}">{{ message.title }}</a></td>
+                <td>{{ message.description }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url messages-create %}">Create new message</a>
+{% endblock %}

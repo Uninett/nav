@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+    <link rel="stylesheet" type="text/css" href="/style/messages.css" />
+    <link rel="alternate" type="application/rss+xml"
+        title="Messages Feed (RSS 2.0)" href="{% url messages-rss %}" />
+    <script>require(['src/messages']);</script>
+{% endblock %}
+
+{% block base_content %}
+    <h2>Messages <a href="{% url messages-rss %}"><img src="/images/icons/feed-icon-14x14.png" alt="RSS" /></a></h2>
+    <div class="tabs">
+        <ul>
+            <li class="{{ active.active|yesno:"tabactive," }}">
+                <a href="{% url messages-active %}">Active</a>
+            </li>
+            <li class="{{ active.planned|yesno:"tabactive," }}">
+                <a href="{% url messages-planned %}">Planned</a>
+            </li>
+            <li class="{{ active.historic|yesno:"tabactive," }}">
+                <a href="{% url messages-historic %}">Historic</a>
+            </li>
+        </ul>
+    </div>
+    <div class="tabcontent">
+        {% if current_user_data.messages %}
+            <ul class="messages">
+                {% for m in current_user_data.messages %}
+                    <li class="{{ m.type }}">{{ m.message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+{% endblock %}
