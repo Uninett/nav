@@ -29,10 +29,8 @@ from nav.mibs.old_cisco_cpu_mib import OldCiscoCpuMib
 from nav.mibs.cisco_process_mib import CiscoProcessMib
 from nav.mibs.statistics_mib import StatisticsMib
 
-# TODO: Implement CPU stats from HP
 # TODO: Implement CPU stats from Juniper?
 
-SYSTEM_PREFIX = "nav.devices.{sysname}.system"
 VENDORID_CISCO = 9
 VENDORID_HP = 11
 
@@ -73,14 +71,11 @@ class StatSystem(Plugin):
                 self._logger.debug("Found bandwidth values from %s: %s, %s",
                                    mib.mib['moduleName'], bandwidth,
                                    bandwidth_peak)
-                path_prefix = SYSTEM_PREFIX.format(
-                    sysname=escape_metric_name(self.netbox.sysname))
-                path_suffix = "_percent" if percent else ""
                 timestamp = time.time()
                 metrics = [
-                    ("%s.bandwith%s" % (path_prefix, path_suffix),
+                    (metric_path_for_bandwith(self.netbox, percent),
                      (timestamp, bandwidth)),
-                    ("%s.bandwith_peak%s" % (path_prefix, path_suffix),
+                    (metric_path_for_bandwith_peak(self.netbox, percent),
                      (timestamp, bandwidth_peak)),
                 ]
                 defer.returnValue(metrics)
@@ -108,14 +103,10 @@ class StatSystem(Plugin):
                                mib.mib['moduleName'], avgbusy)
             metrics = []
             for cpuname, (avgbusy1, avgbusy5) in avgbusy.items():
-                path_prefix = SYSTEM_PREFIX.format(
-                    sysname=escape_metric_name(self.netbox.sysname))
-                cpu_path = "%s.%s" % (path_prefix,
-                                      escape_metric_name(cpuname))
                 metrics.extend((
-                    ("%s.%s" % (cpu_path, 'avgbusy5'),
+                    (metric_path_for_cpu_avgbusy(self.netbox, cpuname, 5),
                      (timestamp, avgbusy5)),
-                    ("%s.%s" % (cpu_path, 'avgbusy1'),
+                    (metric_path_for_cpu_avgbusy(self.netbox, cpuname, 1),
                      (timestamp, avgbusy1)),
                 ))
             defer.returnValue(metrics)
@@ -132,11 +123,9 @@ class StatSystem(Plugin):
         if utilization:
             self._logger.debug("Found CPU load from %s: %s",
                                mib.mib['moduleName'], utilization)
-            path_prefix = SYSTEM_PREFIX.format(
-                sysname=escape_metric_name(self.netbox.sysname))
-            cpu_path = "%s.cpu.cpuload" % path_prefix
             defer.returnValue([
-                (cpu_path, (timestamp, utilization))
+                (metric_path_for_cpu_load(self.netbox, 'cpu'),
+                 (timestamp, utilization))
             ])
 
     def _mibs_for_me(self, mib_class_dict):
@@ -146,3 +135,39 @@ class StatSystem(Plugin):
                        mib_class_dict.get(None, []))
         for mib_class in mib_classes:
             yield mib_class(self.agent)
+
+#
+# metric path templates
+#
+
+
+def metric_path_for_bandwith(sysname, is_percent):
+    tmpl = "{prefix}.bandwidth{percent}"
+    return tmpl.format(prefix=metric_prefix_for_system(sysname),
+                       percent="_percent" if is_percent else "")
+
+
+def metric_path_for_bandwith_peak(sysname, is_percent):
+    tmpl = "{prefix}.bandwidth_peak{percent}"
+    return tmpl.format(prefix=metric_prefix_for_system(sysname),
+                       percent="_percent" if is_percent else "")
+
+
+def metric_path_for_cpu_avgbusy(sysname, cpu_name, interval):
+    tmpl = "{prefix}.{cpu_name}.avgbusy{interval}"
+    return tmpl.format(prefix=metric_prefix_for_system(sysname),
+                       cpu_name=escape_metric_name(cpu_name),
+                       interval=escape_metric_name(str(interval)))
+
+
+def metric_path_for_cpu_load(sysname, cpu_name):
+    tmpl = "{prefix}.{cpu_name}.cpuload"
+    return tmpl.format(prefix=metric_prefix_for_system(sysname),
+                       cpu_name=escape_metric_name(cpu_name))
+
+
+def metric_prefix_for_system(sysname):
+    tmpl = "nav.devices.{sysname}.system"
+    if hasattr(sysname, 'sysname'):
+        sysname = sysname.sysname
+    return tmpl.format(sysname=escape_metric_name(sysname))
