@@ -26,9 +26,8 @@ from nav.mibs.esswitch_mib import ESSwitchMib
 from nav.mibs.cisco_c2900_mib import CiscoC2900Mib
 from nav.mibs.cisco_stack_mib import CiscoStackMib
 from nav.mibs.old_cisco_cpu_mib import OldCiscoCpuMib
+from nav.mibs.cisco_process_mib import CiscoProcessMib
 
-# TODO: Implement CPU stats from OLD-CISCO-CPU-MIB
-# TODO: Implement CPU stats from CISCO-PROCESS-MIB
 # TODO: Implement CPU stats from HP
 # TODO: Implement CPU stats from Juniper?
 
@@ -38,7 +37,7 @@ SYSTEM_PREFIX = "nav.devices.{sysname}.system"
 class StatSystem(Plugin):
     """Collects system statistics and pushes to Graphite"""
     BANDWIDTH_MIBS = [CiscoStackMib, CiscoC2900Mib, ESSwitchMib]
-    CPU_MIBS = [OldCiscoCpuMib]
+    CPU_MIBS = [CiscoProcessMib, OldCiscoCpuMib]
 
     @defer.inlineCallbacks
     def handle(self):
@@ -82,10 +81,7 @@ class StatSystem(Plugin):
     def _collect_cpu(self):
         for mibclass in self.CPU_MIBS:
             mib = mibclass(self.agent)
-            try:
-                avgbusy = yield mib.get_avgbusy()
-            except AttributeError:
-                pass
+            avgbusy = yield mib.get_avgbusy()
 
             timestamp = time.time()
             if avgbusy:
