@@ -246,7 +246,7 @@ def modify_navlet(func, account, request, error_message):
         else:
             return HttpResponse()
     else:
-        return HttpResponse(status=401)
+        return HttpResponse(status=403)
 
 
 def remove_user_navlet(request):
