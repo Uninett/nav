@@ -25,7 +25,7 @@ class MessageForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(MessageForm, self).__init__(*args, **kwargs)
 
-        #Since the m2m uses through, we need to fetch inital data manually
+        # Since the m2m uses through, we need to fetch inital data manually
         initials = []
         tasks = MessageToMaintenanceTask.objects.filter(message=self.instance)
         for task in tasks.all():
@@ -48,14 +48,14 @@ class MessageForm(ModelForm):
         then save the updated version. Hack?
         """
 
-        #Save the message
+        # Save the message
         message = super(MessageForm, self).save(commit=False)
         message.save()
 
-        #Cleanup existing tasks related to message
+        # Cleanup existing tasks related to message
         MessageToMaintenanceTask.objects.filter(message=message).delete()
 
-        #Save all the relations to tasks
+        # Save all the relations to tasks
         for task in self.cleaned_data.get('maintenance_tasks'):
             o = MessageToMaintenanceTask(message=message, maintenance_task=task)
             o.save()
