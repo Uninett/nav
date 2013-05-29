@@ -31,9 +31,8 @@ SELECT insert_default_navlets_for_existing_users();
 ---
 CREATE OR REPLACE FUNCTION insert_default_navlets_for_new_users() RETURNS trigger AS $$
     BEGIN
-      INSERT INTO account_navlet (navlet, account, displayorder, col) VALUES
-        ('nav.web.navlets.welcome.WelcomeNavlet', NEW.id, 0, 1),
-        ('nav.web.navlets.messages.MessagesNavlet', NEW.id, 0, 2);
+      INSERT INTO account_navlet (account, navlet, displayorder, col, preferences)
+        SELECT NEW.id, navlet, displayorder, col, preferences FROM account_navlet WHERE account=0;
       RETURN NULL;
     END
 $$ LANGUAGE plpgsql;
