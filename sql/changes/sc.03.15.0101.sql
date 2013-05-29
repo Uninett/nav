@@ -18,7 +18,8 @@ BEGIN
     RAISE NOTICE 'Adding default navlets for %s', quote_ident(account.login);
     INSERT INTO account_navlet (navlet, account, displayorder, col) VALUES
       ('nav.web.navlets.welcome.WelcomeNavlet', account.id, 0, 1),
-      ('nav.web.navlets.messages.MessagesNavlet', account.id, 0, 2);
+      ('nav.web.navlets.linklist.LinkListNavlet', account.id, 0, 2),
+      ('nav.web.navlets.messages.MessagesNavlet', account.id, 1, 2);
   END LOOP;
 END;
 $$ LANGUAGE plpgsql;
