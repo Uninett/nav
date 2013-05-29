@@ -8,7 +8,6 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         // Plug row toggler on datasources
         new TableUtil($('#hostinfo')).addRowToggleTrigger();
 
-        NAV.addGlobalAjaxHandlers();
 
         if ($(mainTabsSelector).length !== 0) {
             addModuleTabs();

@@ -1,7 +1,6 @@
 require(['libs/jquery-ui-1.8.21.custom.min'], function () {
     $(function () {
 
-        NAV.addGlobalAjaxHandlers();
         var $editbutton = $('.buttoncontainer .editbutton');
         var $savebutton = $('.buttoncontainer .savebutton');
         var $info = $('.buttoncontainer .info');
