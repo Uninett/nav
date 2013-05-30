@@ -560,6 +560,7 @@ def affected(request, netboxid):
     netbox = Netbox.objects.get(pk=netboxid)
     netboxes = sorted(utils.find_children(netbox),
                       key=attrgetter('category.id', 'sysname'))
+    utils.find_affected_but_not_down(netbox, netboxes)
     organizations = utils.find_organizations(netboxes)
     contacts = utils.filter_email(organizations)
     services = Service.objects.filter(netbox__in=netboxes).order_by('netbox')

@@ -15,6 +15,7 @@
 #
 """Utility methods to get extract extra characteristics from ports."""
 
+import networkx as nx
 import nav.util
 import logging
 from datetime import datetime
@@ -23,6 +24,7 @@ from django.core.validators import validate_email, ValidationError
 
 from nav.models.manage import SwPortVlan, SwPortBlocked, Cam
 from nav.models.manage import Netbox
+from nav.topology.vlan import build_layer2_graph
 
 _logger = logging.getLogger('nav.web.ipdevinfo.utils')
 
@@ -362,3 +364,20 @@ def get_affected_host_count(netboxes):
     """Return the total number of active hosts on the netboxes"""
     return Cam.objects.filter(netbox__in=netboxes,
                               end_time__gte=datetime.max).count()
+
+
+def find_affected_but_not_down(netbox_going_down, netboxes):
+    """Mark affected but not down because of redundancy boxes"""
+    graph = build_layer2_graph()
+    graph.remove_node(netbox_going_down)
+    masters = find_uplink_nodes(netbox_going_down)
+    for netbox in netboxes:
+        if netbox_going_down != netbox:
+            netbox.redundant = any(nx.has_path(graph, master, netbox)
+                                   for master in masters)
+
+def find_uplink_nodes(netbox):
+    """Find the uplink nodes for this netbox"""
+    uplink_nodes = [x['other'].netbox for x in netbox.get_uplinks()]
+    return list(set(uplink_nodes))
+
