@@ -18,7 +18,6 @@ import IPy
 import re
 import logging
 import datetime as dt
-from operator import attrgetter
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -558,17 +557,21 @@ def service_matrix(request):
 def affected(request, netboxid):
     """Controller for the affected tab in ipdevinfo"""
     netbox = Netbox.objects.get(pk=netboxid)
-    netboxes = sorted(utils.find_children(netbox),
-                      key=attrgetter('category.id', 'sysname'))
-    utils.find_affected_but_not_down(netbox, netboxes)
-    organizations = utils.find_organizations(netboxes)
+    netboxes = utils.find_children(netbox)
+
+    affected = utils.sort_by_netbox(
+        utils.find_affected_but_not_down(netbox, netboxes))
+    unreachable = utils.sort_by_netbox(list(set(netboxes) - set(affected)))
+
+    organizations = utils.find_organizations(unreachable)
     contacts = utils.filter_email(organizations)
-    services = Service.objects.filter(netbox__in=netboxes).order_by('netbox')
-    affected_hosts = utils.get_affected_host_count(netboxes)
+    services = Service.objects.filter(netbox__in=unreachable).order_by('netbox')
+    affected_hosts = utils.get_affected_host_count(unreachable)
 
     return render_to_response(
         'ipdevinfo/frag-affected.html', {
-            'netboxes': netboxes,
+            'unreachable': unreachable,
+            'affected': affected,
             'services': services,
             'organizations': organizations,
             'contacts': contacts,

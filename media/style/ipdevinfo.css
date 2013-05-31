@@ -177,3 +177,7 @@ table.module td div.portcell span.oplayer {
 #affected input[type=submit] {
     padding: 0.3em 1em;
 }
+
+#affected h3 img {
+    vertical-align: baseline;
+}

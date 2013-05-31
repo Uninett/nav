@@ -14,11 +14,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Utility methods to get extract extra characteristics from ports."""
-
 import networkx as nx
 import nav.util
 import logging
 from datetime import datetime
+from operator import attrgetter
 
 from django.core.validators import validate_email, ValidationError
 
@@ -371,13 +371,22 @@ def find_affected_but_not_down(netbox_going_down, netboxes):
     graph = build_layer2_graph()
     graph.remove_node(netbox_going_down)
     masters = find_uplink_nodes(netbox_going_down)
+    redundant = []
     for netbox in netboxes:
-        if netbox_going_down != netbox:
-            netbox.redundant = any(nx.has_path(graph, master, netbox)
-                                   for master in masters)
+        if netbox_going_down == netbox:
+            continue
+        if any(nx.has_path(graph, master, netbox) for master in masters):
+            redundant.append(netbox)
+
+    return redundant
+
 
 def find_uplink_nodes(netbox):
     """Find the uplink nodes for this netbox"""
     uplink_nodes = [x['other'].netbox for x in netbox.get_uplinks()]
     return list(set(uplink_nodes))
 
+
+def sort_by_netbox(netboxes):
+    """Sort netboxes by category and sysname"""
+    return sorted(netboxes, key=attrgetter('category.id', 'sysname'))

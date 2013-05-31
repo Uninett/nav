@@ -4,13 +4,25 @@
 
 <div id="affected">
 
-    {% if netboxes %}
-
-        <h3>IP-DEVICES</h3>
+    {% if affected %}
+        <h3>AFFECTED DEVICES  <img src="/images/helpers/question.png" title="Devices with or behind devices with redundant links"></h3>
         <ul>
-            {% for netbox in netboxes %}
-                <li><a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a>
-                    {% if netbox.redundant %}(not going down){% endif %}
+            {% for netbox in affected %}
+                <li>
+                    <a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a>
+                    ({{ netbox.category.id }})
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if unreachable %}
+
+        <h3>DEVICES GOING DOWN</h3>
+        <ul>
+            {% for netbox in unreachable %}
+                <li>
+                    <a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a>
                     ({{ netbox.category.id }})
                 </li>
             {% endfor %}
@@ -25,7 +37,7 @@
 
     {% if services %}
 
-        <h3>SERVICES</h3>
+        <h3>SERVICES ON DEVICES GOING DOWN</h3>
         <ul>
             {% for service in services %}
                 <li>{{ service }}</li>
