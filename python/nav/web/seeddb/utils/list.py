@@ -27,8 +27,10 @@ from nav.django.utils import get_verbose_name
 
 ITEMS_PER_PAGE = 100
 
-def render_list(request, queryset, value_list, edit_url=None, edit_url_attr='pk', \
-        filter_form=None, template='seeddb/list.html', extra_context=None):
+def render_list(request, queryset, value_list, edit_url=None,
+                edit_url_attr='pk', filter_form=None,
+                template='seeddb/list.html', extra_context=None,
+                censor_list=None):
     """Renders a Seed DB list.
 
     Parameters:
@@ -43,6 +45,7 @@ def render_list(request, queryset, value_list, edit_url=None, edit_url_attr='pk'
      - template: Path to the template used.
      - extra_context: A dictionary containing all additional context that
                       should be used in the template.
+     - censor_list: list of value headers to censor
     """
 
     if not extra_context:
@@ -88,6 +91,7 @@ def render_list(request, queryset, value_list, edit_url=None, edit_url_attr='pk'
         'filter_form': filter_form,
         'page': page,
         'sub_active': {'list': True},
+        'censor_list': censor_list
     }
     # Update extra_context with context.
     # Doing it this way makes sure that the context dictionary overrides any

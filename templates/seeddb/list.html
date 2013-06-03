@@ -63,26 +63,34 @@
     </thead>
 
     <tbody>
-      {% if object_list %}
+    {% if object_list %}
         {% for object in object_list %}
-        <tr class="{% cycle 'oddrow' 'evenrow' %}">
-            <td><input type="checkbox" name="object" value="{{ object.pk }}" class="selector" /></td>
-            {% for element in object.values_list %}
-            {% if forloop.first %}
-                {% if object.url %}
-                    <td><a href="{{ object.url }}">{{ element }}</a></td>
-                {% else %}
-                    <td>{{ element }}</td>
-                {% endif %}
-            {% else %}
-            <td>{{ element|default_if_none:"" }}</td>
-            {% endif %}
-            {% endfor %}
-        </tr>
+            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                <td><input type="checkbox" name="object" value="{{ object.pk }}" class="selector"/></td>
+                {% for element in object.values_list %}
+                    <td>
+                        {% if forloop.first %}
+                            {% if object.url %}
+                                <a href="{{ object.url }}">{{ element }}</a>
+                            {% else %}
+                                {{ element }}
+                            {% endif %}
+                        {% else %}
+                            {% if element and forloop.counter0 in censor_list %}
+                                ******
+                            {% else %}
+                                {{ element|default_if_none:"" }}
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
         {% endfor %}
-      {% else %}
-	<tr><td></td></tr>
-      {% endif %}
+    {% else %}
+        <tr>
+            <td></td>
+        </tr>
+    {% endif %}
     </tbody>
 
 </table>
