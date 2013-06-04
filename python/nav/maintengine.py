@@ -58,6 +58,7 @@ def get_logger(log_name=None, log_file=None, log_format=None):
             return logger
     except Exception, ex:
         pass
+    root = logging.getLogger('')
     logger = logging.getLogger(log_name)
     formatter = None
     if log_format:
@@ -74,7 +75,7 @@ def get_logger(log_name=None, log_file=None, log_format=None):
         if handler:
             if formatter:
                 handler.setFormatter(formatter)
-            logger.addHandler(handler)
+            root.addHandler(handler)
         nav.logs.set_log_levels()
     return logger
 
