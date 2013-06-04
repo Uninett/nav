@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """HP STATISTICS-MIB"""
+from twisted.internet import defer
 from nav.mibs import mibretriever
 
 
@@ -21,6 +22,12 @@ class StatisticsMib(mibretriever.MibRetriever):
     """HP STATISTICS-MIB"""
     from nav.smidumps.statistics_mib import MIB as mib
 
+    @defer.inlineCallbacks
     def get_cpu_utilization(self):
         """Returns the current switch CPU utilization in percent"""
-        return self.get_next('hpSwitchCpuStat')
+        util = yield self.get_next('hpSwitchCpuStat')
+        if util is not None:
+            defer.returnValue(dict(cpu=util))
+
+    def get_cpu_loadavg(self):
+        return defer.succeed(None)

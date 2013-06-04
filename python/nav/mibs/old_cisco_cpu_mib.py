@@ -21,8 +21,12 @@ class OldCiscoCpuMib(mibretriever.MibRetriever):
     from nav.smidumps.old_cisco_cpu_mib import MIB as mib
 
     @defer.inlineCallbacks
-    def get_avgbusy(self):
+    def get_cpu_loadavg(self):
         avgbusy5 = yield self.get_next('avgBusy5')
         avgbusy1 = yield self.get_next('avgBusy1')
         if avgbusy5 or avgbusy1:
-            defer.returnValue(dict(cpu=(avgbusy5, avgbusy1)))
+            result = dict(cpu=[(5, avgbusy5), (1, avgbusy1)])
+            defer.returnValue(result)
+
+    def get_cpu_utilization(self):
+        return defer.succeed(None)

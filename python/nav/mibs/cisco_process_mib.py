@@ -27,22 +27,23 @@ class CiscoProcessMib(mibretriever.MibRetriever):
     from nav.smidumps.cisco_process_mib import MIB as mib
 
     @defer.inlineCallbacks
-    def get_avgbusy(self):
-        avgbusy = yield self.retrieve_columns([
+    def get_cpu_loadavg(self):
+        load = yield self.retrieve_columns([
             PHYSICAL_INDEX,
             TOTAL_5_MIN_REV,
             TOTAL_1_MIN_REV,
         ])
 
         by_physindex = dict((row[PHYSICAL_INDEX], row)
-                            for row in avgbusy.values())
+                            for row in load.values())
         if by_physindex:
             result = dict()
             names = yield self._get_cpu_names(by_physindex.keys())
             for physindex, row in by_physindex.items():
                 name = names.get(physindex, None)
                 if name:
-                    result[name] = (row[TOTAL_5_MIN_REV], row[TOTAL_1_MIN_REV])
+                    result[name] = [(5, row[TOTAL_5_MIN_REV]),
+                                    (1, row[TOTAL_1_MIN_REV])]
             defer.returnValue(result)
 
     @defer.inlineCallbacks
@@ -52,3 +53,6 @@ class CiscoProcessMib(mibretriever.MibRetriever):
         names = yield self.agent_proxy.get(oids)
         names = dict((OID(oid)[-1], value) for oid, value in names.items())
         defer.returnValue(names)
+
+    def get_cpu_utilization(self):
+        return defer.succeed(None)

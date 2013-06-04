@@ -84,49 +84,40 @@ class StatSystem(Plugin):
     @defer.inlineCallbacks
     def _collect_cpu(self):
         for mib in self._mibs_for_me(self.CPU_MIBS):
-            metrics = yield self._get_avgbusy(mib)
-            if not metrics:
-                metrics = yield self._get_cpu_load(mib)
-            defer.returnValue(metrics or [])
+            load = yield self._get_cpu_loadavg(mib)
+            utilization = yield self._get_cpu_utilization(mib)
+            defer.returnValue(load + utilization)
         defer.returnValue([])
 
     @defer.inlineCallbacks
-    def _get_avgbusy(self, mib):
-        if not hasattr(mib, 'get_avgbusy'):
-            defer.returnValue([])
-
-        avgbusy = yield mib.get_avgbusy()
+    def _get_cpu_loadavg(self, mib):
+        load = yield mib.get_cpu_loadavg()
         timestamp = time.time()
+        metrics = []
 
-        if avgbusy:
-            self._logger.debug("Found CPU values from %s: %s",
-                               mib.mib['moduleName'], avgbusy)
-            metrics = []
-            for cpuname, (avgbusy1, avgbusy5) in avgbusy.items():
-                metrics.extend((
-                    (metric_path_for_cpu_avgbusy(self.netbox, cpuname, 5),
-                     (timestamp, avgbusy5)),
-                    (metric_path_for_cpu_avgbusy(self.netbox, cpuname, 1),
-                     (timestamp, avgbusy1)),
-                ))
-            defer.returnValue(metrics)
-        defer.returnValue([])
+        if load:
+            self._logger.debug("Found CPU loadavg from %s: %s",
+                               mib.mib['moduleName'], load)
+            for cpuname, loadlist in load.items():
+                for interval, value in loadlist:
+                    path = metric_path_for_cpu_load(self.netbox, cpuname,
+                                                    interval)
+                    metrics.append((path, (timestamp, value)))
+        defer.returnValue(metrics)
 
     @defer.inlineCallbacks
-    def _get_cpu_load(self, mib):
-        if not hasattr(mib, 'get_cpu_utilization'):
-            defer.returnValue([])
-
+    def _get_cpu_utilization(self, mib):
         utilization = yield mib.get_cpu_utilization()
         timestamp = time.time()
+        metrics = []
 
         if utilization:
-            self._logger.debug("Found CPU load from %s: %s",
+            self._logger.debug("Found CPU utilization from %s: %s",
                                mib.mib['moduleName'], utilization)
-            defer.returnValue([
-                (metric_path_for_cpu_load(self.netbox, 'cpu'),
-                 (timestamp, utilization))
-            ])
+            for cpuname, value in utilization.items():
+                path = metric_path_for_cpu_utilization(self.netbox, cpuname)
+                metrics.append((path, (timestamp, value)))
+        defer.returnValue(metrics)
 
     def _mibs_for_me(self, mib_class_dict):
         vendor = (self.netbox.type.get_enterprise_id()
@@ -153,15 +144,15 @@ def metric_path_for_bandwith_peak(sysname, is_percent):
                        percent="_percent" if is_percent else "")
 
 
-def metric_path_for_cpu_avgbusy(sysname, cpu_name, interval):
-    tmpl = "{prefix}.{cpu_name}.avgbusy{interval}"
+def metric_path_for_cpu_load(sysname, cpu_name, interval):
+    tmpl = "{prefix}.{cpu_name}.{interval}MinLoadAvg"
     return tmpl.format(prefix=metric_prefix_for_system(sysname),
                        cpu_name=escape_metric_name(cpu_name),
                        interval=escape_metric_name(str(interval)))
 
 
-def metric_path_for_cpu_load(sysname, cpu_name):
-    tmpl = "{prefix}.{cpu_name}.cpuload"
+def metric_path_for_cpu_utilization(sysname, cpu_name):
+    tmpl = "{prefix}.{cpu_name}.utilization"
     return tmpl.format(prefix=metric_prefix_for_system(sysname),
                        cpu_name=escape_metric_name(cpu_name))
 
