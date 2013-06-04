@@ -147,19 +147,26 @@ def metric_path_for_bandwith_peak(sysname, is_percent):
 
 def metric_path_for_cpu_load(sysname, cpu_name, interval):
     tmpl = "{prefix}.{cpu_name}.{interval}MinLoadAvg"
-    return tmpl.format(prefix=metric_prefix_for_system(sysname),
+    return tmpl.format(prefix=metric_prefix_for_cpu(sysname),
                        cpu_name=escape_metric_name(cpu_name),
                        interval=escape_metric_name(str(interval)))
 
 
 def metric_path_for_cpu_utilization(sysname, cpu_name):
     tmpl = "{prefix}.{cpu_name}.utilization"
-    return tmpl.format(prefix=metric_prefix_for_system(sysname),
+    return tmpl.format(prefix=metric_prefix_for_cpu(sysname),
                        cpu_name=escape_metric_name(cpu_name))
 
 
 def metric_prefix_for_system(sysname):
     tmpl = "nav.devices.{sysname}.system"
+    if hasattr(sysname, 'sysname'):
+        sysname = sysname.sysname
+    return tmpl.format(sysname=escape_metric_name(sysname))
+
+
+def metric_prefix_for_cpu(sysname):
+    tmpl = "nav.devices.{sysname}.cpu"
     if hasattr(sysname, 'sysname'):
         sysname = sysname.sysname
     return tmpl.format(sysname=escape_metric_name(sysname))
