@@ -28,11 +28,11 @@ from nav.mibs.cisco_stack_mib import CiscoStackMib
 from nav.mibs.old_cisco_cpu_mib import OldCiscoCpuMib
 from nav.mibs.cisco_process_mib import CiscoProcessMib
 from nav.mibs.statistics_mib import StatisticsMib
-
-# TODO: Implement CPU stats from Juniper?
+from nav.mibs.juniper_mib import JuniperMib
 
 VENDORID_CISCO = 9
 VENDORID_HP = 11
+VENDORID_JUNIPER = 2636
 
 
 class StatSystem(Plugin):
@@ -44,6 +44,7 @@ class StatSystem(Plugin):
     CPU_MIBS = {
         VENDORID_CISCO: [CiscoProcessMib, OldCiscoCpuMib],
         VENDORID_HP: [StatisticsMib],
+        VENDORID_JUNIPER: [JuniperMib],
     }
 
     @defer.inlineCallbacks
