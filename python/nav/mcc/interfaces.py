@@ -18,12 +18,13 @@ IPV6MODULE = 'ipv6-counters'
 CONFIG = {
     IPV6MODULE: {
         'dirname': 'ipv6-interfaces',
-        'categories': ['GW', 'GSW'],
+        'boxfilter': Q(category__in=['GW', 'GSW']),
         'filter': Q(gwportprefix__isnull=False),
         'extra': {'where': ['family(gwip)=6']}
     },
     'port-counters': {
         'dirname': 'ports',
+        'boxfilter': ~Q(category='EDGE'),
         'filter': (Q(gwportprefix__isnull=False) |
                    Q(baseport__isnull=False) |
                    Q(ifconnectorpresent=True)),
@@ -77,8 +78,8 @@ def start_config_creation(module, configroot):
 
     configdirs = []  # The directories we have created config in
     query = Q(interface__isnull=False)
-    if 'categories' in config:
-        query = query & Q(category__in=config['categories'])
+    if 'boxfilter' in config:
+        query = query & config['boxfilter']
     netboxes = Netbox.objects.filter(query).distinct()
     containers = []  # containers are objects used for database storage
     for netbox in netboxes:
