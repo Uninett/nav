@@ -32,6 +32,14 @@ class MessageForm(ModelForm):
             initials.append(task.maintenance_task.pk)
         self.initial['maintenance_tasks'] = initials 
 
+        # Classes for javascript plugin
+        self.fields['publish_start'].widget.attrs['class'] = 'datetimepicker'
+        self.fields['publish_end'].widget.attrs['class'] = 'datetimepicker'
+
+        # Ommit seconds when displaying data
+        self.fields['publish_start'].widget.format = '%Y-%m-%d %H:%M'
+        self.fields['publish_end'].widget.format = '%Y-%m-%d %H:%M'
+
     
     class Meta:
         model = Message
