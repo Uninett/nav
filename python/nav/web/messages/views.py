@@ -31,7 +31,7 @@ ACTIVE_TITLE = 'NAV - Messages - Active'
 PLANNED_TITLE = 'NAV - Messages - Planned'
 HISTORIC_TITLE = 'NAV - Messages - Historic'
 SAVE_TITLE = 'NAV - Messages - Save'
-VIEW_TITLE = 'NAV - Messages - View'
+VIEW_TITLE = 'NAV - Messages - View message - '
 
 ACTIVE_DEFAULTS = {'title': ACTIVE_TITLE, 'navpath': NAVBAR, 'active': {'active': True}, 'caption': 'Active'}
 PLANNED_DEFAULTS = {'title': PLANNED_TITLE, 'navpath': NAVBAR, 'active': {'planned': True}, 'caption': 'Planned'}
@@ -98,6 +98,7 @@ def view(request, message_id):
 
     info_dict = {'message': message, 'now': datetime.datetime.now()}
     info_dict.update(VIEW_DEFAULTS)
+    info_dict['title'] = info_dict['title'] + message.title
 
     return render_to_response(
             'messages/view.html', 
