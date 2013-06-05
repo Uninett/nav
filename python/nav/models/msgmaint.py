@@ -29,7 +29,7 @@ class Message(models.Model):
     id = models.AutoField(db_column='messageid', primary_key=True)
     title = VarcharField()
     description = models.TextField()
-    tech_description = models.TextField()
+    tech_description = models.TextField(null=True, blank=True)
     publish_start = models.DateTimeField()
     publish_end = models.DateTimeField()
     author = VarcharField()
