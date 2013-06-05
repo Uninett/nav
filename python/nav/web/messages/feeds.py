@@ -28,8 +28,10 @@ class ActiveMessagesFeed(Feed):
     """
 
     title = "NAV Message feed" 
-    link = "/messages/rss"
     descrption = "NAV Message feed"
+
+    def link(self):
+        return reverse('messages-rss') 
 
     def items(self):
         return Message.objects.filter(
