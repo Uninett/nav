@@ -146,7 +146,7 @@ def metric_path_for_bandwith_peak(sysname, is_percent):
 
 
 def metric_path_for_cpu_load(sysname, cpu_name, interval):
-    tmpl = "{prefix}.{cpu_name}.{interval}MinLoadAvg"
+    tmpl = "{prefix}.{cpu_name}.loadavg{interval}min"
     return tmpl.format(prefix=metric_prefix_for_cpu(sysname),
                        cpu_name=escape_metric_name(cpu_name),
                        interval=escape_metric_name(str(interval)))
