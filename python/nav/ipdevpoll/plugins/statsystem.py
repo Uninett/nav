@@ -54,7 +54,7 @@ class StatSystem(Plugin):
 
         metrics = bandwidth + cpu
         if metrics:
-            graphite.send_metrics_to(metrics, '127.0.0.1')
+            graphite.send_metrics(metrics)
 
     @defer.inlineCallbacks
     def _collect_bandwidth(self):

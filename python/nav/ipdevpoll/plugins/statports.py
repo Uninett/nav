@@ -52,7 +52,7 @@ class StatPorts(Plugin):
         tuples = list(self._make_metrics(stats))
         self._logger.debug("collected: %s", pformat(tuples))
         if tuples:
-            graphite.send_metrics_to(tuples, '127.0.0.1')
+            graphite.send_metrics(tuples)
 
     @defer.inlineCallbacks
     def _get_stats(self):

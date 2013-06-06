@@ -22,12 +22,45 @@ Twisted).
 
 """
 import socket
+from nav.config import NAVConfigParser
+
+###################
+# INITIALIZATIONS #
+###################
 
 # Maximum payload to allow for a UDP packet containing metrics destined for
 # Graphite. A value of 1472 should be ok to stay within the standard ethernet
 # MTU of 1500 bytes using IPv4. Larger values will cause packet
 # fragmentation, but should still work.
 MAX_UDP_PAYLOAD = 1400
+
+
+class GraphiteConfigParser(NAVConfigParser):
+    DEFAULT_CONFIG_FILES = ['graphite.conf']
+    DEFAULT_CONFIG = """
+[carbon]
+host = 127.0.0.1
+port = 2003
+"""
+
+CONFIG = GraphiteConfigParser()
+CONFIG.read_all()
+
+#######
+# API #
+#######
+
+
+def send_metrics(metric_tuples):
+    """Sends a list of metric tuples to the pre-configured carbon backend.
+
+    :param metric_tuples: A list of metric tuples in the form
+                          [(path, (timestamp, value)), ...]
+
+    """
+    host = CONFIG.get("carbon", "host")
+    port = CONFIG.getint("carbon", "port")
+    return send_metrics_to(metric_tuples, host, port)
 
 
 def send_metrics_to(metric_tuples, host, port=2003):
