@@ -27,6 +27,7 @@ from nav.mibs.cisco_c2900_mib import CiscoC2900Mib
 from nav.mibs.cisco_stack_mib import CiscoStackMib
 from nav.mibs.old_cisco_cpu_mib import OldCiscoCpuMib
 from nav.mibs.cisco_process_mib import CiscoProcessMib
+from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.mibs.statistics_mib import StatisticsMib
 from nav.mibs.juniper_mib import JuniperMib
 
@@ -51,8 +52,9 @@ class StatSystem(Plugin):
     def handle(self):
         bandwidth = yield self._collect_bandwidth()
         cpu = yield self._collect_cpu()
+        sysuptime = yield self._collect_sysuptime()
 
-        metrics = bandwidth + cpu
+        metrics = bandwidth + cpu + sysuptime
         if metrics:
             graphite.send_metrics(metrics)
 
@@ -128,9 +130,26 @@ class StatSystem(Plugin):
         for mib_class in mib_classes:
             yield mib_class(self.agent)
 
+    @defer.inlineCallbacks
+    def _collect_sysuptime(self):
+        mib = Snmpv2Mib(self.agent)
+        uptime = yield mib.get_sysUpTime()
+        timestamp = time.time()
+
+        if uptime:
+            path = metric_path_for_sysuptime(self.netbox)
+            defer.returnValue([(path, (timestamp, uptime))])
+        else:
+            defer.returnValue([])
+
 #
 # metric path templates
 #
+
+
+def metric_path_for_sysuptime(sysname):
+    tmpl = "{prefix}.sysuptime"
+    return tmpl.format(prefix=metric_prefix_for_system(sysname))
 
 
 def metric_path_for_bandwith(sysname, is_percent):
