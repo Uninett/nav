@@ -16,8 +16,10 @@
 """Module comment"""
 
 import unittest
+import sys
 from navrrd2whisper import (get_rras, calculate_time_periods,
-                            calculate_retentions, get_datasources)
+                            calculate_retentions, get_datasources,
+                            create_whisper_path, get_optargs)
 
 
 class NavRrd2WhisperTest(unittest.TestCase):
@@ -126,6 +128,29 @@ class NavRrd2WhisperTest(unittest.TestCase):
         self.assertEqual(sorted(['ip_count', 'ip_range', 'mac_count']),
                          sorted(datasources))
 
+    def test_create_whisper_path_with_destination(self):
+        rrd_path = "10.rrd"
+        datasource = "ifinoctets"
+        sys.argv = ['blapp', '-d /usr/local', 'asd']
+        args, options = get_optargs()
+        self.assertEqual(create_whisper_path(rrd_path, datasource, options),
+                         '/usr/local/10_ifinoctets.wsp')
+
+    def test_create_whisper_path_without_destination(self):
+        rrd_path = "/usr/local/nav/10.rrd"
+        datasource = "ifinoctets"
+        sys.argv = ['blapp', 'asd']
+        args, options = get_optargs()
+        self.assertEqual(create_whisper_path(rrd_path, datasource, options),
+                         '/usr/local/nav/10_ifinoctets.wsp')
+
+    def test_create_whisper_path_locally(self):
+        rrd_path = "10.rrd"
+        datasource = "ifinoctets"
+        sys.argv = ['blapp', 'asd']
+        args, options = get_optargs()
+        self.assertEqual(create_whisper_path(rrd_path, datasource, options),
+                         '10_ifinoctets.wsp')
 
     def test_one_period_per_average_rra(self):
         rras = get_rras(self.rrd_info)

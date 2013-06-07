@@ -8,6 +8,7 @@ import whisper
 from collections import namedtuple
 from operator import attrgetter
 from optparse import OptionParser
+from os.path import join, basename, exists, dirname
 
 
 # pylint:disable=C0103
@@ -18,39 +19,44 @@ RRA = namedtuple('RRA', 'cf pdp_per_row rows')
 def main():
     """Controller"""
     args, options = get_optargs()
+    convert_to_whisper(options, args[0])
 
-    rrd_path = args[0]
-    rrd_info = rrdtool.info(rrd_path)
+
+def get_optargs():
+    """Get options and arguments from commandline"""
+    option_parser = OptionParser(usage='''%prog [options] rrd_file''')
+    option_parser.add_option('--xFilesFactor', default=0.5, type='float')
+    option_parser.add_option('-d', dest="destination", default='',
+                             type='string')
+    (options, args) = option_parser.parse_args()
+    if len(args) < 1:
+        option_parser.print_usage()
+        sys.exit(1)
+    return args, options
+
+
+def convert_to_whisper(options, rrd_file):
+    """Convert a rrd-file to whisper"""
+
+    rrd_info = rrdtool.info(rrd_file)
     seconds_per_point = rrd_info['step']
     last_update = rrd_info['last_update']
 
     rras = get_rras(rrd_info)
     retentions = calculate_retentions(rras, seconds_per_point)
     periods = calculate_time_periods(rras, seconds_per_point, last_update)
-    datasources = get_datasources(rrd_info)
 
-    for datasource in datasources:
-        whisper_path = create_whisper_path(rrd_path, datasource)
+    for datasource in get_datasources(rrd_info):
+        whisper_file = create_whisper_path(rrd_file, datasource, options)
         try:
-            create_whisper_file(options, retentions, whisper_path)
+            create_whisper_file(options, retentions, whisper_file)
         except whisper.InvalidConfiguration, err:
             print err
             continue
 
-        datapoints = fetch_datapoints(datasource, periods, rrd_path)
-        print ' migrating %d datapoints...' % len(datapoints)
-        whisper.update_many(whisper_path, datapoints)
-
-
-def get_optargs():
-    """Get options and arguments from commandline"""
-    option_parser = OptionParser(usage='''%prog rrd_path''')
-    option_parser.add_option('--xFilesFactor', default=0.5, type='float')
-    (options, args) = option_parser.parse_args()
-    if len(args) < 1:
-        option_parser.print_usage()
-        sys.exit(1)
-    return args, options
+        datapoints = fetch_datapoints(datasource, periods, rrd_file)
+        whisper.update_many(whisper_file, datapoints)
+        print "%s created" % whisper_file
 
 
 def get_rras(rrd_info):
@@ -99,16 +105,20 @@ def get_datasources(rrd_info):
     return datasources
 
 
-def create_whisper_path(rrd_path, datasource):
+def create_whisper_path(rrd_path, datasource, options):
     """Create whisper-path based on rrd-path and datasource"""
-    return rrd_path.replace('.rrd', '_%s.wsp' % datasource)
+    whisper_path = rrd_path.replace('.rrd', '_%s.wsp' % datasource)
+    if options.destination:
+        dest = options.destination
+        whisper_path = join(dest.strip(), basename(whisper_path))
+    return whisper_path
 
 
-def create_whisper_file(options, retentions, whisper_path):
+def create_whisper_file(options, retentions, whisper_file):
     """Create the whisper file with the correct retentions"""
-    whisper.create(whisper_path, retentions, xFilesFactor=options.xFilesFactor)
-    size = os.stat(whisper_path).st_size
-    print 'Created: %s (%d bytes)' % (whisper_path, size)
+    if dirname(whisper_file) and not exists(dirname(whisper_file)):
+        os.makedirs(dirname(whisper_file))
+    whisper.create(whisper_file, retentions, xFilesFactor=options.xFilesFactor)
 
 
 def fetch_datapoints(datasource, periods, rrd_path):
