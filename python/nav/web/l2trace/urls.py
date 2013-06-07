@@ -20,6 +20,6 @@ from django.conf.urls import patterns, url
 from nav.web.l2trace.views import index
 
 urlpatterns = patterns('',
-                       url(r'^$', index,
-                           name='l2trace'),
+    url(r'^$', index,
+        name='l2trace'),
 )
