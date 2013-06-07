@@ -32,12 +32,11 @@ from nav.config import NAVConfigParser
 # Graphite. A value of 1472 should be ok to stay within the standard ethernet
 # MTU of 1500 bytes using IPv4. Larger values will cause packet
 # fragmentation, but should still work.
-from nav.ipdevpoll.plugins.statsystem import metric_prefix_for_system, metric_prefix_for_cpu
-
 MAX_UDP_PAYLOAD = 1400
 
 
 class GraphiteConfigParser(NAVConfigParser):
+    """Parser for NAV's graphite related configuration"""
     DEFAULT_CONFIG_FILES = ['graphite.conf']
     DEFAULT_CONFIG = """
 [carbon]
@@ -75,6 +74,7 @@ def send_metrics_to(metric_tuples, host, port=2003):
     :param port: The carbon backend UDP port
 
     """
+    # pylint: disable=W0601
     global carbon
     try:
         carbon
@@ -130,63 +130,80 @@ def _metric_to_line(metric_tuple):
 
 
 def escape_metric_name(string):
+    """Escapes any character of string that may not be used in graphite metric
+    names, by replacing them with underscores.
+
+    """
     for char in "./ ":
         string = string.replace(char, "_")
     return string
 
 
-#
-# metric path templates
-#
+#########################
+# metric path templates #
+#########################
+# pylint: disable=C0111
+
+
+def metric_path_for_interface(sysname, ifname, counter):
+    tmpl = "{ports}.{ifname}.{counter}"
+    return tmpl.format(ports=metric_prefix_for_ports(sysname),
+                       ifname=escape_metric_name(ifname),
+                       counter=escape_metric_name(counter))
 
 
 def metric_path_for_bandwith(sysname, is_percent):
-    tmpl = "{prefix}.bandwidth{percent}"
-    return tmpl.format(prefix=metric_prefix_for_system(sysname),
+    tmpl = "{system}.bandwidth{percent}"
+    return tmpl.format(system=metric_prefix_for_system(sysname),
                        percent="_percent" if is_percent else "")
 
 
 def metric_path_for_bandwith_peak(sysname, is_percent):
-    tmpl = "{prefix}.bandwidth_peak{percent}"
-    return tmpl.format(prefix=metric_prefix_for_system(sysname),
+    tmpl = "{system}.bandwidth_peak{percent}"
+    return tmpl.format(system=metric_prefix_for_system(sysname),
                        percent="_percent" if is_percent else "")
 
 
 def metric_path_for_cpu_load(sysname, cpu_name, interval):
-    tmpl = "{prefix}.{cpu_name}.loadavg{interval}min"
-    return tmpl.format(prefix=metric_prefix_for_cpu(sysname),
+    tmpl = "{cpu}.{cpu_name}.loadavg{interval}min"
+    return tmpl.format(cpu=metric_prefix_for_cpu(sysname),
                        cpu_name=escape_metric_name(cpu_name),
                        interval=escape_metric_name(str(interval)))
 
 
 def metric_path_for_cpu_utilization(sysname, cpu_name):
-    tmpl = "{prefix}.{cpu_name}.utilization"
-    return tmpl.format(prefix=metric_prefix_for_cpu(sysname),
+    tmpl = "{cpu}.{cpu_name}.utilization"
+    return tmpl.format(cpu=metric_prefix_for_cpu(sysname),
                        cpu_name=escape_metric_name(cpu_name))
 
 
 def metric_path_for_sysuptime(sysname):
-    tmpl = "{prefix}.sysuptime"
-    return tmpl.format(prefix=metric_prefix_for_system(sysname))
+    tmpl = "{system}.sysuptime"
+    return tmpl.format(system=metric_prefix_for_system(sysname))
 
 
 def metric_prefix_for_cpu(sysname):
-    tmpl = "nav.devices.{sysname}.cpu"
-    if hasattr(sysname, 'sysname'):
-        sysname = sysname.sysname
-    return tmpl.format(sysname=escape_metric_name(sysname))
+    tmpl = "{device}.cpu"
+    return tmpl.format(device=metric_prefix_for_device(sysname))
 
 
 def metric_prefix_for_memory(sysname, memory_name):
-    tmpl = "nav.devices.{sysname}.memory.{memname}"
-    if hasattr(sysname, 'sysname'):
-        sysname = sysname.sysname
-    return tmpl.format(sysname=escape_metric_name(sysname),
+    tmpl = "{device}.memory.{memname}"
+    return tmpl.format(device=metric_prefix_for_device(sysname),
                        memname=escape_metric_name(memory_name))
 
 
 def metric_prefix_for_system(sysname):
-    tmpl = "nav.devices.{sysname}.system"
+    tmpl = "{device}.system"
+    return tmpl.format(device=metric_prefix_for_device(sysname))
+
+
+def metric_prefix_for_ports(sysname):
+    tmpl = "{device}.ports"
+    return tmpl.format(device=metric_prefix_for_device(sysname))
+
+def metric_prefix_for_device(sysname):
+    tmpl = "nav.devices.{sysname}"
     if hasattr(sysname, 'sysname'):
         sysname = sysname.sysname
     return tmpl.format(sysname=escape_metric_name(sysname))

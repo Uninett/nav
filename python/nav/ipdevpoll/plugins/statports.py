@@ -19,7 +19,7 @@ from twisted.internet import defer
 from pprint import pformat
 
 from nav import graphite
-from nav.graphite import escape_metric_name
+from nav.graphite import metric_path_for_interface
 from nav.ipdevpoll import Plugin
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
@@ -63,15 +63,14 @@ class StatPorts(Plugin):
 
     def _make_metrics(self, stats):
         timestamp = time.time()
-        sysname = escape_metric_name(self.netbox.sysname)
 
         for row in stats.itervalues():
-            ifname = escape_metric_name(row['ifName'] or row['ifDescr'])
             use_hc_counters(row)
             for key in USED_COUNTERS:
                 if key not in row:
                     continue
-                path = "nav.devices.%s.ports.%s.%s" % (sysname, ifname, key)
+                path = metric_path_for_interface(
+                    self.netbox, row['ifName'] or row['ifDescr'], key)
                 value = row[key]
                 if value is not None:
                     yield (path, (timestamp, value))
