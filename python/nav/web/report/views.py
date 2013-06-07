@@ -43,20 +43,23 @@ from nav.web.templates.ReportListTemplate import ReportListTemplate
 from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
 import nav.path
 
+# Added imports
+from django.shortcuts import render
+
 CONFIG_FILE_PACKAGE = os.path.join(nav.path.sysconfdir, "report/report.conf")
 CONFIG_FILE_LOCAL = os.path.join(nav.path.sysconfdir,
                                  "report/report.local.conf")
-FRONT_FILE = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 
 def index(request):
     """Report front page"""
-    page = MainTemplate()
-    request.content_type = "text/html"
-    page.path = [("Home", "/"), ("Report", False)]
-    page.title = "Report - Index"
-    page.content = file(FRONT_FILE).read
-    return HttpResponse(page.respond())
+    context = {
+        'title': 'Report - Index',
+        'navpath': [('Home', '/'), ('Report', False)],
+        'heading': 'Reports',
+    }
+
+    return render(request, "report/index.html", context)
 
 
 def get_report(request, report_name):
@@ -111,16 +114,17 @@ def _get_export_delimiter(query):
 
 def matrix_report(request):
     """Subnet matrix view"""
-    request.content_type = "text/html"
+    request.content_type = "text/html" # Does this serve a purpose?
 
     argsdict = request.GET or {}
 
     scope = None
-    if argsdict.has_key("scope") and argsdict["scope"]:
+    if "scope" in argsdict and argsdict["scope"]:
         scope = IP(argsdict["scope"])
     else:
         # Find all scopes in database.
-        connection = db.getConnection('webfront','manage')
+        # TODO: Use ORM
+        connection = db.getConnection('webfront', 'manage')
         database = connection.cursor()
         database.execute("""
             SELECT netaddr, description
@@ -189,28 +193,54 @@ def matrix_report(request):
         return HttpResponse(matrix_template_response)
 
 
-def report_list(_request):
+# def report_list(_request):
+#     """Automated report list view"""
+#     page = ReportListTemplate()
+#
+#     # Default config
+#     reports = ReportList(CONFIG_FILE_PACKAGE).get_report_list()
+#     reports.sort(key=itemgetter(1))
+#
+#     # Local config
+#     local_reports = ReportList(CONFIG_FILE_LOCAL).get_report_list()
+#     local_reports.sort(key=itemgetter(1))
+#
+#     name = "Report List"
+#     name_link = "reportlist"
+#     page.path = [("Home", "/"),
+#                  ("Report", "/report/"),
+#                  (name, "/report/" + name_link)]
+#     page.title = "Report - " + name
+#     page.report_list = reports
+#     page.report_list_local = local_reports
+#
+#     return HttpResponse(page.respond())
+
+
+def report_list(request):
     """Automated report list view"""
-    page = ReportListTemplate()
 
-    # Default config
+    key = itemgetter(1)
+
     reports = ReportList(CONFIG_FILE_PACKAGE).get_report_list()
-    reports.sort(key=itemgetter(1))
+    reports.sort(key=key)
 
-    # Local config
-    local_reports = ReportList(CONFIG_FILE_LOCAL).get_report_list()
-    local_reports.sort(key=itemgetter(1))
+    reports_local = ReportList(CONFIG_FILE_LOCAL).get_report_list()
+    reports_local.sort(key=key)
 
-    name = "Report List"
-    name_link = "reportlist"
-    page.path = [("Home", "/"),
-                 ("Report", "/report/"),
-                 (name, "/report/" + name_link)]
-    page.title = "Report - " + name
-    page.report_list = reports
-    page.report_list_local = local_reports
+    context = {
+        'title': 'Report - Report List',
+        'navpath': [
+            ('Home', '/'),
+            ('Report', '/report/'),
+            ('Report List', '/report/reportlist'),
+        ],
+        'heading': 'Report list',
+        'report_list': reports,
+        'report_list_local': reports_local,
+    }
 
-    return HttpResponse(page.respond())
+    return render(request, 'report/report_list.html', context)
 
 
 def make_report(request, report_name, export_delimiter, query_dict):
@@ -283,60 +313,69 @@ def make_report(request, report_name, export_delimiter, query_dict):
     if export_delimiter:
         return generate_export(request, report, report_name, export_delimiter)
     else:
-        request.content_type = "text/html"
-        page = ReportTemplate()
-        page.result_time = result_time
-        page.report = report
-        page.contents = contents
-        page.operator = operator
-        page.neg = neg
 
-        namename = ""
+        context = {
+            'heading': 'Report',
+            'result_time': result_time,
+            'report': report,
+            'contents': contents,
+            'operator': operator,
+            'neg': neg,
+        }
+
         if report:
-            namename = report.title
-            if not namename:
-                namename = report_name
-            namelink = "/report/"+report_name
+            # A maintainable list of variables sent to the template
 
+            context['operators'] = {
+                'eq': '=',
+                'like': '~',
+                'gt': '&gt;',
+                'lt': '&lt;',
+                'geq': '&gt;=',
+                'leq': '&lt;=',
+                'between': '[:]',
+                'in': '(,,)',
+            }
+
+            context['operatorlist'] = [
+                'eq', 'like', 'gt', 'lt',
+                'geq', 'leq', 'between', 'in'
+            ]
+
+            context['descriptions'] = {
+                'eq': 'equals',
+                'like': 'contains substring (case-insensitive)',
+                'gt': 'greater than',
+                'lt': 'less than',
+                'geq': 'greater than or equals',
+                'leq': 'less than or equals',
+                'between': 'between (colon-separated)',
+                'in': 'is one of (comma separated)',
+            }
+
+            context['delimiters'] = (',', ';', ':', '|')
+
+            page_name = report.title or report_name
+            page_link = '/report/{0}'.format(report_name)
         else:
-            namename = "Error"
-            namelink = False
+            page_name = "Error"
+            page_link = False
 
-        page.path = [("Home", "/"), ("Report", "/report/"),
-                     (namename, namelink)]
-        page.title = "Report - "+namename
-        page.old_uri = "{0}?{1}&".format(request.META['PATH_INFO'],
-                                         request.GET.urlencode())
-        page.adv_block = bool(adv)
+        navpath = [('Home', '/'),
+                   ('Report', '/report/'),
+                   (page_name, page_link)]
+        old_uri = '{0}?{1}&'.format(request.META['PATH_INFO'],
+                                    request.GET.urlencode())
+        adv_block = bool(adv)
 
-        if report:
-            #### A maintainable list of variables sent to template
-            # Searching
-            page.operators = {"eq": "=",
-                              "like": "~",
-                              "gt": "&gt;",
-                              "lt": "&lt;",
-                              "geq": "&gt;=",
-                              "leq": "&lt;=",
-                              "between": "[:]",
-                              "in":"(,,)",
-                              }
-            page.operatorlist = ["eq", "like", "gt", "lt", "geq", "leq",
-                                 "between", "in"]
-            page.descriptions = {
-                "eq": "equals",
-                "like": "contains substring (case-insensitive)",
-                "gt": "greater than",
-                "lt": "less than",
-                "geq": "greater than or equals",
-                "leq": "less than or equals",
-                "between": "between (colon-separated)",
-                "in":"is one of (comma separated)",
-                }
-            # CSV Export dialects/delimiters
-            page.delimiters = (",", ";", ":", "|")
+        context.update({
+            'title': 'Report - {0}'.format(page_name),
+            'navpath': navpath,
+            'old_uri': old_uri,
+            'adv_block': adv_block,
+        })
 
-        return HttpResponse(page.respond())
+        return render(request, 'report/report.html', context)
 
 
 def generate_export(_request, report, report_name, export_delimiter):
