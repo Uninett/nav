@@ -23,6 +23,7 @@ from nav.graphite import metric_path_for_interface
 from nav.ipdevpoll import Plugin
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
+from nav.mibs.ip_mib import IpMib
 
 
 OCTET_COUNTERS = (
@@ -42,7 +43,13 @@ OTHER_COUNTERS = (
     "ifOutUcastPkts",
 )
 
+IP_COUNTERS = (
+    'ipv6InOctets',
+    'ipv6OutOctets',
+)
+
 USED_COUNTERS = OCTET_COUNTERS + OTHER_COUNTERS
+LOGGED_COUNTERS = USED_COUNTERS + IP_COUNTERS
 
 
 class StatPorts(Plugin):
@@ -56,17 +63,24 @@ class StatPorts(Plugin):
 
     @defer.inlineCallbacks
     def _get_stats(self):
-        mib = IfMib(self.agent)
-        stats = yield mib.retrieve_columns(("ifName", "ifDescr") +
-                                           USED_COUNTERS)
-        defer.returnValue(reduce_index(stats))
+        ifmib = IfMib(self.agent)
+        ipmib = IpMib(self.agent)
+        stats = yield ifmib.retrieve_columns(
+            ("ifName", "ifDescr") + USED_COUNTERS).addCallback(reduce_index)
+        ipv6stats = yield ipmib.get_ipv6_octet_counters()
+        for ifindex, (in_octets, out_octets) in ipv6stats.items():
+            if ifindex in stats:
+                stats[ifindex]['ipv6InOctets'] = in_octets
+                stats[ifindex]['ipv6OutOctets'] = out_octets
+
+        defer.returnValue(stats)
 
     def _make_metrics(self, stats):
         timestamp = time.time()
 
         for row in stats.itervalues():
             use_hc_counters(row)
-            for key in USED_COUNTERS:
+            for key in LOGGED_COUNTERS:
                 if key not in row:
                     continue
                 path = metric_path_for_interface(
