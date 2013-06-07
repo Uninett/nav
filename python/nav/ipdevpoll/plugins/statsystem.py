@@ -19,7 +19,14 @@ import time
 from twisted.internet import defer
 
 from nav import graphite
-from nav.graphite import escape_metric_name
+from nav.graphite import (
+    metric_path_for_bandwith,
+    metric_path_for_bandwith_peak,
+    metric_path_for_cpu_load,
+    metric_path_for_cpu_utilization,
+    metric_path_for_sysuptime,
+    metric_prefix_for_memory
+)
 from nav.ipdevpoll import Plugin
 from nav.mibs.cisco_memory_pool_mib import CiscoMemoryPoolMib
 
@@ -169,60 +176,3 @@ class StatSystem(Plugin):
                 (prefix + '.free', (timestamp, free)),
             ])
         defer.returnValue(result)
-
-
-#
-# metric path templates
-#
-
-
-def metric_path_for_sysuptime(sysname):
-    tmpl = "{prefix}.sysuptime"
-    return tmpl.format(prefix=metric_prefix_for_system(sysname))
-
-
-def metric_path_for_bandwith(sysname, is_percent):
-    tmpl = "{prefix}.bandwidth{percent}"
-    return tmpl.format(prefix=metric_prefix_for_system(sysname),
-                       percent="_percent" if is_percent else "")
-
-
-def metric_path_for_bandwith_peak(sysname, is_percent):
-    tmpl = "{prefix}.bandwidth_peak{percent}"
-    return tmpl.format(prefix=metric_prefix_for_system(sysname),
-                       percent="_percent" if is_percent else "")
-
-
-def metric_path_for_cpu_load(sysname, cpu_name, interval):
-    tmpl = "{prefix}.{cpu_name}.loadavg{interval}min"
-    return tmpl.format(prefix=metric_prefix_for_cpu(sysname),
-                       cpu_name=escape_metric_name(cpu_name),
-                       interval=escape_metric_name(str(interval)))
-
-
-def metric_path_for_cpu_utilization(sysname, cpu_name):
-    tmpl = "{prefix}.{cpu_name}.utilization"
-    return tmpl.format(prefix=metric_prefix_for_cpu(sysname),
-                       cpu_name=escape_metric_name(cpu_name))
-
-
-def metric_prefix_for_system(sysname):
-    tmpl = "nav.devices.{sysname}.system"
-    if hasattr(sysname, 'sysname'):
-        sysname = sysname.sysname
-    return tmpl.format(sysname=escape_metric_name(sysname))
-
-
-def metric_prefix_for_cpu(sysname):
-    tmpl = "nav.devices.{sysname}.cpu"
-    if hasattr(sysname, 'sysname'):
-        sysname = sysname.sysname
-    return tmpl.format(sysname=escape_metric_name(sysname))
-
-
-def metric_prefix_for_memory(sysname, memory_name):
-    tmpl = "nav.devices.{sysname}.memory.{memname}"
-    if hasattr(sysname, 'sysname'):
-        sysname = sysname.sysname
-    return tmpl.format(sysname=escape_metric_name(sysname),
-                       memname=escape_metric_name(memory_name))

@@ -32,6 +32,8 @@ from nav.config import NAVConfigParser
 # Graphite. A value of 1472 should be ok to stay within the standard ethernet
 # MTU of 1500 bytes using IPv4. Larger values will cause packet
 # fragmentation, but should still work.
+from nav.ipdevpoll.plugins.statsystem import metric_prefix_for_system, metric_prefix_for_cpu
+
 MAX_UDP_PAYLOAD = 1400
 
 
@@ -131,3 +133,60 @@ def escape_metric_name(string):
     for char in "./ ":
         string = string.replace(char, "_")
     return string
+
+
+#
+# metric path templates
+#
+
+
+def metric_path_for_bandwith(sysname, is_percent):
+    tmpl = "{prefix}.bandwidth{percent}"
+    return tmpl.format(prefix=metric_prefix_for_system(sysname),
+                       percent="_percent" if is_percent else "")
+
+
+def metric_path_for_bandwith_peak(sysname, is_percent):
+    tmpl = "{prefix}.bandwidth_peak{percent}"
+    return tmpl.format(prefix=metric_prefix_for_system(sysname),
+                       percent="_percent" if is_percent else "")
+
+
+def metric_path_for_cpu_load(sysname, cpu_name, interval):
+    tmpl = "{prefix}.{cpu_name}.loadavg{interval}min"
+    return tmpl.format(prefix=metric_prefix_for_cpu(sysname),
+                       cpu_name=escape_metric_name(cpu_name),
+                       interval=escape_metric_name(str(interval)))
+
+
+def metric_path_for_cpu_utilization(sysname, cpu_name):
+    tmpl = "{prefix}.{cpu_name}.utilization"
+    return tmpl.format(prefix=metric_prefix_for_cpu(sysname),
+                       cpu_name=escape_metric_name(cpu_name))
+
+
+def metric_path_for_sysuptime(sysname):
+    tmpl = "{prefix}.sysuptime"
+    return tmpl.format(prefix=metric_prefix_for_system(sysname))
+
+
+def metric_prefix_for_cpu(sysname):
+    tmpl = "nav.devices.{sysname}.cpu"
+    if hasattr(sysname, 'sysname'):
+        sysname = sysname.sysname
+    return tmpl.format(sysname=escape_metric_name(sysname))
+
+
+def metric_prefix_for_memory(sysname, memory_name):
+    tmpl = "nav.devices.{sysname}.memory.{memname}"
+    if hasattr(sysname, 'sysname'):
+        sysname = sysname.sysname
+    return tmpl.format(sysname=escape_metric_name(sysname),
+                       memname=escape_metric_name(memory_name))
+
+
+def metric_prefix_for_system(sysname):
+    tmpl = "nav.devices.{sysname}.system"
+    if hasattr(sysname, 'sysname'):
+        sysname = sysname.sysname
+    return tmpl.format(sysname=escape_metric_name(sysname))
