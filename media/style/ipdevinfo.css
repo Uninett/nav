@@ -163,3 +163,21 @@ table.module td div.portcell span.oplayer {
     bottom: -0.5em;
     font-size: 0.8em;
 }
+
+
+/* Affected */
+
+#affected {
+    border: 1px solid #999;
+    border-radius: 5px;
+    padding: 1em;
+    background-color: #eee;
+}
+
+#affected input[type=submit] {
+    padding: 0.3em 1em;
+}
+
+#affected h3 img {
+    vertical-align: baseline;
+}
