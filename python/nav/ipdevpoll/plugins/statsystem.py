@@ -26,6 +26,7 @@ from nav.mibs.cisco_memory_pool_mib import CiscoMemoryPoolMib
 from nav.mibs.esswitch_mib import ESSwitchMib
 from nav.mibs.cisco_c2900_mib import CiscoC2900Mib
 from nav.mibs.cisco_stack_mib import CiscoStackMib
+from nav.mibs.netswitch_mib import NetswitchMib
 from nav.mibs.old_cisco_cpu_mib import OldCiscoCpuMib
 from nav.mibs.cisco_process_mib import CiscoProcessMib
 from nav.mibs.snmpv2_mib import Snmpv2Mib
@@ -48,6 +49,7 @@ CPU_MIBS = {
 
 MEMORY_MIBS = {
     VENDORID_CISCO: [CiscoMemoryPoolMib],
+    VENDORID_HP: [NetswitchMib],
 }
 
 
