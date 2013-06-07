@@ -30,6 +30,7 @@ INFINITY = datetime.datetime.max
 PATH_NOT_FOUND = None
 LAYER_3_PATH = -1
 
+
 class L2TraceQuery(object):
     def __init__(self, host_from, host_to):
         self.host_from = Host(host_from)
@@ -46,7 +47,7 @@ class L2TraceQuery(object):
             reverse_path(to_path)
 
             if are_hosts_on_same_vlan(self.host_from, self.host_to) and \
-                    PATH_NOT_FOUND not in (self.path + to_path):
+                            PATH_NOT_FOUND not in (self.path + to_path):
                 self.path = join_at_junction(self.path, to_path)
             else:
                 self.path.append(LAYER_3_PATH)
@@ -65,7 +66,7 @@ class L2TraceQuery(object):
     def make_row_from_node(index, node):
         netboxid = hasattr(node.host, 'id') and node.host.id or None
         sysname = hasattr(node.host, 'sysname') and \
-            node.host.sysname or node.host.hostname
+                  node.host.sysname or node.host.hostname
         return ResultRow(index,
                          netboxid=netboxid,
                          ipaddr=node.host.ip,
@@ -74,6 +75,7 @@ class L2TraceQuery(object):
                          if_out=node.if_out and node.if_out.ifname,
                          vlan=node.vlan and node.vlan.vlan)
 
+
 def join_at_junction(from_path, to_path):
     from_node, to_node = find_junction(from_path, to_path)
     from_index = from_path.index(from_node)
@@ -81,8 +83,9 @@ def join_at_junction(from_path, to_path):
 
     junction_node = PathNode(from_node.vlan, from_node.if_in, from_node.host,
                              to_node.if_out)
-    path = from_path[:from_index] + [junction_node] + to_path[to_index+1:]
+    path = from_path[:from_index] + [junction_node] + to_path[to_index + 1:]
     return path
+
 
 def find_junction(from_path, to_path):
     for from_node in from_path:
@@ -91,11 +94,13 @@ def find_junction(from_path, to_path):
                 return (from_node, to_node)
     return (None, None)
 
+
 def reverse_path(path):
     path.reverse()
     for node in path:
         if node:
             node.swap_in_out_interfaces()
+
 
 def get_path(addr):
     start_node = get_start_path(addr)
@@ -119,11 +124,13 @@ def get_path(addr):
             break
     return path
 
+
 def get_start_path(addr):
     source = get_host_or_netbox_from_addr(addr)
     target_vlan = get_vlan_from_ip(source.ip)
     node = PathNode(target_vlan, None, source, None)
     return node
+
 
 def get_host_or_netbox_from_addr(addr):
     host = Host(addr)
@@ -133,13 +140,16 @@ def get_host_or_netbox_from_addr(addr):
     else:
         return host
 
+
 def is_netbox_gateway(netbox):
     return netbox.category_id in ('GW', 'GSW')
+
 
 def are_hosts_on_same_vlan(host1, host2):
     vlan1 = get_vlan_from_host(Host(host1))
     vlan2 = get_vlan_from_host(Host(host2))
     return vlan1 == vlan2
+
 
 def get_netbox_from_host(host):
     try:
@@ -148,8 +158,10 @@ def get_netbox_from_host(host):
     except Netbox.DoesNotExist:
         pass
 
+
 def get_vlan_from_host(host):
     return get_vlan_from_ip(host.ip)
+
 
 def get_vlan_from_ip(ip):
     if not ip:
@@ -162,30 +174,34 @@ def get_vlan_from_ip(ip):
     if matching_prefixes:
         return matching_prefixes[0].vlan
 
+
 def get_netbox_vlan(netbox):
     return netbox.get_prefix().vlan
+
 
 def get_vlan_uplink_from_netbox(netbox, vlan=None):
     if not vlan:
         vlan = get_netbox_vlan(netbox)
     swpvlans = SwPortVlan.objects.filter(
-        direction = SwPortVlan.DIRECTION_UP,
-        interface__netbox = netbox,
+        direction=SwPortVlan.DIRECTION_UP,
+        interface__netbox=netbox,
         vlan=vlan,
-        ).select_related('interface')
+    ).select_related('interface')
     if swpvlans:
         return swpvlans[0]
+
 
 def get_vlan_downlink_to_netbox(netbox, vlan=None):
     if not vlan:
         vlan = get_netbox_vlan(netbox)
     swpvlans = SwPortVlan.objects.filter(
         interface__to_netbox=netbox,
-        direction = SwPortVlan.DIRECTION_DOWN,
+        direction=SwPortVlan.DIRECTION_DOWN,
         vlan=vlan,
-        ).select_related('interface', 'netbox')
+    ).select_related('interface', 'netbox')
     if swpvlans:
         return swpvlans[0]
+
 
 def get_vlan_downlink_to_host(host):
     if not host.ip:
@@ -193,7 +209,7 @@ def get_vlan_downlink_to_host(host):
     arps = Arp.objects.filter(end_time=INFINITY).extra(
         where=["%s = ip"],
         params=[host.ip]
-        ).values('mac')
+    ).values('mac')
     macs = [arp['mac'] for arp in arps]
     cams = Cam.objects.filter(
         end_time=INFINITY,
@@ -203,17 +219,19 @@ def get_vlan_downlink_to_host(host):
         swpvlans = SwPortVlan.objects.filter(
             interface__netbox=cam.netbox,
             interface__ifindex=cam.ifindex
-            ).select_related('interface', 'netbox')
+        ).select_related('interface', 'netbox')
         if swpvlans:
             return swpvlans[0]
+
 
 def get_vlan_gateway(vlan):
     gwport_prefixes = GwPortPrefix.objects.filter(
         prefix__vlan=vlan).order_by('prefix__net_address')
     gateways = Netbox.objects.filter(
-        interface__gwportprefix__in = gwport_prefixes).distinct()
+        interface__gwportprefix__in=gwport_prefixes).distinct()
     if gateways:
         return gateways[0]
+
 
 class Host(object):
     def __init__(self, host):
@@ -256,11 +274,12 @@ class Host(object):
 
     def __repr__(self):
         return "<%s(%s) = %s>" % (self.__class__.__name__,
-                                 repr(self.host),
-                                 repr((self.ip, self.hostname)))
+                                  repr(self.host),
+                                  repr((self.ip, self.hostname)))
 
     def __eq__(self, other):
         return hasattr(other, 'ip') and self.ip == other.ip
+
 
 class PathNode(object):
     def __init__(self, vlan, if_in, host, if_out):
@@ -276,13 +295,13 @@ class PathNode(object):
             self.if_in,
             self.host,
             self.if_out,
-            )
+        )
 
     def swap_in_out_interfaces(self):
         (self.if_out, self.if_in) = (self.if_in, self.if_out)
 
-class ResultRow(object):
 
+class ResultRow(object):
     def __init__(self, idx, level=2, netboxid=None, ipaddr='', sysname='',
                  if_in=None, if_out=None, vlan=''):
         self.netboxid = netboxid
@@ -302,9 +321,3 @@ class ResultRow(object):
             self.level = ''
             self.vlan = ''
             self.hostOk = False
-
-
-class L2TraceForm(object):
-    def __init__(self, host_from, host_to):
-        self.host_from = host_from
-        self.host_to = host_to

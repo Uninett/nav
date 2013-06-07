@@ -1,0 +1,102 @@
+{% extends "base.html" %} {# Don't need a deeper hierarchy for one template #}
+
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" type="text/css" href="/style/l2trace.css"/>
+{% endblock %}
+
+{% block base_content %}
+  <h2>Layer 2 Traceroute</h2>
+
+  <div id="l2trace">
+    <form id="l2traceform" action="" method="get">
+      {% csrf_token %}
+      {% form.as_p %}
+      <button type="submit" name="send">Trace</button>
+    </form>
+
+    <div id="results">
+      {% if l2tracer %}
+
+        <table class=listtable>
+          <caption>
+            Layer 2 Trace Results<br>
+            {% comment %}
+                TODO: Do we really need rowcount here?
+                If so, precompute in view. Either way we
+                loose the benefit of the generator function
+                {% endcomment %}
+          </caption>
+
+          <thead>
+          <tr>
+            <th>#</th>
+            <th>Level</th>
+            <th>Vlan</th>
+            <th>IP</th>
+            {# Changed the order for cleaner code below #}
+            <th>Interface In</th>
+            <th>Sysname</th>
+            <th>Interface Out</th>
+          </tr>
+          </thead>
+
+          <tbody>
+
+          {% for row in l2tracer.make_rows %}
+
+            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+              <td style="text-align: right;">{{ row.idx }}</td>
+              <td style="text-align: center;">{{ row.level }}</td>
+
+              <td style="text-align: right;">
+                {% ifequal row.vlan "trunk" %}
+                  {{ row.vlan }}
+                {% else %}
+                  <a href="/report/prefix?vlan={{ row.vlan }}" title="Vlan report">{{ row.vlan }}</a>
+                {% endifequal %}
+              </td>
+
+              {% if row.hostOk %}
+                <td><a href="/ipdevinfo/ip={{ row.ipaddr }}/" title="IP Device Info">{{ row.ipaddr }}</a></td>
+              {% else %}
+                <td>{{ row.ipaddr }}</td>
+              {% endif %}
+
+              {% if row.netboxid %}
+                <td><a href="/report/swport?netboxid={{ row.netboxid }}" title="Switch ports">{{ row.if_in }}</a></td>
+                <td><a href="/ipdevinfo/{{ row.sysname }}/" title="IP Device Info">{{ row.sysname }}</a></td>
+                <td><a href="/report/swport?netboxid={{ row.netboxid }}" title="Switch ports">{{ row.if_out }}</a></td>
+              {% else %}
+                <td>{{ row.if_in }}</td>
+                <td>{{ row.sysname }}</td>
+                <td>{{ row.if_out }}</td>
+              {% endif %}
+
+            </tr>
+
+          {% empty %}
+            <tr>
+              <td colspan="7">Your search did not return any results.</td>
+            </tr>
+          {% endfor %}
+
+          </tbody>
+
+        </table>
+
+      {% else %}
+        <div class="infobox">
+          <h4>L2 Trace usage</h4>
+          <ul>
+            <li>Enter a hostname or IP address and trace up to its router.</li>
+            <li>Optionally enter a destination hostname or IP address and trace between the two.</li>
+            <li>Press the trace button to start.</li>
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+    {# results #}
+
+  </div> {# l2trace #}
+{% endblock base_content %}

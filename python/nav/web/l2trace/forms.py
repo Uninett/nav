@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,13 +13,11 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""URL configuration for l2trace"""
 
-from django.conf.urls import patterns, url
+from django import forms
 
-from nav.web.l2trace.views import index
 
-urlpatterns = patterns('',
-                       url(r'^$', index,
-                           name='l2trace'),
-)
+class L2TraceForm(forms.Form):
+    host_from = forms.CharField()
+    host_to = forms.CharField(required=False)
+
