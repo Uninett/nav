@@ -20,6 +20,7 @@
 
 import datetime as dt
 import IPy
+import re
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -512,6 +513,11 @@ class Organization(models.Model):
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
+
+    def extract_emails(self):
+        """Naively extract email addresses from the contact string"""
+        contact = self.contact if self.contact else ""
+        return re.findall(r'(\b[\w.]+@[\w.]+\b)', contact)
 
 
 class Category(models.Model):

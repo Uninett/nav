@@ -66,9 +66,18 @@ def netbox_list(request):
         'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
         'read_write', 'snmp_version', 'type__name', 'device__serial')
     return render_list(request, query, value_list, 'seeddb-netbox-edit',
-        edit_url_attr='pk',
-        filter_form=filter_form,
-        extra_context=info.template_context)
+                       edit_url_attr='pk',
+                       filter_form=filter_form,
+                       extra_context=info.template_context,
+                       censor_list=create_index_list(
+                           value_list,
+                           ['read_only', 'read_write']))
+
+
+def create_index_list(value_list, values_to_index):
+    """Create a zero-based index list for the listvalues in value_list"""
+    return [value_list.index(x) for x in values_to_index]
+
 
 def netbox_delete(request):
     info = NetboxInfo()

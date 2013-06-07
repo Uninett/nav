@@ -75,16 +75,21 @@ def get_neighbors(request, netboxid):
     netboxes = [netbox]
     interfaces = netbox.interface_set.filter(to_netbox__isnull=False)
     for interface in interfaces:
+        to_netbox = interface.to_netbox
+        to_interfacename = (interface.to_interface.ifname
+                            if interface.to_interface else '')
         if interface.to_netbox in link_candidates:
-            link_candidates[interface.to_netbox]['ifname'].append(interface.ifname)
-            link_candidates[interface.to_netbox]['to_ifname'].append(interface.to_interface.ifname)
+            link_candidates[to_netbox]['ifname'].append(
+                interface.ifname)
+            link_candidates[interface.to_netbox]['to_ifname'].append(
+                to_interfacename)
         else:
             netboxes.append(interface.to_netbox)
             link_candidates[interface.to_netbox] = {
                 "sourceId": netbox.id,
-                "targetId": interface.to_netbox.id,
+                "targetId": to_netbox.id,
                 "ifname": [interface.ifname],
-                "to_ifname": [interface.to_interface.ifname]}
+                "to_ifname": [to_interfacename]}
 
     for i in link_candidates.values():
         links.append(i)
@@ -100,7 +105,8 @@ def get_neighbors(request, netboxid):
     un_candidates = {}
     for unrecognized in netbox.unrecognizedneighbor_set.all():
         if unrecognized.remote_id in un_candidates:
-            un_candidates[unrecognized.remote_id]['ifname'].append(unrecognized.interface.ifname)
+            un_candidates[unrecognized.remote_id]['ifname'].append(
+                unrecognized.interface.ifname)
         else:
             unrecognized_nodes.append(unrecognized)
             un_candidates[unrecognized.remote_id] = {
