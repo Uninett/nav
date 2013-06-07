@@ -21,6 +21,7 @@ from twisted.internet import defer
 from nav import graphite
 from nav.graphite import escape_metric_name
 from nav.ipdevpoll import Plugin
+from nav.mibs.cisco_memory_pool_mib import CiscoMemoryPoolMib
 
 from nav.mibs.esswitch_mib import ESSwitchMib
 from nav.mibs.cisco_c2900_mib import CiscoC2900Mib
@@ -45,6 +46,10 @@ CPU_MIBS = {
     VENDORID_JUNIPER: [JuniperMib],
 }
 
+MEMORY_MIBS = {
+    VENDORID_CISCO: [CiscoMemoryPoolMib],
+}
+
 
 class StatSystem(Plugin):
     """Collects system statistics and pushes to Graphite"""
@@ -53,8 +58,9 @@ class StatSystem(Plugin):
         bandwidth = yield self._collect_bandwidth()
         cpu = yield self._collect_cpu()
         sysuptime = yield self._collect_sysuptime()
+        memory = yield self._collect_memory()
 
-        metrics = bandwidth + cpu + sysuptime
+        metrics = bandwidth + cpu + sysuptime + memory
         if metrics:
             graphite.send_metrics(metrics)
 
@@ -142,6 +148,27 @@ class StatSystem(Plugin):
         else:
             defer.returnValue([])
 
+    @defer.inlineCallbacks
+    def _collect_memory(self):
+        memory = dict()
+        for mib in self._mibs_for_me(MEMORY_MIBS):
+            mem = yield mib.get_memory_usage()
+            if mem:
+                self._logger.debug("Found memory values from %s: %r",
+                                   mib.mib['moduleName'], mem)
+                memory.update(mem)
+
+        timestamp = time.time()
+        result = []
+        for name, (used, free) in memory.items():
+            prefix = metric_prefix_for_memory(self.netbox, name)
+            result.extend([
+                (prefix + '.used', (timestamp, used)),
+                (prefix + '.free', (timestamp, free)),
+            ])
+        defer.returnValue(result)
+
+
 #
 # metric path templates
 #
@@ -189,3 +216,11 @@ def metric_prefix_for_cpu(sysname):
     if hasattr(sysname, 'sysname'):
         sysname = sysname.sysname
     return tmpl.format(sysname=escape_metric_name(sysname))
+
+
+def metric_prefix_for_memory(sysname, memory_name):
+    tmpl = "nav.devices.{sysname}.memory.{memname}"
+    if hasattr(sysname, 'sysname'):
+        sysname = sysname.sysname
+    return tmpl.format(sysname=escape_metric_name(sysname),
+                       memname=escape_metric_name(memory_name))
