@@ -35,19 +35,19 @@ VENDORID_CISCO = 9
 VENDORID_HP = 11
 VENDORID_JUNIPER = 2636
 
+BANDWIDTH_MIBS = {
+    VENDORID_CISCO: [CiscoStackMib, CiscoC2900Mib, ESSwitchMib],
+}
+
+CPU_MIBS = {
+    VENDORID_CISCO: [CiscoProcessMib, OldCiscoCpuMib],
+    VENDORID_HP: [StatisticsMib],
+    VENDORID_JUNIPER: [JuniperMib],
+}
+
 
 class StatSystem(Plugin):
     """Collects system statistics and pushes to Graphite"""
-    BANDWIDTH_MIBS = {
-        VENDORID_CISCO: [CiscoStackMib, CiscoC2900Mib, ESSwitchMib],
-    }
-
-    CPU_MIBS = {
-        VENDORID_CISCO: [CiscoProcessMib, OldCiscoCpuMib],
-        VENDORID_HP: [StatisticsMib],
-        VENDORID_JUNIPER: [JuniperMib],
-    }
-
     @defer.inlineCallbacks
     def handle(self):
         bandwidth = yield self._collect_bandwidth()
@@ -60,7 +60,7 @@ class StatSystem(Plugin):
 
     @defer.inlineCallbacks
     def _collect_bandwidth(self):
-        for mib in self._mibs_for_me(self.BANDWIDTH_MIBS):
+        for mib in self._mibs_for_me(BANDWIDTH_MIBS):
             try:
                 bandwidth = yield mib.get_bandwidth()
                 bandwidth_peak = yield mib.get_bandwidth_peak()
@@ -86,7 +86,7 @@ class StatSystem(Plugin):
 
     @defer.inlineCallbacks
     def _collect_cpu(self):
-        for mib in self._mibs_for_me(self.CPU_MIBS):
+        for mib in self._mibs_for_me(CPU_MIBS):
             load = yield self._get_cpu_loadavg(mib)
             utilization = yield self._get_cpu_utilization(mib)
             defer.returnValue(load + utilization)
