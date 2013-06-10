@@ -145,6 +145,12 @@ def escape_metric_name(string):
 # pylint: disable=C0111
 
 
+def metric_path_for_sensor(sysname, sensor):
+    tmpl = "{device}.sensors.{sensor}"
+    return tmpl.format(device=metric_prefix_for_device(sysname),
+                       sensor=escape_metric_name(sensor))
+
+
 def metric_path_for_interface(sysname, ifname, counter):
     tmpl = "{ports}.{ifname}.{counter}"
     return tmpl.format(ports=metric_prefix_for_ports(sysname),
@@ -201,6 +207,7 @@ def metric_prefix_for_system(sysname):
 def metric_prefix_for_ports(sysname):
     tmpl = "{device}.ports"
     return tmpl.format(device=metric_prefix_for_device(sysname))
+
 
 def metric_prefix_for_device(sysname):
     tmpl = "nav.devices.{sysname}"
