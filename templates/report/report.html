@@ -4,15 +4,14 @@
 
 {% block content %}
 
-<div id="advToggle">
-  <a>
-    {% if adv %}
-      Close Advanced Options
-    {% else %}
-      Advanced Options
-    {% endif %}
-  </a>
-</div>
+<a id="advToggle" style="cursor: pointer;">
+  {% if adv %}
+    Close Advanced Options
+  {% else %}
+    Advanced Options
+  {% endif %}
+</a>
+
 
 <div id="advblock" {% if not adv %}style="display: none;"{% endif %}>
   <h3>Advanced Search</h3>
@@ -35,7 +34,6 @@
                 <th><label for="adv{{ counter }}">{{ a.title }}</label></th>
 
                 <td>
-                  {# TODO: Test if the if-statement works correctly (i.e. not "a_raw"). #}
                   <input
                     type="checkbox"
                     name="not_{{ a_raw }}"
@@ -119,7 +117,7 @@
 
 {% if report %}
 
-  <table class="listtable, reporttable float-clear">
+  <table class="listtable reporttable float-clear">
 
     <caption>
       {% if report.navigator.previous %}
@@ -220,13 +218,13 @@
 <script>
   $('#advToggle').click(function() {
     $('#advblock').toggle();
-    var old_text = $(this).html();
+    var old_text = $(this).html().trim();
     var new_text;
-    if (old_text === '<a>Advanced Options</a>') {
-      new_text = '<a>Close Advanced Options</a>';
+    if (old_text === 'Advanced Options') {
+      new_text = 'Close Advanced Options';
     }
     else {
-      new_text = '<a>Advanced Options</a>';
+      new_text = 'Advanced Options';
     }
     $(this).html(new_text);
   });
