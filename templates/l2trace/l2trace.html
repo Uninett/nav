@@ -36,7 +36,6 @@
             <th>Level</th>
             <th>Vlan</th>
             <th>IP</th>
-            {# Changed the order for cleaner code below #}
             <th>Interface In</th>
             <th>Sysname</th>
             <th>Interface Out</th>
@@ -66,13 +65,13 @@
               {% endif %}
 
               {% if row.netboxid %}
-                <td><a href="/report/swport?netboxid={{ row.netboxid }}" title="Switch ports">{{ row.if_in }}</a></td>
-                <td><a href="/ipdevinfo/{{ row.sysname }}/" title="IP Device Info">{{ row.sysname }}</a></td>
-                <td><a href="/report/swport?netboxid={{ row.netboxid }}" title="Switch ports">{{ row.if_out }}</a></td>
+                <td><a href="/report/swport?netboxid={{ row.netboxid }}" title="Switch ports">{{ row.if_in|default:"" }}</a></td>
+                <td><a href="/ipdevinfo/{{ row.sysname }}/" title="IP Device Info">{{ row.sysname|default:"" }}</a></td>
+                <td><a href="/report/swport?netboxid={{ row.netboxid }}" title="Switch ports">{{ row.if_out|default:"" }}</a></td>
               {% else %}
-                <td>{{ row.if_in }}</td>
-                <td>{{ row.sysname }}</td>
-                <td>{{ row.if_out }}</td>
+                <td>{{ row.if_in|default:"" }}</td>
+                <td>{{ row.sysname|default:"" }}</td>
+                <td>{{ row.if_out|default:"" }}</td>
               {% endif %}
 
             </tr>
