@@ -25,7 +25,11 @@ from .forms import L2TraceForm
 def index(request):
     """Single view function of l2trace."""
 
-    form = L2TraceForm(request.POST or {})
+    query = {
+        'host_from': request.GET.get('host_from'),
+        'host_to': request.GET.get('host_to'),
+    }
+    form = L2TraceForm(query)
 
     context = {
         'title': 'Layer 2 Traceroute',
@@ -40,4 +44,4 @@ def index(request):
         l2tracer.trace()
         context.update({'l2tracer': l2tracer})
 
-    return render(request, 'templates/l2trace.html', context)
+    return render(request, 'l2trace/l2trace.html', context)

@@ -3,7 +3,7 @@
 
 {% block base_header_additional_head %}
   <link rel="stylesheet" type="text/css" href="/style/l2trace.css"/>
-{% endblock %}
+{% endblock base_header_additional_head %}
 
 {% block base_content %}
   <h2>Layer 2 Traceroute</h2>
@@ -11,7 +11,10 @@
   <div id="l2trace">
     <form id="l2traceform" action="" method="get">
       {% csrf_token %}
-      {% form.as_p %}
+      <label for="host_from">From </label>
+      <input id="host_from" type="text" name="host_from" value="{{ form.host_from }}" />
+      <label for="host_to">To </label>
+      <input id="host_to" type="text" name="host_to" value="{{ form.host_to }}" /> (optional)
       <button type="submit" name="send">Trace</button>
     </form>
 
@@ -95,8 +98,7 @@
           </ul>
         </div>
       {% endif %}
-    </div>
-    {# results #}
+    </div> {# results #}
 
   </div> {# l2trace #}
 {% endblock base_content %}
