@@ -11,11 +11,10 @@
   <div id="l2trace">
     <form id="l2traceform" action="" method="get">
       {% csrf_token %}
-      <label for="host_from">From </label>
-      <input id="host_from" type="text" name="host_from" value="{{ form.host_from }}" />
-      <label for="host_to">To </label>
-      <input id="host_to" type="text" name="host_to" value="{{ form.host_to }}" /> (optional)
-      <button type="submit" name="send">Trace</button>
+      {% for field in form %}
+        {% field.label_tag %}: {% field %}
+      {% endfor %}
+      <input type="submit" name="send">Trace</button>
     </form>
 
     <div id="results">

@@ -18,6 +18,6 @@ from django import forms
 
 
 class L2TraceForm(forms.Form):
-    host_from = forms.CharField()
-    host_to = forms.CharField(required=False)
+    host_from = forms.CharField(label='From')
+    host_to = forms.CharField(label='To (optional)', required=False)
 
