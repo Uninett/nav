@@ -1,6 +1,6 @@
 {% extends "report/base.html" %}
 
-{% load nav.django.templatetags.report %}
+{% load report %}
 
 {% block content %}
 
@@ -46,7 +46,7 @@
                     {% for element in operatorlist %}
 
                       {# Looong, I know #}
-                      <option value="{{ element }}" {% if element in descriptions %}title="{{ descriptions|get_item:element }}"{% endif %} {% ifequal element operation|get_item:a_raw|default:"" %}selected{% endifequal %}>
+                      <option value="{{ element }}" {% if element in descriptions %}title="{{ descriptions|get_item:element }}"{% endif %} {% ifequal element operator|get_item:a_raw|default:"" %}selected{% endifequal %}>
                         {{ operators|get_item:element }}
                       </option>
 
@@ -206,11 +206,11 @@
     $('#advblock').toggle();
     var old_text = $(this).html();
     var new_text;
-    if (old_text === 'Advanced Options') {
-      new_text = 'Close Advanced Options';
+    if (old_text === '<a>Advanced Options</a>') {
+      new_text = '<a>Close Advanced Options</a>';
     }
     else {
-      new_text = 'Advanced Options';
+      new_text = '<a>Advanced Options</a>';
     }
     $(this).html(new_text);
   });
