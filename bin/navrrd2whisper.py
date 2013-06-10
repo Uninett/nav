@@ -65,10 +65,11 @@ def get_rras(rrd_info):
     rra_count = max(
         [int(key[4]) for key in rrd_info if key.startswith('rra[')]) + 1
     for i in range(rra_count):
-        rras.append(
-            RRA(rrd_info['rra[%d].cf' % i],
-                rrd_info['rra[%d].pdp_per_row' % i],
-                rrd_info['rra[%d].rows' % i]))
+        if rrd_info['rra[%d].cf' % i] == 'AVERAGE':
+            rras.append(
+                RRA(rrd_info['rra[%d].cf' % i],
+                    rrd_info['rra[%d].pdp_per_row' % i],
+                    rrd_info['rra[%d].rows' % i]))
 
     return rras
 
@@ -79,12 +80,11 @@ def calculate_time_periods(rras, seconds_per_point, last_update):
     periods = []
     last_start_time = last_update + seconds_per_point
     for rra in rras:
-        if rra.cf == 'AVERAGE':
-            rra_span = rra.pdp_per_row * rra.rows * seconds_per_point
-            end_time = last_start_time
-            last_start_time = start_time = (last_update - rra_span +
-                                            seconds_per_point)
-            periods.append(Period(start_time, end_time))
+        rra_span = rra.pdp_per_row * rra.rows * seconds_per_point
+        end_time = last_start_time
+        last_start_time = start_time = (last_update - rra_span +
+                                        seconds_per_point)
+        periods.append(Period(start_time, end_time))
 
     return periods
 
