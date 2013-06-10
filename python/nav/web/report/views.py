@@ -22,7 +22,6 @@ from IPy import IP
 from operator import itemgetter
 from time import localtime, strftime
 import csv
-from django.http import HttpResponse, Http404, HttpResponseRedirect
 import os
 import re
 from nav.django.utils import get_account
@@ -31,6 +30,8 @@ from nav.django.utils import get_account
 # pylint: disable=W0611
 from nav.models import manage
 from django.core.cache import cache
+from django.shortcuts import render
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 
 from nav import db
 from nav.report.IPtree import getMaxLeaf, buildTree
@@ -39,12 +40,8 @@ from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
-from nav.web.templates.ReportListTemplate import ReportListTemplate
-from nav.web.templates.ReportTemplate import ReportTemplate, MainTemplate
 import nav.path
 
-# Added imports
-from django.shortcuts import render
 
 CONFIG_FILE_PACKAGE = os.path.join(nav.path.sysconfdir, "report/report.conf")
 CONFIG_FILE_LOCAL = os.path.join(nav.path.sysconfdir,
@@ -191,30 +188,6 @@ def matrix_report(request):
         MetaIP.invalidateCache()
 
         return HttpResponse(matrix_template_response)
-
-
-# def report_list(_request):
-#     """Automated report list view"""
-#     page = ReportListTemplate()
-#
-#     # Default config
-#     reports = ReportList(CONFIG_FILE_PACKAGE).get_report_list()
-#     reports.sort(key=itemgetter(1))
-#
-#     # Local config
-#     local_reports = ReportList(CONFIG_FILE_LOCAL).get_report_list()
-#     local_reports.sort(key=itemgetter(1))
-#
-#     name = "Report List"
-#     name_link = "reportlist"
-#     page.path = [("Home", "/"),
-#                  ("Report", "/report/"),
-#                  (name, "/report/" + name_link)]
-#     page.title = "Report - " + name
-#     page.report_list = reports
-#     page.report_list_local = local_reports
-#
-#     return HttpResponse(page.respond())
 
 
 def report_list(request):
