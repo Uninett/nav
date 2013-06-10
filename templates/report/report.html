@@ -5,7 +5,7 @@
 {% block content %}
 
 <div id="advToggle">
-  <a href="#">
+  <a>
     {% if adv %}
       Close Advanced Options
     {% else %}
@@ -36,7 +36,13 @@
 
                 <td>
                   {# TODO: Test if the if-statement works correctly (i.e. not "a_raw"). #}
-                  <input type="checkbox" name="not_{{ a_raw }}" id="not_adv{{ counter }}" {% if a_raw in neg %}checked="1"{% endif %}>
+                  <input
+                    type="checkbox"
+                    name="not_{{ a_raw }}"
+                    id="not_adv{{ counter }}"
+                    {% if a_raw in neg %}
+                      checked
+                    {% endif %}>
                 </td>
 
                 <td><label for="not_adv{{ counter }}">not</label></td>
@@ -45,8 +51,14 @@
                   <select name="op_{{ a_raw }}">
                     {% for element in operatorlist %}
 
-                      {# Looong, I know #}
-                      <option value="{{ element }}" {% if element in descriptions %}title="{{ descriptions|get_item:element }}"{% endif %} {% ifequal element operator|get_item:a_raw|default:"" %}selected{% endifequal %}>
+                      <option
+                        value="{{ element }}"
+                        {% if element in descriptions %}
+                          title="{{ descriptions|get_item:element }}"
+                        {% endif %}
+                        {% ifequal element operator|get_item:a_raw|default:"" %}
+                          selected
+                        {% endifequal %}>
                         {{ operators|get_item:element }}
                       </option>
 
@@ -55,7 +67,11 @@
                 </td>
 
                 <td>
-                  <input type="text" name="{{ a_raw }}" id="adv{{ counter }}" value="{{ contents|get_item:a_raw|default:"" }}">
+                  <input
+                    type="text"
+                    name="{{ a_raw }}"
+                    id="adv{{ counter }}"
+                    value="{{ contents|get_item:a_raw|default:"" }}">
                 </td>
               </tr>
 
