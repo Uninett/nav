@@ -47,15 +47,19 @@ import nav.path
 CONFIG_FILE_PACKAGE = os.path.join(nav.path.sysconfdir, "report/report.conf")
 CONFIG_FILE_LOCAL = os.path.join(nav.path.sysconfdir,
                                  "report/report.local.conf")
+FRONT_FILE = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 
 def index(request):
     """Report front page"""
+
     context = {
         'title': 'Report - Index',
         'navpath': [('Home', '/'), ('Report', False)],
-        'heading': 'Reports',
     }
+
+    with open(FRONT_FILE, 'r') as f:
+        context['index'] = f.read()
 
     return render_to_response("report/index.html", context,
                               RequestContext(request))
