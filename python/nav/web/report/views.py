@@ -30,7 +30,8 @@ from nav.django.utils import get_account
 # pylint: disable=W0611
 from nav.models import manage
 from django.core.cache import cache
-from django.shortcuts import render
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 
 from nav import db
@@ -56,7 +57,8 @@ def index(request):
         'heading': 'Reports',
     }
 
-    return render(request, "report/index.html", context)
+    return render_to_response("report/index.html", context,
+                              RequestContext(request))
 
 
 def get_report(request, report_name):
@@ -213,7 +215,8 @@ def report_list(request):
         'report_list_local': reports_local,
     }
 
-    return render(request, 'report/report_list.html', context)
+    return render_to_response('report/report_list.html', context,
+                              RequestContext(request))
 
 
 def make_report(request, report_name, export_delimiter, query_dict):
@@ -348,7 +351,8 @@ def make_report(request, report_name, export_delimiter, query_dict):
             'adv_block': adv_block,
         })
 
-        return render(request, 'report/report.html', context)
+        return render_to_response('report/report.html', context,
+                                  RequestContext(request))
 
 
 def generate_export(_request, report, report_name, export_delimiter):

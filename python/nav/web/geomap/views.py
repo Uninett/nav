@@ -26,7 +26,8 @@ from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.core.urlresolvers import reverse
-from django.shortcuts import render
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 
 import nav.db
 from nav.django.utils import get_account
@@ -102,7 +103,8 @@ def geomap(request, variant):
         'variant_config': variant_config,
     }
 
-    return render(request, 'geomap/geomap.html', context)
+    return render_to_response('geomap/geomap.html', context,
+                              RequestContext(request))
 
 
 def forward_to_default_variant(request):

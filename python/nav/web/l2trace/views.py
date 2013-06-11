@@ -16,7 +16,8 @@
 #
 """Layer 2 trace views"""
 
-from django.shortcuts import render
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 
 from . import L2TraceQuery
 from .forms import L2TraceForm
@@ -44,4 +45,5 @@ def index(request):
         l2tracer.trace()
         context.update({'l2tracer': l2tracer})
 
-    return render(request, 'l2trace/l2trace.html', context)
+    return render_to_response('l2trace/l2trace.html', context,
+                              RequestContext(request))
