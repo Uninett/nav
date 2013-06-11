@@ -56,6 +56,7 @@ def index(request):
     context = {
         'title': 'Report - Index',
         'navpath': [('Home', '/'), ('Report', False)],
+        'heading': 'Report Index'
     }
 
     with open(FRONT_FILE, 'r') as f:
