@@ -28,8 +28,8 @@
       <table class="vertitable">
         {% if report.form %}
           {% for a in report.form %}
-            {% with a_raw=a.raw counter=forloop.counter0 %}
-
+            {% comment %} {% with a_raw=a.raw counter=forloop.counter0 %} {% endcomment %}
+            {% with a.raw as a_raw %}{% with forloop.counter0 as counter %}
               <tr>
                 <th><label for="adv{{ counter }}">{{ a.title }}</label></th>
 
@@ -73,7 +73,7 @@
                 </td>
               </tr>
 
-            {% endwith %}
+            {% endwith %}{% endwith %} {# TODO: Remove one tag when in 1.4 #}
           {% endfor %}
         {% endif %}
 
