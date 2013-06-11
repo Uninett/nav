@@ -33,7 +33,6 @@ from nav.django.utils import get_account
 from nav.models.profiles import (Account, AccountNavbar, NavbarLink,
                                  AccountTool, AccountProperty)
 from nav.models.manage import Netbox
-from nav.web.templates.DjangoCheetah import DjangoCheetah
 
 from nav.web import ldapauth, auth
 from nav.web.webfront.utils import quick_read, current_messages, boxes_down, tool_list
