@@ -42,6 +42,9 @@ class GraphiteConfigParser(NAVConfigParser):
 [carbon]
 host = 127.0.0.1
 port = 2003
+
+[graphiteweb]
+base=http://localhost:8000/
 """
 
 CONFIG = GraphiteConfigParser()
