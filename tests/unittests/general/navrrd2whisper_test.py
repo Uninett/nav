@@ -122,6 +122,12 @@ class NavRrd2WhisperTest(unittest.TestCase):
                          'step': 1800L}
         self.seconds_per_point = self.rrd_info['step']
         self.last_update = self.rrd_info['last_update']
+        self.rras = False
+
+    def get_cached_rras(self):
+        if not self.rras:
+            self.rras = get_rras(self.rrd_info)
+        return self.rras
 
     def test_datasources(self):
         datasources = get_datasources(self.rrd_info)
@@ -129,37 +135,37 @@ class NavRrd2WhisperTest(unittest.TestCase):
                          sorted(datasources))
 
     def test_rras_length(self):
-        rras = get_rras(self.rrd_info)
+        rras = self.get_cached_rras()
         self.assertEqual(len(rras), 4)
 
     def test_rra_content(self):
-        rra = get_rras(self.rrd_info)[3]
+        rra = self.get_cached_rras()[3]
         self.assertEqual(rra.cf, 'AVERAGE')
         self.assertEqual(rra.pdp_per_row, 96)
         self.assertEqual(rra.rows, 600)
 
     def test_one_period_per_rra(self):
-        rras = get_rras(self.rrd_info)
+        rras = self.get_cached_rras()
         periods = calculate_time_periods(rras, self.seconds_per_point,
                                          self.last_update)
         self.assertEqual(len(periods), len(rras))
 
     def test_start_time_should_be_less_than_end_time(self):
-        rras = get_rras(self.rrd_info)
-        periods = calculate_time_periods(rras, self.seconds_per_point,
+        periods = calculate_time_periods(self.get_cached_rras(),
+                                         self.seconds_per_point,
                                          self.last_update)
         for period in periods:
             self.assertTrue(period.start_time < period.end_time)
 
     def test_first_period_length(self):
-        rras = get_rras(self.rrd_info)
-        periods = calculate_time_periods(rras, self.seconds_per_point,
+        periods = calculate_time_periods(self.get_cached_rras(),
+                                         self.seconds_per_point,
                                          self.last_update)
         length = int(periods[0][1]) - int(periods[0][0])
         self.assertEqual(length, self.seconds_per_point * 600)
 
     def test_retentions(self):
-        retentions = calculate_retentions(get_rras(self.rrd_info),
+        retentions = calculate_retentions(self.get_cached_rras(),
                                           self.seconds_per_point)
         fasit = [(1800, 600), (10800, 600), (43200, 600), (172800, 600)]
         self.assertEqual(retentions, fasit)
