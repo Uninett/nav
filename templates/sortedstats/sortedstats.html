@@ -1,0 +1,131 @@
+{% extends "base.html" %} {# Don't need a deeper hierarchy for one template #}
+
+{% block base_content %}
+
+  <h2>Statistics</h2>
+
+  <ul>
+    <li>
+      <a href="/cricket/">Cricket</a>
+      - Traffic statistics from router interfaces and switch ports, CPU utilization, memory usage and more
+    </li>
+  </ul>
+
+  <h3>Ranked Statistics</h3>
+
+  <form action="" method="get">
+
+    <table class="vertitable">
+
+      <tr>
+        <th>Choose view</th>
+        <td>
+          <select name="view">
+            {% for section in sectionslist %}
+              {% ifnotequal section.0 'ss_general' %}
+                <option value="{{ section.0 }}"
+                        {% ifequal section.0 view %}
+                          selected
+                        {% endifequal %}>
+                  {{ selected.1 }}
+              {% endifnotequal %}
+            {% endfor %}
+          </select>
+        </td>
+      </tr>
+
+      <tr>
+        <th>Timeframe</th>
+        <td>
+          <select name="fromtime">
+            {% for timeframe in timeframes %}
+              <option value="{{ timeframe.0 }}"
+                      {% ifequal timeframe.0 fromtime %}
+                        selected
+                      {% endifequal %}>
+                {{ timeframe.1 }}
+            {% endfor %}
+          </select>
+        </td>
+      </tr>
+
+      <tr>
+        <th>Rows</th>
+        <td>
+          <input type="text" name="numrows" value="{{ numrows }}" size="3">
+        </td>
+      </tr>
+
+      <tr>
+        <th>Live</th>
+        <td>
+          <input type="checkbox"
+                 name="forcedview"
+                 value="1"
+                 {% if forcedview %}
+                   checked
+                 {% endif %}>
+        </td>
+      </tr>
+
+      <tr>
+        <th></th>
+        <td><input type="submit" name="normalview" value="View"></td>
+      </tr>
+
+    </table>
+  </form>
+
+
+  {# Display view if exists #}
+  {% if view %}
+
+    {% for value in values %}
+
+      {% if forloop.first %}
+        <table class="listtable">
+          <caption>
+            Ranked Statistics for {{ viewname }}<br>
+            <span class="subtitle">{{ view_timeframe }}</span>
+          </caption>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Target</th>
+              <th>Value</th>
+              <th>Unit</th>
+            </tr>
+          </thead>
+      {% endif %}
+
+      <tbody>
+        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+          <td>{{ forloop.counter }}</td>
+          <td>
+            {% if linkview %}
+              <a href="/cricket/?target={{ value.0 }};view={{ linkview }}">
+                {{ value.1 }}
+              </a>
+            {% else %}
+              {{ value.1 }}
+            {% endif %}
+          </td>
+          <td align="right">{{ value.2 }}</td>
+          <td>{{ units }}</td>
+        </tr>
+      </tbody>
+      <tbody class="footer">
+        <tr>
+          <th colspan="4">
+            Got data in {{ exetime }} seconds ({{ footer }})
+          </th>
+        </tr>
+      </tbody>
+
+    {% empty %}
+      <p>Could not find any data for {{ viewname }}</p>
+    {% endfor %}
+    </table>
+  {% endif %}
+
+{% endblock base_content %}

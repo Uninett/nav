@@ -16,58 +16,64 @@
 #
 """Sorted statistics views."""
 
+import re
 import time
+from operator import itemgetter
+from itertools import islice
 from ConfigParser import NoOptionError
 
-from django.http import HttpResponse
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 
-from nav.web.templates import SortedStatsTemplate
-from . import get_data, sort_by_value, get_configuration
+from . import get_data, get_configuration
 
 import logging
 
-def index(req):
-    """Sorted stats search&result view"""
+
+TIMEFRAMES = (
+    ('hour', 'Last Hour'),
+    ('day', 'Last Day'),
+    ('week', 'Last Week'),
+    ('month', 'Last Month'),
+)
+
+TARGET = re.compile('cricket-data(/.*)')
+OUTPUT = re.compile('.*/([^\/]+/[^\/]+)$","\\1')
+
+
+def index(request):
+    """Sorted stats search & result view"""
     logger = logging.getLogger(__name__)
-    logger.debug("sortedstats started at %s" %time.ctime())
+    logger.debug('sortedstats started at %s' % time.ctime())
 
-    # Some variables
-    defaultnumrows = 20
-    fromtimes = {'hour': 'Last Hour', 'day': 'Last Day', 'week': 'Last Week',
-                 'month': 'Last Month'}
-    defaultfromtime = 'day'
-
-    page = SortedStatsTemplate.SortedStatsTemplate()
-
-    page.path = [("Home","/"), ("Statistics", False)]
-    page.title = "Statistics"
+    numrows = int(request.GET.get('numrows', 20))
+    fromtime = request.GET.get('fromtime', 'day')
 
     config = get_configuration()
-    page.config = config
 
+    # TODO: Use namedtuple for more expressive templates?
+    sectionslist = [
+        (
+            section,
+            config.get(section, 'name'),
+        ) for section in config.sections().sort()
+    ]
 
-    # TODO: Must verify that the mandatory variables are in the
-    # config-file.
+    context = {
+        'title': 'Statistics',
+        'navpath': [('Home', '/'), ('Statistics', False)],
+        'numrows': numrows,
+        'fromtime': fromtime,
+        'timeframes': TIMEFRAMES,
+        'sectionslist': sectionslist,
+        'exetime': 0,
+    }
 
+    if 'view' in request.GET:
+        view = request.GET['view']
+        viewname = config.get(view, 'name')
 
-    # Get args, see what we are supposed to display
-    numrows = req.GET.get('numrows', defaultnumrows)
-    fromtime = req.GET.get('fromtime', defaultfromtime)
-    page.numrows = numrows
-    page.fromtime = fromtime
-    page.fromtimes = fromtimes
-
-
-    # view is the name of the drop-down menu.
-    if 'view' in req.GET:
-        view = req.GET['view']
-        page.view = view
-
-
-        # Cachetimeout is fetched from config-file.
-        cachetimeoutvariable = "cachetimeout" + fromtime
-        cachetimeout = config.get('ss_general', cachetimeoutvariable)
-
+        cachetimeout = config.get('ss_general', 'cachetimeout' + fromtime)
 
         # Modifier is an optional variable in the configfile that is
         # used to modify the value we fetch from the rrd-file with a
@@ -78,59 +84,61 @@ def index(req):
             modifier = False
 
         try:
-            page.linkview = config.get(view, 'linkview')
+            linkview = config.get(view, 'linkview')
         except NoOptionError:
-            page.linkview = False
+            linkview = False
 
         # If forcedview is checked, ask getData to get values live.
-        forcedview = bool(req.GET.get('forcedview', False))
-        page.forcedview = req.GET.get('forcedview', None)
+        forcedview = bool(request.GET.get('forcedview', False))
 
+        logger.debug('forcedview: %s, path: %s, dsdescr: %s, fromtime: %s, '
+                     'view: %s, cachetimeout: %s, modifier: %s\n'
+                     % (forcedview, config.get(view, 'path'),
+                     config.get(view, 'dsdescr'), fromtime, view,
+                     cachetimeout, modifier))
 
-        # LOG
-        logger.debug ("forcedview: %s, path: %s, dsdescr: %s, fromtime: %s, "
-                      "view: %s, cachetimeout: %s, modifier: %s\n"
-                      %(str(forcedview), config.get(view, 'path'),
-                        config.get(view, 'dsdescr'), fromtime, view,
-                        cachetimeout, modifier))
+        values, exetime, units, cachetime, cached = get_data(
+            forcedview,
+            config.get(view, 'path'),
+            config.get(view, 'dsdescr'),
+            fromtime, view, cachetimeout, modifier)
 
+        logger.debug('VALUES: %s\n' % (str(values)))
 
-        # Get data
-        values, exetime, units, cachetime, cached = \
-                get_data(forcedview, config.get(view, 'path'),
-                        config.get(view, 'dsdescr'),
-                        fromtime, view, cachetimeout, modifier)
+        # Make a list of (key, value) tuples from values dict, taking
+        # the first 'numrows' elements sorted by value
+        values_sorted = sorted(
+            islice(values.iteritems(), numrows), key=itemgetter(1))
 
-
-        # LOG
-        logger.debug("VALUES: %s\n" %(str(values)))
-
-
-        sorted_keys = sort_by_value(values)
-        sorted_keys.reverse()
-
+        values_formatted = [
+            (
+                TARGET.search(key),
+                OUTPUT.sub(key),
+                '{:.2f}'.format(value)
+            ) for key, value in values_sorted
+        ]
 
         # If units are set in the config-file, use it instead of what
         # we find in the database.
         if config.has_option(view, 'units'):
             units = config.get(view, 'units')
 
-        page.exetime = exetime
-        page.showArr = values
-        page.sortedKeys = sorted_keys
-        page.units = units
         if cached:
-            page.footer = "using cached data from %s" % (cachetime)
+            footer = 'using cached data from {}'.format(cachetime)
         else:
-            page.footer = "using live data"
+            footer = 'using live data'
 
-    else:
-        page.view = ""
-        page.showArr = ""
-        page.exetime = 0
-        page.forcedview = "0"
+        context.update({
+            'view': view,
+            'viewname': viewname,
+            'view_timeframe': dict(TIMEFRAMES)[fromtime],
+            'linkview': linkview,
+            'forcedview': forcedview,
+            'values': values_formatted,
+            'exetime': exetime,
+            'units': units,
+            'footer': footer,
+        })
 
-
-    return HttpResponse(page.respond())
-
-
+    return render_to_response('sortedstats/sortedstats.html', context,
+                              context_instance=RequestContext(request))
