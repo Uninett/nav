@@ -19,7 +19,8 @@ import unittest
 import sys
 from nav.navrrd2whisper import (get_rras, calculate_time_periods,
                                 calculate_retentions, get_datasources,
-                                create_whisper_path)
+                                create_whisper_path,
+                                calculate_absolute_from_rate)
 
 
 class NavRrd2WhisperTest(unittest.TestCase):
@@ -131,8 +132,11 @@ class NavRrd2WhisperTest(unittest.TestCase):
 
     def test_datasources(self):
         datasources = get_datasources(self.rrd_info)
+        names = [x.name for x in datasources]
+        types = [x.type for x in datasources]
         self.assertEqual(sorted(['ip_count', 'ip_range', 'mac_count']),
-                         sorted(datasources))
+                         sorted(names))
+        self.assertEqual(['GAUGE'] * 3, types)
 
     def test_rras_length(self):
         rras = self.get_cached_rras()
@@ -169,3 +173,15 @@ class NavRrd2WhisperTest(unittest.TestCase):
                                           self.seconds_per_point)
         fasit = [(1800, 600), (10800, 600), (43200, 600), (172800, 600)]
         self.assertEqual(retentions, fasit)
+
+    def test_rate_conversion(self):
+        interval = 300
+        rates = [200, 200, 200]
+        self.assertEqual(calculate_absolute_from_rate(rates, interval),
+                         [60000, 120000, 180000])
+
+    def test_rate_is_none(self):
+        interval = 300
+        rates = [200, None, 200]
+        self.assertEqual(calculate_absolute_from_rate(rates, interval),
+                         [60000, None, 60000])

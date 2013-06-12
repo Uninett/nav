@@ -14,12 +14,11 @@ from os.path import join, basename, exists, dirname
 # pylint:disable=C0103
 Period = namedtuple('Period', 'start_time end_time')
 RRA = namedtuple('RRA', 'cf pdp_per_row rows')
+Datasource = namedtuple('Datasource', 'name type')
 
 
 def convert_to_whisper(rrd_file, metrics):
     """Convert a rrd-file to whisper"""
-
-    print locals()
 
     rrd_info = rrdtool.info(rrd_file)
     seconds_per_point = rrd_info['step']
@@ -30,7 +29,7 @@ def convert_to_whisper(rrd_file, metrics):
     periods = calculate_time_periods(rras, seconds_per_point, last_update)
 
     for datasource in get_datasources(rrd_info):
-        whisper_file = create_whisper_path(metrics[datasource])
+        whisper_file = create_whisper_path(metrics[datasource.name])
         try:
             create_whisper_file(retentions, whisper_file)
         except whisper.InvalidConfiguration, err:
@@ -84,7 +83,10 @@ def calculate_retentions(rras, seconds_per_point):
 def get_datasources(rrd_info):
     """Gets the datasouces from the rrd-file"""
     ds_keys = [key for key in rrd_info if key.startswith('ds[')]
-    datasources = list(set(key[3:].split(']')[0] for key in ds_keys))
+    names = list(set(key[3:].split(']')[0] for key in ds_keys))
+    datasources = []
+    for name in names:
+        datasources.append(Datasource(name, rrd_info['ds[%s].type' % name]))
     return datasources
 
 
@@ -109,11 +111,28 @@ def fetch_datapoints(rrd_file, periods, datasource):
             '-s', str(period.start_time),
             '-e', str(period.end_time))
 
-        column_index = list(columns).index(datasource)
         rows.pop()  # The last value may be NaN based on when last update was
+        column_index = list(columns).index(datasource.name)
         values = [row[column_index] for row in rows]
+        if datasource.type in ['COUNTER', 'DERIVE']:
+            values = calculate_absolute_from_rate(values, time_info[-1])
         timestamps = list(range(*time_info))
         datapoints.extend(
             p for p in zip(timestamps, values) if p[1] is not None)
 
     return datapoints
+
+
+def calculate_absolute_from_rate(rates, interval):
+    """Calculate the absolute values from the rates and interval"""
+    last_value = 0
+    values = []
+    for rate in rates:
+        if rate is None:
+            values.append(None)
+            last_value = 0
+        else:
+            value = (rate * interval) + last_value
+            values.append(value)
+            last_value = value
+    return values
