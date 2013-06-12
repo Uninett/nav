@@ -17,9 +17,9 @@
 
 import unittest
 import sys
-from navrrd2whisper import (get_rras, calculate_time_periods,
-                            calculate_retentions, get_datasources,
-                            create_whisper_path, get_optargs)
+from nav.navrrd2whisper import (get_rras, calculate_time_periods,
+                                calculate_retentions, get_datasources,
+                                create_whisper_path)
 
 
 class NavRrd2WhisperTest(unittest.TestCase):
@@ -128,36 +128,21 @@ class NavRrd2WhisperTest(unittest.TestCase):
         self.assertEqual(sorted(['ip_count', 'ip_range', 'mac_count']),
                          sorted(datasources))
 
-    def test_create_whisper_path_with_destination(self):
-        rrd_path = "10.rrd"
-        datasource = "ifinoctets"
-        sys.argv = ['blapp', '-d /usr/local', 'asd']
-        args, options = get_optargs()
-        self.assertEqual(create_whisper_path(rrd_path, datasource, options),
-                         '/usr/local/10_ifinoctets.wsp')
+    def test_rras_length(self):
+        rras = get_rras(self.rrd_info)
+        self.assertEqual(len(rras), 4)
 
-    def test_create_whisper_path_without_destination(self):
-        rrd_path = "/usr/local/nav/10.rrd"
-        datasource = "ifinoctets"
-        sys.argv = ['blapp', 'asd']
-        args, options = get_optargs()
-        self.assertEqual(create_whisper_path(rrd_path, datasource, options),
-                         '/usr/local/nav/10_ifinoctets.wsp')
+    def test_rra_content(self):
+        rra = get_rras(self.rrd_info)[3]
+        self.assertEqual(rra.cf, 'AVERAGE')
+        self.assertEqual(rra.pdp_per_row, 96)
+        self.assertEqual(rra.rows, 600)
 
-    def test_create_whisper_path_locally(self):
-        rrd_path = "10.rrd"
-        datasource = "ifinoctets"
-        sys.argv = ['blapp', 'asd']
-        args, options = get_optargs()
-        self.assertEqual(create_whisper_path(rrd_path, datasource, options),
-                         '10_ifinoctets.wsp')
-
-    def test_one_period_per_average_rra(self):
+    def test_one_period_per_rra(self):
         rras = get_rras(self.rrd_info)
         periods = calculate_time_periods(rras, self.seconds_per_point,
                                          self.last_update)
-        self.assertEqual(len(periods),
-                         len([x for x in rras if x.cf == 'AVERAGE']))
+        self.assertEqual(len(periods), len(rras))
 
     def test_start_time_should_be_less_than_end_time(self):
         rras = get_rras(self.rrd_info)
@@ -176,5 +161,5 @@ class NavRrd2WhisperTest(unittest.TestCase):
     def test_retentions(self):
         retentions = calculate_retentions(get_rras(self.rrd_info),
                                           self.seconds_per_point)
-        fasit = (1800, 600)
-        self.assertEqual(retentions[0], fasit)
+        fasit = [(1800, 600), (10800, 600), (43200, 600), (172800, 600)]
+        self.assertEqual(retentions, fasit)
