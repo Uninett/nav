@@ -1,6 +1,7 @@
 #!/usr/bin/python
 """Migrate rrd-files to whisper-files"""
 
+import logging
 import sys
 import os
 import rrdtool
@@ -15,6 +16,8 @@ from os.path import join, basename, exists, dirname
 Period = namedtuple('Period', 'start_time end_time')
 RRA = namedtuple('RRA', 'cf pdp_per_row rows')
 Datasource = namedtuple('Datasource', 'name type')
+
+_logger = logging.getLogger(__name__)
 
 
 def convert_to_whisper(rrd_file, metrics):
@@ -33,12 +36,12 @@ def convert_to_whisper(rrd_file, metrics):
         try:
             create_whisper_file(retentions, whisper_file)
         except whisper.InvalidConfiguration, err:
-            print err
+            _logger.error(err)
             continue
 
         datapoints = fetch_datapoints(rrd_file, periods, datasource)
         whisper.update_many(whisper_file, datapoints)
-        print "%s created" % whisper_file
+        _logger.info('Created %s', whisper_file)
 
 
 def get_rras(rrd_info):

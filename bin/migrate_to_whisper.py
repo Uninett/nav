@@ -21,8 +21,9 @@ Use schemas deducted from the rrd-files
 """
 from optparse import OptionParser
 from os.path import join
-import sys
+from datetime import datetime
 import logging
+import sys
 
 from nav.graphite_migrate import InterfaceMigrator
 from nav.logs import init_file_logging
@@ -37,9 +38,11 @@ def main():
 
     options, args = parse_options()
     init_file_logging(LOGFILE)
-    _logger.info('Starting migrate')
-    print args
+
+    start_time = datetime.now()
+    _logger.info('Starting migrate at %s', start_time)
     InterfaceMigrator(args[0]).migrate()
+    _logger.info('Migration done in %s', datetime.now() - start_time)
 
 
 def parse_options():

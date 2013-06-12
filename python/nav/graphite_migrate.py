@@ -15,12 +15,15 @@
 #
 """Module comment"""
 
+import logging
 import re
 import nav.graphite as graphite
 from nav.navrrd2whisper import convert_to_whisper
 from os.path import join
 from nav.models.manage import Interface
 from nav.models.rrd import RrdFile
+
+_logger = logging.getLogger(__name__)
 
 
 class Migrator(object):
@@ -61,10 +64,11 @@ class InterfaceMigrator(Migrator):
         rrdfiles = RrdFile.objects.filter(
             key='interface').order_by('netbox', 'filename')
         for rrdfile in rrdfiles:
+            _logger.info('Migrating %s', rrdfile)
             try:
                 interface = Interface.objects.get(pk=rrdfile.value)
             except Interface.DoesNotExist:
-                print "Interface for %s does not exist" % rrdfile
+                _logger.error("Interface for %s does not exist", rrdfile)
             else:
                 metrics = self.find_metrics(rrdfile, interface)
                 convert_to_whisper(str(join(rrdfile.path, rrdfile.filename)),
