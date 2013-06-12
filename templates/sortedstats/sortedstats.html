@@ -22,13 +22,11 @@
         <td>
           <select name="view">
             {% for section in sectionslist %}
-              {% ifnotequal section.0 'ss_general' %}
-                <option value="{{ section.0 }}"
-                        {% ifequal section.0 view %}
-                          selected
-                        {% endifequal %}>
-                  {{ selected.1 }}
-              {% endifnotequal %}
+              <option value="{{ section.0 }}"
+                      {% ifequal section.0 view %}
+                      selected
+                      {% endifequal %}>
+              {{ section.1 }}
             {% endfor %}
           </select>
         </td>
@@ -43,7 +41,7 @@
                       {% ifequal timeframe.0 fromtime %}
                         selected
                       {% endifequal %}>
-                {{ timeframe.1 }}
+              {{ timeframe.1 }}
             {% endfor %}
           </select>
         </td>

@@ -38,7 +38,7 @@ TIMEFRAMES = (
 )
 
 TARGET = re.compile('cricket-data(/.*)')
-OUTPUT = re.compile('.*/([^\/]+/[^\/]+)$","\\1')
+OUTPUT = re.compile('.*/([^/]+/[^/]+)$","\\1')
 
 
 def index(request):
@@ -56,7 +56,9 @@ def index(request):
         (
             section,
             config.get(section, 'name'),
-        ) for section in config.sections().sort()
+        )
+        for section in sorted(config.sections())
+        if section != 'ss_general'
     ]
 
     context = {
