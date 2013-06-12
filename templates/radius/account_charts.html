@@ -1,0 +1,13 @@
+{% extends "radius/base.html" %}
+
+{% block content %}
+
+  <div id="form">
+    <form id="charts" action="" method="get">
+      {% csrf_token %}
+      {{ form.as_table }}
+      <input type="submit" name="send" value="Create">
+    </form>
+  </div>
+
+{% endblock content %}
