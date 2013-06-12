@@ -16,27 +16,10 @@ Period = namedtuple('Period', 'start_time end_time')
 RRA = namedtuple('RRA', 'cf pdp_per_row rows')
 
 
-def main():
-    """Controller"""
-    args, options = get_optargs()
-    convert_to_whisper(options, args[0])
-
-
-def get_optargs():
-    """Get options and arguments from commandline"""
-    option_parser = OptionParser(usage='''%prog [options] rrd_file''')
-    option_parser.add_option('--xFilesFactor', default=0.5, type='float')
-    option_parser.add_option('-d', dest="destination", default='',
-                             type='string')
-    (options, args) = option_parser.parse_args()
-    if len(args) < 1:
-        option_parser.print_usage()
-        sys.exit(1)
-    return args, options
-
-
-def convert_to_whisper(options, rrd_file):
+def convert_to_whisper(rrd_file, metrics):
     """Convert a rrd-file to whisper"""
+
+    print locals()
 
     rrd_info = rrdtool.info(rrd_file)
     seconds_per_point = rrd_info['step']
@@ -47,14 +30,14 @@ def convert_to_whisper(options, rrd_file):
     periods = calculate_time_periods(rras, seconds_per_point, last_update)
 
     for datasource in get_datasources(rrd_info):
-        whisper_file = create_whisper_path(rrd_file, datasource, options)
+        whisper_file = create_whisper_path(metrics[datasource])
         try:
-            create_whisper_file(options, retentions, whisper_file)
+            create_whisper_file(retentions, whisper_file)
         except whisper.InvalidConfiguration, err:
             print err
             continue
 
-        datapoints = fetch_datapoints(datasource, periods, rrd_file)
+        datapoints = fetch_datapoints(rrd_file, periods, datasource)
         whisper.update_many(whisper_file, datapoints)
         print "%s created" % whisper_file
 
@@ -105,28 +88,24 @@ def get_datasources(rrd_info):
     return datasources
 
 
-def create_whisper_path(rrd_path, datasource, options):
-    """Create whisper-path based on rrd-path and datasource"""
-    whisper_path = rrd_path.replace('.rrd', '_%s.wsp' % datasource)
-    if options.destination:
-        dest = options.destination
-        whisper_path = join(dest.strip(), basename(whisper_path))
-    return whisper_path
+def create_whisper_path(whisper_path):
+    """Append correct filename extension for whisper files"""
+    return whisper_path + '.wsp'
 
 
-def create_whisper_file(options, retentions, whisper_file):
+def create_whisper_file(retentions, whisper_file):
     """Create the whisper file with the correct retentions"""
     if dirname(whisper_file) and not exists(dirname(whisper_file)):
         os.makedirs(dirname(whisper_file))
-    whisper.create(whisper_file, retentions, xFilesFactor=options.xFilesFactor)
+    whisper.create(whisper_file, retentions)
 
 
-def fetch_datapoints(datasource, periods, rrd_path):
+def fetch_datapoints(rrd_file, periods, datasource):
     """Fetches the datapoints from the rrd-file"""
     datapoints = []
     for period in periods:
         (time_info, columns, rows) = rrdtool.fetch(
-            rrd_path, 'AVERAGE',
+            rrd_file, 'AVERAGE',
             '-s', str(period.start_time),
             '-e', str(period.end_time))
 
@@ -138,7 +117,3 @@ def fetch_datapoints(datasource, periods, rrd_path):
             p for p in zip(timestamps, values) if p[1] is not None)
 
     return datapoints
-
-
-if __name__ == '__main__':
-    main()
