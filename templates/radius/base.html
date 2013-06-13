@@ -2,13 +2,9 @@
 
 {% block base_content %}
 
-  {% if errors %}
-    <ul class="error">
-      {% for error in errors %}
-        <li>{{ error }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+  {% for field in form %}
+      {{ field.errors }}
+  {% endfor %}
 
   {% block content %}
   {% endblock content %}

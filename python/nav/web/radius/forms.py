@@ -31,7 +31,7 @@ class ErrorLogSearchForm(forms.Form):
         self.fields['querytype'].choices = self.QUERY_TYPES
 
 
-class AccountingLogSearchForm(forms.Form):
+class AccountLogSearchForm(forms.Form):
     QUERY_TYPES = (
         ('username', 'Username'),
         ('framedipaddress', 'User Hostname/IP Address'),
@@ -55,13 +55,21 @@ class AccountingLogSearchForm(forms.Form):
         widget=forms.CheckboxSelectMultiple)
 
     def __init__(self, *args, **kwargs):
-        super(AccountingLogSearchForm, self).__init__(*args, **kwargs)
+        super(AccountLogSearchForm, self).__init__(*args, **kwargs)
         self.fields['query_type'].choices = self.QUERY_TYPES
 
 
-class AccountingChartsForm(forms.Form):
+class AccountChartsForm(forms.Form):
+    CHARTS = (
+        ('sentrecv', 'Overall'),
+        ('recv', 'Download'),
+        ('sent', 'Upload'),
+    )
 
-    days = forms.FloatField(min_value=0.5, default=7.0)
-    overall = forms.BooleanField(required=False)
-    download = forms.BooleanField(required=False)
-    upload = forms.BooleanField(required=False)
+    days = forms.FloatField(
+        min_value=0.5,
+        initial=7,
+        label='Last # day(s)')
+    charts = forms.MultipleChoiceField(
+        choices=CHARTS,
+        widget=forms.CheckboxSelectMultiple)
