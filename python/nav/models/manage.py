@@ -27,6 +27,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
 from itertools import count, groupby
+from nav import graphite
 
 from nav.bitvector import BitVector
 import nav.natsort
@@ -159,53 +160,30 @@ class Netbox(models.Model):
 
     def get_availability(self):
         """Calculates and returns an availability data structure."""
-        from nav.models.rrd import RrdDataSource
-
-        def average(rds, time_frame):
-            """Calculates the average value within a time_frame."""
-            from nav.rrd import presenter
-            rrd = presenter.Presentation()
-            rrd.time_last(time_frame)
-            rrd.add_datasource(rds.id)
-            value = rrd.average(on_error_return=None, on_nan_return=None)
-            if not value:
-                return None
-            else:
-                return value[0]
-
-        try:
-            data_sources = RrdDataSource.objects.filter(
-                rrd_file__subsystem='pping', rrd_file__netbox=self)
-            # Multiple identical data sources in the database have been
-            # observed. Using the result with highest primary key.
-            # FIXME: Should probably check the mtime of the RRD files on disk
-            # and use the newest one.
-            data_source_status = data_sources.filter(name='STATUS'
-                ).order_by('-pk')[0]
-            data_source_response_time = data_sources.filter(
-                name='RESPONSETIME').order_by('-pk')[0]
-        except IndexError:
-            return None
+        pktloss_id = graphite.metric_path_for_packet_loss(self.sysname)
+        rtt_id = graphite.metric_path_for_roundtrip_time(self.sysname)
 
         result = {
             'availability': {
-                'data_source': data_source_status,
+                'data_source': pktloss_id,
             },
             'response_time': {
-                'data_source': data_source_response_time,
+                'data_source': rtt_id,
             },
         }
 
         for time_frame in self.TIME_FRAMES:
+            avg = graphite.get_metric_average([pktloss_id, rtt_id],
+                                              start="-1%s" % time_frame)
+
             # Availability
-            value = average(data_source_status, time_frame)
-            if value is not None:
-                value = 100 - (value * 100)
-            result['availability'][time_frame] = value
+            pktloss = avg.get(pktloss_id, None)
+            if pktloss is not None:
+                pktloss = 100 - (pktloss * 100)
+            result['availability'][time_frame] = pktloss
 
             # Response time
-            value = average(data_source_response_time, time_frame)
-            result['response_time'][time_frame] = value
+            result['response_time'][time_frame] = avg.get(rtt_id, None)
 
         return result
 
