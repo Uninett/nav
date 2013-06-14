@@ -34,21 +34,39 @@ class Migrator(object):
 
     def __init__(self, basepath):
         self.basepath = basepath
+        self.rrdfiles = None
 
     def create_path_from_metric(self, metric):
         """Create a filesystem path from a whisper metric"""
         return join(self.basepath, *metric.split('.'))
 
+    def find_metrics(self, rrdfile):
+        """Find the metrics for this rrd file"""
+        raise NotImplementedError
+
     def migrate(self):
         """Get data from rrd-file and create one file for each datasource"""
-        raise NotImplementedError
+        for rrdfile in self.rrdfiles:
+            _logger.info('Migrating %s', rrdfile)
+            metrics = self.find_metrics(rrdfile)
+            if metrics:
+                convert_to_whisper(rrdfile, metrics)
 
 
 class InterfaceMigrator(Migrator):
     """Migrator for the interface rrd files"""
 
-    def find_metrics(self, rrdfile, interface):
-        """Find the metrics for this rrd file"""
+    def __init__(self, *args):
+        super(InterfaceMigrator, self).__init__(*args)
+        self.rrdfiles = RrdFile.objects.filter(key='interface')
+
+    def find_metrics(self, rrdfile):
+        try:
+            interface = Interface.objects.get(pk=rrdfile.value)
+        except Interface.DoesNotExist:
+            _logger.error("Interface for %s does not exist", rrdfile)
+            return
+
         hc_octets = re.compile(r'ifhc(in|out)octets', re.IGNORECASE)
         metric_mapping = {}
         for datasource in rrdfile.rrddatasource_set.all():
@@ -62,19 +80,6 @@ class InterfaceMigrator(Migrator):
                 self.create_path_from_metric(metric)
         return metric_mapping
 
-    def migrate(self):
-        rrdfiles = RrdFile.objects.filter(
-            key='interface').order_by('netbox', 'filename')
-        for rrdfile in rrdfiles:
-            _logger.info('Migrating %s', rrdfile)
-            try:
-                interface = Interface.objects.get(pk=rrdfile.value)
-            except Interface.DoesNotExist:
-                _logger.error("Interface for %s does not exist", rrdfile)
-            else:
-                metrics = self.find_metrics(rrdfile, interface)
-                convert_to_whisper(rrdfile, metrics)
-
 
 class SystemMigrator(Migrator):
     """Migrator for the system statistics"""
@@ -83,6 +88,11 @@ class SystemMigrator(Migrator):
     memories = ['mem5minFree', 'mem5minUsed', 'hpmem5minUsed', 'hpmem5minFree']
     bandwidths = ['c1900Bandwidth', 'c1900BandwidthMax', 'c2900Bandwidth',
                   'c5000Bandwidth', 'c5000BandwidthMax']
+
+    def __init__(self, *args):
+        super(SystemMigrator, self).__init__(*args)
+        self.rrdfiles = RrdFile.objects.filter(
+            Q(path__endswith='routers') | Q(path__endswith='switches'))
 
     def find_metrics(self, rrdfile):
         """Find metrics for system datasources"""
@@ -126,15 +136,13 @@ class SystemMigrator(Migrator):
         if matchobject:
             return matchobject.group()
 
-    def migrate(self):
-        rrdfiles = RrdFile.objects.filter(Q(path__endswith='routers') |
-                                          Q(path__endswith='switches'))
-        for rrdfile in rrdfiles:
-            convert_to_whisper(rrdfile, self.find_metrics(rrdfile))
-
 
 class PpingMigrator(Migrator):
     """Migrator for pping statistics"""
+
+    def __init__(self, *args):
+        super(PpingMigrator, self).__init__(*args)
+        self.rrdfiles = RrdFile.objects.filter(subsystem='pping')
 
     def find_metrics(self, rrdfile):
         """Find metric mapping for pping datasources"""
@@ -152,7 +160,13 @@ class PpingMigrator(Migrator):
 
         return mapping
 
-    def migrate(self):
-        rrdfiles = RrdFile.objects.filter(subsystem='pping')
-        for rrdfile in rrdfiles:
-            convert_to_whisper(rrdfile, self.find_metrics(rrdfile))
+
+class SensorMigrator(Migrator):
+    """Migrator for sensor statistics"""
+
+    def __init__(self, *args):
+        super(SensorMigrator, self).__init__(*args)
+        self.rrdfiles = RrdFile.objects.filter(key='sensor')
+
+    def find_metrics(self, rrdfile):
+        return super(SensorMigrator, self).find_metrics(rrdfile)
