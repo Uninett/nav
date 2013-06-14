@@ -22,6 +22,10 @@ Twisted).
 
 """
 import socket
+import urllib2
+import simplejson
+from urlparse import urljoin
+from urllib import urlencode
 from nav.config import NAVConfigParser
 
 ###################
@@ -140,6 +144,109 @@ def escape_metric_name(string):
     for char in "./ ":
         string = string.replace(char, "_")
     return string
+
+
+##############################
+# metrics search & discovery #
+##############################
+
+def get_metric_leaf_children(path):
+    """Returns a list of available graphite leaf nodes just below path.
+
+    :param path: A path to a Graphite metric.
+    :returns: A list of metric paths.
+
+    """
+    query = path + ".*"
+    data = raw_metric_query(query)
+    result = [node['id'] for node in data
+              if node.get('leaf', False)]
+    return result
+
+
+def raw_metric_query(query):
+    """Runs a query for metric information against Graphite's REST API.
+
+    :param query: A search string, e.g. "nav.devices.some-gw_example_org.*"
+    :returns: A list of matching metrics, each represented by a dict.
+
+    """
+    base = CONFIG.get("graphiteweb", "base")
+    base = urljoin(base, "/metrics/find")
+    query = urlencode({'query': query})
+    url = "%s?%s" % (base, query)
+
+    req = urllib2.Request(url)
+    try:
+        response = urllib2.urlopen(req)
+        return simplejson.load(response)
+    finally:
+        response.close()
+
+
+##########################
+# metrics data retrieval #
+##########################
+
+def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
+    """Calculates the average value of a metric over a given period of time
+
+    :param target: A metric path string or a list of multiple metric paths
+    :param start: A start time specification that Graphite will accept.
+    :param end: An end time specification that Graphite will accept.
+    :param ignore_unknown: Ignore unknown values when calculating the average.
+                           Unless True, any unknown data in the series will
+                           result in an average value of None.
+    :returns: A dict of {target: average_value} items. Targets that weren't
+              found in Graphite will not be present in the dict.
+
+    """
+    data = get_metric_data(target, start, end)
+    result = {}
+    for target in data:
+        dpoints = [d[0] for d in target['datapoints']
+                   if not (ignore_unknown and d[0] is None)]
+        if None in dpoints:
+            avg = None
+        else:
+            avg = sum(dpoints) / len(dpoints)
+        result[target['target']] = avg
+    return result
+
+
+def get_metric_data(target, start="-5min", end="now"):
+    """
+    Retrieves datapoints from a graphite metric for a given period of time.
+
+    :param target: A metric path string or a list of multiple metric paths
+    :param start: A start time specification that Graphite will accept.
+    :param end: An end time specification that Graphite will accept.
+
+    :returns: A raw, response from Graphite. Normally a list of dicts that
+              represent the names and datapoints of each matched target,
+              like so::
+
+                  [{'target': 'x', 'datapoints': [(value, timestamp), ...]}]
+
+    """
+    base = CONFIG.get("graphiteweb", "base")
+    base = urljoin(base, "/render/")
+
+    query = {
+        'target': target,
+        'from': start,
+        'until': end,
+        'format': 'json',
+    }
+    query = urlencode(query, True)
+    url = "%s?%s" % (base, query)
+
+    req = urllib2.Request(url)
+    try:
+        response = urllib2.urlopen(req)
+        return simplejson.load(response)
+    finally:
+        response.close()
 
 
 #########################
