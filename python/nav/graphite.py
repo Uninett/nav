@@ -147,6 +147,33 @@ def escape_metric_name(string):
 #########################
 # pylint: disable=C0111
 
+def metric_path_for_packet_loss(sysname):
+    tmpl = "{device}.ping.packetLoss"
+    return tmpl.format(device=metric_prefix_for_device(sysname))
+
+
+def metric_path_for_roundtrip_time(sysname):
+    tmpl = "{device}.ping.roundTripTime"
+    return tmpl.format(device=metric_prefix_for_device(sysname))
+
+
+def metric_path_for_service_availability(sysname, handler, service_id):
+    tmpl = "{service}.availability"
+    return tmpl.format(
+        service=metric_prefix_for_service(sysname, handler, service_id))
+
+
+def metric_path_for_service_response_time(sysname, handler, service_id):
+    tmpl = "{service}.responseTime"
+    return tmpl.format(
+        service=metric_prefix_for_service(sysname, handler, service_id))
+
+
+def metric_prefix_for_service(sysname, handler, service_id):
+    tmpl = "{device}.services.{handler}_{service_id}"
+    return tmpl.format(device=metric_prefix_for_device(sysname),
+                       handler=handler, service_id=service_id)
+
 
 def metric_path_for_sensor(sysname, sensor):
     tmpl = "{device}.sensors.{sensor}"

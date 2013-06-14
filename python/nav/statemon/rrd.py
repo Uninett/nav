@@ -22,8 +22,13 @@ the statemon subsystem.
 
 """
 import time
-import event
-from nav.graphite import metric_prefix_for_device, send_metrics
+from . import event
+from nav.graphite import (
+    send_metrics, metric_path_for_service_availability,
+    metric_path_for_service_response_time,
+    metric_path_for_packet_loss,
+    metric_path_for_roundtrip_time
+)
 
 
 def update(netboxid, sysname, timestamp, status, responsetime, serviceid=None,
@@ -43,22 +48,20 @@ def update(netboxid, sysname, timestamp, status, responsetime, serviceid=None,
                     service handler.
 
     """
-    prefix = metric_prefix_for_device(sysname)
     if serviceid:
-        prefix += '.services.%s_%s' % (handler, serviceid)
-        status_name = '.availability'
-        response_name = '.responseTime'
+        status_name = metric_path_for_service_availability(
+            sysname, handler, serviceid)
+        response_name = metric_path_for_service_response_time(
+            sysname, handler, serviceid)
     else:
-        prefix += '.ping'
-        status_name = '.packetLoss'
-        response_name = '.roundTripTime'
+        status_name = metric_path_for_packet_loss(sysname)
+        response_name = metric_path_for_roundtrip_time(sysname)
 
     if timestamp is None or timestamp == 'N':
         timestamp = time.time()
 
     metrics = [
-        (prefix + status_name,
-         (timestamp, 0 if status == event.Event.UP else 1)),
-        (prefix + response_name, (timestamp, responsetime))
+        (status_name, (timestamp, 0 if status == event.Event.UP else 1)),
+        (response_name, (timestamp, responsetime))
     ]
     send_metrics(metrics)
