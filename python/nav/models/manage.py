@@ -276,6 +276,29 @@ class Netbox(models.Model):
         return self.powersupplyorfan_set.filter(
             physical_class='fan').order_by('name')
 
+    def get_system_metrics(self):
+        """Gets a list of available Graphite metrics related to this Netbox,
+        except for ports, which are seen as separate.
+
+        :returns: A list of dicts describing the metrics, e.g.:
+                  {id:"nav.devices.some-gw.cpu.cpu1.loadavg1min",
+                   group="cpu",
+                   suffix="cpu1.loadavg1min"}
+
+        """
+        exclude = graphite.metric_prefix_for_ports(self.sysname)
+        base = graphite.metric_prefix_for_device(self.sysname)
+
+        nodes = graphite.get_all_leaves_below(base, [exclude])
+        result = []
+        for node in nodes:
+            suffix = node.replace(base + '.', '')
+            elements = suffix.split('.')
+            group = elements[0]
+            suffix = '.'.join(elements[1:])
+            result.append(dict(id=node, group=group, suffix=suffix))
+
+        return result
 
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place
