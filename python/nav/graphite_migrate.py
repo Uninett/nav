@@ -35,13 +35,17 @@ class Migrator(object):
     def __init__(self, basepath):
         self.basepath = basepath
 
+    def find_metrics(self, rrdfile):
+        """Find metrics for the datasources in the rrdfile"""
+        raise NotImplementedError
+
     def create_path_from_metric(self, metric):
         """Create a filesystem path from a whisper metric"""
         return join(self.basepath, *metric.split('.'))
 
     def migrate(self):
         """Get data from rrd-file and create one file for each datasource"""
-        return NotImplemented
+        raise NotImplementedError
 
 
 class InterfaceMigrator(Migrator):
@@ -58,8 +62,8 @@ class InterfaceMigrator(Migrator):
 
             metric = graphite.metric_path_for_interface(
                 interface.netbox.sysname, interface.ifname, descr)
-            metric_mapping[datasource.name] = join(
-                self.basepath, self.create_path_from_metric(metric))
+            metric_mapping[datasource.name] = \
+                self.create_path_from_metric(metric)
         return metric_mapping
 
     def migrate(self):
@@ -116,8 +120,7 @@ class SystemMigrator(Migrator):
                 _logger.info('Could not find metric for %s' % descr)
                 continue
 
-            mapping[datasource.name] = join(
-                self.basepath, self.create_path_from_metric(metric))
+            mapping[datasource.name] = self.create_path_from_metric(metric)
 
         return mapping
 
@@ -132,3 +135,19 @@ class SystemMigrator(Migrator):
                                           Q(path__endswith='switches'))
         for rrdfile in rrdfiles:
             convert_to_whisper(rrdfile, self.find_metrics(rrdfile))
+
+
+class PpingMigrator(Migrator):
+
+    def find_metrics(self, rrdfile):
+        mapping = {}
+        sysname = rrdfile.netbox.sysname
+        for datasource in rrdfile.rrddatasource_set.all():
+            mapping[datasource.name] = graphite.metric_prefix_for_system(sysname)
+
+
+    def migrate(self):
+        rrdfiles = RrdFile.objects.filter(subsystem='pping')
+        for rrdfile in rrdfiles:
+            convert_to_whisper(rrdfile, self.find_metrics(rrdfile))
+
