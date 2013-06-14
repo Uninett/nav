@@ -24,21 +24,20 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from .forms import AccountChartsForm
+from .forms import AccountChartsForm, AccountLogSearchForm
 
-from nav import db
 from socket import gethostbyname_ex, gaierror
 
-from radius_config import DB_USER, DB, DEBUG, DATEFORMAT_SEARCH
+from radius_config import DEBUG, DATEFORMAT_SEARCH
 from radius_config import ACCT_SEARCHRESULTFIELDS, LOG_SEARCHRESULTFIELDS
 from radius_config import ACCT_DETAILSFIELDS, LOG_DETAILFIELDS
 from radius_config import ACCT_TABLE, LOG_TABLE
 
 from nav.web.templates.AcctSearchTemplate import AcctSearchTemplate
 from nav.web.templates.AcctDetailTemplate import AcctDetailTemplate
-from nav.web.templates.AcctChartsTemplate import AcctChartsTemplate
 from nav.web.templates.LogTemplate import LogTemplate
 from nav.web.templates.LogDetailTemplate import LogDetailTemplate
+
 
 def _build_menu():
     menu = []
@@ -52,6 +51,7 @@ def _build_menu():
                  'text': 'Error Log',
                  'admin': False})
     return menu
+
 
 def index(request):
     # global database
@@ -120,10 +120,6 @@ def index(request):
 
 
 def log_search(request):
-    # global database
-    # connection = db.getConnection(DB_USER, DB)
-    # database = connection.cursor()
-
     page = LogTemplate()
     page.current = "logsearch"
     page.search = None
@@ -166,6 +162,7 @@ def log_search(request):
 
     return HttpResponse(page.respond(), content_type="text/html")
 
+
 def log_detail(request):
     # global database
     # connection = db.getConnection(DB_USER, DB)
@@ -182,51 +179,8 @@ def log_detail(request):
 
     return HttpResponse(page.respond(), content_type="text/html")
 
+
 def account_charts(request):
-    # global database
-    # connection = db.getConnection(DB_USER, DB)
-    # database = connection.cursor()
-    #
-    # page = AcctChartsTemplate()
-    # page.current = "acctcharts"
-    # page.error = None
-    # page.menu = _build_menu()
-    #
-    # try:
-    #     page.form = AcctChartForm(
-    #         request.GET.get("overallchart"),
-    #         request.GET.get("uploadchart"),
-    #         request.GET.get("downloadchart"),
-    #         request.GET.get("days")
-    #     )
-    #     page.form.check_input()
-    #
-    #     page.sentChartQuery = None
-    #     page.recvChartQuery = None
-    #     page.sentrecvChartQuery = None
-    #
-    #     if page.form.uploadchart:
-    #         # Get the top uploaders
-    #         query = AcctChartsQuery("sent", page.form.days)
-    #         page.sentChartQuery = query
-    #         page.sentChartQuery.load_table()
-    #
-    #     if page.form.downloadchart:
-    #         # Get the top leechers
-    #         query = AcctChartsQuery("recv", page.form.days)
-    #         page.recvChartQuery = query
-    #         page.recvChartQuery.load_table()
-    #
-    #     if page.form.overallchart:
-    #         # Get the top overall bandwidth hogs
-    #         query = AcctChartsQuery("sentrecv", page.form.days)
-    #         page.sentrecvChartQuery = query
-    #         page.sentrecvChartQuery.load_table()
-    #
-    # except UserInputSyntaxWarning, error:
-    #     page.error = error
-    #
-    # return HttpResponse(page.respond(), content_type="text/html")
 
     context = {}
 
@@ -240,7 +194,7 @@ def account_charts(request):
                 query = AcctChartsQuery(chart, days)
                 query.load_table()
                 tables.append(
-                    (query.table_title, len(query.table), query.table))
+                    (query.table_title, len(query.result), query.table))
             context['tables'] = tables
 
     else:
@@ -272,8 +226,51 @@ def account_detail(request):
 
     return HttpResponse(page.respond(), content_type="text/html")
 
+import json  # TODO: remove
+
 def account_search(request):
-    return index(request)
+
+    context = {}
+
+    if 'send' in request.GET:
+        form = AccountLogSearchForm(request.GET)
+        if form.is_valid():
+            data = form.cleaned_data
+            timestamp = data.get('timestamp')
+            query = AcctSearchQuery(
+                data.get('query')[0],
+                data.get('query')[1],
+                data.get('port_type'),
+                data.get('timemode'),
+                timestamp[0] if timestamp else '',
+                timestamp[1] if timestamp else '',
+                data.get('days', ''),
+                data.get('userdns', ''),
+                data.get('nasdns', ''),
+                'acctstarttime',
+                'DESC'
+            )
+            query.load_table()
+            context['table'] = query.table
+
+        # TODO: This clause is for debug only
+        else:
+            return HttpResponse(
+                '<p>{}</p><br>{}'.format(
+                    json.dumps(request.GET),
+                    json.dumps(form._get_errors())))
+
+    else:
+        form = AccountLogSearchForm()
+
+    context.update({
+        'title': 'NAV - Radius',
+        'navpath': [('Home', '/'), ('Radius', None)],
+        'form': form,
+    })
+
+    return render_to_response('radius/account_log.html', context,
+                              context_instance=RequestContext(request))
 
 #
 # General classes
