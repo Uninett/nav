@@ -2,8 +2,7 @@
 
 {% block base_header_additional_head %}
     <link rel="stylesheet" href="/style/report.css" type="text/css" />
-    <script type="text/javascript" src="/js/jquery.js"></script>
-    <script type="text/javascript" src="/js/report.js"></script>
+    <script>require(["src/report"]);</script>
 {% endblock base_header_additional_head %}
 
 {% block base_content %}
