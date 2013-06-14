@@ -15,6 +15,8 @@
 #
 """Module comment"""
 
+from __future__ import absolute_import
+
 import logging
 import re
 import nav.graphite as graphite
@@ -22,6 +24,7 @@ from nav.navrrd2whisper import convert_to_whisper
 from os.path import join
 from nav.models.manage import Interface
 from nav.models.rrd import RrdFile
+from django.db.models import Q
 
 _logger = logging.getLogger(__name__)
 
@@ -36,8 +39,7 @@ class Migrator(object):
         """Create a filesystem path from a whisper metric"""
         return join(self.basepath, *metric.split('.'))
 
-    @classmethod
-    def migrate(cls):
+    def migrate(self):
         """Get data from rrd-file and create one file for each datasource"""
         return NotImplemented
 
@@ -71,5 +73,62 @@ class InterfaceMigrator(Migrator):
                 _logger.error("Interface for %s does not exist", rrdfile)
             else:
                 metrics = self.find_metrics(rrdfile, interface)
-                convert_to_whisper(str(join(rrdfile.path, rrdfile.filename)),
-                                   metrics)
+                convert_to_whisper(rrdfile, metrics)
+
+
+class SystemMigrator(Migrator):
+    """Migrator for the system statistics"""
+
+    cpus = ['cpu1min', 'cpu5min', 'hpcpu']
+    memories = ['mem5minFree', 'mem5minUsed', 'hpmem5minUsed', 'hpmem5minFree']
+    bandwidths = ['c1900Bandwidth', 'c1900BandwidthMax', 'c2900Bandwidth',
+                  'c5000Bandwidth', 'c5000BandwidthMax']
+
+    def find_metrics(self, rrdfile):
+        """Find metrics for system datasources"""
+        mapping = {}
+        sysname = rrdfile.netbox.sysname
+        for datasource in rrdfile.rrddatasource_set.all():
+            descr = datasource.description
+            if descr in self.cpus:
+                metric = graphite.metric_path_for_cpu_load(
+                    sysname, 'cpu',self.get_interval(descr))
+            elif descr in self.memories:
+                metric = graphite.metric_prefix_for_memory(sysname, descr)
+            elif descr in self.bandwidths:
+                if descr.endswith(('Max', 'max')):
+                    if descr.startswith('c5000'):
+                        metric = graphite.metric_path_for_bandwith_peak(
+                            sysname, True)
+                    else:
+                        metric = graphite.metric_path_for_bandwith_peak(
+                            sysname, False)
+                else:
+                    if descr.startswith('c5000'):
+                        metric = graphite.metric_path_for_bandwith(
+                            sysname, True)
+                    else:
+                        metric = graphite.metric_path_for_bandwith(
+                            sysname, False)
+            elif descr == 'sysUpTime':
+                metric = graphite.metric_path_for_sysuptime(sysname)
+            else:
+                _logger.info('Could not find metric for %s' % descr)
+                continue
+
+            mapping[datasource.name] = join(
+                self.basepath, self.create_path_from_metric(metric))
+
+        return mapping
+
+    def get_interval(self, descr):
+        """Finds the interval in a datasource description"""
+        matchobject = re.search(r'\d+', descr)
+        if matchobject:
+            return matchobject.group()
+
+    def migrate(self):
+        rrdfiles = RrdFile.objects.filter(Q(path__endswith='routers') |
+                                          Q(path__endswith='switches'))
+        for rrdfile in rrdfiles:
+            convert_to_whisper(rrdfile, self.find_metrics(rrdfile))

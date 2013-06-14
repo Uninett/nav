@@ -20,17 +20,24 @@ Datasource = namedtuple('Datasource', 'name type')
 _logger = logging.getLogger(__name__)
 
 
-def convert_to_whisper(rrd_file, metrics):
+def convert_to_whisper(rrdfile, metrics):
     """Convert a rrd-file to whisper"""
 
-    rrd_info = rrdtool.info(rrd_file)
+    rrd_file = str(join(rrdfile.path, rrdfile.filename))
+    try:
+        rrd_info = rrdtool.info(rrd_file)
+    except rrdtool.error, error:
+        _logger.error(error)
+    else:
+        convert(rrd_file, rrd_info, metrics)
+
+
+def convert(rrd_file, rrd_info, metrics):
     seconds_per_point = rrd_info['step']
     last_update = rrd_info['last_update']
-
     rras = get_rras(rrd_info)
     retentions = calculate_retentions(rras, seconds_per_point)
     periods = calculate_time_periods(rras, seconds_per_point, last_update)
-
     for datasource in get_datasources(rrd_info):
         whisper_file = create_whisper_path(metrics[datasource.name])
         try:
