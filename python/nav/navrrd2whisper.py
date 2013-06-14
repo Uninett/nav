@@ -83,11 +83,11 @@ def calculate_time_periods(rras, seconds_per_point, last_update):
 
 def calculate_retentions(rras, seconds_per_point):
     """Creates retentions from the archive metadata"""
-    retentions = []
+    retentions = {}
     for rra in rras:
         precision = seconds_per_point * rra.pdp_per_row
-        retentions.append((precision, rra.rows))
-    return retentions
+        retentions[precision] = rra.rows
+    return retentions.items()
 
 
 def get_datasources(rrd_info):
