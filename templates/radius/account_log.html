@@ -40,6 +40,7 @@
           <td rowspan="2">{{ form.dns_lookup }}</td>
         </tr>
       </table>
+      <input type="hidden" id="timemode" value="{{ form.timemode.data }}">
       <input type="submit" name="send" value="Search">
       <input type="reset" value="Clear">
     </form>
