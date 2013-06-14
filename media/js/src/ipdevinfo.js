@@ -2,6 +2,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
 ], function (TableUtil, TabNavigation, NeighborMap) {
 
     var mainTabsSelector = '#ipdevinfotabs';
+    var metricTabsSelector = "#metrictabs"
     var moduleTabsSelector = '#moduletabs';
 
     $(document).ready(function () {
@@ -12,6 +13,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
 
         if ($(mainTabsSelector).length !== 0) {
             addModuleTabs();
+            addMetricTabs()
             addMainTabs();
         }
 
@@ -39,6 +41,15 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         markErrorTabs(tabs);
         tabs.show();
         TabNavigation.add(mainTabsSelector);
+    }
+
+    function addMetricTabs() {
+        var tabs = $(metricTabsSelector).tabs({
+            cache: true,
+            spinner: '<img src="/images/main/process-working.gif">'
+        });
+        tabs.show();
+        TabNavigation.add(metricTabsSelector);
     }
 
     /*

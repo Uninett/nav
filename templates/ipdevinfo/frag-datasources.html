@@ -1,37 +1,52 @@
-<div id="datasources">
+<div id="metrics">
     {% if netbox %}
-        <table class="listtable">
+        {% regroup netbox.get_system_metrics by group as metric_groups %}
 
-            <caption>Datasources</caption>
+            <div id="metrictabs">
 
-            <thead>
-            <tr>
-                <th>Data source</th>
-                <th>Threshold</th>
-            <tr>
-            </thead>
+                <ul>
+                    {% for group in metric_groups %}
+                        <li><a href="#metric{{ group.grouper }}">{{ group.grouper|capfirst }}</a></li>
+                    {% endfor %}
+                </ul>
 
-            <tbody>
-            {% for ds in netbox.get_rrd_data_sources %}
-                <tr>
-                    <td>
-                        <a href="{{ ds.get_absolute_url }}">
-                            {{ ds.description }}
-                        </a>
-                    </td>
-                    <td>
-                        <a href="{% url threshold-netbox netbox.id %}">
-                            {% if ds.threshold %}
-                                {{ ds.threshold }}
-                            {% else %}
-                                not configured
-                            {% endif %}
-                        </a>
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
+                {% for group in metric_groups %}
+                    <div id="metric{{ group.grouper }}">
+                        <table class="listtable">
 
-        </table>
+                            <caption>{{ group.grouper|capfirst }}</caption>
+
+                            <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Threshold</th>
+                            <tr>
+                            </thead>
+
+                            <tbody>
+                            {% for metric in group.list %}
+                                <tr>
+                                    <td>
+                                        {{ metric.suffix }}
+                                    </td>
+                                    <td>
+                                        <a href="{% url threshold-netbox netbox.id %}">
+                                            {% if metric.threshold %}
+                                                {{ metric.threshold }}
+                                            {% else %}
+                                                not configured
+                                            {% endif %}
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                {% endfor %}
+
+            </div>
     {% endif %}
 </div>
