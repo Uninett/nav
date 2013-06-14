@@ -35,10 +35,6 @@ class Migrator(object):
     def __init__(self, basepath):
         self.basepath = basepath
 
-    def find_metrics(self, rrdfile):
-        """Find metrics for the datasources in the rrdfile"""
-        raise NotImplementedError
-
     def create_path_from_metric(self, metric):
         """Create a filesystem path from a whisper metric"""
         return join(self.basepath, *metric.split('.'))
@@ -96,7 +92,7 @@ class SystemMigrator(Migrator):
             descr = datasource.description
             if descr in self.cpus:
                 metric = graphite.metric_path_for_cpu_load(
-                    sysname, 'cpu',self.get_interval(descr))
+                    sysname, 'cpu', self.get_interval(descr))
             elif descr in self.memories:
                 metric = graphite.metric_prefix_for_memory(sysname, descr)
             elif descr in self.bandwidths:
@@ -138,16 +134,25 @@ class SystemMigrator(Migrator):
 
 
 class PpingMigrator(Migrator):
+    """Migrator for pping statistics"""
 
     def find_metrics(self, rrdfile):
+        """Find metric mapping for pping datasources"""
         mapping = {}
         sysname = rrdfile.netbox.sysname
         for datasource in rrdfile.rrddatasource_set.all():
-            mapping[datasource.name] = graphite.metric_prefix_for_system(sysname)
+            if datasource.name == 'RESPONSETIME':
+                metric = graphite.metric_path_for_roundtrip_time(sysname)
+            elif datasource.name == 'STATUS':
+                metric = graphite.metric_path_for_packet_loss(sysname)
+            else:
+                _logger.error('Could not find metric for %s', datasource.name)
+                continue
+            mapping[datasource.name] = self.create_path_from_metric(metric)
 
+        return mapping
 
     def migrate(self):
         rrdfiles = RrdFile.objects.filter(subsystem='pping')
         for rrdfile in rrdfiles:
             convert_to_whisper(rrdfile, self.find_metrics(rrdfile))
-

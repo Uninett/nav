@@ -25,7 +25,8 @@ from datetime import datetime
 import logging
 import sys
 
-from nav.graphite_migrate import InterfaceMigrator, SystemMigrator
+from nav.graphite_migrate import (InterfaceMigrator, SystemMigrator,
+                                  PpingMigrator)
 from nav.logs import init_file_logging
 from nav.path import localstatedir
 
@@ -43,6 +44,7 @@ def main():
     _logger.info('Starting migrate at %s', start_time)
     # InterfaceMigrator(args[0]).migrate()
     # SystemMigrator(args[0]).migrate()
+    PpingMigrator(args[0]).migrate()
 
     _logger.info('Migration done in %s', datetime.now() - start_time)
 
