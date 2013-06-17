@@ -26,7 +26,8 @@ import logging
 import sys
 
 from nav.graphite_migrate import (InterfaceMigrator, SystemMigrator,
-                                  PpingMigrator, SensorMigrator)
+                                  PpingMigrator, SensorMigrator,
+                                  ActiveIpMigrator)
 from nav.logs import init_file_logging
 from nav.path import localstatedir
 
@@ -42,10 +43,11 @@ def main():
 
     start_time = datetime.now()
     _logger.info('Starting migrate at %s', start_time)
-    InterfaceMigrator(args[0]).migrate()
-    SystemMigrator(args[0]).migrate()
-    PpingMigrator(args[0]).migrate()
-    SensorMigrator(args[0]).migrate()
+    # InterfaceMigrator(args[0]).migrate()
+    # SystemMigrator(args[0]).migrate()
+    # PpingMigrator(args[0]).migrate()
+    # SensorMigrator(args[0]).migrate()
+    ActiveIpMigrator(args[0]).migrate()
 
     _logger.info('Migration done in %s', datetime.now() - start_time)
 

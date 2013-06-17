@@ -22,7 +22,7 @@ import re
 import nav.graphite as graphite
 from nav.navrrd2whisper import convert_to_whisper
 from os.path import join
-from nav.models.manage import Interface, Sensor
+from nav.models.manage import Interface, Sensor, Prefix, Netbox
 from nav.models.rrd import RrdFile
 from django.db.models import Q
 
@@ -52,7 +52,11 @@ class Migrator(object):
     def find_metrics(self, rrdfile):
         """Find metrics for datasources"""
         mapping = {}
-        sysname = rrdfile.netbox.sysname
+        try:
+            sysname = rrdfile.netbox.sysname
+        except Netbox.DoesNotExist:
+            sysname = None
+
         info_object = None
 
         if self.infoclass:
@@ -69,7 +73,7 @@ class Migrator(object):
 
         return mapping
 
-    def find_metric(self, datasource, sysname, info_object=None):
+    def find_metric(self, datasource, sysname=None, info_object=None):
         """Returns the metric for this datasource
 
         :param datasource: Datasource with metainfo
@@ -88,7 +92,7 @@ class InterfaceMigrator(Migrator):
         self.rrdfiles = RrdFile.objects.filter(key='interface')
         self.infoclass = Interface
 
-    def find_metric(self, datasource, sysname, info_object=None):
+    def find_metric(self, datasource, sysname=None, info_object=None):
         hc_octets = re.compile(r'ifhc(in|out)octets', re.IGNORECASE)
         descr = datasource.description
         if hc_octets.match(descr):
@@ -110,7 +114,7 @@ class SystemMigrator(Migrator):
         self.rrdfiles = RrdFile.objects.filter(
             Q(path__endswith='routers') | Q(path__endswith='switches'))
 
-    def find_metric(self, datasource, sysname, info_object=None):
+    def find_metric(self, datasource, sysname=None, info_object=None):
         descr = datasource.description
         if descr in self.cpus:
             metric = graphite.metric_path_for_cpu_load(
@@ -154,7 +158,7 @@ class PpingMigrator(Migrator):
         super(PpingMigrator, self).__init__(*args)
         self.rrdfiles = RrdFile.objects.filter(subsystem='pping')
 
-    def find_metric(self, datasource, sysname, info_object=None):
+    def find_metric(self, datasource, sysname=None, info_object=None):
         if datasource.name == 'RESPONSETIME':
             return graphite.metric_path_for_roundtrip_time(sysname)
         elif datasource.name == 'STATUS':
@@ -171,5 +175,17 @@ class SensorMigrator(Migrator):
         self.rrdfiles = RrdFile.objects.filter(key='sensor')
         self.infoclass = Sensor
 
-    def find_metric(self, datasource, sysname, info_object=None):
+    def find_metric(self, datasource, sysname=None, info_object=None):
         return graphite.metric_path_for_sensor(sysname, info_object.name)
+
+
+class ActiveIpMigrator(Migrator):
+    """Migrator for active ip statistics"""
+
+    def __init__(self, *args):
+        super(ActiveIpMigrator, self).__init__(*args)
+        self.rrdfiles = RrdFile.objects.filter(category='activeip')
+        self.infoclass = Prefix
+
+    def find_metric(self, datasource, sysname=None, info_object=None):
+        return graphite.metric_path_for_prefix(info_object, datasource.name)

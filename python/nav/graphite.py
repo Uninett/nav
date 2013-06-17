@@ -351,3 +351,16 @@ def metric_prefix_for_device(sysname):
     if hasattr(sysname, 'sysname'):
         sysname = sysname.sysname
     return tmpl.format(sysname=escape_metric_name(sysname))
+
+
+def metric_prefix_for_prefix(netaddr):
+    tmpl = "nav.prefixes.{netaddr}"
+    if hasattr(netaddr, 'net_address'):
+        netaddr = netaddr.net_address
+    return tmpl.format(netaddr=escape_metric_name(netaddr))
+
+
+def metric_path_for_prefix(netaddr, metric_name):
+    tmpl = "{prefix}.{metric_name}"
+    return tmpl.format(prefix=metric_prefix_for_prefix(netaddr),
+                       metric_name=escape_metric_name(metric_name))
