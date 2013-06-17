@@ -2,14 +2,12 @@
 """Migrate rrd-files to whisper-files"""
 
 import logging
-import sys
 import os
 import rrdtool
 import whisper
 from collections import namedtuple
 from operator import attrgetter
-from optparse import OptionParser
-from os.path import join, basename, exists, dirname
+from os.path import join, exists, dirname
 
 
 # pylint:disable=C0103
@@ -33,6 +31,7 @@ def convert_to_whisper(rrdfile, metrics):
 
 
 def convert(rrd_file, rrd_info, metrics):
+    """Does the convertion from rrd to whisper"""
     seconds_per_point = rrd_info['step']
     last_update = rrd_info['last_update']
     rras = get_rras(rrd_info)
