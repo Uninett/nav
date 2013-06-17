@@ -70,6 +70,13 @@ class Migrator(object):
         return mapping
 
     def find_metric(self, datasource, sysname, info_object=None):
+        """Returns the metric for this datasource
+
+        :param datasource: Datasource with metainfo
+        :param sysname: Sysname for the netbox
+        :param info_object: Optional object with additional metainfo
+
+        """
         raise NotImplementedError
 
 
