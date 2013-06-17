@@ -22,7 +22,7 @@ import re
 import nav.graphite as graphite
 from nav.navrrd2whisper import convert_to_whisper
 from os.path import join
-from nav.models.manage import Interface
+from nav.models.manage import Interface, Sensor
 from nav.models.rrd import RrdFile
 from django.db.models import Q
 
@@ -35,14 +35,11 @@ class Migrator(object):
     def __init__(self, basepath):
         self.basepath = basepath
         self.rrdfiles = None
+        self.infoclass = None
 
     def create_path_from_metric(self, metric):
         """Create a filesystem path from a whisper metric"""
         return join(self.basepath, *metric.split('.'))
-
-    def find_metrics(self, rrdfile):
-        """Find the metrics for this rrd file"""
-        raise NotImplementedError
 
     def migrate(self):
         """Get data from rrd-file and create one file for each datasource"""
@@ -52,6 +49,29 @@ class Migrator(object):
             if metrics:
                 convert_to_whisper(rrdfile, metrics)
 
+    def find_metrics(self, rrdfile):
+        """Find metrics for datasources"""
+        mapping = {}
+        sysname = rrdfile.netbox.sysname
+        info_object = None
+
+        if self.infoclass:
+            try:
+                info_object = self.infoclass.objects.get(pk=rrdfile.value)
+            except self.infoclass.DoesNotExist, error:
+                _logger.error(error)
+                return
+
+        for datasource in rrdfile.rrddatasource_set.all():
+            metric = self.find_metric(datasource, sysname, info_object)
+            if metric:
+                mapping[datasource.name] = self.create_path_from_metric(metric)
+
+        return mapping
+
+    def find_metric(self, datasource, sysname, info_object=None):
+        raise NotImplementedError
+
 
 class InterfaceMigrator(Migrator):
     """Migrator for the interface rrd files"""
@@ -59,26 +79,15 @@ class InterfaceMigrator(Migrator):
     def __init__(self, *args):
         super(InterfaceMigrator, self).__init__(*args)
         self.rrdfiles = RrdFile.objects.filter(key='interface')
+        self.infoclass = Interface
 
-    def find_metrics(self, rrdfile):
-        try:
-            interface = Interface.objects.get(pk=rrdfile.value)
-        except Interface.DoesNotExist:
-            _logger.error("Interface for %s does not exist", rrdfile)
-            return
-
+    def find_metric(self, datasource, sysname, info_object=None):
         hc_octets = re.compile(r'ifhc(in|out)octets', re.IGNORECASE)
-        metric_mapping = {}
-        for datasource in rrdfile.rrddatasource_set.all():
-            descr = datasource.description
-            if hc_octets.match(descr):
-                descr = re.sub(r'(?i)hc', '', descr)
-
-            metric = graphite.metric_path_for_interface(
-                interface.netbox.sysname, interface.ifname, descr)
-            metric_mapping[datasource.name] = \
-                self.create_path_from_metric(metric)
-        return metric_mapping
+        descr = datasource.description
+        if hc_octets.match(descr):
+            descr = re.sub(r'(?i)hc', '', descr)
+        return graphite.metric_path_for_interface(
+            info_object.netbox.sysname, info_object.ifname, descr)
 
 
 class SystemMigrator(Migrator):
@@ -94,41 +103,35 @@ class SystemMigrator(Migrator):
         self.rrdfiles = RrdFile.objects.filter(
             Q(path__endswith='routers') | Q(path__endswith='switches'))
 
-    def find_metrics(self, rrdfile):
-        """Find metrics for system datasources"""
-        mapping = {}
-        sysname = rrdfile.netbox.sysname
-        for datasource in rrdfile.rrddatasource_set.all():
-            descr = datasource.description
-            if descr in self.cpus:
-                metric = graphite.metric_path_for_cpu_load(
-                    sysname, 'cpu', self.get_interval(descr))
-            elif descr in self.memories:
-                metric = graphite.metric_prefix_for_memory(sysname, descr)
-            elif descr in self.bandwidths:
-                if descr.endswith(('Max', 'max')):
-                    if descr.startswith('c5000'):
-                        metric = graphite.metric_path_for_bandwith_peak(
-                            sysname, True)
-                    else:
-                        metric = graphite.metric_path_for_bandwith_peak(
-                            sysname, False)
+    def find_metric(self, datasource, sysname, info_object=None):
+        descr = datasource.description
+        if descr in self.cpus:
+            metric = graphite.metric_path_for_cpu_load(
+                sysname, 'cpu', self.get_interval(descr))
+        elif descr in self.memories:
+            metric = graphite.metric_prefix_for_memory(sysname, descr)
+        elif descr in self.bandwidths:
+            if descr.endswith(('Max', 'max')):
+                if descr.startswith('c5000'):
+                    metric = graphite.metric_path_for_bandwith_peak(
+                        sysname, True)
                 else:
-                    if descr.startswith('c5000'):
-                        metric = graphite.metric_path_for_bandwith(
-                            sysname, True)
-                    else:
-                        metric = graphite.metric_path_for_bandwith(
-                            sysname, False)
-            elif descr == 'sysUpTime':
-                metric = graphite.metric_path_for_sysuptime(sysname)
+                    metric = graphite.metric_path_for_bandwith_peak(
+                        sysname, False)
             else:
-                _logger.info('Could not find metric for %s' % descr)
-                continue
+                if descr.startswith('c5000'):
+                    metric = graphite.metric_path_for_bandwith(
+                        sysname, True)
+                else:
+                    metric = graphite.metric_path_for_bandwith(
+                        sysname, False)
+        elif descr == 'sysUpTime':
+            metric = graphite.metric_path_for_sysuptime(sysname)
+        else:
+            _logger.info('Could not find metric for %s' % descr)
+            metric = None
 
-            mapping[datasource.name] = self.create_path_from_metric(metric)
-
-        return mapping
+        return metric
 
     def get_interval(self, descr):
         """Finds the interval in a datasource description"""
@@ -144,21 +147,13 @@ class PpingMigrator(Migrator):
         super(PpingMigrator, self).__init__(*args)
         self.rrdfiles = RrdFile.objects.filter(subsystem='pping')
 
-    def find_metrics(self, rrdfile):
-        """Find metric mapping for pping datasources"""
-        mapping = {}
-        sysname = rrdfile.netbox.sysname
-        for datasource in rrdfile.rrddatasource_set.all():
-            if datasource.name == 'RESPONSETIME':
-                metric = graphite.metric_path_for_roundtrip_time(sysname)
-            elif datasource.name == 'STATUS':
-                metric = graphite.metric_path_for_packet_loss(sysname)
-            else:
-                _logger.error('Could not find metric for %s', datasource.name)
-                continue
-            mapping[datasource.name] = self.create_path_from_metric(metric)
-
-        return mapping
+    def find_metric(self, datasource, sysname, info_object=None):
+        if datasource.name == 'RESPONSETIME':
+            return graphite.metric_path_for_roundtrip_time(sysname)
+        elif datasource.name == 'STATUS':
+            return graphite.metric_path_for_packet_loss(sysname)
+        else:
+            _logger.error('Could not find metric for %s', datasource.name)
 
 
 class SensorMigrator(Migrator):
@@ -167,6 +162,7 @@ class SensorMigrator(Migrator):
     def __init__(self, *args):
         super(SensorMigrator, self).__init__(*args)
         self.rrdfiles = RrdFile.objects.filter(key='sensor')
+        self.infoclass = Sensor
 
-    def find_metrics(self, rrdfile):
-        return super(SensorMigrator, self).find_metrics(rrdfile)
+    def find_metric(self, datasource, sysname, info_object=None):
+        return graphite.metric_path_for_sensor(sysname, info_object.name)
