@@ -184,18 +184,17 @@
     <tr>
         <th></th>
         <td>
-            {% with port.get_rrd_data_sources as dss %}
-                {% if dss|length %}
+            {% with port.get_port_metrics|dictsort:"suffix" as metrics %}
+                {% if metrics|length %}
                     <table>
                     <tr>
-                        <th>Data source</th>
+                        <th>Metric</th>
                         <th>Threshold</th>
                     </tr>
-                    {% for ds in dss %}
+                    {% for metric in metrics %}
                     <tr>
-                        <td><a href="{{ ds.get_absolute_url }}">
-                            {{ ds.description }}</a></td>
-                        <td><a href="{% url threshold-interface port.id %}">{% if ds.threshold %}{{ ds.threshold }}{% else %}not configured{% endif %}</a></td>
+                        <td>{{ metric.suffix }}</td>
+                        <td><a href="{% url threshold-interface port.id %}">{% if metric.threshold %}{{ metric.threshold }}{% else %}not configured{% endif %}</a></td>
                     </tr>
                     {% endfor %}
                     </table>

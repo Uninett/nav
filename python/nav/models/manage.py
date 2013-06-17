@@ -1127,6 +1127,22 @@ class Interface(models.Model):
                 rrd_file__key='interface', rrd_file__value=str(self.id)
             ).order_by('description')
 
+    def get_port_metrics(self):
+        """Gets a list of available Graphite metrics related to this Interface.
+
+        :returns: A list of dicts describing the metrics, e.g.:
+                  {id:"nav.devices.some-gw.ports.gi1_1.ifInOctets",
+                   suffix:"ifInOctets"}
+
+        """
+        base = graphite.metric_prefix_for_interface(self.netbox, self.ifname)
+
+        nodes = graphite.get_all_leaves_below(base)
+        result = [dict(id=n,
+                       suffix=n.replace(base + '.', ''))
+                  for n in nodes]
+        return result
+
     def get_link_display(self):
         """Returns a display value for this interface's link status."""
         if self.ifoperstatus == self.OPER_UP:

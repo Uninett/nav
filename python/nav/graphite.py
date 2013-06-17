@@ -340,10 +340,15 @@ def metric_path_for_sensor(sysname, sensor):
 
 
 def metric_path_for_interface(sysname, ifname, counter):
-    tmpl = "{ports}.{ifname}.{counter}"
-    return tmpl.format(ports=metric_prefix_for_ports(sysname),
-                       ifname=escape_metric_name(ifname),
+    tmpl = "{interface}.{counter}"
+    return tmpl.format(interface=metric_prefix_for_interface(sysname, ifname),
                        counter=escape_metric_name(counter))
+
+
+def metric_prefix_for_interface(sysname, ifname):
+    tmpl = "{ports}.{ifname}"
+    return tmpl.format(ports=metric_prefix_for_ports(sysname),
+                       ifname=escape_metric_name(ifname))
 
 
 def metric_path_for_bandwith(sysname, is_percent):
