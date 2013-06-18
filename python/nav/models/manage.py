@@ -276,6 +276,29 @@ class Netbox(models.Model):
         return self.powersupplyorfan_set.filter(
             physical_class='fan').order_by('name')
 
+    def get_system_metrics(self):
+        """Gets a list of available Graphite metrics related to this Netbox,
+        except for ports, which are seen as separate.
+
+        :returns: A list of dicts describing the metrics, e.g.:
+                  {id:"nav.devices.some-gw.cpu.cpu1.loadavg1min",
+                   group="cpu",
+                   suffix="cpu1.loadavg1min"}
+
+        """
+        exclude = graphite.metric_prefix_for_ports(self.sysname)
+        base = graphite.metric_prefix_for_device(self.sysname)
+
+        nodes = graphite.get_all_leaves_below(base, [exclude])
+        result = []
+        for node in nodes:
+            suffix = node.replace(base + '.', '')
+            elements = suffix.split('.')
+            group = elements[0]
+            suffix = '.'.join(elements[1:])
+            result.append(dict(id=node, group=group, suffix=suffix))
+
+        return result
 
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place
@@ -1103,6 +1126,22 @@ class Interface(models.Model):
         return RrdDataSource.objects.filter(
                 rrd_file__key='interface', rrd_file__value=str(self.id)
             ).order_by('description')
+
+    def get_port_metrics(self):
+        """Gets a list of available Graphite metrics related to this Interface.
+
+        :returns: A list of dicts describing the metrics, e.g.:
+                  {id:"nav.devices.some-gw.ports.gi1_1.ifInOctets",
+                   suffix:"ifInOctets"}
+
+        """
+        base = graphite.metric_prefix_for_interface(self.netbox, self.ifname)
+
+        nodes = graphite.get_all_leaves_below(base)
+        result = [dict(id=n,
+                       suffix=n.replace(base + '.', ''))
+                  for n in nodes]
+        return result
 
     def get_link_display(self):
         """Returns a display value for this interface's link status."""

@@ -26,6 +26,7 @@ import urllib2
 import simplejson
 from urlparse import urljoin
 from urllib import urlencode
+import itertools
 from nav.config import NAVConfigParser
 
 ###################
@@ -149,6 +150,56 @@ def escape_metric_name(string):
 ##############################
 # metrics search & discovery #
 ##############################
+
+def get_all_leaves_below(top, ignored=None):
+    """Gets a list of all leaf nodes in the metric hierarchy below top"""
+    walker = nodewalk(top, ignored)
+    paths = (leaves for (name, nonleaves, leaves) in walker)
+    return list(itertools.chain(*paths))
+
+
+def nodewalk(top, ignored=None):
+    """Walks through a graphite metric hierarchy.
+
+    Basically works like os.walk()
+
+    :param top: Path to the node to walk from.
+    :param ignored: A list of node IDs to completely ignore.
+    :returns: A generator that generates three-tuples of
+              (name, nonleaves, leaves)
+
+    """
+    ignored = ignored or []
+    nodes = raw_metric_query(top + '.*')
+    nonleaves, leaves = [], []
+    for node in nodes:
+        if node['id'] in ignored:
+            continue
+        if node.get('leaf', False):
+            leaves.append(node['id'])
+        else:
+            nonleaves.append(node['id'])
+
+    yield top, nonleaves, leaves
+
+    for name in nonleaves:
+        for x in nodewalk(name):
+            yield x
+
+
+def get_metric_nonleaf_children(path):
+    """Returns a list of available graphite non-leaf nodes just below path.
+
+    :param path: A path to a Graphite metric.
+    :returns: A list of metric paths.
+
+    """
+    query = path + ".*"
+    data = raw_metric_query(query)
+    result = [node['id'] for node in data
+              if not node.get('leaf', False)]
+    return result
+
 
 def get_metric_leaf_children(path):
     """Returns a list of available graphite leaf nodes just below path.
@@ -289,10 +340,15 @@ def metric_path_for_sensor(sysname, sensor):
 
 
 def metric_path_for_interface(sysname, ifname, counter):
-    tmpl = "{ports}.{ifname}.{counter}"
-    return tmpl.format(ports=metric_prefix_for_ports(sysname),
-                       ifname=escape_metric_name(ifname),
+    tmpl = "{interface}.{counter}"
+    return tmpl.format(interface=metric_prefix_for_interface(sysname, ifname),
                        counter=escape_metric_name(counter))
+
+
+def metric_prefix_for_interface(sysname, ifname):
+    tmpl = "{ports}.{ifname}"
+    return tmpl.format(ports=metric_prefix_for_ports(sysname),
+                       ifname=escape_metric_name(ifname))
 
 
 def metric_path_for_bandwith(sysname, is_percent):
