@@ -20,11 +20,14 @@ from nav.config import readConfig
 from nav.db import get_connection_parameters
 import nav.buildconf
 import nav.path
+import sys
 
 try:
     nav_config = readConfig('nav.conf')
 except IOError:
     nav_config = {}
+
+sys.path.append(nav_config.get("local_python", "{0}/python".format(nav.buildconf.sysconfdir)))
 
 DEBUG = nav_config.get('DJANGO_DEBUG', False)
 TEMPLATE_DEBUG = DEBUG
@@ -99,6 +102,6 @@ CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'
 # Hack for hackers to use features like debug_toolbar etc.
 if DEBUG:
     try:
-        from settings_dev import *
+        from settings_local import *
     except ImportError:
         pass
