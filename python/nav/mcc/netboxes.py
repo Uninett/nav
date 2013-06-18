@@ -10,7 +10,7 @@ from nav.mcc import utils, dbutils
 
 CATEGORIES = {'routers': ['GW', 'GSW'],
               'switches': ['SW']}
-LOGGER = logging.getLogger('mcc.netboxes')
+LOGGER = logging.getLogger(__name__)
 
 
 def make_config(config):
@@ -32,6 +32,7 @@ def make_config(config):
         create_subtree_config(configroot, dirname, views)
 
     return True
+
 
 def create_subtree_config(configroot, dirname, views):
     """ Create config for this directory """
@@ -103,11 +104,11 @@ def create_target_config(netbox):
     else:
         shortdesc = typename
 
-    LOGGER.info("Writing target %s" % netbox.sysname)
+    LOGGER.info("Creating config for %s" % netbox.sysname)
     config = [
         'target "%s"' % str(netbox.sysname),
         '\tdisplay-name\t= "%s"' % displayname,
-        '\tsnmp-host\t= %s' % str(netbox.ip),
+        '\tsnmp-host\t= %s' % utils.format_ip_address(netbox.ip),
         '\tsnmp-community\t= %s' % str(netbox.read_only),
         '\ttarget-type\t= %s' % str(netbox.sysname),
         '\tshort-desc\t= "%s"' % shortdesc,
@@ -128,5 +129,3 @@ def create_container(netbox, targetoids):
         counter = counter + 1
 
     return container
-
-

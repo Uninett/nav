@@ -27,6 +27,6 @@ urlpatterns = patterns('',
         name='status-preferences'),
     url('^preferences/add-section/$', add_section,
         name='status-preferences-addsection'),
-    url('^preferences/(?P<section_id>\d+)/$', edit_preferences,
+    url(r'^preferences/(?P<section_id>\d+)/$', edit_preferences,
         name='status-preferences-edit'),
 )

@@ -56,7 +56,7 @@ class controller:
         signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
         self.conf=config.serviceconf()
-        debug.setDebugLevel(self.conf.get('debuglevel',4))
+        debug.setDebugLevel(int(self.conf.get('debuglevel', 4)))
         self._deamon=kwargs.get("fork", 1)
         self._isrunning=1
         self._checkers=[]

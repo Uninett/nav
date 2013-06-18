@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003,2004 Norwegian University of Science and Technology
 #
@@ -14,52 +13,61 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""DNS service checker"""
 
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.statemon import DNS
+
+
 class DnsChecker(AbstractChecker):
-    """
-    Valid argument(s): request
-    """
+    """Domain Name Service"""
+    TYPENAME = "dns"
+    IPV6_SUPPORT = True
+    DESCRIPTION = "Domain Name Service"
+    ARGS = (
+        ('request', ''),
+    )
+    OPTARGS = (
+        ('port', ''),
+        ('timeout', ''),
+    )
+
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "dns", service, port=42, **kwargs)
-        # Please note that this handler doesn't obey the port directive
+        """Please note that this handler doesn't obey the port directive"""
+        AbstractChecker.__init__(self, service, port=42, **kwargs)
+
     def execute(self):
-        ip, port = self.getAddress()
-        d = DNS.DnsRequest(server=ip, timeout=self.getTimeout())
+        ip, _port = self.getAddress()
+        dns = DNS.DnsRequest(server=ip, timeout=self.getTimeout())
         args = self.getArgs()
-        #print "Args: ", args
-        request = args.get("request","").strip()
+
+        request = args.get("request", "").strip()
         timeout = 0
         if not request:
-            #print "valid debug message :)"
             return Event.UP, "Argument request must be supplied"
         else:
-            answer  = ""
-            #print "request: %s"%request[i]
+            answer = ""
             try:
-                reply = d.req(name=request)
+                reply = dns.req(name=request)
             except DNS.Error:
                 timeout = 1
-                #print "%s timed out..." %request[i]
-                    
-            if not timeout and len(reply.answers) > 0 :
+
+            if not timeout and len(reply.answers) > 0:
                 answer = 1
-                #print "%s -> %s"%(request[i], reply.answers[0]["data"])
-            elif not timeout and len(reply.answers)==0:
+            elif not timeout and len(reply.answers) == 0:
                 answer = 0
 
-            # This breaks on windows dns servers and probably other not bind servers
-            # We just put a exception handler around it, and ignore the resulting
-            # timeout.
+            # This breaks on windows dns servers and probably other not bind
+            # servers. We just put a exception handler around it, and ignore
+            # the resulting timeout.
             try:
-                ver = d.req(name="version.bind", qclass="chaos",
-                            qtype='txt').answers
+                ver = dns.req(name="version.bind", qclass="chaos",
+                              qtype='txt').answers
                 if len(ver) > 0:
                     self.setVersion(ver[0]['data'][0])
-            except DNS.Base.DNSError, e:
-                if str(e) == 'Timeout':
+            except DNS.Base.DNSError as err:
+                if str(err) == 'Timeout':
                     pass  # Ignore timeout
                 else:
                     raise            

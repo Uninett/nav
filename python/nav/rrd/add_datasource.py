@@ -61,7 +61,7 @@ def add_datasource(rrd_file):
     # Find last datasource in file to set correct name for the new one. A bit
     # cricket-specific as we assume the ds_name is equal to ds<number>
     last_datasource = sorted(rrd_header['ds'].keys(), natsort.natcmp)[-1]
-    new_datasource = re.sub('(\d+)', add_one_to_match, last_datasource)
+    new_datasource = re.sub(r'(\d+)', add_one_to_match, last_datasource)
 
     # We have all the data we are to insert, lets parse the xml and insert new
     # data.

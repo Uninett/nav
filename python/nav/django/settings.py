@@ -16,17 +16,23 @@
 
 """Django configuration wrapper around the NAV configuration files"""
 
-from nav.config import readConfig
+from nav.config import read_flat_config, getconfig
 from nav.db import get_connection_parameters
 import nav.buildconf
 import nav.path
 import sys
 
 try:
-    nav_config = readConfig('nav.conf')
+    nav_config = read_flat_config('nav.conf')
 except IOError:
     nav_config = {}
 
+try:
+    webfront_config = getconfig('webfront/webfront.conf',
+                                configfolder=nav.path.sysconfdir)
+except IOError:
+    webfront_config = {}
+    
 sys.path.append(nav_config.get("local_python", "{0}/python".format(nav.buildconf.sysconfdir)))
 
 DEBUG = nav_config.get('DJANGO_DEBUG', False)
@@ -54,7 +60,7 @@ try:
 except IOError:
     pass
 
-INSTALLED_APPS = ('nav.django',)
+INSTALLED_APPS = ('nav.django', 'django.contrib.sessions')
 
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
@@ -67,6 +73,7 @@ TEMPLATE_DIRS = (
 # Context processors
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
     'nav.django.context_processors.debug',
     'nav.django.context_processors.account_processor',
     'nav.django.context_processors.nav_version',
@@ -75,10 +82,23 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 # Middleware
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'nav.django.auth.AuthenticationMiddleware',
+    'nav.django.auth.AuthorizationMiddleware',
+    'nav.django.legacy.LegacyCleanupMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
 )
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = int(
+    webfront_config.get('sessions', {}).get('timeout', 3600))
+
+# Message storage for the messages framework
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Email sending
 DEFAULT_FROM_EMAIL = nav_config.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 EMAIL_HOST = nav_config.get('EMAIL_HOST', 'localhost')
 EMAIL_PORT = nav_config.get('EMAIL_PORT', 25)

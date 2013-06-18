@@ -123,7 +123,7 @@ def main(args):
         'loglevel': 'INFO',
         'mailwarnlevel': 'ERROR',
         'mailserver': 'localhost',
-        'mailaddr': nav.config.readConfig('nav.conf')['ADMIN_MAIL']
+        'mailaddr': nav.config.read_flat_config('nav.conf')['ADMIN_MAIL']
     }
 
     # Read config file

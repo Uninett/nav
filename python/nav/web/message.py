@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008 UNINETT AS
+# Copyright (C) 2008, 2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,12 +18,14 @@
 A message is stored in a user's session and can be displayed to the
 user to give confirmation, warnings or other types of messages.
 
-NOTE: This works with mod_python based NAV sessions.
+This was originally written to work with NAV sessions under mod_python,
+before we supported a Django version with its on Message framework. Most
+usage of this module can be replaced with Django's Message framework instead.
+
 """
 
 from copy import copy
 
-from nav.web.state import setupSession
 
 def new_message(request, message, type):
     """Convenience method for fetching Messages object and adding a new message
@@ -37,6 +38,7 @@ def new_message(request, message, type):
     messages = Messages(request)
     messages.append({'message': message, 'type': type})
     messages.save()
+
 
 class Messages(list):
     """List object that stores messsages for the user accross page views.
@@ -55,7 +57,6 @@ class Messages(list):
     def __new__(cls, request=None):
         # We try to fetch a Messages object from this users session.
         # If it doesn't exist we make a new one.
-        setupSession(request)
         messages = request.session.get('messages', None)
 
         if not messages or not isinstance(messages, Messages):

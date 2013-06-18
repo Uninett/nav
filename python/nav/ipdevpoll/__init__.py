@@ -36,6 +36,7 @@ class Plugin(object):
 
     """
     _logger = ContextLogger()
+    RESTRICT_TO_VENDORS = []
 
     def __init__(self, netbox, agent, containers, config=None):
         self.netbox = netbox
@@ -69,7 +70,17 @@ class Plugin(object):
 
         :returns: A boolean value.
         """
-        return getattr(netbox, 'snmp_up', True) and bool(netbox.read_only)
+        basic_req = getattr(netbox, 'snmp_up', True) and bool(netbox.read_only)
+        vendor_check = cls._verify_vendor_restriction(netbox)
+        return basic_req and vendor_check
+
+    @classmethod
+    def _verify_vendor_restriction(cls, netbox):
+        if cls.RESTRICT_TO_VENDORS:
+            return (netbox.type and
+                    netbox.type.get_enterprise_id() in cls.RESTRICT_TO_VENDORS)
+        else:
+            return True
 
     @classmethod
     def on_plugin_load(cls):

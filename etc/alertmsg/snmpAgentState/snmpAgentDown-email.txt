@@ -1,0 +1,4 @@
+Subject: SNMP agent down on {{ netbox.sysname }}
+{{ netbox.sysname }} has stopped responding to SNMP requests.
+
+Verify that read-only SNMP community is configured correctly in NAV, and that no access lists are blocking SNMP.

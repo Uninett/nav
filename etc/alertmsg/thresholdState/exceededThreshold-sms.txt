@@ -1,0 +1,1 @@
+Threshold ({{ descr }}, {{ threshold }}) for box {{ netbox.sysname }} has been exceeded since {{ time }}.

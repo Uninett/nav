@@ -4,6 +4,7 @@
 
     <div class="horizontal-button-list">
         <a href="{% url seeddb-room-edit room.id %}"><span class="edit">Edit room</span></a>
+        <a href="{% url room-info-upload room.id %}"><span class="photo">Edit images</span></a>
         <a href="{% url maintenance-new-room room.id %}"><span class="maintenance">Schedule Maintenance</span></a>
         <a href="{% url devicehistory-view-room room.id %}"><span class="history">View room history</span></a>
     </div>
@@ -33,10 +34,10 @@
                 <tr>
                     <td><a href="/report/location?locationid={{ room.location.id }}">{{ room.location.description }}</a></td>
                     <td>{{ room.description }}</td>
-                    <td>{{ room.optional_1 }}</td>
-                    <td>{{ room.optional_2 }}</td>
-                    <td>{{ room.optional_3 }}</td>
-                    <td>{{ room.optional_4 }}</td>
+                    <td>{{ room.optional_1|urlize }}</td>
+                    <td>{{ room.optional_2|urlize }}</td>
+                    <td>{{ room.optional_3|urlize }}</td>
+                    <td>{{ room.optional_4|urlize }}</td>
                     <td class="position" data-roomname="{{ room.id }}">
                         {% if room.position %}{{ room.position|join:', ' }}{% endif %}
                     </td>
@@ -44,8 +45,37 @@
                 </tbody>
             </table>
 
+            {% if images|length > 0 %}
+                <div class="slider-wrapper theme-default">
+                    <div id="slider" class="nivoSlider">
+                        {% for image in images %}
+                            <a href="/uploads/images/rooms/{{ image.path }}/{{ image.name }}">
+                                <img src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}"
+                                     data-thumb="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}"
+                                     title="#{{ image.id }}" />
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% comment %} To support html captions we need to create an element for each image {% endcomment %}
+                {% for image in images %}
+                    <div id="{{ image.id }}" class="nivo-html-caption">
+                        {{ image.title|safe }}
+                    </div>
+                {% endfor %}
+
+            {% else %}
+                <span class="infobox"><a href="{% url room-info-upload room.id %}">Click here</a> to add images to this room.</span>
+            {% endif %}
+
+            <div class="float-clear"></div>
+
+
+            {% comment %}
             <div id="room_map" class="smallmap"></div>
             <div id="coordinates"></div>
+{% endcomment %}
 
         </div>
 

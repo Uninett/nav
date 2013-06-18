@@ -3,8 +3,10 @@
 {% block base_header_additional_head %}
     <link href="/style/info_room.css" type="text/css" rel="stylesheet">
     <link href="/style/datatables.css" type="text/css" rel="stylesheet">
-    <link href="/style/jqueryui/jquery-ui-1.8.21.custom.css" type="text/css" rel="stylesheet">
-    <script data-main="src/info" src="/js/libs/require.js"></script>
+    <link href="/style/nivo/nivo-slider.css" rel="stylesheet">
+    <link href="/style/nivo/default.css" rel="stylesheet">
+    <link href="/style/jqueryui/jquery-ui-1.8.21.custom.css" rel="stylesheet">
+    <script>require(["src/info_room"]);</script>
 {% endblock %}
 
 {% block base_content %}

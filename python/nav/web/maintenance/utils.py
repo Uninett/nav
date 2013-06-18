@@ -55,6 +55,9 @@ NAVPATH = [
 
 TITLE = "NAV - Maintenance"
 
+INFINITY = datetime.max
+
+
 def task_form_initial(task=None, start_time=None):
     if task:
         initial = {
@@ -74,13 +77,16 @@ def task_form_initial(task=None, start_time=None):
         }
     return initial
 
+
 def infodict_by_state(task):
-    if task.state == MaintenanceTask.STATE_SCHEDULED and task.start_time > datetime.now():
+    if (task.state == MaintenanceTask.STATE_SCHEDULED
+                and task.start_time > datetime.now()):
         state = 'planned'
         navpath = NAVPATH + [
             ('Planned tasks', reverse('maintenance-planned'))
         ]
-    elif task.state in (MaintenanceTask.STATE_PASSED, MaintenanceTask.STATE_CANCELED):
+    elif (task.state in (MaintenanceTask.STATE_PASSED,
+                         MaintenanceTask.STATE_CANCELED)):
         state = 'historic'
         navpath = NAVPATH + [
             ('Historic tasks', reverse('maintenance-historic'))
@@ -92,6 +98,7 @@ def infodict_by_state(task):
         'active': {state: True},
         'navpath': navpath,
     }
+
 
 def get_component_keys(post):
     remove = {}
@@ -119,6 +126,7 @@ def get_component_keys(post):
                     component_keys[key].append(value)
     return component_keys
 
+
 def components_for_keys(component_keys):
     component_data = {}
     component_data['service'] = Service.objects.filter(
@@ -126,7 +134,8 @@ def components_for_keys(component_keys):
         ).values(
             'id', 'handler', 'netbox__id', 'netbox__sysname', 'netbox__ip',
             'netbox__room__id', 'netbox__room__description',
-            'netbox__room__location__id', 'netbox__room__location__description')
+            'netbox__room__location__id',
+            'netbox__room__location__description')
     component_data['netbox'] = Netbox.objects.filter(
             id__in=component_keys['netbox']
         ).values(
@@ -142,6 +151,7 @@ def components_for_keys(component_keys):
             'id', 'description')
     return component_data
 
+
 def structure_component_data(component_data):
     components = {}
     for key in component_data:
@@ -151,6 +161,7 @@ def structure_component_data(component_data):
                 components[key] = {}
             components[key][pkey] = component
     return components
+
 
 def task_component_trails(component_keys, components):
     trails = []
@@ -171,25 +182,30 @@ def task_component_trails(component_keys, components):
             else:
                 if key in ('location', 'room', 'netbox', 'service'):
                     location_id = comp[FIELD_KEYS[key]['location'] + "id"]
-                    location_description = comp[FIELD_KEYS[key]['location'] + "description"]
+                    location_description = (comp[FIELD_KEYS[key]['location']
+                                                 + "description"])
                     trail.append({
-                        'url': reverse('report-room-location', args=[location_id]),
+                        'url': reverse('report-room-location',
+                                            args=[location_id]),
                         'title': location_description,
                         'name': location_id,
                     })
                 if key in ('room', 'netbox', 'service'):
                     room_id = comp[FIELD_KEYS[key]['room'] + "id"]
-                    room_description = comp[FIELD_KEYS[key]['room'] + "description"]
+                    room_description = (comp[FIELD_KEYS[key]['room']
+                                             + "description"])
                     trail.append({
                         'url': reverse('report-netbox-room', args=[room_id]),
                         'title': room_description,
                         'name': room_id,
                     })
                 if key in ('netbox', 'service'):
-                    netbox_sysname = comp[FIELD_KEYS[key]['netbox'] + "sysname"]
+                    netbox_sysname = (comp[FIELD_KEYS[key]['netbox']
+                                           + "sysname"])
                     netbox_ip = comp[FIELD_KEYS[key]['netbox'] + "ip"]
                     trail.append({
-                        'url': reverse('ipdevinfo-details-by-name', args=[netbox_sysname]),
+                        'url': reverse('ipdevinfo-details-by-name',
+                                            args=[netbox_sysname]),
                         'title': netbox_ip,
                         'name': netbox_sysname,
                     })
@@ -248,11 +264,13 @@ class MaintenanceCalendar(HTMLCalendar):
             formated_start = strftime('%H:%M', task.start_time.timetuple())
             formated_end = strftime('%H:%M', task.end_time.timetuple())
             content.append('<li class="%s">' % group)
-            content.append('<a class="task_%(id)s %(color)s" href="%(url)s">' % {
-                'id': task.pk,
-                'color': self.bg_color(task.pk),
-                'url': reverse('maintenance-view', args=[task.pk]),
-            })
+            content.append(
+                '<a class="task_%(id)s %(color)s" href="%(url)s">' %
+                {
+                    'id': task.pk,
+                    'color': self.bg_color(task.pk),
+                    'url': reverse('maintenance-view', args=[task.pk]),
+                })
             if group == self.CONTINUED_MONTH:
                 content.append("... ")
                 content.append(conditional_escape(desc))
@@ -293,7 +311,11 @@ class MaintenanceCalendar(HTMLCalendar):
         task_index = {}
         for task in tasks:
             day = task.start_time.date()
-            while day <= task.end_time.date():
+            end_day = task.end_time.date()
+            if end_day >= INFINITY.date():
+                # Need to stop somewhere when tasks do not specify end date.
+                end_day = task.start_time.date() + timedelta(weeks=4)
+            while day <= end_day:
                 if not day in grouped:
                     grouped[day] = {}
                 if task.pk in task_index:

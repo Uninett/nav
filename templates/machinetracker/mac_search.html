@@ -9,11 +9,15 @@
             <tbody>
             <tr>
                 <th><label for="id_mac">Mac:</label></th>
-                <td>{{ form.mac }}</td>
+                <td>{{ form.mac.errors }}{{ form.mac }}</td>
             </tr>
             <tr>
                 <th><label for="id_dns">Dns:</label></th>
                 <td>{{ form.dns }}</td>
+            </tr>
+            <tr>
+                <th><label>Netbios:</label></th>
+                <td>{{ form.netbios }}</td>
             </tr>
             <tr>
                 <th><label for="id_hide">Show only active records:</label></th>
@@ -21,7 +25,7 @@
             </tr>
             <tr>
                 <th><label for="id_days">Days:</label></th>
-                <td><input type="text" id="id_days" name="days" size="3" value="7" /></td>
+                <td>{{ form.days.errors }}{{ form.days }}</td>
             </tr>
                 <tr>
                     <th></th>

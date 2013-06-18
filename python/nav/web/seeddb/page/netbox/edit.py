@@ -27,7 +27,8 @@ from django.db import transaction
 from nav.models.manage import Netbox, Device, NetboxCategory, NetboxType
 from nav.models.manage import NetboxInfo
 from nav.models.oid import SnmpOid
-from nav.Snmp import Snmp, SnmpError
+from nav.Snmp import Snmp
+from nav.Snmp.errors import SnmpError
 from nav.web.message import new_message, Messages
 
 from nav.web.seeddb import reverse_lazy
@@ -66,9 +67,8 @@ def netbox_edit(request, netbox_id=None):
 
             if forms_are_valid:
                 netbox = netbox_do_save(netbox_form, serial_form, subcat_form)
-                new_message(request._req,
-                    "Saved netbox %s" % netbox.sysname,
-                    Messages.SUCCESS)
+                new_message(request, "Saved netbox %s" % netbox.sysname,
+                            Messages.SUCCESS)
                 return HttpResponseRedirect(reverse('seeddb-netbox'))
     else:
         netbox_form = get_netbox_form(netbox)

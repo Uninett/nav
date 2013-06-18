@@ -1,3 +1,261 @@
+Version 3.14.1592
+(released 25 Apr 2013)
+
+ Important upgrade note:
+
+  * The Cricket trees `switch-ports` and `router-interfaces` have been
+    consolidated into a single `ports` tree, where all physical ports' traffic
+    stats now also are collected. After running the usual `syncdb.py` command,
+    you should run `mcc.py` once manually (as the navcron) user to ensure the
+    Cricket config tree is updated right away.
+
+    When everything is up and running again, you can optionally delete the
+    `switch-ports` and `router-interfaces` directories from your
+    `cricket-config` directory, as they are no longer used by NAV.
+
+  * NAV now supplies its own `subtree-sets` configuration to Cricket. If you
+    have made manual changes to your Cricket collection setup and/or this
+    file, you may need to update your setup accordingly.
+
+ Bugfixes:
+
+  * LP#1165193 (Prefix Matrix Doesn't Handle HSRP)
+  * LP#1165206 (ARP Entries on HSRP Subnets are Double Counted)
+  * LP#1169553 (Consolidate switch-ports, router-interfaces and physical port
+                traffic statistics in Cricket)
+  * LP#1169837 (servicemon debug logs no matter what the log level is set to)
+  * LP#1169872 (VRRP/HSRP plugin is not enabled by default)
+  * LP#1169986 (ipdevpoll spins in its tracks and doesn't reconnect on database
+                connection loss)
+  * LP#1170221 (Subnet matrix crashes with AttributeError when only one scope
+                prefix is registered)
+  * LP#1170291 (Mac search + DNS crashes with AttributeError in NAV 3.14.159)
+  * LP#1170329 (eventengine dies on loss of database connection)
+  * LP#1170374 (Alertengine dies on loss of database connection)
+  * LP#1170634 (The SMS daemon dies when database connection is lost)
+  * LP#1172204 (Device history crashes with NameError on invalid date input)
+
+Version 3.14.159
+(released 11 Apr 2013)
+
+ Bugfixes:
+
+  * LP#1155128 (IndexError crash in Machine Tracker)
+  * LP#1158214 (mcc.py does debug logging even when configured not to)
+  * LP#1160921 (Geomap won't load map data over HTTPS in Chrome)
+  * LP#1161108 (Room bulk import format doesn't include geo position)
+  * LP#1163256 (snmptrapd crashes with "interrupted system call" error)
+  * LP#1164582 (netmap bails on fetching network graph if interface.speed
+                missing)
+  * LP#1165017 (Adding 0.0.0.0/0 as excepted range causes netbiostracker to
+                hang)
+
+Version 3.14.15
+(released 21 Mar 2013)
+
+ Bugfixes:
+
+  * LP#1152173 (Deleting rrdviewer.conf causes crash when attempting to view
+                graphs from ipdevinfo)
+  * LP#1152599 (VLANs periodically lose one or more prefixes)
+  * LP#1154626 (Threshold bulk config UI unresponsive, with javascript console
+                error)
+  * LP#1155096 (Filtering by category in syslog analyzer doesn't work)
+  * LP#1156647 (Topology is not cleared when ports are shut down)
+  * LP#1157154 (Netmap stopped working in NAV 3.14.1)
+  * LP#1157594 (netbiostracker crashes when a netbios host reports an empty mac
+                address)
+  * LP#1157658 (Failing ipdevpoll plugin should be identified in log messages at
+                the ERROR level)
+
+Version 3.14.1
+(released 07 Mar 2013)
+
+ User-visible features and improvements:
+
+  * NAV now fully supports SNMP communication over IPv6. Please see the
+    release notes for more information.
+
+  * Most of the service monitor plugins now support IPv6.
+
+  * NAV documentation is slowly moving out of the wiki and into Sphinx. Now,
+    every NAV installation includes a link from the front page to the
+    browseable, locally installed documentation.
+
+  * The Toolbox can now be collapsed into an icon/title-based list if the tool
+    descriptions aren't needed or wanted.
+
+  * The ordering of tools in the Toolbox can now be customized individually by
+    each user.
+
+  * The status page and portadmin have been adapted to work well on small
+    screens/mobile devices.
+
+  * Portadmin now supports editing trunks. 
+
+  * Portadmin includes a new feature to enable trunking of predefined voice
+    VLANs on access ports, for SIP phones that support 802.1Q trunking
+
+ Fixes and features:
+
+  * LP#483534  (Subnet Matrix: Display description of prefix in dropdown)
+  * LP#736818  (Reorganise toolbox webpage)
+  * LP#965144  (Front page needs link to Status page)
+  * LP#1060976 (Portadmin imports nav.Snmp.pysnmp_se directly)
+  * LP#1062206 (Camlogger should log entries from non-access ports if connected
+                device is not a networking device)
+  * LP#1062317 (Support SNMP over IPv6)
+  * LP#1062318 (Servicemon plugins should be reviewed for IPv6 support)
+  * LP#1069770 (Want a mobile version of the status page)
+  * LP#1069771 (Want a mobile version of port admin)
+  * LP#1092154 (Portadmin crash when unicode characters in ifalias)
+  * LP#1092156 (Portadmin crash when it cannot find a netbox by name or ip,-
+                and interface by id)
+  * LP#1092551 (Bug in threshold, crashes when searching for netboxes
+  * LP#1103376 (portadmin should highlight changes in a better way)
+  * LP#1134390 (Machine tracker crashes when inputting non-ASCII characters in
+                search)
+  * LP#1134392 (Invalid IP search patterns cause abnormal Machine Tracker
+                behavior)
+  * LP#1135699 (arnold fails to open quarantined ports on cisco devices)
+  * LP#1137799 (cricket runs eval on config that contains curly braces)
+  * LP#1143962 (Device history search for location crashes)
+  * LP#1146602 (Maintengine TypeError crash)
+  * LP#1146604 (arnold lacks links to relevant information)
+
+
+Version 3.13.1
+(released 21 Feb 2013)
+
+ The release notes were updated with more information about dependency changes
+ and the new alert message templates introduced with the Python-based event
+ engine.
+
+ Fixes:
+
+  * LP#1126340 (arnold t1000 crashes on pursuit)
+  * LP#1126341 (arnold autoenable crashes on missing interface)
+  * LP#1128868 (Arnold does not display a candidate for manual block)
+  * LP#1130093 (NetworkX 1.6 throws exception in eventengine)
+  * LP#1130103 (Typo in ReportListTemplate.tmpl)
+
+Version 3.13.0
+(released 07 Feb 2013)
+
+ Fixes:
+
+  * LP#1092848 (logengine regression: crash on various non-Cisco syslog entries)
+  * LP#1102831 (machine tracker ip sort does not work)
+  * LP#1104025 (vlan view needs a search page)
+  * LP#1104027 (vlan view does not draw a vlan graph if there are no ipv4
+                prefixes)
+  * LP#1107723 (collect_active_ip crashes when prefix ids has been changed)
+  * LP#1108647 (navbar search should search for vlan net types)
+  * LP#1108702 (Unused prefixes are never deleted)
+  * LP#1108880 (Physical port view annotates all non-switching ports as layer 3
+                ports)
+  * LP#1110368 (Messages UI crashes when entering non-ASCII characters in forms)
+  * LP#1115013 (Modules with status down don't show up in 'Delete modules' page)
+  * LP#1115109 (Machine tracker switch search lists all ports if no results are
+                found for the target port)
+
+Version 3.13.0b2
+(released 25 Jan 2013)
+
+ Fixes:
+
+  * LP#309705  (Add RSS feed for messages)
+  * LP#735521  (Tracking machines behind a port where the name has changed
+                fails)
+  * LP#1014513 (Ajax calls need to handle session timeout)
+  * LP#1062136 (linkState events should be sent only for redundant links)
+  * LP#1062197 (ipdevinfo DNS table should be on a separate tab)
+  * LP#1062200 (ipdevinfo needs a port view tab for physical ports)
+  * LP#1083511 (MachineTracker form data is reset on result page)
+  * LP#1092154 (Portadmin crash when unicode characters in ifalias)
+  * LP#1092156 (Portadmin crash when it cannot find a netbox by name or ip,- and
+                interface by id)
+  * LP#1092848 (logengine regression: crash on various non-Cisco syslog entries)
+  * LP#1099321 (cricket frontpage displays !short-desc!)
+  * LP#1099393 (ipdevinfo room link should link to new room info)
+  * LP#1099412 (room opt fields with links should be clickable in room view)
+  * LP#1102923 (eventEngine doesn't fallback to default alert message template)
+  * LP#1102924 (Missing alert templates for upsPowerState alerts)
+  * LP#1103403 (servicestate plugin doesn't add service details to alerts)
+  * LP#1103455 (active ip collector is insanely slow)
+  * LP#1103459 (active ip collector does not detect that it is running)
+  * LP#1103505 (arnold crashes on manual detention)
+  * LP#1103923 (vlan view breadcrumbs missing)
+  * LP#1103926 (Unhandled errors in eventengine topology evaluation cause events
+                to be ignored)
+  * LP#1103929 (Netbox.up winds up out of sync with actual alert-based box
+                state)
+
+Version 3.13.0b1
+(released 14 Dec 2012)
+
+ User-visible features and improvements:
+
+  * The eventEngine has been rewritten to Python. This was the last remaining
+    Java component of NAV, meaning Java is no longer needed for installing and
+    running NAV.
+
+  * VLANs are now searchable from the Navbar.
+
+  * IPv4, IPv6 and MAC host counts for each VLAN is now graphed over time.
+
+  * NAV is now able to detect and graph data from sensors on Cisco Nexus
+    devices.
+
+  * Maintenance tasks can now be configured to end automatically when all
+    components involved in the task are up.
+
+  * IP Devices that are down can be placed on immediate maintenance until up
+    again directly from the status page.
+
+  * Subscriptions to MAC address prefixes are now possible in Macwatch. Use
+    with caution!
+
+ Fixes:
+
+  * LP#305435  (Sort by "Start time" or "End time" in machinetracker)
+  * LP#305441  (Button for "Put on maintenance immediately")
+  * LP#317800  (Color gradient to express utilization of IPv6 subnets)
+  * LP#341703  (Manual detention does not pursue client)
+  * LP#361530  (Arnold: Predefined detention does not exponentially increase
+                detentions)
+  * LP#744932  (Arnold should give warning if snmp write is not configured)
+  * LP#833959  (make install overwrites nav.conf and db.conf)
+  * LP#922793  (Possibility to set end time = "until device is up again " in
+                maintenance)
+  * LP#961097  (Don't list cancelled maintenance tasks in active list)
+  * LP#961100  (Show component details in maintenance task list when there is
+                only a single component)
+  * LP#1057509 (Mouseovers with number of active IPv6 addresses in Subnet
+                Matrix)
+  * LP#1057511 (Get sensor information from CISCO-ENTITY-SENSOR-MIB)
+  * LP#1062130 (NAV should graph IP address usage per prefix)
+  * LP#1069773 (macwatch should be able to look for MAC address prefixes too)
+
+ 
+Version 3.12.4
+(released 06 Dec 2012)
+
+ Bugfixes:
+
+  * LP#744963  (generate short interface names in ip dev info when necessary)
+  * LP#1074323 (Machine tracker crashes on partial subnet search)
+  * LP#1076913 (cricket-config is not updated on update)
+  * LP#1077881 (snmpoid octets should be bytes/s not bytes)
+  * LP#1077949 (ipdevinfo helper functions crash on invalid input)
+  * LP#1078259 (templatetag add_interval does not exit cleanly on error)
+  * LP#1078292 (ipdevpoll job logger needs to log interval for manual jobs)
+  * LP#1079088 (logengine crashes on syslog entries from a Cisco ASA device)
+  * LP#1080663 (ipdevinfo netbox overview does not display edge netboxes)
+  * LP#1080727 (portadmin does not follow organization hierarchy correctly)
+  * LP#1082381 (ipdevpoll oidprofiler sets unsupported when value=0)
+  * LP#1085826 (portadmin shows wrong available vlans)
+
 Version 3.12.3
 (released 01 Nov 2012)
 

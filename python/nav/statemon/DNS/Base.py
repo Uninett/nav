@@ -8,7 +8,7 @@ This code is covered by the standard Python License.
 
     Base functionality. Request and Response classes, that sort of thing.
 """
-
+# pylint: disable=C,W,R,E
 import socket, string, types, time
 import Type,Class,Opcode
 import asyncore
@@ -188,9 +188,9 @@ class DnsRequest:
     def sendUDPRequest(self, server):
         "refactor me"
         self.response=None
-        self.socketInit(socket.AF_INET, socket.SOCK_DGRAM)
         for self.ns in server:
             try:
+                self.socketInit(socktype_from_addr(self.ns), socket.SOCK_DGRAM)
                 # TODO. Handle timeouts &c correctly (RFC)
                 #self.s.connect((self.ns, self.port))
                 self.conn()
@@ -211,7 +211,7 @@ class DnsRequest:
         self.response=None
         for self.ns in server:
             try:
-                self.socketInit(socket.AF_INET, socket.SOCK_STREAM)
+                self.socketInit(socktype_from_addr(self.ns), socket.SOCK_STREAM)
                 self.time_start=time.time()
                 self.conn()
                 self.s.send(Lib.pack16bit(len(self.request))+self.request)
@@ -257,6 +257,11 @@ class DnsAsyncRequest(DnsRequest,asyncore.dispatcher_with_send):
     def showResult(self,*s):
         self.response.show()
 
+def socktype_from_addr(addr):
+    info = socket.getaddrinfo(addr, 0)
+    socktype = info[0][0]
+    return socktype
+
 #
 # $Log: Base.py,v $
 # Revision 1.1  2003/03/26 16:03:58  magnun
@@ -268,7 +273,8 @@ class DnsAsyncRequest(DnsRequest,asyncore.dispatcher_with_send):
 #
 # Revision 1.2  2002/07/01 14:33:51  magnun
 #
-# It is now possible to specify query class in req(). This will add support for getting the version of bind.
+# It is now possible to specify query class in req(). This will add support
+# for getting the version of bind.
 #
 # Revision 1.1  2002/06/17 17:30:19  magnun
 # *** empty log message ***

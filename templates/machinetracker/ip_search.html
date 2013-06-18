@@ -1,9 +1,6 @@
 {% extends "machinetracker/base.html" %}
 
 {% block content %}
-<script type="text/javascript">
-
-</script>
 <div id="search_form">
     <form action="{% url machinetracker-ip %}" method="get">
         <table class="listtable">
@@ -11,7 +8,7 @@
             <tbody>
                 <tr>
                     <th><label for="id_ip_range">Ip range:</label></th>
-                    <td>{{ form.ip_range }}</td>
+                    <td>{{ form.ip_range.errors }}{{ form.ip_range }}</td>
                 </tr>
                 <tr>
                     <th><label for="id_active">Active:</label></th>
@@ -26,12 +23,16 @@
                     <td>{{ form.dns }}</td>
                 </tr>
                 <tr>
+                    <th><label>Netbios:</label></th>
+                    <td>{{ form.netbios }}</td>
+                </tr>
+                <tr>
                     <th><label for="id_hide">Show only active records:</label></th>
                     <td><input id="id_hide" name="days" type="checkbox" value="-1" onclick="document.getElementById('id_days').disabled = this.checked;" /></td>
                 </tr>
                 <tr>
                     <th><label for="id_days">Days:</label></th>
-                    <td><input id="id_days" type="text" name="days" value="7" size="3" /></td>
+                    <td>{{ form.days.errors }}{{ form.days }}</td>
                 </tr>
                 <tr>
                     <th></th>

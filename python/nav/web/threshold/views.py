@@ -27,6 +27,7 @@ from django.db.models.query_utils import Q
 
 from nav.django.utils import get_account
 from nav.models.rrd import RrdDataSource
+from nav.models.rrd import RrdFile
 from nav.models.manage import Netbox
 from nav.models.manage import Interface
 from nav.models.manage import NetboxType
@@ -53,7 +54,7 @@ EXCEEDED_DEFAULTS = {'title': "Threshold manager", 'navpath': NAVBAR, 'active': 
 
 logger = logging.getLogger("nav.web.threshold")
 
-INTERFACE_REGEXP = re.compile('^if\w+$')
+INTERFACE_REGEXP = re.compile(r'^if\w+$')
 
 # Option that is selected
 NETBOX_OPTION_SELECTED = '<option selected="selected" value="%d">%s</option>'
@@ -314,9 +315,11 @@ def netbox_search(request):
         updown = unicode(request.POST.get('updown', ''))
         boxes = unicode(request.POST.get('boxes', ''))
 
-        logger.debug('netbox_search: descr=%s; sysname=%s; vendor=%s; model=%s; gw=%s; gsw=%s; sw=%s; ifname=%s; updown=%s; boxes=%s' %
-            (descr, sysname, vendor, model, cat_gw, cat_gsw, cat_sw,
-                ifname, updown, boxes))
+        logger.debug('netbox_search: descr=%s; sysname=%s; vendor=%s; '
+                     'model=%s; gw=%s; gsw=%s; sw=%s; ifname=%s; updown=%s;'
+                     'boxes=%s' %
+                     (descr, sysname, vendor, model, cat_gw, cat_gsw, cat_sw,
+                      ifname, updown, boxes))
         
         # This utillity-method return an error-message if any of
         # the parameters are illegal.
@@ -340,8 +343,7 @@ def netbox_search(request):
         netbox_categories = get_netbox_categories(cat_gw, cat_gsw, cat_sw)
 
         if descr:
-            query = Netbox.objects.filter(
-                        rrdfile__rrddatasource__description=descr)
+            query = Netbox.objects.filter(rrdfile__rrddatasource__description=descr)
         else:
             # Make a fake query and append the qualifiers
             query = Netbox.objects.filter(sysname__isnull=False)

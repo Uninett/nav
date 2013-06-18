@@ -1,0 +1,5 @@
+Subject: Box {{netbox.sysname}} does not reply to ping requests.
+
+Box {{netbox.sysname}} ({{netbox.ip}}) does not reply to ping requests and
+will be declared down soon if the situation does not change.
+Detected at {{time}}.

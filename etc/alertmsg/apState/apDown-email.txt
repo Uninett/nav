@@ -1,0 +1,3 @@
+Subject: AccessPoint {{ apname }} disassociated.
+
+Mac-address: {{ mac }}

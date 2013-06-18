@@ -239,7 +239,8 @@ def parse_utm(utm_str):
 
     """
     default_hemisphere = 'N'
-    utm_re = '^\W*([0-9][0-9])([NS]?)\W+([0-9]*[.]?[0-9]+)\W+([0-9]*[.]?[0-9]+)\W*$'
+    utm_re = (r'^\W*([0-9][0-9])([NS]?)\W+([0-9]*[.]?[0-9]+)\W+'
+              r'([0-9]*[.]?[0-9]+)\W*$')
     m = re.match(utm_re, utm_str)
     if m is None:
         raise Exception('incorrectly formatted UTM string "' + utm_str)

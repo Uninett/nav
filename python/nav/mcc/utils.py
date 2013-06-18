@@ -1,6 +1,8 @@
 """
 Contains help functions for the various config creation modules.
 """
+from functools import wraps
+from time import time
 import re
 import sys
 import logging
@@ -9,6 +11,7 @@ from collections import namedtuple
 from nav.errors import GeneralException
 from os.path import join, abspath
 from subprocess import Popen, PIPE
+from IPy import IP
 
 from nav import path
 from nav.db import getConnection
@@ -21,6 +24,33 @@ TARGETFILENAME = 'navTargets'
 
 class NoConfigRootException(GeneralException):
     "Could not find Crickets configroot ($gConfigRoot in cricket-conf.pl)"
+
+
+class Memoize(object):
+    """Basic memoization"""
+    def __init__(self, function):
+        self.function = function
+        self.memoized = {}
+
+    def __call__(self, *args):
+        try:
+            return self.memoized[args]
+        except KeyError:
+            self.memoized[args] = self.function(*args)
+            return self.memoized[args]
+
+
+def timed(f):
+    """Decorator to time execution of functions"""
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        """Decorator"""
+        start = time()
+        result = f(*args, **kwds)
+        elapsed = time() - start
+        LOGGER.debug("%s took %f seconds to finish" % (f.__name__, elapsed))
+        return result
+    return wrapper
 
 
 def start_config_creation(modules, config):
@@ -56,7 +86,7 @@ def get_configroot(configfile):
     if not configroot:
         raise NoConfigRootException
 
-    LOGGER.info("Found configroot to be %s", configroot)
+    LOGGER.debug("Found configroot to be %s", configroot)
     return configroot
 
 
@@ -149,7 +179,7 @@ def check_file_existence(datadir, sysname):
     filename = join(datadir, sysname)
 
     if not os.path.exists(filename):
-        LOGGER.info("File %s does not exist, deleting tuple from database" \
+        LOGGER.info("File %s does not exist, deleting tuple from database"
                     % filename)
 
         conn = getConnection('default')
@@ -200,8 +230,16 @@ def encode_and_escape(string):
     """
     if isinstance(string, unicode):
         string = convert_unicode_to_latin1(string)
-    string = string.replace("\"", "&quot;")
-    string = string.replace("\n", " ")
+
+    replacements = {
+        "\"": "&quot;",
+        "{": "&#123;",
+        "}": "&#125;",
+        "\n": " "
+    }
+
+    for key, value in replacements.items():
+        string = string.replace(key, value)
 
     return string
 
@@ -296,6 +334,19 @@ def write_targets(path_to_config, targets):
     filehandle = open(join(path_to_config, TARGETFILENAME), 'w')
     filehandle.write("\n".join(targets))
     filehandle.close()
+
+
+def format_ip_address(ip):
+    """Return ip-address as string to be used as snmp-host argument"""
+    try:
+        address = IP(ip)
+        if address.version() == 6:
+            return "[%s]" % ip
+        else:
+            return str(ip)
+    except ValueError, error:
+        LOGGER.error("Error formatting %s: %s" % (ip, error))
+        return ip
 
 
 class RRDcontainer:

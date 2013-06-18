@@ -13,11 +13,21 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""Utility methods to get extract extra characteristics from ports."""
+import networkx as nx
 import nav.util
+import logging
+from datetime import datetime
+from operator import attrgetter
 
-from nav.models.manage import SwPortVlan, SwPortBlocked
+from django.core.validators import validate_email, ValidationError
+
+from nav.models.manage import SwPortVlan, SwPortBlocked, Cam
 from nav.models.manage import Netbox
+from nav.topology.vlan import build_layer2_graph
+
+_logger = logging.getLogger('nav.web.ipdevinfo.utils')
+
 
 def get_module_view(module_object, perspective, activity_interval=None,
                     netbox=None):
@@ -35,7 +45,8 @@ def get_module_view(module_object, perspective, activity_interval=None,
 
     """
 
-    assert perspective in ('swportstatus', 'swportactive', 'gwportstatus')
+    assert perspective in ('swportstatus', 'swportactive',
+                           'gwportstatus', 'physportstatus')
 
     module = {
         'object': module_object,
@@ -53,13 +64,19 @@ def get_module_view(module_object, perspective, activity_interval=None,
             ports = [p for p in netbox.get_gwports_sorted() if not p.module]
         else:
             ports = module_object.get_gwports_sorted()
+    elif perspective == 'physportstatus':
+        if not module_object and netbox:
+            ports = [p for p in netbox.get_physical_ports_sorted()
+                            if not p.module]
+        else:
+            ports = module_object.get_physical_ports_sorted()
 
     if ports:
         _cache_vlan_data_in_ports(ports)
         for port_object in ports:
             port = {'object': port_object}
 
-            if perspective == 'swportstatus':
+            if perspective in ('swportstatus', 'physportstatus'):
                 port['class'] = _get_swportstatus_class(port_object)
                 port['style'] = ''
                 port['title'] = _get_swportstatus_title(port_object)
@@ -75,9 +92,17 @@ def get_module_view(module_object, perspective, activity_interval=None,
                 port['style'] = ''
                 port['title'] = _get_gwportstatus_title(port_object)
 
+            if perspective == 'physportstatus':
+                # Add extra class to differentiate between layers.
+                if port_object.is_gwport():
+                    port['oplayer'] = '3'
+                elif port_object.is_swport():
+                    port['oplayer'] = '2'
+
             module['ports'].append(port)
 
     return module
+
 
 def _cache_vlan_data_in_ports(ports):
     """Loads and caches vlan data associated with an Interface queryset.
@@ -102,6 +127,7 @@ def _cache_vlan_data_in_ports(ports):
                                         for blocked_vlan in blocked_vlans
                                         if blocked_vlan.interface == port)
 
+
 def _get_swportstatus_class(swport):
     """Classes for the swportstatus port view"""
 
@@ -119,6 +145,7 @@ def _get_swportstatus_class(swport):
     if swport._blocked_vlans_cache:
         classes.append('blocked')
     return ' '.join(classes)
+
 
 def _get_swportstatus_title(swport):
     """Title for the swportstatus port view"""
@@ -160,12 +187,14 @@ def _get_swportstatus_title(swport):
 
     return ', '.join(title)
 
+
 def _get_vlan_numbers(swport):
     """Returns active vlans on an swport, using cached data, if available."""
     if hasattr(swport, '_vlan_cache'):
         return swport._vlan_cache
     else:
         return swport.get_vlan_numbers()
+
 
 def _get_swportactive_class(swport, interval=30):
     """Classes for the swportactive port view"""
@@ -183,6 +212,7 @@ def _get_swportactive_class(swport, interval=30):
             classes.append('inactive')
 
     return ' '.join(classes)
+
 
 def _get_swportactive_style(swport, interval=30):
     """Style for the swportactive port view"""
@@ -205,6 +235,7 @@ def _get_swportactive_style(swport, interval=30):
                 gradient[active.days])
 
     return style
+
 
 def _get_swportactive_title(swport, interval=30):
     """Title for the swportactive port view"""
@@ -233,6 +264,7 @@ def _get_swportactive_title(swport, interval=30):
 
     return ', '.join(title)
 
+
 def _get_gwportstatus_class(gwport):
     """Classes for the gwportstatus port view"""
 
@@ -240,6 +272,7 @@ def _get_gwportstatus_class(gwport):
     if gwport.speed:
         classes.append('Mb%d' % gwport.speed)
     return ' '.join(classes)
+
 
 def _get_gwportstatus_title(gwport):
     """Title for the gwportstatus port view"""
@@ -262,3 +295,98 @@ def _get_gwportstatus_title(gwport):
         pass
 
     return ', '.join(title)
+
+
+def find_children(netbox, netboxes=None):
+    """Recursively find all children from this netbox"""
+    if not netboxes:
+        netboxes = [netbox]
+
+    interfaces = netbox.interface_set.filter(
+        to_netbox__isnull=False,
+        swportvlan__direction=SwPortVlan.DIRECTION_DOWN)
+    for interface in interfaces:
+        if interface.to_netbox not in netboxes:
+            netboxes.append(interface.to_netbox)
+            find_children(interface.to_netbox, netboxes)
+
+    return netboxes
+
+
+def find_organizations(netboxes):
+    """Find all contact addresses for the netboxes"""
+    return (set(find_vlan_organizations(netboxes)) |
+            set(find_netbox_organizations(netboxes)))
+
+
+def find_netbox_organizations(netboxes):
+    """Find direct contacts for the netboxes"""
+    return [n.organization for n in netboxes if n.organization]
+
+
+def find_vlan_organizations(netboxes):
+    """Find contacts for the vlans on the downlinks on the netboxes"""
+    vlans = []
+    for netbox in netboxes:
+        interfaces = netbox.interface_set.filter(
+            to_netbox__isnull=False,
+            swportvlan__direction=SwPortVlan.DIRECTION_DOWN,
+            swportvlan__vlan__organization__isnull=False)
+        for interface in interfaces:
+            vlans.extend([v.vlan
+                          for v in
+                          interface.swportvlan_set.exclude(vlan__in=vlans)])
+
+    return [v.organization for v in set(vlans) if v.organization]
+
+
+def filter_email(organizations):
+    """Filter the list of addresses to make sure it's an email-address"""
+    valid_emails = []
+    for organization in organizations:
+        try:
+            validate_email(organization.contact)
+        except ValidationError:
+            for extracted_email in organization.extract_emails():
+                try:
+                    validate_email(extracted_email)
+                except ValidationError:
+                    continue
+                else:
+                    valid_emails.append(extracted_email)
+        else:
+            valid_emails.append(organization.contact)
+
+    return list(set(valid_emails))
+
+
+def get_affected_host_count(netboxes):
+    """Return the total number of active hosts on the netboxes"""
+    return Cam.objects.filter(netbox__in=netboxes,
+                              end_time__gte=datetime.max).count()
+
+
+def find_affected_but_not_down(netbox_going_down, netboxes):
+    """Mark affected but not down because of redundancy boxes"""
+    graph = build_layer2_graph()
+    graph.remove_node(netbox_going_down)
+    masters = find_uplink_nodes(netbox_going_down)
+    redundant = []
+    for netbox in netboxes:
+        if netbox_going_down == netbox:
+            continue
+        if any(nx.has_path(graph, master, netbox) for master in masters):
+            redundant.append(netbox)
+
+    return redundant
+
+
+def find_uplink_nodes(netbox):
+    """Find the uplink nodes for this netbox"""
+    uplink_nodes = [x['other'].netbox for x in netbox.get_uplinks()]
+    return list(set(uplink_nodes))
+
+
+def sort_by_netbox(netboxes):
+    """Sort netboxes by category and sysname"""
+    return sorted(netboxes, key=attrgetter('category.id', 'sysname'))

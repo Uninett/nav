@@ -7,21 +7,9 @@ PortAdmin - {{ netbox.get_short_sysname }}
 
 {% block content %}
 
-
 {% if interfaces %}
 
-<div id="infoboxcontainer" class="left">
-
-	{% if errors %}
-	<div id="errors" class="infobox">
-		<h4>ERROR</h4>
-		<ul>
-		{% for error in errors %}
-			<li>{{ error }}</li>
-		{% endfor %}
-		</ul>
-	</div>
-	{% endif %}
+<div id="infoboxcontainer">
 
 	{% if aliastemplate %}
 	<div class="infobox">
@@ -30,11 +18,15 @@ PortAdmin - {{ netbox.get_short_sysname }}
 	{% endif %}
 	
 	<div id="infobox" class="infobox">
-		<h4>Available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}</h4>
+		<h4>
+            <img src="/images/icons/expand.png" class="toggler expand float-right" alt="Show available vlans" title="Show available vlans">
+            <img src="/images/icons/collapse.png" class="toggler collapse float-right hidden" alt="Hide available vlans" title="Hide available vlans">
+            Available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}
+        </h4>
 		
-		<ul>
-		{% for vlan, netident in netidents %}
-			<li>{{ vlan }} - {{ netident }}</li>
+		<ul class="hidden">
+		{% for vlan in allowed_vlans %}
+			<li>{{ vlan }}</li>
 		{% endfor %}
 		</ul>
 	
@@ -43,66 +35,125 @@ PortAdmin - {{ netbox.get_short_sysname }}
 
 <div id="tablecontainer" class="text-right">
 <table id="portadmin-interfacecontainer" class="vertitable">
-	<caption><a href="/ipdevinfo/{{netbox.sysname}}">{{netbox.sysname}}</a></caption>
-	<tr>
-		<th class="ifname">Interface</th>
-		<th class="adminstatus" title="AdminStatus - If red the interface is down">A</th>
-		<th class="operstatus" title="OperStatus - If red there is no link on the interface">O</th>
-		<th class="ifalias">Port Description</th>
-		<th class="vlan">Vlan</th>
-		<th class="button">&nbsp;</th>
-	</tr>
-  
-   	{% for interface in interfaces %}
+	<caption><a href="/ipdevinfo/{{netbox.sysname}}">{{netbox.sysname}}</a><input type="button" class="saveall_button" value="Save all"/></caption>
+
+    <thead>
+    <tr>
+        <th class="ifname">Port</th>
+        <th class="text-center"
+            title="AdminStatus - If red the interface is down">A
+        </th>
+        <th class="text-center"
+            title="OperStatus - If red there is no link on the interface">O
+        </th>
+        <th class="ifalias">Port Description</th>
+        <th class="vlan text-center">Vlan</th>
+        {% if voice_vlan %}
+            <th class="voicevlan">Tel</th>
+        {% endif %}
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for interface in interfaces %}
 	<tr id="{{ interface.id }}">
 		<td>{{ interface.ifname }}</td>
 
-		<td class="text-center"><img title="AdminStatus - If red the interface is down" src="/images/lys/{{ interface.ifadminstatus|drawLight }}" /></td>
-		<td class="text-center"><img title="OperStatus - If red there is no link on the interface" src="/images/lys/{{ interface.ifoperstatus|drawLight }}" /></td>
-		
-		<td>
-			{% if interface.iseditable %}
-			<input class="ifalias" type="text" value="{{ interface.ifalias }}" />
-			{% else %}
-			{{ interface.ifalias }}
-			{% endif %}
+		<td class="text-center">
+            <img title="AdminStatus - If red the interface is down" src="/images/lys/{{ interface.ifadminstatus|drawLight }}" />
+        </td>
+
+		<td class="text-center">
+            <img title="OperStatus - If red there is no link on the interface" src="/images/lys/{{ interface.ifoperstatus|drawLight }}" />
+        </td>
+
+
+        {% comment %}IFALIAS{% endcomment %}
+        <td>
+            {% if interface.iseditable %}
+                <input class="ifalias" type="text"
+                       value="{{ interface.ifalias|default_if_none:'' }}"
+                       data-orig="{{ interface.ifalias|default_if_none:'' }}"/>
+            {% else %}
+                {{ interface.ifalias }}
+            {% endif %}
+        </td>
+
+        {% comment %}
+        If interface is a trunk, display link to trunk_edit if allowed
+        If interface is not a trunk, display dropdown to choose vlan, or if
+        not allowed to edit display access vlan
+        {% endcomment %}
+        <td class="text-center">
+			{% if interface.trunk and not interface.voice_activated %}
+                <a href="{% url portadmin-render-trunk-edit interface.id %}">
+    			    Trunk
+                </a>
+            {% else %}
+                {% if interface.iseditable %}
+                    <select class="vlanlist" name="{{ interface.ifname }}">
+                        {% for vlan in allowed_vlans %}
+                            {% if not interface.voice_activated or vlan.vlan != voice_vlan %}
+                                <option value="{{ vlan.vlan }}" {% if interface.vlan == vlan.vlan %}selected="selected" data-orig="{{ vlan.vlan }}"{% endif %}>
+                                    {{ vlan.vlan }}
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                        <option value="trunk" data-url="{% url portadmin-render-trunk-edit interface.id %}">
+                            Trunk
+                        </option>
+                    </select>
+                {% else %}
+                    {{ interface.vlan|default_if_none:'' }}
+                {% endif %}
+            {% endif %}
 		</td>
 
-	
 
-		<td>
-			{% if interface.trunk %}
-			Trunk
-			{% else %}
-				{% if interface.iseditable %}
-					<select class="vlanlist" name="{{ interface.ifname }}">
-						{% for vlan in allowed_vlans %}
-							{% ifequal interface.vlan vlan %}
-							<option value="{{ vlan }}" selected="selected">{{ vlan }}</option>
-							{% else %}
-							<option value="{{ vlan }}">{{ vlan }}</option>
-							{% endifequal %}
-						{% endfor %}
-					</select>
-				{% else %}			
-					{{interface.vlan}}
-				{% endif %}
-			{% endif %}
-		</td>
-
-		<td>
-			{% if interface.iseditable %}
-			<img src="/images/portadmin/save.png" class="save hidden" alt="Save" title="Save" onclick="save_row({{ interface.id }})"/>
-			{% endif %}
-		</td>
+        {% comment %}
+        If voice is activated the interface is a trunk. This need to check
+        specifically for this.
+        {% endcomment %}
+        {% if voice_vlan %}
+            <td class="text-center">
+            {% if interface.voice_activated or not interface.trunk %}
+                <input class="voicevlan"
+                       type="checkbox"
+                       name="voice_vlan"
+                       data-orig="{{ interface.voice_activated|default:'false' }}"
+                       {% if interface.voice_activated %}checked{% endif %}
+                       {% if not interface.iseditable %}disabled="disabled"{% endif %}>
+            {% else %}
+                &nbsp;
+            {% endif %}
+            </td>
+        {% endif %}
 	</tr>
+
+
+    {% comment %}
+    This row is the "action" row that contains the buttons for saving and
+    undoing the changes in the above row.
+
+    The div is only there to make sure the slide functions work. If slide
+    functionality is removed, remove the div aswell.
+    {% endcomment %}
+    <tr class="actionrow" data-mother-row="{{ interface.id }}">
+        <td colspan="10">
+            <div class="slider" style="display: none">
+                <span><button class="save">Save</button></span>
+                <span><button class="undo">Undo</button></span>
+            </div>
+        </td>
+    </tr>
 	{% endfor %}
+    </tbody>
+
 </table>
 
-<input type="button" class="saveall_button" value="Save all" onclick="bulk_save()"/>
 </div>
 
-<input type="button" class="saveall_button" value="Save all" onclick="bulk_save()"/>
+<input type="button" class="saveall_button" value="Save all"/>
 
 {% endif %}
 

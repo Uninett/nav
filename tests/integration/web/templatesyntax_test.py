@@ -3,13 +3,17 @@
 
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
-from os.path import sep, commonprefix, abspath, pardir, curdir, join
+from os.path import sep, commonprefix, abspath, pardir, curdir, join, relpath
 
 from django.conf import settings
 from django.template import loader
 
+from nav.eventengine.alerts import ensure_alert_templates_are_available
+
 def test_template_syntax():
-    templates = get_template_list()
+    ensure_alert_templates_are_available()
+    templates = list(get_template_list())
+    assert templates, "Can't find any Django templates"
     for template in templates:
         testname = "does %s validate" % template
         yield testname, loader.get_template, template
@@ -20,23 +24,3 @@ def get_template_list():
             for name in files:
                 fullpath = join(dirname, name)
                 yield relpath(fullpath, tmpldir)
-
-def relpath(path, start=curdir):
-    """Return a relative version of a path.
-
-    Borrowed from python 2.6 stdlib for compatibility with python 2.5
-
-    """
-    if not path:
-        raise ValueError("no path specified")
-
-    start_list = abspath(start).split(sep)
-    path_list = abspath(path).split(sep)
-
-    # Work out how much of the filepath is shared by start and path.
-    i = len(commonprefix([start_list, path_list]))
-
-    rel_list = [pardir] * (len(start_list)-i) + path_list[i:]
-    if not rel_list:
-        return curdir
-    return join(*rel_list)

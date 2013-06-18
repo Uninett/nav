@@ -20,7 +20,6 @@ To build NAV, you need at least the following:
  * autoconf
  * ant
  * Python >= 2.6.0
- * Java 2 SDK >= 1.5.0
  * Cheetah Templates >= 2.0rc7
  * Sphinx >= 1.0 (for building this documentation)
 
@@ -30,18 +29,15 @@ Runtime requirements
 To run NAV, these software packages are required:
 
  * Apache2
- * mod_python
+ * mod_wsgi
  * Cricket
  * PostgreSQL >= 8.3
  * rrdtool
  * Cheetah Templates >= 2.0rc7
- * Java 2 SDK >= 1.5.0
  * Python >= 2.6.0
+ * nbtscan = 1.5.1-6
  * dhcping (only needed if using DHCP service monitor)
 
-The following Java librares are required:
-
- * PostgreSQL JDBC driver
 
 The following python modules are required:
 
@@ -55,7 +51,8 @@ The following python modules are required:
  * :mod:`rrd` (from the rrdtool distribution)
  * :mod:`simplejson` >= 2.0.6
  * :mod:`twisted` >= 8.1
- * :mod:`twistedsnmp` >= 0.3 | :mod:`pynetsnmp`
+ * :mod:`pynetsnmp` (or less preferably, :mod:`twistedsnmp` >= 0.3)
+ * :mod:`PIL` 1.1.7 (python-imaging)
 
 The following python modules are optional:
 
@@ -158,30 +155,22 @@ You should now be able to run the python command line interpreter and run
 :kbd:`import nav` without a hitch::
 
   $ python
-  Python 2.5.2 (r252:60911, Jan 24 2010, 14:53:14)
-  [GCC 4.3.2] on linux2
+  Python 2.6.6 (r266:84292, Dec 27 2010, 00:02:40) 
+  [GCC 4.4.5] on linux2
   Type "help", "copyright", "credits" or "license" for more information.
   >>> import nav
   >>>
 
-Making the necessary Java libraries available to NAV
-----------------------------------------------------
-
-The fastest way is to symlink the PostgreSQL JDBC driver library to NAV's java
-library directory::
-
-  sudo ln -s /usr/share/java/postgresql.jar /usr/local/nav/lib/java/
-
 Configuring Apache
 ------------------
 
-Legacy parts of NAV uses `mod_python`, and therefore requires an Apache 2
-server.  For the time being, NAV also requires being at the document root of
-its own Apache virtualhost.
+NAV's web interface is implemented using the Django framework,
+and can be served in any web server environment supported by Django.
 
-NAV provides an Apache config file, with the minimum settings required for
-getting a NAV virtualhost to work.  This can be included in your virtualhost
-config file, which needn't contain much more than this:
+NAV does, however, come with Apache configuration to serve the web interface
+using `mod_wsgi`. For legacy reasons, NAV requires being served at the
+document root of the web server domain. The apache config file can be
+included in your virtualhost config, which needn't contain much more than this:
 
 .. code-block:: apacheconf
 
@@ -219,59 +208,31 @@ and pid files::
 Integrating Cricket with NAV
 ----------------------------
 
-NAV will automatically create a :program:`Cricket` configuration tree and keep
-it synced based on the information retrieved from the monitored devices.
+.. note:: 
+   
+  When you see the text ``PATH_TO_NAV``, this means you should replace this text
+  with the actual path to your NAV installation.
 
-The initial, empty Cricket configuration tree that NAV will work on should be
-copied from the documentation directory.  The config directory must be
-writeable by the navcron user if config updates are to take place::
-
-  sudo cp -r /usr/local/nav/doc/cricket/cricket-config /usr/local/nav/etc/
-  sudo chown -R navcron:nav /usr/local/nav/etc/cricket-config
-
-Now you need to locate your :file:`cricket-conf.pl` file and edit it to tell
-cricket where to locate the configuration tree that NAV keeps.  Make sure
-that it contains the following:
+You need to tell :program:`Cricket` where to locate the configuration. Locate
+your :file:`cricket-conf.pl` file and edit it. Make sure that it contains the
+following:
 
 .. code-block:: perl
 
-  $gConfigRoot = "/usr/local/nav/etc/cricket-config"
+  $gConfigRoot = "PATH_TO_NAV/etc/cricket-config"
 
-Also make sure that the navcron user has write permissions to whatever
-directory the ``$logDir`` option points to.
-
-Cricket comes with a file called subtree-sets, which contains some defaults
-that will be useless for us.  This file groups parts of the configuration tree
-that will collected during the same collect-subtree run.  You should replace
-Cricket's default version of this file with
-``/usr/local/nav/doc/cricket/cricket/subtree-sets``.
-
-Cricket needs to know where to store its RRD data, we suggest in NAV's var
-directory.  Create a suitable directory here::
-
-    sudo mkdir /usr/local/nav/var/cricket-data
-    sudo chown navcron /usr/local/nav/var/cricket-data
-
-Now tell Cricket to put the files there, by editing
-:file:`/usr/local/nav/etc/cricket-config/Defaults` and making sure that it
-contains:
-
-.. code-block:: none
-
-  Target  --default--
-      dataDir         = /usr/local/nav/var/cricket-data/%auto-target-path%
-
-You can now have Cricket compile this empty tree to make sure everything works
-so far::
+To test that things work so far, have Cricket compile its configuration::
 
   sudo -u navcron cricket-compile
+  [16-Nov-2012 15:22:22 ] Starting compile: Cricket version 1.0.5 (2004-03-28)
+  [16-Nov-2012 15:22:22 ] Config directory is PATH_TO_NAV/etc/cricket-config
+  [16-Nov-2012 15:22:23 ] Processed x nodes (in x files) in x seconds.
 
-NAV's :program:`mcc` program will generate a new version of the configuration
-tree every night around 5 am.  You kan manually update the configuration once
-you've seeded a bunch of devices into NAV and NAV has found their interfaces,
-instead of waiting till 5 am, by issuing the command::
+NAV will generate a new version of the configuration tree every night. You kan
+manually generate the configuration (once you've seeded some devices into NAV)
+by issuing the command::
 
-  sudo -u navcron /usr/local/nav/bin/mcc.py
+  sudo -u navcron PATH_TO_NAV/bin/mcc.py
 
 
 Integrating the Cricket web interface
@@ -283,17 +244,13 @@ symlink Cricket's CGI scripts into a directory under NAV's document root.
 Change directories to the one containing Cricket's CGI scripts and run the
 following::
 
-  sudo mkdir /usr/local/nav/share/htdocs/cricket
-  sudo ln -s $PWD/grapher.cgi /usr/local/nav/share/htdocs/cricket/
-  sudo ln -s $PWD/mini-graph.cgi  /usr/local/nav/share/htdocs/cricket/
-  cd /usr/local/nav/share/htdocs/cricket
+  sudo mkdir PATH_TO_NAV/share/htdocs/cricket
+  sudo ln -s $PWD/grapher.cgi PATH_TO_NAV/share/htdocs/cricket/
+  sudo ln -s $PWD/mini-graph.cgi  PATH_TO_NAV/share/htdocs/cricket/
+  sudo ln -s $PWD/images PATH_TO_NAV/share/htdocs/cricket
+  cd PATH_TO_NAV/share/htdocs/cricket
   sudo ln -s grapher.cgi index.cgi
-  sudo cp /usr/local/nav/doc/cricket/public_html/cricket.css .
-
-Also, find Cricket's images directory and symlink that as well::
-
-  sudo ln -s $PWD/images /usr/local/nav/share/htdocs/cricket
-
+  sudo cp PATH_TO_NAV/doc/cricket/cricket.css .
 
 You should now have a completely installed and integrated NAV. For a guide on
 how to get started using NAV, please refer to the :doc:`getting-started`

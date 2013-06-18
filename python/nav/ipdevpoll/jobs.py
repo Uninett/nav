@@ -22,7 +22,7 @@ import threading
 import gc
 from itertools import cycle
 
-from twisted.internet import defer, threads, reactor
+from twisted.internet import defer, reactor
 from twisted.internet.error import TimeoutError
 
 from nav.ipdevpoll import ContextLogger
@@ -43,6 +43,11 @@ class AbortedJobError(Exception):
     def __init__(self, msg, cause=None):
         Exception.__init__(self, msg, cause)
         self.cause = cause
+
+    def __str__(self):
+        return (str(self.args[0]) +
+                (" (cause=%r)" % self.cause if self.cause else ""))
+
 
 class SuggestedReschedule(AbortedJobError):
     """Can be raised by plugins to abort and reschedule a job at a specific
@@ -177,7 +182,9 @@ class JobHandler(object):
         def log_plugin_failure(failure, plugin_instance):
             if failure.check(TimeoutError, defer.TimeoutError):
                 self._logger.debug("Plugin %s reported a timeout",
-                                   plugin_instance)
+                                   plugin_instance.alias,exc_info=True)
+                raise AbortedJobError(
+                    "Plugin %s reported a timeout" % plugin_instance.alias)
             elif failure.check(SuggestedReschedule):
                 self._logger.debug("Plugin %s suggested a reschedule in "
                                    "%d seconds",
@@ -358,7 +365,7 @@ class JobHandler(object):
             # Do cleanup for the known container classes.
             self.cleanup_containers_after_save()
 
-        df = threads.deferToThread(complete_save_cycle)
+        df = db.run_in_thread(complete_save_cycle)
         return df
 
     def prepare_containers_for_save(self):

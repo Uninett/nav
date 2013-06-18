@@ -117,7 +117,7 @@ class BulkParser(object):
 
 class CommentStripper(object):
     """Iterator that strips comments from the input iterator"""
-    COMMENT_PATTERN = re.compile('\W*#[^\n\r]*')
+    COMMENT_PATTERN = re.compile(r'\W*#[^\n\r]*')
 
     def __init__(self, source_iterator):
         self.source_iterator = source_iterator
@@ -191,7 +191,8 @@ class PrefixBulkParser(BulkParser):
 class RoomBulkParser(BulkParser):
     """Parses the room bulk format"""
     format = ('roomid',
-              'locationid', 'descr', 'opt1', 'opt2', 'opt3', 'opt4')
+              'locationid', 'descr',
+              'opt1', 'opt2', 'opt3', 'opt4', 'position')
     required = 1
 
 class ServiceBulkParser(BulkParser):

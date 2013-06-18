@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,11 +17,13 @@
 
 import gc
 from pprint import pformat
+from twisted.internet import threads
 # django already has a workaround for "no functools on py2.4"
 from django.utils.functional import wraps
 
 import django.db
 from django.db import transaction
+from psycopg2 import InterfaceError
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -129,3 +131,28 @@ def cleanup_django_debug_after(func):
         finally:
             django_debug_cleanup()
     return wraps(func)(_cleanup)
+
+
+def run_in_thread(func, *args, **kwargs):
+    """Runs a synchronous function in a thread, with special handling of
+    database errors.
+
+    """
+    return threads.deferToThread(reset_connection_on_interface_error(func),
+                                 *args, **kwargs)
+
+
+def reset_connection_on_interface_error(func):
+    """Decorates function to reset the current thread's Django database
+    connection on exceptions that appear to come from connection resets.
+
+    """
+    def _reset(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except InterfaceError:
+            _logger.warning("it appears the database connection was dropped, "
+                            "resetting")
+            django.db.connection.connection = None
+            raise
+    return wraps(func)(_reset)

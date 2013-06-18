@@ -16,11 +16,12 @@
 """PortAdmin Django URL config"""
 
 from django.conf.urls.defaults import patterns, url
-from nav.web.portadmin.views import index, search_by_ip, search_by_sysname
-from nav.web.portadmin.views import search_by_interfaceid, save_interfaceinfo
+from nav.web.portadmin.views import (index, search_by_ip, search_by_sysname,
+                                     search_by_interfaceid,
+                                     save_interfaceinfo, render_trunk_edit)
 
 urlpatterns = patterns('',
-    url(r'^$', index),
+    url(r'^$', index, name='portadmin-index'),
 
     url(r'^ip=(?P<ip>[\d\.]+)', search_by_ip,
         name='portadmin-ip'),
@@ -30,4 +31,7 @@ urlpatterns = patterns('',
         name='portadmin-interface'),
 
     url(r'^save_interfaceinfo', save_interfaceinfo),
-   )
+    url(r'^trunk/(?P<interfaceid>\d+)', render_trunk_edit,
+        name="portadmin-render-trunk-edit"),
+
+)

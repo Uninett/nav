@@ -17,29 +17,14 @@
 """
 Contains web authentication functionality for NAV.
 """
-import base64, urllib
-import sys, os, re
-import nav
+import urllib
+import os
 import logging
 
-from nav.django.utils import get_account, is_admin
-from nav.web import state, ldapauth
-from nav.models.profiles import Account, AccountNavbar, NavbarLink
+from nav.web import ldapauth
+from nav.models.profiles import Account, AccountNavbar
 
 logger = logging.getLogger("nav.web.auth")
-
-def redirectToLogin(req):
-    """
-    Takes the supplied request and redirects it to the NAV login page.
-    """
-    from nav import web
-    if 'X-NAV-AJAX' in req.headers_in:
-        from mod_python import apache
-        raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
-    else:
-        web.redirect(req,
-                 '/index/login?origin=%s' % urllib.quote(req.unparsed_uri),
-                 temporary=True)
 
 # FIXME Should probably be refactored out if this file, as it does not directly
 # have anything to do with authentication.
@@ -76,40 +61,6 @@ def _find_user_preferences(user, req):
         if req:
             req.session.save() # remember this to next time
 
-def authorize(req):
-    '''Authorize the request from the user.
-    Returns True if the user was authorized, else False.
-    '''
-    if not req.session.has_key('user'):
-        # If no Account object is registered with this session, we
-        # load and register the default Account (which is almost a
-        # synonym for Anonymous user)
-        account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
-        req.session['user'] = {
-            'id': account.id,
-            'login': account.login,
-            'name': account.name,
-        }
-    else:
-        account = Account.objects.get(id=req.session['user']['id'])
-
-    user = req.session['user']
-    logger.debug("Request for %s authenticated as user=%s", req.unparsed_uri,
-                 user['login'])
-    _find_user_preferences(user, req)
-
-    # Now we can check if the user is authorized for this request.
-    authorized = account.has_perm('web_access', req.unparsed_uri)
-    if not authorized:
-        logger.warn("User %s denied access to %s", user['login'],
-                    req.unparsed_uri)
-        return False
-    else:
-        if not user['id'] == 0:
-            os.environ['REMOTE_USER'] = user['login']
-        elif os.environ.has_key('REMOTE_USER'):
-            del os.environ['REMOTE_USER']
-        return True
 
 def authenticate(username, password):
     '''Authenticate username and password against database.
@@ -159,69 +110,3 @@ def authenticate(username, password):
         return account
     else:
         return None
-
-def login(request, account):
-    '''Set user as authenticated in the session object.
-    Will fail if user is not authenticated first.
-    '''
-    # Invalidate old sessions
-    if request.session.has_key('user'):
-        del request.session['user']
-        request.session.save()
-
-    request.session['user'] = {
-        'id': account.id,
-        'login': account.login,
-        'name': account.name,
-    }
-    request.session.save()
-
-def logout(request):
-    '''Removes session object for this user.
-    In effect, this is the same as logging out.
-    '''
-    del request.session
-    state.deleteSessionCookie(request)
-
-def sudo(request, other_user):
-    current_user = request._req.session['user']
-    if current_user.has_key('sudoer'):
-        # Already logged in as another user.
-        raise SudoRecursionError()
-    if not is_admin(get_account(request)):
-        # Check if sudoer is acctually admin
-        raise SudoNotAdminError()
-    request._req.session['user'] = {
-        'id': other_user.id,
-        'login': other_user.login,
-        'name': other_user.name,
-        'sudoer': current_user,
-    }
-    request._req.session.save()
-
-def desudo(request):
-    current_user = request._req.session['user']
-    if not current_user.has_key('sudoer'):
-        # We are not sudoing
-        return
-
-    original_user = current_user['sudoer']
-
-    del request._req.session['user']
-    request._req.session.save()
-    request._req.session['user'] = {
-        'id': original_user['id'],
-        'login': original_user['login'],
-        'name': original_user['name'],
-    }
-    request._req.session.save()
-
-class SudoRecursionError(Exception):
-    msg = u"Already posing as another user"
-    def __unicode__(self):
-        return self.msg
-
-class SudoNotAdminError(Exception):
-    msg = u"Not admin"
-    def __unicode__(self):
-        return self.msg

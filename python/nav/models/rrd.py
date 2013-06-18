@@ -24,7 +24,7 @@ from nav.models.event import Subsystem
 from nav.models.manage import Netbox, Interface
 from nav.models.fields import VarcharField, LegacyGenericForeignKey
 
-PERCENT_REGEXP = re.compile('^(\d+(\.\d+)?)%+$', re.UNICODE)
+PERCENT_REGEXP = re.compile(r'^(\d+(\.\d+)?)%+$', re.UNICODE)
 
 class RrdFile(models.Model):
     """From NAV Wiki: The rrd_file contains meta information on all RRD files

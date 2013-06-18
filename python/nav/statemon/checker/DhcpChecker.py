@@ -14,6 +14,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""DHCP service checker"""
 
 import os
 import subprocess
@@ -22,37 +23,47 @@ from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.util import which, is_setuid_root
 
+
 class DhcpChecker(AbstractChecker):
+    """DHCP"""
+    TYPENAME = "dhcp"
+    DESCRIPTION = "DHCP"
+    OPTARGS = (
+        ('timeout', ''),
+    )
+
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, "dhcp", service, port=0, **kwargs)
+        AbstractChecker.__init__(self, service, port=0, **kwargs)
 
     def execute(self):
-        ip, port = self.getAddress()
+        ip, _port = self.getAddress()
         timeout = self.getTimeout()
         
         cmd = 'dhcping'
 
         path = which(cmd)
         if not path:
-            return Event.DOWN, 'Command %s not found in %s' % (cmd, os.environ['PATH'])
+            return (Event.DOWN,
+                    'Command %s not found in %s' % (cmd, os.environ['PATH']))
 
         if not is_setuid_root(path):
             return Event.DOWN, '%s must be setuid root' % path
 
         try:
-            p = subprocess.Popen([path,
-                                  '-i',  # Use an inform packet so we don't have to be valid client
-                                  '-s', ip,
-                                  '-t', str(timeout),  # Timeout in seconds
-                                  ],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            p.wait()
+            proc = subprocess.Popen(
+                [path,
+                 '-i',  # Use inform packet so we don't have to be valid client
+                 '-s', ip,
+                 '-t', str(timeout),  # Timeout in seconds
+                 ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+            proc.wait()
 
-            stdout = p.stdout.read()
-            stderr = p.stderr.read()
+            proc.stdout.read()
+            stderr = proc.stderr.read()
 
-            if p.returncode != 0:
+            if proc.returncode != 0:
                 return Event.DOWN, repr(stderr.strip())
         except IOError, msg:
             return Event.DOWN, 'Could not run dhcping: %s' % msg

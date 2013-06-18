@@ -37,10 +37,9 @@ def move(request, model, form_model, redirect, title_attr='id',                 
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
     if not len(request.POST.getlist('object')):
-        new_message(
-            request._req,
-            "You need to select at least one object to edit",
-            Messages.ERROR)
+        new_message(request,
+                    "You need to select at least one object to edit",
+                    Messages.ERROR)
         return HttpResponseRedirect(reverse(redirect))
 
     data = None
@@ -89,11 +88,11 @@ def move(request, model, form_model, redirect, title_attr='id',                 
             if foreign_key_string == "":
                 foreign_key_string = "nothing"
 
-            new_message(
-                request._req,
-                "Changed %s on %i %s models" %
-                (foreign_key_string, len(objects), verbose_name),
-                Messages.SUCCESS)
+            new_message(request,
+                        "Changed %s on %i %s models" % (foreign_key_string,
+                                                        len(objects),
+                                                        verbose_name),
+                        Messages.SUCCESS)
 
             return HttpResponseRedirect(reverse(redirect))
 

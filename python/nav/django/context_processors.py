@@ -18,8 +18,9 @@
 """Context processors for NAV."""
 
 from django.conf import settings
+from nav.django.auth import get_sudoer
 
-from nav.django.utils import get_account, is_admin, sudoer
+from nav.django.utils import get_account, is_admin
 from nav.web.message import new_message, Messages
 from nav.web.webfront.utils import tool_list
 from nav.models.profiles import AccountNavbar
@@ -49,9 +50,9 @@ def account_processor(request):
     """
     account = get_account(request)
     admin = is_admin(account)
-    messages = Messages(request._req)
+    messages = Messages(request)
     messages = messages.get_and_delete()
-    sudo = sudoer(request._req)
+    sudo = get_sudoer(request)
 
     navbar = []
     qlink1 = []

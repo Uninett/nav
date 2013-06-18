@@ -1,0 +1,6 @@
+Subject: Hardware version changed for ({{netbox.sysname}})
+
+Hardware version changed to:
+    {{new_hwver}}
+from:
+    {{old_hwver}}

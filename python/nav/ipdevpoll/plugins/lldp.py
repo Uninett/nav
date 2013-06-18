@@ -16,13 +16,13 @@
 "ipdevpoll plugin to collect LLDP neighbors"
 from pprint import pformat
 
-from twisted.internet import defer, threads
+from twisted.internet import defer
 
 from nav.models import manage
 from nav.mibs.lldp_mib import LLDPMib
 from nav.ipdevpoll import Plugin, shadows
 from nav.ipdevpoll.neighbor import LLDPNeighbor, filter_duplicate_neighbors
-from nav.ipdevpoll.db import autocommit
+from nav.ipdevpoll.db import autocommit, run_in_thread
 from nav.ipdevpoll.timestamps import TimestampChecker
 
 INFO_VAR_NAME = 'lldp'
@@ -44,7 +44,7 @@ class LLDP(Plugin):
     @defer.inlineCallbacks
     def can_handle(cls, netbox):
         daddy_says_ok = super(LLDP, cls).can_handle(netbox)
-        has_ifcs = yield threads.deferToThread(cls._has_interfaces, netbox)
+        has_ifcs = yield run_in_thread(cls._has_interfaces, netbox)
         defer.returnValue(has_ifcs and daddy_says_ok)
 
     @classmethod
@@ -62,7 +62,7 @@ class LLDP(Plugin):
             self.remote = yield mib.get_remote_table()
             if self.remote:
                 self._logger.debug("LLDP neighbors:\n %s", pformat(self.remote))
-            yield threads.deferToThread(self._process_remote)
+            yield run_in_thread(self._process_remote)
 
         stampcheck.save()
 

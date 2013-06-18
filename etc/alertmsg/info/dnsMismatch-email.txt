@@ -1,0 +1,4 @@
+Subject: DNS Mismatch ({{dnsname}})
+
+Reverse DNS for {{netbox.ip}} is {{dnsname}}; does not match reported sysname
+{{snmpsysname}}.

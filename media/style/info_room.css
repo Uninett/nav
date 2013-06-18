@@ -59,3 +59,13 @@ img.textbottom {
     padding: 1em;
     margin: 1em 0;
 }
+
+
+/* Slider styles */
+.slider-wrapper {
+    width: 600px;
+}
+
+#roominfo .infobox {
+    float: left;
+}

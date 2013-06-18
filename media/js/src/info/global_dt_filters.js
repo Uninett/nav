@@ -7,22 +7,9 @@ define(['libs/jquery.dataTables.min'], function () {
     var tables = [];
     var primary_node = '';
 
-    var filters = {
-        last_seen: {
-            name: 'Last Seen',
-            node: 'lastseenfilter',
-            runner: filter_last_seen
-        },
-        vlan: {
-            name: 'Vlan',
-            node: 'vlanfilter',
-            runner: filter_vlan
-        }
-    };
-
     function add_filters(node, input_tables, secondary_filters) {
         if (!node) {
-            throw Error('Need node to attach primary filter to');
+            throw new Error('Need node to attach primary filter to');
         }
         add_primary_filter(node, input_tables);
         add_secondary_filters(secondary_filters);
@@ -45,8 +32,8 @@ define(['libs/jquery.dataTables.min'], function () {
         var words = input.split(' ');
         var notkeywords = [];
         for (var i=0; i<words.length; i++) {
-            if (words[i].slice(0, 1) != '$') {
-                notkeywords.push(words[i])
+            if (words[i].slice(0, 1) !== '$') {
+                notkeywords.push(words[i]);
             }
         }
         return notkeywords.join(' ');
@@ -64,10 +51,10 @@ define(['libs/jquery.dataTables.min'], function () {
             var filter = filters_to_enable[i];
 
             if (!filters[filter]) {
-                throw Error('filter ' + filter + ' does not exist.')
+                throw new Error('filter ' + filter + ' does not exist.');
             }
 
-            register_filter(filters[filter])
+            register_filter(filters[filter]);
         }
     }
 
@@ -96,7 +83,7 @@ define(['libs/jquery.dataTables.min'], function () {
     function filter_vlan(oSettings, aData, iDataIndex) {
         var vlan = get_keyword(/\$vlan:\w+/) || getInputValue(filters.vlan.node);
         if (vlan) {
-            return vlan == aData[3];
+            return vlan === aData[3];
         }
         return true;
     }
@@ -144,6 +131,18 @@ define(['libs/jquery.dataTables.min'], function () {
         return /trunk/i.test(cell);
     }
 
+    var filters = {
+        last_seen: {
+            name: 'Last Seen',
+            node: 'lastseenfilter',
+            runner: filter_last_seen
+        },
+        vlan: {
+            name: 'Vlan',
+            node: 'vlanfilter',
+            runner: filter_vlan
+        }
+    };
 
     return {
         add_filters: add_filters,

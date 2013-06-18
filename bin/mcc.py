@@ -7,13 +7,10 @@ from subprocess import PIPE, Popen
 
 from nav.path import localstatedir, sysconfdir
 from nav.mcc.utils import start_config_creation
+from nav.logs import init_file_logging
 
 if __name__ == '__main__':
-    # Create logger, log to nav's logdir
-    logging.basicConfig(level=logging.DEBUG,
-                        filename=join(localstatedir, 'log/mcc.log'),
-                        filemode='w',
-                        format='%(asctime)s: [%(levelname)s] %(name)s - %(message)s')
+    init_file_logging(join(localstatedir, 'log/mcc.log'))
 
     # Read config
     config = ConfigParser.ConfigParser()
@@ -22,17 +19,10 @@ if __name__ == '__main__':
     modulestring = config.get('mcc', 'modules')
     modules = [x.strip() for x in modulestring.split(',')]
 
-    # Start logging, set loglevel
-    logger = logging.getLogger('mcc')
-    loglevel = config.get('mcc', 'loglevel')
-    try:
-        logger.setLevel(int(loglevel))
-    except Exception:
-        logger.setLevel(logging.getLevelName(loglevel.upper()))
+    # Start logging
+    logger = logging.getLogger('nav.mcc')
 
-    logger.info("Loglevel set to %s" % logger.getEffectiveLevel())
-
-    logger.info("Starting mcc")
+    logger.info("=============== Starting mcc ===============")
     starttime = time.time()
 
     # Start the collection modules
@@ -45,7 +35,8 @@ if __name__ == '__main__':
         output = Popen(['cricket-compile'], stderr=PIPE).communicate()[1]
         logger.debug("Output from cricket-compile\n%s" % output)
     except Exception:
-        logger.error("Could not run cricket-compile, make sure it is located in $PATH")
+        logger.error(
+            "Could not run cricket-compile, make sure it is located in $PATH")
 
     endtime = time.time()
     timeused = endtime - starttime

@@ -1,0 +1,13 @@
+{% extends 'arnold/base.html' %}
+
+{% block content %}
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+    <form action="{% url arnold-manual-detention %}" method="POST">
+        {{ form.as_p }}
+        <input type="submit" value="Go to step 2">
+    </form>
+
+{% endblock %}

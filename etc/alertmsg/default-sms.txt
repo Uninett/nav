@@ -1,0 +1,1 @@
+{{event_type}}/{{ alert_type }} on {{ netbox.sysname }} (ERROR: no msg template defined)

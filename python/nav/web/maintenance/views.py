@@ -14,7 +14,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from datetime import datetime, date, timedelta
+import logging
+
+import time
+from datetime import datetime, date
 
 from django.core.urlresolvers import reverse
 from django.db import transaction, connection
@@ -25,16 +28,25 @@ from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 
 from nav.django.utils import get_account
+from nav.models.manage import Netbox
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 
-from nav.web.maintenance.utils import components_for_keys, task_component_trails
+from nav.web.maintenance.utils import components_for_keys
+from nav.web.maintenance.utils import task_component_trails
 from nav.web.maintenance.utils import get_component_keys, PRIMARY_KEY_INTEGER
 from nav.web.maintenance.utils import structure_component_data
 from nav.web.maintenance.utils import task_form_initial, infodict_by_state
 from nav.web.maintenance.utils import MaintenanceCalendar, NAVPATH, TITLE
 from nav.web.maintenance.forms import MaintenanceTaskForm
+from nav.web.maintenance.forms import MaintenanceAddSingleNetbox
+import nav.maintengine
+
+INFINITY = datetime.max
+LOGGER_NAME = 'nav.web.maintenance'
+
+logger = logging.getLogger(LOGGER_NAME)
 
 def calendar(request, year=None, month=None):
     try:
@@ -60,10 +72,9 @@ def calendar(request, year=None, month=None):
 
     prev_month_start = date(prev_year, prev_month, 1)
     next_month_start = date(next_year, next_month, 1)
-    tasks = MaintenanceTask.objects.filter(
-        end_time__gt=this_month_start,
-        start_time__lt=next_month_start,
-    ).exclude(state=MaintenanceTask.STATE_CANCELED).order_by('start_time')
+    tasks = MaintenanceTask.objects.filter(start_time__gt=this_month_start
+        ).filter(start_time__lt=next_month_start
+        ).exclude(state=MaintenanceTask.STATE_CANCELED).order_by('start_time')
     cal = MaintenanceCalendar(tasks).formatmonth(year, month)
     return render_to_response(
         'maintenance/calendar.html',
@@ -80,13 +91,32 @@ def calendar(request, year=None, month=None):
         RequestContext(request)
     )
 
+
 def active(request):
     tasks = MaintenanceTask.objects.filter(
         start_time__lt=datetime.now(),
         end_time__gt=datetime.now(),
-        state__in=(MaintenanceTask.STATE_SCHEDULED, MaintenanceTask.STATE_ACTIVE),
+        state__in=(MaintenanceTask.STATE_SCHEDULED,
+                    MaintenanceTask.STATE_ACTIVE),
     ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
+    for task in tasks:
+        # Tasks that have only one component should show a link
+        # directly to the device instead of a number.
+        if task.component_count == 1:
+            maint_components = MaintenanceComponent.objects.filter(
+                maintenance_task=task, key='netbox')
+            if len(maint_components) == 1:
+                netbox = None
+                netbox_id = maint_components[0].value
+                try:
+                    netbox = Netbox.objects.get(pk=int(netbox_id))
+                except Exception, get_ex:
+                    logger.error('Get netbox %s failed; Exception = %s' %
+                                 (netbox_id, get_ex.message))
+                    continue
+                task.netbox = netbox
+
     return render_to_response(
         'maintenance/list.html',
         {
@@ -98,11 +128,13 @@ def active(request):
         RequestContext(request)
     )
 
+
 def planned(request):
     tasks = MaintenanceTask.objects.filter(
         start_time__gt=datetime.now(),
         end_time__gt=datetime.now(),
-        state__in=(MaintenanceTask.STATE_SCHEDULED, MaintenanceTask.STATE_ACTIVE),
+        state__in=(MaintenanceTask.STATE_SCHEDULED,
+                    MaintenanceTask.STATE_ACTIVE),
     ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
@@ -116,10 +148,12 @@ def planned(request):
         RequestContext(request)
     )
 
+
 def historic(request):
     tasks = MaintenanceTask.objects.filter(
         Q(end_time__lt=datetime.now()) |
-        Q(state__in=(MaintenanceTask.STATE_CANCELED, MaintenanceTask.STATE_PASSED))
+        Q(state__in=(MaintenanceTask.STATE_CANCELED,
+                        MaintenanceTask.STATE_PASSED))
     ).order_by('-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render_to_response(
@@ -132,6 +166,7 @@ def historic(request):
         },
         RequestContext(request)
     )
+
 
 def view(request, task_id):
     task = get_object_or_404(MaintenanceTask, pk=task_id)
@@ -161,14 +196,15 @@ def view(request, task_id):
         RequestContext(request)
     )
 
+
 def cancel(request, task_id):
     task = get_object_or_404(MaintenanceTask, pk=task_id)
     if request.method == 'POST':
         task.state = 'canceled'
         task.save()
-        new_message(request._req,
-            "This task is now cancelled.", Messages.SUCCESS)
-        return HttpResponseRedirect(reverse('maintenance-view', args=[task_id]))
+        new_message(request, "This task is now cancelled.", Messages.SUCCESS)
+        return HttpResponseRedirect(reverse('maintenance-view',
+                                                args=[task_id]))
     else:
         infodict = infodict_by_state(task)
         return render_to_response(
@@ -182,6 +218,7 @@ def cancel(request, task_id):
             RequestContext(request)
         )
 
+
 @transaction.commit_on_success()
 def edit(request, task_id=None, start_time=None):
     account = get_account(request)
@@ -193,13 +230,16 @@ def edit(request, task_id=None, start_time=None):
 
     if task_id:
         task = get_object_or_404(MaintenanceTask, pk=task_id)
-    task_form = MaintenanceTaskForm(initial=task_form_initial(task, start_time))
+    task_form = MaintenanceTaskForm(
+                    initial=task_form_initial(task, start_time))
 
     if request.method == 'POST':
         component_keys = get_component_keys(request.POST)
     elif task:
-        component_keys = {'service': [], 'netbox': [], 'room': [], 'location': []}
-        for key, value in task.maintenancecomponent_set.values_list('key', 'value'):
+        component_keys = {'service': [], 'netbox': [],
+                          'room': [], 'location': []}
+        for key, value in task.maintenancecomponent_set.values_list('key',
+                                                                    'value'):
             if key in PRIMARY_KEY_INTEGER:
                 value = int(value)
             component_keys[key].append(value)
@@ -210,8 +250,10 @@ def edit(request, task_id=None, start_time=None):
         component_data = components_for_keys(component_keys)
         components = structure_component_data(component_data)
         component_trail = task_component_trails(component_keys, components)
-        num_components += len(component_data['service']) + len(component_data['netbox'])
-        num_components += len(component_data['room']) + len(component_data['location'])
+        num_components += (len(component_data['service'])
+                                + len(component_data['netbox']))
+        num_components += (len(component_data['room'])
+                                + len(component_data['location']))
 
     if request.method == 'POST':
         if 'save' in request.POST:
@@ -219,13 +261,18 @@ def edit(request, task_id=None, start_time=None):
             if task_form.is_valid() and num_components > 0:
                 start_time = task_form.cleaned_data['start_time']
                 end_time = task_form.cleaned_data['end_time']
+                no_end_time = task_form.cleaned_data['no_end_time']
                 state = MaintenanceTask.STATE_SCHEDULED
-                if start_time < datetime.now() and end_time <= datetime.now():
+                if (start_time < datetime.now() and end_time
+                            and end_time <= datetime.now()):
                     state = MaintenanceTask.STATE_SCHEDULED
 
                 new_task = MaintenanceTask()
                 new_task.start_time = task_form.cleaned_data['start_time']
-                new_task.end_time = task_form.cleaned_data['end_time']
+                if no_end_time:
+                    new_task.end_time = INFINITY
+                elif not no_end_time and end_time:
+                    new_task.end_time = task_form.cleaned_data['end_time']
                 new_task.description = task_form.cleaned_data['description']
                 new_task.state = state
                 new_task.author = account.login
@@ -235,7 +282,9 @@ def edit(request, task_id=None, start_time=None):
 
                 if task:
                     cursor = connection.cursor()
-                    cursor.execute("DELETE FROM maint_component WHERE maint_taskid = %s", (new_task.id,))
+                    sql = """DELETE FROM maint_component
+                                WHERE maint_taskid = %s"""
+                    cursor.execute(sql, (new_task.id,))
                     transaction.set_dirty()
                 for key in component_data:
                     for component in component_data[key]:
@@ -244,12 +293,13 @@ def edit(request, task_id=None, start_time=None):
                             key=key,
                             value="%s" % component['id'])
                         task_component.save()
-                new_message(request._req,
-                    "Saved task %s" % new_task.description, Messages.SUCCESS)
-                return HttpResponseRedirect(reverse('maintenance-view', args=[new_task.id]))
+                new_message(request,
+                            "Saved task %s" % new_task.description,
+                            Messages.SUCCESS)
+                return HttpResponseRedirect(reverse('maintenance-view',
+                                                    args=[new_task.id]))
             if num_components <= 0:
-                new_message(request._req,
-                    "No components selected.", Messages.ERROR)
+                new_message(request, "No components selected.", Messages.ERROR)
         else:
             task_form = MaintenanceTaskForm(initial=request.POST)
 
@@ -273,3 +323,56 @@ def edit(request, task_id=None, start_time=None):
         },
         RequestContext(request)
     )
+
+
+def add_box_to_maintenance(request):
+    """A method that should get called to set a single netbox on
+    maintenance.  This method expects to get the netbox-identity
+    (or primary key) posted in the variable 'netboxid'."""
+    before = time.clock()
+    account = get_account(request)
+    if request.method == 'POST':
+        netboxid_form = MaintenanceAddSingleNetbox(request.POST)
+        if netboxid_form.is_valid():
+            netbox_id = netboxid_form.cleaned_data['netboxid']
+            netbox = get_object_or_404(Netbox, pk=netbox_id)
+
+            # Check if device is already on maintenance
+            already_on_maint = MaintenanceComponent.objects.filter(key='netbox',
+                        value=str(netbox.id),
+                        maintenance_task__state=MaintenanceTask.STATE_ACTIVE,
+                        maintenance_task__end_time=datetime.max)
+            if len(already_on_maint) == 0:
+                # Box is not on maintenance
+                logger.debug('Adding maintenance task...')
+                maint_task = MaintenanceTask()
+                maint_task.start_time = datetime.now()
+                maint_task.end_time = INFINITY
+                descr = ("On maintenance till up again; set " +
+                        "from status page by user %s" % account.login)
+                maint_task.description = descr
+                maint_task.author = account.login
+                maint_task.state = MaintenanceTask.STATE_SCHEDULED
+                maint_task.save()
+
+                logger.debug('Maintenance task %d; Adding component %s (id=%d)' %
+                             (maint_task.id, netbox.sysname, netbox.id))
+                maint_component = MaintenanceComponent()
+                maint_component.maintenance_task = maint_task
+                maint_component.key = 'netbox'
+                maint_component.value = '%d' % netbox.id
+                maint_component.save()
+
+                logger.debug('Run maintenance checker')
+                nav.maintengine.get_logger(LOGGER_NAME)
+                nav.maintengine.check_devices_on_maintenance()
+                logger.debug('Maintenance checker finished')
+
+                logger.debug('Add netbox to maintenance finished in %.3fs' %
+                             (time.clock() - before))
+            else:
+                # What should we do here?
+                logger.error('Netbox %s (id=%d) is already on maintenance' %
+                             (netbox.sysname, netbox.id))
+    return HttpResponseRedirect(reverse('status-index'))
+

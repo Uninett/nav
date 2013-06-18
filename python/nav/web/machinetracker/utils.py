@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -9,26 +8,36 @@
 # the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Common utility functions for Machine Tracker"""
 
-import re
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from socket import gethostbyaddr, herror
 from IPy import IP
 
-from django.utils.datastructures import SortedDict
-
 from nav import asyncdns
 from nav.models.manage import Prefix
+from nav.ipdevpoll.db import commit_on_success
+
+from django.utils.datastructures import SortedDict
+from django.db import DatabaseError
 
 _cached_hostname = {}
+
+
 def hostname(ip):
+    """
+    Performs a DNS reverse lookup for an IP address and caches the result in
+    a global variable, which is really, really stupid.
+
+    :param ip: And IP address string.
+    :returns: A hostname string or a False value if the lookup failed.
+
+    """
     addr = unicode(ip)
     if addr in _cached_hostname:
         return _cached_hostname[addr]
@@ -41,26 +50,67 @@ def hostname(ip):
     _cached_hostname[addr] = dns[0]
     return dns[0]
 
-def from_to_ip(from_ip, to_ip):
-    from_ip = IP(from_ip)
-    if to_ip:
-        to_ip = IP(to_ip)
-    else:
-        to_ip = from_ip
-    return (from_ip, to_ip)
 
+@commit_on_success
 def get_prefix_info(addr):
+    """Returns the smallest prefix from the NAVdb that an IP address fits into.
+
+    :param addr: An IP address string.
+    :returns: A Prefix object or None if no prefixes matched.
+
+    """
     try:
         return Prefix.objects.select_related().extra(
-        select={"mask_size": "masklen(netaddr)"},
-        where=["%s << netaddr AND nettype <> 'scope'"],
-        order_by=["-mask_size"],
-        params=[addr])[0]
-    except:
+            select={"mask_size": "masklen(netaddr)"},
+            where=["%s << netaddr AND nettype <> 'scope'"],
+            order_by=["-mask_size"],
+            params=[addr]
+        )[0]
+    except (IndexError, DatabaseError):
         return None
+
+def get_last_job_log_from_netboxes(rows, job_type):
+    """Returns a dict with netbox object as key and job_log object as value.
+    
+    Takes rows and a job type as parameters.
+    The rows should needs a .netbox object on them from eg. CAM or ARP.
+    The job_type is a string with job type such as 'ip2mac' or 'topo'
+
+    """ 
+    netboxes_job = dict((row.netbox,None) for row in rows)
+    for netbox in netboxes_job:
+        netboxes_job[netbox] = netbox.job_log.filter(job_name=job_type).order_by('-end_time')[0]
+    return netboxes_job
+
+
+def normalize_ip_to_string(ipaddr):
+    """Normalizes an IP address to a a sortable string.
+
+    When sending IP addresses to a browser and asking JavaScript to sort them
+    as strings, this function will help.
+
+    An IPv4 address will be normalized to '4' + <15-character dotted quad>.
+    An IPv6 address will be normalized to '6' + <39 character IPv6 address>
+
+    """
+    try:
+        ipaddr = IP(ipaddr)
+    except ValueError:
+        return ipaddr
+
+    if ipaddr.version() == 4:
+        quad = str(ipaddr).split('.')
+        return '4%s' % '.'.join([i.zfill(3) for i in quad])
+    else:
+        return '6%s' % ipaddr.strFullsize()
 
 
 def ip_dict(rows):
+    """Converts IP search result rows to a dict keyed by IP addresses.
+
+    :param rows: IP search result rows.
+    :return: A dict mapping IP addresses to matching result rows.
+    """
     result = SortedDict()
     for row in rows:
         ip = IP(row.ip)
@@ -69,25 +119,24 @@ def ip_dict(rows):
         result[ip].append(row)
     return result
 
+
 def process_ip_row(row, dns):
+    """Processes an IP search result row"""
     if row.end_time > datetime.now():
         row.still_active = "Still active"
     if dns:
         row.dns_lookup = hostname(row.ip) or ""
     return row
 
-def min_max_mac(mac):
-    """If max is shorter than 12 characters we pad the mac with 0 for the
-    min_mac and f for the max_mac.
 
-    Ie. if mac is 00:10:20:40
-    mac_min will be 00:10:20:40:00:00
-    mac_max will be 00:10:20:40:ff:ff
+def min_max_mac(prefix):
+    """Finds the minimum and maximum MAC addresses of a given prefix.
+
+    :returns: A tuple of (min_mac_string, max_mac_string)
+
     """
-    mac = re.sub("[^0-9a-fA-F]+", "", mac).lower()
-    mac_min = mac + '0' * (12 - len(mac))
-    mac_max = mac + 'f' * (12 - len(mac))
-    return (mac_min, mac_max)
+    return unicode(prefix[0]), unicode(prefix[-1])
+
 
 def track_mac(keys, resultset, dns):
     """Groups results from Query for the mac_search page.
@@ -98,32 +147,35 @@ def track_mac(keys, resultset, dns):
         dns         - should we lookup the hostname?
     """
     if dns:
-        ips_to_lookup = [row['ip'] for row in resultset]
+        ips_to_lookup = [row.ip for row in resultset]
         dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
 
     tracker = SortedDict()
     for row in resultset:
-        if row['end_time'] > datetime.now():
-            row['still_active'] = "Still active"
+        if row.end_time > datetime.now():
+            row.still_active = "Still active"
         if dns:
-            if not isinstance(dns_lookups[row['ip']], Exception):
-                row['dns_lookup'] = dns_lookups[row['ip']].pop()
+            ip = row['ip']
+            if dns_lookups[ip] and not isinstance(dns_lookups[ip], Exception):
+                row['dns_lookup'] = dns_lookups[ip].pop()
             else:
-                row['dns_lookup'] = ""
-        if 'module' not in row or not row['module']:
-            row['module'] = ''
-        if 'port' not in row or not row['port']:
-            row['port'] = ''
+                row.dns_lookup = ""
+        if not hasattr(row, 'module'):
+            row.module = ''
+        if not hasattr(row, 'port'):
+            row.port = ''
         key = []
         for k in keys:
-            key.append(row.get(k))
+            key.append(getattr(row,k))
         key = tuple(key)
         if key not in tracker:
             tracker[key] = []
         tracker[key].append(row)
     return tracker
 
+
 class ProcessInput:
+    """Some sort of search form input processing class. Who the hell knows."""
     def __init__(self, input):
         self.input = input.copy()
 
@@ -142,7 +194,8 @@ class ProcessInput:
         if self.input.get('prefixid', False):
             self.__prefix()
         self.__common()
-        if not self.input.get('active', False) and not self.input.get('inactive', False):
+        if not (self.input.get('active', False)
+                or self.input.get('inactive', False)):
             self.input['active'] = "on"
         return self.input
 
@@ -151,5 +204,9 @@ class ProcessInput:
         return self.input
 
     def swp(self):
+        self.__common()
+        return self.input
+
+    def netbios(self):
         self.__common()
         return self.input

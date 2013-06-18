@@ -15,13 +15,12 @@
 #
 "ipdevpoll plugin to collect CDP (Cisco Discovery Protocol) information"
 from twisted.internet import defer
-from twisted.internet.threads import deferToThread
 
 from nav.models import manage
 from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
 from nav.ipdevpoll.neighbor import CDPNeighbor, filter_duplicate_neighbors
-from nav.ipdevpoll.db import autocommit
+from nav.ipdevpoll.db import autocommit, run_in_thread
 from nav.ipdevpoll.timestamps import TimestampChecker
 
 INFO_VAR_NAME = 'cdp'
@@ -43,7 +42,7 @@ class CDP(Plugin):
     @defer.inlineCallbacks
     def can_handle(cls, netbox):
         daddy_says_ok = super(CDP, cls).can_handle(netbox)
-        has_ifcs = yield deferToThread(cls._has_interfaces, netbox)
+        has_ifcs = yield run_in_thread(cls._has_interfaces, netbox)
         defer.returnValue(has_ifcs and daddy_says_ok)
 
     @classmethod
@@ -62,7 +61,7 @@ class CDP(Plugin):
             if cache:
                 self._logger.debug("found CDP cache data: %r", cache)
                 self.cache = cache
-                yield deferToThread(self._process_cache)
+                yield run_in_thread(self._process_cache)
 
         stampcheck.save()
 

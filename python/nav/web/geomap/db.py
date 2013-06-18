@@ -31,7 +31,7 @@ import re
 from datetime import datetime, timedelta
 
 import nav
-from nav.config import readConfig
+from nav.config import read_flat_config
 import rrdtool
 from django.core.cache import cache
 
@@ -41,7 +41,10 @@ from nav.web.geomap.utils import *
 logger = logging.getLogger('nav.web.geomap.db')
 
 
-_nav_conf = readConfig('nav.conf')
+try:
+    _nav_conf = read_flat_config('nav.conf')
+except IOError:
+    _nav_conf = {}
 _domain_suffix = _nav_conf.get('DOMAIN_SUFFIX', None)
 
 
@@ -478,14 +481,14 @@ def rrd_args(time_interval):
 
 def validate_rrd_time(time):
     """Validate a time specification in RRDtool format."""
-    re_time = 'midnight|noon|teatime|\d\d([:.]\d\d)?([ap]m)?'
+    re_time = r'midnight|noon|teatime|\d\d([:.]\d\d)?([ap]m)?'
     re_day1 = 'yesterday|today|tomorrow'
     re_day2 = '(January|February|March|April|May|June|July|August|' + \
         'September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|' + \
-        'Aug|Sep|Oct|Nov|Dec) \d\d?( \d\d(\d\d)?)?'
-    re_day3 = '\d\d/\d\d/\d\d(\d\d)?'
-    re_day4 = '\d\d[.]\d\d[.]\d\d(\d\d)?'
-    re_day5 = '\d\d\d\d\d\d\d\d'
+        r'Aug|Sep|Oct|Nov|Dec) \d\d?( \d\d(\d\d)?)?'
+    re_day3 = r'\d\d/\d\d/\d\d(\d\d)?'
+    re_day4 = r'\d\d[.]\d\d[.]\d\d(\d\d)?'
+    re_day5 = r'\d\d\d\d\d\d\d\d'
     re_day6 = 'Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|' + \
         'Mon|Tue|Wed|Thu|Fri|Sat|Sun'
     re_day = '(%s)|(%s)|(%s)|(%s)|(%s)|(%s)' % \
@@ -495,7 +498,7 @@ def validate_rrd_time(time):
     re_offset_long = '(year|month|week|day|hour|minute|second)s?'
     re_offset_short = 'mon|min|sec'
     re_offset_single = 'y|m|w|d|h|s'
-    re_offset_no_sign = '\d+((%s)|(%s)|(%s))' % \
+    re_offset_no_sign = r'\d+((%s)|(%s)|(%s))' % \
         (re_offset_long, re_offset_short, re_offset_single)
     re_offset = '[+-](%s)([+-]?%s)*' % \
         (re_offset_no_sign, re_offset_no_sign)
@@ -511,7 +514,7 @@ def parse_rrd_time(time):
     is not understood.
 
     """
-    re_rrd = '(\d\d):(\d\d) (\d\d\d\d)(\d\d)(\d\d)'
+    re_rrd = r'(\d\d):(\d\d) (\d\d\d\d)(\d\d)(\d\d)'
     match = re.match(re_rrd, time)
     if match:
         return apply(datetime,

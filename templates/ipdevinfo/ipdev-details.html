@@ -17,6 +17,7 @@
 
         <ul>
             <li><a href="#deviceinfo">Device Info</a></li>
+            <li><a href="#neighbors">Neighbors</a></li>
             <li><a href="#ports">Ports</a></li>
             <li><a href="#datasources">Datasources</a></li>
             <li data-mark-as-error="{{ alert_info.has_unresolved_alerts }}">
@@ -24,18 +25,17 @@
             </li>
             <li><a href="#powerfans">Power and fans</a></li>
             <li><a href="#services">Services</a></li>
+            <li><a href="#hostinfo">DNS</a></li>
+            <li><a href="{% url ipdevinfo-affected netbox.id %}">Affected<span class="tab-spinner" >&nbsp;</span></a></li>
         </ul>
-
-        <div id="deviceinfo" class="multitable">
-            {% include "ipdevinfo/frag-ipdevinfo.html" %}
-            {% include "ipdevinfo/frag-hostinfo.html" %}
-        </div>
+        {% include "ipdevinfo/frag-ipdevinfo.html" %}
+        {% include "ipdevinfo/frag-neighbors.html" %}
         {% include "ipdevinfo/frag-ports.html" %}
         {% include "ipdevinfo/frag-datasources.html" %}
         {% include "ipdevinfo/frag-alerts.html" %}
         {% include "ipdevinfo/frag-powerfans.html" %}
         {% include "ipdevinfo/frag-services.html" %}
-
+        {% include "ipdevinfo/frag-hostinfo.html" %}
     </div>
 
 {% endblock %}

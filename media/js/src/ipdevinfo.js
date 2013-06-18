@@ -1,6 +1,5 @@
-require([
-    "plugins/table_utils", "plugins/tab_navigation", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
-], function (TableUtil, TabNavigation) {
+require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
+], function (TableUtil, TabNavigation, NeighborMap) {
 
     var mainTabsSelector = '#ipdevinfotabs';
     var moduleTabsSelector = '#moduletabs';
@@ -10,10 +9,17 @@ require([
         new TableUtil($('#hostinfo')).addRowToggleTrigger();
 
         NAV.addGlobalAjaxHandlers();
+
         if ($(mainTabsSelector).length !== 0) {
             addModuleTabs();
             addMainTabs();
         }
+
+        var $neighbornode = $('.neighbormap');
+        if ($neighbornode.length) {
+            new NeighborMap($neighbornode.get(0));
+        }
+
     });
 
     function addModuleTabs() {
@@ -26,7 +32,10 @@ require([
     }
 
     function addMainTabs() {
-        var tabs = $(mainTabsSelector).tabs();
+        var tabs = $(mainTabsSelector).tabs({
+            cache: true,
+            spinner: '<img src="/images/main/process-working.gif">'
+        });
         markErrorTabs(tabs);
         tabs.show();
         TabNavigation.add(mainTabsSelector);

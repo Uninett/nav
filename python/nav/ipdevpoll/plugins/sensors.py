@@ -25,6 +25,7 @@ from nav.mibs.itw_mib import ItWatchDogsMib
 from nav.mibs.itw_mibv3 import ItWatchDogsMibV3
 from nav.mibs.cisco_envmon_mib import CiscoEnvMonMib
 from nav.mibs.entity_sensor_mib import EntitySensorMib
+from nav.mibs.cisco_entity_sensor_mib import CiscoEntitySensorMib
 
 from nav.mibs.mg_snmp_ups_mib import MgSnmpUpsMib
 from nav.mibs.powernet_mib import PowerNetMib
@@ -64,7 +65,9 @@ class MIBFactory(object):
             # Allocate vendor-specific mibs if we know the vendor
             if vendor_id == VENDOR_CISCO:
                 # Some cisco-boxes may use standard-mib
-                mibs = [EntitySensorMib(agent), CiscoEnvMonMib(agent)]
+                mibs = [EntitySensorMib(agent),
+                        CiscoEntitySensorMib(agent),
+                        CiscoEnvMonMib(agent)]
             elif vendor_id == VENDOR_HP:
                 mibs = [EntitySensorMib(agent)]
             elif vendor_id == VENDOR_APC:

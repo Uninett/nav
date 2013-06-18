@@ -1,11 +1,8 @@
 # use glob syntax.
 syntax: glob
 
-*.class
-*.jar
 *.pyc
 *.swp
-*.war
 *~
 .*
 *.bak
@@ -13,30 +10,19 @@ syntax: glob
 *.rrd
 .idea/*
 
-# Generated javadoc and build dirs
-*/javadoc/*
-package.html
-*/build/*
+# Generated doc and build dirs
 doc/_build
 doc/html
 
 # All sorts of filed generated from .in templates.
-java/build.properties
-java/eventEngine/eventEngine.sh
-java/eventEngine/eventengine
-java/getBoksMacs/getBoksMacs.sh
-java/getBoksMacs/mactrace
-java/getDeviceData/getDeviceData
-java/getDeviceData/getDeviceData.sh
-java/networkDiscovery/networkDiscovery
-java/networkDiscovery/networkDiscovery.sh
-java/Util/src/no/ntnu/nav/Path.java
 python/nav/buildconf.py
 etc/webfront/webfront.conf
 etc/apache/apache.conf
 etc/logger.conf
 etc/pping.conf
 etc/servicemon.conf
+etc/cricket-config/Defaults
+etc/subtree-sets
 
 # Compiled Cheetah templates
 python/nav/web/templates/*.py

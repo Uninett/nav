@@ -312,7 +312,7 @@ class AcctSearchForm:
             # mistake, so remove it.
             self.searchstring = self.searchstring.strip()
         if self.searchtype == "iprange":
-            if not re.match("^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$",
+            if not re.match(r"^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$",
                             self.searchstring):
                 raise IPRangeSyntaxWarning
         if self.timestamp:
@@ -323,13 +323,13 @@ class AcctSearchForm:
 
             if self.timemode == "timestamp":
                 # Matches a date on the format "YYYY-MM-DD hh:mm"
-                if not re.match("^(19|20)\d\d[-](0[1-9]|1[012])[-]"
-                                "(0[1-9]|[12][0-9]|3[01])\ "
-                                "([01][0-9]|[2][0-3])\:[0-5][0-9]$",
+                if not re.match(r"^(19|20)\d\d[-](0[1-9]|1[012])[-]"
+                                r"(0[1-9]|[12][0-9]|3[01])\ "
+                                r"([01][0-9]|[2][0-3])\:[0-5][0-9]$",
                                 self.timestamp):
                     raise TimestampSyntaxWarning
 
-                if not re.match("^\d*$", self.timestampslack):
+                if not re.match(r"^\d*$", self.timestampslack):
                     raise TimestampSlackSyntaxWarning
 
         if self.timemode == "days":
@@ -338,7 +338,7 @@ class AcctSearchForm:
             self.days = self.days.strip()
 
             # Match integers and floats
-            if not re.match("(^\d+$)|(^\d+\.{1}\d+)", self.days):
+            if not re.match(r"(^\d+$)|(^\d+\.{1}\d+)", self.days):
                 raise DaysSyntaxWarning
 
 
@@ -367,7 +367,7 @@ class AcctChartForm:
             self.days = self.days.strip()
 
             # Everything but integers and floats throws exception
-            if not re.match("(^\d+$)|(^\d+\.{1}\d+)", self.days):
+            if not re.match(r"(^\d+$)|(^\d+\.{1}\d+)", self.days):
                 raise DaysSyntaxWarning
 
 
@@ -548,8 +548,8 @@ class AcctSearchQuery(SQLQuery):
                 or searchtype == "nasipaddress"):
             # Split search string into hostname and, if entered, cisco nas
             # port.
-            match = re.search("^(?P<host>[[a-zA-Z0-9\.\-]+)[\:\/]{0,1}"
-                              "(?P<swport>[\S]+){0,1}$",
+            match = re.search(r"^(?P<host>[[a-zA-Z0-9\.\-]+)[\:\/]{0,1}"
+                              r"(?P<swport>[\S]+){0,1}$",
                               searchstring)
             # Get all ip addresses, if a hostname is entered
             try:
@@ -787,13 +787,13 @@ class LogSearchForm:
 
             if self.timemode == "timestamp":
                 # Matches a date on the format "YYYY-MM-DD hh:mm"
-                if not re.match("^(19|20)\d\d[-](0[1-9]|1[012])[-]"
-                                "(0[1-9]|[12][0-9]|3[01])\ "
-                                "([01][0-9]|[2][0-3])\:[0-5][0-9]$",
+                if not re.match(r"^(19|20)\d\d[-](0[1-9]|1[012])[-]"
+                                r"(0[1-9]|[12][0-9]|3[01])\ "
+                                r"([01][0-9]|[2][0-3])\:[0-5][0-9]$",
                                 self.timestamp):
                     raise TimestampSyntaxWarning
 
-                if not re.match("^\d*$", self.timestampslack):
+                if not re.match(r"^\d*$", self.timestampslack):
                     raise TimestampSlackSyntaxWarning
 
         if self.timemode == "hours":
@@ -801,7 +801,7 @@ class LogSearchForm:
             self.hours = self.hours.strip()
 
             # Match integers and floats
-            if not re.match("(^\d+$)|(^\d+\.{1}\d+)", self.hours):
+            if not re.match(r"(^\d+$)|(^\d+\.{1}\d+)", self.hours):
                 raise HoursSyntaxWarning
 
 

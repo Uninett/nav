@@ -18,13 +18,14 @@
 
 # Don't warn about Meta classes, we can't help the Django API
 # pylint: disable=R0903
+from collections import defaultdict
 
 import datetime as dt
 
 from django.db import models
 
 from nav.models.manage import Device, Netbox
-from nav.models.fields import VarcharField
+from nav.models.fields import VarcharField, DateTimeInfinityField
 
 # Choices used in multiple models, "imported" into the models which use them
 STATE_STATELESS = 'x'
@@ -51,9 +52,9 @@ class Subsystem(models.Model):
 #######################################################################
 ### Event system
 
-class VariableMap(object):
+class VariableMapBase(object):
     """Descriptor for simplified dict-like access to the variable map tables
-    associated with EventQueue, AlertQueue and AlertHistory.
+    associated with EventQueue and AlertQueue.
 
     NOTE: Updating the dictionary will not save it, the attribute must be
     assigned a dict value for a db update to take place.
@@ -69,12 +70,12 @@ class VariableMap(object):
 
         if hasattr(obj, self.cachename):
             return getattr(obj, self.cachename)
-        else:
-            variables = getattr(obj, self.variables)
-            varmap = dict((var.variable, var.value)
-                          for var in variables.all())
+        elif obj.pk:
+            varmap = self._as_dict(obj)
             setattr(obj, self.cachename, varmap)
             return varmap
+        else:
+            return {}
 
     def __set__(self, obj, vardict):
         if obj is None:
@@ -83,14 +84,44 @@ class VariableMap(object):
         if not hasattr(vardict, 'items'):
             raise ValueError("value must be a dict")
 
-        variables = getattr(obj, self.variables)
+        if obj.pk:
+            variables = getattr(obj, self.variables)
+            if vardict:
+                self._delete_missing_variables(vardict, variables)
+
+            self._update_variables(obj, vardict)
+
+        setattr(obj, self.cachename, vardict)
+
+    def _as_dict(self, obj):
+        raise NotImplementedError
+
+    def _get_model_and_related_field(self, obj):
         _rel_manager = getattr(obj.__class__, self.variables)
         var_model = _rel_manager.related.model
         related_field = _rel_manager.related.field.name
-        if vardict:
-            removed = variables.exclude(variable__in=vardict.keys())
-            removed.delete()
-        varmap = dict((v.variable, v) for v in variables.all())
+        return related_field, var_model
+
+    def _delete_missing_variables(self, vardict, variables):
+        raise NotImplementedError
+
+    def _update_variables(self, obj, vardict):
+        raise NotImplementedError
+
+
+class VariableMap(VariableMapBase):
+    def _as_dict(self, obj):
+        variables = getattr(obj, self.variables)
+        return dict((var.variable, var.value) for var in variables.all())
+
+    def _delete_missing_variables(self, vardict, variables):
+        removed = variables.exclude(variable__in=vardict.keys())
+        removed.delete()
+
+    def _update_variables(self, obj, vardict):
+        varmap = self._as_dict(obj)
+        related_field, var_model = self._get_model_and_related_field(obj)
+
         for key, value in vardict.items():
             if key in varmap:
                 if varmap[key].value != value:
@@ -98,16 +129,70 @@ class VariableMap(object):
                     varmap[key].save()
             else:
                 variable = var_model(**{
-                        related_field: obj,
-                        'variable': key,
-                        'value': value,
-                        })
+                    related_field: obj,
+                    'variable': key,
+                    'value': value,
+                    })
                 variable.save()
 
-        setattr(obj, self.cachename, vardict)
+class StateVariableMap(VariableMapBase):
+    """Descriptor for simplified dict-like access to the AlertHistory
+    stateful variable map.
+
+    NOTE: Updating the dictionary will not save it, the attribute must be
+    assigned a dict value for a db update to take place.
+
+    """
+    def _as_dict(self, obj):
+        variables = getattr(obj, self.variables)
+        varmap = defaultdict(dict)
+        for var in variables.all():
+            varmap[var.state][var.variable] = var.value
+        return dict(varmap)
+
+    def _delete_missing_variables(self, vardict, variables):
+        for state, _descr in STATE_CHOICES:
+            removed = variables.filter(state=state)
+            if state in vardict:
+                removed.exclude(variable__in=vardict[state].keys())
+            removed.delete()
+
+    def _update_variables(self, obj, vardict):
+        varmap = self._as_dict(obj)
+        related_field, var_model = self._get_model_and_related_field(obj)
+
+        for state, vars in vardict.items():
+            for key, value in vars.items():
+                if state in varmap and key in varmap[state]:
+                    if varmap[state][key].value != value:
+                        varmap[state][key] = value
+                        varmap[state][key].save()
+                else:
+                    variable = var_model(**{
+                        related_field: obj,
+                        'state': state,
+                        'variable': key,
+                        'value': value,
+                    })
+                    variable.save()
+
+class EventMixIn(object):
+    """MixIn for methods common to multiple event/alert/alerthistory models"""
+
+    def get_key(self):
+        """Returns an identifying key for this event.
+
+        The key is a tuple of identity attribute values and can be used as a
+        dictionary key to keep track of events that reference the same
+        problem.
+
+        """
+        id_keys = ('device_id', 'netbox_id', 'subid', 'event_type_id')
+        values = (getattr(self, key) for key in id_keys)
+        return tuple(values)
 
 
-class EventQueue(models.Model):
+class EventQueue(models.Model, EventMixIn):
     """From NAV Wiki: The event queue. Additional data in eventqvar. Different
     subsystem (specified in source) post events on the event queue. Normally
     event engine is the target and will take the event off the event queue and
@@ -120,16 +205,16 @@ class EventQueue(models.Model):
 
     id = models.AutoField(db_column='eventqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source',
-        related_name='source_of_events')
+                               related_name='source_of_events')
     target = models.ForeignKey('Subsystem', db_column='target',
-        related_name='target_of_events')
+                               related_name='target_of_events')
     device = models.ForeignKey(Device, db_column='deviceid', null=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
     subid = VarcharField()
     time = models.DateTimeField(default=dt.datetime.now)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
-        default=STATE_STATELESS)
+                             default=STATE_STATELESS)
     value = models.IntegerField(default=100)
     severity = models.IntegerField(default=50)
 
@@ -138,11 +223,25 @@ class EventQueue(models.Model):
     class Meta:
         db_table = 'eventq'
 
-    def __unicode__(self):
-        return u", ".join(
+    def __repr__(self):
+        return "<EventQueue: %s>" % u", ".join(
             u"%s=%r" % (attr, getattr(self, attr))
-            for attr in ('event_type_id', 'source_id', 'target_id', 'state'))
+            for attr in ('event_type_id', 'source_id', 'target_id',
+                         'netbox', 'subid', 'state', 'time'))
 
+    def __unicode__(self):
+        string = ("{self.event_type} {state} event for {self.netbox} "
+                  "(subid={self.subid}) from {self.source} to {self.target} "
+                  "at {self.time}")
+        return string.format(self=self,
+                             state=dict(self.STATE_CHOICES)[self.state])
+
+    def save(self, *args, **kwargs):
+        new_object = self.pk is None
+        super(EventQueue, self).save(*args, **kwargs)
+        if new_object:
+            assert self.pk
+            self.varmap = self.varmap
 
 class EventType(models.Model):
     """From NAV Wiki: Defines event types."""
@@ -154,8 +253,8 @@ class EventType(models.Model):
         (STATEFUL_FALSE, 'stateless'),
     )
 
-    id = models.CharField(db_column='eventtypeid',
-        max_length=32, primary_key=True)
+    id = models.CharField(db_column='eventtypeid', max_length=32,
+                          primary_key=True)
     description = VarcharField(db_column='eventtypedesc')
     stateful = models.CharField(max_length=1, choices=STATEFUL_CHOICES)
 
@@ -184,7 +283,7 @@ class EventQueueVar(models.Model):
 #######################################################################
 ### Alert system
 
-class AlertQueue(models.Model):
+class AlertQueue(models.Model, EventMixIn):
     """From NAV Wiki: The alert queue. Additional data in alertqvar and
     alertmsg. Event engine posts alerts on the alert queue (and in addition on
     the alerthist table). Alert engine will process the data on the alert queue
@@ -197,7 +296,7 @@ class AlertQueue(models.Model):
     STATE_END = STATE_END
     STATE_CHOICES = STATE_CHOICES
 
-    id = models.IntegerField(db_column='alertqid', primary_key=True)
+    id = models.AutoField(db_column='alertqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey(Device, db_column='deviceid', null=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
@@ -205,9 +304,9 @@ class AlertQueue(models.Model):
     time = models.DateTimeField()
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     alert_type = models.ForeignKey('AlertType', db_column='alerttypeid',
-        null=True)
+                                   null=True)
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
-        default=STATE_STATELESS)
+                             default=STATE_STATELESS)
     value = models.IntegerField()
     severity = models.IntegerField()
 
@@ -222,6 +321,13 @@ class AlertQueue(models.Model):
     def __unicode__(self):
         return u'Source %s, state %s, severity %d' % (
             self.source, self.get_state_display(), self.severity)
+
+    def save(self, *args, **kwargs):
+        new_object = self.pk is None
+        super(AlertQueue, self).save(*args, **kwargs)
+        if new_object:
+            assert self.pk
+            self.varmap = self.varmap
 
 class AlertType(models.Model):
     """From NAV Wiki: Defines the alert types. An event type may have many alert
@@ -247,7 +353,7 @@ class AlertQueueMessage(models.Model):
 
     id = models.AutoField(primary_key=True)
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
-        related_name='messages')
+                                    related_name='messages')
     type = VarcharField(db_column='msgtype')
     language = VarcharField()
     message = models.TextField(db_column='msg')
@@ -266,7 +372,7 @@ class AlertQueueVariable(models.Model):
 
     id = models.AutoField(primary_key=True)
     alert_queue = models.ForeignKey('AlertQueue', db_column='alertqid',
-        related_name='variables')
+                                    related_name='variables')
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
@@ -277,7 +383,7 @@ class AlertQueueVariable(models.Model):
     def __unicode__(self):
         return u'%s=%s' % (self.variable, self.value)
 
-class AlertHistory(models.Model):
+class AlertHistory(models.Model, EventMixIn):
     """From NAV Wiki: The alert history. Simular to the alert queue with one
     important distinction; alert history stores stateful events as one row,
     with the start and end time of the event."""
@@ -288,14 +394,14 @@ class AlertHistory(models.Model):
     netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
     subid = VarcharField()
     start_time = models.DateTimeField()
-    end_time = models.DateTimeField(null=True)
+    end_time = DateTimeInfinityField(null=True)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     alert_type = models.ForeignKey('AlertType', db_column='alerttypeid',
-        null=True)
+                                   null=True)
     value = models.IntegerField()
     severity = models.IntegerField()
 
-    varmap = VariableMap()
+    varmap = StateVariableMap()
 
     class Meta:
         db_table = 'alerthist'
@@ -329,6 +435,13 @@ class AlertHistory(models.Model):
             # Stateless alert
             return None
 
+    def save(self, *args, **kwargs):
+        new_object = self.pk is None
+        super(AlertHistory, self).save(*args, **kwargs)
+        if new_object:
+            assert self.pk
+            self.varmap = self.varmap
+
 class AlertHistoryMessage(models.Model):
     """From NAV Wiki: To have a history of the formatted messages too, they are
     stored in alerthistmsg."""
@@ -340,9 +453,9 @@ class AlertHistoryMessage(models.Model):
 
     id = models.AutoField(primary_key=True)
     alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid',
-        related_name='messages')
+                                      related_name='messages')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
-        default=STATE_STATELESS)
+                             default=STATE_STATELESS)
     type = VarcharField(db_column='msgtype')
     language = VarcharField()
     message = models.TextField(db_column='msg')
@@ -367,7 +480,7 @@ class AlertHistoryVariable(models.Model):
     alert_history = models.ForeignKey('AlertHistory', db_column='alerthistid',
                                       related_name='variables')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
-        default=STATE_STATELESS)
+                             default=STATE_STATELESS)
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 

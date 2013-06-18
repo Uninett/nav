@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-    <script type="text/javascript" src="/js/libs/require.js" data-main="src/maintenance"></script>
+    <script>require(["src/maintenance"]);</script>
 {% endblock %}
 
 {% block base_content %}

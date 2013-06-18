@@ -271,7 +271,7 @@ class Snmp(object):
         if walked:
             for oid, value in walked:
                 #found = re.search(query,oid)
-                key = re.sub('\.?' + query + '\.?', '', oid)
+                key = re.sub(r'\.?' + query + r'\.?', '', oid)
                 result.append((key, value))
         
         return result

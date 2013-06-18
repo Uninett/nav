@@ -127,7 +127,7 @@ def search_expand_mac(mac=None):
         return ([], [])
 
     import re
-    if not re.match('^([a-fA-F0-9]{2}[:|\-]?){6}$', mac):
+    if not re.match(r'^([a-fA-F0-9]{2}[:|\-]?){6}$', mac):
         return ([], [])
 
     found_swports = []

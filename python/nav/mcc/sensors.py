@@ -10,7 +10,7 @@ from nav.mcc import dbutils, utils
 from nav.mcc.utils import encode_and_escape, Datasource
 from os.path import join, isdir
 
-LOGGER = logging.getLogger('mcc.sensors')
+LOGGER = logging.getLogger(__name__)
 
 
 def make_config(globalconfig):
@@ -56,7 +56,7 @@ def create_netbox_config(netbox, path_to_directory):
     LOGGER.info("Creating config for %s" % netbox.sysname)
 
     config = "target --default--\n"
-    config += "\tsnmp-host\t= %s\n" % netbox.ip
+    config += "\tsnmp-host\t= %s\n" % utils.format_ip_address(netbox.ip)
     config += "\tsnmp-community\t= %s\n" % netbox.read_only
     config += "\ttarget-type\t= sensor\n\n"
 

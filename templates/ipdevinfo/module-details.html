@@ -26,7 +26,7 @@
             {% ifequal module.up module.UP_UP %}
                 Up
             {% else %}
-                Down for {{ down.down_since|timesince }}
+                Down for {{ module.down_since|timesince }}
             {% endifequal %}
         </td>
     </tr>

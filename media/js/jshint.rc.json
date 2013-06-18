@@ -12,9 +12,12 @@
         "_",
         "Backbone",
         "Backbone.EventBroker",
-        "Handlebars"
+        "Handlebars",
+        "Spinner",
+        "NAV"
     ],
     "browser":  true,
+    "devel":    true,
     "bitwise":  true,
     "curly":    false,
     "eqeqeq":   true,
@@ -27,7 +30,7 @@
     "nonew":    true,
     "regexp":   true,
     "undef":    true,
-    "strict":   true,
+    "strict":   false,
     "trailing": true,
     "node":     true
 }

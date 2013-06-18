@@ -30,13 +30,13 @@ administrators email inbox.
 import logging
 
 from twisted.python.failure import Failure
-from twisted.internet import defer, threads, reactor, error
+from twisted.internet import defer, reactor, error
 
 import socket
 
 from nav.oids import OID
 from nav.models.oid import SnmpOid, NetboxSnmpOid
-from nav.ipdevpoll import storage, shadows
+from nav.ipdevpoll import storage, shadows, db
 from nav.ipdevpoll import Plugin
 
 class OidProfiler(Plugin):
@@ -70,7 +70,7 @@ class OidProfiler(Plugin):
         """Get the current snmp profile of the box."""
         current_profile_queryset = \
             NetboxSnmpOid.objects.filter(netbox=self.netbox.id)
-        return threads.deferToThread(
+        return db.run_in_thread(
             storage.shadowify_queryset_and_commit, current_profile_queryset
             )
 
@@ -145,7 +145,8 @@ class OidProfiler(Plugin):
             return False
 
         def get_result_checker(result):
-            if result.get(oid, None) or result.get(str(oid), None):
+            value = result.get(oid, None) or result.get(str(oid), None)
+            if value is not None:
                 self._logger.debug("%s support found using GET: %r",
                                   snmpoid.oid_key, result)
                 return True
@@ -170,6 +171,6 @@ def get_all_snmpoids():
 
     """
     all_oids_queryset = SnmpOid.objects.all()
-    return threads.deferToThread(
+    return db.run_in_thread(
         storage.shadowify_queryset_and_commit, all_oids_queryset
         )

@@ -106,16 +106,18 @@ class Handlers:
             lineout(line)
     
     def room(self):
-        header("#roomid[:locationid:descr:opt1:opt2:opt3:opt4]")
+        header("#roomid[:locationid:descr:opt1:opt2:opt3:opt4:position]")
         for room in manage.Room.objects.all():         
             line = []         
             line.append(room.id)
-            line.append(room.location.id)
+            line.append(room.location.id if room.location else "")
             line.append(room.description or "")
             line.append(room.optional_1 or "")
             line.append(room.optional_2 or "")
             line.append(room.optional_3 or "")
             line.append(room.optional_4 or "")
+            if room.position:
+                line.append("(%s, %s)" % room.position)
             lineout(line)
    
     def type(self):

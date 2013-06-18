@@ -1,0 +1,71 @@
+{% extends "arnold/base.html" %}
+
+{% block content %}
+
+
+    {% comment %} Display history {% endcomment %}
+    <table class="listtable tablesorter arnold-history">
+        <caption>History</caption>
+        <thead>
+        <tr>
+            <th>IP</th>
+            <th>DNS</th>
+            <th>MAC</th>
+            <th>Netbios</th>
+            <th>Orgid</th>
+            <th>Status</th>
+            <th>Reason</th>
+            <th>Last Changed</th>
+            <th>_</th>
+        </tr>
+        </thead>
+
+        {% if identities %}
+            <tbody>
+            {% for identity in identities %}
+                <tr>
+                    <td>
+                        <a href="{% url machinetracker-ip_short_search identity.ip 100 'on' %}"
+                           title="Link to Machine Tracker">
+                            {{ identity.ip }}
+                        </a>
+                    </td>
+
+                    <td>{{ identity.dns }}</td>
+
+                    <td>
+                        <a href="{% url machinetracker-mac_search identity.mac 100 'on' %}"
+                           title="Link to Machine Tracker">
+                            {{ identity.mac }}
+                        </a>
+                    </td>
+
+                    <td>{{ identity.netbios }}</td>
+                    <td>{{ identity.organization|default_if_none:'' }}</td>
+                    <td>{{ identity.status }}</td>
+                    <td>{{ identity.justification.name }}</td>
+                    <td>{{ identity.last_changed|date:"DATETIME_FORMAT" }}</td>
+                    <td>
+                        <a href="{% url arnold-details identity.id %}">Details</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        {% endif %}
+
+        <tfoot>
+        <tr>
+            <th colspan="9">
+                {{ identities|length }} hit{{ identities|pluralize:'s' }} in history for the last {{ form.initial.days }} days
+            </th>
+        </tr>
+        </tfoot>
+    </table>
+
+
+    {% comment %} Display form for searching in history {% endcomment %}
+    <form action="{% url arnold-history %}" method="GET">
+        {{ form.days }} days of history. <input type="submit" value="Change">
+    </form>
+
+{% endblock %}

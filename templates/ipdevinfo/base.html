@@ -2,7 +2,7 @@
 
 {# FIXME hardcoded urls #}
 {% block base_header_additional_head %}
-    <script type="text/javascript" src="/js/libs/require.js" data-main="src/ipdevinfo" ></script>
+    <script>require(['src/ipdevinfo'])</script>
     <link rel="stylesheet" type="text/css" href="/style/jqueryui/jquery-ui-1.8.21.custom.css">
     <link rel="stylesheet" type="text/css" href="/style/ipdevinfo.css"/>
 {% endblock %}

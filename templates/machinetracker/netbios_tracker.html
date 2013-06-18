@@ -1,0 +1,77 @@
+<table class="listtable">
+    <caption>
+        NetBIOS Search results
+    </caption>
+
+    <thead>
+    <tr>
+        <th>IP</th>
+        {% if form_data.dns %}
+            <th>DNS</th>
+        {% endif %}
+        <th>Name</th>
+        <th>Mac</th>
+        <th>Server</th>
+        <th>Username</th>
+        <th>Start time</th>
+        <th>End time</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for key, result in netbios_tracker.items %}
+        {% for row in result %}
+            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                <td>
+                    <a href="{% url machinetracker-ip_short_search row.ip form_data.days dns %}"
+                       title="Search for this IP address">{{ row.ip }}
+                    </a>
+                </td>
+                {% if form_data.dns %}
+                    <td>
+                        {{ row.dns_lookup }}
+                    </td>
+                {% endif %}
+                <td>
+                    {{ row.name }}
+                </td>
+                <td>
+                    {% if row.mac %}
+                        <a href="{% url machinetracker-mac_search row.mac form_data.days dns %}"
+                           title="Search for this MAC address">{{ row.mac }}
+                        </a>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {{ row.server }}
+                </td>
+                <td>
+                    {{ row.username }}
+                </td>
+                <td>
+                    {{ row.start_time|date:"DATETIME_FORMAT" }}
+                </td>
+                <td>
+                    {% if row.still_active %}
+                        {{ row.still_active }}
+                    {% else %}
+                        {{ row.end_time|date:"DATETIME_FORMAT" }}
+                    {% endif %}
+                </td>
+
+            </tr>
+        {% endfor %}
+    {% endfor %}
+    </tbody>
+
+    <tfoot>
+    <tr>
+        <th colspan="100">
+            {{ netbios_tracker_count }} hit{{ netbios_tracker_count|pluralize }}
+        </th>
+    </tr>
+    </tfoot>
+
+</table>

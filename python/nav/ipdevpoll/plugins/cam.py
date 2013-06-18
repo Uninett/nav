@@ -17,16 +17,16 @@
 import re
 from collections import defaultdict
 
-from twisted.internet import defer, threads
+from twisted.internet import defer
 
 from nav.models import manage
 from nav.util import splitby
 from nav.mibs.bridge_mib import MultiBridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import Plugin, db
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll import utils
-from nav.ipdevpoll.neighbor import get_netbox_macs
+from nav.ipdevpoll.neighbor import get_netbox_macs, get_netbox_catids
 from nav.ipdevpoll.db import autocommit
 
 class Cam(Plugin):
@@ -55,7 +55,7 @@ class Cam(Plugin):
     @defer.inlineCallbacks
     def can_handle(cls, netbox):
         daddy_says_ok = super(Cam, cls).can_handle(netbox)
-        has_ifcs = yield threads.deferToThread(cls._has_interfaces, netbox)
+        has_ifcs = yield db.run_in_thread(cls._has_interfaces, netbox)
         defer.returnValue(has_ifcs and daddy_says_ok)
 
     @classmethod
@@ -79,7 +79,7 @@ class Cam(Plugin):
 
         self.fdb = fdb
 
-        self.monitored = yield threads.deferToThread(get_netbox_macs)
+        self.monitored = yield db.run_in_thread(get_netbox_macs)
         self.my_macs = set(mac for mac, netboxid in self.monitored.items()
                            if netboxid == self.netbox.id)
         self._classify_ports()
@@ -142,9 +142,13 @@ class Cam(Plugin):
                            prefix, mac_count, len(fdb))
 
     def _classify_ports(self):
+        ignored_netboxes = get_ignored_netboxes()
+
         def _is_linkport(portmacs):
             _port, macs = portmacs
-            return any(mac in self.monitored and mac not in self.my_macs
+            return any((mac in self.monitored
+                        and self.monitored[mac] not in ignored_netboxes
+                        and mac not in self.my_macs)
                        for mac in macs)
 
         linkports, accessports = splitby(_is_linkport, self.fdb.items())
@@ -248,3 +252,17 @@ class Cam(Plugin):
                                             shadows.SwPortBlocked)
             block.interface = ifc
             block.vlan = vlan
+
+
+# These device categories are not considered network infrastructure,
+# i.e. they do not forward IP packets or ethernet frames on behalf of others.
+# Ports which have these categories of devices connected will be considered
+# access ports, even when NAV otherwise would consider them up-/downlinks.
+IGNORED_CATEGORIES = (u'OTHER', u'SRV')
+
+def get_ignored_netboxes():
+    """Returns a set of netbox ids of netboxes in the "ignored" categories"""
+    catids = get_netbox_catids()
+    return set(netboxid
+               for netboxid, catid in catids.items()
+               if catid in IGNORED_CATEGORIES)

@@ -53,10 +53,12 @@
                         checked="checked"
                         {% endif %}
                         /></td>
-                    <td>{{ m.sysname|default_if_none:"" }}</td>
-                    <td>{{ m.name }}</td>
+                    <td><a href="{% url ipdevinfo-details-by-name m.sysname %}"
+                        >{{ m.sysname|default_if_none:"" }}</a></td>
+                    <td><a href="{% url ipdevinfo-module-details m.sysname m.name %}"
+                        >{{ m.name }}</a></td>
                     <td>{{ m.descr|default_if_none:"" }}</td>
-                    <td>{{ m.start_time }}</td>
+                    <td>{{ m.start_time|date:'DATETIME_FORMAT' }}</td>
                     <td>{{ m.start_time|timesince }}</td>
                 </tr>
             {% endfor %}

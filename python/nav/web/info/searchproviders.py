@@ -22,7 +22,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from operator import attrgetter
 
-from nav.models.manage import Room, Netbox, Interface
+from nav.models.manage import Room, Netbox, Interface, Vlan
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
 
@@ -72,7 +72,8 @@ class RoomSearchProvider(SearchProvider):
 class NetboxSearchProvider(SearchProvider):
     """Searchprovider for netboxes"""
     name = "Netboxes"
-    headers = [('Sysname', 'sysname')]
+    headers = [('Sysname', 'sysname'),
+               ('IP', 'ip')]
     link = 'Sysname'
 
     def fetch_results(self):
@@ -137,4 +138,27 @@ class FallbackSearchProvider(SearchProvider):
                 reverse('ipdevinfo-details-by-name',
                     kwargs={'name': self.query}),
                 None)
+            )
+
+
+class VlanSearchProvider(SearchProvider):
+    """Searchprovider for vlans"""
+
+    name = "Vlans"
+    headers = [
+        ('Vlan', 'vlan'),
+        ('Type', 'net_type'),
+        ('Netident', 'net_ident'),
+        ('Description', 'description')
+    ]
+    link = 'Vlan'
+
+    def fetch_results(self):
+        results = Vlan.objects.exclude(net_type='loopback').filter(
+            Q(vlan__contains=self.query) | Q(net_ident__icontains=self.query) |
+            Q(net_type__description__icontains=self.query))
+        for result in results:
+            self.results.append(SearchResult(
+                reverse('vlan-details', kwargs={'vlanid': result.id}),
+                result)
             )

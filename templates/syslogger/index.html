@@ -1,0 +1,22 @@
+{% extends "syslogger/base.html" %}
+
+
+
+{% block content %}
+
+<div id="loggerinfotabs" class="ui-helper-hidden">
+
+<div id="moduletabs">
+    <ul>
+        <li><a title="search" href="{% url logger_search_group %}">Search<span class="tab-spinner">&nbsp;</span></a>
+        </li>
+        <li><a title="parsing_errors" href="{% url logger_errors %}">Parsing
+            errors?<span class="tab-spinner">&nbsp;</span></a></li>
+        <li><a title="priority_exceptions" href="{% url logger_priority_exceptions %}">Priority
+            exceptions<span class="tab-spinner">&nbsp;</span></a></li>
+    </ul>
+</div>
+
+</div>
+{% endblock %}
+

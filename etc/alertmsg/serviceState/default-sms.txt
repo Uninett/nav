@@ -1,0 +1,14 @@
+{% if state == event.STATE_START %}
+
+Service {{service.handler}} on {{netbox.sysname}} is down since {{time}}
+
+{% else %}{% if state == event.STATE_END %}
+
+Service {{service.handler}} on {{netbox.sysname}} is up since {{time}}
+
+{% else %}
+
+Unrecognized service alert on {{netbox.sysname}}
+
+{% endif %}
+{% endif %}

@@ -13,109 +13,590 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+
 """
 Provides helpfunctions for Arnold web and script
 """
 
-import nav.Snmp
-import re, os, sys
+from __future__ import absolute_import
+
+import re
+import os
 import ConfigParser
 import logging
 import socket
-import email.Message
-import email.Header
-import email.Charset
-import commands
+import email.message
+import email.header
+import email.charset
+from datetime import datetime, timedelta
 from IPy import IP
-import psycopg2.extras
+from subprocess import Popen, PIPE
+from collections import namedtuple
 
-import nav.buildconf
+import nav.Snmp
 import nav.bitvector
-from nav.db import getConnection
-from nav.util import isValidIP
+import nav.buildconf
+from nav import logs
 from nav.errors import GeneralException
+from nav.models.arnold import Identity, Event
+from nav.models.manage import Interface, Prefix
+from nav.portadmin.snmputils import SNMPFactory
+from django.db import connection  # import this after any django models
+from nav.util import is_valid_ip
+
+CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
+NONBLOCKFILE = nav.buildconf.sysconfdir + "/arnold/nonblock.conf"
+LOGGER = logging.getLogger("nav.arnold")
+
+# pylint: disable=C0103
+Candidate = namedtuple("Candidate", "camid ip mac interface endtime")
+
+
+class Memo(object):
+    """Simple config file memoization"""
+    def __init__(self, func):
+        self.func = func
+        self.cache = {}
+
+    def __call__(self, *args):
+        if args in self.cache:
+            if self.is_changed(*args):
+                return self.store(*args)
+            else:
+                return self.cache[args][0]
+        else:
+            return self.store(*args)
+
+    def is_changed(self, *args):
+        """Check if file is changed since last cache"""
+        mtime = os.path.getmtime(*args)
+        if mtime != self.cache[args][1]:
+            return True
+        return False
+
+    def store(self, *args):
+        """Run function, store result and modification time in cache"""
+        value = self.func(*args)
+        mtime = os.path.getmtime(*args)
+        self.cache[args] = (value, mtime)
+        return value
 
 
 class ChangePortStatusError(GeneralException):
-    "An error occured when changing portadminstatus"
+    """An error occured when changing portadminstatus"""
     pass
+
 
 class ChangePortVlanError(GeneralException):
-    "An error occured when changing portvlan"
+    """An error occured when changing portvlan"""
     pass
+
 
 class NoDatabaseInformationError(GeneralException):
-    "Could not find information in database for id"
+    """Could not find information in database for id"""
     pass
+
 
 class PortNotFoundError(GeneralException):
-    "Could not find port in database"
+    """Could not find port in database"""
     pass
+
 
 class UnknownTypeError(GeneralException):
-    "Unknown type (not ip or mac)"
+    """Unknown type (not ip or mac)"""
     pass
+
 
 class DbError(GeneralException):
-    "Error when querying database"
+    """Error when querying database"""
     pass
+
 
 class NotSupportedError(GeneralException):
-    "This vendor does not support snmp set of vlan"
+    """This vendor does not support snmp set of vlan"""
     pass
+
 
 class NoSuchProgramError(GeneralException):
-    "No such program"
+    """No such program"""
     pass
 
-class WrongCatidError(GeneralException):
-    "Arnold is not permitted to block ports on equipment of this category"
+
+class DetainmentNotAllowedError(GeneralException):
+    """Detainment not allowed"""
     pass
 
-class AlreadyBlockedError(GeneralException):
-    "This port is already blocked or quarantined."
+
+class WrongCatidError(DetainmentNotAllowedError):
+    """Arnold is not permitted to block ports on equipment of this category"""
     pass
 
-class InExceptionListError(GeneralException):
-    "This ip-address is in the exceptionlist and cannot be blocked."
+
+class AlreadyBlockedError(DetainmentNotAllowedError):
+    """This port is already blocked or quarantined."""
     pass
+
+
+class InExceptionListError(DetainmentNotAllowedError):
+    """This ip-address is in the exceptionlist and cannot be blocked."""
+    pass
+
 
 class FileError(GeneralException):
-    "Fileerror"
-    pass
-
-class BlockonTrunkError(GeneralException):
-    "No action on trunked interface allowed"
+    """Fileerror"""
     pass
 
 
-# Config-file
-configfile = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
-config = ConfigParser.ConfigParser()
-config.read(configfile)
+class BlockonTrunkError(DetainmentNotAllowedError):
+    """No action on trunked interface allowed"""
+    pass
 
-logger = logging.getLogger("nav.arnold")
-    
 
-def parseNonblockFile(file):
+class NoReadWriteCommunityError(GeneralException):
+    """No write community on switch"""
+    pass
+
+
+def find_id_information(ip_or_mac, limit):
+    """Look in arp and cam tables to find camtuple with ip_or_mac
+
+    Returns $limit number of Candidates
+
+    If ip_or_mac is ip, then we can find info in arp. If it is a mac-address
+    we cannot find ip-address and it is set to a default value. In both
+    cases we are able to find the interface where the ip_or_mac is located.
+
     """
-    Parse nonblocklist and make it ready for use.
+    cursor = connection.cursor()
+    category = find_input_type(ip_or_mac)
+
+    # Get data from database based on id
+    if category not in ['IP', 'MAC']:
+        raise UnknownTypeError(ip_or_mac)
+
+    query = ""
+    if category == 'IP':
+        # Find cam and arp-data which relates to the time where this ip was
+        # last active.
+        query = """
+        SELECT *, cam.start_time AS starttime, cam.end_time AS endtime
+        FROM cam
+        JOIN (SELECT ip, mac, start_time AS ipstarttime,
+        end_time AS ipendtime
+              FROM arp
+              WHERE ip=%s
+              ORDER BY end_time DESC
+              LIMIT 2) arpaggr USING (mac)
+        LEFT JOIN interface ON (cam.ifindex=interface.ifindex
+                            AND cam.netboxid=interface.netboxid)
+        WHERE (cam.start_time, cam.end_time)
+        OVERLAPS (arpaggr.ipstarttime, arpaggr.ipendtime)
+        ORDER BY endtime DESC
+        LIMIT %s
+        """
+
+    elif category == 'MAC':
+        # Fetch last camtuple regarding this macaddress
+        query = """
+        SELECT *, cam.start_time AS starttime, cam.end_time AS endtime
+        FROM cam
+        LEFT JOIN interface ON (cam.ifindex=interface.ifindex
+                            AND cam.netboxid=interface.netboxid)
+        WHERE mac = %s
+        ORDER BY endtime DESC
+        LIMIT %s
+        """
+
+    cursor.execute(query, [ip_or_mac, limit])
+    result = dictfetchall(cursor)
+    candidates = create_candidates(result)
+    if candidates:
+        return candidates
+    else:
+        raise NoDatabaseInformationError(ip_or_mac)
+
+
+def find_input_type(ip_or_mac):
+    """Try to determine whether input is a valid ip-address,
+    mac-address or an swportid. Return type and reformatted input as a
+    tuple"""
+    # Support mac-adresses on xx:xx... format
+    ip_or_mac = str(ip_or_mac)
+    mac = ip_or_mac.replace(':', '')
+
+    # idValidIP returns 10.0.0.0 if you type 10.0.0. Check that this is not the
+    # case.
+    input_type = "UNKNOWN"
+    if is_valid_ip(ip_or_mac) and not is_valid_ip(ip_or_mac).endswith('.0'):
+        input_type = "IP"
+    elif re.match("^[A-Fa-f0-9]{12}$", mac):
+        input_type = "MAC"
+    elif re.match("^\d+$", ip_or_mac):
+        input_type = "SWPORTID"
+
+    return input_type
+
+
+def dictfetchall(cursor):
+    "Returns all rows from a cursor as a dict"
+    desc = cursor.description
+    return [dict(
+        zip([col[0] for col in desc], row)) for row in cursor.fetchall()]
+
+
+def create_candidates(caminfos):
+    """Create candidates"""
+    candidates = []
+    for caminfo in caminfos:
+        if 'ip' not in caminfo:
+            caminfo['ip'] = '0.0.0.0'
+        try:
+            interface = Interface.objects.get(pk=caminfo['interfaceid'])
+            raise_if_detainment_not_allowed(interface)
+        except (Interface.DoesNotExist, DetainmentNotAllowedError):
+            continue
+        else:
+            candidates.append(Candidate(caminfo['camid'], caminfo['ip'],
+                                        caminfo['mac'], interface,
+                                        caminfo['endtime']))
+    return candidates
+
+
+def find_computer_info(ip_or_mac):
+    """Return the latest entry from the cam table for ip_or_mac"""
+    return find_id_information(ip_or_mac, 5)[0]
+
+
+def disable(candidate, justification, username, comment="", autoenablestep=0):
+    """Disable a target by blocking the port"""
+    LOGGER.info('Disabling %s - %s on interface %s' % (
+                candidate.ip, candidate.mac, candidate.interface))
+
+    if not candidate.interface.netbox.read_write:
+        raise NoReadWriteCommunityError(candidate.interface.netbox)
+    identity = check_identity(candidate)
+    change_port_status('disable', identity)
+    identity.status = 'disabled'
+    update_identity(identity, justification, autoenablestep)
+    create_event(identity, comment, username)
+
+    LOGGER.info("Successfully %s %s (%s)" % (
+                identity.status, identity.ip, identity.mac))
+
+
+def quarantine(candidate, qvlan, justification, username, comment="",
+               autoenablestep=0):
+    """Quarantine a target bu changing vlan on port"""
+    LOGGER.info('Quarantining %s - %s on interface %s' % (
+        candidate.ip, candidate.mac, candidate.interface))
+
+    if not candidate.interface.netbox.read_write:
+        raise NoReadWriteCommunityError(candidate.interface.netbox)
+    identity = check_identity(candidate)
+    identity.fromvlan = change_port_vlan(identity, qvlan.vlan)
+    identity.tovlan = qvlan
+    identity.status = 'quarantined'
+    update_identity(identity, justification, autoenablestep)
+    create_event(identity, comment, username)
+
+    LOGGER.info("Successfully %s %s (%s)" % (
+                identity.status, identity.ip, identity.mac))
+
+
+def check_target(target):
+    """Check if target can be blocked or not"""
+    LOGGER.debug('Checking target %s', target)
+    if find_input_type(target) == 'IP':
+        check_non_block(target)
+    find_computer_info(target)
+
+
+def check_identity(candidate):
+    """Create or return existing identity object based on target"""
+    try:
+        identity = Identity.objects.get(interface=candidate.interface,
+                                        mac=candidate.mac)
+        if identity.status != 'enabled':
+            raise AlreadyBlockedError
+        identity.ip = candidate.ip
+    except Identity.DoesNotExist:
+        identity = Identity()
+        identity.interface = candidate.interface
+        identity.ip = candidate.ip
+        identity.mac = candidate.mac
+
+    # Check if we should not detain this interface for some reason
+    raise_if_detainment_not_allowed(identity.interface)
+
+    return identity
+
+
+def update_identity(identity, justification, autoenablestep):
+    """Update an identity with common info"""
+    identity.justification = justification
+    identity.organization = identity.interface.netbox.organization
+    identity.dns = get_host_name(identity.ip)
+    identity.netbios = get_netbios(identity.ip)
+    if autoenablestep > 0:
+        identity.autoenable = datetime.now() + timedelta(days=autoenablestep)
+        identity.autoenablestep = autoenablestep
+
+    identity.save()
+
+
+def create_event(identity, comment, username):
+    """Create event for the action specified in identity"""
+    event = Event(identity=identity, comment=comment, action=identity.status,
+                  justification=identity.justification,
+                  autoenablestep=identity.autoenablestep,
+                  executor=username)
+    event.save()
+
+
+def raise_if_detainment_not_allowed(interface):
+    """Raises an exception if this interface should not be detained"""
+    netbox = interface.netbox
+    config = get_config(CONFIGFILE)
+    allowtypes = [x.strip()
+                  for x in str(config.get('arnold', 'allowtypes')).split(',')]
+
+    if netbox.category.id not in allowtypes:
+        LOGGER.info("Not allowed to detain on %s" % (netbox.category.id))
+        raise WrongCatidError(netbox.category)
+
+    if interface.trunk:
+        LOGGER.info("Cannot detain on a trunk")
+        raise BlockonTrunkError
+
+
+def open_port(identity, username, eventcomment=""):
+    """
+    Takes as input the identityid of the block and username. Opens the
+    port (either enable or change vlan) and updates the database.
+
+    If port is not found in the database we assume that the
+    switch/module has been replaced. As this normally means that the
+    port is enabled, we enable the port in the arnold-database.
+
     """
 
-    nonblockdict = {}
-    nonblockdict['ip'] = {}
-    nonblockdict['range'] = {}
+    try:
+        identity.interface
+    except Interface.DoesNotExist:
+        LOGGER.info("Interface did not exist, enabling in database only")
+        pass
+    else:
+        LOGGER.info("Trying to lift detention for %s on %s" % (
+            identity.mac, identity.interface))
+        if identity.status == 'disabled':
+            change_port_status('enable', identity)
+        elif identity.status == 'quarantined':
+            change_port_vlan(identity, identity.fromvlan)
+
+    identity.status = 'enabled'
+    identity.last_changed = datetime.now()
+    identity.fromvlan = None
+    identity.tovlan = None
+    identity.save()
+
+    event = Event(identity=identity, comment=eventcomment, action='enabled',
+                  executor=username)
+    event.save()
+
+    LOGGER.info("openPort: Port successfully opened")
+
+
+def change_port_status(action, identity):
+    """Use SNMP to change status on an interface.
+
+    We use ifadminstatus to enable and disable ports
+    ifAdminStatus has the following values:
+    1 - up
+    2 - down
+    3 - testing (no operational packets can be passed)
+
+    """
+    oid = '.1.3.6.1.2.1.2.2.1.7'
+    ifindex = identity.interface.ifindex
+    query = oid + '.' + str(ifindex)
+
+    # Create snmp-object
+    netbox = identity.interface.netbox
+    agent = nav.Snmp.Snmp(netbox.ip, netbox.read_write,
+                          version=netbox.snmp_version)
+
+    # Disable or enable based on input
+    try:
+        if action == 'disable':
+            agent.set(query, 'i', 2)
+            LOGGER.info('Setting ifadminstatus down on interface %s' % (
+                identity.interface
+            ))
+        elif action == 'enable':
+            agent.set(query, 'i', 1)
+            LOGGER.info('Setting ifadminstatus up on interface %s' % (
+                identity.interface
+            ))
+    except nav.Snmp.AgentError, why:
+        LOGGER.error("Error when executing snmpquery: %s" % why)
+        raise ChangePortStatusError(why)
+
+
+def change_port_vlan(identity, vlan):
+    """
+    Change switchport access vlan. Returns vlan on port before change.
+
+    Reasons for not successful change may be:
+    - Wrong community, use rw-community
+    - rw-community not set on netbox
+    - port is a trunk
+
+    """
+    interface = identity.interface
+    netbox = interface.netbox
+
+    agent = SNMPFactory().get_instance(netbox)
+    try:
+        fromvlan = agent.get_vlan(interface.ifindex)
+    except Exception as error:
+        raise ChangePortVlanError(error)
+    else:
+        LOGGER.info('Setting vlan %s on interface %s' % (vlan, interface))
+        try:
+            agent.set_vlan(interface.ifindex, vlan)
+        except Exception as error:
+            raise ChangePortVlanError(error)
+        else:
+            return fromvlan
+
+
+def sendmail(fromaddr, toaddr, subject, msg):
+    """
+    Sends mail using mailprogram configured in arnold.conf
+
+    NB: Expects all strings to be in utf-8 format.
+
+    """
+
+    # Get mailprogram from config-file
+    config = get_config(CONFIGFILE)
+    mailprogram = config.get('arnold', 'mailprogram')
+
+    try:
+        program = Popen(mailprogram, stdin=PIPE).stdin
+    except OSError, error:
+        LOGGER.error('Error opening mailprogram: %s', error.strerror)
+        return
+
+    # Define charset and set content-transfer-encoding to
+    # quoted-printable
+    charset = email.charset.Charset('utf-8')
+    charset.header_encoding = email.charset.QP
+    charset.body_encoding = email.charset.QP
+
+    # Create message-object, fill it and set correct charset.
+    message = email.message.Message()
+    header = email.header.Header(subject, charset)
+    message['To'] = toaddr
+    message['From'] = fromaddr
+    message['Subject'] = header
+
+    message.set_charset(charset)
+    message.set_payload(msg)
+
+    # send mail
+    program.communicate(message.as_string())
+
+
+def get_host_name(ip):
+    """Get hostname based on ip-address. Return 'N/A' if not found."""
+    hostname = "N/A"
+
+    try:
+        hostname = socket.gethostbyaddr(ip)[0]
+    except socket.herror:
+        pass
+
+    return hostname
+
+
+#pylint: disable=E1103
+def get_netbios(ip):
+    """Get netbiosname of computer with ip"""
+
+    # Try to locate nmblookup
+    command, _ = Popen(['which', 'nmblookup'], stdout=PIPE).communicate()
+    if not command:
+        return ""
+
+    result, _ = Popen([command.strip(), "-A", ip], stdout=PIPE).communicate()
+    if not result:
+        return ""
+
+    # For each line in output, try to find name of computer.
+    for line in result.split("\n\t"):
+        if re.search("<00>", line):
+            match_object = re.search("(\S+)\s+<00>", line)
+            return match_object.group(1) or ""
+
+    # If it times out or for some other reason doesn't match
+    return ""
+
+
+def check_non_block(ip):
+    """Checks if the ip is in the nonblocklist."""
+    nonblockdict = parse_nonblock_file(NONBLOCKFILE)
+
+    # We have the result of the nonblock.cfg-file in the dict
+    # nonblockdict. This dict contains 3 things:
+    # 1 - Specific ip-addresses
+    # 2 - Ip-ranges (129.241.xxx.xxx/xx)
+    # 3 - Ip lists (129.241.xxx.xxx-xxx)
+
+    # Specific ip-addresses
+    if ip in nonblockdict['ip']:
+        LOGGER.info('Computer in nonblock list, skipping')
+        raise InExceptionListError
+
+    # Ip-ranges
+    for ip_range in nonblockdict['range']:
+        if ip in IP(ip_range):
+            raise InExceptionListError
+
+
+def compute_octet_string(hexstring, port, action='enable'):
+    """
+    hexstring: the returnvalue of the snmpquery
+    port: the number of the port to add
+    """
+
+    bit = nav.bitvector.BitVector(hexstring)
+
+    # Add port to string
+    port -= 1
+    if action == 'enable':
+        bit[port] = 1
+    else:
+        bit[port] = 0
+
+    return str(bit)
+
+
+@Memo
+def parse_nonblock_file(filename):
+    """Parse nonblocklist and make it ready for use."""
+
+    nonblockdict = {'ip': {}, 'range': {}}
 
     # Open nonblocklist, parse it.
     try:
-        f = open(file)
+        handle = open(filename)
     except IOError, why:
-        raise FileError, why
+        raise FileError(why)
 
-    for line in f.readlines():
-
+    for line in handle.readlines():
         line = line.strip()
-        
+
         # Skip comments
         if line.startswith('#'):
             continue
@@ -127,973 +608,43 @@ def parseNonblockFile(file):
             # Range
             nonblockdict['range'][line] = 1
 
-    f.close()
+    handle.close()
 
     return nonblockdict
 
 
-# nonblocklist
-nonblockfile = nav.buildconf.sysconfdir + "/arnold/nonblock.conf"
-try:
-    nonblockdict = parseNonblockFile(nonblockfile)
-except FileError, why:
-    raise FileError
+@Memo
+def get_config(configfile):
+    """Get config from file"""
+    config = ConfigParser.ConfigParser()
+    config.read(configfile)
+    return config
 
 
+def init_logging(logfile):
+    """Create logger for logging to file"""
+    logs.set_log_levels()
 
-###############################################################################
-# findIdInformation
-#
-def findIdInformation(id, limit):
+    filehandler = logging.FileHandler(logfile)
+    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '
+                                  '[%(name)s] %(message)s')
+    filehandler.setFormatter(formatter)
+    root = logging.getLogger('')
+    root.addHandler(filehandler)
+
+
+def is_inside_vlans(ip, vlans):
+    """Check if ip is inside the vlans
+
+    vlans: a string with comma-separated vlans.
+
     """
-    Look in arp and cam tables to find id (which is either ip or
-    mac-address). Returns a list with $limit number of dicts
-    containing all info from arp and cam joined on mac.
-    """
-
-    # Connect to database
-    conn = getConnection('default')
-
-    # Find type of id
-    (type, id) = findInputType(id)
-    #print "%s is of type %s" %(id, type)
-
-    result = []
-    # Get data from database based on id
-    if type in ['IP','MAC']:
-
-        c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        query = ""
-
-        if type == 'IP':
-
-            # Find cam-tuple which relates to the time where this ip was last
-            # active.
-            query = """
-            SELECT *, cam.start_time AS starttime, cam.end_time AS endtime
-            FROM cam
-            JOIN (SELECT ip, mac, start_time AS ipstarttime,
-            end_time AS ipendtime
-                  FROM arp
-                  WHERE ip=%s
-                  ORDER BY end_time DESC
-                  LIMIT 2) arpaggr USING (mac)
-            WHERE (cam.start_time, cam.end_time)
-            OVERLAPS (arpaggr.ipstarttime, arpaggr.ipendtime)
-            ORDER BY endtime DESC
-            LIMIT %s
-            """
-
-        elif type == 'MAC':
-
-            # Fetch last camtuple regarding this macaddress
-            query = """
-            SELECT *, cam.start_time AS starttime, cam.end_time AS endtime
-            FROM cam
-            WHERE mac = %s
-            ORDER BY endtime DESC
-            LIMIT %s
-            """
-        
-        try:
-            c.execute(query, (id, limit))
-        except Exception, e:
-            logger.error('findIDInformation: Error in query %s: %s'
-                         %(query, e))
-            raise DbError, e
-
-        if c.rowcount > 0:
-            result = [dict(row) for row in c.fetchall()]
-
-            # Walk through result replacing DateTime(infinity) with
-            # string "Still Active". Else the date showing will be
-            # 999999-12-31 00:00:00.00. This of course also removes
-            # the datetime-object.
-            for row in result:
-                if row['endtime'].year == 9999:
-                    row['endtime'] = 'Still Active'
-                else:
-                    row['endtime'] = row['endtime'].strftime(
-                        '%Y-%m-%d %H:%M:%S')
-
-                if not row.has_key('ip'):
-                    row['ip'] = '0.0.0.0'
-                    
-        else:
-            result = 1
-        
-    else:
-        raise UnknownTypeError, id
-
-    if result == 1:
-        raise NoDatabaseInformationError, id
-
-    return result
-
-###############################################################################
-# findSwportinfo
-#
-def findSwportinfo(netboxid, ifindex):
-    """
-    Find netbox and swportinfo based on input. Return dict with
-    info. The dict contains everything from netbox, type, module and
-    swport tables related to the id. Also ipaddress, macaddress and
-    endtime of id IF AND ONLY IF the id is not an swport.
-    """
-
-    # Connect to database
-    conn = getConnection('default')
-    c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    try:
-        query = """SELECT * FROM netbox
-        LEFT JOIN type USING (typeid)
-        LEFT JOIN module USING (netboxid)
-        LEFT JOIN interface USING (netboxid)
-        WHERE netboxid=%s
-        AND ifindex=%s"""
-
-        c.execute(query, (netboxid, ifindex))
-    except Exception, e:
-        logger.error("findSwportinfo: Error in query %s: %s" %(query, e))
-        raise DbError, e
-
-    if c.rowcount > 0:
-        result = dict(c.fetchone())
-        
-        return result
-    else:
-        raise PortNotFoundError((netboxid, ifindex))
-
-
-    return 1
-
-
-###############################################################################
-# findSwportIDinfo
-#
-def findSwportIDinfo(swportid):
-    """
-    Join results from netbox, type, module and swport tables based on
-    swportid. Returns a dict with info. Same as findSwportinfo only it
-    takes other input.
-    """
-
-    # Connect to database
-    conn = getConnection('default')
-    c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    # Get switch-information
-    swquery = """SELECT * FROM netbox
-    LEFT JOIN type USING (typeid)
-    LEFT JOIN module USING (netboxid)
-    LEFT JOIN interface USING (netboxid)
-    WHERE interfaceid = %s"""
-
-    try:
-        c.execute(swquery, (swportid,))
-    except nav.db.driver.ProgrammingError, why:
-        logger.error("findSwportIDinfo: Error in query %s, %s" %(swquery, why))
-        raise DbError, why
-
-    if c.rowcount > 0:
-        return dict(c.fetchone())
-    else:
-        raise PortNotFoundError, swportid
-
-    return 1
-
-
-
-###############################################################################
-# findInputType
-#
-def findInputType (input):
-    """Try to determine whether input is a valid ip-address,
-    mac-address or an swportid. Return type and reformatted input as a
-    tuple"""
-
-    # Support mac-adresses on xx:xx... format
-    mac = input.replace(':','')
-
-    # idValidIP returns 10.0.0.0 if you type 10.0.0. Check that this is not the
-    # case.
-    if isValidIP(input) and not isValidIP(input).endswith('.0'):
-        return ("IP", input)
-    elif re.match("^[A-Fa-f0-9]{12}$", mac):
-        return ("MAC", input)
-    elif re.match("^\d+$", input):
-        return ("SWPORTID", input)
-
-    return ("UNKNOWN", input)
-
-
-###############################################################################
-# blockPort
-#
-def blockPort(id, sw, autoenable, autoenablestep, determined, reason, comment,
-              username, type, vlan=False):
-    """
-    Block the port or change vlan on port and update database.
-    type: block or quarantine.
-    vlan: Must be set if this is a quarantine attempt
-    """
-
-    # Type determines if this is an attempt to block the port or
-    # change to a quarantine vlan
-    if type not in ['block','quarantine']:
-        logger.info("Type must be block or quarantine: %s" %type)
-        # At the moment we just return silently as this should be a
-        # programmer-error only. A better solution if we need to be
-        # more verbose is to make an error-class and raise an
-        # exception.
-        return
-
-    if type == 'quarantine' and not vlan:
-        logger.error("Vlan must be set to quarantine a port.")
-        return
-
-    if type == 'block':
-        action = 'disabled'
-    else:
-        action = 'quarantined'
-
-
-    # Connect to database
-    arnolddb = getConnection('default', 'arnold')
-    c = arnolddb.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    logger.info("blockPort: Trying to %s %s" %(type, id['ip']))
-        
-
-    # Check if this id is in the nonblocklist
-    if checkNonBlock(id['ip']):
-        raise InExceptionListError
-
-    allowtypes = [x.strip()
-                  for x in config.get('arnold','allowtypes').split(',')]
-
-    if sw['catid'] not in allowtypes:
-        logger.info("blockPort: Not allowed to %s on %s" %(type, sw['catid']))
-        raise WrongCatidError, sw['catid']
-        
-
-    if sw['trunk']:
-        logger.info("blockPort: This is a trunk. No action allowed.")
-        raise BlockonTrunkError
-
-    
-    # Find dns and netbios
-    dns = getHostName(id['ip'])
-    # This is so slow...bu!
-    netbios = getNetbios(id['ip'])
-    if netbios == 1:
-        netbios = ""
-
-    # autoenablestep
-    autoenablestep = 2
-
-    # autoenable
-    if not autoenable:
-        autoenable = "NULL"
-    else:
-        autoenable = "now() + interval '%s day'" % (autoenable)
-
-    # check format on the input
-    if reason:
-        reason = int(reason)
-
-    # Check if a block exists with this swport/mac-address combo.
-    # if yes and active: do nothing, raise AlreadyBlockedError
-    # if yes and inactive: block port, update identity, create new event
-    # if no: block port, create identity, create first event
-
-    query = "SELECT * FROM identity WHERE swportid = %s AND mac = %s"
-    try:
-        c.execute(query, (sw['interfaceid'], id['mac']))
-    except nav.db.driver.ProgrammingError, why:
-        logger.error("blockPort: Error in sql: %s, %s" %(query, why))
-        raise DbError, why
-
-    res = c.fetchone()
-
-
-    # if yes and active: do nothing, raise AlreadyBlockedError
-    if c.rowcount > 0 and res['blocked_status'] in ['disabled', 'quarantined']:
-        logger.info("blockPort: This port is already %s" %action)
-        raise AlreadyBlockedError
-
-
-    elif c.rowcount > 0 and res['blocked_status'] == 'enabled':
-        ######################################################
-        # block port, update identity, create new event
-
-        logger.info("blockPort: This port has been blocked/quarantined \
-        before, updating")
-
-        if type == 'block':
-
-            fromvlan = vlan = 0
-            
-            try:
-                changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
-                                 sw['module'], sw['baseport'], sw['ifindex'],
-                                 snmp_version=sw['snmp_version'])
-            except ChangePortStatusError, e:
-                logger.error("blockPort: Error changing portstatus: %s" %e)
-                raise ChangePortStatusError
-
-        elif type == 'quarantine':
-            
-            try:
-                fromvlan = changePortVlan(sw['ip'], sw['ifindex'], vlan,
-                                          snmp_version=sw['snmp_version'])
-            except (DbError, NotSupportedError, ChangePortStatusError,
-                    ChangePortVlanError), e:
-                logger.error("blockPort: Error changing vlan: %s" %e)
-                raise ChangePortVlanError
-
-
-        else:
-            # Log and return
-            logger.error("Type not recognised: %s" %type)
-            return
-
-        # Update existing identity
-        query = """UPDATE identity SET
-        blocked_status = %%s, blocked_reasonid = %%s, swportid = %%s,
-        ip = %%s, mac = %%s, dns = %%s, netbios = %%s, lastchanged = now(),
-        autoenable = %s, autoenablestep = %%s, mail = %%s,
-        determined = %%s, fromvlan = %%s, tovlan = %%s
-        WHERE identityid = %%s
-        """ % autoenable
-            
-
-        arglist = [action, reason, sw['interfaceid'], id['ip'], id['mac'],
-                   dns, netbios, autoenablestep, "", determined,
-                   fromvlan, vlan, res['identityid']]
-
-
-        doQuery('arnold', query, arglist)
-
-        # Create new event
-        query = """INSERT INTO event
-        (identityid, event_comment, blocked_status, blocked_reasonid,
-        eventtime, autoenablestep, username)
-        VALUES (%s, %s, %s, %s, now(), %s, %s)
-        """
-
-        arglist = [res['identityid'], comment, action , reason, \
-                   autoenablestep, username]
-
-        doQuery('arnold', query, arglist)
-
-
-    else:
-        #########################################################
-        # block port, create identity, create first event
-
-        logger.info("blockPort: Not %s before, creating new identity" %action)
-
-        # Get nextvalue of sequence to use in both queries
-        nextvalq = "SELECT nextval('identity_identityid_seq')"
-        try:
-            c.execute(nextvalq)
-        except nav.db.driver.ProgrammingError, why:
-            raise DbError, why
-
-        nextval = c.fetchone()[0]
-
-        
-        if type == 'block':
-            try:
-                changePortStatus('disable', sw['ip'], sw['vendorid'], sw['rw'],
-                                 sw['module'], sw['baseport'], sw['ifindex'],
-                                 snmp_version=sw['snmp_version'])
-            except ChangePortStatusError:
-                logger.error("blockPort: Error changing portstatus: %s" %e)
-                raise ChangePortStatusError
-
-            # Create new identitytuple
-            query = """
-            INSERT INTO identity
-            (identityid, blocked_status, blocked_reasonid, swportid, ip, mac,
-            dns, netbios, starttime, lastchanged, autoenable, autoenablestep,
-            mail, determined) 
-            VALUES (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, now(), now(),
-            %s, %%s, %%s, %%s)
-            """ % autoenable
-            
-            arglist = [nextval, action, reason, sw['interfaceid'], id['ip'], \
-                       id['mac'], dns, netbios, autoenablestep, "", determined]
-            
-
-        elif type == 'quarantine':
-
-            try:
-                fromvlan = changePortVlan(sw['ip'], sw['ifindex'], vlan,
-                                          snmp_version=sw['snmp_version'])
-            except (DbError, NotSupportedError, ChangePortStatusError,
-                    ChangePortVlanError), e:
-                logger.error("blockPort: Error changing vlan: %s" %e)
-                raise ChangePortVlanError
-
-            # Create new identitytuple
-            query = """
-            INSERT INTO identity
-            (identityid, blocked_status, blocked_reasonid, swportid, ip, mac,
-            dns, netbios, starttime, lastchanged, autoenable, autoenablestep,
-            mail, determined, fromvlan, tovlan) 
-            VALUES (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, now(), now(),
-            %s, %%s, %%s, %%s, %%s, %%s)
-            """ % autoenable
-            
-            arglist = [nextval, action, reason, sw['interfaceid'], id['ip'], \
-                       id['mac'], dns, netbios, autoenablestep, "", \
-                       determined, fromvlan, vlan]
-
-        else:
-            logger.error("Type not recognised: %s" %type)
-            return
-
-
-        doQuery('arnold', query, arglist)
-
-
-        # Create new event-tuple
-        query = """INSERT INTO event
-        (identityid, event_comment, blocked_status, blocked_reasonid,
-        eventtime, autoenablestep, username)
-        VALUES (%s, %s, %s, %s, now(), %s, %s)
-        """
-    
-        arglist = [nextval, comment, action , reason, autoenablestep, username]
-
-        doQuery('arnold', query, arglist)
-
-
-    logger.info("Successfully %s %s" %(action, id['ip']))
-
-        
-
-###############################################################################
-# openPort
-#
-def openPort(id, username, eventcomment=""):
-    """
-    Takes as input the identityid of the block and username. Opens the
-    port (either enable or change vlan) and updates the database.
-
-    If port is not found in the database we assume that the
-    switch/module has been replaced. As this normally means that the
-    port is enabled, we enable the port in the arnold-database.
-    """
-
-    logger.info("openPort: Trying to open identity with id %s" %id)
-
-    # Connect to database
-    conn = getConnection('default')
-    arnolddb = getConnection('default', 'arnold')
-
-    carnold = arnolddb.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cmanage = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    # Find identityidinformation
-    query = """SELECT * FROM identity WHERE identityid = %s"""
-    carnold.execute(query, (id, ))
-
-    if carnold.rowcount <= 0:
-        raise NoDatabaseInformationError, id
-
-    identityrow = carnold.fetchone()
-
-    # Fetch info for this swportid
-    swportidquery = """SELECT * FROM netbox
-    LEFT JOIN type USING (typeid)
-    LEFT JOIN module USING (netboxid)
-    LEFT JOIN interface USING (netboxid)
-    WHERE interfaceid = %s"""
-
-    cmanage.execute(swportidquery, (identityrow['swportid'], ))
-
-    # If port exists, enable it with SNMP
-    if cmanage.rowcount > 0:
-        row = cmanage.fetchone()
-        status = identityrow['blocked_status']
-
-        if status == 'disabled':
-            # Enable port based on information gathered
-            try:
-                changePortStatus('enable', row['ip'], row['vendorid'],
-                                 row['rw'], row['module'], row['baseport'],
-                                 row['ifindex'],
-                                 snmp_version=row['snmp_version'])
-            except ChangePortStatusError, why:
-                logger.error("openPort: Error when changing portstatus: %s"
-                             %why)
-                raise ChangePortStatusError
-
-        elif status == 'quarantined':
-            # Change vlan to fromvlan stored in database
-            try:
-                changePortVlan(row['ip'], row['ifindex'],
-                               identityrow['fromvlan'],
-                               snmp_version=row['snmp_version'])
-            except (DbError, NotSupportedError, ChangePortVlanError), e:
-                logger.error("openPort: %s", e)
-                raise ChangePortVlanError
-            
-    else:
-        # If port was not found, reflect this in event-comment
-        eventcomment = """Port was not found because switch/module
-        replaced. Port enabled in database only."""
-        
-
-    # Update identity-table
-    updateq = """UPDATE identity SET
-    lastchanged = now(),
-    blocked_status = 'enabled',
-    fromvlan = NULL, tovlan = NULL
-    WHERE identityid = %s"""
-
-    try:
-        carnold.execute(updateq, (id, ))
-    except nav.db.driver.ProgrammingError, why:
-        arnolddb.rollback()
-        raise DbError, why
-
-    # Update event-table
-    eventq = """INSERT INTO event
-    (identityid, blocked_status, eventtime, username, event_comment) VALUES
-    (%s, 'enabled', now(), %s, %s)"""
-
-    try:
-        carnold.execute(eventq, (id, username, eventcomment))
-        arnolddb.commit()
-    except nav.db.driver.ProgrammingError, why:
-        arnolddb.rollback()
-        raise DbError, why
-
-    # Raise exception to catch for notifying user of lack of swport
-    if cmanage.rowcount <= 0:
-        raise NoDatabaseInformationError, id
-
-    logger.info("openPort: Port successfully opened")
-
-
-
-###############################################################################
-# changePortStatus
-#
-def changePortStatus(action, ip, vendorid, community, module, port, ifindex,
-                     snmp_version=1):
-    """
-    Use SNMP to disable a interface.
-    - Action must be 'enable' or 'disable'.
-    - Community must be read/write community
-    - IP is the ip of the switch to change portstatus on
-
-    Todo: Remove vendorid, community, module, port and fetch that from
-    database
-    """
-
-    # We use ifadminstatus to enable and disable ports
-    # ifAdminStatus has the following values:
-    # 1 - up
-    # 2 - down
-    # 3 - testing (no operational packets can be passed)
-    oid = '.1.3.6.1.2.1.2.2.1.7'
-
-    ifindex = str(ifindex)
-    query = oid + '.' + ifindex
-
-    logger.debug("vendor: %s, ro: %s, ifindex: %s, module: %s"
-                 %(vendorid, community, ifindex, module))
-
-    # Create snmp-object
-    s = nav.Snmp.Snmp(ip, community, version=snmp_version)
-
-
-    # Disable or enable based on input
-    try:
-        if action == 'disable':
-            logger.info("Disabling ifindex %s on %s with %s"
-                        %(ifindex, ip, query))
-            s.set(query, 'i', 2)
-            pass
-        elif action == 'enable':
-            logger.info("Enabling ifindex %s on %s with %s"
-                        %(ifindex, ip, query))
-            s.set(query, 'i', 1)
-            pass
-        
-    except nav.Snmp.AgentError, why:
-        logger.error("Error when executing snmpquery: %s" %why)
-        raise ChangePortStatusError, why
-
-
-
-###############################################################################
-# changePortVlan
-#
-def changePortVlan(ip, ifindex, vlan, snmp_version=1):
-    """
-    Use SNMP to change switchport access vlan. Returns vlan on port
-    before change if successful.
-
-    ip: ip of netbox
-    ifindex: ifindex of swport in manage-db
-    vlan: vlanid to change to
-
-    Reasons for not successful change may be:
-    - Wrong community, use rw-community
-    - rw-community not set on netbox
-    - port is a trunk
-    """
-
-    logger.debug("changePortVlan got %s, %s, %s" %(ip, ifindex, vlan))
-
-    # Connect to database
-    conn = getConnection('default')
-    c = conn.cursor()
-
-    q = """SELECT vendorid, ro, rw
-    FROM netbox
-    LEFT JOIN type USING (typeid)
-    WHERE ip = %s
-    """
-
-    # type is the TYPE in the snmpset-query
-    type = ''
-
-    try:
-        c.execute(q, (ip, ))
-    except nav.db.driver.ProgrammingError, e:
-        raise DbError, e
-
-    vendorid, ro, rw = c.fetchone()
-
-    # oid for getting and setting vlan
-    # CISCO
-    # cisco.ciscoMgmt.ciscoVlanMembershipMIB.ciscoVlanMembershipMIBObjects.
-    # vmMembership.vmMembershipTable.vmMembershipEntry.vmVlan.<ifindex>
-    if vendorid == 'cisco':
-
-        oid = "1.3.6.1.4.1.9.9.68.1.2.2.1.2"
-        type = 'i'
-
-    elif vendorid == 'hp':
-
-        oid = "1.3.6.1.2.1.17.7.1.4.5.1.1"
-        type = 'u'
-
-    else:
-
-        # Nothing else supported :p As we use Q-BRIDGE-MIB this is
-        # possibly incorrect, but testing on other vendors is needed.
-
-        raise NotSupportedError, vendorid
-
-
-    # Check vlanformat
-    if not re.search('\d+', str(vlan)):
-        raise ChangePortVlanError, "Wrong format on vlan %s" % vlan
-
-
-    # Make query based on oid and ifindex
-    query = oid + '.' + str(ifindex)
-
-    # Create snmp-objects
-    snmpget = nav.Snmp.Snmp(ip, ro, version=snmp_version)
-    snmpset = nav.Snmp.Snmp(ip, rw, version=snmp_version)
-
-    # Fetch the vlan currently on the port
-    try:
-        fromvlan = snmpget.get(query)
-    except (nav.Snmp.NoSuchObjectError, nav.Snmp.TimeOutException), why:
-        raise ChangePortVlanError, why
-
-    # If the vlan on the interface is the same as we try to set, do
-    # nothing.
-    if fromvlan == int(vlan):
-        return fromvlan
-
-    # Set to inputvlan. This will fail if the vlan does not exist on
-    # the netbox, luckily.
-
-    try:
-        snmpset.set(query, type, vlan)
-        pass
-    except nav.Snmp.AgentError, why:
-        raise ChangePortVlanError, why
-
-    # Ok, here comes the tricky part. On HP if we change vlan on a
-    # port using dot1qPvid, the fromvlan will put the vlan in
-    # trunkmode. To remedy this we use dot1qVlanStaticEgressPorts to
-    # fetch and unset the tagged vlans.
-
-    # The good thing about this is that it should work on any netbox
-    # that supports Q-BRIDGE-MIB.
-
-    # TODO: Test on other netbox/vendor types
-    # TODO: We are fscked if the stuff below fails as we have already
-    # changed vlan. Howto fix?
-
-    if vendorid == 'hp':
-        # Fetch dot1qVlanStaticEgressPorts
-        dot1qVlanStaticEgressPorts = '1.3.6.1.2.1.17.7.1.4.3.1.2.' + \
-                                     str(fromvlan)
-        try:
-            hexports = snmpget.get(dot1qVlanStaticEgressPorts)
-        except nav.Snmp.NoSuchObjectError, why:
-            raise ChangePortVlanError, why
-
-        # Create new octetstring and set it
-        newhexports = computeOctetString(hexports, ifindex, 'disable')
-
-        try:
-            snmpset.set(dot1qVlanStaticEgressPorts, 's', newhexports)
-            pass
-        except nav.Snmp.NoSuchObjectError, why:
-            raise ChangePortVlanError, why
-    
-    return fromvlan
-
-
-
-###############################################################################
-# toggleSwportStatus
-#
-def changeSwportStatus(action, swportid):
-    """
-    Use snmp to change the ifadminstatus on given swportid.
-    action = enable, disable
-    """
-
-    if not action in ['enable','disable']:
-        raise BlockError, "No such action %s" % action
-
-    # Connect to database
-    conn = getConnection('default')
-    c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    query = """SELECT * FROM netbox
-    LEFT JOIN type USING (typeid)
-    LEFT JOIN module USING (netboxid)
-    LEFT JOIN interface USING (netboxid)
-    WHERE interfaceid = %s"""
-
-    try:
-        c.execute(query, (swportid, ))
-    except nav.db.driver.ProgrammingError, why:
-        raise DbError, why
-
-    row = c.fetchone()
-
-    try:
-        changePortStatus(action, row['ip'], row['vendorid'], row['rw'],
-                         row['module'], row['baseport'], row['ifindex'])
-    except ChangePortStatusError:
-        raise ChangePortStatusError
-
-
-
-###############################################################################
-# sendmail
-#
-def sendmail(fromaddr, toaddr, subject, msg):
-    """
-    Sends mail using mailprogram configured in arnold.conf (default
-    sendmail).
-    NB: Expects all strings to be in utf-8 format.
-    """
-
-    # Get mailprogram from config-file
-    mailprogram = config.get('arnold','mailprogram')
-
-    try:
-        p = os.popen(mailprogram, 'w')
-    except NameError, why:
-        raise NoSuchProgramError, mailprogram
-
-
-    # Define charset and set content-transfer-encoding to
-    # quoted-printable
-    c = email.Charset.Charset('utf-8')
-    c.header_encoding = email.Charset.QP
-    c.body_encoding = email.Charset.QP
-
-    # Create message-object, fill it and set correct charset.
-    m = email.Message.Message()
-    h = email.Header.Header(subject, c)
-    m['To'] = toaddr
-    m['From'] = fromaddr
-    m['Subject'] = h
-
-    m.set_charset(c)
-    m.set_payload(msg)
-
-    # send mail
-    p.write(m.as_string())
-
-    exitcode = p.close()
-    if exitcode:
-        logger.info("Exit code: %s" % exitcode)
-
-
-###############################################################################
-# addReason
-#
-def addReason(name, comment, id=0):
-    """Add a reason for blocking to the database"""
-
-    id = int(id)
-
-    if id:
-        query = """UPDATE blocked_reason SET name=%s, comment=%s
-        WHERE blocked_reasonid = %s"""
-        doQuery('arnold', query, (name, comment, id))
-    else:
-        query = "INSERT INTO blocked_reason (name, comment) VALUES (%s, %s)"
-        doQuery('arnold', query, (name, comment))
-
-
-###############################################################################
-# getReason
-#
-def getReasons():
-    """
-    Returns a dict with the reasons for blocking currently in the
-    database
-    """
-
-    conn = nav.db.getConnection('default', 'arnold')
-    c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    query = "SELECT * FROM blocked_reason ORDER BY blocked_reasonid"
-    try:
-        c.execute(query)
-    except nav.db.driver.ProgrammingError, why:
-        raise DbError, why
-
-    return [dict(row) for row in c.fetchall()]
-
-
-###############################################################################
-# getHostName
-#
-def getHostName(ip):
-    """
-    Get hostname based on ip-address. Return 'N/A' if not found.
-    """
-
-    hostname = "N/A"
-
-    try:
-        hostname = socket.gethostbyaddr(ip)[0]
-    except socket.herror, why:
-        pass
-
-    return hostname
-
-
-###############################################################################
-# getNetbios
-#
-def getNetbios(ip):
-    """
-    Get netbiosname of computer with ip
-    """
-
-    # Try to locate nmblookup
-    status, output = commands.getstatusoutput('which nmblookup')
-    if status > 0:
-        return 1
-
-    status, output = commands.getstatusoutput(output + " -A " + ip)
-    if status > 0:
-        return 1
-
-    # For each line in output, try to find name of computer.
-    for line in output.split("\n\t"):
-        if re.search("<00>", line):
-            m = re.search("(\S+)\s+<00>", line)
-            return m.group(1) or 1
-            
-    # If it times out or for some other reason doesn't match...
-    return 1
-
-
-###############################################################################
-# doQuery
-#
-def doQuery(database, query, args):
-    """
-    Execute a query. Use this for updates/inserts.
-    - database: database to execute query in.
-    - query:    query with placeholders
-    - args:     list/tuple with values for the placeholders
-    """
-
-    conn = nav.db.getConnection('default', database)
-    c = conn.cursor()
-
-    try:
-        c.execute(query, args)
-        conn.commit()
-    except nav.db.driver.ProgrammingError, why:
-        conn.rollback()
-        logger.error("doQuery: Error in sql %s: %s" %(query, why))
-        raise DbError, why
-
-    # Return oid of insert
-    return c.lastrowid
-
-###############################################################################
-# checkNonBlock
-#
-def checkNonBlock(ip):
-    """
-    Checks if the ip is in the nonblocklist. If it is, returns 1,
-    else returns 0.
-    """
-
-    #print nonblockdict
-    
-    # We have the result of the nonblock.cfg-file in the dict
-    # nonblockdict. This dict contains 3 things:
-    # 1 - Specific ip-addresses
-    # 2 - Ip-ranges (129.241.xxx.xxx/xx)
-    # 3 - Ip lists (129.241.xxx.xxx-xxx)
-
-    # Specific ip-addresses
-    if ip in nonblockdict['ip']:
-        return 1
-
-    # Ip-ranges
-    for range in nonblockdict['range']:
-        if ip in IP(range):
-            return 1
-        
-    return 0
-
-
-###############################################################################
-# computeOctetString
-#
-def computeOctetString(hexstring, port, action='enable'):
-    """
-    hexstring: the returnvalue of the snmpquery
-    port: the number of the port to add
-    """
-    
-    bit = nav.bitvector.BitVector(hexstring)
-
-    # Add port to string
-    port = port - 1
-    if action == 'enable':
-        bit[port] = 1
-    else:
-        bit[port] = 0
-        
-    return str(bit)
+    vlans = [x.strip() for x in vlans.split(',')]
+
+    # For each vlan, check if it is inside the prefix of the vlan.
+    for vlan in vlans:
+        if vlan.isdigit() and is_valid_ip(ip):
+            if Prefix.objects.filter(vlan__vlan=vlan).extra(
+                    where=['%s << netaddr'], params=[ip]):
+                return True
+    return False
