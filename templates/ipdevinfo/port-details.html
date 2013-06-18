@@ -189,11 +189,13 @@
                     <table>
                     <tr>
                         <th>Metric</th>
+                        <th>Graph</th>
                         <th>Threshold</th>
                     </tr>
                     {% for metric in metrics %}
                     <tr>
                         <td>{{ metric.suffix }}</td>
+                        <td><img alt="[graph]" src="{{ metric.url }}" /></td>
                         <td><a href="{% url threshold-interface port.id %}">{% if metric.threshold %}{{ metric.threshold }}{% else %}not configured{% endif %}</a></td>
                     </tr>
                     {% endfor %}

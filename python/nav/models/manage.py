@@ -30,6 +30,7 @@ from itertools import count, groupby
 
 from nav.bitvector import BitVector
 from nav.metrics.data import get_metric_average
+from nav.metrics.graphs import get_simple_graph_url
 from nav.metrics.names import get_all_leaves_below
 from nav.metrics.templates import (
     metric_prefix_for_interface,
@@ -1147,7 +1148,8 @@ class Interface(models.Model):
 
         nodes = get_all_leaves_below(base)
         result = [dict(id=n,
-                       suffix=n.replace(base + '.', ''))
+                       suffix=n.replace(base + '.', ''),
+                       url=get_simple_graph_url(n, '1day'))
                   for n in nodes]
         return result
 
