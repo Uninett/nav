@@ -20,7 +20,8 @@ import sys
 from nav.navrrd2whisper import (get_rras, calculate_time_periods,
                                 calculate_retentions, get_datasources,
                                 create_whisper_path,
-                                calculate_absolute_from_rate)
+                                calculate_absolute_from_rate,
+                                insert_missing_values)
 
 
 class NavRrd2WhisperTest(unittest.TestCase):
@@ -185,3 +186,9 @@ class NavRrd2WhisperTest(unittest.TestCase):
         rates = [200, None, 200]
         self.assertEqual(calculate_absolute_from_rate(rates, interval),
                          [60000, None, 60000])
+
+    def test_insert_missing_values(self):
+        values = [1, 2, 3]
+        num_missing = 3
+        modified = insert_missing_values(values, num_missing)
+        self.assertEqual(modified, [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3])

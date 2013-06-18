@@ -43,10 +43,11 @@ def main():
 
     start_time = datetime.now()
     _logger.info('Starting migrate at %s', start_time)
-    # InterfaceMigrator(args[0]).migrate()
-    # SystemMigrator(args[0]).migrate()
-    # PpingMigrator(args[0]).migrate()
-    # SensorMigrator(args[0]).migrate()
+
+    InterfaceMigrator(args[0]).migrate()
+    SystemMigrator(args[0]).migrate()
+    PpingMigrator(args[0]).migrate()
+    SensorMigrator(args[0]).migrate()
     ActiveIpMigrator(args[0]).migrate()
 
     _logger.info('Migration done in %s', datetime.now() - start_time)

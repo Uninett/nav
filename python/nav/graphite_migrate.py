@@ -33,9 +33,10 @@ class Migrator(object):
     """Baseclass for migrating rrd-data to whisper files"""
 
     def __init__(self, basepath):
-        self.basepath = basepath
+        self.basepath = basepath  # Base path for storing the whisper files
         self.rrdfiles = None
-        self.infoclass = None
+        self.infoclass = None  # See key/value in rrd_file
+        self.extra_retention = None  # Tuple with extra retention(seconds only)
 
     def create_path_from_metric(self, metric):
         """Create a filesystem path from a whisper metric"""
@@ -47,7 +48,7 @@ class Migrator(object):
             _logger.info('Migrating %s', rrdfile)
             metrics = self.find_metrics(rrdfile)
             if metrics:
-                convert_to_whisper(rrdfile, metrics)
+                convert_to_whisper(rrdfile, metrics, self.extra_retention)
 
     def find_metrics(self, rrdfile):
         """Find metrics for datasources"""
@@ -113,6 +114,7 @@ class SystemMigrator(Migrator):
         super(SystemMigrator, self).__init__(*args)
         self.rrdfiles = RrdFile.objects.filter(
             Q(path__endswith='routers') | Q(path__endswith='switches'))
+        self.extra_retention = (60, 60 * 60 * 24)
 
     def find_metric(self, datasource, sysname=None, info_object=None):
         descr = datasource.description
@@ -157,6 +159,7 @@ class PpingMigrator(Migrator):
     def __init__(self, *args):
         super(PpingMigrator, self).__init__(*args)
         self.rrdfiles = RrdFile.objects.filter(subsystem='pping')
+        self.extra_retention = (20, 60 * 60 * 12)
 
     def find_metric(self, datasource, sysname=None, info_object=None):
         if datasource.name == 'RESPONSETIME':
