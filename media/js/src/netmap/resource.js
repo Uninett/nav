@@ -1,4 +1,5 @@
 define([
+    'netmap/resource',
     'netmap/collections/categories',
     'netmap/collections/map',
     'netmap/models/map',
@@ -7,7 +8,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function(CategoriesCollection, MapCollection, MapPropertiesModel, DefaultMapModel) {
+], function(Resources, CategoriesCollection, MapCollection, MapPropertiesModel, DefaultMapModel) {
 
     function checkDefaultMapSetByAdministrator() {
         var self = this;

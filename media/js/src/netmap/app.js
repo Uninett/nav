@@ -11,17 +11,17 @@ define([
         var IESanityTest = {
             Version: function() {
                 var version = 666; // assume good
-                if (navigator.appVersion.indexOf("MSIE") != -1) {
+                if (navigator.appVersion.indexOf("MSIE") !== -1) {
                     version = parseFloat(navigator.appVersion.split("MSIE")[1]);
                 }
                 return version;
             },
             DocumentVersion: function () {
                 var version = 666; // assume good
-                if (navigator.appVersion.indexOf("MSIE") != -1) {
+                if (navigator.appVersion.indexOf("MSIE") !== -1) {
                     var documentVersion = document.documentMode;
                     if (documentVersion !== undefined) {
-                        version = documentVersion
+                        version = documentVersion;
                     } else {
                         version = 1; // documentMode included from IE8>=, just fail older browser!
                     }
@@ -53,7 +53,7 @@ define([
         });
 
         Handlebars.registerHelper('uppercase', function (type) {
-            if (typeof type == 'string' || type instanceof String) {
+            if (typeof type === 'string' || type instanceof String) {
                 return type.toUpperCase();
             } else {
                 return type;
@@ -69,7 +69,7 @@ define([
             var ret = "";
 
             var empty = true;
-            for (key in context) { empty = false; break; }
+            for (var key in context) { empty = false; break; }
 
             if (!empty) {
                 for (key in context) {
@@ -91,7 +91,7 @@ define([
         });
 
 
-        Backbone.View.prototype.attachSubView = function (view, viewClass, viewOptions) {
+        Backbone.View.prototype.attachSubView = function (view, ViewClass, viewOptions) {
             if (!!viewOptions && !_.isObject(viewOptions)) {
                 viewOptions = {
                     el: $(viewOptions, this.$el)
@@ -104,9 +104,9 @@ define([
                 }
                 view.setElement(viewOptions.el);
             } else {
-                view = new viewClass(viewOptions);
+                view = new ViewClass(viewOptions);
             }
-            if (typeof view["initWidget"] === "function") {
+            if (typeof view.initWidget === "function") {
                 view.initWidget(viewOptions);
             }
             view.render();

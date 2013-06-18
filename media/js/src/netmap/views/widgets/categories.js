@@ -33,7 +33,7 @@ define([
 
             this.model.get("categories").bind("change", this.render, this);
             this.model.get("categories").each(function(category){
-                category.bind("change", function(){ self.trigger("change:categories:" + category.id, category) });
+                category.bind("change", function(){ self.trigger("change:categories:" + category.id, category); });
             });
 
             return this;

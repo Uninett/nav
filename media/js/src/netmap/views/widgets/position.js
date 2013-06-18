@@ -52,7 +52,7 @@ define([
         },
         setPosition: function (event) {
 
-            positionToUpdate = this.collection.get($(event.currentTarget).val().toLowerCase());
+            var positionToUpdate = this.collection.get($(event.currentTarget).val().toLowerCase());
             if (positionToUpdate) {
                 this.collection.setAllUnselectedSilently();
                 positionToUpdate.set({'is_selected': $(event.currentTarget).prop('checked')}, {'error': function (error) {

@@ -25,7 +25,7 @@ define([
 
                 if(context && context.length > 0) {
                     for(var i=0, j=context.length; i<j; i++) {
-                        ret = ret + fn(_.extend({}, context[i], { percent: context.length - 1 - i, isDecade: i%10==0 }));
+                        ret = ret + fn(_.extend({}, context[i], { percent: context.length - 1 - i, isDecade: i%10===0 }));
                     }
                 } else {
                     ret = inverse(this);
