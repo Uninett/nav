@@ -34,8 +34,6 @@ try:
 except IOError:
     webfront_config = {}
     
-sys.path.append(os.path.join(nav.buildconf.sysconfdir, "python"))
-
 DEBUG = nav_config.get('DJANGO_DEBUG', False)
 TEMPLATE_DEBUG = DEBUG
 
@@ -121,7 +119,8 @@ DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
 CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'	
 
 # Hack for hackers to use features like debug_toolbar etc.
+sys.path.append(os.path.join(nav.buildconf.sysconfdir, "python"))
 try:
-    from settings_local import *
+    from local_settings import *
 except ImportError:
     pass
