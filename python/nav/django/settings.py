@@ -21,6 +21,7 @@ from nav.db import get_connection_parameters
 import nav.buildconf
 import nav.path
 import sys
+import os
 
 try:
     nav_config = read_flat_config('nav.conf')
@@ -33,7 +34,7 @@ try:
 except IOError:
     webfront_config = {}
     
-sys.path.append(nav_config.get("local_python", "{0}/python".format(nav.buildconf.sysconfdir)))
+sys.path.append(os.path.join(nav.buildconf.sysconfdir, "python"))
 
 DEBUG = nav_config.get('DJANGO_DEBUG', False)
 TEMPLATE_DEBUG = DEBUG
@@ -120,8 +121,7 @@ DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
 CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'	
 
 # Hack for hackers to use features like debug_toolbar etc.
-if DEBUG:
-    try:
-        from settings_local import *
-    except ImportError:
-        pass
+try:
+    from settings_local import *
+except ImportError:
+    pass
