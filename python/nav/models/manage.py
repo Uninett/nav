@@ -27,9 +27,17 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
 from itertools import count, groupby
-from nav import metrics
 
 from nav.bitvector import BitVector
+from nav.metrics.data import get_metric_average
+from nav.metrics.names import get_all_leaves_below
+from nav.metrics.templates import (
+    metric_prefix_for_interface,
+    metric_prefix_for_ports,
+    metric_prefix_for_device,
+    metric_path_for_packet_loss,
+    metric_path_for_roundtrip_time
+)
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
@@ -160,8 +168,8 @@ class Netbox(models.Model):
 
     def get_availability(self):
         """Calculates and returns an availability data structure."""
-        pktloss_id = metrics.metric_path_for_packet_loss(self.sysname)
-        rtt_id = metrics.metric_path_for_roundtrip_time(self.sysname)
+        pktloss_id = metric_path_for_packet_loss(self.sysname)
+        rtt_id = metric_path_for_roundtrip_time(self.sysname)
 
         result = {
             'availability': {
@@ -173,7 +181,7 @@ class Netbox(models.Model):
         }
 
         for time_frame in self.TIME_FRAMES:
-            avg = metrics.get_metric_average([pktloss_id, rtt_id],
+            avg = get_metric_average([pktloss_id, rtt_id],
                                               start="-1%s" % time_frame)
 
             # Availability
@@ -286,10 +294,10 @@ class Netbox(models.Model):
                    suffix="cpu1.loadavg1min"}
 
         """
-        exclude = metrics.metric_prefix_for_ports(self.sysname)
-        base = metrics.metric_prefix_for_device(self.sysname)
+        exclude = metric_prefix_for_ports(self.sysname)
+        base = metric_prefix_for_device(self.sysname)
 
-        nodes = metrics.get_all_leaves_below(base, [exclude])
+        nodes = get_all_leaves_below(base, [exclude])
         result = []
         for node in nodes:
             suffix = node.replace(base + '.', '')
@@ -1135,9 +1143,9 @@ class Interface(models.Model):
                    suffix:"ifInOctets"}
 
         """
-        base = metrics.metric_prefix_for_interface(self.netbox, self.ifname)
+        base = metric_prefix_for_interface(self.netbox, self.ifname)
 
-        nodes = metrics.get_all_leaves_below(base)
+        nodes = get_all_leaves_below(base)
         result = [dict(id=n,
                        suffix=n.replace(base + '.', ''))
                   for n in nodes]

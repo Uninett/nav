@@ -18,6 +18,10 @@
 
 from django.db import models
 from nav import metrics
+from nav.metrics.templates import (
+    metric_path_for_service_availability,
+    metric_path_for_service_response_time
+)
 
 from nav.models.manage import Netbox
 from nav.models.fields import VarcharField
@@ -52,8 +56,8 @@ class Service(models.Model):
 
     def get_statistics(self):
         args = (self.netbox.sysname, self.handler, self.id)
-        avail_id = metrics.metric_path_for_service_availability(*args)
-        rtime_id = metrics.metric_path_for_service_response_time(*args)
+        avail_id = metric_path_for_service_availability(*args)
+        rtime_id = metric_path_for_service_response_time(*args)
 
         result = {
             'availability': {

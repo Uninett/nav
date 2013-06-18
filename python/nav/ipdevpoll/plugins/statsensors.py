@@ -17,9 +17,10 @@
 
 from twisted.internet import defer
 import time
-from nav.metrics import metric_path_for_sensor, send_metrics
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.db import autocommit, run_in_thread
+from nav.metrics.carbon import send_metrics
+from nav.metrics.templates import metric_path_for_sensor
 from nav.models.manage import Sensor
 
 # Ask for no more than this number of values in a single SNMP GET operation

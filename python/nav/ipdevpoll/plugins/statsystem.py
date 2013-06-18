@@ -18,8 +18,8 @@ import time
 
 from twisted.internet import defer
 
-from nav import metrics
-from nav.metrics import (
+from nav.ipdevpoll import Plugin
+from nav.metrics.templates import (
     metric_path_for_bandwith,
     metric_path_for_bandwith_peak,
     metric_path_for_cpu_load,
@@ -27,7 +27,6 @@ from nav.metrics import (
     metric_path_for_sysuptime,
     metric_prefix_for_memory
 )
-from nav.ipdevpoll import Plugin
 from nav.mibs.cisco_memory_pool_mib import CiscoMemoryPoolMib
 
 from nav.mibs.esswitch_mib import ESSwitchMib

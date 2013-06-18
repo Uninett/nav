@@ -18,9 +18,9 @@ import time
 from twisted.internet import defer
 from pprint import pformat
 
-from nav import metrics
-from nav.metrics import metric_path_for_interface
 from nav.ipdevpoll import Plugin
+from nav.metrics.carbon import send_metrics
+from nav.metrics.templates import metric_path_for_interface
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
 from nav.mibs.ip_mib import IpMib
@@ -59,7 +59,7 @@ class StatPorts(Plugin):
         tuples = list(self._make_metrics(stats))
         self._logger.debug("collected: %s", pformat(tuples))
         if tuples:
-            metrics.send_metrics(tuples)
+            send_metrics(tuples)
 
     @defer.inlineCallbacks
     def _get_stats(self):

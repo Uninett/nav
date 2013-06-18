@@ -23,11 +23,12 @@ the statemon subsystem.
 """
 import time
 from . import event
-from nav.metrics import (
-    send_metrics, metric_path_for_service_availability,
-    metric_path_for_service_response_time,
+from nav.metrics.carbon import send_metrics
+from nav.metrics.templates import (
     metric_path_for_packet_loss,
-    metric_path_for_roundtrip_time
+    metric_path_for_roundtrip_time,
+    metric_path_for_service_availability,
+    metric_path_for_service_response_time
 )
 
 

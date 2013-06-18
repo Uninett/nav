@@ -19,7 +19,18 @@ from __future__ import absolute_import
 
 import logging
 import re
-import nav.metrics as graphite
+from nav.metrics.templates import (
+    metric_path_for_bandwith,
+    metric_path_for_interface,
+    metric_path_for_cpu_load,
+    metric_prefix_for_memory,
+    metric_path_for_bandwith_peak,
+    metric_path_for_sysuptime,
+    metric_path_for_roundtrip_time,
+    metric_path_for_packet_loss,
+    metric_path_for_sensor,
+    metric_path_for_prefix
+)
 from nav.navrrd2whisper import convert_to_whisper
 from os.path import join
 from nav.models.manage import Interface, Sensor, Prefix, Netbox
@@ -98,7 +109,7 @@ class InterfaceMigrator(Migrator):
         descr = datasource.description
         if hc_octets.match(descr):
             descr = re.sub(r'(?i)hc', '', descr)
-        return graphite.metric_path_for_interface(
+        return metric_path_for_interface(
             info_object.netbox.sysname, info_object.ifname, descr)
 
 
@@ -119,27 +130,27 @@ class SystemMigrator(Migrator):
     def find_metric(self, datasource, sysname=None, info_object=None):
         descr = datasource.description
         if descr in self.cpus:
-            metric = graphite.metric_path_for_cpu_load(
+            metric = metric_path_for_cpu_load(
                 sysname, 'cpu', self.get_interval(descr))
         elif descr in self.memories:
-            metric = graphite.metric_prefix_for_memory(sysname, descr)
+            metric = metric_prefix_for_memory(sysname, descr)
         elif descr in self.bandwidths:
             if descr.endswith(('Max', 'max')):
                 if descr.startswith('c5000'):
-                    metric = graphite.metric_path_for_bandwith_peak(
+                    metric = metric_path_for_bandwith_peak(
                         sysname, True)
                 else:
-                    metric = graphite.metric_path_for_bandwith_peak(
+                    metric = metric_path_for_bandwith_peak(
                         sysname, False)
             else:
                 if descr.startswith('c5000'):
-                    metric = graphite.metric_path_for_bandwith(
+                    metric = metric_path_for_bandwith(
                         sysname, True)
                 else:
-                    metric = graphite.metric_path_for_bandwith(
+                    metric = metric_path_for_bandwith(
                         sysname, False)
         elif descr == 'sysUpTime':
-            metric = graphite.metric_path_for_sysuptime(sysname)
+            metric = metric_path_for_sysuptime(sysname)
         else:
             _logger.info('Could not find metric for %s' % descr)
             metric = None
@@ -163,9 +174,9 @@ class PpingMigrator(Migrator):
 
     def find_metric(self, datasource, sysname=None, info_object=None):
         if datasource.name == 'RESPONSETIME':
-            return graphite.metric_path_for_roundtrip_time(sysname)
+            return metric_path_for_roundtrip_time(sysname)
         elif datasource.name == 'STATUS':
-            return graphite.metric_path_for_packet_loss(sysname)
+            return metric_path_for_packet_loss(sysname)
         else:
             _logger.error('Could not find metric for %s', datasource.name)
 
@@ -179,7 +190,7 @@ class SensorMigrator(Migrator):
         self.infoclass = Sensor
 
     def find_metric(self, datasource, sysname=None, info_object=None):
-        return graphite.metric_path_for_sensor(sysname, info_object.name)
+        return metric_path_for_sensor(sysname, info_object.name)
 
 
 class ActiveIpMigrator(Migrator):
@@ -191,4 +202,4 @@ class ActiveIpMigrator(Migrator):
         self.infoclass = Prefix
 
     def find_metric(self, datasource, sysname=None, info_object=None):
-        return graphite.metric_path_for_prefix(info_object, datasource.name)
+        return metric_path_for_prefix(info_object, datasource.name)
