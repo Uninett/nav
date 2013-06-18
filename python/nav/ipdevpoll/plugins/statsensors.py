@@ -17,7 +17,7 @@
 
 from twisted.internet import defer
 import time
-from nav.graphite import metric_path_for_sensor, send_metrics
+from nav.metrics import metric_path_for_sensor, send_metrics
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.db import autocommit, run_in_thread
 from nav.models.manage import Sensor

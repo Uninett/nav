@@ -17,7 +17,7 @@
 """Django ORM wrapper for the NAV manage database"""
 
 from django.db import models
-from nav import graphite
+from nav import metrics
 
 from nav.models.manage import Netbox
 from nav.models.fields import VarcharField
@@ -52,8 +52,8 @@ class Service(models.Model):
 
     def get_statistics(self):
         args = (self.netbox.sysname, self.handler, self.id)
-        avail_id = graphite.metric_path_for_service_availability(*args)
-        rtime_id = graphite.metric_path_for_service_response_time(*args)
+        avail_id = metrics.metric_path_for_service_availability(*args)
+        rtime_id = metrics.metric_path_for_service_response_time(*args)
 
         result = {
             'availability': {
@@ -65,7 +65,7 @@ class Service(models.Model):
         }
 
         for time_frame in self.TIME_FRAMES:
-            avg = graphite.get_metric_average([avail_id, rtime_id],
+            avg = metrics.get_metric_average([avail_id, rtime_id],
                                               start="-1%s" % time_frame)
 
             # Availability

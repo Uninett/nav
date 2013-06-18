@@ -23,7 +23,7 @@ the statemon subsystem.
 """
 import time
 from . import event
-from nav.graphite import (
+from nav.metrics import (
     send_metrics, metric_path_for_service_availability,
     metric_path_for_service_response_time,
     metric_path_for_packet_loss,

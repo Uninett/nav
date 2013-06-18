@@ -15,7 +15,7 @@
 #
 import urllib2
 from django.http import HttpResponse
-from nav.graphite import CONFIG
+from nav.metrics import CONFIG
 
 import logging
 LOGGER = logging.getLogger(__name__)

@@ -19,7 +19,7 @@ from __future__ import absolute_import
 
 import logging
 import re
-import nav.graphite as graphite
+import nav.metrics as graphite
 from nav.navrrd2whisper import convert_to_whisper
 from os.path import join
 from nav.models.manage import Interface, Sensor, Prefix, Netbox

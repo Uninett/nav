@@ -18,8 +18,8 @@ import time
 
 from twisted.internet import defer
 
-from nav import graphite
-from nav.graphite import (
+from nav import metrics
+from nav.metrics import (
     metric_path_for_bandwith,
     metric_path_for_bandwith_peak,
     metric_path_for_cpu_load,
@@ -71,7 +71,7 @@ class StatSystem(Plugin):
 
         metrics = bandwidth + cpu + sysuptime + memory
         if metrics:
-            graphite.send_metrics(metrics)
+            metrics.send_metrics(metrics)
 
     @defer.inlineCallbacks
     def _collect_bandwidth(self):
