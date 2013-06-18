@@ -33,7 +33,7 @@ try:
                                 configfolder=nav.path.sysconfdir)
 except IOError:
     webfront_config = {}
-    
+
 DEBUG = nav_config.get('DJANGO_DEBUG', False)
 TEMPLATE_DEBUG = DEBUG
 
