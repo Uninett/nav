@@ -119,8 +119,12 @@ DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
 CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'	
 
 # Hack for hackers to use features like debug_toolbar etc.
+# https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
 sys.path.append(os.path.join(nav.buildconf.sysconfdir, "python"))
 try:
-    from local_settings import *
-except ImportError:
-    pass
+    LOCAL_SETTINGS
+except NameError:
+    try:
+        from local_settings import *
+    except ImportError:
+        pass
