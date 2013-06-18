@@ -22,12 +22,15 @@ define([
             this.template = Handlebars.compile(netmapTemplate);
             this.node = this.options.node;
             this.vlanView = new VlanInfoView();
-
         },
         render: function () {
             var self = this;
             if (self.node !== undefined) {
-                var out = this.template({ node: self.node, 'isElink': !!self.node.data.category && self.node.data.category === 'elink' });
+                var out = this.template({
+                    'node': self.node,
+                    'isElink': !!self.node.data.category && self.node.data.category === 'elink',
+                    'isWidgetVisible': !!this.options.isWidgetVisible
+                });
                 this.$el.html(out);
                 this.$el.append(this.vlanView.render().el);
                 this.vlanView.delegateEvents();

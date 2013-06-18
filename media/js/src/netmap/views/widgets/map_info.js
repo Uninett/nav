@@ -47,7 +47,13 @@ define([
             var out = this.template();
             this.$el.html(out);
             this.linkInfoView = this.attachSubView(this.linkInfoView, LinkInfoView, '#linkinfo');
-            this.netboxInfoView = this.attachSubView(this.netboxInfoView, NetboxInfoView, '#nodeinfo');
+            this.netboxInfoView = this.attachSubView(this.netboxInfoView,
+                NetboxInfoView,
+                {
+                    el: '#nodeinfo',
+                    isWidgetVisible: true
+                }
+            );
             return this;
         },
         close: function () {
