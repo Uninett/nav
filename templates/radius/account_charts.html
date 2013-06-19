@@ -1,6 +1,6 @@
 {% extends "radius/base.html" %}
 
-{% load report %}
+{% load radius %}
 
 {% block content %}
 
@@ -15,10 +15,9 @@
 
   {% for table in tables %}
 
-    <table class="listtable">
+    <table id="charttable{{ forloop.counter }}" class="listtable">
       <caption>
         {{ table.0 }}<br>
-        <span class="subtitle">{{ table.1 }} hits</span>
       </caption>
 
       <thead>
@@ -31,16 +30,16 @@
       </thead>
 
       <tbody>
-        {% for row in table.2 %}
+        {% for row in table.1 %}
           <tr class="{% cycle 'oddrow' 'evenrow' %}">
             <td align="center">{{ forloop.counter }}</td>
             {# TODO: Search #}
-            <td><a>{{ row|get_item:"username"|default:"" }}</a></td>
-            <td aling="right">
-              {{ row|get_item:"sortfield"|filesizeformat }}
+            <td><a>{{ row.username|default:"" }}</a></td>
+            <td align="right">
+              {{ row.sortfield|filesizeformat }}
             </td>
-            <td aling="right">
-              {{ row|get_item:"acctsessiontime"|time_from_seconds }}
+            <td align="right">
+              {{ row.acctsessiontime|time_from_seconds }}
             </td>
           </tr>
         {% endfor %}

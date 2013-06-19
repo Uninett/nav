@@ -1,5 +1,7 @@
+from datetime import datetime
+
 from django import forms
-from django.core.validators import validate_ipv4_address
+from django.core.validators import validate_ipv4_address, validate_integer
 
 from nav.util import is_valid_cidr
 
@@ -7,45 +9,23 @@ from nav.util import is_valid_cidr
 def validate_cidr(value):
     if not value or not is_valid_cidr(value):
         raise forms.ValidationError(
-            "Value must be a valid CIDR address")
+            'Must be a valid CIDR address')
 
 
-class TimestampSlackWidget(forms.MultiWidget):
-    """
-    Widget for TimestampSlackField. It combines a
-    DateTimeInput with a TextInput.
-    """
-
-    def decompress(self, value):
-        return [value]
-
-
-class TimestampSlackField(forms.MultiValueField):
-    """
-    Field that combines a Datetime value with a
-    'slack' value given in minutes.
-    """
-    required = False
-    fields = (
-        forms.DateTimeField(),
-        forms.IntegerField(min_value=1, max_value=999)
-    )
-    widget = TimestampSlackWidget(
-        # When using MultivalueField initial does not work on
-        # the fields and must be passed to the widgets
-        (forms.DateTimeInput(attrs={'value': 'YYYY-MM-DD hh:mm'}),
-         forms.TextInput(attrs={'value': '1'}))
-    )
-
-    def compress(self, data_list):
-        return data_list
+def validate_datetime_with_slack(value):
+    try:
+        time, slack = value.split('|')
+        datetime.strptime(time, '%Y-%m-%d %H:%M')
+        int(slack)
+    except (ValueError, TypeError):
+        raise forms.ValidationError(
+            'Must be of this format YYYY-MM-DD hh:mm|slack')
 
 
 class MultitypeQueryWidget(forms.MultiWidget):
     """
     Widget for MultitypeQueryField
     """
-
     def decompress(self, value):
         return [value]
 
@@ -56,7 +36,7 @@ class MultitypeQueryField(forms.MultiValueField):
     input, and validates the query according to the type.
     """
 
-    def __init__(self, choices, validators, *args, **kwargs):
+    def __init__(self, choices, validators={}, *args, **kwargs):
         """
         :param validators:  A dict that maps query type
         values to validators.
@@ -82,27 +62,17 @@ class MultitypeQueryField(forms.MultiValueField):
         return data_list
 
 
-class LogSearchForm(forms.Form):
-    """Base class"""
-    days = forms.FloatField(
-        min_value=0.5,
-        initial=0.5,
-        label='Last # day(s)',
-        required=False)
-    timestamp = TimestampSlackField(required=False)
-    timemode = forms.ChoiceField(
-        required=False,
-        choices=(('days', ''),
-                 ('timestamp', ''),
-                 ('', '')))
-
-
-class ErrorLogSearchForm(LogSearchForm):
+class ErrorLogSearchForm(forms.Form):
     QUERY_TYPES = (
         ('username', 'Username'),
         ('client', 'Client'),
         ('port', 'Port'),
         ('message', 'Message'),
+    )
+    TIME_TYPES = (
+        ('', 'All time'),
+        ('hours', 'Last # hour(s)'),
+        ('timestamp', 'Timestamp')
     )
     LOG_ENTRY_TYPES = (
         ('', 'All'),
@@ -112,20 +82,31 @@ class ErrorLogSearchForm(LogSearchForm):
         ('proxy', 'Proxy'),
     )
     query = MultitypeQueryField(
-        choices=QUERY_TYPES,
-        validators=({
-            # TODO
-        })
+        choices=QUERY_TYPES)
+    log_entry_type = forms.ChoiceField(
+        required=False,
+        choices=LOG_ENTRY_TYPES)
+    time = MultitypeQueryField(
+        TIME_TYPES,
+        validators={
+            'hours': validate_integer,
+            'timestamp': validate_datetime_with_slack
+        },
+        required=False
     )
-    log_entry_type = forms.ChoiceField(choices=LOG_ENTRY_TYPES)
 
 
-class AccountLogSearchForm(LogSearchForm):
+class AccountLogSearchForm(forms.Form):
     QUERY_TYPES = (
         ('username', 'Username'),
         ('framedipaddress', 'User Hostname/IP Address'),
         ('nasipaddress', 'IP Address'),
         ('iprange', 'IP-range'),
+    )
+    TIME_TYPES = (
+        ('', 'All time'),
+        ('days', 'Last # day(s)'),
+        ('timestamp', 'Timestamp')
     )
     PORT_TYPES = (
         ('', 'All'),
@@ -145,7 +126,17 @@ class AccountLogSearchForm(LogSearchForm):
             'iprange': validate_cidr
         }
     )
-    port_type = forms.ChoiceField(required=False, choices=PORT_TYPES)
+    time = MultitypeQueryField(
+        TIME_TYPES,
+        validators={
+            'days': validate_integer,
+            'timestamp': validate_datetime_with_slack
+        },
+        required=False
+    )
+    port_type = forms.ChoiceField(
+        required=False,
+        choices=PORT_TYPES)
     dns_lookup = forms.MultipleChoiceField(
         required=False,
         choices=DNS_LOOKUPS,

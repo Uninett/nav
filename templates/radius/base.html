@@ -6,15 +6,22 @@
 
 {% block base_content %}
 
-  {% if errors %}
-    <ul class="error">
-      {% for error in errors %}
-        <li>{{ error }}</li>
-      {% endfor %}
+  <div class="tabs">
+    <ul>
+      <li class="{{ acctsearch|yesno:"tabactive," }}"><a href="acctsearch">Account Log</a></li>
+      <li class="{{ logsearch|yesno:"tabactive," }}"><a href="logsearch">Error Log</a></li>
+      <li class="{{ acctcharts|yesno:"tabactive," }}"><a href="acctcharts">Account Charts</a></li>
     </ul>
-  {% endif %}
+  </div>
 
-  {% block content %}
-  {% endblock content %}
+  <div class="tabcontent">
+
+    {% if errors %}
+      {{ errors.as_text }}
+    {% endif %}
+
+    {% block content %}
+    {% endblock content %}
+  </div>
 
 {% endblock base_content %}

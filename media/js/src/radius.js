@@ -1,45 +1,34 @@
-require(['libs/jquery'], function () {
+require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
     $(document).ready(function () {
 
-        var timemode = $('timemode').val();
+        var time_field = $('#id_time_0');
 
-        if (timemode === 'days') {
-            $('#id_timestamp_0').attr('disabled', 'disabled');
-            $('#id_timestamp_1').attr('disabled', 'disabled');
-        } else if (timemode === 'timestamp') {
-            $('#id_days').attr('disabled', 'disabled');
-            $('mode_days').attr('checked', false);
-            $('mode_timestamp').attr('checked', true);
-        } else {
-            $('#id_days').attr('disabled', 'disabled');
-            $('#id_timestamp_0').attr('disabled', 'disabled');
-            $('#id_timestamp_1').attr('disabled', 'disabled');
-            $('mode_days').attr('checked', false);
-            $('mode_all').attr('checked', true);
+        if ($('#id_time_1 :selected').val() === '') {
+            time_field.attr('disabled', 'disabled');
         }
 
-        $('#mode_days').change(function() {
-            if ($(this).is(':checked')) {
-                $('#id_timestamp_0').attr('disabled', 'disabled');
-                $('#id_timestamp_1').attr('disabled', 'disabled');
-                $('#id_days').removeAttr('disabled');
+        $('#id_time_1').change(function() {
+            var selected = $(this, 'option:selected');
+
+            if (selected.val() === '') {
+                time_field.val('');
+                time_field.attr('disabled', 'disabled');
+            } else {
+                time_field.removeAttr('disabled');
+                if (selected.val() === 'timestamp') {
+                    time_field.val('YYYY-MM-DD hh:mm|slack');
+                } else {
+                    time_field.val('');
+                }
             }
         });
 
-        $('#mode_timestamp').change(function() {
-            if ($(this).is(':checked')) {
-                $('#id_days').attr('disabled', 'disabled');
-                $('#id_timestamp_0').removeAttr('disabled');
-                $('#id_timestamp_1').removeAttr('disabled');
-            }
-        });
-
-        $('#mode_all').change(function() {
-            if ($(this).is(':checked')) {
-                $('#id_days').attr('disabled', 'disabled');
-                $('#id_timestamp_0').attr('disabled', 'disabled');
-                $('#id_timestamp_1').attr('disabled', 'disabled');
-            }
-        });
+        if ($('#resulttable').length) {
+            $('#resulttable').dataTable({
+                'iDisplayLength': 50,
+                'sStripeOdd': 'oddrow',
+                'sStripeEven': 'evenrow'
+            });
+        }
     });
 });
