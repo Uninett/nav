@@ -75,7 +75,7 @@ define([
     var initialize = function () {
         var self = this;
         //spinner_map = new Spinner();
-        this.app_router = new AppRouter;
+        this.app_router = new AppRouter();
 
         // Extend the View class to include a navigation method goTo
         Backbone.View.navigate = self.app_router.navigate;

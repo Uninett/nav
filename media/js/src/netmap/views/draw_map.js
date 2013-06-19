@@ -90,7 +90,7 @@ define([
                 }
             };
 
-            this.debug = !!(window.location.hash.search("debug")!==-1);
+            this.debug = !!window.location.hash && window.location.hash.search("debug")!==-1;
             this.svg = null;
             this.$el.append(netmapTemplate);
             this.spinnerView = new LoadingSpinnerView({el: '#netmap_main_view'});

@@ -64,27 +64,34 @@ define([
             var bootstrapIsFavoriteEl = $('#netmap_bootstrap_favoriteView');
             var bootstrapAvailableCategories = $('#netmap_bootstrap_availableCategories');
 
-            if (bootstrapMapPropertiesCollectionEl) {
-                var bootstrapData = $.parseJSON(bootstrapMapPropertiesCollectionEl.text());
+            try {
+                if (bootstrapMapPropertiesCollectionEl) {
+                    var bootstrapData = $.parseJSON(bootstrapMapPropertiesCollectionEl.text());
 
-                if (bootstrapData) {
-                    self.resources.mapCollection = new MapCollection(MapCollection.prototype.parse(bootstrapData));
+                    if (bootstrapData) {
+                        self.resources.mapCollection = new MapCollection(MapCollection.prototype.parse(bootstrapData));
+                    }
+                } else {
+                    this.resources.mapCollection = new MapCollection();
                 }
-            } else {
-                this.resources.mapCollection = new MapCollection();
-            }
-            if (bootstrapIsFavoriteEl) {
-                var bootstrapDataFavorite = $.parseJSON(bootstrapIsFavoriteEl.text());
-                if (bootstrapDataFavorite) {
-                    this.setFavoriteView(bootstrapDataFavorite.viewid);
+                if (bootstrapIsFavoriteEl) {
+                    var bootstrapDataFavorite = $.parseJSON(bootstrapIsFavoriteEl.text());
+                    if (bootstrapDataFavorite) {
+                        this.setFavoriteView(bootstrapDataFavorite.viewid);
+                    }
                 }
-            }
 
-            if (bootstrapAvailableCategories) {
-                var data = $.parseJSON(bootstrapAvailableCategories.text());
-                if (data) {
-                    this.resources.availableCategories = data;
+                if (bootstrapAvailableCategories) {
+                    var data = $.parseJSON(bootstrapAvailableCategories.text());
+                    if (data) {
+                        this.resources.availableCategories = data;
+                    }
                 }
+            } catch (SyntaxError) {
+                if (!!console.log) {
+                  console.log("Error parsing JSON bootstrap data probably, should not happen!");
+                }
+                throw SyntaxError;
             }
 
 
