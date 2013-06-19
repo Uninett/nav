@@ -33,11 +33,11 @@ LOGFILE = join(localstatedir, 'log', 'collect_active_ip.log')
 _logger = logging.getLogger('ipcollector')
 
 
-def main(days=None, reset=False):
+def main(days=None):
     """Controller"""
-    init_logger(LOGFILE)
     exit_if_already_running()
-    run(days, reset)
+    init_logger(LOGFILE)
+    run(days)
 
 
 def exit_if_already_running():
@@ -50,15 +50,11 @@ def exit_if_already_running():
         sys.exit(1)
 
 
-def run(days, reset):
+def run(days):
     """Run this collection"""
     _logger.info('Starting active ip collector')
     starttime = time.time()
-
-    datadir = join(get_datadir(), 'activeip')
-    errors = manager.run(datadir, days, reset)
-    if errors:
-        print '%s errors - see log' % errors
+    manager.run(days)
     _logger.info('Done in %.2f seconds' % (time.time() - starttime))
 
 
@@ -74,27 +70,10 @@ def init_logger(logfile):
     root.addHandler(filehandler)
 
 
-def get_datadir():
-    """Get datadir"""
-    return join(localstatedir, 'rrd')
-
-
-def get_cricket_conf():
-    """Find entry in mcc.conf that specifies location of cricket_conf.pl"""
-    config = ConfigParser.ConfigParser()
-    config.read(join(sysconfdir, 'mcc.conf'))
-    return config.get('mcc', 'configfile')
-
-
 if __name__ == '__main__':
     PARSER = OptionParser()
     PARSER.add_option("-d", "--days", dest="days", default=None, type="int",
                       help="Days back in time to start collecting from")
-    PARSER.add_option("-r", "--reset", dest="reset", default=False,
-                      action="store_true",
-                      help="Delete existing rrd-files. Use it with --days to "
-                           "refill")
 
     OPTIONS, _ = PARSER.parse_args()
-
-    main(OPTIONS.days, OPTIONS.reset)
+    main(OPTIONS.days)

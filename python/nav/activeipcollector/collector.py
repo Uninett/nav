@@ -19,6 +19,7 @@
 import logging
 import time
 
+from nav.models.manage import Netbox  # Needed!
 from django.db import connection
 
 LOG = logging.getLogger('ipcollector.collector')
