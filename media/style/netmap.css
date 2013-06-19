@@ -587,3 +587,9 @@ div#pop-img {
 #modal_save_view_button {
     float: right;
 }
+
+/* Print CSS below here */
+
+@media print {
+    #netmap_left_sidebar, #netmap_infopanel, #debug, #footer, #header { display: none; }
+}
