@@ -1055,17 +1055,6 @@ define([
                 return nodeObject.data.sysname;
             });
 
-            var nodeIp = nodeGroup.selectAll("text.ip").data(function (nodeObject) { return [nodeObject]; }).enter()
-                .append("svg:text")
-                .attr("class", "ip")
-                .attr("dy", "3em")
-                .attr("fill", "red");
-            nodeIp.text(function (nodeObject) {
-                return nodeObject.data.ip;
-            });
-
-
-
             nodeData.exit().transition()
                 .duration(750)
                 .attr("y", 60)
