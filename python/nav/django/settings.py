@@ -20,6 +20,8 @@ from nav.config import read_flat_config, getconfig
 from nav.db import get_connection_parameters
 import nav.buildconf
 import nav.path
+import sys
+import os
 
 try:
     nav_config = read_flat_config('nav.conf')
@@ -115,3 +117,14 @@ DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
 # Cache backend. Used only for report subsystem in NAV 3.5.
 # FIXME: Make this configurable in nav.conf (or possibly webfront.conf)
 CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'	
+
+# Hack for hackers to use features like debug_toolbar etc.
+# https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
+sys.path.append(os.path.join(nav.buildconf.sysconfdir, "python"))
+try:
+    LOCAL_SETTINGS
+except NameError:
+    try:
+        from local_settings import *
+    except ImportError:
+        pass

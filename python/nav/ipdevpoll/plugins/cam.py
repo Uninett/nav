@@ -20,7 +20,6 @@ from collections import defaultdict
 from twisted.internet import defer
 
 from nav.models import manage
-from nav.util import splitby
 from nav.mibs.bridge_mib import MultiBridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib
 from nav.ipdevpoll import Plugin, db
@@ -142,18 +141,26 @@ class Cam(Plugin):
                            prefix, mac_count, len(fdb))
 
     def _classify_ports(self):
-        ignored_netboxes = get_ignored_netboxes()
+        nonforwarding = get_nonforwarding_netboxes()
 
         def _is_linkport(portmacs):
             _port, macs = portmacs
             return any((mac in self.monitored
-                        and self.monitored[mac] not in ignored_netboxes
                         and mac not in self.my_macs)
                        for mac in macs)
 
-        linkports, accessports = splitby(_is_linkport, self.fdb.items())
-        self.linkports = dict(linkports)
-        self.accessports = dict(accessports)
+        def _is_accessport(portmacs):
+            if _is_linkport(portmacs):
+                _port, macs = portmacs
+                return any(self.monitored.get(mac, None) in nonforwarding
+                           for mac in macs)
+            else:
+                return True
+
+        self.linkports = dict(item for item in self.fdb.items()
+                              if _is_linkport(item))
+        self.accessports = dict(item for item in self.fdb.items()
+                                if _is_accessport(item))
 
         self._logger.debug("up/downlinks: %r", sorted(self.linkports.keys()))
         self._logger.debug("access ports: %r", sorted(self.accessports.keys()))
@@ -257,12 +264,13 @@ class Cam(Plugin):
 # These device categories are not considered network infrastructure,
 # i.e. they do not forward IP packets or ethernet frames on behalf of others.
 # Ports which have these categories of devices connected will be considered
-# access ports, even when NAV otherwise would consider them up-/downlinks.
-IGNORED_CATEGORIES = (u'OTHER', u'SRV')
+# both access ports and link ports, so that cam records will still be created
+# for them.
+NON_FORWARDERS = (u'OTHER', u'SRV')
 
-def get_ignored_netboxes():
-    """Returns a set of netbox ids of netboxes in the "ignored" categories"""
+def get_nonforwarding_netboxes():
+    """Returns a set of ids of netboxes in the "non-forwarding" categories"""
     catids = get_netbox_catids()
     return set(netboxid
                for netboxid, catid in catids.items()
-               if catid in IGNORED_CATEGORIES)
+               if catid in NON_FORWARDERS)
