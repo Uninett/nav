@@ -14,7 +14,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Views for ipdevinfo"""
-
 import IPy
 import re
 import logging
@@ -553,3 +552,29 @@ def service_matrix(request):
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
+
+
+def affected(request, netboxid):
+    """Controller for the affected tab in ipdevinfo"""
+    netbox = Netbox.objects.get(pk=netboxid)
+    netboxes = utils.find_children(netbox)
+
+    affected = utils.sort_by_netbox(
+        utils.find_affected_but_not_down(netbox, netboxes))
+    unreachable = utils.sort_by_netbox(list(set(netboxes) - set(affected)))
+
+    organizations = utils.find_organizations(unreachable)
+    contacts = utils.filter_email(organizations)
+    services = Service.objects.filter(netbox__in=unreachable).order_by('netbox')
+    affected_hosts = utils.get_affected_host_count(unreachable)
+
+    return render_to_response(
+        'ipdevinfo/frag-affected.html', {
+            'unreachable': unreachable,
+            'affected': affected,
+            'services': services,
+            'organizations': organizations,
+            'contacts': contacts,
+            'affected_hosts': affected_hosts
+        },
+        context_instance=RequestContext(request))

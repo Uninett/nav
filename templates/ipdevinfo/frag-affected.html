@@ -1,0 +1,64 @@
+<p>
+    If this ip-device stops working the following will likely be affected.
+</p>
+
+<div id="affected">
+
+    {% if affected %}
+        <h3>AFFECTED DEVICES  <img src="/images/helpers/question.png" title="Devices with or behind devices with redundant links"></h3>
+        <ul>
+            {% for netbox in affected %}
+                <li>
+                    <a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a>
+                    ({{ netbox.category.id }})
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if unreachable %}
+
+        <h3>DEVICES GOING DOWN</h3>
+        <ul>
+            {% for netbox in unreachable %}
+                <li>
+                    <a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a>
+                    ({{ netbox.category.id }})
+                </li>
+            {% endfor %}
+        </ul>
+
+        <h3>Affected hosts</h3>
+        {{ affected_hosts }} active hosts/users
+
+        <br/>
+
+    {% endif %}
+
+    {% if services %}
+
+        <h3>SERVICES ON DEVICES GOING DOWN</h3>
+        <ul>
+            {% for service in services %}
+                <li>{{ service }}</li>
+            {% endfor %}
+        </ul>
+
+    {% endif %}
+
+    {% if contacts %}
+        <h3>ORGANIZATIONS</h3>
+        <ul>
+        {% for organization in organizations %}
+            <li>{{ organization }} - {{ organization.contact }}</li>
+        {% endfor %}
+        </ul>
+        <br/>
+
+    {% endif %}
+
+    <form action="mailto:{{ contacts|join:"," }}">
+        <input type="submit" value="Send mail to affected organizations">
+    </form>
+
+</div>
