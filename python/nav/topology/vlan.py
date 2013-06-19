@@ -136,6 +136,7 @@ class RoutedVlanTopologyAnalyzer(object):
 
         self.stp_blocked = stp_blocked or {}
         self.ifc_directions = {}
+        self.edge_directions = {}
 
     def analyze(self):
         """Runs the analysis on the associdated VLAN"""
@@ -151,10 +152,15 @@ class RoutedVlanTopologyAnalyzer(object):
         return self.ifc_directions
 
     def _examine_edge(self, edge, visited_nodes=None):
-        _source, dest, ifc = edge
+        source, dest, ifc = edge
 
         visited_nodes = visited_nodes or set()
-        direction = 'up' if dest in visited_nodes else 'down'
+        is_visited_before = dest in visited_nodes
+        if (source, dest) in self.edge_directions:
+            direction = self.edge_directions[(source, dest)]
+        else:
+            direction = 'up' if is_visited_before else 'down'
+            self.edge_directions[(source, dest)] = direction
         visited_nodes.add(dest)
 
         vlan_is_active = (
@@ -162,7 +168,7 @@ class RoutedVlanTopologyAnalyzer(object):
              and self._vlan_is_active_on_reverse_edge(edge, visited_nodes))
             or self._is_vlan_active_on_destination(dest, ifc))
 
-        if direction == 'down':
+        if direction == 'down' and not is_visited_before:
             # Recursive depth first search on each outgoing edge
             for next_edge in self._out_edges_on_vlan(dest):
                 if not self._is_blocked_on_any_end(next_edge):
@@ -175,6 +181,8 @@ class RoutedVlanTopologyAnalyzer(object):
                     self._log_block(next_edge)
 
         if vlan_is_active and ifc:
+            _LOGGER.debug("(%s) setting %s direction: %s",
+                          self.vlan.vlan, ifc, direction)
             self.ifc_directions[ifc] = direction
 
         return vlan_is_active

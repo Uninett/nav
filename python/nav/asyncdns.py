@@ -119,6 +119,10 @@ class ForwardResolver(Resolver):
 
     def lookup(self, name):
         """Returns a deferred object with all records related to hostname"""
+
+        if type(name) is unicode:
+            name = name.encode('idna')
+
         resolver = self._resolvers.next()
         return [resolver.lookupAddress(name), resolver.lookupIPV6Address(name)]
 
