@@ -27,7 +27,7 @@ import sys
 
 from nav.graphite_migrate import (InterfaceMigrator, SystemMigrator,
                                   PpingMigrator, SensorMigrator,
-                                  ActiveIpMigrator)
+                                  ActiveIpMigrator, ServicePingMigrator)
 from nav.logs import init_file_logging
 from nav.path import localstatedir
 
@@ -47,6 +47,7 @@ def main():
     InterfaceMigrator(args[0]).migrate()
     SystemMigrator(args[0]).migrate()
     PpingMigrator(args[0]).migrate()
+    ServicePingMigrator(args[0]).migrate()
     SensorMigrator(args[0]).migrate()
     ActiveIpMigrator(args[0]).migrate()
 

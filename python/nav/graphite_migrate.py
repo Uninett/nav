@@ -29,11 +29,13 @@ from nav.metrics.templates import (
     metric_path_for_roundtrip_time,
     metric_path_for_packet_loss,
     metric_path_for_sensor,
-    metric_path_for_prefix
-)
+    metric_path_for_prefix,
+    metric_path_for_service_availability,
+    metric_path_for_service_response_time)
 from nav.navrrd2whisper import convert_to_whisper
 from os.path import join
 from nav.models.manage import Interface, Sensor, Prefix, Netbox
+from nav.models.service import Service
 from nav.models.rrd import RrdFile
 from django.db.models import Q
 
@@ -177,6 +179,27 @@ class PpingMigrator(Migrator):
             return metric_path_for_roundtrip_time(sysname)
         elif datasource.name == 'STATUS':
             return metric_path_for_packet_loss(sysname)
+        else:
+            _logger.error('Could not find metric for %s', datasource.name)
+
+
+class ServicePingMigrator(Migrator):
+    """Migrator for serviceping statistics"""
+
+    def __init__(self, *args):
+        super(ServicePingMigrator, self).__init__(*args)
+        self.rrdfiles = RrdFile.objects.filter(subsystem='serviceping')
+        self.infoclass = Service
+
+    def find_metric(self, datasource, sysname=None, info_object=None):
+        if datasource.name == 'STATUS':
+            return metric_path_for_service_availability(sysname,
+                                                        info_object.handler,
+                                                        info_object.id)
+        elif datasource.name == 'RESPONSETIME':
+            return metric_path_for_service_response_time(sysname,
+                                                         info_object.handler,
+                                                         info_object.id)
         else:
             _logger.error('Could not find metric for %s', datasource.name)
 
