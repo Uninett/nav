@@ -637,6 +637,37 @@ define([
                 return false;
             });
         },
+        updateRenderFade: function (listOfNodes, listOfLinks) {
+            var self = this;
+            var nodesToFadeData = SetEquality.difference(self.nodes, listOfNodes, function (a, b) {
+                return a.data.sysname === b.data.sysname;
+            });
+
+            var nodesToFade = self.nodeGroupRoot.selectAll("g.node").data(nodesToFadeData, function (nodeObject) {
+                return nodeObject.data.sysname;
+            });
+
+            var linksToFadeData = SetEquality.difference(self.links, listOfLinks, function (aLink, bLink) {
+                return self.sysnameFromLinkObjectOrGraphModelFetch(aLink) === self.sysnameFromLinkObjectOrGraphModelFetch(bLink);
+            });
+
+            var linksToFade = self.linkGroupRoot.selectAll("g.link").data(linksToFadeData, function (linkObject) {
+                return self.sysnameFromLinkObjectOrGraphModelFetch(linkObject);
+            });
+
+            nodesToFade.enter();
+            nodesToFade.attr("class", "node fade");
+            nodesToFade.exit()
+                .attr("class", "node");
+
+            linksToFade.enter();
+            linksToFade.attr("class", "link fade");
+            linksToFade.exit().attr("class", "link");
+        },
+        updateRenderResetClassesOnNodesAndLinks: function() {
+            this.nodeGroupRoot.selectAll("g.node").attr("class", "node");
+            this.linkGroupRoot.selectAll("g.link").attr("class", "link");
+        },
         updateRenderVLAN: function (vlanObject) {
             var self = this;
             self.selectedVLANObject = vlanObject;
@@ -656,33 +687,9 @@ define([
             });
 
             if (!!vlanObject && !!vlanObject.navVlanId) {
-                var nodesToFadeData = SetEquality.difference(self.nodes, markVlanNodes, function (a, b) {
-                    return a.data.sysname === b.data.sysname;
-                });
-
-                var nodesToFade = self.nodeGroupRoot.selectAll("g.node").data(nodesToFadeData, function (nodeObject) {
-                    return nodeObject.data.sysname;
-                });
-
-                var linksToFadeData = SetEquality.difference(self.links, markVlanLinks, function (aLink, bLink) {
-                    return self.sysnameFromLinkObjectOrGraphModelFetch(aLink) === self.sysnameFromLinkObjectOrGraphModelFetch(bLink);
-                });
-
-                var linksToFade = self.linkGroupRoot.selectAll("g.link").data(linksToFadeData, function (linkObject) {
-                    return self.sysnameFromLinkObjectOrGraphModelFetch(linkObject);
-                });
-
-                nodesToFade.enter();
-                nodesToFade.attr("class", "node fade");
-                nodesToFade.exit()
-                    .attr("class", "node");
-
-                linksToFade.enter();
-                linksToFade.attr("class", "link fade");
-                linksToFade.exit().attr("class", "link");
+                this.updateRenderFade(markVlanNodes, markVlanLinks);
             } else {
-                self.nodeGroupRoot.selectAll("g.node").attr("class", "node");
-                self.linkGroupRoot.selectAll("g.link").attr("class", "link");
+                this.updateRenderResetClassesOnNodesAndLinks();
             }
 
             var nodesInVLAN = self.nodesInVLAN = self.selectedNodeGroupRoot.selectAll("g circle").data(markVlanNodes, function (nodeObject) {
@@ -766,7 +773,9 @@ define([
                     });
                 }
             }
+            var nodePositionNetboxes = [];
             var nodePositionSelection = this.nodePositionSelection = this.selectedNodeGroupRoot.selectAll("circle.grouped_by_room").data(groupBy, function (nodeObject)  {
+                nodePositionNetboxes.push(nodeObject);
                 return nodeObject.data.sysname;
             });
 
@@ -778,6 +787,13 @@ define([
                 .attr("cx", function (nodeObject) { return nodeObject.px; })
                 .attr("cy", function (nodeObject) { return nodeObject.py; });
             nodePositionSelection.exit().remove();
+
+            if (self.options.activeMapModel.get('position').get('none').get('is_selected')) {
+                this.updateRenderResetClassesOnNodesAndLinks();
+            } else {
+                this.updateRenderFade(nodePositionNetboxes, []);
+                this.updateRenderHighlightNodes(nodePositionNetboxes);
+            }
         },
         updateRenderTopologyErrors: function () {
 
