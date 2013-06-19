@@ -396,6 +396,10 @@ define([
                 } else {
                     Backbone.View.navigate(Backbone.history.getFragment() + "/vlan/" + vlanObject.navVlanId);
                 }
+            } else {
+                Backbone.View.navigate(Backbone.history.stripTrailingSlash(
+                    Backbone.history.getFragment().replace(/vlan\/\d+/g, "")
+                ));
             }
         },
         isSelectedVlanInList: function (vlansList) {
