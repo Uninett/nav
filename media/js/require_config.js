@@ -19,7 +19,11 @@ var require = {
         'libs/underscore': {
             exports: '_'
         },
-        'libs/backbone': ["libs/underscore", "libs/jquery"],
+        'libs/d3.v2': { exports: 'd3' },
+        'libs/backbone': {
+            deps: ["libs/underscore", "libs/jquery"],
+            exports: 'Backbone'
+        },
         'libs/backbone-eventbroker': ['libs/backbone']
 
     }
