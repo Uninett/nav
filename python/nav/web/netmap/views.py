@@ -47,6 +47,15 @@ def index(request):
     return backbone_app(request)
 
 
+def _get_available_categories():
+    available_categories = serializers.serialize('json',
+                          Category.objects.all(),
+                          fields=('description'))
+
+    # add fictive category ELINK
+    available_categories = available_categories[:-1] + ',{"pk": "ELINK", "model": "models.category", "fields": {"description": "ELINK"}}]'
+    return available_categories
+
 def backbone_app(request):
     session_user = get_account(request)
 
@@ -54,12 +63,7 @@ def backbone_app(request):
     if AccountGroup.ADMIN_GROUP in session_user.get_groups():
         link_to_admin = reverse('netmap-admin-views')
 
-    available_categories = serializers.serialize('json',
-                          Category.objects.all(),
-                          fields=('description'))
-
-    # add fictive category ELINK
-    available_categories = available_categories[:-1] + ',{"pk": "ELINK", "model": "models.category", "fields": {"description": "ELINK"}}]'
+    available_categories = _get_available_categories()
 
     response = render_to_response(
         'netmap/backbone.html',
