@@ -16,6 +16,10 @@
                 <td><a href="{% url messages-view message.id %}">{{ message.title }}</a></td>
                 <td>{{ message.description }}</td>
             </tr>
+        {% empty %}
+            <tr>
+              <td colspan="3">No messages</td>
+            </tr>
         {% endfor %}
     </tbody>
 </table>
