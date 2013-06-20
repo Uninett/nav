@@ -17,6 +17,7 @@
 
 import datetime
 import logging
+import os
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -29,6 +30,7 @@ from django.http import HttpResponse, HttpResponseForbidden,\
 from django.utils import simplejson
 
 import networkx as nx
+import nav.buildconf
 from nav.django.utils import get_account, get_request_body
 from nav.models.manage import Netbox, Category
 from nav.models.profiles import NetmapView, NetmapViewNodePosition,\
@@ -48,12 +50,8 @@ def index(request):
 
 
 def _get_available_categories():
-    available_categories = serializers.serialize('json',
-                          Category.objects.all(),
-                          fields=('description'))
-
-    # add fictive category ELINK
-    available_categories = available_categories[:-1] + ',{"pk": "ELINK", "model": "models.category", "fields": {"description": "ELINK"}}]'
+    available_categories = list(Category.objects.all())
+    available_categories.append(Category(id='ELINK', description='ELINK'))
     return available_categories
 
 def backbone_app(request):
@@ -70,7 +68,7 @@ def backbone_app(request):
         {
             'bootstrap_mapproperties_collection': get_maps(request),
             'bootstrap_isFavorite': get_global_defaultview(request),
-            'bootstrap_availableCategories': available_categories,
+            'bootstrap_availableCategories': serializers.serialize('json', available_categories, fields=('description')),
             'auth_id': session_user.id,
             'link_to_admin': link_to_admin,
             'navpath': [('Home', '/'), ('Netmap', '/netmap')]
