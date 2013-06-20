@@ -56,13 +56,15 @@ define([
                 "mapCollection": null,
                 'viewid': null,
                 'favorite': null,
-                'availableCategories': null
+                'availableCategories': null,
+                'availableCategoriesDatauris': null
             };
             var self = this;
 
             var bootstrapMapPropertiesCollectionEl = $('#netmap_bootstrap_mapPropertiesCollection');
             var bootstrapIsFavoriteEl = $('#netmap_bootstrap_favoriteView');
             var bootstrapAvailableCategories = $('#netmap_bootstrap_availableCategories');
+            var bootstrapAvailableCategoriesDatauris = $('#bootstrap_availableCategories_datauris');
 
             try {
                 if (bootstrapMapPropertiesCollectionEl) {
@@ -87,6 +89,14 @@ define([
                         this.resources.availableCategories = data;
                     }
                 }
+
+                if (bootstrapAvailableCategoriesDatauris) {
+                    var bootStrapDataUris = $.parseJSON(bootstrapAvailableCategoriesDatauris.text());
+                    if (bootStrapDataUris) {
+                        self.resources.availableCategoriesDatauris = bootStrapDataUris;
+                    }
+                }
+
             } catch (SyntaxError) {
                 if (!!console.log) {
                   console.log("Error parsing JSON bootstrap data probably, should not happen!");

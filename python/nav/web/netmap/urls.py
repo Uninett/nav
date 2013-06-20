@@ -22,7 +22,7 @@ from django.conf.urls.defaults import url, patterns
 from nav.web.netmap.views import netmap, maps, \
     d3js_layer2, d3js_layer3, traffic_load_gradient, graphml_layer2, \
     backbone_app, netmap_defaultview, netmap_defaultview_global, admin_views,\
-    get_data_uris_for_categories
+    api_datauris_categories
 
 urlpatterns = patterns('nav.web.netmap.views',
     url(r'^$', backbone_app, name='netmap-index'),
@@ -47,8 +47,8 @@ urlpatterns = patterns('nav.web.netmap.views',
 
     url(r'^api/traffic_load_gradient', traffic_load_gradient,
         name='netmap-api-traffic_load_gradient'),
-    url(r'^api/data_uris_for_categories', get_data_uris_for_categories,
-        name='netmap-api-data_uris_for_categories'),
+    url(r'^api/data_uris_categories', api_datauris_categories,
+        name='netmap-api-data_uris_categories'),
 
     # old netmap, grapml format, meh meh.
     url(r'^data/graphml/layer2$', graphml_layer2,

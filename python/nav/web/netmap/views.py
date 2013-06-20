@@ -69,6 +69,7 @@ def backbone_app(request):
             'bootstrap_mapproperties_collection': get_maps(request),
             'bootstrap_isFavorite': get_global_defaultview(request),
             'bootstrap_availableCategories': serializers.serialize('json', available_categories, fields=('description')),
+            'bootstrap_availableCategories_datauris': simplejson.dumps(_get_datauris_for_categories()),
             'auth_id': session_user.id,
             'link_to_admin': link_to_admin,
             'navpath': [('Home', '/'), ('Netmap', '/netmap')]
@@ -495,14 +496,18 @@ def _convert_image_to_datauri(image):
         nav.buildconf.webrootdir, "images", "netmap"
     ), image), "rb").read().encode("base64").replace("\n","")
 
-def get_data_uris_for_categories(request):
+def _get_datauris_for_categories():
     data_uris = {}
 
     for category in _get_available_categories():
         data_uris[category.id.lower()] = _convert_image_to_datauri(category.id)
+    return data_uris
+
+def api_datauris_categories(request):
+
 
     response = HttpResponse(
-        simplejson.dumps(data_uris)
+        simplejson.dumps(_get_datauris_for_categories())
     )
     response['Content-Type'] = 'application/json; charset=utf-8'
     return response
