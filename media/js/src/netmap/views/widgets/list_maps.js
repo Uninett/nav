@@ -8,6 +8,7 @@ define([
     'netmap/models/default_map',
     'netmap/views/modal/save_new_map',
     'libs-amd/text!netmap/templates/widgets/list_maps.html',
+    'libs/svg-crowbar',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
@@ -15,7 +16,7 @@ define([
     'libs/backbone-eventbroker',
     'libs/spin.min',
     'plugins/jquery_spinjs'
-], function (WidgetMixin, NetmapExtras, Resources, CollectionMapProperties, ModelMapProperties, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate) {
+], function (WidgetMixin, NetmapExtras, Resources, CollectionMapProperties, ModelMapProperties, GraphModel, DefaultMapModel, SaveDialogView, netmapTemplate, SVGCrowbar) {
 
     var ListNetmapView = Backbone.View.extend(_.extend({}, WidgetMixin, {
         tagName: "div",
@@ -38,6 +39,7 @@ define([
             "click #save_new_view": "showSaveAsView",
             "click #delete_view": "deleteView",
             "click #set_as_user_favorite": "setFavorite",
+            "click #export_svg": "exportAsSVG",
             "change #dropdown_view_id": "eventChangeActiveMapProperties"
         },
         initialize: function () {
@@ -152,6 +154,11 @@ define([
             });
 
         },
+        exportAsSVG: function (e) {
+            e.preventDefault();
+
+            SVGCrowbar();
+        },
         showSaveView: function (e) {
             e.preventDefault();
 
@@ -236,6 +243,7 @@ define([
             context.isViewEnabled = this.isViewEnabled;
             context.isWidgetVisible = this.isWidgetVisible;
             context.isWidgetCollapsible = !!this.options.isWidgetCollapsible;
+            context.isBrowserSupportingSVGExport = $.browser.webkit;
             var out = this.template(context);
 
             this.$el.html(out);

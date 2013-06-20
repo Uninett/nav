@@ -34,6 +34,13 @@
                         <button id="set_as_user_favorite" {{#unless ../isViewEnabled}} disabled{{/unless}}
                                 class="btn save_view">Favorite
                         </button>
+
+                        {{#if isBrowserSupportingSVGExport}}
+                            <button id="export_svg" {{#unless ../isViewEnabled}} disabled{{/unless}}
+                                    class="btn save_view">Export SVG
+                            </button>
+                        {{/if}}
+
                         <div id="save_view_spinner"></div>
                     </div>
                 </fieldset>
