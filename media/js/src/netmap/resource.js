@@ -64,7 +64,7 @@ define([
             var bootstrapMapPropertiesCollectionEl = $('#netmap_bootstrap_mapPropertiesCollection');
             var bootstrapIsFavoriteEl = $('#netmap_bootstrap_favoriteView');
             var bootstrapAvailableCategories = $('#netmap_bootstrap_availableCategories');
-            var bootstrapAvailableCategoriesDatauris = $('#bootstrap_availableCategories_datauris');
+            var bootstrapAvailableCategoriesDatauris = $('#netmap_bootstrap_availableCategories_datauris');
 
             try {
                 if (bootstrapMapPropertiesCollectionEl) {
