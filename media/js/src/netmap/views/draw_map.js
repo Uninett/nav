@@ -74,6 +74,7 @@ define([
         initialize: function () {
             // Settings
             this.imagesPrefix = "/images/netmap/";
+            this.availableCategoriesDatauris = Resources.getAvailableCategoriesDatauris();
 
             // Initial states
             this.isGraphLoadingForFirstTime = true;
@@ -1044,7 +1045,7 @@ define([
                 .attr("height", "32px");
             nodeCategoryImage
                 .attr("xlink:href", function (nodeObject) {
-                    return self.imagesPrefix + nodeObject.data.category.toLowerCase() + ".png";
+                    return "data:image/png;base64," + self.availableCategoriesDatauris[nodeObject.data.category.toLowerCase()];
                 });
 
             var nodeSysname = nodeGroup.selectAll("text.sysname").data(function (nodeObject) { return [nodeObject]; }).enter()
