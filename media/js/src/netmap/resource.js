@@ -109,6 +109,9 @@ define([
         getAvailableCategories: function () {
             return this.resources.availableCategories;
         },
+        getAvailableCategoriesDatauris: function () {
+            return this.resources.availableCategoriesDatauris;
+        },
         getActiveMapModel: function () {
             return this.resources.activeMapModel;
         },
