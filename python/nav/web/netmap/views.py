@@ -489,6 +489,24 @@ def traffic_load_gradient(request):
     return response
 
 
+def _convert_image_to_datauri(image):
+    image = image.lower()
+    return open("{0}/{1}.png".format(os.path.join(
+        nav.buildconf.webrootdir, "images", "netmap"
+    ), image), "rb").read().encode("base64").replace("\n","")
+
+def get_data_uris_for_categories(request):
+    data_uris = {}
+
+    for category in _get_available_categories():
+        data_uris[category.id.lower()] = _convert_image_to_datauri(category.id)
+
+    response = HttpResponse(
+        simplejson.dumps(data_uris)
+    )
+    response['Content-Type'] = 'application/json; charset=utf-8'
+    return response
+
 ## not in use :
 # ...
 
