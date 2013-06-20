@@ -25,7 +25,7 @@ class MessageForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(MessageForm, self).__init__(*args, **kwargs)
 
-        # Since the m2m uses through, we need to fetch inital data manually
+        # Since the m2m uses through, we need to fetch initial data manually
         initials = []
         tasks = MessageToMaintenanceTask.objects.filter(message=self.instance)
         for task in tasks.all():
@@ -36,7 +36,7 @@ class MessageForm(ModelForm):
         self.fields['publish_start'].widget.attrs['class'] = 'datetimepicker'
         self.fields['publish_end'].widget.attrs['class'] = 'datetimepicker'
 
-        # Ommit seconds when displaying data
+        # Omit seconds when displaying data
         self.fields['publish_start'].widget.format = '%Y-%m-%d %H:%M'
         self.fields['publish_end'].widget.format = '%Y-%m-%d %H:%M'
 

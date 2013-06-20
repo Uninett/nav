@@ -112,7 +112,7 @@ def expire(request, message_id):
     message.save()
 
     return HttpResponseRedirect(
-        reverse('messages-view',args=(message_id,)))
+        reverse('messages-view', args=(message_id,)))
 
 def followup(request, message_id):
     """ 
@@ -126,7 +126,7 @@ def followup(request, message_id):
 def save(request, message_id=None, replaces=None):
     """ Displays the form for create, edit and followup, and saves them """
     account = get_account(request)
-    info_dict = SAVE_DEFAULTS
+    info_dict = SAVE_DEFAULTS.copy()
 
     # If it's an edit, load the initial data
     if message_id and not replaces:
@@ -135,7 +135,7 @@ def save(request, message_id=None, replaces=None):
     else:
         message = Message()
 
-        # If this is a replacement, load some inital data to a
+        # If this is a replacement, load some initial data to a
         # clean object to help out
         if replaces:
             message.title = replaces.title
@@ -154,9 +154,9 @@ def save(request, message_id=None, replaces=None):
             form.instance.author = account.login
             form.save()
             return HttpResponseRedirect(
-                reverse('messages-view',args=(form.instance.id,)))
+                reverse('messages-view', args=(form.instance.id,)))
 
-    info_dict.update({'form':form })
+    info_dict.update({'form': form})
 
     # If replacement, add the object so we can view it
     if replaces:
