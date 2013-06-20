@@ -8,6 +8,8 @@ define([
     'libs/handlebars'
 ], function(PluginHeaderFooter, Router, Resource) {
     var initialize = function () {
+        $.browser.chrome = /chrome/.test(navigator.userAgent.toLowerCase());
+
         var IESanityTest = {
             Version: function() {
                 var version = 666; // assume good
