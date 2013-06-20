@@ -68,8 +68,14 @@ def backbone_app(request):
         {
             'bootstrap_mapproperties_collection': get_maps(request),
             'bootstrap_isFavorite': get_global_defaultview(request),
-            'bootstrap_availableCategories': serializers.serialize('json', available_categories, fields=('description')),
-            'bootstrap_availableCategories_datauris': simplejson.dumps(_get_datauris_for_categories()),
+            'bootstrap_availableCategories': serializers.serialize(
+                'json',
+                available_categories,
+                fields=('description')
+            ),
+            'bootstrap_availableCategories_datauris': simplejson.dumps(
+                _get_datauris_for_categories()
+            ),
             'auth_id': session_user.id,
             'link_to_admin': link_to_admin,
             'navpath': [('Home', '/'), ('Netmap', '/netmap')]
