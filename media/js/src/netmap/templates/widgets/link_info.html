@@ -32,6 +32,10 @@
                         <span class="uplink_virtual">virtual: {{link.data.uplink.thiss.virtual}}</span>
                     {{/if}}
                 {{/if}}
+                <span class="trafficOctets">Traffic in: {{inOctets}}</span>
+                {{#if link.data.traffic.inOctetsPercentBySpeed}}
+                    <span class="trafficPercentByLinkSpeed">({{link.data.traffic.inOctetsPercentBySpeed}}%)</span>
+                {{/if}}
             </div>
 
             <div class="uplink_other uplink">
@@ -48,23 +52,9 @@
                         <span class="uplink_virtual">virtual: {{link.data.uplink.other.virtual}}</span>
                     {{/if}}
                 {{/if}}
-            </div>
-        </div>
-        <div class="traffic">
-            <div class="link_speed"><span class="description">Link speed:</span><span class="value">{{link.data.link_speed}}mbps</span></div>
-            <span class="description">Traffic</span>
-            <div class="trafficIn">
-                <span class="trafficInDescription description">in:</span>
-                <span class="trafficInOctets">{{inOctets}}</span>
-                {{#if link.data.traffic.inOctetsPercentBySpeed}}
-                    <span class="trafficInPercentByLinkSpeed">({{link.data.traffic.inOctetsPercentBySpeed}}%)</span>
-                {{/if}}
-            </div>
-            <div class="trafficOut">
-                <span class="trafficOutDescription description">out:</span>
-                <span class="trafficOutOctets">{{outOctets}}</span>
+                <span class="trafficOctets">Traffic in: {{outOctets}}</span>
                 {{#if link.data.traffic.outOctetsPercentBySpeed}}
-                    <span class="trafficOutPercentByLinkSpeed">({{link.data.traffic.outOctetsPercentBySpeed}}%)</span>
+                    <span class="trafficPercentByLinkSpeed">({{link.data.traffic.outOctetsPercentBySpeed}}%)</span>
                 {{/if}}
             </div>
         </div>
