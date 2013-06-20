@@ -58,6 +58,7 @@ def get_logger(log_name=None, log_file=None, log_format=None):
             return logger
     except Exception, ex:
         pass
+    root = logging.getLogger('')
     logger = logging.getLogger(log_name)
     formatter = None
     if log_format:
@@ -74,7 +75,7 @@ def get_logger(log_name=None, log_file=None, log_format=None):
         if handler:
             if formatter:
                 handler.setFormatter(formatter)
-            logger.addHandler(handler)
+            root.addHandler(handler)
         nav.logs.set_log_levels()
     return logger
 
@@ -281,7 +282,7 @@ def send_event(events, maxdate_boxes, boxes_off_maintenance):
                     get_logger().debug("room number of results: %d" %
                                        db.rowcount)
 
-                for (netboxid, sysname, deviceid) in _get_db().fetchall():
+                for (netboxid, sysname, deviceid) in db.fetchall():
                     netboxes.append({'netboxid': netboxid,
                                      'sysname': sysname,
                                      'deviceid': deviceid,
