@@ -251,7 +251,7 @@ class AcctSearchQuery(SQLQuery):
         # where clause all together.
         if (searchtype == "username" or searchtype == "realm") \
                 and searchstring != "%":
-            self.query += " LOWER(%s) LIKE %%s" % (searchtype)
+            self.query += " LOWER(%s) LIKE %%s" % searchtype
             self.parameters += (searchstring,)
 
         # Address

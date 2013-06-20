@@ -16,9 +16,11 @@
 
   <div class="tabcontent">
 
-    {% if errors %}
-      {{ errors.as_text }}
-    {% endif %}
+    <div class="error">
+      {% if errors %}
+        {{ errors.as_ul }}
+      {% endif %}
+    </div>
 
     {% block content %}
     {% endblock content %}

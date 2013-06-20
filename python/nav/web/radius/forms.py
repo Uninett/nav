@@ -1,15 +1,23 @@
 from datetime import datetime
 
 from django import forms
-from django.core.validators import validate_ipv4_address, validate_integer
+from django.core.validators import validate_ipv4_address
+from django.core.validators import validate_integer as django_validate_integer
 
 from nav.util import is_valid_cidr
+
+
+def validate_integer(value):
+    try:
+        django_validate_integer(value)
+    except forms.ValidationError:
+        raise forms.ValidationError('Must be a number!')
 
 
 def validate_cidr(value):
     if not value or not is_valid_cidr(value):
         raise forms.ValidationError(
-            'Must be a valid CIDR address')
+            'Must be a valid CIDR address!')
 
 
 def validate_datetime_with_slack(value):
@@ -70,9 +78,9 @@ class ErrorLogSearchForm(forms.Form):
         ('message', 'Message'),
     )
     TIME_TYPES = (
-        ('', 'All time'),
         ('hours', 'Last # hour(s)'),
-        ('timestamp', 'Timestamp')
+        ('timestamp', 'Timestamp'),
+        ('', 'All time'),
     )
     LOG_ENTRY_TYPES = (
         ('', 'All'),
@@ -82,7 +90,10 @@ class ErrorLogSearchForm(forms.Form):
         ('proxy', 'Proxy'),
     )
     query = MultitypeQueryField(
-        choices=QUERY_TYPES)
+        QUERY_TYPES,
+        validators={
+            'port': validate_integer
+        })
     log_entry_type = forms.ChoiceField(
         required=False,
         choices=LOG_ENTRY_TYPES)
@@ -104,9 +115,9 @@ class AccountLogSearchForm(forms.Form):
         ('iprange', 'IP-range'),
     )
     TIME_TYPES = (
-        ('', 'All time'),
         ('days', 'Last # day(s)'),
-        ('timestamp', 'Timestamp')
+        ('timestamp', 'Timestamp'),
+        ('', 'All time'),
     )
     PORT_TYPES = (
         ('', 'All'),
