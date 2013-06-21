@@ -19,6 +19,7 @@ import time
 from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin
+from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import (
     metric_path_for_bandwith,
     metric_path_for_bandwith_peak,
@@ -70,7 +71,7 @@ class StatSystem(Plugin):
 
         metrics = bandwidth + cpu + sysuptime + memory
         if metrics:
-            metrics.send_metrics(metrics)
+            send_metrics(metrics)
 
     @defer.inlineCallbacks
     def _collect_bandwidth(self):
