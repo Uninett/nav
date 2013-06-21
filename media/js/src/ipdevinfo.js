@@ -62,7 +62,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
                 metric = $node.attr('data-metric-id'),
                 $thisRow = $node.parents('tr'),
                 $displayRow = $('<tr/>'),
-                $displayCell = $('<td/>').attr('colspan', 3).appendTo($displayRow),
+                $displayCell = $('<td/>').attr('colspan', 3).appendTo($displayRow).hide(),
                 $handler = $thisRow.find('td:first img');
 
             $displayRow.insertAfter($thisRow);

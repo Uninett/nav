@@ -28,7 +28,8 @@ from nav.metrics.graphs import get_simple_graph_url
 
 def get_graphite_render_url(request, metric=None):
     if metric:
-        return HttpResponse(get_simple_graph_url(metric, time_frame='1w'))
+        return HttpResponse(get_simple_graph_url(
+            metric, time_frame=request.REQUEST.get('timeframe', '1w')))
     else:
         return HttpResponse(status=400)
 
