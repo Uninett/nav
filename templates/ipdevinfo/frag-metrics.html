@@ -11,13 +11,14 @@
                 </ul>
 
                 {% for group in metric_groups %}
-                    <div id="metric{{ group.grouper }}">
+                    <div id="metric{{ group.grouper }}" class="nav-metrics" data-render-url="{% url graphite-base-render-url %}">
                         <table class="listtable">
 
                             <caption>{{ group.grouper|capfirst }}</caption>
 
                             <thead>
                             <tr>
+                                <th>&nbsp;</th>
                                 <th>Metric</th>
                                 <th>Threshold</th>
                             <tr>
@@ -26,7 +27,8 @@
                             <tbody>
                             {% for metric in group.list %}
                                 <tr>
-                                    <td>
+                                    <td><img src="/images/icons/graph.gif" alt="Graph"></td>
+                                    <td class="nav-metric" data-metric-id="{{ metric.id }}">
                                         {{ metric.suffix }}
                                     </td>
                                     <td>

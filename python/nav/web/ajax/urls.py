@@ -26,7 +26,8 @@ for open access.
 
 from django.conf.urls.defaults import patterns, url
 
-from nav.web.ajax.views import get_rooms_with_position, get_neighbors
+from nav.web.ajax.views import (get_rooms_with_position, get_neighbors,
+                                get_graphite_render_url)
 
 # URL's that does not require authorization
 urlpatterns = patterns('',
@@ -35,5 +36,9 @@ urlpatterns = patterns('',
    url(r'^open/roommapper/rooms/(?P<roomid>.+)/$', get_rooms_with_position,
        name='room-position'),
    url(r'^open/neighbormap/(?P<netboxid>\d+)/$', get_neighbors,
-       name='ajax-get-neighbors')
+       name='ajax-get-neighbors'),
+   url(r'^open/graphite-render/$', get_graphite_render_url,
+       name="graphite-base-render-url"),
+   url(r'^open/graphite-render/(?P<metric>.+)/$', get_graphite_render_url,
+       name="graphite-render-url"),
 )

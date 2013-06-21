@@ -1,8 +1,8 @@
-require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
-], function (TableUtil, TabNavigation, NeighborMap) {
+require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/graph_fetcher", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
+], function (TableUtil, TabNavigation, NeighborMap, GraphLoader) {
 
     var mainTabsSelector = '#ipdevinfotabs';
-    var metricTabsSelector = "#metrictabs"
+    var metricTabsSelector = "#metrictabs";
     var moduleTabsSelector = '#moduletabs';
 
     $(document).ready(function () {
@@ -13,7 +13,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
 
         if ($(mainTabsSelector).length !== 0) {
             addModuleTabs();
-            addMetricTabs()
+            addMetricTabs();
             addMainTabs();
         }
 
@@ -46,10 +46,28 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
     function addMetricTabs() {
         var tabs = $(metricTabsSelector).tabs({
             cache: true,
+            create: addGraphLoader,
             spinner: '<img src="/images/main/process-working.gif">'
         });
         tabs.show();
-        TabNavigation.add(metricTabsSelector);
+    }
+
+    function addGraphLoader(event) {
+        console.log(event.target);
+        var $container = $(event.target).find('.nav-metrics'),
+            $renderUrl = $container.attr('data-render-url');
+
+         $container.find('.nav-metric').each(function (index, node) {
+            var $node = $(node),
+                metric = $node.attr('data-metric-id'),
+                $thisRow = $node.parents('tr'),
+                $displayRow = $('<tr/>'),
+                $displayCell = $('<td/>').attr('colspan', 3).appendTo($displayRow),
+                $handler = $thisRow.find('td:first img');
+
+            $displayRow.insertAfter($thisRow);
+            new GraphLoader($renderUrl, metric, $handler, $displayCell);
+        });
     }
 
     /*
