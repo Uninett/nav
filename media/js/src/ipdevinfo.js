@@ -53,7 +53,6 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
     }
 
     function addGraphLoader(event) {
-        console.log(event.target);
         var $container = $(event.target).find('.nav-metrics'),
             $renderUrl = $container.attr('data-render-url');
 
@@ -66,7 +65,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
                 $handler = $thisRow.find('td:first img');
 
             $displayRow.insertAfter($thisRow);
-            new GraphLoader($renderUrl, metric, $handler, $displayCell);
+            new GraphLoader($renderUrl + metric, $handler, $displayCell);
         });
     }
 

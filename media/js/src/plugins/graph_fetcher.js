@@ -1,8 +1,22 @@
-define(['libs/jquery'], function () {
-
-    function GraphFetcher(graphurl, metric, handler, target) {
+define(['libs/jquery', 'libs/spin.min'], function () {
+    /*
+     * GraphFetcher (whisper-version)
+     *
+     * Displays graphs from whisper-files
+     *
+     * graphurl - url for fetching an url to an image
+     * handler - the node used for interaction - displaying and hiding the graph
+     * target - the target node for the graph
+     *
+     * Workflow:
+     * Sends a request for an url using the graphurl. Creates an image,
+     * appends it to the target and and sets the src = response from
+     * graphurl-request. Attaches listeners to the handler for displaying
+     * and hiding the graph.
+     *
+     */
+    function GraphFetcher(graphurl, handler, target) {
         this.graphurl = graphurl;
-        this.metric = metric;
         this.handler = handler;
         this.target = target;
         this.buttons = {'1d': 'Day', '1w': 'Week', '1mon': 'Month', '1y': 'Year'};
@@ -41,28 +55,46 @@ define(['libs/jquery'], function () {
             });
         },
         fetchGraph: function (timeframe) {
-            console.log("Fetching graph");
-            var self = this;
+            if (this.loading) {
+                // Exit if already loading a graph
+                return;
+            } else {
+                this.loading = true;
+            }
+
             timeframe = timeframe ? timeframe : '1w';
-            $.get(this.graphurl + this.metric, {timeframe: timeframe}, function (data) {
+            var self = this,
+                xhr = $.ajax(this.graphurl, {
+                    data: {timeframe: timeframe},
+                    beforeSend: function () {
+                        self.target.show();
+                        self.startSpinner();
+                    }
+                });
+            this.handleXhr(xhr, timeframe);
+        },
+        handleXhr: function (xhr, timeframe) {
+            var self = this;
+            xhr.done(function (data) {
                 self.updateImage(data);
                 self.selectButton(timeframe);
             });
+
+            xhr.always(function () {
+                self.spinner.stop();
+                self.loading = false;
+            });
         },
         updateImage: function (data) {
-            console.log('Updating image');
-            console.log(data);
             if (this.image) {
                 this.image.attr('src', data);
             } else {
                 this.image = $('<img/>').attr('src', data);
                 this.image.appendTo(this.target);
-                this.target.show();
                 this.rebindListener();
             }
         },
         rebindListener: function () {
-            console.log('Rebinding listener');
             var self = this;
             this.handler.unbind('click');
             this.handler.click(function () {
@@ -74,8 +106,22 @@ define(['libs/jquery'], function () {
                 $(element).removeClass('button-selected');
             });
             $('button.graph-button-' + timeframe, this.target).addClass('button-selected');
+        },
+        startSpinner: function () {
+            if (!this.spinner) {
+                this.spinner = this.createSpinner();
+            }
+            this.spinner.spin(this.target.get(0));
+        },
+        stopSpinner: function () {
+            this.spinner.stop();
+        },
+        createSpinner: function () {
+            var options = {};  // Who knows, maybe in the future?
+            /* Set a minimum height on the container so that the spinner displays properly */
+            this.target.css('height', '200px');
+            return new Spinner(options);
         }
-
     };
 
     return GraphFetcher;
