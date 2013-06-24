@@ -116,7 +116,7 @@ def index(request):
             (
                 TARGET.search(key),
                 OUTPUT.sub(key),
-                '{:.2f}'.format(value)
+                '{0:.2f}'.format(value)
             ) for key, value in values_sorted
         ]
 
@@ -126,7 +126,7 @@ def index(request):
             units = config.get(view, 'units')
 
         if cached:
-            footer = 'using cached data from {}'.format(cachetime)
+            footer = 'using cached data from {0}'.format(cachetime)
         else:
             footer = 'using live data'
 
