@@ -71,15 +71,25 @@ def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
     if isinstance(metric_paths, basestring):
         metric_paths = [metric_paths]
 
+    args = _get_simple_graph_args(metric_paths, time_frame)
+    args.update({
+        'width': width,
+        'height': height,
+        'title': title or '',
+    })
+
+    url = reverse("graphite-render") + "?" + urlencode(args, True)
+    return url
+
+
+def _get_simple_graph_args(metric_paths, time_frame):
     args = {
         'target': [],
         'from': "-%s" % time_frame,
         'template': 'nav',
-        'width': width,
-        'height': height,
-        'title': title or '',
         'yMin': 0,
     }
+
     for target in metric_paths:
         meta = get_metric_meta(target)
         target = meta['target']
@@ -92,8 +102,7 @@ def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
         if meta['yUnitSystem']:
             args['yUnitSystem'] = meta['yUnitSystem']
 
-    url = reverse("graphite-render") + "?" + urlencode(args, True)
-    return url
+    return args
 
 
 def get_metric_meta(metric_path):
