@@ -14,7 +14,12 @@
         </tr>
         <tr>
           <th>{{ form.time.label_tag }}</th>
-          <td colspan="2">{{ form.time }}</td>
+          <td colspan="2">
+            {{ form.time }}
+            <a href="#" class="tooltip" title="number of minutes results can deviate">
+              <span title="more">slack?</span>
+            </a>
+          </td>
         </tr>
         <tr>
           <th>{{ form.log_entry_type.label_tag }}</th>
@@ -34,7 +39,7 @@
       <thead>
         <tr>
           {% for desc in field_desc %}
-            <th>{{ desc }}</th>
+            <th><a class="navbar" href="#">{{ desc }}</a></th>
           {% endfor %}
             <th></th>
         </tr>

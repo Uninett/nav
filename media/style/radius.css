@@ -1,0 +1,40 @@
+
+.dataTables_paginate a {
+    cursor: pointer;
+    margin: 3px;
+    border: solid 1px #d3d3d3;
+}
+
+.tooltip{
+    display: none;
+    position: relative;
+}
+
+.tooltip:hover:after{
+    background: #333;
+    background: rgba(0,0,0,.8);
+    border-radius: 5px;
+    bottom: 26px;
+    color: #fff;
+    content: attr(title);
+    left: 20%;
+    padding: 5px 15px;
+    position: absolute;
+    z-index: 98;
+    width: 220px;
+}
+
+.tooltip:hover:before{
+    border: solid;
+    border-color: #333 transparent;
+    border-width: 6px 6px 0 6px;
+    bottom: 20px;
+    content: "";
+    left: 50%;
+    position: absolute;
+    z-index: 99;
+}
+
+th.col0 { padding-right: 5px; border-right: 1px solid #ccc; text-align: left; }
+td.col1 { padding-left: 5px; }
+table.sessioninfo { font-size: 0.9em; padding-bottom: 15px; }

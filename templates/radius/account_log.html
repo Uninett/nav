@@ -14,7 +14,12 @@
         </tr>
         <tr>
           <th>{{ form.time.label_tag }}</th>
-          <td colspan="2">{{ form.time }}</td>
+          <td colspan="2">
+            {{ form.time }}
+            <a href="#" class="tooltip" title="number of minutes results can deviate">
+              <span title="more">slack?</span>
+            </a>
+          </td>
         </tr>
         <tr>
           <th>{{ form.port_type.label_tag }}</th>
@@ -40,22 +45,22 @@
 
         <thead>
           <tr>
-            <th>Username</th>
-            <th>Framed IP Address</th>
-            <th>NAS IP Address</th>
-            <th>Session start</th>
-            <th>Session stop</th>
-            <th>Duration</th>
-            <th>Details</th>
+            <th><a class="navbar" href="#">Username</a></th>
+            <th><a class="navbar" href="#">Framed IP Address</a></th>
+            <th><a class="navbar" href="#">NAS IP Address</a></th>
+            <th><a class="navbar" href="#">Session start</a></th>
+            <th><a class="navbar" href="#">Session stop</a></th>
+            <th><a class="navbar" href="#">Duration</a></th>
+            <th></th>
           </tr>
         </thead>
 
         <tbody>
           {% for row in result %}
             <tr>
-              <td>{{ row.username }}</td>
-              <td>{{ row.framedipaddress|default:"" }}</td>
-              <td>{{ row.nasipaddress|default:"" }}</td>
+              <td><a href="javascript:$.fn.add_filter('{{ row.username }}')">{{ row.username }}</a></td>
+              <td><a href="javascript:$.fn.add_filter('{{ row.framedipaddress }}')">{{ row.framedipaddress|default:"" }}</a></td>
+              <td><a href="javascript:$.fn.add_filter('{{ row.nasipaddress }}')">{{ row.nasipaddress|default:"" }}</a></td>
               <td>{{ row.acctstarttime }}</td>
               <td>{{ row.acctstoptime }}</td>
               <td>{{ row.acctsessiontime|time_from_seconds }}</td>

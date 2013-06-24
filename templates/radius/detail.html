@@ -1,14 +1,7 @@
 {% extends "base.html" %}
 
-{% load report %}
-
 {% block base_header_additional_head %}
-{# FIXME: This should REALLY be in a stylesheet! #}
-<style>
-th.col0 { padding-right: 5px; border-right: 1px solid #ccc; text-align: left; }
-td.col1 { padding-left: 5px; }
-table.sessioninfo { font-size: 0.9em; padding-bottom: 15px; }
-</style>
+  <link rel="stylesheet" href="/style/radius.css" type="text/css">
 {% endblock base_header_additional_head %}
 
 {% block base_content %}
