@@ -169,17 +169,6 @@ def save_cache(view, fromtime, valuelist, units):
         return
 
 
-def sort_by_value(dictionary):
-    """
-    Returns the keys of dictionary sorted by their values
-    """
-
-    items = dictionary.items()
-    backitems = [ (v[1], v[0]) for v in items ]
-    backitems.sort()
-    return [ v[1] for v in backitems ]
-
-
 def format_time(seconds):
     """
     Converts seconds to a string with days, hours, minutes, seconds

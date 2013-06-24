@@ -21,6 +21,13 @@ from nav.metrics.names import escape_metric_name
 
 # pylint: disable=C0111
 
+
+def metric_prefix_for_ipdevpoll_job(sysname, job_name):
+    tmpl = "{device}.ipdevpoll.{job_name}"
+    return tmpl.format(device=metric_prefix_for_device(sysname),
+                       job_name=escape_metric_name(job_name))
+
+
 def metric_path_for_bandwith(sysname, is_percent):
     tmpl = "{system}.bandwidth{percent}"
     return tmpl.format(system=metric_prefix_for_system(sysname),
