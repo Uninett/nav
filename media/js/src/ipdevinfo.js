@@ -22,6 +22,13 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             new NeighborMap($neighbornode.get(0));
         }
 
+        var $metrics = $('.nav-metrics');
+        if ($metrics.length) {
+            $metrics.each(function () {
+                addGraphLoader($(this));
+            });
+        }
+
     });
 
     function addModuleTabs() {
@@ -46,20 +53,18 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
     function addMetricTabs() {
         var tabs = $(metricTabsSelector).tabs({
             cache: true,
-            create: addGraphLoader,
             spinner: '<img src="/images/main/process-working.gif">'
         });
         tabs.show();
     }
 
-    function addGraphLoader(event) {
-        var $container = $(event.target).find('.nav-metrics'),
-            $renderUrl = $container.attr('data-render-url');
+    function addGraphLoader($container) {
+         var $renderUrl = $container.attr('data-render-url');
 
-         $container.find('.nav-metric').each(function (index, node) {
-            var $node = $(node),
+         $container.find('.nav-metric').each(function () {
+            var $node = $(this),
                 metric = $node.attr('data-metric-id'),
-                $thisRow = $node.parents('tr'),
+                $thisRow = $node.parents('tr:first'),
                 $displayRow = $('<tr/>'),
                 $displayCell = $('<td/>').attr('colspan', 3).appendTo($displayRow).hide(),
                 $handler = $thisRow.find('td:first img');

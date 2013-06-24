@@ -102,8 +102,8 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             });
         },
         selectButton: function(timeframe) {
-            $('button', this.target).each(function (index, element) {
-                $(element).removeClass('button-selected');
+            $('button', this.target).each(function () {
+                $(this).removeClass('button-selected');
             });
             $('button.graph-button-' + timeframe, this.target).addClass('button-selected');
         },

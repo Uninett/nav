@@ -186,16 +186,16 @@
         <td>
             {% with port.get_port_metrics|dictsort:"suffix" as metrics %}
                 {% if metrics|length %}
-                    <table>
+                    <table class="nav-metrics" data-render-url="{% url graphite-base-render-url %}">
                     <tr>
+                        <th>&nbsp;</th>
                         <th>Metric</th>
-                        <th>Graph</th>
                         <th>Threshold</th>
                     </tr>
                     {% for metric in metrics %}
                     <tr>
+                        <td class="nav-metric" data-metric-id="{{ metric.id }}"><img src="/images/icons/graph.png" alt="Graph" title="Graph"></td>
                         <td>{{ metric.suffix }}</td>
-                        <td><img alt="[graph]" src="{{ metric.url }}" /></td>
                         <td><a href="{% url threshold-interface port.id %}">{% if metric.threshold %}{{ metric.threshold }}{% else %}not configured{% endif %}</a></td>
                     </tr>
                     {% endfor %}
