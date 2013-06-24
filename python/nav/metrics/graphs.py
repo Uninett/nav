@@ -18,6 +18,8 @@ import re
 from urllib import urlencode
 from django.core.urlresolvers import reverse
 
+TIMETICKS_IN_DAY = 100 * 3600 * 24
+
 META_LOOKUPS = (
 
     # Various counter type values
@@ -36,6 +38,16 @@ META_LOOKUPS = (
     (re.compile(r'\.if(In|Out)[^\.]*Pkts$'),
      dict(transform="scaleToSeconds(nonNegativeDerivative({id},8),1)",
           unit="packets/s")),
+
+    (re.compile(r'\.sysuptime$'),
+     dict(transform="scale({id},%.20f)" % (1.0/TIMETICKS_IN_DAY),
+          unit="days")),
+
+    (re.compile(r'\.loadavg[0-9]+min$'), dict(unit="%")),
+    (re.compile(r'_percent$'), dict(unit="%")),
+    (re.compile(r'\.memory\..*\.(free|used)$'),
+     dict(unit="bytes", yUnitSystem="binary")),
+    (re.compile(r'\.(roundTripTime|responseTime)$'), dict(unit="seconds")),
 
 )
 
