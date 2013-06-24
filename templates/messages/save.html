@@ -1,0 +1,24 @@
+{% extends "messages/base.html" %}
+
+{% block content %}
+<form action="" method="post">
+    <table class="listtable vertitable">
+        <caption>{{ caption }}</caption>
+        {{ form.as_table }}
+        {% if replaces %}
+            <tr>
+                <th>Replaces message</th>
+                <td>
+                    <a href="{% url messages-view replaces.id %}">{{ replaces.title }}</a>
+                    from {{ replaces.publish_start|date:"Y-m-d H:i" }}
+                    by {{ replaces.author }}
+                </td>
+            </tr>
+        {% endif %}
+        <tr>
+            <th></th>
+            <td><input type="submit" value="Save message" /></td>
+        </tr>
+    </table>
+</form>
+{% endblock %}

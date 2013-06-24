@@ -1,3 +1,15 @@
+Version 3.14.15926
+(released 20 Jun 2013)
+
+ Bugfixes:
+
+  * LP#1177754 (SRV and OTHER category devices have no uplinks)
+  * LP#1185786 (maintengine.py crashes on any maintenance task with room or
+                location components)
+  * LP#1185848 (VLAN topology direction is wrong in cases of multiple links
+                between two devices)
+  * LP#1186193 (Cricket collects statistics from EDGE switches in NAV 3.14.1592)
+
 Version 3.14.1592
 (released 25 Apr 2013)
 
