@@ -40,11 +40,12 @@ def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
     for target in data:
         dpoints = [d[0] for d in target['datapoints']
                    if not (ignore_unknown and d[0] is None)]
-        if None in dpoints:
-            avg = None
-        else:
-            avg = sum(dpoints) / len(dpoints)
-        result[target['target']] = avg
+        if dpoints:
+            if None in dpoints:
+                avg = None
+            else:
+                avg = sum(dpoints) / len(dpoints)
+            result[target['target']] = avg
     return result
 
 
