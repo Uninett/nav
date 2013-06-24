@@ -65,7 +65,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
                 $handler = $thisRow.find('td:first img');
 
             $displayRow.insertAfter($thisRow);
-            new GraphLoader($renderUrl + metric, $handler, $displayCell);
+            new GraphLoader($renderUrl + metric, $displayCell, $handler);
         });
     }
 

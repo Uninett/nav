@@ -15,10 +15,10 @@ define(['libs/jquery', 'libs/spin.min'], function () {
      * and hiding the graph.
      *
      */
-    function GraphFetcher(graphurl, handler, target) {
+    function GraphFetcher(graphurl, target, handler) {
         this.graphurl = graphurl;
-        this.handler = handler;
         this.target = target;
+        this.handler = handler;
         this.buttons = {'1d': 'Day', '1w': 'Week', '1mon': 'Month', '1y': 'Year'};
         this.image = false;
 
