@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+    <link rel="stylesheet" href="/style/report.css" type="text/css" />
+    <script type="text/javascript" src="/js/jquery.js"></script>
+    <script type="text/javascript" src="/js/report.js"></script>
+{% endblock base_header_additional_head %}
+
+{% block base_content %}
+
+    <h2>{{ heading }}</h2>
+
+    {% block content %}
+    {% endblock content %}
+
+{% endblock base_content %}
