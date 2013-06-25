@@ -32,8 +32,6 @@ configfile = os.path.join(nav.path.sysconfdir, "report/matrix.conf")
 class MatrixIPv4(Matrix):
     """This class serves as an interface for the prefix matrix."""
 
-    template = 'report/matrixIPv4.html'
-
     def __init__(self, start_net, show_unused_addresses, end_net=None,
                  bits_in_matrix=3):
         Matrix.__init__(self, start_net, end_net=end_net,
@@ -41,6 +39,10 @@ class MatrixIPv4(Matrix):
         self.column_headings = self._getColumnHeaders()
         self.show_unused_addresses = show_unused_addresses
         self.color_configuration = ColorConfig(configfile)
+
+    @property
+    def template(self):
+        return 'report/matrixIPv4.html'
 
     def render(self):
 

@@ -175,7 +175,7 @@ def matrix_report(request):
     # Invalidating the MetaIP cache to get rid of processed data.
     MetaIP.invalidateCache()
 
-    matrix.render()
+    matrix.build()
 
     context.update({
         'matrix': matrix,

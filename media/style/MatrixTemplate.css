@@ -22,6 +22,11 @@ td {
 	padding: 0;
 	white-space: nowrap;
 	width: 14em;
+    text-align: center;
+}
+
+td.nocenter {
+    text-align: left;
 }
 
 td.blank {
@@ -39,4 +44,6 @@ th {
 table {
 	border-collapse: separate;
 	border-spacing: 2px;
+    border: 1px solid black;
+    font-size: 0.8em;
 }

@@ -15,8 +15,8 @@
 #
 """This class serves as an interface for the prefix matrix."""
 import os
-import math
 import nav.path
+
 from nav.report import IPtools, metaIP
 from nav.report.matrix import Matrix
 from nav.report.colorconfig import ColorConfig
@@ -28,42 +28,49 @@ configfile = os.path.join(nav.path.sysconfdir, "report/matrix.conf")
 class MatrixIPv6(Matrix):
     """This class serves as an interface for the prefix matrix."""
 
-    template = 'report/matrixIPv6.html'
-
     def __init__(self, start_net, end_net=None):
         Matrix.__init__(self, start_net, end_net=end_net, bits_in_matrix=4)
         self.column_headings = ["%X" % i for i in range(0, 16)]
+        self.num_columns = len(self.column_headings)  # TODO: reuse
         self.color_configuration = ColorConfig(configfile)
 
-    def render(self):
+    @property
+    def template(self):
+        return 'report/matrixIPv6.html'
 
-        nodes = IPtools.sort_nets_by_address(self.tree_nets.keys())
+    def build(self):
+
+        nets = IPtools.sort_nets_by_address(self.tree_nets.keys())
+
         self.nodes = [
-            (net, self._write_subnets(self.tree_nets[net], 1))
-            for net in nodes
+            self.Node(net, self._write_subnets(self.tree_nets[net], 1))
+            for net in nets
         ]
 
     def _write_subnets(self, net, depth):
 
         nodes = IPtools.sort_nets_by_address(net.keys())
         lastnet = None
-        html = []
+        subnet_matrix = []
 
         for subnet in nodes:
             if lastnet is None:
                 lastnet = subnet
 
             if subnet in self.matrix_nets:
-                # FIXME?: Why no IPv6 method?
                 if IPtools.isIntermediateNets(lastnet, subnet):
-                    html.append(_printBlankRow(self.column_headings))
+                    subnet_matrix.append(None)
 
                 lastnet = subnet
 
-                html.append('<tr>')
-                td = '<td>' + _printDepth(depth)
-                td += _netlink(subnet) + '</td>'
-                html.append(td)
+                matrix_row = [
+                    self.Cell(
+                        colspan=1,
+                        color=None,
+                        content='{0}{1}'.format(
+                            _printDepth(depth),
+                            _netlink(subnet)))
+                ]
 
                 host_nybbles_map = IPtools.getLastbitsIpMap(
                     self.matrix_nets[subnet].keys())
@@ -72,37 +79,40 @@ class MatrixIPv6(Matrix):
                     if self.column_headings.index(i) < next_header_idx:
                         continue
 
-                    i = i.lower()
-                    if i in host_nybbles_map:
-                        meta = metaIP.MetaIP(host_nybbles_map[i])
-                        ip = host_nybbles_map[i]
-                        td = """<td colspan="{0}"
-                                    style="background-color:{1};
-                                    text-align:center;">
-                                    {2}
-                            </td>""".format(_colspan(ip, self.end_net), meta.ipv6_color, _matrixlink(i, ip))
+                    key = i.lower()
+                    if key in host_nybbles_map:
+                        meta = metaIP.MetaIP(host_nybbles_map[key])
+                        ip = host_nybbles_map[key]
+                        matrix_cell = self.Cell(
+                            colspan=self._colspan(ip),
+                            color=meta.ipv6_color,
+                            content=_matrixlink(key, ip))
                         next_header_idx = self.column_headings.index(
-                            i.upper()) + int(_colspan(ip, self.end_net))
+                            i) + int(self._colspan(ip))
                     else:
-                        td = '<td colspan="1">&nbsp;</td>'
-                    html.append(td)
-                html.append('</tr>')
+                        matrix_cell = self.Cell(
+                            colspan=1,
+                            color=None,
+                            content='&nbsp;')
+                    matrix_row.append(matrix_cell)
+                subnet_matrix.append(matrix_row)
             else:
-                html.append(_printBlankRow())
+                subnet_matrix.append(None)
                 lastnet = subnet
-                meta = metaIP.MetaIP(subnet)
-                tr = """
-                    <tr>
-                        <td>{0}{1}</td>
-                        <td colspan="{2}">&nbsp;</td>
-                    </tr>
-                """.format(
-                    _printDepth(depth),
-                    _netlink(subnet, True),
-                    len(self.column_headings))
-                html.append(tr)
-                html.extend(self._write_subnets(net[subnet], depth + 1))
-        return html
+                matrix_row = [
+                    self.Cell(
+                        colspan=1,
+                        color=None,
+                        content=(_printDepth(depth) + _netlink(subnet, True))),
+                    self.Cell(
+                        colspan=self.num_columns,
+                        color=None,
+                        content='&nbsp;')
+                ]
+                subnet_matrix.append(matrix_row)
+                subnet_matrix.extend(
+                    self._write_subnets(net[subnet], depth + 1))
+        return subnet_matrix
 
 
 def _matrixlink(nybble, ip):
@@ -138,16 +148,7 @@ def _netlink(ip, append_term_and_prefix=False):
             </a>""".format(link, text)
 
 
-def _colspan(ip, end_net):
-    return int(math.pow(2, end_net.prefixlen() - ip.prefixlen()))
-
-
 def _printDepth(depth):
     space = '&nbsp;'
     space *= depth
     return space
-
-
-def _printBlankRow(column_headings):
-    span = len(column_headings) + 1
-    return '<tr><td class="blank" colspan="{0}"></td></tr>'.format(span)

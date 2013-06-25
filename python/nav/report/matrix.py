@@ -15,7 +15,9 @@
 # NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Builds the prefix matrix."""
+import math
 import logging
+from collections import namedtuple
 
 from nav.report.IPtree import buildTree
 from nav.report.IPtree import getSubtree
@@ -25,7 +27,17 @@ from nav.report.IPtools import getLastSubnet
 
 logger = logging.getLogger("nav.report.matrix")
 
+
 class Matrix:
+
+    Node = namedtuple(
+        'Node',
+        'net subnets'
+    )
+    Cell = namedtuple(
+        'Cell',
+        'colspan color content'
+    )
 
     def __init__(self, start_net, end_net=None, bits_in_matrix=3):
         """This class is "abstract" and should not be instansiated directly.
@@ -46,7 +58,11 @@ class Matrix:
         self.tree_nets = self.extractTreeNets()
         self.matrix_nets = self.extractMatrixNets()
 
-    def render(self):
+    @property
+    def template(self):
+        raise NotImplementedError('Subclasses must define a template')
+
+    def build(self):
         raise NotImplementedError('Must be implemented in subclass')
 
     def has_too_small_nets(self, net):
@@ -65,3 +81,6 @@ class Matrix:
         """These should be listed vertically in the leftmost column."""
         return removeSubnetsWithPrefixLength(
             self.tree, self.end_net.prefixlen()-self.bits_in_matrix+1)
+
+    def _colspan(self, ip):
+        return int(math.pow(2, self.end_net.prefixlen() - ip.prefixlen()))
