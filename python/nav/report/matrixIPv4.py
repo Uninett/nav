@@ -35,7 +35,7 @@ class MatrixIPv4(Matrix):
                  bits_in_matrix=3):
         Matrix.__init__(self, start_net, end_net=end_net,
                         bits_in_matrix=bits_in_matrix)
-        self.column_headings = self._getColumnHeaders()
+        self.column_headings = self._get_column_headers()
         self.num_columns = len(self.column_headings)
         self.show_unused_addresses = show_unused_addresses
         self.color_configuration = ColorConfig(configfile)
@@ -61,7 +61,7 @@ class MatrixIPv4(Matrix):
             if subnet in self.matrix_nets:
                 if self.show_unused_addresses:
                     subnet_matrix.extend(
-                        self._netsInRange(
+                        self._nets_in_range(
                             lastnet,
                             subnet,
                             depth))
@@ -72,7 +72,7 @@ class MatrixIPv4(Matrix):
                         colspan=1,
                         color=None,
                         content='{0} {1}'.format(
-                            Matrix.printDepth(depth),
+                            Matrix.print_depth(depth),
                             _netlink(subnet)))
                 ]
 
@@ -84,7 +84,7 @@ class MatrixIPv4(Matrix):
                     matrix_row.append(
                         self.Cell(
                             colspan=self.num_columns,
-                            color=self._loadColor(0, 'large'),
+                            color=self._load_color(0, 'large'),
                             content='Too many small nets')
                     )
 
@@ -96,7 +96,7 @@ class MatrixIPv4(Matrix):
                     matrix_row.append(
                         self.Cell(
                             colspan=self.num_columns,
-                            color=self._loadColor(
+                            color=self._load_color(
                                 meta.usage_percent,
                                 meta.nettype),
                             content=_matrixlink(0, ip))
@@ -114,7 +114,7 @@ class MatrixIPv4(Matrix):
                             meta = metaIP.MetaIP(ip)
                             matrix_cell = self.Cell(
                                 colspan=self._colspan(ip),
-                                color=self._loadColor(
+                                color=self._load_color(
                                     meta.usage_percent,
                                     meta.nettype),
                                 content=_matrixlink(key, ip))
@@ -131,14 +131,14 @@ class MatrixIPv4(Matrix):
                 if (self.matrix_nets
                     and lastnet.prefixlen() <
                         self.matrix_nets.keys()[0].prefixlen()):
-                    mnets = self.generateMatrixNets(lastnet)
+                    mnets = self.generate_matrix_nets(lastnet)
                     subnet_extended = IPy.IP(
                         '/'.join([
                             subnet.net.strNormal(),
                             str(self.matrix_nets.keys()[0].prefixlen())
                         ]))
                     subnet_matrix.extend(
-                        self._netsInRange(
+                        self._nets_in_range(
                             mnets[-1],
                             subnet_extended,
                             depth))
@@ -149,30 +149,30 @@ class MatrixIPv4(Matrix):
                         colspan=1,
                         color=None,
                         content='{0} {1}'.format(
-                            Matrix.printDepth(depth),
+                            Matrix.print_depth(depth),
                             _netlink(subnet, True))),
                     self.Cell(
                         colspan=self.num_columns,
-                        color=self._loadColor(
+                        color=self._load_color(
                             meta.usage_percent,
                             meta.nettype),
-                        content=_supernetMatrixlink(subnet))
+                        content=_supernet_matrixlink(subnet))
                 ]
                 subnet_matrix.append(matrix_row)
                 subnet_matrix.extend(
                     self._write_subnets(net[subnet], depth + 1))
                 subnet_matrix.extend(
-                    self._remainingBlankNets(subnet, depth + 1))
+                    self._remaining_blank_nets(subnet, depth + 1))
         return subnet_matrix
 
-    def _remainingBlankNets(self, ip, depth):
+    def _remaining_blank_nets(self, ip, depth):
         if not self.show_unused_addresses:
             return []
 
         rows = []
         tTree = self.tree
         subtree = IPtree.getSubtree(tTree, ip)
-        nets = self.generateMatrixNets(ip)
+        nets = self.generate_matrix_nets(ip)
 
         for net in nets:
             overlap = False
@@ -189,7 +189,7 @@ class MatrixIPv4(Matrix):
                         colspan=1,
                         color=None,
                         content='{0} {1}'.format(
-                            Matrix.printDepth(depth),
+                            Matrix.print_depth(depth),
                             _netlink(net))),
                     self.Cell(
                         colspan=self.num_columns,
@@ -198,7 +198,7 @@ class MatrixIPv4(Matrix):
                 ])
         return rows
 
-    def _loadColor(self, percent, nettype):
+    def _load_color(self, percent, nettype):
         if nettype == 'static' or nettype == 'scope' or nettype == 'reserved':
             return self.color_configuration.extras.get('other')
         elif nettype == 'large':
@@ -212,7 +212,7 @@ class MatrixIPv4(Matrix):
                 if percent >= int(limit[0]):
                     return limit[1]
 
-    def _getColumnHeaders(self):
+    def _get_column_headers(self):
         msb = 8 - (self.end_net.prefixlen()-self.bits_in_matrix) % 8
         lsb = msb - self.bits_in_matrix
         if lsb <= 0:
@@ -221,7 +221,7 @@ class MatrixIPv4(Matrix):
             msb = 1
         return [str((2**lsb)*i) for i in range(0, msb)]
 
-    def generateMatrixNets(self, supernet):
+    def generate_matrix_nets(self, supernet):
         """Generates all the matrix nets which belongs under ``supernet''."""
         matrix_prefixlen = self.end_net.prefixlen() - self.bits_in_matrix
         start_net = supernet.net().make_net(matrix_prefixlen)
@@ -232,7 +232,7 @@ class MatrixIPv4(Matrix):
 
         return netDiff(start_net, end_net)
 
-    def _netsInRange(self, net1, net2, depth):
+    def _nets_in_range(self, net1, net2, depth):
         rows = []
         if net1.prefixlen() == net2.prefixlen():
             diff = netDiff(net1, net2)
@@ -243,7 +243,7 @@ class MatrixIPv4(Matrix):
                             colspan=1,
                             color=None,
                             content='{0} {1}'.format(
-                                Matrix.printDepth(depth),
+                                Matrix.print_depth(depth),
                                 _netlink(net))),
                         self.Cell(
                             colspan=self.num_columns,
@@ -260,7 +260,7 @@ class MatrixIPv4(Matrix):
                                        self.bits_in_matrix)
 
 
-def _supernetMatrixlink(ip):
+def _supernet_matrixlink(ip):
     meta = metaIP.MetaIP(ip)
     return """
         <a href="/machinetracker/?prefixid={0}"

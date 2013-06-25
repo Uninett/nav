@@ -64,7 +64,7 @@ class MatrixIPv6(Matrix):
                         colspan=1,
                         color=None,
                         content='{0}{1}'.format(
-                            Matrix.printDepth(depth),
+                            Matrix.print_depth(depth),
                             _netlink(subnet)))
                 ]
 
@@ -100,7 +100,7 @@ class MatrixIPv6(Matrix):
                         colspan=1,
                         color=None,
                         content='{0}{1}'.format(
-                            Matrix.printDepth(depth),
+                            Matrix.print_depth(depth),
                             _netlink(subnet, True))),
                     self.Cell(
                         colspan=self.num_columns,
