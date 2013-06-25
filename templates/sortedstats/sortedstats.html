@@ -55,18 +55,6 @@
       </tr>
 
       <tr>
-        <th>Live</th>
-        <td>
-          <input type="checkbox"
-                 name="forcedview"
-                 value="1"
-                 {% if forcedview %}
-                   checked
-                 {% endif %}>
-        </td>
-      </tr>
-
-      <tr>
         <th></th>
         <td><input type="submit" name="normalview" value="View"></td>
       </tr>
@@ -74,56 +62,24 @@
     </table>
   </form>
 
-
   {# Display view if exists #}
   {% if view %}
+      <img src="{{ graph_url }}" alt="Graph" title="Graph">
 
-    {% for value in values %}
-
-      {% if forloop.first %}
-        <table class="listtable">
-          <caption>
-            Ranked Statistics for {{ viewname }}<br>
-            <span class="subtitle">{{ view_timeframe }}</span>
-          </caption>
-          <thead>
+      <table class="listtable">
+        <caption>Average values</caption>
+        {% for metric, value in data %}
             <tr>
-              <th>Rank</th>
-              <th>Target</th>
-              <th>Value</th>
-              <th>Unit</th>
+                <td>
+                    {{ metric }}
+                </td>
+                <td>
+                    {{ value }}
+                </td>
             </tr>
-          </thead>
-      {% endif %}
+        {% endfor %}
 
-      <tbody>
-        <tr class="{% cycle 'oddrow' 'evenrow' %}">
-          <td>{{ forloop.counter }}</td>
-          <td>
-            {% if linkview %}
-              <a href="/cricket/?target={{ value.0 }};view={{ linkview }}">
-                {{ value.1 }}
-              </a>
-            {% else %}
-              {{ value.1 }}
-            {% endif %}
-          </td>
-          <td align="right">{{ value.2 }}</td>
-          <td>{{ units }}</td>
-        </tr>
-      </tbody>
-      <tbody class="footer">
-        <tr>
-          <th colspan="4">
-            Got data in {{ exetime }} seconds ({{ footer }})
-          </th>
-        </tr>
-      </tbody>
-
-    {% empty %}
-      <p>Could not find any data for {{ viewname }}</p>
-    {% endfor %}
-    </table>
+      </table>
   {% endif %}
 
 {% endblock base_content %}

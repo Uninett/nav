@@ -16,50 +16,118 @@
 #
 """Sorted statistics views."""
 
-import re
-import time
+import logging
 from operator import itemgetter
-from itertools import islice
-from ConfigParser import NoOptionError
+from urllib import urlencode
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.core.urlresolvers import reverse
 
-from . import get_data, get_configuration
+from nav.metrics.data import get_metric_average
 
-import logging
-
+_logger = logging.getLogger(__name__)
 
 TIMEFRAMES = (
-    ('hour', 'Last Hour'),
-    ('day', 'Last Day'),
-    ('week', 'Last Week'),
-    ('month', 'Last Month'),
+    ('-1h', 'Last Hour'),
+    ('-1d', 'Last Day'),
+    ('-1w', 'Last Week'),
+    ('-1month', 'Last Month'),
 )
 
-TARGET = re.compile('cricket-data(/.*)')
-OUTPUT = re.compile('.*/([^/]+/[^/]+)$","\\1')
+DEFAULT_VALUES = {
+    'width': 1046,
+    'height': 448,
+    'from': '-1d',
+    'until': 'now',
+    'template': 'nav'
+}
+
+VIEWS = {
+    'cpu_routers_highestmax': {
+        'title': 'CPU Highest Average',
+        'data_filter': 'highestAverage({serieslist}, {rows})',
+        'graph_filter': 'substr(group({serieslist}),2,3)',
+        'serieslist': 'nav.devices.*.cpu.*.loadavg5min',
+        'graph_args': {
+            'title': 'Routers with highest average cpu load',
+            'vtitle': 'Percent'
+        }
+    },
+    'uptime': {
+        'title': 'Highest uptime',
+        'data_filter': 'highestMax({serieslist}, {rows})',
+        'graph_filter': 'substr(scale(group({serieslist}), {scale}), 2,3)',
+        'serieslist': 'nav.devices.*.system.sysuptime',
+        'scale': '0.000000116',
+        'graph_args': {
+            'title': 'Network devices with highest uptime',
+            'vtitle': 'Time'
+        }
+    }
+}
+
+
+def fetch_raw_data(viewname, rows, timeframe='-1d'):
+    """Fetch raw data from graphite
+
+    :param viewname: which of the VIEWS we are fetching data for
+    :param rows: number of rows used in filter functions
+    :param timeframe: the from-attribute used in the query
+    """
+    view = VIEWS[viewname]
+    view['rows'] = rows
+    view['from'] = timeframe
+
+    args = dict_merge(DEFAULT_VALUES, view)
+    args['target'] = view['data_filter'].format(
+        serieslist=view['serieslist'], rows=view['rows'])
+    result = get_metric_average(args['target'], args['from'], args['until'])
+    if 'scale' in view:
+        result = upscale(result, float(view['scale']))
+    return result
+
+
+def upscale(result, scale):
+    """Upscale the values of the result dictionary with scale
+
+    :param result:
+    :param scale:
+    """
+    return dict((x[0], x[1] * scale) for x in result.items())
+
+
+def create_graph_url(viewname, raw_data, timeframe='-1d'):
+    """Create url for getting a graph from Graphite
+
+    :param viewname: The VIEW we are graphing
+    :param raw_data: Data from former query
+    :param timeframe: the from attribute used in the query
+    """
+
+    view = VIEWS[viewname]
+    view_args = view['graph_args']
+    view_args['from'] = timeframe
+
+    kwargs = {'serieslist': ",".join(raw_data.keys())}
+    if 'scale' in view:
+        kwargs['scale'] = view['scale']
+
+    view_args['target'] = view['graph_filter'].format(**kwargs)
+    graph_args = dict_merge(DEFAULT_VALUES, view_args)
+    return reverse("graphite-render") + "?" + urlencode(graph_args)
+
+
+def dict_merge(a_dict, b_dict):
+    """Merge two dictionaries. b will overwrite a"""
+    return dict(a_dict.items() + b_dict.items())
 
 
 def index(request):
     """Sorted stats search & result view"""
-    logger = logging.getLogger(__name__)
-    logger.debug('sortedstats started at %s' % time.ctime())
-
-    numrows = int(request.GET.get('numrows', 20))
-    fromtime = request.GET.get('fromtime', 'day')
-
-    config = get_configuration()
-
-    # TODO: Use namedtuple for more expressive templates?
-    sectionslist = [
-        (
-            section,
-            config.get(section, 'name'),
-        )
-        for section in sorted(config.sections())
-        if section != 'ss_general'
-    ]
+    numrows = int(request.GET.get('numrows', 5))
+    fromtime = request.GET.get('fromtime', '-1d')
+    sectionslist = [(x[0], x[1]['title']) for x in VIEWS.items()]
 
     context = {
         'title': 'Statistics',
@@ -68,78 +136,18 @@ def index(request):
         'fromtime': fromtime,
         'timeframes': TIMEFRAMES,
         'sectionslist': sectionslist,
-        'exetime': 0,
     }
 
     if 'view' in request.GET:
         view = request.GET['view']
-        viewname = config.get(view, 'name')
-
-        cachetimeout = config.get('ss_general', 'cachetimeout' + fromtime)
-
-        # Modifier is an optional variable in the configfile that is
-        # used to modify the value we fetch from the rrd-file with a
-        # mathematical expression.
-        try:
-            modifier = config.get(view, 'modifier')
-        except NoOptionError:
-            modifier = False
-
-        try:
-            linkview = config.get(view, 'linkview')
-        except NoOptionError:
-            linkview = False
-
-        # If forcedview is checked, ask getData to get values live.
-        forcedview = bool(request.GET.get('forcedview', False))
-
-        logger.debug('forcedview: %s, path: %s, dsdescr: %s, fromtime: %s, '
-                     'view: %s, cachetimeout: %s, modifier: %s\n'
-                     % (forcedview, config.get(view, 'path'),
-                     config.get(view, 'dsdescr'), fromtime, view,
-                     cachetimeout, modifier))
-
-        values, exetime, units, cachetime, cached = get_data(
-            forcedview,
-            config.get(view, 'path'),
-            config.get(view, 'dsdescr'),
-            fromtime, view, cachetimeout, modifier)
-
-        logger.debug('VALUES: %s\n' % (str(values)))
-
-        # Make a list of (key, value) tuples from values dict, taking
-        # the first 'numrows' elements sorted by value
-        values_sorted = sorted(
-            islice(values.iteritems(), numrows), key=itemgetter(1))
-
-        values_formatted = [
-            (
-                TARGET.search(key),
-                OUTPUT.sub(key),
-                '{0:.2f}'.format(value)
-            ) for key, value in values_sorted
-        ]
-
-        # If units are set in the config-file, use it instead of what
-        # we find in the database.
-        if config.has_option(view, 'units'):
-            units = config.get(view, 'units')
-
-        if cached:
-            footer = 'using cached data from {0}'.format(cachetime)
-        else:
-            footer = 'using live data'
+        data = fetch_raw_data(view, numrows, fromtime)
+        graph_url = create_graph_url(view, data, fromtime)
 
         context.update({
             'view': view,
-            'viewname': viewname,
             'view_timeframe': dict(TIMEFRAMES)[fromtime],
-            'linkview': linkview,
-            'forcedview': forcedview,
-            'values': values_formatted,
-            'exetime': exetime,
-            'units': units,
-            'footer': footer,
+            'data': sorted(data.items(), key=itemgetter(1), reverse=True),
+            'graph_url': graph_url
         })
 
     return render_to_response('sortedstats/sortedstats.html', context,
