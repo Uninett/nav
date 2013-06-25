@@ -46,8 +46,8 @@ class Matrix:
         self.tree_nets = self.extractTreeNets()
         self.matrix_nets = self.extractMatrixNets()
 
-    def getTemplateResponse(self):
-        abstract()
+    def render(self):
+        raise NotImplementedError('Must be implemented in subclass')
 
     def has_too_small_nets(self, net):
         """Returns true if argument ``net'' has too many small subnets for the matrix."""
@@ -65,9 +65,3 @@ class Matrix:
         """These should be listed vertically in the leftmost column."""
         return removeSubnetsWithPrefixLength(
             self.tree, self.end_net.prefixlen()-self.bits_in_matrix+1)
-
-#because I'm a Java guy
-def abstract():
-    import inspect
-    caller = inspect.getouterframes(inspect.currentframe())[1][3]
-    raise NotImplementedError(" ".join([caller,"must be implemented in subclass"]))

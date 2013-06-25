@@ -33,6 +33,7 @@ from django.core.cache import cache
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.db import connection
 
 from nav import db
 from nav.report.IPtree import getMaxLeaf, buildTree
@@ -108,7 +109,7 @@ def _get_export_delimiter(query):
     if 'exportcsv' in query and 'export' in query:
         delimiter = query.get('export')
 
-        match = re.search(r"(\,|\;|\:|\|)", delimiter)
+        match = re.search(r"(,|;|:|\|)", delimiter)
         if match:
             return match.group(0)
         else:
@@ -118,83 +119,76 @@ def _get_export_delimiter(query):
 
 def matrix_report(request):
     """Subnet matrix view"""
-    request.content_type = "text/html" # Does this serve a purpose?
 
-    argsdict = request.GET or {}
+    show_unused = request.GET.get('show_unused_addresses', False)
 
-    scope = None
-    if "scope" in argsdict and argsdict["scope"]:
-        scope = IP(argsdict["scope"])
-    else:
-        # Find all scopes in database.
-        # TODO: Use ORM
-        connection = db.getConnection('webfront', 'manage')
-        database = connection.cursor()
-        database.execute("""
+    context = {
+        'navpath': [
+            ('Home', '/'),
+            ('Report', '/report/'),
+            ('Subnet matrix', False)
+        ],
+        'show_unused': show_unused
+    }
+
+    if 'scope' not in request.GET:
+        cursor = connection.cursor()
+        cursor.execute("""
             SELECT netaddr, description
             FROM prefix
             INNER JOIN vlan USING (vlanid)
             WHERE nettype='scope'
-            """.strip())
-        databasescopes = database.fetchall()
+        """.strip())
 
-        if len(databasescopes) == 1:
-            # If there is a single scope in the db, display that
-            scope = IP(databasescopes[0][0])
+        if cursor.rowcount == 1:
+            # Id there is only one scope in the database,
+            # display that scope
+            scope = IP(cursor.fetchone())
         else:
-            # Otherwise, show an error or let the user select from
-            # a list of scopes.
-            page = MatrixScopesTemplate()
-            page.path = [("Home", "/"), ("Report", "/report/"),
-                         ("Subnet matrix", False)]
-            page.scopes = []
-            for scope in databasescopes:
-                page.scopes.append(scope)
+            # Else let the user select from a list
+            scopes = cursor.fetchall()
+            context['scopes'] = scopes
+            return render_to_response(
+                'report/matrix.html',
+                context,
+                context_instance=RequestContext(request))
+    else:
+        scope = IP(request.GET.get('scope'))
 
-            return HttpResponse(page.respond())
-
-    # If a single scope has been selected, display that.
-    if scope is not None:
-        show_unused_addresses = True
-
-        if argsdict.has_key("show_unused_addresses"):
-            boolstring = argsdict["show_unused_addresses"]
-            if boolstring == "True":
-                show_unused_addresses = True
-            elif boolstring == "False":
-                show_unused_addresses = False
-
-        matrix = None
-        tree = buildTree(scope)
-
-        if scope.version() == 6:
-            end_net = getMaxLeaf(tree)
-            matrix = MatrixIPv6(scope, end_net=end_net)
-
-        elif scope.version() == 4:
-            end_net = None
-
-            if scope.prefixlen() < 24:
-                end_net = IP("/".join([scope.net().strNormal(),"27"]))
-                matrix = MatrixIPv4(scope, show_unused_addresses,
-                                    end_net=end_net)
-
-            else:
-                max_leaf = getMaxLeaf(tree)
-                bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
-                matrix = MatrixIPv4(scope, show_unused_addresses,
-                                    end_net=max_leaf,
-                                    bits_in_matrix=bits_in_matrix)
-
+    tree = buildTree(scope)
+    if scope.version() == 6:
+        end_net = getMaxLeaf(tree)
+        matrix = MatrixIPv6(scope, end_net=end_net)
+    elif scope.version() == 4:
+        if scope.prefixlen() < 24:
+            end_net = IP(scope.net().strNormal() + '/27')
+            matrix = MatrixIPv4(scope, show_unused, end_net=end_net)
         else:
-            raise UnknownNetworkTypeException(
-                "version: " + str(scope.version()))
-        matrix_template_response = matrix.getTemplateResponse()
+            max_leaf = getMaxLeaf(tree)
+            bits_in_matrix = max_leaf.prefixlen() - scope.prefixlen()
+            matrix = MatrixIPv4(
+                scope,
+                show_unused,
+                end_net=max_leaf,
+                bits_in_matrix=bits_in_matrix)
+    else:
+        raise UnknownNetworkTypeException(
+            'version: ' + str(scope.version))
 
-        # Invalidating the MetaIP cache to get rid of processed data.
-        MetaIP.invalidateCache()
+    # Invalidating the MetaIP cache to get rid of processed data.
+    MetaIP.invalidateCache()
 
-        return HttpResponse(matrix_template_response)
+    matrix.render()
+
+    context.update({
+        'matrix': matrix,
+        'ipv4': scope.version() == 4
+    })
+
+    return render_to_response(
+        'report/matrix.html',
+        context,
+        context_instance=RequestContext(request))
 
 
 def report_list(request):

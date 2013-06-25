@@ -1,0 +1,38 @@
+{% if show_unused %}
+  <a href="matrix?scope={{ matrix.start_net.strNormal|urlencode }}&show_unused_addresses=False">
+    Hide unused address rows
+  </a>
+{% elif ipv4 %}
+  <a href="matrix?scope={{ matrix.start_net.strNormal|urlencode }}&show_unused_addresses=True">
+    Show unused address rows
+  </a>
+{% endif %}
+
+<table style="border: 1px solid black; font-size: 0.8em;">
+  <tr>
+    <td style="text-align:center;">
+      {{ matrix.start_net.prefixlen }} ...
+      {{ matrix.end_net.prefixlen|add:"-bits_in_matrix"}}
+    </td>
+
+    {% for heading in matrix.column_headings %}
+      <th>{{ heading }}</th>
+    {% endfor %}
+
+  </tr>
+
+  {% autoescape off %}
+    {% for net in matrix.nodes %}
+      <tr>
+        <td>
+          {{ net.0.strCompressed }}
+        </td>
+        <td colspan="16">&nbsp;</td>
+        {% for element in net.1 %}
+          {{ element }}
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  {% endautoescape %}
+
+</table>

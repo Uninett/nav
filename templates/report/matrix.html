@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" type="text/css" href="/style/MatrixTemplate.css" />
+{% endblock base_header_additional_head %}
+
+{% block base_content %}
+
+  {% if matrix %}
+
+    <h1>Tabular view of {{ matrix.start_net.strCompressed }}</h1>
+
+    <p>
+      Showing how the subnets with masklengths from
+      {{ matrix.start_net.prefixlen }} to
+      {{ matrix.end_net.prefixlen }} are utilized
+    </p>
+
+    {% include matrix.template %}
+
+  {% elif scopes %}
+
+    <h1>Subnet Matrix</h1>
+
+    <p>
+      There are more than one prefix scope defined.
+      Please select one of them
+    </p>
+    <ul>
+      {% for scope in scopes %}
+        <li>
+          <a href="?scope={{ scope.0|urlencode }}">{{ scope.0 }} {{ scope.1|default:"" }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>
+      The NAV-database does not contain any network scopes.
+      <a href="/seeddb/">Seed the database</a> and return to this page to see some action.
+    </p>
+  {% endif %}
+
+{% endblock base_content %}
