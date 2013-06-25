@@ -64,7 +64,31 @@ VIEWS = {
         'scale': '0.000000116',
         'graph_args': {
             'title': 'Network devices with highest uptime',
-            'vtitle': 'Time'
+            'vtitle': 'Days'
+        }
+    },
+    'ifinoctets': {
+        'title': 'Most traffic in to interface',
+        'metric_name': [2, 4],
+        'data_filter': 'substr(highestAverage(scaleToSeconds(nonNegativeDerivative({serieslist}),1), {rows}), 0)',
+        'graph_filter': 'substr(scale(nonNegativeDerivative(scaleToSeconds(group({serieslist}),1)),{scale}),2,5)',
+        'serieslist': 'nav.devices.*.ports.*.ifInOctets',
+        'scale': '0.000007629',  # 8 / (1024 * 1024)
+        'graph_args': {
+            'title': 'Interfaces with most average traffic in',
+            'vtitle': 'Mbit'
+        }
+    },
+    'ifoutoctets': {
+        'title': 'Most traffic out of interface',
+        'metric_name': [2, 4],
+        'data_filter': 'substr(highestAverage(scaleToSeconds(nonNegativeDerivative({serieslist}),1), {rows}), 0)',
+        'graph_filter': 'substr(scale(nonNegativeDerivative(scaleToSeconds(group({serieslist}),1)),{scale}),2,5)',
+        'serieslist': 'nav.devices.*.ports.*.ifOutOctets',
+        'scale': '0.000007629',  # 8 / (1024 * 1024)
+        'graph_args': {
+            'title': 'Interfaces with most average traffic out',
+            'vtitle': 'Mbit'
         }
     }
 }
