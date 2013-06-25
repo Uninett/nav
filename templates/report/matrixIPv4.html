@@ -1,9 +1,11 @@
+{% load report %}
+
 {% if show_unused %}
-  <a href="matrix?scope={{ matrix.start_net.strNormal|urlencode }}&show_unused_addresses=False">
+  <a href="matrix?scope={{ matrix.start_net.strNormal|urlencode|escapeslash }}&show_unused_addresses=False">
     Hide unused address rows
   </a>
 {% elif ipv4 %}
-  <a href="matrix?scope={{ matrix.start_net.strNormal|urlencode }}&show_unused_addresses=True">
+  <a href="matrix?scope={{ matrix.start_net.strNormal|urlencode|escapeslash }}&show_unused_addresses=True">
     Show unused address rows
   </a>
 {% endif %}

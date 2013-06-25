@@ -28,20 +28,17 @@ from nav.django.utils import get_account
 
 # this is just here to make sure Django finds NAV's settings file
 # pylint: disable=W0611
-from nav.models import manage
 from django.core.cache import cache
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.db import connection
 
-from nav import db
 from nav.report.IPtree import getMaxLeaf, buildTree
 from nav.report.generator import Generator, ReportList
 from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP
-from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
 import nav.path
 
 

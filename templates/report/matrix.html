@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load report %}
+
 {% block base_header_additional_head %}
   <link rel="stylesheet" type="text/css" href="/style/MatrixTemplate.css" />
 {% endblock base_header_additional_head %}
@@ -29,7 +31,7 @@
     <ul>
       {% for scope in scopes %}
         <li>
-          <a href="?scope={{ scope.0|urlencode }}">{{ scope.0 }} {{ scope.1|default:"" }}</a>
+          <a href="?scope={{ scope.0|urlencode|escapeslash }}">{{ scope.0 }} {{ scope.1|default:"" }}</a>
         </li>
       {% endfor %}
     </ul>
