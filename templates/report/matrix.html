@@ -18,7 +18,51 @@
       {{ matrix.end_net.prefixlen }} are utilized
     </p>
 
-    {% include matrix.template %}
+    {% if show_unused %}
+      <a href="matrix?scope={{ matrix.start_net.strNormal|urlencode|escapeslash }}&show_unused_addresses=False">
+        Hide unused address rows
+      </a>
+    {% elif ipv4 %}
+      <a href="matrix?scope={{ matrix.start_net.strNormal|urlencode|escapeslash }}&show_unused_addresses=True">
+        Show unused address rows
+      </a>
+    {% endif %}
+
+    <table>
+      <tr>
+        <td>
+          {{ matrix.start_net.prefixlen }} ... {{ sub }}
+        </td>
+
+        {% for heading in matrix.column_headings %}
+          <th>{{ heading }}</th>
+        {% endfor %}
+
+      </tr>
+
+      {% for node in matrix.nodes %}
+        <tr>
+          <td class="nocenter">
+            {{ node.net.strCompressed }}
+          </td>
+          <td colspan="16">&nbsp;</td>
+        </tr>
+        {% for subnet in node.subnets %}
+          <tr>
+            {% for cell in subnet %}
+              <td {% if forloop.first %}class="nocenter"{% endif %}
+                  colspan="{{ cell.colspan }}"
+                  style="background: {{ cell.color }};">
+                {{ cell.content|safe }}
+              </td>
+            {% empty %}
+              <td class="blank" colspan="{{ matrix.num_columns|add:"1" }}"></td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      {% endfor %}
+
+    </table>
 
   {% elif scopes %}
 

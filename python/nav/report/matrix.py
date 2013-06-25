@@ -58,10 +58,6 @@ class Matrix:
         self.tree_nets = self.extractTreeNets()
         self.matrix_nets = self.extractMatrixNets()
 
-    @property
-    def template(self):
-        raise NotImplementedError('Subclasses must define a template')
-
     def build(self):
         raise NotImplementedError('Must be implemented in subclass')
 
@@ -84,3 +80,9 @@ class Matrix:
 
     def _colspan(self, ip):
         return int(math.pow(2, self.end_net.prefixlen() - ip.prefixlen()))
+
+    @staticmethod
+    def printDepth(depth):
+        space = '&nbsp;'
+        space *= depth
+        return space

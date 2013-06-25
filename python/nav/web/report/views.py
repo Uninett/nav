@@ -179,6 +179,7 @@ def matrix_report(request):
 
     context.update({
         'matrix': matrix,
+        'sub': matrix.end_net.prefixlen() - matrix.bits_in_matrix,
         'ipv4': scope.version() == 4
     })
 

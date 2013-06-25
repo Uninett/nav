@@ -31,12 +31,8 @@ class MatrixIPv6(Matrix):
     def __init__(self, start_net, end_net=None):
         Matrix.__init__(self, start_net, end_net=end_net, bits_in_matrix=4)
         self.column_headings = ["%X" % i for i in range(0, 16)]
-        self.num_columns = len(self.column_headings)  # TODO: reuse
+        self.num_columns = len(self.column_headings)
         self.color_configuration = ColorConfig(configfile)
-
-    @property
-    def template(self):
-        return 'report/matrixIPv6.html'
 
     def build(self):
 
@@ -68,7 +64,7 @@ class MatrixIPv6(Matrix):
                         colspan=1,
                         color=None,
                         content='{0}{1}'.format(
-                            _printDepth(depth),
+                            Matrix.printDepth(depth),
                             _netlink(subnet)))
                 ]
 
@@ -103,7 +99,9 @@ class MatrixIPv6(Matrix):
                     self.Cell(
                         colspan=1,
                         color=None,
-                        content=(_printDepth(depth) + _netlink(subnet, True))),
+                        content='{0}{1}'.format(
+                            Matrix.printDepth(depth),
+                            _netlink(subnet, True))),
                     self.Cell(
                         colspan=self.num_columns,
                         color=None,
@@ -146,9 +144,3 @@ def _netlink(ip, append_term_and_prefix=False):
                href="/report/prefix?netaddr={0}&op_netaddr=like">
                {1}
             </a>""".format(link, text)
-
-
-def _printDepth(depth):
-    space = '&nbsp;'
-    space *= depth
-    return space

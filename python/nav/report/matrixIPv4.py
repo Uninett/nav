@@ -17,7 +17,6 @@
 
 import os
 import IPy
-import math
 
 import nav.path
 from nav.report import IPtools, IPtree, metaIP
@@ -37,26 +36,23 @@ class MatrixIPv4(Matrix):
         Matrix.__init__(self, start_net, end_net=end_net,
                         bits_in_matrix=bits_in_matrix)
         self.column_headings = self._getColumnHeaders()
+        self.num_columns = len(self.column_headings)
         self.show_unused_addresses = show_unused_addresses
         self.color_configuration = ColorConfig(configfile)
 
-    @property
-    def template(self):
-        return 'report/matrixIPv4.html'
+    def build(self):
 
-    def render(self):
-
-        nodes = IPtools.sort_nets_by_address(self.tree_nets.keys())
+        nets = IPtools.sort_nets_by_address(self.tree_nets.keys())
         self.nodes = [
-            (net, self._write_subnets(self.tree_nets[net], 1))
-            for net in nodes
+            self.Node(net, self._write_subnets(self.tree_nets[net], 1))
+            for net in nets
         ]
 
     def _write_subnets(self, net, depth):
 
         nodes = IPtools.sort_nets_by_address(net.keys())
         lastnet = None
-        html = []
+        subnet_matrix = []
 
         for subnet in nodes:
             if lastnet is None:
@@ -64,73 +60,73 @@ class MatrixIPv4(Matrix):
 
             if subnet in self.matrix_nets:
                 if self.show_unused_addresses:
-                    html.extend(
-                        _printNetsInRange(
+                    subnet_matrix.extend(
+                        self._netsInRange(
                             lastnet,
                             subnet,
-                            depth,
-                            len(self.column_headings)))
+                            depth))
+
                 lastnet = subnet
-                tr = '<tr><td>{0} {1}</td>'.format(
-                    _printDepth(depth),
-                    _netlink(subnet))
-                html.append(tr)
+                matrix_row = [
+                    self.Cell(
+                        colspan=1,
+                        color=None,
+                        content='{0} {1}'.format(
+                            Matrix.printDepth(depth),
+                            _netlink(subnet)))
+                ]
 
                 host_nybbles_map = IPtools.getLastbitsIpMap(
                     self.matrix_nets[subnet].keys())
                 next_header_idx = -1
 
                 if self.has_too_small_nets(subnet):
-                    td = """
-                        <td colspan="{0}"
-                            style="background-color:{1};
-                                   text-align:center;">
-                                Too many small nets</td>
-                    """.format(
-                        len(self.column_headings),
-                        self._loadColor(0, 'large'))
+                    matrix_row.append(
+                        self.Cell(
+                            colspan=self.num_columns,
+                            color=self._loadColor(0, 'large'),
+                            content='Too many small nets')
+                    )
 
                 elif host_nybbles_map is None:
                 # i.e. there exist a net with no
                 # subnets <==> net spans whole row
                     ip = IPy.IP(subnet)
                     meta = metaIP.MetaIP(ip)
-                    td = """
-                        <td colspan="{0}"
-                            style="background-color:{1};
-                                  text-align:center;">
-                            {2}</td>
-                    """.format(
-                        len(self.column_headings),
-                        self._loadColor(meta.usage_percent, meta.nettype),
-                        _matrixlink(0, ip))
+                    matrix_row.append(
+                        self.Cell(
+                            colspan=self.num_columns,
+                            color=self._loadColor(
+                                meta.usage_percent,
+                                meta.nettype),
+                            content=_matrixlink(0, ip))
+                    )
 
                 else:
                 # The net exists and have subnets
-                    td = ''
                     for i in self.column_headings:
                         if self.column_headings.index(i) < next_header_idx:
                             continue
 
-                        i = i.lower()
-                        if i in host_nybbles_map:
-                            ip = host_nybbles_map[i]
+                        key = i.lower()
+                        if key in host_nybbles_map:
+                            ip = host_nybbles_map[key]
                             meta = metaIP.MetaIP(ip)
-                            td += """
-                                <td class="gnu" colspan="{0}"
-                                    style="background-color:{1};
-                                          text-align:center;">
-                                    {2}</td>
-                            """.format(
-                                _colspan(ip, self.end_net),
-                                self._loadColor(meta.usage_percent, meta.nettype),
-                                _matrixlink(i, ip))
-                            next_header_idx = (self.column_headings.index(i.upper())
-                                               + int(_colspan(ip, self.end_net)))
+                            matrix_cell = self.Cell(
+                                colspan=self._colspan(ip),
+                                color=self._loadColor(
+                                    meta.usage_percent,
+                                    meta.nettype),
+                                content=_matrixlink(key, ip))
+                            next_header_idx = (self.column_headings.index(i)
+                                               + int(self._colspan(ip)))
                         else:
-                            td += '<td colspan="1">&nbsp;</td>'
-                html.append(td)
-                html.append('</tr>')
+                            matrix_cell = self.Cell(
+                                colspan=1,
+                                color=None,
+                                content='&nbsp;')
+                        matrix_row.append(matrix_cell)
+                subnet_matrix.append(matrix_row)
             else:
                 if (self.matrix_nets
                     and lastnet.prefixlen() <
@@ -141,43 +137,41 @@ class MatrixIPv4(Matrix):
                             subnet.net.strNormal(),
                             str(self.matrix_nets.keys()[0].prefixlen())
                         ]))
-                    html.extend(
-                        _printNetsInRange(
+                    subnet_matrix.extend(
+                        self._netsInRange(
                             mnets[-1],
                             subnet_extended,
                             depth))
                 lastnet = subnet
                 meta = metaIP.MetaIP(subnet)
-                tr = """
-                    <tr>
-                        <td>{0} {1}</td>
-                        <td colspan="{2}"
-                            style="background-color:{3};
-                                  text-align:center;">
-                            {4}
-                        </td>
-                    </tr>
-                """.format(
-                    _printDepth(depth),
-                    _netlink(subnet, append_term_and_prefix=True),
-                    len(self.column_headings),
-                    self._loadColor(meta.usage_percent, meta.nettype),
-                    _supernetMatrixlink(subnet))
-                html.append(tr)
-                html.extend(self._write_subnets(net[subnet], depth + 1))
-                html.extend(self._writeRemainingBlankNets(subnet, depth + 1))
-        return html
+                matrix_row = [
+                    self.Cell(
+                        colspan=1,
+                        color=None,
+                        content='{0} {1}'.format(
+                            Matrix.printDepth(depth),
+                            _netlink(subnet, True))),
+                    self.Cell(
+                        colspan=self.num_columns,
+                        color=self._loadColor(
+                            meta.usage_percent,
+                            meta.nettype),
+                        content=_supernetMatrixlink(subnet))
+                ]
+                subnet_matrix.append(matrix_row)
+                subnet_matrix.extend(
+                    self._write_subnets(net[subnet], depth + 1))
+                subnet_matrix.extend(
+                    self._remainingBlankNets(subnet, depth + 1))
+        return subnet_matrix
 
-    def _writeRemainingBlankNets(self, ip, depth):
+    def _remainingBlankNets(self, ip, depth):
         if not self.show_unused_addresses:
             return []
 
-        html = []
+        rows = []
         tTree = self.tree
         subtree = IPtree.getSubtree(tTree, ip)
-        matrix_net_prefixlen = (self.matrix_nets and
-                                self.matrix_nets.keys()[0].prefixlen() or
-                                24)
         nets = self.generateMatrixNets(ip)
 
         for net in nets:
@@ -185,22 +179,24 @@ class MatrixIPv4(Matrix):
             for subnet in subtree.keys():
                 if subnet.overlaps(net) == 1:
                     overlap = True
-                    continue
+                    continue  # FIXME: break mebbe?
 
             if overlap or IPtree.search(subtree, net):
                 continue
             else:
-                tr = """
-                    <tr>
-                        <td>{0} {1}</td>
-                        <td colspan="{2}">&nbsp;</td>
-                    </tr>
-                """.format(
-                    _printDepth(depth),
-                    _netlink(net),
-                    len(self.column_headings))
-                html.append(tr)
-        return html
+                rows.append([
+                    self.Cell(
+                        colspan=1,
+                        color=None,
+                        content='{0} {1}'.format(
+                            Matrix.printDepth(depth),
+                            _netlink(net))),
+                    self.Cell(
+                        colspan=self.num_columns,
+                        color=None,
+                        content='&nbsp;')
+                ])
+        return rows
 
     def _loadColor(self, percent, nettype):
         if nettype == 'static' or nettype == 'scope' or nettype == 'reserved':
@@ -235,6 +231,26 @@ class MatrixIPv4(Matrix):
         end_net = max_address.make_net(24)
 
         return netDiff(start_net, end_net)
+
+    def _netsInRange(self, net1, net2, depth):
+        rows = []
+        if net1.prefixlen() == net2.prefixlen():
+            diff = netDiff(net1, net2)
+            if len(diff) > 1:
+                for net in diff[1:]:
+                    rows.append([
+                        self.Cell(
+                            colspan=1,
+                            color=None,
+                            content='{0} {1}'.format(
+                                Matrix.printDepth(depth),
+                                _netlink(net))),
+                        self.Cell(
+                            colspan=self.num_columns,
+                            color=None,
+                            content='&nbsp;')
+                    ])
+        return rows
 
     def __repr__(self):
         return "%s(%r, %r, %r, %r)" % (self.__class__.__name__,
@@ -277,22 +293,6 @@ def _matrixlink(nybble, ip):
         meta.usage_percent)
 
 
-def _printNetsInRange(net1, net2, depth, columns):
-    html = []
-    if net1.prefixlen() == net2.prefixlen():
-        diff = netDiff(net1, net2)
-        if len(diff) > 1:
-            for net in diff[1:]:
-                tr = """
-                    <tr>
-                        <td>{0} {1}</td>
-                        <td colspan="{2}">&nbsp;</td>
-                    </tr>
-                """.format(_printDepth(depth), _netlink(net), columns)
-                html.append(tr)
-    return html
-
-
 def _netlink(ip, append_term_and_prefix=False):
     nip = metaIP.MetaIP(ip).getTreeNet()
     if append_term_and_prefix:
@@ -306,12 +306,3 @@ def _netlink(ip, append_term_and_prefix=False):
                 {1}
             </a>""".format(nip, nip)
 
-
-def _colspan(ip, end_net):
-    return int(math.pow(2, end_net.prefixlen() - ip.prefixlen()))
-
-
-def _printDepth(depth):
-    space = '&nbsp;'
-    space *= depth
-    return space
