@@ -78,7 +78,7 @@ class StatPorts(Plugin):
         hc_counters = False
 
         for row in stats.itervalues():
-            hc_counters = hc_counters or use_hc_counters(row)
+            hc_counters = use_hc_counters(row) or hc_counters
             for key in LOGGED_COUNTERS:
                 if key not in row:
                     continue
@@ -104,5 +104,6 @@ def use_hc_counters(row):
         if row.get(hc, None) is not None:
             result = True
             row[nonhc] = row[hc]
+        if hc in row:
             del row[hc]
     return result
