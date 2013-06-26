@@ -299,7 +299,9 @@ def _netlink(ip, append_term_and_prefix=False):
         return """
             <a href="/report/matrix?scope={0}">
                 {1}
-            </a>""".format(ip.strNormal(), ip.strNormal())
+            </a>""".format(
+            ip.strNormal().replace('/', '%2F'),
+            ip.strNormal())
     else:
         return """
             <a href="/report/prefix?netaddr={0}.%&op_netaddr=like">

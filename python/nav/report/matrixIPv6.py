@@ -135,7 +135,7 @@ def _netlink(ip, append_term_and_prefix=False):
     if append_term_and_prefix:
         return """
             <a class="monosp"
-               href="/report/matrix?scope={0}::/{1}">
+               href="/report/matrix?scope={0}::%2F{1}">
                {2}::/{3}
             </a>""".format(nip, ip.prefixlen(), nip, ip.prefixlen())
     else:
