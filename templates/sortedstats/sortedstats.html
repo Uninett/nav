@@ -55,11 +55,11 @@
 
   {# Display view if exists #}
   {% if view %}
-      <img src="{{ graph_url }}" alt="Graph" title="Graph">
+      <img src="{{ result.graph_url }}" alt="Graph" title="Graph">
 
       <table class="listtable">
         <caption>Average values</caption>
-        {% for metric, value in data %}
+        {% for metric, value in result.display_data %}
             <tr>
                 <td>
                     {{ metric }}
