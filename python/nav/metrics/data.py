@@ -49,6 +49,20 @@ def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
     return result
 
 
+def get_metric_max(target, start="-5min", end="now"):
+    data = get_metric_data(target, start, end)
+    result = {}
+    for target in data:
+        dpoints = [d[0] for d in target['datapoints'] if d[0] is not None]
+        if dpoints:
+            if None in dpoints:
+                maximum = None
+            else:
+                maximum = max(dpoints)
+            result[target['target']] = maximum
+    return result
+
+
 def get_metric_data(target, start="-5min", end="now"):
     """
     Retrieves datapoints from a graphite metric for a given period of time.
