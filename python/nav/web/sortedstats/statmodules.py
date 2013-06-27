@@ -65,7 +65,10 @@ class Stat(object):
         """Gets the relevant data for this statistics"""
         target = self.data_filter.format(serieslist=self.serieslist,
                                          rows=self.rows)
-        return get_metric_average(target, start=self.timeframe)
+        data = get_metric_average(target, start=self.timeframe)
+        if self.scale:
+            data = self.upscale(data)
+        return data
 
     def get_graph_url(self):
         """Gets the graph url to display the statistics as a graph"""
