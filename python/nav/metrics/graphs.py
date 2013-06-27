@@ -18,6 +18,8 @@ import re
 from urllib import urlencode
 from django.core.urlresolvers import reverse
 
+TIMETICKS_IN_DAY = 100 * 3600 * 24
+
 META_LOOKUPS = (
 
     # Various counter type values
@@ -37,16 +39,26 @@ META_LOOKUPS = (
      dict(transform="scaleToSeconds(nonNegativeDerivative({id},8),1)",
           unit="packets/s")),
 
+    (re.compile(r'\.sysuptime$'),
+     dict(transform="scale({id},%.20f)" % (1.0/TIMETICKS_IN_DAY),
+          unit="days")),
+
+    (re.compile(r'\.loadavg[0-9]+min$'), dict(unit="%")),
+    (re.compile(r'_percent$'), dict(unit="%")),
+    (re.compile(r'\.memory\..*\.(free|used)$'),
+     dict(unit="bytes", yUnitSystem="binary")),
+    (re.compile(r'\.(roundTripTime|responseTime)$'), dict(unit="seconds")),
+
 )
 
 
-def get_simple_graph_url(metric_path, time_frame="1day", title=None,
+def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
                          width=480, height=250):
     """
     Returns an URL, fetchable by an end user, to render a simple graph,
     given a Graphite metric known to NAV
 
-    :param metric_path: A Graphite metric path.
+    :param metric_paths: One or more graphite metric paths.
     :param time_frame: A time frame for the graph, expressed in units that
                        Graphite can understand, e.g. "6 hours", "1 day" or
                        "2 weeks"
@@ -56,24 +68,41 @@ def get_simple_graph_url(metric_path, time_frame="1day", title=None,
     :return: The URL that will generate the requested graph.
 
     """
-    meta = get_metric_meta(metric_path)
-    args = {
-        'target': meta['target'],
-        'from': "-%s" % time_frame,
-        'template': 'nav',
+    if isinstance(metric_paths, basestring):
+        metric_paths = [metric_paths]
+
+    args = _get_simple_graph_args(metric_paths, time_frame)
+    args.update({
         'width': width,
         'height': height,
-        'title': title or meta['description'] or '',
-    }
-    if meta['unit']:
-        args['vtitle'] = meta['unit']
-    if meta['alias']:
-        args['target'] = 'alias({target}, "{alias}")'.format(
-            target=args['target'],
-            alias=meta['alias'])
+        'title': title or '',
+    })
 
-    url = reverse("graphite-render") + "?" + urlencode(args)
+    url = reverse("graphite-render") + "?" + urlencode(args, True)
     return url
+
+
+def _get_simple_graph_args(metric_paths, time_frame):
+    args = {
+        'target': [],
+        'from': "-%s" % time_frame,
+        'template': 'nav',
+        'yMin': 0,
+    }
+
+    for target in metric_paths:
+        meta = get_metric_meta(target)
+        target = meta['target']
+        if meta['alias']:
+            target = 'alias({target}, "{alias}")'.format(
+                target=target, alias=meta['alias'])
+        args['target'].append(target)
+        if meta['unit']:
+            args['vtitle'] = meta['unit']
+        if meta['yUnitSystem']:
+            args['yUnitSystem'] = meta['yUnitSystem']
+
+    return args
 
 
 def get_metric_meta(metric_path):
@@ -91,7 +120,7 @@ def get_metric_meta(metric_path):
 
     """
     result = dict(id=metric_path, transform=None, target=metric_path, unit=None,
-                  description=None, alias=None)
+                  description=None, alias=None, yUnitSystem=None)
     for pattern, meta in META_LOOKUPS:
         match = pattern.search(metric_path)
         if match:

@@ -16,8 +16,6 @@
 """Collects port traffic counters and pushes to Graphite"""
 import time
 from twisted.internet import defer
-from pprint import pformat
-
 from nav.ipdevpoll import Plugin
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_path_for_interface
@@ -48,7 +46,7 @@ IP_COUNTERS = (
     'ipv6OutOctets',
 )
 
-USED_COUNTERS = OCTET_COUNTERS + OTHER_COUNTERS
+USED_COUNTERS = OCTET_COUNTERS + HC_OCTET_COUNTERS + OTHER_COUNTERS
 LOGGED_COUNTERS = USED_COUNTERS + IP_COUNTERS
 
 
@@ -57,8 +55,8 @@ class StatPorts(Plugin):
     def handle(self):
         stats = yield self._get_stats()
         tuples = list(self._make_metrics(stats))
-        self._logger.debug("collected: %s", pformat(tuples))
         if tuples:
+            self._logger.debug("Counters collected")
             send_metrics(tuples)
 
     @defer.inlineCallbacks
@@ -77,9 +75,10 @@ class StatPorts(Plugin):
 
     def _make_metrics(self, stats):
         timestamp = time.time()
+        hc_counters = False
 
         for row in stats.itervalues():
-            use_hc_counters(row)
+            hc_counters = hc_counters or use_hc_counters(row)
             for key in LOGGED_COUNTERS:
                 if key not in row:
                     continue
@@ -89,12 +88,21 @@ class StatPorts(Plugin):
                 if value is not None:
                     yield (path, (timestamp, value))
 
+        if stats:
+            if hc_counters:
+                self._logger.debug("High Capacity counters used")
+            else:
+                self._logger.debug("High Capacity counters NOT used")
+
 
 def use_hc_counters(row):
     """
     Replaces octet counter values with high capacity counter values, if present
     """
+    result = False
     for hc, nonhc in zip(HC_OCTET_COUNTERS, OCTET_COUNTERS):
         if row.get(hc, None) is not None:
+            result = True
             row[nonhc] = row[hc]
-
+            del row[hc]
+    return result

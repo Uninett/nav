@@ -1,0 +1,32 @@
+# Recommended Whisper schema definitions for using Graphite with NAV.
+#
+# If you already have a Graphite installation you wish to use, use these
+# examples to adapt your own config.
+#
+
+# Carbon's internal metrics. This entry should match what is specified in
+# CARBON_METRIC_PREFIX and CARBON_METRIC_INTERVAL settings
+[carbon]
+pattern = ^carbon\.
+retentions = 60:90d
+
+# NAV device/system metrics
+[nav-system]
+pattern = ^nav\..*(system|cpu|memory|services|ipdevpoll)\.
+retentions = 60s:1d, 300s:7d, 30m:12d, 2h:50d, 1d:600d
+
+# NAV pping metrics. The default pping configuration pings in 20 second
+# intervals; the most detailes retention archive should match up with this.
+[nav-pping]
+pattern = ^nav\..*\.ping\.
+retentions = 20s:6h, 60s:1d, 300s:7d, 30m:12d, 2h:50d, 1d:600d
+
+# NAV generic metric retention archive
+[nav-generic]
+pattern = ^nav\.
+retentions = 300s:7d, 30m:12d, 2h:50d, 1d:600d
+
+# A not-very-sane default for any metric not caught by the above.
+[default_1min_for_1day]
+pattern = .*
+retentions = 60s:1d
