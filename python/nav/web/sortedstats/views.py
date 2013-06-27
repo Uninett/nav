@@ -61,6 +61,7 @@ def index(request):
         view = request.GET['view']
         cls = CLASSMAP[view]
         result = cls(fromtime, numrows)
+        result.collect()
 
         context.update({
             'view': view,
