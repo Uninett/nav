@@ -17,6 +17,7 @@
 """Sorted statistics views."""
 
 import logging
+from operator import itemgetter
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -47,6 +48,7 @@ def index(request):
     numrows = int(request.GET.get('numrows', 5))
     fromtime = request.GET.get('fromtime', '-1d')
     sectionslist = [(x[0], x[1].title) for x in CLASSMAP.items()]
+    sectionslist = sorted(sectionslist, key=itemgetter(0))
 
     context = {
         'title': 'Statistics',
