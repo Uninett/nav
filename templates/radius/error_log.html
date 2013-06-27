@@ -33,13 +33,11 @@
 
   {% if result %}
 
-    <table id="resulttable" class="listtable">
-      <caption>Search results</caption>
-
-      <thead>
+    <table id="resulttable" class="listtable tablesorter">
+      <thead data-nosort='[-1]'>
         <tr>
           {% for desc in field_desc %}
-            <th><a class="navbar" href="#">{{ desc }}</a></th>
+            <th class="header">{{ desc }}</th>
           {% endfor %}
             <th></th>
         </tr>

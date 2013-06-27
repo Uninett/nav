@@ -27,16 +27,27 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
             }
         });
 
-        if ($('#resulttable').length) {
+        var resulttable = $('#resulttable');
+        if (resulttable.length) {
 
             // Add classes
             $.fn.dataTableExt.oStdClasses.sStripeOdd = 'oddrow';
             $.fn.dataTableExt.oStdClasses.sStripeEven = 'evenrow';
+            $.fn.dataTableExt.oStdClasses.sSortAsc = 'headerSortDown';
+            $.fn.dataTableExt.oStdClasses.sSortDesc = 'headerSortUp';
+
+
+            var nosort = resulttable.children('thead').data('nosort');
 
             // Iniialize
-            var resulttable = $('#resulttable').dataTable({
+            var datatable = resulttable.dataTable({
                 'iDisplayLength': 50,
-                'sDom': '<"wrapper"lipftp>'
+                'bPaginate': false,
+                "aaSorting": [],
+                'aoColumnDefs': [
+                    {'bSortable': false, 'aTargets': nosort}
+                ],
+                'sDom': '<"caption"<"info"i><"filter"f>>t'
             });
 
             // Hack to change the label of the filter box
@@ -46,9 +57,14 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
             }).remove();
             filter_label.prepend('Filter results:');
 
+            // Set caption width to the table width
+            $('.caption').css('width', function() {
+               return resulttable.css('width');
+            });
+
             // Register filter function
             $.fn.add_filter = function(text) {
-                resulttable.fnFilter(text);
+                datatable.fnFilter(text);
             };
         }
     });

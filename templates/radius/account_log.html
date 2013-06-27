@@ -38,19 +38,15 @@
 
   {% if result %}
 
-    <table id="resulttable" class="listtable">
-      <caption>
-        Search results
-      </caption>
-
-        <thead>
+    <table id="resulttable" class="listtable tablesorter">
+        <thead data-nosort='[5, 6]'>
           <tr>
-            <th><a class="navbar" href="#">Username</a></th>
-            <th><a class="navbar" href="#">Framed IP Address</a></th>
-            <th><a class="navbar" href="#">NAS IP Address</a></th>
-            <th><a class="navbar" href="#">Session start</a></th>
-            <th><a class="navbar" href="#">Session stop</a></th>
-            <th><a class="navbar" href="#">Duration</a></th>
+            <th class="header">Username</th>
+            <th class="header">Framed IP Address</th>
+            <th class="header">NAS IP Address</th>
+            <th class="header">Session start</th>
+            <th class="header">Session stop</th>
+            <th>Duration</th>
             <th></th>
           </tr>
         </thead>

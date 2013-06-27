@@ -1,10 +1,4 @@
 
-.dataTables_paginate a {
-    cursor: pointer;
-    margin: 3px;
-    border: solid 1px #d3d3d3;
-}
-
 .tooltip{
     display: none;
     position: relative;
@@ -33,6 +27,25 @@
     left: 50%;
     position: absolute;
     z-index: 99;
+}
+
+.caption {
+    background: #567899;
+    color: white;
+    border-bottom: 2px solid white;
+    font-size: 1.2em;
+    font-weight: bolder;
+    text-align: right;
+    padding: 0.5em 0;
+}
+
+.caption .info {
+    float: left;
+    margin-left: 0.3em;
+}
+
+.caption .filter {
+    margin-right: 0.3em;
 }
 
 th.col0 { padding-right: 5px; border-right: 1px solid #ccc; text-align: left; }
