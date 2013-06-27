@@ -157,7 +157,7 @@ class StatIfOctets(Stat):
     def __init__(self, *args, **kwargs):
         super(StatIfOctets, self).__init__(*args, **kwargs)
         self.scale = BYTES_TO_MBIT
-        self.graph_args['vtitle'] = 'Mbit'
+        self.graph_args['vtitle'] = 'Mbit/s'
         self.graph_args['yUnitSystem'] = 'binary'
 
     @staticmethod
