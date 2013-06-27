@@ -1,3 +1,4 @@
+# coding=utf-8
 #
 # Copyright (C) 2013 UNINETT AS
 #
@@ -26,7 +27,7 @@ from nav.metrics.data import get_metric_average, get_metric_max
 _logger = logging.getLogger(__name__)
 
 # Useful constants
-BYTES_TO_MBIT = 8.0 / (1024 * 1024)
+BYTES_TO_BIT = 8.0
 TIMETICKS_IN_DAY = 100 * 3600 * 24
 
 
@@ -51,6 +52,7 @@ class Stat(object):
         self.display_data = None
 
     def collect(self):
+        """Collect data"""
         self.data = self.get_sorted_data()
         if self.data:
             self.graph_url = self.get_graph_url()
@@ -87,7 +89,8 @@ class Stat(object):
         """Gets the human readable version of the raw data"""
         display_data = []
         for key, value in self.data:
-            display_data.append((self.get_metric_display_name(key), value))
+            display_data.append((self.get_metric_display_name(key),
+                                 self.humanize(value)))
         return display_data
 
     @staticmethod
@@ -114,6 +117,26 @@ class Stat(object):
     def sort_by_value(data):
         """Sort dictionary by value"""
         return sorted(data.items(), key=itemgetter(1), reverse=True)
+
+    @staticmethod
+    def humanize(number, precision=1):
+        """Create human readable version of a number"""
+        lookup = (
+            (10 ** 9, 'G'),
+            (10 ** 6, 'M'),
+            (10 ** 3, 'k'),
+            (10 ** 0, ''),
+            (10 ** -3, 'm'),
+            (10 ** -6, 'µ'),
+            (10 ** -9, 'n'),
+        )
+        factor = 1
+        suffix = ''
+        if number != 0:
+            for factor, suffix in lookup:
+                if number >= factor:
+                    break
+        return '%.*f %s' % (precision, number / factor, suffix)
 
 
 class StatCpuAverage(Stat):
@@ -159,9 +182,8 @@ class StatIfOctets(Stat):
 
     def __init__(self, *args, **kwargs):
         super(StatIfOctets, self).__init__(*args, **kwargs)
-        self.scale = BYTES_TO_MBIT
-        self.graph_args['vtitle'] = 'Mbit/s'
-        self.graph_args['yUnitSystem'] = 'binary'
+        self.scale = BYTES_TO_BIT
+        self.graph_args['vtitle'] = 'bit/s'
 
     @staticmethod
     def get_metric_display_name(metric):
@@ -186,7 +208,6 @@ class StatIfOutOctets(StatIfOctets):
 
     def __init__(self, *args, **kwargs):
         super(StatIfOutOctets, self).__init__(*args, **kwargs)
-        self.scale = BYTES_TO_MBIT
         self.graph_args['title'] = 'Interfaces with most average traffic out'
 
 
