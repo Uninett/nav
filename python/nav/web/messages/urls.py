@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 UNINETT AS
+# Copyright (C) 2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,40 +16,40 @@
 
 from django.conf.urls.defaults import url, patterns
 
-from nav.web.messages.views import rss, active, historic
-from nav.web.messages.views import new, edit, followup
-from nav.web.messages.views import planned, view, expire
+from nav.web.messages.views import active, historic, planned
+from nav.web.messages.views import save, followup
+from nav.web.messages.views import view, expire
+from nav.web.messages.feeds import ActiveMessagesFeed
 
 urlpatterns = patterns('',
 
-    #search
     url(r'^$', active,
-        name='messages-active'),
+        name='messages-home'),
+
+    url(r'^create/$', save,
+        name='messages-create'),
+
+    url(r'^edit/(?P<message_id>\d+)$', save,
+        name='messages-edit'),
 
     url(r'^active/$', active,
         name='messages-active'),
 
-    url(r'^rss/$', rss,
-        name='messages-rss'),
+    url(r'^planned/$', planned,
+        name='messages-planned'),
 
     url(r'^historic/$', historic,
         name='messages-historic'),
 
-    url(r'^new/$', new,
-        name='messages-new'),
-
-    url(r'^edit/$', edit,
-        name='messages-edit'),
-
-    url(r'^followup/$', followup,
-        name='messages-followup'),
-
-    url(r'^planned/$', planned,
-        name='messages-planned'),
-
-    url(r'^view/(?P<message_id>\d+)?$', view,
+    url(r'^view/(?P<message_id>\d+)$', view,
         name='messages-view'),
 
-    url(r'^expire/$', expire,
+    url(r'^expire/(?P<message_id>\d+)$', expire,
         name='messages-expire'),
+
+    url(r'^followup/(?P<message_id>\d+)$', followup,
+        name='messages-followup'),
+
+    url(r'^rss/$', ActiveMessagesFeed(),
+        name='messages-rss'),
     )
