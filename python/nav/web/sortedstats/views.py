@@ -23,7 +23,8 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 from .statmodules import (StatCpuAverage, StatUptime, StatIfInOctets,
-                          StatIfOutOctets, StatIfOutErrors, StatIfInErrors)
+                          StatIfOutOctets, StatIfOutErrors, StatIfInErrors,
+                          StatMinFreeAddresses)
 
 _logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ CLASSMAP = {'cpu_routers_highestmax': StatCpuAverage,
             'ifoutoctets': StatIfOutOctets,
             'ifouterrors': StatIfOutErrors,
             'ifinerrors': StatIfInErrors,
+            'leastfreeaddresses': StatMinFreeAddresses,
             }
 
 

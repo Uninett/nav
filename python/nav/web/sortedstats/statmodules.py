@@ -22,7 +22,8 @@ from urllib import urlencode
 
 from django.core.urlresolvers import reverse
 
-from nav.metrics.data import get_metric_average, get_metric_max
+from nav.metrics.data import (get_metric_average, get_metric_max,
+                              get_metric_data)
 
 _logger = logging.getLogger(__name__)
 
@@ -100,7 +101,8 @@ class Stat(object):
 
     def create_graph_url(self):
         """Create url for getting a graph from Graphite"""
-        return reverse("graphite-render") + "?" + urlencode(self.graph_args)
+        return reverse("graphite-render") + "?" + urlencode(self.graph_args,
+                                                            True)
 
     def get_graph_series(self):
         """Returns the graph series usable for graphites group function"""
@@ -137,6 +139,44 @@ class Stat(object):
                 if number >= factor:
                     break
         return '%.*f %s' % (precision, number / factor, suffix)
+
+
+class StatMinFreeAddresses(Stat):
+    """Generates statistics for prefixes with high fill levels"""
+    title = "Prefixes with highest fill level"
+    netsize_to_skip = 16
+
+    def __init__(self, *args, **kwargs):
+        super(StatMinFreeAddresses, self).__init__(*args, **kwargs)
+        self.graph_args['title'] = "Percentage of prefix in use (size > /28)"
+        self.graph_args['vtitle'] = "percent"
+
+    def get_data(self):
+        targets = self.get_targets()
+        target = "highestAverage(group(%s), %s)" % (",".join(targets),
+                                                    self.rows)
+        data = get_metric_average(target, start=self.timeframe)
+        return data
+
+    def get_targets(self):
+        """Queries for prefixes that has a ip-range > than netsize_to_skip"""
+        data = get_metric_data(
+            'maximumAbove(nav.prefixes.*.ip_range, %s)' % self.netsize_to_skip,
+            self.timeframe)
+        targets = []
+        for datapoint in data:
+            metric = datapoint['target']
+            targets.append('asPercent(%s, %s)' % (
+                metric.replace('ip_range', 'ip_count'), metric))
+        return targets
+
+    def get_graph_url(self):
+        targets = [x[0] for x in self.data]
+
+        self.graph_args['target'] = ["substr(%s,2,3)" % x for x in targets]
+        self.graph_args['from'] = self.timeframe
+
+        return self.create_graph_url()
 
 
 class StatCpuAverage(Stat):
