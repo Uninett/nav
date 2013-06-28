@@ -1,6 +1,11 @@
 {% extends "seeddb/base.html" %}
 
 {% block content %}
+
+{% if map %}
+  <div style="width:600px; height:600px; float: right;" id="map"></div>
+{% endif %}
+
 <form action="" method="post">
     <table class="listtable">
     {% if object %}
