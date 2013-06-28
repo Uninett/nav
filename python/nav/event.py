@@ -25,11 +25,13 @@ from nav.models.event import EventType, AlertType
 # relies upon the above import to have loaded the real django module
 # into sys.modules.  Python 2.5's absolute import feature would have
 # really helped here, but we are still to remain 2.4 compatible.
+# FIXME: We no longer support 2.4
 import sys
 if 'django.db' in sys.modules:
     transaction = sys.modules['django.db'].transaction
 else:
     from django.db import transaction
+
 
 class Event(UserDict):
     """Represents a single event on or off the queue.
@@ -56,17 +58,17 @@ class Event(UserDict):
         self.severity = severity
 
     def __repr__(self):
-        attrList = ["%s=%s" % (attr, getattr(self, attr))
-                    for attr in ('eventqid', 'source', 'target', 'deviceid',
+        attr_list = ["%s=%s" % (attr, getattr(self, attr))
+                     for attr in ('eventqid', 'source', 'target', 'deviceid',
                                  'netboxid', 'subid', 'time', 'eventtypeid',
                                  'state', 'value', 'severity')
-                    if getattr(self, attr)]
-        attrList = ", ".join(attrList)
-        return "<Event %s / %s>" % (attrList, UserDict.__repr__(self))
+                     if getattr(self, attr)]
+        attr_list = ", ".join(attr_list)
+        return "<Event %s / %s>" % (attr_list, UserDict.__repr__(self))
 
     def post(self):
-        "Post this event to the eventq"
-        return EventQ.postEvent(self)
+        """Post this event to the eventq"""
+        return EventQ.post_event(self)
 
     def delete(self):
         """Delete this event from the event queue
@@ -75,39 +77,42 @@ class Event(UserDict):
         processed by its target.
         """
         if not self.eventqid:
-            raise EventNotPostedError, "source=%s, target=%s, type=%s" % \
-                  (self.source, self.target, self.eventtypeid)
+            raise EventNotPostedError(
+                "source=%s, target=%s, type=%s" %
+                (self.source, self.target, self.eventtypeid))
         else:
-            result = EventQ.deleteEvent(self.eventqid)
+            result = EventQ.delete_event(self.eventqid)
             self.eventqid = None
             return result
     # Alias the delete member function as dispose
     dispose = delete
         
 
-class EventQ:
-    "Static class to manipulate the event queue"
-    def _getConnection(cls):
+class EventQ(object):
+    """Static class to manipulate the event queue"""
+
+    @classmethod
+    def _get_connection(cls):
         conn = nav.db.getConnection('default', 'manage')
         # Make sure the connection doesn't autocommit: Posting an event
         # consists of several SQL statements that should go into a single
         # transaction.
         conn.set_isolation_level(1)
         return conn
-    _getConnection = classmethod(_getConnection)
 
-    def allocateId(cls):
+    @classmethod
+    def allocate_id(cls):
         sql = "SELECT NEXTVAL('eventq_eventqid_seq')"
-        conn = cls._getConnection()
+        conn = cls._get_connection()
         cursor = conn.cursor()
         cursor.execute(sql)
         if cursor.rowcount > 0:
             return cursor.fetchone()[0]
         else:
             raise EventIdAllocationError
-    allocateId = classmethod(allocateId)
-        
-    def postEvent(cls, event):
+
+    @classmethod
+    def post_event(cls, event):
         if event.eventqid:
             raise EventAlreadyPostedError, event.eventqid
 
@@ -121,21 +126,21 @@ class EventQ:
                 values.append(getattr(event, attr))
         if len(fields) == 0:
             raise EventIncompleteError
-        fieldString = ','.join(fields)
-        placeHolders = ', %s' * len(values)
-        eventSQL = "INSERT INTO eventq (eventqid, " + fieldString + ") " + \
-                   "VALUES (%s" + placeHolders + ")"
-        eventqid = cls.allocateId()
-        conn = cls._getConnection()
+        field_string = ','.join(fields)
+        placeholders = ', %s' * len(values)
+        event_SQL = "INSERT INTO eventq (eventqid, " + field_string + ") " + \
+                   "VALUES (%s" + placeholders + ")"
+        eventqid = cls.allocate_id()
+        conn = cls._get_connection()
         cursor = conn.cursor()
-        cursor.execute(eventSQL, (eventqid,) + tuple(values))
+        cursor.execute(event_SQL, (eventqid,) + tuple(values))
 
         # Prepare an SQL statement to post the variables, if any
         if len(event) > 0:
-            varSQL = "INSERT INTO eventqvar (eventqid, var, val)" + \
+            var_SQL = "INSERT INTO eventqvar (eventqid, var, val)" + \
                      "VALUES (%s, %s, %s)"
             values = [(eventqid,) + i for i in event.items()]
-            cursor.executemany(varSQL, values)
+            cursor.executemany(var_SQL, values)
 
         # If we got this far, commit the transaction and update the event
         # object with the allocated id
@@ -143,71 +148,75 @@ class EventQ:
         conn.commit()
         event.eventqid = eventqid
         return cursor.statusmessage
-    postEvent = classmethod(postEvent)
 
-    def consumeEvents(cls, target):
+    @classmethod
+    def consume_events(cls, target):
         """Consume and return a list of Event objects queued for this target.
 
         Events that are processed should be deleted from the queue afterwards.
         """
-        eventSQL = """SELECT eventqid, source, target, deviceid, netboxid,
+        event_SQL = """SELECT eventqid, source, target, deviceid, netboxid,
                              subid, time, eventtypeid, state, value, severity
                       FROM eventq
                       WHERE target = %s"""
-        conn = cls._getConnection()
+        conn = cls._get_connection()
         conn.commit()
         cursor = conn.cursor()
 
-        def loadVars(event):
-            varSQL = "SELECT var, val FROM eventqvar WHERE eventqid=%s"
+        def load_vars(event):
+            var_SQL = "SELECT var, val FROM eventqvar WHERE eventqid=%s"
             curs = conn.cursor()
-            curs.execute(varSQL, (event.eventqid,))
+            curs.execute(var_SQL, (event.eventqid,))
             if curs.rowcount > 0:
                 for var, val in curs.fetchmany():
                     event[var] = val
         
         events = []
-        cursor.execute(eventSQL, (target,))
+        cursor.execute(event_SQL, (target,))
         if cursor.rowcount > 0:
-            for eventRow in cursor.fetchall():
+            for event_row in cursor.fetchall():
                 event = Event()
                 (event.eventqid, event.source, event.target, event.deviceid,
                  event.netboxid, event.subid, event.time, event.eventtypeid,
-                 event.state, event.value, event.severity) = eventRow
-                loadVars(event)
+                 event.state, event.value, event.severity) = event_row
+                load_vars(event)
                 events.append(event)
         return events
-    consumeEvents = classmethod(consumeEvents)
-    
-    def deleteEvent(cls, eventqid):
+
+    @classmethod
+    def delete_event(cls, eventqid):
         """Delete the event with the specified id from the queue.
 
         This should normally only be done when an event has been consumed and
         processed by its target.
         """
         sql = "DELETE FROM eventq WHERE eventqid = %s"
-        conn = cls._getConnection()
+        conn = cls._get_connection()
         cursor = conn.cursor()
         cursor.execute(sql, (eventqid,))
         conn.commit()
         return cursor.statusmessage
-    deleteEvent = classmethod(deleteEvent)
+
     
 class EventIdAllocationError(GeneralException):
-    "Error allocating a new event ID from the queue"
+    """Error allocating a new event ID from the queue"""
     pass
+
 
 class EventAlreadyPostedError(GeneralException):
-    "Event was already posted"
+    """Event was already posted"""
     pass
+
 
 class EventIncompleteError(GeneralException):
-    "Incomplete event cannot be posted"
+    """Incomplete event cannot be posted"""
     pass
 
+
 class EventNotPostedError(GeneralException):
-    "Cannot perform this operation on an unposted event"
+    """Cannot perform this operation on an unposted event"""
     pass
+
 
 @transaction.commit_manually
 def create_type_hierarchy(hierarchy):
