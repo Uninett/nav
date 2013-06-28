@@ -26,9 +26,10 @@ from IPy import IP
 
 from nav.errors import GeneralException
 
+
 class BulkParser(object):
     """Abstract base class for bulk parsers"""
-    format = ()
+    format_ = ()
     required = 0
     restkey = None
     restkey_format = None
@@ -52,7 +53,7 @@ class BulkParser(object):
                 self.data.seek(0)
 
         self.reader = csv.DictReader(CommentStripper(self.data),
-                                     fieldnames=self.format,
+                                     fieldnames=self.format_,
                                      delimiter=self.delimiter,
                                      restkey=self.restkey)
         self.line_num = 0
@@ -74,7 +75,7 @@ class BulkParser(object):
     def validate_row(self, row):
         """Validate an entire row"""
         for fieldnum in range(self.required):
-            fieldname = self.format[fieldnum]
+            fieldname = self.format_[fieldnum]
             if not row.has_key(fieldname) or not row[fieldname]:
                 raise RequiredFieldMissing(self.line_num, fieldname)
 
@@ -100,20 +101,21 @@ class BulkParser(object):
 
         """
         separator = ':'
-        required = separator.join(cls.format[:cls.required])
-        optional = separator.join(cls.format[cls.required:])
+        required = separator.join(cls.format_[:cls.required])
+        optional = separator.join(cls.format_[cls.required:])
         restkey_format = (cls.restkey_format and cls.restkey_format or
                           cls.restkey)
         rest = "%s%s..." % (restkey_format, separator)
 
         header = "#" + required
-        if cls.required < len(cls.format) or cls.restkey:
+        if cls.required < len(cls.format_) or cls.restkey:
             header += '['
             header += optional and separator + optional or ''
             header += cls.restkey and separator + rest or ''
             header += ']'
 
         return header
+
 
 class CommentStripper(object):
     """Iterator that strips comments from the input iterator"""
@@ -130,9 +132,10 @@ class CommentStripper(object):
         line = self.source_iterator.next()
         return self.COMMENT_PATTERN.sub('', line)
 
+
 class NetboxBulkParser(BulkParser):
     """Parses the netbox bulk format"""
-    format = ('roomid', 'ip', 'orgid', 'catid',
+    format_ = ('roomid', 'ip', 'orgid', 'catid',
               'ro', 'serial', 'rw', 'function')
     required = 4
     restkey = 'subcat'
@@ -146,26 +149,30 @@ class NetboxBulkParser(BulkParser):
         else:
             return True
 
+
 class UsageBulkParser(BulkParser):
     """Parses the usage bulk format"""
-    format = ('usageid', 'descr')
+    format_ = ('usageid', 'descr')
     required = 2
     restkey = None
 
+
 class LocationBulkParser(BulkParser):
     """Parses the location bulk format"""
-    format = ('locationid', 'descr')
+    format_ = ('locationid', 'descr')
     required = 2
+
 
 class OrgBulkParser(BulkParser):
     """Parses the organization bulk format"""
-    format = ('orgid',
+    format_ = ('orgid',
               'parent', 'description', 'opt1', 'opt2', 'opt3')
     required = 1
 
+
 class PrefixBulkParser(BulkParser):
     """Parses the prefix bulk format"""
-    format = ('netaddr', 'nettype',
+    format_ = ('netaddr', 'nettype',
               'orgid', 'netident', 'usage', 'description', 'vlan')
     required = 2
 
@@ -188,16 +195,18 @@ class PrefixBulkParser(BulkParser):
         else:
             return True
 
+
 class RoomBulkParser(BulkParser):
     """Parses the room bulk format"""
-    format = ('roomid',
+    format_ = ('roomid',
               'locationid', 'descr',
               'opt1', 'opt2', 'opt3', 'opt4', 'position')
     required = 1
 
+
 class ServiceBulkParser(BulkParser):
     """Parses the service bulk format"""
-    format = ('host', 'service')
+    format_ = ('host', 'service')
     restkey = 'arg'
     required = 2
 
@@ -211,33 +220,39 @@ class ServiceBulkParser(BulkParser):
                 return False
         return True
 
+
 class SubcatBulkParser(BulkParser):
     """Parses the subcategory bulk format"""
-    format = ('subcatid', 'catid', 'description')
+    format_ = ('subcatid', 'catid', 'description')
     required = 3
+
 
 class NetboxTypeBulkParser(BulkParser):
     """Parses the type bulk format"""
-    format = ('vendorid', 'typename', 'sysobjectid',
+    format_ = ('vendorid', 'typename', 'sysobjectid',
               'description', 'cdp', 'tftp')
     required = 3
 
+
 class VendorBulkParser(BulkParser):
     """Parses the vendor bulk format"""
-    format = ('vendorid',)
+    format_ = ('vendorid',)
     required = 1
+
 
 class CablingBulkParser(BulkParser):
     """Parses the cabling bulk format"""
-    format = ('roomid', 'jack', 'building', 'targetroom', 'category',
+    format_ = ('roomid', 'jack', 'building', 'targetroom', 'category',
               'descr')
     required = 5
 
+
 class PatchBulkParser(BulkParser):
     """Parses the patch bulk format"""
-    format = ('sysname', 'port', 'roomid', 'jack',
+    format_ = ('sysname', 'port', 'roomid', 'jack',
               'split')
     required = 4
+
 
 #
 # exceptions
@@ -247,6 +262,7 @@ class BulkParseError(GeneralException):
 
     def __repr__(self):
         return "<%s: %s>" % (self.__class__.__name__, self)
+
 
 class RequiredFieldMissing(BulkParseError):
     """A required field is missing"""
@@ -261,6 +277,7 @@ class RequiredFieldMissing(BulkParseError):
                                         self.missing_field,
                                         self.line_num,
                                         )
+
 
 class InvalidFieldValue(BulkParseError):
     """A field value is invalid"""

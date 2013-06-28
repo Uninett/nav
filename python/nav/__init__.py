@@ -18,13 +18,14 @@ Provides a common root package for the NAV python library.
 """
 import time
 
+
 class ObjectCache(dict):
     def __setitem__(self, key, item):
         #if not isinstance(item, CacheableObject):
         if 0:
             raise ValueError("%r is not a CacheableObject instance" % item)
         else:
-            if self.has_key(key):
+            if key in self:
                 raise CacheError(
                     "An object keyed %r is already stored in the cache" % key)
 
@@ -62,27 +63,28 @@ class ObjectCache(dict):
                 count += 1
         return count
 
+
 class CacheableObject(object):
     """
     A simple class to wrap objects for 'caching'.  It contains the
     object reference and the time the object was loaded.
     """
-    def __init__(self, object=None):
-        self.object = object
+    def __init__(self, object_=None):
+        self.object = object_
         self._cache = None
-        self.cacheTime = None
-        self.key = str(object)
+        self.cache_time = None
+        self.key = str(object_)
 
     def __setattr__(self, name, item):
         if name == 'cache':
-            if (self._cache is not None and item is not None):
-                raise CacheError, "%s is already cached" % repr(self)
+            if self._cache is not None and item is not None:
+                raise CacheError("%s is already cached" % repr(self))
             elif item is not None:
                 self._cache = item
-                self.cacheTime = time.time()
+                self.cache_time = time.time()
             else:
                 self._cache = None
-                self.cacheTime = None
+                self.cache_time = None
         else:
             try:
                 dict.__setattr__(self, name, item)
@@ -93,12 +95,12 @@ class CacheableObject(object):
         if name == 'cache':
             return self._cache
         else:
-            raise AttributeError, name
+            raise AttributeError(name)
 
-    def isCached(self):
+    def is_cached(self):
         return self._cache is not None
 
-    def isInvalid(self):
+    def is_invalid(self):
         """Returns True if this object is too old (or invalid in some
         other way) to remain in the cache."""
         return False
@@ -109,7 +111,7 @@ class CacheableObject(object):
 
     def invalidate(self):
         """Delete this object from the cache it is registered in."""
-        if self.cache is not None and self.isInvalid():
+        if self.cache is not None and self.is_invalid():
             del self.cache[self.key]
             return True
         else:
@@ -119,10 +121,10 @@ class CacheableObject(object):
         """
         Return the cache age of this object.
         """
-        if self.cacheTime is None:
+        if self.cache_time is None:
             return 0
         else:
-            return time.time() - self.cacheTime
+            return time.time() - self.cache_time
 
     def __repr__(self):
         if self._cache is None:
@@ -130,10 +132,11 @@ class CacheableObject(object):
         else:
             return "<%s cached at %s>" % (
                 repr(self.object),
-                time.asctime(time.localtime(self.cacheTime)))
+                time.asctime(time.localtime(self.cache_time)))
 
     def __str__(self):
         return self.object.__str__()
+
 
 class CacheError(Exception):
     pass

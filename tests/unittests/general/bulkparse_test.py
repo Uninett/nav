@@ -9,7 +9,7 @@ class TestBulkParser(TestCase):
 
     def test_overriden_validator(self):
         class TestParser(BulkParser):
-            format = ('one', 'two')
+            format_ = ('one', 'two')
             required = 2
 
             def _validate_one(self, value):
@@ -144,28 +144,28 @@ class TestCommentStripper(TestCase):
 class TestHeaderGenerator(TestCase):
     def test_simple(self):
         class C(BulkParser):
-            format = ('one', 'two', 'three')
+            format_ = ('one', 'two', 'three')
             required = 3
 
         self.assertEquals(C.get_header(), "#one:two:three")
 
     def test_one_optional(self):
         class C(BulkParser):
-            format = ('one', 'two', 'three', 'optional')
+            format_ = ('one', 'two', 'three', 'optional')
             required = 3
 
         self.assertEquals(C.get_header(), "#one:two:three[:optional]")
 
     def test_two_optional(self):
         class C(BulkParser):
-            format = ('one', 'two', 'three', 'opt1', 'opt2')
+            format_ = ('one', 'two', 'three', 'opt1', 'opt2')
             required = 3
 
         self.assertEquals(C.get_header(), "#one:two:three[:opt1:opt2]")
 
     def test_optional_with_restkey(self):
         class C(BulkParser):
-            format = ('one', 'two', 'three', 'optional')
+            format_ = ('one', 'two', 'three', 'optional')
             restkey = 'arg'
             required = 3
 
@@ -173,7 +173,7 @@ class TestHeaderGenerator(TestCase):
 
     def test_two_required_plus_restkey(self):
         class C(BulkParser):
-            format = ('one', 'two')
+            format_ = ('one', 'two')
             restkey = 'rest'
             required = 2
 
@@ -181,7 +181,7 @@ class TestHeaderGenerator(TestCase):
 
     def test_two_required_plus_restkey_format(self):
         class C(BulkParser):
-            format = ('one', 'two')
+            format_ = ('one', 'two')
             restkey = 'rest'
             restkey_format = 'thing=value'
             required = 2

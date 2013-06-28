@@ -79,12 +79,14 @@ def log_stacktrace(logger, stacktrace):
     logger.debug("Stack frame dump:\n%s", '\n'.join(dump))
     logger.debug("--- end of stack trace ---")
 
+
 def _dumpvars(varitems):
     for var, val in varitems:
         try:
             yield "  %r: %s" % (var, pprint.pformat(val, indent=2))
-        except Exception, e:
+        except Exception as e:
             yield "  %r: <<exception during formatting: %s>>" % (var, e)
+
 
 def log_last_django_query(logger):
     """Debug logs the latest SQL query made by Django.

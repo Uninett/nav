@@ -35,12 +35,12 @@ class ConnectionObject(nav.CacheableObject):
     Specialization of nav.CacheableObject to implement psycopg
     connection caching.
     """
-    def __init__(self, object, key):
-        super(ConnectionObject, self).__init__(object)
+    def __init__(self, object_, key):
+        super(ConnectionObject, self).__init__(object_)
         self.key = key
         self.lastValidated = time.time()
 
-    def isInvalid(self):
+    def is_invalid(self):
         """Attempt to check whether the database connection has become
         invalid, which would typically be caused by the connection
         having been terminated without our knowledge or consent.
