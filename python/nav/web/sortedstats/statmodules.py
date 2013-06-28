@@ -143,12 +143,12 @@ class Stat(object):
 
 class StatMinFreeAddresses(Stat):
     """Generates statistics for prefixes with high fill levels"""
-    title = "Prefixes with highest fill level"
+    title = "Prefix utilization"
     netsize_to_skip = 16
 
     def __init__(self, *args, **kwargs):
         super(StatMinFreeAddresses, self).__init__(*args, **kwargs)
-        self.graph_args['title'] = "Percentage of prefix in use (size > /28)"
+        self.graph_args['title'] = "Prefix utilization (size > /28)"
         self.graph_args['vtitle'] = "percent"
 
     def get_data(self):
