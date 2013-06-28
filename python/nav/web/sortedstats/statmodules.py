@@ -24,6 +24,7 @@ from django.core.urlresolvers import reverse
 
 from nav.metrics.data import (get_metric_average, get_metric_max,
                               get_metric_data)
+from nav.metrics.lookups import device_reverse
 
 _logger = logging.getLogger(__name__)
 
@@ -56,6 +57,7 @@ class Stat(object):
         """Collect data"""
         self.data = self.get_sorted_data()
         if self.data:
+            self.metric_lookups = self.get_metric_lookups()
             self.graph_url = self.get_graph_url()
             self.display_data = self.get_display_data()
 
@@ -73,6 +75,10 @@ class Stat(object):
             data = self.upscale(data)
         return data
 
+    def get_metric_lookups(self):
+        """Return a mapping of metric -> object"""
+        raise NotImplementedError
+
     def get_graph_url(self):
         """Gets the graph url to display the statistics as a graph"""
         graph_series = self.get_graph_series()
@@ -86,27 +92,26 @@ class Stat(object):
 
         return self.create_graph_url()
 
-    def get_display_data(self):
-        """Gets the human readable version of the raw data"""
-        display_data = []
-        for key, value in self.data:
-            display_data.append((self.get_metric_display_name(key),
-                                 self.humanize(value)))
-        return display_data
-
-    @staticmethod
-    def get_metric_display_name(metric):
-        """Return the display name for the metric"""
-        return metric.split('.')[2]
-
     def create_graph_url(self):
         """Create url for getting a graph from Graphite"""
         return reverse("graphite-render") + "?" + urlencode(self.graph_args,
                                                             True)
 
+    def get_display_data(self):
+        """Gets the human readable version of the raw data"""
+        display_data = []
+        for key, value in self.data:
+            display_data.append((self.metric_lookups[key],
+                                 self.humanize(value)))
+        return display_data
+
     def get_graph_series(self):
         """Returns the graph series usable for graphites group function"""
-        return ",".join([x[0] for x in self.data])
+        return ",".join(self.get_graph_metrics())
+
+    def get_graph_metrics(self):
+        """Returns the metrics we use for graphing"""
+        return [x[0] for x in self.data]
 
     def upscale(self, data):
         """Upscale data with scale"""
@@ -190,6 +195,9 @@ class StatCpuAverage(Stat):
         super(StatCpuAverage, self).__init__(*args, **kwargs)
         self.graph_args['title'] = 'Routers with highest average cpu load'
         self.graph_args['vtitle'] = 'Percent'
+
+    def get_metric_lookups(self):
+        return device_reverse(self.get_graph_metrics())
 
 
 class StatUptime(Stat):
