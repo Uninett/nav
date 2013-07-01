@@ -41,13 +41,14 @@ class SQLQuery(object):
     query = None
     parameters = None
     result = None
+    result_tuple = None
 
     def execute(self):
         cursor = get_named_cursor()
         cursor.execute(self.query, self.parameters)
 
         self.result = [
-            self.ResultTuple._make(self._format(row))
+            self.result_tuple._make(self._format(row))
             for row in cursor]
 
     def _format(self, row):
@@ -72,7 +73,7 @@ class LogDetailQuery(SQLQuery):
         logid   - ID of the log entry we want to get details on.
         """
 
-        self.ResultTuple = namedtuple(
+        self.result_tuple = namedtuple(
             'LogDetailQueryResult',
             fields
         )
@@ -89,7 +90,7 @@ class LogDetailQuery(SQLQuery):
     def _format(self, row):
 
         try:
-            message = row[LOG_SEARCHRESULTFIELDS.index('message')]
+            message = row[LOG_DETAILFIELDS.index('message')]
             return map(
                 lambda x: x if x != message else x.replace(
                     '[', '[<b>').replace(']', '</b>]'),
@@ -115,7 +116,7 @@ class LogSearchQuery(SQLQuery):
             fields_extended.extend(list(fields))
             fields = fields_extended
 
-        self.ResultTuple = namedtuple(
+        self.result_tuple = namedtuple(
             'LogSearchQueryResult',
             fields)
 
@@ -206,7 +207,7 @@ class AcctSearchQuery(SQLQuery):
     Get search result
     """
 
-    ResultTuple = namedtuple(
+    result_tuple = namedtuple(
         'AccountSearchQueryResult',
         (
             'radacctid',
@@ -515,7 +516,7 @@ class AcctDetailQuery(SQLQuery):
 
         """
 
-        self.ResultTuple = namedtuple(
+        self.result_tuple = namedtuple(
             'AccountDetailQueryResult',
             ACCT_DETAILSFIELDS
         )
@@ -570,7 +571,7 @@ class AcctChartsQuery(SQLQuery):
     overall bandwidth (ab)users
     """
 
-    ResultTuple = namedtuple(
+    result_tuple = namedtuple(
         'AccountChartsQueryResult',
         (
             'username',
