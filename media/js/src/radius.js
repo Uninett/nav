@@ -56,6 +56,9 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
                 return this.nodeType === Node.TEXT_NODE;
             }).remove();
             filter_label.prepend('Filter results:');
+            filter_label.append(
+                '<button type="button" onclick="javascript:$.fn.add_filter(\'\')">clear</button>'
+            );
 
             // Set caption width to the table width
             $('.caption').css('width', function() {
