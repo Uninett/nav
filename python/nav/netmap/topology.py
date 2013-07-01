@@ -69,13 +69,13 @@ def convert_nav_topology_to_unidirectional_graph(nav_graph):
     _LOGGER.debug("netmap:graph_convert:start")
     netmap_graph = nx.Graph(nav_graph)
     metadata_keys_in_nav_graph = set()
-    for node, keys, metadata in netmap_graph.edges(data=True):
-        metadata_from_nav_graph = nav_graph.get_edge_data(node, keys).values()
+    for node_a, node_b, metadata in netmap_graph.edges_iter(data=True):
+        metadata_from_nav_graph = nav_graph.get_edge_data(node_a, node_b).values()
         metadata = {'meta': metadata_from_nav_graph}
 
         [metadata_keys_in_nav_graph.add(x) for x in metadata_from_nav_graph[0].keys()]
 
-        netmap_graph.add_edge(node, keys, attr_dict=metadata)
+        netmap_graph.add_edge(node_a, node_b, attr_dict=metadata)
 
     _LOGGER.debug("netmap:graph_convert:cleaning_metadata")
     # remove metadata not stored under 'meta' key.
