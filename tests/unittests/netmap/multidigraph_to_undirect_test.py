@@ -1,5 +1,6 @@
 import unittest
 import networkx as nx
+from nav.netmap import topology
 from topology_testcase import TopologyTestCase
 
 
@@ -26,24 +27,7 @@ class MultiGraphToUndirectTests(TopologyTestCase):
         self.nav_graph = nx.MultiGraph()
 
     def _setupNetmapGraph(self):
-        self.netmap_graph = nx.Graph(self.nav_graph)
-        self.metadata_keys_in_nav_graph = set()
-        for node, keys, metadata in self.netmap_graph.edges(data=True):
-            metadata_from_nav_graph = self.nav_graph.get_edge_data(node, keys).values()
-            metadata = {'meta': metadata_from_nav_graph}
-
-            [self.metadata_keys_in_nav_graph.add(x) for x in metadata_from_nav_graph[0].keys()]
-
-            self.netmap_graph.add_edge(node, keys, attr_dict=metadata)
-
-        # remove metadata not stored under 'meta' key.
-        # (this because we simply copy/reduce the nav graph with networkx, it
-        # keeps the original meta keys for nav's topology graph building)
-        for old_meta_to_delete in self.metadata_keys_in_nav_graph:
-            for x, y, data_to_delete in self.netmap_graph.edges_iter(data=True):
-                del data_to_delete[old_meta_to_delete]
-
-
+        self.netmap_graph = topology.convert_nav_topology_to_unidirectional_graph(self.nav_graph)
 
     def test_b1_and_b2_netbox_is_the_same(self):
         self.assertEqual(self.b1.netbox, self.b2.netbox, msg="Critical, interfaces connected to same netbox must be of the same netbox instance")

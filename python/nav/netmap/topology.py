@@ -65,6 +65,28 @@ def _get_vlans_map_layer3(graph):
 
     return prefixes_by_navvlan
 
+def convert_nav_topology_to_unidirectional_graph(nav_graph):
+    _LOGGER.debug("netmap:graph_convert:start")
+    netmap_graph = nx.Graph(nav_graph)
+    metadata_keys_in_nav_graph = set()
+    for node, keys, metadata in netmap_graph.edges(data=True):
+        metadata_from_nav_graph = nav_graph.get_edge_data(node, keys).values()
+        metadata = {'meta': metadata_from_nav_graph}
+
+        [metadata_keys_in_nav_graph.add(x) for x in metadata_from_nav_graph[0].keys()]
+
+        netmap_graph.add_edge(node, keys, attr_dict=metadata)
+
+    _LOGGER.debug("netmap:graph_convert:cleaning_metadata")
+    # remove metadata not stored under 'meta' key.
+    # (this because we simply copy/reduce the nav graph with networkx, it
+    # keeps the original meta keys for nav's topology graph building)
+    for old_meta_to_delete in metadata_keys_in_nav_graph:
+        for x, y, data_to_delete in netmap_graph.edges_iter(data=True):
+            del data_to_delete[old_meta_to_delete]
+    _LOGGER.debug("netmap:graph_convert:done")
+    return netmap_graph
+
 def build_netmap_layer2_graph(view=None):
     """
     Builds a netmap layer 2 graph, based on nav's build_layer2_graph method.
@@ -90,7 +112,11 @@ def build_netmap_layer2_graph(view=None):
 
     graph = nx.MultiDiGraph()
     # Make a copy of the graph, and add edge meta data
+
+    #
+
     for node_a, node_b, key in topology_without_metadata.edges_iter(keys=True):
+        #sdfsdf
         graph.add_edge(node_a, node_b, key=key,
             metadata=edge_metadata_layer2(key.netbox, key, node_b,
                 key.to_interface, vlan_by_interface))
