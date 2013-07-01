@@ -30,18 +30,19 @@ class TopologyTestCase(unittest.TestCase):
                 'thiss': {
                     'interface': interface_a,
                     'netbox': node_a,
-                    'netbox_link': '/ipdevinfo/' + node_a,
-                    'interface_link': '/ipdevinfo/' + node_a + '/interface=' +
-                                      interface_a
+                    'netbox_link': '/ipdevinfo/' + node_a.sysname,
+                    'interface_link': '/ipdevinfo/' + node_a.sysname + '/interface=' +
+                                      interface_a.ifname
                 },
                 'other': {
                     'interface': interface_b,
                     'netbox': node_b,
-                    'netbox_link': '/ipdevinfo/' + node_b,
-                    'interface_link': '/ipdevinfo/' + interface_b
+                    'netbox_link': '/ipdevinfo/' + node_b.sysname,
+                    'interface_link': '/ipdevinfo/' + node_b.sysname + '/interface=' +
+                        interface_b.ifname
                 }
             },
-            'links': [interface_a + '-' + interface_b]
+            'links': [interface_a.ifname + '-' + interface_b.ifname]
         }
 
     def _add_edge(self, g, node_a, interface_a, node_b, interface_b):
