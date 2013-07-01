@@ -24,9 +24,34 @@ class TopologyTestCase(unittest.TestCase):
             interface.netbox = self._netbox_factory(netbox, interface)
         return interface
 
+    def _meta_edge(self, node_a, interface_a, node_b, interface_b):
+        return {
+            'uplink': {
+                'thiss': {
+                    'interface': interface_a,
+                    'netbox': node_a,
+                    'netbox_link': '/ipdevinfo/' + node_a,
+                    'interface_link': '/ipdevinfo/' + node_a + '/interface=' +
+                                      interface_a
+                },
+                'other': {
+                    'interface': interface_b,
+                    'netbox': node_b,
+                    'netbox_link': '/ipdevinfo/' + node_b,
+                    'interface_link': '/ipdevinfo/' + interface_b
+                }
+            },
+            'links': [interface_a + '-' + interface_b]
+        }
+
+    def _add_edge(self, g, node_a, interface_a, node_b, interface_b):
+        g.add_edge(node_a, node_b, key=interface_a, attr_dict=
+        self._meta_edge(node_a, interface_a, node_b, interface_b)
+        )
+
     def setUp(self):
         self.model_id = 1
-        self.graph = nx.MultiDiGraph(name="Graph")
+        self.nav_graph = nx.MultiDiGraph(name="Graph")
 
         # keeping interface id related to switch port, so easier to
         # visualized graph in your head.
@@ -86,13 +111,13 @@ class TopologyTestCase(unittest.TestCase):
         self.assertNotEquals(int_a_1.to_interface.id, int_b_1.to_interface.id)
 
         def _add_edge_both_ways(a_interface, b_interface):
-            self.graph.add_edge(a_interface.netbox, a_interface.to_interface.netbox,
+            self.nav_graph.add_edge(a_interface.netbox, a_interface.to_interface.netbox,
                                 key=a_interface,
                                 metadata={
                                     'thiss': [a_interface.netbox, a_interface],
                                     'other': [b_interface.netbox, b_interface]
                                 })
-            self.graph.add_edge(b_interface.netbox, b_interface.to_interface.netbox,
+            self.nav_graph.add_edge(b_interface.netbox, b_interface.to_interface.netbox,
                                 key=b_interface,
                                 metadata={
                                     'thiss': [b_interface.netbox, b_interface],
@@ -114,5 +139,6 @@ class TopologyTestCase(unittest.TestCase):
         #      d(5) <-> a(5)
         _add_edge_both_ways(int_d_5, int_a_5)
 
-
+    def test_noop_setup(self):
+        self.assertTrue(True)
 
