@@ -1,5 +1,6 @@
 import re
 import time
+import uuid
 from collections import namedtuple
 from socket import gethostbyname_ex, gaierror
 
@@ -15,6 +16,23 @@ from django.db import connection
 import radiuslib
 
 
+def get_named_cursor():
+    """
+    This function returns a named cursor, which speeds up queries
+    returning large result sets immensely by caching them on the
+    server side.
+
+    This is not yet supported by Django itself.
+    """
+    # This is required to populate the connection object properly
+    if connection.connection is None:
+        connection.cursor()
+
+    cursor = connection.connection.cursor(
+        name=str(uuid.uuid4()).replace('-', ''))
+    return cursor
+
+
 class SQLQuery:
     """
     Superclass for other query classes.
@@ -23,16 +41,14 @@ class SQLQuery:
     query = None
     parameters = None
     result = None
-    rowcount = 0
 
     def execute(self):
-        cursor = connection.cursor()
+        cursor = get_named_cursor()
         cursor.execute(self.query, self.parameters)
 
-        self.rowcount = cursor.rowcount
         self.result = [
             self.ResultTuple._make(self._format(row))
-            for row in cursor.fetchall()]
+            for row in cursor]
 
     def _format(self, row):
         """
