@@ -33,7 +33,7 @@ def get_named_cursor():
     return cursor
 
 
-class SQLQuery:
+class SQLQuery(object):
     """
     Superclass for other query classes.
     """
