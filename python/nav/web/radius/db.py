@@ -4,6 +4,7 @@ import uuid
 from collections import namedtuple
 from socket import gethostbyname_ex, gaierror
 
+from nav.asyncdns import reverse_lookup
 from radius_config import (DATEFORMAT_SEARCH,
                            LOG_SEARCHRESULTFIELDS,
                            ACCT_DETAILSFIELDS,
@@ -12,6 +13,7 @@ from radius_config import (DATEFORMAT_SEARCH,
                            LOG_TABLE)
 
 from django.db import connection
+from twisted.names.dns import Message, Query
 
 import radiuslib
 
@@ -238,6 +240,7 @@ class AcctSearchQuery(SQLQuery):
 
         self.userdns = userdns
         self.nasdns = nasdns
+        self.ips_to_lookup = set()
 
         self.query = """(SELECT
                         radacctid,
@@ -458,6 +461,16 @@ class AcctSearchQuery(SQLQuery):
         self.query += (" ORDER BY %(sortfield)s %(sortorder)s" %
                        {"sortfield": sortfield, "sortorder": sortorder})
 
+    def execute(self):
+        super(AcctSearchQuery, self).execute()
+        if self.ips_to_lookup:
+            lookup_result = reverse_lookup(self.ips_to_lookup)
+
+            self.result = [
+                self._replace_ip_with_hostname(result, lookup_result)
+                for result in self.result
+            ]
+
     def make_stats(self):
 
         sessionstats = set()
@@ -473,21 +486,12 @@ class AcctSearchQuery(SQLQuery):
 
         return total_time, total_sent, total_received
 
-    hostCache = radiuslib.HostCache()
-
     def _format(self, row):
 
-        if self.userdns:
-            framedipaddress = self.hostCache.lookupIPAddress(
-                row[4])
-        else:
-            framedipaddress = row[4]
-
-        if self.nasdns:
-            nasipaddress = self.hostCache.lookupIPAddress(
-                row[5])
-        else:
-            nasipaddress = row[5]
+        if self.userdns and row[4]:
+            self.ips_to_lookup.add(row[4])
+        if self.nasdns and row[5]:
+            self.ips_to_lookup.add(row[5])
 
         acctstarttime = radiuslib.removeFractions(
             row[7])
@@ -498,9 +502,25 @@ class AcctSearchQuery(SQLQuery):
             row[9])
 
         return (row[0], row[1], row[2], row[3],
-                framedipaddress, nasipaddress, row[6],
-                acctstarttime, acctstoptime, row[9], row[10], row[11])
+                row[4], row[5], row[6], acctstarttime,
+                acctstoptime, row[9], row[10], row[11])
 
+    def _replace_ip_with_hostname(self, result, lookup_result):
+
+        useraddr = (lookup_result.get(result.framedipaddress, [''])[0]
+                    if self.userdns else result.framedipaddress)
+        nasaddr = (lookup_result.get(result.nasipaddress, [''])[0]
+                   if self.nasdns else result.nasipaddress)
+
+        # TODO: Maybe we can show the user something more informative
+        if isinstance(useraddr, Message) or isinstance(useraddr, Query):
+            useraddr = ''
+        if isinstance(nasaddr, Message) or isinstance(useraddr, Query):
+            nasaddr = ''
+
+        return result._replace(
+            framedipaddress=useraddr,
+            nasipaddress=nasaddr)
 
 
 class AcctDetailQuery(SQLQuery):
