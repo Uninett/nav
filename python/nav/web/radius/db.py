@@ -528,7 +528,7 @@ class AcctDetailQuery(SQLQuery):
     Get all details about a specified session
     """
 
-    hostCache = radiuslib.HostCache()
+    _host_cache = radiuslib.HostCache()
 
     def __init__(self, rad_acct_id, fields=ACCT_DETAILSFIELDS):
         """
@@ -557,12 +557,12 @@ class AcctDetailQuery(SQLQuery):
             field = fields['nasipaddress']
             fields['nasipaddress'] = '%s (%s)' % (
                 field,
-                self.hostCache.lookupIPAddress(field))
+                self._host_cache.lookupIPAddress(field))
         if 'framedipaddress' in fields:
             field = fields['framedipaddress']
             fields['framedipaddress'] = '%s (%s)' % (
                 field,
-                self.hostCache.lookupIPAddress(field))
+                self._host_cache.lookupIPAddress(field))
         if 'acctstoptime' in fields:
             start = fields['acctstarttime']
             stop = fields['acctstoptime']
