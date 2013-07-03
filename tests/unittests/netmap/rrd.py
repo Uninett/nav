@@ -2,15 +2,15 @@ import inspect
 import os
 import unittest
 import mock
+import nav
 from nav.models.rrd import RrdDataSource, RrdFile
 from nav.netmap.rrd import _get_datasources, _get_datasource_lookup
-from nav.web.netmap import common
-from netmapgraph_testcase import NetmapGraphTestCase
+from topology_testcase import TopologyTestCase
 
-class CommonNetmapTests(NetmapGraphTestCase):
+class RrdNetmapTests(TopologyTestCase):
 
     def setUp(self):
-        super(CommonNetmapTests, self).setUp()
+        super(RrdNetmapTests, self).setUp()
         self.path = os.path.dirname(inspect.getfile(inspect.currentframe()))
 
     def _create_datasources(self):
@@ -38,9 +38,9 @@ class CommonNetmapTests(NetmapGraphTestCase):
 
     def test_get_datasource_lookup(self):
         self._create_datasources()
-        _get_datasources = mock.Mock(return_value=self.test_data)
+        nav.netmap.rrd._get_datasources = mock.Mock(return_value=self.test_data)
 
-        dict_lookup = _get_datasource_lookup(self.graph)
+        dict_lookup = _get_datasource_lookup(self.nav_graph)
 
         self.assertEquals(len(self.test_data), len(dict_lookup.keys()))
         self.assertEquals('ds8', dict_lookup.get(208)[0].name)
