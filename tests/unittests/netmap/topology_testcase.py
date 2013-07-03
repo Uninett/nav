@@ -24,121 +24,34 @@ class TopologyTestCase(unittest.TestCase):
             interface.netbox = self._netbox_factory(netbox, interface)
         return interface
 
-    def _meta_edge(self, node_a, interface_a, node_b, interface_b):
-        return {
-            'uplink': {
-                'thiss': {
-                    'interface': interface_a,
-                    'netbox': node_a,
-                    'netbox_link': '/ipdevinfo/' + node_a.sysname,
-                    'interface_link': '/ipdevinfo/' + node_a.sysname + '/interface=' +
-                                      interface_a.ifname
-                },
-                'other': {
-                    'interface': interface_b,
-                    'netbox': node_b,
-                    'netbox_link': '/ipdevinfo/' + node_b.sysname,
-                    'interface_link': '/ipdevinfo/' + node_b.sysname + '/interface=' +
-                        interface_b.ifname
-                }
-            },
-            'links': [interface_a.ifname + '-' + interface_b.ifname]
-        }
-
     def _add_edge(self, g, node_a, interface_a, node_b, interface_b):
-        g.add_edge(node_a, node_b, key=interface_a, attr_dict=
-        self._meta_edge(node_a, interface_a, node_b, interface_b)
-        )
+        interface_a.to_interface = interface_b
+        g.add_edge(node_a, node_b, key=interface_a)
 
     def setUp(self):
         self.model_id = 1
-        self.nav_graph = nx.MultiDiGraph(name="Graph")
+        self.nav_graph = nx.MultiDiGraph()
 
-        # keeping interface id related to switch port, so easier to
-        # visualized graph in your head.
+        self.a = a = self._netbox_factory('a')
+        self.b = b = self._netbox_factory('b')
+        self.c = c = self._netbox_factory('c')
+        self.d = d = self._netbox_factory('d')
 
-        #      a(1) <-> b(1)
-        #      b(2) <-> c(2)
-        #      b(3) <-> c(3)
-        #      b(4) <-> d(4)
-        #      d(5) <-> a(5)
-        #
-        netbox_a = self._netbox_factory("unittest.a.nav")
-        netbox_b = self._netbox_factory("unittest.b.nav")
-        netbox_c = self._netbox_factory("unittest.c.nav")
-        netbox_d = self._netbox_factory("unittest.d.nav")
+        self.a1 = a1 = self._interface_factory('a1', a)
+        self.a2 = a2 = self._interface_factory('a2', a)
+        self.a3 = a3 = self._interface_factory('a3', a)
+        self.b1 = b1 = self._interface_factory('b1', b)
+        self.b2 = b2 = self._interface_factory('b2', b)
+        self.c3 = c3 = self._interface_factory('c3', c)
+        self.c4 = c4 = self._interface_factory('c4', c)
+        self.d4 = d4 = self._interface_factory('d4', d)
 
-        # ports for netbox A
-        int_a_1 = self._interface_factory('1', netbox_a)
-        int_a_5 = self._interface_factory('5', netbox_a)
-
-        # ports for netbox B
-        int_b_1 = self._interface_factory('1', netbox_b)
-        int_b_2 = self._interface_factory('2', netbox_b)
-        int_b_3 = self._interface_factory('3', netbox_b)
-        int_b_4 = self._interface_factory('4', netbox_b)
-
-        # ports for netbox C
-        int_c_2 = self._interface_factory('2', netbox_c)
-        int_c_3 = self._interface_factory('3', netbox_c)
-
-        # ports for netbox D
-        int_d_4 = self._interface_factory('4', netbox_d)
-        int_d_5 = self._interface_factory('5', netbox_d)
-
-        # a(1) <-> b(1)
-        int_a_1.to_interface = self._interface_factory('1', 'unittest.b.nav')
-        int_b_1.to_interface = self._interface_factory('1', 'unittest.a.nav')
-
-        # b(2) <-> c(2)
-        int_b_2.to_interface = self._interface_factory('2', 'unittest.c.nav')
-        int_c_2.to_interface = self._interface_factory('2', 'unittest.b.nav')
-
-        # b(3) <-> c(3)
-        int_b_3.to_interface = self._interface_factory('3', 'unittest.c.nav')
-        int_c_3.to_interface = self._interface_factory('3', 'unittest.b.nav')
-
-        # b(4) <-> d(4)
-        int_b_4.to_interface = self._interface_factory('4', 'unittest.d.nav')
-        int_d_4.to_interface = self._interface_factory('4', 'unittest.b.nav')
-
-        # d(5) <-> a(5)
-        int_d_5.to_interface = self._interface_factory('5', 'unittest.a.nav')
-        int_a_5.to_interface = self._interface_factory('5', 'unittest.d.nav')
-
-
-        self.assertNotEquals(netbox_a.id, netbox_b.id)
-        self.assertNotEquals(int_a_1.id, int_b_1.id)
-        self.assertNotEquals(int_a_1.to_interface.id, int_b_1.to_interface.id)
-
-        def _add_edge_both_ways(a_interface, b_interface):
-            self.nav_graph.add_edge(a_interface.netbox, a_interface.to_interface.netbox,
-                                key=a_interface,
-                                metadata={
-                                    'thiss': [a_interface.netbox, a_interface],
-                                    'other': [b_interface.netbox, b_interface]
-                                })
-            self.nav_graph.add_edge(b_interface.netbox, b_interface.to_interface.netbox,
-                                key=b_interface,
-                                metadata={
-                                    'thiss': [b_interface.netbox, b_interface],
-                                    'other': [a_interface.netbox, a_interface]
-                                })
-
-        #      a(1) <-> b(1)
-        _add_edge_both_ways(int_a_1, int_b_1)
-
-        #      b(2) <-> c(2)
-        _add_edge_both_ways(int_b_2, int_c_2)
-
-        #      b(3) <-> c(3)
-        _add_edge_both_ways(int_b_3, int_c_3)
-
-        #      b(4) <-> d(4)
-        _add_edge_both_ways(int_b_4, int_d_4)
-
-        #      d(5) <-> a(5)
-        _add_edge_both_ways(int_d_5, int_a_5)
+        self._add_edge(self.nav_graph, a1.netbox, a1, b1.netbox, b1)
+        self._add_edge(self.nav_graph, b1.netbox, b1, a1.netbox, a1)
+        self._add_edge(self.nav_graph, a2.netbox, a2, b2.netbox, b2)
+        self._add_edge(self.nav_graph, b2.netbox, b2, a2.netbox, a2)
+        self._add_edge(self.nav_graph, a3.netbox, a3, c3.netbox, c3)
+        self._add_edge(self.nav_graph, d4.netbox, d4, c4.netbox, c4)
 
     def test_noop_setup(self):
         self.assertTrue(True)
