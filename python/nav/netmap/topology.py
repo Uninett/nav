@@ -276,31 +276,6 @@ def _get_vlans_map_layer3(graph):
 
     return prefixes_by_navvlan
 
-def convert_nav_topology_to_unidirectional_graph(nav_graph):
-    return nav_graph
-
-def _convert_nav_topology_to_unidirectional_graph(nav_graph):
-    _LOGGER.debug("netmap:graph_convert:start")
-    netmap_graph = nx.Graph(nav_graph)
-    metadata_keys_in_nav_graph = set()
-    for node_a, node_b, metadata in netmap_graph.edges_iter(data=True):
-        metadata_from_nav_graph = nav_graph.get_edge_data(node_a, node_b).values()
-        metadata = {'meta': metadata_from_nav_graph}
-
-        [metadata_keys_in_nav_graph.add(x) for x in metadata_from_nav_graph[0].keys()]
-
-        netmap_graph.add_edge(node_a, node_b, attr_dict=metadata)
-
-    _LOGGER.debug("netmap:graph_convert:cleaning_metadata")
-    # remove metadata not stored under 'meta' key.
-    # (this because we simply copy/reduce the nav graph with networkx, it
-    # keeps the original meta keys for nav's topology graph building)
-    for old_meta_to_delete in metadata_keys_in_nav_graph:
-        for x, y, data_to_delete in netmap_graph.edges_iter(data=True):
-            del data_to_delete[old_meta_to_delete]
-    _LOGGER.debug("netmap:graph_convert:done")
-    return netmap_graph
-
 def _convert_to_unidirectional_and_attach_directional_metadata(
         topology_without_metadata, vlan_by_interface):
     """
@@ -315,9 +290,12 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
     :param vlan_by_interface: dictionary to lookup up vlan's attached to given interface
     :return: reduced networkx topology graph with directional metadata attached under 'meta'
     """
-    _LOGGER.debug("_convert_to_unidirectional_and_attach_directional_metadata()")
+    _LOGGER.debug(
+        "_convert_to_unidirectional_and_attach_directional_metadata()")
     netmap_graph = nx.Graph(topology_without_metadata)
-    _LOGGER.debug("_convert_to_unidirectional_and_attach_directional_metadata() reduce done")
+    _LOGGER.debug(
+        "_convert_to_unidirectional_and_attach_directional_metadata()"
+        " reduce done")
 
     # set to keep in memory to make sure a1<->b1 edges doesn't count twice (directional).
     # (as we use the original directional nav.topology.vlan directional MultiDiGraph
@@ -360,9 +338,12 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
                     )
 
                     if len(updated_metadata)>1:
-                        raise SystemError("Error while merging existing metadata with new metadata while creating netmap topology graph")
+                        raise SystemError(
+                            "Error while merging existing metadata with new "
+                            "metadata while creating netmap topology graph")
                     elif len(updated_metadata)==1:
-                        updated_metadata = dict(updated_metadata)['meta'].append(additional_metadata)
+                        updated_metadata = dict(updated_metadata)[
+                            'meta'].append(additional_metadata)
                     else:
                         updated_metadata = {'meta': [additional_metadata]}
 
@@ -372,7 +353,9 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
                         neighbors_node,
                         attr_dict=updated_metadata
                     )
-    _LOGGER.debug("_convert_to_unidirectional_and_attach_directional_metadata() all metadata updated")
+    _LOGGER.debug(
+        "_convert_to_unidirectional_and_attach_directional_metadata()"
+        " all metadata updated")
     return netmap_graph
 
 def build_netmap_layer2_graph(view=None):
@@ -404,7 +387,8 @@ def build_netmap_layer2_graph(view=None):
         vlan_by_interface
     )
 
-    _LOGGER.debug("build_netmap_layer2_graph() graph reduced and metadata attached done")
+    _LOGGER.debug(
+        "build_netmap_layer2_graph() graph reduced and metadata attached done")
 
     for node, data in netmap_graph.nodes_iter(data=True):
         if vlan_by_netbox.has_key(node):
@@ -414,7 +398,8 @@ def build_netmap_layer2_graph(view=None):
     _LOGGER.debug("build_netmap_layer2_graph() vlan metadata for _nodes_ done")
 
     if view:
-        netmap_graph = _attach_node_positions(netmap_graph, view.node_position_set.all())
+        netmap_graph = _attach_node_positions(netmap_graph,
+                                              view.node_position_set.all())
     _LOGGER.debug("build_netmap_layer2_graph() view positions and graph done")
     return netmap_graph
 
