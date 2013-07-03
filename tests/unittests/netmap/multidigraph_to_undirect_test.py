@@ -1,33 +1,45 @@
 import unittest
+import mock
 import networkx as nx
+from nav.models.manage import SwPortVlan, Vlan
 from nav.netmap import topology
+from nav.netmap.topology import \
+    _convert_to_unidirectional_and_attach_directional_metadata
+from nav.topology import vlan
 from topology_testcase import TopologyTestCase
 
 
 class MultiGraphToUndirectTests(TopologyTestCase):
 
-    def setUp(self):
-        self.model_id = 1
-        self.nav_graph = nx.MultiGraph()
-
-        self.a = a = self._netbox_factory('a')
-        self.b = b = self._netbox_factory('b')
-
-        self.a1 = a1 = self._interface_factory('a1', a)
-        self.a2 = a2 = self._interface_factory('a2', a)
-        self.b1 = b1 = self._interface_factory('b1', b)
-        self.b2 = b2 = self._interface_factory('b2', b)
-
-        self._add_edge(self.nav_graph, a1.netbox, a1, b1.netbox, b1)
-        self._add_edge(self.nav_graph, b1.netbox, b1, a1.netbox, a1)
-        self._add_edge(self.nav_graph, a2.netbox, a2, b2.netbox, b2)
-        self._add_edge(self.nav_graph, b2.netbox, b2, a2.netbox, a2)
-
     def test_foo(self):
         self.nav_graph = nx.MultiGraph()
 
+    def _setupTopologyVlanMock(self):
+        self.vlan__a1_b1 = a_vlan_between_a1_and_b1 = SwPortVlan(id=self._next_id(), interface=self.a1, vlan=Vlan(id=201, vlan=2))
+
+        import nav.netmap.topology
+        topology._get_vlans_map_layer2 = mock.MagicMock()
+        topology._get_vlans_map_layer2.return_value=(
+            {
+                self.a1: [a_vlan_between_a1_and_b1],
+                self.b1: [a_vlan_between_a1_and_b1],
+                self.a2: [],
+                self.b2: [],
+                self.a3: [],
+                self.c3: []
+            },
+            {
+                self.a: {200: a_vlan_between_a1_and_b1},
+                self.b: {200: a_vlan_between_a1_and_b1},
+                self.c: {}
+            }
+        )
     def _setupNetmapGraph(self):
-        self.netmap_graph = topology.convert_nav_topology_to_unidirectional_graph(self.nav_graph)
+        self._setupTopologyVlanMock()
+        import nav.topology.vlan
+        vlan.build_layer2_graph = mock.Mock(return_value=self.nav_graph)
+
+        self.netmap_graph = topology.build_netmap_layer2_graph(None)
 
     def test_b1_and_b2_netbox_is_the_same(self):
         self.assertEqual(self.b1.netbox, self.b2.netbox, msg="Critical, interfaces connected to same netbox must be of the same netbox instance")
@@ -36,124 +48,105 @@ class MultiGraphToUndirectTests(TopologyTestCase):
     # we need to make it unidirectional while keeping attr_dict
     # from all edges
 
-    # [1 / 3]
+    # [1 / 2]
     def test_nodes_length_of_orignal_graph_consists_with_nav_topology_behavior(self):
-        self.assertEquals(2, len(self.nav_graph.nodes()), msg="Original NAV graph should only contain 2 nodes, it contains: "+unicode(self.nav_graph.nodes()))
+        self.assertEquals(4, len(self.nav_graph.nodes()), msg="Original NAV graph should only contain 2 nodes, it contains: "+unicode(self.nav_graph.nodes()))
 
     # [2 / 2]
     def test_edges_length_of_orginal_graph_consists_with_nav_topology_behavior(self):
-        self.assertEquals(4, len(self.nav_graph.edges()))
+        self.assertEquals(6, len(self.nav_graph.edges()))
 
-    # [3 / 3]
-    def test_metadata_edges_length_of_orginal_graph(self):
-        self.assertEquals(4, len(self.nav_graph.get_edge_data(self.a, self.b).values()))
 
 
     # netmap graphs tests below
 
     def test_nodes_length_of_netmap_graph_is_reduced_properly(self):
         self._setupNetmapGraph()
-        # two nodes, A and B
-        self.assertEquals(2, len(self.netmap_graph.nodes()))
+        # four nodes, A, B, C and D
+        self.assertEquals(4, len(self.netmap_graph.nodes()))
 
     def test_edges_length_of_netmap_graph_is_reduced_properly(self):
         self._setupNetmapGraph()
-        # one drawn LINE between A and B...
-        self.assertEquals(1, len(self.netmap_graph.edges()))
+        # one LINE between A and B.
+        # one LINE between B and C
+        # one line between C and D
+        self.assertEqual(3, len(self.netmap_graph.edges()))
+        self.assertEqual(
+            [
+                (self.a, self.b),
+                (self.a, self.c),
+                (self.c, self.d)
+            ],
+            self.netmap_graph.edges()
+        )
 
-    def test_metadata_is_the_same_in_netmap_and_nav_topologies_graphs(self):
+    def test_create_directional_metadata_from_nav_graph(self):
+        #foo = self.nav_graph.get_edge_data(self.a, self.b, key=self.a1)
+        self._setupTopologyVlanMock()
+        self.netmap_graph = _convert_to_unidirectional_and_attach_directional_metadata(
+            self.nav_graph,
+            topology._get_vlans_map_layer2()[0]
+        )
+
+        # should be the same as
+        #  test_edges_length_of_netmap_graph_is_reduced_properly
+        self.assertEqual(
+            [
+                (self.a, self.b),
+                (self.a, self.c),
+                (self.c, self.d)
+            ],
+            self.netmap_graph.edges()
+        )
+
+    def test_netmap_metadata_shows_2_links_for_edge_between_a_and_b(self):
         self._setupNetmapGraph()
 
-        # but it should contain 4 links in META which is directional!
-        # [a1-b1, b1-a1, a2-b2, b2-a2]
-        self.assertEquals(self.nav_graph.get_edge_data(self.a, self.b).values(),
-                          self.netmap_graph.get_edge_data(self.a, self.b)['meta'])
+        self.assertEquals(2, len(self.netmap_graph.get_edge_data(
+            self.a,
+            self.b
+        ).get('meta', [])))
 
-    def test_netmap_metadata_shows_4_links_for_the_one_edge_between_a__and_b(self):
+    def test_netmap_metadata_is_correct_for_2_links_edge_between_a_and_b(self):
         self._setupNetmapGraph()
+        self.maxDiff = None
         self.assertEquals(
-            {'uplink':
-                 {
-                     'thiss':
-                         {
-                             'interface': self.a1, 'netbox': self.a,
-                             'netbox_link': '/ipdevinfo/a',
-                             'interface_link':
-                                 '/ipdevinfo/a/interface=a1'
-                         },
-                     'other':
-                         {
-                             'interface': self.b1, 'netbox': self.b,
-                             'netbox_link': '/ipdevinfo/b',
-                             'interface_link': '/ipdevinfo/b/interface=b1'
-                         }
-                 },
-             'links': ['a1-b1']
-            },
-            self.netmap_graph.get_edge_data(self.a, self.b)['meta'][0])
+            [
+                {
+                    'tip_inspect_link': False,
+                    'link_speed': None,
+                    'uplink': {
+                            'thiss': {
+                                'interface': self.a1,
+                                'netbox': self.a
+                            },
+                            'other': {
+                                'interface': self.b1,
+                                'netbox': self.b
+                            },
+                            'vlans': [self.vlan__a1_b1],
+                        },
 
-        self.assertEquals(
-            {'uplink':
-                 {
-                     'thiss':
-                         {
-                             'interface': self.a2, 'netbox': self.a,
-                             'netbox_link': '/ipdevinfo/a',
-                             'interface_link':
-                                 '/ipdevinfo/a/interface=a2'
-                         },
-                     'other':
-                         {
-                             'interface': self.b2, 'netbox': self.b,
-                             'netbox_link': '/ipdevinfo/b',
-                             'interface_link': '/ipdevinfo/b/interface=b2'
-                         }
+                    'error': {}
                  },
-             'links': ['a2-b2']
-            },
-            self.netmap_graph.get_edge_data(self.a, self.b)['meta'][1])
-
-        self.assertEquals(
-            {'uplink':
-                 {
-                     'thiss':
-                         {
-                             'interface': self.b1, 'netbox': self.b,
-                             'netbox_link': '/ipdevinfo/b',
-                             'interface_link':
-                                 '/ipdevinfo/b/interface=b1'
-                         },
-                     'other':
-                         {
-                             'interface': self.a1, 'netbox': self.a,
-                             'netbox_link': '/ipdevinfo/a',
-                             'interface_link': '/ipdevinfo/a/interface=a1'
-                         }
+                {
+                    'tip_inspect_link': False,
+                    'link_speed': None,
+                    'uplink': {
+                            'thiss': {
+                                'interface': self.a2,
+                                'netbox': self.a
+                            },
+                            'other': {
+                                'interface': self.b2,
+                                'netbox': self.b
+                            },
+                            'vlans': [],
+                        },
+                    'error': {}
                  },
-             'links': ['b1-a1']
-            },
-            self.netmap_graph.get_edge_data(self.a, self.b)['meta'][2])
-
-        self.assertEquals(
-            {'uplink':
-                 {
-                     'thiss':
-                         {
-                             'interface': self.b2, 'netbox': self.b,
-                             'netbox_link': '/ipdevinfo/b',
-                             'interface_link':
-                                 '/ipdevinfo/b/interface=b2'
-                         },
-                     'other':
-                         {
-                             'interface': self.a2, 'netbox': self.a,
-                             'netbox_link': '/ipdevinfo/a',
-                             'interface_link': '/ipdevinfo/a/interface=a2'
-                         }
-                 },
-             'links': ['b2-a2']
-            },
-            self.netmap_graph.get_edge_data(self.a, self.b)['meta'][3])
+            ],
+            self.netmap_graph.get_edge_data(self.a, self.b).get('meta', {}))
 
 if __name__ == '__main__':
     unittest.main()
