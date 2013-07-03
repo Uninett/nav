@@ -36,7 +36,7 @@ from nav.models.manage import Netbox, Category
 from nav.models.profiles import NetmapView, NetmapViewNodePosition,\
     NetmapViewCategories, NetmapViewDefaultView, Account, AccountGroup
 from nav.netmap.topology import build_netmap_layer3_graph,\
-    build_netmap_layer2_graph
+    build_netmap_layer2_graph, convert_nav_topology_to_unidirectional_graph
 from nav.topology.d3_js.d3_js import d3_json_layer2, d3_json_layer3
 from nav.web.netmap.common import layer2_graph, get_traffic_rgb
 from nav.web.netmap.forms import NetmapDefaultViewForm
@@ -477,8 +477,11 @@ def d3js_layer2(request, map_id=None):
 
 
 def _json_layer2(view=None):
-    graph = nx.Graph(build_netmap_layer2_graph(view))
-    return d3_json_layer2(graph, None)
+    graph = build_netmap_layer2_graph(view)
+    return simplejson.dumps({
+        'nodes': graph.nodes(),
+        'edges': graph.edges()
+    })
 
 
 def _json_layer3(view=None):
