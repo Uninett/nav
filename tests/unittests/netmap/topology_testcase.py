@@ -1,6 +1,10 @@
 import unittest
+import mock
 import networkx as nx
-from nav.models.manage import Netbox, Interface
+from nav.models.manage import Netbox, Interface, SwPortVlan, Vlan
+from nav.netmap import topology
+from nav.topology import vlan
+
 
 class TopologyTestCase(unittest.TestCase):
     def _next_id(self):
@@ -52,6 +56,33 @@ class TopologyTestCase(unittest.TestCase):
         self._add_edge(self.nav_graph, b2.netbox, b2, a2.netbox, a2)
         self._add_edge(self.nav_graph, a3.netbox, a3, c3.netbox, c3)
         self._add_edge(self.nav_graph, d4.netbox, d4, c4.netbox, c4)
+
+    def _setupTopologyVlanMock(self):
+        self.vlan__a1_b1 = a_vlan_between_a1_and_b1 = SwPortVlan(id=self._next_id(), interface=self.a1, vlan=Vlan(id=201, vlan=2))
+
+        import nav.netmap.topology
+        topology._get_vlans_map_layer2 = mock.MagicMock()
+        topology._get_vlans_map_layer2.return_value=(
+            {
+                self.a1: [a_vlan_between_a1_and_b1],
+                self.b1: [a_vlan_between_a1_and_b1],
+                self.a2: [],
+                self.b2: [],
+                self.a3: [],
+                self.c3: []
+            },
+            {
+                self.a: {201: a_vlan_between_a1_and_b1},
+                self.b: {201: a_vlan_between_a1_and_b1},
+                self.c: {}
+            }
+        )
+    def _setupNetmapGraph(self):
+        self._setupTopologyVlanMock()
+        import nav.topology.vlan
+        vlan.build_layer2_graph = mock.Mock(return_value=self.nav_graph)
+
+        self.netmap_graph = topology.build_netmap_layer2_graph(None)
 
     def test_noop_setup(self):
         self.assertTrue(True)

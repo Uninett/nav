@@ -3,6 +3,7 @@ import mock
 import networkx as nx
 from nav.models.manage import SwPortVlan, Vlan
 from nav.netmap import topology
+from nav.netmap.metadata import edge_to_json_layer2, edge_metadata_layer2
 from nav.netmap.topology import \
     _convert_to_unidirectional_and_attach_directional_metadata
 from nav.topology import vlan
@@ -13,33 +14,6 @@ class MultiGraphToUndirectTests(TopologyTestCase):
 
     def test_foo(self):
         self.nav_graph = nx.MultiGraph()
-
-    def _setupTopologyVlanMock(self):
-        self.vlan__a1_b1 = a_vlan_between_a1_and_b1 = SwPortVlan(id=self._next_id(), interface=self.a1, vlan=Vlan(id=201, vlan=2))
-
-        import nav.netmap.topology
-        topology._get_vlans_map_layer2 = mock.MagicMock()
-        topology._get_vlans_map_layer2.return_value=(
-            {
-                self.a1: [a_vlan_between_a1_and_b1],
-                self.b1: [a_vlan_between_a1_and_b1],
-                self.a2: [],
-                self.b2: [],
-                self.a3: [],
-                self.c3: []
-            },
-            {
-                self.a: {200: a_vlan_between_a1_and_b1},
-                self.b: {200: a_vlan_between_a1_and_b1},
-                self.c: {}
-            }
-        )
-    def _setupNetmapGraph(self):
-        self._setupTopologyVlanMock()
-        import nav.topology.vlan
-        vlan.build_layer2_graph = mock.Mock(return_value=self.nav_graph)
-
-        self.netmap_graph = topology.build_netmap_layer2_graph(None)
 
     def test_b1_and_b2_netbox_is_the_same(self):
         self.assertEqual(self.b1.netbox, self.b2.netbox, msg="Critical, interfaces connected to same netbox must be of the same netbox instance")
@@ -80,11 +54,12 @@ class MultiGraphToUndirectTests(TopologyTestCase):
             self.netmap_graph.edges()
         )
 
-    def test_create_directional_metadata_from_nav_graph(self):
+    def test_layer2_create_directional_metadata_from_nav_graph(self):
         #foo = self.nav_graph.get_edge_data(self.a, self.b, key=self.a1)
         self._setupTopologyVlanMock()
         self.netmap_graph = _convert_to_unidirectional_and_attach_directional_metadata(
             self.nav_graph,
+            edge_metadata_layer2,
             topology._get_vlans_map_layer2()[0]
         )
 
