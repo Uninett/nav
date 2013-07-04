@@ -47,6 +47,10 @@ class NetworkXMetadataTests(TopologyTestCase):
         self.assertEqual(self.a2, edge_meta[1]['thiss']['interface'])
         self.assertEqual(self.b2, edge_meta[1]['other']['interface'])
 
+    def test_fetch_link_speed_from_edge(self):
+        a, b, meta = self.netmap_graph.edges(data=True)[0]
+        self.assertTrue('link_speed' in meta['meta'][0])
+
 
 class JsonMetadataTests(TopologyTestCase):
 
@@ -86,8 +90,15 @@ class JsonMetadataTests(TopologyTestCase):
     def test_json_edge_is_NA_if_speed_is_undefined(self):
         netbox_a = Mock('Netbox')
         netbox_b = Mock('Netbox')
-        results = edge_to_json(edge_metadata(netbox_a, None, netbox_b, None))
-        self.assertEquals(results['link_speed'], 'N/A')
+        results = edge_to_json(
+            (netbox_a, netbox_b),  [{
+                'uplink': {},
+                'tip_inspect_link': False,
+                'error': {},
+                'link_speed': None
+            }]
+        )
+        self.assertEquals(results[0]['link_speed'], 'N/A')
 
     def test_stubbed_netbox_always_gives_is_elink(self):
         netbox = stubs.Netbox()

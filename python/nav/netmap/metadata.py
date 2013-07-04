@@ -101,27 +101,28 @@ def _node_to_json(node, nx_node):
         }
 
 
-def edge_to_json_layer2(metadata):
+def edge_to_json_layer2(edge, metadata):
     """Convert a edge between A and B in a netmap layer2 graph to JSON
 
-    :param metadata Metadata from netmap networkx graph
+    :param edge Metadata from netmap networkx graph
     :return edge representation in JSON
     """
+    metadata = metadata['meta']
+    list_of_directional_metadata_edges = edge_to_json(edge, metadata)
 
-    json = edge_to_json(metadata)
-
-    if type(json['uplink']) == dict:
-        # Add vlan meta data for layer2
-        uplink = json['uplink']
-        vlans = None
-        if metadata['uplink'].has_key('vlans') and metadata['uplink']['vlans']:
-            vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id,
-                      'net_ident': unicode(swpv.vlan.net_ident)} for swpv in
-                                                                 metadata[
-                                                                 'uplink'][
-                                                                 'vlans']]
-            uplink['vlans'] = vlans
-    return json
+    for index, json in enumerate(list_of_directional_metadata_edges):
+        if type(json['uplink']) == dict:
+            # Add vlan meta data for layer2
+            uplink = json['uplink']
+            vlans = None
+            if metadata[index]['uplink'].has_key('vlans') and metadata[index]['uplink']['vlans']:
+                vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id,
+                          'net_ident': unicode(swpv.vlan.net_ident)} for swpv in
+                         metadata[index][
+                             'uplink'][
+                             'vlans']]
+                uplink['vlans'] = vlans
+    return list_of_directional_metadata_edges
 
 
 def edge_to_json_layer3(metadata):
@@ -130,6 +131,7 @@ def edge_to_json_layer3(metadata):
     :param metadata Metadata from netmap networkx graph
     :return edge representation in JSON
     """
+    metadata = metadata['meta']
     json = edge_to_json(metadata)
 
     if type(json['uplink']) == dict:
@@ -169,61 +171,67 @@ def edge_to_json_layer3(metadata):
     return json
 
 
-def edge_to_json(metadata):
+def edge_to_json(edge, metadata):
     """Generic method for converting a edge bewteen A and B to JSON
     For use in both layer 2 and layer 3 topologies.
 
-    :param metadata Metadata from netmap networkx graph
+    :param networkx_edge_with_data tuple(netbox_a, netbox_b)
     :return JSON presentation of a edge.
     """
 
-    uplink = metadata['uplink']
-    link_speed = metadata['link_speed']
-    tip_inspect_link = metadata['tip_inspect_link']
-    error = metadata['error']
+    edge_metadata = []
+    for directional_metadata_edge in metadata:
+        print metadata
+        uplink = directional_metadata_edge['uplink']
+        link_speed = directional_metadata_edge['link_speed']
+        tip_inspect_link = directional_metadata_edge['tip_inspect_link']
+        error = directional_metadata_edge['error']
 
-    # jsonify
-    if not uplink:
-        uplink_json = 'null' # found no uplinks, json null.
-    else:
-        uplink_json = {}
-
-        if uplink['thiss']['interface']:
-            uplink_json.update(
-                    {'thiss': {
-                    'interface': unicode(uplink['thiss']['interface'].ifname),
-                    'netbox': uplink['thiss']['netbox'].sysname,
-                    'interface_link': uplink['thiss'][
-                                      'interface'].get_absolute_url(),
-                    'netbox_link': uplink['thiss']['netbox'].get_absolute_url()
-                }}
-            )
+        # jsonify
+        if not uplink:
+            uplink_json = 'null' # found no uplinks, json null.
         else:
-            uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
+            uplink_json = {}
 
-        if uplink['other']['interface']:
-            uplink_json.update(
-                    {'other': {
-                    'interface': unicode(uplink['other']['interface'].ifname),
-                    'netbox': uplink['other']['netbox'].sysname,
-                    'interface_link': uplink['other'][
-                                      'interface'].get_absolute_url(),
-                    'netbox_link': uplink['other']['netbox'].get_absolute_url()
-                }}
-            )
-        else:
-            uplink_json.update({'other': {'interface': 'N/A', 'netbox': 'N/A'}})
+            if uplink['thiss']['interface']:
+                uplink_json.update(
+                        {'thiss': {
+                        'interface': unicode(uplink['thiss']['interface'].ifname),
+                        'netbox': uplink['thiss']['netbox'].sysname,
+                        'interface_link': uplink['thiss'][
+                                          'interface'].get_absolute_url(),
+                        'netbox_link': uplink['thiss']['netbox'].get_absolute_url()
+                    }}
+                )
+            else:
+                uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
 
-    if 'link_speed' in error.keys():
-        link_speed = error['link_speed']
-    elif not link_speed:
-        link_speed = "N/A"
+            if uplink['other']['interface']:
+                uplink_json.update(
+                        {'other': {
+                        'interface': unicode(uplink['other']['interface'].ifname),
+                        'netbox': uplink['other']['netbox'].sysname,
+                        'interface_link': uplink['other'][
+                                          'interface'].get_absolute_url(),
+                        'netbox_link': uplink['other']['netbox'].get_absolute_url()
+                    }}
+                )
+            else:
+                uplink_json.update({'other': {'interface': 'N/A', 'netbox': 'N/A'}})
 
-    return {
-        'uplink': uplink_json,
-        'link_speed': link_speed,
-        'tip_inspect_link': tip_inspect_link,
-        }
+        if 'link_speed' in error.keys():
+            link_speed = error['link_speed']
+        elif not link_speed:
+            link_speed = "N/A"
+
+        edge_metadata.append(
+            {
+                'uplink': uplink_json,
+                'link_speed': link_speed,
+                'tip_inspect_link': tip_inspect_link,
+            }
+        )
+    return edge_metadata
 
 
 def edge_metadata_layer3(thiss_gwpp, other_gwpp, prefixes):
