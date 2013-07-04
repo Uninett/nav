@@ -35,6 +35,7 @@ from nav.django.utils import get_account, get_request_body
 from nav.models.manage import Netbox, Category
 from nav.models.profiles import NetmapView, NetmapViewNodePosition,\
     NetmapViewCategories, NetmapViewDefaultView, Account, AccountGroup
+from nav.netmap.metadata import node_to_json_layer2, edge_to_json_layer2
 from nav.netmap.topology import build_netmap_layer3_graph,\
     build_netmap_layer2_graph
 from nav.topology.d3_js.d3_js import d3_json_layer3
@@ -478,10 +479,11 @@ def d3js_layer2(request, map_id=None):
 
 def _json_layer2(view=None):
     graph = build_netmap_layer2_graph(view)
-    return simplejson.dumps({
-        'nodes': graph.nodes(),
-        'edges': graph.edges()
-    })
+
+    return {
+        'nodes': [node_to_json_layer2(node, nx_metadata) for node, nx_metadata in graph.nodes_iter(data=True)],
+        'edges': [edge_to_json_layer2((node_a, node_b), nx_metadata) for node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
+    }
 
 
 def _json_layer3(view=None):
