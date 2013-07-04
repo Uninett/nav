@@ -144,7 +144,7 @@ class JsonMetadataTests(TopologyTestCase):
         del self.nx_edge_metadata['metadata']['position']
         foo = metadata._node_to_json(self.a, self.nx_edge_metadata)
         self.assertTrue('position' in foo)
-        self.assertIsNone(foo['position'])
+        self.assertEqual(None, foo['position'])
 
     def test_json_up_is_included_in_metadata_from_node(self):
         foo = metadata._node_to_json(self.a, self.nx_edge_metadata)
