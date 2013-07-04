@@ -59,7 +59,7 @@ def node_to_json_layer3(node, nx_metadata=None):
     return json
 
 
-def _node_to_json(node, nx_metadata=None):
+def _node_to_json(node, nx_node):
     """Generic method for converting a node to json, for use in both layer 2
     and layer3 graphs.
 
@@ -68,7 +68,7 @@ def _node_to_json(node, nx_metadata=None):
     :return json presentation of a node.
     """
     position = None
-    metadata = nx_metadata['metadata'] if nx_metadata and nx_metadata.has_key(
+    metadata = nx_node['metadata'] if nx_node and nx_node.has_key(
         'metadata') else None
 
     if metadata:

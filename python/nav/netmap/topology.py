@@ -18,7 +18,8 @@ import logging
 import networkx as nx
 from collections import defaultdict
 from nav.models.manage import SwPortVlan, Prefix
-from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2
+from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2, \
+    node_to_json_layer2
 from nav.topology import vlan
 
 
@@ -277,7 +278,7 @@ def _get_vlans_map_layer3(graph):
     return prefixes_by_navvlan
 
 def _convert_to_unidirectional_and_attach_directional_metadata(
-        topology_without_metadata, vlan_by_interface):
+        topology_without_metadata, edge_metadata_function, vlan_by_interface):
     """
     Reduces a topology graph from nav.topology.vlan, but retains it's
      directional (MultiDiGraph) properties as metadata under the key 'meta'
@@ -287,6 +288,7 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
     such data as metadata.
 
     :param topology_without_metadata: nav.topology.vlan.build*_graph networkx graph
+    :param edge_metadata_function layer specific metadata function for edges.
     :param vlan_by_interface: dictionary to lookup up vlan's attached to given interface
     :return: reduced networkx topology graph with directional metadata attached under 'meta'
     """
@@ -329,7 +331,7 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
                     else:
                         updated_metadata = {}
 
-                    additional_metadata = edge_metadata_layer2(
+                    additional_metadata = edge_metadata_function(
                         interface.netbox,
                         interface,
                         neighbors_node,
@@ -384,6 +386,7 @@ def build_netmap_layer2_graph(view=None):
 
     netmap_graph = _convert_to_unidirectional_and_attach_directional_metadata(
         topology_without_metadata,
+        edge_metadata_layer2,
         vlan_by_interface
     )
 
