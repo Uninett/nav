@@ -181,7 +181,6 @@ def edge_to_json(edge, metadata):
 
     edge_metadata = []
     for directional_metadata_edge in metadata:
-        print metadata
         uplink = directional_metadata_edge['uplink']
         link_speed = directional_metadata_edge['link_speed']
         tip_inspect_link = directional_metadata_edge['tip_inspect_link']
