@@ -25,7 +25,7 @@ from topology_testcase import TopologyTestCase
 class NetworkXMetadataTests(TopologyTestCase):
     def setUp(self):
         super(NetworkXMetadataTests, self).setUp()
-        self._setupNetmapGraph()
+        self._setupNetmapGraphLayer2()
 
     def test_node_a1_and_b1_contains_vlan_metadata(self):
         vlans = self.netmap_graph.node[self.a]['metadata']['vlans']
@@ -52,14 +52,14 @@ class NetworkXMetadataTests(TopologyTestCase):
         self.assertTrue('link_speed' in meta['meta'][0])
 
     def test_netmap_metadata_shows_2_links_for_edge_between_a_and_b(self):
-        self._setupNetmapGraph()
+        self._setupNetmapGraphLayer2()
         self.assertEquals(2, len(self.netmap_graph.get_edge_data(
             self.a,
             self.b
         ).get('meta', [])))
 
     def test_netmap_metadata_is_correct_for_2_links_edge_between_a_and_b(self):
-        self._setupNetmapGraph()
+        self._setupNetmapGraphLayer2()
         self.maxDiff = None
         self.assertEquals(
             [

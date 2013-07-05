@@ -77,7 +77,7 @@ class TopologyTestCase(unittest.TestCase):
                 self.c: {}
             }
         )
-    def _setupNetmapGraph(self):
+    def _setupNetmapGraphLayer2(self):
         self._setupTopologyVlanMock()
         import nav.topology.vlan
         vlan.build_layer2_graph = mock.Mock(return_value=self.nav_graph)

@@ -32,12 +32,12 @@ class MultiGraphToUndirectTests(TopologyTestCase):
     # netmap graphs tests below
 
     def test_nodes_length_of_netmap_graph_is_reduced_properly(self):
-        self._setupNetmapGraph()
+        self._setupNetmapGraphLayer2()
         # four nodes, A, B, C and D
         self.assertEquals(4, len(self.netmap_graph.nodes()))
 
     def test_edges_length_of_netmap_graph_is_reduced_properly(self):
-        self._setupNetmapGraph()
+        self._setupNetmapGraphLayer2()
         # one LINE between A and B.
         # one LINE between B and C
         # one line between C and D
