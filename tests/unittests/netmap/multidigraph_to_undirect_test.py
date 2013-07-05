@@ -12,9 +12,6 @@ from topology_testcase import TopologyTestCase
 
 class MultiGraphToUndirectTests(TopologyTestCase):
 
-    def test_foo(self):
-        self.nav_graph = nx.MultiGraph()
-
     def test_b1_and_b2_netbox_is_the_same(self):
         self.assertEqual(self.b1.netbox, self.b2.netbox, msg="Critical, interfaces connected to same netbox must be of the same netbox instance")
 
