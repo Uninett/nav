@@ -20,11 +20,11 @@ from nav.models.manage import Netbox, Room, Location, SwPortVlan, Vlan
 from nav.models.profiles import NetmapViewNodePosition
 from nav.netmap import stubs, metadata
 from nav.netmap.metadata import edge_metadata, edge_to_json
-from topology_testcase import TopologyTestCase
+from topology_layer2_testcase import TopologyLayer2TestCase
 
-class NetworkXMetadataTests(TopologyTestCase):
+class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
     def setUp(self):
-        super(NetworkXMetadataTests, self).setUp()
+        super(Layer2NetworkXMetadataTests, self).setUp()
         self._setupNetmapGraphLayer2()
 
     def test_node_a1_and_b1_contains_vlan_metadata(self):
@@ -100,10 +100,10 @@ class NetworkXMetadataTests(TopologyTestCase):
             self.netmap_graph.get_edge_data(self.a, self.b).get('meta', {}))
 
 
-class JsonMetadataTests(TopologyTestCase):
+class Layer2JsonMetadataTests(TopologyLayer2TestCase):
 
     def setUp(self):
-        super(JsonMetadataTests, self).setUp()
+        super(Layer2JsonMetadataTests, self).setUp()
         self.room = Room()
         self.room.id = 'Pegasus'
         self.room.description = 'room description'
