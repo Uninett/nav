@@ -34,6 +34,7 @@ class NetmapCommonTests(TopologyTestCase):
         foo = set()
         foo.add(NetmapEdge((self.a1, self.b1)))
         self.assertTrue((self.b1, self.a1) in foo)
+        self.assertTrue(foo[(self.b1, self.a1)])
 
 
 
