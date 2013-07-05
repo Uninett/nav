@@ -1,16 +1,14 @@
 import unittest
-import mock
-import networkx as nx
-from nav.models.manage import SwPortVlan, Vlan
 from nav.netmap import topology
-from nav.netmap.metadata import edge_to_json_layer2, edge_metadata_layer2
+from nav.netmap.metadata import edge_metadata_layer2
 from nav.netmap.topology import \
     _convert_to_unidirectional_and_attach_directional_metadata
-from nav.topology import vlan
-from topology_testcase import TopologyTestCase
+
+from topology_layer2_testcase import TopologyLayer2TestCase
+from topology_layer3_testcase import TopologyLayer3TestCase
 
 
-class MultiGraphToUndirectTests(TopologyTestCase):
+class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
 
     def test_b1_and_b2_netbox_is_the_same(self):
         self.assertEqual(self.b1.netbox, self.b2.netbox, msg="Critical, interfaces connected to same netbox must be of the same netbox instance")
@@ -76,6 +74,15 @@ class MultiGraphToUndirectTests(TopologyTestCase):
                              self.b
                          ).get('meta', [])))
 
+class Layer3MultiGraphToUndirectTests(TopologyLayer3TestCase):
+
+    def test_nodes_length_of_orignal_graph_consists_with_nav_topology_behavior(self):
+        # 9 gwport prefixes.
+        self.assertEqual(9, len(self.nav_graph.nodes()))
+
+    def test_edges_length_of_original_graph_consiits_with_nav_topology_behavior(self):
+        # 6 edges between gw port prefixes keyed on prefix.
+        self.assertEqual(6, len(self.nav_graph.edges()))
 
 if __name__ == '__main__':
     unittest.main()
