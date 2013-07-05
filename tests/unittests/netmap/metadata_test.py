@@ -51,6 +51,54 @@ class NetworkXMetadataTests(TopologyTestCase):
         a, b, meta = self.netmap_graph.edges(data=True)[0]
         self.assertTrue('link_speed' in meta['meta'][0])
 
+    def test_netmap_metadata_shows_2_links_for_edge_between_a_and_b(self):
+        self._setupNetmapGraph()
+        self.assertEquals(2, len(self.netmap_graph.get_edge_data(
+            self.a,
+            self.b
+        ).get('meta', [])))
+
+    def test_netmap_metadata_is_correct_for_2_links_edge_between_a_and_b(self):
+        self._setupNetmapGraph()
+        self.maxDiff = None
+        self.assertEquals(
+            [
+                {
+                    'tip_inspect_link': False,
+                    'link_speed': None,
+                    'uplink': {
+                            'thiss': {
+                                'interface': self.a1,
+                                'netbox': self.a
+                            },
+                            'other': {
+                                'interface': self.b1,
+                                'netbox': self.b
+                            },
+                            'vlans': [self.vlan__a1_b1],
+                        },
+
+                    'error': {}
+                 },
+                {
+                    'tip_inspect_link': False,
+                    'link_speed': None,
+                    'uplink': {
+                            'thiss': {
+                                'interface': self.a2,
+                                'netbox': self.a
+                            },
+                            'other': {
+                                'interface': self.b2,
+                                'netbox': self.b
+                            },
+                            'vlans': [],
+                        },
+                    'error': {}
+                 },
+            ],
+            self.netmap_graph.get_edge_data(self.a, self.b).get('meta', {}))
+
 
 class JsonMetadataTests(TopologyTestCase):
 
