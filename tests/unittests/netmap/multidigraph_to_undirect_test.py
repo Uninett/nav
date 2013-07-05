@@ -52,7 +52,6 @@ class MultiGraphToUndirectTests(TopologyTestCase):
         )
 
     def test_layer2_create_directional_metadata_from_nav_graph(self):
-        #foo = self.nav_graph.get_edge_data(self.a, self.b, key=self.a1)
         self._setupTopologyVlanMock()
         self.netmap_graph = _convert_to_unidirectional_and_attach_directional_metadata(
             self.nav_graph,
@@ -71,9 +70,14 @@ class MultiGraphToUndirectTests(TopologyTestCase):
             self.netmap_graph.edges()
         )
 
+        self.assertEqual(2,
+                         len(self.netmap_graph.get_edge_data(
+                             self.a,
+                             self.b
+                         ).get('meta', [])))
+
     def test_netmap_metadata_shows_2_links_for_edge_between_a_and_b(self):
         self._setupNetmapGraph()
-
         self.assertEquals(2, len(self.netmap_graph.get_edge_data(
             self.a,
             self.b
