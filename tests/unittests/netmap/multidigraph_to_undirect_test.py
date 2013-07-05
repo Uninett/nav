@@ -52,7 +52,7 @@ class MultiGraphToUndirectTests(TopologyTestCase):
         )
 
     def test_layer2_create_directional_metadata_from_nav_graph(self):
-        self._setupTopologyVlanMock()
+        self._setupTopologyLayer2VlanMock()
         self.netmap_graph = _convert_to_unidirectional_and_attach_directional_metadata(
             self.nav_graph,
             edge_metadata_layer2,

@@ -57,7 +57,7 @@ class TopologyTestCase(unittest.TestCase):
         self._add_edge(self.nav_graph, a3.netbox, a3, c3.netbox, c3)
         self._add_edge(self.nav_graph, d4.netbox, d4, c4.netbox, c4)
 
-    def _setupTopologyVlanMock(self):
+    def _setupTopologyLayer2VlanMock(self):
         self.vlan__a1_b1 = a_vlan_between_a1_and_b1 = SwPortVlan(id=self._next_id(), interface=self.a1, vlan=Vlan(id=201, vlan=2))
 
         import nav.netmap.topology
@@ -78,7 +78,7 @@ class TopologyTestCase(unittest.TestCase):
             }
         )
     def _setupNetmapGraphLayer2(self):
-        self._setupTopologyVlanMock()
+        self._setupTopologyLayer2VlanMock()
         import nav.topology.vlan
         vlan.build_layer2_graph = mock.Mock(return_value=self.nav_graph)
 
