@@ -21,7 +21,8 @@ alerhist table. Used by the frontpage.
 
 import nav.db
 
-def boxesDown(sort = False):
+
+def boxes_down(sort=False):
     connection = nav.db.getConnection('status', 'manage')
     database = connection.cursor()
 
@@ -54,7 +55,7 @@ def boxesDown(sort = False):
     database.execute(sql)
     result = database.fetchall()
 
-    downList = []
+    down_list = []
     for line in result:
         # If on maintenance, skip this component
         if line[1] in onmaint:
@@ -63,14 +64,15 @@ def boxesDown(sort = False):
         shadow = False
         if line[4] == 's':
             shadow = True
-        downList.append([line[3],
+        down_list.append([line[3],
                          line[0],
                          line[1],
                          line[2],
                          shadow])
     if sort:
-        downList.sort()
-    return downList 
+        down_list.sort()
+    return down_list
 
-def boxesDownSortByNewest():
-    return boxesDown(sort=True)
+
+def boxes_down_sort_by_newest():
+    return boxes_down(sort=True)
