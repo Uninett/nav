@@ -81,8 +81,59 @@ class Layer3MultiGraphToUndirectTests(TopologyLayer3TestCase):
         self.assertEqual(9, len(self.nav_graph.nodes()))
 
     def test_edges_length_of_original_graph_consiits_with_nav_topology_behavior(self):
-        # 6 edges between gw port prefixes keyed on prefix.
-        self.assertEqual(6, len(self.nav_graph.edges()))
+        # 7 edges between gw port prefixes keyed on gw port prefix.
+        self.assertEqual(7, len(self.nav_graph.edges()))
+
+    def test_nodes_length_of_netmap_graph_is_reduced_properly(self):
+        self._setupNetmapGraphLayer3()
+        print self.netmap_graph.nodes()
+        self.assertEqual(7, len(self.netmap_graph.nodes()))
+
+    def test_edges_length_of_netmap_graph_is_reduced_properly(self):
+        self._setupNetmapGraphLayer3()
+        print self.netmap_graph.edges()
+        self.assertEqual(6, len(self.netmap_graph.edges()))
+
+    def test_layer3_edges_is_as_expected_in_netmap_graph(self):
+        self._setupNetmapGraphLayer3()
+
+        self.assertEqual(
+            [
+                (self.a, self.b),
+                (self.a, self.c),
+                (self.b, self.d),
+                (self.b, self.e),
+                (self.d, self.e),
+                (self.f, self.unknown)
+            ],
+            self.netmap_graph.edges()
+        )
+
+    def test_layer3_only_one_vlan_on_all_edges(self):
+        """
+        """
+        self._setupNetmapGraphLayer3()
+
+        self.assertEqual(1, len(
+            self.netmap_graph.get_edge_data(self.a, self.b).keys()))
+        self.assertEqual(1, len(
+            self.netmap_graph.get_edge_data(self.a, self.c).keys()))
+        self.assertEqual(1, len(
+            self.netmap_graph.get_edge_data(self.b, self.d).keys()))
+        self.assertEqual(1, len(
+            self.netmap_graph.get_edge_data(self.b, self.e).keys()))
+        self.assertEqual(1, len(
+            self.netmap_graph.get_edge_data(self.d, self.e).keys()))
+        self.assertEqual(1, len(
+            self.netmap_graph.get_edge_data(self.f, self.unknown).keys()))
+
+    def test_layer3__a__c__vlan_contains_both_v4_and_v6_prefixes(self):
+        self._setupNetmapGraphLayer3()
+
+        self.assertEqual(2, len(self.netmap_graph.get_edge_data(
+            self.a, self.c
+        ).get(2112).get('metadata').get('uplink').get('prefixes')))
+
 
 if __name__ == '__main__':
     unittest.main()
