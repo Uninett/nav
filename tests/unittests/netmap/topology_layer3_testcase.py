@@ -55,11 +55,19 @@ class TopologyLayer3TestCase(TopologyTestCase):
             net_address="158.38.0.0/30",
             vlan=Vlan(id=2111, vlan=50, net_type=self.net_type_link)
         )
+
+        self.prefix_bar_vlan = Vlan(id=2112, vlan=50, net_type=self.net_type_link)
         self.prefix_bar = Prefix(
             id=1112,
             net_address="158.38.0.4/30",
-            vlan=Vlan(id=2112, vlan=50, net_type=self.net_type_link)
+            vlan=self.prefix_bar_vlan
         )
+        self.prefix_bar_ipv6 = Prefix(
+            id=6112,
+            net_address="feed:dead:cafe:babe::/64",
+            vlan=self.prefix_bar_vlan
+        )
+
         self.prefix_baz = Prefix(
             id=1113,
             net_address="158.38.1.0/29",
@@ -120,6 +128,7 @@ class TopologyLayer3TestCase(TopologyTestCase):
             virtual=False
         )
 
+        # v4 prefix
         self._add_edge(self.nav_graph,
                        self.linknet_a2_for_a_c,
                        self.linknet_c2_for_a_c,
@@ -128,6 +137,11 @@ class TopologyLayer3TestCase(TopologyTestCase):
                        self.linknet_c2_for_a_c,
                        self.linknet_a2_for_a_c,
                        self.prefix_bar)
+        # v6 prefix
+        self._add_edge(self.nav_graph,
+                       self.linknet_a2_for_a_c,
+                       self.linknet_c2_for_a_c,
+                       self.prefix_bar_ipv6)
 
         #node b and node d and node e connected as a core linknet on prefix
         # 158.38.1.0/29  {b3: 1, d3: 2, , e3: 3}
@@ -217,7 +231,7 @@ class TopologyLayer3TestCase(TopologyTestCase):
         topology._get_vlans_map_layer3 = mock.MagicMock()
         topology._get_vlans_map_layer3.return_value={
             2111: [self.prefix_foo],
-            2112: [self.prefix_bar],
+            2112: [self.prefix_bar, self.prefix_bar_ipv6],
             2113: [self.prefix_baz],
             2114: [self.prefix_zar]
         }
