@@ -20,6 +20,7 @@ from nav.models.manage import Netbox, Room, Location, SwPortVlan, Vlan
 from nav.models.profiles import NetmapViewNodePosition
 from nav.netmap import stubs, metadata
 from nav.netmap.metadata import edge_metadata, edge_to_json
+from topology_layer3_testcase import TopologyLayer3TestCase
 from topology_layer2_testcase import TopologyLayer2TestCase
 
 class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
@@ -100,35 +101,7 @@ class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
             self.netmap_graph.get_edge_data(self.a, self.b).get('meta', {}))
 
 
-class Layer2JsonMetadataTests(TopologyLayer2TestCase):
-
-    def setUp(self):
-        super(Layer2JsonMetadataTests, self).setUp()
-        self.room = Room()
-        self.room.id = 'Pegasus'
-        self.room.description = 'room description'
-        self.room.location = Location()
-        self.room.location.id = 'galaxy'
-        self.room.location.description = 'In a galaxy far far away'
-        self.a = Netbox()
-        self.a.id = 999
-        self.a.sysname = 'foo.nav.unittest'
-        self.a.room = self.room
-        self.a.category_id = 'GW'
-        self.a.ip = '::1'
-
-        a_position = NetmapViewNodePosition()
-        a_position.x = 1.3
-        a_position.y = 3.7
-        self.nx_edge_metadata = {'metadata': {
-            'position': a_position
-        }}
-        self.nx_node_metadata = {'metadata': {
-            'vlans': [(1337, SwPortVlan(id=1231, interface=self.a1, vlan=Vlan(id=1337, vlan=10, net_ident='unittest vlan')))]
-        }}
-
-
-
+class SharedJsonMetadataTests():
     def test_not_failing_when_both_interface_speed_is_undefined(self):
         netbox_a = Mock('Netbox')
         netbox_b = Mock('Netbox')
@@ -229,6 +202,34 @@ class Layer2JsonMetadataTests(TopologyLayer2TestCase):
         self.assertTrue('is_elink_node' in foo)
         self.assertFalse(foo['is_elink_node'])
 
+
+class Layer2JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer2TestCase):
+
+    def setUp(self):
+        super(Layer2JsonMetadataTests, self).setUp()
+        self.room = Room()
+        self.room.id = 'Pegasus'
+        self.room.description = 'room description'
+        self.room.location = Location()
+        self.room.location.id = 'galaxy'
+        self.room.location.description = 'In a galaxy far far away'
+        self.a = Netbox()
+        self.a.id = 999
+        self.a.sysname = 'foo.nav.unittest'
+        self.a.room = self.room
+        self.a.category_id = 'GW'
+        self.a.ip = '::1'
+
+        a_position = NetmapViewNodePosition()
+        a_position.x = 1.3
+        a_position.y = 3.7
+        self.nx_edge_metadata = {'metadata': {
+            'position': a_position
+        }}
+        self.nx_node_metadata = {'metadata': {
+            'vlans': [(1337, SwPortVlan(id=1231, interface=self.a1, vlan=Vlan(id=1337, vlan=10, net_ident='unittest vlan')))]
+        }}
+
     def test_json_node_contains_vlan_data(self):
         foo = metadata.node_to_json_layer2(self.a, self.nx_node_metadata)
         self.assertTrue('vlans' in foo)
@@ -243,6 +244,79 @@ class Layer2JsonMetadataTests(TopologyLayer2TestCase):
         self.assertEqual(1337, foo['vlans'][0]['nav_vlan'])
         self.assertEqual(10, foo['vlans'][0]['vlan'])
         # nav_vlan_id == swpv.vlan.id
+
+
+class Layer3NetworkXMetadataTests(TopologyLayer3TestCase):
+    def setUp(self):
+        super(Layer3NetworkXMetadataTests, self).setUp()
+        self._setupNetmapGraphLayer3()
+
+    def test_link_between_a_and_c_contains_both_v4_and_v6_prefix(self):
+        self.assertEqual(
+            [self.prefix_bar, self.prefix_bar_ipv6],
+
+            self.netmap_graph.get_edge_data(
+                self.a, self.c
+            ).get(2112)
+            .get('metadata')
+            .get('uplink')
+            .get('prefixes')
+        )
+
+    def test_link_got_prefixed_attached(self):
+        self._setupNetmapGraphLayer3()
+        self.assertEqual(1, len(self.netmap_graph.get_edge_data(
+            self.a, self.b
+        ).get(self.prefix_foo.vlan.id)
+        .get('metadata')
+        .get('uplink')
+        .get('prefixes')))
+
+        self.assertEqual(1, len(self.netmap_graph.get_edge_data(
+            self.b, self.d
+        ).get(self.prefix_baz.vlan.id)
+        .get('metadata')
+        .get('uplink')
+        .get('prefixes')))
+
+        self.assertEqual(1, len(self.netmap_graph.get_edge_data(
+            self.b, self.e
+        ).get(self.prefix_baz.vlan.id)
+        .get('metadata')
+        .get('uplink')
+        .get('prefixes')))
+
+        self.assertEqual(1, len(self.netmap_graph.get_edge_data(
+            self.f, self.unknown
+        ).get(self.prefix_zar.vlan.id)
+        .get('metadata')
+        .get('uplink')
+        .get('prefixes')))
+
+
+class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
+
+    def setUp(self):
+        super(Layer3JsonMetadataTests, self).setUp()
+        self.room = Room()
+        self.room.id = 'Pegasus'
+        self.room.description = 'room description'
+        self.room.location = Location()
+        self.room.location.id = 'galaxy'
+        self.room.location.description = 'In a galaxy far far away'
+        self.a = Netbox()
+        self.a.id = 999
+        self.a.sysname = 'foo.nav.unittest'
+        self.a.room = self.room
+        self.a.category_id = 'GW'
+        self.a.ip = '::1'
+
+        a_position = NetmapViewNodePosition()
+        a_position.x = 1.3
+        a_position.y = 3.7
+        self.nx_edge_metadata = {'metadata': {
+            'position': a_position
+        }}
 
 
 if __name__ == '__main__':
