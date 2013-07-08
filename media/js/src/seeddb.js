@@ -18,26 +18,73 @@ require([
             var displayProjection = map.displayProjection;
             var inputProjection = map.getProjectionObject();
 
-            // Get coordinates if room exists
-            var center;
             var position_input = $('#id_position');
-            var position = position_input.val();
-            if (position === '') {
-                center = new OpenLayers.LonLat(10.396054, 63.426257);
-            }
-            else {
-                center = parseLonLat(position.slice(1, -1));
-            }
-            center.transform(displayProjection, inputProjection);
-            map.setCenter(center, 14);
-            marker = addMarker(center);
-            marker_layer.addMarker(marker);
+            var deferredCenter = $.when(getLocation(position_input.val()));
 
-            initGetLonLatOnClickControl(
-                map, marker ,inputProjection, displayProjection, position_input);
+            deferredCenter.done(function(center) {
+                center.transform(displayProjection, inputProjection);
+                map.setCenter(center, 14);
+                marker = addMarkerToLayer(center, marker_layer);
+                moveMarker(
+                    map,
+                    center,
+                    marker,
+                    position_input,
+                    displayProjection,
+                    inputProjection);
 
+                initGetLonLatOnClickControl(
+                    map, marker ,inputProjection, displayProjection, position_input);
+            });
+
+            deferredCenter.fail(function() {
+                map.zoomToMaxExtent();
+                var center = map.center;
+                marker = addMarkerToLayer(center, marker_layer);
+                moveMarker(
+                    map,
+                    center,
+                    marker,
+                    position_input,
+                    displayProjection,
+                    inputProjection);
+
+                initGetLonLatOnClickControl(
+                    map, marker ,inputProjection, displayProjection, position_input);
+            });
         }
     });
+
+    function getLocation(position_string) {
+        var deferred = $.Deferred();
+        var center;
+
+        function gotPosition(position) {
+            center = new OpenLayers.LonLat(
+                position.coords.longitude,
+                position.coords.latitude
+            );
+            deferred.resolve(center);
+        }
+        function errorGettingPosition(error) {
+            console.log(error);
+            deferred.reject();
+        }
+
+        if (position_string === '') {
+            center = new OpenLayers.LonLat(0, 0);
+            navigator.geolocation.getCurrentPosition(
+                gotPosition,
+                errorGettingPosition
+            );
+        }
+        else {
+            center = parseLonLat(position_string.slice(1, -1));
+            deferred.resolve(center);
+        }
+
+        return deferred.promise();
+    }
 
     function initMap() {
         OpenLayers.ImgPath = '/images/openlayers/';
@@ -62,12 +109,14 @@ require([
         return marker;
     }
 
-    function addMarker(lonlat) {
+    function addMarkerToLayer(lonlat, layer) {
         var size = new OpenLayers.Size(21,25);
         var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
         var icon = new OpenLayers.Icon(
             'http://www.openlayers.org/dev/img/marker.png', size, offset);
-        return new OpenLayers.Marker(lonlat, icon);
+        var marker = new OpenLayers.Marker(lonlat, icon);
+        layer.addMarker(marker);
+        return marker;
     }
 
     function lonLatToStr(lonlat) {
@@ -82,6 +131,21 @@ require([
             llStr + '"';
         }
         return new OpenLayers.LonLat(arr[2], arr[1]);
+    }
+
+    function moveMarker(
+        map,
+        lonlat,
+        marker,
+        position_input,
+        displayProjection,
+        inputProjection) {
+
+        marker.moveTo(map.getLayerPxFromLonLat(lonlat));
+        position_input.val(lonLatToStr(lonlat.transform(
+            inputProjection,
+            displayProjection
+        )));
     }
 
     function initGetLonLatOnClickControl(
@@ -113,11 +177,14 @@ require([
 
             trigger: function(e) {
                 var lonlat = map.getLonLatFromPixel(e.xy);
-                marker.moveTo(map.getLayerPxFromLonLat(lonlat));
-                position_input.val(lonLatToStr(lonlat.transform(
-                    inputProjection,
-                    displayProjection
-                )));
+                moveMarker(
+                    map,
+                    lonlat,
+                    marker,
+                    position_input,
+                    displayProjection,
+                    inputProjection
+                );
             }
         });
 
