@@ -10,7 +10,7 @@ class SharedNetworkXMetadataTests(object):
         for node_a, node_b in self.netmap_graph.edges():
             metadata = self._get_metadata(node_a, node_b)
             for x in metadata:
-                self.assertTrue(all([x in ('tip_inspect_link', 'link_speed', 'uplink', 'error') for x in x.keys()]))
+                self.assertTrue(all([y in x.keys() for y in ('tip_inspect_link', 'link_speed', 'uplink', 'error')]))
 
     def test_uplink_has_all_shared_properties_it_should_for_uplink__this(self):
         # for every uplink. (MultiDiGraph Directed Metadata)
