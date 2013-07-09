@@ -64,7 +64,7 @@ class MixedNetTypeTest(TestCase):
         net_type = self.vlan._guesstimate_net_type(self.repo)
         self.assertEqual("elink", net_type.id)
 
-    def test_link_net_with_subnet31_rfc3021_router_count_as_2(self):
+    def test_link_net_with_subnet_31_rfc3021_router_count_as_2(self):
         self._setup_rfc3021()
         import nav
         nav.ipdevpoll.shadows.Vlan._get_router_count_for_prefix = Mock(
