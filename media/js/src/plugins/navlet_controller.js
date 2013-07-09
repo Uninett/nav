@@ -125,6 +125,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.applyModeListener();
             this.applyRemoveListener();
             this.applySubmitListener();
+            this.applyOnRenderedListener();
         },
         applyModeListener: function () {
             /* Renders the navlet in the correct mode (view or edit) when clicking the switch button */
@@ -182,6 +183,9 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                     });
                 });
             }
+        },
+        applyOnRenderedListener: function () {
+            this.container.triggerHandler('navlet-rendered', [this.node]);
         },
         displayError: function (errorMessage) {
             this.getOrCreateErrorElement().text(errorMessage);

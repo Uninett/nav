@@ -22,6 +22,7 @@ class RoomMapNavlet(Navlet):
     """View class for the room map navlet"""
     title = 'Room map'
     description = 'Display a map marking the location of rooms'
+    event = 'room-map'
 
     def get_template_basename(self):
         return 'room_map'
