@@ -2,10 +2,66 @@ from topology_layer2_testcase import TopologyLayer2TestCase
 from topology_layer3_testcase import TopologyLayer3TestCase
 
 
-class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
+class SharedNetworkXMetadataTests(object):
+    def test_this_shared_networkx_metadata_test_is_running(self):
+        self.assertTrue(True) # Nice to check on CI if it has been run.
+
+    def test_root_metadata_has_all_properties_it_should(self):
+        metadata = self._get_metadata(self.a, self.b)
+        for x in metadata:
+            self.assertTrue(all([x in ('tip_inspect_link', 'link_speed', 'uplink', 'error') for x in x.keys()]))
+
+    def test_uplink_has_all_shared_properties_it_should_for_uplink__this(self):
+        # for every uplink. (MultiDiGraph Directed Metadata)
+        collection_metadata = self._get_metadata(self.a, self.b)
+
+        should_have = ('netbox', 'interface')
+
+        for metadata in collection_metadata:
+            keys_uplink_side = metadata.get('uplink').get('thiss').keys()
+            self.assertTrue(all([x in keys_uplink_side for x in should_have])
+                , msg="Didn't find all keys {0}, only found: {1}".format(
+                    should_have,
+                    keys_uplink_side
+                ))
+
+    def test_uplink_has_all_shared_properties_it_should_for_uplink__other(self):
+        # for every uplink. (MultiDiGraph Directed Metadata)
+        collection_metadata = self._get_metadata(self.a, self.b)
+
+        should_have = ('netbox', 'interface')
+
+        for metadata in collection_metadata:
+            keys_uplink_side = metadata.get('uplink').get('other').keys()
+
+            self.assertTrue(all([x in keys_uplink_side for x in should_have])
+                , msg="Didn't find all keys {0}, only found: {1}".format(
+                    should_have,
+                    keys_uplink_side
+                ))
+
+    def test_uplink_has_all_shared_properties_it_should(self):
+        metadata = self._get_metadata(self.a, self.b)
+        should_have = ('thiss', 'other')
+        for x in metadata:
+            uplink_keys = x.get('uplink').keys()
+            self.assertTrue(
+                all([y in uplink_keys for y in should_have]),
+                msg="Didn't find all keys {0}, only found: {1}"
+                .format(
+                    should_have,
+                    uplink_keys
+                )
+            )
+
+
+class Layer2NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer2TestCase):
     def setUp(self):
         super(Layer2NetworkXMetadataTests, self).setUp()
         self._setupNetmapGraphLayer2()
+
+    def _get_metadata(self, node_a, node_b):
+        return self.netmap_graph.get_edge_data(node_a, node_b).get('meta')
 
     def test_node_a1_and_b1_contains_vlan_metadata(self):
         vlans = self.netmap_graph.node[self.a]['metadata']['vlans']
@@ -80,10 +136,13 @@ class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
             self.netmap_graph.get_edge_data(self.a, self.b).get('meta', {}))
 
 
-class Layer3NetworkXMetadataTests(TopologyLayer3TestCase):
+class Layer3NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer3TestCase):
     def setUp(self):
         super(Layer3NetworkXMetadataTests, self).setUp()
         self._setupNetmapGraphLayer3()
+
+    def _get_metadata(self, node_a, node_b):
+        return [x.get('metadata') for x in self.netmap_graph.get_edge_data(node_a, node_b).values()]
 
     def test_link_between_a_and_c_contains_both_v4_and_v6_prefix(self):
         self.assertEqual(
@@ -98,7 +157,6 @@ class Layer3NetworkXMetadataTests(TopologyLayer3TestCase):
         )
 
     def test_link_got_prefixed_attached(self):
-        self._setupNetmapGraphLayer3()
         self.assertEqual(1, len(self.netmap_graph.get_edge_data(
             self.a, self.b
         ).get(self.prefix_foo.vlan.id)
@@ -127,3 +185,59 @@ class Layer3NetworkXMetadataTests(TopologyLayer3TestCase):
         .get('uplink')
         .get('prefixes')))
 
+    def test_uplink_has_thiss_has_correct_metadata(self):
+        # 2111 is VLAN.id
+        thiss = self.netmap_graph.get_edge_data(self.a, self.b).get(2111).get(
+            'metadata').get('uplink').get('thiss')
+        self.assertEqual(thiss['interface'], self.b1)
+        self.assertEqual(thiss['netbox'], self.b)
+        self.assertEqual(thiss['gw_ip'], '158.38.0.2')
+        self.assertFalse(thiss['virtual'])
+
+    def test_uplink_has_other_has_correct_metadata(self):
+        other = self.netmap_graph.get_edge_data(self.a, self.b).get(2111).get(
+            'metadata').get('uplink').get('other')
+        self.assertEqual(other['interface'], self.a1)
+        self.assertEqual(other['netbox'], self.a)
+        self.assertEqual(other['gw_ip'], '158.38.0.1')
+        self.assertFalse(other['virtual'])
+
+    def test_uplink_has_all_layer3_properties_it_should_for_uplink__this(self):
+        should_have = ('gw_ip', 'virtual')
+
+        metadata = self.netmap_graph.get_edge_data(self.a, self.b).get(
+            2111).get('metadata').get('uplink').get('thiss').keys()
+
+        self.assertTrue(
+            all([x in metadata for x in should_have])
+            , msg="Didn't find all keys {0}, only found: {1}".format(
+                should_have,
+                metadata
+            )
+        )
+
+    def test_uplink_has_all_layer3_properties_it_should_for_uplink__other(self):
+        should_have = ('gw_ip', 'virtual')
+
+        metadata = self.netmap_graph.get_edge_data(self.a, self.b).get(
+            2111).get('metadata').get('uplink').get('other').keys()
+
+        self.assertTrue(
+            all([x in metadata for x in should_have]),
+            msg="Didn't find all keys {0}, only found: {1}".format(
+                should_have,
+                metadata
+            )
+        )
+
+    def test_uplink_has_all_layer3_properties_it_should(self):
+        should_have = ('prefixes', 'vlan')
+        for x in self.netmap_graph.get_edge_data(self.a, self.b).values():
+            self.assertTrue(
+                all(
+                    [y in x.get('metadata').get('uplink').keys() for y in should_have]
+                ),
+                msg="Didn't find all keys {0}, only found: {1}".format(
+                should_have,
+                x.get('metadata').get('uplink').keys()
+            ))
