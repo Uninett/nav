@@ -72,7 +72,7 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
                          len(self.netmap_graph.get_edge_data(
                              self.a,
                              self.b
-                         ).get('meta', [])))
+                         ).get('metadata', [])))
 
 class Layer3MultiGraphToUndirectTests(TopologyLayer3TestCase):
 
