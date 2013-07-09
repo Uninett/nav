@@ -107,7 +107,7 @@ def edge_to_json_layer2(edge, metadata):
     :param edge Metadata from netmap networkx graph
     :return edge representation in JSON
     """
-    metadata = metadata['meta']
+    metadata = metadata['metadata']
     list_of_directional_metadata_edges = edge_to_json(edge, metadata)
 
     for index, json in enumerate(list_of_directional_metadata_edges):
@@ -131,7 +131,7 @@ def edge_to_json_layer3(metadata):
     :param metadata Metadata from netmap networkx graph
     :return edge representation in JSON
     """
-    metadata = metadata['meta']
+    metadata = metadata['metadata']
     json = edge_to_json(metadata)
 
     if type(json['uplink']) == dict:

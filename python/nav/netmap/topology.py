@@ -345,9 +345,9 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
                             "metadata while creating netmap topology graph")
                     elif len(updated_metadata)==1:
                         updated_metadata = dict(updated_metadata)[
-                            'meta'].append(additional_metadata)
+                            'metadata'].append(additional_metadata)
                     else:
-                        updated_metadata = {'meta': [additional_metadata]}
+                        updated_metadata = {'metadata': [additional_metadata]}
 
                     # create new/updates existing edge with updated metadata.
                     netmap_graph.add_edge(

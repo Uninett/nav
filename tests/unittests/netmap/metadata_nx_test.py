@@ -65,7 +65,7 @@ class Layer2NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer2Tes
         self._setupNetmapGraphLayer2()
 
     def _get_metadata(self, node_a, node_b):
-        return self.netmap_graph.get_edge_data(node_a, node_b).get('meta')
+        return self.netmap_graph.get_edge_data(node_a, node_b).get('metadata')
 
     def test_node_a1_and_b1_contains_vlan_metadata(self):
         vlans = self.netmap_graph.node[self.a]['metadata']['vlans']
@@ -76,12 +76,12 @@ class Layer2NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer2Tes
         self.assertEqual(vlans[0][0], self.vlan__a1_b1.vlan.id)
 
     def test_edge_between_a_and_b_has_2_edges_as_metdata(self):
-        edge_meta = self.netmap_graph.get_edge_data(self.a, self.b)['meta']
+        edge_meta = self.netmap_graph.get_edge_data(self.a, self.b)['metadata']
         self.assertEqual(2, len(edge_meta))
 
     def test_edge_between_a_and_b_contains_a1_b1__and__a2_b2_uplinks(self):
         edge_meta = [x['uplink'] for x in
-                     self.netmap_graph.get_edge_data(self.a, self.b)['meta']]
+                     self.netmap_graph.get_edge_data(self.a, self.b)['metadata']]
         self.assertEqual(self.a1, edge_meta[0]['thiss']['interface'])
         self.assertEqual(self.b1, edge_meta[0]['other']['interface'])
         self.assertEqual(self.a2, edge_meta[1]['thiss']['interface'])
@@ -93,7 +93,7 @@ class Layer2NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer2Tes
         self.assertEquals(2, len(self.netmap_graph.get_edge_data(
             self.a,
             self.b
-        ).get('meta', [])))
+        ).get('metadata', [])))
 
     def test_netmap_metadata_is_correct_for_2_links_edge_between_a_and_b(self):
         self._setupNetmapGraphLayer2()
@@ -134,7 +134,7 @@ class Layer2NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer2Tes
                     'error': {}
                  },
             ],
-            self.netmap_graph.get_edge_data(self.a, self.b).get('meta', {}))
+            self.netmap_graph.get_edge_data(self.a, self.b).get('metadata', {}))
 
 
 class Layer3NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer3TestCase):
