@@ -19,7 +19,7 @@ from mock import Mock
 from nav.models.manage import Netbox, Room, Location, SwPortVlan, Vlan
 from nav.models.profiles import NetmapViewNodePosition
 from nav.netmap import stubs, metadata
-from nav.netmap.metadata import edge_metadata, edge_to_json
+from nav.netmap.metadata import edge_metadata, edge_to_json, edge_to_json_layer3
 from topology_layer3_testcase import TopologyLayer3TestCase
 from topology_layer2_testcase import TopologyLayer2TestCase
 
@@ -168,6 +168,37 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
         self.nx_edge_metadata = {'metadata': {
             'position': a_position
         }}
+
+    def test_layer3_prefix_is_added_between_a_and_b(self):
+        self._setupNetmapGraphLayer3()
+        edge_json_metadata = edge_to_json_layer3(
+            (self.a, self.b),
+            self.netmap_graph.get_edge_data(self.a, self.b)
+        )
+
+        self.assertEqual(1, len(edge_json_metadata))
+        self.assertEqual(1, len(edge_json_metadata[0].get('uplink').get('prefixes')))
+        self.assertEqual('158.38.0.0/30', edge_json_metadata[0].get('uplink').get('prefixes')[0])
+
+    def test_layer3_v4_and_v6_prefixes_added_between_a_and_c(self):
+        self._setupNetmapGraphLayer3()
+        edge_json_metadata = edge_to_json_layer3(
+            (self.a, self.b),
+            self.netmap_graph.get_edge_data(self.a, self.c)
+        )
+
+        self.assertEqual(1, len(edge_json_metadata))
+        self.assertEqual(2, len(edge_json_metadata[0].get('uplink').get('prefixes')))
+        expected_prefixes = ('158.38.0.4/30', 'feed:dead:cafe:babe::/64')
+        test = edge_json_metadata[0].get('uplink').get('prefixes')
+
+        self.assertTrue(
+            all([x in test for x in expected_prefixes])
+            , msg="Didn't find all keys {0}, only found: {1}".format(
+                expected_prefixes,
+                test
+            )
+        )
 
 if __name__ == '__main__':
     unittest.main()
