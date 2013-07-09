@@ -57,12 +57,12 @@ class SharedJsonMetadataTests():
     def test_json_id_is_included_in_metadata_from_node(self):
         foo = metadata._node_to_json(self.a, self.nx_edge_metadata)
         self.assertTrue('id' in foo)
-        self.assertEqual('999', foo['id'])
+        self.assertEqual('2', foo['id'])
 
     def test_json_sysname_is_included_in_metadata_from_node(self):
         foo = metadata._node_to_json(self.a, self.nx_edge_metadata)
         self.assertTrue('sysname' in foo)
-        self.assertEqual('foo.nav.unittest', foo['sysname'])
+        self.assertEqual('a', foo['sysname'])
 
     def test_json_category_is_included_in_metadata_from_node(self):
         foo = metadata._node_to_json(self.a, self.nx_edge_metadata)
@@ -72,12 +72,12 @@ class SharedJsonMetadataTests():
     def test_json_ip_is_included_in_metadata_from_node(self):
         foo = metadata._node_to_json(self.a, self.nx_edge_metadata)
         self.assertTrue('ip' in foo)
-        self.assertEqual('::1', foo['ip'])
+        self.assertEqual('::2', foo['ip'])
 
     def test_json_ipdevinfo_link_is_included_in_metadata_from_node(self):
         foo = metadata._node_to_json(self.a, self.nx_edge_metadata)
         self.assertTrue('ipdevinfo_link' in foo)
-        self.assertEqual('/ipdevinfo/foo.nav.unittest/', foo['ipdevinfo_link'])
+        self.assertEqual('/ipdevinfo/a/', foo['ipdevinfo_link'])
 
     def test_json_position_is_included_in_metadata_from_node(self):
         foo = metadata._node_to_json(self.a, self.nx_edge_metadata)
@@ -130,18 +130,6 @@ class Layer2JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer2TestCase):
 
     def setUp(self):
         super(Layer2JsonMetadataTests, self).setUp()
-        self.room = Room()
-        self.room.id = 'Pegasus'
-        self.room.description = 'room description'
-        self.room.location = Location()
-        self.room.location.id = 'galaxy'
-        self.room.location.description = 'In a galaxy far far away'
-        self.a = Netbox()
-        self.a.id = 999
-        self.a.sysname = 'foo.nav.unittest'
-        self.a.room = self.room
-        self.a.category_id = 'GW'
-        self.a.ip = '::1'
 
         a_position = NetmapViewNodePosition()
         a_position.x = 1.3
@@ -173,18 +161,6 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
 
     def setUp(self):
         super(Layer3JsonMetadataTests, self).setUp()
-        self.room = Room()
-        self.room.id = 'Pegasus'
-        self.room.description = 'room description'
-        self.room.location = Location()
-        self.room.location.id = 'galaxy'
-        self.room.location.description = 'In a galaxy far far away'
-        self.a = Netbox()
-        self.a.id = 999
-        self.a.sysname = 'foo.nav.unittest'
-        self.a.room = self.room
-        self.a.category_id = 'GW'
-        self.a.ip = '::1'
 
         a_position = NetmapViewNodePosition()
         a_position.x = 1.3
@@ -192,7 +168,6 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
         self.nx_edge_metadata = {'metadata': {
             'position': a_position
         }}
-
 
 if __name__ == '__main__':
     unittest.main()

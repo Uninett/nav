@@ -8,6 +8,8 @@ from topology_testcase import TopologyTestCase
 class TopologyLayer2TestCase(TopologyTestCase):
 
     def setUp(self):
+        super(TopologyLayer2TestCase, self).setUp()
+
         self.model_id = 1
         self.nav_graph = nx.MultiDiGraph()
 

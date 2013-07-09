@@ -21,6 +21,8 @@ class TopologyLayer3TestCase(TopologyTestCase):
         node f connected to unknown node (elink) as a linknet on prefix
          158.38.99.0/30 { f4: 1, UNKNOWN }
         """
+        super(TopologyLayer3TestCase, self).setUp()
+
         self.model_id = 1
         self.nav_graph = nx.MultiGraph()
 
