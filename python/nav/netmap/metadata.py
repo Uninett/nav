@@ -125,50 +125,52 @@ def edge_to_json_layer2(edge, metadata):
     return list_of_directional_metadata_edges
 
 
-def edge_to_json_layer3(metadata):
+def edge_to_json_layer3(edge, vlan_metadata_dict):
     """Convert a edge between A and B in a netmap layer 3 graph to JSON
 
     :param metadata Metadata from netmap networkx graph
     :return edge representation in JSON
     """
-    metadata = metadata['metadata']
-    json = edge_to_json(metadata)
+    for metadata in vlan_metadata_dict.values():
+        metadata = metadata['metadata']
+        collection_of_uplinks = edge_to_json(edge, [metadata])
 
-    if type(json['uplink']) == dict:
-        uplink = json['uplink']
+        for json in collection_of_uplinks:
+            if type(json['uplink']) == dict:
+                uplink = json['uplink']
 
-        # Add prefix metadata
-        vlan = None
+                # Add prefix metadata
+                vlan = None
 
-        uplink_this = {}
-        uplink_other = {}
-        #                'net_address': unicode(metadata['uplink']['prefix']
-        # .net_address),
-        if metadata['uplink'].has_key('vlan') and metadata['uplink']['vlan']:
-            vlan = {
-                'net_ident': unicode(metadata['uplink']['vlan'].net_ident),
-                'description': unicode(metadata['uplink']['vlan'].description)
-            }
+                uplink_this = {}
+                uplink_other = {}
+                #                'net_address': unicode(metadata['uplink']['prefix']
+                # .net_address),
+                if metadata['uplink'].has_key('vlan') and metadata['uplink']['vlan']:
+                    vlan = {
+                        'net_ident': unicode(metadata['uplink']['vlan'].net_ident),
+                        'description': unicode(metadata['uplink']['vlan'].description)
+                    }
 
-            uplink.update({'prefixes': [x.net_address for x in
-                                        metadata['uplink']['prefixes']]})
+                    uplink.update({'prefixes': [x.net_address for x in
+                                                metadata['uplink']['prefixes']]})
 
-            if metadata['uplink']['thiss'].has_key('gw_ip'):
-                uplink_this.update(
-                        {'gw_ip': metadata['uplink']['thiss']['gw_ip'],
-                         'virtual': metadata['uplink']['thiss']['virtual']})
+                    if metadata['uplink']['thiss'].has_key('gw_ip'):
+                        uplink_this.update(
+                                {'gw_ip': metadata['uplink']['thiss']['gw_ip'],
+                                 'virtual': metadata['uplink']['thiss']['virtual']})
 
-            if metadata['uplink']['other'].has_key('gw_ip'):
-                uplink_other.update(
-                        {'gw_ip': metadata['uplink']['other']['gw_ip'],
-                         'virtual': metadata['uplink']['other']['virtual']})
+                    if metadata['uplink']['other'].has_key('gw_ip'):
+                        uplink_other.update(
+                                {'gw_ip': metadata['uplink']['other']['gw_ip'],
+                                 'virtual': metadata['uplink']['other']['virtual']})
 
-        uplink['thiss'].update(uplink_this)
-        uplink['other'].update(uplink_other)
+                uplink['thiss'].update(uplink_this)
+                uplink['other'].update(uplink_other)
 
-        uplink['vlan'] = vlan
+                uplink['vlan'] = vlan
 
-    return json
+        return collection_of_uplinks
 
 
 def edge_to_json(edge, metadata):
