@@ -7,52 +7,56 @@ class SharedNetworkXMetadataTests(object):
         self.assertTrue(True) # Nice to check on CI if it has been run.
 
     def test_root_metadata_has_all_properties_it_should(self):
-        metadata = self._get_metadata(self.a, self.b)
-        for x in metadata:
-            self.assertTrue(all([x in ('tip_inspect_link', 'link_speed', 'uplink', 'error') for x in x.keys()]))
+        for node_a, node_b in self.netmap_graph.edges():
+            metadata = self._get_metadata(node_a, node_b)
+            for x in metadata:
+                self.assertTrue(all([x in ('tip_inspect_link', 'link_speed', 'uplink', 'error') for x in x.keys()]))
 
     def test_uplink_has_all_shared_properties_it_should_for_uplink__this(self):
         # for every uplink. (MultiDiGraph Directed Metadata)
-        collection_metadata = self._get_metadata(self.a, self.b)
+        for node_a, node_b in self.netmap_graph.edges():
+            collection_metadata = self._get_metadata(node_a, node_b)
 
-        should_have = ('netbox', 'interface')
+            should_have = ('netbox', 'interface')
 
-        for metadata in collection_metadata:
-            keys_uplink_side = metadata.get('uplink').get('thiss').keys()
-            self.assertTrue(all([x in keys_uplink_side for x in should_have])
-                , msg="Didn't find all keys {0}, only found: {1}".format(
-                    should_have,
-                    keys_uplink_side
-                ))
+            for metadata in collection_metadata:
+                keys_uplink_side = metadata.get('uplink').get('thiss').keys()
+                self.assertTrue(all([x in keys_uplink_side for x in should_have])
+                    , msg="Didn't find all keys {0}, only found: {1}".format(
+                        should_have,
+                        keys_uplink_side
+                    ))
 
     def test_uplink_has_all_shared_properties_it_should_for_uplink__other(self):
         # for every uplink. (MultiDiGraph Directed Metadata)
-        collection_metadata = self._get_metadata(self.a, self.b)
+        for node_a, node_b in self.netmap_graph.edges():
+            collection_metadata = self._get_metadata(node_a, node_b)
 
-        should_have = ('netbox', 'interface')
+            should_have = ('netbox', 'interface')
 
-        for metadata in collection_metadata:
-            keys_uplink_side = metadata.get('uplink').get('other').keys()
+            for metadata in collection_metadata:
+                keys_uplink_side = metadata.get('uplink').get('other').keys()
 
-            self.assertTrue(all([x in keys_uplink_side for x in should_have])
-                , msg="Didn't find all keys {0}, only found: {1}".format(
-                    should_have,
-                    keys_uplink_side
-                ))
+                self.assertTrue(all([x in keys_uplink_side for x in should_have])
+                    , msg="Didn't find all keys {0}, only found: {1}".format(
+                        should_have,
+                        keys_uplink_side
+                    ))
 
     def test_uplink_has_all_shared_properties_it_should(self):
-        metadata = self._get_metadata(self.a, self.b)
-        should_have = ('thiss', 'other')
-        for x in metadata:
-            uplink_keys = x.get('uplink').keys()
-            self.assertTrue(
-                all([y in uplink_keys for y in should_have]),
-                msg="Didn't find all keys {0}, only found: {1}"
-                .format(
-                    should_have,
-                    uplink_keys
+        for node_a, node_b in self.netmap_graph.edges():
+            metadata = self._get_metadata(node_a, node_b)
+            should_have = ('thiss', 'other')
+            for x in metadata:
+                uplink_keys = x.get('uplink').keys()
+                self.assertTrue(
+                    all([y in uplink_keys for y in should_have]),
+                    msg="Didn't find all keys {0}, only found: {1}"
+                    .format(
+                        should_have,
+                        uplink_keys
+                    )
                 )
-            )
 
 
 class Layer2NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer2TestCase):
@@ -83,9 +87,6 @@ class Layer2NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer2Tes
         self.assertEqual(self.a2, edge_meta[1]['thiss']['interface'])
         self.assertEqual(self.b2, edge_meta[1]['other']['interface'])
 
-    def test_fetch_link_speed_from_edge(self):
-        a, b, meta = self.netmap_graph.edges(data=True)[0]
-        self.assertTrue('link_speed' in meta['meta'][0])
 
     def test_netmap_metadata_shows_2_links_for_edge_between_a_and_b(self):
         self._setupNetmapGraphLayer2()
