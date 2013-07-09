@@ -47,18 +47,9 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
                 'aoColumnDefs': [
                     {'bSortable': false, 'aTargets': nosort}
                 ],
-                'sDom': '<"caption"<"info"i><"filter"f>>t'
+                'sDom': '<"caption"<"info"i><"filter"f>>t',
+                'oLanguage': {'sSearch': 'Filter results:'}
             });
-
-            // Hack to change the label of the filter box
-            var filter_label = $('#resulttable_filter label');
-            filter_label.contents().filter(function() {
-                return this.nodeType === Node.TEXT_NODE;
-            }).remove();
-            filter_label.prepend('Filter results:');
-            filter_label.append(
-                '<button type="button" onclick="javascript:$.fn.add_filter(\'\')">clear</button>'
-            );
 
             // Set caption width to the table width
             $('.caption').css('width', function() {
