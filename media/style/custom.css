@@ -85,6 +85,7 @@ table .button {
 .navletmap {
     height: 400px;
     width: auto;
+    position:relative;
 }
 
 .bigmap {
