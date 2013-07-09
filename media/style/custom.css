@@ -82,6 +82,11 @@ table .button {
     width: 600px;
 }
 
+.navletmap {
+    height: 400px;
+    width: auto;
+}
+
 .bigmap {
     height: 600px;
 }

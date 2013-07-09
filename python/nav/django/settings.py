@@ -125,4 +125,5 @@ NAVLETS = (
     'nav.web.navlets.linklist.LinkListNavlet',
     'nav.web.navlets.messages.MessagesNavlet',
     'nav.web.navlets.welcome.WelcomeNavlet',
+    'nav.web.navlets.room_map.RoomMapNavlet',
 )

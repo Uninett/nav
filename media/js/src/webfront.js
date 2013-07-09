@@ -15,9 +15,14 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'li
         }
 
         $(function () {
-            addRoomMap();
+            $.fn.createMap = function() {
+                return addRoomMap();
+            };
+
             var controller = new NavletsController($('#navlets'));
         });
 
     }
 );
+
+
