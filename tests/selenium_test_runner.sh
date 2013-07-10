@@ -1,3 +1,13 @@
+#!/bin/bash
+SLEEPTIME=2
+
+XVFB=`which Xvfb`
+if [ "$?" -eq 1 ]; then
+    echo "Xvfb not found"
+    exit 1
+fi
+
+
 echo "Starting Xvfb"
 XVFB_TRIES=0
 XVFB_STARTED=0
@@ -19,4 +29,8 @@ if [ ! ${XVFB_STARTED} ]; then
     echo "Coult not start xvfb, exiting"
     exit 1
 fi
+
+export DISPLAY=:${DISPLAYNUM}
+
+python -m functional.geomap.geomap_tests
 

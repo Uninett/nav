@@ -15,7 +15,10 @@
 #
 """Mixins for selenium tests"""
 
+import os
 from selenium import webdriver
+
+BASE_URL = os.environ['TARGETURL']
 
 
 class SeleniumMixins(object):
@@ -26,7 +29,7 @@ class SeleniumMixins(object):
     @staticmethod
     def get_driver_and_login(username, password, url='', wait=5):
         """Gets driver and logs in"""
-        driver = SeleniumMixins.get_driver(SeleniumMixins.base_url, wait)
+        driver = SeleniumMixins.get_driver(BASE_URL, wait)
         SeleniumMixins.login(driver, username, password)
         driver.get(SeleniumMixins.base_url + url)
         return driver
