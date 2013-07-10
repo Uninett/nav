@@ -18,9 +18,10 @@ import unittest
 from mock import Mock
 from nav.netmap.metadata import edge_metadata, edge_to_json
 from nav.netmap.topology import NetmapEdge
-from topology_testcase import TopologyTestCase
+from topology_layer2_testcase import TopologyLayer2TestCase
+from topology_layer3_testcase import TopologyLayer3TestCase
 
-class NetmapCommonTests(TopologyTestCase):
+class NetmapCommonTests(object):
 
     def test_ordered_set_length_is_correct_where__a_b__is_same_as__b_a(self):
         foo = set()
@@ -37,6 +38,11 @@ class NetmapCommonTests(TopologyTestCase):
         self.assertTrue(foo[(self.b1, self.a1)])
 
 
+class NetmapCommonLayer3(NetmapCommonTests, TopologyLayer3TestCase):
+    pass
+
+class NetmapCommonLayer2(NetmapCommonTests, TopologyLayer2TestCase):
+    pass
 
 
 if __name__ == '__main__':
