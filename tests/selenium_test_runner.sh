@@ -1,5 +1,12 @@
 #!/bin/bash
+if [ ! -n "$1" ]; then
+    echo "Need path to targeturl"
+    exit 1
+fi
+
 SLEEPTIME=2
+export TARGETURL=$1
+echo URL ${TARGETURL}
 
 XVFB=`which Xvfb`
 if [ "$?" -eq 1 ]; then
@@ -31,6 +38,7 @@ if [ ! ${XVFB_STARTED} ]; then
 fi
 
 export DISPLAY=:${DISPLAYNUM}
-
 python -m functional.geomap.geomap_tests
+import -window root ./test-error.png
+
 
