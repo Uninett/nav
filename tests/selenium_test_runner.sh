@@ -1,12 +1,11 @@
 #!/bin/bash
 if [ ! -n "$1" ]; then
-    echo "Need path to targeturl"
+    echo "Need targeturl"
     exit 1
 fi
 
 SLEEPTIME=2
 export TARGETURL=$1
-echo URL ${TARGETURL}
 
 XVFB=`which Xvfb`
 if [ "$?" -eq 1 ]; then
