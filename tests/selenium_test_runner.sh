@@ -14,7 +14,6 @@ if [ "$?" -eq 1 ]; then
     exit 1
 fi
 
-
 echo "Starting Xvfb"
 XVFB_TRIES=0
 XVFB_STARTED=0
@@ -39,6 +38,8 @@ fi
 
 export DISPLAY=:${DISPLAYNUM}
 py.test --junitxml=selenium-results.xml functional
-import -window root ./test-error.png
 
-
+if [ "$?" -eq 1 ]; then
+    echo "Error when testing, taking screenshot"
+    import -window root ${WORKSPACE}/tests/selenium-test-error.png
+fi
