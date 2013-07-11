@@ -38,7 +38,7 @@ if [ ! ${XVFB_STARTED} ]; then
 fi
 
 export DISPLAY=:${DISPLAYNUM}
-python -m functional.geomap.geomap_tests
+../python/runtests.py functional
 import -window root ./test-error.png
 
 
