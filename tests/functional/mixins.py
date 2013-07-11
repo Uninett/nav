@@ -13,26 +13,30 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Mixins for selenium tests"""
+"""Base functionality for selenium tests"""
 
 import os
+import unittest
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 
 BASE_URL = os.environ['TARGETURL']
 
 
-class SeleniumMixins(object):
-    """Mixin class for common selenium operations"""
+class SeleniumTest(unittest.TestCase):
+    """Super class for selenium tests"""
 
-    base_url = 'http://localhost:8080'
+    def setUp(self):
+        self.driver = self.get_driver_and_login('admin', 'admin', '/geomap')
 
-    @staticmethod
-    def get_driver_and_login(username, password, url='', wait=5):
+    def tearDown(self):
+        self.driver.quit()
+
+    def get_driver_and_login(self, username, password, url='', wait=5):
         """Gets driver and logs in"""
-        driver = SeleniumMixins.get_driver(BASE_URL, wait)
-        SeleniumMixins.login(driver, username, password)
-        driver.get(SeleniumMixins.base_url + url)
+        driver = self.get_driver(BASE_URL, wait)
+        self.login(driver, username, password)
+        driver.get(BASE_URL + url)
         return driver
 
     @staticmethod
@@ -43,8 +47,7 @@ class SeleniumMixins(object):
         driver.get(url)
         return driver
 
-    @staticmethod
-    def login(driver, username, password):
+    def login(self, driver, username, password):
         """Logs in to NAV"""
         driver.find_element_by_class_name('login').click()
         driver.find_element_by_id('id_username').send_keys(username)

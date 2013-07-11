@@ -16,21 +16,15 @@
 """Testrunner for the geomap page"""
 
 import unittest
-from ..mixins import SeleniumMixins
-from selenium import webdriver
+from ..mixins import SeleniumTest
 from selenium.common.exceptions import NoSuchElementException
 
 
-class GeoMapSeleniumTests(SeleniumMixins, unittest.TestCase):
+class GeoMapSeleniumTests(SeleniumTest):
     """Tests for the GeoMap page"""
 
-    def setUp(self):
-        self.driver = self.get_driver_and_login('admin', 'admin', '/geomap')
-
-    def tearDown(self):
-        self.driver.quit()
-
     def test_map_loaded(self):
+        """Test if map is loaded"""
         try:
             self.driver.find_element_by_class_name('olMapViewport')
         except NoSuchElementException:
@@ -39,5 +33,3 @@ class GeoMapSeleniumTests(SeleniumMixins, unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
