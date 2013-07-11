@@ -38,7 +38,7 @@ if [ ! ${XVFB_STARTED} ]; then
 fi
 
 export DISPLAY=:${DISPLAYNUM}
-../python/runtests.py functional
+py.test functional
 import -window root ./test-error.png
 
 
