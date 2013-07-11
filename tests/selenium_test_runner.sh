@@ -38,7 +38,7 @@ if [ ! ${XVFB_STARTED} ]; then
 fi
 
 export DISPLAY=:${DISPLAYNUM}
-py.test functional
+py.test --junitxml=selenium-results.xml functional
 import -window root ./test-error.png
 
 
