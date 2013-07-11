@@ -16,7 +16,7 @@
 """Testrunner for the geomap page"""
 
 import unittest
-from ..mixins import SeleniumTest
+from .. import SeleniumTest
 from selenium.common.exceptions import NoSuchElementException
 
 
