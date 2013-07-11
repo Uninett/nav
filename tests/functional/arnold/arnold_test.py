@@ -15,7 +15,6 @@
 #
 """Selenium tests for arnold"""
 
-import unittest
 from .. import SeleniumTest, BASE_URL
 
 
@@ -25,8 +24,23 @@ class ArnoldTest(SeleniumTest):
     def setUp(self):
         super(ArnoldTest, self).setUp()
         self.url = BASE_URL + '/arnold'
-        self.driver.get(self.url)
 
     def test_should_default_to_detained_ports(self):
+        self.driver.get(self.url)
         title = self.driver.title
         self.assertIn('Detentions', title)
+
+    def test_add_quarantine_vlan(self):
+        self.driver.get(self.url + '/addquarantinevlan')
+
+        # Submit a new quarantine vlan
+        form = self.driver.find_element_by_tag_name('form')
+        form.find_element_by_id('id_vlan').send_keys('10')
+        form.find_element_by_id('id_description').send_keys('test')
+        form.find_element_by_css_selector('input[type=submit]').click()
+
+        # After submit
+        table = self.driver.find_element_by_class_name('listtable')
+        row = table.find_elements_by_tag_name('tr')[-1]
+        self.assertIn('10', row.text)
+        self.assertIn('test', row.text)
