@@ -51,7 +51,6 @@ dropdb $PGDATABASE || true
 sql/syncdb.py -c || exit 1
 
 if [ -n "$ADMINPASSWORD" ]; then psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'"; fi
-echo Password set to ${ADMINPASSWORD}
 
 # Add non-ASCII chars to the admin user's login name to test encoding
 # compliance for all Cheetah based web pages.
