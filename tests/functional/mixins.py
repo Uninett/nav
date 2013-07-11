@@ -17,6 +17,7 @@
 
 import os
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 
 BASE_URL = os.environ['TARGETURL']
 
@@ -49,3 +50,7 @@ class SeleniumMixins(object):
         driver.find_element_by_id('id_username').send_keys(username)
         driver.find_element_by_id('id_password').send_keys(password)
         driver.find_element_by_css_selector('input[type=submit]').click()
+        try:
+            driver.find_element_by_class_name('logout')
+        except NoSuchElementException:
+            self.fail('Failed to log in')
