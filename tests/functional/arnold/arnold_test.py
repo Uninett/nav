@@ -13,28 +13,20 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Testrunner for the geomap page"""
+"""Selenium tests for arnold"""
 
 import unittest
 from .. import SeleniumTest, BASE_URL
-from selenium.common.exceptions import NoSuchElementException
 
 
-class GeoMapSeleniumTests(SeleniumTest):
-    """Tests for the GeoMap page"""
+class ArnoldTest(SeleniumTest):
+    """Testrunner for Arnold selenium tests"""
 
     def setUp(self):
-        super(GeoMapSeleniumTests, self).setUp()
-        self.url = BASE_URL + '/geomap'
+        super(ArnoldTest, self).setUp()
+        self.url = BASE_URL + '/arnold'
         self.driver.get(self.url)
 
-    def test_map_loaded(self):
-        """Test if map is loaded"""
-        try:
-            self.driver.find_element_by_class_name('olMapViewport')
-        except NoSuchElementException:
-            self.fail('GeoMap seems to not have loaded')
-
-
-if __name__ == '__main__':
-    unittest.main()
+    def test_should_default_to_detained_ports(self):
+        title = self.driver.title
+        self.assertIn('Detentions', title)

@@ -21,31 +21,27 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 
 BASE_URL = os.environ['TARGETURL']
+USERNAME = 'admin'
+PASSWORD = os.environ['ADMINPASSWORD']
+DEFAULT_WAIT_TIME = 5  # timer for implicit wait in seconds
 
 
 class SeleniumTest(unittest.TestCase):
     """Super class for selenium tests"""
 
     def setUp(self):
-        password = os.environ['ADMINPASSWORD']
-        self.driver = self.get_driver_and_login('admin', password, '/geomap')
+        self.driver = self.get_driver()
+        self.login(self.driver, USERNAME, PASSWORD)
 
     def tearDown(self):
         self.driver.quit()
 
-    def get_driver_and_login(self, username, password, url='', wait=5):
-        """Gets driver and logs in"""
-        driver = self.get_driver(BASE_URL, wait)
-        self.login(driver, username, password)
-        driver.get(BASE_URL + url)
-        return driver
-
     @staticmethod
-    def get_driver(url, wait):
+    def get_driver():
         """Gets selenium driver and navigates to url"""
         driver = webdriver.Firefox()
-        driver.implicitly_wait(wait)  # Poll for x seconds
-        driver.get(url)
+        driver.implicitly_wait(DEFAULT_WAIT_TIME)  # Poll for x seconds
+        driver.get(BASE_URL)
         return driver
 
     def login(self, driver, username, password):
