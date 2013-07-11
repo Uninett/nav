@@ -27,8 +27,8 @@ class SeleniumTest(unittest.TestCase):
     """Super class for selenium tests"""
 
     def setUp(self):
-        # TODO: Do not hardcode password
-        self.driver = self.get_driver_and_login('admin', 's3cret', '/geomap')
+        password = os.environ['ADMINPASSWORD']
+        self.driver = self.get_driver_and_login('admin', password, '/geomap')
 
     def tearDown(self):
         self.driver.quit()
