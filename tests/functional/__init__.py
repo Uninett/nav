@@ -13,12 +13,21 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Base functionality for selenium tests"""
+"""Base functionality for selenium tests
+
+To run the tests set the following environment variables:
+TARGETURL: complete url to the NAV installation web page
+ADMINPASSWORD: the password for the admin user in your NAV installation
+SELENIUMSERVER: If you need to run the tests on a remote testserver,
+                enter the url here.
+
+"""
 
 import os
 import unittest
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 BASE_URL = os.environ['TARGETURL']
 USERNAME = 'admin'
@@ -39,7 +48,12 @@ class SeleniumTest(unittest.TestCase):
     @staticmethod
     def get_driver():
         """Gets selenium driver and navigates to url"""
-        driver = webdriver.Firefox()
+        if 'SELENIUMSERVER' in os.environ:
+            driver = webdriver.Remote(
+                command_executor=os.environ['SELENIUMSERVER'],
+                desired_capabilities=DesiredCapabilities.FIREFOX)
+        else:
+            driver = webdriver.Firefox()
         driver.implicitly_wait(DEFAULT_WAIT_TIME)  # Poll for x seconds
         driver.get(BASE_URL)
         return driver
