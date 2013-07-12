@@ -43,5 +43,5 @@ class ArnoldTest(SeleniumTest):
         table = self.driver.find_element_by_css_selector(
             '.tabcontent .listtable')
         row = table.find_elements_by_tag_name('tr')[-1]
-        self.assertIn('10', row.text)
-        self.assertIn('test', row.text)
+        self.assertTrue('10' in row.text)
+        self.assertTrue('test' in row.text)
