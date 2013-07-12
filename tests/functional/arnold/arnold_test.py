@@ -13,25 +13,22 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=C0111, R0904
 """Selenium tests for arnold"""
 
-from .. import SeleniumTest, BASE_URL
+from .. import SeleniumTest
 
 
-class ArnoldTest(SeleniumTest):
-    """Testrunner for Arnold selenium tests"""
-
-    def setUp(self):
-        super(ArnoldTest, self).setUp()
-        self.url = BASE_URL + '/arnold'
+class ArnoldSeleniumTest(SeleniumTest):
+    """Testrunner for the Arnold page"""
 
     def test_should_default_to_detained_ports(self):
-        self.driver.get(self.url)
+        self.driver.get(self.get_url('arnold_index'))
         title = self.driver.title
         self.assertTrue('Detentions' in title)
 
     def test_add_quarantine_vlan(self):
-        self.driver.get(self.url + '/addquarantinevlan')
+        self.driver.get(self.get_url('arnold-quarantinevlans'))
 
         # Submit a new quarantine vlan
         form = self.driver.find_element_by_css_selector('.tabcontent form')

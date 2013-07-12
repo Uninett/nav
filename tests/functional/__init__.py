@@ -13,22 +13,31 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=C0103, R0904
 """Base functionality for selenium tests
 
 To run the tests set the following environment variables:
-TARGETURL: complete url to the NAV installation web page
+TARGETURL: complete url to the NAV web page to run tests on
 ADMINPASSWORD: the password for the admin user in your NAV installation
 SELENIUMSERVER: If you need to run the tests on a remote testserver,
                 enter the url here.
+
+To set up seleniumserver:
+- http://selenium.googlecode.com/files/selenium-server-standalone-2.33.0.jar
+- java -jar selenium-server-standalone-2.33.0.jar
+- url to server is in output when starting server
 
 """
 
 import os
 import unittest
+from django.core.urlresolvers import reverse
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from urlparse import urljoin
 
+os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 BASE_URL = os.environ['TARGETURL']
 USERNAME = 'admin'
 PASSWORD = os.environ['ADMINPASSWORD']
@@ -68,3 +77,8 @@ class SeleniumTest(unittest.TestCase):
             driver.find_element_by_class_name('logout')
         except NoSuchElementException:
             self.fail('Failed to log in')
+
+    @staticmethod
+    def get_url(viewname):
+        """Get url based on viewname"""
+        return urljoin(BASE_URL, reverse(viewname))
