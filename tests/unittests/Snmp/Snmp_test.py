@@ -8,9 +8,9 @@ import sys
 class SnmpTests(unittest.TestCase):
     def _rm_module(self, module):
         if module in sys.modules:
-            del(sys.modules[module])
+            del sys.modules[module]
 
-    def setUp(self):
+    def _clean(self):
         modules_to_reload = (
             'pynetsnmp.netsnmp',
             'pynetsnmp',
@@ -22,15 +22,14 @@ class SnmpTests(unittest.TestCase):
             'pysnmp.mapping.udp.role',
             'pysnmp.proto',
             'pysnmp.proto.api',
-
-            'nav.Snmp.pynetsnmp',
-            'nav.Snmp.pysnmp_se',
-            'nav.Snmp.pysnmp_v2',
-            'nav.Snmp'
+            'nav.Snmp',
         )
+
         for module in modules_to_reload:
             self._rm_module(module)
 
+    def tearDown(self):
+        self._clean()
 
     def test_load_pynetsnmp_if_available_as_first_choice(self):
         pynetsnmp = Mock()
@@ -54,6 +53,7 @@ class SnmpTests(unittest.TestCase):
 
     def test_load_pysnmp_se_if_pynetsnmp_is_not_available(self):
         pysnmp = Mock()
+
         modules = {
             'pynetsnmp.netsnmp': None,
             'pynetsnmp': None,
@@ -71,7 +71,7 @@ class SnmpTests(unittest.TestCase):
 
         with patch.dict('sys.modules', modules):
             pytest.raises(ImportError, 'import pynetsnmp')
-            pytest.raises(ImportError, 'from nav.Snmp.pynetsnmp import *')
+            pytest.raises(ImportError, 'from pynetsnmp import netsnmp')
 
             # Should not fail.
             from nav.Snmp.pysnmp_se import *
@@ -112,15 +112,10 @@ class SnmpTests(unittest.TestCase):
 
             # Ensure pynetsnmp is unavailable
             pytest.raises(ImportError, 'import pynetsnmp')
-            pytest.raises(ImportError, 'from nav.Snmp.pynetsnmp import *')
 
             # pysnmp version is available
             from pysnmp import version
 
-
-            # having verifyVersionRequirement() mocked to pass version requirement
-            # and ensure pysnmp_se wrapper can do its imports.
-            from nav.Snmp.pysnmp_se import *
 
             from nav.Snmp import Snmp
 
@@ -154,15 +149,9 @@ class SnmpTests(unittest.TestCase):
 
             # Ensure pynetsnmp is unavailable
             pytest.raises(ImportError, 'import pynetsnmp')
-            pytest.raises(ImportError, 'from nav.Snmp.pynetsnmp import *')
 
             # pysnmp version is available
             from pysnmp import version
-
-
-            # having verifyVersionRequirement() mocked to pass version requirement
-            # and ensure pysnmp_se wrapper can do its imports.
-            from nav.Snmp.pysnmp_se import *
 
             from nav.Snmp import Snmp
 
@@ -198,17 +187,9 @@ class SnmpTests(unittest.TestCase):
 
             # Ensure pynetsnmp is unavailable
             pytest.raises(ImportError, 'import pynetsnmp')
-            pytest.raises(ImportError, 'from nav.Snmp.pynetsnmp import *')
 
             # pysnmp version is available
             from pysnmp import version
-
-
-            # having verifyVersionRequirement() mocked to throw exception
-            # but doesn't have majorVersionId attribute on pysnmp.
-
-            # Ensure pysnmp_se wrapper can do its imports.
-            from nav.Snmp.pysnmp_v2 import *
 
             from nav.Snmp import Snmp
 
