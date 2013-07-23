@@ -1,15 +1,15 @@
-require(['plugins/checkbox_selector', 'libs/jquery'], function (CheckboxSelector) {
-    buster.testCase("Checkbox Selector", {
-        setUp: function () {
+define(['plugins/checkbox_selector', 'libs/jquery'], function (CheckboxSelector) {
+    describe("Checkbox Selector", function () {
+        beforeEach(function () {
             this.table = $('<table><tr><th id="select"></th></tr><tr><td><input type="checkbox" class="selector" /><input type="checkbox" class="selector" /></td></tr></table>');
             $('body').append(this.table);
             this.cs = new CheckboxSelector($("#select", this.table), '.selector');
             this.cs.add();
-        },
-        "should create a checkbox in the node": function () {
-            assert.equals($('#select input[type=checkbox]').length, 1);
-        },
-        "should toggle on all the other checkboxes based on main one": function () {
+        });
+        it("should create a checkbox in the node", function () {
+            assert.strictEqual($('#select input[type=checkbox]').length, 1);
+        });
+        it("should toggle on all the other checkboxes based on main one", function () {
             // Need to click twice, no idea why
             $('#select input[type=checkbox]').click();
             $('#select input[type=checkbox]').click();
@@ -19,7 +19,7 @@ require(['plugins/checkbox_selector', 'libs/jquery'], function (CheckboxSelector
                     toggled++;
                 }
             });
-            assert.equals(toggled, 2);
-        }
+            assert.equal(toggled, 2);
+        });
     });
 });
