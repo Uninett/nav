@@ -10,6 +10,7 @@ module.exports = function (config) {
         },
         browsers:      ['Chrome'],
         autoWatch:      false,
-        singleRun: true
+        singleRun: true,
+        colors: false
     });
 };
