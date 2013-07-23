@@ -120,6 +120,8 @@ if [ ! ${XVFB_STARTED} ]; then
     exit 1
 fi
 
+export DISPLAY=:${DISPLAYNUM}
+
 cd ${WORKSPACE}/media/js
 ${JSDIR}/node_modules/karma/bin/karma start karma.conf.buildserver.js
 
