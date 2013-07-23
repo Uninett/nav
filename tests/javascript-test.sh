@@ -24,7 +24,11 @@ function npmModule {
         exit 1
     else
         if [ ! -d "${JSDIR}/node_modules/${1}" ]; then
-            npmInstall $1
+            if [ -n "$2" ]; then
+                npmInstall $2
+            else
+                npmInstall $1
+            fi
         fi
     fi
 }
@@ -67,7 +71,7 @@ npmModule istanbul
 npmModule karma
 npmModule karma-requirejs
 npmModule karma-mocha
-npmModule karma-chai
+npmModule karma-chai git+https://github.com/norrs/karma-chai.git
 npmModule karma-coverage
 npmModule karma-chrome-launcher
 npmModule karma-firefox-launcher
