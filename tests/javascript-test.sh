@@ -14,12 +14,6 @@ if [ "$?" -eq 1 ]; then
     exit 1
 fi
 
-GOOGLECHROME=`which google-chrome`
-if [ "$?" -eq 1 ]; then
-    echo "google chrome not found"
-    exit 1
-fi
-
 NPM=`which npm`
 
 # Function to check for module
@@ -68,7 +62,18 @@ if [ "$?" -eq 1 ]; then
     exit 1
 fi
 
-npmModule buster-amd
+npmModule chai
+npmModule istanbul
+npmModule karma
+npmModule karma-requirejs
+npmModule karma-mocha
+npmModule karma-chai
+npmModule karma-coverage
+npmModule karma-chrome-launcher
+npmModule karma-firefox-launcher
+npmModule karma-phantomjs-launcher
+npmModule karma-junit-reporter
+
 npmModule jshint
 
 
@@ -111,44 +116,12 @@ if [ ! ${XVFB_STARTED} ]; then
     exit 1
 fi
 
-echo "Starting buster-server"
-BUSTER_TRIES=0
-BUSTER_STARTED=0
-until [ ${BUSTER_STARTED} -eq 1 ] || (( ${BUSTER_TRIES} > 10 )) ; do
-    # Find random port for buster-server
-    BUSTERPORT=$((RANDOM%100+1200))
-    ${BUSTERSERVER} -l error -p ${BUSTERPORT} &
-    PID_BUSTER="$!"
-    sleep ${SLEEPTIME}
-    if kill -0 ${PID_BUSTER}; then
-        echo "Started on port ${BUSTERPORT} with pid ${PID_BUSTER}"
-        BUSTER_STARTED=1
-    else
-        BUSTERPORT=$((RANDOM%100+1200))
-        let BUSTER_TRIES=${BUSTER_TRIES}+1
-    fi
-done
 
-if [ ! ${BUSTER_STARTED} ]; then
-    echo "Could not start buster-server, exiting"
-    kill ${PID_XVFB}
-    exit 1
-fi
-
-echo "Starting Google Chrome"
 export DISPLAY=:${DISPLAYNUM}
-${GOOGLECHROME} http://localhost:${BUSTERPORT}/capture &
-PID_CHROME="$!"
-echo "Started on display ${DISPLAYNUM} with pid ${PID_CHROME} connected to ${BUSTERPORT}"
-sleep ${SLEEPTIME}
-
-echo "=========================================================="
-w3m http://localhost:${BUSTERPORT} | cat
-echo "=========================================================="
 
 echo "Running tests"
 cd ${JSDIR}
-${BUSTERTEST} -s http://localhost:${BUSTERPORT} -r xml > ${WORKSPACE}/tests/javascript-results.xml
+${JSDIR}/node_modules/karma/bin/karma start karma.conf.buildserver.js
 
 if [ "$?" -eq 1 ]; then
     echo "Error when testing, taking screenshot"
@@ -156,7 +129,4 @@ if [ "$?" -eq 1 ]; then
 fi
 
 echo "Cleaning up"
-kill ${PID_CHROME}
-sleep 1
 kill ${PID_XVFB}
-kill ${PID_BUSTER}
