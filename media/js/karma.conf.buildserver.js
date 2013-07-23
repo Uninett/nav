@@ -4,6 +4,7 @@ module.exports = function (config) {
     var buildServerConfig = devConfig(config);
 
     buildServerConfig.set({
+        reporters: ['dots', 'coverage', 'junit'],
         coverageReporter: {
           type : 'cobertura',
           dir : 'coverage/'
