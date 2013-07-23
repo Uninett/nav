@@ -8,7 +8,7 @@ module.exports = function (config) {
           type : 'cobertura',
           dir : 'coverage/'
         },
-        browsers:      ['Chrome'],
+        browsers:      ['Chrome', 'Firefox', 'PhantomJS'],
         autoWatch:      false,
         singleRun: true,
         colors: false
