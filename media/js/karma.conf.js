@@ -1,9 +1,5 @@
-// Karma configuration
-// Generated on Mon Jul 22 2013 15:47:21 GMT+0200 (CEST)
-
 module.exports = function (config) {
     config.set({
-
         // base path, that will be used to resolve files and exclude
         basePath:       '',
 
@@ -41,6 +37,10 @@ module.exports = function (config) {
         coverageReporter: {
           type : 'html',
           dir : 'coverage/'
+        },
+        junitReporter: {
+          outputFile: 'javascript-result.xml',
+          suite: ''
         },
 
 
@@ -84,4 +84,5 @@ module.exports = function (config) {
         // if true, it capture browsers, run tests and exit
         singleRun:      false
     });
+    return config;
 };
