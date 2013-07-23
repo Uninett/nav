@@ -68,7 +68,7 @@ fi
 
 npmModule chai
 npmModule istanbul
-npmModule karma
+npmModule karma karma@canary
 npmModule karma-requirejs
 npmModule karma-mocha
 npmModule karma-chai git+https://github.com/norrs/karma-chai.git
