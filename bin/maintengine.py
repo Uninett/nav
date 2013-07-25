@@ -34,9 +34,12 @@ def main():
     before = time.clock()
     log_file = os.path.join(nav.path.localstatedir, 'log', 'maintengine.log')
     fmt = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s"
-    logger = get_logger('maintengine', log_file, fmt)
+    logger = get_logger('nav.maintengine', log_file, fmt)
     logger.debug('------------------------------------------------------------')
-    check_devices_on_maintenance()
+    try:
+        check_devices_on_maintenance()
+    except Exception as error:
+        logger.exception("An unhandled exception occurred:")
     logger.debug('Finished in %.3fs' % (time.clock() - before))
     logger.debug('------------------------------------------------------------')
 

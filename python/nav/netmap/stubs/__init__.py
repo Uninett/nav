@@ -59,7 +59,10 @@ class GwPortPrefix(object):
 class Interface(object):
     """Interface stub"""
     def __str__(self):
-        return str(self.iname, self.netbox)
+        return "{0} ({1})".format(
+            str(self.ifname),
+            str(self.netbox)
+        )
 
     def __unicode__(self):
         return u'%s' % self.ifname, self.netbox

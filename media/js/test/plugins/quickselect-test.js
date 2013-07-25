@@ -1,6 +1,6 @@
-require(['plugins/quickselect', 'libs/jquery'], function (QuickSelect) {
-    buster.testCase("QuickSelect", {
-        setUp: function () {
+define(['plugins/quickselect', 'libs/jquery'], function (QuickSelect) {
+    describe("QuickSelect", function () {
+        beforeEach(function () {
             this.wrapper = $('<div></div>');
             var html ='<div class="quickselect">' +
                 '<div><label for="id_netbox">IP device</label>' +
@@ -45,26 +45,26 @@ require(['plugins/quickselect', 'libs/jquery'], function (QuickSelect) {
             this.searchbox = $('textarea.search', this.wrapper);
             this.textAreas = $('select', this.wrapper);
             this.clones = this.textAreas.clone();
-        },
-        "should add a search field": function() {
+        });
+        it("should add a search field", function() {
             assert($('div.quickselect > label', this.wrapper).length > 0);
-        },
-        "should add a 'select all' button on textarea with multiple class": function() {
-            assert.equals($('select[multiple]', this.wrapper).parent('div').find('input[type=button]').length, 2);
-        },
-        "should not add a 'select all' button on textarea without multiple class": function() {
-            assert.equals(this.textAreas.not('[multiple]').parent('div').find('input[type=button]').length, 0);
-        },
-        "'select all' button should select all options in this textarea": function() {
+        });
+        it("should add a 'select all' button on textarea with multiple class", function() {
+            assert.strictEqual($('select[multiple]', this.wrapper).parent('div').find('input[type=button]').length, 2);
+        });
+        it("should not add a 'select all' button on textarea without multiple class", function() {
+            assert.strictEqual(this.textAreas.not('[multiple]').parent('div').find('input[type=button]').length, 0);
+        });
+        it("'select all' button should select all options in this textarea", function() {
             var parent = $('#id_room', this.wrapper).parent('div');
 
             /* Order is important here */
             this.searchbox.val('finland');
             this.searchbox.trigger('keyup', [this.textAreas, this.clones]);
             parent.find('input[type=button]').click();
-            assert.equals($('option:selected', parent).length, 2);
-        },
-        "only one arrow should be visible in the label": function() {
+            assert.strictEqual($('option:selected', parent).length, 2);
+        });
+        it("only one arrow should be visible in the label", function() {
             var arrowContainers = $('div.quickselect div > label', this.wrapper);
             var counter = 0;
             $('span', arrowContainers).each(function () {
@@ -72,35 +72,35 @@ require(['plugins/quickselect', 'libs/jquery'], function (QuickSelect) {
                     counter++;
                 }
             });
-            assert.equals(counter, 3);
-        },
-        "should set size on textarea to 10": function() {
-            assert.equals(this.textAreas.filter('[size=10]').length, this.textAreas.length);
-        },
-        "should work without optgroup": function() {
+            assert.strictEqual(counter, 3);
+        });
+        it("should set size on textarea to 10", function() {
+            assert.strictEqual(this.textAreas.filter('[size=10]').length, this.textAreas.length);
+        });
+        it("should work without optgroup", function() {
             this.searchbox.val('abs');
             this.searchbox.trigger('keyup', [this.textAreas, this.clones]);
-            assert.equals($('option', this.textAreas).length, 1);
-        },
-        "should work with several searchwords": function() {
+            assert.strictEqual($('option', this.textAreas).length, 1);
+        });
+        it("should work with several searchwords", function() {
             this.searchbox.val('absint alter');
             this.searchbox.trigger('keyup', [this.textAreas, this.clones]);
-            assert.equals($('option', this.textAreas).length, 2);
-        },
-        "should work with several searchwords on several textareas": function() {
+            assert.strictEqual($('option', this.textAreas).length, 2);
+        });
+        it("should work with several searchwords on several textareas", function() {
             this.searchbox.val('absint bergen');
             this.searchbox.trigger('keyup', [this.textAreas, this.clones]);
-            assert.equals($('option', this.textAreas).length, 2);
-        },
-        "should work with optgroups": function() {
+            assert.strictEqual($('option', this.textAreas).length, 2);
+        });
+        it("should work with optgroups", function() {
             this.searchbox.val('badeland tfoutrondheim');
             this.searchbox.trigger('keyup', [this.textAreas, this.clones]);
-            assert.equals($('option', this.textAreas).length, 2);
-        },
-        "should work on optgroups": function() {
+            assert.strictEqual($('option', this.textAreas).length, 2);
+        });
+        it("should work on optgroups", function() {
             this.searchbox.val('finland');
             this.searchbox.trigger('keyup', [this.textAreas, this.clones]);
-            assert.equals($('option', this.textAreas).length, 3);
-        }
+            assert.strictEqual($('option', this.textAreas).length, 3);
+        });
     });
 });

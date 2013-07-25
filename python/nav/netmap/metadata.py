@@ -59,7 +59,7 @@ def node_to_json_layer3(node, nx_metadata=None):
     return json
 
 
-def _node_to_json(node, nx_metadata=None):
+def _node_to_json(node, nx_node):
     """Generic method for converting a node to json, for use in both layer 2
     and layer3 graphs.
 
@@ -68,7 +68,7 @@ def _node_to_json(node, nx_metadata=None):
     :return json presentation of a node.
     """
     position = None
-    metadata = nx_metadata['metadata'] if nx_metadata and nx_metadata.has_key(
+    metadata = nx_node['metadata'] if nx_node and nx_node.has_key(
         'metadata') else None
 
     if metadata:
@@ -101,129 +101,138 @@ def _node_to_json(node, nx_metadata=None):
         }
 
 
-def edge_to_json_layer2(metadata):
+def edge_to_json_layer2(edge, metadata):
     """Convert a edge between A and B in a netmap layer2 graph to JSON
 
-    :param metadata Metadata from netmap networkx graph
+    :param edge Metadata from netmap networkx graph
     :return edge representation in JSON
     """
+    metadata = metadata['metadata']
+    list_of_directional_metadata_edges = edge_to_json(edge, metadata)
 
-    json = edge_to_json(metadata)
+    for index, json in enumerate(list_of_directional_metadata_edges):
+        if type(json['uplink']) == dict:
+            # Add vlan meta data for layer2
+            uplink = json['uplink']
+            vlans = None
+            if metadata[index]['uplink'].has_key('vlans') and metadata[index]['uplink']['vlans']:
+                vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id,
+                          'net_ident': unicode(swpv.vlan.net_ident)} for swpv in
+                         metadata[index][
+                             'uplink'][
+                             'vlans']]
+                uplink['vlans'] = vlans
+    return list_of_directional_metadata_edges
 
-    if type(json['uplink']) == dict:
-        # Add vlan meta data for layer2
-        uplink = json['uplink']
-        vlans = None
-        if metadata['uplink'].has_key('vlans') and metadata['uplink']['vlans']:
-            vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id,
-                      'net_ident': unicode(swpv.vlan.net_ident)} for swpv in
-                                                                 metadata[
-                                                                 'uplink'][
-                                                                 'vlans']]
-            uplink['vlans'] = vlans
-    return json
 
-
-def edge_to_json_layer3(metadata):
+def edge_to_json_layer3(edge, vlan_metadata_dict):
     """Convert a edge between A and B in a netmap layer 3 graph to JSON
 
     :param metadata Metadata from netmap networkx graph
     :return edge representation in JSON
     """
-    json = edge_to_json(metadata)
+    for metadata in vlan_metadata_dict.values():
+        metadata = metadata['metadata']
+        collection_of_uplinks = edge_to_json(edge, [metadata])
 
-    if type(json['uplink']) == dict:
-        uplink = json['uplink']
+        for json in collection_of_uplinks:
+            if type(json['uplink']) == dict:
+                uplink = json['uplink']
 
-        # Add prefix metadata
-        vlan = None
+                # Add prefix metadata
+                vlan = None
 
-        uplink_this = {}
-        uplink_other = {}
-        #                'net_address': unicode(metadata['uplink']['prefix']
-        # .net_address),
-        if metadata['uplink'].has_key('vlan') and metadata['uplink']['vlan']:
-            vlan = {
-                'net_ident': unicode(metadata['uplink']['vlan'].net_ident),
-                'description': unicode(metadata['uplink']['vlan'].description)
-            }
+                uplink_this = {}
+                uplink_other = {}
+                #                'net_address': unicode(metadata['uplink']['prefix']
+                # .net_address),
+                if metadata['uplink'].has_key('vlan') and metadata['uplink']['vlan']:
+                    vlan = {
+                        'net_ident': unicode(metadata['uplink']['vlan'].net_ident),
+                        'description': unicode(metadata['uplink']['vlan'].description)
+                    }
 
-            uplink.update({'prefixes': [x.net_address for x in
-                                        metadata['uplink']['prefixes']]})
+                    uplink.update({'prefixes': [x.net_address for x in
+                                                metadata['uplink']['prefixes']]})
 
-            if metadata['uplink']['thiss'].has_key('gw_ip'):
-                uplink_this.update(
-                        {'gw_ip': metadata['uplink']['thiss']['gw_ip'],
-                         'virtual': metadata['uplink']['thiss']['virtual']})
+                    if metadata['uplink']['thiss'].has_key('gw_ip'):
+                        uplink_this.update(
+                                {'gw_ip': metadata['uplink']['thiss']['gw_ip'],
+                                 'virtual': metadata['uplink']['thiss']['virtual']})
 
-            if metadata['uplink']['other'].has_key('gw_ip'):
-                uplink_other.update(
-                        {'gw_ip': metadata['uplink']['other']['gw_ip'],
-                         'virtual': metadata['uplink']['other']['virtual']})
+                    if metadata['uplink']['other'].has_key('gw_ip'):
+                        uplink_other.update(
+                                {'gw_ip': metadata['uplink']['other']['gw_ip'],
+                                 'virtual': metadata['uplink']['other']['virtual']})
 
-        uplink['thiss'].update(uplink_this)
-        uplink['other'].update(uplink_other)
+                uplink['thiss'].update(uplink_this)
+                uplink['other'].update(uplink_other)
 
-        uplink['vlan'] = vlan
+                uplink['vlan'] = vlan
 
-    return json
+        return collection_of_uplinks
 
 
-def edge_to_json(metadata):
+def edge_to_json(edge, metadata):
     """Generic method for converting a edge bewteen A and B to JSON
     For use in both layer 2 and layer 3 topologies.
 
-    :param metadata Metadata from netmap networkx graph
+    :param networkx_edge_with_data tuple(netbox_a, netbox_b)
     :return JSON presentation of a edge.
     """
 
-    uplink = metadata['uplink']
-    link_speed = metadata['link_speed']
-    tip_inspect_link = metadata['tip_inspect_link']
-    error = metadata['error']
+    edge_metadata = []
+    for directional_metadata_edge in metadata:
+        uplink = directional_metadata_edge['uplink']
+        link_speed = directional_metadata_edge['link_speed']
+        tip_inspect_link = directional_metadata_edge['tip_inspect_link']
+        error = directional_metadata_edge['error']
 
-    # jsonify
-    if not uplink:
-        uplink_json = 'null' # found no uplinks, json null.
-    else:
-        uplink_json = {}
-
-        if uplink['thiss']['interface']:
-            uplink_json.update(
-                    {'thiss': {
-                    'interface': unicode(uplink['thiss']['interface'].ifname),
-                    'netbox': uplink['thiss']['netbox'].sysname,
-                    'interface_link': uplink['thiss'][
-                                      'interface'].get_absolute_url(),
-                    'netbox_link': uplink['thiss']['netbox'].get_absolute_url()
-                }}
-            )
+        # jsonify
+        if not uplink:
+            uplink_json = 'null' # found no uplinks, json null.
         else:
-            uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
+            uplink_json = {}
 
-        if uplink['other']['interface']:
-            uplink_json.update(
-                    {'other': {
-                    'interface': unicode(uplink['other']['interface'].ifname),
-                    'netbox': uplink['other']['netbox'].sysname,
-                    'interface_link': uplink['other'][
-                                      'interface'].get_absolute_url(),
-                    'netbox_link': uplink['other']['netbox'].get_absolute_url()
-                }}
-            )
-        else:
-            uplink_json.update({'other': {'interface': 'N/A', 'netbox': 'N/A'}})
+            if uplink['thiss']['interface']:
+                uplink_json.update(
+                        {'thiss': {
+                        'interface': unicode(uplink['thiss']['interface'].ifname),
+                        'netbox': uplink['thiss']['netbox'].sysname,
+                        'interface_link': uplink['thiss'][
+                                          'interface'].get_absolute_url(),
+                        'netbox_link': uplink['thiss']['netbox'].get_absolute_url()
+                    }}
+                )
+            else:
+                uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
 
-    if 'link_speed' in error.keys():
-        link_speed = error['link_speed']
-    elif not link_speed:
-        link_speed = "N/A"
+            if uplink['other']['interface']:
+                uplink_json.update(
+                        {'other': {
+                        'interface': unicode(uplink['other']['interface'].ifname),
+                        'netbox': uplink['other']['netbox'].sysname,
+                        'interface_link': uplink['other'][
+                                          'interface'].get_absolute_url(),
+                        'netbox_link': uplink['other']['netbox'].get_absolute_url()
+                    }}
+                )
+            else:
+                uplink_json.update({'other': {'interface': 'N/A', 'netbox': 'N/A'}})
 
-    return {
-        'uplink': uplink_json,
-        'link_speed': link_speed,
-        'tip_inspect_link': tip_inspect_link,
-        }
+        if 'link_speed' in error.keys():
+            link_speed = error['link_speed']
+        elif not link_speed:
+            link_speed = "N/A"
+
+        edge_metadata.append(
+            {
+                'uplink': uplink_json,
+                'link_speed': link_speed,
+                'tip_inspect_link': tip_inspect_link,
+            }
+        )
+    return edge_metadata
 
 
 def edge_metadata_layer3(thiss_gwpp, other_gwpp, prefixes):
