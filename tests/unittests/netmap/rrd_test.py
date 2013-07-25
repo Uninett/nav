@@ -5,9 +5,10 @@ import mock
 import nav
 from nav.models.rrd import RrdDataSource, RrdFile
 from nav.netmap.rrd import _get_datasources, _get_datasource_lookup
-from topology_testcase import TopologyTestCase
+from topology_layer2_testcase import TopologyLayer2TestCase
+from topology_layer3_testcase import TopologyLayer3TestCase
 
-class RrdNetmapTests(TopologyTestCase):
+class RrdNetmapTests(object):
 
     def setUp(self):
         super(RrdNetmapTests, self).setUp()
@@ -46,6 +47,11 @@ class RrdNetmapTests(TopologyTestCase):
         self.assertEquals('ds8', dict_lookup.get(208)[0].name)
         self.assertTrue(dict_lookup.get('NonExistingValue') is None)
 
+class RrdNetmapLayer2Tests(RrdNetmapTests, TopologyLayer2TestCase):
+    pass
+
+class RrdNetmapLayer3Tests(RrdNetmapTests, TopologyLayer3TestCase):
+    pass
 
 if __name__ == '__main__':
     unittest.main()
