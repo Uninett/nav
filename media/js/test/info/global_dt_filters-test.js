@@ -10,15 +10,15 @@ define(['info/global_dt_filters', 'libs/jquery'], function (plugin) {
         
         it("is trunk", function () {
             it("should match trunk string", function () {
-                assert(plugin.is_trunk(this.trunk_cell));
+                assert.isTrue(plugin.is_trunk(this.trunk_cell));
             });
 
             it("should match case insensitive", function () {
-                assert(plugin.is_trunk('trunk'));
+                assert.isTrue(plugin.is_trunk('trunk'));
             });
 
             it("should not match not trunk string", function () {
-                refute(plugin.is_trunk('trun'));
+                assert.isFalse(plugin.is_trunk('trun'));
             });
         });
 
@@ -30,7 +30,7 @@ define(['info/global_dt_filters', 'libs/jquery'], function (plugin) {
 
             it("with no date in string should return oldest date", function () {
                 var d = new Date('1970-01-01');
-                assert(plugin.extract_date('asdajkl').getFullYear(), d.getFullYear());
+                assert.isTrue(plugin.extract_date('asdajkl').getFullYear(), d.getFullYear());
             });
         });
 
@@ -53,15 +53,15 @@ define(['info/global_dt_filters', 'libs/jquery'], function (plugin) {
             });
             it("last seen", function () {
                 it("with no value should return true", function () {
-                    assert(plugin.filter_last_seen('', this.data, ''));
+                    assert.isTrue(plugin.filter_last_seen('', this.data, ''));
                 });
                 it("with value greater than cellvalue should return false", function () {
                     this.input.value = '$days:10000';
-                    refute(plugin.filter_last_seen('', this.data, ''));
+                    assert.isFalse(plugin.filter_last_seen('', this.data, ''));
                 });
                 it("with value less than cellvalue should return true", function () {
                     this.input.value = '$days:3';
-                    assert(plugin.filter_last_seen('', this.data, ''));
+                    assert.isTrue(plugin.filter_last_seen('', this.data, ''));
                 });
                 it("on trunk", function () {
                     beforeEach(function () {
@@ -69,26 +69,26 @@ define(['info/global_dt_filters', 'libs/jquery'], function (plugin) {
                     });
                     it("with value should return false", function () {
                         this.input.value = '$days:3';
-                        refute(plugin.filter_last_seen('', this.data, ''));
+                        assert.isFalse(plugin.filter_last_seen('', this.data, ''));
                     });
                     it("without value should return true", function () {
                         this.input.value = '';
-                        assert(plugin.filter_last_seen('', this.data, ''));
+                        assert.isTrue(plugin.filter_last_seen('', this.data, ''));
                     });
                 });
             });
             it("vlan", function () {
                 it("should not hit on missing vlan", function() {
                     this.input.value = '$vlan:as';
-                    refute(plugin.filter_vlan('', this.data, ''));
+                    assert.isFalse(plugin.filter_vlan('', this.data, ''));
                 });
                 it("should hit basic vlan number", function () {
                     this.input.value = '$vlan:130';
-                    assert(plugin.filter_vlan('', this.data, ''));
+                    assert.isTrue(plugin.filter_vlan('', this.data, ''));
                 });
                 it("should not hit substring match", function() {
                     this.input.value = '$vlan:13';
-                    refute(plugin.filter_vlan('', this.data, ''));
+                    assert.isFalse(plugin.filter_vlan('', this.data, ''));
                 });
             });
         });
