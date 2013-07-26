@@ -59,7 +59,7 @@ try:
 except IOError:
     pass
 
-INSTALLED_APPS = ('nav.django', 'django.contrib.sessions')
+INSTALLED_APPS = ( 'nav.models', 'nav.django', 'django.contrib.sessions')
 
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
