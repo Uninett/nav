@@ -1,0 +1,8 @@
+# Empty models.py tricks Django>=1.3? 1.4 system which are expecting
+# to find models.py (module) from an app in INSTALLED_APPS.
+#
+# 'models' need to be listed as it expects to find model_name under
+# app_label 'models', hence we add this empty placeholder and add 'models' to
+# INSTALLED_APPS to make sure 'models.ModelName' is valid lookup on django
+# form app_label.model_name
+#
