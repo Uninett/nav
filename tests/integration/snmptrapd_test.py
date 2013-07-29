@@ -1,7 +1,25 @@
 from unittest import TestCase
 import signal
 import time
+from nav.snmptrapd.plugin import load_handler_modules
 
+class SnmptrapdPluginTest(TestCase):
+    """Implementation tests for plugins"""
+
+    def test_loading_plugin_with_initialize_method_raises_no_exception(self):
+        loader = load_handler_modules(['nav.snmptrapd.handlers.weathergoose'])
+
+        assert loader[0] == __import__('nav.snmptrapd.handlers.weathergoose',
+                                       globals(), locals(), ['weathergoose'])
+
+        assert hasattr(loader[0], 'initialize')
+
+    def test_plugin_loader_raises_no_exception_if_plugin_has_no_initialize_method(self):
+        loader = load_handler_modules(['nav.snmptrapd.handlers.airespace'])
+
+        assert loader[0] == __import__('nav.snmptrapd.handlers.airespace',
+                                       globals(), locals(), 'airespace')
+        assert not hasattr(loader[0], 'initialize')
 
 class SnmptrapdSignalTest(TestCase):
     class TestIsOk(Exception):
@@ -34,4 +52,3 @@ class SnmptrapdSignalTest(TestCase):
                               handler.listen, 'public', lambda x, y: None)
         finally:
             handler.close()
-
