@@ -30,7 +30,7 @@ define(['info/global_dt_filters', 'libs/jquery'], function (plugin) {
 
             it("with no date in string should return oldest date", function () {
                 var d = new Date('1970-01-01');
-                assert.isTrue(plugin.extract_date('asdajkl').getFullYear(), d.getFullYear());
+                assert.strictEqual(plugin.extract_date('asdajkl').getFullYear(), d.getFullYear());
             });
         });
 
