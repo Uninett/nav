@@ -1,13 +1,10 @@
 from unittest import TestCase
-from mock import patch, Mock, MagicMock
+from mock import patch, Mock
 
-import nav.event
-nav.event.create_type_hierarchy = MagicMock()
 from nav.snmptrapd.handlers import weathergoose as wg
 
 class WeatherGooseMockedDb(TestCase):
     def setUp(self):
-        self.assertTrue(isinstance(nav.event.create_type_hierarchy, MagicMock))
         self.getConnection = patch('nav.snmptrapd.handlers.weathergoose'
                                    '.getConnection')
         self.getConnection.start()
@@ -55,9 +52,6 @@ class WeatherGoose1TrapTest(WeatherGooseMockedDb):
 
     def tearDown(self):
         super(WeatherGoose1TrapTest, self).tearDown()
-        # ensure the weathergoose import actually called the
-        #  create_type_hierarchy mock, and only once for every test.
-        self.assertEqual(1, nav.event.create_type_hierarchy.call_count)
         self.event.stop()
 
     def test_init_should_parse_trap_without_error(self):
