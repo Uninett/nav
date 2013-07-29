@@ -3,7 +3,7 @@ from __future__ import with_statement
 from unittest import TestCase
 from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.shadows import Vlan, Prefix, Netbox
-from mock import patch, Mock, DEFAULT
+from mock import patch
 
 
 class MixedNetTypeTest(TestCase):
