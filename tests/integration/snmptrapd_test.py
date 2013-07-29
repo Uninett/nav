@@ -1,6 +1,9 @@
+import ConfigParser
+import pytest
 from unittest import TestCase
 import signal
 import time
+from nav.buildconf import sysconfdir
 from nav.snmptrapd.plugin import load_handler_modules
 
 class SnmptrapdPluginTest(TestCase):
@@ -20,6 +23,23 @@ class SnmptrapdPluginTest(TestCase):
         assert loader[0] == __import__('nav.snmptrapd.handlers.airespace',
                                        globals(), locals(), 'airespace')
         assert not hasattr(loader[0], 'initialize')
+
+    def test_plugin_loader_reading_in_modules_from_config_file(self):
+        configfile = sysconfdir + "/snmptrapd.conf"
+        config = ConfigParser.ConfigParser()
+        config.read(configfile)
+        list_from_config = config.get('snmptrapd', 'handlermodules').split(',')
+
+        assert type(list_from_config) == list
+        if len(list_from_config) <= 0:
+            pytest.skip("Requires at least one plugin in snmptrapd.conf to run"
+            + " this integration test with loading plugins")
+
+        loaded_modules = load_handler_modules(list_from_config)
+        assert len(list_from_config) == len(loaded_modules)
+
+
+
 
 class SnmptrapdSignalTest(TestCase):
     class TestIsOk(Exception):
