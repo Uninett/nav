@@ -202,6 +202,6 @@ def verifyEventtype ():
 
     db.commit()
         
-
-# Run verifyeventtype at import
-verifyEventtype()
+def initialize():
+    # Run verifyeventtype at import
+    verifyEventtype()

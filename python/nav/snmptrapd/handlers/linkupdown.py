@@ -161,5 +161,6 @@ def verify_event_type():
     connection.commit()
 
 
-# Run verifyeventtype at import
-verify_event_type()
+def initialize():
+    # Run verifyeventtype at import
+    verify_event_type()

@@ -221,4 +221,5 @@ def _get_alert_description(alerttype):
         if alerttype in goose_ver.TRAPS:
             return goose_ver.TRAPS[alerttype]['description']
 
-initialize_eventdb()
+def initialize():
+    initialize_eventdb()

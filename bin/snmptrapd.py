@@ -284,6 +284,12 @@ def loadHandlerModules():
         parent = '.'.join(parts[:-1])
         try:
             mod = __import__(name, globals(), locals(), [parent])
+
+            try:
+                mod.initialize()
+            except AttributeError:
+                pass # Silently ignore if module has no initialize method
+
             handlermodules.append(mod)
         except Exception, why:
             logger.exception("Module %s did not compile - %s" %(name, why))
