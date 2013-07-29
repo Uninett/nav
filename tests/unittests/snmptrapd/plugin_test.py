@@ -1,7 +1,8 @@
 from mock import Mock, patch, call
+import pytest
 from unittest import TestCase
 import sys
-from nav.snmptrapd.plugin import load_handler_modules
+from nav.snmptrapd.plugin import load_handler_modules, ModuleLoadError
 
 
 class SnmptrapdPluginTest(TestCase):
@@ -15,9 +16,18 @@ class SnmptrapdPluginTest(TestCase):
         self.plugin_b.strip.return_value = 'nav.snmptrapd.handlers.bar'
         del self.plugin_b.initialize
 
+        def raise_exception():
+            raise Exception('boom')
+
+        self.bad_plugin = Mock(name='snmptrapd plugin which is bad')
+        self.bad_plugin.strip.return_value = 'nav.snmptrapd.handlers.bad_plugin'
+        self.bad_plugin.initialize=raise_exception
+
         self.patcher = patch.dict(sys.modules, {
             'nav.snmptrapd.handlers.foo': self.plugin_a,
-            'nav.snmptrapd.handlers.bar': self.plugin_b
+            'nav.snmptrapd.handlers.bar': self.plugin_b,
+            'nav.snmptrapd.handlers.bad_plugin': self.bad_plugin,
+            'nav.snmptrapd.handlers.non_existent': None
         })
         self.patcher.start()
 
@@ -52,3 +62,11 @@ class SnmptrapdPluginTest(TestCase):
 
         assert self.plugin_a.initialize.call_count == 1
         assert loader == [self.plugin_a, self.plugin_b]
+
+    def test_plugin_raises_module_load_error_on_bad_plugin(self):
+        pytest.raises(ModuleLoadError,
+                      "load_handler_modules([self.bad_plugin])")
+
+    def test_plugin_raises_module_load_error_import_error(self):
+        pytest.raises(ModuleLoadError,
+                      "load_handler_modules(['nav.snmptrapd.handlers.non_existent'])")
