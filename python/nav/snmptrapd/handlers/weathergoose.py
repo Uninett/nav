@@ -222,4 +222,7 @@ def _get_alert_description(alerttype):
             return goose_ver.TRAPS[alerttype]['description']
 
 def initialize():
+    """Initialize method for snmpdtrap daemon so it can initialize plugin
+    after __import__
+    """
     initialize_eventdb()
