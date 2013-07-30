@@ -17,6 +17,8 @@
 import os
 import nav.path
 
+from django.core.urlresolvers import reverse
+
 from nav.report import IPtools, metaIP
 from nav.report.matrix import Matrix
 from nav.report.colorconfig import ColorConfig
@@ -115,12 +117,11 @@ class MatrixIPv6(Matrix):
 
 def _matrixlink(nybble, ip):
     meta = metaIP.MetaIP(ip)
-    return """
-            <a href="/report/prefix?prefixid={0}"
-               title="Active IPs: {1}">
-               {2}::/{3}
-           </a>""".format(
-        meta.prefixid,
+    url = reverse(
+        'report-prefix-prefix',
+        kwargs={'prefix_id': meta.prefixid})
+    return '<a href="{0}" title="active IPs: {1}">{2}::/{3}</a>'.format(
+        url,
         meta.active_ip_cnt,
         nybble,
         ip.prefixlen())
@@ -130,17 +131,16 @@ def _netlink(ip, append_term_and_prefix=False):
 
     nip = metaIP.MetaIP(ip).getTreeNet(leadingZeros=True)
     link = metaIP.MetaIP(ip).getTreeNet(leadingZeros=False)[:-1] + '_::'
-    text = nip[:-1] + 'x'
 
     if append_term_and_prefix:
-        return """
-            <a class="monosp"
-               href="/report/matrix?scope={0}::%2F{1}">
-               {2}::/{3}
-            </a>""".format(nip, ip.prefixlen(), nip, ip.prefixlen())
+        url = reverse('report-matrix')
+        url_params = 'scope={0}::%2F{1}'.format(nip, ip.prefixlen())
+        text = '{0}::/{1}'.format(nip, ip.prefixlen())
     else:
-        return """
-            <a class="monosp"
-               href="/report/prefix?netaddr={0}&op_netaddr=like">
-               {1}
-            </a>""".format(link, text)
+        url = reverse('report-prefix-all')
+        url_params = 'netaddr={0}&op_netaddr=like'.format(link)
+        text = nip[:-1] + 'x'
+    return '<a class="monosp" href="{0}?{1}">{2}</a>'.format(
+        url,
+        url_params,
+        text)

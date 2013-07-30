@@ -18,6 +18,8 @@
 import os
 import IPy
 
+from django.core.urlresolvers import reverse
+
 import nav.path
 from nav.report import IPtools, IPtree, metaIP
 from nav.report.IPtools import netDiff
@@ -262,12 +264,11 @@ class MatrixIPv4(Matrix):
 
 def _supernet_matrixlink(ip):
     meta = metaIP.MetaIP(ip)
-    return """
-        <a href="/machinetracker/?prefixid={0}"
-           title="{1}/{2}">
-           ({3}%)</a>
-    """.format(
-        meta.prefixid,
+    url = reverse(
+        'machinetracker-prefixid_search',
+        kwargs={'prefix_id': meta.prefixid})
+    return '<a href="{0}" title="{1}/{2}">({3}%)</a>'.format(
+        url,
         meta.active_ip_cnt,
         meta.max_ip_cnt,
         meta.usage_percent)
@@ -275,19 +276,21 @@ def _supernet_matrixlink(ip):
 
 def _matrixlink(nybble, ip):
     meta = metaIP.MetaIP(ip)
+    report_url = reverse(
+        'report-prefix-prefix',
+        kwargs={'prefix_id': meta.prefixid})
+    machinetracker_url = reverse(
+        'machinetracker-prefixid_search',
+        kwargs={'prefix_id': meta.prefixid})
+
     return """
-        <a href="/report/prefix?prefixid={0}">
-            .{1}/{2}
-        </a>
-        <a href="/machinetracker/?prefixid={3}"
-           title="{4}/{5}">
-            ({6}%)
-        </a>
+        <a href="{0}">.{1}/{2}</a>
+        <a href="{3}" title="{4}/{5}">({6}%)</a>
     """.format(
-        meta.prefixid,
+        report_url,
         nybble,
         ip.prefixlen(),
-        meta.prefixid,
+        machinetracker_url,
         meta.active_ip_cnt,
         meta.max_ip_cnt,
         meta.usage_percent)
@@ -296,15 +299,11 @@ def _matrixlink(nybble, ip):
 def _netlink(ip, append_term_and_prefix=False):
     nip = metaIP.MetaIP(ip).getTreeNet()
     if append_term_and_prefix:
-        return """
-            <a href="/report/matrix?scope={0}">
-                {1}
-            </a>""".format(
-            ip.strNormal().replace('/', '%2F'),
-            ip.strNormal())
+        url = reverse('report-matrix')
+        url_params = 'scope={0}'.format(ip.strNormal().replace('/', '%2F'))
+        text = ip.strNormal()
     else:
-        return """
-            <a href="/report/prefix?netaddr={0}.%&op_netaddr=like">
-                {1}
-            </a>""".format(nip, nip)
-
+        url = reverse('report-prefix-all')
+        url_params = 'netaddr={0}.%&op_netaddr=like'.format(nip)
+        text = nip
+    return '<a href="{0}?{1}">{2}</a>'.format(url, url_params, text)
