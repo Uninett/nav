@@ -179,7 +179,7 @@ class MatrixIPv4(Matrix):
             for subnet in subtree.keys():
                 if subnet.overlaps(net) == 1:
                     overlap = True
-                    continue  # FIXME: break mebbe?
+                    break
 
             if overlap or IPtree.search(subtree, net):
                 continue
