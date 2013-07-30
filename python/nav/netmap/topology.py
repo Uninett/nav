@@ -294,7 +294,7 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
     """
     _LOGGER.debug(
         "_convert_to_unidirectional_and_attach_directional_metadata()")
-    netmap_graph = nx.Graph(topology_without_metadata)
+    netmap_graph = nx.Graph()
     _LOGGER.debug(
         "_convert_to_unidirectional_and_attach_directional_metadata()"
         " reduce done")
@@ -306,55 +306,36 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
 
     # basically loops over the whole graph here, make sure we fetch all 'loose'
     # ends and makes sure they get metadata attached.
-    for node, neighbors_dict in topology_without_metadata.adjacency_iter():
-        for neighbors_node, list_of_linked_interfaces in neighbors_dict\
-            .iteritems():
+    for source, neighbors_dict in topology_without_metadata.adjacency_iter():
+        for target, list_of_linked_interfaces in neighbors_dict.iteritems():
             for interface in list_of_linked_interfaces:
                 # fetch existing metadata that might have been added already
                 existing_metadata = netmap_graph.get_edge_data(
-                    interface.netbox,
-                    neighbors_node
-                )
+                    source,
+                    target
+                ) or {}
+                port_pairs = existing_metadata.setdefault('port_pairs', set())
+                port_pair = tuple(sorted((interface, interface.to_interface)))
+                port_pairs.add(port_pair)
 
-                netmap_edge = NetmapEdge((interface, interface.to_interface))
-                if netmap_edge in seen_edge:
-                    # skips if already proccessed metadata for this edge
-                    # (a,b) == (b,a) with NetmapEdge.
-                    #
-                    # basically helps us do the
-                    #   MultiDiGraph to MultiGraph logic
-                    continue
-                else:
-                    seen_edge.add(netmap_edge)
-                    if existing_metadata:
-                        updated_metadata = existing_metadata.items()
-                    else:
-                        updated_metadata = {}
+                netmap_graph.add_edge(source, target,
+                                      attr_dict=existing_metadata)
 
-                    additional_metadata = edge_metadata_function(
-                        interface.netbox,
-                        interface,
-                        neighbors_node,
-                        interface.to_interface,
-                        vlan_by_interface
-                    )
+    for source, target, metadata_dict in netmap_graph.edges_iter(data=True):
+        for a,b in metadata_dict.get(
+            'port_pairs'
+        ):
+            additional_metadata = edge_metadata_function(
+               a.netbox,
+               a,
+               b.netbox,
+               b,
+               vlan_by_interface
+            )
 
-                    if len(updated_metadata)>1:
-                        raise SystemError(
-                            "Error while merging existing metadata with new "
-                            "metadata while creating netmap topology graph")
-                    elif len(updated_metadata)==1:
-                        updated_metadata = dict(updated_metadata)[
-                            'metadata'].append(additional_metadata)
-                    else:
-                        updated_metadata = {'metadata': [additional_metadata]}
+            metadata = metadata_dict.setdefault('metadata', list())
+            metadata.append(additional_metadata)
 
-                    # create new/updates existing edge with updated metadata.
-                    netmap_graph.add_edge(
-                        node,
-                        neighbors_node,
-                        attr_dict=updated_metadata
-                    )
     _LOGGER.debug(
         "_convert_to_unidirectional_and_attach_directional_metadata()"
         " all metadata updated")
