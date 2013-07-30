@@ -30,7 +30,7 @@
       {% endif %}
     {% endif %}
 
-    <table>
+    <table id="subnet-matrix">
       <tr>
         <td>
           {{ matrix.start_net.prefixlen }} ... {{ sub }}
@@ -74,7 +74,7 @@
         There are more than one prefix scope defined.
         Please select one of them
       </p>
-      <ul>
+      <ul id="scopes">
         {% for scope in scopes %}
           <li>
             <a href="?scope={{ scope.0|urlencode|escapeslash }}">{{ scope.0 }} {{ scope.1|default:"" }}</a>

@@ -17,7 +17,7 @@
  *
  */
 
-td {
+#subnet-matrix td {
 	margin: 0;
 	padding: 0;
 	white-space: nowrap;
@@ -25,25 +25,29 @@ td {
     text-align: center;
 }
 
-td.nocenter {
+#subnet-matrix td.nocenter {
     text-align: left;
 }
 
-td.blank {
+#subnet-matrix td.blank {
 	height: 6px;
 }
 
-a.monosp {
+#subnet-matrix a.monosp {
 	font-family: Arial, Helvetica, monospace;
 }
 
-th {
+#subnet-matrix th {
 	text-align: center;
 }
 
-table {
+#subnet-matrix {
 	border-collapse: separate;
 	border-spacing: 2px;
     border: 1px solid black;
     font-size: 0.8em;
+}
+
+#scopes {
+    list-style: none;
 }
