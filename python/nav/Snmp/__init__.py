@@ -36,22 +36,38 @@ except ImportError:
         import pysnmp
     except ImportError:
         os.environ['PYSNMP_API_VERSION'] = 'v2'
-        import pysnmp
+        try:
+            import pysnmp
+        except:
+            pass
 
     # Identify which PySNMP version is actually installed.  Looks ugly, but each
     # version provides (or forgets to provide) a different API for reporting its
     # version.
     try:
         from pysnmp import version
-        version.verifyVersionRequirement(3, 4, 3)
-        BACKEND = 'se'
+        try:
+            version.verifyVersionRequirement(3, 4, 3)
+            BACKEND = 'se'
+        except Exception, e:
+            # Accept any exception, it will be from the verifyVersionRequirement
+            # function (pysnmp.error.PySnmpVersionError)
+            # For easier unit testing we accept any exception for this code line
+            #
+            raise ImportError(e)
     except ImportError:
-        if hasattr(pysnmp, 'majorVersionId'):
-            # pylint: disable=E1101
-            raise ImportError('Unsupported PySNMP version ' %
-                              pysnmp.majorVersionId)
-        else:
-            BACKEND = 'v2'
+        try:
+            if hasattr(pysnmp, 'majorVersionId'):
+                # pylint: disable=E1101
+                raise ImportError('Unsupported PySNMP version %s' %
+                                  pysnmp.majorVersionId)
+            else:
+                BACKEND = 'v2'
+        except NameError:
+            # pysnmp never got loaded, hasattr fails...
+            # we still got no SNMP backend.
+            # so continune "searching" for a BACKEND
+            pass
 else:
     BACKEND = 'pynetsnmp'
 
