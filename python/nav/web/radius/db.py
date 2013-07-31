@@ -30,8 +30,11 @@ def get_named_cursor():
     if connection.connection is None:
         connection.cursor()
 
-    cursor = connection.connection.cursor(
-        name=str(uuid.uuid4()).replace('-', ''))
+    # Prefixing the name to ensure that it starts with a letter.
+    # Needed for psycopg2.2 compatibility
+    name = 'nav{0}'.format(str(uuid.uuid4()).replace('-', ''))
+
+    cursor = connection.connection.cursor(name=name)
     return cursor
 
 
