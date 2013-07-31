@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" href="/style/radius.css" type="text/css">
+{% endblock base_header_additional_head %}
+
+{% block base_content %}
+
+  <div id="radius">
+    <div id="results">
+      <table class="sessioninfo">
+        {% for desc, field in fields %}
+          <tr>
+            <th class="col0">
+              {{ desc }}
+            </th>
+            <td class="col1">
+              {{ field|default:""|safe }}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+
+{% endblock base_content %}

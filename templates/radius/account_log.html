@@ -1,0 +1,152 @@
+{% extends "radius/base.html" %}
+
+{% load radius %}
+
+{% block content %}
+
+  <div id="forms">
+    <form id="search" action="" method="get">
+      {% csrf_token %}
+      <table class="vertitable">
+        <tr>
+          <th>{{ form.query.label_tag }}</th>
+          <td colspan="2">{{ form.query }}</td>
+        </tr>
+        <tr>
+          <th>{{ form.time.label_tag }}</th>
+          <td colspan="2">
+            {{ form.time }}
+            <a href="#" class="tooltip" title="number of minutes results can deviate">
+              <span title="more">slack?</span>
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <th>{{ form.port_type.label_tag }}</th>
+          <td>{{ form.port_type }}</td>
+        </tr>
+        <tr>
+          <th rowspan="2">{{ form.dns_lookup.label_tag }}</th>
+          <td rowspan="2">{{ form.dns_lookup }}</td>
+        </tr>
+      </table>
+
+      <input type="submit" name="send" value="Search">
+      <input type="reset" value="Clear">
+    </form>
+  </div>
+
+  {% if result %}
+
+    <table id="resulttable" class="listtable tablesorter">
+        <thead data-nosort='[5, 6]'>
+          <tr>
+            <th class="header">Username</th>
+            <th class="header">Framed IP Address</th>
+            <th class="header">NAS IP Address</th>
+            <th class="header">Session start</th>
+            <th class="header">Session stop</th>
+            <th>Duration</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for row in result %}
+            <tr>
+              <td><a href="javascript:$.fn.add_filter('{{ row.username }}')">{{ row.username }}</a></td>
+              <td><a href="javascript:$.fn.add_filter('{{ row.framedipaddress }}')">{{ row.framedipaddress|default:"" }}</a></td>
+              <td><a href="javascript:$.fn.add_filter('{{ row.nasipaddress }}')">{{ row.nasipaddress|default:"" }}</a></td>
+              <td>{{ row.acctstarttime }}</td>
+              <td>{{ row.acctstoptime }}</td>
+              <td>{{ row.acctsessiontime|time_from_seconds }}</td>
+              <td>
+                <a href="acctdetail?acctuniqueid={{ row.radacctid }}"
+                   title="View all available information on this session">
+                  Details
+                   </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7">No results found</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="infobox">
+      <h5>Search summary</h5>
+      <p>
+      <table border="0" cellspacing="2" style="font-size: 13px;">
+        <tr>
+          <td width="150">Total online time:</td>
+          <td>{{ total_time|time_from_seconds }}</td>
+        </tr>
+        <tr>
+          <td>Total data sent:</td>
+          <td>{{ total_sent|filesizeformat }}</td>
+        </tr>
+        <tr>
+          <td>Total received data:</td>
+          <td>{{ total_received|filesizeformat }}</td>
+        </tr>
+        <tr>
+          <td>Total traffic:</td>
+          <td>{{ total_sent|add:total_received|filesizeformat }}</td>
+        </tr>
+      </table>
+      </p>
+    </div>
+  {% else %}
+    <div class="infobox">
+      <h5>Radius accounting search hints and information</h5>
+      <ul>
+        <li>Username search allows wildcard searching, e.g. you can search for
+          &quot;dat3*&quot;. Please note that the more letters of the
+          username you include, the faster the search will be. A search for
+          &quot;*&quot;, for example, will really test your
+          patience.</li>
+
+        <li>You can search for switch port on any particular switch by typing
+          the switch hostname/ip address followed by a colon and the name
+          of the switch port. Eg. switch.domain.com:FastEther0/2
+        <li>In the search results, you will probably notice some things that
+          might seem a bit weird at first:
+
+          <ul>
+            <li class="sub">
+              You will see that some search results do not contain a timestamp in
+              the Stop field. This occurs when 1) the session is still active,
+              or 2) no explicit Stop message has been received by freeradius.
+              You will have to check the Duration field to see which one it is.
+            </li>
+
+            <li class="sub">
+              Sometimes the displayed session duration does not equal the difference
+              between stop and start time. This occurs if the registered start time
+              was actually not an explicit Start message, but the first sign of life
+              (an Alive message) we got for this session. The Stop message always,
+              as far as I know, contain the length of the session, and so when we
+              have a Stop message this session length is being used during a search
+              for a specific time interval.
+            </li>
+          </ul>
+        </li>
+        <li>Please notice that we only know the amount of data transferred for
+          sessions where an explicit Stop message has been received. All transfer
+          statistics should therefore be taken with a rather big scoop of salt,
+          since the numbers don't include currently active sessions and since we
+          have no way of making sure at which point in the session the transfers
+          took place.
+        </li>
+        <li>Search type IP-range takes input in CIDR form, example:
+          169.254.0.0/16
+        </li>
+
+      </ul>
+    </div>
+
+  {% endif %}
+
+{% endblock content %}

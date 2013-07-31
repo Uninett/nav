@@ -1,0 +1,82 @@
+{% extends "messages/base.html" %}
+
+{% block content %}
+
+<table class="vertitable veritablefull">
+    <caption>{{ message.title }}</caption>
+        <tr>
+            <th>Published</th>
+            <td>{{ message.publish_start|date:"Y-m-d H:i" }}</td>
+        </tr>
+        <tr>
+            <th>Author</th>
+            <td>{{ message.author }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ message.description }}</td>
+        </tr>
+        <tr>
+            <th>Technical description</th>
+            <td>{{ message.tech_description }}</td>
+        </tr>
+        {% if message.maintenance_tasks %}
+        <tr>
+            <th>Related maintenance tasks</th>
+            <td>
+                {% for task_mapper in message.maintenance_tasks.all %}
+                    <li>
+                        <a href="{% url maintenance-view task_mapper.maintenance_task.pk %}">
+                            {{ task_mapper.maintenance_task.description }}
+                        </a>
+                        , from {{ task_mapper.maintenance_task.start_time|date:"Y-m-d H:i" }}
+                        to {{ task_mapper.maintenance_task.end_time|date:"Y-m-d H:i" }}
+                        , current state is <i>{{ task_mapper.maintenance_task.state }}</i>
+                    </li>
+                {% endfor %}
+            </td>
+        </tr>
+        {% endif %}
+        <tr>
+            <th>Expires</th>
+            <td>{{ message.publish_end|date:"Y-m-d H:i" }} 
+                {% if message.publish_end > now %}
+                    | <a href="{% url messages-expire message.id %}">Expire now</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% if message.replaces_message %}
+            <tr>
+                <th>Replaces message</th>
+                <td>
+                    <a href="{% url messages-view message.replaces_message.id %}">
+                        {{ message.replaces_message.title }},
+                    </a>
+                        from {{ message.replaces_message.publish_start|date:"Y-m-d H:i" }},
+                        by {{ message.replaces_message.author }}
+                </td>
+            </tr>
+            {% endif %}
+            {% for item in message.replaced_by.all %}
+            <tr>
+                <th>Replaced by</th>
+                <td>
+                    <a href="{% url messages-view item.id %}">
+                        {{ item.title }},
+                    </a>
+                        from {{ item.publish_start|date:"Y-m-d H:i" }},
+                        by {{ item.author }}
+                </td>
+            </tr>
+            {% endfor %}
+        <tr>
+            <th>Actions</th>
+            <td>
+                <a href="{% url messages-edit message.id %}">Edit</a> | 
+                <a href="{% url messages-followup message.id %}">Follow up</a>
+            </td>
+        </tr>
+</table>
+
+
+{% endblock %}

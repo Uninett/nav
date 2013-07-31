@@ -1,0 +1,65 @@
+{% extends "radius/base.html" %}
+
+{% load radius %}
+
+{% block content %}
+
+  <div id="form">
+    <form id="charts" action="" method="get">
+      {% csrf_token %}
+      {{ form.days }} {{ form.days.label_tag }}
+      {{ form.charts }}
+      <input type="submit" name="send" value="Create">
+    </form>
+  </div>
+
+  {% for table in tables %}
+
+    <table id="charttable{{ forloop.counter }}" class="listtable">
+      <caption>
+        {{ table.0 }}<br>
+      </caption>
+
+      <thead>
+        <tr>
+          <th>Pos.</th>
+          <th>Username</th>
+          <th>Transferred</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for row in table.1 %}
+          <tr class="{% cycle 'oddrow' 'evenrow' %}">
+            <td align="center">{{ forloop.counter }}</td>
+            {# TODO: Search #}
+            <td><a>{{ row.username|default:"" }}</a></td>
+            <td align="right">
+              {{ row.sortfield|filesizeformat }}
+            </td>
+            <td align="right">
+              {{ row.acctsessiontime|time_from_seconds }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% empty %}
+    <div class="infobox">
+      <h5>Radius accounting chart information</h5>
+      <p>
+        <i>"There are three types of lies - lies, damn lies, and statistics."</i>
+      </p>
+      <p>
+        We get transfer data from sessions that have ended, and where we
+        received an explicit Stop message. These charts show transfer data
+        for all sessions that <u>ended</u> during the specified time
+        period, so the data could actually have been transferred before
+        this period.
+      </p>
+    </div>
+  {% endfor %}
+
+{% endblock content %}

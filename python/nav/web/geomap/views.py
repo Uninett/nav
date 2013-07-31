@@ -21,15 +21,15 @@ import logging
 import psycopg2.extras
 from decimal import Decimal
 
-from django.template import RequestContext
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.core.urlresolvers import reverse
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 
 import nav.db
-from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
 
 from nav.web.geomap.conf import get_configuration
@@ -40,7 +40,6 @@ from nav.web.geomap.graph import simplify
 from nav.web.geomap.features import create_features
 from nav.web.geomap.output_formats import format_data
 from nav.web.geomap.output_formats import format_mime_type
-from nav.web.templates.GeomapTemplate import GeomapTemplate
 
 from nav.models.manage import Room
 
@@ -62,6 +61,7 @@ def _get_rooms_with_pos():
     if not fetched_rooms:
         fetched_rooms = Room.objects.filter(position__isnull=False)
     return fetched_rooms
+
 
 def geomap_all_room_pos():
     """
@@ -93,15 +93,18 @@ def geomap(request, variant):
     room_points = geomap_all_room_pos()
     logger.debug('geomap: room_points = %s' % room_points)
     variant_config = config['variants'][variant]
-    return render_to_response(GeomapTemplate,
-                              'geomap/geomap.html',
-                              {'room_points': room_points,
-                               'config': config,
-                               'variant': variant,
-                               'variant_config': variant_config},
-                              RequestContext(request),
-                              path=[('Home', '/'),
-                                    ('Geomap', None)])
+
+    context = {
+        'title': 'NAV - Geomap',
+        'navpath': [('Home', '/'), ('Geomap', None)],
+        'room_points': room_points,
+        'config': config,
+        'variant': variant,
+        'variant_config': variant_config,
+    }
+
+    return render_to_response('geomap/geomap.html', context,
+                              RequestContext(request))
 
 
 def forward_to_default_variant(request):
@@ -116,7 +119,7 @@ def forward_to_default_variant(request):
         url = reverse('geomap', args=(variant,))
         if account.has_perm('web_access', url):
             return HttpResponseRedirect(url)
-    return HttpResponseForbidden # TODO: should use 'Unauthorized'
+    return HttpResponseForbidden  # TODO: should use 'Unauthorized'
 
 
 def data(request, variant):
@@ -132,8 +135,8 @@ def data(request, variant):
     connection.set_isolation_level(1)
     db = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    format = request.GET['format']
-    if request.GET.has_key('bbox'):
+    format_ = request.GET['format']
+    if 'bbox' in request.GET:
         bbox = request.GET['bbox']
         bounds = {}
         (bounds['minLon'], bounds['minLat'],
@@ -146,21 +149,20 @@ def data(request, variant):
     viewport_size = {'width': int(request.GET['viewportWidth']),
                      'height': int(request.GET['viewportHeight'])}
     limit = int(request.GET['limit'])
-    if request.GET.has_key('timeStart') and request.GET.has_key('timeEnd'):
+    if 'timeStart' in request.GET and 'timeEnd' in request.GET:
         time_interval = {'start': request.GET['timeStart'],
                          'end': request.GET['timeEnd']}
     else:
         time_interval = None
 
-    data = get_formatted_data(variant, db, format, bounds, viewport_size,
+    data = get_formatted_data(variant, db, format_, bounds, viewport_size,
                               limit, time_interval)
     response = HttpResponse(data)
-    response['Content-Type'] = format_mime_type(format)
-    response['Content-Type'] = 'text/plain' # TODO remove this
+    response['Content-Type'] = format_mime_type(format_)
     return response
 
 
-def get_formatted_data(variant, db, format, bounds, viewport_size, limit,
+def get_formatted_data(variant, db, format_, bounds, viewport_size, limit,
                        time_interval):
     """Get formatted output for given conditions.
 
@@ -196,6 +198,6 @@ def get_formatted_data(variant, db, format, bounds, viewport_size, limit,
     logger.debug('create_features')
     features = create_features(variant, graph)
     logger.debug('format')
-    output = format_data(format, features)
+    output = format_data(format_, features)
     get_data_finish()
     return output

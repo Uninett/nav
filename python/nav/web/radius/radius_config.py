@@ -63,6 +63,8 @@ MENUORDER = (
         "logsearch"
              )
 
+INDEX_PAGE = 'acctsearch'
+
 
 ##############################################################################
 # Radius Log
@@ -89,8 +91,7 @@ LOG_FIELDDESCRIPTIONS = {
 LOG_SEARCHRESULTFIELDS = (
                     "time",
                     "type",
-                    "message",
-                    "view"
+                    "message"
                     )
 
 # Fields to display on the details page
