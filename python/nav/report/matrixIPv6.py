@@ -133,14 +133,11 @@ def _netlink(ip, append_term_and_prefix=False):
     link = metaIP.MetaIP(ip).getTreeNet(leadingZeros=False)[:-1] + '_::'
 
     if append_term_and_prefix:
-        url = reverse('report-matrix')
-        url_params = 'scope={0}::%2F{1}'.format(nip, ip.prefixlen())
+        url = reverse(
+            'report-matrix-scope',
+            kwargs={'scope': '{0}::%2F{1}'.format(nip, ip.prefixlen())})
         text = '{0}::/{1}'.format(nip, ip.prefixlen())
     else:
-        url = reverse('report-prefix-all')
-        url_params = 'netaddr={0}&op_netaddr=like'.format(link)
+        url = reverse('report-prefix-netaddr', kwargs={'netaddr': link})
         text = nip[:-1] + 'x'
-    return '<a class="monosp" href="{0}?{1}">{2}</a>'.format(
-        url,
-        url_params,
-        text)
+    return '<a class="monosp" href="{0}">{1}</a>'.format(url, text)

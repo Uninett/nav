@@ -299,11 +299,11 @@ def _matrixlink(nybble, ip):
 def _netlink(ip, append_term_and_prefix=False):
     nip = metaIP.MetaIP(ip).getTreeNet()
     if append_term_and_prefix:
-        url = reverse('report-matrix')
-        url_params = 'scope={0}'.format(ip.strNormal().replace('/', '%2F'))
+        url = reverse(
+            'report-matrix-scope',
+            kwargs={'scope': ip.strNormal().replace('/', '%2F')})
         text = ip.strNormal()
     else:
-        url = reverse('report-prefix-all')
-        url_params = 'netaddr={0}.%&op_netaddr=like'.format(nip)
+        url = reverse('report-prefix-netaddr', kwargs={'netaddr': nip + '.%'})
         text = nip
-    return '<a href="{0}?{1}">{2}</a>'.format(url, url_params, text)
+    return '<a href="{0}">{1}</a>'.format(url, text)

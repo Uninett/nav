@@ -18,17 +18,19 @@
       {{ matrix.end_net.prefixlen }} are utilized
     </p>
 
-    {% if show_unused %}
-      <a href="{% url report-matrix %}?scope={{ matrix.start_net.strNormal|urlencode|escapeslash }}">
-        Hide unused address rows
-      </a>
-    {% else %}
-      {% if ipv4 %}
-        <a href="{% url report-matrix %}?scope={{ matrix.start_net.strNormal|urlencode|escapeslash }}&show_unused_addresses=True">
-          Show unused address rows
+    {% with matrix.start_net.strNormal|urlencode|escapeslash as link %}
+      {% if show_unused %}
+        <a href="{% url report-matrix-scope link %}">
+          Hide unused address rows
         </a>
+      {% else %}
+        {% if ipv4 %}
+          <a href="{% url report-matrix-scope-show_unused link 'True' %}">
+            Show unused address rows
+          </a>
+        {% endif %}
       {% endif %}
-    {% endif %}
+    {% endwith %}
 
     <table id="subnet-matrix">
       <tr>
@@ -77,7 +79,7 @@
       <ul id="scopes">
         {% for scope in scopes %}
           <li>
-            <a href="{% url report-matrix %}?scope={{ scope.0|urlencode|escapeslash }}">{{ scope.0 }} {{ scope.1|default:"" }}</a>
+            <a href="{% url report-matrix-scope scope.0|urlencode|escapeslash %}">{{ scope.0 }} {{ scope.1|default:"" }}</a>
           </li>
         {% endfor %}
       </ul>
