@@ -19,3 +19,9 @@ table.seeddbtable .info {
 	color: #F00;
 	font-weight: bold;
 }
+
+#map {
+    width: 800px;
+    height: 600px;
+    float: right;
+}
