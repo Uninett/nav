@@ -1,0 +1,55 @@
+<img id="expand-swport-{{pk}}"
+     {{#if expandable }}
+      {{#equal state "expanded" }}
+        src="/images/networkexplorer/collapse.gif">
+      {{else }}
+        src="/images/networkexplorer/expand.gif">
+      {{/equal }}
+     {{else }}
+      src="/images/networkexplorer/vertical-bound.gif">
+     {{/if }}
+
+{{#if connected_to_switch }}{switch}{{/if }} {{! TODO: remove }}
+
+<a href="/ipdevinfo/{{netbox_sysname }}/">{{module_netbox_sysname }}</a>
+[{{interface.ifname }}]
+
+{{#if interface.to_netbox }}
+
+  {{#if interface.trunk }}
+    <abbr title="trunk port">⇉</abbr>
+  {{ else }}
+    <abbr title="non-trunk port">→</abbr>
+  {{/if }}
+
+  <a href="/ipdevinfo/{{to_netbox_sysname }}/">{{to_netbox_sysname_short }}</a>
+
+{{else }}
+  {{#if interface.to_interface}}
+
+    {{#if interface.trunk }}
+	  <abbr title="trunk port">⇉</abbr>
+	{{ else }}
+	  <abbr title="non-trunk port">→</abbr>
+	{{/if }}
+
+    <a href="/ipdevinfo/{{to_netbox_sysname }}/">{{to_interface_netbox_sysname_short }}</a>
+
+  {{else }}
+    ({{interface.ifalias }})
+
+    {{#if interface.trunk }}
+      <abbr title="trunk port">(trunk)</abbr>
+    {{/if}}
+
+  {{/if }}
+{{/if }}
+
+
+{{#if expandable }}
+  <ul class="children">
+    {{#equal state "expanded" }}
+      <li class="tree-header">Swports on .... on ...</li>
+    {{/equal }}
+  </ul>
+{{/if }}

@@ -6,6 +6,7 @@ nobase_webroot_DATA = $(wildcard images/*/*.gif \
 				 js/extras/*    \
 				 js/libs/*.js   \
 				 js/resources/*.js \
+				 js/resources/networkexplorer/*.html \
 				 js/resources/libs/*.js \
 				 js/src/*.js   \
 				 js/src/*/*.js   \

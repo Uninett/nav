@@ -18,13 +18,17 @@
 import datetime
 import socket
 import sys
+import json
 from urllib import unquote
 
 from django.http import HttpResponse, Http404, HttpRequest
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
-from django.template import RequestContext
-from django.utils import simplejson
+
+from django.views.generic import TemplateView
+from django.views.generic import View
+from django.views.generic.list import BaseListView
+from django.views.generic.detail import BaseDetailView
 
 import nav.models.cabling
 from nav.models.manage import Netbox, Cam, Arp, GwPortPrefix, SwPortVlan
@@ -34,24 +38,65 @@ import nav.models.service
 import nav.natsort
 
 from search import sysname_search, ip_search, mac_search, room_search
-from search import vlan_search, portname_search
+from search import vlan_search, portname_search, search
+
+from .forms import NetworkSearchForm
+from .mixins import (
+    GetRoutersMixin,
+    JSONResponseMixin,
+    GetGWPortsMixin,
+    GetSWPortsMixin,
+    GetSWPortVlansMixin,)
 
 PATH = [("Home", "/"), ("Network Explorer", "/networkexplorer/")]
 
-def index(request):
-    """Basic view of the network"""
 
-    routers = Netbox.objects.all().filter(category__in=['GW', 'GSW'])
-    for router in routers:
-        if len(router.get_gwports()) > 0:
-            router.has_children = True
-    return render_to_response(
-        'networkexplorer/base.html',
-        {
-            'routers': routers,
-            'navpath': PATH,
-        },
-        context_instance=RequestContext(request))
+class TestView(TemplateView):
+    template_name = 'networkexplorer/test.html'
+
+
+class IndexView(TemplateView):
+    """Basic view of the network"""
+    template_name = 'networkexplorer/base.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(IndexView, self).get_context_data(**kwargs)
+        context.update({'path': PATH, 'form': NetworkSearchForm()})
+        return context
+
+
+class RouterJSONView(JSONResponseMixin, GetRoutersMixin, BaseListView):
+    """Returns a JSON-response of the routers on the network"""
+
+    def render_to_response(self, context):
+        return self.render_json_response(context)
+
+
+class GWPortsJSONView(
+        JSONResponseMixin, GetGWPortsMixin, BaseDetailView):
+    """Returns a JSON-response of a routers children"""
+    model = Netbox
+
+    def render_to_response(self, context):
+        return self.render_json_response(context)
+
+
+class SWPortsJSONView(
+        JSONResponseMixin, GetSWPortsMixin, BaseDetailView):
+    """Returns a JSON-response of a gwports children"""
+    model = Interface
+
+    def render_to_response(self, context):
+        return self.render_json_response(context)
+
+
+class SWPortVlansJSONView(
+        JSONResponseMixin, GetSWPortVlansMixin, BaseDetailView):
+    model = Netbox
+
+    def render_to_response(self, context):
+        return self.render_json_response(context)
+
 
 def expand_router(request):
     """
@@ -263,96 +308,109 @@ def expand_swport(request):
         })
 
 
-def search(request):
-    """
-    """
-    # Raise 404 if no parameters are given
-    if 'lookup_field' not in request.GET:
-        raise Http404
+class SearchView(JSONResponseMixin, View):
+    json_dumps_kwargs = {'indent': 2}
 
-    router_matches = []
-    gwport_matches = []
-    swport_matches = []
-        
-    if request.REQUEST.get('exact', None) == 'on':
-        exact = True
-    else:
-        exact = False
+    def form_invalid(self, form):
+        return {'error': form.errors}
 
-    if request.GET['lookup_field'] == 'sysname':
-        result = sysname_search(request.GET['query'], exact)
-        router_matches = result[0]
-        gwport_matches = result[1]
-        swport_matches = result[2]
+    def form_valid(self, form):
+        return search(form.cleaned_data)
 
-    if request.GET['lookup_field'] == 'ip':
-        result = ip_search(request.GET['query'], exact)
-        router_matches = result[0]
-        gwport_matches = result[1]
-        swport_matches = result[2]
+    def get(self, request, *args, **kwargs):
+        form = NetworkSearchForm(request.GET)
 
-    if request.GET['lookup_field'] == 'mac':
-        result = mac_search(unquote(request.GET['query']))
-        router_matches = result[0]
-        gwport_matches = result[1]
-        swport_matches = result[2]
-    
-    if request.GET['lookup_field'] == 'room':
-        result = room_search(request.GET['query'], exact)
-        router_matches = result[0]
-        gwport_matches = result[1]
-        swport_matches = result[2]
-    
-    if request.GET['lookup_field'] == 'vlan':
-        result = vlan_search(request.GET['query'], exact)
-        router_matches = result[0]
-        gwport_matches = result[1]
-        swport_matches = result[2]
-    
-    if request.GET['lookup_field'] == 'port':
-        result = portname_search(request.GET['query'], exact)
-        router_matches = result[0]
-        gwport_matches = result[1]
-        swport_matches = result[2]
+        if form.is_valid():
+            context = self.form_valid(form)
+        else:
+            context = self.form_invalid(form)
+
+        return self.render_json_response(context)
 
 
-    # A bit ugly hack to remove duplicates, but simplejson doesnt seem to support sets
-    router_matches = list(set(router_matches))
-    gwport_matches = list(set(gwport_matches))
-    swport_matches = list(set(swport_matches))
-
-    if request.REQUEST.get('hide', False):
-        for gwport in gwport_matches:
-            if not gwport.ifalias:
-                gwport_matches.remove(gwport)
-        for swport in swport_matches:
-            if not swport.ifalias:
-                swport_matches.remove(swport)
-
-    # Get the html up-front
-    routers = []
-    for router in router_matches:
-        req = HttpRequest()
-        req.GET['netboxid'] = router.id
-        routers.append([router.id, expand_router(req).content])
-
-    gwports = []
-    for gwport in gwport_matches:
-        req = HttpRequest()
-        req.GET['gwportid'] = gwport.id
-        gwports.append([gwport.id, expand_gwport(req).content])
-
-    swports = []
-    for swport in swport_matches:
-        req = HttpRequest()
-        req.GET['swportid'] = swport.id
-        swports.append([swport.id, expand_swport(req).content])
-
-    return HttpResponse(simplejson.dumps({'routers': routers, 'gwports': gwports, 'swports': swports}))
-
-class FakeRequest:
-    """Simple class for faking requests"""
-    def __init__(self, request):
-        self.REQUEST = {}
-        self.GET = {}
-        self.POST = {}
+# def search(request):
+#     """
+#     """
+#     # Raise 404 if no parameters are given
+#     if 'lookup_field' not in request.GET:
+#         raise Http404
+#
+#     router_matches = []
+#     gwport_matches = []
+#     swport_matches = []
+#
+#     if request.REQUEST.get('exact', None) == 'on':
+#         exact = True
+#     else:
+#         exact = False
+#
+#     if request.GET['lookup_field'] == 'sysname':
+#         result = sysname_search(request.GET['query'], exact)
+#         router_matches = result[0]
+#         gwport_matches = result[1]
+#         swport_matches = result[2]
+#
+#     if request.GET['lookup_field'] == 'ip':
+#         result = ip_search(request.GET['query'], exact)
+#         router_matches = result[0]
+#         gwport_matches = result[1]
+#         swport_matches = result[2]
+#
+#     if request.GET['lookup_field'] == 'mac':
+#         result = mac_search(unquote(request.GET['query']))
+#         router_matches = result[0]
+#         gwport_matches = result[1]
+#         swport_matches = result[2]
+#
+#     if request.GET['lookup_field'] == 'room':
+#         result = room_search(request.GET['query'], exact)
+#         router_matches = result[0]
+#         gwport_matches = result[1]
+#         swport_matches = result[2]
+#
+#     if request.GET['lookup_field'] == 'vlan':
+#         result = vlan_search(request.GET['query'], exact)
+#         router_matches = result[0]
+#         gwport_matches = result[1]
+#         swport_matches = result[2]
+#
+#     if request.GET['lookup_field'] == 'port':
+#         result = portname_search(request.GET['query'], exact)
+#         router_matches = result[0]
+#         gwport_matches = result[1]
+#         swport_matches = result[2]
+#
+#
+#     # A bit ugly hack to remove duplicates, but simplejson doesnt seem to support sets
+#     router_matches = list(set(router_matches))
+#     gwport_matches = list(set(gwport_matches))
+#     swport_matches = list(set(swport_matches))
+#
+#     if request.REQUEST.get('hide', False):
+#         for gwport in gwport_matches:
+#             if not gwport.ifalias:
+#                 gwport_matches.remove(gwport)
+#         for swport in swport_matches:
+#             if not swport.ifalias:
+#                 swport_matches.remove(swport)
+#
+#     # Get the html up-front
+#     routers = []
+#     for router in router_matches:
+#         req = HttpRequest()
+#         req.GET['netboxid'] = router.id
+#         routers.append([router.id, expand_router(req).content])
+#
+#     gwports = []
+#     for gwport in gwport_matches:
+#         req = HttpRequest()
+#         req.GET['gwportid'] = gwport.id
+#         gwports.append([gwport.id, expand_gwport(req).content])
+#
+#     swports = []
+#     for swport in swport_matches:
+#         req = HttpRequest()
+#         req.GET['swportid'] = swport.id
+#         swports.append([swport.id, expand_swport(req).content])
+#
+#     return HttpResponse(json.dumps({'routers': routers, 'gwports': gwports, 'swports': swports}))

@@ -17,22 +17,51 @@
 
 from django.conf.urls.defaults import url, patterns
 
-from nav.web.networkexplorer.views import index, expand_router, expand_gwport
-from nav.web.networkexplorer.views import expand_swport, expand_switch, search
+from nav.web.networkexplorer.views import (
+    TestView,
+    IndexView,
+    RouterJSONView,
+    GWPortsJSONView,
+    SWPortsJSONView,
+    SWPortVlansJSONView,
+    expand_router,
+    expand_gwport,
+    expand_swport,
+    expand_switch,
+    SearchView)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
-    url(r'^$', index,
+    url(r'^$', IndexView.as_view(),
         name='networkexplorer-index'),
-    url(r'^expand/router', expand_router,
-        name="networkexplorer-expand-router"),
-    url(r'^expand/gwport', expand_gwport,
-        name="networkexplorer-expand-gwport"),
-    url(r'^expand/swport', expand_swport,
-        name="networkexplorer-expand-swport"),
-    url(r'^expand/switch', expand_switch,
-        name="networkexplorer-expand-switch"),
-    url(r'^search', search ,
+    # url(r'^expand/router', expand_router,
+    #     name="networkexplorer-expand-router"),
+    # url(r'^expand/gwport', expand_gwport,
+    #     name="networkexplorer-expand-gwport"),
+    # url(r'^expand/swport', expand_swport,
+    #     name="networkexplorer-expand-swport"),
+    # url(r'^expand/switch', expand_switch,
+    #     name="networkexplorer-expand-switch"),
+    url(r'^search', SearchView.as_view(),
         name="networkexplorer-search"),
+
+    # Added
+    url(r'^routers/$', RouterJSONView.as_view(),
+        name='networkexplorer-routers'),
+    url(r'^expand/router/(?P<pk>\d+)/$',
+        GWPortsJSONView.as_view(),
+        name='networkexplorer-expand-router'),
+    url(r'^expand/gwport/(?P<pk>\d+)/$',
+        SWPortsJSONView.as_view(),
+        name='networkexplorer-expand-gwport'),
+
+    url(r'^expand/switch/(?P<pk>\d+)/$',
+        SWPortVlansJSONView.as_view(),
+        name='networkexplorer-expand-switch'),
+
+    url(r'^expand/switch/(?P<pk>\d+)/vlan/(?P<vlan_id>\d+)/$',
+        SWPortVlansJSONView.as_view(),
+        name='networkexplorer-expand-switch-vlan'),
+
 )
 

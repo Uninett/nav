@@ -1,10 +1,25 @@
 
-#searchForm {
-	float: left;
-}
-.networktree {
+#networktree {
 	clear: both;
 }
+
+#networktree ul {
+    list-style: none;
+}
+
+#networktree .node /*ul.children li*/ {
+    background: url('/images/networkexplorer/vertical.gif') repeat-y top left;
+}
+
+/*#networktree ul.children.end {*/
+    /*background: url('/images/networkexplorer/end.gif') no-repeat top left;*/
+/*}*/
+
+
+#networktree ul.children > .tree-header {
+    font-weight: bold;
+}
+
 .gwport_match {
 	font-weight: bold;
 	background: #ddd;
@@ -26,6 +41,9 @@
 	padding-left: 25px;
 }
 
+dl, dl dd {
+    margin: 0;
+}
 
 dl, dt, dd {
 	padding-left: 1em;

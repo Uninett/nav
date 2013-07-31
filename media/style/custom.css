@@ -4,6 +4,15 @@ footer {
     font-size: 0.9em;
 }
 
+.foundation-form select {
+    background: transparent;
+    border: none;
+}
+
+.foundation-form .columns input[type=checkbox] {
+    vertical-align: middle;
+}
+
 .full-width {
     width: 100%;
 }

@@ -15,15 +15,49 @@
 #
 
 import datetime
-import socket
-import sys
 
 from django.db.models import Q
 
-from nav.models.cabling import Cabling, Patch
-from nav.models.manage import Netbox, Module, Cam, Arp, GwPortPrefix
-from nav.models.manage import SwPortVlan, Vlan, Interface, Prefix
-from nav.models.service import Service
+from nav.models.manage import Netbox,  Cam, Arp, GwPortPrefix
+from nav.models.manage import SwPortVlan, Interface, Prefix
+
+
+def search(data):
+
+    exact_results = 'exact_results' in data
+    hide_ports = 'hide_ports' in data
+    query = data['query'][0]
+    query_type = data['query'][1]
+    search_function = None
+
+    if query_type == 'sysname':
+        search_function = sysname_search
+    elif query_type == 'ip':
+        search_function = ip_search
+    elif query_type == 'mac':
+        search_function = mac_search
+    elif query_type == 'room':
+        search_function = room_search
+    elif query_type == 'vlan':
+        search_function = vlan_search
+    elif query_type == 'port':
+        search_function = portname_search
+
+    (
+        router_matches,
+        qwport_matches,
+        swport_matches,
+    ) = search_function(query, exact_results)
+
+    if hide_ports:
+        for gwport in qwport_matches:
+            if not gwport.ifalias:
+                qwport_matches.remove(gwport)
+        for swport in swport_matches:
+            if not swport.ifalias:
+                swport_matches.remove(swport)
+
+    return {'routers': router_matches, 'gwports': qwport_matches, 'swports': swport_matches}
 
 
 def search_expand_swport(swportid=None, swport=None, scanned = []):
