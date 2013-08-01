@@ -1,5 +1,5 @@
 import json
-
+import socket
 from datetime import datetime as dt
 
 from django.core import serializers
@@ -190,6 +190,8 @@ class GetSWPortsMixin(object):
                         'module_netbox_sysname':
                         vlan.interface.module.netbox.sysname
                         if vlan.interface.module else '',
+                        'subheader_vlan': unicode(vlan.vlan.vlan),
+                        'subheader_netbox': unicode(vlan.interface.netbox),
                     }
                     vlan_context.update(self._get_expandable(vlan))
 
@@ -271,8 +273,9 @@ class GetSWPortVlansMixin(object):
         for vlan in swport_vlans:
             interface = vlan.interface
             c = {
-                'pk': vlan.pk,
+                'pk': vlan.interface.pk,
                 'type': 'switch',
+                'expandable': False,
                 'interface': model_to_dict(interface),
                 'interface_netbox_sysname': interface.netbox.sysname,
                 'interface_netbox_sysname_short':
@@ -312,3 +315,43 @@ class GetSWPortVlansMixin(object):
             }
         else:
             return {}
+
+
+class SWPortNetworkContextMixin(object):
+    """"""
+    def get_context_data(self, **kwargs):
+        swport = kwargs.pop('object')
+        to_netbox = (
+            swport.to_netbox
+            or swport.to_interface.netbox
+            or None)
+        services = to_netbox.service_set.all() if to_netbox else []
+
+        active_macs = Cam.objects.filter(
+            netboc=swport.netbox,
+            ifindex=swport.ifindex,
+            end_time__gt=dt.max)
+        hosts_behind_port = set()
+        for mac in active_macs:
+            arp_entries = Arp.objects.filter(
+                mac=mac.mac,
+                end_time__gt=dt.max)
+            for arp_entry in arp_entries:
+                try:
+                    hostname = socket.gethostbyaddr(arp_entry.ip)[0]
+                except socket.herror:
+                    hostname = ''
+                finally:
+                    # TODO: Use reverse
+                    host_string = """
+                        {0} ({1}) [<a href="/machinetracker/mac?mac={2}&days=7"
+                                    target="_blank">{3}</a>]
+                        """.format(hostname, arp_entry.ip, mac.mac, mac.mac)
+                hosts_behind_port.add(host_string)
+            if not len(arp_entries) and mac.mac not in hosts_behind_port:
+                hosts_behind_port.add(mac.mac)
+        return {
+            'netbox': to_netbox,
+            'services': services,
+            'active_hosts': sorted(hosts_behind_port),
+        }

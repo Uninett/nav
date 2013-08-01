@@ -23,7 +23,10 @@
     <li class="tree-header">Prefixes:</li>
     <ul class="prefixes">
       {{#each prefixes }}
-        <li>({{this.display_addr }}, {{this.net_type }}, {{this.net_ident }})</li>
+        <li>
+          {{!<img src="/images/networkexplorer/vertical-bound.gif">}}
+          ({{this.display_addr }}, {{this.net_type }}, {{this.net_ident }})
+        </li>
       {{/each }}
     </ul>
   </ul>

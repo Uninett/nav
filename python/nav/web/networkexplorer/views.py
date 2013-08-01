@@ -46,13 +46,10 @@ from .mixins import (
     JSONResponseMixin,
     GetGWPortsMixin,
     GetSWPortsMixin,
-    GetSWPortVlansMixin,)
+    GetSWPortVlansMixin,
+    SWPortNetworkContextMixin)
 
 PATH = [("Home", "/"), ("Network Explorer", "/networkexplorer/")]
-
-
-class TestView(TemplateView):
-    template_name = 'networkexplorer/test.html'
 
 
 class IndexView(TemplateView):
@@ -72,27 +69,37 @@ class RouterJSONView(JSONResponseMixin, GetRoutersMixin, BaseListView):
         return self.render_json_response(context)
 
 
-class GWPortsJSONView(
+class ExpandRouterView(
         JSONResponseMixin, GetGWPortsMixin, BaseDetailView):
-    """Returns a JSON-response of a routers children"""
+    """Returns a JSON-response of a router's gwports"""
     model = Netbox
 
     def render_to_response(self, context):
         return self.render_json_response(context)
 
 
-class SWPortsJSONView(
+class ExpandGWPortView(
         JSONResponseMixin, GetSWPortsMixin, BaseDetailView):
-    """Returns a JSON-response of a gwports children"""
+    """Returns a JSON-response of a gwport's swports and switches"""
     model = Interface
 
     def render_to_response(self, context):
         return self.render_json_response(context)
 
 
-class SWPortVlansJSONView(
+class ExpandSwitchView(
         JSONResponseMixin, GetSWPortVlansMixin, BaseDetailView):
+    """Returns a JSON-response of a switch's swport-vlans"""
     model = Netbox
+
+    def render_to_response(self, context):
+        return self.render_json_response(context)
+
+
+class ExpandSWPortView(
+        JSONResponseMixin, SWPortNetworkContextMixin, BaseDetailView):
+    """TODO"""
+    model = Interface
 
     def render_to_response(self, context):
         return self.render_json_response(context)

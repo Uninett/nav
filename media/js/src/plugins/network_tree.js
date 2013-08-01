@@ -9,7 +9,8 @@ define([
     'libs/handlebars'], function (routerTemplate,
                                   gwportTemplate,
                                   swportTemplate,
-                                  switchTemplate) {
+                                  switchTemplate,
+                                  leafTemplate) {
 
 
     Handlebars.registerHelper('equal', function(lvalue, rvalue, options) {
@@ -32,7 +33,7 @@ define([
             pk: -1,
             type: 'root',
             state: 'collapsed',
-            expandable: true
+            expandable: false
         },
 
         initialize: function () {
@@ -84,7 +85,7 @@ define([
             Expands the node if its expandable and not currently
             processing. Fetches the nodes children from the
             server if necessary. Triggers a rerender of the
-            entire tree FIXME (only render subnodes).
+            node and it's subtree.
              */
 
             console.log('in expand');
@@ -138,6 +139,7 @@ define([
             } else {
                 c = this.get('children');
             }
+            console.log('url: ' + this.url);
             c.url = this.url;
             return c;
         }
@@ -157,7 +159,7 @@ define([
         // The network tree
 
         defaults: {
-            root: new Node()
+            root: new Node({expandable: true})
         },
 
         expand: function () {
@@ -235,6 +237,10 @@ define([
                     break;
                 case 'switch':
                     template = switchTemplate;
+                    break;
+                case 'swport-leaf':
+                    template = leafTemplate;
+                    break;
             }
 
             this.template = Handlebars.compile(template);
@@ -254,6 +260,8 @@ define([
                 this.$el.html(this.template(this.model.toJSON()));
                 this.registerExpandTrigger();
             } else {
+                // The node is root and we don't need
+                // to render it
                this.$el.html($('<ul class="children">'));
             }
 
@@ -311,8 +319,9 @@ define([
         }
     });
 
-    var NetworkView = new TreeView({model: new Tree()});
-    var RootNodeView = new NodeView({model: NetworkView.model.get('root')});
+    //var NetworkView = new TreeView({model: new Tree()});
+    //var RootNodeView = new NodeView({model: NetworkView.model.get('root')});
 
-    NetworkView.model.expand();
+    //NetworkView.model.expand();
+    return new TreeView({model: new Tree()});
 });

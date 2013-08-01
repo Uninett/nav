@@ -9,7 +9,7 @@
       src="/images/networkexplorer/vertical-bound.gif">
      {{/if }}
 
-{{#if connected_to_switch }}{switch}{{/if }} {{! TODO: remove }}
+{{#if connected_to_switch }}{switch}{{else }}{swport}{{/if }} {{! TODO: remove }}
 
 <a href="/ipdevinfo/{{netbox_sysname }}/">{{module_netbox_sysname }}</a>
 [{{interface.ifname }}]
@@ -49,7 +49,9 @@
 {{#if expandable }}
   <ul class="children">
     {{#equal state "expanded" }}
-      <li class="tree-header">Swports on .... on ...</li>
+      {{#if connected_to_switch }}
+        <li class="tree-header">Swports on Vlan{{ subheader_vlan }} on {{ subheader_netbox }}</li>
+      {{/if }}
     {{/equal }}
   </ul>
 {{/if }}

@@ -1,4 +1,4 @@
-require(['plugins/network_tree','plugins/network_tree2' , 'libs/jquery'], function (NetworkTree) {
+require(['plugins/network_tree','plugins/network_tree' , 'libs/jquery'], function (networkTree) {
     'use strict';
 
     function fadeIn(search_form) {
@@ -37,7 +37,7 @@ require(['plugins/network_tree','plugins/network_tree2' , 'libs/jquery'], functi
     }
 
     $(document).ready(function () {
-        /*var working = $('#working');
+        var working = $('#working');
         var search_form = $('#search_form');
         working.css('visibility', 'hidden');
 
@@ -46,8 +46,7 @@ require(['plugins/network_tree','plugins/network_tree2' , 'libs/jquery'], functi
             submitForm(search_form);
         });
 
-
         // Network tree
-        var network_tree = new NetworkTree();*/
+        networkTree.model.expand();
     });
 });

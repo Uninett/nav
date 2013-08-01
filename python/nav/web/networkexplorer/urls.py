@@ -18,12 +18,12 @@
 from django.conf.urls.defaults import url, patterns
 
 from nav.web.networkexplorer.views import (
-    TestView,
     IndexView,
     RouterJSONView,
-    GWPortsJSONView,
-    SWPortsJSONView,
-    SWPortVlansJSONView,
+    ExpandRouterView,
+    ExpandGWPortView,
+    ExpandSwitchView,
+    ExpandSWPortView,
     expand_router,
     expand_gwport,
     expand_swport,
@@ -49,19 +49,21 @@ urlpatterns = patterns('',
     url(r'^routers/$', RouterJSONView.as_view(),
         name='networkexplorer-routers'),
     url(r'^expand/router/(?P<pk>\d+)/$',
-        GWPortsJSONView.as_view(),
+        ExpandRouterView.as_view(),
         name='networkexplorer-expand-router'),
     url(r'^expand/gwport/(?P<pk>\d+)/$',
-        SWPortsJSONView.as_view(),
+        ExpandGWPortView.as_view(),
         name='networkexplorer-expand-gwport'),
 
     url(r'^expand/switch/(?P<pk>\d+)/$',
-        SWPortVlansJSONView.as_view(),
+        ExpandSwitchView.as_view(),
         name='networkexplorer-expand-switch'),
 
     url(r'^expand/switch/(?P<pk>\d+)/vlan/(?P<vlan_id>\d+)/$',
-        SWPortVlansJSONView.as_view(),
+        ExpandSwitchView.as_view(),
         name='networkexplorer-expand-switch-vlan'),
 
+    url(r'^expand/swport/(?P<pk>\d+)/$',
+        ExpandSWPortView.as_view(),
+        name='networkexplorer-expand-swport'),
 )
-

@@ -1,20 +1,25 @@
 
 #networktree {
 	clear: both;
+    font-size: 14px;
 }
 
 #networktree ul {
+    line-height: 1;
     list-style: none;
 }
 
-#networktree .node /*ul.children li*/ {
+#networktree .node  {
     background: url('/images/networkexplorer/vertical.gif') repeat-y top left;
 }
 
-/*#networktree ul.children.end {*/
-    /*background: url('/images/networkexplorer/end.gif') no-repeat top left;*/
-/*}*/
+#networktree #root {
+    background: none;
+}
 
+#root > ul.children {
+    margin-left: 0;
+}
 
 #networktree ul.children > .tree-header {
     font-weight: bold;
@@ -33,7 +38,7 @@
 	background: #ccc;
 }
 
-.prefix {
+.prefixes {
 	font-weight: normal;
 	font-family: monospace;
 	font-size: 90%;

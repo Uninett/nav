@@ -1,15 +1,12 @@
-<img {{#if expandable }}
+<img
+     {{#if expandable }}
       {{#equal state "expanded" }}
         src="/images/networkexplorer/collapse.gif">
       {{else }}
         src="/images/networkexplorer/expand.gif">
       {{/equal }}
      {{else }}
-      {{#if end }}
-        src="/images/networkexplorer/end.gif">
-      {{else }}
-        src="/images/networkexplorer/vertical-bound.gif">
-      {{/if }}
+      src="/images/networkexplorer/vertical-bound.gif">
      {{/if }}
 
 <a href="/ipdevinfo/{{interface_netbox_sysname}}/">{{interface_netbox_sysname}}</a>
