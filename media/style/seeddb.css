@@ -24,6 +24,10 @@ form.seeddb-edit {
     float: left;
 }
 
+div.tabcontent {
+    overflow: auto;
+}
+
 #map-container {
     text-align: center;
     float: right;
