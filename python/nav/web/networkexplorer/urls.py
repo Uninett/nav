@@ -24,33 +24,23 @@ from nav.web.networkexplorer.views import (
     ExpandGWPortView,
     ExpandSwitchView,
     ExpandSWPortView,
-    expand_router,
-    expand_gwport,
-    expand_swport,
-    expand_switch,
     SearchView)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
     url(r'^$', IndexView.as_view(),
         name='networkexplorer-index'),
-    # url(r'^expand/router', expand_router,
-    #     name="networkexplorer-expand-router"),
-    # url(r'^expand/gwport', expand_gwport,
-    #     name="networkexplorer-expand-gwport"),
-    # url(r'^expand/swport', expand_swport,
-    #     name="networkexplorer-expand-swport"),
-    # url(r'^expand/switch', expand_switch,
-    #     name="networkexplorer-expand-switch"),
+
     url(r'^search', SearchView.as_view(),
         name="networkexplorer-search"),
 
-    # Added
     url(r'^routers/$', RouterJSONView.as_view(),
         name='networkexplorer-routers'),
+
     url(r'^expand/router/(?P<pk>\d+)/$',
         ExpandRouterView.as_view(),
         name='networkexplorer-expand-router'),
+
     url(r'^expand/gwport/(?P<pk>\d+)/$',
         ExpandGWPortView.as_view(),
         name='networkexplorer-expand-gwport'),

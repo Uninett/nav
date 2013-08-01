@@ -14,34 +14,17 @@
 <a href="/ipdevinfo/{{netbox_sysname }}/">{{module_netbox_sysname }}</a>
 [{{interface.ifname }}]
 
-{{#if interface.to_netbox }}
-
+{{#if connected_to }}
   {{#if interface.trunk }}
     <abbr title="trunk port">⇉</abbr>
-  {{ else }}
+  {{else }}
     <abbr title="non-trunk port">→</abbr>
   {{/if }}
-
-  <a href="/ipdevinfo/{{to_netbox_sysname }}/">{{to_netbox_sysname_short }}</a>
-
+    <a href="/ipdevinfo/{{ connected_to.sysname }}/">{{ connected_to.short }}</a>
 {{else }}
-  {{#if interface.to_interface}}
-
-    {{#if interface.trunk }}
-	  <abbr title="trunk port">⇉</abbr>
-	{{ else }}
-	  <abbr title="non-trunk port">→</abbr>
-	{{/if }}
-
-    <a href="/ipdevinfo/{{to_netbox_sysname }}/">{{to_interface_netbox_sysname_short }}</a>
-
-  {{else }}
-    ({{interface.ifalias }})
-
-    {{#if interface.trunk }}
-      <abbr title="trunk port">(trunk)</abbr>
-    {{/if}}
-
+  ({{ interface.ifalias }})
+  {{#if interface.trunk }}
+    <abbr title="trunk port">(trunk)</abbr>
   {{/if }}
 {{/if }}
 

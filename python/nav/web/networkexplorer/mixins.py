@@ -51,9 +51,7 @@ class JSONResponseMixin(object):
 
 
 class GetRoutersMixin(object):
-    """
-    Fetches all the routers on the network
-    """
+    """Fetches all the routers on the network"""
     model = Netbox
 
     def get_queryset(self):
@@ -73,7 +71,7 @@ class GetRoutersMixin(object):
         return context
 
 
-class GetGWPortsMixin(object):
+class ExpandRouterContextMixin(object):
     """
     A mixin to 'hide away' the ugly legacy logic of
     expand_router
@@ -143,7 +141,7 @@ class GetGWPortsMixin(object):
         return {'prefixes': gwport_prefixes, 'expandable': has_children}
 
 
-class GetSWPortsMixin(object):
+class ExpandGWPortMixin(object):
     """
     A mixin to 'hide away' the even uglier legacy
     logic of expand_gwport
@@ -154,7 +152,7 @@ class GetSWPortsMixin(object):
             prefix__vlan__net_type='static')
 
         vlans = []
-        vlans_found = {}
+        vlans_found = set()
         for prefix in prefixes:
             # TODO: Use select related?
             for vlan in prefix.prefix.vlan.swportvlan_set.filter(
@@ -167,34 +165,24 @@ class GetSWPortsMixin(object):
                 ).count():
                     continue
 
-                # Check for children, services and connection
-                # to switches
                 elif vlan and not vlan.pk in vlans_found:
-                    vlans_found[vlan.pk] = True
+                    vlans_found.add(vlan.pk)
+                    interface = vlan.interface
                     vlan_context = {
-                        'pk': vlan.interface.pk,  # FIXME added .interface
+                        'pk': interface.pk,
                         'type': 'swport',
-                        'interface': model_to_dict(vlan.interface),
-                        'netbox_sysname': vlan.interface.netbox.sysname,
-                        'to_netbox_sysname': vlan.interface.to_netbox.sysname
-                        if vlan.interface.to_netbox else '',
-                        'to_netbox_sysname_short':
-                        vlan.interface.to_netbox.get_short_sysname()
-                        if vlan.interface.to_netbox else '',
-                        'to_interface_netbox_sysname':
-                        vlan.interface.to_interface.netbox.sysname
-                        if vlan.interface.to_interface else '',
-                        'to_interface_netbox_sysname_short':
-                        vlan.interface.to_interface.netbox.get_short_sysname()
-                        if vlan.interface.to_interface else '',
+                        'interface': model_to_dict(interface),
+                        'netbox_sysname': interface.netbox.sysname,
                         'module_netbox_sysname':
-                        vlan.interface.module.netbox.sysname
-                        if vlan.interface.module else '',
+                        interface.module.netbox.sysname
+                        if interface.module else '',
                         'subheader_vlan': unicode(vlan.vlan.vlan),
-                        'subheader_netbox': unicode(vlan.interface.netbox),
+                        'subheader_netbox': unicode(interface.netbox),
                     }
+                    # Check for children, services and connection
+                    # to switches
                     vlan_context.update(self._get_expandable(vlan))
-
+                    vlan_context.update(_get_connected_sysname(interface))
                     vlans.append(vlan_context)
         sorted_vlans = sorted(
             vlans,
@@ -253,9 +241,8 @@ class GetSWPortsMixin(object):
         return c
 
 
-class GetSWPortVlansMixin(object):
-    """
-    """
+class ExpandSwitchContextMixin(object):
+    """Mixin implementing the logic for expanding a swport"""
     def get_context_data(self, **kwargs):
         switch = kwargs.pop('object')
         vlan_id = self.kwargs.pop('vlan_id', None)
@@ -281,7 +268,7 @@ class GetSWPortVlansMixin(object):
                 'interface_netbox_sysname_short':
                 unicode(interface.netbox.sysname),
             }
-            c.update(self._get_connected_sysname(interface))
+            c.update(_get_connected_sysname(interface))
             if (interface.to_interface
                     and interface.netbox.service_set.all().count()):
                 c.update({'expandable': True})
@@ -297,28 +284,9 @@ class GetSWPortVlansMixin(object):
             key=lambda vlan: natsort.split(vlan['interface']['ifname'])
         )
 
-    @staticmethod
-    def _get_connected_sysname(interface):
-        if interface.to_netbox:
-            return {
-                'connected_to': {
-                    'sysname': interface.to_netbox.sysname,
-                    'short': unicode(interface.to_netbox)
-                }
-            }
-        elif interface.to_interface:
-            return {
-                'connected_to': {
-                    'sysname': interface.to_interface.netbox.sysname,
-                    'short': unicode(interface.to_interface.netbox)
-                }
-            }
-        else:
-            return {}
 
-
-class SWPortNetworkContextMixin(object):
-    """"""
+class ExpandSWPortContextMixin(object):
+    """Mixin implementing the logic for expanding a swport"""
     def get_context_data(self, **kwargs):
         swport = kwargs.pop('object')
         to_netbox = (
@@ -351,7 +319,27 @@ class SWPortNetworkContextMixin(object):
             if not len(arp_entries) and mac.mac not in hosts_behind_port:
                 hosts_behind_port.add(mac.mac)
         return {
+            'type': 'swport-leaf',
             'netbox': to_netbox,
             'services': services,
             'active_hosts': sorted(hosts_behind_port),
         }
+
+
+def _get_connected_sysname(interface):
+    if interface.to_netbox:
+        return {
+            'connected_to': {
+                'sysname': interface.to_netbox.sysname,
+                'short': unicode(interface.to_netbox)
+            }
+        }
+    elif interface.to_interface:
+        return {
+            'connected_to': {
+                'sysname': interface.to_interface.netbox.sysname,
+                'short': unicode(interface.to_interface.netbox)
+            }
+        }
+    else:
+        return {}
