@@ -20,8 +20,16 @@ table.seeddbtable .info {
 	font-weight: bold;
 }
 
+form.seeddb-edit {
+    float: left;
+}
+
+#map-container {
+    text-align: center;
+    float: right;
+}
+
 #map {
     width: 800px;
     height: 600px;
-    float: right;
 }
