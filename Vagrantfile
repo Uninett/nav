@@ -8,7 +8,7 @@ Vagrant.configure("2") do |config|
 
   # Built image from base box vagrant image
   config.vm.box = "nav-basevm"
-  # config.vm.box_url = "http://domain.com/path/to/above.box"
+  config.vm.box_url = "http://absint.online.ntnu.no/~norangsh/nav-basevm.box"
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
