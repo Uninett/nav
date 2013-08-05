@@ -12,6 +12,7 @@ else
 export WEBROOT=/vagrant/media
 export DJANGO_SETTINGS_MODULE="nav.django.settings"
 export PYTHONPATH="/vagrant/python:$PYTHONPATH"
+export PATH="/vagrant/bin:$PATH"
 source ~/.env/bin/activate
 EOF
 fi
