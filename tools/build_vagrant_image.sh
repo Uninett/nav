@@ -48,6 +48,9 @@ bundle install
 
 bundle exec veewee vbox define 'nav-basevm' 'Debian-7.1.0-amd64-netboot' --force
 
+# Sets the norwegian mirror as default mirror
+sed 's#\(d-i.mirror.http.hostname.string\)\(.*\)#\1 ftp.no.debian.org#g' -i $BASE_FULL_DIR/veewee/definitions/nav-basevm/preseed.cfg
+
 bundle exec veewee vbox build 'nav-basevm' --workdir=$BASE_FULL_DIR/veewee --force
 
 bundle exec veewee vbox export 'nav-basevm' --force
