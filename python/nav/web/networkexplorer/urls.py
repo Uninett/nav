@@ -31,7 +31,7 @@ urlpatterns = patterns('',
     url(r'^$', IndexView.as_view(),
         name='networkexplorer-index'),
 
-    url(r'^search', SearchView.as_view(),
+    url(r'^search/$', SearchView.as_view(),
         name="networkexplorer-search"),
 
     url(r'^routers/$', RouterJSONView.as_view(),

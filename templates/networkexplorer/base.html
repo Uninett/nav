@@ -65,25 +65,8 @@
 
     </div>
 
-    {% comment %}<div class="networktree">
-      <dl id="tree" class="routers">
-        <dt>Routers:</dt>
-        {% for router in routers %}
-          <dd id="router-{{ router.id }}">
-            {% if router.has_children %}
-              <img src="/images/networkexplorer/expand.gif" onclick="openNode(this);" class="tree-navigators" alt=""/>
-            {% else %}
-              <img src="/images/networkexplorer/end.gif" class="tree-navigators" alt=""/>
-            {% endif %}
-            <a target="_blank" href="{% url ipdevinfo-details-by-name router.sysname %}">{{router}}</a>
-          </dd>
-        {% endfor %}
-      </dl>
-    </div>{% endcomment %}
 
-    <div id="networktree">
-
-    </div>
+    <div id="networktree"></div>
 
   {% endblock %}
 
