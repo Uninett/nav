@@ -23,7 +23,7 @@ require(['plugins/network_tree','plugins/network_tree' , 'libs/jquery'], functio
             );
     }
     function parseResult(data) {
-        console.log(data);
+        networkTree.search(data);
     }
     function notifyFail(text) {
         var notify_area = $('#notify_area');

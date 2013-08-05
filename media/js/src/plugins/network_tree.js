@@ -38,7 +38,8 @@ define([
             pk: -1,
             type: 'root',
             state: 'collapsed',
-            expandable: false
+            expandable: false,
+            matched: false  // For search
         },
 
         initialize: function () {
@@ -84,7 +85,7 @@ define([
             }
         },
 
-        expand: function () {
+        expand: function (d) {
 
             /*
              * Expands the node if its expandable and not currently
@@ -112,11 +113,13 @@ define([
                         node.set('state', 'expanded');
                         node.set('children', children);
                         Backbone.EventBroker.trigger('tree:render', node);
+                        if (d) d.resolve();
                     },
                     error: function () {
                         console.log('could not fetch nodes');
                         node.set('state', 'collapsed');
                         node.hideSpinner();
+                        if (d) d.reject();
                     }
                 });
             } else {
@@ -153,6 +156,10 @@ define([
             console.log('url: ' + this.url);
             c.url = this.url;
             return c;
+        },
+
+        match: function (d) {
+            Backbone.EventBroker.trigger('node:match', this, d);
         }
     });
 
@@ -199,6 +206,7 @@ define([
         el: '#networktree',
 
         interests: {
+            'tree:search': 'search',
             'tree:render': 'render'
         },
 
@@ -206,6 +214,50 @@ define([
 
             // Registering for events
             Backbone.EventBroker.register(this);
+        },
+
+        search: function (data) {
+
+            /*
+             * Welcome to callback HELL!
+             */
+
+            var root = this.model.get('root');
+            var routers = root.get('children');
+
+            routers.each(function (router) {
+
+                var index = data.routers.indexOf(router.get('pk'));
+                if (index >= 0) {
+                    var dRouters = $.Deferred();
+                    router.match(dRouters);
+
+                    dRouters.done(function () {
+
+                        var gwports = router.get('children');
+                        gwports.each(function (gwport) {
+
+                            var index = data.gwports.indexOf(gwport.get('pk'));
+                            if (index >= 0) {
+                                var dGWPorts = $.Deferred();
+                                gwport.match(dGWPorts);
+
+                                dGWPorts.done(function () {
+
+                                    var swports = gwport.get('children');
+                                    swports.each(function (swport) {
+
+                                        var index = data.swports.indexOf(swport.get('pk'));
+                                        if (index >= 0) {
+                                            swport.match();
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                    });
+                }
+            });
         },
 
         render: function (node) {
@@ -246,6 +298,10 @@ define([
         tagName: 'li',
         className: 'node',
 
+        interests: {
+            'node:match': 'match'
+        },
+
         initialize: function () {
             var template;
             switch (this.model.get('type')) {
@@ -267,6 +323,7 @@ define([
             }
 
             this.template = Handlebars.compile(template);
+            Backbone.EventBroker.register(this);
 
             this.$el.attr('id', this.model.elementId());
         },
@@ -327,7 +384,7 @@ define([
             }
         },
 
-        triggerExpand: function () {
+        triggerExpand: function (d) {
 
             /*
              * Expands or collapses a node based on its state.
@@ -336,11 +393,22 @@ define([
 
             console.log('caught expand on ' + this.model.elementId());
 
-            if (this.model.get('state') === 'collapsed') {
+            if (this.model.get('state') === 'collapsed' &&
+                    this.model.get('expandable')) {
                 this.showSpinner();
-                this.model.expand();
+                this.model.expand(d);
             } else if (this.model.get('state') === 'expanded') {
                 this.model.collapse();
+            }
+        },
+
+        match: function (node, d) {
+            if (node === this.model) {
+                if (this.model.get('type') !== 'router') {
+                    this.$el.attr('class', 'highlight');
+                }
+                this.model.set('matched', true);
+                this.triggerExpand(d);
             }
         }
     });

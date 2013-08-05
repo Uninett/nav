@@ -128,3 +128,16 @@ li.list-header {
 .alert-box ul, .error ul {
     margin-bottom: 0;
 }
+
+
+/* highlighting */
+
+.highlight {
+	background: #FFF7BC;
+}
+.highlight .highlight {
+	background: #FEE391;
+}
+.highlight .highlight .highlight {
+	background: #FEC44F;
+}
