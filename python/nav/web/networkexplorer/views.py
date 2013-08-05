@@ -21,8 +21,8 @@ from django.views.generic.detail import BaseDetailView
 
 from nav.models.manage import Netbox
 from nav.models.manage import Interface
-from search import vlan_search, portname_search, search
 
+from .search import search
 from .forms import NetworkSearchForm
 from .mixins import (
     GetRoutersMixin,

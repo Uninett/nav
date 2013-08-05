@@ -53,18 +53,23 @@ def search(data):
     ) = search_function(query, exact_results)
 
     if hide_ports:
+        hide_gwports = set()
+        hide_swports = set()
         for gwport in qwport_matches:
             if not gwport.ifalias:
-                qwport_matches.remove(gwport)
+                hide_gwports.add(gwport)
         for swport in swport_matches:
             if not swport.ifalias:
-                swport_matches.remove(swport)
+                hide_swports.add(swport)
+
+        qwport_matches -= hide_gwports
+        swport_matches -= hide_swports
 
     return {
         # Ensure list for JSON-serialization
-        'routers': list(router_matches),
-        'gwports': list(qwport_matches),
-        'swports': list(swport_matches),
+        'routers': [router.pk for router in router_matches],
+        'gwports': [gwport.pk for gwport in qwport_matches],
+        'swports': [swport.pk for swport in swport_matches],
     }
 
 
