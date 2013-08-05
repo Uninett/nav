@@ -3,6 +3,7 @@ define([
     'libs-amd/text!resources/networkexplorer/gwport.html',
     'libs-amd/text!resources/networkexplorer/swport.html',
     'libs-amd/text!resources/networkexplorer/switch.html',
+    'libs-amd/text!resources/networkexplorer/swport_leaf.html',
     'libs/jquery',
     'libs/backbone',
     'libs/backbone-eventbroker',
@@ -25,7 +26,11 @@ define([
 
 
     var Node = Backbone.Model.extend({
-        // Node base class
+
+        /*
+         * An object representing a node in the network tree.
+         * Can be any kind of device/interface.
+         */
 
         idAttribute: 'pk',
 
@@ -82,10 +87,10 @@ define([
         expand: function () {
 
             /*
-            Expands the node if its expandable and not currently
-            processing. Fetches the nodes children from the
-            server if necessary. Triggers a rerender of the
-            node and it's subtree.
+             * Expands the node if its expandable and not currently
+             * processing. Fetches the nodes children from the
+             * server if necessary. Triggers a rerender of the
+             * node and it's subtree.
              */
 
             console.log('in expand');
@@ -111,6 +116,7 @@ define([
                     error: function () {
                         console.log('could not fetch nodes');
                         node.set('state', 'collapsed');
+                        node.hideSpinner();
                     }
                 });
             } else {
@@ -121,6 +127,11 @@ define([
         },
 
         collapse: function () {
+
+            /*
+             * Collapses the nodes subtree and triggers a
+             * rerender. The nodes children are kept.
+             */
 
             console.log('collapsing node');
 
@@ -148,15 +159,20 @@ define([
     var NodeCollection = Backbone.Collection.extend({
 
         /*
-        A collection for Node-models. Used to hold
-        a Nodes children.
+         * A collection for Node-models. Used to hold
+         * a nodes children.
          */
 
         model: Node
     });
 
     var Tree = Backbone.Model.extend({
-        // The network tree
+
+        /*
+         * A Container-model for the tree.
+         *
+         * TODO: Might not be necessary
+         */
 
         defaults: {
             root: new Node({expandable: true})
@@ -173,10 +189,12 @@ define([
         }
     });
 
-    /**
-     * Views
-     */
+
     var TreeView = Backbone.View.extend({
+
+        /*
+         * View-object for the Tree model.
+         */
 
         el: '#networktree',
 
@@ -193,8 +211,9 @@ define([
         render: function (node) {
 
             /*
-            Renders the tree recursively starting with the
-            root node
+             * Renders the tree recursively starting either
+             * with the root or the node which triggered a
+             * rerender-event.
              */
 
             if (node.get('type') === 'root') {
@@ -219,6 +238,10 @@ define([
     });
 
     var NodeView = Backbone.View.extend({
+
+        /*
+         * View-object for the Node model
+         */
 
         tagName: 'li',
         className: 'node',
@@ -251,8 +274,8 @@ define([
         render: function () {
 
             /*
-            Renders the node, and also its children if the
-            node is expanded.
+             * Renders the node, and also its children if the
+             * node is expanded.
              */
 
             if (this.model.get('type') !== 'root') {
@@ -285,16 +308,19 @@ define([
         },
 
         showSpinner: function () {
-          this.$('img').attr('src', '/images/main/process-working.gif');
+            this.$('img').attr('src', '/images/main/process-working.gif');
+        },
+
+        hideSpinner: function () {
+            // This should only be called on a node that fails to expand
+            // and therefore we know it's expandable.
+            this.$('img').attr('src', 'images/networkexplorer/expand.gif');
         },
 
         registerExpandTrigger: function () {
 
-            /*
-            Bind 'triggerExpand' event to the collapse/expand image
-            if the node is expandable.
-             */
-
+            // Bind 'triggerExpand' event to the collapse/expand image
+            // if the node is expandable.
             if (this.model.get('expandable')) {
                 var expandButton = this.$('img');
                 expandButton.on('click', _.bind(this.triggerExpand, this));
@@ -304,8 +330,8 @@ define([
         triggerExpand: function () {
 
             /*
-            Expands or collapses a node based on its state.
-            Is bound to click event on the expand-/collapse-icon
+             * Expands or collapses a node based on its state.
+             * Is bound to click event on the expand-/collapse-icon
              */
 
             console.log('caught expand on ' + this.model.elementId());
@@ -319,9 +345,5 @@ define([
         }
     });
 
-    //var NetworkView = new TreeView({model: new Tree()});
-    //var RootNodeView = new NodeView({model: NetworkView.model.get('root')});
-
-    //NetworkView.model.expand();
     return new TreeView({model: new Tree()});
 });
