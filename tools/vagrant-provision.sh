@@ -19,6 +19,7 @@ if [ -f ~vagrant/modified_bash ]; then
   echo "~vagrant/.bashrc already modified, rm ~vagrant/modified_bash if need to reprovision it"
 else
   cat << EOF >> ~vagrant/.bashrc
+export WEBROOT=/vagrant/media
 export DJANGO_SETTINGS_MODULE="nav.django.settings"
 export PYTHONPATH="/vagrant/python:$PYTHONPATH"
 source ~/.env/bin/activate
@@ -35,7 +36,7 @@ cd /vagrant
 sed -e 's/^#\s*\(DJANGO_DEBUG.*\)$/\1/' -i etc/nav.conf # Enable django debug. 
 sed -e 's/userpw_nav=.*/userpw_nav=nav/g' -i etc/db.conf # Set nav as password. 
 ./autogen.sh
-./configure --prefix /vagrant
+./configure --prefix /vagrant WEBROOT=/vagrant/media
 cd /vagrant/python 
 make
 cd /vagrant/etc
