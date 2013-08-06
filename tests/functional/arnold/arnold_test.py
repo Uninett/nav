@@ -26,19 +26,3 @@ class ArnoldSeleniumTest(SeleniumTest):
         self.driver.get(self.get_url('arnold_index'))
         title = self.driver.title
         self.assertTrue('Detentions' in title)
-
-    def test_add_quarantine_vlan(self):
-        self.driver.get(self.get_url('arnold-quarantinevlans'))
-
-        # Submit a new quarantine vlan
-        form = self.driver.find_element_by_css_selector('.tabcontent form')
-        form.find_element_by_id('id_vlan').send_keys('10')
-        form.find_element_by_id('id_description').send_keys('test')
-        form.find_element_by_css_selector('input[type=submit]').click()
-
-        # After submit
-        table = self.driver.find_element_by_css_selector(
-            '.tabcontent .listtable')
-        row = table.find_elements_by_tag_name('tr')[-1]
-        self.assertTrue('10' in row.text)
-        self.assertTrue('test' in row.text)
