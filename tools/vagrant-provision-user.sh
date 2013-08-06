@@ -24,7 +24,7 @@ pip install -v -r /vagrant/tools/vagrant-requirements2.txt # Silly modules who c
 
 cd /vagrant
 ./autogen.sh
-./configure --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc WEBROOT=/vagrant/media
+./configure --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc WEBROOT=/vagrant/media DJANGOTMPLDIR=/vagrant/templates
 cd /vagrant/python
 make
 
