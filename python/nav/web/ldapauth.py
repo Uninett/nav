@@ -214,7 +214,8 @@ class LDAPUser(object):
             _logger.debug("Attempting authenticated bind as manager to %s",
                          manager)
             self.ldap.simple_bind_s(manager, manager_password)
-        filter_ = "(%s=%s)" % (_config.get('ldap', 'uid_attr'), self.username)
+        filter_ = "(%s:caseExactMatch:=%s)" % (_config.get('ldap', 'uid_attr'),
+                                               self.username)
         result = self.ldap.search_s(_config.get('ldap', 'basedn'),
                                     ldap.SCOPE_SUBTREE, filter_)
         if not result or not result[0] or not result[0][0]:
