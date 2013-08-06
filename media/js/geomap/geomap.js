@@ -143,15 +143,15 @@ function init(mapElementId, url) {
  */
 function netLayerLoadStart() {
     document.getElementById('geomap-heading').innerHTML = 'Geomap (<img src="/images/geomap/loading.gif" alt=""/> loading data ...)';
-    document.getElementById('navbody').className = 'loading';
+    document.getElementsByClassName('navbody')[0].className = 'navbody loading';
 }
 function netLayerLoadEnd() {
     document.getElementById('geomap-heading').innerHTML = "Geomap";
-    document.getElementById('navbody').className = '';
+    document.getElementsByClassName('navbody')[0].className = 'navbody';
 }
 function netLayerLoadCancel() {
     document.getElementById('geomap-heading').innerHTML = "Geomap";
-    document.getElementById('navbody').className = '';
+    document.getElementsByClassName('navbody')[0].className = 'navbody';
 }
 
 /*
@@ -164,7 +164,7 @@ function netLayerLoadCancel() {
  * version 2).
  */
 function setMapSize() {
-    var mapE = document.getElementById(mapElemId)
+    var mapE = document.getElementById(mapElemId);
 
     if (mapFullscreen) {
 	mapE.style.position = 'absolute';
