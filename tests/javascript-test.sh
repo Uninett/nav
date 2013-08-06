@@ -8,12 +8,6 @@ SLEEPTIME=8
 WORKSPACE=$1
 JSDIR="${WORKSPACE}/media/js"
 
-XVFB=`which Xvfb`
-if [ "$?" -eq 1 ]; then
-    echo "Xvfb not found"
-    exit 1
-fi
-
 GOOGLECHROME=`which google-chrome`
 if [ "$?" -eq 1 ]; then
     echo "google chrome not found"
