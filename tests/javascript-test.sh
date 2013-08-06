@@ -60,7 +60,7 @@ fi
 
 export DISPLAY=:${DISPLAYNUM}
 
-cd ${WORKSPACE}/media/js
+cd ${JSDIR}
 ${JSDIR}/node_modules/karma/bin/karma start karma.conf.buildserver.js
 
 #if [ "$?" -eq 1 ]; then
