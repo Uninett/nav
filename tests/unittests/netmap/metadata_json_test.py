@@ -76,25 +76,18 @@ class MetaClassesJsonTests(MetaClassTestCase):
 
 class SharedJsonMetadataTests():
     def test_not_failing_when_both_interface_speed_is_undefined(self):
-        interface_a = Mock(name='Interface A', spec=Interface)
-        interface_a.speed = None
-        interface_b = Mock(name='Intercace B', spec=Interface)
-        interface_b.speed = None
-        results = Edge(interface_a, interface_b)
+        self.a1.speed = None
+        self.b1.speed = None
+        results = Edge(self.a1, self.b1)
         self.assertTrue(results.link_speed is None)
 
     def test_json_edge_is_NA_if_speed_is_undefined(self):
-        netbox_a = Mock('Netbox')
-        netbox_b = Mock('Netbox')
-        results = edge_to_json(
-            (netbox_a, netbox_b), [{
-                                       'uplink': {},
-                                       'tip_inspect_link': False,
-                                       'error': {},
-                                       'link_speed': None
-                                   }]
-        )
-        self.assertEquals(results[0]['link_speed'], 'N/A')
+        self.a1.speed = None
+        self.b1.speed = None
+
+        results = edge_to_json(None, Edge(self.a1, self.b1))
+
+        self.assertEquals(results['link_speed'], 'N/A')
 
     def test_stubbed_netbox_always_gives_is_elink(self):
         netbox = stubs.Netbox()
@@ -231,9 +224,9 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
 
         self.assertEqual(1, len(edge_json_metadata))
         self.assertEqual(1, len(
-            edge_json_metadata[0].get('uplink').get('prefixes')))
-        self.assertEqual('158.38.0.0/30',
-                         edge_json_metadata[0].get('uplink').get('prefixes')[0])
+            edge_json_metadata[0].get('prefixes')))
+        self.assertEqual(u'158.38.0.0/30 (vlan 50)',
+                         edge_json_metadata[0].get('prefixes')[0])
 
     def test_layer3_v4_and_v6_prefixes_added_between_a_and_c(self):
         self._setupNetmapGraphLayer3()
@@ -244,9 +237,9 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
 
         self.assertEqual(1, len(edge_json_metadata))
         self.assertEqual(2, len(
-            edge_json_metadata[0].get('uplink').get('prefixes')))
-        expected_prefixes = ('158.38.0.4/30', 'feed:dead:cafe:babe::/64')
-        test = edge_json_metadata[0].get('uplink').get('prefixes')
+            edge_json_metadata[0].get('prefixes')))
+        expected_prefixes = (u'158.38.0.4/30 (vlan 50)', u'feed:dead:cafe:babe::/64 (vlan 50)')
+        test = edge_json_metadata[0].get('prefixes')
 
         self.assertTrue(
             all([x in test for x in expected_prefixes])
