@@ -46,7 +46,7 @@ body
 #map
 {
     height: 600px;
-    z-index: -99;
+    z-index: 0;
 }
 
 #navbody.loading, #navbody.loading #map
