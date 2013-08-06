@@ -12,6 +12,7 @@ svn+http://dev.zenoss.org/svn/tags/pynetsnmp-0.28.14
 lxml==2.3.2
 PIL==1.1.7
 pyrad==1.2
+python-ldap==2.4.10
 # Testing
 pytest>=2.2.4,<2.3
 mock>=0.8.0,<0.9
