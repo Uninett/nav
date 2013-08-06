@@ -1,7 +1,8 @@
 {
   "name": "NAV",
   "description": "Network Administration Visualized",
-  "version": "3.14",
+  "version": "0.3.14",
+  "private": true,
   "optionalDependencies": {
     "chai": "*",
     "istanbul": "*",
