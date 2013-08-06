@@ -107,6 +107,7 @@ class PacketV4(Packet):
     ICMP_ECHO_REPLY = 0
     ICMP_DESTINATION_UNREACHABLE = 3
     ICMP_ECHO = 8
+    ICMP_TIME_EXCEEDED = 11
 
     # IPv4 RAW sockets include the IP header in the received datagram.  This
     # packet slice chops of the first 20 octets to get at the ICMP datagram
@@ -127,6 +128,7 @@ class PacketV6(Packet):
 
     """
     ICMP_DESTINATION_UNREACHABLE = 1
+    ICMP_TIME_EXCEEDED = 3
     ICMP_ECHO = 128
     ICMP_ECHO_REPLY = 129
 
