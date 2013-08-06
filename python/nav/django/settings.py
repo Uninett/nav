@@ -67,7 +67,6 @@ ROOT_URLCONF = 'nav.django.urls'
 # Templates
 TEMPLATE_DIRS = (
     nav.path.djangotmpldir,
-    os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../../templates")
 )
 
 # Context processors
