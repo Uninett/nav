@@ -1,0 +1,20 @@
+cheetah
+psycopg2==2.4.5
+django>=1.4,<1.5
+IPy==0.75
+twisted>=12,<13
+simplejson==2.0.6 # freebsd doesn't have newer.
+http://downloads.sourceforge.net/project/twistedsnmp/pysnmp-se/3.5.2/pysnmp-se-3.5.2.tar.gz
+networkx>=1.7,<1.8
+python-rrdtool==1.4.7
+pyxmpp==1.1.2
+svn+http://dev.zenoss.org/svn/tags/pynetsnmp-0.28.14
+lxml==2.3.2
+PIL==1.1.7
+pyrad==1.2
+python-ldap==2.4.10
+# Testing
+pytest>=2.2.4,<2.3
+mock>=0.8.0,<0.9
+pylint==0.26
+sphinx>=1.0

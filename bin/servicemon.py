@@ -36,12 +36,6 @@ import gc
 import threading
 import signal
 
-try:
-    import nav.path
-except:
-    # Not properly installed
-    pass
-
 import nav.daemon
 from nav.daemon import safesleep as sleep
 from nav.statemon import RunQueue
@@ -70,31 +64,7 @@ class controller:
         #self.alerter.start()
         self.dirty = 1
 
-    def createStatusFile(self):
-        """
-        Dumps the current status to a file.
-        """
-        filename = os.path.join(nav.path.webroot, "services/status.txt")
-        try:
-            outputfile = open(filename, 'w')
-        except:
-            debug.debug("Failed to open outputfile: %s" % filename,2)
-            return
 
-        try:
-            outputlines = []
-            for each in self._checkers:
-                outputlines.append("%-25s %-5s %-5s %s\n" %
-                                   (each.getSysname(), each.getType(), each.getStatus(), each.getVersion()))
-            outputlines.sort()
-            map(outputfile.write, outputlines)
-
-            outputfile.write("\n\nLast updated: %s" % time.asctime())
-            outputfile.close()
-        except:
-            debug.debug("Failed to write to %s" % outputfile,2)
-
-                      
     def getCheckers(self):
         """
         Fetches new checkers from the NAV database and appends them to
@@ -115,9 +85,9 @@ class controller:
                     s.append(i)
 
             self._checkers=s
-	elif self.db.status and self._checkers:
-	    debug.debug("No checkers left in database, flushing list.")
-	    self._checkers=[]
+        elif self.db.status and self._checkers:
+            debug.debug("No checkers left in database, flushing list.")
+            self._checkers=[]
 
         #randomiserer rekkefølgen på checkerbene
         for i in self._checkers:
@@ -144,8 +114,6 @@ class controller:
             for checker in self._checkers:
                 self._runqueue.enq(checker)
                 sleep(pause)
-
-            # self.createStatusFile()
 
             # extensive debugging
             dbgthreads=[]
