@@ -38,34 +38,42 @@ PositionControl = OpenLayers.Class(OpenLayers.Control, {
      * options -- arbitrary properties to set on the object
      */
     initialize: function(idPrefix, options) {
-	OpenLayers.Control.prototype.initialize.apply(this, arguments);
-	this.idPrefix = idPrefix;
-	var callbacks = {
-	    'click': this.click,
-	};
-	this.handler = new OpenLayers.Handler.Click(this, callbacks);
+        OpenLayers.Control.prototype.initialize.apply(this, arguments);
+        this.idPrefix = idPrefix;
+        var callbacks = {
+            'click': this.click,
+        };
+        this.handler = new OpenLayers.Handler.Click(this, callbacks);
     },
 
     /*
      * Callback function for mouse click events.
      */
     click: function(event) {
-	var lonlat = fromMapCoords(this.map.getLonLatFromPixel(event.xy),
-				   this.map);
-	var e;
-	if (e = this.elem('clicked-lonlat'))
-	    e.value = lonLatToStr(lonlat);
-	if (e = this.elem('clicked-utm'))
-	    e.value = utmToStr(lonLatToUtm(lonlat));
+        var lonlat = fromMapCoords(this.map.getLonLatFromPixel(event.xy),
+                                   this.map);
+        var addRoom = document.getElementById('add-room');
+        var e;
+        if (e = this.elem('clicked-lonlat')) {
+            var lonlatStr = lonLatToStr(lonlat);
+            e.value = lonlatStr;
+            lonlatStr = lonlatStr.replace(' ', '').split(',');
+            var lon = lonlatStr[1];
+            var lat = lonlatStr[0];
+            addRoom.href = '/seeddb/room/add/' + lat + '/' + lon + '/';
+        }
+        if (e = this.elem('clicked-utm')) {
+            e.value = utmToStr(lonLatToUtm(lonlat));
+        }
     },
 
     /*
      * Get a HTML element by id (without prefix).
      */
     elem: function(name) {
-	var id = this.idPrefix + '-' + name;
-	if (!id) return null;
-	return document.getElementById(id);
+        var id = this.idPrefix + '-' + name;
+        if (!id) return null;
+        return document.getElementById(id);
     },
 
 });

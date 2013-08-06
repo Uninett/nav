@@ -3,7 +3,7 @@
 <li class="{{ sub_active.add|yesno:"tabactive," }}">
     <a href="{% url seeddb-room-edit %}">Add new room</a>
 </li>
-{% if object %}
+{% if object and object.id %}
 <li class="{{ sub_active.edit|yesno:"tabactive," }}">
     <a href="{% url seeddb-room-edit object.id %}">Edit room "{{ object.id }}"</a>
 </li>
