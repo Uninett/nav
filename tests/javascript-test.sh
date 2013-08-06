@@ -59,7 +59,7 @@ if [ ! ${XVFB_STARTED} ]; then
 fi
 
 export DISPLAY=:${DISPLAYNUM}
-
+export PATH="${JSDIR}/node_modules/.bin:$PATH"
 cd ${JSDIR}
 ${JSDIR}/node_modules/karma/bin/karma start karma.conf.buildserver.js
 
