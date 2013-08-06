@@ -75,7 +75,7 @@ class Edge(object):
     def _valid_layer3(self, edge):
         return isinstance(edge, GwPortPrefix) or isinstance(edge, stubs.GwPortPrefix)
 
-    def get_layer(self, source, target):
+    def _get_layer(self, source, target):
         if (self._valid_layer2(source) or source is None
             and self._valid_layer2(target) or target is None):
             return 2
@@ -128,7 +128,8 @@ class Edge(object):
             self.target.gw_ip = target.gw_ip
             self.target.virtual = target.virtual
 
-        if (self.get_layer(source, target) == 3):
+        self.layer = self._get_layer(source, target)
+        if (self.layer == 3):
             assert source.prefix == target.prefix, "GwPortPrefix should be in " \
                                                    "the same Prefix group!"
             self.vlan = source.prefix.vlan
@@ -168,10 +169,12 @@ class Edge(object):
             'source': self.source.to_json(),
             'target': self.target.to_json(),
         }
-        if self._layer == 2:
-            pass
-        elif self._layer == 3:
-            json.update('vlan', self.vlan)
+        if self.layer == 3:
+            json.update({'vlan': self.vlan})
+            json.update(
+                {'prefixes': [unicode(prefix) for prefix in self.prefixes]}
+            )
+        json.update({'link_speed': self.link_speed or 'N/A'})
         return json
 
 def node_to_json_layer2(node, nx_metadata=None):
@@ -280,51 +283,12 @@ def edge_to_json_layer3(edge, vlan_metadata_dict):
     :param metadata Metadata from netmap networkx graph
     :return edge representation in JSON
     """
+    metadata_collection = []
     for metadata in vlan_metadata_dict.values():
-        metadata = metadata['metadata']
-        collection_of_uplinks = edge_to_json(edge, [metadata])
+        row = metadata.get('metadata')
+        metadata_collection.append(edge_to_json(edge, row))
+    return metadata_collection
 
-        for json in collection_of_uplinks:
-            if type(json['uplink']) == dict:
-                uplink = json['uplink']
-
-                # Add prefix metadata
-                vlan = None
-
-                uplink_this = {}
-                uplink_other = {}
-                #                'net_address': unicode(metadata['uplink'][
-                # 'prefix']
-                # .net_address),
-                if metadata['uplink'].has_key('vlan') and metadata['uplink'][
-                    'vlan']:
-                    vlan = {
-                        'net_ident': unicode(
-                            metadata['uplink']['vlan'].net_ident),
-                        'description': unicode(
-                            metadata['uplink']['vlan'].description)
-                    }
-
-                    uplink.update({'prefixes': [x.net_address for x in
-                                                metadata['uplink'][
-                                                    'prefixes']]})
-
-                    if metadata['uplink']['thiss'].has_key('gw_ip'):
-                        uplink_this.update(
-                            {'gw_ip': metadata['uplink']['thiss']['gw_ip'],
-                             'virtual': metadata['uplink']['thiss']['virtual']})
-
-                    if metadata['uplink']['other'].has_key('gw_ip'):
-                        uplink_other.update(
-                            {'gw_ip': metadata['uplink']['other']['gw_ip'],
-                             'virtual': metadata['uplink']['other']['virtual']})
-
-                uplink['thiss'].update(uplink_this)
-                uplink['other'].update(uplink_other)
-
-                uplink['vlan'] = vlan
-
-        return collection_of_uplinks
 
 
 def edge_to_json(edge, metadata):
@@ -335,64 +299,8 @@ def edge_to_json(edge, metadata):
     :return JSON presentation of a edge.
     """
 
-    edge_metadata = []
-    for directional_metadata_edge in metadata:
-        uplink = directional_metadata_edge['uplink']
-        link_speed = directional_metadata_edge['link_speed']
-        tip_inspect_link = directional_metadata_edge['tip_inspect_link']
-        error = directional_metadata_edge['error']
+    return metadata.to_json()
 
-        # jsonify
-        if not uplink:
-            uplink_json = 'null' # found no uplinks, json null.
-        else:
-            uplink_json = {}
-
-            if uplink['thiss']['interface']:
-                uplink_json.update(
-                    {'thiss': {
-                        'interface': unicode(
-                            uplink['thiss']['interface'].ifname),
-                        'netbox': uplink['thiss']['netbox'].sysname,
-                        'interface_link': uplink['thiss'][
-                            'interface'].get_absolute_url(),
-                        'netbox_link': uplink['thiss'][
-                            'netbox'].get_absolute_url()
-                    }}
-                )
-            else:
-                uplink_json.update(
-                    {'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
-
-            if uplink['other']['interface']:
-                uplink_json.update(
-                    {'other': {
-                        'interface': unicode(
-                            uplink['other']['interface'].ifname),
-                        'netbox': uplink['other']['netbox'].sysname,
-                        'interface_link': uplink['other'][
-                            'interface'].get_absolute_url(),
-                        'netbox_link': uplink['other'][
-                            'netbox'].get_absolute_url()
-                    }}
-                )
-            else:
-                uplink_json.update(
-                    {'other': {'interface': 'N/A', 'netbox': 'N/A'}})
-
-        if 'link_speed' in error.keys():
-            link_speed = error['link_speed']
-        elif not link_speed:
-            link_speed = "N/A"
-
-        edge_metadata.append(
-            {
-                'uplink': uplink_json,
-                'link_speed': link_speed,
-                'tip_inspect_link': tip_inspect_link,
-            }
-        )
-    return edge_metadata
 
 
 def edge_metadata_layer3(source, target, prefixes):
