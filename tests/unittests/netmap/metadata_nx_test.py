@@ -1,8 +1,25 @@
+from mock import Mock
 import pytest
-from nav.models.manage import Interface
+import unittest
+from nav.models.manage import Interface, Netbox
 from nav.netmap.metadata import Edge, Group
 from topology_layer2_testcase import TopologyLayer2TestCase
 from topology_layer3_testcase import TopologyLayer3TestCase
+from metaclass_testcase import MetaClassTestCase
+
+class MetaClassesTests(MetaClassTestCase):
+    def setUp(self):
+        super(MetaClassTestCase, self).setUp()
+
+    def test_group_does_not_raise_exception_when_interface_is_none(self):
+        foo  = Group(Mock(name='netbox', spec=Netbox), None)
+
+    def test_edge_allows_both_interface_linkspeed_in_group_to_be_none(self):
+        a = Mock(name='interface a', spec=Interface)
+        a.speed = None
+        b = Mock(name='interface b', spec=Interface)
+        b.speed = None
+        foo = Edge(a, b)
 
 
 class SharedNetworkXMetadataTests(object):
