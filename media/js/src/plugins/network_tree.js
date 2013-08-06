@@ -113,13 +113,13 @@ define([
                         node.set('state', 'expanded');
                         node.set('children', children);
                         Backbone.EventBroker.trigger('tree:render', node);
-                        if (d) d.resolve();
+                        if (typeof d !== "undefined") d.resolve();
                     },
                     error: function () {
                         console.log('could not fetch nodes');
                         node.set('state', 'collapsed');
                         node.hideSpinner();
-                        if (d) d.reject();
+                        if (typeof d !== "undefined") d.reject();
                     }
                 });
             } else {

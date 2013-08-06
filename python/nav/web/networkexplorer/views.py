@@ -90,7 +90,6 @@ class ExpandSWPortView(
 
 
 class SearchView(JSONResponseMixin, View):
-    # TODO: Monday work on this!!!!
 
     def form_invalid(self, form):
         return {'error': form.errors}

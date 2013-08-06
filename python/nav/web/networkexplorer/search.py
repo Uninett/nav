@@ -27,8 +27,8 @@ MacRE = re.compile(r'^([a-fA-F0-9]{2}[:|\-]?){6}$')
 
 def search(data):
 
-    exact_results = 'exact_results' in data
-    hide_ports = 'hide_ports' in data
+    exact_results = data.get('exact_results', False)
+    hide_ports = data.get('hide_ports', False)
     query = data['query'][0]
     query_type = data['query'][1]
     search_function = None
@@ -326,7 +326,7 @@ def room_search(room, exact=False):
     else:
         swport_matches.update(
             interfaces.filter(netbox__room__id__icontains=room))
-    
+
     for swport in [swport for swport in swport_matches if swport]:
         swport_search = search_expand_swport(swport=swport)
         gwport_matches.update(swport_search[0])
