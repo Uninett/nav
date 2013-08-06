@@ -1,3 +1,6 @@
+import pytest
+from nav.models.manage import Interface
+from nav.netmap.metadata import Edge, Group
 from topology_layer2_testcase import TopologyLayer2TestCase
 from topology_layer3_testcase import TopologyLayer3TestCase
 
@@ -6,57 +9,11 @@ class SharedNetworkXMetadataTests(object):
     def test_this_shared_networkx_metadata_test_is_running(self):
         self.assertTrue(True) # Nice to check on CI if it has been run.
 
-    def test_root_metadata_has_all_properties_it_should(self):
+    def test_metadata_is_of_type_array(self):
         for node_a, node_b in self.netmap_graph.edges():
             metadata = self._get_metadata(node_a, node_b)
-            for x in metadata:
-                self.assertTrue(all([y in x.keys() for y in ('tip_inspect_link', 'link_speed', 'uplink', 'error')]))
 
-    def test_uplink_has_all_shared_properties_it_should_for_uplink__this(self):
-        # for every uplink. (MultiDiGraph Directed Metadata)
-        for node_a, node_b in self.netmap_graph.edges():
-            collection_metadata = self._get_metadata(node_a, node_b)
-
-            should_have = ('netbox', 'interface')
-
-            for metadata in collection_metadata:
-                keys_uplink_side = metadata.get('uplink').get('thiss').keys()
-                self.assertTrue(all([x in keys_uplink_side for x in should_have])
-                    , msg="Didn't find all keys {0}, only found: {1}".format(
-                        should_have,
-                        keys_uplink_side
-                    ))
-
-    def test_uplink_has_all_shared_properties_it_should_for_uplink__other(self):
-        # for every uplink. (MultiDiGraph Directed Metadata)
-        for node_a, node_b in self.netmap_graph.edges():
-            collection_metadata = self._get_metadata(node_a, node_b)
-
-            should_have = ('netbox', 'interface')
-
-            for metadata in collection_metadata:
-                keys_uplink_side = metadata.get('uplink').get('other').keys()
-
-                self.assertTrue(all([x in keys_uplink_side for x in should_have])
-                    , msg="Didn't find all keys {0}, only found: {1}".format(
-                        should_have,
-                        keys_uplink_side
-                    ))
-
-    def test_uplink_has_all_shared_properties_it_should(self):
-        for node_a, node_b in self.netmap_graph.edges():
-            metadata = self._get_metadata(node_a, node_b)
-            should_have = ('thiss', 'other')
-            for x in metadata:
-                uplink_keys = x.get('uplink').keys()
-                self.assertTrue(
-                    all([y in uplink_keys for y in should_have]),
-                    msg="Didn't find all keys {0}, only found: {1}"
-                    .format(
-                        should_have,
-                        uplink_keys
-                    )
-                )
+            assert type(metadata) == list
 
 
 class Layer2NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer2TestCase):
@@ -64,8 +21,18 @@ class Layer2NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer2Tes
         super(Layer2NetworkXMetadataTests, self).setUp()
         self._setupNetmapGraphLayer2()
 
-    def _get_metadata(self, node_a, node_b):
-        return self.netmap_graph.get_edge_data(node_a, node_b).get('metadata')
+    def _get_metadata(self, node_a, node_b, metadata_key='metadata'):
+        return self.netmap_graph.get_edge_data(node_a, node_b).get(metadata_key)
+
+    def test_metadata_contains_edge_objects(self):
+        for node_a, node_b in self.netmap_graph.edges():
+            metadata = self._get_metadata(node_a, node_b)
+
+            for pair in metadata:
+                assert type(pair) == Edge
+                assert type(pair) == Edge
+
+
 
     def test_node_a1_and_b1_contains_vlan_metadata(self):
         vlans = self.netmap_graph.node[self.a]['metadata']['vlans']
@@ -76,65 +43,33 @@ class Layer2NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer2Tes
         self.assertEqual(vlans[0][0], self.vlan__a1_b1.vlan.id)
 
     def test_edge_between_a_and_b_has_2_edges_as_metdata(self):
-        edge_meta = self.netmap_graph.get_edge_data(self.a, self.b)['metadata']
+        edge_meta = self._get_metadata(self.a, self.b)
         self.assertEqual(2, len(edge_meta))
 
     def test_edge_between_a_and_b_contains_a1_b1__and__a2_b2_uplinks(self):
-        edge_meta = [x['uplink'] for x in
-                     self.netmap_graph.get_edge_data(self.a, self.b)['metadata']]
-        self.assertEqual(self.a1, edge_meta[0]['thiss']['interface'])
-        self.assertEqual(self.b1, edge_meta[0]['other']['interface'])
-        self.assertEqual(self.a2, edge_meta[1]['thiss']['interface'])
-        self.assertEqual(self.b2, edge_meta[1]['other']['interface'])
+        pairs = list(self._get_metadata(self.a, self.b))
+
+        self.assertEqual(self.a1, pairs[0].source.interface)
+        self.assertEqual(self.b1, pairs[0].target.interface)
+        self.assertEqual(self.a2, pairs[1].source.interface)
+        self.assertEqual(self.b2, pairs[1].target.interface)
 
 
     def test_netmap_metadata_shows_2_links_for_edge_between_a_and_b(self):
         self._setupNetmapGraphLayer2()
-        self.assertEquals(2, len(self.netmap_graph.get_edge_data(
-            self.a,
-            self.b
-        ).get('metadata', [])))
+        self.assertEquals(2, len(self._get_metadata(self.a, self.b)))
 
     def test_netmap_metadata_is_correct_for_2_links_edge_between_a_and_b(self):
         self._setupNetmapGraphLayer2()
         self.maxDiff = None
-        self.assertEquals(
-            [
-                {
-                    'tip_inspect_link': False,
-                    'link_speed': None,
-                    'uplink': {
-                            'thiss': {
-                                'interface': self.a1,
-                                'netbox': self.a
-                            },
-                            'other': {
-                                'interface': self.b1,
-                                'netbox': self.b
-                            },
-                            'vlans': [self.vlan__a1_b1],
-                        },
-
-                    'error': {}
-                 },
-                {
-                    'tip_inspect_link': False,
-                    'link_speed': None,
-                    'uplink': {
-                            'thiss': {
-                                'interface': self.a2,
-                                'netbox': self.a
-                            },
-                            'other': {
-                                'interface': self.b2,
-                                'netbox': self.b
-                            },
-                            'vlans': [],
-                        },
-                    'error': {}
-                 },
-            ],
-            self.netmap_graph.get_edge_data(self.a, self.b).get('metadata', {}))
+        assert [
+                   Edge(source=self.a1,
+                        target=self.b1,
+                        vlans=[self.vlan__a1_b1]),
+                   Edge(source=self.a2,
+                        target=self.b2)
+               ] == (self.netmap_graph.get_edge_data(self.a, self.b) or {}).get(
+            'metadata')
 
 
 class Layer3NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer3TestCase):
@@ -152,93 +87,83 @@ class Layer3NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer3Tes
             self.netmap_graph.get_edge_data(
                 self.a, self.c
             ).get(2112)
-            .get('metadata')
-            .get('uplink')
-            .get('prefixes')
+            .get('metadata').prefixes
         )
 
     def test_link_got_prefixed_attached(self):
         self.assertEqual(1, len(self.netmap_graph.get_edge_data(
             self.a, self.b
         ).get(self.prefix_foo.vlan.id)
-        .get('metadata')
-        .get('uplink')
-        .get('prefixes')))
+        .get('metadata').prefixes))
 
         self.assertEqual(1, len(self.netmap_graph.get_edge_data(
             self.b, self.d
         ).get(self.prefix_baz.vlan.id)
-        .get('metadata')
-        .get('uplink')
-        .get('prefixes')))
+        .get('metadata').prefixes))
 
         self.assertEqual(1, len(self.netmap_graph.get_edge_data(
             self.b, self.e
         ).get(self.prefix_baz.vlan.id)
-        .get('metadata')
-        .get('uplink')
-        .get('prefixes')))
+        .get('metadata').prefixes))
 
         self.assertEqual(1, len(self.netmap_graph.get_edge_data(
             self.f, self.unknown
         ).get(self.prefix_zar.vlan.id)
-        .get('metadata')
-        .get('uplink')
-        .get('prefixes')))
+        .get('metadata').prefixes))
 
-    def test_uplink_has_thiss_has_correct_metadata(self):
+    def test_edge_source_has_correct_metadata(self):
         # 2111 is VLAN.id
-        thiss = self.netmap_graph.get_edge_data(self.a, self.b).get(2111).get(
-            'metadata').get('uplink').get('thiss')
-        self.assertEqual(thiss['interface'], self.b1)
-        self.assertEqual(thiss['netbox'], self.b)
-        self.assertEqual(thiss['gw_ip'], '158.38.0.2')
-        self.assertFalse(thiss['virtual'])
+        source = self.netmap_graph.get_edge_data(self.a, self.b).get(2111).get(
+            'metadata').source
+        self.assertEqual(source.interface, self.b1)
+        self.assertEqual(source.netbox, self.b)
+        self.assertEqual(source.gw_ip, '158.38.0.2')
+        self.assertFalse(source.virtual)
 
-    def test_uplink_has_other_has_correct_metadata(self):
-        other = self.netmap_graph.get_edge_data(self.a, self.b).get(2111).get(
-            'metadata').get('uplink').get('other')
-        self.assertEqual(other['interface'], self.a1)
-        self.assertEqual(other['netbox'], self.a)
-        self.assertEqual(other['gw_ip'], '158.38.0.1')
-        self.assertFalse(other['virtual'])
+    def test_edge_target_has_correct_metadata(self):
+        target = self.netmap_graph.get_edge_data(self.a, self.b).get(2111).get(
+            'metadata').target
+        self.assertEqual(target.interface, self.a1)
+        self.assertEqual(target.netbox, self.a)
+        self.assertEqual(target.gw_ip, '158.38.0.1')
+        self.assertFalse(target.virtual)
 
-    def test_uplink_has_all_layer3_properties_it_should_for_uplink__this(self):
+    def test_uplink_has_all_layer3_properties_it_should_for_source(self):
         should_have = ('gw_ip', 'virtual')
 
         metadata = self.netmap_graph.get_edge_data(self.a, self.b).get(
-            2111).get('metadata').get('uplink').get('thiss').keys()
+            2111).get('metadata')
 
         self.assertTrue(
-            all([x in metadata for x in should_have])
-            , msg="Didn't find all keys {0}, only found: {1}".format(
+            all([hasattr(metadata.target, attribute) for attribute in should_have]),
+            msg="Didn't find all keys {0}, only found: {1}".format(
                 should_have,
-                metadata
+                metadata.__dict__.keys()
             )
         )
 
-    def test_uplink_has_all_layer3_properties_it_should_for_uplink__other(self):
+    def test_uplink_has_all_layer3_properties_it_should_for_target(self):
         should_have = ('gw_ip', 'virtual')
 
         metadata = self.netmap_graph.get_edge_data(self.a, self.b).get(
-            2111).get('metadata').get('uplink').get('other').keys()
+            2111).get('metadata')
 
         self.assertTrue(
-            all([x in metadata for x in should_have]),
+            all([hasattr(metadata.target, attribute) for attribute in should_have]),
             msg="Didn't find all keys {0}, only found: {1}".format(
                 should_have,
-                metadata
+                metadata.__dict__.keys()
             )
         )
 
     def test_uplink_has_all_layer3_properties_it_should(self):
         should_have = ('prefixes', 'vlan')
-        for x in self.netmap_graph.get_edge_data(self.a, self.b).values():
+        for metadata in self.netmap_graph.get_edge_data(self.a, self.b).values():
             self.assertTrue(
                 all(
-                    [y in x.get('metadata').get('uplink').keys() for y in should_have]
+                    [hasattr(metadata.get('metadata'), y) for y in should_have]
                 ),
                 msg="Didn't find all keys {0}, only found: {1}".format(
                 should_have,
-                x.get('metadata').get('uplink').keys()
+                metadata.get('metadata').__dict__.keys()
             ))

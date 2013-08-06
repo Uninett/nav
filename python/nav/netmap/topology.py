@@ -322,16 +322,9 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
                                       attr_dict=existing_metadata)
 
     for source, target, metadata_dict in netmap_graph.edges_iter(data=True):
-        for a,b in metadata_dict.get(
-            'port_pairs'
-        ):
-            additional_metadata = edge_metadata_function(
-               a.netbox,
-               a,
-               b.netbox,
-               b,
-               vlan_by_interface
-            )
+        for a,b in metadata_dict.get('port_pairs'):
+            additional_metadata = edge_metadata_function(a, b,
+                                                         vlan_by_interface)
 
             metadata = metadata_dict.setdefault('metadata', list())
             metadata.append(additional_metadata)
@@ -385,6 +378,7 @@ def build_netmap_layer2_graph(view=None):
         netmap_graph = _attach_node_positions(netmap_graph,
                                               view.node_position_set.all())
     _LOGGER.debug("build_netmap_layer2_graph() view positions and graph done")
+
     return netmap_graph
 
 

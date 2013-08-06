@@ -132,7 +132,7 @@ class Layer3MultiGraphToUndirectTests(TopologyLayer3TestCase):
 
         self.assertEqual(2, len(self.netmap_graph.get_edge_data(
             self.a, self.c
-        ).get(2112).get('metadata').get('uplink').get('prefixes')))
+        ).get(2112).get('metadata').prefixes))
 
 
 if __name__ == '__main__':

@@ -15,8 +15,6 @@
 #
 
 import unittest
-from mock import Mock
-from nav.netmap.metadata import edge_metadata, edge_to_json
 from nav.netmap.topology import NetmapEdge
 from topology_layer2_testcase import TopologyLayer2TestCase
 from topology_layer3_testcase import TopologyLayer3TestCase

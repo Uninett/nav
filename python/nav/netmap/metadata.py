@@ -17,13 +17,123 @@
 graph"""
 import logging
 from django.core.urlresolvers import reverse
-from nav.models.manage import GwPortPrefix
+from nav.errors import GeneralException
+from nav.models.manage import GwPortPrefix, Interface
 from nav.netmap import stubs
 from nav.web.netmap.common import get_status_image_link
 
 
 _LOGGER = logging.getLogger(__name__)
 
+class NetmapException(GeneralException):
+    pass
+
+class GraphException(NetmapException):
+    pass
+
+
+class Group(object):
+    """Grouping object for representing a Netbox and Interface in a networkx
+    edge"""
+
+    def __init__(self, netbox=None, interface=None):
+        self.netbox = netbox
+        self.interface = interface
+        self.gw_ip = None
+        self.virtual = None
+
+    def __hash__(self):
+        return hash(self.netbox) + hash(self.interface)
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        else:
+            return (self.netbox == other.netbox and
+                    self.interface == other.interface)
+
+    def to_json(self):
+        json = {
+            'netbox': _node_to_json(self.netbox, None),
+        }
+        if self.interface is not None:
+            json.update({'interface': unicode(self.interface.ifname)})
+        if self.gw_ip is not None:
+            json.update({'gw_ip': self.gw_ip})
+        if self.virtual is not None:
+            json.update({'virtual': self.virtual})
+        return json
+
+
+
+class Edge(object):
+    """Represent either a edge pair in Layer2 or Layer3"""
+
+    def __init__(self, source, target, vlans=None):
+        """
+
+        :param source: source, where it is either of type Interface or type
+         GwPortPrefix.
+        :param target: target, where it is either of type Interface or type
+         GwPortPrefix
+        :param vlans: List of SwPortVlan on this particular edge pair
+        :return:
+        """
+
+        if type(source) == Interface and type(target) == Interface:
+            # Layer 2
+            self.source = Group(source.netbox, source)
+            self.target = Group(target.netbox, target)
+            self._layer = 2
+        elif (
+                (type(source) == GwPortPrefix or type(
+                        source) == stubs.GwPortPrefix) and
+                (type(target) == GwPortPrefix or type(
+                        target) == stubs.GwPortPrefix)):
+            # Layer 3
+            self.source = Group(source.interface.netbox, source.interface)
+            self.source.gw_ip = source.gw_ip
+            self.source.virtual = source.virtual
+
+            self.target = Group(target.interface.netbox, target.interface)
+            self.target.gw_ip = target.gw_ip
+            self.target.virtual = target.virtual
+
+            assert source.prefix == target.prefix, "GwPortPrefix should be in the same Prefix group!"
+            self.vlan = source.prefix.vlan
+            self._layer = 3
+
+        else:
+            raise GraphException(
+                "Source and target has to be of same type, "
+                "typically Interfaces in layer2 graph or "
+                "GwPortPrefixes in layer3 graph")
+
+        self.vlans = vlans or []
+        self.prefixes = []
+
+    def __hash__(self):
+        return hash(self.source) + hash(self.target)
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        else:
+            return self.source == other.source and self.target == other.target
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def to_json(self):
+        json = {
+            'source': self.source.to_json(),
+            'target': self.target.to_json(),
+        }
+        if self._layer == 2:
+            pass
+        elif self._layer == 3:
+            json.update('vlan', self.vlan)
+        return json
 
 def node_to_json_layer2(node, nx_metadata=None):
     """Convert a node to json, for use in a netmap layer2 graph
@@ -41,7 +151,7 @@ def node_to_json_layer2(node, nx_metadata=None):
         # nav_vlan_id == swpv.vlan.id
         vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': nav_vlan_id,
                   'net_ident': swpv.vlan.net_ident} for nav_vlan_id, swpv in
-                                                    metadata['vlans']]
+                 metadata['vlans']]
 
     json.update({'vlans': vlans})
 
@@ -89,7 +199,7 @@ def _node_to_json(node, nx_node):
             'category': str(node.category_id),
             'ip': node.ip,
             'ipdevinfo_link': reverse('ipdevinfo-details-by-name',
-                args=[node.sysname]),
+                                      args=[node.sysname]),
             'position': position,
             'up': str(node.up),
             'up_image': get_status_image_link(node.up),
@@ -144,26 +254,31 @@ def edge_to_json_layer3(edge, vlan_metadata_dict):
 
                 uplink_this = {}
                 uplink_other = {}
-                #                'net_address': unicode(metadata['uplink']['prefix']
+                #                'net_address': unicode(metadata['uplink'][
+                # 'prefix']
                 # .net_address),
-                if metadata['uplink'].has_key('vlan') and metadata['uplink']['vlan']:
+                if metadata['uplink'].has_key('vlan') and metadata['uplink'][
+                    'vlan']:
                     vlan = {
-                        'net_ident': unicode(metadata['uplink']['vlan'].net_ident),
-                        'description': unicode(metadata['uplink']['vlan'].description)
+                        'net_ident': unicode(
+                            metadata['uplink']['vlan'].net_ident),
+                        'description': unicode(
+                            metadata['uplink']['vlan'].description)
                     }
 
                     uplink.update({'prefixes': [x.net_address for x in
-                                                metadata['uplink']['prefixes']]})
+                                                metadata['uplink'][
+                                                    'prefixes']]})
 
                     if metadata['uplink']['thiss'].has_key('gw_ip'):
                         uplink_this.update(
-                                {'gw_ip': metadata['uplink']['thiss']['gw_ip'],
-                                 'virtual': metadata['uplink']['thiss']['virtual']})
+                            {'gw_ip': metadata['uplink']['thiss']['gw_ip'],
+                             'virtual': metadata['uplink']['thiss']['virtual']})
 
                     if metadata['uplink']['other'].has_key('gw_ip'):
                         uplink_other.update(
-                                {'gw_ip': metadata['uplink']['other']['gw_ip'],
-                                 'virtual': metadata['uplink']['other']['virtual']})
+                            {'gw_ip': metadata['uplink']['other']['gw_ip'],
+                             'virtual': metadata['uplink']['other']['virtual']})
 
                 uplink['thiss'].update(uplink_this)
                 uplink['other'].update(uplink_other)
@@ -196,29 +311,35 @@ def edge_to_json(edge, metadata):
 
             if uplink['thiss']['interface']:
                 uplink_json.update(
-                        {'thiss': {
-                        'interface': unicode(uplink['thiss']['interface'].ifname),
+                    {'thiss': {
+                        'interface': unicode(
+                            uplink['thiss']['interface'].ifname),
                         'netbox': uplink['thiss']['netbox'].sysname,
                         'interface_link': uplink['thiss'][
-                                          'interface'].get_absolute_url(),
-                        'netbox_link': uplink['thiss']['netbox'].get_absolute_url()
+                            'interface'].get_absolute_url(),
+                        'netbox_link': uplink['thiss'][
+                            'netbox'].get_absolute_url()
                     }}
                 )
             else:
-                uplink_json.update({'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
+                uplink_json.update(
+                    {'thiss': {'interface': 'N/A', 'netbox': 'N/A'}})
 
             if uplink['other']['interface']:
                 uplink_json.update(
-                        {'other': {
-                        'interface': unicode(uplink['other']['interface'].ifname),
+                    {'other': {
+                        'interface': unicode(
+                            uplink['other']['interface'].ifname),
                         'netbox': uplink['other']['netbox'].sysname,
                         'interface_link': uplink['other'][
-                                          'interface'].get_absolute_url(),
-                        'netbox_link': uplink['other']['netbox'].get_absolute_url()
+                            'interface'].get_absolute_url(),
+                        'netbox_link': uplink['other'][
+                            'netbox'].get_absolute_url()
                     }}
                 )
             else:
-                uplink_json.update({'other': {'interface': 'N/A', 'netbox': 'N/A'}})
+                uplink_json.update(
+                    {'other': {'interface': 'N/A', 'netbox': 'N/A'}})
 
         if 'link_speed' in error.keys():
             link_speed = error['link_speed']
@@ -235,114 +356,48 @@ def edge_to_json(edge, metadata):
     return edge_metadata
 
 
-def edge_metadata_layer3(thiss_gwpp, other_gwpp, prefixes):
+def edge_metadata_layer3(source, target, prefixes):
     """
-    Adds edge meta data with python types for given edge (layer3)
 
-    :param thiss_gwpp This netbox's GwPortPrefix
-    :param other_gwpp Other netbox's GwPortPrefix
+    :param source nav.models.manage.GwPortPrefix
+    :param target nav.models.manage.GwPortPrefix
     :param prefixes list of prefixes (Prefix)
-    :returns metadata to attach to your netmap networkx graph
+    :returns metadata to attach to netmap graph
     """
 
-    prefix = None
-    this_gwprefix_meta = None
-    other_gwprefix_meta = None
-
-    if thiss_gwpp:
-        prefix = thiss_gwpp.prefix
-
-        if isinstance(thiss_gwpp, GwPortPrefix):
-            this_gwprefix_meta = {'gw_ip': thiss_gwpp.gw_ip,
-                                  'virtual': thiss_gwpp.virtual}
-    if other_gwpp:
-        if not prefix:
-            prefix = other_gwpp.prefix
-
-        if isinstance(other_gwpp, GwPortPrefix):
-            other_gwprefix_meta = {'gw_ip': other_gwpp.gw_ip,
-                                   'virtual': other_gwpp.virtual}
-
-    metadata = edge_metadata(thiss_gwpp.interface.netbox, thiss_gwpp.interface,
-        other_gwpp.interface.netbox, other_gwpp.interface)
-
-    if this_gwprefix_meta:
-        metadata['uplink']['thiss'].update(this_gwprefix_meta)
-    if other_gwprefix_meta:
-        metadata['uplink']['other'].update(other_gwprefix_meta)
-    metadata['uplink'].update({'vlan': prefix.vlan, 'prefixes': prefixes})
-
-    return metadata
 
 
-def edge_metadata_layer2(thiss_netbox, thiss_interface, other_netbox,
-                         other_interface, vlans_by_interface):
+    #prefix = other_gwpp.prefix
+    #if this_gwprefix_meta:
+    #    metadata['uplink']['thiss'].update(this_gwprefix_meta)
+    #if other_gwprefix_meta:
+    #    metadata['uplink']['other'].update(other_gwprefix_meta)
+    #metadata['uplink'].update({'vlan': prefix.vlan, 'prefixes': prefixes})
+
+    edge = Edge(source, target)
+    edge.prefixes = prefixes
+    return edge
+
+
+    #return metadata
+
+
+def edge_metadata_layer2(source, target, vlans_by_interface):
     """
     Adds edge meta data with python types for given edge (layer2)
 
-    :param thiss_netbox This netbox (edge from)
-    :param thiss_interface This netbox's interface (edge from)
-    :param other_netbox Other netbox (edge_to)
-    :param other_interface Other netbox's interface (edge_to)
-    :returns metadata to attach to your netmap networkx graph
+    :param source nav.models.manage.Interface
+    :param target nav.models.manage.Interface
+    :param vlans_by_interface VLAN dict access for fetching SwPortVlan list
+
+    :returns metadata to attach to netmap graph as metadata.
     """
 
-    metadata = edge_metadata(thiss_netbox, thiss_interface, other_netbox,
-        other_interface)
+    vlans = []
+    if vlans_by_interface and vlans_by_interface.has_key(source):
+        vlans = sorted(vlans_by_interface.get(source),
+                       key=lambda x: x.vlan.vlan)
 
-    vlans = None
-    if vlans_by_interface and vlans_by_interface.has_key(thiss_interface):
-        vlans = sorted(vlans_by_interface.get(thiss_interface),
-            key=lambda x: x.vlan.vlan)
-
-    metadata['uplink'].update({'vlans': vlans})
-    # add check against other_interface vlans?
-
-    return metadata
-
-
-def edge_metadata(thiss_netbox, thiss_interface, other_netbox, other_interface):
-    """
-    Adds edge meta data with python types for given edge
-    For use in both layer 2 and layer 3 topologies.
-
-    :param thiss_netbox This netbox (edge from)
-    :param thiss_interface This netbox's interface (edge from)
-    :param other_netbox Other netbox (edge_to)
-    :param other_interface Other netbox's interface (edge_to)
-    :returns metadata to attach to your netmap networkx graph
-    """
-    error = {}
-    tip_inspect_link = False
-
-    uplink = {'thiss': {'netbox': thiss_netbox, 'interface': thiss_interface},
-              'other': {'netbox': other_netbox,
-                        'interface': other_interface}}
-
-    if thiss_interface and other_interface and \
-       thiss_interface.speed != other_interface.speed:
-        if thiss_netbox.category_id is not 'elink' and \
-           other_netbox.category_id is not 'elink':
-
-            tip_inspect_link = True
-            link_speed = None
-            error[
-            'link_speed'] = 'Interface link speed not the same between the ' \
-                            'nodes'
-        else:
-            link_speed = None
-
-    else:
-        if thiss_interface and thiss_interface.speed:
-            link_speed = thiss_interface.speed
-        elif other_interface and other_interface.speed:
-            link_speed = other_interface.speed
-        else:
-            link_speed = None
-
-    return {
-        'uplink': uplink,
-        'tip_inspect_link': tip_inspect_link,
-        'link_speed': link_speed,
-        'error': error,
-        }
+    edge = Edge(source, target)
+    edge.vlans = vlans
+    return edge

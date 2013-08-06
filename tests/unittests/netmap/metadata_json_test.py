@@ -19,28 +19,86 @@ from mock import Mock
 from nav.models.manage import Netbox, Room, Location, SwPortVlan, Vlan
 from nav.models.profiles import NetmapViewNodePosition
 from nav.netmap import stubs, metadata
-from nav.netmap.metadata import edge_metadata, edge_to_json, edge_to_json_layer3
+from nav.netmap.metadata import edge_to_json, edge_to_json_layer3, Edge, Group
 from topology_layer3_testcase import TopologyLayer3TestCase
 from topology_layer2_testcase import TopologyLayer2TestCase
+
+
+class MetaClassesJsonTests(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        self.netbox = Mock(name='Netbox', spec=Netbox)
+        self.netbox.pk = 1337
+        self.netbox.sysname = 'fuu.example.net'
+        self.netbox.category_id = 'GW'
+        self.netbox.ip = '192.168.42.1'
+        self.netbox.up = 'y'
+        self.netbox.room = Mock(name='Room', spec=Room)
+        self.netbox.room.__unicode__ = Mock(return_value='Galaxy (Universe Far Far away)')
+        self.netbox.room.id = 'Galaxy'
+        self.netbox.room.location.id = 'Universe'
+        self.netbox.room.location.description = 'Far far away'
+
+    def test_allow_group_interface_to_be_none(self):
+        json = Group(self.netbox).to_json()
+        self.assertFalse('interface' in json)
+        self.assertEquals(
+            {'netbox': {'category': 'GW',
+                        'id': '1337',
+                        'ip': '192.168.42.1',
+                        'ipdevinfo_link': '/ipdevinfo/fuu.example.net/',
+                        'is_elink_node': False,
+                        'location': u'Far far away',
+                        'locationid': u'Universe',
+                        'position': None,
+                        'room': "Galaxy (Universe Far Far away)",
+                        'roomid': 'Galaxy',
+                        'sysname': 'fuu.example.net',
+                        'up': 'y',
+                        'up_image': 'green.png'}
+            }
+            , json)
+
+    def test_group_renders_gw_ip_if_included(self):
+        group = Group(self.netbox)
+        group.gw_ip = '192.168.42.254'
+        json = group.to_json()
+        self.assertTrue('gw_ip' in json)
+        self.assertEquals('192.168.42.254', json['gw_ip'])
+
+    def test_group_renders_virtual_if_included_and_value_is_true(self):
+        group = Group(self.netbox)
+        group.virtual = True
+        json = group.to_json()
+        self.assertTrue('virtual' in json)
+        self.assertEquals(True, json['virtual'])
+
+    def test_group_renders_virtual_if_included_and_value_is_false(self):
+        group = Group(self.netbox)
+        group.virtual = False
+        json = group.to_json()
+        self.assertTrue('virtual' in json)
+        self.assertEquals(False, json['virtual'])
 
 
 class SharedJsonMetadataTests():
     def test_not_failing_when_both_interface_speed_is_undefined(self):
         netbox_a = Mock('Netbox')
         netbox_b = Mock('Netbox')
-        results = edge_metadata(netbox_a,  None, netbox_b, None)
+        results = Edge(Group(netbox_a), Group(netbox_b))
         self.assertTrue(results['link_speed'] is None)
 
     def test_json_edge_is_NA_if_speed_is_undefined(self):
         netbox_a = Mock('Netbox')
         netbox_b = Mock('Netbox')
         results = edge_to_json(
-            (netbox_a, netbox_b),  [{
-                'uplink': {},
-                'tip_inspect_link': False,
-                'error': {},
-                'link_speed': None
-            }]
+            (netbox_a, netbox_b), [{
+                                       'uplink': {},
+                                       'tip_inspect_link': False,
+                                       'error': {},
+                                       'link_speed': None
+                                   }]
         )
         self.assertEquals(results[0]['link_speed'], 'N/A')
 
@@ -49,10 +107,11 @@ class SharedJsonMetadataTests():
         netbox.sysname = 'IamStub'
         netbox.category_id = 'ELINK'
         self.assertEqual({
-            'category': 'ELINK',
-            'is_elink_node': True,
-            'sysname': 'IamStub'
-        }, metadata._node_to_json(netbox, self.nx_edge_metadata))
+                             'category': 'ELINK',
+                             'is_elink_node': True,
+                             'sysname': 'IamStub'
+                         },
+                         metadata._node_to_json(netbox, self.nx_edge_metadata))
 
     def test_json_id_is_included_in_metadata_from_node(self):
         foo = metadata._node_to_json(self.a, self.nx_edge_metadata)
@@ -127,7 +186,6 @@ class SharedJsonMetadataTests():
 
 
 class Layer2JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer2TestCase):
-
     def setUp(self):
         super(Layer2JsonMetadataTests, self).setUp()
 
@@ -138,7 +196,9 @@ class Layer2JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer2TestCase):
             'position': a_position
         }}
         self.nx_node_metadata = {'metadata': {
-            'vlans': [(1337, SwPortVlan(id=1231, interface=self.a1, vlan=Vlan(id=1337, vlan=10, net_ident='unittest vlan')))]
+            'vlans': [(1337, SwPortVlan(id=1231, interface=self.a1,
+                                        vlan=Vlan(id=1337, vlan=10,
+                                                  net_ident='unittest vlan')))]
         }}
 
     def test_json_node_contains_vlan_data(self):
@@ -158,7 +218,6 @@ class Layer2JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer2TestCase):
 
 
 class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
-
     def setUp(self):
         super(Layer3JsonMetadataTests, self).setUp()
 
@@ -177,8 +236,10 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
         )
 
         self.assertEqual(1, len(edge_json_metadata))
-        self.assertEqual(1, len(edge_json_metadata[0].get('uplink').get('prefixes')))
-        self.assertEqual('158.38.0.0/30', edge_json_metadata[0].get('uplink').get('prefixes')[0])
+        self.assertEqual(1, len(
+            edge_json_metadata[0].get('uplink').get('prefixes')))
+        self.assertEqual('158.38.0.0/30',
+                         edge_json_metadata[0].get('uplink').get('prefixes')[0])
 
     def test_layer3_v4_and_v6_prefixes_added_between_a_and_c(self):
         self._setupNetmapGraphLayer3()
@@ -188,7 +249,8 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
         )
 
         self.assertEqual(1, len(edge_json_metadata))
-        self.assertEqual(2, len(edge_json_metadata[0].get('uplink').get('prefixes')))
+        self.assertEqual(2, len(
+            edge_json_metadata[0].get('uplink').get('prefixes')))
         expected_prefixes = ('158.38.0.4/30', 'feed:dead:cafe:babe::/64')
         test = edge_json_metadata[0].get('uplink').get('prefixes')
 
@@ -199,6 +261,7 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
                 test
             )
         )
+
 
 if __name__ == '__main__':
     unittest.main()
