@@ -10,7 +10,7 @@ python-rrdtool
 xmpppy
 svn+http://dev.zenoss.org/svn/tags/pynetsnmp-0.28.14
 lxml
-PIL
+PIL==1.1.7
 pyrad==1.2
 # Testing
 pytest>=2.2.4,<2.3
