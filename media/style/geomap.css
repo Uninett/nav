@@ -101,6 +101,11 @@ body
   vertical-align: top;
 }
 
+#map-container img
+{
+    max-width: none;
+}
+
 #geomap-sidebar
 {
   vertical-align: top;
