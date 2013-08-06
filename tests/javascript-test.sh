@@ -90,7 +90,7 @@ jshint --config ${JSDIR}/jshint.rc.json ${JAVASCRIPT_FILES[@]} --jslint-reporter
 [ -s "${JSDIR}/javascript-jshint.xml" ]
 
 # Start virtual framebuffer
-source start_xvfb.sh
+source ${WORKSPACE}/tests/start_xvfb.sh
 
 echo "Starting buster-server"
 BUSTER_TRIES=0
