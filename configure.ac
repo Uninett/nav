@@ -40,6 +40,7 @@ AC_SUBST(VERSION)
 dnl The location of the cricket binaries
 AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
 AC_ARG_VAR(WEBROOTDIR,Path to webroot directory holding htdocs/ for NAV)
+AC_ARG_VAR(DJANGOTMPLDIR,Path to django templates)
 
 dnl Setting some default variables for NAV
 if test -z "$WEBROOTDIR"; then
@@ -47,13 +48,17 @@ if test -z "$WEBROOTDIR"; then
 else
 	webrootdir="$WEBROOTDIR"
 fi
+if test -z "$DJANGOTMPLDIR"; then
+    djangotmpldir='${libdir}/templates'
+else
+    djangotmpldir="$DJANGOTMPLDIR"
+fi
 nav_user=navcron
 imagedir='${webrootdir}/images'
 javascriptdir='${webrootdir}/js'
 stylesheetdir='${webrootdir}/style'
 pythonlibdir='${libdir}/python'
 pythondir='${pythonlibdir}'
-djangotmpldir='${libdir}/templates'
 initdir='${sysconfdir}/init.d'
 tooldir='${sysconfdir}/toolbox'
 docdir='${prefix}/doc'
