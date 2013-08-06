@@ -69,6 +69,29 @@ class Group(object):
 class Edge(object):
     """Represent either a edge pair in Layer2 or Layer3"""
 
+    def _valid_layer2(self, edge):
+        return isinstance(edge, Interface) or isinstance(edge, stubs.Interface)
+
+    def _valid_layer3(self, edge):
+        return isinstance(edge, GwPortPrefix) or isinstance(edge, stubs.GwPortPrefix)
+
+    def get_layer(self, source, target):
+        if (self._valid_layer2(source) or source is None
+            and self._valid_layer2(target) or target is None):
+            return 2
+
+        elif (self._valid_layer3(source) or source is None
+            and self._valid_layer3(target) or target is None):
+            return 3
+        else:
+            raise NetmapException("Could not determine layer for this edge."
+                                  " This should _not_ happend")
+
+    def _same_layer(self, source, target):
+        return (self._valid_layer2(source) and self._valid_layer2(target)
+            or self._valid_layer3(source) and self._valid_layer3(target)
+        )
+
     def __init__(self, source, target, vlans=None):
         """
 
@@ -79,35 +102,51 @@ class Edge(object):
         :param vlans: List of SwPortVlan on this particular edge pair
         :return:
         """
+        if source is not None and target is not None:
+            if not self._same_layer(source, target):
+                raise GraphException(
+                    "Source and target has to be of same type, typically "
+                    "Interfaces in layer2 graph or GwPortPrefixes in layer3 graph")
+        elif source is None and target is None:
+            raise GraphException("Source & target can't both be None! Bailing!")
 
-        if type(source) == Interface and type(target) == Interface:
-            # Layer 2
+        self.errors = []
+        self.source = self.target = None
+
+        if self._valid_layer2(source) :
             self.source = Group(source.netbox, source)
-            self.target = Group(target.netbox, target)
-            self._layer = 2
-        elif (
-                (type(source) == GwPortPrefix or type(
-                        source) == stubs.GwPortPrefix) and
-                (type(target) == GwPortPrefix or type(
-                        target) == stubs.GwPortPrefix)):
-            # Layer 3
+        elif self._valid_layer3(source):
             self.source = Group(source.interface.netbox, source.interface)
             self.source.gw_ip = source.gw_ip
             self.source.virtual = source.virtual
 
+
+        if self._valid_layer2(target):
+            self.target = Group(target.netbox, target)
+        elif self._valid_layer3(target):
             self.target = Group(target.interface.netbox, target.interface)
             self.target.gw_ip = target.gw_ip
             self.target.virtual = target.virtual
 
-            assert source.prefix == target.prefix, "GwPortPrefix should be in the same Prefix group!"
+        if (self.get_layer(source, target) == 3):
+            assert source.prefix == target.prefix, "GwPortPrefix should be in " \
+                                                   "the same Prefix group!"
             self.vlan = source.prefix.vlan
-            self._layer = 3
 
-        else:
-            raise GraphException(
-                "Source and target has to be of same type, "
-                "typically Interfaces in layer2 graph or "
-                "GwPortPrefixes in layer3 graph")
+        if self.source.interface is not None and self.target.interface is not None:
+            if self.source.interface.speed == self.target.interface.speed:
+                self.link_speed = self.source.interface.speed
+            else:
+                self.errors.append("Mismatch between interface speed")
+                if self.source.interface.speed < self.target.interface.speed:
+                    self.link_speed = self.source.interface.speed
+                else:
+                    self.link_speed = self.target.interface.speed
+        elif self.source.interface is not None:
+            self.link_speed = self.source.interface.speed
+        elif self.target.interface is not None:
+            self.link_speed = self.target.interface.speed
+
 
         self.vlans = vlans or []
         self.prefixes = []
