@@ -9,7 +9,7 @@ networkx>=1.7,<1.8
 python-rrdtool==1.4.7
 pyxmpp==1.1.2
 svn+http://dev.zenoss.org/svn/tags/pynetsnmp-0.28.14
-lxml
+lxml==2.3.2
 PIL==1.1.7
 pyrad==1.2
 # Testing
