@@ -16,3 +16,4 @@ mock>=0.8.0
 pylint==0.26
 sphinx>=1.0
 PIL
+pyrad==1.2
