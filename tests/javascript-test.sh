@@ -16,70 +16,8 @@ fi
 
 NPM=`which npm`
 
-# Function to check for module
-# Will trigger npmInstall if not found.
-function npmModule {
-    if [ -z "$1" ]; then
-        echo "Need to specify module to check for..."
-        exit 1
-    else
-        if [ ! -d "${JSDIR}/node_modules/${1}" ]; then
-            if [ -n "$2" ]; then
-                npmInstall $2
-            else
-                npmInstall $1
-            fi
-        fi
-    fi
-}
-
-# Tries to install a module from NPM
-function npmInstall {
-        if [ -z "${NPM}" ]; then
-            echo "No $1 and no npm, need both"
-            exit 1
-        else
-            cd ${JSDIR}
-            echo "Trying to install $1 locally"
-            npm install $1
-            if [ "$?" -ne 0 ]; then
-                echo "Failed to install $1"
-                exit 1
-            else
-                echo "Installed $1"
-            fi
-        fi
-}
-
-#  This requires to be installed global as you want buster in PATH :-(
-#npmModule buster
-
-BUSTERSERVER=`which buster-server`
-if [ "$?" -eq 1 ]; then
-    echo "buster-server not found"
-    exit 1
-fi
-
-BUSTERTEST=`which buster-test`
-if [ "$?" -eq 1 ]; then
-    echo "buster-test not found"
-    exit 1
-fi
-
-npmModule chai
-npmModule istanbul
-npmModule karma karma@canary
-npmModule karma-requirejs
-npmModule karma-mocha
-npmModule karma-chai git+https://github.com/norrs/karma-chai.git
-npmModule karma-coverage
-npmModule karma-chrome-launcher
-npmModule karma-firefox-launcher
-npmModule karma-phantomjs-launcher
-npmModule karma-junit-reporter
-
-npmModule jshint
-
+cd ${JSDIR}
+npm install --optional
 
 echo "Running jshint"
 JAVASCRIPT_FILES=( $(find ${JSDIR}/src -iname "*.js" -print) )
