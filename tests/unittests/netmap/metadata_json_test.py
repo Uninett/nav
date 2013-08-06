@@ -16,29 +16,20 @@
 
 import unittest
 from mock import Mock
-from nav.models.manage import Netbox, Room, Location, SwPortVlan, Vlan
+from nav.models.manage import (Netbox, Room, Location, SwPortVlan, Vlan,
+    Interface)
 from nav.models.profiles import NetmapViewNodePosition
 from nav.netmap import stubs, metadata
 from nav.netmap.metadata import edge_to_json, edge_to_json_layer3, Edge, Group
+from metaclass_testcase import MetaClassTestCase
 from topology_layer3_testcase import TopologyLayer3TestCase
 from topology_layer2_testcase import TopologyLayer2TestCase
 
 
-class MetaClassesJsonTests(unittest.TestCase):
+class MetaClassesJsonTests(MetaClassTestCase):
 
     def setUp(self):
-        self.maxDiff = None
-        self.netbox = Mock(name='Netbox', spec=Netbox)
-        self.netbox.pk = 1337
-        self.netbox.sysname = 'fuu.example.net'
-        self.netbox.category_id = 'GW'
-        self.netbox.ip = '192.168.42.1'
-        self.netbox.up = 'y'
-        self.netbox.room = Mock(name='Room', spec=Room)
-        self.netbox.room.__unicode__ = Mock(return_value='Galaxy (Universe Far Far away)')
-        self.netbox.room.id = 'Galaxy'
-        self.netbox.room.location.id = 'Universe'
-        self.netbox.room.location.description = 'Far far away'
+        super(MetaClassesJsonTests, self).setUp()
 
     def test_allow_group_interface_to_be_none(self):
         json = Group(self.netbox).to_json()
@@ -61,6 +52,7 @@ class MetaClassesJsonTests(unittest.TestCase):
             , json)
 
     def test_group_renders_gw_ip_if_included(self):
+        assert self.netbox is not None
         group = Group(self.netbox)
         group.gw_ip = '192.168.42.254'
         json = group.to_json()
@@ -84,10 +76,12 @@ class MetaClassesJsonTests(unittest.TestCase):
 
 class SharedJsonMetadataTests():
     def test_not_failing_when_both_interface_speed_is_undefined(self):
-        netbox_a = Mock('Netbox')
-        netbox_b = Mock('Netbox')
-        results = Edge(Group(netbox_a), Group(netbox_b))
-        self.assertTrue(results['link_speed'] is None)
+        interface_a = Mock(name='Interface A', spec=Interface)
+        interface_a.speed = None
+        interface_b = Mock(name='Intercace B', spec=Interface)
+        interface_b.speed = None
+        results = Edge(interface_a, interface_b)
+        self.assertTrue(results.link_speed is None)
 
     def test_json_edge_is_NA_if_speed_is_undefined(self):
         netbox_a = Mock('Netbox')
