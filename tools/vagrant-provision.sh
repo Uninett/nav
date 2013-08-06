@@ -7,7 +7,7 @@
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get -y update
-apt-get -y build-dep -y psycopg2 python-lxml librrd-dev python-imaging
+apt-get -y build-dep -y psycopg2 python-lxml librrd-dev python-imaging python-ldap
 apt-get -y install mercurial subversion python-virtualenv build-essential autoconf postgresql-client cricket libapache2-mod-wsgi postgresql-9.1 librrd-dev libsnmp15
 
 IS_INSTALLED=$( (test -f ~vagrant/nav_installed); echo $?)
