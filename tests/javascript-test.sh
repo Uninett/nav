@@ -61,7 +61,7 @@ fi
 export DISPLAY=:${DISPLAYNUM}
 export PATH="${JSDIR}/node_modules/.bin:$PATH"
 cd ${JSDIR}
-${JSDIR}/node_modules/karma/bin/karma start karma.conf.buildserver.js
+${JSDIR}/node_modules/.bin/karma start karma.conf.buildserver.js
 
 #if [ "$?" -eq 1 ]; then
 #    echo "Error when testing, taking screenshot"
