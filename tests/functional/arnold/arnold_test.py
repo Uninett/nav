@@ -16,7 +16,7 @@
 # pylint: disable=C0111, R0904
 """Selenium tests for arnold"""
 
-from .. import SeleniumTest
+from nav.tests.selenium import SeleniumTest
 
 
 class ArnoldSeleniumTest(SeleniumTest):
