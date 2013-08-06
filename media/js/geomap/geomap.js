@@ -176,8 +176,9 @@ function setMapSize() {
 	mapE.style.height = 'auto';
 	mapE.style.width = 'auto';
     } else {
-	var height = window.innerHeight - elemOffsetTop(mapE) - 4;
-	var width = window.innerWidth - 400;
+	//var height = window.innerHeight - elemOffsetTop(mapE) - 4;
+    var height = document.getElementById('map-container').innerHeight;
+    var width = document.getElementById('map-container').innerWidth;
 
 	mapE.style.position = '';
 	mapE.style.height = height + 'px';

@@ -52,9 +52,9 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	this.popups = {};
 
 	var callbacks = {
-	    'click': this.clickFeature,
+        'click': this.clickFeature
 	};
-        
+
 	this.handler = new OpenLayers.Handler.Feature(this, this.layer, callbacks);
     },
 
