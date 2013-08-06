@@ -217,7 +217,7 @@ class LDAPUser(object):
         filter_ = "(%s=%s)" % (_config.get('ldap', 'uid_attr'), self.username)
         result = self.ldap.search_s(_config.get('ldap', 'basedn'),
                                     ldap.SCOPE_SUBTREE, filter_)
-        if not result:
+        if not result or not result[0] or not result[0][0]:
             raise UserNotFound(filter_)
         user_dn = result[0][0]
         return user_dn
