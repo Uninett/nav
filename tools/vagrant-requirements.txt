@@ -6,7 +6,7 @@ twisted>=12,<13
 simplejson==2.0.6 # freebsd doesn't have newer.
 http://downloads.sourceforge.net/project/twistedsnmp/pysnmp-se/3.5.2/pysnmp-se-3.5.2.tar.gz
 networkx>=1.7,<1.8
-python-rrdtool
+python-rrdtool==1.4.7
 xmpppy
 svn+http://dev.zenoss.org/svn/tags/pynetsnmp-0.28.14
 lxml
