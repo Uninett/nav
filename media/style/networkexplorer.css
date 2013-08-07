@@ -75,6 +75,14 @@ dt dt dt {
     font-weight: bold;
 }
 
+#search-form input[type="checkbox"] {
+    margin: 0;
+}
+
+#search-form > fieldset {
+    margin: 0;
+}
+
 .info {
     clear: right;
     border: solid 1px #DEDEDE;

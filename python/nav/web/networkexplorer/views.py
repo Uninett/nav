@@ -42,7 +42,7 @@ class IndexView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
-        context.update({'path': PATH, 'form': NetworkSearchForm()})
+        context.update({'navpath': PATH, 'form': NetworkSearchForm()})
         return context
 
 
