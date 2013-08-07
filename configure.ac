@@ -17,10 +17,6 @@ See individual source files for more detailed copyright notices.
 
 AC_PROG_INSTALL
 AM_PATH_PYTHON([2.6])
-AC_PATH_PROG(CHEETAH,cheetah)
-if test -z "$CHEETAH"; then
-  AC_MSG_ERROR([No Cheetah found, you will be unable to build any web templates])
-fi
 AC_PATH_PROG(SED, sed)
 AC_PATH_PROG(GREP, grep)
 AC_PATH_PROG(HG, hg)
