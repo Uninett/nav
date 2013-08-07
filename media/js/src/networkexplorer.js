@@ -4,10 +4,11 @@ require(['plugins/network_tree','plugins/network_tree' , 'libs/jquery'], functio
         search_form.fadeTo('normal', 1.0);
     }
     function fadeOut(search_form) {
-        search_form.fadeTo('normal', 0.25);
+        search_form.fadeTo('normal', 0.5);
     }
-    function submitForm(search_form) {
+    function submitForm(search_form, working) {
         fadeOut(search_form);
+        working.css('visibility', 'visible');
 
         $.getJSON(
             'search/',
@@ -18,7 +19,7 @@ require(['plugins/network_tree','plugins/network_tree' , 'libs/jquery'], functio
             .always(
                 function () {
                     fadeIn(search_form);
-                    // TODO: remove gif
+                    working.css('visibility', 'hidden');
                 }
             );
     }
@@ -38,11 +39,10 @@ require(['plugins/network_tree','plugins/network_tree' , 'libs/jquery'], functio
     $(document).ready(function () {
         var working = $('#working');
         var search_form = $('#search_form');
-        working.css('visibility', 'hidden');
 
         search_form.submit(function (e) {
             e.preventDefault();
-            submitForm(search_form);
+            submitForm(search_form, working);
         });
 
         // Network tree
