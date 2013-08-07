@@ -1,4 +1,4 @@
-require(['plugins/network_tree','plugins/network_tree' , 'libs/jquery'], function (networkTree) {
+require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
 
     function fadeIn(search_form) {
         search_form.fadeTo('normal', 1.0);
@@ -46,6 +46,9 @@ require(['plugins/network_tree','plugins/network_tree' , 'libs/jquery'], functio
         });
 
         // Network tree
+        var networkTree = new NetworkTree.TreeView({
+            model: new NetworkTree.Tree()
+        });
         networkTree.model.expand();
     });
 });

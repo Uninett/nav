@@ -413,5 +413,11 @@ define([
         }
     });
 
-    return new TreeView({model: new Tree()});
+    return {
+        Node: Node,
+        Tree: Tree,
+        NodeCollection: NodeCollection,
+        NodeView: NodeView,
+        TreeView: TreeView
+    };
 });
