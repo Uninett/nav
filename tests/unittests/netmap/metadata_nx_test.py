@@ -152,7 +152,7 @@ class Layer3NetworkXMetadataTests(SharedNetworkXMetadataTests, TopologyLayer3Tes
             2111).get('metadata')
 
         self.assertTrue(
-            all([hasattr(metadata.target, attribute) for attribute in should_have]),
+            all([hasattr(metadata.source, attribute) for attribute in should_have]),
             msg="Didn't find all keys {0}, only found: {1}".format(
                 should_have,
                 metadata.__dict__.keys()
