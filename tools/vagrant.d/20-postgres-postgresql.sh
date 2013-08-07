@@ -4,7 +4,7 @@
 #
 # See tools/vagrant-provision.sh for flow.
 
-[ $1 == 0 ] && exit 0 # Already installed.
+[ $1 = 0 ] && exit 0 # Already installed.
 
 alternative() {
   echo "syncdb.py -c probably failed due to existing database user or database"
