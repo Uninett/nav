@@ -5,7 +5,6 @@ pytest>=2.0.0
 mock>=0.8.0
 pylint==0.26
 sphinx>=1.0
-Cheetah==2.4.4
 svn+http://dev.zenoss.org/svn/tags/pynetsnmp-0.28.14
 pyrad==1.2
 simplejson
