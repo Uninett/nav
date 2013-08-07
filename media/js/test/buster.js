@@ -13,6 +13,7 @@ config["My tests"] = {
     ],
     resources: [
         "resources/**/*.js",
+        "resources/**/*.html",
         "test/resources/**/*.html",
         "src/**/*.js",
         "src/**/*.html"
