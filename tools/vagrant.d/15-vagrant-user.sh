@@ -20,8 +20,7 @@ fi
 
 export PYTHONPATH="/vagrant/python:$PYTHONPATH"
 
-pip install -vv -r /vagrant/tools/vagrant-requirements.txt
-pip install -v -r /vagrant/tools/vagrant-requirements2.txt # Silly modules who can't be installed in same process as rest of em..
+pip install -r /vagrant/tools/vagrant-requirements.txt
 
 cd /vagrant
 ./autogen.sh
