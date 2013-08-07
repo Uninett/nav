@@ -15,6 +15,7 @@
 #
 """Tests for threshold manager"""
 
+import os
 from selenium.webdriver.support.select import Select, NoSuchElementException
 from nav.tests.selenium import SeleniumTest
 
@@ -35,4 +36,7 @@ class ThresholdManagerSeleniumTest(SeleniumTest):
         try:
             self.driver.find_element_by_id('netboxSearchTable')
         except NoSuchElementException:
+            if 'WORKSPACE' in os.environ:
+                self.driver.get_screenshot_as_file(
+                    os.environ['WORKSPACE'] + '/ss.png')
             self.fail("Select did not trigger display of netbox table")
