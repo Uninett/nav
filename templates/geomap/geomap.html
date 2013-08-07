@@ -124,8 +124,7 @@
   </div>
 </div>
 
-<div id="legend">
-  <div class="row">
+<div id="legend" class="row">
     {% for indicator_list in variant_config.indicators.values %}
       {% for indicator in indicator_list %}
         <div class="large-3 columns">
@@ -164,6 +163,5 @@
         </div>
       {% endfor %}
     {% endfor %}
-  </div>
 </div>
 {% endblock %}

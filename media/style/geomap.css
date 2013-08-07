@@ -15,9 +15,22 @@
 
 #legend
 {
-  margin-top: 10px;
+  background: #f6f6f6;
+  border: 1px solid #d3d3d3;
 }
 
+#legend table {
+    border: none;
+    background: #f6f6f6;
+}
+
+#legend tr {
+   background: inherit;
+}
+
+#legend th {
+    text-decoration: underline;
+}
 
 #legend td
 {
