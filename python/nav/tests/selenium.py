@@ -51,10 +51,12 @@ class SeleniumTest(unittest.TestCase):
     """Super class for selenium tests"""
 
     def setUp(self):
+        """Common tasks to do before each test"""
         self.driver = self.get_driver()
         self.login(self.driver, USERNAME, PASSWORD)
 
     def tearDown(self):
+        """Common tasks to do after each test"""
         self.driver.quit()
 
     @staticmethod
@@ -81,6 +83,10 @@ class SeleniumTest(unittest.TestCase):
         except NoSuchElementException:
             self.tearDown()
             pytest.skip('Login failed')
+
+    def go_to(self, viewname):
+        """Tell the driver to go to the url with the given viewname"""
+        self.driver.get(self.get_url(viewname))
 
     @staticmethod
     def get_url(viewname):
