@@ -9,6 +9,7 @@ syntax: glob
 *.iml # JetBrains (PyCharm/IDEA) project files
 *.rrd
 .idea/*
+npm-debug.log
 
 # Generated doc and build dirs
 doc/_build
