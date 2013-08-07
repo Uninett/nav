@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 #
 # This script should be invoked under VM and it's postgres user.
 #

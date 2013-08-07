@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 # Second step in vagrant provisioning
 # Should be run as vagrant user inside the vm.
 
