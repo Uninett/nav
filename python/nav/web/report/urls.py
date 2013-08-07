@@ -22,8 +22,13 @@ from nav.web.report.views import get_report, matrix_report, index, report_list
 # Naming convention: report-<result>-<query>
 urlpatterns = patterns('nav.web.report.views',
     url(r'^$', index, name='report-index'),
-    url(r'^matrix',
+    url(r'^matrix$',
         matrix_report, name='report-matrix'),
+    url(r'^matrix\?scope=(?P<scope>[^&]+)$',
+        matrix_report, name='report-matrix-scope'),
+    url(r'^matrix\?scope=(?P<scope>[^&]+)'
+        r'&show_unused_addresses=(?P<show_unused_addresses>True|False)',
+        matrix_report, name='report-matrix-scope-show_unused'),
     url(r'^reportlist$',
         report_list, name='report-reportlist'),
     url(r'^(?P<report_name>[^/]+)$',
@@ -99,4 +104,6 @@ urlpatterns += patterns('nav.web.report.views',
         dummy, name='report-prefix-all'),
     url(r'^prefix\?prefixid=(?P<prefix_id>\d+)$',
         dummy, name='report-prefix-prefix'),
+    url(r'^prefix\?netaddr=(?P<netaddr>[^&]+)&op_netaddr=like$',
+        dummy, name='report-prefix-netaddr'),
 )

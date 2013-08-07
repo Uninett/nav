@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% load report %}
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" type="text/css" href="/style/subnet_matrix.css" />
+{% endblock base_header_additional_head %}
+
+{% block base_content %}
+
+  {% if matrix %}
+
+    <h1>Tabular view of {{ matrix.start_net.strCompressed }}</h1>
+
+    <p>
+      Showing how the subnets with masklengths from
+      {{ matrix.start_net.prefixlen }} to
+      {{ matrix.end_net.prefixlen }} are utilized
+    </p>
+
+    {% with matrix.start_net.strNormal|urlencode|escapeslash as link %}
+      {% if show_unused %}
+        <a href="{% url report-matrix-scope link %}">
+          Hide unused address rows
+        </a>
+      {% else %}
+        {% if ipv4 %}
+          <a href="{% url report-matrix-scope-show_unused link 'True' %}">
+            Show unused address rows
+          </a>
+        {% endif %}
+      {% endif %}
+    {% endwith %}
+
+    <table id="subnet-matrix">
+      <tr>
+        <td>
+          {{ matrix.start_net.prefixlen }} ... {{ sub }}
+        </td>
+
+        {% for heading in matrix.column_headings %}
+          <th>{{ heading }}</th>
+        {% endfor %}
+
+      </tr>
+
+      {% for node in matrix.nodes %}
+        <tr>
+          <td class="nocenter">
+            {{ node.net.strCompressed }}
+          </td>
+          <td colspan="16">&nbsp;</td>
+        </tr>
+        {% for subnet in node.subnets %}
+          <tr>
+            {% for cell in subnet %}
+              <td {% if forloop.first %}class="nocenter"{% endif %}
+                  colspan="{{ cell.colspan }}"
+                  style="background: {{ cell.color }};">
+                {{ cell.content|safe }}
+              </td>
+            {% empty %}
+              <td class="blank" colspan="{{ matrix.num_columns|add:"1" }}"></td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      {% endfor %}
+
+    </table>
+
+  {% else %}
+    {% if scopes %}
+      <h1>Subnet Matrix</h1>
+
+      <p>
+        There are more than one prefix scope defined.
+        Please select one of them
+      </p>
+      <ul id="scopes">
+        {% for scope in scopes %}
+          <li>
+            <a href="{% url report-matrix-scope scope.0|urlencode|escapeslash %}">{{ scope.0 }} {{ scope.1|default:"" }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>
+        The NAV-database does not contain any network scopes.
+        <a href="{% url seeddb-index %}">Seed the database</a> and return to this page to see some action.
+      </p>
+    {% endif %}
+  {% endif %}
+
+{% endblock base_content %}
