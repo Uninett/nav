@@ -201,3 +201,7 @@
 {
   text-align: right;
 }
+
+.place-popup, .network-popup {
+    font-size: 1.1em;
+}

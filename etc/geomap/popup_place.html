@@ -1,13 +1,13 @@
 <div class="place-popup">
 
-  <table class="vertitable" style="font-size: 80%">
+  <table class="vertitable">
     <tr><th>Rooms</th>          <td>{{ place.num_rooms }}</td></tr>
     <tr><th>IP devices</th>     <td>{{ place.num_netboxes }}</td></tr>
     <tr><th>CPU load (max)</th> <td>{{ place.load|nan2none|floatformat:2|default:"unknown" }}</td></tr>
   </table>
 
   {% for room in place.rooms %}
-  <table class="vertitable" style="font-size: 80%">
+  <table class="vertitable">
 
     <caption>{{ room.id }} ({{ room.descr }})</caption>
     <tr><th>IP Devices</th>     <td>{{ room.num_netboxes }}</td></tr>
