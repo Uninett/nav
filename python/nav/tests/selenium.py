@@ -58,6 +58,10 @@ class SeleniumTest(unittest.TestCase):
     def tearDown(self):
         """Common tasks to do after each test"""
         self.driver.quit()
+        if 'WORKSPACE' in os.environ:
+            self.driver.get_screenshot_as_file(
+                os.environ['WORKSPACE'] + '/ss.png')
+
 
     @staticmethod
     def get_driver():

@@ -36,7 +36,4 @@ class ThresholdManagerSeleniumTest(SeleniumTest):
         try:
             self.driver.find_element_by_id('netboxSearchTable')
         except NoSuchElementException:
-            if 'WORKSPACE' in os.environ:
-                self.driver.get_screenshot_as_file(
-                    os.environ['WORKSPACE'] + '/ss.png')
             self.fail("Select did not trigger display of netbox table")
