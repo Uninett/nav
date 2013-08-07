@@ -9,7 +9,8 @@ if [ -f ~vagrant/.bash_profile ]; then
   echo "~vagrant/.bash_profile already modified, rm ~vagrant/.bash_profile if need to reprovision it"
 else
   cat << EOF >> ~vagrant/.bash_profile
-export WEBROOT=/vagrant/media
+export WEBROOTDIR=/vagrant/media
+export DJANGOTMPLDIR=/vagrant/templates
 export DJANGO_SETTINGS_MODULE="nav.django.settings"
 export PYTHONPATH="/vagrant/python:$PYTHONPATH"
 export PATH="/vagrant/bin:$PATH"
@@ -24,7 +25,7 @@ pip install -v -r /vagrant/tools/vagrant-requirements2.txt # Silly modules who c
 
 cd /vagrant
 ./autogen.sh
-./configure --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc WEBROOT=/vagrant/media DJANGOTMPLDIR=/vagrant/templates
+./configure --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc WEBROOTDIR=/vagrant/media DJANGOTMPLDIR=/vagrant/templates
 cd /vagrant/python
 make
 
