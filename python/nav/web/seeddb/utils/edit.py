@@ -71,7 +71,7 @@ def render_edit(request, model, form_model, object_id, redirect, \
         'title': 'Add new %s' % verbose_name,
         'sub_active': {'add': True},
     }
-    if obj:
+    if obj and obj.pk:
         context.update({
             'title': 'Edit %s "%s"' % (verbose_name, title),
             'sub_active': {'edit': True},

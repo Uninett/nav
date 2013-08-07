@@ -3,7 +3,7 @@
 {% block content %}
 <form action="" method="post">
     <table class="listtable">
-    {% if object %}
+    {% if object.pk %}
     <caption>
         {{ object }}
     </caption>
@@ -31,7 +31,7 @@
     </table>
 </form>
 
-{% if delete_url and object %}
+{% if delete_url and object.pk %}
 <form action="{{ delete_url }}" method="post">
     <table class="listtable">
         <tr>
