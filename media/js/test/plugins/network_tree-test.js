@@ -1,6 +1,8 @@
 require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
 
     var Node = NetworkTree.Node;
+    var NodeView = NetworkTree.NodeView;
+    var NodeCollection = NetworkTree.NodeCollection;
 
     buster.testCase('Network tree', {
 
@@ -12,13 +14,26 @@ require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
                 'swport': new Node({pk:3, type:'swport'}),
                 'switch': new Node({pk:4, type:'swport', switch_id:1})
             };
+            var routers = new NodeCollection([this.Nodes.router]);
+            var gwports = new NodeCollection([this.Nodes.gwport]);
+            var swports = new NodeCollection([this.Nodes.swport, this.Nodes.switch]);
+            this.Nodes.root.set('children', routers);
+            this.Nodes.router.set('children', gwports);
+            this.Nodes.gwport.set('children', swports);
+            this.NodeViews = {
+                'rootView': new NodeView({model:this.Nodes.root}),
+                'routerView': new NodeView({model:this.Nodes.router}),
+                'gwportView': new NodeView({model:this.Nodes.gwport}),
+                'swportView': new NodeView({model:this.Nodes.swport}),
+                'switchView': new NodeView({model:this.Nodes.switch})
+            };
         },
 
         'is defined': function () {
             assert.defined(NetworkTree);
         },
 
-        'test Node urls': function () {
+        'nodes have correct urls': function () {
 
             var n = this.Nodes;
             var expectedRootUrl = 'routers/';
@@ -34,7 +49,7 @@ require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
             assert.equals(n.switch.url, expectedSwitchUrl);
         },
 
-        'test Node elementId': function () {
+        'nodes have correct elementId': function () {
 
             var n = this.Nodes;
             var expextedRootId = 'root';
@@ -48,7 +63,16 @@ require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
             assert.equals(n.gwport.elementId(), expectedGWPortId);
             assert.equals(n.swport.elementId(), expectedSWPortId);
             assert.equals(n.switch.elementId(), expectedSwitchId);
-        }
+        },
 
+        'node-views have templates': function () {
+
+            var v = this.NodeViews;
+            var n = this.Nodes;
+            assert(v.routerView.template(n.router.toJSON()));
+            assert(v.gwportView.template(n.gwport.toJSON()));
+            assert(v.swportView.template(n.swport.toJSON()));
+            assert(v.switchView.template(n.switch.toJSON()));
+        }
     });
 });
