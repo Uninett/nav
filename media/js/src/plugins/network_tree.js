@@ -178,7 +178,7 @@ define([
         /*
          * A Container-model for the tree.
          *
-         * TODO: Might not be necessary
+         * NOTE: Might not be necessary
          */
 
         defaults: {

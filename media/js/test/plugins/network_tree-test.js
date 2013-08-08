@@ -1,10 +1,10 @@
-require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
+require(['plugins/network_tree'], function (NetworkTree) {
 
     var Node = NetworkTree.Node;
     var NodeView = NetworkTree.NodeView;
     var NodeCollection = NetworkTree.NodeCollection;
 
-    buster.testCase('Network tree', {
+    buster.testCase('Node model', {
 
         setUp: function () {
             this.Nodes = {
@@ -28,11 +28,9 @@ require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
                 'switchView': new NodeView({model:this.Nodes.switch})
             };
         },
-
         'is defined': function () {
             assert.defined(NetworkTree);
         },
-
         'nodes have correct urls': function () {
 
             var n = this.Nodes;
@@ -48,7 +46,6 @@ require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
             assert.equals(n.swport.url, expectedSWPortUrl);
             assert.equals(n.switch.url, expectedSwitchUrl);
         },
-
         'nodes have correct elementId': function () {
 
             var n = this.Nodes;
@@ -64,7 +61,27 @@ require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
             assert.equals(n.swport.elementId(), expectedSWPortId);
             assert.equals(n.switch.elementId(), expectedSwitchId);
         },
+        'nodes do not expand when not expandable': function () {
 
+            var node = new Node({expandable: false, state: 'collapsed'});
+
+            node.expand();
+            assert.equals(node.get('state'), 'collapsed');
+        },
+        'node do not expand when already processing': function () {
+
+            var node = new Node({expandable: true, state: 'processing'});
+
+            node.expand();
+            assert.equals(node.get('state'), 'processing');
+        },
+        'collapse works': function () {
+
+            var node = new Node({state: 'expanded'});
+
+            node.collapse();
+            assert.equals(node.get('state'), 'collapsed');
+        },
         'node-views have templates': function () {
 
             var v = this.NodeViews;

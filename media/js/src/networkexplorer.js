@@ -6,7 +6,7 @@ require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
     function fadeOut(search_form) {
         search_form.fadeTo('normal', 0.5);
     }
-    function submitForm(search_form, working) {
+    function submitForm(networkTree, search_form, working) {
         fadeOut(search_form);
         working.css('visibility', 'visible');
 
@@ -14,7 +14,7 @@ require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
             'search/',
             search_form.serialize()
         )
-            .done(function (data) { parseResult(data); })
+            .done(function (data) { parseResult(networkTree, data); })
             .fail(function () { notifyFail('Search failed!'); })
             .always(
                 function () {
@@ -23,7 +23,7 @@ require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
                 }
             );
     }
-    function parseResult(data) {
+    function parseResult(networkTree, data) {
         networkTree.search(data);
     }
     function notifyFail(text) {
@@ -38,17 +38,15 @@ require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
 
     $(document).ready(function () {
         var working = $('#working');
-        var search_form = $('#search_form');
-
-        search_form.submit(function (e) {
-            e.preventDefault();
-            submitForm(search_form, working);
-        });
-
-        // Network tree
+        var search_form = $('#search-form');
         var networkTree = new NetworkTree.TreeView({
             model: new NetworkTree.Tree()
         });
+        search_form.submit(function (e) {
+            e.preventDefault();
+            submitForm(networkTree, search_form, working);
+        });
+
         networkTree.model.expand();
     });
 });
