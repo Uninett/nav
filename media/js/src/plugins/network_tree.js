@@ -113,13 +113,13 @@ define([
                         node.set('state', 'expanded');
                         node.set('children', children);
                         Backbone.EventBroker.trigger('tree:render', node);
-                        if (typeof d !== "undefined") d.resolve();
+                        if (d.hasOwnProperty('resolve')) d.resolve();
                     },
                     error: function () {
                         console.log('could not fetch nodes');
                         node.set('state', 'collapsed');
                         node.hideSpinner();
-                        if (typeof d !== "undefined") d.reject();
+                        if (d.hasOwnProperty('reject')) d.reject();
                     }
                 });
             } else {
@@ -187,7 +187,7 @@ define([
 
         expand: function () {
 
-            this.get('root').expand();
+            this.get('root').expand({});
         },
 
         collapse: function () {
