@@ -51,6 +51,8 @@ DEFAULT_WAIT_TIME = 5  # timer for implicit wait in seconds
 class SeleniumTest(unittest.TestCase):
     """Super class for selenium tests"""
 
+    currentResult = None
+
     def setUp(self):
         """Common tasks to do before each test"""
         self.driver = self.get_driver()
@@ -60,9 +62,15 @@ class SeleniumTest(unittest.TestCase):
         """Common tasks to do after each test"""
         if 'WORKSPACE' in os.environ and sys.exc_info()[0]:
             ss_loc = os.path.join(os.environ['WORKSPACE'],
-                                  "%s.png" % self.__class__.__name__)
+                                  'selenium-errors',
+                                  "%s.%s.png" % (self.__class__.__name__,
+                                  self.currentResult.name))
             self.driver.save_screenshot(ss_loc)
         self.driver.quit()
+
+    def run(self, result=None):
+        self.currentResult = result
+        unittest.TestCase.run(self, result)
 
     @staticmethod
     def get_driver():
