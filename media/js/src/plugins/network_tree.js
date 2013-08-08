@@ -39,7 +39,7 @@ define([
             type: 'root',
             state: 'collapsed',
             expandable: false,
-            matched: false  // For search
+            matched: false
         },
 
         initialize: function () {
@@ -220,6 +220,12 @@ define([
 
             /*
              * Welcome to callback HELL!
+             *
+             * This is a rather un-efficient depth first search
+             * in the network tree, which checks for a match in
+             * the returned json-object and if so expands it's
+             * subtree. This relies heavily on deferred objects
+             * since expanding a node might be asynchronous.
              */
 
             var root = this.model.get('root');
