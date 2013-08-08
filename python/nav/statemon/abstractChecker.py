@@ -20,7 +20,6 @@ import socket
 import sys
 import types
 import config
-import mailAlert
 import RunQueue
 import db
 import rrd
@@ -99,7 +98,6 @@ class AbstractChecker:
                            self._conf.get('timeout', TIMEOUT)))
         self.setTimeout(int(timeout))
         self.db = db.db()
-        # self.alerter=mailAlert.mailAlert()
         debug("New checker instance for %s:%s " %
               (self.getSysname(), self.getType()), 6)
         self.runcount = 0
