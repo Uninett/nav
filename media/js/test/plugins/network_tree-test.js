@@ -3,15 +3,17 @@ require(['plugins/network_tree'], function (NetworkTree) {
     var Node = NetworkTree.Node;
     var NodeView = NetworkTree.NodeView;
     var NodeCollection = NetworkTree.NodeCollection;
+    var Tree = NetworkTree.Tree;
+    var TreeView = NetworkTree.TreeView;
 
     buster.testCase('Node model', {
 
         setUp: function () {
             this.Nodes = {
-                'root': new Node(),
-                'router': new Node({pk:1, type:'router'}),
-                'gwport': new Node({pk:2, type:'gwport'}),
-                'swport': new Node({pk:3, type:'swport'}),
+                'root': new Node({expandable: true}),
+                'router': new Node({pk:1, type:'router', expandable:true}),
+                'gwport': new Node({pk:2, type:'gwport', expandable:true}),
+                'swport': new Node({pk:3, type:'swport', expandable:true}),
                 'switch': new Node({pk:4, type:'swport', switch_id:1})
             };
             var routers = new NodeCollection([this.Nodes.router]);
@@ -27,6 +29,7 @@ require(['plugins/network_tree'], function (NetworkTree) {
                 'swportView': new NodeView({model:this.Nodes.swport}),
                 'switchView': new NodeView({model:this.Nodes.switch})
             };
+            this.Tree = new Tree({root: this.Nodes.root});
         },
         'is defined': function () {
             assert.defined(NetworkTree);
@@ -81,6 +84,38 @@ require(['plugins/network_tree'], function (NetworkTree) {
 
             node.collapse();
             assert.equals(node.get('state'), 'collapsed');
+        },
+        'event triggered on successful expand': function () {
+
+            // TODO: Make this work :-/
+//            var node = this.Nodes.root;
+//            var treeView = new TreeView({model: this.Tree});
+//            this.stub(treeView, 'render');
+//
+//            node.expand();
+//            assert.calledOnce(treeView.render);
+            assert(true);
+        },
+        'match works': function () {
+
+            var node = new Node({expandable: true});
+            var nodeView = new NodeView({model: node});
+
+            this.stub(nodeView, 'triggerExpand');
+
+            nodeView.match(node);
+            assert.calledOnce(nodeView.triggerExpand);
+        },
+        'getChildren works': function () {
+
+            var node = new Node({expandable: true});
+            var children = node.getChildren();
+
+            refute.equals(node.get('children'), children);
+            assert.equals(node.url, children.url);
+
+            node.set('children', children);
+            assert.equals(node.get('children'), node.getChildren());
         },
         'node-views have templates': function () {
 

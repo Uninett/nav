@@ -413,6 +413,7 @@ define([
         }
     });
 
+    // Return a container exposing all objects
     return {
         Node: Node,
         Tree: Tree,
