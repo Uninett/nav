@@ -32,6 +32,7 @@ To set up seleniumserver:
 from __future__ import absolute_import
 
 import os
+import sys
 import unittest
 import pytest
 from django.core.urlresolvers import reverse
@@ -57,11 +58,11 @@ class SeleniumTest(unittest.TestCase):
 
     def tearDown(self):
         """Common tasks to do after each test"""
+        if 'WORKSPACE' in os.environ and sys.exc_info()[0]:
+            ss_loc = os.path.join(os.environ['WORKSPACE'],
+                                  "%s.png" % self.__class__.__name__)
+            self.driver.save_screenshot(ss_loc)
         self.driver.quit()
-        if 'WORKSPACE' in os.environ:
-            self.driver.get_screenshot_as_file(
-                os.environ['WORKSPACE'] + '/ss.png')
-
 
     @staticmethod
     def get_driver():
