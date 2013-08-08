@@ -78,7 +78,9 @@ class ExpandRouterContextMixin(object):
     """
     def get_context_data(self, **kwargs):
         router = kwargs.pop('object')
-        gwports = router.get_gwports()
+        gwports = router.get_gwports().select_related(
+            'to_netbox',
+            'to_interface')
         sorted_ports = sorted(
             gwports,
             key=lambda p: natsort.split(p.ifname)
@@ -106,7 +108,10 @@ class ExpandRouterContextMixin(object):
         gwport_prefixes = []
         has_children = False
 
-        prefixes = GwPortPrefix.objects.filter(
+        prefixes = GwPortPrefix.objects.select_related(
+            'prefix__vlan',
+            'interface',
+        ).filter(
             interface_id=gwport.id
         ).exclude(
             prefix__vlan__net_type='static')
@@ -133,10 +138,6 @@ class ExpandRouterContextMixin(object):
 
         if not gwport.to_netbox and gwport.to_interface:
             gwport.to_netbox = gwport.to_interface.netbox
-        else:
-            # FIXME: Find out what the legacy code is trying
-            # FIXME: to achieve here or remove else-clause.
-            pass
 
         return {'prefixes': gwport_prefixes, 'expandable': has_children}
 
@@ -148,14 +149,19 @@ class ExpandGWPortMixin(object):
     """
     def get_context_data(self, **kwargs):
         gwport = kwargs.pop('object')
-        prefixes = gwport.gwportprefix_set.exclude(
+        prefixes = gwport.gwportprefix_set.select_related(
+            'prefix__vlan',
+        ).exclude(
             prefix__vlan__net_type='static')
 
         vlans = []
         vlans_found = set()
         for prefix in prefixes:
-            # TODO: Use select related?
-            for vlan in prefix.prefix.vlan.swportvlan_set.filter(
+            for vlan in prefix.prefix.vlan.swportvlan_set.select_related(
+                    'interface__to_interface__netbox',
+                    'interface__netbox',
+                    'vlan',
+            ).filter(
                     interface__netbox=gwport.netbox).order_by(
                     'interface__ifname'):
 
