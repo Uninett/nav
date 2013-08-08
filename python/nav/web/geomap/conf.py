@@ -37,22 +37,21 @@ import os
 import re
 import logging
 
-import nav
+from nav import buildconf
 from nav.errors import ConfigurationError
 
-from nav.web.geomap.utils import *
-
-
-logger = logging.getLogger('nav.web.geomap.conf')
+_logger = logging.getLogger('nav.web.geomap.conf')
 
 _config = None
 
 
 class ConfigurationSyntaxError(ConfigurationError):
     def __init__(self, msg, filename, linenr):
+        super(ConfigurationSyntaxError, self).__init__()
         self.msg = msg
         self.filename = filename
         self.linenr = linenr
+
     def __str__(self):
         return 'Syntax error in configuration file %s on line %d: %s' % \
             (self.filename, self.linenr, self.msg)
@@ -60,15 +59,17 @@ class ConfigurationSyntaxError(ConfigurationError):
 
 class ConfigurationEvaluationError(ConfigurationError):
     def __init__(self, expression, original_exception, filename, linenr):
+        super(ConfigurationEvaluationError, self).__init__()
         self.expression = expression
         self.original_exception = original_exception
         self.filename = filename
         self.linenr = linenr
+
     def __str__(self):
         return ('Exception when evaluating expression "%s" in configuration '
-                'file %s on line %d: %s') % \
-                (self.expression, self.filename, self.linenr,
-                 self.original_exception)
+                'file %s on line %d: %s') % (
+                    self.expression, self.filename, self.linenr,
+                    self.original_exception)
 
 
 def parse_conf(lines, filename):
@@ -111,29 +112,38 @@ def parse_conf(lines, filename):
     """
     stack = [{'objects': [],
               'indent': 0}]
+
     def line_empty_p(line):
         return re.match(r'^\s*(#.*)?$', line) is not None
+
     def normalize_line(line):
         line = line.replace('\t', ' '*8)
         line = line.rstrip()
         return line
+
     def line_indent(line):
         return len(re.match(r'^ *', line).group(0))
+
     def current_frame():
         return stack[-1]
+
     def current_indent():
         return current_frame()['indent']
+
     def current_objlist():
         return current_frame()['objects']
+
     def make_block(line, linenr):
         return {'type': 'block',
                 'text': line,
                 'objects': [],
                 'linenr': linenr}
+
     def make_line(line, linenr):
         return {'type': 'line',
                 'text': line,
                 'linenr': linenr}
+
     def add_line(line, linenr):
         line = line.lstrip()
         if line[-1] == ':':
@@ -141,27 +151,28 @@ def parse_conf(lines, filename):
         else:
             obj = make_line(line, linenr)
         current_objlist().append(obj)
+
     def last_object():
         if len(current_objlist()) > 0:
             return current_objlist()[-1]
         return None
+
     def expect_more_indent_p():
         last = last_object()
         return (last is not None and last['type'] == 'block' and
                 len(last['objects']) == 0)
-    def current_level():
-        if expect_more_indent_p():
-            return len(stack)
-        return len(stack)-1
+
     def push(new_indent):
         objlist = last_object()['objects']
         stack.append({'objects': objlist,
                       'indent': new_indent})
+
     def pop(new_indent):
         while current_indent() > new_indent:
             stack.pop()
 
     linenr = 0
+
     def error(msg):
         raise ConfigurationSyntaxError(msg, filename, linenr)
 
@@ -196,23 +207,22 @@ def parse_conf_file(filename):
     filename -- absolute path to configuration file
 
     """
-    f = file(filename)
-    lines = f.readlines()
-    f.close()
+    with file(filename) as conf:
+        lines = conf.readlines()
     return parse_conf(lines, filename)
 
 
-def interpret_configuration(c, filename):
+def interpret_configuration(config, filename):
     def is_variant(c_obj):
         if c_obj['type'] != 'block':
             return False
-        m = re.match(r'^def variant\((.+),(.+)\)$', c_obj['text'])
-        return m is not None
+        match = re.match(r'^def variant\((.+),(.+)\)$', c_obj['text'])
+        return match is not None
 
     def read_variant(c_obj):
-        m = re.match(r'^def variant\((.+),(.+)\)$', c_obj['text'])
-        identifier = m.group(1).strip()
-        name = eval_or_warning(m.group(2), c_obj['linenr'])
+        match = re.match(r'^def variant\((.+),(.+)\)$', c_obj['text'])
+        identifier = match.group(1).strip()
+        name = eval_or_warning(match.group(2), c_obj['linenr'])
         indicators = {}
         styles = {}
         template_files = {}
@@ -244,95 +254,95 @@ def interpret_configuration(c, filename):
     def is_indicator(c_obj):
         if c_obj['type'] != 'block':
             return False
-        m = re.match(r'^def indicator\((.+),(.+),(.+)\)$', c_obj['text'])
-        return m is not None
+        match = re.match(r'^def indicator\((.+),(.+),(.+)\)$', c_obj['text'])
+        return match is not None
 
     def read_indicator(c_obj):
-        m = re.match(r'^def indicator\((.+),(.+),(.+)\)$', c_obj['text'])
-        type = m.group(1).strip()
-        property = m.group(2).strip()
-        name = eval_or_warning(m.group(3), c_obj['linenr'])
+        match = re.match(r'^def indicator\((.+),(.+),(.+)\)$', c_obj['text'])
+        type_ = match.group(1).strip()
+        property_ = match.group(2).strip()
+        name = eval_or_warning(match.group(3), c_obj['linenr'])
         options = []
         for sub in c_obj['objects']:
             if sub['type'] != 'block':
                 raise ConfigurationSyntaxError(
                     'Illegal indicator syntax (expected a block)',
                     filename, sub['linenr'])
-            m = re.match(r'^if (.+)$', sub['text'])
-            if m is None:
+            match = re.match(r'^if (.+)$', sub['text'])
+            if match is None:
                 raise ConfigurationSyntaxError(
                     'Illegal indicator syntax (expected \'if ...\')',
                     filename, sub['linenr'])
-            test = m.group(1)
-            result = concat_str([o['text'] for o in sub['objects']])
+            test = match.group(1)
+            result = ''.join(o['text'] for o in sub['objects'])
             value_and_label = \
                 eval_or_warning(result, sub['linenr'],
-                                ('','(configuration error, see log)'))
+                                ('', '(configuration error, see log)'))
             if len(value_and_label) != 2:
-                logger.warning(('Error in configuration file %s on line ' +
+                _logger.warning(('Error in configuration file %s on line ' +
                                 '%d: expected expression "%s" to evaluate ' +
                                 'to 2-tuple, it evaluated to %s') %
                                (filename, sub['linenr'], result,
                                 value_and_label))
-                value_and_label = '','(configuration error, see log)'
+                value_and_label = '', '(configuration error, see log)'
             value, label = value_and_label
             options.append({'test': test,
                             'value': value,
                             'label': label})
-        return (type,
-                {'type': type,
-                 'property': property,
+        return (type_,
+                {'type': type_,
+                 'property': property_,
                  'name': name,
                  'options': options})
     
     def is_template_file(c_obj):
         if c_obj['type'] == 'block':
             return False
-        m = re.match(r'^template_file\((.+),(.+)\)$', c_obj['text'])
-        return m is not None
+        match = re.match(r'^template_file\((.+),(.+)\)$', c_obj['text'])
+        return match is not None
         
     def read_template_file(c_obj):
-        m = re.match(r'^template_file\((.+),(.+)\)$', c_obj['text'])
-        template_for = m.group(1).strip()
-        template_file = eval_or_warning(m.group(2), c_obj['linenr'], None)
-        return (template_for, template_file)
+        match = re.match(r'^template_file\((.+),(.+)\)$', c_obj['text'])
+        template_for = match.group(1).strip()
+        template_file = eval_or_warning(match.group(2), c_obj['linenr'], None)
+        return template_for, template_file
 
     def is_style(c_obj):
         if c_obj['type'] == 'block':
             return False
-        m = re.match(r'^style\((.+),(.+),(.+)\)$', c_obj['text'])
-        return m is not None
+        match = re.match(r'^style\((.+),(.+),(.+)\)$', c_obj['text'])
+        return match is not None
         
     def read_style(c_obj):
-        m = re.match(r'^style\((.+),(.+),(.+)\)$', c_obj['text'])
-        type = m.group(1).strip()
-        property = m.group(2).strip()
-        value = eval_or_warning(m.group(3), c_obj['linenr'], None)
-        return (type,
-                {property: value})
+        match = re.match(r'^style\((.+),(.+),(.+)\)$', c_obj['text'])
+        type_ = match.group(1).strip()
+        property_ = match.group(2).strip()
+        value = eval_or_warning(match.group(3), c_obj['linenr'], None)
+        return (type_,
+                {property_: value})
 
     def warn_unknown_object(c_obj):
-        logger.warning(('Error in configuration file %s: Unknown object ' +
+        _logger.warning(('Error in configuration file %s: Unknown object ' +
                         '"%s" starting on line %d') %
-                       filename, c_obj['text'], c_obj['linenr'])
+                        filename, c_obj['text'], c_obj['linenr'])
 
     def eval_or_warning(expr, linenr,
                         default_value='(configuration error, see log)'):
         try:
             return conf_eval(expr, filename, linenr)
-        except ConfigurationEvaluationError, e:
-            logger.warning(e)
+        except ConfigurationEvaluationError as err:
+            _logger.warning(err)
             return default_value
 
     variants = {}
     variant_order = []
-    for c_obj in c:
+    for c_obj in config:
         if is_variant(c_obj):
             variant_id, variant = read_variant(c_obj)
             variants[variant_id] = variant
             variant_order.append(variant_id)
         else:
-            warn_unknown_object(sub)
+            warn_unknown_object(c_obj)
 
     return {'variants': variants,
             'variant_order': variant_order}
@@ -341,8 +351,8 @@ def interpret_configuration(c, filename):
 def conf_eval(expr, filename, linenr):
     try:
         return eval(expr, {})
-    except Exception, e:
-        raise ConfigurationEvaluationError(expr, e, filename, linenr)
+    except Exception as err:
+        raise ConfigurationEvaluationError(expr, err, filename, linenr)
 
 
 def read_configuration(filename):
@@ -353,6 +363,6 @@ def read_configuration(filename):
 def get_configuration():
     global _config
     if _config is None:
-        _config = read_configuration(os.path.join(nav.path.sysconfdir,
+        _config = read_configuration(os.path.join(buildconf.sysconfdir,
                                                   'geomap/config.py'))
     return _config
