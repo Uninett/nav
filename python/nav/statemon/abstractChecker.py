@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2003,2004 Norwegian University of Science and Technology
 #
@@ -16,19 +15,11 @@
 #
 
 import time
-import socket
-import sys
-import types
-import config
-import RunQueue
-import db
-import rrd
-import event
-from select import select
-from errno import errorcode
-from debug import debug
+from nav.statemon import config, RunQueue, db, rrd, event
+from nav.statemon.debug import debug
 
-TIMEOUT = 5 #default, hardcoded timeout :)
+TIMEOUT = 5  # default, hardcoded timeout :)
+
 
 class AbstractChecker:
     """
@@ -119,14 +110,17 @@ class AbstractChecker:
             # this is needed as ssl-socket calls may hang
             # in python < 2.3
             if self.getResponsetime() > 2 * self.getTimeout():
-                debug("Adjusting status due to high responsetime (%s, %s)" % (service, self.getResponsetime()))
+                debug("Adjusting status due to high responsetime (%s, %s)" % (
+                      service, self.getResponsetime()))
                 status = event.Event.DOWN
                 self.setResponsetime(2 * self.getTimeout())
 
-        if status != self.getStatus() and self.runcount < int(self._conf.get('retry', 3)):
+        if status != self.getStatus() and (self.runcount <
+                                           int(self._conf.get('retry', 3))):
             delay = int(self._conf.get('retry delay', 5))
             self.runcount += 1
-            debug("%-20s -> State changed. New check in %i sec. (%s, %s)" % (service, delay, status, info))
+            debug("%-20s -> State changed. New check in %i sec. (%s, %s)" % (
+                  service, delay, status, info))
             # Updates rrd every time to get proper 'uptime' for the service
             self.updateRrd()
             priority = delay + time.time()
@@ -324,13 +318,16 @@ class AbstractChecker:
         return self._version
 
     def __eq__(self, obj):
-        return self.getServiceid() == obj.getServiceid() and self.getArgs() == obj.getArgs()
+        return (self.getServiceid() == obj.getServiceid()
+                and self.getArgs() == obj.getArgs())
 
     def __cmp__(self, obj):
         return self.getTimestamp().__cmp__(obj.getTimestamp())
 
     def __hash__(self):
-        value = self.getServiceid() + self.getArgs().__str__().__hash__() + self.getAddress().__hash__()
+        value = (self.getServiceid() +
+                 self.getArgs().__str__().__hash__() +
+                 self.getAddress().__hash__())
         value = value % 2**31
         return int(value)
 
