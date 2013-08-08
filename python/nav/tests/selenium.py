@@ -62,6 +62,7 @@ class SeleniumTest(unittest.TestCase):
         """Common tasks to do after each test"""
         if 'WORKSPACE' in os.environ and sys.exc_info()[0]:
             ss_loc = os.path.join(os.environ['WORKSPACE'],
+                                  'tests',
                                   'selenium-errors',
                                   "%s.%s.png" % (self.__class__.__name__,
                                   self.currentResult.name))
