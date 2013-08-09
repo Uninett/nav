@@ -48,19 +48,12 @@ class HostTestcase(TestCase):
         self.assertEquals(host.packet.sequence, 0)
         self.assertEquals(host.packet.id, pid)
 
-
-    def test_IP_validation(self):
+    def test_ip_validation(self):
         """
         Test the IP valdidation helper methods for both v6 & v4
         """
-        host = Host('')
-        self.assertTrue(host.is_valid_ipv4('129.241.105.210'))
-        self.assertFalse(host.is_valid_ipv4('129.241.105.256'))
+        self.assertTrue(Host('129.241.105.210').is_valid_ipv4())
+        self.assertFalse(Host('129.241.105.256').is_valid_ipv4())
 
-        self.assertTrue(host.is_valid_ipv6('2001:701::FFFF'))
-        self.assertFalse(host.is_valid_ipv6('127.0.0.1'))
-
-
-
-
-
+        self.assertTrue(Host('2001:701::FFFF').is_valid_ipv6())
+        self.assertFalse(Host('127.0.0.1').is_valid_ipv6())

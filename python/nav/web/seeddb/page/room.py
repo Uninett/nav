@@ -82,9 +82,11 @@ def room_delete(request):
 
 def room_edit(request, room_id=None):
     info = RoomInfo()
+    extra_context = {'map': True}
+    extra_context.update(info.template_context)
     return render_edit(request, Room, RoomForm, room_id,
         'seeddb-room-edit',
-        extra_context=info.template_context)
+        extra_context=extra_context)
 
 def room_bulk(request):
     info = RoomInfo()

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 # Second step in vagrant provisioning
 # Should be run as vagrant user inside the vm.
 
@@ -9,22 +9,21 @@ if [ -f ~vagrant/.bash_profile ]; then
   echo "~vagrant/.bash_profile already modified, rm ~vagrant/.bash_profile if need to reprovision it"
 else
   cat << EOF >> ~vagrant/.bash_profile
-export WEBROOT=/vagrant/media
 export DJANGO_SETTINGS_MODULE="nav.django.settings"
 export PYTHONPATH="/vagrant/python:$PYTHONPATH"
 export PATH="/vagrant/bin:$PATH"
+alias rs="django-admin.py runserver 0.0.0.0:8080"
 source ~/.env/bin/activate
 EOF
 fi
 
 export PYTHONPATH="/vagrant/python:$PYTHONPATH"
 
-pip install -vv -r /vagrant/tools/vagrant-requirements.txt
-pip install -v -r /vagrant/tools/vagrant-requirements2.txt # Silly modules who can't be installed in same process as rest of em..
+pip install -r /vagrant/tools/vagrant-requirements.txt
 
 cd /vagrant
 ./autogen.sh
-./configure --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc WEBROOT=/vagrant/media DJANGOTMPLDIR=/vagrant/templates
+./configure --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc --datadir $PWD
 cd /vagrant/python
 make
 

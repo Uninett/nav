@@ -1,6 +1,6 @@
 /* Subsystem stylesheet for NAV
  *
- * Copyright (C) 2003-2004 Norwegian University of Science and Technology
+ * Copyright (C) 2003-2005 Norwegian University of Science and Technology
  * Copyright (C) 2006 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV).
@@ -14,11 +14,40 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.  You should have received a copy of the GNU General Public
  * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-td {
-	width: 14em;
+#subnet-matrix td {
+	margin: 0;
 	padding: 0;
 	white-space: nowrap;
-	margin: 0;
+	width: 14em;
+    text-align: center;
+}
+
+#subnet-matrix td.nocenter {
+    text-align: left;
+}
+
+#subnet-matrix td.blank {
+	height: 6px;
+}
+
+#subnet-matrix a.monosp {
+	font-family: Arial, Helvetica, monospace;
+}
+
+#subnet-matrix th {
+	text-align: center;
+}
+
+#subnet-matrix {
+	border-collapse: separate;
+	border-spacing: 2px;
+    border: 1px solid black;
+    font-size: 0.8em;
+}
+
+#scopes {
+    list-style: none;
 }

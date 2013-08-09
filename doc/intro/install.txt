@@ -20,7 +20,6 @@ To build NAV, you need at least the following:
  * autoconf
  * ant
  * Python >= 2.6.0
- * Cheetah Templates >= 2.0rc7
  * Sphinx >= 1.0 (for building this documentation)
 
 Runtime requirements
@@ -33,7 +32,6 @@ To run NAV, these software packages are required:
  * Cricket
  * PostgreSQL >= 8.3
  * rrdtool
- * Cheetah Templates >= 2.0rc7
  * Python >= 2.6.0
  * nbtscan = 1.5.1-6
  * dhcping (only needed if using DHCP service monitor)

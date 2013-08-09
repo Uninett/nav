@@ -7,17 +7,42 @@
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get -y update
-apt-get -y build-dep -y psycopg2 python-lxml librrd-dev python-imaging python-ldap
-apt-get -y install mercurial subversion python-virtualenv build-essential \
+apt-get -y --no-install-recommends build-dep -y python-psycopg2 python-lxml \
+ librrd-dev python-imaging python-ldap
+apt-get -y --no-install-recommends install mercurial subversion python-virtualenv build-essential \
  autoconf postgresql-client cricket libapache2-mod-wsgi postgresql-9.1 \
- librrd-dev libsnmp15 git-core
+ librrd-dev libsnmp15 git-core python-dev automake
 
 IS_INSTALLED=$( (test -f ~vagrant/nav_installed); echo $?)
 
-su -l -c "/usr/bin/env bash /vagrant/tools/vagrant-provision-node.bash $IS_INSTALLED" vagrant
-su -l -c "/usr/bin/env sh /vagrant/tools/vagrant-provision-user.sh $IS_INSTALLED" vagrant
+cut=$(which cut)
+echo=$(which echo)
 
-if [ $IS_INSTALLED != 0 ]; then
-  su -l -c "sh /vagrant/tools/vagrant-provision-postgres.sh" postgres || exit 1
-  su -l -c "touch ~vagrant/nav_installed" vagrant || exit 2
-fi
+# Files in vagrant.d/ is shell provisioning scripts and _should_ follow
+# this strict syntax:
+#
+# <execution order>-<executed as user in vm>-<script name>
+#     [0-9][0-9]u?         [a-zaZ]*            [a-zaZ]*
+#
+# examples:
+#
+# 10-vagrant-node.bash
+# 15u-foo.sh
+# 15-vagrant-user.sh
+# 20-postgres-postgresql.sh
+#
+# NOTE: the suffix of 'u' after execution order means this is a user provided
+# script which is not added in NAVs repository! Here you can provide your own
+# customizations which _should_ not be added to NAVs repository as we're having
+# a .hgignore entry for [0-9][0-9]u* files in vagrant.d!
+# Here you can provision your setup of your favorite editor etc.
+
+for p in /vagrant/tools/vagrant.d/[0-9]*; do
+  full_script=$(basename $p)
+  script_tmp=${full_script%.*}
+  script_language=${full_script##*.} # Extention on script.
+  script_user=$($echo $script_tmp | $cut -f2 -d'-')
+  script_name=$($echo $script_tmp | $cut -f3 -d'-')
+  echo "[NAV] Running $full_script as $script_user"
+  su -l -c "$p $IS_INSTALLED" $script_user
+done

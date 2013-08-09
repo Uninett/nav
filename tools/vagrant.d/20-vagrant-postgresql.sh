@@ -1,9 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env sh
 #
 # This script should be invoked under VM and it's postgres user.
 #
 # See tools/vagrant-provision.sh for flow.
 
+[ $1 = 0 ] && exit 0 # Already installed.
 
 alternative() {
   echo "syncdb.py -c probably failed due to existing database user or database"
