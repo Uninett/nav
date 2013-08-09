@@ -115,7 +115,11 @@ define([
                         Backbone.EventBroker.trigger('tree:render', node);
                         if (d && d.hasOwnProperty('resolve')) d.resolve();
                     },
-                    error: function () {
+                    error: function (collection, response) {
+                        if (response.status === 401) {
+                            // If no longer authorized, reload the page
+                            location.reload();
+                        }
                         console.log('could not fetch nodes');
                         node.set('state', 'collapsed');
                         node.hideSpinner();
