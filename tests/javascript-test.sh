@@ -31,7 +31,7 @@ jshint() {
     done
     echo "jshint executable was not found"
 }
-jshint --config ${JSDIR}/jshint.rc.json ${JAVASCRIPT_FILES[@]} --jslint-reporter > ${JSDIR}/javascript-jshint.xml || true
+jshint --config ${JSDIR}/.jshintrc ${JAVASCRIPT_FILES[@]} --jslint-reporter > ${JSDIR}/javascript-jshint.xml || true
 
 # Verify that jshint was running as jshint will have non-zero exit if ANY linting errors is found.
 [ -s "${JSDIR}/javascript-jshint.xml" ]
