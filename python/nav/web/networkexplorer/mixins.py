@@ -78,15 +78,11 @@ class ExpandRouterContextMixin(object):
     """
     def get_context_data(self, **kwargs):
         router = kwargs.pop('object')
-        gwports = router.get_gwports().select_related(
+        gwports = router.get_gwports_sorted().select_related(
             'to_netbox',
             'to_interface')
-        sorted_ports = sorted(
-            gwports,
-            key=lambda p: natsort.split(p.ifname)
-        )
         context = []
-        for gwport in sorted_ports:
+        for gwport in gwports:
             c = {
                 'pk': gwport.pk,
                 'sysname': router.sysname,
