@@ -20,7 +20,6 @@ edit = $(SED) \
         -e 's|@stylesheetdir[@]|$(stylesheetdir)|g' \
         -e 's|@sysconfdir[@]|$(sysconfdir)|g' \
         -e 's|@tooldir[@]|$(tooldir)|g' \
-        -e 's|@webroot[@]|$(webroot)|g' \
         -e 's|@webrootdir[@]|$(webrootdir)|g'
 
 CLEANFILES = $(cheetah_TEMPLATES) $(EDITFILES)

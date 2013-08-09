@@ -19,3 +19,21 @@ table.seeddbtable .info {
 	color: #F00;
 	font-weight: bold;
 }
+
+form.seeddb-edit {
+    float: left;
+}
+
+div.tabcontent {
+    overflow: auto;
+}
+
+#map-container {
+    text-align: center;
+    float: right;
+}
+
+#map {
+    width: 800px;
+    height: 600px;
+}

@@ -1,3 +1,16 @@
+Version 3.14.159265
+(released 27 Jun 2013)
+
+ This release rolls back changes to the camlogging system that were made in
+ the 3.14.1592 release. These changes caused cam records to be created
+ erroneously and also a massive load increase on the server NAV is running on.
+ Upgrading is HIGHLY recommended.
+
+ Bugfixes:
+
+  * LP#1195206 (MAC addresses are logged for most link ports, causing huge load
+                increase on NAV server)
+
 Version 3.14.15926
 (released 20 Jun 2013)
 

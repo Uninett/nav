@@ -1,7 +1,17 @@
 from unittest import TestCase
+import pytest
 
-from nav.snmptrapd.agent_se import TrapListener
+# Make tests skippable if PySNMP-SE is not the installed SNMP backend.
+try:
+    from nav.snmptrapd.agent_se import TrapListener
+except ImportError:
+    pass
+else:
+    class DisabledTrapListener(TrapListener):
+        def __init__(self):
+            pass
 
+@pytest.mark.skipif("'TrapListener' not in vars()")
 class TrapListenerTest(TestCase):
     def test_v1_wxgoose_trap_agent_is_decoded_correctly(self):
         """Encodes 10.0.0.42 as the trap agent of an SNMPv1 trap message and
@@ -24,6 +34,3 @@ class TrapListenerTest(TestCase):
         self.assertEquals(trap.agent, '10.0.0.42')
 
 
-class DisabledTrapListener(TrapListener):
-    def __init__(self):
-        pass

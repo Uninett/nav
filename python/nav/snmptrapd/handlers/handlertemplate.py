@@ -106,5 +106,8 @@ def verifyEventtype ():
     db.commit()
         
 
-# Run verifyeventtype at import
-verifyEventtype()
+def initialize():
+    """Initialize method for snmpdtrap daemon so it can initialize plugin
+    after __import__
+    """
+    verifyEventtype()

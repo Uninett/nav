@@ -48,6 +48,20 @@
     margin-right: 0.3em;
 }
 
+td.link {
+    cursor: pointer;
+	color: #2d5a86;
+	text-decoration: none;
+}
+td.link:hover {
+	color: black;
+	text-decoration: underline;
+}
+td.link:active {
+	color: #69C;
+	text-decoration: none;
+}
+
 th.col0 { padding-right: 5px; border-right: 1px solid #ccc; text-align: left; }
 td.col1 { padding-left: 5px; }
 table.sessioninfo { font-size: 0.9em; padding-bottom: 15px; }
