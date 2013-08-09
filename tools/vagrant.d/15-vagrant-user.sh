@@ -14,6 +14,7 @@ export DJANGOTMPLDIR=/vagrant/templates
 export DJANGO_SETTINGS_MODULE="nav.django.settings"
 export PYTHONPATH="/vagrant/python:$PYTHONPATH"
 export PATH="/vagrant/bin:$PATH"
+alias rs="django-admin.py runserver 0.0.0.0:8080"
 source ~/.env/bin/activate
 EOF
 fi
