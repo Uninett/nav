@@ -15,7 +15,7 @@
 #
 """Django URL config for network explorer."""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
 from nav.web.networkexplorer.views import (
     IndexView,
