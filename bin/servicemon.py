@@ -42,7 +42,6 @@ from nav.statemon import RunQueue
 from nav.statemon import abstractChecker
 from nav.statemon import config
 from nav.statemon import db
-from nav.statemon import mailAlert
 from nav.statemon import debug
 
 class controller:
@@ -60,8 +59,6 @@ class controller:
         debug.debug("Reading database config")
         debug.debug("Setting up runqueue")
         self._runqueue=RunQueue.RunQueue(controller=self)
-        #self.alerter=mailAlert.mailAlert()
-        #self.alerter.start()
         self.dirty = 1
 
 

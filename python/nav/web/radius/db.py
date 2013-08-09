@@ -1,8 +1,10 @@
 import re
 import time
+import uuid
 from collections import namedtuple
 from socket import gethostbyname_ex, gaierror
 
+from nav.asyncdns import reverse_lookup
 from radius_config import (DATEFORMAT_SEARCH,
                            LOG_SEARCHRESULTFIELDS,
                            ACCT_DETAILSFIELDS,
@@ -11,11 +13,32 @@ from radius_config import (DATEFORMAT_SEARCH,
                            LOG_TABLE)
 
 from django.db import connection
+from twisted.names.dns import Message, Query
 
 import radiuslib
 
 
-class SQLQuery:
+def get_named_cursor():
+    """
+    This function returns a named cursor, which speeds up queries
+    returning large result sets immensely by caching them on the
+    server side.
+
+    This is not yet supported by Django itself.
+    """
+    # This is required to populate the connection object properly
+    if connection.connection is None:
+        connection.cursor()
+
+    # Prefixing the name to ensure that it starts with a letter.
+    # Needed for psycopg2.2 compatibility
+    name = 'nav{0}'.format(str(uuid.uuid4()).replace('-', ''))
+
+    cursor = connection.connection.cursor(name=name)
+    return cursor
+
+
+class SQLQuery(object):
     """
     Superclass for other query classes.
     """
@@ -23,16 +46,15 @@ class SQLQuery:
     query = None
     parameters = None
     result = None
-    rowcount = 0
+    result_tuple = None
 
     def execute(self):
-        cursor = connection.cursor()
+        cursor = get_named_cursor()
         cursor.execute(self.query, self.parameters)
 
-        self.rowcount = cursor.rowcount
         self.result = [
-            self.ResultTuple._make(self._format(row))
-            for row in cursor.fetchall()]
+            self.result_tuple._make(self._format(row))
+            for row in cursor]
 
     def _format(self, row):
         """
@@ -56,7 +78,7 @@ class LogDetailQuery(SQLQuery):
         logid   - ID of the log entry we want to get details on.
         """
 
-        self.ResultTuple = namedtuple(
+        self.result_tuple = namedtuple(
             'LogDetailQueryResult',
             fields
         )
@@ -73,7 +95,7 @@ class LogDetailQuery(SQLQuery):
     def _format(self, row):
 
         try:
-            message = row[LOG_SEARCHRESULTFIELDS.index('message')]
+            message = row[LOG_DETAILFIELDS.index('message')]
             return map(
                 lambda x: x if x != message else x.replace(
                     '[', '[<b>').replace(']', '</b>]'),
@@ -99,7 +121,7 @@ class LogSearchQuery(SQLQuery):
             fields_extended.extend(list(fields))
             fields = fields_extended
 
-        self.ResultTuple = namedtuple(
+        self.result_tuple = namedtuple(
             'LogSearchQueryResult',
             fields)
 
@@ -190,7 +212,7 @@ class AcctSearchQuery(SQLQuery):
     Get search result
     """
 
-    ResultTuple = namedtuple(
+    result_tuple = namedtuple(
         'AccountSearchQueryResult',
         (
             'radacctid',
@@ -221,6 +243,7 @@ class AcctSearchQuery(SQLQuery):
 
         self.userdns = userdns
         self.nasdns = nasdns
+        self.ips_to_lookup = set()
 
         self.query = """(SELECT
                         radacctid,
@@ -441,6 +464,16 @@ class AcctSearchQuery(SQLQuery):
         self.query += (" ORDER BY %(sortfield)s %(sortorder)s" %
                        {"sortfield": sortfield, "sortorder": sortorder})
 
+    def execute(self):
+        super(AcctSearchQuery, self).execute()
+        if self.ips_to_lookup:
+            lookup_result = reverse_lookup(self.ips_to_lookup)
+
+            self.result = [
+                self._replace_ip_with_hostname(result, lookup_result)
+                for result in self.result
+            ]
+
     def make_stats(self):
 
         sessionstats = set()
@@ -456,21 +489,12 @@ class AcctSearchQuery(SQLQuery):
 
         return total_time, total_sent, total_received
 
-    hostCache = radiuslib.HostCache()
-
     def _format(self, row):
 
-        if self.userdns:
-            framedipaddress = self.hostCache.lookupIPAddress(
-                row[4])
-        else:
-            framedipaddress = row[4]
-
-        if self.nasdns:
-            nasipaddress = self.hostCache.lookupIPAddress(
-                row[5])
-        else:
-            nasipaddress = row[5]
+        if self.userdns and row[4]:
+            self.ips_to_lookup.add(row[4])
+        if self.nasdns and row[5]:
+            self.ips_to_lookup.add(row[5])
 
         acctstarttime = radiuslib.removeFractions(
             row[7])
@@ -481,9 +505,25 @@ class AcctSearchQuery(SQLQuery):
             row[9])
 
         return (row[0], row[1], row[2], row[3],
-                framedipaddress, nasipaddress, row[6],
-                acctstarttime, acctstoptime, row[9], row[10], row[11])
+                row[4], row[5], row[6], acctstarttime,
+                acctstoptime, row[9], row[10], row[11])
 
+    def _replace_ip_with_hostname(self, result, lookup_result):
+
+        useraddr = (lookup_result.get(result.framedipaddress, [''])[0]
+                    if self.userdns else result.framedipaddress)
+        nasaddr = (lookup_result.get(result.nasipaddress, [''])[0]
+                   if self.nasdns else result.nasipaddress)
+
+        # TODO: Maybe we can show the user something more informative
+        if isinstance(useraddr, Message) or isinstance(useraddr, Query):
+            useraddr = ''
+        if isinstance(nasaddr, Message) or isinstance(useraddr, Query):
+            nasaddr = ''
+
+        return result._replace(
+            framedipaddress=useraddr,
+            nasipaddress=nasaddr)
 
 
 class AcctDetailQuery(SQLQuery):
@@ -491,7 +531,7 @@ class AcctDetailQuery(SQLQuery):
     Get all details about a specified session
     """
 
-    hostCache = radiuslib.HostCache()
+    _host_cache = radiuslib.HostCache()
 
     def __init__(self, rad_acct_id, fields=ACCT_DETAILSFIELDS):
         """
@@ -499,7 +539,7 @@ class AcctDetailQuery(SQLQuery):
 
         """
 
-        self.ResultTuple = namedtuple(
+        self.result_tuple = namedtuple(
             'AccountDetailQueryResult',
             ACCT_DETAILSFIELDS
         )
@@ -520,12 +560,12 @@ class AcctDetailQuery(SQLQuery):
             field = fields['nasipaddress']
             fields['nasipaddress'] = '%s (%s)' % (
                 field,
-                self.hostCache.lookupIPAddress(field))
+                self._host_cache.lookupIPAddress(field))
         if 'framedipaddress' in fields:
             field = fields['framedipaddress']
             fields['framedipaddress'] = '%s (%s)' % (
                 field,
-                self.hostCache.lookupIPAddress(field))
+                self._host_cache.lookupIPAddress(field))
         if 'acctstoptime' in fields:
             start = fields['acctstarttime']
             stop = fields['acctstoptime']
@@ -554,7 +594,7 @@ class AcctChartsQuery(SQLQuery):
     overall bandwidth (ab)users
     """
 
-    ResultTuple = namedtuple(
+    result_tuple = namedtuple(
         'AccountChartsQueryResult',
         (
             'username',

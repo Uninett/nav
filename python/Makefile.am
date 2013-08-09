@@ -3,21 +3,15 @@ include $(top_srcdir)/common.mk
 pathmodule = nav/buildconf.py
 EDITFILES = $(pathmodule)
 
-templates_src = $(wildcard nav/web/templates/*.tmpl)
-cheetah_TEMPLATES = $(templates_src:%.tmpl=%.py)
-
 nobase_python_DATA = $(sort $(wildcard nav/*.py) \
                             $(wildcard nav/*/*.py) \
                             $(wildcard nav/*/*/*.py) \
                             $(wildcard nav/*/*/*/*.py) \
                             $(wildcard nav/*/*/*/*/*.py) \
                             $(pathmodule) \
-                            $(cheetah_TEMPLATES) \
                             )
 
-all: $(cheetah_TEMPLATES) $(pathmodule)
-
-all: $(cheetah_TEMPLATES) $(pathmodule)
+all: $(pathmodule)
 
 check: all
 	PYTHONPATH=. ./runtests.py $(top_srcdir)/tests/unittests
