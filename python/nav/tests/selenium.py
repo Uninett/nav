@@ -46,12 +46,14 @@ BASE_URL = os.environ['TARGETURL']
 USERNAME = 'admin'
 PASSWORD = os.environ['ADMINPASSWORD']
 DEFAULT_WAIT_TIME = 5  # timer for implicit wait in seconds
+SCREENSHOT_DIRECTORY = '.selenium_screenshots'
 
 
 class SeleniumTest(unittest.TestCase):
     """Super class for selenium tests"""
 
     currentResult = None
+    screenshot = None
 
     def setUp(self):
         """Common tasks to do before each test"""
@@ -61,13 +63,16 @@ class SeleniumTest(unittest.TestCase):
     def tearDown(self):
         """Common tasks to do after each test"""
         if 'WORKSPACE' in os.environ and sys.exc_info()[0]:
-            ss_loc = os.path.join(os.environ['WORKSPACE'],
-                                  'tests',
-                                  'selenium-errors',
-                                  "%s.%s.png" % (self.__class__.__name__,
-                                  self.currentResult.name))
-            self.driver.save_screenshot(ss_loc)
+            self.save_screenshot()
         self.driver.quit()
+
+    def save_screenshot(self):
+        """Save screenshot of a failed test"""
+        directory = get_screenshot_directory()
+        filename = "%s.%s.png" % (self.__class__.__name__,
+                                  self.currentResult.name)
+        self.screenshot = os.path.join(directory, filename)
+        self.driver.save_screenshot(self.screenshot)
 
     def run(self, result=None):
         self.currentResult = result
@@ -106,3 +111,13 @@ class SeleniumTest(unittest.TestCase):
     def get_url(viewname):
         """Get url based on viewname"""
         return urljoin(BASE_URL, reverse(viewname))
+
+
+def get_screenshot_directory():
+    """Create and/or get the path to the screenshots for failed tests"""
+    directory = os.path.join(os.environ['WORKSPACE'],
+                             SCREENSHOT_DIRECTORY,
+                             os.environ['BUILD_ID'])
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    return directory
