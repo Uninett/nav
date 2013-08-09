@@ -142,12 +142,9 @@ def search_expand_netbox(netboxid=None, netbox=None):
         else:
             found_swports.append(result['other'])
 
-    gwports = Interface.objects.filter(
-        to_netbox=netbox,
-        gwportprefix__isnull=False)
-    swports = Interface.objects.filter(
-        to_netbox=netbox,
-        baseport__isnull=False)
+    ports = Interface.objects.filter(to_netbox=netbox)
+    gwports = ports.filter(gwportprefix__isnull=False)
+    swports = ports.filter(baseport__isnull=False)
 
     found_gwports.extend(gwports)
 
