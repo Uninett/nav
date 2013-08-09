@@ -260,6 +260,7 @@ class ExpandSwitchContextMixin(object):
         ).filter(
             interface__in=swports,
             vlan__id=vlan_id)
+        switch_has_services = switch.service_set.all().count()
 
         context = []
 
@@ -275,8 +276,7 @@ class ExpandSwitchContextMixin(object):
                 unicode(interface.netbox.sysname),
             }
             c.update(_get_connected_sysname(interface))
-            if (interface.to_interface
-                    and interface.netbox.service_set.all().count()):
+            if interface.to_interface and switch_has_services:
                 c.update({'expandable': True})
 
             elif Cam.objects.filter(
