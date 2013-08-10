@@ -20,33 +20,39 @@ nav	nav/db_purge	boolean	false
 nav	nav/db_generation	boolean	true
 nav	nav/apache2_restart	boolean	true
 nav	nav/db_auto_update	boolean	true
+nav	nav/cricket_movegiga	boolean	false
 EOF
 
 apt-get -y update
-apt-get -y --no-install-recommends install nav
+apt-get --force-yes -y --no-install-recommends install nav
 
 a2dissite default
 a2dissite default-ssl
 a2ensite nav-default
 /etc/init.d/apache2 force-reload
 
-NAV_CRICKET_CONFIG=/etc/nav/cricket-config
-sed -e "s/\$gConfigRoot.*/\$gConfigRoot = '${NAV_CRICKET_CONFIG}';/" -i /etc/cricket/cricket-conf.pl
+export NAV_CRICKET_CONFIG="/etc/nav/cricket-config"
+echo "Set cricket config root: $NAV_CRICKET_CONFIG"
+sed -e "s|\$gConfigRoot.*|\$gConfigRoot = '$NAV_CRICKET_CONFIG';|" -i /etc/cricket/cricket-conf.pl
 
 # Disable system default cricket cron job. 
+echo "Killing/commenting out default cricket cron job"
 sed -e 's$\(\*/5 \* \* \* \*[ \t]*cricket\)$#\1$g' -i /etc/cron.d/cricket
 
 # Rename default alias from /cricket to /cricket-orig
-sed -e 's$\(Alias /cricket\)\(.*\)\( /usr/share/cricket\)$\1-orig\3$g' -i/etc/apache2/conf.d/cricket
+echo "Renaming alias /cricket to /cricket-orig in apache2/conf.d/cricket"
+sed -e 's$\(Alias /cricket\)\(.*\)\( /usr/share/cricket\)$\1-orig\3$g' -i /etc/apache2/conf.d/cricket
 
-NAV_CRICKET_LOG=/var/log/nav/cricket
-sed -e "s|\$gLogDir.*|\$gLogDir = '$NAV_CRICKET_LOG'|g" -i /etc/cricket/cricket-conf.pl
+export NAV_CRICKET_LOG="/var/log/nav/cricket"
+echo "Cricket log is now under $NAV_CRICKET_LOG"
+sed -e "s|\$gLogDir.*|\$gLogDir = '$NAV_CRICKET_LOG';|g" -i /etc/cricket/cricket-conf.pl
 
 su - -c cricket-compile navcron
 su - -c /usr/lib/nav/mcc.py navcron
 
 # Enable NAV at start up
-sed -e s/RUN_NAV=[01]*$/RUN_NAV=1/g /etc/default/nav
+echo "Enable NAV to run at start up"
+sed -e s/RUN_NAV=[01]*$/RUN_NAV=1/g -i /etc/default/nav
 
 /etc/init.d/nav restart
 
