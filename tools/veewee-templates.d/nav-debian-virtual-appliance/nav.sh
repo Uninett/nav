@@ -55,4 +55,4 @@ echo "Enable NAV to run at start up"
 sed -e s/RUN_NAV=[01]*$/RUN_NAV=1/g -i /etc/default/nav
 
 /etc/init.d/nav restart
-
+/etc/init.d/nav stop
