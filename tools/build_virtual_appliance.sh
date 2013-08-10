@@ -9,6 +9,8 @@ BASE_FULL_DIR=$( cd $(dirname $0) ; pwd -P )
 RVM_PATH="$BASE_FULL_DIR/.rvm"
 export rvm_path=$RVM_PATH
 
+. rvm_and_veewee_install.sh 
+
 source $BASE_FULL_DIR/.rvm/scripts/rvm
 
 test -z "$BASE_FULL_DIR" && exit 1
@@ -16,9 +18,10 @@ test -z "$debian" && exit 2
 
 tmp_dir="$BASE_FULL_DIR/veewee/$debian"
 
-[ ! -d $BASE_FULL_DIR/veewee ] && (echo "You must run rvm_and_veewee_install.sh first as you need veewee!"; exit 1)
+[ ! -d $BASE_FULL_DIR/veewee ] && echo "You must run rvm_and_veewee_install.sh first as you need veewee!" && exit 1
 cd $BASE_FULL_DIR/veewee
 
+[ ! -d $BASE_FULL_DIR/veewee/definitions ] && mkdir $BASE_FULL_DIR/veewee/definitions
 ln -sf $BASE_FULL_DIR/veewee-templates.d/$debian $BASE_FULL_DIR/veewee/definitions/$debian
 
 [ -d $tmp_dir ] && rm -f $tmp_dir/*{.vmdk,ovf,Vagrantfile}
