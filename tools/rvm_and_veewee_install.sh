@@ -1,6 +1,5 @@
 #!/bin/bash 
-# Builds a basic debian wheezy base image to be used
-# with vagrant. 
+# Install rvm under VCS-ROOT/tools/.rvm and veewee to VCS-ROOT/tools/veewee
 #
 # Based on http://stacktoheap.com/blog/2013/06/19/building-a-debian-wheezy-vagrant-box-using-veewee/
 # :-) 
@@ -21,13 +20,10 @@ if [ ! -d $RVM_PATH ]; then
 	\curl -L https://get.rvm.io | bash -s stable --ignore-dotfiles --autolibs=read-fail --path $RVM_PATH 
 fi
 # We'll source it manually .. 
-env | grep shell_func
 source $RVM_PATH/scripts/rvm
- env | grep shell_func
 # rvm install failing? Check with   rvm requirements  for missing requirements!
 
 rvm install 1.9.2
-env | grep shell_func
 if [ ! -d $BASE_DIR/veewee ]; then
 	# todo: fork repository due to warning below? :-)
 	git clone https://github.com/jedi4ever/veewee.git 
