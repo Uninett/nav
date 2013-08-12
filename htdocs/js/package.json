@@ -6,6 +6,7 @@
   "optionalDependencies": {
     "chai": "*",
     "istanbul": "*",
+    "mocha": "~1.12.0",
     "karma": "~0.10.1",
     "karma-requirejs": "*",
     "karma-mocha": "*",
