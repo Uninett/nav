@@ -28,9 +28,11 @@ if [ ! -d $BASE_DIR/veewee ]; then
 	# todo: fork repository due to warning below? :-)
 	git clone https://github.com/jedi4ever/veewee.git 
 	rvm rvmrc warning ignore $BASE_FULL_DIR/veewee/.rvmrc
+	rvm rvmrc trust $BASE_FULL_DIR/veewee/.rvmrc
 	cd $BASE_DIR/veewee
 else
 	rvm rvmrc warning ignore $BASE_FULL_DIR/veewee/.rvmrc
+	rvm rvmrc trust $BASE_FULL_DIR/veewee/.rvmrc
 	cd $BASE_DIR/veewee
 	git checkout master
 fi
