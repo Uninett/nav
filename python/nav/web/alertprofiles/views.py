@@ -1900,9 +1900,7 @@ def filter_group_addfilter(request):
 
     if not operator or len(operator) != 2:
         return HttpResponseRedirect(
-                reverse('alertprofiles-filter_groups-detail',
-                        attrs=(filter.id,))
-            )
+            reverse('alertprofiles-filter_groups-detail', args=(filter.id,)))
 
     # Operator is sent by POST data as a "bitfield" (it's really a string
     # pretending to be a bitfield) where position 0 represents 'include' and
