@@ -42,17 +42,25 @@
                     <td>{{ detention.netbios }}</td>
 
                     <td>
+                        {% if detention.interface %}
                         <a href="{% url ipdevinfo-details-by-name detention.interface.netbox.sysname %}"
                            title="Link to Ip Device Info" target="_blank">
                             {{ detention.interface.netbox.sysname }}
                         </a>
+                        {% else %}
+                            N/A
+                        {% endif %}
                     </td>
 
                     <td>
+                        {% if detention.interface %}
                         <a href="{% url ipdevinfo-interface-details detention.interface.netbox.sysname detention.interface.id %}"
                            title="Link to interface details" target="_blank">
                             {{ detention.interface.ifname }}
                         </a>
+                        {% else %}
+                            Could not find interface. Enable this to remove the detention in the database only.
+                        {% endif %}
                     </td>
 
                     <td><input type="checkbox" name="detentions" value="{{ detention.id }}" checked="checked"/>

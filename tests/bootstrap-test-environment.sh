@@ -24,6 +24,7 @@ else
     echo "**> creating virtualenv"
     opt=
     test -n "$PYTHON_VER" && opt="-p python$PYTHON_VER"
+    test "$USE_SYSTEM_PACKAGES" != "0" && opt="$opt --system-site-packages"
     virtualenv $opt "$VIRTENV"
 fi
 . "$VIRTENV/bin/activate"

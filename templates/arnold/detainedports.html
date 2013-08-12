@@ -34,10 +34,14 @@
                     <td>{{ identity.status }}</td>
                     <td>{{ identity.justification.name }}</td>
                     <td>
+                        {% if identity.interface %}
                         <a href="{% url ipdevinfo-details-by-name identity.interface.netbox.sysname %}"
                            title="Link to Ip Device Info">
                             {{ identity.interface.netbox.sysname }}
                         </a>
+                        {% else %}
+                            Could not find interface. Switch removed?
+                        {% endif %}
                     </td>
                     <td>{{ identity.last_changed|date:"DATETIME_FORMAT" }}</td>
                     <td>
