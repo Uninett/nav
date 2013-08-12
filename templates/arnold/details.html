@@ -40,10 +40,14 @@
                 </a>
             </td>
             <td>
+                {% if identity.interface %}
                 <a href="{% url ipdevinfo-details-by-name identity.interface.netbox.sysname %}"
                    title="Link to Ip Device Info">
                     {{ identity.interface.netbox.sysname }}
                 </a>
+                {% else %}
+                    Could not find interface
+                {% endif %}
             </td>
             <td>
                 {% if identity.interface %}
