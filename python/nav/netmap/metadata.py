@@ -134,7 +134,7 @@ class Edge(object):
                                                    "the same Prefix group!"
             self.vlan = source.prefix.vlan
 
-        if self.source.interface is not None and self.target.interface is not None:
+        if self.source and self.source.interface is not None and self.target and self.target.interface is not None:
             if self.source.interface.speed == self.target.interface.speed:
                 self.link_speed = self.source.interface.speed
             else:
@@ -143,9 +143,9 @@ class Edge(object):
                     self.link_speed = self.source.interface.speed
                 else:
                     self.link_speed = self.target.interface.speed
-        elif self.source.interface is not None:
+        elif self.source and self.source.interface is not None:
             self.link_speed = self.source.interface.speed
-        elif self.target.interface is not None:
+        elif self.target and self.target.interface is not None:
             self.link_speed = self.target.interface.speed
 
 
