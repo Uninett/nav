@@ -130,8 +130,11 @@ class Edge(object):
 
         self.layer = self._get_layer(source, target)
         if (self.layer == 3):
-            assert source.prefix == target.prefix, "GwPortPrefix should be in " \
-                                                   "the same Prefix group!"
+            #todo: Should we do such a check here? Won't directly work with
+            # stubs out of the box...
+            #
+            #assert source.prefix == target.prefix, "GwPortPrefix should be in " \
+            #                                       "the same Prefix group!"
             self.vlan = source.prefix.vlan
 
         if self.source and self.source.interface is not None and self.target and self.target.interface is not None:
@@ -147,7 +150,6 @@ class Edge(object):
             self.link_speed = self.source.interface.speed
         elif self.target and self.target.interface is not None:
             self.link_speed = self.target.interface.speed
-
 
         self.vlans = vlans or []
         self.prefixes = []
@@ -166,16 +168,26 @@ class Edge(object):
 
     def to_json(self):
         json = {
-            'source': self.source.to_json(),
-            'target': self.target.to_json(),
+            'source': self.source and self.source.to_json() or 'null',
+            'target': self.target and self.target.to_json() or 'null',
         }
         if self.layer == 3:
-            json.update({'vlan': self.vlan})
+            json.update({'vlan': _vlan_to_json(self.vlan)})
             json.update(
                 {'prefixes': [unicode(prefix) for prefix in self.prefixes]}
             )
+        elif self.layer == 2:
+            json.update({'vlans': [_vlan_to_json(swpv.vlan)
+                                   for swpv in self.vlans]})
+
         json.update({'link_speed': self.link_speed or 'N/A'})
         return json
+
+
+def _vlan_to_json(vlan):
+    return {'vlan': vlan.vlan,
+            'nav_vlan': vlan.id,
+            'net_ident': unicode(vlan.net_ident)}
 
 def node_to_json_layer2(node, nx_metadata=None):
     """Convert a node to json, for use in a netmap layer2 graph
@@ -253,31 +265,21 @@ def _node_to_json(node, nx_node):
         }
 
 
-def edge_to_json_layer2(edge, metadata):
+def edge_to_json_layer2(metadata):
     """Convert a edge between A and B in a netmap layer2 graph to JSON
 
     :param edge Metadata from netmap networkx graph
     :return edge representation in JSON
     """
-    metadata = metadata['metadata']
-    list_of_directional_metadata_edges = edge_to_json(edge, metadata)
+    edges = metadata['metadata']
+    metadata_for_edges = []
+    for edge in edges:
+        metadata_for_edges.append(edge_to_json(edge))
 
-    for index, json in enumerate(list_of_directional_metadata_edges):
-        if type(json['uplink']) == dict:
-            # Add vlan meta data for layer2
-            uplink = json['uplink']
-            vlans = None
-            if metadata[index]['uplink'].has_key('vlans') and metadata[index]['uplink']['vlans']:
-                vlans = [{'vlan': swpv.vlan.vlan, 'nav_vlan': swpv.vlan.id,
-                          'net_ident': unicode(swpv.vlan.net_ident)} for swpv in
-                         metadata[index][
-                             'uplink'][
-                             'vlans']]
-                uplink['vlans'] = vlans
-    return list_of_directional_metadata_edges
+    return metadata_for_edges
 
 
-def edge_to_json_layer3(edge, vlan_metadata_dict):
+def edge_to_json_layer3(vlan_metadata_dict):
     """Convert a edge between A and B in a netmap layer 3 graph to JSON
 
     :param metadata Metadata from netmap networkx graph
@@ -285,13 +287,12 @@ def edge_to_json_layer3(edge, vlan_metadata_dict):
     """
     metadata_collection = []
     for metadata in vlan_metadata_dict.values():
-        row = metadata.get('metadata')
-        metadata_collection.append(edge_to_json(edge, row))
+        metadata_collection.append(edge_to_json(metadata))
     return metadata_collection
 
 
 
-def edge_to_json(edge, metadata):
+def edge_to_json(metadata):
     """Generic method for converting a edge bewteen A and B to JSON
     For use in both layer 2 and layer 3 topologies.
 
