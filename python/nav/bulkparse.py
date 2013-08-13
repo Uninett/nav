@@ -117,6 +117,8 @@ class BulkParser(object):
         return header
 
 
+# don't complain about simple iterators, mr. Pylint!
+# pylint: disable=R0903
 class CommentStripper(object):
     """Iterator that strips comments from the input iterator"""
     COMMENT_PATTERN = re.compile(r'\W*#[^\n\r]*')
