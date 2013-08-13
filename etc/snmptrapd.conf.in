@@ -2,7 +2,7 @@
 
 [snmptrapd]
 # Name of user running the daemon (after binding to port)
-user = navcron
+user = @nav_user@
 
 # Loglevel for rootlogger. Can be given as text (DEBUG, INFO) or
 # integers. See "pydoc logging" for levels (10 = DEBUG, 40 = ERROR)

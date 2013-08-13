@@ -48,7 +48,7 @@ GammuDispatcher
 :depends:
 
 	Depends on the ``gammu`` Python binding.  As a prerequisite, the
-	``navcron`` user must have write privileges to the device where the
+	``|nav_user|`` user must have write privileges to the device where the
 	Gammu-configured mobile phone is connected.
 
 :pros:

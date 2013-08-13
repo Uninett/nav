@@ -5,7 +5,7 @@
 
 
 # Username to run the service as
-user = navcron
+user = @nav_user@
 
 # How often do you want to ping
 checkinterval = 20
