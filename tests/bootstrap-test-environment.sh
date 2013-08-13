@@ -35,14 +35,14 @@ else
     virtualenv $opt "$VIRTENV"
 fi
 . "$VIRTENV/bin/activate"
-pip install -r tests/requirements.txt || exit 1
+pip install -r tests/requirements.txt
 
 
 # Make install code into given directory
-./autogen.sh || exit 1
-./configure --prefix "$BUILDDIR" || exit 1
-make || exit 1
-make install || exit 1
+./autogen.sh
+./configure --prefix "$BUILDDIR"
+make
+make install
 
 export PYTHONPATH="$BUILDDIR/lib/python"
 
@@ -55,7 +55,7 @@ if [ -n "$PGPORT" ]; then sed -i'' -e "s/^dbport\s*=.*/dbport=$PGPORT/" "$BUILDD
 
 # Remove existing DB, if any, and create new one
 dropdb $PGDATABASE || true
-sql/syncdb.py -c || exit 1
+sql/syncdb.py -c
 
 if [ -n "$ADMINPASSWORD" ]; then psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'"; fi
 
