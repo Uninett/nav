@@ -35,7 +35,7 @@ AC_SUBST(crondir)
 AC_SUBST(VERSION)
 dnl The location of the cricket binaries
 AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
-AC_ARG_VAR(NAV_USER,User to run NAVs cronjob as)
+AC_ARG_VAR(NAV_USER,User to run cronjobs as)
 
 dnl Setting some default variables for NAV
 webrootdir='${datadir}/media'
