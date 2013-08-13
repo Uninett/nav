@@ -62,6 +62,13 @@ class Identity(models.Model):
     fromvlan = models.IntegerField(null=True)
     tovlan = models.ForeignKey('QuarantineVlan', db_column='tovlan',
                                to_field='vlan', null=True, default=None)
+    # If the interface does not exist any longer in the database, the user
+    # needs a hint of what interface was blocked as information as ifname
+    # and netbox naturally no longer exists based on interfaceid.
+    # This fields solves this by storing the textual representation of the
+    # interface, that can be displayed if the situation occurs.
+    # The format is "interface.ifname at interface.netbox.sysname"
+    textual_interface = VarcharField(default='')
 
     def __unicode__(self):
         return "%s/%s %s" % (self.ip, self.mac, self.interface)

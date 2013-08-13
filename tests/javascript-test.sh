@@ -64,10 +64,10 @@ export PATH="${JSDIR}/node_modules/.bin:$PATH"
 cd ${JSDIR}
 ${JSDIR}/node_modules/.bin/karma start karma.conf.buildserver.js
 
-#if [ "$?" -eq 1 ]; then
-#    echo "Error when testing, taking screenshot"
-#    import -window root ${WORKSPACE}/test-error.png
-#fi
+if [ "$?" -eq 1 ]; then
+    echo "Error when testing, taking screenshot"
+    import -window root ${WORKSPACE}/test-error.png
+fi
 
 echo "Cleaning up"
 kill ${PID_XVFB}
