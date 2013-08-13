@@ -337,6 +337,7 @@ def update_identity(identity, justification, autoenablestep):
     identity.organization = identity.interface.netbox.organization
     identity.dns = get_host_name(identity.ip)
     identity.netbios = get_netbios(identity.ip)
+    identity.textual_interface = str(identity.interface)
     if autoenablestep > 0:
         identity.autoenable = datetime.now() + timedelta(days=autoenablestep)
         identity.autoenablestep = autoenablestep
