@@ -202,4 +202,5 @@ latex_documents = [
 rst_epilog = """
 .. |bindir| replace:: :file:`%s`
 .. |sysconfdir| replace:: :file:`%s`
-""" % (buildconf.bindir, buildconf.sysconfdir)
+.. |nav_user| replace:: `%s`
+""" % (buildconf.bindir, buildconf.sysconfdir, buildconf.nav_user)

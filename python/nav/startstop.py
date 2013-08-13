@@ -149,7 +149,7 @@ class DaemonService(Service):
 class CronService(Service):
     """ Represents cron based services."""
     crontab = None
-    cronUser = 'navcron'
+    cronUser = nav.buildconf.nav_user
 
     def __init__(self, filename):
         self.content = None
