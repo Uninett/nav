@@ -144,7 +144,7 @@ sleep ${SLEEPTIME}
 
 echo "Running tests"
 cd ${WORKSPACE}/media/js
-${BUSTERTEST} -s http://localhost:${BUSTERPORT} -r xml > ${WORKSPACE}/tests/javascript-result.xml
+${BUSTERTEST} -s http://localhost:${BUSTERPORT} -r xml > ${WORKSPACE}/tests/javascript-results.xml
 
 if [ "$?" -eq 1 ]; then
     echo "Error when testing, taking screenshot"
