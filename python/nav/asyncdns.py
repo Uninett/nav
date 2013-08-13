@@ -171,8 +171,8 @@ class ReverseResolver(Resolver):
 
 
 class _Resolver(client.Resolver):
-    def connection_lost(self, _):
-        """Method to override for disconnect related tasks.
+    def connectionLost(self, _):
+        """This overrides the connectionLost method of client.Resolver.
 
         It's basically here to fix a deficiency in the Twisted version we're
         working on.
