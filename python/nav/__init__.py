@@ -49,7 +49,7 @@ class ObjectCache(dict):
         number of objects removed."""
         count = 0
         for key in self.keys():
-            if self[key].isInvalid():
+            if self[key].is_invalid():
                 del self[key]
                 count += 1
         return count
@@ -59,7 +59,7 @@ class ObjectCache(dict):
         number of objects refreshed."""
         count = 0
         for key in self.keys():
-            if self[key].isInvalid() and self[key].refresh():
+            if self[key].is_invalid() and self[key].refresh():
                 count += 1
         return count
 
