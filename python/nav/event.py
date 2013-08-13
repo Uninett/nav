@@ -15,22 +15,13 @@
 #
 """Simple API to interface with NAVs event queue."""
 
+from __future__ import absolute_import
 import nav.db
 from nav.errors import GeneralException
 from UserDict import UserDict
 
 from nav.models.event import EventType, AlertType
-# hackish workaround for the fact that the nav.django package will
-# shadow the system-wide django package inside the nav package.  This
-# relies upon the above import to have loaded the real django module
-# into sys.modules.  Python 2.5's absolute import feature would have
-# really helped here, but we are still to remain 2.4 compatible.
-# FIXME: We no longer support 2.4
-import sys
-if 'django.db' in sys.modules:
-    transaction = sys.modules['django.db'].transaction
-else:
-    from django.db import transaction
+from django.db import transaction
 
 
 class Event(UserDict):
@@ -128,19 +119,19 @@ class EventQ(object):
             raise EventIncompleteError
         field_string = ','.join(fields)
         placeholders = ', %s' * len(values)
-        event_SQL = "INSERT INTO eventq (eventqid, " + field_string + ") " + \
+        eventsql = "INSERT INTO eventq (eventqid, " + field_string + ") " + \
                    "VALUES (%s" + placeholders + ")"
         eventqid = cls.allocate_id()
         conn = cls._get_connection()
         cursor = conn.cursor()
-        cursor.execute(event_SQL, (eventqid,) + tuple(values))
+        cursor.execute(eventsql, (eventqid,) + tuple(values))
 
         # Prepare an SQL statement to post the variables, if any
         if len(event) > 0:
-            var_SQL = "INSERT INTO eventqvar (eventqid, var, val)" + \
+            varsql = "INSERT INTO eventqvar (eventqid, var, val)" + \
                      "VALUES (%s, %s, %s)"
             values = [(eventqid,) + i for i in event.items()]
-            cursor.executemany(var_SQL, values)
+            cursor.executemany(varsql, values)
 
         # If we got this far, commit the transaction and update the event
         # object with the allocated id
@@ -155,7 +146,7 @@ class EventQ(object):
 
         Events that are processed should be deleted from the queue afterwards.
         """
-        event_SQL = """SELECT eventqid, source, target, deviceid, netboxid,
+        eventsql = """SELECT eventqid, source, target, deviceid, netboxid,
                              subid, time, eventtypeid, state, value, severity
                       FROM eventq
                       WHERE target = %s"""
@@ -164,15 +155,15 @@ class EventQ(object):
         cursor = conn.cursor()
 
         def load_vars(event):
-            var_SQL = "SELECT var, val FROM eventqvar WHERE eventqid=%s"
+            varsql = "SELECT var, val FROM eventqvar WHERE eventqid=%s"
             curs = conn.cursor()
-            curs.execute(var_SQL, (event.eventqid,))
+            curs.execute(varsql, (event.eventqid,))
             if curs.rowcount > 0:
                 for var, val in curs.fetchmany():
                     event[var] = val
         
         events = []
-        cursor.execute(event_SQL, (target,))
+        cursor.execute(eventsql, (target,))
         if cursor.rowcount > 0:
             for event_row in cursor.fetchall():
                 event = Event()
