@@ -8,6 +8,8 @@ set -e
 
 test -z "$PGDATABASE" && echo PGDATABASE missing && exit 1
 test -z "$PGUSER"     && echo PGUSER missing     && exit 1
+# Always default to using system site packages in virtualenv
+test -z "$USE_SYSTEM_PACKAGES" && USE_SYSTEM_PACKAGES=1
 test -z "$1"          && echo dir missing        && exit 1
 
 BUILDDIR="$1/build"
@@ -24,7 +26,12 @@ else
     echo "**> creating virtualenv"
     opt=
     test -n "$PYTHON_VER" && opt="-p python$PYTHON_VER"
-    test "$USE_SYSTEM_PACKAGES" != "0" && opt="$opt --system-site-packages"
+    if virtualenv --help 2>&1 | grep -q -- --system-site-packages; then
+	# this virtualenv binary appears to not use system site pkgs by default
+	test "$USE_SYSTEM_PACKAGES" != 0 && opt="$opt --system-site-packages"
+    else
+	test "$USE_SYSTEM_PACKAGES" = 0 && opt="$opt --no-site-packages"
+    fi
     virtualenv $opt "$VIRTENV"
 fi
 . "$VIRTENV/bin/activate"
