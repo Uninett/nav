@@ -32,6 +32,7 @@ from nav.bulkparse import BulkParseError
 from nav.models.manage import models
 from django.core.exceptions import ValidationError
 
+
 class BulkImporter(object):
     """Abstract bulk import iterator"""
     def __init__(self, parser):
@@ -48,7 +49,7 @@ class BulkImporter(object):
             objects = self._create_objects_from_row(row)
         except BulkParseError, error:
             objects = error
-        return (self.parser.line_num, objects)
+        return self.parser.line_num, objects
 
     @staticmethod
     def _decode_as_utf8(row):
@@ -65,6 +66,7 @@ class BulkImporter(object):
 
         """
         raise NotImplementedError
+
 
 class NetboxImporter(BulkImporter):
     """Creates objects from the netbox bulk format"""
@@ -128,6 +130,7 @@ class NetboxImporter(BulkImporter):
             subcats.append(NetboxCategory(netbox=netbox, category=subcategory))
         return subcats
 
+
 class ServiceImporter(BulkImporter):
     """Creates objects from the service bulk format"""
     def _create_objects_from_row(self, row):
@@ -175,6 +178,7 @@ class ServiceImporter(BulkImporter):
             if key not in arg_keys and key not in optarg_keys:
                 raise BulkImportError("Key %s is not valid for handler" % key)
 
+
 class LocationImporter(BulkImporter):
     """Creates objects from the location bulk format"""
     def _create_objects_from_row(self, row):
@@ -182,6 +186,7 @@ class LocationImporter(BulkImporter):
         location = Location(id=row['locationid'],
                             description=row['descr'])
         return [location]
+
 
 class RoomImporter(BulkImporter):
     """Creates objects from the room bulk format"""
@@ -201,6 +206,7 @@ class RoomImporter(BulkImporter):
             raise InvalidValue(row['position'])
         return [room]
 
+
 class OrgImporter(BulkImporter):
     """Creates objects from the organization bulk format"""
     def _create_objects_from_row(self, row):
@@ -214,6 +220,7 @@ class OrgImporter(BulkImporter):
                            optional_1=row['opt1'], optional_2=row['opt2'],
                            optional_3=row['opt3'])
         return [org]
+
 
 class PrefixImporter(BulkImporter):
     """Creates objects from the prefix bulk format"""
@@ -243,12 +250,14 @@ class PrefixImporter(BulkImporter):
         prefix = Prefix(net_address=row['netaddr'], vlan=vlan)
         return [vlan, prefix]
 
+
 class UsageImporter(BulkImporter):
     """Creates objects from the usage bulk format"""
     def _create_objects_from_row(self, row):
         raise_if_exists(Usage, id=row['usageid'])
         usage = Usage(id=row['usageid'], description=row['descr'])
         return [usage]
+
 
 class NetboxTypeImporter(BulkImporter):
     """Creates objects from the type bulk format"""
@@ -263,12 +272,14 @@ class NetboxTypeImporter(BulkImporter):
                                  cdp=row['cdp'], tftp=row['tftp'])
         return [netbox_type]
 
+
 class VendorImporter(BulkImporter):
     """Creates objects from the vendor bulk format"""
     def _create_objects_from_row(self, row):
         raise_if_exists(Vendor, id=row['vendorid'])
         vendor = Vendor(id=row['vendorid'])
         return [vendor]
+
 
 class SubcatImporter(BulkImporter):
     """Creates objects from the subcategory bulk format"""
@@ -278,6 +289,7 @@ class SubcatImporter(BulkImporter):
         subcat = Subcategory(id=row['subcatid'], category=cat,
                              description=row['description'])
         return [subcat]
+
 
 class CablingImporter(BulkImporter):
     """Creates objects from the cabling bulk format"""
@@ -290,6 +302,7 @@ class CablingImporter(BulkImporter):
                           category=row['category'],
                           description=row['descr'])
         return [cabling]
+
 
 class PatchImporter(BulkImporter):
     """Creates objects from the patch bulk format"""
@@ -306,6 +319,7 @@ class PatchImporter(BulkImporter):
                       split=row['split'])
         return [patch]
 
+
 def get_object_or_fail(cls, **kwargs):
     """Gets the object as specified by the kwargs search arguments, and raises
     bulk errors if not found.
@@ -321,7 +335,8 @@ def get_object_or_fail(cls, **kwargs):
                            (cls.__name__, kwargs))
     except cls.MultipleObjectsReturned:
         raise MultipleObjectsReturned("%s returned multiple: %r" %
-                                       (cls.__name__, kwargs))
+                                      (cls.__name__, kwargs))
+
 
 def raise_if_exists(cls, **kwargs):
     """Raises AlreadyExists if an ORM object exists.
@@ -335,17 +350,21 @@ def raise_if_exists(cls, **kwargs):
         raise AlreadyExists("%s already exists: %r" %
                             (cls.__name__, kwargs))
 
+
 class BulkImportError(BulkParseError):
     "Import failed."
     pass
+
 
 class DoesNotExist(BulkImportError):
     "Object does not exist"
     pass
 
+
 class MultipleObjectsReturned(BulkImportError):
     "Multiple objects returned"
     pass
+
 
 class AlreadyExists(BulkImportError):
     "Object already exist in database"
@@ -355,6 +374,7 @@ class AlreadyExists(BulkImportError):
 class InvalidValue(BulkImportError):
     """Invalid value"""
     pass
+
 
 def reset_object_foreignkeys(obj):
     """Re-sets foreign key objects on obj.

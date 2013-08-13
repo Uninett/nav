@@ -384,7 +384,6 @@ def open_port(identity, username, eventcomment=""):
         identity.interface
     except Interface.DoesNotExist:
         LOGGER.info("Interface did not exist, enabling in database only")
-        pass
     else:
         LOGGER.info("Trying to lift detention for %s on %s" % (
             identity.mac, identity.interface))
