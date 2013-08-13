@@ -35,7 +35,6 @@ else
     virtualenv $opt "$VIRTENV"
 fi
 . "$VIRTENV/bin/activate"
-easy_install pip || exit 1
 pip install -r tests/requirements.txt || exit 1
 
 
