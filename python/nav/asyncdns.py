@@ -39,6 +39,7 @@ from twisted.names.error import DNSQueryTimeoutError, DNSFormatError
 from twisted.names.error import DNSServerError, DNSNameError
 from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError
 
+
 def reverse_lookup(addresses):
     """Runs parallel reverse DNS lookups for addresses.
 
@@ -48,6 +49,7 @@ def reverse_lookup(addresses):
     resolver = ReverseResolver()
     return resolver.resolve(addresses)
 
+
 def forward_lookup(names):
     """Runs parallel forward DNS lookups for names.
 
@@ -56,6 +58,7 @@ def forward_lookup(names):
     """
     resolver = ForwardResolver()
     return resolver.resolve(names)
+
 
 class Resolver(object):
     """Abstract base class for resolvers"""
@@ -105,10 +108,11 @@ class Resolver(object):
     @staticmethod
     def _errback(failure, host):
         """Errback"""
-        return (host, failure.value)
+        return host, failure.value
 
     def _finish(self, _):
         self._finished = True
+
 
 class ForwardResolver(Resolver):
     """A forward resolver implementation for A and AAAA record lookups.
@@ -135,12 +139,14 @@ class ForwardResolver(Resolver):
             for record in record_list:
                 if str(record.name) == name:
                     if record.type == dns.A:
-                        address_list.append(socket.inet_ntop(socket.AF_INET,
+                        address_list.append(socket.inet_ntop(
+                            socket.AF_INET,
                             record.payload.address))
                     elif record.type == dns.AAAA:
-                        address_list.append(socket.inet_ntop(socket.AF_INET6,
+                        address_list.append(socket.inet_ntop(
+                            socket.AF_INET6,
                             record.payload.address))
-        return (name, address_list)
+        return name, address_list
 
 
 class ReverseResolver(Resolver):
@@ -161,11 +167,12 @@ class ReverseResolver(Resolver):
                 if record.type == dns.PTR:
                     name_list.append(str(record.payload.name))
 
-        return (ip, name_list)
+        return ip, name_list
+
 
 class _Resolver(client.Resolver):
     def connectionLost(self, _):
-        """Method to override for disconnect related tasks.
+        """This overrides the connectionLost method of client.Resolver.
 
         It's basically here to fix a deficiency in the Twisted version we're
         working on.

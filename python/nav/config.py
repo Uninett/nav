@@ -28,6 +28,7 @@ from nav.errors import GeneralException
 
 _logger = logging.getLogger(__name__)
 
+
 def read_flat_config(config_file, delimiter='='):
     """Reads a key=value type config file into a dictionary.
 
@@ -59,6 +60,7 @@ def read_flat_config(config_file, delimiter='='):
                                  config_file.name)
 
     return configuration
+
 
 def getconfig(configfile, defaults=None, configfolder=None):
     """Reads an INI-style configuration file into a two-level dictionary.
