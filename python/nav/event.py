@@ -51,8 +51,8 @@ class Event(UserDict):
     def __repr__(self):
         attr_list = ["%s=%s" % (attr, getattr(self, attr))
                      for attr in ('eventqid', 'source', 'target', 'deviceid',
-                                 'netboxid', 'subid', 'time', 'eventtypeid',
-                                 'state', 'value', 'severity')
+                                  'netboxid', 'subid', 'time', 'eventtypeid',
+                                  'state', 'value', 'severity')
                      if getattr(self, attr)]
         attr_list = ", ".join(attr_list)
         return "<Event %s / %s>" % (attr_list, UserDict.__repr__(self))
@@ -105,7 +105,7 @@ class EventQ(object):
     @classmethod
     def post_event(cls, event):
         if event.eventqid:
-            raise EventAlreadyPostedError, event.eventqid
+            raise EventAlreadyPostedError(event.eventqid)
 
         # First post the relevant fields to eventq
         fields = []
@@ -119,8 +119,8 @@ class EventQ(object):
             raise EventIncompleteError
         field_string = ','.join(fields)
         placeholders = ', %s' * len(values)
-        eventsql = "INSERT INTO eventq (eventqid, " + field_string + ") " + \
-                   "VALUES (%s" + placeholders + ")"
+        eventsql = ("INSERT INTO eventq (eventqid, " + field_string + ") "
+                    "VALUES (%s" + placeholders + ")")
         eventqid = cls.allocate_id()
         conn = cls._get_connection()
         cursor = conn.cursor()
@@ -128,8 +128,8 @@ class EventQ(object):
 
         # Prepare an SQL statement to post the variables, if any
         if len(event) > 0:
-            varsql = "INSERT INTO eventqvar (eventqid, var, val)" + \
-                     "VALUES (%s, %s, %s)"
+            varsql = ("INSERT INTO eventqvar (eventqid, var, val)"
+                      "VALUES (%s, %s, %s)")
             values = [(eventqid,) + i for i in event.items()]
             cursor.executemany(varsql, values)
 
