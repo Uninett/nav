@@ -114,16 +114,24 @@ class Interfaces(Plugin):
         interface.netbox = netbox
         return interface
 
+    @defer.inlineCallbacks
     def _get_stack_status(self, interfaces):
         """Retrieves data from the ifStackTable and initiates a search for a
         proper ifAlias value for those interfaces that lack it.
         
         """
-        df = self.ifmib.get_stack_status()
-        df.addCallback(self._get_ifalias_from_lower_layers, interfaces)
-        return df
+        def _stackify(stackstatus):
+            ifindex_map = dict((ifc.ifindex, ifc) for ifc in interfaces)
+            stack = [(ifindex_map[higher], ifindex_map[lower])
+                     for higher, lower in stackstatus
+                     if higher in ifindex_map and lower in ifindex_map]
+            return stack
 
-    def _get_ifalias_from_lower_layers(self, stackstatus, interfaces):
+        stack = yield self.ifmib.get_stack_status().addCallback(_stackify)
+        self._get_ifalias_from_lower_layers(stack)
+        defer.returnValue(interfaces)
+
+    def _get_ifalias_from_lower_layers(self, stack):
         """For each interface without an ifAlias value, attempts to find
         ifAlias from a lower layer interface.
 
@@ -134,18 +142,11 @@ class Interfaces(Plugin):
         router port's network.
         
         """
-        ifindex_map = dict((ifc.ifindex, ifc) for ifc in interfaces)
-        stack = ((ifindex_map[higher], ifindex_map[lower])
-                 for higher, lower in stackstatus
-                 if higher in ifindex_map and lower in ifindex_map)
-
         for higher, lower in stack:
             if not higher.ifalias and lower.ifalias:
                 higher.ifalias = lower.ifalias
                 self._logger.debug("%s alias set from lower layer %s: %s",
                                    higher.ifname, lower.ifname, higher.ifalias)
-
-        return interfaces
 
     def _retrieve_duplex(self, interfaces):
         """Get duplex from EtherLike-MIB and update the ifTable results."""
