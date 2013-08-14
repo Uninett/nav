@@ -129,6 +129,7 @@ class Interfaces(Plugin):
 
         stack = yield self.ifmib.get_stack_status().addCallback(_stackify)
         self._get_ifalias_from_lower_layers(stack)
+        self._create_stack_containers(stack)
         defer.returnValue(interfaces)
 
     def _get_ifalias_from_lower_layers(self, stack):
@@ -147,6 +148,13 @@ class Interfaces(Plugin):
                 higher.ifalias = lower.ifalias
                 self._logger.debug("%s alias set from lower layer %s: %s",
                                    higher.ifname, lower.ifname, higher.ifalias)
+
+    def _create_stack_containers(self, stacklist):
+        for higher, lower in stacklist:
+            key = higher.ifindex, lower.ifindex
+            stack = self.containers.factory(key, shadows.InterfaceStack)
+            stack.higher = higher
+            stack.lower = lower
 
     def _retrieve_duplex(self, interfaces):
         """Get duplex from EtherLike-MIB and update the ifTable results."""
