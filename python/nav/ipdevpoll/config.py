@@ -16,16 +16,14 @@
 #
 """ipdevpoll configuration management"""
 
-import os
 import logging
-import ConfigParser
-from StringIO import StringIO
 
-import nav.buildconf
 from nav.config import ConfigurationError, NAVConfigParser
 from nav.util import parse_interval
 
 _logger = logging.getLogger(__name__)
+JOB_PREFIX = 'job_'
+
 
 class IpdevpollConfig(NAVConfigParser):
     DEFAULT_CONFIG_FILES = ('ipdevpoll.conf',)
@@ -49,6 +47,13 @@ ignored = 127.0.0.0/8, fe80::/16
 filter = topology
 """
 
+
+def get_job_descriptions(config=None):
+    """Builds a dict of all job descriptions"""
+    return dict([(d.name.replace(JOB_PREFIX, ''), d.description)
+                 for d in get_jobs(config)])
+
+
 def get_jobs(config=None):
     """Returns a list of JobDescriptors for each of the jobs configured in
     ipdevpoll.conf
@@ -57,21 +62,28 @@ def get_jobs(config=None):
     if config is None:
         config = ipdevpoll_conf
 
-    job_prefix = 'job_'
-    job_sections = [s for s in config.sections() if s.startswith(job_prefix)]
+    job_sections = get_job_sections(config)
     job_descriptors = [JobDescriptor.from_config_section(config, section)
                        for section in job_sections]
     _logger.debug("parsed jobs from config file: %r",
-                 [j.name for j in job_descriptors])
+                  [j.name for j in job_descriptors])
     return job_descriptors
+
+
+def get_job_sections(config):
+    """Find all job sections in a config file"""
+    return [s for s in config.sections() if s.startswith(JOB_PREFIX)]
+
 
 class JobDescriptor(object):
     """A data structure describing a job."""
-    def __init__(self, name, interval, intensity, plugins):
+    def __init__(self, name, interval=0, intensity=0, plugins='',
+                 description=''):
         self.name = str(name)
         self.interval = int(interval)
         self.intensity = int(intensity)
         self.plugins = list(plugins)
+        self.description = description
 
     @classmethod
     def from_config_section(cls, config, section):
@@ -83,13 +95,17 @@ class JobDescriptor(object):
             raise InvalidJobSectionName(section)
 
         interval = (config.has_option(section, 'interval') and
-                    parse_interval(config.get(section, 'interval')) or '')
+                    parse_interval(config.get(section, 'interval')) or 0)
         intensity = (config.has_option(section, 'intensity') and
                      config.getint(section, 'intensity') or 0)
         plugins = (config.has_option(section, 'plugins') and
-                    _parse_plugins(config.get(section, 'plugins')) or '')
+                   _parse_plugins(config.get(section, 'plugins')) or '')
+        description = (config.has_option(section, 'description') and
+                       _parse_description(config.get(section, 'description'))
+                       or 'No description')
 
-        return cls(jobname, interval, intensity, plugins)
+        return cls(jobname, interval, intensity, plugins, description)
+
 
 def _parse_plugins(value):
     if value:
@@ -97,8 +113,13 @@ def _parse_plugins(value):
 
     return []
 
+
+def _parse_description(descr):
+    if descr:
+        return descr.replace('\n', ' ').strip()
+
+
 class InvalidJobSectionName(ConfigurationError):
     """Section name is invalid as a job section"""
 
 ipdevpoll_conf = IpdevpollConfig()
-
