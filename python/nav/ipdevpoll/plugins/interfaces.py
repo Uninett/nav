@@ -134,24 +134,16 @@ class Interfaces(Plugin):
         router port's network.
         
         """
-        layer_map = dict(stackstatus)
+        ifindex_map = dict((ifc.ifindex, ifc) for ifc in interfaces)
+        stack = ((ifindex_map[higher], ifindex_map[lower])
+                 for higher, lower in stackstatus
+                 if higher in ifindex_map and lower in ifindex_map)
 
-        ifindex_map = {}
-        for interface in interfaces:
-            ifindex_map[interface.ifindex] = interface
-
-        for interface in interfaces:
-            if interface.ifalias or interface.ifindex not in layer_map:
-                continue
-            lower_ifindex = layer_map[interface.ifindex]
-            if lower_ifindex in ifindex_map:
-                ifalias = ifindex_map[lower_ifindex].ifalias
-                if ifalias:
-                    interface.ifalias = ifalias
-                    self._logger.debug("%s alias set from lower layer %s: %s",
-                                       interface.ifname,
-                                       ifindex_map[lower_ifindex].ifname,
-                                       ifalias)
+        for higher, lower in stack:
+            if not higher.ifalias and lower.ifalias:
+                higher.ifalias = lower.ifalias
+                self._logger.debug("%s alias set from lower layer %s: %s",
+                                   higher.ifname, lower.ifname, higher.ifalias)
 
         return interfaces
 
