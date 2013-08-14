@@ -29,6 +29,14 @@ from nav.mibs.etherlike_mib import EtherLikeMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
+from nav.models import manage
+
+DUPLEX_MAP = {
+    'unknown': None,
+    'halfDuplex': manage.Interface.DUPLEX_HALF,
+    'fullDuplex': manage.Interface.DUPLEX_FULL,
+}
+
 
 class Interfaces(Plugin):
     "Collects comprehensive information about device's network interfaces"
@@ -74,11 +82,6 @@ class Interfaces(Plugin):
                       for ifindex, row in result.items()]
         return interfaces
     
-    duplex_map = {
-        'unknown': None,
-        'halfDuplex': 'h',
-        'fullDuplex': 'f',
-        }
     def _convert_row_to_container(self, netbox, ifindex, row):
         """Convert a collected ifTable/ifXTable row into a container object."""
 
@@ -103,8 +106,8 @@ class Interfaces(Plugin):
         interface.ifalias = decode_to_unicode(row['ifAlias'])
         
         # Set duplex if sucessfully retrieved
-        if 'duplex' in row and row['duplex'] in self.duplex_map:
-            interface.duplex = self.duplex_map[ row['duplex'] ]
+        if 'duplex' in row and row['duplex'] in DUPLEX_MAP:
+            interface.duplex = DUPLEX_MAP[row['duplex']]
 
         interface.gone_since = None
 
