@@ -26,6 +26,7 @@ import re
 from datetime import timedelta
 import threading
 from itertools import groupby
+from IPy import IP
 from nav.util import cachedfor, synchronized
 
 from nav.models import manage
@@ -130,7 +131,13 @@ class Neighbor(object):
                   corresponding netbox was found.
 
         """
-        ip = unicode(ip)
+        try:
+            ip = unicode(IP(ip))
+        except ValueError:
+            self._logger.warn("Invalid IP (%s) in neighbor record: %r",
+                              ip, self.record)
+            return
+
         assert ip
         if ip in self._invalid_neighbor_ips:
             return
@@ -218,6 +225,14 @@ class Neighbor(object):
         ifc = shadows.Interface(**ifc)
         ifc.netbox = self.netbox
         return ifc
+
+    def __repr__(self):
+        return ('<{myclass} '
+                'identified={identified} '
+                'netbox={netbox} '
+                'interface={interface}>'
+                ).format(myclass=self.__class__.__name__,
+                         **vars(self))
 
 class CDPNeighbor(Neighbor):
     "Parses a CDP tuple from nav.mibs.cisco_cdp_mib to identify a neighbor"

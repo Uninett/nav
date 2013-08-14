@@ -22,7 +22,6 @@ AC_PATH_PROG(GREP, grep)
 AC_PATH_PROG(HG, hg)
 
 AC_SUBST(nav_user)
-AC_SUBST(webroot)
 AC_SUBST(webrootdir)
 AC_SUBST(imagedir)
 AC_SUBST(javascriptdir)
@@ -38,15 +37,14 @@ dnl The location of the cricket binaries
 AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
 
 dnl Setting some default variables for NAV
+webrootdir='${datadir}/media'
+djangotmpldir='${datadir}/templates'
 nav_user=navcron
-webroot='${prefix}/share/htdocs'
-webrootdir='${webroot}'
-imagedir='${webroot}/images'
-javascriptdir='${webroot}/js'
-stylesheetdir='${webroot}/style'
+imagedir='${webrootdir}/images'
+javascriptdir='${webrootdir}/js'
+stylesheetdir='${webrootdir}/style'
 pythonlibdir='${libdir}/python'
 pythondir='${pythonlibdir}'
-djangotmpldir='${libdir}/templates'
 initdir='${sysconfdir}/init.d'
 tooldir='${sysconfdir}/toolbox'
 docdir='${prefix}/doc'

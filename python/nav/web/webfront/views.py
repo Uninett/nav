@@ -28,7 +28,6 @@ from django.views.generic.simple import direct_to_template
 from nav.config import read_flat_config
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
-from nav.django.shortcuts import render_to_response
 from nav.django.utils import get_account
 from nav.models.profiles import (Account, AccountNavbar, NavbarLink,
                                  AccountTool, AccountProperty)

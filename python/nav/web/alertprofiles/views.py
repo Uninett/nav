@@ -25,15 +25,28 @@ from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import render_to_response
 from django.views.generic.list_detail import object_list
 
-from nav.models.profiles import Account, AccountGroup, AccountProperty, \
-    AlertAddress, AlertPreference, AlertProfile, TimePeriod, \
-    AlertSubscription, FilterGroupContent, Operator, Expression, \
-    Filter, FilterGroup, MatchField, SMSQueue, AccountAlertQueue
+from nav.models.profiles import (
+    Account,
+    AccountGroup,
+    AccountProperty,
+    AlertAddress,
+    AlertPreference,
+    AlertProfile,
+    TimePeriod,
+    AlertSubscription,
+    FilterGroupContent,
+    Operator,
+    Expression,
+    Filter,
+    FilterGroup,
+    MatchField,
+    SMSQueue,
+    AccountAlertQueue
+)
 from nav.django.utils import get_account, is_admin
 from nav.web.message import Messages, new_message
 
@@ -555,7 +568,7 @@ def profile_time_period_remove(request):
         try:
             active_profile = AlertPreference.objects.get(
                 account=account).active_profile
-        except:
+        except Exception:
             pass
         else:
             if profile == active_profile:
@@ -1212,26 +1225,26 @@ def filter_show_form(request, filter_id=None, filter_form=None):
     admin = is_admin(account)
     is_owner = True
 
-    filter = None
+    filtr = None
     expressions = None
     matchfields = None
 
     # We assume that if no filter_id is set this filter has not been saved
     if filter_id:
         try:
-            filter = Filter.objects.get(pk=filter_id)
+            filtr = Filter.objects.get(pk=filter_id)
         except Filter.DoesNotExist:
             return alertprofiles_response_not_found(
                 request,
                 _('Requested filter does not exist.')
             )
         else:
-            owner = filter.owner
+            owner = filtr.owner
             if not owner:
                 new_message(request,
                     _('''%(filter)s is a public filter and may be used by
                         other users than you.''') % {
-                            'filter': filter.name,
+                            'filter': filtr.name,
                         },
                     Messages.WARNING,
                 )
@@ -1254,28 +1267,28 @@ def filter_show_form(request, filter_id=None, filter_form=None):
                 expr.value = expr.value.split("|")
 
         # Check if filter is used by any filter groups
-        filter_groups = FilterGroupContent.objects.filter(filter=filter)
+        filter_groups = FilterGroupContent.objects.filter(filter=filtr)
         if len(filter_groups) > 0:
             fg_names = ', '.join([f.filter_group.name for f in filter_groups])
             new_message(request,
                 _('''%(filter)s is used in the filter groups:
                 %(filter_groups)s. Editing this filter will also change how those
                 filter group works.''') % {
-                    'filter': filter.name,
+                    'filter': filtr.name,
                     'filter_groups': fg_names
                 },
                 Messages.WARNING
             )
 
-        page_name = filter.name
+        page_name = filtr.name
 
     # If no form is supplied we must make one
     if not filter_form:
         if filter_id:
             data = {
                 'id': filter_id,
-                'owner': filter.owner != None or False,
-                'name': filter.name,
+                'owner': filtr.owner != None or False,
+                'name': filtr.name,
             }
             filter_form = FilterForm(data, admin=admin,
                                      is_owner=is_owner)
@@ -1314,18 +1327,18 @@ def filter_detail(request, filter_id=None):
 @requires_post('alertprofiles-filters')
 def filter_save(request):
     (account, admin, owner) = resolve_account_admin_and_owner(request)
-    filter = None
+    filtr = None
 
     # Build a form. Different values depending on if we are updating or
     # making a new filter
     if request.POST.get('id'):
         try:
-            filter = Filter.objects.get(pk=request.POST.get('id'))
+            filtr = Filter.objects.get(pk=request.POST.get('id'))
         except Filter.DoesNotExist:
             return alertprofiles_response_not_found(
                 request, _('Requested filter does not exist.'))
 
-        if not account_owns_filters(account, filter):
+        if not account_owns_filters(account, filtr):
             return alertprofiles_response_forbidden(
                 request, _('You do not own this filter.'))
 
@@ -1338,20 +1351,20 @@ def filter_save(request):
 
     # Set the fields in Filter to the submited values
     if request.POST.get('id'):
-        filter.name = request.POST.get('name')
-        filter.owner = owner
+        filtr.name = request.POST.get('name')
+        filtr.owner = owner
     else:
-        filter = Filter(name=request.POST.get('name'), owner=owner)
+        filtr = Filter(name=request.POST.get('name'), owner=owner)
 
     # Save the filter
-    filter.save()
+    filtr.save()
 
     new_message(request,
-        _('Saved filter %(name)s') % {'name': filter.name},
+        _('Saved filter %(name)s') % {'name': filtr.name},
         Messages.SUCCESS
     )
     return HttpResponseRedirect(reverse('alertprofiles-filters-detail',
-                                        args=(filter.id,)))
+                                        args=(filtr.id,)))
 
 @requires_post('alertprofiles-filters')
 def filter_remove(request):
@@ -1387,7 +1400,7 @@ def filter_remove(request):
         for filtr in filters:
             warnings = []
             try:
-                owner = filtr.owner
+                filtr.owner
             except Account.DoesNotExist:
                 warnings.append({'message':
                                  u'This filter is public. Deleting it will '
@@ -1430,9 +1443,9 @@ def filter_remove(request):
 
 @requires_post('alertprofiles-filters', ('id', 'matchfield'))
 def filter_addexpression(request):
-    filter = None
+    filtr = None
     try:
-        filter = Filter.objects.get(pk=request.POST.get('id'))
+        filtr = Filter.objects.get(pk=request.POST.get('id'))
     except Filter.DoesNotExist:
         return alertprofiles_response_not_found(
             request, _('Requested filter does not exist'))
@@ -1444,10 +1457,10 @@ def filter_addexpression(request):
         return alertprofiles_response_not_found(
             request, _('Requested match field does not exist'))
 
-    initial = {'filter': filter.id, 'match_field': matchfield.id}
+    initial = {'filter': filtr.id, 'match_field': matchfield.id}
     form = ExpressionForm(match_field=matchfield, initial=initial)
 
-    if not account_owns_filters(get_account(request), filter):
+    if not account_owns_filters(get_account(request), filtr):
         return alertprofiles_response_forbidden(
             request, _('You do not own this filter.'))
 
@@ -1460,14 +1473,14 @@ def filter_addexpression(request):
     info_dict = {
             'form': form,
             'active': active,
-            'subsection': {'detail': filter.id},
-            'filter': filter,
+            'subsection': {'detail': filtr.id},
+            'filter': filtr,
             'matchfield': matchfield,
             'list_limited': list_limited,
             'navpath': BASE_PATH+[
                 ('Filters', reverse('alertprofiles-filters')),
-                (filter.name, reverse('alertprofiles-filters-detail',
-                                      args=(filter.id,))),
+                (filtr.name, reverse('alertprofiles-filters-detail',
+                                      args=(filtr.id,))),
                 ('Add expression', None)
             ],
             'title': 'NAV - Alert profiles',
@@ -1482,12 +1495,12 @@ def filter_addexpression(request):
 def filter_saveexpression(request):
     # Get the MatchField, Filter and Operator objects associated with the
     # input POST-data
-    filter = Filter.objects.get(pk=request.POST.get('filter'))
-    type = request.POST.get('operator')
+    filtr = Filter.objects.get(pk=request.POST.get('filter'))
+    type_ = request.POST.get('operator')
     match_field = MatchField.objects.get(pk=request.POST.get('match_field'))
-    operator = Operator.objects.get(type=type, match_field=match_field.pk)
+    operator = Operator.objects.get(type=type_, match_field=match_field.pk)
 
-    if not account_owns_filters(get_account(request), filter):
+    if not account_owns_filters(get_account(request), filtr):
         return alertprofiles_response_forbidden(
             request, _('You do not own this filter.'))
 
@@ -1508,31 +1521,31 @@ def filter_saveexpression(request):
         value = request.POST.get('value')
 
     expression = Expression(
-            filter=filter,
+            filter=filtr,
             match_field=match_field,
             operator=operator.type,
             value=value,
         )
     expression.save()
     new_message(request,
-        _('Added expression to filter %(name)s') % {'name': filter.name},
+        _('Added expression to filter %(name)s') % {'name': filtr.name},
         Messages.SUCCESS
    )
     return HttpResponseRedirect(reverse('alertprofiles-filters-detail',
-                                        args=(filter.id,)))
+                                        args=(filtr.id,)))
 
 @requires_post('alertprofiles-filters')
 def filter_removeexpression(request):
     if request.POST.get('confirm'):
         expressions = request.POST.getlist('element')
-        filter = None
+        filtr = None
         try:
-            filter = Filter.objects.get(pk=request.POST.get('perform_on'))
+            filtr = Filter.objects.get(pk=request.POST.get('perform_on'))
         except Filter.DoesNotExist:
             return alertprofiles_response_not_found(
                 request, _('Requested filter does not exist'))
 
-        if not account_owns_filters(get_account(request), filter):
+        if not account_owns_filters(get_account(request), filtr):
             return alertprofiles_response_forbidden(
                 request, _('You do not own this filter.'))
 
@@ -1540,18 +1553,18 @@ def filter_removeexpression(request):
 
         new_message(request, _('Removed expressions'), Messages.SUCCESS)
         return HttpResponseRedirect(reverse('alertprofiles-filters-detail',
-                                            args=(filter.id,)))
+                                            args=(filtr.id,)))
     else:
         expressions = Expression.objects.filter(
             pk__in=request.POST.getlist('expression'))
-        filter = None
+        filtr = None
         try:
-            filter = Filter.objects.get(pk=request.POST.get('id'))
+            filtr = Filter.objects.get(pk=request.POST.get('id'))
         except Filter.DoesNotExist:
             return alertprofiles_response_not_found(
                 request, _('Requested filter does not exist'))
 
-        if not account_owns_filters(get_account(request), filter):
+        if not account_owns_filters(get_account(request), filtr):
             return alertprofiles_response_forbidden(
                 request, _('You do not own this filter.'))
 
@@ -1560,7 +1573,7 @@ def filter_removeexpression(request):
                 _('No expressions were selected'),
                 Messages.NOTICE)
             return HttpResponseRedirect(
-                reverse('alertprofiles-filters-detail', args=(filter.id,)))
+                reverse('alertprofiles-filters-detail', args=(filtr.id,)))
 
         elements = []
         for expr in expressions:
@@ -1582,13 +1595,13 @@ def filter_removeexpression(request):
                 'form_action': reverse(
                     'alertprofiles-filters-removeexpression'),
                 'active': {'filters': True},
-                'subsection': {'detail': filter.id},
+                'subsection': {'detail': filtr.id},
                 'object_list': elements,
-                'perform_on': filter.id,
+                'perform_on': filtr.id,
                 'navpath': BASE_PATH+[
                     ('Filters', reverse('alertprofiles-filters')),
-                    (filter.name, reverse('alertprofiles-filters-detail',
-                                          args=(filter.id,))),
+                    (filtr.name, reverse('alertprofiles-filters-detail',
+                                          args=(filtr.id,))),
                     ('Remove expressions', None),
                 ],
                 'title': 'NAV - Alert profiles',
@@ -1833,7 +1846,7 @@ def filter_group_remove(request):
             warnings = []
 
             try:
-                owner = fgroup.owner
+                fgroup.owner
             except Account.DoesNotExist:
                 warnings.append({
                     'message': u'''This is a public filter group. Deleting it
@@ -1885,9 +1898,9 @@ def filter_group_addfilter(request):
         return alertprofiles_response_not_found(
             request, _('Requested filter group does not exist.'))
 
-    filter = None
+    filtr = None
     try:
-        filter = Filter.objects.get(pk=request.POST.get('filter'))
+        filtr = Filter.objects.get(pk=request.POST.get('filter'))
     except Filter.DoesNotExist:
         return alertprofiles_response_not_found(
             request, _('Requested filter does not exist.'))
@@ -1900,9 +1913,7 @@ def filter_group_addfilter(request):
 
     if not operator or len(operator) != 2:
         return HttpResponseRedirect(
-                reverse('alertprofiles-filter_groups-detail',
-                        attrs=(filter.id,))
-            )
+            reverse('alertprofiles-filter_groups-detail', args=(filtr.id,)))
 
     # Operator is sent by POST data as a "bitfield" (it's really a string
     # pretending to be a bitfield) where position 0 represents 'include' and
@@ -1924,14 +1935,14 @@ def filter_group_addfilter(request):
             'include': include,
             'positive': positive,
             'priority': last_priority + 1,
-            'filter': filter,
+            'filter': filtr,
             'filter_group': filter_group,
         }
     new_filter = FilterGroupContent(**options)
     new_filter.save()
 
     new_message(request,
-        _('Added filter %(name)s') % {'name': filter.name},
+        _('Added filter %(name)s') % {'name': filtr.name},
         Messages.SUCCESS
     )
     return HttpResponseRedirect(
@@ -1973,7 +1984,7 @@ def filter_group_removefilter(request):
         fg_content.delete()
 
         # Rearrange filters
-        last_priority = order_filter_group_content(filter_group)
+        order_filter_group_content(filter_group)
 
         new_message(request,
             _('Removed filters, %(names)s, from filter group %(fg)s.') % {
@@ -1987,7 +1998,6 @@ def filter_group_removefilter(request):
                         args=(filter_group.id,))
             )
     else:
-        filter_group = None
         try:
             filter_group = FilterGroup.objects.get(pk=request.POST.get('id'))
         except FilterGroup.DoesNotExist:
@@ -1995,16 +2005,16 @@ def filter_group_removefilter(request):
                 request, _('Requested filter group does not exist'))
 
         filter_group_content = FilterGroupContent.objects.filter(
-                pk__in=request.POST.getlist('filter'),
-                filter_group=filter_group.id
-            )
+            pk__in=request.POST.getlist('filter'),
+            filter_group=filter_group.id
+        )
 
         if not account_owns_filters(get_account(request), filter_group):
             return alertprofiles_response_forbidden(
                 request, _('You do not own this filter group.'))
 
         try:
-            owner = filter_group.owner
+            filter_group.owner
         except Account.DoesNotExist:
             new_message(request,
                 _(u'''You are now editing a public filter group. This will
@@ -2022,8 +2032,6 @@ def filter_group_removefilter(request):
 
         elements = []
         for content in filter_group_content:
-            warnings = []
-
             description = _('''Remove filter %(filter)s from %(fg)s.''') % {
                 'filter': content.filter.name,
                 'fg': content.filter_group.name,
@@ -2077,7 +2085,7 @@ def filter_group_movefilter(request):
             )
 
     movement = 0
-    filter = None
+    filtr = None
 
     if request.POST.get('moveup'):
         movement = -1
@@ -2094,9 +2102,9 @@ def filter_group_movefilter(request):
                         args=(filter_group_id,))
             )
 
-    filter = None
+    filtr = None
     try:
-        filter = FilterGroupContent.objects.get(pk=filter_id)
+        filtr = FilterGroupContent.objects.get(pk=filter_id)
     except FilterGroupContent.DoesNotExist:
         return alertprofiles_response_not_found(
             request,
@@ -2104,13 +2112,13 @@ def filter_group_movefilter(request):
         )
 
     # Make sure content is ordered correct
-    last_priority = order_filter_group_content(filter_group)
+    order_filter_group_content(filter_group)
 
     # Check if the filter we're going to swap places with exists
     try:
         other_filter = FilterGroupContent.objects.filter(
                     filter_group=filter_group.id,
-                    priority=filter.priority + movement
+                    priority=filtr.priority + movement
                 )[0:1].get()
     except FilterGroupContent.DoesNotExist:
         return HttpResponseRedirect(
@@ -2119,16 +2127,16 @@ def filter_group_movefilter(request):
             )
 
     new_priority = other_filter.priority
-    other_filter.priority = filter.priority
-    filter.priority = new_priority
+    other_filter.priority = filtr.priority
+    filtr.priority = new_priority
 
     other_filter.save()
-    filter.save()
+    filtr.save()
 
     new_message(request,
         _('Moved filter %(filter)s %(direction)s') % {
             'direction': direction,
-            'filter': filter.filter.name,
+            'filter': filtr.filter.name,
         },
         Messages.SUCCESS
     )
