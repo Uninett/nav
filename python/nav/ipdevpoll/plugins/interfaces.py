@@ -116,7 +116,7 @@ class Interfaces(Plugin):
         proper ifAlias value for those interfaces that lack it.
         
         """
-        df = self.ifmib.retrieve_columns(['ifStackStatus'])
+        df = self.ifmib.get_stack_status()
         df.addCallback(self._get_ifalias_from_lower_layers, interfaces)
         return df
 
@@ -131,10 +131,7 @@ class Interfaces(Plugin):
         router port's network.
         
         """
-        layer_map = {}        
-        for (upper, lower), row in stackstatus.items():
-            if upper > 0 and lower > 0:
-                layer_map[upper] = lower
+        layer_map = dict(stackstatus)
 
         ifindex_map = {}
         for interface in interfaces:
