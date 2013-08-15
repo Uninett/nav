@@ -17,6 +17,7 @@
 import datetime
 import operator
 from itertools import groupby
+from django.db.models import Q
 
 from nav.models import manage
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
@@ -355,6 +356,30 @@ class Interface(Shadow):
         containers.setdefault(cls, {})[cls.sentinel] = cls.sentinel
 
 InterfaceManager.sentinel = Interface.sentinel = Interface()
+
+
+class InterfaceStack(Shadow):
+    __shadowclass__ = manage.InterfaceStack
+    __lookups__ = [('higher', 'lower')]
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        """Delete from database the higher/lower combinations from this device
+        that weren't found in the collected set.
+
+        """
+        collected_stackings = containers[cls].values()
+        stacking_primary_keys = set(s.id for s in collected_stackings)
+        collected_ifc_ids = set(
+            ifc.id for ifc in containers[Interface].values() if ifc.id)
+
+        existing = (Q(higher__in=collected_ifc_ids)
+                    | Q(lower__in=collected_ifc_ids))
+        obsolete = existing & ~Q(id__in=stacking_primary_keys)
+
+        deleteable = manage.InterfaceStack.objects.filter(obsolete)
+        deleteable.delete()
+
 
 def mapby(items, *attrs):
     """Maps items by attributes"""
