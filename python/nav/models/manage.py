@@ -1168,6 +1168,25 @@ class Interface(models.Model):
         """
         return (self.gwportprefix_set.count() > 0)
 
+    def below_me(self):
+        """Returns interfaces stacked with this one on a layer below"""
+        return Interface.objects.filter(lower_layer__higher=self)
+
+    def above_me(self):
+        """Returns interfaces stacked with this one on a layer above"""
+        return Interface.objects.filter(higher_layer__lower=self)
+
+
+class InterfaceStack(models.Model):
+    """Interface layered stacking relationships"""
+    higher = models.ForeignKey(Interface, db_column='higher',
+                               related_name='higher_layer')
+    lower = models.ForeignKey(Interface, db_column='lower',
+                              related_name='lower_layer')
+
+    class Meta:
+        db_table = u'interface_stack'
+
 
 class IanaIftype(models.Model):
     """IANA-registered iftype values"""

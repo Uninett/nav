@@ -1,3 +1,20 @@
+Version 3.14.1592653
+(released 15 Aug 2013)
+
+ Bugfixes:
+
+  * LP#1146778 (Statemon's icmp.py and ip.py maybe obsolete, remove if so)
+  * LP#1198897 (ipdevpoll doesn't guesstimate net_type correctly when rfc3021 is
+                in use)
+  * LP#1198970 (cricket switch config typo)
+  * LP#1200514 (power supply daemon bails out if pysnmp_se is not installed)
+  * LP#1206510 (ipdevpoll LLDP UnicodeDecodeError)
+  * LP#1207722 (Usernames are searched case insensitive in Microsoft AD)
+  * LP#1207737 (LDAP authentication crash on non-existant user in Microsoft AD)
+  * LP#1211299 (arnold interface crashes on missing interface)
+  * LP#1211692 (arnold must display former interface info when interface is
+                missing)
+
 Version 3.14.159265
 (released 27 Jun 2013)
 

@@ -1,14 +1,10 @@
--- Do the needed changes to migrate subcat to netboxgroup and remove
--- category limitation.
+-- Create a table for interface stacking information
+CREATE TABLE manage.interface_stack (
+  id SERIAL PRIMARY KEY, -- dummy primary key for Django
+  higher INTEGER REFERENCES interface(interfaceid),
+  lower INTEGER REFERENCES interface(interfaceid),
+  UNIQUE (higher, lower)
+);
 
-ALTER TABLE subcat DROP catid;
-ALTER TABLE subcat RENAME TO netboxgroup;
-ALTER TABLE netboxgroup RENAME subcatid TO netboxgroupid;
-
-UPDATE matchfield SET
-  name='Group',
-  value_id='netboxgroup.netboxgroupid',
-  value_name='netboxgroup.descr',
-  value_sort='netboxgroup.descr',
-  description='Group: netboxes may belong to a group that is independent of type and category'
-  WHERE id=14;
+CREATE INDEX interface_stack_higher ON interface_stack (higher);
+CREATE INDEX interface_stack_lower ON interface_stack (lower);
