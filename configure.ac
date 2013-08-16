@@ -37,7 +37,7 @@ dnl The location of the cricket binaries
 AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
 
 dnl Setting some default variables for NAV
-webrootdir='${datadir}/media'
+webrootdir='${datadir}/htdocs'
 djangotmpldir='${datadir}/templates'
 nav_user=navcron
 imagedir='${webrootdir}/images'
@@ -71,7 +71,7 @@ AC_CONFIG_FILES([
     templates/Makefile
     python/Makefile
     bin/Makefile
-    media/Makefile
+    htdocs/Makefile
 ])
 
 AC_OUTPUT
