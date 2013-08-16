@@ -6,7 +6,7 @@ fi
 
 SLEEPTIME=8
 WORKSPACE=$1
-JSDIR="${WORKSPACE}/media/js"
+JSDIR="${WORKSPACE}/htdocs/js"
 
 XVFB=`which Xvfb`
 if [ "$?" -eq 1 ]; then
@@ -147,7 +147,7 @@ w3m http://localhost:${BUSTERPORT} | cat
 echo "=========================================================="
 
 echo "Running tests"
-cd ${WORKSPACE}/media/js
+cd ${JSDIR}
 ${BUSTERTEST} -s http://localhost:${BUSTERPORT} -r xml > ${WORKSPACE}/tests/javascript-results.xml
 
 if [ "$?" -eq 1 ]; then
