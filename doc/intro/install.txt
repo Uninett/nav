@@ -18,7 +18,6 @@ To build NAV, you need at least the following:
  * make
  * automake
  * autoconf
- * ant
  * Python >= 2.6.0
  * Sphinx >= 1.0 (for building this documentation)
 
@@ -44,12 +43,11 @@ The following python modules are required:
  * :mod:`ldap`
  * :mod:`networkx` >= 1.0
  * :mod:`psycopg2`
- * :mod:`pysnmp-se`
  * :mod:`pyrad`
  * :mod:`rrd` (from the rrdtool distribution)
  * :mod:`simplejson` >= 2.0.6
  * :mod:`twisted` >= 8.1
- * :mod:`pynetsnmp` (or less preferably, :mod:`twistedsnmp` >= 0.3)
+ * :mod:`pynetsnmp` (or less preferably, :mod:`pysnmp-se` combined with :mod:`twistedsnmp` >= 0.3)
  * :mod:`PIL` 1.1.7 (python-imaging)
 
 The following python modules are optional:
@@ -107,7 +105,7 @@ specify this build directory by adding
 If you omit the :makevar:`CRICKETDIR` variable, which specifies the path to your
 Cricket installation's binaries, it will be assumed that these can be found in
 :file:`${prefix}/cricket/cricket`.  A typical value for a Debian install is
-``/usr/share/cricket``.
+:file:``/usr/share/cricket``.
 
 
 Initializing the database
@@ -150,7 +148,9 @@ these lines:
       sys.path.append(__navpath)
 
 You should now be able to run the python command line interpreter and run
-:kbd:`import nav` without a hitch::
+:kbd:`import nav` without a hitch:
+
+.. code-block:: console
 
   $ python
   Python 2.6.6 (r266:84292, Dec 27 2010, 00:02:40) 
@@ -237,18 +237,16 @@ Integrating the Cricket web interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Cricket comes with its own CGI based web interface for browsing the collected
-statistics.  To make this interface available under NAV's web pages, you can
-symlink Cricket's CGI scripts into a directory under NAV's document root.
-Change directories to the one containing Cricket's CGI scripts and run the
-following::
+statistics. NAV provides its own front-end to Cricket's CGI script to ensure
+access is authenticated and authorized according to NAV's user database.
 
-  sudo mkdir PATH_TO_NAV/share/htdocs/cricket
-  sudo ln -s $PWD/grapher.cgi PATH_TO_NAV/share/htdocs/cricket/
-  sudo ln -s $PWD/mini-graph.cgi  PATH_TO_NAV/share/htdocs/cricket/
-  sudo ln -s $PWD/images PATH_TO_NAV/share/htdocs/cricket
+You will at least need to symlink Cricket's :file:`images` directory into
+NAV's :file:`cricket` directory to render the interface properly. Assuming
+your Cricket installation's files are all located in
+:file:`/usr/share/cricket` (as they are on Debian)::
+
   cd PATH_TO_NAV/share/htdocs/cricket
-  sudo ln -s grapher.cgi index.cgi
-  sudo cp PATH_TO_NAV/doc/cricket/cricket.css .
+  sudo ln -s /usr/share/cricket/images .
 
 You should now have a completely installed and integrated NAV. For a guide on
 how to get started using NAV, please refer to the :doc:`getting-started`
