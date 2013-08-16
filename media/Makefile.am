@@ -21,4 +21,7 @@ nobase_webroot_DATA = $(wildcard images/*/*.gif \
 				 style/nivo/*.css   \
 				 style/jqueryui/*.css \
 				 style/jqueryui/images/*.png \
+				 cricket/cricket.css \
 				 */.htaccess)
+
+nobase_webroot_SCRIPTS = cricket/index.cgi
