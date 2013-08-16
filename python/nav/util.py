@@ -104,22 +104,23 @@ def is_valid_mac(mac):
     return False
 
 
-def which(cmd):
-    """Return full path to cmd (if found in $PATH and is executable),
-    or None."""
-    pathstr = os.environ['PATH']
-    paths = [os.path.join(path, cmd) for path in pathstr.split(':')]
+def which(cmd, search_path=None):
+    """Returns the full path of cmd if found in a list of search paths and it
+    is executable.
+
+    :param cmd: Name of an executable file.
+    :param search_path: List of search paths. If omitted, the OS environment
+                        variable PATH is used.
+    :returns: A full path to cmd, or None if not found or not executable.
+
+    """
+    if search_path is None:
+        search_path = os.environ['PATH'].split(':')
+    paths = (os.path.join(path, cmd) for path in search_path)
 
     for path in paths:
-        if not os.path.isfile(path):
-            continue
-
-        if not os.access(path, os.X_OK):
-            continue
-        
-        return path
-
-    return None
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
 
 
 def is_setuid_root(path):
