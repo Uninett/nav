@@ -26,6 +26,7 @@ JOB_PREFIX = 'job_'
 
 
 class IpdevpollConfig(NAVConfigParser):
+    """ipdevpoll config parser"""
     DEFAULT_CONFIG_FILES = ('ipdevpoll.conf',)
     DEFAULT_CONFIG = """
 [ipdevpoll]
@@ -75,10 +76,11 @@ def get_job_sections(config):
     return [s for s in config.sections() if s.startswith(JOB_PREFIX)]
 
 
+# this is a data container class, mr. pylint!
+# pylint: disable=R0913,R0903
 class JobDescriptor(object):
     """A data structure describing a job."""
-    def __init__(self, name, interval=0, intensity=0, plugins='',
-                 description=''):
+    def __init__(self, name, interval, intensity, plugins, description=''):
         self.name = str(name)
         self.interval = int(interval)
         self.intensity = int(intensity)
@@ -88,21 +90,25 @@ class JobDescriptor(object):
     @classmethod
     def from_config_section(cls, config, section):
         """Creates a JobDescriptor from a ConfigParser section"""
-        job_prefix = 'job_'
-        if section.startswith(job_prefix):
-            jobname = section[len(job_prefix):]
+        if section.startswith(JOB_PREFIX):
+            jobname = section[len(JOB_PREFIX):]
         else:
             raise InvalidJobSectionName(section)
 
-        interval = (config.has_option(section, 'interval') and
-                    parse_interval(config.get(section, 'interval')) or 0)
+        interval = parse_interval(config.get(section, 'interval'))
+        if interval < 1:
+            raise ValueError("Interval for job %s is too short: %s" % (
+                jobname, config.get(section, 'interval')))
+
         intensity = (config.has_option(section, 'intensity') and
                      config.getint(section, 'intensity') or 0)
-        plugins = (config.has_option(section, 'plugins') and
-                   _parse_plugins(config.get(section, 'plugins')) or '')
+        plugins = _parse_plugins(config.get(section, 'plugins'))
+        if not plugins:
+            raise ValueError("Plugin list for job %s is empty" % jobname)
+
         description = (config.has_option(section, 'description') and
                        _parse_description(config.get(section, 'description'))
-                       or 'No description')
+                       or '')
 
         return cls(jobname, interval, intensity, plugins, description)
 

@@ -20,28 +20,34 @@ import unittest
 from ConfigParser import NoOptionError
 from nav.config import NAVConfigParser
 from nav.ipdevpoll.config import (get_job_sections, get_jobs,
-                                  get_job_descriptions)
+                                  get_job_descriptions, JobDescriptor)
 
 
-class TestConfig(NAVConfigParser):
-    DEFAULT_CONFIG = """
+class ConfigTest(unittest.TestCase):
+    class TestConfig(NAVConfigParser):
+        DEFAULT_CONFIG = """
 [job_one]
+interval = 5m
+plugins = foo
 description:
  blapp
  blupp
 [job_two]
+interval = 5m
+plugins = foo
 descriptio= blapp
 [not_a_job]
+interval = 5m
+plugins = foo
 description=blipp
 [job_three]
+interval = 5m
+plugins = foo
 description = blepp
 """
 
-
-class ConfigTest(unittest.TestCase):
-
     def setUp(self):
-        self.config = TestConfig()
+        self.config = self.TestConfig()
 
     def test_find_all_job_sections(self):
         self.assertEqual(len(get_job_sections(self.config)), 3)
@@ -62,9 +68,56 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(descr['one'], 'blapp blupp')
 
     def test_job_two_descr(self):
-        self.assertEqual(get_job_descriptions(self.config)['two'],
-                         'No description')
+        self.assertEqual(get_job_descriptions(self.config)['two'],'')
 
     def test_job_three_descr(self):
         self.assertEqual(get_job_descriptions(self.config)['three'],
                          'blepp')
+
+
+class JobDescriptorTest(unittest.TestCase):
+    class TestConfig(NAVConfigParser):
+        DEFAULT_CONFIG = """
+[job_one]
+plugins = foo
+[job_two]
+interval = 0
+plugins = foo
+[job_negative]
+interval = -5m
+plugins = foo
+[job_noplugins]
+interval = 5m
+[job_emptyplugins]
+interval = 5m
+plugins =
+
+"""
+
+    def setUp(self):
+        self.config = self.TestConfig()
+
+    def test_should_raise_on_no_interval(self):
+        self.assertRaises(
+            NoOptionError,
+            JobDescriptor.from_config_section, self.config, 'job_one')
+
+    def test_should_raise_on_zero_interval(self):
+        self.assertRaises(
+            ValueError,
+            JobDescriptor.from_config_section, self.config, 'job_two')
+
+    def test_should_raise_on_negative_interval(self):
+        self.assertRaises(
+            ValueError,
+            JobDescriptor.from_config_section, self.config, 'job_negative')
+
+    def test_should_raise_on_no_plugins(self):
+        self.assertRaises(
+            NoOptionError,
+            JobDescriptor.from_config_section, self.config, 'job_noplugins')
+
+    def test_should_raise_on_empty_plugins(self):
+        self.assertRaises(
+            ValueError,
+            JobDescriptor.from_config_section, self.config, 'job_emptyplugins')
