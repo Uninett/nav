@@ -17,48 +17,47 @@
 #
 """Dumps core information from NAV to textfiles importable by editDB."""
 
-
 import sys
-# Backup! =) 
 sys._stdout = sys.stdout
 from nav.models import manage
 import nav.models.service
 
-SEPARATOR=":"
+SEPARATOR = ":"
+
 
 def warn(msg):
     sys.stderr.write(msg + "\n")
+
 
 def fail(resultcode, msg):
     warn(msg)
     sys.exit(resultcode)
 
+
 def header(header):
     header = header.replace(":", SEPARATOR)
     print header
+
 
 def lineout(line):
     # Remove any : in strings
     newline = [x.replace(SEPARATOR, "") for x in line]
     print SEPARATOR.join(newline).encode('utf-8')
 
+
 class Handlers:
     def netbox(self):
-        header("#roomid:ip:orgid:catid:[ro:serial:rw:function:subcat1:subcat2..]")
+        header("#roomid:ip:orgid:catid:[ro:serial:rw:function:"
+               "netboxgroup1:netboxgroup2..]")
         allFunctions = manage.NetboxInfo.objects.filter(key='function')
         for box in manage.Netbox.objects.all():
-            line = []
-            line.append(box.room_id)
-            line.append(box.ip)
-            line.append(box.organization_id)
-            line.append(box.category_id)
-            line.append(box.read_only or "")
-            line.append(box.device.serial or box.sysname)
-            line.append(box.read_write or "")
+            line = [box.room_id, box.ip, box.organization_id, box.category_id,
+                    box.read_only or "", box.device.serial or box.sysname,
+                    box.read_write or ""]
             functions = allFunctions.filter(netbox=box)
             functions = str.join(", ", functions)
             line.append(functions)
-            categories = box.subcategories.all()
+            categories = box.netboxgroups.all()
             categories = [cat.id for cat in categories]
             categories.sort()
             line.extend(categories)
@@ -67,69 +66,50 @@ class Handlers:
     def org(self):
         header("#orgid[:parent:description:optional1:optional2:optional3]")
         for org in manage.Organization.objects.all():
-            line = []
-            line.append(org.id)
             if org.parent:
                 parent = org.parent.id
             else:
                 parent = ""
-            line.append(parent)
-            line.append(org.description or "")
-            line.append(org.optional_1 or "")
-            line.append(org.optional_2 or "")
-            line.append(org.optional_3 or "")
+            line = [org.id, parent, org.description or "",
+                    org.optional_1 or "", org.optional_2 or "",
+                    org.optional_3 or ""]
             lineout(line)
- 
-    def subcat(self):
-        header("#subcatid:catid:description")
-        for subcat in manage.Subcategory.objects.all():
-            line = []
-            line.append(subcat.id)
-            line.append(subcat.category.id)
-            line.append(subcat.description)
+
+    def netboxgroup(self):
+        header("#netboxgroupid:description")
+        for netboxgroup in manage.NetboxGroup.objects.all():
+            line = [netboxgroup.id, netboxgroup.description]
             lineout(line)
-  
+
     def usage(self):
         header("#usageid:descr")
         for usage in manage.Usage.objects.all():
-            line = []
-            line.append(usage.id)
-            line.append(usage.description)
+            line = [usage.id, usage.description]
             lineout(line)
-   
+
     def location(self):
         header("#locationid:descr")
         for location in manage.Location.objects.all():
-            line = []         
-            line.append(location.id)
-            line.append(location.description)
+            line = [location.id, location.description]
             lineout(line)
-    
+
     def room(self):
         header("#roomid[:locationid:descr:opt1:opt2:opt3:opt4:position]")
-        for room in manage.Room.objects.all():         
-            line = []         
-            line.append(room.id)
-            line.append(room.location.id if room.location else "")
-            line.append(room.description or "")
-            line.append(room.optional_1 or "")
-            line.append(room.optional_2 or "")
-            line.append(room.optional_3 or "")
-            line.append(room.optional_4 or "")
+        for room in manage.Room.objects.all():
+            line = [room.id, room.location.id if room.location else "",
+                    room.description or "", room.optional_1 or "",
+                    room.optional_2 or "", room.optional_3 or "",
+                    room.optional_4 or ""]
             if room.position:
                 line.append("(%s, %s)" % room.position)
             lineout(line)
-   
+
     def type(self):
         header("#vendorid:typename:sysoid[:description:cdp:tftp]")
         for type in manage.NetboxType.objects.all():
-            line = []
-            line.append(type.vendor.id)
-            line.append(type.name)
-            line.append(type.sysobjectid)
-            line.append(type.description)
-            line.append(str(type.cdp or False))
-            line.append(str(type.tftp or False))
+            line = [type.vendor.id, type.name, type.sysobjectid,
+                    type.description, str(type.cdp or False),
+                    str(type.tftp or False)]
             lineout(line)
 
     def vendor(self):
@@ -137,20 +117,19 @@ class Handlers:
         for vendor in manage.Vendor.objects.all():
             line = [vendor.id]
             lineout(line)
-   
+
     def prefix(self):
         global SEPARATOR
         old_sep = SEPARATOR
-        if SEPARATOR==":":
+        if SEPARATOR == ":":
             # IPv6 prefixes are full of colons
             warn("Not smart to use : as separator for prefixes, using ;")
-            SEPARATOR=";"
+            SEPARATOR = ";"
         header("#prefix/mask;nettype[;orgid;netident;usage;description;vlan]")
         for prefix in manage.Prefix.objects.all():
             vlan = prefix.vlan
-            line = []
-            line.append(prefix.net_address)
-            line.append(vlan and vlan.net_type and vlan.net_type.id or "")
+            line = [prefix.net_address,
+                    vlan and vlan.net_type and vlan.net_type.id or ""]
             if vlan:
                 line.append(vlan.organization and vlan.organization.id or "")
                 line.append(vlan.net_ident or "")
@@ -163,22 +142,21 @@ class Handlers:
     def service(self):
         global SEPARATOR
         old_sep = SEPARATOR
-        if SEPARATOR==":":
+        if SEPARATOR == ":":
             # (since it is used in URLs for HTTP checker and we don't
-            # have a defined way to escape it) 
+            # have a defined way to escape it)
             warn("Not smart to use : as separator for services, using ;")
-            SEPARATOR=";"
+            SEPARATOR = ";"
         header("#ip/sysname:handler[:arg=value[:arg=value]]")
         allServices = nav.models.service.Service.objects.all()
         for service in allServices.select_related('ServiceProperty'):
-            line = []            
-            line.append(service.netbox.sysname)
-            line.append(service.handler)
+            line = [service.netbox.sysname, service.handler]
             properties = ["%s=%s" % (p.property, p.value)
                           for p in service.serviceproperty_set.all()]
-            line.extend(properties)                  
+            line.extend(properties)
             lineout(line)
         SEPARATOR = old_sep
+
 
 def main():
     try:
@@ -204,7 +182,7 @@ def main():
                       default="")
     parser.add_option("-o", "--output", dest="output",
                       help="dump data to FILE instead of stdout",
-                      metavar="FILE") 
+                      metavar="FILE")
     parser.add_option("-a", "--all", dest="all", action="store_true",
                       help="dump all tables to files named TABLE.txt")
     (options, args) = parser.parse_args()
@@ -212,46 +190,47 @@ def main():
     if options.separator:
         global SEPARATOR
         SEPARATOR = options.separator
-    
+
     if options.all:
         handlers = Handlers()
         for key in Handlers.__dict__.keys():
             if key[0] == "_":
                 continue
-            file = key + ".txt"    
-            sys.stdout = sys._stdout    
+            file = key + ".txt"
+            sys.stdout = sys._stdout
             print "Dumping " + file
             try:
-                # We're lazy and are using print all the way 
+                # We're lazy and are using print all the way
                 sys.stdout = open(file, "w")
             except IOError, e:
-                fail(2, "Could not open file %s: %s" % 
-                        (options.output, e))
+                fail(2, "Could not open file %s: %s" % (options.output, e))
             handler = getattr(handlers, key)
             handler()
-        sys.exit(0)      
+        sys.exit(0)
 
     if options.output:
         try:
-            # We're lazy and are using print all the way 
+            # We're lazy and are using print all the way
             sys.stdout = open(options.output, "w")
         except IOError, e:
-            fail(2, "Could not open file %s: %s" % 
-                    (options.output, e))
+            fail(2, "Could not open file %s: %s" % (options.output, e))
         except TypeError:
-            fail(2, "You stupid moron")    
-    
+            fail(2, "You stupid moron")
+
     handler = getattr(Handlers(), options.table, "")
     if not handler:
         parser.print_help()
-        tables = [table for table in Handlers.__dict__.keys() 
+        tables = [table for table in Handlers.__dict__.keys()
                   if not table[0] == "_"]
-        tables.sort()              
+        tables.sort()
         tables = str.join(" ", tables)
-        fail(3, "\nERROR: You must select a valid table. Valid tables are:\n" + tables)
+        fail(3,
+             "\nERROR: You must select a valid table. Valid tables are:\n" +
+             tables)
 
     # And run the handler
     handler()
+
 
 if __name__ == "__main__":
     main()

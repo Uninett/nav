@@ -279,7 +279,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             addr = host_info['addresses'][0]['addr']
 
         no_netbox['prefix'] = get_prefix_info(addr)
-        netboxsubcat = None
+        netboxgroups = None
         navpath = NAVPATH + [(host_info['host'], '')]
 
         if no_netbox['prefix']:
@@ -292,7 +292,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     else:
         alert_info = get_recent_alerts(netbox)
-        netboxsubcat = netbox.netboxcategory_set.all()
+        netboxgroups = netbox.netboxcategory_set.all()
         navpath = NAVPATH + [(netbox.sysname, '')]
         job_descriptions = get_job_descriptions()
 
@@ -304,13 +304,13 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'heading': navpath[-1][0],
             'alert_info': alert_info,
             'no_netbox': no_netbox,
-            'netboxsubcat': netboxsubcat,
+            'netboxgroups': netboxgroups,
             'job_descriptions': job_descriptions,
             'navpath': navpath,
             'title': create_title(navpath)
         },
         context_instance=RequestContext(request,
-            processors=[search_form_processor]))
+                                        processors=[search_form_processor]))
 
 
 def get_port_view(request, netbox_sysname, perspective):

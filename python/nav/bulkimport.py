@@ -19,7 +19,7 @@
 from __future__ import absolute_import
 
 from nav.models.manage import Device, Netbox, Room, Organization
-from nav.models.manage import Category, NetboxInfo, Subcategory
+from nav.models.manage import Category, NetboxInfo, NetboxGroup
 from nav.models.manage import NetboxCategory, Interface
 from nav.models.manage import Location, Usage, NetboxType, Vendor
 from nav.models.manage import Prefix, Vlan, NetType
@@ -84,9 +84,10 @@ class NetboxImporter(BulkImporter):
         if netboxinfo:
             objects.append(netboxinfo)
 
-        subcats = self._get_subcats_from_subcat(netbox, row.get('subcat', []))
-        if subcats:
-            objects.extend(subcats)
+        netboxgroups = self._get_groups_from_group(netbox,
+                                                   row.get('netboxgroup', []))
+        if netboxgroups:
+            objects.extend(netboxgroups)
 
         return objects
 
@@ -119,16 +120,16 @@ class NetboxImporter(BulkImporter):
                               value=function)
 
     @staticmethod
-    def _get_subcats_from_subcat(netbox, subcat):
-        if not subcat:
+    def _get_groups_from_group(netbox, netboxgroup):
+        if not netboxgroup:
             return
 
-        subcats = []
-        for subcatid in [s for s in subcat if s]:
-            subcategory = get_object_or_fail(Subcategory, id=subcatid,
-                                             category__id=netbox.category_id)
-            subcats.append(NetboxCategory(netbox=netbox, category=subcategory))
-        return subcats
+        netboxgroups = []
+        for netboxgroupid in [s for s in netboxgroup if s]:
+            netboxgroup = get_object_or_fail(NetboxGroup, id=netboxgroupid)
+            netboxgroups.append(NetboxCategory(netbox=netbox,
+                                               category=netboxgroup))
+        return netboxgroups
 
 
 class ServiceImporter(BulkImporter):
@@ -281,14 +282,13 @@ class VendorImporter(BulkImporter):
         return [vendor]
 
 
-class SubcatImporter(BulkImporter):
-    """Creates objects from the subcategory bulk format"""
+class NetboxGroupImporter(BulkImporter):
+    """Creates objects from the netboxgroup bulk format"""
     def _create_objects_from_row(self, row):
-        raise_if_exists(Subcategory, id=row['subcatid'])
-        cat = get_object_or_fail(Category, id=row['catid'])
-        subcat = Subcategory(id=row['subcatid'], category=cat,
-                             description=row['description'])
-        return [subcat]
+        raise_if_exists(NetboxGroup, id=row['netboxgroupid'])
+        netboxgroup = NetboxGroup(id=row['netboxgroupid'],
+                                  description=row['description'])
+        return [netboxgroup]
 
 
 class CablingImporter(BulkImporter):

@@ -26,8 +26,8 @@ from nav.web.seeddb.page.usage import usage, usage_edit, usage_bulk
 from nav.web.seeddb.page.netboxtype import netboxtype, netboxtype_edit
 from nav.web.seeddb.page.netboxtype import netboxtype_bulk
 from nav.web.seeddb.page.vendor import vendor, vendor_edit, vendor_bulk
-from nav.web.seeddb.page.subcategory import subcategory, subcategory_edit
-from nav.web.seeddb.page.subcategory import subcategory_bulk
+from nav.web.seeddb.page.netboxgroup import (netboxgroup, netboxgroup_edit,
+                                             netboxgroup_bulk)
 from nav.web.seeddb.page.vlan import vlan_list, vlan_edit
 from nav.web.seeddb.page.prefix import prefix, prefix_edit, prefix_bulk
 from nav.web.seeddb.page.cabling import cabling, cabling_edit, cabling_bulk
@@ -121,15 +121,15 @@ urlpatterns = patterns('',
 
     # SNMPoid
 
-    # Subcategory
-    url(r'^subcategory/$', subcategory,
-        name='seeddb-subcategory'),
-    url(r'^subcategory/edit/(?P<subcategory_id>.+)/$', subcategory_edit,
-        name='seeddb-subcategory-edit'),
-    url(r'^subcategory/add/$', subcategory_edit,
-        name='seeddb-subcategory-edit'),
-    url(r'^subcategory/bulk/$', subcategory_bulk,
-        name='seeddb-subcategory-bulk'),
+    # Netbox Group
+    url(r'^netboxgroup/$', netboxgroup,
+        name='seeddb-netboxgroup'),
+    url(r'^netboxgroup/edit/(?P<netboxgroup_id>.+)/$', netboxgroup_edit,
+        name='seeddb-netboxgroup-edit'),
+    url(r'^netboxgroup/add/$', netboxgroup_edit,
+        name='seeddb-netboxgroup-edit'),
+    url(r'^netboxgroup/bulk/$', netboxgroup_bulk,
+        name='seeddb-netboxgroup-bulk'),
 
     # Vlan
     url(r'^vlan/$', vlan_list,

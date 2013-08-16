@@ -31,11 +31,11 @@
                 {{ netbox.category }}</a></td>
     </tr>
 
-    {% if netboxsubcat %}
+    {% if netboxgroups %}
         <tr>
-            <th>Subcategories</th>
-            <td>{% for subcat in netboxsubcat %}
-                {{ subcat.category_id }}
+            <th>Netbox groups</th>
+            <td>{% for netboxgroup in netboxgroups %}
+                {{ netboxgroup.category_id }}
             {% endfor %}
             </td>
         </tr>

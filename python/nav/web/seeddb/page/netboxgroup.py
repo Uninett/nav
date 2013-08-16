@@ -1,0 +1,98 @@
+#
+# Copyright (C) 2013 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+"""Module comment"""
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2011 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+
+from django import forms
+
+from nav.models.manage import NetboxGroup, Category
+from nav.bulkparse import NetboxGroupBulkParser
+from nav.bulkimport import NetboxGroupImporter
+
+from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
+from nav.web.seeddb.page import view_switcher, not_implemented
+from nav.web.seeddb.utils.list import render_list
+from nav.web.seeddb.utils.edit import render_edit
+from nav.web.seeddb.utils.bulk import render_bulkimport
+from nav.web.seeddb.utils.delete import render_delete
+
+
+class NetboxGroupInfo(SeeddbInfo):
+    active = {'netboxgroup': True}
+    caption = 'NetboxGroup'
+    tab_template = 'seeddb/tabs_netboxgroup.html'
+    _title = 'Netbox Groups'
+    _navpath = [('Netbox Groups', reverse_lazy('seeddb-netboxgroup'))]
+    hide_move = True
+    delete_url = reverse_lazy('seeddb-netboxgroup')
+
+
+class NetboxGroupForm(forms.ModelForm):
+    class Meta:
+        model = NetboxGroup
+
+
+def netboxgroup(request):
+    return view_switcher(request,
+                         list_view=netboxgroup_list,
+                         move_view=not_implemented,
+                         delete_view=netboxgroup_delete)
+
+
+def netboxgroup_list(request):
+    info = NetboxGroupInfo()
+    query = NetboxGroup.objects.all()
+    value_list = ('id', 'description')
+    return render_list(request, query, value_list, 'seeddb-netboxgroup-edit',
+                       extra_context=info.template_context)
+
+
+def netboxgroup_delete(request):
+    info = NetboxGroupInfo()
+    return render_delete(request, NetboxGroup, 'seeddb-netboxgroup',
+                         whitelist=SEEDDB_EDITABLE_MODELS,
+                         extra_context=info.template_context)
+
+
+def netboxgroup_edit(request, netboxgroup_id=None):
+    info = NetboxGroupInfo()
+    return render_edit(request, NetboxGroup, NetboxGroupForm, netboxgroup_id,
+                       'seeddb-netboxgroup-edit',
+                       extra_context=info.template_context)
+
+
+def netboxgroup_bulk(request):
+    info = NetboxGroupInfo()
+    return render_bulkimport(
+        request, NetboxGroupBulkParser, NetboxGroupImporter,
+        'seeddb-netboxgroup',
+        extra_context=info.template_context)
