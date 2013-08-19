@@ -282,6 +282,7 @@ def get_vlan_lookup_json(vlan_by_interface):
     for list_of_swpv in vlan_by_interface.itervalues():
         for swpv in list_of_swpv:
             vlan_lookup[swpv.vlan.id] = vlan_to_json(swpv.vlan)
+    return vlan_lookup
 
 def node_to_json_layer2(node, nx_metadata=None):
     """Convert a node to json, for use in a netmap layer2 graph
