@@ -31,25 +31,9 @@ def _get_datasources(interfaces):
         rrd_file__value__in=interfaces)
 
 
-def _get_datasource_lookup(graph):
-    edges_iter = graph.edges_iter(data=True)
+def _get_datasource_lookup(interfaces):
 
-    interfaces = set()
-    for _, _, meta in edges_iter:
-        meta = meta['metadata'] if 'metadata' in meta else {}
-        if 'uplink' in meta:
-            if meta['uplink']['thiss']['interface'] and \
-               isinstance(meta['uplink']['thiss']['interface'], Interface):
-                interfaces.add(meta['uplink']['thiss']['interface'].pk)
-
-            if meta['uplink']['other']['interface'] and \
-               isinstance(meta['uplink']['other']['interface'], Interface):
-                interfaces.add(meta['uplink']['other']['interface'].pk)
-
-    _LOGGER.debug(
-        "netmap:attach_rrd_data_to_edges() datasource id filter list done")
-
-    datasources = _get_datasources(interfaces)
+    datasources = _get_datasources([interface.pk for interface in interfaces])
 
     _LOGGER.debug("netmap:attach_rrd_data_to_edges() Datasources fetched done")
 
@@ -81,6 +65,116 @@ def rrd_info(source):
             'raw': presentation.average()[0]}
 
 
+class Source(object):
+    def __init__(self, name, description, raw):
+        self.name = name
+        self.description = description
+        self.raw = raw
+
+    def to_json(self):
+        return {
+            'name': self.name,
+            'description': self.description,
+            'raw': self.raw
+        }
+
+class Octets(object):
+    CSS_UNKNOWN_SPEED = (211, 211, 211) # light grey
+
+    def __init__(self, name, source, link_speed):
+        self.name = name
+        self.source = source
+        raw = source.raw
+
+        self.load_in_percent = get_traffic_load_in_percent(raw, link_speed)
+        if self.load_in_percent:
+            self.css = get_traffic_rgb(self.load_in_percent)
+            self.octets_percent_by_speed = "%.2f" % self.load_in_percent
+        else:
+            self.css = self.CSS_UNKNOWN_SPEED
+            self.octets_percent_by_speed = None
+
+    def to_json(self):
+        return {
+            'rrd': self.source.to_json(),
+            'css': self.css,
+            'percent_by_speed': self.octets_percent_by_speed,
+            'load_in_percent': self.load_in_percent,
+            'name': self.name
+        }
+
+
+
+
+class Traffic(object):
+
+
+    def __init__(self):
+        self.in_octets = Octets('inOctets', Source('ds1', 'ifHCInOctets', 809.399562), 100)
+        self.out_octets = Octets('outOctets', Source('ds1', 'ifHCOutOctets', 55809.399562), 100)
+
+    def to_json(self):
+        return {
+            'inOctets': self.in_octets.to_json(),
+            'outOctets': self.out_octets.to_json()
+        }
+
+def get_rrd_data(cache, port_pair):
+    """
+    :param cache: dict arriving from _get_datasource_lookup hopefully...
+    """
+
+    # , u'ifInErrors', u'ifInUcastPkts', u'ifOutErrors', u'ifOutUcastPkts'
+    valid_traffic_sources = (
+        u'ifHCInOctets', u'ifHCOutOctets', u'ifInOctets', u'ifOutOctets')
+    datasource_lookup = cache
+
+    def _fetch_rrd(interface):
+        traffic = {}
+        if isinstance(interface, Interface):
+            if interface in datasource_lookup:
+                datasources_for_interface = datasource_lookup[interface]
+                for rrd_source in datasources_for_interface:
+                    if (rrd_source.description in valid_traffic_sources
+                        and rrd_source.description not in traffic):
+                        traffic[rrd_source.description] = rrd_info(rrd_source)
+        return traffic
+
+    traffic = {}
+    traffic['inOctets'] = None
+    traffic['outOctets'] = None
+
+
+
+    #direction = 'thiss'
+    #traffic.update(_fetch_rrd(metadata['uplink'][direction]))
+    #
+    #if not any(source in traffic for source in valid_traffic_sources):
+    #    direction = 'other'
+    #    traffic.update(_fetch_rrd(metadata['uplink'][direction]))
+    #
+    #if 'ifInOctets' in traffic:
+    #    traffic['inOctets'] = traffic['ifInOctets']
+    #if 'ifOutOctets' in traffic:
+    #    traffic['outOctets'] = traffic['ifOutOctets']
+    #
+    ## Overwrite traffic inOctets and outOctets
+    ## if 64 bit counters are present
+    #if 'ifHCInOctets' in traffic:
+    #    traffic['inOctets'] = traffic['ifHCInOctets']
+    #
+    #if 'ifHCOutOctets' in traffic:
+    #    traffic['outOctets'] = traffic['ifHCOutOctets']
+    #
+    ## swap
+    #if direction == 'other':
+    #    tmp = traffic['inOctets']
+    #    traffic['inOctets'] = traffic['outOctets']
+    #    traffic['outOctets'] = tmp
+
+
+
+
 def attach_rrd_data_to_edges(graph, json=None):
     """ called from d3_js to attach rrd_data after it has attached other
     edge metadata by using edge_to_json
@@ -90,8 +184,6 @@ def attach_rrd_data_to_edges(graph, json=None):
 
     :param graph A network x graph matching d3_js graph format
     """
-    node_labels = [(b, a) for (a, b) in graph.node_labels.items()]
-    node_labels.sort()
 
     datasource_lookup = _get_datasource_lookup(graph)
 
