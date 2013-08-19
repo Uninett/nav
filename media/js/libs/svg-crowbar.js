@@ -12,7 +12,7 @@
  * Modified to fit the requirejs pattern and
  * not initialize on script.onload
  */
-define("svgcrowbar", ['libs/d3.v2'], function () {
+define(['libs/d3.v2'], function () {
   var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
 
   window.URL = (window.URL || window.webkitURL);
@@ -31,8 +31,8 @@ define("svgcrowbar", ['libs/d3.v2'], function () {
       // because of prototype on NYT pages
       for (var i = 0; i < newSources.length; i++) {
         SVGSources.push(newSources[i]);
-      };
-    })
+      }
+    });
     if (SVGSources.length > 1) {
       createPopover(SVGSources);
     } else if (SVGSources.length > 0) {
