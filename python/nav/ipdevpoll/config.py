@@ -100,15 +100,15 @@ class JobDescriptor(object):
             raise ValueError("Interval for job %s is too short: %s" % (
                 jobname, config.get(section, 'interval')))
 
-        intensity = (config.has_option(section, 'intensity') and
-                     config.getint(section, 'intensity') or 0)
+        intensity = (config.getint(section, 'intensity')
+                     if config.has_option(section, 'intensity') else 0)
+
         plugins = _parse_plugins(config.get(section, 'plugins'))
         if not plugins:
             raise ValueError("Plugin list for job %s is empty" % jobname)
 
-        description = (config.has_option(section, 'description') and
-                       _parse_description(config.get(section, 'description'))
-                       or '')
+        description = (_parse_description(config.get(section, 'description'))
+                       if config.has_option(section, 'description') else '')
 
         return cls(jobname, interval, intensity, plugins, description)
 
