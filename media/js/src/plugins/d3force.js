@@ -16,10 +16,11 @@ define([
     };
     NAVD3Force.prototype.updateNode = function (node, data) {
         // node must be a node from this.nodes
-        node.data = data;
-        if (!!node.data.position && !node.isDirty) {
-            node.x = node.data.position.x;
-            node.y = node.data.position.y;
+
+        node.set(data.attributes, {'silent': true});
+        if (node.has('position') && !node.has('isDirty')) {
+            node.x = node.get('position').x;
+            node.y = node.get('position').y;
             node.fixed = true;
         }
     };
@@ -115,11 +116,9 @@ define([
     NAVD3Force.prototype.updateLink = function (update) {
         //sourceSysname-targetSysname
 
-        var linkObject = this.findLink(
-            (_.isObject(update.source) ? update.source.data.sysname : update.source),
-            (_.isObject(update.target) ? update.target.data.sysname : update.target)
-        );
-        linkObject.data = update.data;
+        var linkObject = this.findLink(update.source.id, update.target.id);
+
+        linkObject.data = update;
     };
 
     return NAVD3Force;
