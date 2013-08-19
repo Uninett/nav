@@ -1,4 +1,4 @@
-import mock
+from mock import Mock, patch
 import networkx as nx
 from nav.models.fields import CIDRField
 from nav.models.manage import Prefix, Vlan, GwPortPrefix, NetType
@@ -129,6 +129,18 @@ class TopologyLayer3TestCase(TopologyTestCase):
             gw_ip='158.38.0.6',
             virtual=False
         )
+        self.linknet_v6_a3_for_a_c = GwPortPrefix(
+            interface=self.a3,
+            prefix=self.prefix_bar_ipv6,
+            gw_ip='feed:dead:cafe:babe::5',
+            virtual=False
+        )
+        self.linknet_v6_c3_for_a_c = GwPortPrefix(
+            interface=self.c3,
+            prefix=self.prefix_bar_ipv6,
+            gw_ip='feed:dead:cafe:babe::3',
+            virtual=False
+        )
 
         # v4 prefix
         self._add_edge(self.nav_graph,
@@ -141,8 +153,12 @@ class TopologyLayer3TestCase(TopologyTestCase):
                        self.prefix_bar)
         # v6 prefix
         self._add_edge(self.nav_graph,
-                       self.linknet_a3_for_a_c,
-                       self.linknet_c3_for_a_c,
+                       self.linknet_v6_a3_for_a_c,
+                       self.linknet_v6_c3_for_a_c,
+                       self.prefix_bar_ipv6)
+        self._add_edge(self.nav_graph,
+                       self.linknet_v6_c3_for_a_c,
+                       self.linknet_v6_a3_for_a_c,
                        self.prefix_bar_ipv6)
 
         #node b and node d and node e connected as a core linknet on prefix
@@ -221,29 +237,30 @@ class TopologyLayer3TestCase(TopologyTestCase):
                        self.linknet_f5_for_f_unknown,
                        self.prefix_zar)
 
-
-
-    def _add_edge(self, graph, netbox_a, netbox_b, gw_port_prefix):
-        graph.add_edge(netbox_a, netbox_b, key=gw_port_prefix)
-
-    def test_noop_layer3_testcase_setup(self):
-        self.assertTrue(True)
-
-    def _setupTopologyLayer3VlanMock(self):
-        topology._get_vlans_map_layer3 = mock.MagicMock()
-        topology._get_vlans_map_layer3.return_value={
+        self.vlans = patch.object(topology, '_get_vlans_map_layer3',
+                                  return_value={
             2111: [self.prefix_foo],
             2112: [self.prefix_bar, self.prefix_bar_ipv6],
             2113: [self.prefix_baz],
             2114: [self.prefix_zar]
-        }
+        })
+        self.vlans.start()
 
-    def _setupNetmapGraphLayer3(self):
-        self._setupTopologyLayer3VlanMock()
-        vlan.build_layer3_graph = mock.Mock(return_value=self.nav_graph)
+        self.l3 = patch.object(vlan, 'build_layer3_graph',
+                               return_value=self.nav_graph)
+        self.l3.start()
 
         self.netmap_graph = topology.build_netmap_layer3_graph(None)
 
+    def tearDown(self):
+        self.vlans.stop()
+        self.l3.stop()
+
+    def _add_edge(self, graph, netbox_a, netbox_b, prefix):
+        graph.add_edge(netbox_a, netbox_b, key=prefix)
+
+    def test_noop_layer3_testcase_setup(self):
+        self.assertTrue(True)
+
     def test_noop_setup_netmap_graph_layer3(self):
-        self._setupNetmapGraphLayer3()
         self.assertTrue(self.netmap_graph)
