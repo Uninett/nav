@@ -75,7 +75,8 @@ class LdapUserTestCase(TestCase):
                           'basedn': 'empty',
                           'manager': 'empty',
                           'manager_password': 'empty',
-                          'uid_attr': 'sAMAccountName'},
+                          'uid_attr': 'sAMAccountName',
+                          'encoding': 'utf-8'},
                  })
     def test_search_result_with_referrals_should_be_considered_empty(self):
         """LP#1207737"""
