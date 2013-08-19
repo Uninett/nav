@@ -20,7 +20,7 @@ from django.conf.urls.defaults import url, patterns
 
 # The patterns are relative to the base URL of the subsystem
 from nav.web.netmap.views import netmap, maps, \
-    d3js_layer2, d3js_layer3, traffic_load_gradient, graphml_layer2, \
+    api_graph_layer_2, api_graph_layer_3, traffic_load_gradient, graphml_layer2, \
     backbone_app, netmap_defaultview, netmap_defaultview_global, admin_views,\
     api_datauris_categories
 
@@ -36,13 +36,13 @@ urlpatterns = patterns('nav.web.netmap.views',
     url(r'^api/netmap/defaultview/user$',
         netmap_defaultview,
         name='netmap-api-netmap-defaultview'),
-    url(r'^api/graph/layer2$', d3js_layer2,
+    url(r'^api/graph/layer2$', api_graph_layer_2,
         name='netmap-api-graph-layer2'),
-    url(r'^api/graph/layer2/(?P<map_id>[\d]+)$', d3js_layer2,
+    url(r'^api/graph/layer2/(?P<map_id>[\d]+)$', api_graph_layer_2,
         name='netmap-api-graph-layer2-map'),
-    url(r'^api/graph/layer3$', d3js_layer3,
+    url(r'^api/graph/layer3$', api_graph_layer_3,
         name='netmap-api-graph-layer3'),
-    url(r'^api/graph/layer3/(?P<map_id>[\d]+)$', d3js_layer3,
+    url(r'^api/graph/layer3/(?P<map_id>[\d]+)$', api_graph_layer_3,
         name='netmap-api-graph-layer3-map'),
 
     url(r'^api/traffic_load_gradient', traffic_load_gradient,
