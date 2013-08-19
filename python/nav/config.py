@@ -106,7 +106,12 @@ class NAVConfigParser(ConfigParser.ConfigParser):
     DEFAULT_CONFIG = ""
     DEFAULT_CONFIG_FILES = ()
 
-    def __init__(self):
+    def __init__(self, default_config=None, default_config_files=None):
+        if default_config is not None:
+            self.DEFAULT_CONFIG = default_config
+        if default_config_files is not None:
+            self.DEFAULT_CONFIG_FILES = default_config_files
+
         ConfigParser.ConfigParser.__init__(self)
         # TODO: perform sanity check on config settings
         faked_default_file = StringIO(self.DEFAULT_CONFIG)
@@ -126,6 +131,21 @@ class NAVConfigParser(ConfigParser.ConfigParser):
         else:
             _logger.warning("Found no config files")
         return files_read
+
+
+class NavConfigParserDefaultSection(object):
+    DEFAULT_CONFIG_FILES = ()
+    DEFAULT_CONFIG = ""
+
+    def __init__(self, section):
+        self.parser = NAVConfigParser(self.DEFAULT_CONFIG, self.DEFAULT_CONFIG_FILES)
+        self.section = section
+
+    def get(self, *args):
+        return self.parser.get(self.section, *args)
+
+    def getboolean(self, *args):
+        return self.parser.getboolean(self.section, *args)
 
 
 class ConfigurationError(GeneralException):
