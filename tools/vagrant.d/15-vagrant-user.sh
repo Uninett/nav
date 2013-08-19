@@ -13,7 +13,7 @@ export DJANGO_SETTINGS_MODULE="nav.django.settings"
 export PYTHONPATH="/vagrant/python:$PYTHONPATH"
 export PATH="/vagrant/bin:$PATH"
 alias rs="django-admin.py runserver 0.0.0.0:8080"
-source ~/.env/bin/activate
+source ~vagrant/.env/bin/activate
 EOF
 fi
 
@@ -23,7 +23,7 @@ pip install -r /vagrant/tools/vagrant-requirements.txt
 
 cd /vagrant
 ./autogen.sh
-./configure --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc --datadir $PWD
+./configure NAV_USER="vagrant" --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc --datadir $PWD
 cd /vagrant/python
 make
 

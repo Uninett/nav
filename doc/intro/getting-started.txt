@@ -40,7 +40,7 @@ processes can be controlled using the :program:`nav` command
 
 The backend processes consist of some daemon processes, and some cron jobs.
 Running :kbd:`nav start` will start all the daemon processes in the
-background, and install all the cron jobs in the `navcron` user's crontab.
+background, and install all the cron jobs in the `|nav_user|` user's crontab.
 
 Depending on your OS of choice, you should configure it to run :kbd:`nav
 start` on boot.

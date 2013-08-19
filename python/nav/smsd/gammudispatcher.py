@@ -67,7 +67,7 @@ class GammuDispatcher(Dispatcher):
         sm = gammu.StateMachine()
 
         try:
-            # Typically ~root/.gammurc or ~navcron/.gammurc
+            # Typically ~root/.gammurc or ~$NAV_USER/.gammurc
             sm.ReadConfig()
         except IOError, error:
             raise PermanentDispatcherError, error

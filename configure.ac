@@ -35,11 +35,11 @@ AC_SUBST(crondir)
 AC_SUBST(VERSION)
 dnl The location of the cricket binaries
 AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
+AC_ARG_VAR(NAV_USER,User to run cronjobs as)
 
 dnl Setting some default variables for NAV
 webrootdir='${datadir}/htdocs'
 djangotmpldir='${datadir}/templates'
-nav_user=navcron
 imagedir='${webrootdir}/images'
 javascriptdir='${webrootdir}/js'
 stylesheetdir='${webrootdir}/style'
@@ -52,6 +52,11 @@ crondir='${sysconfdir}/cron.d'
 VERSION=VERSION_NUMBER
 if test -z "$CRICKETDIR"; then
 	CRICKETDIR='${prefix}/cricket/cricket'
+fi
+if test -z "$NAV_USER"; then
+    nav_user=navcron
+else
+    nav_user=$NAV_USER
 fi
 
 AC_ARG_ENABLE(install-conf,

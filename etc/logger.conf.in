@@ -4,7 +4,7 @@ enable: 1
 
 [paths]
 # path to syslog file
-# the file needs to exist and the navcron user needs write access to the file
+# the file needs to exist and the @nav_user@ user needs write access to the file
 syslog:@localstatedir@/log/cisco.log
 
 # Logengine needs to know charset the above file is encoded with, so that it
