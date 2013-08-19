@@ -495,7 +495,7 @@ line.grouped_by_vlan {
     stroke-dasharray: 0, 10 10;
 }
 
-.fade {
+.node.fade,.link.fade {
     opacity: 0.2;
 }
 
