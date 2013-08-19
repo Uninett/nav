@@ -1,4 +1,4 @@
-import mock
+from mock import patch, Mock, MagicMock
 import networkx as nx
 from nav.models.manage import SwPortVlan, Vlan
 from nav.netmap import topology
@@ -34,20 +34,11 @@ class TopologyLayer2TestCase(TopologyTestCase):
         self._add_edge(self.nav_graph, a3.netbox, a3, c3.netbox, c3)
         self._add_edge(self.nav_graph, d4.netbox, d4, c4.netbox, c4)
 
-    def test_noop_layer2_testcase_setup(self):
-        self.assertTrue(True)
+        self.vlan__a1_b1 = a_vlan_between_a1_and_b1 = SwPortVlan(
+            id=self._next_id(), interface=self.a1, vlan=Vlan(id=201, vlan=2))
 
-    def _add_edge(self, g, node_a, interface_a, node_b, interface_b):
-        interface_a.to_interface = interface_b
-        g.add_edge(node_a, node_b, key=interface_a)
-
-
-    def _setupTopologyLayer2VlanMock(self):
-        self.vlan__a1_b1 = a_vlan_between_a1_and_b1 = SwPortVlan(id=self._next_id(), interface=self.a1, vlan=Vlan(id=201, vlan=2))
-
-        import nav.netmap.topology
-        topology._get_vlans_map_layer2 = mock.MagicMock()
-        topology._get_vlans_map_layer2.return_value=(
+        self.vlans = patch.object(topology, '_get_vlans_map_layer2',
+                                  return_value=(
             {
                 self.a1: [a_vlan_between_a1_and_b1],
                 self.b1: [a_vlan_between_a1_and_b1],
@@ -60,13 +51,34 @@ class TopologyLayer2TestCase(TopologyTestCase):
                 self.a: {201: a_vlan_between_a1_and_b1},
                 self.b: {201: a_vlan_between_a1_and_b1},
                 self.c: {}
-            }
-        )
+            }))
+        self.vlans.start()
 
+        self.build_l2 = patch.object(vlan, 'build_layer2_graph', return_value=self.nav_graph)
+        self.build_l2.start()
 
-    def _setupNetmapGraphLayer2(self):
-        self._setupTopologyLayer2VlanMock()
-        import nav.topology.vlan
-        vlan.build_layer2_graph = mock.Mock(return_value=self.nav_graph)
+        self.rrd_lookup = patch.object(topology, '_get_datasource_lookup')
+        self.rrd_lookup.start()
 
-        self.netmap_graph = topology.build_netmap_layer2_graph(None)
+        bar = vlan.build_layer2_graph()
+        #foo = topology._get_vlans_map_layer2(bar)
+
+        vlan_by_interfaces, vlan_by_netbox = topology._get_vlans_map_layer2(self.nav_graph)
+
+        self.netmap_graph = topology.build_netmap_layer2_graph(
+                        vlan.build_layer2_graph(),
+                        vlan_by_interfaces,
+                        vlan_by_netbox,
+                        None)
+
+    def tearDown(self):
+        self.vlans.stop()
+        self.build_l2.stop()
+        self.rrd_lookup.stop()
+
+    def test_noop_layer2_testcase_setup(self):
+        self.assertTrue(True)
+
+    def _add_edge(self, g, node_a, interface_a, node_b, interface_b):
+        interface_a.to_interface = interface_b
+        g.add_edge(node_a, node_b, key=interface_a)
