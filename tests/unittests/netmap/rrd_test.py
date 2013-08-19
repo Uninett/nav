@@ -1,10 +1,9 @@
 import inspect
 import os
 import unittest
-import mock
-import nav
+from mock import patch
+import nav.netmap.rrd
 from nav.models.rrd import RrdDataSource, RrdFile
-from nav.netmap.rrd import _get_datasources, _get_datasource_lookup
 from topology_layer2_testcase import TopologyLayer2TestCase
 from topology_layer3_testcase import TopologyLayer3TestCase
 
@@ -13,11 +12,18 @@ class RrdNetmapTests(object):
     def setUp(self):
         super(RrdNetmapTests, self).setUp()
         self.path = os.path.dirname(inspect.getfile(inspect.currentframe()))
-
-    def _create_datasources(self):
         self.test_data = []
         for i in xrange(0, 10):
             self.test_data.append(self._create_datasource(i))
+        self.patch_datasources = patch.object(nav.netmap.rrd,
+                                              "_get_datasources",
+                                              return_value=self.test_data)
+        self.patch_datasources.start()
+
+    def tearDown(self):
+        self.patch_datasources.stop()
+
+
 
     def _create_datasource(self, number):
         rrd_file = RrdFile()
@@ -38,10 +44,7 @@ class RrdNetmapTests(object):
         return rrd_datasource
 
     def test_get_datasource_lookup(self):
-        self._create_datasources()
-        nav.netmap.rrd._get_datasources = mock.Mock(return_value=self.test_data)
-
-        dict_lookup = _get_datasource_lookup(self.nav_graph)
+        dict_lookup = nav.netmap.rrd._get_datasource_lookup([self.a1, self.b1, self.c3])
 
         self.assertEquals(len(self.test_data), len(dict_lookup.keys()))
         self.assertEquals('ds8', dict_lookup.get(208)[0].name)
