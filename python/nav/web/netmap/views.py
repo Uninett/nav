@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Netmap view functions for Django"""
+from collections import defaultdict
 
 import datetime
 import logging
@@ -36,10 +37,11 @@ from nav.models.manage import Netbox, Category
 from nav.models.profiles import NetmapView, NetmapViewNodePosition,\
     NetmapViewCategories, NetmapViewDefaultView, Account, AccountGroup
 from nav.netmap.metadata import (node_to_json_layer2, edge_to_json_layer2,
-node_to_json_layer3, edge_to_json_layer3)
+node_to_json_layer3, edge_to_json_layer3, vlan_to_json, get_vlan_lookup_json)
+
 from nav.netmap.topology import build_netmap_layer3_graph,\
-    build_netmap_layer2_graph
-from nav.topology.d3_js.d3_js import d3_json_layer3
+    build_netmap_layer2_graph, _get_vlans_map_layer2
+from nav.topology import vlan
 from nav.web.netmap.common import layer2_graph, get_traffic_rgb
 from nav.web.netmap.forms import NetmapDefaultViewForm
 
@@ -264,7 +266,7 @@ def _update_map_node_positions(fixed_nodes, view):
     for i in fixed_nodes:
         a_node = i
 
-        netbox = Netbox.objects.get(pk=a_node['data']['id'])
+        netbox = Netbox.objects.get(pk=a_node['id'])
         NetmapViewNodePosition.objects.create(
             viewid=view,
             netbox=netbox,
@@ -418,7 +420,7 @@ def get_maps(request):
     return simplejson.dumps(json_views)
 
 
-def d3js_layer3(request, map_id=None):
+def api_graph_layer_3(request, map_id=None):
     """
     Layer2 network topology representation in d3js force-direct graph layout
     http://mbostock.github.com/d3/ex/force.html
@@ -448,7 +450,7 @@ def d3js_layer3(request, map_id=None):
     return response
 
 
-def d3js_layer2(request, map_id=None):
+def api_graph_layer_2(request, map_id=None):
     """
     Layer2 network topology representation in d3js force-direct graph layout
     http://mbostock.github.com/d3/ex/force.html
@@ -479,20 +481,40 @@ def d3js_layer2(request, map_id=None):
 
 
 def _json_layer2(view=None):
-    graph = build_netmap_layer2_graph(view)
+    _LOGGER.debug("build_netmap_layer2_graph() start")
+    topology_without_metadata = vlan.build_layer2_graph(
+        (
+        'to_interface__netbox', 'to_interface__netbox__room', 'to_netbox__room',
+        'netbox__room', 'to_interface__netbox__room__location',
+        'to_netbox__room__location', 'netbox__room__location'))
+    _LOGGER.debug("build_netmap_layer2_graph() topology graph done")
+
+    vlan_by_interface, vlan_by_netbox = _get_vlans_map_layer2(
+        topology_without_metadata)
+    _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
+
+    graph = build_netmap_layer2_graph(topology_without_metadata,
+                                      vlan_by_interface, vlan_by_netbox, view)
 
     return {
-        'nodes': [node_to_json_layer2(node, nx_metadata) for node, nx_metadata in graph.nodes_iter(data=True)],
-        'edges': [edge_to_json_layer2(nx_metadata) for node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
+        'vlans': get_vlan_lookup_json(vlan_by_interface),
+        'nodes': _get_nodes(node_to_json_layer2, graph),
+        'links': [edge_to_json_layer2((node_a, node_b), nx_metadata) for node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
     }
 
 
 def _json_layer3(view=None):
     graph = build_netmap_layer3_graph(view)
     return {
-        'nodes': [node_to_json_layer3(node, nx_metadata) for node, nx_metadata in graph.nodes_iter(data=True)],
-        'edges': [edge_to_json_layer3(nx_metadata) for node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
+        'nodes': _get_nodes(node_to_json_layer3, graph),
+        'links': [edge_to_json_layer3((node_a, node_b), nx_metadata) for node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
     }
+
+def _get_nodes(node_to_json_function, graph):
+    nodes = {}
+    for node, nx_metadata in graph.nodes_iter(data=True):
+        nodes.update(node_to_json_function(node, nx_metadata))
+    return nodes
 
 
 
