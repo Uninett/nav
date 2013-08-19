@@ -51,8 +51,8 @@ define([
         get_fixed_nodes: function () {
             var fixed_nodes = _.filter(this.options.graph.get('nodes'), function (node) {
                 return node.fixed === true &&
-                    node.data.category &&
-                    node.data.category.toUpperCase() !== 'ELINK';
+                    node.get('category') &&
+                    node.get('category').toUpperCase() !== 'ELINK';
             });
             return fixed_nodes;
         },

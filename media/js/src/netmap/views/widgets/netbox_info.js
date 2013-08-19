@@ -27,8 +27,8 @@ define([
             var self = this;
             if (self.node !== undefined) {
                 var out = this.template({
-                    'node': self.node,
-                    'isElink': !!self.node.data.category && self.node.data.category === 'elink',
+                    'node': self.node.toJSON(),
+                    'isElink': !!self.node.get('category') && self.node.get('category') === 'elink',
                     'isWidgetVisible': !!this.options.isWidgetVisible
                 });
                 this.$el.html(out);
@@ -45,7 +45,7 @@ define([
         },
         setNode: function (node, selected_vlan) {
             this.node = node;
-            this.vlanView.setVlans(this.node.data.vlans);
+            this.vlanView.setVlans(this.node.get('vlans'));
             this.vlanView.setSelectedVlan(selected_vlan);
             this.render();
         },
@@ -54,7 +54,7 @@ define([
         },
         notifyMap: function (e) {
             this.broker.trigger('netmap:node:setFixed', {
-                sysname: this.node.data.sysname,
+                sysname: this.node.get('sysname'),
                 fixed: $(e.currentTarget).prop('checked')
             });
         },

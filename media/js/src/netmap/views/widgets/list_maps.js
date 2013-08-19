@@ -241,6 +241,7 @@ define([
             context.isFavorite = this.options.activeMapProperties.get('isFavorite', false);
             context.description = this.options.activeMapProperties.get('description', null);
             context.isViewEnabled = this.isViewEnabled;
+            context.isFavoriteEnabled = (!this.options.activeMapProperties.isNew() && this.isViewEnabled);
             context.isWidgetVisible = this.isWidgetVisible;
             context.isWidgetCollapsible = !!this.options.isWidgetCollapsible;
             context.isBrowserSupportingSVGExport = $.browser.webkit;

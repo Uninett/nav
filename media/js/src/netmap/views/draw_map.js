@@ -197,20 +197,21 @@ define([
             this.model.fetch({
                 success: function (model) {
                     self.model = model;
-                    var newModel = model.toJSON();
+
 
                     if (self.isGraphLoadingForFirstTime) {
-                        _.each(newModel.nodes, function(nodeObject, i) {
-                            self.forceHelper.addNode(nodeObject.data.sysname, nodeObject);
+                        var newModel = model.toJSON();
+                        newModel.nodes.each(function (nodeObject) {
+                            self.forceHelper.addNode(nodeObject.get('id'), nodeObject);
                         });
-                        _.each(newModel.links, function (linkObject) {
-                            self.forceHelper.addLink(linkObject.source, linkObject.target, linkObject.data);
+                        newModel.links.each(function (linkObject) {
+                            self.forceHelper.addLink(linkObject.get('source'), linkObject.get('target'), linkObject);
                         });
 
                         self.zoomRescaleFromActiveProperty(self.options.activeMapModel.get('zoom'));
                         self.isGraphLoadingForFirstTime = false;
                     } else {
-                        self.updateTopologyGraph(newModel);
+                        self.updateTopologyGraph(self.model);
                     }
 
                     if (shouldRezoomAndTranslate) {
@@ -230,33 +231,34 @@ define([
         },
 
         sysnameFromLinkObjectOrGraphModelFetch: function (linkOrGraph) {
-            var sourceSysname = (_.isObject(linkOrGraph.source) ? linkOrGraph.source.data.sysname : linkOrGraph);
-            var targetSysname = (_.isObject(linkOrGraph.target) ? linkOrGraph.target.data.sysname : linkOrGraph);
-            return sourceSysname+"-"+targetSysname;
+            var sourceSysname = (linkOrGraph instanceof Backbone.Model ? linkOrGraph.get('source').id : linkOrGraph.source.id);
+            var targetSysname = (linkOrGraph instanceof Backbone.Model ? linkOrGraph.get('target').id : linkOrGraph.target.id);
+            var grp = sourceSysname+"-"+targetSysname;
+            return grp;
         },
         updateTopologyGraph: function (newTopologyGraphJSON) {
             var self = this;
 
             // nodes in this.nodes not present in newTopologyGraphJSON.nodes
-            var toRemove = SetEquality.difference(this.nodes, newTopologyGraphJSON.nodes, function (aNode, bNode) {
-                return aNode.data.sysname === bNode.data.sysname;
+            var toRemove = SetEquality.difference(this.nodes, newTopologyGraphJSON.get('nodes').models, function (aNode, bNode) {
+                return aNode.get('id') === bNode.get('id');
             });
 
             // nodes present in newTopologyGraphJSON.nodes and not in this.nodes
-            var toAdd = SetEquality.difference(newTopologyGraphJSON.nodes, this.nodes, function (aNode, bNode) {
-                return aNode.data.sysname === bNode.data.sysname;
+            var toAdd = SetEquality.difference(newTopologyGraphJSON.get('nodes').models, this.nodes, function (aNode, bNode) {
+                return aNode.get('id') === bNode.get('id');
             });
 
 
             // delete existing nodes not in new model json
             for (var i = 0; i < toRemove.length; i++) {
                 var nodeToRemove = toRemove[i];
-                this.forceHelper.removeNode(nodeToRemove.data.sysname);
+                this.forceHelper.removeNode(nodeToRemove.get('id'));
             }
 
             for (var j = 0; j < toAdd.length; j++) {
                 var nodeToAdd = toAdd[j];
-                this.forceHelper.addNode(nodeToAdd.data.sysname, nodeToAdd);
+                this.forceHelper.addNode(nodeToAdd.get('id'), nodeToAdd);
             }
 
 
@@ -269,25 +271,25 @@ define([
             // links to remove that are not present in newTopologyGraphJSON.links, but in this.links
             // (even if removeNode clears links from it, it might be that node is available in this.nodes
             // but should have it links removed...)
-            var linksToRemove = SetEquality.difference(this.links, newTopologyGraphJSON.links, function (aLink, bLink) {
+            var linksToRemove = SetEquality.difference(this.links, newTopologyGraphJSON.get('links').models, function (aLink, bLink) {
                 // bLink can be either string or link object.
                 return self.sysnameFromLinkObjectOrGraphModelFetch(bLink) === self.sysnameFromLinkObjectOrGraphModelFetch(aLink);
             });
 
             for (var k = 0; k < linksToRemove.length; k++) {
                 var kx = linksToRemove[k];
-                this.forceHelper.removeLink(kx.source.data.sysname, kx.target.data.sysname);
+                this.forceHelper.removeLink(kx.source.get('id'), kx.target.get('id'));
             }
 
             // new links present in newTopologyGraphJSON.links add to this.links
-            var linksToAdd = SetEquality.difference(newTopologyGraphJSON.links, this.links, function (aLink, bLink) {
+            var linksToAdd = SetEquality.difference(newTopologyGraphJSON.get('links').models, this.links, function (aLink, bLink) {
                 // aLink can be either string or link object
                 return self.sysnameFromLinkObjectOrGraphModelFetch(aLink) === self.sysnameFromLinkObjectOrGraphModelFetch(bLink);
             });
 
             for (var m = 0; m < linksToAdd.length; m++) {
                 var linkToAdd = linksToAdd[m];
-                this.forceHelper.addLink(linkToAdd.source, linkToAdd.target, linkToAdd.data);
+                this.forceHelper.addLink(linkToAdd.get('source'), linkToAdd.get('target'), linkToAdd.data || linkToAdd.attributes);
             }
 
 
@@ -296,15 +298,15 @@ define([
             // Pull over data form nodes and links from graph
             // and update this.nodes and this.links with it.
             // kinda a duplicate job but hey ho.
-            for (var x = 0; x < newTopologyGraphJSON.nodes.length; x++) {
-                var nodeToUpdate = newTopologyGraphJSON.nodes[x];
+            for (var x = 0; x < newTopologyGraphJSON.get('nodes').models.length; x++) {
+                var nodeToUpdate = newTopologyGraphJSON.get('nodes').models[x];
                 // findNode used to get the instance already in this.nodes instead of the new one coming from data refresh.
-                this.forceHelper.updateNode(self.forceHelper.findNode(nodeToUpdate.data.sysname), nodeToUpdate.data);
+                this.forceHelper.updateNode(self.forceHelper.findNode(nodeToUpdate.get('id')), nodeToUpdate.attributes);
             }
 
-            for (var n = 0; n < newTopologyGraphJSON.links.length; n++) {
-                var linkToUpdate = newTopologyGraphJSON.links[n];
-                this.forceHelper.updateLink(linkToUpdate);
+            for (var n = 0; n < newTopologyGraphJSON.get('links').models.length; n++) {
+                var linkToUpdate = newTopologyGraphJSON.get('links').models[n];
+                this.forceHelper.updateLink(linkToUpdate.data || linkToUpdate.attributes);
             }
             // all updates done, now hopefully self.update() is called! ;-)
         },
@@ -352,7 +354,7 @@ define([
 
             for (var i = 0; i < this.nodes.length; i++) {
                 var node = this.nodes[i];
-                if (node.data.sysname === data.sysname) {
+                if (node.get('sysname') === data.sysname) {
                     node.fixed = data.fixed;
                     break;
                 }
@@ -403,12 +405,6 @@ define([
                 ));
             }
         },
-        isSelectedVlanInList: function (vlansList) {
-            var self = this;
-            return _.some(vlansList, function (vlan) {
-                return self.selectedVLANObject.navVlanId === vlan.nav_vlan;
-            });
-        },
         setMapProperty: function (newActiveMapPropertyModel) {
             this.unbindActiveMapModel();
             this.options.activeMapModel = newActiveMapPropertyModel;
@@ -441,7 +437,11 @@ define([
         nodeDragEnd: function (nodeObject) {
             this.tick();
             if (this.isDragMoveTriggered) {
-                nodeObject.isDirty = true;
+                nodeObject.set({
+                    'isDirty': true,
+                    'x': nodeObject.x,
+                    'y': nodeObject.y
+                }, {'silent': true}); // so values get's exported on save as.
                 this.force.resume();
                 this.nodeOnClick(nodeObject);
             }
@@ -452,7 +452,7 @@ define([
               this.updateRenderGroupByPosition();
             }
 
-            this.unselectVLANSelectionOnConditionsAndRender(nodeObject.data.vlans);
+            this.unselectVLANSelectionOnConditionsAndRender(nodeObject.get('vlans'));
 
             this.broker.trigger("netmap:selectNetbox", {
              'selectedVlan': this.selectedVLANObject,
@@ -460,16 +460,16 @@ define([
              });
         },
         linkOnClick: function (linkObject) {
-            this.unselectVLANSelectionOnConditionsAndRender(linkObject.data.uplink.vlans);
+            this.unselectVLANSelectionOnConditionsAndRender(linkObject.data.vlans);
 
             this.broker.trigger("netmap:selectLink", {
                 'selectedVlan': this.selectedVLANObject,
                 'link': linkObject
             });
         },
-        unselectVLANSelectionOnConditionsAndRender: function (vlansList) {
+        unselectVLANSelectionOnConditionsAndRender: function (vlansCollection) {
             // Unselect vlan selection if new node/link doesn't contain selected_vlan
-            if (this.selectedVLANObject && !this.isSelectedVlanInList(vlansList)) {
+            if (!vlansCollection ||  (this.selectedVLANObject && !vlansCollection.get(this.selectedVLANObject.navVlanId))) {
                 this.selectedVLANObject = null;
                 Backbone.View.navigate(Backbone.history.stripTrailingSlash(Backbone.history.getFragment().replace(/vlan\/\d+/g, "")));
                 this.updateRenderVLAN(this.selectedVLANObject);
@@ -529,7 +529,7 @@ define([
             // find related box
             for (var i = 0; i < this.nodes.length; i++) {
                 var node = this.nodes[i];
-                if (node.data.sysname.search(query) !== -1) {
+                if (node.get('sysname').search(query) !== -1) {
                     matchingNetboxes.push(node);
                 }
             }
@@ -581,7 +581,7 @@ define([
         updateRenderHighlightNodes: function (listNetboxes) {
             var highLightNodes = this.highlightNodesAnimationRoot.selectAll("circle")
                 .data(listNetboxes, function (netbox) {
-                    return netbox.data.sysname;
+                    return netbox.get('sysname');
                 });
 
             highLightNodes.enter()
@@ -630,14 +630,10 @@ define([
         getVLANNodes: function () {
             var self = this;
             return this.nodes.filter(function (nodeObject) {
-
-                if (nodeObject.data.vlans !== undefined && nodeObject.data.vlans && self.selectedVLANObject) {
-                    for (var i = 0; i < nodeObject.data.vlans.length; i++) {
-                        var vlan = nodeObject.data.vlans[i];
-                        if (vlan.nav_vlan === self.selectedVLANObject.navVlanId) {
-                            return true;
-                        }
-                    }
+                var vlans = nodeObject.get('vlans');
+                if (vlans !== undefined && vlans && self.selectedVLANObject) {
+                    // todo: Refactory selectedVLANObject to be a netmap.models.vlan
+                    return _.contains(vlans.pluck('nav_vlan'), self.selectedVLANObject.navVlanId);
                 }
                 return false;
             });
@@ -645,11 +641,11 @@ define([
         updateRenderFade: function (listOfNodes, listOfLinks) {
             var self = this;
             var nodesToFadeData = SetEquality.difference(self.nodes, listOfNodes, function (a, b) {
-                return a.data.sysname === b.data.sysname;
+                return a.get('sysname') === b.get('sysname');
             });
 
             var nodesToFade = self.nodeGroupRoot.selectAll("g.node").data(nodesToFadeData, function (nodeObject) {
-                return nodeObject.data.sysname;
+                return nodeObject.get('sysname');
             });
 
             var linksToFadeData = SetEquality.difference(self.links, listOfLinks, function (aLink, bLink) {
@@ -680,13 +676,10 @@ define([
             var markVlanNodes = this.getVLANNodes();
 
             var markVlanLinks = self.links.filter(function (linkObject) {
-                if (linkObject.data.uplink.vlans !== undefined && linkObject.data.uplink.vlans && self.selectedVLANObject) {
-                    for (var i = 0; i < linkObject.data.uplink.vlans.length; i++) {
-                        var vlan = linkObject.data.uplink.vlans[i];
-                        if (vlan.nav_vlan === self.selectedVLANObject.navVlanId) {
-                            return true;
-                        }
-                    }
+                if (self.selectedVLANObject) {
+                    return linkObject.data.vlans.some(function (vlan) {
+                        return vlan.get('nav_vlan') === self.selectedVLANObject.navVlanId;
+                     });
                 }
                 return false;
             });
@@ -698,7 +691,7 @@ define([
             }
 
             var nodesInVLAN = self.nodesInVLAN = self.selectedNodeGroupRoot.selectAll("g circle").data(markVlanNodes, function (nodeObject) {
-                return nodeObject.data.sysname;
+                return nodeObject.get('sysname');
             });
 
             var linksInVlan = self.linksInVLAN = self.selectedLinkGroupRoot.selectAll("g line").data(markVlanLinks, function (linkObject) {
@@ -770,18 +763,18 @@ define([
             if (!!self.selected_node) {
                 if (self.options.activeMapModel.get('position').get('room').get('is_selected')) {
                     groupBy = self.nodes.filter(function (nodeObject) {
-                        return nodeObject.data.roomid === self.selected_node.data.roomid;
+                        return nodeObject.get('roomid') === self.selected_node.get('roomid');
                     });
                 } else if (self.options.activeMapModel.get('position').get('location').get('is_selected')) {
                     groupBy = self.nodes.filter(function (nodeObject) {
-                        return nodeObject.data.locationid === self.selected_node.data.locationid;
+                        return nodeObject.get('locationid') === self.selected_node.get('locationid');
                     });
                 }
             }
             var nodePositionNetboxes = [];
             var nodePositionSelection = this.nodePositionSelection = this.selectedNodeGroupRoot.selectAll("circle.grouped_by_room").data(groupBy, function (nodeObject)  {
                 nodePositionNetboxes.push(nodeObject);
-                return nodeObject.data.sysname;
+                return nodeObject.get('sysname');
             });
 
             nodePositionSelection.enter()
@@ -793,6 +786,7 @@ define([
                 .attr("cy", function (nodeObject) { return nodeObject.py; });
             nodePositionSelection.exit().remove();
 
+            // todo: race condition towards marking and unmarking between renderes. ie ( room vs vlan selection etc )
             if (self.options.activeMapModel.get('position').get('none').get('is_selected')) {
                 this.updateRenderResetClassesOnNodesAndLinks();
             } else {
@@ -806,7 +800,7 @@ define([
 
             if (this.options.activeMapModel.get('displayTopologyErrors', false)) {
                 linksWithErrors = this.links.filter(function (linkObject) {
-                    return linkObject.data.tip_inspect_link;
+                    return linkObject.get('tip_inspect_link');
                 });
             }
 
@@ -870,25 +864,26 @@ define([
                 return category.get('is_selected', false);
             });
 
-            this.updateTopologyGraph(this.model.toJSON());
+            this.updateTopologyGraph(this.model); //reseed
             // nodes left after filtering out non-selected categories
-            var nodesToKeep = _.filter(this.nodes, function (nodeObject) {
+            var nodesToKeep = this.nodes.filter(function (nodeObject) {
                 return isNodeInCategorySet(nodeObject);
             });
 
-            var linksToKeep = _.filter(this.links, function (linkObject) {
+            var linksToKeep = this.links.filter(function (linkObject) {
                return isNodeInCategorySet(linkObject.source) && isNodeInCategorySet(linkObject.target);
             });
 
 
-            this.updateTopologyGraph({
-                'nodes': nodesToKeep,
-                'links': linksToKeep
-            });
+            this.updateTopologyGraph(new GraphModel({
+                'nodes': {'models':nodesToKeep}, // updateTopologyGraph expects a parsed NodeCollection, cheating a bit.
+                'links': {'models':linksToKeep}
+            }));
 
+            // todo: Backbone.Collection contains? :-)
             function isNodeInCategorySet(nodeObject) {
                 return _.some(categories, function (categoryAsCheckRadioModel) {
-                    return categoryAsCheckRadioModel.get('name').toUpperCase() === (nodeObject.data.category + "").toUpperCase();
+                    return categoryAsCheckRadioModel.get('name').toUpperCase() === (nodeObject.get('category') + "").toUpperCase();
                 });
             }
         },
@@ -954,10 +949,10 @@ define([
             function updateStopsInGradient(gradient) {
                 var stops = gradient.selectAll("stop").data(function (linkObject) {
                     return [
-                        {percent: 0, css: linkObject.data.traffic.inOctets_css},
-                        {percent: 50, css: linkObject.data.traffic.inOctets_css },
-                        {percent: 51, css: linkObject.data.traffic.outOctets_css},
-                        {percent: 100, css: linkObject.data.traffic.outOctets_css}
+                        {percent: 0, css: linkObject.data.edges.at(0).get('traffic').inOctets.css},
+                        {percent: 50, css: linkObject.data.edges.at(0).get('traffic').inOctets.css },
+                        {percent: 51, css: linkObject.data.edges.at(0).get('traffic').outOctets.css},
+                        {percent: 100, css: linkObject.data.edges.at(0).get('traffic').outOctets.css}
                     ];
                 });
                 stops.enter()
@@ -1029,7 +1024,7 @@ define([
             var self = this;
 
             var nodeData = this.node = this.nodeGroupRoot.selectAll("g.node").data(self.nodes, function (nodeObject) {
-                return nodeObject.data.sysname;
+                return nodeObject.get('sysname');
             });
 
             var nodeGroup = nodeData.enter()
@@ -1045,7 +1040,7 @@ define([
                 .attr("height", "32px");
             nodeCategoryImage
                 .attr("xlink:href", function (nodeObject) {
-                    return "data:image/png;base64," + self.availableCategoriesDatauris[nodeObject.data.category.toLowerCase()];
+                    return "data:image/png;base64," + self.availableCategoriesDatauris[nodeObject.get('category').toLowerCase()];
                 });
 
             var nodeSysname = nodeGroup.selectAll("text.sysname").data(function (nodeObject) { return [nodeObject]; }).enter()
@@ -1057,7 +1052,7 @@ define([
                 .attr("fill", "#000000")
                 .attr("background", "#c0c0c0");
             nodeSysname.text(function (nodeObject) {
-                return nodeObject.data.sysname;
+                return nodeObject.get('sysname');
             });
 
             nodeData.exit().transition()

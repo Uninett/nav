@@ -37,16 +37,15 @@ define([
             if (self.vlans !== undefined && self.vlans) {
                 // Mark selected vlan in metadata for template.
                 if (self.selectedVLANObject !== undefined && self.selectedVLANObject) {
-                    for (var i = 0; i < self.vlans.length; i++) {
-                        var vlan = self.vlans[i];
-                        vlan.is_selected = vlan.nav_vlan === self.selectedVLANObject.navVlanId;
-                    }
+                    self.vlans.each(function (vlan) {
+                       vlan.set({'is_selected': vlan.get('nav_vlan') === self.selectedVLANObject.navVlanId}, {'silent': true});
+                    });
                 } else {
-                    _.each(self.vlans, function (vlan) {
-                        vlan.is_selected = false;
+                    self.vlans.each(function (vlan) {
+                        vlan.set({'is_selected': false}, {'silent': true});
                     });
                 }
-                var out = this.template({ vlans: self.vlans, selectedVLANObject: self.selectedVLANObject, isZoomAndTranslate: this.isZoomAndTranslate});
+                var out = this.template({ vlans: self.vlans.toJSON(), selectedVLANObject: self.selectedVLANObject, isZoomAndTranslate: this.isZoomAndTranslate});
                 this.$el.html(out);
             } else {
                 this.$el.empty();
