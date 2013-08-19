@@ -20,6 +20,7 @@ from collections import defaultdict
 from nav.models.manage import SwPortVlan, Prefix
 from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2, \
     node_to_json_layer2
+from nav.netmap.rrd import _get_datasource_lookup
 from nav.topology import vlan
 
 
@@ -216,27 +217,6 @@ class Counter(dict):
         return result
 
 
-if __name__ == '__main__':
-    import doctest
-    print doctest.testmod()
-
-
-class NetmapEdge(frozenset):
-    """ Represents an edge.
-    This means   a,b == b,a
-    (helps dealing with MultiDiGraph to MultiGraph)
-    Note: objects must be hashable!
-    run-time: o(n)
-    """
-
-    def __eq__(self, other):
-        if not isinstance(other, NetmapEdge):
-            return False
-        return Counter(self) == Counter(other)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
 def _get_vlans_map_layer2(graph):
     """Builds two dictionaries to lookup VLAN information for layer2
     :param a networkx NAV topology graph
@@ -292,6 +272,7 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
     :param vlan_by_interface: dictionary to lookup up vlan's attached to given interface
     :return: reduced networkx topology graph with directional metadata attached under 'meta'
     """
+
     _LOGGER.debug(
         "_convert_to_unidirectional_and_attach_directional_metadata()")
     netmap_graph = nx.Graph()
@@ -299,10 +280,8 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
         "_convert_to_unidirectional_and_attach_directional_metadata()"
         " reduce done")
 
-    # set to keep in memory to make sure a1<->b1 edges doesn't count twice (directional).
-    # (as we use the original directional nav.topology.vlan directional MultiDiGraph
-    # to build and attach metadata at the reduced graph)
-    seen_edge = set()
+
+    interfaces = set()
 
     # basically loops over the whole graph here, make sure we fetch all 'loose'
     # ends and makes sure they get metadata attached.
@@ -315,16 +294,20 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
                     target
                 ) or {}
                 port_pairs = existing_metadata.setdefault('port_pairs', set())
-                port_pair = tuple(sorted((interface, interface.to_interface)))
+                port_pair = tuple(sorted((interface, interface.to_interface), key=lambda interfjes: interfjes and interfjes.pk or None))
                 port_pairs.add(port_pair)
+                if port_pair[0] is not None: interfaces.add(port_pair[0])
+                if port_pair[1] is not None: interfaces.add(port_pair[1])
 
                 netmap_graph.add_edge(source, target,
                                       attr_dict=existing_metadata)
 
+    rrd_datasources = _get_datasource_lookup(interfaces)
+
     for source, target, metadata_dict in netmap_graph.edges_iter(data=True):
         for a,b in metadata_dict.get('port_pairs'):
-            additional_metadata = edge_metadata_function(a, b,
-                                                         vlan_by_interface)
+            additional_metadata = edge_metadata_function((source, target), a, b,
+                                                         vlan_by_interface, rrd_datasources)
 
             metadata = metadata_dict.setdefault('metadata', list())
             metadata.append(additional_metadata)
@@ -334,7 +317,7 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
         " all metadata updated")
     return netmap_graph
 
-def build_netmap_layer2_graph(view=None):
+def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface, vlan_by_netbox, view=None):
     """
     Builds a netmap layer 2 graph, based on nav's build_layer2_graph method.
 
@@ -345,19 +328,6 @@ def build_netmap_layer2_graph(view=None):
     :return NetworkX MultiDiGraph with attached metadata for edges and nodes
             (obs! metadata has direction metadata added!)
     """
-    _LOGGER.debug("build_netmap_layer2_graph() start")
-    topology_without_metadata = vlan.build_layer2_graph(
-        (
-        'to_interface__netbox', 'to_interface__netbox__room', 'to_netbox__room',
-        'netbox__room', 'to_interface__netbox__room__location',
-        'to_netbox__room__location', 'netbox__room__location'))
-    _LOGGER.debug("build_netmap_layer2_graph() topology graph done")
-
-    vlan_by_interface, vlan_by_netbox = _get_vlans_map_layer2(
-        topology_without_metadata)
-    _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
-
-
     netmap_graph = _convert_to_unidirectional_and_attach_directional_metadata(
         topology_without_metadata,
         edge_metadata_layer2,
@@ -368,9 +338,9 @@ def build_netmap_layer2_graph(view=None):
         "build_netmap_layer2_graph() graph reduced and metadata attached done")
 
     for node, data in netmap_graph.nodes_iter(data=True):
-        if vlan_by_netbox.has_key(node):
+        if node in vlan_by_netbox:
             data['metadata'] = {
-                'vlans': sorted(vlan_by_netbox.get(node).iteritems(),
+                'vlans': sorted(vlan_by_netbox[node].iteritems(),
                     key=lambda x: x[1].vlan.vlan)}
     _LOGGER.debug("build_netmap_layer2_graph() vlan metadata for _nodes_ done")
 
@@ -402,7 +372,7 @@ def build_netmap_layer3_graph(view=None):
     _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
 
     # Make a copy of the graph, and add edge meta data
-    graph = nx.MultiGraph()
+    graph = nx.Graph()
 
     for gwpp_a, gwpp_b, prefix in topology_without_metadata.edges_iter(
         keys=True):
@@ -410,10 +380,22 @@ def build_netmap_layer3_graph(view=None):
         netbox_a = gwpp_a.interface.netbox
         netbox_b = gwpp_b.interface.netbox
 
+        existing_metadata = graph.get_edge_data(netbox_a, netbox_b) or {}
+        gwportprefix_pairs = existing_metadata.setdefault('gwportprefix_pairs', set())
+        gwportprefix = tuple(sorted((gwpp_a, gwpp_b), key=lambda gwpportprefix: gwpportprefix and gwpportprefix.gw_ip or None))
+        gwportprefix_pairs.add(gwportprefix)
+
         graph.add_edge(netbox_a, netbox_b, key=prefix.vlan.id,
-            metadata=edge_metadata_layer3(gwpp_a, gwpp_b,
-                vlans_map.get(prefix.vlan.id)))
+            attr_dict=existing_metadata)
     _LOGGER.debug("build_netmap_layer3_graph() graph copy with metadata done")
+
+    for source, target, metadata_dict in graph.edges_iter(data=True):
+      for a,b in metadata_dict.get('gwportprefix_pairs'):
+          additional_metadata = edge_metadata_layer3((source, target), a, b)
+          assert a.prefix.vlan.id == b.prefix.vlan.id, "GwPortPrefix must reside inside VLan for given Prefix, bailing!"
+          metadata = metadata_dict.setdefault('metadata', defaultdict(list))
+          metadata[a.prefix.vlan.id].append(additional_metadata)
+
 
     if view:
         graph = _attach_node_positions(graph, view.node_position_set.all())
