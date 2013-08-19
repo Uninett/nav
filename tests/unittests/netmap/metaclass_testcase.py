@@ -8,6 +8,7 @@ class MetaClassTestCase(unittest.TestCase):
         self.maxDiff = None
         self.netbox = Mock(name='Netbox', spec=Netbox)
         self.netbox.pk = 1337
+        self.netbox.id = self.netbox.pk
         self.netbox.sysname = 'fuu.example.net'
         self.netbox.category_id = 'GW'
         self.netbox.ip = '192.168.42.1'
