@@ -5,6 +5,7 @@ define([
     'plugins/message',
     'netmap/resource',
     'netmap/models/graph',
+    'netmap/collections/l3edges',
     'netmap/views/loading_spinner',
     // Pull in the Collection module from above
     'libs-amd/text!netmap/templates/draw_map.html',
@@ -13,7 +14,7 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapExtras, D3ForceHelper, SetEquality, Tooltip, Resources, GraphModel, LoadingSpinnerView, netmapTemplate) {
+], function (NetmapExtras, D3ForceHelper, SetEquality, Tooltip, Resources, GraphModel, L3EdgesCollection, LoadingSpinnerView, netmapTemplate) {
 
     var DataRefreshTimer = function (interval) {
         this.context = this;
@@ -942,11 +943,18 @@ define([
 
             function updateStopsInGradient(gradient) {
                 var stops = gradient.selectAll("stop").data(function (linkObject) {
+                    var trafficObject;
+                    if (linkObject.data.edges instanceof L3EdgesCollection){
+                        trafficObject = linkObject.data.edges.at(0).get('edges').at(0).get('traffic');
+                    } else {
+                        trafficObject = linkObject.data.edges.at(0).get('traffic');
+                    }
+
                     return [
-                        {percent: 0, css: linkObject.data.edges.at(0).get('traffic').inOctets.css},
-                        {percent: 50, css: linkObject.data.edges.at(0).get('traffic').inOctets.css },
-                        {percent: 51, css: linkObject.data.edges.at(0).get('traffic').outOctets.css},
-                        {percent: 100, css: linkObject.data.edges.at(0).get('traffic').outOctets.css}
+                        {percent: 0, css: trafficObject.inOctets.css},
+                        {percent: 50, css: trafficObject.inOctets.css },
+                        {percent: 51, css: trafficObject.outOctets.css},
+                        {percent: 100, css: trafficObject.outOctets.css}
                     ];
                 });
                 stops.enter()
