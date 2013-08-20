@@ -11,7 +11,8 @@ define([
         _.extend({}, WidgetMixin, {
         broker: Backbone.EventBroker,
         interests: {
-            'netmap:forceRunning': 'updateStatus'
+            'netmap:forceRunning': 'updateStatus',
+            "netmap:graph:isDoneLoading": "setIsViewEnabled"
         },
         events: {
             'click div.header .title': 'toggleWidget',
