@@ -45,7 +45,6 @@ deactivate nondestructive
 
 
 BASE_FULL_DIR=$( cd $(dirname ${BASH_SOURCE:-$0}) ; pwd -P )
-echo "$BASE_FULL_DIR"
 RVM_ENV="$BASE_FULL_DIR/.rvm"
 export RVM_ENV
 
@@ -84,4 +83,4 @@ if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
     hash -r
 fi
 
-
+source $RVM_ENV/scripts/rvm
