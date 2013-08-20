@@ -38,7 +38,7 @@ AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
 AC_ARG_VAR(NAV_USER,User to run cronjobs as)
 
 dnl Setting some default variables for NAV
-webrootdir='${datadir}/media'
+webrootdir='${datadir}/htdocs'
 djangotmpldir='${datadir}/templates'
 imagedir='${webrootdir}/images'
 javascriptdir='${webrootdir}/js'
@@ -76,7 +76,7 @@ AC_CONFIG_FILES([
     templates/Makefile
     python/Makefile
     bin/Makefile
-    media/Makefile
+    htdocs/Makefile
 ])
 
 AC_OUTPUT

@@ -140,7 +140,7 @@ class NetboxBulkParser(BulkParser):
     format = ('roomid', 'ip', 'orgid', 'catid',
               'ro', 'serial', 'rw', 'function')
     required = 4
-    restkey = 'subcat'
+    restkey = 'netboxgroup'
 
     @staticmethod
     def _validate_ip(value):
@@ -223,10 +223,10 @@ class ServiceBulkParser(BulkParser):
         return True
 
 
-class SubcatBulkParser(BulkParser):
-    """Parses the subcategory bulk format"""
-    format = ('subcatid', 'catid', 'description')
-    required = 3
+class NetboxGroupBulkParser(BulkParser):
+    """Parses the netboxgroup bulk format"""
+    format = ('netboxgroupid', 'description')
+    required = 2
 
 
 class NetboxTypeBulkParser(BulkParser):
