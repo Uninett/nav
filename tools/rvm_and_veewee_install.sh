@@ -58,7 +58,7 @@ export rvm_path=$RVM_PATH
 # This should feel the script to be more SAFE. 
 
 if [ ! -d $RVM_PATH ]; then
-	\curl -L https://get.rvm.io | bash -s master --ignore-dotfiles --autolibs=read-fail --path $RVM_PATH 
+	\curl -L https://get.rvm.io | bash -s stable --ignore-dotfiles --autolibs=read-fail --path $RVM_PATH 
 fi
 # We'll source it manually .. 
 source $BASE_FULL_DIR/rvm_activate
