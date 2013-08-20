@@ -3,6 +3,24 @@
         <div class="header"><div class="title no-icon">Link info</div></div>
     </div>
     <div class="body">
+        <p>Edges#: {{link.edges.length}}</p>
+        <table>
+            <thead>
+                <tr><td>Source</td><td>Target</td><td>Speed</td></tr>
+                <tr><td>{{this.source.netbox.sysname}}</td><td>{{this.target.netbox.sysname}}</td><td>&nbsp;</td></tr>
+
+            </thead>
+            <tbody>
+            {{#each link.edges}}
+                <tr>
+                   <td>{{this.source.interface}}</td>
+                    <td>{{this.target.interface}}</td>
+                   <td>{{this.link_speed}}</td>
+                </tr>
+            {{/each}}
+            </tbody>
+        </table>
+
         {{#if link.data.uplink.vlan}}
         <div class="uplink_prefix">
 
