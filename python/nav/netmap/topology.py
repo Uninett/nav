@@ -239,23 +239,10 @@ def _get_vlans_map_layer2(graph):
     return (vlan_by_interface, vlan_by_netbox)
 
 def _get_vlans_map_layer3(graph):
-    """Builds a dictionary to lookup VLAN (IP broadcast domain) information
-     for layer3. See nav.models.manage.Vlan
-
-    :param a networkx NAV topology graph
-    :returns a map to lookup prefixes by internal NAV VLAN ID"""
-
-    prefix_list_id = list()
-    for _, _, prefix in graph.edges_iter(keys=True):
-        prefix_list_id.append(prefix.vlan.id)
-
-    prefixes_by_navvlan = defaultdict(list)
-    for prefix_in_navvlan in Prefix.objects.filter(
-        vlan__id__in=list(prefix_list_id)).select_related():
-
-        prefixes_by_navvlan[prefix_in_navvlan.vlan.id].append(prefix_in_navvlan)
-
-    return prefixes_by_navvlan
+    vlans = set()
+    for _, _, vlan in graph.edges_iter(keys=True):
+        vlans.add(vlan)
+    return vlans
 
 def _convert_to_unidirectional_and_attach_directional_metadata(
         topology_without_metadata, edge_metadata_function, vlan_by_interface):
@@ -352,7 +339,7 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface, vlan
     return netmap_graph
 
 
-def build_netmap_layer3_graph(view=None):
+def build_netmap_layer3_graph(topology_without_metadata, view=None):
     """
     Builds a netmap layer 3 graph, based on nav's build_layer3_graph method.
 
@@ -363,13 +350,6 @@ def build_netmap_layer3_graph(view=None):
     :return NetworkX MultiGraph with attached metadata for edges and nodes
             (obs! metadata has direction metadata added!)
     """
-    _LOGGER.debug("build_netmap_layer3_graph() start")
-    topology_without_metadata = vlan.build_layer3_graph(
-        ('prefix__vlan__net_type', 'gwportprefix__prefix__vlan__net_type',))
-    _LOGGER.debug("build_netmap_layer3_graph() topology graph done")
-
-    vlans_map = _get_vlans_map_layer3(topology_without_metadata)
-    _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
 
     # Make a copy of the graph, and add edge meta data
     graph = nx.Graph()
@@ -385,7 +365,7 @@ def build_netmap_layer3_graph(view=None):
         gwportprefix = tuple(sorted((gwpp_a, gwpp_b), key=lambda gwpportprefix: gwpportprefix and gwpportprefix.gw_ip or None))
         gwportprefix_pairs.add(gwportprefix)
 
-        graph.add_edge(netbox_a, netbox_b, key=prefix.vlan.id,
+        graph.add_edge(netbox_a, netbox_b, key=prefix.vlan,
             attr_dict=existing_metadata)
     _LOGGER.debug("build_netmap_layer3_graph() graph copy with metadata done")
 

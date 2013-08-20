@@ -40,7 +40,7 @@ from nav.netmap.metadata import (node_to_json_layer2, edge_to_json_layer2,
 node_to_json_layer3, edge_to_json_layer3, vlan_to_json, get_vlan_lookup_json)
 
 from nav.netmap.topology import build_netmap_layer3_graph,\
-    build_netmap_layer2_graph, _get_vlans_map_layer2
+    build_netmap_layer2_graph, _get_vlans_map_layer2, _get_vlans_map_layer3
 from nav.topology import vlan
 from nav.web.netmap.common import layer2_graph, get_traffic_rgb
 from nav.web.netmap.forms import NetmapDefaultViewForm
@@ -504,8 +504,17 @@ def _json_layer2(view=None):
 
 
 def _json_layer3(view=None):
-    graph = build_netmap_layer3_graph(view)
+    _LOGGER.debug("build_netmap_layer3_graph() start")
+    topology_without_metadata = vlan.build_layer3_graph(
+        ('prefix__vlan__net_type', 'gwportprefix__prefix__vlan__net_type',))
+    _LOGGER.debug("build_netmap_layer3_graph() topology graph done")
+
+    vlans_map = _get_vlans_map_layer3(topology_without_metadata)
+    _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
+
+    graph = build_netmap_layer3_graph(topology_without_metadata, view)
     return {
+        'vlans': [vlan_to_json(prefix.vlan) for prefix in _get_vlans_map_layer3(topology_without_metadata)],
         'nodes': _get_nodes(node_to_json_layer3, graph),
         'links': [edge_to_json_layer3((node_a, node_b), nx_metadata) for node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
     }
