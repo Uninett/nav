@@ -738,14 +738,8 @@ define([
             return requiredScale;
         },
         centerGraph: function () {
-            var requiredScale = this.baseScale();
-            this.scale = requiredScale;
-            this.trans = [(-this.w / 2) * (this.scale - 1), (-this.h / 2) * (this.scale - 1)];
-            this.zoom.scale(requiredScale);
-            this.zoom.translate(this.trans);
-            this.bounding_box.attr("transform",
-                "translate(" + this.trans + ") scale(" + this.scale + ")");
-
+            var boundingBox = this.findBoundingBox(this.nodes, 200);
+            this.zoomRescaleFromBounds(boundingBox);
         },
         validateTranslateScaleValues: function () {
             if (isNaN(this.scale)) {
