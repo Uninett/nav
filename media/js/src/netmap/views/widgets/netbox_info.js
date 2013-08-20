@@ -25,9 +25,11 @@ define([
         },
         render: function () {
             var self = this;
-            if (self.node !== undefined) {
+            if (!!self.node) {
+                var nodeJson = self.node.toJSON();
+                nodeJson.fixed = !!self.node.fixed;
                 var out = this.template({
-                    'node': self.node.toJSON(),
+                    'node': nodeJson,
                     'isElink': !!self.node.get('category') && self.node.get('category') === 'elink',
                     'isWidgetVisible': !!this.options.isWidgetVisible
                 });
