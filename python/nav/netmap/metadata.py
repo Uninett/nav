@@ -260,6 +260,7 @@ class Edge(object):
         }
         if self.layer == 3:
             json.update({'prefix': unicode(self.prefix)})
+            json.update({'vlan': self.prefix.vlan.id})
         elif self.layer == 2:
             json.update({'vlans': [swpv.vlan.id for swpv in self.vlans]})
 
