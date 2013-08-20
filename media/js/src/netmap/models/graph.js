@@ -16,8 +16,8 @@ define([
             if (this.isNew()) return base;
             return base + (base.charAt(base.length - 1) === '/' ? '' : '/') + this.get('id');
         },
+        // todo: Find a cleaner practice for doing this maybe? Hmf.
         parse: function (response, options) {
-
             response.vlans = new VlanCollection(VlanCollection.prototype.parse(response.vlans));
             response.nodes = new NodesCollection(NodesCollection.prototype.parse(response.nodes));
             response.nodes.each(function (node) {
@@ -37,8 +37,10 @@ define([
                 link.set({'edges': new EdgesCollection(link.get('edges'))}, {'silent': true});
                 link.get('edges').each(function (edge) {
                     edge.attributes.source.netbox = response.nodes.get(edge.get('source').netbox);
+                    edge.attributes.source.interface = (!!edge.attributes.source.interface ? edge.attributes.source.interface : 'N/A');
                     edge.attributes.source.vlans = new VlanCollection(VlanCollection.prototype.parse(_.map(edge.get('source').vlans, function (value, key) { return response.vlans.get(value);})));
                     edge.attributes.target.netbox = response.nodes.get(edge.get('target').netbox);
+                    edge.attributes.target.interface = (!!edge.attributes.target.interface ? edge.attributes.target.interface : 'N/A');
                     edge.attributes.target.vlans = new VlanCollection(VlanCollection.prototype.parse(_.map(edge.get('target').vlans, function (value, key) { return response.vlans.get(value);})));
                     edge.attributes.vlans = new VlanCollection(VlanCollection.prototype.parse(_.map(edge.get('vlans'), function (value, key) { return response.vlans.get(value);})));
                 });
