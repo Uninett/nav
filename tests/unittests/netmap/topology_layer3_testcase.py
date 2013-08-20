@@ -250,7 +250,7 @@ class TopologyLayer3TestCase(TopologyTestCase):
                                return_value=self.nav_graph)
         self.l3.start()
 
-        self.netmap_graph = topology.build_netmap_layer3_graph(None)
+        self.netmap_graph = topology.build_netmap_layer3_graph(self.nav_graph, None)
 
     def tearDown(self):
         self.vlans.stop()
