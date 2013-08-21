@@ -259,7 +259,7 @@ class Edge(object):
             'target': self.target.to_json() or 'null',
         }
         if self.layer == 3:
-            json.update({'prefix': unicode(self.prefix)})
+            json.update({'prefix': unicode(self.prefix.net_address)})
             json.update({'vlan': self.prefix.vlan.id})
         elif self.layer == 2:
             json.update({'vlans': [swpv.vlan.id for swpv in self.vlans]})
@@ -276,7 +276,9 @@ class Edge(object):
 def vlan_to_json(vlan):
     return {'vlan': vlan.vlan,
             'nav_vlan': vlan.id,
-            'net_ident': vlan.net_ident}
+            'net_ident': vlan.net_ident,
+            'description': vlan.description
+    }
 
 def get_vlan_lookup_json(vlan_by_interface):
     vlan_lookup = {}
