@@ -111,6 +111,17 @@ define([
             return ret;
         });
 
+        Backbone.Model.extend({
+            toJSON: function () {
+                var clone = _.clone(this.attributes);
+                _.each(clone, function (attr, idx) {
+                    if (attr.toJSON) {
+                        clone[idx] = attr.toJSON();
+                    }
+                });
+                return clone;
+            }
+        });
 
         Backbone.View.prototype.attachSubView = function (view, ViewClass, viewOptions) {
             if (!!viewOptions && !_.isObject(viewOptions)) {
