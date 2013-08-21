@@ -3,23 +3,43 @@
         <div class="header"><div class="title no-icon">Link info</div></div>
     </div>
     <div class="body">
-        <p>Edges#: {{link.edges.length}}</p>
-        <table>
-            <thead>
-                <tr><td>Source</td><td>Target</td><td>Speed</td></tr>
-                <tr><td>{{this.source.netbox.sysname}}</td><td>{{this.target.netbox.sysname}}</td><td>&nbsp;</td></tr>
-
-            </thead>
-            <tbody>
+        <p>Linknet#: {{link.edges.length}}</p>
+        {{#if l3 }}
+            {{! Layer 3 template here.  }}
             {{#each link.edges}}
-                <tr>
-                   <td>{{this.source.interface}}</td>
-                    <td>{{this.target.interface}}</td>
-                   <td>{{this.link_speed}}</td>
-                </tr>
+                {{! this.id is an netmap.models.Vlan FYI }}
+                <div class="uplink_prefix">
+                    <h4>{{ this.id.net_ident }}</h4>
+                    <span class="prefix_description">{{ this.id.description }}</span>
+
+                        {{#each this.edges}}
+                            <div>
+                                <div>
+                                    <div class="prefix">{{this.prefix}}</div>
+                                    <div>
+                                        <div class="toggleUplink">+
+                                        <div class="linkSource">
+                                            <div class="uplink_netbox">{{this.source.netbox.sysname}}</div>
+                                            <div>{{#unless this.source.netbox.interface}}{{this.source.netbox.interface}}{{else}}N/A{{/unless}}</div>
+                                            <div>{{this.source.gw_ip}}</div>
+                                            <div>{{this.source.virtual}}</div>
+                                        </div>
+                                        <div class="linkSource">
+                                            <div class="uplink_netbox">{{this.target.netbox.sysname}}</div>
+                                            <div>{{#unless this.target.netbox.interface}}{{this.target.netbox.interface}}{{else}}N/A{{/unless}}</div>
+                                            <div>{{this.target.gw_ip}}</div>
+                                            <div>{{this.target.virtual}}</div>
+                                        </div>
+                                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {{/each}}
+                </div>
             {{/each}}
-            </tbody>
-        </table>
+        {{else}}
+            {{! Layer 2 template here.  }}
+        {{/if}}
 
         {{#if link.data.uplink.vlan}}
         <div class="uplink_prefix">
