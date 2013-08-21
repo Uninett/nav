@@ -13,6 +13,13 @@ define([
                edge.push(model);
             });
             return edge;
+        },
+        toJSON: function () {
+            var json = this.map(function (model) {
+                var modelJson = model.toJSON();
+                return modelJson;
+            });
+            return json;
         }
 
 
