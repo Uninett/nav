@@ -29,6 +29,14 @@ from nav.mibs.etherlike_mib import EtherLikeMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
+from nav.models import manage
+
+DUPLEX_MAP = {
+    'unknown': None,
+    'halfDuplex': manage.Interface.DUPLEX_HALF,
+    'fullDuplex': manage.Interface.DUPLEX_FULL,
+}
+
 
 class Interfaces(Plugin):
     "Collects comprehensive information about device's network interfaces"
@@ -74,11 +82,6 @@ class Interfaces(Plugin):
                       for ifindex, row in result.items()]
         return interfaces
     
-    duplex_map = {
-        'unknown': None,
-        'halfDuplex': 'h',
-        'fullDuplex': 'f',
-        }
     def _convert_row_to_container(self, netbox, ifindex, row):
         """Convert a collected ifTable/ifXTable row into a container object."""
 
@@ -103,24 +106,33 @@ class Interfaces(Plugin):
         interface.ifalias = decode_to_unicode(row['ifAlias'])
         
         # Set duplex if sucessfully retrieved
-        if 'duplex' in row and row['duplex'] in self.duplex_map:
-            interface.duplex = self.duplex_map[ row['duplex'] ]
+        if 'duplex' in row and row['duplex'] in DUPLEX_MAP:
+            interface.duplex = DUPLEX_MAP[row['duplex']]
 
         interface.gone_since = None
 
         interface.netbox = netbox
         return interface
 
+    @defer.inlineCallbacks
     def _get_stack_status(self, interfaces):
         """Retrieves data from the ifStackTable and initiates a search for a
         proper ifAlias value for those interfaces that lack it.
         
         """
-        df = self.ifmib.retrieve_columns(['ifStackStatus'])
-        df.addCallback(self._get_ifalias_from_lower_layers, interfaces)
-        return df
+        def _stackify(stackstatus):
+            ifindex_map = dict((ifc.ifindex, ifc) for ifc in interfaces)
+            stack = [(ifindex_map[higher], ifindex_map[lower])
+                     for higher, lower in stackstatus
+                     if higher in ifindex_map and lower in ifindex_map]
+            return stack
 
-    def _get_ifalias_from_lower_layers(self, stackstatus, interfaces):
+        stack = yield self.ifmib.get_stack_status().addCallback(_stackify)
+        self._get_ifalias_from_lower_layers(stack)
+        self._create_stack_containers(stack)
+        defer.returnValue(interfaces)
+
+    def _get_ifalias_from_lower_layers(self, stack):
         """For each interface without an ifAlias value, attempts to find
         ifAlias from a lower layer interface.
 
@@ -131,29 +143,18 @@ class Interfaces(Plugin):
         router port's network.
         
         """
-        layer_map = {}        
-        for (upper, lower), row in stackstatus.items():
-            if upper > 0 and lower > 0:
-                layer_map[upper] = lower
+        for higher, lower in stack:
+            if not higher.ifalias and lower.ifalias:
+                higher.ifalias = lower.ifalias
+                self._logger.debug("%s alias set from lower layer %s: %s",
+                                   higher.ifname, lower.ifname, higher.ifalias)
 
-        ifindex_map = {}
-        for interface in interfaces:
-            ifindex_map[interface.ifindex] = interface
-
-        for interface in interfaces:
-            if interface.ifalias or interface.ifindex not in layer_map:
-                continue
-            lower_ifindex = layer_map[interface.ifindex]
-            if lower_ifindex in ifindex_map:
-                ifalias = ifindex_map[lower_ifindex].ifalias
-                if ifalias:
-                    interface.ifalias = ifalias
-                    self._logger.debug("%s alias set from lower layer %s: %s",
-                                       interface.ifname,
-                                       ifindex_map[lower_ifindex].ifname,
-                                       ifalias)
-
-        return interfaces
+    def _create_stack_containers(self, stacklist):
+        for higher, lower in stacklist:
+            key = higher.ifindex, lower.ifindex
+            stack = self.containers.factory(key, shadows.InterfaceStack)
+            stack.higher = higher
+            stack.lower = lower
 
     def _retrieve_duplex(self, interfaces):
         """Get duplex from EtherLike-MIB and update the ifTable results."""

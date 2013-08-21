@@ -13,6 +13,11 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+
+# This is an example file, not production code; It will not be linted by
+# default.  Do remove the following line if you fork this module to write your
+# own:
+# pylint: disable-all
 import logging
 import nav.errors
 import re
@@ -106,5 +111,8 @@ def verifyEventtype ():
     db.commit()
         
 
-# Run verifyeventtype at import
-verifyEventtype()
+def initialize():
+    """Initialize method for snmpdtrap daemon so it can initialize plugin
+    after __import__
+    """
+    verifyEventtype()

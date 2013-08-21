@@ -6,7 +6,7 @@ fi
 
 SLEEPTIME=8
 WORKSPACE=$1
-JSDIR="${WORKSPACE}/media/js"
+JSDIR="${WORKSPACE}/htdocs/js"
 
 GOOGLECHROME=`which google-chrome`
 if [ "$?" -eq 1 ]; then
@@ -118,9 +118,13 @@ PID_CHROME="$!"
 echo "Started on display ${DISPLAYNUM} with pid ${PID_CHROME} connected to ${BUSTERPORT}"
 sleep ${SLEEPTIME}
 
+echo "=========================================================="
+w3m http://localhost:${BUSTERPORT} | cat
+echo "=========================================================="
+
 echo "Running tests"
-cd ${WORKSPACE}/media/js
-${BUSTERTEST} -s http://localhost:${BUSTERPORT} -r xml > ${WORKSPACE}/tests/javascript-result.xml
+cd ${JSDIR}
+${BUSTERTEST} -s http://localhost:${BUSTERPORT} -r xml > ${WORKSPACE}/tests/javascript-results.xml
 
 if [ "$?" -eq 1 ]; then
     echo "Error when testing, taking screenshot"

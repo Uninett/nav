@@ -42,7 +42,7 @@ from nav.alertengine.dispatchers import FatalDispatcherException
 from nav.models.event import AlertQueue, AlertType, EventType
 from nav.models.manage import Arp, Cam, Category, Device, Location
 from nav.models.manage import Memory, Netbox, NetboxInfo, NetboxType
-from nav.models.manage import Organization, Prefix, Room, Subcategory
+from nav.models.manage import Organization, Prefix, Room, NetboxGroup
 from nav.models.manage import Interface, Usage, Vlan, Vendor
 from nav.models.fields import VarcharField
 
@@ -56,7 +56,7 @@ SUPPORTED_MODELS = [
         AlertQueue, AlertType, EventType,
     # manage models
         Arp, Cam, Category, Device, Location, Memory, Netbox, NetboxInfo,
-        NetboxType, Organization, Prefix, Room, Subcategory, Interface,
+        NetboxType, Organization, Prefix, Room, NetboxGroup, Interface,
         Vendor, Vlan,
         Usage,
 ]
@@ -894,7 +894,7 @@ class MatchField(models.Model):
     ARP = 'arp'
     CAM = 'cam'
     CATEGORY = 'cat'
-    SUBCATEGORY = 'subcat'
+    NETBOXGROUP = 'netboxgroup'
     DEVICE = 'device'
     EVENT_TYPE = 'eventtype'
     LOCATION = 'location'
@@ -919,7 +919,7 @@ class MatchField(models.Model):
         (ARP, _('arp')),
         (CAM, _('cam')),
         (CATEGORY, _('category')),
-        (SUBCATEGORY, _('subcategory')),
+        (NETBOXGROUP, _('netboxgroup')),
         (DEVICE, _('device')),
         (EVENT_TYPE, _('event type')),
         (LOCATION, _('location')),
@@ -946,7 +946,7 @@ class MatchField(models.Model):
         ARP:          'netbox__arp',
         CAM:          'netbox__cam',
         CATEGORY:     'netbox__category',
-        SUBCATEGORY:  'netbox__netboxcategory__category',
+        NETBOXGROUP:  'netbox__netboxcategory__category',
         DEVICE:       'netbox__device',
         EVENT_TYPE:   'event_type',
         LOCATION:     'netbox__room__location',

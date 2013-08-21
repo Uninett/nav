@@ -36,7 +36,7 @@ import nav.logs
 import nav.path
 import nav.db
 from nav.event import Event
-from nav.Snmp.pysnmp_se import Snmp
+from nav.Snmp import Snmp
 from nav.models.manage import PowerSupplyOrFan
 
 VENDOR_CISCO = 9

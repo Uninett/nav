@@ -1,0 +1,39 @@
+.readonly {
+		border: none;
+}
+
+table.seeddbtable {
+	width: 80%;
+}
+
+table.seeddbtable tr td:first-child {
+	width: 10%;
+}
+
+table.seeddbtable .info {
+	width: 60%;
+}
+
+.required:after {
+	content: " *";
+	color: #F00;
+	font-weight: bold;
+}
+
+form.seeddb-edit {
+    float: left;
+}
+
+div.tabcontent {
+    overflow: auto;
+}
+
+#map-container {
+    text-align: center;
+    float: right;
+}
+
+#map {
+    width: 800px;
+    height: 600px;
+}

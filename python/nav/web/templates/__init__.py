@@ -1,1 +1,0 @@
-"""Cheetah template package."""

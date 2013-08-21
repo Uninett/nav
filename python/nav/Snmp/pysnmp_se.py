@@ -16,8 +16,9 @@
 #
 """High level NAV API for PySNMP SE."""
 import re
-import os
-from errors import *
+# other modules expect to find these here
+# pylint: disable=W0401
+from nav.Snmp.errors import *
 
 from pysnmp.asn1.oid import OID
 from pysnmp.mapping.udp import error as snmperror
@@ -88,11 +89,11 @@ class Snmp(object):
         try:
             self.handle.send(
                 req.berEncode(), dst=(self.host, self.port))
-            (answer, src) = self.handle.receive()
-        except snmperror.NoResponseError, e:
-            raise TimeOutException(e)
-        except snmperror.NetworkError, e:
-            raise NetworkError(e)
+            (answer, _src) = self.handle.receive()
+        except snmperror.NoResponseError, err:
+            raise TimeOutException(err)
+        except snmperror.NetworkError, err:
+            raise NetworkError(err)
 
         # Decode raw response/answer
         rsp = self._ver.Message()
@@ -107,7 +108,7 @@ class Snmp(object):
 
         # Fetch the value from the response
         var_bind = rsp.apiAlphaGetPdu().apiAlphaGetVarBindList()[0]
-        oid, value = var_bind.apiAlphaGetOidVal()
+        _oid, value = var_bind.apiAlphaGetOidVal()
 
         # Return the value
         if isinstance(value, (OID, self._ver.ObjectIdentifier)):
@@ -170,11 +171,11 @@ class Snmp(object):
         try:
             self.handle.send(
                 req.berEncode(), dst=(self.host, self.port))
-            (answer, src) = self.handle.receive()
-        except snmperror.NoResponseError, e:
-            raise TimeOutException(e)
-        except snmperror.NetworkError, e:
-            raise NetworkError(e)
+            (answer, _src) = self.handle.receive()
+        except snmperror.NoResponseError, err:
+            raise TimeOutException(err)
+        except snmperror.NetworkError, err:
+            raise NetworkError(err)
 
         # Decode raw response/answer
         rsp = self._ver.Message()
@@ -214,11 +215,11 @@ class Snmp(object):
             try:
                 self.handle.send(
                     req.berEncode(), dst=(self.host, self.port))
-                (answer, src) = self.handle.receive()
-            except snmperror.NoResponseError, e:
-                raise TimeOutException(e)
-            except snmperror.NetworkError, e:
-                raise NetworkError(e)
+                (answer, _src) = self.handle.receive()
+            except snmperror.NoResponseError, err:
+                raise TimeOutException(err)
+            except snmperror.NetworkError, err:
+                raise NetworkError(err)
 
             # Decode raw response/answer
             rsp = self._ver.Message()
@@ -326,11 +327,11 @@ class Snmp(object):
             try:
                 self.handle.send(
                     req.berEncode(), dst=(self.host, self.port))
-                (answer, src) = self.handle.receive()
-            except snmperror.NoResponseError, e:
-                raise TimeOutException(e)
-            except snmperror.NetworkError, e:
-                raise NetworkError(e)
+                (answer, _src) = self.handle.receive()
+            except snmperror.NoResponseError, err:
+                raise TimeOutException(err)
+            except snmperror.NetworkError, err:
+                raise NetworkError(err)
 
             # Decode raw response/answer
             rsp = self._ver.Message()
@@ -387,7 +388,8 @@ class Snmp(object):
             pdu.apiAlphaSetVarBindList((last_response_oid, self._ver.Null()))
             current_oid = last_response_oid
 
-    def _error_check(self, rsp):
+    @staticmethod
+    def _error_check(rsp):
         """Check a decoded response structure for agent errors or exceptions,
         and raise Python exceptions accordingly."""
         error_status = rsp.apiAlphaGetPdu().apiAlphaGetErrorStatus()

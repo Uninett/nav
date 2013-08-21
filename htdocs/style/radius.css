@@ -1,0 +1,67 @@
+
+.tooltip{
+    display: none;
+    position: relative;
+}
+
+.tooltip:hover:after{
+    background: #333;
+    background: rgba(0,0,0,.8);
+    border-radius: 5px;
+    bottom: 26px;
+    color: #fff;
+    content: attr(title);
+    left: 20%;
+    padding: 5px 15px;
+    position: absolute;
+    z-index: 98;
+    width: 220px;
+}
+
+.tooltip:hover:before{
+    border: solid;
+    border-color: #333 transparent;
+    border-width: 6px 6px 0 6px;
+    bottom: 20px;
+    content: "";
+    left: 50%;
+    position: absolute;
+    z-index: 99;
+}
+
+.caption {
+    background: #567899;
+    color: white;
+    border-bottom: 2px solid white;
+    font-size: 1.2em;
+    font-weight: bolder;
+    text-align: right;
+    padding: 0.5em 0;
+}
+
+.caption .info {
+    float: left;
+    margin-left: 0.3em;
+}
+
+.caption .filter {
+    margin-right: 0.3em;
+}
+
+td.link {
+    cursor: pointer;
+	color: #2d5a86;
+	text-decoration: none;
+}
+td.link:hover {
+	color: black;
+	text-decoration: underline;
+}
+td.link:active {
+	color: #69C;
+	text-decoration: none;
+}
+
+th.col0 { padding-right: 5px; border-right: 1px solid #ccc; text-align: left; }
+td.col1 { padding-left: 5px; }
+table.sessioninfo { font-size: 0.9em; padding-bottom: 15px; }

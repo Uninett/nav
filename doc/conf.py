@@ -16,7 +16,7 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.append(os.path.join(os.path.abspath('..'), 'python'))
+sys.path.insert(0, os.path.join(os.path.abspath('..'), 'python'))
 
 from nav import buildconf
 
@@ -40,7 +40,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'NAV'
-copyright = u'2012, UNINETT AS'
+copyright = u'2012-2013, UNINETT AS'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -202,4 +202,5 @@ latex_documents = [
 rst_epilog = """
 .. |bindir| replace:: :file:`%s`
 .. |sysconfdir| replace:: :file:`%s`
-""" % (buildconf.bindir, buildconf.sysconfdir)
+.. |nav_user| replace:: `%s`
+""" % (buildconf.bindir, buildconf.sysconfdir, buildconf.nav_user)

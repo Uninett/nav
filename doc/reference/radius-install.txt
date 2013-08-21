@@ -213,7 +213,7 @@ directory called ``radiusclean`` and add the following lines to it::
   50 5 * * 6 /path/to/navclean.py --radiusacct -E "3 months" -f
   45 5 * * 6 /path/to/navclean.py --radiuslog  -E "1 month" -f
 
-To insert the cron snippet into `navcron`'s crontab, run::
+To insert the cron snippet into `|nav_user|`'s crontab, run::
 
   sudo nav start radiusclean
 
