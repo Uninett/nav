@@ -61,7 +61,7 @@ define([
 
                         });
                         l3Edge.set({
-                            'id':    vlanId,
+                            'id':    response.vlans.get(vlanId),
                             'edges': edgesInL3
                         });
 
@@ -70,7 +70,7 @@ define([
 
                     link.set({'edges': new L3EdgesCollection(l3EdgeObjects)}, {'silent': true});
 
-                    link.set({'vlans': new VlanCollection(_.pluck(l3EdgeObjects), 'id')}, {'silent': true});
+                    link.set({'vlans': new VlanCollection(_.pluck(l3EdgeObjects, 'id'))}, {'silent': true});
                 } else {
                     link.set({'edges': new EdgesCollection(link.get('edges'))}, {'silent': true});
                     link.get('edges').each(function (edge) {
