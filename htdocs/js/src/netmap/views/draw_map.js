@@ -376,8 +376,10 @@ define([
                 node.fixed = boolValue; // for d3js
                 node.set({
                     'fixed': boolValue,
-                    'x': node.x,
-                    'y': node.y
+                    'position': {
+                        'x': node.x,
+                        'y': node.y
+                    }
                 });
             });
 
