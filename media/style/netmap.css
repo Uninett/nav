@@ -209,6 +209,14 @@ li.selected_vlan a {
     width: 100%;
 }
 
+.toggleUplink {
+    float: right;
+}
+.toggleUplink > .linkSource  {
+    display: none;
+
+}
+
 /* templates/info/vlan.html */
 #infoVlanContainer {
     min-height: 350px;
