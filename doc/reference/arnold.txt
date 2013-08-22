@@ -1,16 +1,15 @@
-===========
- Arnold
-===========
-
+======
+Arnold
+======
 
 External documentation
-====
+----------------------
 
 More documentation about Arnold is located at https://nav.uninett.no/arnold
 
 
 Missing interfaces
-=============
+==================
 
 When an interface that is a part of a detention is removed from NAV, commonly
 by removing the switch, Arnold will display a message regarding this. The
