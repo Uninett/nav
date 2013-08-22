@@ -332,8 +332,9 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface, vlan
     _LOGGER.debug("build_netmap_layer2_graph() vlan metadata for _nodes_ done")
 
     if view:
+        saved_views = view.node_position_set.all()
         netmap_graph = _attach_node_positions(netmap_graph,
-                                              view.node_position_set.all())
+                                              saved_views)
     _LOGGER.debug("build_netmap_layer2_graph() view positions and graph done")
 
     return netmap_graph
@@ -393,17 +394,17 @@ def _attach_node_positions(graph, node_set):
 
     # node is a tuple(netbox, networkx_graph_node_meta_dict)
     # Traversing our generated graph which misses node positions..
-    for node in graph.nodes(data=True):
+    for node, metadata in graph.nodes(data=True):
         # Find node metadata in saved map view if it has any.
-        node_meta_dict = [x for x in node_set if x.netbox == node[0]]
+        node_meta_dict = [x for x in node_set if x.netbox == node]
 
         # Attached position meta data if map view has meta data on node in graph
         if node_meta_dict:
-            if node[1].has_key('metadata'):
+            if metadata.has_key('metadata'):
                 # has vlan meta data, need to just update position data
-                node[1]['metadata'].update({'position': node_meta_dict[0]})
+                metadata['metadata'].update({'position': node_meta_dict[0]})
             else:
-                node[1]['metadata'] = {'position': node_meta_dict[0]}
+                metadata['metadata'] = {'position': node_meta_dict[0]}
     return graph
 
 
