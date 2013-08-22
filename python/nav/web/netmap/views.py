@@ -22,6 +22,7 @@ import os
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render_to_response
 
@@ -260,18 +261,17 @@ def get_defaultview(request):
     return simplejson.dumps(view.to_json_dict())
 
 
-
+@transaction.commit_on_success
 def _update_map_node_positions(fixed_nodes, view):
     NetmapViewNodePosition.objects.filter(viewid=view.pk).delete()
-    for i in fixed_nodes:
-        a_node = i
+    for node in fixed_nodes:
+        netbox = Netbox.objects.get(pk=node['id'])
 
-        netbox = Netbox.objects.get(pk=a_node['id'])
         NetmapViewNodePosition.objects.create(
             viewid=view,
             netbox=netbox,
-            x=a_node['x'],
-            y=a_node['y'])
+            x=node['position']['x'],
+            y=node['position']['y'])
 
 
 def _update_map_categories(categories, view):
