@@ -7,8 +7,7 @@
 
 . rvm_and_veewee_install.sh 
 
-RVM_PATH="$BASE_FULL_DIR/.rvm"
-export rvm_path=$RVM_PATH
+source $BASE_FULL_DIR/rvm_activate
 
 rvm use 1.9.2@veewee --create
 # Want other templates? Keep this command commented

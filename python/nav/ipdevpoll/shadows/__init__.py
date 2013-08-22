@@ -35,7 +35,7 @@ from nav.ipdevpoll import utils
 from nav.ipdevpoll import db
 
 from .netbox import Netbox
-from .interface import Interface
+from .interface import Interface, InterfaceStack
 from .swportblocked import SwPortBlocked
 from .cam import Cam
 from .adjacency import AdjacencyCandidate, UnrecognizedNeighbor

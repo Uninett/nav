@@ -1,11 +1,11 @@
 htmldocfiles := $(shell test -e html && find html/ -type f)
 
 nobase_dist_doc_DATA = \
-	cricket/README cricket/cricket.css \
+	README.cricket \
 	$(wildcard mailin/alertmsg.d/*) \
-	$(wildcard intro/*.txt) \
-	$(wildcard reference/*.txt) \
-	$(wildcard faq/*.txt) \
+	$(wildcard intro/*.rst) \
+	$(wildcard reference/*.rst) \
+	$(wildcard faq/*.rst) \
 	$(htmldocfiles)
 
 # Makefile for Sphinx documentation

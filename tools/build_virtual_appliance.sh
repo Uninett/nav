@@ -6,12 +6,10 @@
 debian='nav-debian-virtual-appliance'
 
 BASE_FULL_DIR=$( cd $(dirname $0) ; pwd -P )
-RVM_PATH="$BASE_FULL_DIR/.rvm"
-export rvm_path=$RVM_PATH
 
 . rvm_and_veewee_install.sh 
 
-source $BASE_FULL_DIR/.rvm/scripts/rvm
+source $BASE_FULL_DIR/rvm_activate
 
 test -z "$BASE_FULL_DIR" && exit 1
 test -z "$debian" && exit 2
@@ -42,3 +40,6 @@ sed -e "${line_number_memory}s/256/2048/" -i box.ovf
 echo "Changed memory from 256 MB to 2048 MB in .ovf template."
 
 ovftool --lax $tmp_dir/box.ovf $tmp_dir/vmware-nav.vmx
+
+echo 
+echo "Virtual appliance image(s) done for NAV. You find it in $tmp_dir !"

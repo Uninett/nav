@@ -31,11 +31,11 @@
                 {{ netbox.category }}</a></td>
     </tr>
 
-    {% if netboxsubcat %}
+    {% if netboxgroups %}
         <tr>
-            <th>Subcategories</th>
-            <td>{% for subcat in netboxsubcat %}
-                {{ subcat.category_id }}
+            <th>Netbox groups</th>
+            <td>{% for netboxgroup in netboxgroups %}
+                {{ netboxgroup.category_id }}
             {% endfor %}
             </td>
         </tr>
@@ -257,9 +257,15 @@
                         <tbody>
                         {% for job in jobs|dictsortreversed:'end_time' %}
                             <tr>
-                                <td>{{ job.job_name|capfirst }}</td>
-                                <td title="Next run expected at {{ job.end_time|add_interval:job.interval|date:"DATETIME_FORMAT" }}">{{ job.end_time|date:"DATETIME_FORMAT" }}</td>
-                                <td class="cell-right">{{ job.duration|stringformat:".2f" }}s</td>
+                                <td title="{{ job_descriptions|lookup:job.job_name|default:'No description' }}">
+                                    {{ job.job_name|capfirst }}
+                                </td>
+                                <td title="Next run expected at {{ job.end_time|add_interval:job.interval|date:"DATETIME_FORMAT" }}">
+                                    {{ job.end_time|date:"DATETIME_FORMAT" }}
+                                </td>
+                                <td class="cell-right">
+                                    {{ job.duration|stringformat:".2f" }}s
+                                </td>
                                 <td class="cell-center">
                                     {% if job.is_overdue %}
                                         <img src="/images/lys/yellow.png"
