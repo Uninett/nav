@@ -8,7 +8,9 @@ define([
         },
         toJSON: function () {
             var json = $.extend(true, {}, this.attributes);
-            json.vlan = json.vlan.toJSON();
+            if (!!json.vlan) { // only set in L3
+                json.vlan = json.vlan.toJSON();
+            }
             json.source.netbox = json.source.netbox.toJSON();
             json.target.netbox = json.target.netbox.toJSON();
             return json;
