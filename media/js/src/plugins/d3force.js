@@ -18,9 +18,9 @@ define([
         // node must be a node from this.nodes
 
         node.set(data.attributes, {'silent': true});
-        if (node.has('position') && !node.has('isDirty')) {
-            node.x = node.get('position').x;
-            node.y = node.get('position').y;
+        if (!!data.position && !data.isDirty) {
+            node.x = data.position.x;
+            node.y = data.position.y;
             node.fixed = true;
         }
     };
