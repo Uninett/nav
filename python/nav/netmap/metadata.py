@@ -198,7 +198,7 @@ class Edge(object):
             raise GraphException("Source & target can't both be None! Bailing!")
 
         self.errors = []
-        self.source = self.target = None
+        self.source = self.target = self.vlan = self.prefix = None
         nx_source, nx_target = nx_edge
 
         if self._valid_layer2(source) :
@@ -272,6 +272,11 @@ class Edge(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __repr__(self):
+        return ("netmap.Edge(layer={0!r}, source={1!r}, target={2!r}, link_speed={3!r},"
+                "vlans={4!r}, vlan={5!r}, prefix={6!r})").format(
+            self.layer, self.source, self.target, self.link_speed, self.vlans, self.vlan, self.prefix)
 
     def to_json(self):
         json = {
