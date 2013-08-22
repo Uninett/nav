@@ -110,10 +110,23 @@ echo "Starting Google Chrome"
 ${GOOGLECHROME} http://localhost:${BUSTERPORT}/capture &
 PID_CHROME="$!"
 echo "Started Chrome with pid ${PID_CHROME} connected to ${BUSTERPORT}"
-sleep ${SLEEPTIME}
+
+buster_front() {
+    w3m http://localhost:${BUSTERPORT} | cat
+}
+
+chrome_slave_present() {
+    buster_front | grep -iq chrome
+}
+
+slave_tries=0
+until chrome_slave_present || (( ${slave_tries} > 15 )); do
+    sleep 1
+    let slave_tries=${slave_tries}+1
+done
 
 echo "=========================================================="
-w3m http://localhost:${BUSTERPORT} | cat
+buster_front
 echo "=========================================================="
 
 echo "Running tests"
