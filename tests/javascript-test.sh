@@ -107,10 +107,9 @@ if [ ! ${BUSTER_STARTED} ]; then
 fi
 
 echo "Starting Google Chrome"
-export DISPLAY=:${DISPLAYNUM}
 ${GOOGLECHROME} http://localhost:${BUSTERPORT}/capture &
 PID_CHROME="$!"
-echo "Started on display ${DISPLAYNUM} with pid ${PID_CHROME} connected to ${BUSTERPORT}"
+echo "Started Chrome with pid ${PID_CHROME} connected to ${BUSTERPORT}"
 sleep ${SLEEPTIME}
 
 echo "=========================================================="
