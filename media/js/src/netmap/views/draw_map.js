@@ -357,6 +357,13 @@ define([
                 var node = this.nodes[i];
                 if (node.get('sysname') === data.sysname) {
                     node.fixed = data.fixed;
+                    node.set({
+                        'fixed': data.fixed,
+                        'position': {
+                                    'x': node.x,
+                                    'y': node.y
+                        }
+                    });
                     break;
                 }
             }
@@ -366,7 +373,12 @@ define([
         },
         setGraphNodesCollectionFixedStatus: function (boolValue) {
             _.each(this.nodes, function (node) {
-                node.fixed = boolValue;
+                node.fixed = boolValue; // for d3js
+                node.set({
+                    'fixed': boolValue,
+                    'x': node.x,
+                    'y': node.y
+                });
             });
 
             this.broker.trigger("netmap:nodes:setFixedDone");
@@ -432,7 +444,8 @@ define([
             nodeObject.y += d3.event.dy;
 
             this.force.stop();
-            nodeObject.fixed = true;
+            nodeObject.fixed = true; // d3js
+            nodeObject.set('fixed', true);
             this.tick();
         },
         nodeDragEnd: function (nodeObject) {
@@ -440,9 +453,11 @@ define([
             if (this.isDragMoveTriggered) {
                 nodeObject.set({
                     'isDirty': true,
-                    'x': nodeObject.x,
-                    'y': nodeObject.y
-                }, {'silent': true}); // so values get's exported on save as.
+                    'position': {
+                        'x': nodeObject.x,
+                        'y': nodeObject.y
+                    }
+                }); // so values get's exported on save as.
                 this.force.resume();
                 this.nodeOnClick(nodeObject);
             }
