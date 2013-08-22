@@ -61,30 +61,24 @@
         {{else}}
             {{! Layer 2 template here.  }}
             <div>
+                <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{link.source.ipdevinfo_link}}">{{link.source.sysname}}</a></span> - <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{link.target.ipdevinfo_link}}">{{link.target.sysname}}</a></span>
                 {{#each link.edges}}
                     <div class="uplink_this uplink">
-                        {{#if this.source.netbox.ipdevinfo_link}}
-                            <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{this.source.netbox.ipdevinfo_link}}">{{this.source.netbox.sysname}}</a></span> <span class="uplink_interface">[<a class="uplink_interface_link" href="{{this.source.interface.ipdevinfo_link}}">{{this.source.interface.ifname}}</a>]</span>
+                        {{#if this.source.interface.ipdevinfo_link}}
+                            <span class="uplink_interface">[<a class="uplink_interface_link" href="{{this.source.interface.ipdevinfo_link}}">{{this.source.interface.ifname}}</a>]</span>
                         {{else}}
-                            <span class="uplink_netbox">{{this.source.netbox.sysname}}</span> <span class="uplink_interface">[{{this.source.interface.ifname}}]</span>
+                            <span class="uplink_interface">[{{#if this.source.interface}}{{this.source.interface.ifname}}{{else}}N/A{{/if}}]</span>
                         {{/if}}
-                        <div style="background-color: green; width:30px; height:16px;">50%</div>
-                        <span class="trafficOctets">Traffic in: {{inOctets}}</span>
-                        {{#if this.traffic.inOctetsPercentBySpeed}}
-                            <span class="trafficPercentByLinkSpeed">({{this.traffic.inOctetsPercentBySpeed}}%)</span>
-                        {{/if}}
-                    </div>
-    
-                    <div class="uplink_other uplink">
-                        {{#if this.target.netbox.ipdevinfo_link}}
-                            <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{this.target.netbox.ipdevinfo_link}}">{{this.target.netbox.sysname}}</a></span> <span class="uplink_interface">[<a class="uplink_interface_link" href="{{this.target.interface.ipdevinfo_link}}">{{this.target.interface.ifname}}</a>]</span>
+                        {{#if this.target.interface.ipdevinfo_link}}
+                            <span class="uplink_interface">[<a class="uplink_interface_link" href="{{this.target.interface.ipdevinfo_link}}">{{this.target.interface.ifname}}</a>]</span>
                         {{else}}
-                            <span class="uplink_netbox">{{this.target.netbox.sysname}}</span> <span class="uplink_interface">[{{this.target.interface.ifname}}]</span>
+                            <span class="uplink_interface">[{{#if this.target.interface}}{{this.target.interface.ifname}}{{else}}N/A{{/if}}]</span>
                         {{/if}}
-                        <span class="trafficOctets">Traffic in: {{outOctets}}</span>
-                        {{#if this.traffic.outOctetsPercentBySpeed}}
-                            <span class="trafficPercentByLinkSpeed">({{this.traffic.outOctetsPercentBySpeed}}%)</span>
-                        {{/if}}
+
+                        <div>link_speed: {{ this.link_speed }}</div>
+                        <span style="background: rgb(84,255,0); width:30px; height:16px;">50%</span>
+                        <span style="background: rgb(84,255,0); width:30px; height:16px;">80%</span>
+
                     </div>
                 {{/each}}
         {{/if}}
