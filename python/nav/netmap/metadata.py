@@ -104,6 +104,10 @@ class Group(object):
         self.virtual = None
         self.vlans = None
 
+    def __repr__(self):
+        return "netmap.Group(netbox={0!r}, interface={1!r}, gw_ip={2!r}, virtual={3!r}, vlans={4!r})".format(
+            self.netbox, self.interface, self.gw_ip, self.virtual, self.vlans)
+
     def __hash__(self):
         return hash(self.netbox) + hash(self.interface)
 
