@@ -202,7 +202,7 @@ def netmap_defaultview_global(request):
     else:
         return HttpResponseBadRequest()
 
-
+@transaction.commit_on_success
 def update_defaultview(request, map_id, is_global_defaultview=False):
     """ Save/update a default view for a user.
     :param request: request
@@ -261,7 +261,6 @@ def get_defaultview(request):
     return simplejson.dumps(view.to_json_dict())
 
 
-@transaction.commit_on_success
 def _update_map_node_positions(fixed_nodes, view):
     NetmapViewNodePosition.objects.filter(viewid=view.pk).delete()
     for node in fixed_nodes:
@@ -290,7 +289,7 @@ def _update_map_categories(categories, view):
                 view=view,
                 category=category_model)
 
-
+@transaction.commit_on_success
 def update_map(request, map_id):
     view = get_object_or_404(NetmapView, pk=map_id)
     session_user = get_account(request)
@@ -338,7 +337,7 @@ def update_map(request, map_id):
     else:
         return HttpResponseForbidden()
 
-
+@transaction.commit_on_success
 def create_map(request):
     session_user = get_account(request)
 
@@ -389,6 +388,7 @@ def get_map(request, map_id):
     else:
         return HttpResponseForbidden()
 
+@transaction.commit_on_success
 def delete_map(request, map_id):
     view = get_object_or_404(NetmapView, pk=map_id)
     session_user = get_account(request)
