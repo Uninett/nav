@@ -42,6 +42,8 @@ class Node(object):
             self.metadata = nx_node_metadata['metadata']
         else:
             self.metadata = None
+    def __repr__(self):
+        return "netmap.Node(metadata={0!r})".format(self.metadata)
 
     def to_json(self):
         json = {}
@@ -117,7 +119,21 @@ class Group(object):
             'netbox': unicode(self.netbox.id),
         }
         if self.interface is not None:
-            json.update({'interface': unicode(self.interface.ifname)})
+            ipdevinfo_link = None
+            if self.interface.ifname != '?':
+                ipdevinfo_link = reverse(
+                    'ipdevinfo-interface-details-by-name',
+                    kwargs={'netbox_sysname': unicode(
+                        self.netbox.sysname),
+                            'port_name': unicode(
+                                self.interface.ifname)})
+            json.update({'interface': {
+                'ifname': unicode(self.interface.ifname),
+                'ipdevinfo_link': ipdevinfo_link
+            }});
+
+
+
         if self.gw_ip is not None:
             json.update({'gw_ip': self.gw_ip})
         if self.virtual is not None:
@@ -259,7 +275,10 @@ class Edge(object):
             'target': self.target.to_json() or 'null',
         }
         if self.layer == 3:
-            json.update({'prefix': unicode(self.prefix.net_address)})
+            json.update({'prefix': {
+                'net_address': unicode(self.prefix.net_address),
+                'report_link': reverse('report-prefix-prefix', kwargs={'prefix_id': self.prefix.id})
+            }})
             json.update({'vlan': self.prefix.vlan.id})
         elif self.layer == 2:
             json.update({'vlans': [swpv.vlan.id for swpv in self.vlans]})
