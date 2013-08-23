@@ -178,7 +178,7 @@ class Edge(object):
             or self._valid_layer3(source) and self._valid_layer3(target)
         )
 
-    def __init__(self, nx_edge, source, target, rrd_datasources=None):
+    def __init__(self, nx_edge, source, target, traffic=None):
         """
 
         :param nx_edge: NetworkX edge representing (source,target) in a tuple.(they be nav.models.Netbox or nav.netmap.stubs.Netbox)
@@ -242,7 +242,7 @@ class Edge(object):
             self.vlan = source.prefix.vlan
 
 
-        self.traffic = Traffic()
+        self.traffic = traffic
 
         if self.source and self.source.interface is not None and self.target and self.target.interface is not None:
             if self.source.interface.speed == self.target.interface.speed:

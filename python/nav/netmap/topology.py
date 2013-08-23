@@ -20,7 +20,7 @@ from collections import defaultdict
 from nav.models.manage import SwPortVlan, Prefix
 from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2, \
     node_to_json_layer2
-from nav.netmap.rrd import _get_datasource_lookup
+from nav.netmap.rrd import _get_datasource_lookup, get_rrd_data
 from nav.topology import vlan
 
 
@@ -293,8 +293,9 @@ def _convert_to_unidirectional_and_attach_directional_metadata(
 
     for source, target, metadata_dict in netmap_graph.edges_iter(data=True):
         for a,b in metadata_dict.get('port_pairs'):
+            rrd_traffic = get_rrd_data(rrd_datasources, (a,b))
             additional_metadata = edge_metadata_function((source, target), a, b,
-                                                         vlan_by_interface, rrd_datasources)
+                                                         vlan_by_interface, rrd_traffic)
 
             metadata = metadata_dict.setdefault('metadata', list())
             metadata.append(additional_metadata)
