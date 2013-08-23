@@ -153,6 +153,45 @@ define([
                 .attr('id', 'boundingbox');
 
 
+            var bundleLinkMarkerStart = bounding_box.append("marker")
+                .attr("id", "bundlelinkstart")
+                .attr("markerWidth", 8)
+                .attr("markerHeight", 12)
+                .attr("refX", -80)
+                .attr("refY", 0)
+                .attr("viewBox", "-4 -6 8 12")
+                .attr("markerUnits", "userSpaceOnUse")
+                .attr("orient", "auto");
+            bundleLinkMarkerStart.append("rect")
+                .attr("x", -3)
+                .attr("y", -5)
+                .attr("width", 2)
+                .attr("height", 10);
+            bundleLinkMarkerStart.append("rect")
+                .attr("x", 1)
+                .attr("y", -5)
+                .attr("width", 2)
+                .attr("height", 10);
+            var bundleLinkMarkerEnd = bounding_box.append("marker")
+                .attr("id", "bundlelinkend")
+                .attr("markerWidth", 8)
+                .attr("markerHeight", 12)
+                .attr("refX", 80)
+                .attr("refY", 0)
+                .attr("viewBox", "-4 -6 8 12")
+                .attr("markerUnits", "userSpaceOnUse")
+                .attr("orient", "auto");
+            bundleLinkMarkerEnd.append("rect")
+                .attr("x", -3)
+                .attr("y", -5)
+                .attr("width", 2)
+                .attr("height", 10);
+            bundleLinkMarkerEnd.append("rect")
+                .attr("x", 1)
+                .attr("y", -5)
+                .attr("width", 2)
+                .attr("height", 10);
+
             // Grouping elements
             this.linkErrorsGroupRoot = bounding_box.append("g").attr("class", "linksmeta");
             var selectedNodeGroupRoot = this.selectedNodeGroupRoot = bounding_box.append("g").attr("class", "selected_nodes");
@@ -967,11 +1006,14 @@ define([
                         trafficObject = linkObject.data.edges.at(0).get('traffic');
                     }
 
+                    var undefined_css_color = '[0,0,0]';
+                    var inCss = !!trafficObject.inOctets ? trafficObject.inOctets.css : undefined_css_color;
+                    var outCss = !!trafficObject.outOctets ? trafficObject.outOctets.css : undefined_css_color;
                     return [
-                        {percent: 0, css: trafficObject.inOctets.css},
-                        {percent: 50, css: trafficObject.inOctets.css },
-                        {percent: 51, css: trafficObject.outOctets.css},
-                        {percent: 100, css: trafficObject.outOctets.css}
+                        {percent: 0, css: inCss},
+                        {percent: 50, css: inCss},
+                        {percent: 51, css: outCss},
+                        {percent: 100, css: outCss}
                     ];
                 });
                 stops.enter()
@@ -999,7 +1041,7 @@ define([
                 group
                     .append("svg:line")
                     .attr("class", function (linkObject) {
-                        var speed = linkObject.data.link_speed;
+                        var speed = _.max(linkObject.data.edges.pluck('link_speed'));
                         var classes = "link ";
                         if (speed <= 100) {
                             classes = 'speed0-100';
@@ -1036,6 +1078,17 @@ define([
                     })
                     .attr("y2", function (linkObject) {
                         return linkObject.target.y;
+                    });
+                group
+                    .attr("marker-start", function (linkObject) {
+                        if (linkObject.data.edges.length > 1) {
+                            return "url(#bundlelinkstart)";
+                        }
+                    })
+                    .attr("marker-end", function (linkObject) {
+                        if (linkObject.data.edges.length > 1) {
+                            return "url(#bundlelinkend)";
+                        }
                     });
             }
         },
