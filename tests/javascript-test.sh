@@ -107,19 +107,30 @@ done
 
 if [ ! ${BUSTER_STARTED} ]; then
     echo "Could not start buster-server, exiting"
-    kill ${PID_XVFB}
     exit 1
 fi
 
 echo "Starting Google Chrome"
-export DISPLAY=:${DISPLAYNUM}
 ${GOOGLECHROME} http://localhost:${BUSTERPORT}/capture &
 PID_CHROME="$!"
-echo "Started on display ${DISPLAYNUM} with pid ${PID_CHROME} connected to ${BUSTERPORT}"
-sleep ${SLEEPTIME}
+echo "Started Chrome with pid ${PID_CHROME} connected to ${BUSTERPORT}"
+
+buster_front() {
+    w3m http://localhost:${BUSTERPORT} | cat
+}
+
+chrome_slave_present() {
+    buster_front | grep -iq chrome
+}
+
+slave_tries=0
+until chrome_slave_present || (( ${slave_tries} > 15 )); do
+    sleep 1
+    let slave_tries=${slave_tries}+1
+done
 
 echo "=========================================================="
-w3m http://localhost:${BUSTERPORT} | cat
+buster_front
 echo "=========================================================="
 
 echo "Running tests"
