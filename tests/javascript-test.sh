@@ -83,9 +83,6 @@ jshint --config ${JSDIR}/jshint.rc.json ${JAVASCRIPT_FILES[@]} --jslint-reporter
 # Verify that jshint was running as jshint will have non-zero exit if ANY linting errors is found.
 [ -s "${JSDIR}/javascript-jshint.xml" ]
 
-# Start virtual framebuffer
-source ${WORKSPACE}/tests/start_xvfb.sh
-
 echo "Starting buster-server"
 BUSTER_TRIES=0
 BUSTER_STARTED=0
