@@ -23,7 +23,7 @@ define(['info/table_info_converter', 'libs/jquery'], function (converter) {
         it("format rowdata should return a list of the cells values",function () {
             var row = $(this.wrapper).find('tbody tr')[0];
             var result = converter.format_rowdata(row);
-            assert.deepEqual(result, [1, 2, 3, 4, 5]);
+            assert.deepEqual(result, ['1', '2', '3', '4', '5']);
         });
         it("should find correct sysname from caption", function() {
             var table = $(this.wrapper).find('table')[0];
