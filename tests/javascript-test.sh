@@ -91,7 +91,6 @@ until [ ${BUSTER_STARTED} -eq 1 ] || (( ${BUSTER_TRIES} > 10 )) ; do
     BUSTERPORT=$((RANDOM%100+1200))
     ${BUSTERSERVER} -l error -p ${BUSTERPORT} &
     PID_BUSTER="$!"
-    trap "kill ${PID_BUSTER}" EXIT
     sleep ${SLEEPTIME}
     if kill -0 ${PID_BUSTER}; then
         echo "Started on port ${BUSTERPORT} with pid ${PID_BUSTER}"
@@ -138,3 +137,8 @@ if [ "$?" -eq 1 ]; then
     echo "Error when testing, taking screenshot"
     import -window root ${WORKSPACE}/test-error.png
 fi
+
+echo "Cleaning up"
+kill ${PID_CHROME}
+sleep 1
+kill ${PID_BUSTER}
