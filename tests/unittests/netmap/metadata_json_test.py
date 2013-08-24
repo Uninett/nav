@@ -207,8 +207,8 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
         )
 
         self.assertEqual(1, len(edge_json_metadata['edges']))
-        self.assertEqual(u'158.38.0.0/30 (vlan 50)',
-                         edge_json_metadata['edges'][2111][0]['prefix'])
+        self.assertEqual(u'158.38.0.0/30',
+                         edge_json_metadata['edges'][2111][0]['prefix']['net_address'])
 
     def test_layer3_v4_and_v6_prefixes_added_between_a_and_c(self):
         edge_json_metadata = metadata.edge_to_json_layer3((self.a, self.b),
@@ -217,9 +217,9 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
 
         self.assertEqual(1, len(edge_json_metadata['edges']))
         self.assertEqual(2, len(edge_json_metadata['edges'][2112]))
-        expected_prefixes = (u'feed:dead:cafe:babe::/64 (vlan 50)', u'158.38.0.4/30 (vlan 50)')
+        expected_prefixes = (u'feed:dead:cafe:babe::/64', u'158.38.0.4/30')
         for i, prefix in enumerate(expected_prefixes):
-            self.assertEqual(edge_json_metadata['edges'][2112][i]['prefix'], prefix)
+            self.assertEqual(edge_json_metadata['edges'][2112][i]['prefix']['net_address'], prefix)
 
 
 if __name__ == '__main__':
