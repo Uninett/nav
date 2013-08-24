@@ -76,10 +76,11 @@ class Octets(object):
         self.source = source
         raw = source.raw
 
-        self.load_in_percent = get_traffic_load_in_percent(raw, link_speed)
-        if self.load_in_percent:
-            self.css = get_traffic_rgb(self.load_in_percent)
-            self.octets_percent_by_speed = "%.2f" % self.load_in_percent
+        if link_speed is not None:
+            self.load_in_percent = get_traffic_load_in_percent(raw, link_speed)
+            if self.load_in_percent:
+                self.css = get_traffic_rgb(self.load_in_percent)
+                self.octets_percent_by_speed = "%.2f" % self.load_in_percent
         else:
             self.css = self.CSS_UNKNOWN_SPEED
             self.octets_percent_by_speed = None
