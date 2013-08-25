@@ -1006,7 +1006,7 @@ define([
                         trafficObject = linkObject.data.edges.at(0).get('traffic');
                     }
 
-                    var undefined_css_color = '[0,0,0]';
+                    var undefined_css_color = '0,255,255';
                     var inCss = !!trafficObject.inOctets ? trafficObject.inOctets.css : undefined_css_color;
                     var outCss = !!trafficObject.outOctets ? trafficObject.outOctets.css : undefined_css_color;
                     return [
