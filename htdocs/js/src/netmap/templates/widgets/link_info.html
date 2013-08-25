@@ -62,27 +62,46 @@
             {{! Layer 2 template here.  }}
             <div>
                 <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{link.source.ipdevinfo_link}}">{{link.source.sysname}}</a></span> - <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{link.target.ipdevinfo_link}}">{{link.target.sysname}}</a></span>
+
                 {{#each link.edges}}
-                    <div class="uplink_this uplink">
-                        {{#if this.source.interface.ipdevinfo_link}}
-                            <span class="uplink_interface">[<a class="uplink_interface_link" href="{{this.source.interface.ipdevinfo_link}}">{{this.source.interface.ifname}}</a>]</span>
-                        {{else}}
-                            <span class="uplink_interface">[{{#if this.source.interface}}{{this.source.interface.ifname}}{{else}}N/A{{/if}}]</span>
-                        {{/if}}
-                        {{#if this.target.interface.ipdevinfo_link}}
-                            <span class="uplink_interface">[<a class="uplink_interface_link" href="{{this.target.interface.ipdevinfo_link}}">{{this.target.interface.ifname}}</a>]</span>
-                        {{else}}
-                            <span class="uplink_interface">[{{#if this.target.interface}}{{this.target.interface.ifname}}{{else}}N/A{{/if}}]</span>
-                        {{/if}}
+                    <div class="uplink">
+                        <div class="uplink_linkspeed"><span>Link speed:</span> {{ this.link_speed }}</div>
 
-                        <div>link_speed: {{ this.link_speed }}</div>
-                        <span style="background: rgb(84,255,0); width:30px; height:16px;">50%</span>
-                        <span style="background: rgb(84,255,0); width:30px; height:16px;">80%</span>
 
+                        <div class="uplink_left">
+                            <span class="node_name">
+
+                                {{#if this.source.interface.ipdevinfo_link}}
+                                    <a href="{{this.source.interface.ipdevinfo_link}}"  title="{{ this.source.interface.ifname }} @ {{ link.target.sysname }}">{{this.source.interface.ifname}}</a>
+                                {{else}}
+                                    {{#if this.source.interface}}{{this.source.interface.ifname}}{{else}}N/A{{/if}}
+                                {{/if}}
+
+                            </span>
+                            <span class="node_load">153 mbps</span>
+                            <span class="node_load">27%</span>
+                            <div class="load_arrow" style="background-color: rgb(84,255,0);"></div>
+                        </div>
+
+                        <div class="uplink_right">
+                            <span class="node_name">
+
+                                 {{#if this.target.interface.ipdevinfo_link}}
+                                    <a href="{{this.target.interface.ipdevinfo_link}}" title="{{ this.target.interface.ifname }} @ {{ link.target.sysname }}">{{this.target.interface.ifname}}</a>
+                                {{else}}
+                                    {{#if this.target.interface}}{{this.target.interface.ifname}}{{else}}N/A{{/if}}
+                                {{/if}}
+
+                            </span>
+                            <span class="node_load">153 mbps</span>
+                            <span class="node_load">27%</span>
+                            <div class="load_arrow" style="background-color: rgb(255,44,0);"></div>
+                        </div>
+                        <div class="breaker"></div>
                     </div>
                 {{/each}}
         {{/if}}
         </div>
-        <br />
+
     </div>
 </div>
