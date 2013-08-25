@@ -466,54 +466,6 @@ div.uplink .node_name {
 
 /* LINK INFO RENE END*/
 
-
-
-/* Link info styles */
-.uplink_prefix h4 {
-    text-decoration: underline;
-}
-.traffic {
-    margin-bottom: 0.5em;
-}
-.uplink span {
-
-}
-.uplink_virtual {
-    display: block;
-}
-
-.uplink_prefix h5 {
-    margin-top: 0.5em;
-}
-.uplink_prefix .prefix_net_ident {
-    text-size: 14pt;
-}
-
-.uplink_prefix .prefix_description {
-    text-size: 12pt;
-    margin-bottom: 0.5em;
-}
-
-.uplink_prefix .prefix_description {
-    display: block;
-}
-
-.traffic .link_speed {
-    margin-bottom: 0.5em;
-}
-
-.uplink {
-    margin-bottom: 1em;
-}
-
-.trafficDescription {
-    font-size: 8pt;
-}
-.trafficOctets {
-    margin-top: 2px;
-    display: block;
-}
-
 /* svg styles below */
 
 circle {
