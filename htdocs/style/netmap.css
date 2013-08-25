@@ -374,6 +374,99 @@ span.value {
 }
 
 
+/* LINK INFO RENE */
+div.uplink {
+	display:block;
+	padding:5px;
+	border:1px solid #aaa;
+	background: -o-linear-gradient(top, #ccc, #fff);
+	border-radius:5px;
+	margin-bottom:10px;
+	font-family:Consolas, "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", Monaco, "Courier New", monospace;
+}
+
+div.uplink a {
+	color:#567899;
+}
+
+div.uplink a:hover {
+	color:#f90;
+}
+
+div.uplink > .uplink_linkspeed {
+	padding:2px 0;
+	font-weight:bold;
+	font-size:.8em;
+	color:#fff;
+	text-align:center;
+	display:block;
+	width:100%;
+	background:#777;
+}
+
+div.uplink > .uplink_linkspeed > span {
+	text-transform:uppercase;
+	font-weight:bold;
+}
+
+
+div.uplink_left, div.uplink_right {
+	display:block;
+	position:relative;
+	width:67px;
+	height:auto;
+	padding:5px;
+	font-size:12px;
+	font-weight:bold;
+	overflow:hidden;
+}
+
+div.uplink_left {
+	/* border-radius:5px 0 0 5px; */
+	text-align:left;
+	float:left;
+}
+
+div.uplink_right {
+	/* border-radius:0 5px 5px 0;	*/
+	float:right;
+	text-align:right;
+}
+
+div.uplink .load_arrow {
+	display:block;
+	height:20px;
+	width:20px;
+	position:absolute;
+	transform:rotate(45deg);
+	top:50%;
+	margin-top:-10px;
+}
+
+div.uplink_left > .load_arrow {
+	right:-12px;
+}
+
+div.uplink_right > .load_arrow {
+	left:-12px;
+}
+
+
+.breaker {
+	display:block;
+	clear:both;
+	height:1px;
+	font-size:1px;
+	line-height:1px;
+}
+
+div.uplink .node_name {
+	display:block;
+}
+
+/* LINK INFO RENE END*/
+
+
 
 /* Link info styles */
 .uplink_prefix h4 {
