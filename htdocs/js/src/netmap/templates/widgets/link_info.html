@@ -71,13 +71,20 @@
                         <div class="uplink_left">
                             <span class="node_name">
 
-                                {{#if this.source.interface.ipdevinfo_link}}
-                                    <a href="{{this.source.interface.ipdevinfo_link}}"  title="{{ this.source.interface.ifname }} @ {{ link.target.sysname }}">{{this.source.interface.ifname}}</a>
+                                {{#if this.source.interface.ifname }}
+                                    {{#if this.source.interface.ipdevinfo_link}}
+                                        {{ !TODO: Fix context variable within TITLE-attribute }}
+                                        <a href="{{this.source.interface.ipdevinfo_link}}"  title="{{ this.source.interface.ifname }} @ {{../source.sysname}}">{{this.source.interface.ifname}}</a>
+                                    {{else}}
+                                        {{this.source.interface.ifname}}
+                                    {{/if}}
                                 {{else}}
-                                    {{#if this.source.interface}}{{this.source.interface.ifname}}{{else}}N/A{{/if}}
+                                    N/A
                                 {{/if}}
 
                             </span>
+
+                            {{ !TODO: Insert context variables }}
                             <span class="node_load">153 mbps</span>
                             <span class="node_load">27%</span>
                             <div class="load_arrow" style="background-color: rgb(84,255,0);"></div>
@@ -86,13 +93,20 @@
                         <div class="uplink_right">
                             <span class="node_name">
 
-                                 {{#if this.target.interface.ipdevinfo_link}}
-                                    <a href="{{this.target.interface.ipdevinfo_link}}" title="{{ this.target.interface.ifname }} @ {{ link.target.sysname }}">{{this.target.interface.ifname}}</a>
+                                 {{#if this.target.interface.ifname }}
+                                    {{#if this.target.interface.ipdevinfo_link}}
+                                        {{!TODO: Fix context variable within TITLE-attribute}}
+                                        <a href="{{this.target.interface.ipdevinfo_link}}"  title="{{ this.target.interface.ifname }} @ {{../target.sysname}}">{{this.target.interface.ifname}}</a>
+                                    {{else}}
+                                        {{this.target.interface.ifname}}
+                                    {{/if}}
                                 {{else}}
-                                    {{#if this.target.interface}}{{this.target.interface.ifname}}{{else}}N/A{{/if}}
-                                {{/if}}
+                                    N/A
+                                {{/if}}}
 
                             </span>
+
+                            {{ !TODO: Insert context variables }}
                             <span class="node_load">153 mbps</span>
                             <span class="node_load">27%</span>
                             <div class="load_arrow" style="background-color: rgb(255,44,0);"></div>
