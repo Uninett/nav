@@ -250,6 +250,8 @@ define([
 
                         self.zoomRescaleFromActiveProperty(self.options.activeMapModel.get('zoom'));
                         self.isGraphLoadingForFirstTime = false;
+                        self.model.set({'rrd': true});
+                        self.loadTopologyGraph();
                     } else {
                         self.updateTopologyGraph(self.model);
                     }

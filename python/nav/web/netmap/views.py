@@ -455,12 +455,14 @@ def api_graph_layer_2(request, map_id=None):
     Layer2 network topology representation in d3js force-direct graph layout
     http://mbostock.github.com/d3/ex/force.html
     """
+    collect_rrd = 'rrd' in request.GET
+
     if map_id:
         view = get_object_or_404(NetmapView, pk=map_id)
         session_user = get_account(request)
 
         if view.is_public or (session_user == view.owner):
-            json = _json_layer2(view)
+            json = _json_layer2(collect_rrd, view)
             response = HttpResponse(simplejson.dumps(json))
             response['Content-Type'] = 'application/json; charset=utf-8'
             response['Cache-Control'] = 'no-cache'
@@ -471,7 +473,7 @@ def api_graph_layer_2(request, map_id=None):
         else:
             return HttpResponseForbidden()
 
-    json = _json_layer2()
+    json = _json_layer2(collect_rrd)
     response = HttpResponse(simplejson.dumps(json))
     response['Content-Type'] = 'application/json; charset=utf-8'
     response['Cache-Control'] = 'no-cache'
@@ -480,7 +482,7 @@ def api_graph_layer_2(request, map_id=None):
     return response
 
 
-def _json_layer2(view=None):
+def _json_layer2(collect_rrd=False, view=None):
     _LOGGER.debug("build_netmap_layer2_graph() start")
     topology_without_metadata = vlan.build_layer2_graph(
         (
@@ -494,7 +496,7 @@ def _json_layer2(view=None):
     _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
 
     graph = build_netmap_layer2_graph(topology_without_metadata,
-                                      vlan_by_interface, vlan_by_netbox, view)
+                                      vlan_by_interface, vlan_by_netbox, collect_rrd, view)
 
     return {
         'vlans': get_vlan_lookup_json(vlan_by_interface),
