@@ -379,7 +379,15 @@ div.uplink {
 	display:block;
 	padding:5px;
 	border:1px solid #aaa;
-	background: -o-linear-gradient(top, #ccc, #fff);
+
+    background: -moz-linear-gradient(top,  #f0f9ff 0%, #d8f0ff 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f0f9ff), color-stop(100%,#d8f0ff)); /* Chrome, Safari4+ */
+    background: -webkit-linear-gradient(top,  #f0f9ff 0%,#d8f0ff 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #f0f9ff 0%,#d8f0ff 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #f0f9ff 0%,#d8f0ff 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #f0f9ff 0%,#d8f0ff 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f0f9ff', endColorstr='#d8f0ff',GradientType=0 ); /* IE6-9 */
+
 	border-radius:5px;
 	margin-bottom:10px;
 	font-family:Consolas, "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", Monaco, "Courier New", monospace;
@@ -401,7 +409,7 @@ div.uplink > .uplink_linkspeed {
 	text-align:center;
 	display:block;
 	width:100%;
-	background:#777;
+	background:#567899;
 }
 
 div.uplink > .uplink_linkspeed > span {
@@ -438,7 +446,9 @@ div.uplink .load_arrow {
 	height:20px;
 	width:20px;
 	position:absolute;
-	transform:rotate(45deg);
+    transform:rotate(45deg);
+    -ms-transform:rotate(45deg); /* IE 9 */
+    -webkit-transform:rotate(45deg); /* Safari and Chrome */
 	top:50%;
 	margin-top:-10px;
 }
