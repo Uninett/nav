@@ -294,8 +294,10 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
                     )
                 )
                 port_pairs.add(port_pair)
-                if port_pair[0] is not None: interfaces.add(port_pair[0])
-                if port_pair[1] is not None: interfaces.add(port_pair[1])
+                if port_pair[0] is not None:
+                    interfaces.add(port_pair[0])
+                if port_pair[1] is not None:
+                    interfaces.add(port_pair[1])
 
                 netmap_graph.add_edge(source, target,
                                       attr_dict=existing_metadata)
@@ -371,8 +373,10 @@ def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False,
             )
         )
         gwportprefix_pairs.add(gwportprefix)
-        if gwpp_a.interface is not None: interfaces.add(gwpp_a.interface)
-        if gwpp_b.interface is not None: interfaces.add(gwpp_b.interface)
+        if gwpp_a.interface is not None:
+            interfaces.add(gwpp_a.interface)
+        if gwpp_b.interface is not None:
+            interfaces.add(gwpp_b.interface)
 
         graph.add_edge(netbox_a, netbox_b, key=prefix.vlan,
             attr_dict=existing_metadata)
