@@ -362,7 +362,13 @@ def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False,
 
         existing_metadata = graph.get_edge_data(netbox_a, netbox_b) or {}
         gwportprefix_pairs = existing_metadata.setdefault('gwportprefix_pairs', set())
-        gwportprefix = tuple(sorted((gwpp_a, gwpp_b), key=lambda gwpportprefix: gwpportprefix and gwpportprefix.gw_ip or None))
+        gwportprefix = tuple(
+            sorted(
+                (gwpp_a, gwpp_b),
+                key=lambda
+                        gwpprefix: gwpprefix and gwpprefix.gw_ip or None
+            )
+        )
         gwportprefix_pairs.add(gwportprefix)
         if gwpp_a.interface is not None: interfaces.add(gwpp_a.interface)
         if gwpp_b.interface is not None: interfaces.add(gwpp_b.interface)
