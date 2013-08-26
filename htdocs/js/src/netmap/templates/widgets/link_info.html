@@ -3,10 +3,14 @@
         <div class="header"><div class="title no-icon">Link info</div></div>
     </div>
     <div class="body">
+        <div class="uplink_netbox">
+            <a class="uplink_netbox_link" href="{{ link.source.ipdevinfo_link }}">{{ link.source.sysname }}</a>
+        </div>
+        <div class="uplink_netbox">
+            <a class="uplink_netbox_link" href="{{ link.target.ipdevinfo_link }}">{{ link.target.sysname }}</a>
+        </div>
         {{#if l3 }}
             {{! Layer 3 template here.  }}
-            <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{ link.source.ipdevinfo_link }}">{{ link.source.sysname }}</a></span>
-            <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{ link.target.ipdevinfo_link }}">{{ link.target.sysname }}</a></span>
             {{#each link.edges}}
                 {{! this.id is an netmap.models.Vlan FYI }}
                 <div class="uplink_prefix">
@@ -61,8 +65,6 @@
         {{else}}
             {{! Layer 2 template here.  }}
             <div>
-                <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{link.source.ipdevinfo_link}}">{{link.source.sysname}}</a></span> - <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{link.target.ipdevinfo_link}}">{{link.target.sysname}}</a></span>
-
                 {{#each link.edges}}
                     <div class="uplink">
                         <div class="uplink_linkspeed"><span>Link speed:</span> {{ this.link_speed }} mbps</div>
