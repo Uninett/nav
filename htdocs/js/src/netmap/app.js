@@ -111,6 +111,18 @@ define([
             return ret;
         });
 
+        Handlebars.registerHelper("debug", function (optionalValue) {
+            console.log("\nCurrent Context");
+            console.log("====================");
+            console.log(this);
+
+            if (arguments.length > 1) {
+                console.log("Value");
+                console.log("====================");
+                console.log(optionalValue);
+            }
+        });
+
         Backbone.Model.extend({
             toJSON: function () {
                 var clone = _.clone(this.attributes);
