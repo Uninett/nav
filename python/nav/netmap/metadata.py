@@ -41,6 +41,10 @@ class GraphException(NetmapException):
 
 
 class Node(object):
+    """Node object represent a node in the netmap_graph
+
+    Makes it easier to validate data and convert node to valid json.
+    """
     def __init__(self, node, nx_node_metadata=None):
         self.node = node
         if nx_node_metadata and 'metadata' in nx_node_metadata:
@@ -51,6 +55,7 @@ class Node(object):
         return "netmap.Node(metadata={0!r})".format(self.metadata)
 
     def to_json(self):
+        """json presentation of Node"""
         json = {}
 
         if self.metadata:
@@ -124,6 +129,7 @@ class Group(object):
                     self.interface == other.interface)
 
     def to_json(self):
+        """json presentation of Group"""
         json = {
             'netbox': unicode(self.netbox.id),
         }
@@ -284,6 +290,7 @@ class Edge(object):
             self.layer, self.source, self.target, self.link_speed, self.vlans, self.vlan, self.prefix)
 
     def to_json(self):
+        """json presentation of Edge"""
         json = {
             'source': self.source.to_json() or 'null',
             'target': self.target.to_json() or 'null',
