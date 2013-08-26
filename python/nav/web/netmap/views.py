@@ -591,7 +591,9 @@ def traffic_load_gradient(request):
 
     # again thar be dragons.
     response = HttpResponse(
-        simplejson.dumps(([dict(zip(keys, get_traffic_rgb(percent))) for percent in range(0, 101)])))
+        simplejson.dumps((
+        [dict(zip(keys, get_traffic_rgb(percent))) for percent in
+         range(0, 101)])))
     response['Content-Type'] = 'application/json; charset=utf-8'
     return response
 
