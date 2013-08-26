@@ -65,7 +65,7 @@
 
                 {{#each link.edges}}
                     <div class="uplink">
-                        <div class="uplink_linkspeed"><span>Link speed:</span> {{ this.link_speed }}</div>
+                        <div class="uplink_linkspeed"><span>Link speed:</span> {{ this.link_speed }} mbps</div>
 
 
                         <div class="uplink_left">
@@ -83,10 +83,9 @@
 
                             </span>
 
-                            {{!TODO: Insert context variables}}
-                            <span class="node_load">153 mbps</span>
-                            <span class="node_load">27%</span>
-                            <div class="load_arrow" style="background-color: rgb(84,255,0);"></div>
+                            <span class="node_load">{{ traffic_si traffic.source.rrd.raw }}</span>
+                            <span class="node_load">{{ traffic.source.percent_by_speed }}%</span>
+                            <div class="load_arrow" style="background-color: rgb({{ traffic.source.css }});"></div>
                         </div>
 
                         <div class="uplink_right">
@@ -104,10 +103,9 @@
 
                             </span>
 
-                            {{!TODO: Insert context variables}}
-                            <span class="node_load">153 mbps</span>
-                            <span class="node_load">27%</span>
-                            <div class="load_arrow" style="background-color: rgb(255,44,0);"></div>
+                            <span class="node_load">{{ traffic_si traffic.target.rrd.raw }}</span>
+                            <span class="node_load">{{ traffic.target.percent_by_speed }}%</span>
+                            <div class="load_arrow" style="background-color: rgb({{ traffic.target.css }});"></div>
                         </div>
                         <div class="breaker"></div>
                     </div>
