@@ -172,7 +172,8 @@ class Edge(object):
         return isinstance(edge, Interface) or isinstance(edge, stubs.Interface)
 
     def _valid_layer3(self, edge):
-        return isinstance(edge, GwPortPrefix) or isinstance(edge, stubs.GwPortPrefix)
+        return isinstance(edge, GwPortPrefix) or isinstance(edge,
+                                                            stubs.GwPortPrefix)
 
     def _get_layer(self, source, target):
         if (self._valid_layer2(source) or source is None
@@ -194,7 +195,8 @@ class Edge(object):
     def __init__(self, nx_edge, source, target, traffic=None):
         """
 
-        :param nx_edge: NetworkX edge representing (source,target) in a tuple.(they be nav.models.Netbox or nav.netmap.stubs.Netbox)
+        :param nx_edge: NetworkX edge representing (source,target) in a tuple
+        .(they be nav.models.Netbox or nav.netmap.stubs.Netbox)
         :param source: source, where it is either of type Interface or type
          GwPortPrefix.
         :param target: target, where it is either of type Interface or type
@@ -206,7 +208,8 @@ class Edge(object):
             if not self._same_layer(source, target):
                 raise GraphException(
                     "Source and target has to be of same type, typically "
-                    "Interfaces in layer2 graph or GwPortPrefixes in layer3 graph")
+                    "Interfaces in layer2 graph or"
+                    "GwPortPrefixes in layer3 graph")
         elif source is None and target is None:
             raise GraphException("Source & target can't both be None! Bailing!")
 
@@ -241,7 +244,8 @@ class Edge(object):
         if self.target is None: self.target = Group(nx_target)
 
         # Swap directional metadata to follow nx graph edge.
-        if self.source.netbox.id != nx_source.id and self.source.netbox.id == nx_target.id:
+        if (self.source.netbox.id != nx_source.id) and (
+                self.source.netbox.id == nx_target.id):
             tmp = self.source
             self.source = self.target
             self.target = tmp
