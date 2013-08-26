@@ -32,12 +32,6 @@ jshint --config ${JSDIR}/.jshintrc ${JAVASCRIPT_FILES[@]} --jslint-reporter > ${
 # Verify that jshint was running as jshint will have non-zero exit if ANY linting errors is found.
 [ -s "${JSDIR}/javascript-jshint.xml" ]
 
-
-
-echo "=========================================================="
-w3m http://localhost:${BUSTERPORT} | cat
-echo "=========================================================="
-
 echo "Running tests"
 cd ${JSDIR}
 ${JSDIR}/node_modules/.bin/karma start test/karma.conf.buildserver.js
