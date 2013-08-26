@@ -253,7 +253,9 @@ class Edge(object):
         self.layer = self._get_layer(source, target)
 
         if self.layer == 3:
-            assert source.prefix.vlan.id == target.prefix.vlan.id, "Source and target GwPortPrefix must reside in same VLan for Prefix! Bailing"
+            assert source.prefix.vlan.id == target.prefix.vlan.id, (
+                "Source and target GwPortPrefix must reside in same VLan for "
+                "Prefix! Bailing")
 
             self.prefix = source.prefix
             self.vlan = source.prefix.vlan
