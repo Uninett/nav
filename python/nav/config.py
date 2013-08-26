@@ -134,6 +134,11 @@ class NAVConfigParser(ConfigParser.ConfigParser):
 
 
 class NavConfigParserDefaultSection(object):
+    """A ConfigParser for NAV config files with some NAV-related
+    simplifications and use a default section.
+
+    See NavConfigParser for more details.
+    """
     DEFAULT_CONFIG_FILES = ()
     DEFAULT_CONFIG = ""
 
