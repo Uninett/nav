@@ -277,7 +277,8 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     # sure we fetch all 'loose' ends and makes sure they get attached as
     # metadata into netmap_graph
     for source, neighbors_dict in topology_without_metadata.adjacency_iter():
-        for target, connected_interfaces_at_source_for_target in neighbors_dict.iteritems():
+        for target, connected_interfaces_at_source_for_target in (
+            neighbors_dict.iteritems()):
             for interface in connected_interfaces_at_source_for_target:
                 # fetch existing metadata that might have been added already
                 existing_metadata = netmap_graph.get_edge_data(
@@ -285,7 +286,13 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
                     target
                 ) or {}
                 port_pairs = existing_metadata.setdefault('port_pairs', set())
-                port_pair = tuple(sorted((interface, interface.to_interface), key=lambda interfjes: interfjes and interfjes.pk or None))
+                port_pair = tuple(
+                    sorted(
+                        (interface, interface.to_interface),
+                        key=lambda
+                                interfjes: interfjes and interfjes.pk or None
+                    )
+                )
                 port_pairs.add(port_pair)
                 if port_pair[0] is not None: interfaces.add(port_pair[0])
                 if port_pair[1] is not None: interfaces.add(port_pair[1])
@@ -294,7 +301,7 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
                                       attr_dict=existing_metadata)
 
     _LOGGER.debug(
-        "build_netmap_layer2_graph() graph reduced and port_pair metadata attached")
+        "build_netmap_layer2_graph() graph reduced.Port_pair metadata attached")
 
     rrd_datasources = collect_rrd and _get_datasource_lookup(interfaces) or {}
 
@@ -302,7 +309,8 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
         for a, b in metadata_dict.get('port_pairs'):
             rrd_traffic = get_rrd_data(rrd_datasources, (a,b))
             additional_metadata = edge_metadata_layer2((source, target), a, b,
-                                                         vlan_by_interface, rrd_traffic)
+                                                       vlan_by_interface,
+                                                       rrd_traffic)
 
             metadata = metadata_dict.setdefault('metadata', list())
             metadata.append(additional_metadata)
