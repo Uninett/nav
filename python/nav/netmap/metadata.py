@@ -28,9 +28,15 @@ from nav.web.netmap.common import get_status_image_link
 _LOGGER = logging.getLogger(__name__)
 
 class NetmapException(GeneralException):
+    """Generic Netmap Exception"""
     pass
 
 class GraphException(NetmapException):
+    """Graph Exception
+
+    This exception is normally thrown if it finds something odd in the graph
+     from nav.topology or the metadata contains known errors.
+    """
     pass
 
 
