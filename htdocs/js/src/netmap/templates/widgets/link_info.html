@@ -73,8 +73,7 @@
 
                                 {{#if this.source.interface.ifname }}
                                     {{#if this.source.interface.ipdevinfo_link}}
-                                        {{!TODO: Fix context variable within TITLE-attribute}}
-                                        <a href="{{this.source.interface.ipdevinfo_link}}"  title="{{ this.source.interface.ifname }} @ {{../source.sysname}}">{{this.source.interface.ifname}}</a>
+                                        <a href="{{this.source.interface.ipdevinfo_link}}"  title="{{ this.source.interface.ifname }} @ {{../source.netbox.sysname}}">{{this.source.interface.ifname}}</a>
                                     {{else}}
                                         {{this.source.interface.ifname}}
                                     {{/if}}
@@ -95,8 +94,7 @@
 
                                  {{#if this.target.interface.ifname }}
                                     {{#if this.target.interface.ipdevinfo_link}}
-                                        {{!TODO: Fix context variable within TITLE-attribute}}
-                                        <a href="{{this.target.interface.ipdevinfo_link}}"  title="{{ this.target.interface.ifname }} @ {{../target.sysname}}">{{this.target.interface.ifname}}</a>
+                                        <a href="{{this.target.interface.ipdevinfo_link}}"  title="{{ this.target.interface.ifname }} @ {{../target.netbox.sysname}}">{{this.target.interface.ifname}}</a>
                                     {{else}}
                                         {{this.target.interface.ifname}}
                                     {{/if}}
