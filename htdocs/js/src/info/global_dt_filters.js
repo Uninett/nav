@@ -150,7 +150,8 @@ define(['libs/jquery.dataTables.min'], function () {
         filter_vlan: filter_vlan,
         extract_date: extract_date,
         daysince: daysince,
-        is_trunk: is_trunk
+        is_trunk: is_trunk,
+        remove_keywords: remove_keywords
     };
 
 });
