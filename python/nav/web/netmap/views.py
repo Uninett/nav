@@ -436,7 +436,8 @@ def _delete_map(request, map_id):
     view = get_object_or_404(NetmapView, pk=map_id)
     session_user = get_account(request)
 
-    if session_user == view.owner or AccountGroup.ADMIN_GROUP in session_user.get_groups():
+    if (session_user == view.owner) or (
+            AccountGroup.ADMIN_GROUP in session_user.get_groups()):
         view.delete()
         return HttpResponse()
     else:
