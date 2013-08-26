@@ -29,7 +29,8 @@ class Netbox(object):
     def __key(self):
         return (self.sysname)
 
-    # pylint: disable=W0212 # Yes we know we access private variable
+    # Yes we know we access private variable
+    # pylint: disable=W0212
     def __eq__(self, i):
         return self.__key() == i.__key()
 
@@ -54,7 +55,8 @@ class GwPortPrefix(object):
     def __key(self):
         return (self.gw_ip)
 
-    # pylint: disable=W0212 # Yes we know we access private variable
+    # Yes we know we access private variable
+    # pylint: disable=W0212
     def __eq__(self, i):
         return self.__key() == i.__key()
 
@@ -75,7 +77,8 @@ class Interface(object):
     def __key(self):
         return (self.ifname)
 
-    # pylint: disable=W0212 # Yes we know we access private variable
+    # Yes we know we access private variable
+    # pylint: disable=W0212
     def __eq__(self, i):
         return self.__key() == i.__key()
 
