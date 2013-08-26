@@ -51,8 +51,8 @@ def _get_datasource_lookup(interfaces):
 
 class Source(object):
     def __init__(self, rrd_datasource):
-        # todo : what to do if rrd source is not where it should be? Will return 0
-        # if it can't find RRD file for example
+        # todo : what to do if rrd source is not where it should be?
+        # Will return 0 if it can't find RRD file for example
         self.source = rrd_datasource
         presentation = presenter.Presentation()
         presentation.add_datasource(self.source)
