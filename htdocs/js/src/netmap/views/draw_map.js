@@ -381,6 +381,7 @@ define([
                 topology: layer,
                 rrd: false
             });
+            this.options.activeMapModel.set({'topology': layer});
             this.loadTopologyGraph();
         },
         setMapPropertyDataRefreshInterval: function (intervalInMinutes) {
