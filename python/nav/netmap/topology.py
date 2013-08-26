@@ -383,8 +383,12 @@ def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False,
     for source, target, metadata_dict in graph.edges_iter(data=True):
       for a,b in metadata_dict.get('gwportprefix_pairs'):
           rrd_traffic = get_rrd_data(rrd_datasources, (a,b))
-          additional_metadata = edge_metadata_layer3((source, target), a, b, rrd_traffic)
-          assert a.prefix.vlan.id == b.prefix.vlan.id, "GwPortPrefix must reside inside VLan for given Prefix, bailing!"
+          additional_metadata = edge_metadata_layer3((source, target), a, b,
+                                                     rrd_traffic)
+          assert a.prefix.vlan.id == b.prefix.vlan.id, ("GwPortPrefix must "
+                                                        "reside inside VLan "
+                                                        "for given Prefix, "
+                                                        "bailing!")
           metadata = metadata_dict.setdefault('metadata', defaultdict(list))
           metadata[a.prefix.vlan.id].append(additional_metadata)
 
