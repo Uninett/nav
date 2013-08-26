@@ -84,8 +84,9 @@ class Octets(object):
 
     def __repr__(self):
         return ("netmap.Octets(name={0!r}, source={1!r}, load_in_percent={2!r},"
-                "octets_percent_by_speed={3!r}, css={4!r})").format(self.name, self.source, self.load_in_percent,
-                                                                    self.octets_percent_by_speed, self.css)
+                "octets_percent_by_speed={3!r}, css={4!r})").format(
+            self.name, self.source, self.load_in_percent,
+            self.octets_percent_by_speed, self.css)
 
     def to_json(self):
         return {
