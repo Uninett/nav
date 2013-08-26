@@ -16,10 +16,8 @@
 """Netmap functions for attaching RRD/traffic metadata to netmap"""
 import logging
 from nav.models.manage import Interface
-from nav.netmap import stubs
 from nav.rrd2 import presenter
-from nav.web.netmap.common import get_traffic_rgb, \
-    get_traffic_load_in_percent
+from nav.web.netmap.common import get_traffic_rgb, get_traffic_load_in_percent
 
 _LOGGER = logging.getLogger(__name__)
 
