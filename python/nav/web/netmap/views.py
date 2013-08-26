@@ -425,12 +425,14 @@ def api_graph_layer_3(request, map_id=None):
     Layer2 network topology representation in d3js force-direct graph layout
     http://mbostock.github.com/d3/ex/force.html
     """
+    collect_rrd = 'rrd' in request.GET
+
     if map_id:
         view = get_object_or_404(NetmapView, pk=map_id)
         session_user = get_account(request)
 
         if view.is_public or (session_user == view.owner):
-            json = _json_layer3(view)
+            json = _json_layer3(collect_rrd, view)
             response = HttpResponse(simplejson.dumps(json))
             response['Content-Type'] = 'application/json; charset=utf-8'
             response['Cache-Control'] = 'no-cache'
@@ -441,7 +443,7 @@ def api_graph_layer_3(request, map_id=None):
         else:
             return HttpResponseForbidden()
 
-    json = _json_layer3()
+    json = _json_layer3(collect_rrd)
     response = HttpResponse(simplejson.dumps(json))
     response['Content-Type'] = 'application/json; charset=utf-8'
     response['Cache-Control'] = 'no-cache'
@@ -505,7 +507,7 @@ def _json_layer2(collect_rrd=False, view=None):
     }
 
 
-def _json_layer3(view=None):
+def _json_layer3(collect_rrd=False, view=None):
     _LOGGER.debug("build_netmap_layer3_graph() start")
     topology_without_metadata = vlan.build_layer3_graph(
         ('prefix__vlan__net_type', 'gwportprefix__prefix__vlan__net_type',))
@@ -514,9 +516,9 @@ def _json_layer3(view=None):
     vlans_map = _get_vlans_map_layer3(topology_without_metadata)
     _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
 
-    graph = build_netmap_layer3_graph(topology_without_metadata, view)
+    graph = build_netmap_layer3_graph(topology_without_metadata, collect_rrd, view)
     return {
-        'vlans': [vlan_to_json(prefix.vlan) for prefix in _get_vlans_map_layer3(topology_without_metadata)],
+        'vlans': [vlan_to_json(prefix.vlan) for prefix in vlans_map],
         'nodes': _get_nodes(node_to_json_layer3, graph),
         'links': [edge_to_json_layer3((node_a, node_b), nx_metadata) for node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
     }
