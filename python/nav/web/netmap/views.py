@@ -29,7 +29,6 @@ from django.http import HttpResponse, HttpResponseForbidden,\
     HttpResponseBadRequest, HttpResponseRedirect
 from django.utils import simplejson
 
-import networkx as nx
 import nav.buildconf
 from nav.django.utils import get_account, get_request_body
 from nav.models.manage import Netbox, Category
