@@ -1013,8 +1013,8 @@ define([
                     }
 
                     var undefined_css_color = '0,255,255';
-                    var inCss = !!trafficObject.inOctets ? trafficObject.inOctets.css : undefined_css_color;
-                    var outCss = !!trafficObject.outOctets ? trafficObject.outOctets.css : undefined_css_color;
+                    var inCss = !!trafficObject.source ? trafficObject.source.css : undefined_css_color;
+                    var outCss = !!trafficObject.target ? trafficObject.target.css : undefined_css_color;
                     return [
                         {percent: 0, css: inCss},
                         {percent: 50, css: inCss},
