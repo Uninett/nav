@@ -107,8 +107,6 @@ class Traffic(object):
         self.source = None
         self.target = None
         self.has_swapped = False
-        #self.in_octets = Octets('inOctets', Source('ds1', 'ifHCInOctets', 809.399562), 100)
-        #self.out_octets = Octets('outOctets', Source('ds1', 'ifHCOutOctets', 55809.399562), 100)
 
     def __repr__(self):
         return "netmap.Traffic(in={0!r}, out={1!r}, swapped={2!r})".format(
