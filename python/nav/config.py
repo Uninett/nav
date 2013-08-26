@@ -138,7 +138,8 @@ class NavConfigParserDefaultSection(object):
     DEFAULT_CONFIG = ""
 
     def __init__(self, section):
-        self.parser = NAVConfigParser(self.DEFAULT_CONFIG, self.DEFAULT_CONFIG_FILES)
+        self.parser = NAVConfigParser(self.DEFAULT_CONFIG,
+                                      self.DEFAULT_CONFIG_FILES)
         self.section = section
 
     def get(self, *args):
