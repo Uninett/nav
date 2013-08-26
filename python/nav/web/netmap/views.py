@@ -547,12 +547,14 @@ def _json_layer2(collect_rrd=False, view=None):
     _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
 
     graph = build_netmap_layer2_graph(topology_without_metadata,
-                                      vlan_by_interface, vlan_by_netbox, collect_rrd, view)
+                                      vlan_by_interface, vlan_by_netbox,
+                                      collect_rrd, view)
 
     return {
         'vlans': get_vlan_lookup_json(vlan_by_interface),
         'nodes': _get_nodes(node_to_json_layer2, graph),
-        'links': [edge_to_json_layer2((node_a, node_b), nx_metadata) for node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
+        'links': [edge_to_json_layer2((node_a, node_b), nx_metadata) for
+                  node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
     }
 
 
