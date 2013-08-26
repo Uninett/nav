@@ -29,40 +29,38 @@ To run NAV, these software packages are required:
  * Apache2
  * mod_wsgi
  * Cricket
- * PostgreSQL >= 8.3
+ * PostgreSQL >= 8.4
  * rrdtool
  * Python >= 2.6.0
- * nbtscan = 1.5.1-6
+ * nbtscan = 1.5.1
  * dhcping (only needed if using DHCP service monitor)
 
 
 The following python modules are required:
 
  * :mod:`django` >= 1.2
- * :mod:`IPy`
- * :mod:`ldap`
- * :mod:`networkx` >= 1.0
- * :mod:`psycopg2`
+ * :mod:`IPy` >= 0.70
+ * :mod:`ldap` >= 2.3
+ * :mod:`networkx` >= 1.1
+ * :mod:`psycopg2` >= 2.2
  * :mod:`pyrad`
  * :mod:`rrd` (from the rrdtool distribution)
  * :mod:`simplejson` >= 2.0.6
- * :mod:`twisted` >= 8.1
+ * :mod:`twisted` >= 10.1
  * :mod:`pynetsnmp` (or less preferably, :mod:`pysnmp-se` combined with :mod:`twistedsnmp` >= 0.3)
- * :mod:`PIL` 1.1.7 (python-imaging)
+ * :mod:`PIL` >= 1.1.7 (python-imaging)
 
 The following python modules are optional:
 
  * :mod:`xmpp` (optional)
 
-:mod:`psycopg2` should be at least version 2.0.8: Earlier versions have bugs
-that may cause some NAV programs to crash.
-
 The :mod:`pynetsnmp` module is preferred over :mod:`twistedsnmp` for SNMP
-communication.  The former is a Python binding to the well-known NetSNMP C
-library, whereas the latter is a pure-Python SNMP
-implementation. :mod:`twistedsnmp` also has a known, unfixed bug with table
-retrievals on slow SNMP agents. If, for some reason, you are forced to resort
-to using :mod:`twistedsnmp`, the :file:`contrib/patches` directory contains a
+communication. The former is a Python binding to the well-known NetSNMP C
+library, whereas the latter is a pure-Python SNMP implementation.
+:mod:`pynetsnmp` will give better performance *and* IPv6-support.
+:mod:`twistedsnmp` also has a known, unfixed bug with table retrievals on slow
+SNMP agents. If, for some reason, you are forced to resort to using
+:mod:`twistedsnmp`, the :file:`contrib/patches` directory contains a
 recommended patch for this problem.
 
 
