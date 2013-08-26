@@ -25,20 +25,23 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, render_to_response
 
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseForbidden,\
-    HttpResponseBadRequest, HttpResponseRedirect
+from django.http import (HttpResponse, HttpResponseForbidden,
+                         HttpResponseBadRequest, HttpResponseRedirect)
 from django.utils import simplejson
 
 import nav.buildconf
 from nav.django.utils import get_account, get_request_body
 from nav.models.manage import Netbox, Category
-from nav.models.profiles import NetmapView, NetmapViewNodePosition,\
-    NetmapViewCategories, NetmapViewDefaultView, Account, AccountGroup
+from nav.models.profiles import (NetmapView, NetmapViewNodePosition,
+                                 NetmapViewCategories, NetmapViewDefaultView,
+                                 Account, AccountGroup)
 from nav.netmap.metadata import (node_to_json_layer2, edge_to_json_layer2,
-node_to_json_layer3, edge_to_json_layer3, vlan_to_json, get_vlan_lookup_json)
+                                 node_to_json_layer3, edge_to_json_layer3,
+                                 vlan_to_json, get_vlan_lookup_json)
 
-from nav.netmap.topology import build_netmap_layer3_graph,\
-    build_netmap_layer2_graph, _get_vlans_map_layer2, _get_vlans_map_layer3
+from nav.netmap.topology import (build_netmap_layer3_graph,
+                                 build_netmap_layer2_graph,
+                                 _get_vlans_map_layer2, _get_vlans_map_layer3)
 from nav.topology import vlan
 from nav.web.netmap.common import layer2_graph, get_traffic_rgb
 from nav.web.netmap.forms import NetmapDefaultViewForm
