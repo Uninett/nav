@@ -567,11 +567,13 @@ def _json_layer3(collect_rrd=False, view=None):
     vlans_map = _get_vlans_map_layer3(topology_without_metadata)
     _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
 
-    graph = build_netmap_layer3_graph(topology_without_metadata, collect_rrd, view)
+    graph = build_netmap_layer3_graph(topology_without_metadata, collect_rrd,
+                                      view)
     return {
         'vlans': [vlan_to_json(prefix.vlan) for prefix in vlans_map],
         'nodes': _get_nodes(node_to_json_layer3, graph),
-        'links': [edge_to_json_layer3((node_a, node_b), nx_metadata) for node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
+        'links': [edge_to_json_layer3((node_a, node_b), nx_metadata) for
+                  node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
     }
 
 def _get_nodes(node_to_json_function, graph):
