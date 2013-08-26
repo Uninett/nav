@@ -55,6 +55,7 @@ def _get_available_categories():
     return available_categories
 
 def backbone_app(request):
+    """Single page backbone application for Netmap"""
     session_user = get_account(request)
 
     link_to_admin = None
@@ -66,8 +67,8 @@ def backbone_app(request):
     response = render_to_response(
         'netmap/backbone.html',
         {
-            'bootstrap_mapproperties_collection': get_maps(request),
-            'bootstrap_isFavorite': get_global_defaultview(request),
+            'bootstrap_mapproperties_collection': _get_maps(request),
+            'bootstrap_isFavorite': _get_global_defaultview_as_json(request),
             'bootstrap_availableCategories': serializers.serialize(
                 'json',
                 available_categories,
@@ -85,6 +86,10 @@ def backbone_app(request):
 
 
 def admin_views(request):
+    """Admin page
+
+    User can set default netmap view for all users in here
+    """
     session_user = get_account(request)
     if session_user == Account.DEFAULT_ACCOUNT:
         return HttpResponseForbidden()
@@ -109,22 +114,32 @@ def admin_views(request):
 # data views, d3js
 
 def netmap(request, map_id):
+    """Wrapper request view for fetching a nav.models.Map in JS-app
+
+    It call the helper request methods for update, get and delete
+    :throws HttpResponseBadRequest if wrapper cannot manage request
+    """
     if request.method == 'PUT' or (
         'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
         request.META['HTTP_X_HTTP_METHOD_OVERRIDE'] == 'PUT'):
-        return update_map(request, map_id)
+        return _update_map(request, map_id)
     elif request.method == 'GET':
-        return get_map(request, map_id)
+        return _get_map(request, map_id)
     elif request.method == 'DELETE' or (
         'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
         request.META['HTTP_X_HTTP_METHOD_OVERRIDE'] == 'DELETE'):
-        return delete_map(request, map_id)
+        return _delete_map(request, map_id)
 
     else:
         return HttpResponseBadRequest()
 
 
 def netmap_defaultview(request):
+    """Wrapper request view for users default view (nav.models.Map in JS-app)
+
+    It call the helper request methods for update and get.
+    :throws HttpResponseBadRequest if wrapper cannot manage request
+    """
     if request.method == 'PUT' or (
         'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
         request.META[
@@ -148,7 +163,7 @@ def netmap_defaultview(request):
 
         return update_defaultview(request, map_id)
     elif request.method == 'GET':
-        response = HttpResponse(get_defaultview(request))
+        response = HttpResponse(_get_defaultview(request))
         response['Content-Type'] = 'application/json; charset=utf-8'
         response['Cache-Control'] = 'no-cache'
         response['Pragma'] = 'no-cache'
@@ -159,6 +174,11 @@ def netmap_defaultview(request):
 
 
 def netmap_defaultview_global(request):
+    """Wrapper request view for global default view (nav.models.Map in JS-app)
+
+    It call the helper request methods for update, get and delete
+    :throws HttpResponseBadRequest if wrapper cannot manage request
+    """
     if request.method == 'PUT' or (
         'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
         request.META[
@@ -188,7 +208,7 @@ def netmap_defaultview_global(request):
             return response
 
     elif request.method == 'GET':
-        response = HttpResponse(get_global_defaultview(request))
+        response = HttpResponse(_get_global_defaultview_as_json(request))
         response['Content-Type'] = 'application/json; charset=utf-8'
         response['Cache-Control'] = 'no-cache'
         response['Pragma'] = 'no-cache'
@@ -234,7 +254,8 @@ def update_defaultview(request, map_id, is_global_defaultview=False):
             return HttpResponseForbidden()
 
 
-def get_global_defaultview(request):
+def _get_global_defaultview_as_json(request):
+    """Helper for fetching global default view"""
     session_user = get_account(request)
     try:
         view = NetmapViewDefaultView.objects.get(owner=session_user)
@@ -247,7 +268,8 @@ def get_global_defaultview(request):
 
     return simplejson.dumps(view.to_json_dict()) if view else 'null'
 
-def get_defaultview(request):
+def _get_defaultview(request):
+    """Helper for fetching users default view"""
     session_user = get_account(request)
 
     view = get_object_or_404(NetmapViewDefaultView, owner=session_user)
@@ -257,6 +279,13 @@ def get_defaultview(request):
 
 
 def _update_map_node_positions(fixed_nodes, view):
+    """Helper for updating node positions for a given netmap view
+
+    :param fixed_nodes: List of node objects to fetch it's fixed positions from
+    :param view: Which view to update.
+    :type fixed_nodes: list of json node objects.
+    :type view: NetmapView
+    """
     NetmapViewNodePosition.objects.filter(viewid=view.pk).delete()
     for node in fixed_nodes:
         netbox = Netbox.objects.get(pk=node['id'])
@@ -285,7 +314,12 @@ def _update_map_categories(categories, view):
                 category=category_model)
 
 @transaction.commit_on_success
-def update_map(request, map_id):
+def _update_map(request, map_id):
+    """Helper for updating/saving a netmap view
+
+    :param request: Request from wrapper
+    :param map_id: Map id to update/save
+    """
     view = get_object_or_404(NetmapView, pk=map_id)
     session_user = get_account(request)
 
@@ -333,7 +367,11 @@ def update_map(request, map_id):
         return HttpResponseForbidden()
 
 @transaction.commit_on_success
-def create_map(request):
+def _create_map(request):
+    """Helper method for creating a new netmap view
+
+    :param request: request from wrapper method.
+    """
     session_user = get_account(request)
 
     try:
@@ -367,7 +405,12 @@ def create_map(request):
     return HttpResponse(view.viewid)
 
 
-def get_map(request, map_id):
+def _get_map(request, map_id):
+    """Helper method for fetching a saved netmap view as json
+
+    :param request: Request from wrapper function
+    :param map_id: map_id to fetch.
+    """
     view = get_object_or_404(NetmapView, pk=map_id)
     session_user = get_account(request)
 
@@ -384,7 +427,12 @@ def get_map(request, map_id):
         return HttpResponseForbidden()
 
 @transaction.commit_on_success
-def delete_map(request, map_id):
+def _delete_map(request, map_id):
+    """Helper method for deleting a netmap view
+
+    :param request: Request from wrapper function
+    :param map_id: Map id to delete.
+    """
     view = get_object_or_404(NetmapView, pk=map_id)
     session_user = get_account(request)
 
@@ -397,15 +445,20 @@ def delete_map(request, map_id):
 
 
 def maps(request):
+    """ Wrapper function fetching/updating netmap views"""
     if request.method == 'POST':
-        return create_map(request)
+        return _create_map(request)
     elif request.method == 'GET':
-        return HttpResponse(get_maps(request))
+        return HttpResponse(_get_maps(request))
     else:
         return HttpResponseBadRequest()
 
 
-def get_maps(request):
+def _get_maps(request):
+    """Helper method for fetching netmap views
+
+    :param request: Request from wrapper function
+    """
     session_user = get_account(request)
     _maps = NetmapView.objects.filter(
         Q(is_public=True) | Q(owner=session_user.id))\
@@ -527,6 +580,8 @@ def _get_nodes(node_to_json_function, graph):
 
 
 def traffic_load_gradient(request):
+    """Json with 100 items where each row represent the RGB color load
+    indexed by percentage."""
     keys = ('r','g','b')
 
     # again thar be dragons.
@@ -537,12 +592,14 @@ def traffic_load_gradient(request):
 
 
 def _convert_image_to_datauri(image):
+    """Helper function for converting one image to base64 inline css"""
     image = image.lower()
     return open("{0}/{1}.png".format(os.path.join(
         nav.buildconf.webrootdir, "images", "netmap"
     ), image), "rb").read().encode("base64").replace("\n","")
 
 def _get_datauris_for_categories():
+    """Helper function for fetching datauris for every category"""
     data_uris = {}
 
     for category in _get_available_categories():
@@ -550,7 +607,10 @@ def _get_datauris_for_categories():
     return data_uris
 
 def api_datauris_categories(request):
+    """Converts node categories images to inline base64 datauri images
 
+    :param request: Request
+    """
 
     response = HttpResponse(
         simplejson.dumps(_get_datauris_for_categories())
