@@ -36,9 +36,11 @@
 
                                                     </span>
 
-                                    <span class="node_load">{{ traffic_si traffic.source.rrd.raw }}</span>
-                                    <span class="node_load">{{ traffic.source.percent_by_speed }}%</span>
-                                    <div class="load_arrow" style="background-color: rgb({{ traffic.source.css }});"></div>
+                                    {{#if traffic.source.percent_by_speed }}
+                                        <span class="node_load">{{ traffic_si traffic.source.rrd.raw }}</span>
+                                        <span class="node_load">{{ traffic.source.percent_by_speed }}%</span>
+                                        <div class="load_arrow" style="background-color: rgb({{ traffic.source.css }});"></div>
+                                    {{/if}}
                                 </div>
 
                                 <div class="uplink_right">
@@ -54,9 +56,11 @@
                                                         {{/if}}}
                                                     </span>
 
-                                    <span class="node_load">{{ traffic_si traffic.target.rrd.raw }}</span>
-                                    <span class="node_load">{{ traffic.target.percent_by_speed }}%</span>
-                                    <div class="load_arrow" style="background-color: rgb({{ traffic.target.css }});"></div>
+                                    {{#if traffic.target.percent_by_speed }}
+                                        <span class="node_load">{{ traffic_si traffic.target.rrd.raw }}</span>
+                                        <span class="node_load">{{ traffic.target.percent_by_speed }}%</span>
+                                        <div class="load_arrow" style="background-color: rgb({{ traffic.target.css }});"></div>
+                                    {{/if}}
                                 </div>
                                 <div>{{ this.source.gw_ip }}</div>
                                 <div>{{ this.target.gw_ip }}</div>
@@ -89,9 +93,11 @@
 
                             </span>
 
-                            <span class="node_load">{{ traffic_si traffic.source.rrd.raw }}</span>
-                            <span class="node_load">{{ traffic.source.percent_by_speed }}%</span>
-                            <div class="load_arrow" style="background-color: rgb({{ traffic.source.css }});"></div>
+                            {{#if traffic.source.percent_by_speed }}
+                                <span class="node_load">{{ traffic_si traffic.source.rrd.raw }}</span>
+                                <span class="node_load">{{ traffic.source.percent_by_speed }}%</span>
+                                <div class="load_arrow" style="background-color: rgb({{ traffic.source.css }});"></div>
+                            {{/if}}
                         </div>
 
                         <div class="uplink_right">
@@ -109,9 +115,11 @@
 
                             </span>
 
-                            <span class="node_load">{{ traffic_si traffic.target.rrd.raw }}</span>
-                            <span class="node_load">{{ traffic.target.percent_by_speed }}%</span>
-                            <div class="load_arrow" style="background-color: rgb({{ traffic.target.css }});"></div>
+                            {{#if traffic.target.percent_by_speed }}
+                                <span class="node_load">{{ traffic_si traffic.target.rrd.raw }}</span>
+                                <span class="node_load">{{ traffic.target.percent_by_speed }}%</span>
+                                <div class="load_arrow" style="background-color: rgb({{ traffic.target.css }});"></div>
+                            {{/if}}
                         </div>
                         <div class="breaker"></div>
                     </div>
