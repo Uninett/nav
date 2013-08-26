@@ -238,8 +238,8 @@ def _get_vlans_map_layer2(graph):
 
 def _get_vlans_map_layer3(graph):
     vlans = set()
-    for _, _, vlan in graph.edges_iter(keys=True):
-        vlans.add(vlan)
+    for _, _, swpv in graph.edges_iter(keys=True):
+        vlans.add(swpv)
     return vlans
 
 
