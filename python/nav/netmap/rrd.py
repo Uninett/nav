@@ -30,17 +30,18 @@ def _get_datasources(interfaces):
 
 
 def _get_datasource_lookup(interfaces):
-
-    datasources = _get_datasources([isinstance(interface, Interface) and interface.pk for interface in interfaces])
+    datasources = _get_datasources(
+        [isinstance(interface, Interface) and interface.pk for interface in
+         interfaces])
     _LOGGER.debug("netmap:attach_rrd_data_to_edges() Datasources fetched done")
 
     lookup_dict = {}
     for data in datasources:
-        interface = int(data.rrd_file.value)
-        if interface in lookup_dict:
-            lookup_dict[interface].append(data)
+        interface_pk = int(data.rrd_file.value)
+        if interface_pk in lookup_dict:
+            lookup_dict[interface_pk].append(data)
         else:
-            lookup_dict.update({interface: [data]})
+            lookup_dict.update({interface_pk: [data]})
 
     _LOGGER.debug(
         "netmap:attach_rrd_data_to_edges() Datasources rearranged in dict")
