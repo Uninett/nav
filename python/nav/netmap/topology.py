@@ -243,8 +243,8 @@ def _get_vlans_map_layer3(graph):
     return vlans
 
 
-def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface, vlan_by_netbox, collect_rrd=False,
-                              view=None):
+def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
+                              vlan_by_netbox, collect_rrd=False, view=None):
     """
     Builds a netmap layer 2 graph, based on nav's build_layer2_graph method.
     Reduces a topology graph from nav.topology.vlan, but retains it's
