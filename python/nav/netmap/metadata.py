@@ -19,7 +19,7 @@ from collections import defaultdict
 import logging
 from django.core.urlresolvers import reverse
 import operator
-from nav.netmap.config import netmap_config
+from nav.netmap.config import NETMAP_CONFIG
 from nav.errors import GeneralException
 from nav.models.manage import GwPortPrefix, Interface
 from nav.netmap import stubs
@@ -61,7 +61,7 @@ class Node(object):
                     'vlans': [nav_vlan_id for nav_vlan_id, _ in
                               self.metadata['vlans']]
                 })
-                if netmap_config.getboolean('API_DEBUG'):
+                if NETMAP_CONFIG.getboolean('API_DEBUG'):
                     json.update({
                         'd_vlans': [vlan_to_json(swpv.vlan) for _, swpv in
                                     self.metadata['vlans']]
@@ -144,7 +144,7 @@ class Group(object):
             json.update({'virtual': self.virtual})
         if self.vlans is not None:
             json.update({'vlans': [swpv.vlan.id for swpv in self.vlans]})
-        if netmap_config.getboolean('API_DEBUG'):
+        if NETMAP_CONFIG.getboolean('API_DEBUG'):
             json.update({'d_netbox_sysname': unicode(self.netbox.sysname)})
             json.update({'d_vlans': [vlan_to_json(swpv.vlan) for swpv in self.vlans]})
 
@@ -356,7 +356,7 @@ def edge_to_json_layer2(nx_edge, metadata):
         'edges': metadata_for_edges
     }
 
-    if netmap_config.getboolean('API_DEBUG'):
+    if NETMAP_CONFIG.getboolean('API_DEBUG'):
         json.update({
             'd_source_sysname': unicode(source.sysname),
             'd_target_sysname': unicode(target.sysname),
@@ -388,7 +388,7 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
         'target': unicode(target.id),
         'edges': metadata_collection
     }
-    if netmap_config.getboolean('API_DEBUG'):
+    if NETMAP_CONFIG.getboolean('API_DEBUG'):
         json.update({
             'd_source_sysname': unicode(source.sysname),
             'd_target_sysname': unicode(target.sysname),
