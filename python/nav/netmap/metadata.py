@@ -263,7 +263,8 @@ class Edge(object):
 
         self.traffic = traffic
 
-        if self.source and self.source.interface is not None and self.target and self.target.interface is not None:
+        if (self.source and self.source.interface is not None) and (
+            self.target and self.target.interface is not None):
             if self.source.interface.speed == self.target.interface.speed:
                 self.link_speed = self.source.interface.speed
             else:
