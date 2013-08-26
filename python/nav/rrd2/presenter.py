@@ -156,10 +156,10 @@ class Presentation(object):
         sum_list = []
         data_list = self.fetch_valid()
         for data in data_list:
-            sum = 0
+            total = 0
             for i in data['data']:
-                sum += i
-            sum_list.append(sum)
+                total += i
+            sum_list.append(total)
         return sum_list
 
     def max(self):
