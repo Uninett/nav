@@ -254,10 +254,13 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     spines between edges as it will turn into a mess, instead we want to access
     such data as metadata.
 
-    :param topology_without_metadata: nav.topology.vlan.build*_graph networkx graph
-    :param vlan_by_interface: dictionary to lookup up vlan's attached to given interface
+    :param topology_without_metadata: nav.topology.vlan.build*_graph networkx
+     graph
+    :param vlan_by_interface: dictionary to lookup up vlan's attached to given
+     interface
     :param vlan_by_netbox: dictonary to lookup up vlan's, keyed by netbox.
-    :param view A NetMapView for getting node positions according to saved netmap view.
+    :param view A NetMapView for getting node positions according to saved
+     netmap view.
     :type topology_without_metadata: networkx.MultiDiGraph
     :type vlan_by_interface: dict
     :type vlan_by_netbox: dict
