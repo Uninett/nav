@@ -588,7 +588,7 @@ def _get_nodes(node_to_json_function, graph):
 def traffic_load_gradient(request):
     """Json with 100 items where each row represent the RGB color load
     indexed by percentage."""
-    keys = ('r','g','b')
+    keys = ('r', 'g', 'b')
 
     # again thar be dragons.
     response = HttpResponse(
