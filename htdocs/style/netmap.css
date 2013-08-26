@@ -411,6 +411,9 @@ div.uplink > .uplink_linkspeed {
 	width:100%;
 	background:#567899;
 }
+div.uplink > .uplink_linkspeed a {
+	color:#fff;
+}
 
 div.uplink > .uplink_linkspeed > span {
 	text-transform:uppercase;
