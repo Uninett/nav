@@ -158,7 +158,8 @@ class Group(object):
             json.update({'vlans': [swpv.vlan.id for swpv in self.vlans]})
         if NETMAP_CONFIG.getboolean('API_DEBUG'):
             json.update({'d_netbox_sysname': unicode(self.netbox.sysname)})
-            json.update({'d_vlans': [vlan_to_json(swpv.vlan) for swpv in self.vlans]})
+            json.update(
+                {'d_vlans': [vlan_to_json(swpv.vlan) for swpv in self.vlans]})
 
         return json
 
