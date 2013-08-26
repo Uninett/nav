@@ -325,21 +325,22 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface, vlan
     return netmap_graph
 
 
-def build_netmap_layer3_graph(topology_without_metadata, view=None):
+def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False, view=None):
     """
     Builds a netmap layer 3 graph, based on nav's build_layer3_graph method.
 
+    :param collect_rrd: set to true for fetching RRD/Traffic statistics data for your network topology.
+    :param view: A NetMapView for getting node positions according to saved netmap view.
+    :type collect_rrd: bool
+    :type view: nav.models.profiles.NetmapView
 
-    :param view A NetMapView for getting node positions according to saved
-    netmap view.
-
-    :return NetworkX MultiGraph with attached metadata for edges and nodes
+    :return NetworkX Graph with attached metadata for edges and nodes
             (obs! metadata has direction metadata added!)
     """
 
     # Make a copy of the graph, and add edge meta data
     graph = nx.Graph()
-
+    interfaces = set()
     for gwpp_a, gwpp_b, prefix in topology_without_metadata.edges_iter(
         keys=True):
 
@@ -350,14 +351,19 @@ def build_netmap_layer3_graph(topology_without_metadata, view=None):
         gwportprefix_pairs = existing_metadata.setdefault('gwportprefix_pairs', set())
         gwportprefix = tuple(sorted((gwpp_a, gwpp_b), key=lambda gwpportprefix: gwpportprefix and gwpportprefix.gw_ip or None))
         gwportprefix_pairs.add(gwportprefix)
+        if gwpp_a.interface is not None: interfaces.add(gwpp_a.interface)
+        if gwpp_b.interface is not None: interfaces.add(gwpp_b.interface)
 
         graph.add_edge(netbox_a, netbox_b, key=prefix.vlan,
             attr_dict=existing_metadata)
     _LOGGER.debug("build_netmap_layer3_graph() graph copy with metadata done")
 
+    rrd_datasources = collect_rrd and _get_datasource_lookup(interfaces) or {}
+
     for source, target, metadata_dict in graph.edges_iter(data=True):
       for a,b in metadata_dict.get('gwportprefix_pairs'):
-          additional_metadata = edge_metadata_layer3((source, target), a, b)
+          rrd_traffic = get_rrd_data(rrd_datasources, (a,b))
+          additional_metadata = edge_metadata_layer3((source, target), a, b, rrd_traffic)
           assert a.prefix.vlan.id == b.prefix.vlan.id, "GwPortPrefix must reside inside VLan for given Prefix, bailing!"
           metadata = metadata_dict.setdefault('metadata', defaultdict(list))
           metadata[a.prefix.vlan.id].append(additional_metadata)

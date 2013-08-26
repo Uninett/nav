@@ -397,7 +397,7 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
 
 
 
-def edge_metadata_layer3(nx_edge, source, target):
+def edge_metadata_layer3(nx_edge, source, target, traffic):
     """
 
     :param nx_edge tuple containing source and target
@@ -411,7 +411,7 @@ def edge_metadata_layer3(nx_edge, source, target):
     # Note about GwPortPrefix and L3 graph: We always have interface.netbox
     # avaiable under L3 topology graph due to stubbing Netboxes etc for
     # elinks.
-    edge = Edge((nx_edge), source, target)
+    edge = Edge((nx_edge), source, target, traffic)
     return edge
 
 
