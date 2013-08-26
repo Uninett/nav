@@ -8,7 +8,7 @@ CI status check
 ---------------
 
 * Verify that the `stable` jobs in Jenkins, at
-  http://nav.uninett.no/jenkins , are all green.
+  https://nav.uninett.no/jenkins , are all green.
 * If any tests are failing, these must be resolved before moving forward.
 
 
