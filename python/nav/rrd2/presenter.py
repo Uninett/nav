@@ -97,9 +97,9 @@ class Presentation(object):
             except ValueError, error:
                 _LOGGER.warning(error)
 
-                [self.datasources.remove(remove_datasource) for
-                 remove_datasource in transaction if
-                 remove_datasource in self.datasources]
+                for remove_datasource in transaction:
+                    if remove_datasource in self.datasources:
+                        self.datasources.remove(remove_datasource)
 
                 raise error
 
