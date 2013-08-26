@@ -11,7 +11,7 @@ define([
     var graphModel = Backbone.Model.extend({
         defaults: {
                   rrd: false,
-                  topology: 2
+                  topology: 2 // change default value in models/map.js ;-)
         },
         initialize: function () {
         },
