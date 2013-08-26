@@ -17,11 +17,9 @@
 import logging
 import networkx as nx
 from collections import defaultdict
-from nav.models.manage import SwPortVlan, Prefix
-from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2, \
-    node_to_json_layer2
+from nav.models.manage import SwPortVlan
+from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2
 from nav.netmap.rrd import _get_datasource_lookup, get_rrd_data
-from nav.topology import vlan
 
 
 _LOGGER = logging.getLogger(__name__)
