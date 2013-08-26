@@ -145,7 +145,7 @@ class Group(object):
             json.update({'interface': {
                 'ifname': unicode(self.interface.ifname),
                 'ipdevinfo_link': ipdevinfo_link
-            }});
+            }})
 
 
 
