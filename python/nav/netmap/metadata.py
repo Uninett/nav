@@ -294,9 +294,11 @@ class Edge(object):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return ("netmap.Edge(layer={0!r}, source={1!r}, target={2!r}, link_speed={3!r},"
-                "vlans={4!r}, vlan={5!r}, prefix={6!r})").format(
-            self.layer, self.source, self.target, self.link_speed, self.vlans, self.vlan, self.prefix)
+        return ("netmap.Edge(layer={0!r}, source={1!r}, target={2!r},"
+                "link_speed={3!r}, vlans={4!r}, vlan={5!r},"
+                "prefix={6!r})").format(self.layer, self.source, self.target,
+                                        self.link_speed, self.vlans, self.vlan,
+                                        self.prefix)
 
     def to_json(self):
         """json presentation of Edge"""
