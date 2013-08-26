@@ -24,7 +24,6 @@ from nav.errors import GeneralException
 from nav.models.manage import GwPortPrefix, Interface
 from nav.netmap import stubs
 from nav.web.netmap.common import get_status_image_link
-from nav.netmap.rrd import Traffic
 
 _LOGGER = logging.getLogger(__name__)
 
