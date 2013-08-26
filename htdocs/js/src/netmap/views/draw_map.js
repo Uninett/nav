@@ -238,7 +238,6 @@ define([
                 success: function (model) {
                     self.model = model;
 
-
                     if (self.isGraphLoadingForFirstTime) {
                         var newModel = model.toJSON();
                         newModel.nodes.each(function (nodeObject) {
@@ -250,8 +249,6 @@ define([
 
                         self.zoomRescaleFromActiveProperty(self.options.activeMapModel.get('zoom'));
                         self.isGraphLoadingForFirstTime = false;
-                        self.model.set({'rrd': true});
-                        self.loadTopologyGraph();
                     } else {
                         self.updateTopologyGraph(self.model);
                     }
@@ -260,6 +257,10 @@ define([
                         self.zoomRescaleFromActiveProperty(self.options.activeMapModel.get('zoom'));
                     }
                     self.update(); // calls rest of the updateRender functions which updates the SVG.
+                    if (!self.model.get('rrd')) {
+                        self.model.set({'rrd': true});
+                        self.loadTopologyGraph(shouldRezoomAndTranslate);
+                    }
                     self.broadcastGraphCopy();
                     self.broker.trigger("netmap:graph:isDoneLoading", true);
                     self.showLoadingSpinner(false);
@@ -376,7 +377,10 @@ define([
             });
         },
         setMapPropertyTopology: function (layer) {
-            this.model.set({topology: layer});
+            this.model.set({
+                topology: layer,
+                rrd: false
+            });
             this.loadTopologyGraph();
         },
         setMapPropertyDataRefreshInterval: function (intervalInMinutes) {
