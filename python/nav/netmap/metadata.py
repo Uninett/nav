@@ -309,7 +309,8 @@ class Edge(object):
         if self.layer == 3:
             json.update({'prefix': {
                 'net_address': unicode(self.prefix.net_address),
-                'report_link': reverse('report-prefix-prefix', kwargs={'prefix_id': self.prefix.id})
+                'report_link': reverse('report-prefix-prefix',
+                                       kwargs={'prefix_id': self.prefix.id})
             }})
             json.update({'vlan': self.prefix.vlan.id})
         elif self.layer == 2:
