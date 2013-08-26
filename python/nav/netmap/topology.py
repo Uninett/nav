@@ -340,8 +340,10 @@ def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False,
     """
     Builds a netmap layer 3 graph, based on nav's build_layer3_graph method.
 
-    :param collect_rrd: set to true for fetching RRD/Traffic statistics data for your network topology.
-    :param view: A NetMapView for getting node positions according to saved netmap view.
+    :param collect_rrd: set to true for fetching RRD/Traffic statistics data
+     for your network topology.
+    :param view: A NetMapView for getting node positions according to saved
+     netmap view.
     :type collect_rrd: bool
     :type view: nav.models.profiles.NetmapView
 
