@@ -320,9 +320,6 @@ class Edge(object):
         json.update(
             {'traffic': self.traffic and self.traffic.to_json() or None})
 
-        #            json.update({'vlans': [_vlan_to_json(swpv.vlan)
-        #                           for swpv in self.vlans]})
-
         return json
 
 
