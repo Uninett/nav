@@ -308,9 +308,12 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     rrd_datasources = collect_rrd and _get_datasource_lookup(interfaces) or {}
 
     for source, target, metadata_dict in netmap_graph.edges_iter(data=True):
-        for a, b in metadata_dict.get('port_pairs'):
-            rrd_traffic = get_rrd_data(rrd_datasources, (a,b))
-            additional_metadata = edge_metadata_layer2((source, target), a, b,
+        for interface_a, interface_b in metadata_dict.get('port_pairs'):
+            rrd_traffic = get_rrd_data(rrd_datasources,
+                                       (interface_a, interface_b))
+            additional_metadata = edge_metadata_layer2((source, target),
+                                                       interface_a,
+                                                       interface_b,
                                                        vlan_by_interface,
                                                        rrd_traffic)
 
