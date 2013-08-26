@@ -19,10 +19,12 @@ from django.conf.urls.defaults import url, patterns
 
 
 # The patterns are relative to the base URL of the subsystem
-from nav.web.netmap.views import netmap, maps, \
-    api_graph_layer_2, api_graph_layer_3, traffic_load_gradient, graphml_layer2, \
-    backbone_app, netmap_defaultview, netmap_defaultview_global, admin_views,\
-    api_datauris_categories
+from nav.web.netmap.views import (netmap, maps,
+                                  api_graph_layer_2, api_graph_layer_3,
+                                  traffic_load_gradient, graphml_layer2,
+                                  backbone_app, netmap_defaultview,
+                                  netmap_defaultview_global, admin_views,
+                                  api_datauris_categories)
 
 urlpatterns = patterns('nav.web.netmap.views',
     url(r'^$', backbone_app, name='netmap-index'),
