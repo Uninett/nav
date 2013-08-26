@@ -335,7 +335,8 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     return netmap_graph
 
 
-def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False, view=None):
+def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False,
+                              view=None):
     """
     Builds a netmap layer 3 graph, based on nav's build_layer3_graph method.
 
