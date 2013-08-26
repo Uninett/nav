@@ -49,11 +49,6 @@ from nav.web.netmap.forms import NetmapDefaultViewForm
 _LOGGER = logging.getLogger('nav.web.netmap')
 
 
-def index(request):
-    """Single page javascript app"""
-    return backbone_app(request)
-
-
 def _get_available_categories():
     available_categories = list(Category.objects.all())
     available_categories.append(Category(id='ELINK', description='ELINK'))
