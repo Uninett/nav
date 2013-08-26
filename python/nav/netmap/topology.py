@@ -273,8 +273,9 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
 
     interfaces = set()
 
-    # basically loops over the whole MultiDiGraph from nav.topology and make sure we fetch all 'loose'
-    # ends and makes sure they get attached as metadata into netmap_graph
+    # basically loops over the whole MultiDiGraph from nav.topology and make
+    # sure we fetch all 'loose' ends and makes sure they get attached as
+    # metadata into netmap_graph
     for source, neighbors_dict in topology_without_metadata.adjacency_iter():
         for target, connected_interfaces_at_source_for_target in neighbors_dict.iteritems():
             for interface in connected_interfaces_at_source_for_target:
