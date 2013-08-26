@@ -461,11 +461,12 @@ def _get_maps(request):
     :param request: Request from wrapper function
     """
     session_user = get_account(request)
-    _maps = NetmapView.objects.filter(
+    netmap_views = NetmapView.objects.filter(
         Q(is_public=True) | Q(owner=session_user.id))\
     .order_by('-is_public')
     json_views = []
-    [json_views.append(view.to_json_dict()) for view in _maps]
+    for view in netmap_views:
+        json_views.append(view.to_json_dict())
     return simplejson.dumps(json_views)
 
 
