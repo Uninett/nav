@@ -18,48 +18,52 @@
                     <span class="prefix_description">{{ this.id.description }}</span>
 
                         {{#each this.edges}}
-                            <div>
-                                <div>
-                                    <div class="prefix"><a href="{{ this.prefix.report_link }}">{{ this.prefix.net_address }}</a>
-                                            <div class="toggleUplink">[+]
-                                                <div class="linkSource">
-                                                    <div class="uplink_netbox">{{ this.source.netbox.sysname }}</div>
-                                                    <div>
-                                                        {{#if this.source.interface}}
-                                                            {{#if this.source.interface.ipdevinfo_link }}
-                                                                <a href="{{ this.source.interface.ipdevinfo_link }}">{{ this.source.interface.ifname }}</a>
-                                                            {{else}}
+                            <div class="uplink">
+                                <div class="uplink_linkspeed">
+                                    <a href="{{ this.prefix.report_link }}">{{ this.prefix.net_address }}</a>
+                                </div>
+                                <div class="uplink_left">
+                                                    <span class="node_name">
+                                                        {{#if this.source.interface.ifname }}
+                                                            {{#if this.source.interface.ipdevinfo_link}}
+                                                                <a href="{{ this.source.interface.ipdevinfo_link }}" title="{{ this.source.interface.ifname }} @ {{../source.netbox.sysname}}">{{ this.source.interface.ifname }}</a>
+                                                            {{ else }}
                                                                 {{ this.source.interface.ifname }}
                                                             {{/if}}
-                                                          {{ else }}
+                                                        {{ else }}
                                                             N/A
                                                         {{/if}}
-                                                    </div>
-                                                    <div>{{ this.source.gw_ip }}</div>
-                                                    <div>{{ this.source.virtual }}</div>
-                                                </div>
-                                                <div class="linkSource">
-                                                    <div class="uplink_netbox">{{ this.target.netbox.sysname }}</div>
-                                                    <div>
-                                                        {{#if this.target.interface}}
-                                                            {{#if this.target.interface.ipdevinfo_link }}
-                                                                <a href="{{ this.target.interface.ipdevinfo_link }}">{{ this.target.interface.ifname }}</a>
-                                                            {{else}}
+
+                                                    </span>
+
+                                    <span class="node_load">{{ traffic_si traffic.source.rrd.raw }}</span>
+                                    <span class="node_load">{{ traffic.source.percent_by_speed }}%</span>
+                                    <div class="load_arrow" style="background-color: rgb({{ traffic.source.css }});"></div>
+                                </div>
+
+                                <div class="uplink_right">
+                                                    <span class="node_name">
+                                                         {{#if this.target.interface.ifname }}
+                                                            {{#if this.target.interface.ipdevinfo_link}}
+                                                                <a href="{{ this.target.interface.ipdevinfo_link }}" title="{{ this.target.interface.ifname }} @ {{../target.netbox.sysname}}">{{ this.target.interface.ifname }}</a>
+                                                            {{ else }}
                                                                 {{ this.target.interface.ifname }}
                                                             {{/if}}
-                                                          {{ else }}
+                                                        {{ else }}
                                                             N/A
-                                                        {{/if}}
-                                                    </div>
-                                                    <div>{{ this.target.gw_ip }}</div>
-                                                    <div>{{ this.target.virtual }}</div>
-                                                </div>
-                                            </div>
+                                                        {{/if}}}
+                                                    </span>
 
-                                    </div>
+                                    <span class="node_load">{{ traffic_si traffic.target.rrd.raw }}</span>
+                                    <span class="node_load">{{ traffic.target.percent_by_speed }}%</span>
+                                    <div class="load_arrow" style="background-color: rgb({{ traffic.target.css }});"></div>
                                 </div>
+                                <div>{{ this.source.gw_ip }}</div>
+                                <div>{{ this.target.gw_ip }}</div>
+                                <div class="breaker"></div>
                             </div>
-                        {{/each}}
+
+                    {{/each}}
                 </div>
             {{/each}}
         {{else}}
