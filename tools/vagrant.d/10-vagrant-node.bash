@@ -5,5 +5,5 @@ curl https://raw.github.com/creationix/nvm/master/install.sh | sh
 [[ -s /home/vagrant/.nvm/nvm.sh ]] && . /home/vagrant/.nvm/nvm.sh
 nvm install 0.10
 nvm alias default 0.10
-cd /vagrant/media/js
+cd /vagrant/htdocs/js
 npm install --optional
