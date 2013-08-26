@@ -361,7 +361,8 @@ def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False,
         netbox_b = gwpp_b.interface.netbox
 
         existing_metadata = graph.get_edge_data(netbox_a, netbox_b) or {}
-        gwportprefix_pairs = existing_metadata.setdefault('gwportprefix_pairs', set())
+        gwportprefix_pairs = existing_metadata.setdefault('gwportprefix_pairs',
+                                                          set())
         gwportprefix = tuple(
             sorted(
                 (gwpp_a, gwpp_b),
