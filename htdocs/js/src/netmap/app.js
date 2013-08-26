@@ -1,12 +1,13 @@
 define([
     'plugins/header_footer_minimize',
+    'plugins/netmap-extras',
     'netmap/router', // Request router.js
     'netmap/resource',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/handlebars'
-], function(PluginHeaderFooter, Router, Resource) {
+], function(PluginHeaderFooter, NetmapExtras, Router, Resource) {
     var initialize = function () {
         $.browser.chrome = /chrome/.test(navigator.userAgent.toLowerCase());
 
@@ -109,6 +110,10 @@ define([
                 ret = inverse(this);
             }
             return ret;
+        });
+
+        Handlebars.registerHelper("traffic_si", function (value) {
+            return NetmapExtras.convert_bits_to_si(value);
         });
 
         Handlebars.registerHelper("debug", function (optionalValue) {
