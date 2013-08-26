@@ -14,8 +14,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Netmap view functions for Django"""
-from collections import defaultdict
-
 import datetime
 import logging
 import os
