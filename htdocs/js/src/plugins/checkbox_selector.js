@@ -13,8 +13,8 @@ define(['libs/jquery'], function () {
         var checkbox = $('<input type="checkbox"/>');
         var that = this;
         this.node.append(checkbox);
-        $(checkbox).click(function() {
-            if (checkbox.attr('checked') == 'checked') {
+        checkbox.click(function() {
+            if (checkbox.prop('checked')) {
                 $(that.selector).attr("checked", "checked");
             } else {
                 $(that.selector).removeAttr("checked");
