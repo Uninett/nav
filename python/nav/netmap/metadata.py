@@ -317,7 +317,8 @@ class Edge(object):
             json.update({'vlans': [swpv.vlan.id for swpv in self.vlans]})
 
         json.update({'link_speed': self.link_speed or 'N/A'})
-        json.update({'traffic': self.traffic and self.traffic.to_json() or None})
+        json.update(
+            {'traffic': self.traffic and self.traffic.to_json() or None})
 
         #            json.update({'vlans': [_vlan_to_json(swpv.vlan)
         #                           for swpv in self.vlans]})
