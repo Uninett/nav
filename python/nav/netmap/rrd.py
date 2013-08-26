@@ -104,27 +104,27 @@ class Traffic(object):
 
 
     def __init__(self):
-        self.in_octets = None
-        self.out_octets = None
+        self.source = None
+        self.target = None
         self.has_swapped = False
         #self.in_octets = Octets('inOctets', Source('ds1', 'ifHCInOctets', 809.399562), 100)
         #self.out_octets = Octets('outOctets', Source('ds1', 'ifHCOutOctets', 55809.399562), 100)
 
     def __repr__(self):
         return "netmap.Traffic(in={0!r}, out={1!r}, swapped={2!r})".format(
-            self.in_octets, self.out_octets,self.has_swapped)
+            self.source, self.target,self.has_swapped)
 
     def swap(self):
-        tmp = self.in_octets
-        self.in_octets = self.out_octets
-        self.out_octets = tmp
+        tmp = self.source
+        self.source = self.target
+        self.target = tmp
         self.has_swapped = not self.has_swapped
 
 
     def to_json(self):
         return {
-            'inOctets': self.in_octets and self.in_octets.to_json() or None,
-            'outOctets': self.out_octets and self.out_octets.to_json() or None
+            'source': self.source and self.source.to_json() or None,
+            'target': self.target and self.target.to_json() or None
         }
 
 def get_rrd_data(cache, port_pair):
@@ -168,17 +168,17 @@ def get_rrd_data(cache, port_pair):
         rrd_sources = _fetch_rrd(target_port)
 
     if 'ifInOctets' in rrd_sources:
-        traffic.in_octets = rrd_sources['ifInOctets']
+        traffic.source = rrd_sources['ifInOctets']
     if 'ifOutOctets' in rrd_sources:
-        traffic.out_octets = rrd_sources['ifOutOctets']
+        traffic.target = rrd_sources['ifOutOctets']
 
     # Overwrite traffic inOctets and outOctets
     # if 64 bit counters are present
     if 'ifHCInOctets' in rrd_sources:
-        traffic.in_octets = rrd_sources['ifHCInOctets']
+        traffic.source = rrd_sources['ifHCInOctets']
 
     if 'ifHCOutOctets' in rrd_sources:
-        traffic.out_octets = rrd_sources['ifHCOutOctets']
+        traffic.target = rrd_sources['ifHCOutOctets']
 
     # swap
     if should_swap_direction:
