@@ -542,7 +542,7 @@ def traffic_load_gradient(request):
 def _convert_image_to_datauri(image):
     image = image.lower()
     return open("{0}/{1}.png".format(os.path.join(
-        nav.buildconf.webrootdir, "htdocs", "netmap"
+        nav.buildconf.webrootdir, "images", "netmap"
     ), image), "rb").read().encode("base64").replace("\n","")
 
 def _get_datauris_for_categories():
