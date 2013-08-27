@@ -20,8 +20,6 @@ import re
 from django.db import models
 from django.core.urlresolvers import reverse
 
-from nav.models.event import Subsystem
-from nav.models.manage import Netbox, Interface
 from nav.models.fields import VarcharField, LegacyGenericForeignKey
 
 PERCENT_REGEXP = re.compile(r'^(\d+(\.\d+)?)%+$', re.UNICODE)
@@ -34,8 +32,8 @@ class RrdFile(models.Model):
     path = VarcharField()
     filename = VarcharField()
     step = models.IntegerField()
-    subsystem = models.ForeignKey(Subsystem, db_column='subsystem')
-    netbox = models.ForeignKey(Netbox, db_column='netboxid')
+    subsystem = models.ForeignKey('models.Subsystem', db_column='subsystem')
+    netbox = models.ForeignKey('models.Netbox', db_column='netboxid')
     key = VarcharField()
     value = VarcharField()
     interface = LegacyGenericForeignKey('key', 'value')
