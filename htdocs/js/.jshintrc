@@ -1,5 +1,9 @@
 {
     "predef": [
+        "describe",
+        "it",
+        "beforeEach",
+        "afterEach",
         "define",
         "assert",
         "refute",
