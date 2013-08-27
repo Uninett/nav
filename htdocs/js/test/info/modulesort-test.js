@@ -55,7 +55,7 @@ define([
                 '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=367/"> fxp0 </a>',
                 '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=355/"> bcm0 </a>',
                 '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=361/"> ge-1/1/0 </a>'
-                ]
+                ];
             var j = [
                 '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=355/"> bcm0 </a>',
                 '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=383/"> em0 </a>',
@@ -63,9 +63,34 @@ define([
                 '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=395/"> ge-0/0/0 </a>',
                 '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=337/"> ge-0/2/0 </a>',
                 '<a href="/ipdevinfo/trd-gw1.uninett.no/interface=361/"> ge-1/1/0 </a>'
-                ]
+                ];
 
             assert.deepEqual(l.sort(modulesort), j);
         });
+        describe("module-asc", function () {
+            it("should be appended to jquery datatable", function () {
+                assert.isFunction($.fn.dataTableExt.oSort['module-asc']);
+            });
+            it("should sort modules ascending", function () {
+                var l = [1, 2];
+                assert.deepEqual(
+                    l.sort($.fn.dataTableExt.oSort['module-asc']),
+                    [1, 2]
+                );
+            });
+        });
+        describe("module-desc", function () {
+            it("should be appended to jquery datatable", function () {
+                assert.isFunction($.fn.dataTableExt.oSort['module-desc']);
+            });
+            it("should sort modules ascending", function () {
+                var l = [1, 2];
+                assert.deepEqual(
+                    l.sort($.fn.dataTableExt.oSort['module-desc']),
+                    [2, 1]
+                );
+            });
+        });
+
     });
 });

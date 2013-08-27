@@ -7,6 +7,12 @@ define(['info/global_dt_filters', 'libs/jquery'], function (plugin) {
             this.last_seen_cell = '<td title="2012-06-11 18:19" class="numeric  ">51 days<span class="ui-helper-hidden" title="2012-06-11 18:19:30.491431"></span></td>';
 
         });
+
+        describe("add filters", function () {
+            it("should throw error if no node to attach filters to", function () {
+                assert.throw(plugin.add_filters, Error);
+            });
+        });
         
         describe("is_trunk", function () {
             it("should match trunk string", function () {

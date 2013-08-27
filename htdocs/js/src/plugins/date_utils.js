@@ -5,29 +5,6 @@ define(['libs/jquery'], function () {
     }
 
     DateUtils.prototype = {
-        addHoverTimeSince: function (nodeSelector) {
-            var that = this;
-            $(nodeSelector).each(function (index, node) {
-                $(node).mouseover(function () {
-                    try {
-                        var text = $(this).text();
-                        var date = new Date(text);
-                        $(this).attr('data-timestamp', text);
-                        $(this).text(that.timeSince(new Date(), date));
-                    } catch(error) {
-                        // do nothing
-                    }
-                });
-                $(node).mouseout(function (index, node) {
-                    try {
-                        $(this).text($(this).attr('data-timestamp'));
-                        $(this).removeAttr('data-timestamp');
-                    } catch(error) {
-                        // we're happy
-                    }
-                });
-            })
-        },
         timeSince: function (now, then) {
             if (then > now) {
                 var temp = now;
@@ -40,13 +17,13 @@ define(['libs/jquery'], function () {
             var one_day = one_hour * 24;
             var difference = now - then;
 
-            var days = parseInt(difference / one_day);
+            var days = parseInt(difference / one_day, 10);
             difference -= days * one_day;
-            var hours = parseInt(difference / one_hour);
+            var hours = parseInt(difference / one_hour, 10);
             difference -= hours * one_hour;
-            var minutes = parseInt(difference / one_minute);
+            var minutes = parseInt(difference / one_minute, 10);
             difference -= minutes * one_minute;
-            var seconds = parseInt(difference / one_second);
+            var seconds = parseInt(difference / one_second, 10);
 
             var timestamp = [hours, this.zeropad(minutes), this.zeropad(seconds)].join(':');
             var trail = " ago";
