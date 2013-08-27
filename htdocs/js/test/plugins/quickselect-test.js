@@ -69,34 +69,38 @@ define([
             assert.strictEqual(this.textAreas.filter('[size=10]').length, this.textAreas.length);
         });
 
-        it("should work without optgroup", function() {
-            this.searchbox.val('abs');
-            this.searchbox.trigger('keyup', [this.textAreas, this.clones]);
-            assert.strictEqual($('option', this.textAreas).length, 1);
+        describe("search", function () {
+            it("should filter options when typing in search field", function () {
+                this.searchbox.text('fa').keyup();
+                assert.equal(this.html.find("[name='netbox'] option").length, 1);
+            });
+            it("should show all options when searching for nothing", function () {
+                this.searchbox.text('fa').keyup();
+                this.searchbox.text('').keyup();
+                assert.equal(this.html.find("[name='netbox'] option").length, 3);
+            });
+            it("should work without optgroup", function () {
+                this.searchbox.val('abs').keyup();
+                assert.strictEqual($('option', this.textAreas).length, 1);
+            });
+            it("should work with several searchwords", function () {
+                this.searchbox.val('absint alter').keyup();
+                assert.strictEqual($('option', this.textAreas).length, 2);
+            });
+            it("should work with several searchwords on several textareas", function () {
+                this.searchbox.val('absint bergen').keyup();
+                assert.strictEqual($('option', this.textAreas).length, 2);
+            });
+            it("should work with optgroups", function () {
+                this.searchbox.val('badeland tfoutrondheim').keyup();
+                assert.strictEqual($('option', this.textAreas).length, 2);
+            });
+            it("should work on optgroups", function () {
+                this.searchbox.val('finland').keyup();
+                assert.strictEqual($('option', this.textAreas).length, 3);
+            });
+
         });
 
-        it("should work with several searchwords", function() {
-            this.searchbox.val('absint alter');
-            this.searchbox.trigger('keyup', [this.textAreas, this.clones]);
-            assert.strictEqual($('option', this.textAreas).length, 2);
-        });
-
-        it("should work with several searchwords on several textareas", function() {
-            this.searchbox.val('absint bergen');
-            this.searchbox.trigger('keyup', [this.textAreas, this.clones]);
-            assert.strictEqual($('option', this.textAreas).length, 2);
-        });
-
-        it("should work with optgroups", function() {
-            this.searchbox.val('badeland tfoutrondheim');
-            this.searchbox.trigger('keyup', [this.textAreas, this.clones]);
-            assert.strictEqual($('option', this.textAreas).length, 2);
-        });
-
-        it("should work on optgroups", function() {
-            this.searchbox.val('finland');
-            this.searchbox.trigger('keyup', [this.textAreas, this.clones]);
-            assert.strictEqual($('option', this.textAreas).length, 3);
-        });
     });
 });
