@@ -64,10 +64,10 @@ class DataSource(object):
 class InterfaceLoad(object):
     """Represents link load for an Interface"""
 
-    def __init__(self, name, source, link_speed):
+    def __init__(self, name, datasource, link_speed):
         self.name = name
-        self.source = source
-        raw = source.raw
+        self.datasource = datasource
+        raw = datasource.raw
 
         self.load_in_percent = get_traffic_load_in_percent(raw, link_speed)
         self.rgb = get_traffic_rgb(self.load_in_percent)
@@ -80,12 +80,12 @@ class InterfaceLoad(object):
     def __repr__(self):
         return ("netmap.Octets(name={0!r}, source={1!r}, load_in_percent={2!r},"
                 "octets_percent_by_speed={3!r}, css={4!r})").format(
-            self.name, self.source, self.load_in_percent,
+            self.name, self.datasource, self.load_in_percent,
             self.octets_percent_by_speed, self.rgb)
 
     def to_json(self):
         return {
-            'rrd': self.source.to_json(),
+            'rrd': self.datasource.to_json(),
             'css': self.rgb,
             'percent_by_speed': self.octets_percent_by_speed,
             'load_in_percent': self.load_in_percent,
