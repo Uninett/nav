@@ -40,7 +40,7 @@ class GraphException(NetmapException):
     pass
 
 # Ignore too few methods in class
-# pylint: ignore=R0903
+# pylint: disable=R0903
 class Node(object):
     """Node object represent a node in the netmap_graph
 
@@ -105,7 +105,7 @@ class Node(object):
         return {unicode(self.node.id) : json}
 
 # Ignore too few methods in class
-# pylint: ignore=R0903
+# pylint: disable=R0903
 class Group(object):
     """Grouping object for representing a Netbox and Interface in a Edge"""
 
@@ -167,7 +167,7 @@ class Group(object):
 
 
 # Ignore too few methods in class
-# pylint: ignore=R0903
+# pylint: disable=R0903
 class Edge(object):
     """Represent either a edge pair in Layer2 or Layer3"""
 
