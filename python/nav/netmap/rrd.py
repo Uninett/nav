@@ -18,6 +18,7 @@ import logging
 from nav.models.manage import Interface
 from nav.rrd2 import presenter
 from nav.web.netmap.common import get_traffic_rgb, get_traffic_load_in_percent
+from collections import defaultdict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,18 +35,13 @@ def _get_datasource_lookup(interfaces):
         [ifc.pk for ifc in interfaces if isinstance(ifc, Interface)])
     _LOGGER.debug("netmap:attach_rrd_data_to_edges() Datasources fetched done")
 
-    lookup_dict = {}
+    lookup_dict = defaultdict(list)
     for data in datasources:
-        interface_pk = int(data.rrd_file.value)
-        if interface_pk in lookup_dict:
-            lookup_dict[interface_pk].append(data)
-        else:
-            lookup_dict.update({interface_pk: [data]})
-
+        pkey = int(data.rrd_file.value)
+        lookup_dict[pkey].append(data)
     _LOGGER.debug(
         "netmap:attach_rrd_data_to_edges() Datasources rearranged in dict")
-
-    return lookup_dict
+    return dict(lookup_dict)
 
 
 class Source(object):
