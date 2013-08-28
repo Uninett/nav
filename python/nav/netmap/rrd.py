@@ -61,9 +61,8 @@ class DataSource(object):
             'raw': self.raw
         }
 
-# todo BETTER CLASS NAME
-class Octets(object):
-    CSS_UNKNOWN_SPEED = (211, 211, 211) # light grey
+class InterfaceLoad(object):
+    """Represents link load for an Interface"""
 
     def __init__(self, name, source, link_speed):
         self.name = name
@@ -71,23 +70,23 @@ class Octets(object):
         raw = source.raw
 
         self.load_in_percent = get_traffic_load_in_percent(raw, link_speed)
+        self.rgb = get_traffic_rgb(self.load_in_percent)
         if self.load_in_percent is not None:
-            self.css = get_traffic_rgb(self.load_in_percent)
-            self.octets_percent_by_speed = "%.2f" % self.load_in_percent
+            self.octets_percent_by_speed = "{0:.2f}".format(
+                self.load_in_percent)
         else:
-            self.css = self.CSS_UNKNOWN_SPEED
             self.octets_percent_by_speed = None
 
     def __repr__(self):
         return ("netmap.Octets(name={0!r}, source={1!r}, load_in_percent={2!r},"
                 "octets_percent_by_speed={3!r}, css={4!r})").format(
             self.name, self.source, self.load_in_percent,
-            self.octets_percent_by_speed, self.css)
+            self.octets_percent_by_speed, self.rgb)
 
     def to_json(self):
         return {
             'rrd': self.source.to_json(),
-            'css': self.css,
+            'css': self.rgb,
             'percent_by_speed': self.octets_percent_by_speed,
             'load_in_percent': self.load_in_percent,
             'name': self.name
@@ -146,7 +145,7 @@ def get_rrd_data(cache, port_pair):
                 for rrd_source in datasources_for_interface:
                     if (rrd_source.description in valid_traffic_sources
                         and rrd_source.description not in traffic):
-                        traffic[rrd_source.description] = Octets(
+                        traffic[rrd_source.description] = InterfaceLoad(
                             rrd_source.description,
                             DataSource(rrd_source),
                             interface.speed)
