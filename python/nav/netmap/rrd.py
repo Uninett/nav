@@ -44,8 +44,7 @@ def _get_datasource_lookup(interfaces):
     return dict(lookup_dict)
 
 
-# todo BETTER CLASS NAME
-class Source(object):
+class DataSource(object):
     def __init__(self, rrd_datasource):
         # todo : what to do if rrd source is not where it should be?
         # Will return 0 if it can't find RRD file for example
@@ -149,7 +148,7 @@ def get_rrd_data(cache, port_pair):
                         and rrd_source.description not in traffic):
                         traffic[rrd_source.description] = Octets(
                             rrd_source.description,
-                            Source(rrd_source),
+                            DataSource(rrd_source),
                             interface.speed)
         return traffic
 
