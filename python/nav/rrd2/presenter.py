@@ -92,6 +92,12 @@ class Presentation(object):
         """Adds a datasource to the presentation"""
         if isinstance(datasources, RrdDataSource):
             datasources = [datasources]
+
+        for datasource in datasources:
+            if not isinstance(datasource, RrdDataSource):
+                raise ValueError(
+                    ("datasource or datasources "
+                    "must be of instance RrdDataSource"))
         try:
             self.datasources.update(datasources)
         except ValueError, error:
