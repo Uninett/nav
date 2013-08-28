@@ -5,13 +5,15 @@
 .. toctree::
    :maxdepth: 1
 
-   ipdevpoll
-   ldap
-   smsd
-   snmptrapd
+   arnold
    geomap
+   ipdevpoll
+   javascript
+   ldap
+   mailin
+   netmap
+   portadmin
    radius
    radius-install
-   mailin
-   portadmin
-   arnold
+   smsd
+   snmptrapd
