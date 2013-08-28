@@ -58,20 +58,20 @@ class RrdTests(PresenterTestCase):
         self.assertTrue((expected_average - result[0]) <= 0.1)
 
     def test_read_max(self):
-        self.presentation.add_datasource(datasource=self.test_data[0])
+        self.presentation.add_datasource(self.test_data[0])
         result = self.presentation.max()
         self.assertTrue(math.isnan(result[0]))
 
     def test_read_max_valid_value(self):
         self.presentation = presenter.Presentation(time_frame='year', to_time=self.demo_to_time)
-        self.presentation.add_datasource(datasource=self.test_data[0])
+        self.presentation.add_datasource(self.test_data[0])
         result = self.presentation.max()
 
         expected_max = 11861200.31
         self.assertTrue((expected_max - result[0]) <= 0.1)
 
     def test_read_min(self):
-        self.presentation.add_datasource(datasource=self.test_data[0])
+        self.presentation.add_datasource(self.test_data[0])
         result = self.presentation.min()
 
         self.assertTrue(math.isnan(result[0]))
@@ -79,7 +79,7 @@ class RrdTests(PresenterTestCase):
 
     def test_read_min_valid_value(self):
         self.presentation = presenter.Presentation(time_frame='year', to_time=self.demo_to_time)
-        self.presentation.add_datasource(datasource=self.test_data[0])
+        self.presentation.add_datasource(self.test_data[0])
         result = self.presentation.min()
 
         expected_min = 902148.62
@@ -87,14 +87,14 @@ class RrdTests(PresenterTestCase):
         self.assertTrue((expected_min - result[0]) <= 0.1)
 
     def test_read_sum(self):
-        self.presentation.add_datasource(datasource=self.test_data[0])
+        self.presentation.add_datasource(self.test_data[0])
         result = self.presentation.min()
 
         self.assertTrue(math.isnan(result[0]))
 
     def test_read_sum_valid_value(self):
         self.presentation = presenter.Presentation(time_frame='year', to_time=self.demo_to_time)
-        self.presentation.add_datasource(datasource=self.test_data[0])
+        self.presentation.add_datasource(self.test_data[0])
         result = self.presentation.sum()
 
         expected_sum = 856394975.68
@@ -102,7 +102,7 @@ class RrdTests(PresenterTestCase):
         self.assertTrue((expected_sum - result[0]) <= 0.1)
 
     def test_valid_points(self):
-        self.presentation.add_datasource(datasource=self.test_data[0])
+        self.presentation.add_datasource(self.test_data[0])
         result = self.presentation.valid_points()
 
         self.assertEquals(1, len(result[0]))
@@ -110,7 +110,7 @@ class RrdTests(PresenterTestCase):
 
     def test_valid_points_valid_value(self):
         self.presentation = presenter.Presentation(time_frame='year', to_time=self.demo_to_time)
-        self.presentation.add_datasource(datasource=self.test_data[0])
+        self.presentation.add_datasource(self.test_data[0])
 
         result = self.presentation.valid_points()
 
