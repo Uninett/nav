@@ -93,11 +93,11 @@ class Presentation(object):
         if isinstance(datasources, RrdDataSource):
             datasources = [datasources]
 
-        for datasource in datasources:
-            if not isinstance(datasource, RrdDataSource):
-                raise ValueError(
-                    ("datasource or datasources "
-                    "must be of instance RrdDataSource"))
+        if not any([ds is not None and isinstance(ds, RrdDataSource) for ds in
+                    datasources]):
+            raise ValueError(
+                ("datasource or datasources "
+                 "must be of instance RrdDataSource"))
         try:
             self.datasources.update(datasources)
         except ValueError, error:
