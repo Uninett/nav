@@ -25,6 +25,11 @@ from textwrap import wrap
 import psycopg2
 
 from nav.db import get_connection_parameters, get_connection_string
+from nav.util import first_true
+from nav import buildconf
+
+SQL_SEARCH_PATH = ['.', './sql', os.path.join(buildconf.datadir, 'sql')]
+
 
 def main():
     """Main program"""
@@ -35,7 +40,11 @@ def main():
     if options.create_database:
         create_database()
 
-    sql_dir = os.path.dirname(sys.argv[0])
+    sql_dir = first_true(SQL_SEARCH_PATH, pred=_is_sql_dir)
+    if not sql_dir:
+        die("could not find SQL schema files using search path %s" %
+            os.pathsep.join(SQL_SEARCH_PATH))
+
     sync = Synchronizer(sql_dir, options.apply_out_of_order_changes)
     try:
         sync.connect()
@@ -43,6 +52,13 @@ def main():
         die(err)
 
     sync.synchronize()
+
+
+def _is_sql_dir(path):
+    baseline = os.path.join(path, 'baseline')
+    changes = os.path.join(path, 'changes')
+    return os.path.isdir(baseline) and os.path.isdir(changes)
+
 
 def parse_args():
     """Builds an OptionParser and returns parsed program arguments"""
@@ -474,6 +490,8 @@ class ChangeScriptFinder(list):
 class ConnectionParameters(object):
     """Database Connection parameters"""
 
+    # this data container class needs all these args, period.
+    # pylint: disable=R0913
     def __init__(self, dbhost, dbport, dbname, user, password):
         self.dbhost = dbhost
         self.dbport = dbport
