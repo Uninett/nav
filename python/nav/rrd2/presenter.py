@@ -88,29 +88,17 @@ class Presentation(object):
             units.append(i.units)
         return units
 
-    def add_datasource(self, datasource):
-        """Adds a datasource to the presentation, returns the default legend"""
-        if type(datasource) == list:
-            transaction = datasource
-            try:
-                [self.add_datasource(x) for x in datasource]
-            except ValueError, error:
-                _LOGGER.warning(error)
+    def add_datasource(self, datasources):
+        """Adds a datasource to the presentation"""
+        if isinstance(datasources, RrdDataSource):
+            datasources = [datasources]
+        try:
+            self.datasources.update(datasources)
+        except ValueError, error:
+            _LOGGER.warning(error)
+            self.datasources.difference_update(datasources)
+            raise error
 
-                for remove_datasource in transaction:
-                    if remove_datasource in self.datasources:
-                        self.datasources.remove(remove_datasource)
-
-                raise error
-
-        elif type(datasource) == RrdDataSource:
-            self.datasources.add(datasource)
-
-        else:
-            raise ValueError(
-                "must be a RrdDataSource or a list of RrdDataSource's")
-
-        #return datasource.legend
 
     def fetch_valid(self):
         """Return the raw rrd-data as a list of dictionaries
