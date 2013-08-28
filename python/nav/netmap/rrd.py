@@ -44,6 +44,7 @@ def _get_datasource_lookup(interfaces):
     return dict(lookup_dict)
 
 
+# todo BETTER CLASS NAME
 class Source(object):
     def __init__(self, rrd_datasource):
         # todo : what to do if rrd source is not where it should be?
@@ -61,6 +62,7 @@ class Source(object):
             'raw': self.raw
         }
 
+# todo BETTER CLASS NAME
 class Octets(object):
     CSS_UNKNOWN_SPEED = (211, 211, 211) # light grey
 
@@ -96,7 +98,7 @@ class Octets(object):
 
 
 class Traffic(object):
-
+    """Represents traffic for a given edge from source to target"""
 
     def __init__(self):
         self.source = None
@@ -108,6 +110,9 @@ class Traffic(object):
             self.source, self.target,self.has_swapped)
 
     def swap(self):
+        """Swaps direction, if we're using opposite 'direction' to feed both
+        source and target sources
+        """
         tmp = self.source
         self.source = self.target
         self.target = tmp
@@ -115,6 +120,7 @@ class Traffic(object):
 
 
     def to_json(self):
+        """to_json presentation for given Traffic in an edge"""
         return {
             'source': self.source and self.source.to_json() or None,
             'target': self.target and self.target.to_json() or None
