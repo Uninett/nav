@@ -20,8 +20,11 @@ with optional data filtering.
 import sys
 import os
 import subprocess
+import socket
 from optparse import OptionParser
+from datetime import datetime
 
+from nav import buildconf
 from nav.db import get_connection_parameters
 
 
@@ -33,8 +36,11 @@ def main():
     opts, _args = parse_args()
 
     export_pgvars()
+    writeln("-- navpgdump invoked on %s at %s" % (socket.gethostname(),
+                                                  datetime.now()))
+
     if opts.exclude or opts.filters:
-        writeln("-- navpgdump\n-- args: %r" % sys.argv)
+        writeln("-- args: %r" % sys.argv)
 
         pg_dump(STD_DUMP_ARGS + ["--schema-only"])
         excluded = set(opts.exclude + opts.filters.keys())
@@ -58,15 +64,6 @@ def parse_args():
     parser = _make_optparser()
     (opts, args) = parser.parse_args()
 
-    filters = {}
-    for filtr in opts.filters:
-        try:
-            table, where = filtr.split("=", 1)
-            filters[table.strip()] = where.strip()
-        except ValueError, err:
-            parser.error("invalid filter %r: %s" % (filtr, err))
-    opts.filters = filters
-
     if opts.only_open_cam and "cam" in opts.exclude:
         parser.error("--exclude cam and --only-open-cam are mutually exclusive")
     if opts.only_open_cam and "cam" in opts.filters:
@@ -85,20 +82,40 @@ def parse_args():
 
 
 def _make_optparser():
-    parser = OptionParser()
-    opt = parser.add_option
+    parser = OptionParser(
+        description="Dumps the NAV PostgreSQL database as plain-text SQL to "
+                    "stdout, with optional data filtering.",
+        version=buildconf.VERSION,
+        epilog="The output of the program can be inserted into an empty "
+               "PostgreSQL database using the psql program."
+    )
+    parser.set_defaults(
+        filters={},
+        exclude=[],
+    )
 
-    opt("--exclude", action="append", type="string", dest="exclude", default=[],
+    opt = parser.add_option
+    opt("-e", "--exclude", action="append", type="string", dest="exclude",
         metavar="TABLE", help="Exclude TABLE data from dump")
-    opt("--only-open-cam", action="store_true", dest="only_open_cam",
+    opt("-c", "--only-open-cam", action="store_true", dest="only_open_cam",
         help="Only dump open CAM records")
-    opt("--only-open-arp", action="store_true", dest="only_open_arp",
+    opt("-a", "--only-open-arp", action="store_true", dest="only_open_arp",
         help="Only dump open ARP records")
-    opt("--filter", action="append", type="string", dest="filters", default=[],
-        metavar="FILTER", help="Filter a table contents. "
+    opt("-f", "--filter", type="string",
+        action="callback", callback=_add_filter,
+        metavar="FILTER", help="Filter a table's contents. "
                                "FILTER must match "
                                "<tablename>=<SQL where clause>")
     return parser
+
+
+def _add_filter(_option, _opt, value, parser):
+    """Callback to parse a table filter value and add it to the filters dict"""
+    try:
+        table, where = value.split("=", 1)
+        parser.values.filters[table.strip()] = where.strip()
+    except ValueError, err:
+        parser.error("invalid filter %r: %s" % (value, err))
 
 
 def export_pgvars():
@@ -129,7 +146,7 @@ def filtered_dump(table, where):
 
 def pg_dump(args):
     """Runs pg_dump in a subprocess"""
-    return pgcmd('pg_dump', args)
+    return pgcmd('pg_dumps', args)
 
 
 def psql(args):
