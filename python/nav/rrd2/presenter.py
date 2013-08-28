@@ -153,13 +153,8 @@ class Presentation(object):
 
     def sum(self):
         """Returns the sum of the valid  rrd-data"""
-        sum_list = []
         data_list = self.fetch_valid()
-        for data in data_list:
-            total = 0
-            for i in data['data']:
-                total += i
-            sum_list.append(total)
+        sum_list = [sum(data['data']) for data in data_list]
         return sum_list
 
     def max(self):
