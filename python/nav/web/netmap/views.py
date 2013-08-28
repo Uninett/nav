@@ -34,7 +34,7 @@ from nav.django.utils import get_account, get_request_body
 from nav.models.manage import Netbox, Category
 from nav.models.profiles import (NetmapView, NetmapViewNodePosition,
                                  NetmapViewCategories, NetmapViewDefaultView,
-                                 Account, AccountGroup)
+                                 Account)
 from nav.netmap.metadata import (node_to_json_layer2, edge_to_json_layer2,
                                  node_to_json_layer3, edge_to_json_layer3,
                                  vlan_to_json, get_vlan_lookup_json)
