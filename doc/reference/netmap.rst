@@ -282,9 +282,24 @@ Example of layer2 JSON representation:
 ::
 
     {
-    "nodes": [
+    "vlans": {
+        "136": {
+            "nav_vlan": 136,
+            "net_ident": "labnett",
+            "vlan": 22,
+            "description": "experimental"
+        },
+        "139": {
+            "nav_vlan": 139,
+            "net_ident": "awesomeness",
+            "vlan": 42,
+            "description": "foo"
+        },
+        // more vlans ...
+    },
+    "nodes":
         {
-            "data": {
+            "1": {
                 "ip": "192.168.0.9",
                 "vlans": null,
                 "id": "1",
@@ -300,129 +315,150 @@ Example of layer2 JSON representation:
                 "is_elink_node": false,
                 "roomid": "lab-nonexistent"
             },
-            "group": 0,
-            "name": "lab-nonexistent-gw4.example.com"
+            {
+                "3": {
+                    "ip": "192.168.20.3",
+                    "vlans": [nav_vlan_id, nav_vlanid],
+                    "id": "3",
+                    "category": "GW",
+                    "sysname": "lab-nonexistent-gw2.example.com",
+                    "room": "lab-nonexistent (None)",
+                    "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw2.example.com/",
+                    "up": "y",
+                    "up_image": "green.png",
+                    "locationid": "norge",
+                    "location": "Norge",
+                    "position": null,
+                    "is_elink_node": false,
+                    "roomid": "lab-nonexistent"
+                },
+            # Multiple more nodes....
+            # ...
+            # ...
         },
-        {
-            "data": {
-                "ip": "192.168.20.3",
-                "vlans": null,
-                "id": "3",
-                "category": "GW",
-                "sysname": "lab-nonexistent-gw2.example.com",
-                "room": "lab-nonexistent (None)",
-                "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw2.example.com/",
-                "up": "y",
-                "up_image": "green.png",
-                "locationid": "norge",
-                "location": "Norge",
-                "position": null,
-                "is_elink_node": false,
-                "roomid": "lab-nonexistent"
-            },
-            "group": 0,
-            "name": "lab-nonexistent-gw2.example.com"
-        },
-        # Multiple more nodes....
-        # ...
-        # ...
-    }], // nodes
+    }, // nodes
     "links": [
         {
-            "source": "lab-nonexistent-gw4.example.com",
-            "data": {
-                "tip_inspect_link": false,
-                "link_speed": 10000,
-                "traffic": {
-                    "outOctets": null,
-                    "inOctets_css": [
-                        211,
-                        211,
-                        211
-                    ],
-                    "outOctets_css": [
-                        211,
-                        211,
-                        211
-                    ],
-                    "outOctetsPercentBySpeed": null,
-                    "inOctets": null,
-                    "inOctetsPercentBySpeed": null
-                },
-                "uplink": {
-                    "thiss": {
-                        "interface": "xe-0/0/1",
-                        "netbox": "lab-nonexistent-gw4.example.com",
-                        "netbox_link": "/ipdevinfo/lab-nonexistent-gw4.example.com/",
-                        "interface_link": "/ipdevinfo/lab-nonexistent-gw4.example.com/interface=2891/"
+            "source": "1",
+            "vlans":  [
+                136,
+                139,
+                141,
+            ],
+            "target": "3",
+            "edges":  [
+                {
+                    "source":     {
+                        "interface": {
+                            "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw4.example.com/ifname=Gi1/31/",
+                            "ifname":         "Gi1/31"
+                        },
+                        "netbox":    "1",
+                        "vlans":     []
                     },
-                    "other": {
-                        "interface": "xe-0/0/2",
-                        "netbox": "rockj-gw2.example.com",
-                        "netbox_link": "/ipdevinfo/rockj-gw2.example.com/",
-                        "interface_link": "/ipdevinfo/rockj-gw2.example.com/interface=2535/"
-                    }
-                }
-            },
-            "target": "rockj-gw2.example.com",
-            "value": 1
-        },
-        {
-            "source": "lab-nonexistent-gw4.example.com",
-            "data": {
-                "tip_inspect_link": false,
-                "link_speed": 100,
-                "traffic": {
-                    "outOctets": {
-                    "raw": 0,
-                    "name": "ds1",
-                    "description": "ifHCOutOctets"
+                    "link_speed": 1000,
+                    "vlans":      [],
+                    "traffic":    {
+                        "source": {
+                            "rrd":              {
+                                "raw":         940.472009,
+                                "name":        "ds0",
+                                "description": "ifHCInOctets"
+                            },
+                            "load_in_percent":  0.0007523776072,
+                            "percent_by_speed": "0.00",
+                            "css":              [
+                                22,
+                                255,
+                                0
+                            ],
+                            "name":             "ifHCInOctets"
+                        },
+                        "target": {
+                            "rrd":              {
+                                "raw":         8283.235853,
+                                "name":        "ds1",
+                                "description": "ifHCOutOctets"
+                            },
+                            "load_in_percent":  0.0066265886824,
+                            "percent_by_speed": "0.01",
+                            "css":              [
+                                22,
+                                255,
+                                0
+                            ],
+                            "name":             "ifHCOutOctets"
+                        }
                     },
-                    "inOctets_css": [
-                        211,
-                        211,
-                        211
-                    ],
-                    "outOctetsPercentBySpeed": null,
-                    "outOctets_css": [
-                        211,
-                        211,
-                        211
-                    ],
-                    "inOctets": {
-                        "raw": 0,
-                        "name": "ds0",
-                        "description": "ifHCInOctets"
-                    },
-                    "ifHCInOctets": {
-                        "raw": 0,
-                        "name": "ds0",
-                        "description": "ifHCInOctets"
-                    },
-                    "inOctetsPercentBySpeed": null,
-                    "ifHCOutOctets": {
-                        "raw": 0,
-                        "name": "ds1",
-                        "description": "ifHCOutOctets"
+                    "target":     {
+                        "interface": {
+                            "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw2.example.com/ifname=Gi4/24/",
+                            "ifname":         "Gi4/24"
+                        },
+                        "netbox":    "3",
+                        "vlans":     []
                     }
                 },
-                "uplink": {
-                    "thiss": {
-                        "interface": "Fa0/1",
-                        "netbox": "techserver-sw.example.com",
-                        "netbox_link": "/ipdevinfo/techserver-sw.example.com/",
-                        "interface_link": "/ipdevinfo/techserver-sw.example.com/interface=9303/"
+                {
+                    "source":     {
+                        "interface": {
+                            "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw4.example.com/ifname=Po2/",
+                            "ifname":         "Po2"
+                        },
+                        "netbox":    "1",
+                        "vlans":     [
+                        ]
                     },
-                    "other": {
-                        "interface": "N/A",
-                        "netbox": "N/A"
+                    "link_speed": 3000,
+                    "vlans":      [
+                        136,
+                        139,
+                        141,
+                    ],
+                    "traffic":    {
+                        "source": {
+                            "rrd":              {
+                                "raw":         17106.277051,
+                                "name":        "ds0",
+                                "description": "ifHCInOctets"
+                            },
+                            "load_in_percent":  0.0045616738802666664,
+                            "percent_by_speed": "0.00",
+                            "css":              [
+                                22,
+                                255,
+                                0
+                            ],
+                            "name":             "ifHCInOctets"
+                        },
+                        "target": {
+                            "rrd":              {
+                                "raw":         1998.513284,
+                                "name":        "ds1",
+                                "description": "ifHCOutOctets"
+                            },
+                            "load_in_percent":  0.0005329368757333334,
+                            "percent_by_speed": "0.00",
+                            "css":              [
+                                22,
+                                255,
+                                0
+                            ],
+                            "name":             "ifHCOutOctets"
+                        }
+                    },
+                    "target":     {
+                        "interface": {
+                            "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw2.example.com/ifname=Po2/",
+                            "ifname":         "Po2"
+                        },
+                        "netbox":    "3",
+                        "vlans":     [
+                        ]
                     }
                 }
-            },
-            "target": "techserver-sw.example.com",
-            "value": 1
+            ]
         },
-    
         # Multiple more links... (edges in graph)
         # ...
         # ...
