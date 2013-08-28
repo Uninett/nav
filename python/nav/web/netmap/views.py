@@ -462,8 +462,8 @@ def _get_maps(request):
     """
     session_user = get_account(request)
     netmap_views = NetmapView.objects.filter(
-        Q(is_public=True) | Q(owner=session_user.id))\
-    .order_by('-is_public')
+        Q(is_public=True) | Q(owner=session_user.id)
+    ).order_by('-is_public')
     json_views = [view.to_json_dict() for view in netmap_views]
     return simplejson.dumps(json_views)
 
