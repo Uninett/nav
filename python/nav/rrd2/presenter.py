@@ -90,14 +90,25 @@ class Presentation(object):
 
     def add_datasource(self, datasources):
         """Adds a datasource to the presentation"""
+        # TODO: check where this function is used, figure out if easily can
+        # refactor to add   add_datasources function instead of this fugliness
+        # without breaking existing code.
+
         if isinstance(datasources, RrdDataSource):
             datasources = [datasources]
 
-        if not any([ds is not None and isinstance(ds, RrdDataSource) for ds in
-                    datasources]):
-            raise ValueError(
-                ("datasource or datasources "
-                 "must be of instance RrdDataSource"))
+        try:
+            if not any(
+                    [ds is not None and isinstance(ds, RrdDataSource) for ds in
+                        datasources]):
+                raise ValueError(
+                    ("datasource or datasources "
+                     "must be of instance RrdDataSource"))
+        except TypeError: # Not iterable values, as single None and int.
+                raise ValueError(
+                    ("datasource or datasources "
+                     "must be of instance RrdDataSource"))
+
         try:
             self.datasources.update(datasources)
         except ValueError, error:
