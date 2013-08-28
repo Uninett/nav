@@ -1,6 +1,6 @@
-=======================================
+==================
 Javascript hacking
-=======================================
+==================
 
 When writing JavaScript code try to focus on modules & not pages. In short:
 follow the `module pattern
@@ -15,10 +15,9 @@ needed plugins to the page elements. This should fail gracefully if the needed
 elements are not present.
 
 When we're mentioning ``module``, we do mean to follow the ``AMD``-principle
-which uses the `module pattern
-<http://www.adequatelygood.com/JavaScript-Module-Pattern-In-Depth.html>`_.
-See `here <http://requirejs.org/docs/whyamd.html>`_ and `here
-<https://github.com/amdjs/amdjs-api/wiki/AMD>`_ if your not familiar with AMD
+which uses the `module pattern`_.
+See `here <http://requirejs.org/docs/whyamd.html>`__ and `here
+<https://github.com/amdjs/amdjs-api/wiki/AMD>`__ if your not familiar with AMD
 (Asynchronous Module Definition). 
 
 NAVs JavaScript uses :file:`media/js/libs/require.js` for loading modules and to
@@ -105,8 +104,8 @@ templates that gets loaded with the ``AMD``-pattern.
 :file:`media/js/src/plugins/` is plugins which does a particular job and only
 that.
 
-Hacking with `Backbone <http://backbonejs.org>`_
-================================================
+Hacking with `Backbone <http://backbonejs.org>`__
+=================================================
 
 We recommend following the ``MVC/MVP``-principle (`read this for details
 <http://addyosmani.github.io/backbone-fundamentals/#mvp-or-mvc>`_) when
@@ -135,7 +134,7 @@ Backbone Application flow
 
 Views ``accessing and sharing`` the same **instance of model/collection** from
 :ref:`Backbone Resources` uses the ``events`` `(doc)
-<http://backbonejs.org/#View-delegateEvents>`_ keymap defined in views for
+<http://backbonejs.org/#View-delegateEvents>`__ keymap defined in views for
 reacting on changes. 
 
 Other views ``not sharing`` the same **model/collection instance** should use
@@ -155,9 +154,8 @@ We ``suggest`` you introduce a ``shared resource instance`` for sharing a single
 instance of **fundemental resources** in your JavaScript application.
 
 These resources should be able to be easily **bootstraped**
-(:ref:`BackboneBootstrapping`) by the ``base HTML template``. This is also known as
-a `Single-Page application
-<http://en.wikipedia.org/wiki/Single-page_application>`_. 
+(:ref:`BackboneBootstrapping`) by the ``base HTML template``. This is also known
+as a `Single-Page application <http://en.wikipedia.org/wiki/Single-page_application>`_.
 
 See :ref:`BackboneTemplates` for how to work with templates and
 :ref:`BackBoneBootstrapping` for how to bootstrap data.
