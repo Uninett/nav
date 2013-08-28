@@ -151,6 +151,10 @@ class Account(models.Model):
         """Is this the admin account?"""
         return self.id == self.ADMIN_ACCOUNT
 
+    def is_admin(self):
+        """Has this user administrator rights?"""
+        return self.has_perm(None, None)
+
     def set_password(self, password):
         '''Sets user password. Copied from nav.db.navprofiles'''
         if len(password.strip()):
