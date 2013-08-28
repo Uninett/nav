@@ -59,7 +59,7 @@ def backbone_app(request):
     session_user = get_account(request)
 
     link_to_admin = None
-    if AccountGroup.ADMIN_GROUP in session_user.get_groups():
+    if session_user.is_admin():
         link_to_admin = reverse('netmap-admin-views')
 
     available_categories = _get_available_categories()
@@ -91,7 +91,7 @@ def admin_views(request):
     User can set default netmap view for all users in here
     """
     session_user = get_account(request)
-    if session_user == Account.DEFAULT_ACCOUNT:
+    if not session_user.is_admin():
         return HttpResponseForbidden()
 
     global_favorite = None
@@ -226,13 +226,13 @@ def update_defaultview(request, map_id, is_global_defaultview=False):
     """
     session_user = get_account(request)
 
-    if session_user == Account.DEFAULT_ACCOUNT:
+    if not session_user.is_admin():
         return HttpResponseForbidden()
 
     view = get_object_or_404(NetmapView, pk=map_id)
 
     if is_global_defaultview:
-        if AccountGroup.ADMIN_GROUP in session_user.get_groups():
+        if session_user.is_admin():
             NetmapViewDefaultView.objects.filter(
                 owner=Account(pk=Account.DEFAULT_ACCOUNT)).delete()
             default_view = NetmapViewDefaultView()
@@ -436,8 +436,7 @@ def _delete_map(request, map_id):
     view = get_object_or_404(NetmapView, pk=map_id)
     session_user = get_account(request)
 
-    if (session_user == view.owner) or (
-            AccountGroup.ADMIN_GROUP in session_user.get_groups()):
+    if session_user == view.owner or session_user.is_admin():
         view.delete()
         return HttpResponse()
     else:
