@@ -98,7 +98,7 @@ class Presentation(object):
             datasources = [datasources]
 
         try:
-            if not any(
+            if not all(
                     [ds is not None and isinstance(ds, RrdDataSource) for ds in
                         datasources]):
                 raise ValueError(
