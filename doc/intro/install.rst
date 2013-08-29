@@ -116,8 +116,7 @@ Choose a password for your NAV database user and set this in the ``userpw_nav``
 in the :file:`db.conf` config file. As the `postgres` superuser, run the following
 command::
 
-  cd sql
-  ./syncdb.py -c
+  navsyncdb -c
 
 This will attempt to create a new database user, a new database and initialize
 it with NAV's schema.
