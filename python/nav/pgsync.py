@@ -21,7 +21,7 @@ import re
 from optparse import OptionParser
 import subprocess
 from textwrap import wrap
-
+from errno import ENOENT, EACCES
 import psycopg2
 
 from nav.db import get_connection_parameters, get_connection_string
@@ -82,11 +82,13 @@ def parse_args():
                       "older than the newest applied change")
     return parser.parse_args()
 
+
 def verify_password_is_configured():
     """Verifies that a password has been configured in db.conf"""
     opts = ConnectionParameters.from_config()
     if not opts.password:
         die("No password configured for %s user in db.conf" % opts.user)
+
 
 def create_database():
     """Create a database using PostgreSQL command line clients"""
@@ -104,6 +106,7 @@ def create_database():
                               "--owner=%s" % nav_opts.user,
                               "--encoding=utf-8", nav_opts.dbname])
     install_pl_pgsql(nav_opts.dbname)
+
 
 def user_exists(username):
     """Returns True if a database user exists.
@@ -123,6 +126,7 @@ def user_exists(username):
         die("Failed checking for the existence of user %s" % username)
 
     return username in output
+
 
 def create_user(username, password):
     """Creates a database user,
@@ -161,13 +165,12 @@ def install_pl_pgsql(dbname):
             check_call,
             ["createlang", "plpgsql", dbname])
 
-NO_SUCH_FILE = 2
-NO_PERMISSION = 13
+
 def handle_missing_binaries(func):
     """Decorates func to handle errors from the subprocess module."""
     messages = {
-        NO_SUCH_FILE: "Cannot find PostgreSQL client program",
-        NO_PERMISSION: "No permission to run PostgreSQL client program"
+        ENOENT: "Cannot find PostgreSQL client program",
+        EACCES: "No permission to run PostgreSQL client program"
         }
 
     def _decorator(*args, **kwargs):
@@ -181,15 +184,18 @@ def handle_missing_binaries(func):
                 raise
     return _decorator
 
+
 @handle_missing_binaries
 def check_call(*args, **kwargs):
     """subprocess.check_call with OSError handling"""
     return subprocess.check_call(*args, **kwargs)
 
+
 @handle_missing_binaries
 def popen(*args, **kwargs):
     """subprocess.Popen with OSError handling"""
     return subprocess.Popen(*args, **kwargs)
+
 
 def trap_and_die(exception, message, func, *args, **kwargs):
     """Traps exception and dies during call to func with *args and **kwargs.
@@ -201,6 +207,7 @@ def trap_and_die(exception, message, func, *args, **kwargs):
         return func(*args, **kwargs)
     except exception:
         die(message)
+
 
 def die(errormsg, exit_code=1):
     """Print errormsg to stderr and terminates process with exit_code"""
@@ -416,7 +423,6 @@ class Synchronizer(object):
             (major, minor, point, basename)
             )
 
-
     def execute_sql_file(self, filename):
         """Executes a single SQL file.
 
@@ -432,6 +438,7 @@ class Synchronizer(object):
             sys.exit(2)
         else:
             print "OK"
+
 
 class ChangeScriptFinder(list):
     """Handles locating change scripts"""
