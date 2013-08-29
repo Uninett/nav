@@ -8,7 +8,7 @@ portable development environments.
 For this it uses a virtualization to create a virtual machine on top of a
 VM provider (as of default, virtualbox).
 
-.. _GettingStarted:
+.. _Requirements:
 
 Requirements
 ------------
@@ -34,6 +34,8 @@ available in your environment variable ``$PATH`` which is used by all common
 operating systems to search for executables  without specifying full path to the
 binaries.
 
+.. _GettingStarted:
+
 Getting started
 ---------------
 
@@ -57,6 +59,8 @@ This has some simple strict logic for kicking of `provisioning` shell scripts
 under :file:`tools/vagrant.d/`. The format of file names is documented in
 :file:`tools/vagrant-provision.sh` if you need to update/create new provisioning
 files.
+
+.. _ItsUpRunningWhatNow:
 
 It's up and running, what now?
 ------------------------------
@@ -88,6 +92,8 @@ The default administrator credentials in the web interface is: admin / admin.
 For further setup and easier hacking on NAV, we highly suggest
 :doc:`/howto/hacking-with-pycharm` for further details on how to setup our
 favorite IDE which makes hacking on NAV much more fun!
+
+.. _OtherVagrantDetails:
 
 Other important things to know about vagrant
 --------------------------------------------
