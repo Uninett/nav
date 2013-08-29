@@ -18,7 +18,7 @@
 
 from django.conf.urls import url, patterns
 from .views import (RoomList, RoomDetail, NetboxList, NetboxDetail,
-                    get_or_create_token)
+                    PrefixUsageDetail, get_or_create_token)
 
 urlpatterns = patterns(
     "",
@@ -28,4 +28,6 @@ urlpatterns = patterns(
     url(r"^rooms/(?P<pk>\w+)$", RoomDetail.as_view(), name="api-room"),
     url(r"^netboxes/$", NetboxList.as_view(), name="api-netboxes"),
     url(r"^netboxes/(?P<pk>\d+)$", NetboxDetail.as_view(), name="api-netbox"),
+    url(r"^activeip/(?P<prefix>.*)$", PrefixUsageDetail.as_view(),
+        name="api-prefix-usage"),
 )

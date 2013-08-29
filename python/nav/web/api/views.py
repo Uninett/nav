@@ -1,4 +1,3 @@
-#
 # Copyright (C) 2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
@@ -16,6 +15,7 @@
 # pylint: disable=R0903
 """Views for the NAV API"""
 
+from IPy import IP
 from django.http import HttpResponse
 from datetime import datetime, timedelta
 
@@ -29,7 +29,9 @@ from nav.models.api import APIToken
 from nav.models.manage import Room, Netbox
 
 from .auth import APIPermission, APIAuthentication
-from .serializers import RoomSerializer, NetboxSerializer
+from .serializers import (RoomSerializer, NetboxSerializer,
+                          PrefixUsageSerializer)
+from .helpers import prefix_collector
 
 EXPIRE_DELTA = timedelta(days=365)
 
@@ -65,17 +67,36 @@ class NetboxDetail(NAVAPIMixin, RetrieveAPIView):
     serializer_class = NetboxSerializer
 
 
-class PrefixUsageList(APIView):
-    """For future usage"""
-    renderer_classes = [JSONRenderer]
+class PrefixUsageDetail(NAVAPIMixin, APIView):
+    """Makes prefix usage accessible from api"""
 
-    def get(self):
-        """Fetch stuff, create serializer, return data"""
-        return Response()
+    iso8601 = "%Y-%m-%dT%H:%M:%S"
+    MINIMUMPREFIXLENGTH = 4
+
+    def get(self, request, prefix):
+        """Handles get request for prefix usage"""
+        if len(IP(prefix)) < self.MINIMUMPREFIXLENGTH:
+            return Response("Prefix is too small",
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        starttime = request.GET.get('starttime')
+        endtime = request.GET.get('endtime')
+
+        if starttime:
+            starttime = datetime.strptime(starttime, self.iso8601)
+        if endtime:
+            endtime = datetime.strptime(endtime, self.iso8601)
+        serializer = PrefixUsageSerializer(
+            prefix_collector.fetch_usage(prefix, starttime, endtime))
+
+        return Response(serializer.data)
 
 
 def get_or_create_token(request):
-    """Gets an existing token or creates a new one"""
+    """Gets an existing token or creates a new one
+
+    :type request: django.http.HttpRequest
+    """
     if request.account.is_admin_account():
         token, _ = APIToken.objects.get_or_create(
             client=request.account,
@@ -83,4 +104,5 @@ def get_or_create_token(request):
                       'expires': datetime.now() + EXPIRE_DELTA})
         return HttpResponse(str(token))
     else:
-        return HttpResponse(status=status.HTTP_403_FORBIDDEN)
+        return HttpResponse('You must log in to get a token',
+                            status=status.HTTP_403_FORBIDDEN)

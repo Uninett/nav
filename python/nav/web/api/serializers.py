@@ -13,6 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=R0903
 """Serializers for the NAV REST api"""
 
 from nav.models.manage import Room, Netbox
@@ -32,4 +33,11 @@ class RoomSerializer(serializers.ModelSerializer):
         fields = ('id', 'location', 'description', 'position')
 
 
-
+class PrefixUsageSerializer(serializers.Serializer):
+    """Serializer for prefix usage queries"""
+    starttime = serializers.DateTimeField()
+    endtime = serializers.DateTimeField()
+    prefix = serializers.CharField()
+    usage = serializers.FloatField()
+    active_addresses = serializers.IntegerField()
+    max_addresses = serializers.IntegerField()
