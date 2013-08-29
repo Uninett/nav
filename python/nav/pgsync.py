@@ -27,6 +27,8 @@ import psycopg2
 from nav.db import ConnectionParameters
 from nav.util import first_true
 from nav import buildconf
+from nav.colors import colorize, print_color
+from nav.colors import COLOR_CYAN, COLOR_YELLOW, COLOR_RED, COLOR_GREEN
 
 SQL_SEARCH_PATH = ['.', './sql', os.path.join(buildconf.datadir, 'sql')]
 
@@ -225,6 +227,7 @@ def handle_missing_binaries(func):
 
 
 @handle_missing_binaries
+@colorize(COLOR_YELLOW)
 def check_call(*args, **kwargs):
     """subprocess.check_call with OSError handling"""
     return subprocess.check_call(*args, **kwargs)
@@ -469,14 +472,14 @@ class Synchronizer(object):
 
         """
         sql = file(filename, 'rb').read()
-        print "%-20s" % (filename + ":"),
+        print_color("%-20s " % (filename + ":"), COLOR_CYAN, newline=False)
         try:
             self.cursor.execute(sql)
         except (psycopg2.DataError, psycopg2.ProgrammingError), err:
-            print str(err) or type(err).__name__
+            print_color(str(err) or type(err).__name__, COLOR_RED)
             sys.exit(2)
         else:
-            print "OK"
+            print_color("OK", COLOR_GREEN)
 
 
 class ChangeScriptFinder(list):
