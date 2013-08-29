@@ -24,7 +24,7 @@ from textwrap import wrap
 from errno import ENOENT, EACCES
 import psycopg2
 
-from nav.db import get_connection_parameters, get_connection_string
+from nav.db import ConnectionParameters
 from nav.util import first_true
 from nav import buildconf
 
@@ -493,69 +493,6 @@ class ChangeScriptFinder(list):
                 int(match.group('minor')),
                 int(match.group('point')))
 
-
-class ConnectionParameters(object):
-    """Database Connection parameters"""
-
-    # this data container class needs all these args, period.
-    # pylint: disable=R0913
-    def __init__(self, dbhost, dbport, dbname, user, password):
-        self.dbhost = dbhost
-        self.dbport = dbport
-        self.dbname = dbname
-        self.user = user
-        self.password = password
-
-    @classmethod
-    def from_config(cls):
-        """Initializes and returns parameters from NAV's config"""
-        return cls(*get_connection_parameters())
-
-    @classmethod
-    def from_environment(cls):
-        """Initializes and returns parameters from environment vars"""
-        params = [os.environ.get(v, None) for v in
-                  ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD')]
-        return cls(*params)
-
-    @classmethod
-    def for_postgres_user(cls):
-        """Returns parameters suitable for logging in the postgres user using
-        PostgreSQL command line clients.
-        """
-        config = cls.from_config()
-        environ = cls.from_environment()
-
-        if not environ.dbhost and config.dbhost != 'localhost':
-            environ.dbhost = config.dbhost
-        if not environ.dbport and config.dbport:
-            environ.dbport = config.dbport
-
-        return environ
-
-    def export(self, environ):
-        """Exports parameters to environ.
-
-        Supply os.environ to export to subprocesses.
-
-        """
-        added_environ = dict(zip(
-            ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD'),
-            self.as_tuple()))
-        for var, val in added_environ.items():
-            if val:
-                environ[var] = val
-
-    def as_tuple(self):
-        """Returns parameters as a tuple"""
-        return (self.dbhost,
-                self.dbport,
-                self.dbname,
-                self.user,
-                self.password)
-
-    def __str__(self):
-        return get_connection_string(self.as_tuple())
 
 if __name__ == '__main__':
     main()

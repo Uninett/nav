@@ -20,6 +20,7 @@ Provides common database functionality for NAV.
 from __future__ import absolute_import
 import atexit
 from functools import wraps
+import os
 import time
 import psycopg2
 import psycopg2.extensions
@@ -220,3 +221,67 @@ def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
 # avoid the numerous "unexpected EOF on client connection" that NAV
 # seems to generate in the PostgreSQL logs.
 atexit.register(closeConnections)
+
+
+class ConnectionParameters(object):
+    """Database Connection parameters"""
+
+    # this data container class needs all these args, period.
+    # pylint: disable=R0913
+    def __init__(self, dbhost, dbport, dbname, user, password):
+        self.dbhost = dbhost
+        self.dbport = dbport
+        self.dbname = dbname
+        self.user = user
+        self.password = password
+
+    @classmethod
+    def from_config(cls):
+        """Initializes and returns parameters from NAV's config"""
+        return cls(*get_connection_parameters())
+
+    @classmethod
+    def from_environment(cls):
+        """Initializes and returns parameters from environment vars"""
+        params = [os.environ.get(v, None) for v in
+                  ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD')]
+        return cls(*params)
+
+    @classmethod
+    def for_postgres_user(cls):
+        """Returns parameters suitable for logging in the postgres user using
+        PostgreSQL command line clients.
+        """
+        config = cls.from_config()
+        environ = cls.from_environment()
+
+        if not environ.dbhost and config.dbhost != 'localhost':
+            environ.dbhost = config.dbhost
+        if not environ.dbport and config.dbport:
+            environ.dbport = config.dbport
+
+        return environ
+
+    def export(self, environ):
+        """Exports parameters to environ.
+
+        Supply os.environ to export to subprocesses.
+
+        """
+        added_environ = dict(zip(
+            ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD'),
+            self.as_tuple()))
+        for var, val in added_environ.items():
+            if val:
+                environ[var] = val
+
+    def as_tuple(self):
+        """Returns parameters as a tuple"""
+        return (self.dbhost,
+                self.dbport,
+                self.dbname,
+                self.user,
+                self.password)
+
+    def __str__(self):
+        return get_connection_string(self.as_tuple())
