@@ -18,6 +18,7 @@
 from IPy import IP
 from django.http import HttpResponse
 from datetime import datetime, timedelta
+import iso8601
 
 from provider.utils import long_token
 from rest_framework import status
@@ -70,7 +71,6 @@ class NetboxDetail(NAVAPIMixin, RetrieveAPIView):
 class PrefixUsageDetail(NAVAPIMixin, APIView):
     """Makes prefix usage accessible from api"""
 
-    iso8601 = "%Y-%m-%dT%H:%M:%S"
     MINIMUMPREFIXLENGTH = 4
 
     def get_times(self, request):
@@ -78,9 +78,9 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
         starttime = request.GET.get('starttime')
         endtime = request.GET.get('endtime')
         if starttime:
-            starttime = datetime.strptime(starttime, self.iso8601)
+            starttime = iso8601.parse_date(starttime)
         if endtime:
-            endtime = datetime.strptime(endtime, self.iso8601)
+            endtime = iso8601.parse_date(endtime)
         return starttime, endtime
 
     def get(self, request, prefix):

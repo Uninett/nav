@@ -19,6 +19,7 @@ sphinx>=1.0
 # REST framework
 django-oauth2-provider>=0.2.6
 djangorestframework>=2.3.7
+iso8601
 
 
 # SNMP libraries, pick only one of them. pynetsnmp is recommended; it provides
