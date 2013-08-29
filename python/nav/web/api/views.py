@@ -73,19 +73,35 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
     iso8601 = "%Y-%m-%dT%H:%M:%S"
     MINIMUMPREFIXLENGTH = 4
 
-    def get(self, request, prefix):
-        """Handles get request for prefix usage"""
-        if len(IP(prefix)) < self.MINIMUMPREFIXLENGTH:
-            return Response("Prefix is too small",
-                            status=status.HTTP_400_BAD_REQUEST)
-
+    def get_times(self, request):
+        """Gets start and endtime from request"""
         starttime = request.GET.get('starttime')
         endtime = request.GET.get('endtime')
-
         if starttime:
             starttime = datetime.strptime(starttime, self.iso8601)
         if endtime:
             endtime = datetime.strptime(endtime, self.iso8601)
+        return starttime, endtime
+
+    def get(self, request, prefix):
+        """Handles get request for prefix usage"""
+
+        try:
+            prefix = IP(prefix)
+        except ValueError:
+            return Response("Bad prefix", status=status.HTTP_400_BAD_REQUEST)
+
+        if len(prefix) < self.MINIMUMPREFIXLENGTH:
+            return Response("Prefix is too small",
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            starttime, endtime = self.get_times(request)
+        except ValueError:
+            return Response(
+                'start or endtime not formatted correctly. Use iso8601 format',
+                status=status.HTTP_400_BAD_REQUEST)
+
         serializer = PrefixUsageSerializer(
             prefix_collector.fetch_usage(prefix, starttime, endtime))
 

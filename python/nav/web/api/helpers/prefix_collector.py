@@ -22,7 +22,14 @@ from django.db import connection
 class UsageResult(object):
     """Container for creating usage results for serializing"""
     def __init__(self, prefix, active_addresses, starttime=None, endtime=None):
-        self.prefix = IP(prefix)
+        """
+
+        :type prefix: IPy.IP
+        :type active_addresses: int
+        :type starttime: datetime.datetime
+        :type endtime: datetime.datetime
+        """
+        self.prefix = prefix
         self.active_addresses = active_addresses
         self.max_addresses = len(self.prefix)
         self.usage = self.active_addresses / float(self.max_addresses) * 100
@@ -34,7 +41,7 @@ def fetch_usage(prefix, starttime, endtime):
     """Fetches usage for the prefix
 
     :param prefix: the prefix to fetch active addresses from
-    :type prefix: str
+    :type prefix: IPy.IP
     :type starttime: datetime.datetime
     :type endtime: datetime.datetime
     """
@@ -46,7 +53,7 @@ def collect_active_ip(prefix, starttime=None, endtime=None):
     """Collects active ip based on prefix and optional starttime and endtime
 
     :param prefix: prefix to find active ip addresses for
-    :type prefix: str
+    :type prefix: IPy.IP
 
     :param starttime: if set will query for active ip-addresses at that time.
                       if set with endtime indicates the start of the window
@@ -62,6 +69,7 @@ def collect_active_ip(prefix, starttime=None, endtime=None):
 
     cursor = connection.cursor()
     basequery = "SELECT COUNT(DISTINCT ip) AS ipcount FROM arp"
+    prefix = prefix.strCompressed()
 
     if starttime and endtime:
         query = basequery + """
