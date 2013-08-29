@@ -83,7 +83,7 @@ def get_traffic_rgb(percent):
     :param percent load in procent [0..100]
     """
     if percent is None:
-        return 0, 0, 255
+        return 211, 211, 211
 
     # range(42,236) = 194 steps with nice colors from traffic_gradient_map()
     step_constant = 194.00 / 100.00

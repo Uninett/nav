@@ -124,9 +124,11 @@ SECRET_KEY = nav_config.get('SECRET_KEY', None) # Must be set in nav.conf!
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
 sys.path.append(os.path.join(nav.buildconf.sysconfdir, "python"))
 try:
+    # pylint: disable=E0602
     LOCAL_SETTINGS
 except NameError:
     try:
+        # pylint: disable=F0401
         from local_settings import *
     except ImportError:
         pass

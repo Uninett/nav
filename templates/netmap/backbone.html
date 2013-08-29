@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-    <script type="text/javascript" src="/js/libs/d3.v2.js"></script>
-    <link rel="stylesheet" href="/style/netmap.css" media="screen" type="text/css" />
+    <link rel="stylesheet" href="/style/netmap.css" type="text/css" />
+    <link rel="stylesheet" href="/style/message.css" media="screen" type="text/css" />
     <link rel="stylesheet" href="/style/jqueryui/jquery-ui-1.8.21.custom.css" type="text/css" />
     <script type="text/javascript" src="/js/libs/spin.min.js"></script>
     <script>require(["src/netmap/main"]);</script>
@@ -20,11 +20,23 @@
 
             </div>
 
-            <div id="netmapview_id" style="display:none">
+            <div id="netmap_bootstrap_mapPropertiesCollection" class="hidden">
+                {{ bootstrap_mapproperties_collection }}
+            </div>
+            <div id="netmap_bootstrap_favoriteView" class="hidden">
+                {{ bootstrap_isFavorite }}
+            </div>
+            <div id="netmap_bootstrap_availableCategories" class="hidden">
+                {{ bootstrap_availableCategories }}
+            </div>
+
+            <div id="netmap_bootstrap_availableCategories_datauris" class="hidden">
+                {{ bootstrap_availableCategories_datauris }}
+            </div>
+            <div id="netmapview_id" class="hidden">
                 {{ current_view.viewid }}
             </div>
             <div id="chart_header"></div>
-            <div id="loading_chart"></div>
             <div id="netmap_userid">{{ auth_id }}</div>
             {% if link_to_admin %}
                 <div id="netmap_link_to_admin">{{link_to_admin}}</div>

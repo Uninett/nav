@@ -17,12 +17,202 @@
 import logging
 import networkx as nx
 from collections import defaultdict
-from nav.models.manage import SwPortVlan, Prefix
+from nav.models.manage import SwPortVlan
 from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2
-from nav.topology import vlan
+from nav.netmap.rrd import _get_datasource_lookup, get_rrd_data
 
 
 _LOGGER = logging.getLogger(__name__)
+
+from operator import itemgetter
+from heapq import nlargest
+from itertools import repeat, ifilter
+
+# http://code.activestate.com/recipes/576611/ for python 2.5 and 2.6 until
+# NAV requirement specifies python 2.7 and we can use collections.Counter
+# License: MIT . Also linked from
+# http://docs.python.org/2/library/collections.html#collections.Counter
+# todo : NAVs requirements changes to python 2.7, kill this Counter!
+class Counter(dict):
+    '''Dict subclass for counting hashable objects.  Sometimes called a bag
+    or multiset.  Elements are stored as dictionary keys and their counts
+    are stored as dictionary values.
+
+    >>> Counter('zyzygy')
+    Counter({'y': 3, 'z': 2, 'g': 1})
+
+    '''
+
+    def __init__(self, iterable=None, **kwds):
+        '''Create a new, empty Counter object.  And if given, count elements
+        from an input iterable.  Or, initialize the count from another mapping
+        of elements to their counts.
+
+        >>> c = Counter()                           # a new, empty counter
+        >>> c = Counter('gallahad')                 # a new counter from an iterable
+        >>> c = Counter({'a': 4, 'b': 2})           # a new counter from a mapping
+        >>> c = Counter(a=4, b=2)                   # a new counter from keyword args
+
+        '''
+        self.update(iterable, **kwds)
+
+    def __missing__(self, key):
+        return 0
+
+    def most_common(self, n=None):
+        '''List the n most common elements and their counts from the most
+        common to the least.  If n is None, then list all element counts.
+
+        >>> Counter('abracadabra').most_common(3)
+        [('a', 5), ('r', 2), ('b', 2)]
+
+        '''
+        if n is None:
+            return sorted(self.iteritems(), key=itemgetter(1), reverse=True)
+        return nlargest(n, self.iteritems(), key=itemgetter(1))
+
+    def elements(self):
+        '''Iterator over elements repeating each as many times as its count.
+
+        >>> c = Counter('ABCABC')
+        >>> sorted(c.elements())
+        ['A', 'A', 'B', 'B', 'C', 'C']
+
+        If an element's count has been set to zero or is a negative number,
+        elements() will ignore it.
+
+        '''
+        for elem, count in self.iteritems():
+            for _ in repeat(None, count):
+                yield elem
+
+    # Override dict methods where the meaning changes for Counter objects.
+
+    @classmethod
+    def fromkeys(cls, iterable, v=None):
+        raise NotImplementedError(
+            'Counter.fromkeys() is undefined.  Use Counter(iterable) instead.')
+
+    def update(self, iterable=None, **kwds):
+        '''Like dict.update() but add counts instead of replacing them.
+
+        Source can be an iterable, a dictionary, or another Counter instance.
+
+        >>> c = Counter('which')
+        >>> c.update('witch')           # add elements from another iterable
+        >>> d = Counter('watch')
+        >>> c.update(d)                 # add elements from another counter
+        >>> c['h']                      # four 'h' in which, witch, and watch
+        4
+
+        '''
+        if iterable is not None:
+            if hasattr(iterable, 'iteritems'):
+                if self:
+                    self_get = self.get
+                    for elem, count in iterable.iteritems():
+                        self[elem] = self_get(elem, 0) + count
+                else:
+                    dict.update(self, iterable) # fast path when counter is empty
+            else:
+                self_get = self.get
+                for elem in iterable:
+                    self[elem] = self_get(elem, 0) + 1
+        if kwds:
+            self.update(kwds)
+
+    def copy(self):
+        'Like dict.copy() but returns a Counter instance instead of a dict.'
+        return Counter(self)
+
+    def __delitem__(self, elem):
+        'Like dict.__delitem__() but does not raise KeyError for missing values.'
+        if elem in self:
+            dict.__delitem__(self, elem)
+
+    def __repr__(self):
+        if not self:
+            return '%s()' % self.__class__.__name__
+        items = ', '.join(map('%r: %r'.__mod__, self.most_common()))
+        return '%s({%s})' % (self.__class__.__name__, items)
+
+    # Multiset-style mathematical operations discussed in:
+    #       Knuth TAOCP Volume II section 4.6.3 exercise 19
+    #       and at http://en.wikipedia.org/wiki/Multiset
+    #
+    # Outputs guaranteed to only include positive counts.
+    #
+    # To strip negative and zero counts, add-in an empty counter:
+    #       c += Counter()
+
+    def __add__(self, other):
+        '''Add counts from two counters.
+
+        >>> Counter('abbb') + Counter('bcc')
+        Counter({'b': 4, 'c': 2, 'a': 1})
+
+
+        '''
+        if not isinstance(other, Counter):
+            return NotImplemented
+        result = Counter()
+        for elem in set(self) | set(other):
+            newcount = self[elem] + other[elem]
+            if newcount > 0:
+                result[elem] = newcount
+        return result
+
+    def __sub__(self, other):
+        ''' Subtract count, but keep only results with positive counts.
+
+        >>> Counter('abbbc') - Counter('bccd')
+        Counter({'b': 2, 'a': 1})
+
+        '''
+        if not isinstance(other, Counter):
+            return NotImplemented
+        result = Counter()
+        for elem in set(self) | set(other):
+            newcount = self[elem] - other[elem]
+            if newcount > 0:
+                result[elem] = newcount
+        return result
+
+    def __or__(self, other):
+        '''Union is the maximum of value in either of the input counters.
+
+        >>> Counter('abbb') | Counter('bcc')
+        Counter({'b': 3, 'c': 2, 'a': 1})
+
+        '''
+        if not isinstance(other, Counter):
+            return NotImplemented
+        _max = max
+        result = Counter()
+        for elem in set(self) | set(other):
+            newcount = _max(self[elem], other[elem])
+            if newcount > 0:
+                result[elem] = newcount
+        return result
+
+    def __and__(self, other):
+        ''' Intersection is the minimum of corresponding counts.
+
+        >>> Counter('abbb') & Counter('bcc')
+        Counter({'b': 1})
+
+        '''
+        if not isinstance(other, Counter):
+            return NotImplemented
+        _min = min
+        result = Counter()
+        if len(self) < len(other):
+            self, other = other, self
+        for elem in ifilter(self.__contains__, other):
+            newcount = _min(self[elem], other[elem])
+            if newcount > 0:
+                result[elem] = newcount
+        return result
 
 
 def _get_vlans_map_layer2(graph):
@@ -47,101 +237,169 @@ def _get_vlans_map_layer2(graph):
     return (vlan_by_interface, vlan_by_netbox)
 
 def _get_vlans_map_layer3(graph):
-    """Builds a dictionary to lookup VLAN (IP broadcast domain) information
-     for layer3. See nav.models.manage.Vlan
+    vlans = set()
+    for _, _, swpv in graph.edges_iter(keys=True):
+        vlans.add(swpv)
+    return vlans
 
-    :param a networkx NAV topology graph
-    :returns a map to lookup prefixes by internal NAV VLAN ID"""
 
-    prefix_list_id = list()
-    for _, _, prefix in graph.edges_iter(keys=True):
-        prefix_list_id.append(prefix.vlan.id)
-
-    prefixes_by_navvlan = defaultdict(list)
-    for prefix_in_navvlan in Prefix.objects.filter(
-        vlan__id__in=list(prefix_list_id)).select_related():
-
-        prefixes_by_navvlan[prefix_in_navvlan.vlan.id].append(prefix_in_navvlan)
-
-    return prefixes_by_navvlan
-
-def build_netmap_layer2_graph(view=None):
+def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
+                              vlan_by_netbox, collect_rrd=False, view=None):
     """
     Builds a netmap layer 2 graph, based on nav's build_layer2_graph method.
+    Reduces a topology graph from nav.topology.vlan, but retains it's
+     directional (MultiDiGraph) properties as metadata under the key 'metadata'
 
+    This is done as the visualization in Netmap won't ever be drawing multiple
+    spines between edges as it will turn into a mess, instead we want to access
+    such data as metadata.
 
+    :param topology_without_metadata: nav.topology.vlan.build*_graph networkx
+     graph
+    :param vlan_by_interface: dictionary to lookup up vlan's attached to given
+     interface
+    :param vlan_by_netbox: dictonary to lookup up vlan's, keyed by netbox.
     :param view A NetMapView for getting node positions according to saved
-    netmap view.
-
-    :return NetworkX MultiDiGraph with attached metadata for edges and nodes
-            (obs! metadata has direction metadata added!)
+     netmap view.
+    :type topology_without_metadata: networkx.MultiDiGraph
+    :type vlan_by_interface: dict
+    :type vlan_by_netbox: dict
+    :type view: nav.modeles.profiles.NetmapView
+    :return NetworkX Graph with attached metadata for edges and nodes
     """
-    _LOGGER.debug("build_netmap_layer2_graph() start")
-    topology_without_metadata = vlan.build_layer2_graph(
-        (
-        'to_interface__netbox', 'to_interface__netbox__room', 'to_netbox__room',
-        'netbox__room', 'to_interface__netbox__room__location',
-        'to_netbox__room__location', 'netbox__room__location'))
-    _LOGGER.debug("build_netmap_layer2_graph() topology graph done")
+    _LOGGER.debug(
+        "_build_netmap_layer2_graph()")
+    netmap_graph = nx.Graph()
 
-    vlan_by_interface, vlan_by_netbox = _get_vlans_map_layer2(
-        topology_without_metadata)
-    _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
+    interfaces = set()
 
-    graph = nx.MultiDiGraph()
-    # Make a copy of the graph, and add edge meta data
-    for node_a, node_b, key in topology_without_metadata.edges_iter(keys=True):
-        graph.add_edge(node_a, node_b, key=key,
-            metadata=edge_metadata_layer2(key.netbox, key, node_b,
-                key.to_interface, vlan_by_interface))
+    # basically loops over the whole MultiDiGraph from nav.topology and make
+    # sure we fetch all 'loose' ends and makes sure they get attached as
+    # metadata into netmap_graph
+    for source, neighbors_dict in topology_without_metadata.adjacency_iter():
+        for target, connected_interfaces_at_source_for_target in (
+            neighbors_dict.iteritems()):
+            for interface in connected_interfaces_at_source_for_target:
+                # fetch existing metadata that might have been added already
+                existing_metadata = netmap_graph.get_edge_data(
+                    source,
+                    target
+                ) or {}
+                port_pairs = existing_metadata.setdefault('port_pairs', set())
+                port_pair = tuple(
+                    sorted(
+                        (interface, interface.to_interface),
+                        key=lambda
+                                interfjes: interfjes and interfjes.pk or None
+                    )
+                )
+                port_pairs.add(port_pair)
+                if port_pair[0] is not None:
+                    interfaces.add(port_pair[0])
+                if port_pair[1] is not None:
+                    interfaces.add(port_pair[1])
 
-    _LOGGER.debug("build_netmap_layer2_graph() graph copy with metadata done")
+                netmap_graph.add_edge(source, target,
+                                      attr_dict=existing_metadata)
 
-    for node, data in graph.nodes_iter(data=True):
-        if vlan_by_netbox.has_key(node):
+    _LOGGER.debug(
+        "build_netmap_layer2_graph() graph reduced.Port_pair metadata attached")
+
+    rrd_datasources = collect_rrd and _get_datasource_lookup(interfaces) or {}
+
+    for source, target, metadata_dict in netmap_graph.edges_iter(data=True):
+        for interface_a, interface_b in metadata_dict.get('port_pairs'):
+            rrd_traffic = get_rrd_data(rrd_datasources,
+                                       (interface_a, interface_b))
+            additional_metadata = edge_metadata_layer2((source, target),
+                                                       interface_a,
+                                                       interface_b,
+                                                       vlan_by_interface,
+                                                       rrd_traffic)
+
+            metadata = metadata_dict.setdefault('metadata', list())
+            metadata.append(additional_metadata)
+
+    _LOGGER.debug(
+        "build_netmap_layer2_graph() netmap metadata built")
+
+
+    for node, data in netmap_graph.nodes_iter(data=True):
+        if node in vlan_by_netbox:
             data['metadata'] = {
-                'vlans': sorted(vlan_by_netbox.get(node).iteritems(),
+                'vlans': sorted(vlan_by_netbox[node].iteritems(),
                     key=lambda x: x[1].vlan.vlan)}
-    _LOGGER.debug("build_netmap_layer2_graph() vlan metadata done")
+    _LOGGER.debug("build_netmap_layer2_graph() vlan metadata for _nodes_ done")
 
     if view:
-        graph = _attach_node_positions(graph, view.node_position_set.all())
+        saved_views = view.node_position_set.all()
+        netmap_graph = _attach_node_positions(netmap_graph,
+                                              saved_views)
     _LOGGER.debug("build_netmap_layer2_graph() view positions and graph done")
-    return graph
+
+    return netmap_graph
 
 
-def build_netmap_layer3_graph(view=None):
+def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False,
+                              view=None):
     """
     Builds a netmap layer 3 graph, based on nav's build_layer3_graph method.
 
+    :param collect_rrd: set to true for fetching RRD/Traffic statistics data
+     for your network topology.
+    :param view: A NetMapView for getting node positions according to saved
+     netmap view.
+    :type collect_rrd: bool
+    :type view: nav.models.profiles.NetmapView
 
-    :param view A NetMapView for getting node positions according to saved
-    netmap view.
-
-    :return NetworkX MultiGraph with attached metadata for edges and nodes
+    :return NetworkX Graph with attached metadata for edges and nodes
             (obs! metadata has direction metadata added!)
     """
-    _LOGGER.debug("build_netmap_layer3_graph() start")
-    topology_without_metadata = vlan.build_layer3_graph(
-        ('prefix__vlan__net_type', 'gwportprefix__prefix__vlan__net_type',))
-    _LOGGER.debug("build_netmap_layer3_graph() topology graph done")
-
-    vlans_map = _get_vlans_map_layer3(topology_without_metadata)
-    _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
 
     # Make a copy of the graph, and add edge meta data
-    graph = nx.MultiGraph()
-
+    graph = nx.Graph()
+    interfaces = set()
     for gwpp_a, gwpp_b, prefix in topology_without_metadata.edges_iter(
         keys=True):
 
         netbox_a = gwpp_a.interface.netbox
         netbox_b = gwpp_b.interface.netbox
 
-        graph.add_edge(netbox_a, netbox_b, key=prefix.vlan.id,
-            metadata=edge_metadata_layer3(gwpp_a, gwpp_b,
-                vlans_map.get(prefix.vlan.id)))
+        existing_metadata = graph.get_edge_data(netbox_a, netbox_b) or {}
+        gwportprefix_pairs = existing_metadata.setdefault('gwportprefix_pairs',
+                                                          set())
+        gwportprefix = tuple(
+            sorted(
+                (gwpp_a, gwpp_b),
+                key=lambda
+                        gwpprefix: gwpprefix and gwpprefix.gw_ip or None
+            )
+        )
+        gwportprefix_pairs.add(gwportprefix)
+        if gwpp_a.interface is not None:
+            interfaces.add(gwpp_a.interface)
+        if gwpp_b.interface is not None:
+            interfaces.add(gwpp_b.interface)
+
+        graph.add_edge(netbox_a, netbox_b, key=prefix.vlan,
+            attr_dict=existing_metadata)
     _LOGGER.debug("build_netmap_layer3_graph() graph copy with metadata done")
+
+    rrd_datasources = collect_rrd and _get_datasource_lookup(interfaces) or {}
+
+    for source, target, metadata_dict in graph.edges_iter(data=True):
+        for gwpp_a, gwpp_b in metadata_dict.get('gwportprefix_pairs'):
+            rrd_traffic = get_rrd_data(rrd_datasources, (gwpp_a, gwpp_b))
+            additional_metadata = edge_metadata_layer3((source, target),
+                                                       gwpp_a,
+                                                       gwpp_b,
+                                                       rrd_traffic)
+            assert gwpp_a.prefix.vlan.id == gwpp_b.prefix.vlan.id, (
+                "GwPortPrefix must reside inside VLan for given Prefix, "
+                "bailing!")
+            metadata = metadata_dict.setdefault('metadata', defaultdict(list))
+            metadata[gwpp_a.prefix.vlan.id].append(additional_metadata)
+
 
     if view:
         graph = _attach_node_positions(graph, view.node_position_set.all())
@@ -159,17 +417,17 @@ def _attach_node_positions(graph, node_set):
 
     # node is a tuple(netbox, networkx_graph_node_meta_dict)
     # Traversing our generated graph which misses node positions..
-    for node in graph.nodes(data=True):
+    for node, metadata in graph.nodes(data=True):
         # Find node metadata in saved map view if it has any.
-        node_meta_dict = [x for x in node_set if x.netbox == node[0]]
+        node_meta_dict = [x for x in node_set if x.netbox == node]
 
         # Attached position meta data if map view has meta data on node in graph
         if node_meta_dict:
-            if node[1].has_key('metadata'):
+            if metadata.has_key('metadata'):
                 # has vlan meta data, need to just update position data
-                node[1]['metadata'].update({'position': node_meta_dict[0]})
+                metadata['metadata'].update({'position': node_meta_dict[0]})
             else:
-                node[1]['metadata'] = {'position': node_meta_dict[0]}
+                metadata['metadata'] = {'position': node_meta_dict[0]}
     return graph
 
 

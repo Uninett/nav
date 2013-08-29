@@ -14,24 +14,6 @@ define([
         initialize: function () {
 
             this.template_post = Handlebars.compile(template);
-            Handlebars.registerHelper('round', function (value) {
-                return (value && typeof value === 'number') ? Math.round(value) : 0;
-            });
-
-            // Same as each, just including index
-            Handlebars.registerHelper('iter', function(context, options) {
-                var fn = options.fn, inverse = options.inverse;
-                var ret = "";
-
-                if(context && context.length > 0) {
-                    for(var i=0, j=context.length; i<j; i++) {
-                        ret = ret + fn(_.extend({}, context[i], { percent: context.length - 1 - i, isDecade: i%10==0 }));
-                    }
-                } else {
-                    ret = inverse(this);
-                }
-                return ret;
-            });
 
             var self = this;
             self.el = $(self.template_post({'collection': self.collection.toJSON().reverse()})).dialog({autoOpen: false, width: 'auto'});
