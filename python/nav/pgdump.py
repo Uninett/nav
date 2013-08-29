@@ -25,7 +25,7 @@ from optparse import OptionParser
 from datetime import datetime
 
 from nav import buildconf
-from nav.db import get_connection_parameters
+from nav.db import ConnectionParameters
 
 
 STD_DUMP_ARGS = ["--no-privileges", "--disable-triggers"]
@@ -119,17 +119,9 @@ def _add_filter(_option, _opt, value, parser):
 
 
 def export_pgvars():
-    """Exports NAV's db config as PG* environment variables.
-
-    These variables are used by PostgreSQL command line clients to connect to
-    a PostgreSQL database.
-
-    """
-    var = ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD')
-    val = get_connection_parameters()
-    pgenv = dict(zip(var, val))
-    os.environ.update(pgenv)
-    return pgenv
+    """Exports NAV's db config as PG* environment variables"""
+    params = ConnectionParameters.from_config()
+    params.export(os.environ)
 
 
 def filtered_dump(table, where):
