@@ -22,7 +22,7 @@ from curses import (COLOR_BLACK, COLOR_BLUE, COLOR_CYAN, COLOR_GREEN,
 
 __all__ = ['COLOR_BLACK', 'COLOR_BLUE', 'COLOR_CYAN', 'COLOR_GREEN',
            'COLOR_MAGENTA', 'COLOR_RED', 'COLOR_WHITE', 'COLOR_YELLOW',
-           'colorize', 'set_foreground', 'reset_foreground']
+           'colorize', 'set_foreground', 'reset_foreground', 'print_color']
 
 curses.setupterm()
 _set_color = curses.tigetstr('setaf') or ''
