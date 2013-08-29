@@ -138,7 +138,7 @@ def filtered_dump(table, where):
 
 def pg_dump(args):
     """Runs pg_dump in a subprocess"""
-    return pgcmd('pg_dumps', args)
+    return pgcmd('pg_dump', args)
 
 
 def psql(args):
