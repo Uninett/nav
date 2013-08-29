@@ -61,25 +61,20 @@ def collect_active_ip(prefix, starttime=None, endtime=None):
     """
 
     cursor = connection.cursor()
+    basequery = "SELECT COUNT(DISTINCT ip) AS ipcount FROM arp"
 
     if starttime and endtime:
-        query = """
-        SELECT COUNT(DISTINCT ip) AS ipcount
-        FROM arp
+        query = basequery + """
         WHERE (ip << %s AND (start_time, end_time) OVERLAPS (%s, %s))
         """
         cursor.execute(query, (prefix, starttime, endtime))
     elif starttime:
-        query = """
-        SELECT COUNT(DISTINCT ip) AS ipcount
-        FROM arp
+        query = basequery + """
         WHERE (ip << %s AND %s BETWEEN start_time AND end_time)
         """
         cursor.execute(query, (prefix, starttime))
     else:
-        query = """
-        SELECT COUNT(DISTINCT ip) AS ipcount
-        FROM arp
+        query = basequery + """
         WHERE (ip << %s AND end_time = 'infinity')
         """
         cursor.execute(query, (prefix,))
