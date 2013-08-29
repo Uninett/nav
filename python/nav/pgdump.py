@@ -26,7 +26,7 @@ from datetime import datetime
 
 from nav import buildconf
 from nav.db import ConnectionParameters
-
+from nav import pgsync
 
 STD_DUMP_ARGS = ["--no-privileges", "--disable-triggers"]
 
@@ -127,6 +127,8 @@ def export_pgvars():
 def filtered_dump(table, where):
     """Dumps table data using specific WHERE clause for filtering"""
     kwargs = dict(table=table, where=where)
+    search_path = ",".join(pgsync.Synchronizer.required_namespaces)
+    writeln("SET search_path TO %s;" % search_path)
     writeln("ALTER TABLE {table} DISABLE TRIGGER ALL;".format(**kwargs))
     writeln("COPY {table} FROM stdin;".format(**kwargs))
     psql(["-c",
