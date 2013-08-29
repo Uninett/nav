@@ -122,5 +122,5 @@ As NAV targets the Debian platform, it was needed to provide a base box image
 for Debian as `vagrant` does not ship by default a Debian box image.
 
 :file:`tools/build_vagrant_image.sh` is used for building a minimal Debian
-Stable box image by using ``rvm`` and ``veewee``.
-
+Stable box image by using ``rvm`` and ``veewee``. You can read more about
+this in :doc:`/reference/virtual-machines`.
