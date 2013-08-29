@@ -46,7 +46,7 @@ And for veewee you will need these following dependencies from apt:
  sudo apt-get install libxml2-dev libxslt1-dev
 
 After installation it uses ``source`` :file:`tools/rvm_activate` to activate
- the installed ``rvm`` environment.
+the installed ``rvm`` environment.
 
 Next step by the installer is to install ``veewee`` which it does by cloning
 veewee's repository to :file:`tools/veewee/`
