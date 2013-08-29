@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2008, 2011, 2012 UNINETT AS
+# Copyright (C) 2008, 2011-2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -37,8 +37,12 @@ def main():
 
     verify_password_is_configured()
 
+    if options.drop_database:
+        drop_database()
     if options.create_database:
         create_database()
+    if options.restore_file:
+        restore_from_dump(options.restore_file)
 
     sql_dir = first_true(SQL_SEARCH_PATH, pred=_is_sql_dir)
     if not sql_dir:
@@ -72,14 +76,22 @@ def parse_args():
         "this program under the postgres shell account, or set the environment "
         "variables required to connect as the superuser to your PostgreSQL "
         "server (PGHOST, PGPASSWORD, and if necessary, PGPORT)"
-        )
+    )
     parser.add_option("-c", "--create",
                       action="store_true", dest="create_database",
                       help="Create NAV database")
+    parser.add_option("-r", "--restore", metavar="FILE",
+                      action="store", type="string", dest="restore_file",
+                      help="Restore a database from the SQL dump in FILE. To "
+                           "use input from stdin, specify - as the filename.")
+    parser.add_option("--drop-database",
+                      action="store_true", dest="drop_database",
+                      help="Drops the NAV database if it already exists. THIS "
+                           "IS A DESTRUCTIVE OPERATION!")
     parser.add_option("-o", "--out-of-order", default=False,
                       action="store_true", dest="apply_out_of_order_changes",
                       help="Apply missing schema changes even when they are "
-                      "older than the newest applied change")
+                           "older than the newest applied change")
     return parser.parse_args()
 
 
@@ -106,6 +118,31 @@ def create_database():
                               "--owner=%s" % nav_opts.user,
                               "--encoding=utf-8", nav_opts.dbname])
     install_pl_pgsql(nav_opts.dbname)
+
+
+def drop_database():
+    """Drops an existing database using PostgreSQL command line clients"""
+    nav_opts = ConnectionParameters.from_config()
+    postgres_opts = ConnectionParameters.for_postgres_user()
+    postgres_opts.export(os.environ)
+
+    print "Dropping database %s" % nav_opts.dbname
+    trap_and_die(subprocess.CalledProcessError,
+                 "Failed to drop database %s" % nav_opts.dbname,
+                 check_call, ["dropdb", nav_opts.dbname])
+
+
+def restore_from_dump(filename):
+    postgres_opts = ConnectionParameters.for_postgres_user()
+    postgres_opts.export(os.environ)
+
+    print "Restoring database %s from file %s" % (postgres_opts.dbname,
+                                                  filename)
+    trap_and_die(
+        subprocess.CalledProcessError,
+        "Failed to restore database %s from file %s" % (postgres_opts.dbname,
+                                                        filename),
+        check_call, ["psql", "--quiet", "-f", filename])
 
 
 def user_exists(username):
@@ -148,6 +185,7 @@ def create_user(username, password):
                  ["psql", "--quiet", "-c",
                   "ALTER USER %s WITH PASSWORD '%s';" % (username, password),
                   "template1"])
+
 
 def install_pl_pgsql(dbname):
     "Installs PL/pgSQL to dbname if not already present"
