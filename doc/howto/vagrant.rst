@@ -119,5 +119,5 @@ please referrer to the :doc:`/reference/vagrant` document.
 
 This document goes into details for what the provisioning scripts are doing,
 and how everything is setup. So if you want to embrace yourself with more
-knowledge, take a tripe to :doc:`reference/vagrant`, it is highly recommended!
+knowledge, take a tripe to :doc:`/reference/vagrant`, it is highly recommended!
 :-)
