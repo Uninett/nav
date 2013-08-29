@@ -77,17 +77,17 @@ ensures you have correct environment variables for ``DJANGO_SETTINGS_MODULE``,
 It also provides a default alias ``rs`` for quickly booting up the webserver
 with django's management command runserver.
 
-In the continue to install all of NAVs dependencies using
-`pip <http://www.pip-installer.org/en/latest/>_` where the dependencies is
+In continues to install all of NAVs dependencies using
+`pip <http://www.pip-installer.org/en/latest/>`_ where the dependencies is
 specified in :file:`requirements.txt` and :file:`tests/requirements.txt`.
 
 Next step is to run the necessary build steps by autogen/make to install NAV
-with ``NAV_USER`` set to vagrant and prefix set to /vagrant where the source
-code is residing so you can do inplace updating of templates and simply do a
-refresh in your webbrowser to see the code changes.
+with ``NAV_USER`` set to vagrant and ``prefix`` set to :file:`/vagrant` where
+the source code is residing so you can do inplace updating of templates and
+simply do a refresh in your web browser to see the code changes.
 
 ``Data files`` (/var (variable data files)) and ``configuration files`` (/etc)
-is installed under :file:`~vagrant/var`and :file:`~vagrant/etc` so you can run
+is installed under :file:`~vagrant/var` and :file:`~vagrant/etc` so you can run
 NAV and configure settings without having to worry about committing changes to
 the repository.
 
@@ -112,8 +112,8 @@ touches a file in :file:`~vagrant/nav_installed` which is read by
 scripts with a state if the provisioning has been run before.
 
 You want to skip certain steps as ``make install`` or other things to make
-provisioning run faster any other ``vagrant up`` after the first initialized
-boot up.
+provisioning run faster for the next times you have to boot up the VM by
+``vagrant up``
 
 Base vagrant box image
 ----------------------
