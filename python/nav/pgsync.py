@@ -133,6 +133,7 @@ def drop_database():
 
 
 def restore_from_dump(filename):
+    """Restores a NAV database from an SQL dump produced by pg_dump"""
     postgres_opts = ConnectionParameters.for_postgres_user()
     postgres_opts.export(os.environ)
 
