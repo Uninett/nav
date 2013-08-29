@@ -59,6 +59,7 @@ Run configuration options should be the following:
 * Command: html
 * input: :file:`$NAV-ROOT/doc`
 * output: :file:`$NAV-ROOT/doc/html`
+* Ensure you set to use the Remote python interpreter from vagrant.
 
 After run you should be able to access the documentation under
 :file:`$NAV-ROOT/doc/html`.
