@@ -22,8 +22,8 @@ from .views import (RoomList, RoomDetail, NetboxList, NetboxDetail,
 
 urlpatterns = patterns(
     "",
-    url(r"^$", RoomList.as_view(), name="api-inventory"),
-    url(r"^token/$", get_or_create_token, name="api_token"),
+    url(r"^$", RoomList.as_view(), name="api-inventory"),  # TODO: Fix this
+    url(r"^token/$", get_or_create_token, name="api-token"),
     url(r"^rooms/$", RoomList.as_view(), name="api-rooms"),
     url(r"^rooms/(?P<pk>\w+)$", RoomDetail.as_view(), name="api-room"),
     url(r"^netboxes/$", NetboxList.as_view(), name="api-netboxes"),
