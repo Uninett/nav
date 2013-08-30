@@ -51,7 +51,8 @@ class DataSource(object):
         self.source = rrd_datasource
         presentation = presenter.Presentation()
         presentation.add_datasource(self.source)
-        self.raw = presentation.average()[0]
+        self.raw = presentation.average(on_error_return=None,
+                                        on_nan_return=None)[0]
 
 
     def to_json(self):

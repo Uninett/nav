@@ -62,7 +62,7 @@ def get_traffic_load_in_percent(octets, capacity=None):
      :param traffic: octets pr second (bytes a second)
      :param capacity: capacity on link in mbps. (ie 1Gbit = 1000 mbps)
     """
-    if not capacity:
+    if not capacity or not octets:
         return None
 
     MEGABITS_TO_BITS = 1000000
