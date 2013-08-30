@@ -389,7 +389,8 @@ def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False,
 
     for source, target, metadata_dict in graph.edges_iter(data=True):
         for gwpp_a, gwpp_b in metadata_dict.get('gwportprefix_pairs'):
-            rrd_traffic = get_rrd_data(rrd_datasources, (gwpp_a, gwpp_b))
+            rrd_traffic = get_rrd_data(rrd_datasources, (gwpp_a.interface,
+                                                         gwpp_b.interface))
             additional_metadata = edge_metadata_layer3((source, target),
                                                        gwpp_a,
                                                        gwpp_b,
