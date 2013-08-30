@@ -784,23 +784,6 @@ define([
             linksInVlan.exit().remove();
 
         },
-        baseScale:      function () {
-            var boundingBox = document.getElementById('boundingbox').getBoundingClientRect();
-
-            var baseWidth = (boundingBox.width+40) / this.scale;
-            var baseHeight = (boundingBox.height+40) / this.scale;
-
-            var baseScaleWidth = this.w / baseWidth;
-            var baseScaleHeight = this.h / baseHeight;
-
-            var requiredScale = 1;
-            if (baseScaleWidth < baseScaleHeight) {
-                requiredScale = baseScaleWidth;
-            } else {
-                requiredScale = baseScaleHeight;
-            }
-            return requiredScale;
-        },
         centerGraph: function () {
             var boundingBox = this.findBoundingBox(this.nodes, 200);
             this.zoomRescaleFromBounds(boundingBox);
