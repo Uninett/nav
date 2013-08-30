@@ -103,7 +103,7 @@ specify this build directory by adding
 If you omit the :makevar:`CRICKETDIR` variable, which specifies the path to your
 Cricket installation's binaries, it will be assumed that these can be found in
 :file:`${prefix}/cricket/cricket`.  A typical value for a Debian install is
-:file:``/usr/share/cricket``.
+:file:`/usr/share/cricket`.
 
 
 Initializing the database
