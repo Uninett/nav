@@ -1013,7 +1013,7 @@ define([
                         trafficObject = linkObject.data.edges.at(0).get('traffic');
                     }
 
-                    var undefined_css_color = '0,255,255';
+                    var undefined_css_color = '211,211,211';
                     var inCss = !!trafficObject.source ? trafficObject.source.css : undefined_css_color;
                     var outCss = !!trafficObject.target ? trafficObject.target.css : undefined_css_color;
                     return [
