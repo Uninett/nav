@@ -35,7 +35,7 @@ define(['libs/jquery'], function () {
             }
         },
         zeropad: function (number) {
-            return number < 10 ? '0' + number : number;
+            return number < 10 ? '0' + String(number) : String(number);
         }
     };
 

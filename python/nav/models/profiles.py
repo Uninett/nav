@@ -151,6 +151,10 @@ class Account(models.Model):
         """Is this the admin account?"""
         return self.id == self.ADMIN_ACCOUNT
 
+    def is_admin(self):
+        """Has this user administrator rights?"""
+        return self.has_perm(None, None)
+
     def set_password(self, password):
         '''Sets user password. Copied from nav.db.navprofiles'''
         if len(password.strip()):
@@ -1232,7 +1236,7 @@ class StatusPreferenceCategory(models.Model):
 
 
 # Make sure you update netmap-extras.js too if you change this! ;-)
-LINK_TYPES = (1, 'Layer 2'), \
+LINK_TYPES = (2, 'Layer 2'), \
 (3, 'Layer 3')
 
 class NetmapView(models.Model):
@@ -1267,9 +1271,9 @@ class NetmapView(models.Model):
 
     def to_json_dict(self):
         """Presents a NetmapView as JSON"""
-        categories = [unicode(x.category.id) for x in self.categories_set.all()]
+        categories = [{'name': unicode(x.category.id), 'is_selected': True} for x in self.categories_set.all()]
         if self.display_elinks:
-            categories.append("ELINK")
+            categories.append({'name': 'ELINK', 'is_selected': True})
 
         return {
             'viewid': self.viewid,

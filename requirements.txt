@@ -26,8 +26,3 @@ iso8601
 # better performance and IPv6 support.
 svn+http://dev.zenoss.org/svn/tags/pynetsnmp-0.28.14
 #http://downloads.sourceforge.net/project/twistedsnmp/pysnmp-se/3.5.2/pysnmp-se-3.5.2.tar.gz
-
-# Testing
-pytest>=2.2.4,<2.3
-mock>=0.8.0,<0.9
-pylint==0.26

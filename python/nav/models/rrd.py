@@ -21,6 +21,7 @@ from django.db import models
 from django.core.urlresolvers import reverse
 
 from nav.models.fields import VarcharField, LegacyGenericForeignKey
+from nav.models import event
 
 PERCENT_REGEXP = re.compile(r'^(\d+(\.\d+)?)%+$', re.UNICODE)
 

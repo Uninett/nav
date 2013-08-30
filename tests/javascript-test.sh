@@ -4,7 +4,6 @@ if [ ! -n "$1" ]; then
     exit 1
 fi
 
-SLEEPTIME=8
 WORKSPACE=$1
 JSDIR="${WORKSPACE}/htdocs/js"
 
@@ -40,4 +39,3 @@ if [ "$?" -eq 1 ]; then
     echo "Error when testing, taking screenshot"
     import -window root ${WORKSPACE}/test-error.png
 fi
-

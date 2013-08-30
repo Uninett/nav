@@ -62,7 +62,7 @@ def get_traffic_load_in_percent(octets, capacity=None):
      :param traffic: octets pr second (bytes a second)
      :param capacity: capacity on link in mbps. (ie 1Gbit = 1000 mbps)
     """
-    if not capacity:
+    if not capacity or not octets:
         return None
 
     MEGABITS_TO_BITS = 1000000
@@ -83,7 +83,7 @@ def get_traffic_rgb(percent):
     :param percent load in procent [0..100]
     """
     if percent is None:
-        return 0, 0, 255
+        return 211, 211, 211
 
     # range(42,236) = 194 steps with nice colors from traffic_gradient_map()
     step_constant = 194.00 / 100.00
