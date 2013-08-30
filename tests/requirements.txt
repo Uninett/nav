@@ -3,5 +3,5 @@ mock>=0.8.0
 pylint==0.26
 sphinx>=1.0
 selenium>=2.34.0
-coverage
-pytest-cov
+coverage>=3.4
+pytest-cov==1.6
