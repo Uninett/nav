@@ -63,3 +63,27 @@ Run configuration options should be the following:
 
 After run you should be able to access the documentation under
 :file:`$NAV-ROOT/doc/html`.
+
+Karma integration
+^^^^^^^^^^^^^^^^^
+
+Approach the ``File menu`` at `top left` of the IDE-window and goto
+``Settings.``
+
+Select ``Install Jetbrains plugin`` and select ``Karma`` in the list.
+
+Apply. A restart of the IDE might be necessary.
+
+In the run configuration (nav-bar, left for the green RUN arrow), click edit run
+configurations):
+
+* Top left, + sign for adding a new run configuration
+* Select "Karma" in the tree-view on the left side bar.
+
+Run configuration options should be the following:
+
+* Node.js iterpreter should point to node binary. ie: /opt/node/bin/node
+* Karma Node.js package: $NAV-ROOT/htdocs/js/node_modules/karma
+* Configuration file: $NAV-ROOT/htdocs/js/test/karma.conf.js
+
+Now you can run both tests and tests with coverage.
