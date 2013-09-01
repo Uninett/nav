@@ -1031,7 +1031,18 @@ define([
                 group
                     .append("svg:line")
                     .attr("class", function (linkObject) {
-                        var speed = _.max(linkObject.data.edges.pluck('link_speed'));
+                        var speed = null;
+                        if (linkObject.data.edges instanceof L3EdgesCollection) {
+                            linkObject.data.edges.each(function (l3edge) {
+                                var l3_largest = _.max(l3edge.get('edges').pluck('link_speed'));
+                                if (l3_largest > speed) {
+                                    speed = l3_largest;
+                                }
+                            });
+                        } else {
+                            speed = _.max(linkObject.data.edges.pluck('link_speed'));
+                        }
+
                         var classes = "link ";
                         if (speed <= 100) {
                             classes = 'speed0-100';
