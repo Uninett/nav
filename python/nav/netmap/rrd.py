@@ -59,7 +59,8 @@ class DataSource(object):
         return {
             'name': self.source.name,
             'description': self.source.description,
-            'raw': self.raw
+            'raw_bits': self.raw * 8 if self.raw else None,
+            'raw_bytes': self.raw
         }
 
 class InterfaceLoad(object):

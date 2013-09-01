@@ -37,7 +37,7 @@
                                                     </span>
 
                                     {{#if traffic.source.percent_by_speed }}
-                                        <span class="node_load">{{ traffic_si traffic.source.rrd.raw }}</span>
+                                        <span class="node_load">{{ traffic_si traffic.source.rrd.raw_bits }}</span>
                                         <span class="node_load">{{ traffic.source.percent_by_speed }}%</span>
                                         <div class="load_arrow" style="background-color: rgb({{ traffic.source.css }});"></div>
                                     {{/if}}
@@ -57,7 +57,7 @@
                                                     </span>
 
                                     {{#if traffic.target.percent_by_speed }}
-                                        <span class="node_load">{{ traffic_si traffic.target.rrd.raw }}</span>
+                                        <span class="node_load">{{ traffic_si traffic.target.rrd.raw_bits }}</span>
                                         <span class="node_load">{{ traffic.target.percent_by_speed }}%</span>
                                         <div class="load_arrow" style="background-color: rgb({{ traffic.target.css }});"></div>
                                     {{/if}}
@@ -109,7 +109,7 @@
 
                         <div class="uplink_left">
                             {{#if traffic.source.percent_by_speed }}
-                                <span class="node_load">{{ traffic_si traffic.source.rrd.raw }}</span>
+                                <span class="node_load">{{ traffic_si traffic.source.rrd.raw_bits }}</span>
                                 <span class="node_load">{{ traffic.source.percent_by_speed }}%</span>
                                 <div class="load_arrow" style="background-color: rgb({{ traffic.source.css }});"></div>
                             {{/if}}
@@ -117,7 +117,7 @@
 
                         <div class="uplink_right">
                             {{#if traffic.target.percent_by_speed }}
-                                <span class="node_load">{{ traffic_si traffic.target.rrd.raw }}</span>
+                                <span class="node_load">{{ traffic_si traffic.target.rrd.raw_bits }}</span>
                                 <span class="node_load">{{ traffic.target.percent_by_speed }}%</span>
                                 <div class="load_arrow" style="background-color: rgb({{ traffic.target.css }});"></div>
                             {{/if}}
