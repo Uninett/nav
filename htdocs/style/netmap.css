@@ -66,8 +66,8 @@ quote http://www.bluerobot.com/web/layouts/
     width:150px;
     top:0px;
     left:0px;
-    border:1px dashed black;
-    padding:10px;
+    border:1px 1px 1px 0 dotted #333;
+    padding:5px;
     z-index:2;
 
     /* Here is the ugly brilliant hack that protects IE5/Win from its own stupidity.
@@ -77,13 +77,13 @@ declaration. The incorrect IE5/Win value is above, while the correct value is
 below. See http://glish.com/css/hacks.asp for details. */
     voice-family: "\"}\"";
     voice-family:inherit;
-    width:128px;
+    width:138px;
 }
 /* I've heard this called the "be nice to Opera 5" rule. Basically, it feeds correct
 length values to user agents that exhibit the parsing error exploited above yet get
 the CSS box model right and understand the CSS2 parent-child selector. ALWAYS include
 a "be nice to Opera 5" rule every time you use the Tantek Celik hack (above). */
-body>#netmap_left_sidebar {width:128px;}
+body>#netmap_left_sidebar {width:138px;}
 
 #netmap_left_sidebar div.inner_wrap {
     margin-top: 20px;
@@ -91,19 +91,19 @@ body>#netmap_left_sidebar {width:128px;}
 
 #netmap_infopanel {
     position:absolute;
-    width:190px;
+    width:210px;
     top:0px;
     right:0px;
-    border:1px dashed black;
-    padding:10px;
+    padding:5px;
     z-index:1;
+    border: 1px 0 1px 1px dotted #333;
     /* Again, the ugly brilliant hack. */
     voice-family: "\"}\"";
     voice-family:inherit;
-    width:168px;
+    width:188px;
 }
 /* Again, "be nice to Opera 5". */
-body>#netmap_infopanel {width:168px;}
+body>#netmap_infopanel {width:188px;}
 
 
 #loading_chart, #chart {
@@ -294,22 +294,39 @@ a#netmap_link_to_admin {
     width: 45%;
 }
 .netmapWidget {
-    margin-top: 0.4em;
+    margin: 0.5em 0;
+    border-radius:5px;
+    border:1px solid #567899;
+    overflow:hidden;
+    position:relative;
 }
+
+.netmapWidget .netmapWidget {
+   border:0 !important;
+   border-radius:0 !important;
+   padding-bottom:5px;
+   border-bottom:1px dotted #567899 !important;
+}
+
+.netmapWidget .netmapWidget .body{
+   margin:0;
+}
+
 .netmapWidget .header {
     display: block;
     width: 100%;
     background: #567899;
     color: #fff;
+    overflow: hidden;
 }
 .netmapWidget .header .title {
     font-size: 12pt;
-    background: url('/images/icons/expand.png') no-repeat right top;
-    padding-right: 16px;
+    font-weight:bold;
+    background: url('/images/icons/expand_invert.png') top right no-repeat;
+    margin:3px;
 }
 .netmapWidget .body {
-    margin-top: 0.5em;
-    background: #fff;
+    margin: 0.5em;
 }
 
 .netmapWidget .header >.no-icon {
@@ -317,6 +334,7 @@ a#netmap_link_to_admin {
 }
 .netmapWidget .no_collapse > .title {
     background: none;
+    margin:3px 0;
 }
 
 .hideSubWidgets .netmapWidget .header {
