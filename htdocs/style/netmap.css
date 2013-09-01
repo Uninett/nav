@@ -449,8 +449,8 @@ span.value {
 /* LINK INFO RENE */
 div.uplink {
 	display:block;
-	padding:5px;
-	border:1px solid #aaa;
+	padding:0px;
+	border:0;
 
     background: -moz-linear-gradient(top,  #f0f9ff 0%, #d8f0ff 100%); /* FF3.6+ */
     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f0f9ff), color-stop(100%,#d8f0ff)); /* Chrome, Safari4+ */
@@ -460,9 +460,53 @@ div.uplink {
     background: linear-gradient(to bottom,  #f0f9ff 0%,#d8f0ff 100%); /* W3C */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f0f9ff', endColorstr='#d8f0ff',GradientType=0 ); /* IE6-9 */
 
-	border-radius:5px;
-	margin-bottom:10px;
+	margin-bottom:2px;
 	font-family:Consolas, "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", Monaco, "Courier New", monospace;
+    overflow:hidden;
+}
+
+div.uplink:first-of-type {
+    margin-top:5px;
+    border-top-left-radius: 3px;
+    border-top-right-radius:3px;
+}
+
+div.uplink:last-of-type {
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+div.uplink > * {
+    padding: 0 3%;
+}
+
+div.uplink_header {
+    font-weight:bold;
+	font-size:.8em;
+	color:#fff;
+	text-align:center;
+	display:block;
+	width:94%;
+    padding:2px 3%;
+	background:#567899;
+}
+
+div.uplink_header span a {
+    color:#fff;
+}
+
+div.uplink_header .source_node_name {
+    text-align: right;
+    float:left;
+}
+
+div.uplink_header .node_separator {
+    margin:0 3px;
+}
+
+div.uplink_header .target_node_name {
+    text-align: left;
+    float:right;
 }
 
 div.uplink a {
@@ -472,23 +516,12 @@ div.uplink a {
 div.uplink a:hover {
 	color:#f90;
 }
-
 div.uplink > .uplink_linkspeed {
-	padding:2px 0;
-	font-weight:bold;
-	font-size:.8em;
-	color:#fff;
-	text-align:center;
-	display:block;
-	width:100%;
-	background:#567899;
+    font-size:0.8em;
+    margin:3px 0;
 }
-div.uplink > .uplink_linkspeed a {
-	color:#fff;
-}
-
 div.uplink > .uplink_linkspeed > span {
-	text-transform:uppercase;
+	text-transform:capitalize;
 	font-weight:bold;
 }
 
@@ -543,10 +576,6 @@ div.uplink_right > .load_arrow {
 	height:1px;
 	font-size:1px;
 	line-height:1px;
-}
-
-div.uplink .node_name {
-	display:block;
 }
 
 /* LINK INFO RENE END*/
