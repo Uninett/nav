@@ -7,18 +7,13 @@ upgrade the NAV PostgreSQL database.
 Files and directories
 =====================
 
-syncdb.py
-  Program to create, intialize and automatically synchronize the
-  database schema with the latest changes.
-
 baseline/
   This directory contains all the SQL scripts that define the baseline NAV
   database schema.
 
 changes/
   This directory contains schema change scripts that will be automatically
-  applied when running syncdb.py.
-
+  applied when running `navsyncdb`.
 
 Creating the database from scratch
 ==================================
@@ -27,10 +22,16 @@ password for the NAV database user and set this in the `userpw_nav` option of
 the `db.conf` config file.  Then, as the postgres user (typically via sudo),
 run::
 
-  ./syncdb.py -c
+  navsyncdb -c
 
 The -c option will create the database user 'nav' and a database named 'nav',
 before initializing the NAV schema in this database.
+
+.. note:: If you are a developer wanting to install the schema files from your
+          checked out source code, you may want to use the `syncdb.py` script
+          provided in this same directory; the `navsyncdb` command will only
+          look in the current working directory and in the install location
+          for the schema files.
 
 
 Advanced setup
@@ -39,14 +40,14 @@ If you can't access the PostgreSQL server passwordlessly using the PostgreSQL
 command line tools from the local postgres shell account (ident
 authentication), or you wish to create the database using a different
 superuser account, set the appropriate environment variables before running
-`syncdb.py`::
+`navsyncdb`::
 
   export PGUSER=postgres PGPASSWORD=<postgres_password>
 
 If your PostgreSQL setup otherwise differs from the options in `db.conf`, just
-change your `db.conf` accordingly before running `syncdb.py`.
+change your `db.conf` accordingly before running `navsyncdb`.
 
-Please be aware that `syncdb.py` requires the PostgreSQL client binaries to be
+Please be aware that `navsyncdb` requires the PostgreSQL client binaries to be
 available on the search PATH.
 
 
@@ -54,15 +55,16 @@ Updating the database schema when upgrading NAV
 ===============================================
 
 1. Stop nav with `nav stop`.
-2. Run `syncdb.py`.
+2. Run `navsyncdb`.
 3. Restart Apache.
 4. Start NAV with `nav start`.
 
 
 Updating the database from NAV versions older than 3.7.1
 --------------------------------------------------------
-`syncdb.py` was introduced in NAV 3.8.  Prior to this, one had to run database
-upgrade scripts manually using `psql`.
+
+The `navsyncdb` system was first introduced in NAV 3.8. Prior to this, one had
+to run database upgrade scripts manually using `psql`.
 
 The historic upgrade scripts are located in the `historic-updates` directory.
 Find all the ones that have version numbers higher than the NAV version you

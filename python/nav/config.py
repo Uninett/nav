@@ -134,11 +134,17 @@ class NAVConfigParser(ConfigParser.ConfigParser):
 
 
 class NavConfigParserDefaultSection(object):
+    """A ConfigParser for NAV config files with some NAV-related
+    simplifications and use a default section.
+
+    See NavConfigParser for more details.
+    """
     DEFAULT_CONFIG_FILES = ()
     DEFAULT_CONFIG = ""
 
     def __init__(self, section):
-        self.parser = NAVConfigParser(self.DEFAULT_CONFIG, self.DEFAULT_CONFIG_FILES)
+        self.parser = NAVConfigParser(self.DEFAULT_CONFIG,
+                                      self.DEFAULT_CONFIG_FILES)
         self.section = section
 
     def get(self, *args):

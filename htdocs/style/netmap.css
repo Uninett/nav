@@ -465,6 +465,9 @@ div.uplink > .uplink_linkspeed {
 	width:100%;
 	background:#567899;
 }
+div.uplink > .uplink_linkspeed a {
+	color:#fff;
+}
 
 div.uplink > .uplink_linkspeed > span {
 	text-transform:uppercase;
@@ -537,23 +540,23 @@ circle {
 }
 
 line.speed0-100 {
-    stroke-width: 1px;
+    stroke-width: 2px;
 }
 
 line.speed100-512 {
-    stroke-width: 1.5px;
+    stroke-width: 2.5px;
 }
 
 line.speed512-2048 {
-    stroke-width: 3px;
+    stroke-width: 4px;
 }
 
 line.speed2048-4096 {
-    stroke-width: 4.5px;
+    stroke-width: 5.5px;
 }
 
 line.speed4096 {
-    stroke-width: 6px;
+    stroke-width: 7px;
 }
 
 line.warning_inspect {

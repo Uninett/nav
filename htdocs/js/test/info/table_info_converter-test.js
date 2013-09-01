@@ -15,19 +15,34 @@ define(['info/table_info_converter', 'libs/jquery'], function (converter) {
 
             $(table).find('tbody').append(row, row.clone());
         });
-        it("create csv should concatenate properly",function () {
-            var tables = $(this.wrapper).find('table');
-            var result = converter.create_csv(tables);
-            assert.strictEqual(result, 'uninett-gw.uninett.no;1;2;3;4;5\nuninett-gw.uninett.no;1;2;3;4;5');
+        describe("create csv", function () {
+            it("should concatenate properly", function () {
+                var tables = $(this.wrapper).find('table');
+                var result = converter.create_csv(tables);
+                assert.strictEqual(
+                    result,
+                    'uninett-gw.uninett.no;1;2;3;4;5\nuninett-gw.uninett.no;1;2;3;4;5'
+                );
+            });
         });
-        it("format rowdata should return a list of the cells values",function () {
-            var row = $(this.wrapper).find('tbody tr')[0];
-            var result = converter.format_rowdata(row);
-            assert.deepEqual(result, ['1', '2', '3', '4', '5']);
+        describe("format rowdata", function () {
+            it("should return a list of the cells values", function () {
+                var row = $(this.wrapper).find('tbody tr')[0];
+                var result = converter.format_rowdata(row);
+                assert.deepEqual(result, ['1', '2', '3', '4', '5']);
+            });
+            it("should create own trim function if it does not exist", function () {
+                String.prototype.trim = undefined;
+                var row = $(this.wrapper).find('tbody tr')[0];
+                var result = converter.format_rowdata(row);
+                assert.deepEqual(result, ['1', '2', '3', '4', '5']);
+            });
         });
-        it("should find correct sysname from caption", function() {
-            var table = $(this.wrapper).find('table')[0];
-            assert.strictEqual(converter.find_sysname($(table)), 'uninett-gw.uninett.no');
+        describe("find sysname", function () {
+            it("should find correct sysname from caption", function () {
+                var table = $(this.wrapper).find('table')[0];
+                assert.strictEqual(converter.find_sysname($(table)), 'uninett-gw.uninett.no');
+            });
         });
     });
 });

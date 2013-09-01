@@ -10,14 +10,19 @@ define([
 ], function (VlanCollection, NodesCollection, LinksCollection, EdgesCollection, L3EdgesCollection, L3Edge, VlanModel) {
     var graphModel = Backbone.Model.extend({
         defaults: {
-                  topology: 2
+                  rrd: false,
+                  topology: 2 // change default value in models/map.js ;-)
         },
         initialize: function () {
         },
         url: function () {
+            var options = '';
+            if (this.get('rrd')) {
+                options = '?rrd=1';
+            }
             var base = 'api/graph/layer{0}'.format(this.get('topology'));
-            if (this.isNew()) return base;
-            return base + (base.charAt(base.length - 1) === '/' ? '' : '/') + this.get('id');
+            if (this.isNew()) return base+options;
+            return base + (base.charAt(base.length - 1) === '/' ? '' : '/') + this.get('id') + options;
         },
         // todo: Find a cleaner practice for doing this maybe? Hmf.
         parse: function (response, options) {

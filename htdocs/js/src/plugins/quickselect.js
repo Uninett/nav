@@ -76,7 +76,7 @@ define(['libs/jquery'], function() {
             var up = $(html.upArrow);
             var down = $(html.downArrow);
 
-            $(this).prepend(up).prepend(down).css('cursor', 'pointer')
+            $(this).prepend(up).prepend(down).css('cursor', 'pointer');
 
             if ($(this).parent('div').hasClass('collapse')) {
                 up.hide();
@@ -96,7 +96,7 @@ define(['libs/jquery'], function() {
     }
 
     function collapseNodes(node) {
-        $('.collapse', node).children().not('label').hide()
+        $('.collapse', node).children().not('label').hide();
     }
 
     function do_search(event) {
@@ -118,7 +118,7 @@ define(['libs/jquery'], function() {
             var select = selects.eq(j);
             var clone = selects_clone.eq(j).clone();
 
-            if (keywords[0] == '') {
+            if (keywords[0] === '') {
                 // Show all options when our search is empty
                 select.children().remove();
                 select.append(clone.children());
@@ -138,21 +138,6 @@ define(['libs/jquery'], function() {
             }
         }
 
-    }
-
-    function openSelectsWithResults(selects) {
-        $(selects).each(function (index, select) {
-            $parent = $(select).parent('div');
-            if ($(select).children().length > 0) {
-                $parent.children().show();
-                $('.downarrow', $parent).hide();
-                $('.uparrow', $parent).show();
-            } else {
-                $parent.children().not('label').hide();
-                $('.downarrow', $parent).show();
-                $('.uparrow', $parent).hide();
-            }
-        });
     }
 
     return QuickSelect;

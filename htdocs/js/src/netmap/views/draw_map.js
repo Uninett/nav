@@ -153,6 +153,45 @@ define([
                 .attr('id', 'boundingbox');
 
 
+            var bundleLinkMarkerStart = bounding_box.append("marker")
+                .attr("id", "bundlelinkstart")
+                .attr("markerWidth", 8)
+                .attr("markerHeight", 12)
+                .attr("refX", -80)
+                .attr("refY", 0)
+                .attr("viewBox", "-4 -6 8 12")
+                .attr("markerUnits", "userSpaceOnUse")
+                .attr("orient", "auto");
+            bundleLinkMarkerStart.append("rect")
+                .attr("x", -3)
+                .attr("y", -5)
+                .attr("width", 2)
+                .attr("height", 10);
+            bundleLinkMarkerStart.append("rect")
+                .attr("x", 1)
+                .attr("y", -5)
+                .attr("width", 2)
+                .attr("height", 10);
+            var bundleLinkMarkerEnd = bounding_box.append("marker")
+                .attr("id", "bundlelinkend")
+                .attr("markerWidth", 8)
+                .attr("markerHeight", 12)
+                .attr("refX", 80)
+                .attr("refY", 0)
+                .attr("viewBox", "-4 -6 8 12")
+                .attr("markerUnits", "userSpaceOnUse")
+                .attr("orient", "auto");
+            bundleLinkMarkerEnd.append("rect")
+                .attr("x", -3)
+                .attr("y", -5)
+                .attr("width", 2)
+                .attr("height", 10);
+            bundleLinkMarkerEnd.append("rect")
+                .attr("x", 1)
+                .attr("y", -5)
+                .attr("width", 2)
+                .attr("height", 10);
+
             // Grouping elements
             this.linkErrorsGroupRoot = bounding_box.append("g").attr("class", "linksmeta");
             var selectedNodeGroupRoot = this.selectedNodeGroupRoot = bounding_box.append("g").attr("class", "selected_nodes");
@@ -199,7 +238,6 @@ define([
                 success: function (model) {
                     self.model = model;
 
-
                     if (self.isGraphLoadingForFirstTime) {
                         var newModel = model.toJSON();
                         newModel.nodes.each(function (nodeObject) {
@@ -219,6 +257,10 @@ define([
                         self.zoomRescaleFromActiveProperty(self.options.activeMapModel.get('zoom'));
                     }
                     self.update(); // calls rest of the updateRender functions which updates the SVG.
+                    if (!self.model.get('rrd')) {
+                        self.model.set({'rrd': true});
+                        self.loadTopologyGraph(shouldRezoomAndTranslate);
+                    }
                     self.broadcastGraphCopy();
                     self.broker.trigger("netmap:graph:isDoneLoading", true);
                     self.showLoadingSpinner(false);
@@ -335,7 +377,11 @@ define([
             });
         },
         setMapPropertyTopology: function (layer) {
-            this.model.set({topology: layer});
+            this.model.set({
+                topology: layer,
+                rrd: false
+            });
+            this.options.activeMapModel.set({'topology': layer});
             this.loadTopologyGraph();
         },
         setMapPropertyDataRefreshInterval: function (intervalInMinutes) {
@@ -738,23 +784,6 @@ define([
             linksInVlan.exit().remove();
 
         },
-        baseScale:      function () {
-            var boundingBox = document.getElementById('boundingbox').getBoundingClientRect();
-
-            var baseWidth = (boundingBox.width+40) / this.scale;
-            var baseHeight = (boundingBox.height+40) / this.scale;
-
-            var baseScaleWidth = this.w / baseWidth;
-            var baseScaleHeight = this.h / baseHeight;
-
-            var requiredScale = 1;
-            if (baseScaleWidth < baseScaleHeight) {
-                requiredScale = baseScaleWidth;
-            } else {
-                requiredScale = baseScaleHeight;
-            }
-            return requiredScale;
-        },
         centerGraph: function () {
             var boundingBox = this.findBoundingBox(this.nodes, 200);
             this.zoomRescaleFromBounds(boundingBox);
@@ -967,11 +996,14 @@ define([
                         trafficObject = linkObject.data.edges.at(0).get('traffic');
                     }
 
+                    var undefined_css_color = '211,211,211';
+                    var inCss = !!trafficObject.source ? trafficObject.source.css : undefined_css_color;
+                    var outCss = !!trafficObject.target ? trafficObject.target.css : undefined_css_color;
                     return [
-                        {percent: 0, css: trafficObject.inOctets.css},
-                        {percent: 50, css: trafficObject.inOctets.css },
-                        {percent: 51, css: trafficObject.outOctets.css},
-                        {percent: 100, css: trafficObject.outOctets.css}
+                        {percent: 0, css: inCss},
+                        {percent: 50, css: inCss},
+                        {percent: 51, css: outCss},
+                        {percent: 100, css: outCss}
                     ];
                 });
                 stops.enter()
@@ -999,7 +1031,7 @@ define([
                 group
                     .append("svg:line")
                     .attr("class", function (linkObject) {
-                        var speed = linkObject.data.link_speed;
+                        var speed = _.max(linkObject.data.edges.pluck('link_speed'));
                         var classes = "link ";
                         if (speed <= 100) {
                             classes = 'speed0-100';
@@ -1036,6 +1068,17 @@ define([
                     })
                     .attr("y2", function (linkObject) {
                         return linkObject.target.y;
+                    });
+                group
+                    .attr("marker-start", function (linkObject) {
+                        if (linkObject.data.edges.length > 1) {
+                            return "url(#bundlelinkstart)";
+                        }
+                    })
+                    .attr("marker-end", function (linkObject) {
+                        if (linkObject.data.edges.length > 1) {
+                            return "url(#bundlelinkend)";
+                        }
                     });
             }
         },

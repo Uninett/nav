@@ -29,40 +29,38 @@ To run NAV, these software packages are required:
  * Apache2
  * mod_wsgi
  * Cricket
- * PostgreSQL >= 8.3
+ * PostgreSQL >= 8.4
  * rrdtool
  * Python >= 2.6.0
- * nbtscan = 1.5.1-6
+ * nbtscan = 1.5.1
  * dhcping (only needed if using DHCP service monitor)
 
 
 The following python modules are required:
 
  * :mod:`django` >= 1.2
- * :mod:`IPy`
- * :mod:`ldap`
- * :mod:`networkx` >= 1.0
- * :mod:`psycopg2`
+ * :mod:`IPy` >= 0.70
+ * :mod:`ldap` >= 2.3
+ * :mod:`networkx` >= 1.1
+ * :mod:`psycopg2` >= 2.2
  * :mod:`pyrad`
  * :mod:`rrd` (from the rrdtool distribution)
  * :mod:`simplejson` >= 2.0.6
- * :mod:`twisted` >= 8.1
+ * :mod:`twisted` >= 10.1
  * :mod:`pynetsnmp` (or less preferably, :mod:`pysnmp-se` combined with :mod:`twistedsnmp` >= 0.3)
- * :mod:`PIL` 1.1.7 (python-imaging)
+ * :mod:`PIL` >= 1.1.7 (python-imaging)
 
 The following python modules are optional:
 
  * :mod:`xmpp` (optional)
 
-:mod:`psycopg2` should be at least version 2.0.8: Earlier versions have bugs
-that may cause some NAV programs to crash.
-
 The :mod:`pynetsnmp` module is preferred over :mod:`twistedsnmp` for SNMP
-communication.  The former is a Python binding to the well-known NetSNMP C
-library, whereas the latter is a pure-Python SNMP
-implementation. :mod:`twistedsnmp` also has a known, unfixed bug with table
-retrievals on slow SNMP agents. If, for some reason, you are forced to resort
-to using :mod:`twistedsnmp`, the :file:`contrib/patches` directory contains a
+communication. The former is a Python binding to the well-known NetSNMP C
+library, whereas the latter is a pure-Python SNMP implementation.
+:mod:`pynetsnmp` will give better performance *and* IPv6-support.
+:mod:`twistedsnmp` also has a known, unfixed bug with table retrievals on slow
+SNMP agents. If, for some reason, you are forced to resort to using
+:mod:`twistedsnmp`, the :file:`contrib/patches` directory contains a
 recommended patch for this problem.
 
 
@@ -105,7 +103,7 @@ specify this build directory by adding
 If you omit the :makevar:`CRICKETDIR` variable, which specifies the path to your
 Cricket installation's binaries, it will be assumed that these can be found in
 :file:`${prefix}/cricket/cricket`.  A typical value for a Debian install is
-:file:``/usr/share/cricket``.
+:file:`/usr/share/cricket`.
 
 
 Initializing the database
@@ -118,8 +116,7 @@ Choose a password for your NAV database user and set this in the ``userpw_nav``
 in the :file:`db.conf` config file. As the `postgres` superuser, run the following
 command::
 
-  cd sql
-  ./syncdb.py -c
+  navsyncdb -c
 
 This will attempt to create a new database user, a new database and initialize
 it with NAV's schema.
@@ -181,26 +178,26 @@ included in your virtualhost config, which needn't contain much more than this:
 Create users and groups
 -----------------------
 
-NAV processes should run as the |nav_user| user, and preferably, a
+NAV processes should run as the `navcron` user, and preferably, a
 separate nav group should be added to the system::
 
   sudo addgroup --system nav
   sudo adduser --system --no-create-home --home /usr/local/nav \
-	       --shell /bin/sh --ingroup nav |nav_user|;
+	       --shell /bin/sh --ingroup nav navcron;
 
 If you want to use NAV's SMS functionality in conjunction with Gammu, you
-should make sure the |nav_user| user is allowed to write to the serial device
+should make sure the `navcron` user is allowed to write to the serial device
 you've connected your GSM device to.  Often, this device has a group ownership
-set to the dialout group, so the easieast route is to add the |nav_user| user to
+set to the dialout group, so the easieast route is to add the `navcron` user to
 the dialout group::
 
-  sudo addgroup |nav_user| dialout
+  sudo addgroup navcron dialout
 
-You should also make sure |nav_user| has permission to write log files, rrd files
+You should also make sure `navcron` has permission to write log files, rrd files
 and pid files::
 
   cd /usr/local/nav/var
-  sudo chown -R |nav_user|:nav .
+  sudo chown -R navcron:nav .
 
 
 Integrating Cricket with NAV
@@ -221,7 +218,7 @@ following:
 
 To test that things work so far, have Cricket compile its configuration::
 
-  sudo -u |nav_user| cricket-compile
+  sudo -u navcron cricket-compile
   [16-Nov-2012 15:22:22 ] Starting compile: Cricket version 1.0.5 (2004-03-28)
   [16-Nov-2012 15:22:22 ] Config directory is PATH_TO_NAV/etc/cricket-config
   [16-Nov-2012 15:22:23 ] Processed x nodes (in x files) in x seconds.
@@ -230,7 +227,7 @@ NAV will generate a new version of the configuration tree every night. You kan
 manually generate the configuration (once you've seeded some devices into NAV)
 by issuing the command::
 
-  sudo -u |nav_user| PATH_TO_NAV/bin/mcc.py
+  sudo -u navcron PATH_TO_NAV/bin/mcc.py
 
 
 Integrating the Cricket web interface

@@ -9,4 +9,4 @@ class NetmapConfig(NavConfigParserDefaultSection):
 API_DEBUG=False
 """
 
-netmap_config = NetmapConfig("netmap")
+NETMAP_CONFIG = NetmapConfig("netmap")

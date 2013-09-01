@@ -19,23 +19,33 @@ from collections import defaultdict
 import logging
 from django.core.urlresolvers import reverse
 import operator
-from nav.netmap.config import netmap_config
+from nav.netmap.config import NETMAP_CONFIG
 from nav.errors import GeneralException
 from nav.models.manage import GwPortPrefix, Interface
 from nav.netmap import stubs
 from nav.web.netmap.common import get_status_image_link
-from nav.netmap.rrd import Traffic
 
 _LOGGER = logging.getLogger(__name__)
 
 class NetmapException(GeneralException):
+    """Generic Netmap Exception"""
     pass
 
 class GraphException(NetmapException):
+    """Graph Exception
+
+    This exception is normally thrown if it finds something odd in the graph
+     from nav.topology or the metadata contains known errors.
+    """
     pass
 
-
+# Ignore too few methods in class
+# pylint: disable=R0903
 class Node(object):
+    """Node object represent a node in the netmap_graph
+
+    Makes it easier to validate data and convert node to valid json.
+    """
     def __init__(self, node, nx_node_metadata=None):
         self.node = node
         if nx_node_metadata and 'metadata' in nx_node_metadata:
@@ -46,6 +56,7 @@ class Node(object):
         return "netmap.Node(metadata={0!r})".format(self.metadata)
 
     def to_json(self):
+        """json presentation of Node"""
         json = {}
 
         if self.metadata:
@@ -61,7 +72,7 @@ class Node(object):
                     'vlans': [nav_vlan_id for nav_vlan_id, _ in
                               self.metadata['vlans']]
                 })
-                if netmap_config.getboolean('API_DEBUG'):
+                if NETMAP_CONFIG.getboolean('API_DEBUG'):
                     json.update({
                         'd_vlans': [vlan_to_json(swpv.vlan) for _, swpv in
                                     self.metadata['vlans']]
@@ -93,7 +104,8 @@ class Node(object):
                 })
         return {unicode(self.node.id) : json}
 
-
+# Ignore too few methods in class
+# pylint: disable=R0903
 class Group(object):
     """Grouping object for representing a Netbox and Interface in a Edge"""
 
@@ -105,7 +117,8 @@ class Group(object):
         self.vlans = None
 
     def __repr__(self):
-        return "netmap.Group(netbox={0!r}, interface={1!r}, gw_ip={2!r}, virtual={3!r}, vlans={4!r})".format(
+        return ("netmap.Group(netbox={0!r}, interface={1!r}, gw_ip={2!r}"
+                ", virtual={3!r}, vlans={4!r})").format(
             self.netbox, self.interface, self.gw_ip, self.virtual, self.vlans)
 
     def __hash__(self):
@@ -119,6 +132,7 @@ class Group(object):
                     self.interface == other.interface)
 
     def to_json(self):
+        """json presentation of Group"""
         json = {
             'netbox': unicode(self.netbox.id),
         }
@@ -134,7 +148,7 @@ class Group(object):
             json.update({'interface': {
                 'ifname': unicode(self.interface.ifname),
                 'ipdevinfo_link': ipdevinfo_link
-            }});
+            }})
 
 
 
@@ -144,14 +158,16 @@ class Group(object):
             json.update({'virtual': self.virtual})
         if self.vlans is not None:
             json.update({'vlans': [swpv.vlan.id for swpv in self.vlans]})
-        if netmap_config.getboolean('API_DEBUG'):
+        if NETMAP_CONFIG.getboolean('API_DEBUG'):
             json.update({'d_netbox_sysname': unicode(self.netbox.sysname)})
-            json.update({'d_vlans': [vlan_to_json(swpv.vlan) for swpv in self.vlans]})
+            json.update(
+                {'d_vlans': [vlan_to_json(swpv.vlan) for swpv in self.vlans]})
 
         return json
 
 
-
+# Ignore too few methods in class
+# pylint: disable=R0903
 class Edge(object):
     """Represent either a edge pair in Layer2 or Layer3"""
 
@@ -159,7 +175,8 @@ class Edge(object):
         return isinstance(edge, Interface) or isinstance(edge, stubs.Interface)
 
     def _valid_layer3(self, edge):
-        return isinstance(edge, GwPortPrefix) or isinstance(edge, stubs.GwPortPrefix)
+        return isinstance(edge, GwPortPrefix) or isinstance(edge,
+                                                            stubs.GwPortPrefix)
 
     def _get_layer(self, source, target):
         if (self._valid_layer2(source) or source is None
@@ -178,10 +195,11 @@ class Edge(object):
             or self._valid_layer3(source) and self._valid_layer3(target)
         )
 
-    def __init__(self, nx_edge, source, target, rrd_datasources=None):
+    def __init__(self, nx_edge, source, target, traffic=None):
         """
 
-        :param nx_edge: NetworkX edge representing (source,target) in a tuple.(they be nav.models.Netbox or nav.netmap.stubs.Netbox)
+        :param nx_edge: NetworkX edge representing (source,target) in a tuple
+        .(they be nav.models.Netbox or nav.netmap.stubs.Netbox)
         :param source: source, where it is either of type Interface or type
          GwPortPrefix.
         :param target: target, where it is either of type Interface or type
@@ -193,7 +211,8 @@ class Edge(object):
             if not self._same_layer(source, target):
                 raise GraphException(
                     "Source and target has to be of same type, typically "
-                    "Interfaces in layer2 graph or GwPortPrefixes in layer3 graph")
+                    "Interfaces in layer2 graph or"
+                    "GwPortPrefixes in layer3 graph")
         elif source is None and target is None:
             raise GraphException("Source & target can't both be None! Bailing!")
 
@@ -228,7 +247,8 @@ class Edge(object):
         if self.target is None: self.target = Group(nx_target)
 
         # Swap directional metadata to follow nx graph edge.
-        if self.source.netbox.id != nx_source.id and self.source.netbox.id == nx_target.id:
+        if (self.source.netbox.id != nx_source.id) and (
+                self.source.netbox.id == nx_target.id):
             tmp = self.source
             self.source = self.target
             self.target = tmp
@@ -236,15 +256,18 @@ class Edge(object):
         self.layer = self._get_layer(source, target)
 
         if self.layer == 3:
-            assert source.prefix.vlan.id == target.prefix.vlan.id, "Source and target GwPortPrefix must reside in same VLan for Prefix! Bailing"
+            assert source.prefix.vlan.id == target.prefix.vlan.id, (
+                "Source and target GwPortPrefix must reside in same VLan for "
+                "Prefix! Bailing")
 
             self.prefix = source.prefix
             self.vlan = source.prefix.vlan
 
 
-        self.traffic = Traffic()
+        self.traffic = traffic
 
-        if self.source and self.source.interface is not None and self.target and self.target.interface is not None:
+        if (self.source and self.source.interface is not None) and (
+            self.target and self.target.interface is not None):
             if self.source.interface.speed == self.target.interface.speed:
                 self.link_speed = self.source.interface.speed
             else:
@@ -274,11 +297,14 @@ class Edge(object):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return ("netmap.Edge(layer={0!r}, source={1!r}, target={2!r}, link_speed={3!r},"
-                "vlans={4!r}, vlan={5!r}, prefix={6!r})").format(
-            self.layer, self.source, self.target, self.link_speed, self.vlans, self.vlan, self.prefix)
+        return ("netmap.Edge(layer={0!r}, source={1!r}, target={2!r},"
+                "link_speed={3!r}, vlans={4!r}, vlan={5!r},"
+                "prefix={6!r})").format(self.layer, self.source, self.target,
+                                        self.link_speed, self.vlans, self.vlan,
+                                        self.prefix)
 
     def to_json(self):
+        """json presentation of Edge"""
         json = {
             'source': self.source.to_json() or 'null',
             'target': self.target.to_json() or 'null',
@@ -286,17 +312,16 @@ class Edge(object):
         if self.layer == 3:
             json.update({'prefix': {
                 'net_address': unicode(self.prefix.net_address),
-                'report_link': reverse('report-prefix-prefix', kwargs={'prefix_id': self.prefix.id})
+                'report_link': reverse('report-prefix-prefix',
+                                       kwargs={'prefix_id': self.prefix.id})
             }})
             json.update({'vlan': self.prefix.vlan.id})
         elif self.layer == 2:
             json.update({'vlans': [swpv.vlan.id for swpv in self.vlans]})
 
         json.update({'link_speed': self.link_speed or 'N/A'})
-        json.update({'traffic': self.traffic.to_json()})
-
-        #            json.update({'vlans': [_vlan_to_json(swpv.vlan)
-        #                           for swpv in self.vlans]})
+        json.update(
+            {'traffic': self.traffic and self.traffic.to_json() or None})
 
         return json
 
@@ -356,7 +381,7 @@ def edge_to_json_layer2(nx_edge, metadata):
         'edges': metadata_for_edges
     }
 
-    if netmap_config.getboolean('API_DEBUG'):
+    if NETMAP_CONFIG.getboolean('API_DEBUG'):
         json.update({
             'd_source_sysname': unicode(source.sysname),
             'd_target_sysname': unicode(target.sysname),
@@ -388,7 +413,7 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
         'target': unicode(target.id),
         'edges': metadata_collection
     }
-    if netmap_config.getboolean('API_DEBUG'):
+    if NETMAP_CONFIG.getboolean('API_DEBUG'):
         json.update({
             'd_source_sysname': unicode(source.sysname),
             'd_target_sysname': unicode(target.sysname),
@@ -397,7 +422,7 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
 
 
 
-def edge_metadata_layer3(nx_edge, source, target):
+def edge_metadata_layer3(nx_edge, source, target, traffic):
     """
 
     :param nx_edge tuple containing source and target
@@ -411,7 +436,7 @@ def edge_metadata_layer3(nx_edge, source, target):
     # Note about GwPortPrefix and L3 graph: We always have interface.netbox
     # avaiable under L3 topology graph due to stubbing Netboxes etc for
     # elinks.
-    edge = Edge((nx_edge), source, target)
+    edge = Edge((nx_edge), source, target, traffic)
     return edge
 
 

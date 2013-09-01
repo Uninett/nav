@@ -1,8 +1,6 @@
 import unittest
 from nav.netmap import topology
-from nav.netmap.metadata import edge_metadata_layer2
-from nav.netmap.topology import (
-    _convert_to_unidirectional_and_attach_directional_metadata)
+from nav.netmap.topology import build_netmap_layer2_graph
 
 from topology_layer2_testcase import TopologyLayer2TestCase
 from topology_layer3_testcase import TopologyLayer3TestCase
@@ -48,10 +46,10 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
         )
 
     def test_layer2_create_directional_metadata_from_nav_graph(self):
-        self.netmap_graph = _convert_to_unidirectional_and_attach_directional_metadata(
+        self.netmap_graph = build_netmap_layer2_graph (
             self.nav_graph,
-            edge_metadata_layer2,
-            topology._get_vlans_map_layer2(self.nav_graph)[0]
+            topology._get_vlans_map_layer2(self.nav_graph)[0],
+            topology._get_vlans_map_layer2(self.nav_graph)[1],
         )
 
         # should be the same as

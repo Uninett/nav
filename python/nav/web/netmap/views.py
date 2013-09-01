@@ -14,8 +14,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Netmap view functions for Django"""
-from collections import defaultdict
-
 import datetime
 import logging
 import os
@@ -27,21 +25,23 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, render_to_response
 
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseForbidden,\
-    HttpResponseBadRequest, HttpResponseRedirect
+from django.http import (HttpResponse, HttpResponseForbidden,
+                         HttpResponseBadRequest, HttpResponseRedirect)
 from django.utils import simplejson
 
-import networkx as nx
 import nav.buildconf
 from nav.django.utils import get_account, get_request_body
 from nav.models.manage import Netbox, Category
-from nav.models.profiles import NetmapView, NetmapViewNodePosition,\
-    NetmapViewCategories, NetmapViewDefaultView, Account, AccountGroup
+from nav.models.profiles import (NetmapView, NetmapViewNodePosition,
+                                 NetmapViewCategories, NetmapViewDefaultView,
+                                 Account)
 from nav.netmap.metadata import (node_to_json_layer2, edge_to_json_layer2,
-node_to_json_layer3, edge_to_json_layer3, vlan_to_json, get_vlan_lookup_json)
+                                 node_to_json_layer3, edge_to_json_layer3,
+                                 vlan_to_json, get_vlan_lookup_json)
 
-from nav.netmap.topology import build_netmap_layer3_graph,\
-    build_netmap_layer2_graph, _get_vlans_map_layer2, _get_vlans_map_layer3
+from nav.netmap.topology import (build_netmap_layer3_graph,
+                                 build_netmap_layer2_graph,
+                                 _get_vlans_map_layer2, _get_vlans_map_layer3)
 from nav.topology import vlan
 from nav.web.netmap.common import layer2_graph, get_traffic_rgb
 from nav.web.netmap.forms import NetmapDefaultViewForm
@@ -49,21 +49,20 @@ from nav.web.netmap.forms import NetmapDefaultViewForm
 _LOGGER = logging.getLogger('nav.web.netmap')
 
 
-def index(request):
-    """Single page javascript app"""
-    return backbone_app(request)
-
-
 def _get_available_categories():
+    """Return a list of categories in NAV, and adding the fictive
+     ELINK category
+     """
     available_categories = list(Category.objects.all())
     available_categories.append(Category(id='ELINK', description='ELINK'))
     return available_categories
 
 def backbone_app(request):
+    """Single page backbone application for Netmap"""
     session_user = get_account(request)
 
     link_to_admin = None
-    if AccountGroup.ADMIN_GROUP in session_user.get_groups():
+    if session_user.is_admin():
         link_to_admin = reverse('netmap-admin-views')
 
     available_categories = _get_available_categories()
@@ -71,8 +70,8 @@ def backbone_app(request):
     response = render_to_response(
         'netmap/backbone.html',
         {
-            'bootstrap_mapproperties_collection': get_maps(request),
-            'bootstrap_isFavorite': get_global_defaultview(request),
+            'bootstrap_mapproperties_collection': _get_maps(request),
+            'bootstrap_isFavorite': _get_global_defaultview_as_json(request),
             'bootstrap_availableCategories': serializers.serialize(
                 'json',
                 available_categories,
@@ -90,8 +89,12 @@ def backbone_app(request):
 
 
 def admin_views(request):
+    """Admin page
+
+    User can set default netmap view for all users in here
+    """
     session_user = get_account(request)
-    if session_user == Account.DEFAULT_ACCOUNT:
+    if not session_user.is_admin():
         return HttpResponseForbidden()
 
     global_favorite = None
@@ -114,22 +117,32 @@ def admin_views(request):
 # data views, d3js
 
 def netmap(request, map_id):
+    """Wrapper request view for fetching a nav.models.Map in JS-app
+
+    It call the helper request methods for update, get and delete
+    :throws HttpResponseBadRequest if wrapper cannot manage request
+    """
     if request.method == 'PUT' or (
         'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
         request.META['HTTP_X_HTTP_METHOD_OVERRIDE'] == 'PUT'):
-        return update_map(request, map_id)
+        return _update_map(request, map_id)
     elif request.method == 'GET':
-        return get_map(request, map_id)
+        return _get_map(request, map_id)
     elif request.method == 'DELETE' or (
         'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
         request.META['HTTP_X_HTTP_METHOD_OVERRIDE'] == 'DELETE'):
-        return delete_map(request, map_id)
+        return _delete_map(request, map_id)
 
     else:
         return HttpResponseBadRequest()
 
 
 def netmap_defaultview(request):
+    """Wrapper request view for users default view (nav.models.Map in JS-app)
+
+    It call the helper request methods for update and get.
+    :throws HttpResponseBadRequest if wrapper cannot manage request
+    """
     if request.method == 'PUT' or (
         'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
         request.META[
@@ -153,7 +166,7 @@ def netmap_defaultview(request):
 
         return update_defaultview(request, map_id)
     elif request.method == 'GET':
-        response = HttpResponse(get_defaultview(request))
+        response = HttpResponse(_get_defaultview(request))
         response['Content-Type'] = 'application/json; charset=utf-8'
         response['Cache-Control'] = 'no-cache'
         response['Pragma'] = 'no-cache'
@@ -164,6 +177,11 @@ def netmap_defaultview(request):
 
 
 def netmap_defaultview_global(request):
+    """Wrapper request view for global default view (nav.models.Map in JS-app)
+
+    It call the helper request methods for update, get and delete
+    :throws HttpResponseBadRequest if wrapper cannot manage request
+    """
     if request.method == 'PUT' or (
         'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META and
         request.META[
@@ -193,7 +211,7 @@ def netmap_defaultview_global(request):
             return response
 
     elif request.method == 'GET':
-        response = HttpResponse(get_global_defaultview(request))
+        response = HttpResponse(_get_global_defaultview_as_json(request))
         response['Content-Type'] = 'application/json; charset=utf-8'
         response['Cache-Control'] = 'no-cache'
         response['Pragma'] = 'no-cache'
@@ -211,13 +229,13 @@ def update_defaultview(request, map_id, is_global_defaultview=False):
     """
     session_user = get_account(request)
 
-    if session_user == Account.DEFAULT_ACCOUNT:
+    if not session_user.is_admin():
         return HttpResponseForbidden()
 
     view = get_object_or_404(NetmapView, pk=map_id)
 
     if is_global_defaultview:
-        if AccountGroup.ADMIN_GROUP in session_user.get_groups():
+        if session_user.is_admin():
             NetmapViewDefaultView.objects.filter(
                 owner=Account(pk=Account.DEFAULT_ACCOUNT)).delete()
             default_view = NetmapViewDefaultView()
@@ -239,7 +257,8 @@ def update_defaultview(request, map_id, is_global_defaultview=False):
             return HttpResponseForbidden()
 
 
-def get_global_defaultview(request):
+def _get_global_defaultview_as_json(request):
+    """Helper for fetching global default view"""
     session_user = get_account(request)
     try:
         view = NetmapViewDefaultView.objects.get(owner=session_user)
@@ -252,7 +271,8 @@ def get_global_defaultview(request):
 
     return simplejson.dumps(view.to_json_dict()) if view else 'null'
 
-def get_defaultview(request):
+def _get_defaultview(request):
+    """Helper for fetching users default view"""
     session_user = get_account(request)
 
     view = get_object_or_404(NetmapViewDefaultView, owner=session_user)
@@ -262,6 +282,13 @@ def get_defaultview(request):
 
 
 def _update_map_node_positions(fixed_nodes, view):
+    """Helper for updating node positions for a given netmap view
+
+    :param fixed_nodes: List of node objects to fetch it's fixed positions from
+    :param view: Which view to update.
+    :type fixed_nodes: list of json node objects.
+    :type view: NetmapView
+    """
     NetmapViewNodePosition.objects.filter(viewid=view.pk).delete()
     for node in fixed_nodes:
         netbox = Netbox.objects.get(pk=node['id'])
@@ -290,7 +317,12 @@ def _update_map_categories(categories, view):
                 category=category_model)
 
 @transaction.commit_on_success
-def update_map(request, map_id):
+def _update_map(request, map_id):
+    """Helper for updating/saving a netmap view
+
+    :param request: Request from wrapper
+    :param map_id: Map id to update/save
+    """
     view = get_object_or_404(NetmapView, pk=map_id)
     session_user = get_account(request)
 
@@ -338,7 +370,11 @@ def update_map(request, map_id):
         return HttpResponseForbidden()
 
 @transaction.commit_on_success
-def create_map(request):
+def _create_map(request):
+    """Helper method for creating a new netmap view
+
+    :param request: request from wrapper method.
+    """
     session_user = get_account(request)
 
     try:
@@ -372,7 +408,12 @@ def create_map(request):
     return HttpResponse(view.viewid)
 
 
-def get_map(request, map_id):
+def _get_map(request, map_id):
+    """Helper method for fetching a saved netmap view as json
+
+    :param request: Request from wrapper function
+    :param map_id: map_id to fetch.
+    """
     view = get_object_or_404(NetmapView, pk=map_id)
     session_user = get_account(request)
 
@@ -389,11 +430,16 @@ def get_map(request, map_id):
         return HttpResponseForbidden()
 
 @transaction.commit_on_success
-def delete_map(request, map_id):
+def _delete_map(request, map_id):
+    """Helper method for deleting a netmap view
+
+    :param request: Request from wrapper function
+    :param map_id: Map id to delete.
+    """
     view = get_object_or_404(NetmapView, pk=map_id)
     session_user = get_account(request)
 
-    if session_user == view.owner or AccountGroup.ADMIN_GROUP in session_user.get_groups():
+    if session_user == view.owner or session_user.is_admin():
         view.delete()
         return HttpResponse()
     else:
@@ -402,21 +448,25 @@ def delete_map(request, map_id):
 
 
 def maps(request):
+    """ Wrapper function fetching/updating netmap views"""
     if request.method == 'POST':
-        return create_map(request)
+        return _create_map(request)
     elif request.method == 'GET':
-        return HttpResponse(get_maps(request))
+        return HttpResponse(_get_maps(request))
     else:
         return HttpResponseBadRequest()
 
 
-def get_maps(request):
+def _get_maps(request):
+    """Helper method for fetching netmap views
+
+    :param request: Request from wrapper function
+    """
     session_user = get_account(request)
-    _maps = NetmapView.objects.filter(
-        Q(is_public=True) | Q(owner=session_user.id))\
-    .order_by('-is_public')
-    json_views = []
-    [json_views.append(view.to_json_dict()) for view in _maps]
+    netmap_views = NetmapView.objects.filter(
+        Q(is_public=True) | Q(owner=session_user.id)
+    ).order_by('-is_public')
+    json_views = [view.to_json_dict() for view in netmap_views]
     return simplejson.dumps(json_views)
 
 
@@ -425,12 +475,14 @@ def api_graph_layer_3(request, map_id=None):
     Layer2 network topology representation in d3js force-direct graph layout
     http://mbostock.github.com/d3/ex/force.html
     """
+    collect_rrd = 'rrd' in request.GET
+
     if map_id:
         view = get_object_or_404(NetmapView, pk=map_id)
         session_user = get_account(request)
 
         if view.is_public or (session_user == view.owner):
-            json = _json_layer3(view)
+            json = _json_layer3(collect_rrd, view)
             response = HttpResponse(simplejson.dumps(json))
             response['Content-Type'] = 'application/json; charset=utf-8'
             response['Cache-Control'] = 'no-cache'
@@ -441,7 +493,7 @@ def api_graph_layer_3(request, map_id=None):
         else:
             return HttpResponseForbidden()
 
-    json = _json_layer3()
+    json = _json_layer3(collect_rrd)
     response = HttpResponse(simplejson.dumps(json))
     response['Content-Type'] = 'application/json; charset=utf-8'
     response['Cache-Control'] = 'no-cache'
@@ -455,12 +507,14 @@ def api_graph_layer_2(request, map_id=None):
     Layer2 network topology representation in d3js force-direct graph layout
     http://mbostock.github.com/d3/ex/force.html
     """
+    collect_rrd = 'rrd' in request.GET
+
     if map_id:
         view = get_object_or_404(NetmapView, pk=map_id)
         session_user = get_account(request)
 
         if view.is_public or (session_user == view.owner):
-            json = _json_layer2(view)
+            json = _json_layer2(collect_rrd, view)
             response = HttpResponse(simplejson.dumps(json))
             response['Content-Type'] = 'application/json; charset=utf-8'
             response['Cache-Control'] = 'no-cache'
@@ -471,7 +525,7 @@ def api_graph_layer_2(request, map_id=None):
         else:
             return HttpResponseForbidden()
 
-    json = _json_layer2()
+    json = _json_layer2(collect_rrd)
     response = HttpResponse(simplejson.dumps(json))
     response['Content-Type'] = 'application/json; charset=utf-8'
     response['Cache-Control'] = 'no-cache'
@@ -480,7 +534,7 @@ def api_graph_layer_2(request, map_id=None):
     return response
 
 
-def _json_layer2(view=None):
+def _json_layer2(collect_rrd=False, view=None):
     _LOGGER.debug("build_netmap_layer2_graph() start")
     topology_without_metadata = vlan.build_layer2_graph(
         (
@@ -494,16 +548,18 @@ def _json_layer2(view=None):
     _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
 
     graph = build_netmap_layer2_graph(topology_without_metadata,
-                                      vlan_by_interface, vlan_by_netbox, view)
+                                      vlan_by_interface, vlan_by_netbox,
+                                      collect_rrd, view)
 
     return {
         'vlans': get_vlan_lookup_json(vlan_by_interface),
         'nodes': _get_nodes(node_to_json_layer2, graph),
-        'links': [edge_to_json_layer2((node_a, node_b), nx_metadata) for node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
+        'links': [edge_to_json_layer2((node_a, node_b), nx_metadata) for
+                  node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
     }
 
 
-def _json_layer3(view=None):
+def _json_layer3(collect_rrd=False, view=None):
     _LOGGER.debug("build_netmap_layer3_graph() start")
     topology_without_metadata = vlan.build_layer3_graph(
         ('prefix__vlan__net_type', 'gwportprefix__prefix__vlan__net_type',))
@@ -512,11 +568,13 @@ def _json_layer3(view=None):
     vlans_map = _get_vlans_map_layer3(topology_without_metadata)
     _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
 
-    graph = build_netmap_layer3_graph(topology_without_metadata, view)
+    graph = build_netmap_layer3_graph(topology_without_metadata, collect_rrd,
+                                      view)
     return {
-        'vlans': [vlan_to_json(prefix.vlan) for prefix in _get_vlans_map_layer3(topology_without_metadata)],
+        'vlans': [vlan_to_json(prefix.vlan) for prefix in vlans_map],
         'nodes': _get_nodes(node_to_json_layer3, graph),
-        'links': [edge_to_json_layer3((node_a, node_b), nx_metadata) for node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
+        'links': [edge_to_json_layer3((node_a, node_b), nx_metadata) for
+                  node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
     }
 
 def _get_nodes(node_to_json_function, graph):
@@ -528,22 +586,28 @@ def _get_nodes(node_to_json_function, graph):
 
 
 def traffic_load_gradient(request):
-    keys = ('r','g','b')
+    """Json with 100 items where each row represent the RGB color load
+    indexed by percentage."""
+    keys = ('r', 'g', 'b')
 
     # again thar be dragons.
     response = HttpResponse(
-        simplejson.dumps(([dict(zip(keys, get_traffic_rgb(percent))) for percent in range(0, 101)])))
+        simplejson.dumps((
+        [dict(zip(keys, get_traffic_rgb(percent))) for percent in
+         range(0, 101)])))
     response['Content-Type'] = 'application/json; charset=utf-8'
     return response
 
 
 def _convert_image_to_datauri(image):
+    """Helper function for converting one image to base64 inline css"""
     image = image.lower()
     return open("{0}/{1}.png".format(os.path.join(
         nav.buildconf.webrootdir, "images", "netmap"
     ), image), "rb").read().encode("base64").replace("\n","")
 
 def _get_datauris_for_categories():
+    """Helper function for fetching datauris for every category"""
     data_uris = {}
 
     for category in _get_available_categories():
@@ -551,7 +615,10 @@ def _get_datauris_for_categories():
     return data_uris
 
 def api_datauris_categories(request):
+    """Converts node categories images to inline base64 datauri images
 
+    :param request: Request
+    """
 
     response = HttpResponse(
         simplejson.dumps(_get_datauris_for_categories())

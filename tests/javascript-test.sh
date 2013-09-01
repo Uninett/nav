@@ -7,6 +7,7 @@ fi
 WORKSPACE=$1
 JSDIR="${WORKSPACE}/htdocs/js"
 
+
 NPM=`which npm`
 
 cd ${JSDIR}
@@ -32,7 +33,7 @@ jshint --config ${JSDIR}/.jshintrc ${JAVASCRIPT_FILES[@]} --jslint-reporter > ${
 
 echo "Running tests"
 cd ${JSDIR}
-${JSDIR}/node_modules/.bin/karma start karma.conf.buildserver.js
+${JSDIR}/node_modules/.bin/karma start test/karma.conf.buildserver.js
 
 if [ "$?" -eq 1 ]; then
     echo "Error when testing, taking screenshot"

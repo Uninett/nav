@@ -32,6 +32,9 @@ from nav.bitvector import BitVector
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
+from nav.models.rrd import RrdDataSource
+import nav.models.event
+
 
 
 #######################################################################
@@ -159,8 +162,6 @@ class Netbox(models.Model):
 
     def get_availability(self):
         """Calculates and returns an availability data structure."""
-        from nav.models.rrd import RrdDataSource
-
         def average(rds, time_frame):
             """Calculates the average value within a time_frame."""
             from nav.rrd import presenter
@@ -272,8 +273,6 @@ class Netbox(models.Model):
 
     def get_rrd_data_sources(self):
         """Returns all relevant RRD data sources"""
-
-        from nav.models.rrd import RrdDataSource
         return RrdDataSource.objects.filter(rrd_file__netbox=self
             ).exclude(
                 Q(rrd_file__subsystem__name__in=('pping', 'serviceping')) |
@@ -1121,8 +1120,6 @@ class Interface(models.Model):
 
     def get_rrd_data_sources(self):
         """Returns all relevant RRD data sources"""
-
-        from nav.models.rrd import RrdDataSource
         return RrdDataSource.objects.filter(
                 rrd_file__key='interface', rrd_file__value=str(self.id)
             ).order_by('description')
