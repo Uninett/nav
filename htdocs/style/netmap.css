@@ -190,9 +190,6 @@ a#netmap_link_to_admin {
 .netmap-node-category {
 }
 
-li.selected_vlan a {
-    color: orange;
-}
 #toggle_view {
     cursor: pointer;
 }
@@ -222,7 +219,64 @@ li.selected_vlan a {
     min-height: 350px;
     height: 350px;
     overflow-y: scroll;
+    overflow-x: hidden;
 }
+
+#node_info_vlan {
+    list-style-type: none;
+}
+
+#node_info_vlan > li {
+    margin:0 0 2px 0;
+    border-bottom: 1px dotted #ccc;
+}
+
+#infoVlanContainer .vlan {
+    display: block;
+    width:auto;
+    font-size:11px;
+    padding-left: 2.5em;
+    position: relative;
+    height:auto !important;
+    min-height: 3.8em;
+    height:3.8em;
+    cursor: pointer;
+}
+
+#infoVlanContainer .vlan:hover {
+    color:orange;
+}
+
+#infoVlanContainer .vlan > span {
+    display: block;
+    position:absolute;
+    font-size:11px;
+    top:50%;
+    left:0;
+    margin:-1em 0 0 -.5em;
+    width:2em;
+    background:#577899;
+    color:#fff;
+    font-weight: normal;
+    padding:.2em .5em;
+    text-align: right;
+
+    transform:rotate(-90deg);
+    -ms-transform:rotate(-90deg); /* IE 9 */
+    -webkit-transform:rotate(-90deg); /* Safari and Chrome */
+
+}
+
+
+
+#node_info_vlan .selected_vlan a {
+    color:orange;
+}
+
+#node_info_vlan .selected_vlan a > span{
+    background:orange;
+}
+
 
 /* Navigation styles */
 
@@ -540,13 +594,6 @@ circle.grouped_by_room {
     fill: transparent;
 }
 
-#node_info_vlan {
-    list-style-type: none;
-}
-#node_info_vlan li {
-    margin-left: 0;
-    padding-left: 0;
-}
 circle.grouped_by_vlan {
     stroke: orange;
     fill: transparent;
