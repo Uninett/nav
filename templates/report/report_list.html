@@ -1,0 +1,46 @@
+{% extends "report/base.html" %}
+{# This does not need to extend ReportTemplate #}
+
+{% block content %}
+
+{% if report_list_local %}
+
+    <table class="listtable vertitablefull">
+        <caption>Local reports</caption>
+        <thead>
+            <tr>
+                <th style="width: 30%">Name</th>
+                <th style="width: 70%">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for report in report_list_local %}
+            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                <td><a href="/report/{{ report.0 }}">{{ report.1 }}</a></td>
+                <td>{{ report.2 }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endif %}
+
+    <table class="listtable vertitablefull">
+        <caption>Default reports</caption>
+        <thead>
+            <tr>
+                <th style="width: 30%">Name</th>
+                <th style="width: 70%">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for report in report_list %}
+            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                <td><a href="/report/{{ report.0 }}">{{ report.1 }}</a></td>
+                <td>{{ report.2 }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock content %}

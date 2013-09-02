@@ -1,9 +1,10 @@
 {% extends "seeddb/base.html" %}
 
 {% block content %}
-<form action="" method="post">
+
+<form class="seeddb-edit" action="" method="post">
     <table class="listtable">
-    {% if object.pk %}
+    {% if object %}
     <caption>
         {{ object }}
     </caption>
@@ -31,7 +32,16 @@
     </table>
 </form>
 
-{% if delete_url and object.pk %}
+{% if map %}
+  <div id="map-container">
+    <h4>Click the map to update the geo position</h4>
+    <div id="map"></div>
+  </div>
+{% endif %}
+
+<div style="clear:both;"></div>
+
+{% if delete_url and object %}
 <form action="{{ delete_url }}" method="post">
     <table class="listtable">
         <tr>
@@ -44,4 +54,6 @@
     </table>
 </form>
 {% endif %}
+
+<div style="clear: both;"></div>
 {% endblock %}

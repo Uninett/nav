@@ -20,6 +20,7 @@
 
 import datetime as dt
 import IPy
+import re
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -31,6 +32,9 @@ from nav.bitvector import BitVector
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
+from nav.models.rrd import RrdDataSource
+import nav.models.event
+
 
 
 #######################################################################
@@ -60,8 +64,8 @@ class Netbox(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     sysname = VarcharField(unique=True)
     category = models.ForeignKey('Category', db_column='catid')
-    subcategories = models.ManyToManyField('Subcategory',
-        through='NetboxCategory')
+    netboxgroups = models.ManyToManyField('NetboxGroup',
+                                          through='NetboxCategory')
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = VarcharField(db_column='ro', blank=True, null=True)
     read_write = VarcharField(db_column='rw', blank=True, null=True)
@@ -158,8 +162,6 @@ class Netbox(models.Model):
 
     def get_availability(self):
         """Calculates and returns an availability data structure."""
-        from nav.models.rrd import RrdDataSource
-
         def average(rds, time_frame):
             """Calculates the average value within a time_frame."""
             from nav.rrd import presenter
@@ -271,8 +273,6 @@ class Netbox(models.Model):
 
     def get_rrd_data_sources(self):
         """Returns all relevant RRD data sources"""
-
-        from nav.models.rrd import RrdDataSource
         return RrdDataSource.objects.filter(rrd_file__netbox=self
             ).exclude(
                 Q(rrd_file__subsystem__name__in=('pping', 'serviceping')) |
@@ -514,6 +514,11 @@ class Organization(models.Model):
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
 
+    def extract_emails(self):
+        """Naively extract email addresses from the contact string"""
+        contact = self.contact if self.contact else ""
+        return re.findall(r'(\b[\w.]+@[\w.]+\b)', contact)
+
 
 class Category(models.Model):
     """From NAV Wiki: The cat table defines the categories of a netbox
@@ -556,35 +561,36 @@ class Category(models.Model):
         return self.id == 'OTHER'
 
 
-class Subcategory(models.Model):
-    """From NAV Wiki: The subcat table defines subcategories within a category.
-    A category may have many subcategories. A subcategory belong to one and
-    only one category."""
+class NetboxGroup(models.Model):
+    """A group that one or more netboxes belong to
 
-    id = VarcharField(db_column='subcatid', primary_key=True)
+    A group is a tag of sorts for grouping netboxes. You can put two netboxes
+    in the same group and then use that metainfo in reports and alert profiles.
+
+    This was formerly known as subcat but was altered to netboxgroup because
+    the same subcategory could not exist on different categories.
+
+    """
+
+    id = VarcharField(db_column='netboxgroupid', primary_key=True)
     description = VarcharField(db_column='descr')
-    category = models.ForeignKey('Category', db_column='catid')
 
     class Meta:
-        db_table = 'subcat'
+        db_table = 'netboxgroup'
 
     def __unicode__(self):
-        try:
-            return u'%s, sub of %s' % (self.id, self.category)
-        except Category.DoesNotExist:
-            return self.id
+        return self.id
 
 
 class NetboxCategory(models.Model):
-    """From NAV Wiki: A netbox may be in many subcategories. This relation is
-    defined here."""
+    """Store the relation between a netbox and its groups"""
 
     # TODO: This should be a ManyToMany-field in Netbox, but at this time
     # Django only supports specifying the name of the M2M-table, and not the
     # column names.
     id = models.AutoField(primary_key=True)  # Serial for faking a primary key
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    category = models.ForeignKey('Subcategory', db_column='category')
+    category = models.ForeignKey('NetboxGroup', db_column='category')
 
     class Meta:
         db_table = 'netboxcategory'
@@ -1111,8 +1117,6 @@ class Interface(models.Model):
 
     def get_rrd_data_sources(self):
         """Returns all relevant RRD data sources"""
-
-        from nav.models.rrd import RrdDataSource
         return RrdDataSource.objects.filter(
                 rrd_file__key='interface', rrd_file__value=str(self.id)
             ).order_by('description')
@@ -1157,6 +1161,25 @@ class Interface(models.Model):
 
         """
         return (self.gwportprefix_set.count() > 0)
+
+    def below_me(self):
+        """Returns interfaces stacked with this one on a layer below"""
+        return Interface.objects.filter(lower_layer__higher=self)
+
+    def above_me(self):
+        """Returns interfaces stacked with this one on a layer above"""
+        return Interface.objects.filter(higher_layer__lower=self)
+
+
+class InterfaceStack(models.Model):
+    """Interface layered stacking relationships"""
+    higher = models.ForeignKey(Interface, db_column='higher',
+                               related_name='higher_layer')
+    lower = models.ForeignKey(Interface, db_column='lower',
+                              related_name='lower_layer')
+
+    class Meta:
+        db_table = u'interface_stack'
 
 
 class IanaIftype(models.Model):

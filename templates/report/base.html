@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+    <link rel="stylesheet" href="/style/report.css" type="text/css" />
+    <script>require(["src/report"]);</script>
+{% endblock base_header_additional_head %}
+
+{% block base_content %}
+
+    <h2>{{ heading }}</h2>
+
+    {% block content %}
+    {% endblock content %}
+
+{% endblock base_content %}

@@ -51,6 +51,7 @@ class DaemonError(Exception):
     """Base class for all exceptions raised by nav.daemon."""
     pass
 
+
 class UserNotFoundError(DaemonError):
     """Raised if requested user is not found and we have to run as root."""
 
@@ -59,8 +60,9 @@ class UserNotFoundError(DaemonError):
         self.username = username
 
     def __str__(self):
-        return "User (%s) not found, can't switch process user." \
-         % self.username
+        return "User (%s) not found, can't switch process user." % (
+            self.username)
+
 
 class SwitchUserError(DaemonError):
     """Raised if user switch failes, e.g. we don't have enough permissions."""
@@ -73,8 +75,9 @@ class SwitchUserError(DaemonError):
         self.newgid = newgid
 
     def __str__(self):
-        return "Failed to switch uid/gid from %d/%d to %d/%d." \
-         % (self.olduid, self.oldgid, self.newuid, self.newgid)
+        return "Failed to switch uid/gid from %d/%d to %d/%d." % (
+            self.olduid, self.oldgid, self.newuid, self.newgid)
+
 
 class AlreadyRunningError(DaemonError):
     """Raised if the daemon is alrady running."""
@@ -86,6 +89,7 @@ class AlreadyRunningError(DaemonError):
     def __str__(self):
         return "Daemon is already running with pid %d." % self.pid
 
+
 class PidFileReadError(DaemonError):
     """Raised if we can't read a numeric pid from the pidfile."""
 
@@ -95,6 +99,7 @@ class PidFileReadError(DaemonError):
 
     def __str__(self):
         return "Can't read pid from pidfile (%s)." % self.pidfile
+
 
 class PidFileWriteError(DaemonError):
     """Raised if we can't write the pid to the pidfile."""
@@ -107,6 +112,7 @@ class PidFileWriteError(DaemonError):
     def __str__(self):
         return "Can't write pid to or remove pidfile (%s). (%s)" % (
             self.pidfile, self.error)
+
 
 class ForkError(DaemonError):
     """Raised if a fork fails."""
@@ -167,12 +173,12 @@ def switchuser(username):
             except OSError:
                 # Failed changing uid/gid
                 _logger.debug("Failed chaning uid/gid from %d/%d to %d/%d.",
-                    olduid, oldgid, uid, gid)
+                              olduid, oldgid, uid, gid)
                 raise SwitchUserError(olduid, oldgid, uid, gid)
             else:
-                # Switch successfull
+                # Switch successful
                 _logger.debug("uid/gid changed from %d/%d to %d/%d.",
-                    olduid, oldgid, uid, gid)
+                              olduid, oldgid, uid, gid)
                 return True
         else:
             # Already running as the given user
@@ -220,7 +226,7 @@ def justme(pidfile):
         try:
             # Sending signal 0 to check if process is alive
             os.kill(pid, 0)
-        except OSError, error:
+        except OSError:
             # Normally this means "No such process", and thus we're alone
             return True
         else:
@@ -230,6 +236,7 @@ def justme(pidfile):
     else:
         # No pidfile, assume we're alone
         return True
+
 
 def writepidfile(pidfile):
     """
@@ -241,11 +248,12 @@ def writepidfile(pidfile):
         pid_fd = file(pidfile, 'w+')
     except IOError, error:
         _logger.debug('Cannot open pidfile %s for writing. Exiting. (%s)',
-            pidfile, error)
+                      pidfile, error)
         raise PidFileWriteError(pidfile, error)
 
     pid_fd.write("%d\n" % pid)
     pid_fd.close()
+
 
 def redirect_std_fds(stdin=None, stdout=None, stderr=None):
     """Close and redirect the standard file descriptors.
@@ -279,6 +287,7 @@ def redirect_std_fds(stdin=None, stdout=None, stderr=None):
     os.dup2(stdin.fileno(), sys.stdin.fileno())
     os.dup2(stdout.fileno(), sys.stdout.fileno())
     os.dup2(stderr.fileno(), sys.stderr.fileno())
+
 
 def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
     """
@@ -344,6 +353,7 @@ def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
 
     return True
 
+
 # pylint: disable=W0703
 def daemonexit(pidfile):
     """
@@ -371,6 +381,7 @@ def daemonexit(pidfile):
         _logger.debug("pidfile (%s) removed.", pidfile)
     return True
 
+
 def safesleep(delay):
     """Hackish workaround to protect against Linux kernel bug in time.sleep().
 
@@ -389,7 +400,7 @@ def safesleep(delay):
     except IOError, error:
         if error.errno == 514:
             _logger.exception("Ignoring possible Linux kernel bug in "
-                             "time.sleep(): IOError=514. See LP#352316")
+                              "time.sleep(): IOError=514. See LP#352316")
         else:
             raise
 

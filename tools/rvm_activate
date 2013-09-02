@@ -1,0 +1,86 @@
+# This file must be used with "source rvm_activate" from *bash*
+# you cannot run it directly
+#
+# Proudly used same method as virtualenv in python ;-)
+
+deactivate () {
+    # reset old environment variables
+    if [ -n "$_OLD_RVM_PATH" ] ; then
+        PATH="$_OLD_RVM_PATH"
+        export PATH
+        unset _OLD_RVM_PATH
+    fi
+    if [ -n "$_OLD_RVM_rvm_path" ] ; then
+        rvm_path="$_OLD_RVM_rvm_path"
+        export rvm_path
+        unset _OLD_RVM_rvm_path
+    fi
+
+    # This should detect bash and zsh, which have a hash command that must
+    # be called to get it to forget past commands.  Without forgetting
+    # past commands the $PATH changes we made may not be respected
+    if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
+        hash -r
+    fi
+
+    if [ -n "$_OLD_RVM_PS1" ] ; then
+        PS1="$_OLD_RVM_PS1"
+        export PS1
+        unset _OLD_RVM_PS1
+    fi
+
+    unset RVM_ENV
+    if [ ! "$1" = "nondestructive" ] ; then
+    # Self destruct!
+        unset -f deactivate
+        echo 'Note, we deactivated rvm.'
+        echo 'If your using rvm for other stuff, maybe source your dotfiles to load rvm from $HOME/.rvm'
+    fi
+
+    if typeset -f __unload_rvm >/dev/null 2>&1 ; then __unload_rvm ; fi
+}
+
+# unset irrelavent variables
+deactivate nondestructive
+
+
+BASE_FULL_DIR=$( cd $(dirname ${BASH_SOURCE:-$0}) ; pwd -P )
+RVM_ENV="$BASE_FULL_DIR/.rvm"
+export RVM_ENV
+
+_OLD_RVM_PATH="$PATH"
+PATH="$RVM_ENV/bin:$PATH"
+export PATH
+
+# unset rvm_path if set
+# this will fail if rvm_path is set to the empty string (which is bad anyway)
+# could use `if (set -u; : $rvm_path) ;` in bash
+if [ -n "$rvm_path" ] ; then
+    _OLD_RVM_rvm_path="$rvm_path"
+    unset rvm_path
+fi
+
+if [ -z "$RVM_ENV_DISABLE_PROMPT" ] ; then
+    _OLD_RVM_PS1="$PS1"
+    if [ "x" != x ] ; then
+        PS1="$PS1"
+    else
+    if [ "`basename \"$RVM_ENV\"`" = "__" ] ; then
+        # special case for Aspen magic directories
+        # see http://www.zetadev.com/software/aspen/
+        PS1="[`basename \`dirname \"$RVM_ENV\"\``] $PS1"
+    else
+        PS1="(`basename \"$RVM_ENV\"`)$PS1"
+    fi
+    fi
+    export PS1
+fi
+
+# This should detect bash and zsh, which have a hash command that must
+# be called to get it to forget past commands.  Without forgetting
+# past commands the $PATH changes we made may not be respected
+if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
+    hash -r
+fi
+
+source $RVM_ENV/scripts/rvm

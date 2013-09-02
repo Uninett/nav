@@ -42,7 +42,7 @@ from nav.alertengine.dispatchers import FatalDispatcherException
 from nav.models.event import AlertQueue, AlertType, EventType
 from nav.models.manage import Arp, Cam, Category, Device, Location
 from nav.models.manage import Memory, Netbox, NetboxInfo, NetboxType
-from nav.models.manage import Organization, Prefix, Room, Subcategory
+from nav.models.manage import Organization, Prefix, Room, NetboxGroup
 from nav.models.manage import Interface, Usage, Vlan, Vendor
 from nav.models.fields import VarcharField, PickleField
 
@@ -56,7 +56,7 @@ SUPPORTED_MODELS = [
         AlertQueue, AlertType, EventType,
     # manage models
         Arp, Cam, Category, Device, Location, Memory, Netbox, NetboxInfo,
-        NetboxType, Organization, Prefix, Room, Subcategory, Interface,
+        NetboxType, Organization, Prefix, Room, NetboxGroup, Interface,
         Vendor, Vlan,
         Usage,
 ]
@@ -150,6 +150,10 @@ class Account(models.Model):
     def is_admin_account(self):
         """Is this the admin account?"""
         return self.id == self.ADMIN_ACCOUNT
+
+    def is_admin(self):
+        """Has this user administrator rights?"""
+        return self.has_perm(None, None)
 
     def set_password(self, password):
         '''Sets user password. Copied from nav.db.navprofiles'''
@@ -894,7 +898,7 @@ class MatchField(models.Model):
     ARP = 'arp'
     CAM = 'cam'
     CATEGORY = 'cat'
-    SUBCATEGORY = 'subcat'
+    NETBOXGROUP = 'netboxgroup'
     DEVICE = 'device'
     EVENT_TYPE = 'eventtype'
     LOCATION = 'location'
@@ -919,7 +923,7 @@ class MatchField(models.Model):
         (ARP, _('arp')),
         (CAM, _('cam')),
         (CATEGORY, _('category')),
-        (SUBCATEGORY, _('subcategory')),
+        (NETBOXGROUP, _('netboxgroup')),
         (DEVICE, _('device')),
         (EVENT_TYPE, _('event type')),
         (LOCATION, _('location')),
@@ -946,7 +950,7 @@ class MatchField(models.Model):
         ARP:          'netbox__arp',
         CAM:          'netbox__cam',
         CATEGORY:     'netbox__category',
-        SUBCATEGORY:  'netbox__netboxcategory__category',
+        NETBOXGROUP:  'netbox__netboxcategory__category',
         DEVICE:       'netbox__device',
         EVENT_TYPE:   'event_type',
         LOCATION:     'netbox__room__location',
@@ -1232,7 +1236,7 @@ class StatusPreferenceCategory(models.Model):
 
 
 # Make sure you update netmap-extras.js too if you change this! ;-)
-LINK_TYPES = (1, 'Layer 2'), \
+LINK_TYPES = (2, 'Layer 2'), \
 (3, 'Layer 3')
 
 class NetmapView(models.Model):
@@ -1267,9 +1271,9 @@ class NetmapView(models.Model):
 
     def to_json_dict(self):
         """Presents a NetmapView as JSON"""
-        categories = [unicode(x.category.id) for x in self.categories_set.all()]
+        categories = [{'name': unicode(x.category.id), 'is_selected': True} for x in self.categories_set.all()]
         if self.display_elinks:
-            categories.append("ELINK")
+            categories.append({'name': 'ELINK', 'is_selected': True})
 
         return {
             'viewid': self.viewid,

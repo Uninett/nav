@@ -26,7 +26,7 @@ from nav.mibs.qbridge_mib import QBridgeMib
 from nav.ipdevpoll import Plugin, db
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll import utils
-from nav.ipdevpoll.neighbor import get_netbox_macs, get_netbox_catids
+from nav.ipdevpoll.neighbor import get_netbox_macs
 from nav.ipdevpoll.db import autocommit
 
 class Cam(Plugin):
@@ -142,13 +142,9 @@ class Cam(Plugin):
                            prefix, mac_count, len(fdb))
 
     def _classify_ports(self):
-        ignored_netboxes = get_ignored_netboxes()
-
         def _is_linkport(portmacs):
             _port, macs = portmacs
-            return any((mac in self.monitored
-                        and self.monitored[mac] not in ignored_netboxes
-                        and mac not in self.my_macs)
+            return any(mac in self.monitored and mac not in self.my_macs
                        for mac in macs)
 
         linkports, accessports = splitby(_is_linkport, self.fdb.items())
@@ -252,17 +248,3 @@ class Cam(Plugin):
                                             shadows.SwPortBlocked)
             block.interface = ifc
             block.vlan = vlan
-
-
-# These device categories are not considered network infrastructure,
-# i.e. they do not forward IP packets or ethernet frames on behalf of others.
-# Ports which have these categories of devices connected will be considered
-# access ports, even when NAV otherwise would consider them up-/downlinks.
-IGNORED_CATEGORIES = (u'OTHER', u'SRV')
-
-def get_ignored_netboxes():
-    """Returns a set of netbox ids of netboxes in the "ignored" categories"""
-    catids = get_netbox_catids()
-    return set(netboxid
-               for netboxid, catid in catids.items()
-               if catid in IGNORED_CATEGORIES)

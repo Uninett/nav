@@ -80,11 +80,13 @@ def room_delete(request):
         whitelist=SEEDDB_EDITABLE_MODELS,
         extra_context=info.template_context)
 
-def room_edit(request, room_id=None, lat=None, lon=None):
+def room_edit(request, room_id=None):
     info = RoomInfo()
+    extra_context = {'map': True}
+    extra_context.update(info.template_context)
     return render_edit(request, Room, RoomForm, room_id,
-        'seeddb-room-edit', lat=lat, lon=lon,
-        extra_context=info.template_context)
+        'seeddb-room-edit',
+        extra_context=extra_context)
 
 def room_bulk(request):
     info = RoomInfo()

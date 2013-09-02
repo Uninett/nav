@@ -21,31 +21,65 @@ from nav.mibs.ups_mib import UpsMib
 R_PDU_LOAD_STATUS_LOAD = 'rPDULoadStatusLoad'
 R_PDU_LOAD_STATUS_BANK_NUMBER = 'rPDULoadStatusBankNumber'
 
+U_VOLT = dict(u_o_m='Volt')
+U_DECIVOLT = dict(u_o_m='Volt', scale='deci')
+U_AMPERE = dict(u_o_m='Ampere')
+U_DECIAMPERE = dict(u_o_m='Ampere', scale='deci')
+U_HZ = dict(u_o_m='Hz')
+U_DECIHZ = dict(u_o_m='Hz', scale='deci')
+U_PERCENT = dict(u_o_m='Percent')
+U_DECIPERCENT = dict(u_o_m='Percent', scale='deci')
+U_CELSIUS = dict(u_o_m='Celsius')
+U_DECICELSIUS = dict(u_o_m='Celsius', scale='deci')
+U_TIMETICKS = dict(u_o_m='Seconds', scale='centi')
+
 
 class PowerNetMib(UpsMib):
     """ Custom class for retrieveing sensors from APC UPSes."""
     from nav.smidumps.powernet_mib import MIB as mib
 
     sensor_columns = {
-        'atsInputVoltage': {
-            'u_o_m': 'Volts',
-        },
-        'upsAdvInputFrequency': {
-            'u_o_m': 'Hz',
-        },
-        'upsAdvOutputCurrent': {
-            'u_o_m': 'Amperes',
-        },
-        'mUpsEnvironAmbientTemperature': {
-            'u_o_m': 'Celsius',
-        },
-        'upsAdvBatteryCapacity': {
-            'u_o_m': 'Percent',
-        },
-        'upsBasicBatteryTimeOnBattery': {
-            'u_o_m': 'Seconds',
-            'scale': 'centi'
-        },
+        'atsInputVoltage': U_VOLT,
+
+        'mUpsEnvironAmbientTemperature': U_CELSIUS,
+
+        'upsAdvBatteryActualVoltage': U_VOLT,
+        'upsAdvBatteryCapacity': U_PERCENT,
+        'upsAdvBatteryCurrent': U_AMPERE,
+        'upsAdvBatteryNominalVoltage': U_VOLT,
+        'upsAdvBatteryNumOfBadBattPacks': dict(u_o_m='batteries'),
+        'upsAdvBatteryNumOfBattPacks': dict(u_o_m='batteries'),
+        'upsAdvBatteryRunTimeRemaining': U_TIMETICKS,
+        'upsAdvBatteryTemperature': U_CELSIUS,
+
+        'upsAdvInputFrequency': U_HZ,
+        'upsAdvInputLineVoltage': U_VOLT,
+        'upsAdvInputMaxLineVoltage': U_VOLT,
+        'upsAdvInputMinLineVoltage': U_VOLT,
+
+        'upsAdvOutputCurrent': U_AMPERE,
+        'upsAdvOutputFrequency': U_HZ,
+        'upsAdvOutputLoad': U_PERCENT,
+        'upsAdvOutputVoltage': U_VOLT,
+
+        'upsAdvTotalDCCurrent': U_AMPERE,
+
+        'upsBasicBatteryTimeOnBattery': U_TIMETICKS,
+        'upsBasicOutputPhase': dict(u_o_m='Phase'),
+
+        'upsHighPrecBatteryActualVoltage': U_DECIVOLT,
+        'upsHighPrecBatteryCapacity': U_DECIPERCENT,
+        'upsHighPrecBatteryTemperature': U_DECICELSIUS,
+
+        'upsHighPrecInputFrequency': U_DECIHZ,
+        'upsHighPrecInputLineVoltage': U_DECIVOLT,
+        'upsHighPrecInputMaxLineVoltage': U_DECIVOLT,
+        'upsHighPrecInputMinLineVoltage': U_DECIVOLT,
+
+        'upsHighPrecOutputCurrent': U_DECIAMPERE,
+        'upsHighPrecOutputFrequency': U_DECIHZ,
+        'upsHighPrecOutputLoad': U_DECIPERCENT,
+        'upsHighPrecOutputVoltage': U_DECIVOLT,
     }
 
     @defer.inlineCallbacks

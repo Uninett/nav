@@ -19,7 +19,7 @@ from django import forms
 from django.db.models import Q
 
 from nav.models.manage import Room, Category, Organization, Netbox
-from nav.models.manage import Subcategory, NetboxCategory
+from nav.models.manage import NetboxGroup, NetboxCategory
 from nav.Snmp import Snmp
 from nav.Snmp.errors import TimeOutException, SnmpError
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname, does_ip_exist
@@ -30,9 +30,9 @@ READONLY_WIDGET_ATTRS = {
     'class': 'readonly',
 }
 
+
 class NetboxForm(forms.Form):
-    id = forms.IntegerField(
-        required=False, widget=forms.HiddenInput)
+    id = forms.IntegerField(required=False, widget=forms.HiddenInput)
     ip = forms.CharField()
     room = forms.ModelChoiceField(queryset=Room.objects.order_by('id'))
     category = forms.ModelChoiceField(queryset=Category.objects.all())
@@ -177,10 +177,8 @@ class NetboxForm(forms.Form):
 class NetboxReadonlyForm(NetboxForm):
     sysname = forms.CharField()
     netbox_type = forms.CharField(required=False)
-    type = forms.IntegerField(required=False,
-        widget=forms.HiddenInput)
-    snmp_version = forms.IntegerField(
-        widget=forms.HiddenInput)
+    type = forms.IntegerField(required=False, widget=forms.HiddenInput)
+    snmp_version = forms.IntegerField(widget=forms.HiddenInput)
 
     def __init__(self, *args, **kwargs):
         super(NetboxReadonlyForm, self).__init__(*args, **kwargs)
@@ -189,6 +187,7 @@ class NetboxReadonlyForm(NetboxForm):
                 continue
             self.fields[field].widget = forms.TextInput(
                 attrs=READONLY_WIDGET_ATTRS)
+
 
 class NetboxSerialForm(forms.Form):
     serial = forms.CharField(required=False)
@@ -217,39 +216,46 @@ class NetboxSerialForm(forms.Form):
             raise forms.ValidationError(
                 "Serial (%s) is already taken by %s" % (serial, netbox))
 
-class NetboxSubcategoryForm(forms.Form):
+
+class NetboxGroupForm(forms.Form):
     def __init__(self, *args, **kwargs):
         queryset = kwargs.pop('queryset')
-        super(NetboxSubcategoryForm, self).__init__(*args, **kwargs)
-        self.fields['subcategories'] = forms.ModelMultipleChoiceField(
+        super(NetboxGroupForm, self).__init__(*args, **kwargs)
+        self.fields['netboxgroups'] = forms.ModelMultipleChoiceField(
             queryset=queryset, required=False)
 
-def get_netbox_subcategory_form(category, netbox_id=None, post_data=None):
-    subcat = Subcategory.objects.filter(category=category).order_by('id')
-    if subcat.count() > 0:
+
+def get_netbox_group_form(netbox_id=None, post_data=None):
+    netboxgroups = NetboxGroup.objects.all().order_by('id')
+    if netboxgroups.count() > 0:
         if netbox_id and not post_data:
-            subcats = NetboxCategory.objects.filter(
+            current_groups = NetboxCategory.objects.filter(
                 netbox=netbox_id).values_list('category', flat=True)
-            initial = {'subcategories': subcats}
-            return NetboxSubcategoryForm(queryset=subcat, initial=initial)
+            initial = {'netboxgroups': current_groups}
+            return NetboxGroupForm(queryset=netboxgroups, initial=initial)
         elif post_data:
-            return NetboxSubcategoryForm(post_data, queryset=subcat)
+            return NetboxGroupForm(post_data, queryset=netboxgroups)
         else:
-            return NetboxSubcategoryForm(queryset=subcat)
+            return NetboxGroupForm(queryset=netboxgroups)
     else:
         return None
+
 
 class SNMPException(Exception):
     pass
 
+
 class SNMPCommunityException(SNMPException):
     pass
+
 
 class ROCommunityException(SNMPCommunityException):
     pass
 
+
 class RWCommunityException(SNMPCommunityException):
     pass
+
 
 class IPExistsException(Exception):
     pass

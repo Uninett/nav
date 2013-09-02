@@ -20,6 +20,8 @@ from nav.config import read_flat_config, getconfig
 from nav.db import get_connection_parameters
 import nav.buildconf
 import nav.path
+import sys
+import os
 
 try:
     nav_config = read_flat_config('nav.conf')
@@ -57,7 +59,7 @@ try:
 except IOError:
     pass
 
-INSTALLED_APPS = ('nav.django', 'django.contrib.sessions')
+INSTALLED_APPS = ( 'nav.models', 'nav.django', 'django.contrib.sessions')
 
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
@@ -115,7 +117,9 @@ DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
 
 # Cache backend. Used only for report subsystem in NAV 3.5.
 # FIXME: Make this configurable in nav.conf (or possibly webfront.conf)
-CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'	
+CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'
+
+SECRET_KEY = nav_config.get('SECRET_KEY', None) # Must be set in nav.conf!
 
 NAVLETS = (
     'nav.web.navlets.machinetracker.MachineTrackerNavlet',
@@ -127,3 +131,16 @@ NAVLETS = (
     'nav.web.navlets.welcome.WelcomeNavlet',
     'nav.web.navlets.room_map.RoomMapNavlet',
 )
+
+# Hack for hackers to use features like debug_toolbar etc.
+# https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
+sys.path.append(os.path.join(nav.buildconf.sysconfdir, "python"))
+try:
+    # pylint: disable=E0602
+    LOCAL_SETTINGS
+except NameError:
+    try:
+        # pylint: disable=F0401
+        from local_settings import *
+    except ImportError:
+        pass

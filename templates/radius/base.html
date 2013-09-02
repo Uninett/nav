@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" href="/style/radius.css" type="text/css">
+  <script>require(["src/radius"]);</script>
+{% endblock base_header_additional_head %}
+
+{% block base_content %}
+
+  <div class="tabs">
+    <ul>
+      <li class="{{ acctsearch|yesno:"tabactive," }}"><a href="acctsearch">Account Log</a></li>
+      <li class="{{ logsearch|yesno:"tabactive," }}"><a href="logsearch">Error Log</a></li>
+      <li class="{{ acctcharts|yesno:"tabactive," }}"><a href="acctcharts">Account Charts</a></li>
+    </ul>
+  </div>
+
+  <div class="tabcontent">
+
+    <div class="error">
+      {% if errors %}
+        {{ errors.as_ul }}
+      {% endif %}
+    </div>
+
+    {% block content %}
+    {% endblock content %}
+  </div>
+
+{% endblock base_content %}

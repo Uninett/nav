@@ -83,3 +83,16 @@ class IfMib(mibretriever.MibRetriever):
         result = dict((index, row['ifAdminStatus'])
                       for index, row in status.items())
         defer.returnValue(result)
+
+    @defer.inlineCallbacks
+    def get_stack_status(self):
+        """Gets the interface stacking status of the device.
+
+        :returns: A deferred whose result is a list of (higher, lower) tuples of
+                  ifindexes. Entries that don't indicate stacking are removed
+                  from the result.
+
+        """
+        status = yield self.retrieve_columns(['ifStackStatus'])
+        result = [(h, l) for h, l in status.keys() if h > 0 and l > 0]
+        defer.returnValue(result)

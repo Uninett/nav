@@ -74,7 +74,7 @@ def start_config_creation(modules, config):
 def get_configroot(configfile):
     """Get path for configroot from cricket-conf.pl"""
     cricket_config = _get_as_file(configfile).read()
-    perl = Popen("perl", stdin=PIPE, stdout=PIPE, close_fds=True)
+    perl = Popen(("/usr/bin/env", "perl"), stdin=PIPE, stdout=PIPE, close_fds=True)
 
     perl.stdin.write(cricket_config)
     perl.stdin.write("""\nprint "$gConfigRoot\\n";\n""")

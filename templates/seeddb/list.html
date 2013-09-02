@@ -46,28 +46,34 @@
                 </tr>
             </thead>
 
-            <tbody>
-                {% if object_list %}
-                    {% for object in object_list %}
-                    <tr>
-                        <td><input type="checkbox" name="object" value="{{ object.pk }}" class="selector" /></td>
-                        {% for element in object.values_list %}
-                            {% if forloop.first %}
-                                {% if object.url %}
-                                    <td><a href="{{ object.url }}">{{ element }}</a></td>
-                                {% else %}
-                                    <td>{{ element }}</td>
-                                {% endif %}
+    <tbody>
+      {% if object_list %}
+        {% for object in object_list %}
+        <tr>
+            <td><input type="checkbox" name="object" value="{{ object.pk }}" class="selector" /></td>
+            {% for element in object.values_list %}
+                   <td>
+                        {% if forloop.first %}
+                            {% if object.url %}
+                                <a href="{{ object.url }}">{{ element }}</a>
                             {% else %}
-                            <td>{{ element|default_if_none:"" }}</td>
+                                {{ element }}
                             {% endif %}
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr><td colspan=100>No entries</td></tr>
-                {% endif %}
-            </tbody>
+                        {% else %}
+                            {% if element and forloop.counter0 in censor_list %}
+                                ******
+                            {% else %}
+                                {{ element|default_if_none:"" }}
+                            {% endif %}
+                        {% endif %}
+                    </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+      {% else %}
+	<tr><td colspan=100>No entries</td></tr>
+      {% endif %}
+    </tbody>
 
         </table>
 

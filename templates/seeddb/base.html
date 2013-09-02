@@ -51,8 +51,8 @@
         <li class="{{ active.vendor|yesno:"tabactive," }}">
             <a href="{% url seeddb-vendor %}">Vendor</a>
         </li>
-        <li class="{{ active.subcategory|yesno:"tabactive," }}">
-            <a href="{% url seeddb-subcategory %}">Subcategory</a>
+        <li class="{{ active.netboxgroup|yesno:"tabactive," }}">
+            <a href="{% url seeddb-netboxgroup %}">Netbox Group</a>
         </li>
         <li class="{{ active.vlan|yesno:"tabactive," }}">
            <a href="{% url seeddb-vlan %}">Vlan</a>

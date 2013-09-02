@@ -2,7 +2,7 @@ if INSTALL_CONF
     CONF_DIR = etc
 endif
 
-SUBDIRS = $(CONF_DIR) sql templates python bin doc media 
+SUBDIRS = $(CONF_DIR) sql templates python bin doc htdocs
 
 EXTRA_DIST = version.m4
 

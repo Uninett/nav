@@ -1,0 +1,671 @@
+/* General styles */
+body {
+    margin: 0;
+    padding: 1em 0 1em 0;
+    border: 0; /* This removes the border around the viewport in old versions of IE */
+    width: 100%;
+    background: #fff;
+    min-width: 600px; /* Minimum width of layout - remove line if not required */
+    /* The min-width property does not work in old versions of Internet Explorer */
+}
+html {overflow-y: scroll} /* always render a vertical scrollbar so width doesn't keep changing */
+
+/* Header styles */
+#header {
+    margin: 0 1em 0 1em;
+}
+
+/* Footer styles */
+#footer hr {
+    display: none;
+
+}
+#debug {
+    display: none;
+}
+
+#save_new_view {
+    float:right;
+}
+
+#delete_view {
+    float: right;
+    clear: right;
+    margin-top: 20px;
+}
+
+/*
+2012-07-31
+view-source:http://bluerobot.com/web/layouts/layout3.css
+quote http://www.bluerobot.com/web/layouts/
+"Please feel free to borrow, steal, abduct, and/or torture the documents
+ contained in the Layout Reservoir.
+ Though you need not give credit to BlueRobot.com, a comment in your source
+  code would help other developers to find this resource. Enjoy."
+*/
+
+#netmap_wrapper {
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+#netmap_main_view {
+    position:relative; /* Position is declared "relative" to gain control of stacking order (z-index). */
+    width:auto;
+    min-width:120px;
+    margin:0px 210px 20px 170px;
+    border:1px solid black;
+    background-color:white;
+    padding:10px;
+    z-index:3; /* This allows the content to overlap the right menu in narrow windows in good browsers. */
+}
+
+#netmap_left_sidebar {
+    position:absolute;
+    width:150px;
+    top:0px;
+    left:0px;
+    border:1px dashed black;
+    padding:10px;
+    z-index:2;
+
+    /* Here is the ugly brilliant hack that protects IE5/Win from its own stupidity.
+Thanks to Tantek Celik for the hack and to Eric Costello for publicizing it.
+IE5/Win incorrectly parses the "\"}"" value, prematurely closing the style
+declaration. The incorrect IE5/Win value is above, while the correct value is
+below. See http://glish.com/css/hacks.asp for details. */
+    voice-family: "\"}\"";
+    voice-family:inherit;
+    width:128px;
+}
+/* I've heard this called the "be nice to Opera 5" rule. Basically, it feeds correct
+length values to user agents that exhibit the parsing error exploited above yet get
+the CSS box model right and understand the CSS2 parent-child selector. ALWAYS include
+a "be nice to Opera 5" rule every time you use the Tantek Celik hack (above). */
+body>#netmap_left_sidebar {width:128px;}
+
+#netmap_left_sidebar div.inner_wrap {
+    margin-top: 20px;
+}
+
+#netmap_infopanel {
+    position:absolute;
+    width:190px;
+    top:0px;
+    right:0px;
+    border:1px dashed black;
+    padding:10px;
+    z-index:1;
+    /* Again, the ugly brilliant hack. */
+    voice-family: "\"}\"";
+    voice-family:inherit;
+    width:168px;
+}
+/* Again, "be nice to Opera 5". */
+body>#netmap_infopanel {width:168px;}
+
+
+#loading_chart, #chart {
+    min-height: 300px;
+    min-width: 300px;
+}
+
+/* Netmap Admin style */
+
+#netmap_admin {
+    margin: 1em;
+}
+
+div.netmapview_view {
+    clear: left;
+    margin: 2em;
+}
+.netmapview_view span {
+    float: left;
+}
+
+.netmapview_action form {
+    margin:  0;
+}
+
+td.current_favorite {
+    background: url(/images/netmap/emblem-favorite.png) no-repeat center left;
+    height: 33px;
+}
+td.current_favorite a {
+    padding-left: 33px;
+}
+
+div.isFavorite {
+    background: url(/images/netmap/emblem-favorite.png) no-repeat center right;
+    height: 33px;
+}
+div.isFavorite span.description {
+    padding-right: 33px;
+}
+
+#wrapper_chart {
+    min-height: 400px;
+}
+
+/* D3JS Netmap style */
+
+#netmap_userid {
+    display: none;
+}
+
+div#netmap_link_to_admin {
+    display: none;
+}
+a#netmap_link_to_admin {
+    margin-top: 0.5em;
+    display: block;
+}
+
+#save_view_spinner {
+    margin-left: 10px;
+    margin-bottom: 2px;
+    display: inline-block;
+}
+
+.clear {
+    clear: both;
+}
+
+.netmap-node-status {
+    float: left;
+}
+
+.netmap-node-menu {
+    margin: 0 0 10px 0;
+    list-style-type: none;
+}
+
+.netmap-node-menu li {
+    margin: 0;
+    display: inline;
+}
+
+.netmap-node-category {
+}
+
+li.selected_vlan a {
+    color: orange;
+}
+#toggle_view {
+    cursor: pointer;
+}
+
+#search_view label {
+    display: none;
+}
+
+#searchbox_search {
+     cursor: pointer;
+}
+
+#searchbox_query {
+    width: 100%;
+}
+
+.toggleUplink {
+    float: right;
+}
+.toggleUplink > .linkSource  {
+    display: none;
+
+}
+
+/* templates/info/vlan.html */
+#infoVlanContainer {
+    min-height: 350px;
+    height: 350px;
+    overflow-y: scroll;
+}
+
+/* Navigation styles */
+
+.fix_options {
+    margin-top: 0.5em;
+}
+.fix_options span {
+    font-size: 10pt;
+}
+.fix_options div {
+    margin-top: 0.5em;
+    text-align: center;
+}
+.fix_options div input {
+    width: 45%;
+}
+.netmapWidget {
+    margin-top: 0.4em;
+}
+.netmapWidget .header {
+    display: block;
+    width: 100%;
+    background: #567899;
+    color: #fff;
+}
+.netmapWidget .header .title {
+    font-size: 12pt;
+    background: url('/images/icons/expand.png') no-repeat right top;
+    padding-right: 16px;
+}
+.netmapWidget .body {
+    margin-top: 0.5em;
+    background: #fff;
+}
+
+.netmapWidget .header >.no-icon {
+    background: none;
+}
+.netmapWidget .no_collapse > .title {
+    background: none;
+}
+
+.hideSubWidgets .netmapWidget .header {
+    background: none;
+}
+
+.hideSubWidgets .netmapWidget .title {
+    color: #000;
+    font-weight: bold;
+}
+.hideSubWidgets .netmapWidget .body {
+    margin-top: 0.1em;
+}
+
+
+#pauseForce {
+    margin-top: 0.5em;
+}
+#pauseForce input {
+    margin-top: 0.5em;
+    text-align: center;
+    width: 100%;
+}
+
+#mapinfo {
+    margin-top: 2em;
+}
+
+#netmap_wrapper .float-right {
+    float: right;
+    padding: 0;;
+}
+
+/* Traffic gradient */
+
+#modal_traffic_gradient {
+    overflow: hidden;
+}
+#modal_traffic_gradient div.modal-body {
+    margin: 6px 0 6px 32px;
+}
+
+.traffic_gradient_row {
+    width: 30px;
+    height: 6px;
+}
+
+div.traffic_gradient_meta {
+    position: absolute;
+    top: 13px;
+    height: 606px;
+}
+
+div.measure_line {
+    width: 70px;
+    height: 60.4px;
+    padding-left: 20px;
+    position: relative;
+    top: 0px;
+    left: 0px;
+    display: block;
+}
+div.measure_line span.measure_line {
+    position: relative;
+    left: -10px;
+    height: 0px;
+    display: block;
+    border-bottom: 2px solid black;
+    width: 28px;
+}
+div.measure_line span.measure_line_description {
+    display: block;
+    margin-left: 20px; /* dont hit measure_line */
+    margin-top: -9.5px; /* bump text up */
+    font-weight: bold;
+}
+
+/* Node info styles */
+
+.netmap_node_status {
+    float: right;
+}
+
+.node_sysname {
+    margin-bottom: 0.5em;
+}
+.node_ip {
+    margin-bottom: 1em;
+}
+
+.node_fixed_position {
+    margin: 0.6em 0 1em 0;
+}
+
+
+.node_category img {
+    float: right;
+    margin-top: 15px;
+}
+
+.node_room {
+    margin-top: 1em;
+}
+span.description {
+    font-weight: bold;
+}
+span.value {
+    display: block;
+}
+
+
+/* LINK INFO RENE */
+div.uplink {
+	display:block;
+	padding:5px;
+	border:1px solid #aaa;
+
+    background: -moz-linear-gradient(top,  #f0f9ff 0%, #d8f0ff 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f0f9ff), color-stop(100%,#d8f0ff)); /* Chrome, Safari4+ */
+    background: -webkit-linear-gradient(top,  #f0f9ff 0%,#d8f0ff 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #f0f9ff 0%,#d8f0ff 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #f0f9ff 0%,#d8f0ff 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #f0f9ff 0%,#d8f0ff 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f0f9ff', endColorstr='#d8f0ff',GradientType=0 ); /* IE6-9 */
+
+	border-radius:5px;
+	margin-bottom:10px;
+	font-family:Consolas, "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", Monaco, "Courier New", monospace;
+}
+
+div.uplink a {
+	color:#567899;
+}
+
+div.uplink a:hover {
+	color:#f90;
+}
+
+div.uplink > .uplink_linkspeed {
+	padding:2px 0;
+	font-weight:bold;
+	font-size:.8em;
+	color:#fff;
+	text-align:center;
+	display:block;
+	width:100%;
+	background:#567899;
+}
+div.uplink > .uplink_linkspeed a {
+	color:#fff;
+}
+
+div.uplink > .uplink_linkspeed > span {
+	text-transform:uppercase;
+	font-weight:bold;
+}
+
+
+div.uplink_left, div.uplink_right {
+	display:block;
+	position:relative;
+	width:67px;
+	height:auto;
+	padding:5px;
+	font-size:12px;
+	font-weight:bold;
+	overflow:hidden;
+}
+
+div.uplink_left {
+	/* border-radius:5px 0 0 5px; */
+	text-align:left;
+	float:left;
+}
+
+div.uplink_right {
+	/* border-radius:0 5px 5px 0;	*/
+	float:right;
+	text-align:right;
+}
+
+div.uplink .load_arrow {
+	display:block;
+	height:20px;
+	width:20px;
+	position:absolute;
+    transform:rotate(45deg);
+    -ms-transform:rotate(45deg); /* IE 9 */
+    -webkit-transform:rotate(45deg); /* Safari and Chrome */
+	top:50%;
+	margin-top:-10px;
+}
+
+div.uplink_left > .load_arrow {
+	right:-12px;
+}
+
+div.uplink_right > .load_arrow {
+	left:-12px;
+}
+
+
+.breaker {
+	display:block;
+	clear:both;
+	height:1px;
+	font-size:1px;
+	line-height:1px;
+}
+
+div.uplink .node_name {
+	display:block;
+}
+
+/* LINK INFO RENE END*/
+
+/* svg styles below */
+
+circle {
+    stroke-width: 1.5px;
+}
+
+line.speed0-100 {
+    stroke-width: 2px;
+}
+
+line.speed100-512 {
+    stroke-width: 2.5px;
+}
+
+line.speed512-2048 {
+    stroke-width: 4px;
+}
+
+line.speed2048-4096 {
+    stroke-width: 5.5px;
+}
+
+line.speed4096 {
+    stroke-width: 7px;
+}
+
+line.warning_inspect {
+    stroke: red;
+    stroke-dasharray: 0, 2 1;
+    stroke-width: 7px; /* must be larger the largest link to show */
+}
+
+path.link {
+    fill: none;
+    stroke: #666;
+    stroke-width: 2px;
+}
+
+marker#licensing {
+    fill: lightgreen;
+}
+
+path.link.licensing {
+    stroke: lightgreen;
+}
+
+path.link.resolved {
+    stroke-dasharray: 0, 2 1;
+}
+
+circle {
+    fill: #ccc;
+    stroke: #333;
+    stroke-width: 3px;
+}
+
+circle.node {
+    stroke-opacity: 1;
+}
+circle.grouped_by_room {
+    stroke: red;
+    fill: transparent;
+}
+
+#node_info_vlan {
+    list-style-type: none;
+}
+#node_info_vlan li {
+    margin-left: 0;
+    padding-left: 0;
+}
+circle.grouped_by_vlan {
+    stroke: orange;
+    fill: transparent;
+}
+line.grouped_by_vlan {
+    stroke: orange;
+    stroke-width: 12px;
+    stroke-opacity: 0.5;
+    stroke-dasharray: 0, 10 10;
+}
+
+.node.fade,.link.fade {
+    opacity: 0.2;
+}
+
+text {
+    font: 14px sans-serif;
+    pointer-events: none;
+    background: #c0c0c0;
+}
+
+text.node {
+    font: 12pt sans-serif;
+}
+
+text.shadow {
+    stroke: #fff;
+    stroke-width: 4px;
+}
+
+#tooltip.pretty {
+    font-family: Arial;
+    border: none;
+    width: 210px;
+    padding: 20px;
+    height: 135px;
+    opacity: 0.8;
+    background: url('/images/shadow.png');
+}
+
+#tooltip.pretty h3 {
+    margin-bottom: 0.75em;
+    font-size: 12pt;
+    width: 220px;
+    text-align: center;
+}
+
+#tooltip.pretty div {
+    width: 220px;
+    text-align: left;
+}
+
+#tooltip.fancy {
+    background: url('/images/shadow2.png');
+    padding-top: 5em;
+    height: 100px;
+}
+
+/*
+http://bl.ocks.org/2514276
+https://groups.google.com/group/d3-js/browse_thread/thread/29ddd76c646f5921/de483e446abf4d39?lnk=gst&q=zoom#de483e446abf4d39
+*/
+
+div#pop-up {
+    display: none;
+    position: absolute;
+    color: white;
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px 5px 10px;
+    -moz-border-radius: 8px 8px;
+    border-radius: 8px 8px;
+}
+
+div#pop-up-title {
+    font-size: 15px;
+    width: 200px;
+    margin-bottom: 4px;
+    font-weight: bolder;
+}
+
+div#pop-up-content {
+    font-size: 12px;
+}
+
+div#pop-desc {
+    width: 100px;
+}
+
+div#pop-img {
+    font-size: 30px;
+    font-weight: bolder;
+}
+
+#modal_new_view img.help {
+    float: right;
+}
+
+#modal_new_view fieldset > div {
+    margin-bottom: 1em;
+}
+
+#modal_new_view input[type=text], #modal_new_view textarea {
+    width: 100%;
+}
+
+#modal_new_view input[type=checkbox] {
+    margin-left: 0.5em;
+}
+
+#modal_save_view_button {
+    float: right;
+}
+
+/* Print CSS below here */
+
+@media print {
+    #netmap_left_sidebar, #netmap_infopanel, #debug, #footer, #header { display: none; }
+}

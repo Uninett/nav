@@ -35,7 +35,7 @@ from nav.ipdevpoll import utils
 from nav.ipdevpoll import db
 
 from .netbox import Netbox
-from .interface import Interface
+from .interface import Interface, InterfaceStack
 from .swportblocked import SwPortBlocked
 from .cam import Cam
 from .adjacency import AdjacencyCandidate, UnrecognizedNeighbor
@@ -442,7 +442,7 @@ class Vlan(Shadow):
         elif prefix.version() == 4:
             if prefix.prefixlen() == 32:
                 net_type = 'loopback'
-            elif prefix.prefixlen() == 30:
+            elif prefix.prefixlen() in (30, 31):
                 net_type = router_count == 1 and 'elink' or 'link'
         if router_count > 2:
             net_type = 'core'
