@@ -52,9 +52,9 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 	this.popups = {};
 
 	var callbacks = {
-	    'click': this.clickFeature,
+        'click': this.clickFeature
 	};
-        
+
 	this.handler = new OpenLayers.Handler.Feature(this, this.layer, callbacks);
     },
 
@@ -101,9 +101,8 @@ PopupControl = OpenLayers.Class(OpenLayers.Control, {
 		      'offset': new OpenLayers.Pixel(0,0)};
 
 	var popupclass = OpenLayers.Popup.AnchoredBubble;
-	popupclass= OpenLayers.Popup.FramedCloud;
-	popup = new popupclass(id, pos, size, content, anchor, closable);
-	popup.maxSize = size;
+	var popup = new popupclass(id, pos, size, content, anchor, closable);
+	//popup.maxSize = size;
 	popup.autoSize = true;
 	this.popups[id] = popup;
 	return popup;

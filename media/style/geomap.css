@@ -1,43 +1,3 @@
-/*
-#map {
-  position: absolute;
-  border: 1px solid black;
-  margin: 0px; 
-  padding: 0px;
-  left: 2px;
-  right: 2px;
-  top: 150px;
-  bottom: 50px;
-}
-*/
-/*
-#map
-{
-  border: 1px solid black;
-  margin: 0px; 
-  padding: 0px;
-  width: 100%;
-  height: 0.7vh;
-}
-*/
-/*
-body
-{
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  right: 0px;
-  left: 0px;
-}
-*/
-
-/*
-body
-{
-  height: 100%;
-}
-*/
-
 #navbody
 { 
   height: 90%;
@@ -45,7 +5,6 @@ body
 
 #map
 {
-  width: 800px;
   height: 600px;
 }
 
@@ -56,9 +15,22 @@ body
 
 #legend
 {
-  margin-top: 10px;
+  background: #f6f6f6;
+  border: 1px solid #d3d3d3;
 }
 
+#legend table {
+    border: none;
+    background: #f6f6f6;
+}
+
+#legend tr {
+   background: inherit;
+}
+
+#legend th {
+    text-decoration: underline;
+}
 
 #legend td
 {
@@ -89,22 +61,21 @@ body
   width: 80px;
 }
 
-
-
-#map-and-form > tr > td
+#map-control-bar
 {
-  text-align: center;
+    text-align: center;
 }
 
 #map-container
 {
   vertical-align: top;
+  padding: 0;
+  z-index: 0;
 }
 
-#geomap-sidebar
+#map-container img
 {
-  vertical-align: top;
-  padding: 1em;
+    max-width: none;
 }
 
 #time-interval-form > div
@@ -112,8 +83,11 @@ body
   padding: 1em;
 }
 
-
-
+.map-control-bar
+{
+    background: #f6f6f6;
+    border: 1px solid #d3d3d3;
+}
 
 #time-navigation-selected-time
 {
@@ -126,6 +100,10 @@ body
 #time-navigation-last.enabled, #time-navigation-up.enabled
 {
   cursor: pointer;
+}
+
+#time-navigation p {
+    margin-bottom: 0;
 }
 
 #time-navigation-prev-jump.enabled:before
@@ -185,6 +163,7 @@ body
 #time-navigation-calendar
 {
   border: 1px solid black;
+  margin-top: 1.1em;
 }
 
 #time-navigation-calendar-month
@@ -234,4 +213,8 @@ body
 #time-navigation-calendar-body td
 {
   text-align: right;
+}
+
+.place-popup, .network-popup {
+    font-size: 1.1em;
 }

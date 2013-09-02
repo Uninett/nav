@@ -68,6 +68,8 @@ urlpatterns = patterns('',
         name='seeddb-room-edit'),
     url(r'^room/add/$', room_edit,
         name='seeddb-room-edit'),
+    url(r'^room/add/(?P<lat>.+)/(?P<lon>.+)/$', room_edit,
+        name='seeddb-room-edit'),
     url(r'^room/bulk/$', room_bulk,
         name='seeddb-room-bulk'),
 

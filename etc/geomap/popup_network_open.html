@@ -1,7 +1,7 @@
 <div class="network-popup">
-  <table class="vertitable" style="font-size: 80%">
+  <table class="vertitable">
     <caption>
-      {{ network.subedges|length }} link{{ network.subedges|length|pluralize }}</br>
+      {{ network.subedges|length }} link{{ network.subedges|length|pluralize }}<br>
       - combined data
     </caption>
     <tr><th>Capacity</th> <td>{{ network.capacity|floatformat:0 }} Mbps<td></tr>
@@ -11,7 +11,7 @@
 
   {% for sub in network.subedges %}
 
-  <table class="vertitable" style="font-size: 80%">
+  <table class="vertitable">
     <caption>{{ sub.netident }}</caption>
     <tr><th>Capacity</th>     <td>{{ sub.capacity|floatformat:0 }} Mbps</td></tr>
     <tr><th>Load in</th>      <td>{{ sub.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }}</td></tr>
