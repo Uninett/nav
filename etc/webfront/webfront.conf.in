@@ -66,6 +66,9 @@ lookupmethod=direct
 #
 #require_group = cn=noc-operators,cn=groups,dc=example,dc=com
 
+# Which character encoding to use when talking to the LDAP server
+#encoding=utf-8
+
 # Whether the underlying LDAP library should output debug information to
 # stderr.  If enabled, you will typically find this output in the Apache error
 # log.

@@ -27,7 +27,7 @@ class LegacyCleanupMiddleware(object):
         to avoid idling indefinitely in transactions.
 
         """
-        connections = (v.object for v in db._connectionCache.values())
+        connections = (v.object for v in db._connection_cache.values())
         for conn in connections:
             conn.rollback()
 

@@ -50,6 +50,9 @@ _LOGGER = logging.getLogger('nav.web.netmap')
 
 
 def _get_available_categories():
+    """Return a list of categories in NAV, and adding the fictive
+     ELINK category
+     """
     available_categories = list(Category.objects.all())
     available_categories.append(Category(id='ELINK', description='ELINK'))
     return available_categories

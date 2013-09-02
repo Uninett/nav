@@ -27,7 +27,7 @@ the foreground on the command line, logging all its activites to the
 standard output instead of the log file.
 
 snmptrapd must be started as root, as it will bind to the default SNMP
-Trap port (UDP port 162). It will drop privileges to the `|nav_user|`
+Trap port (UDP port 162). It will drop privileges to the `navcron`
 user as soon as the port is bound.
 
 

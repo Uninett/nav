@@ -19,7 +19,7 @@ import os
 import re
 import datetime
 from functools import wraps
-from itertools import chain, tee
+from itertools import chain, tee, ifilter
 
 import IPy
 
@@ -170,6 +170,17 @@ def splitby(predicate, iterable):
     predicated = ((v, predicate(v)) for v in iterable)
     iter1, iter2 = tee(predicated)
     return (v for (v, p) in iter1 if p), (v for (v, p) in iter2 if not p)
+
+
+def first_true(iterable, default=None, pred=None):
+    """Returns the first element of iterable that evaluates to True.
+
+    :param default: Default return value if none of the elements of iterable
+                    were true.
+    :param pred: Optional predicate function to evaluate the truthfulness of
+                 elements.
+    """
+    return next(ifilter(pred, iterable), default)
 
 
 class IPRange(object):
