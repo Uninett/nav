@@ -19,8 +19,6 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
 
     $(document).ready(function(){
-        NAV.addGlobalAjaxHandlers();
-
         var interfaceTable = $('#portadmin-interfacecontainer');
         var infoBox = $('#infobox');
 

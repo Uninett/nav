@@ -733,7 +733,6 @@ require(['libs/jquery', 'libs/jquery-json-2.2.min', 'libs/spin.min'], function (
 
 
     $(document).ready(function(){
-        NAV.addGlobalAjaxHandlers();
         $('#thresholdDescr').change(function(){
             threshold.removeMessages();
             var sval = $(this).val();
