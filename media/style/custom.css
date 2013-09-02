@@ -4,6 +4,15 @@ footer {
     font-size: 0.9em;
 }
 
+.foundation-form select {
+    background: transparent;
+    border: none;
+}
+
+.foundation-form .columns input[type=checkbox] {
+    vertical-align: middle;
+}
+
 .full-width {
     width: 100%;
 }
@@ -118,4 +127,17 @@ li.list-header {
 
 .alert-box ul, .error ul {
     margin-bottom: 0;
+}
+
+
+/* highlighting */
+
+.highlight {
+	background: #FFF7BC;
+}
+.highlight .highlight {
+	background: #FEE391;
+}
+.highlight .highlight .highlight {
+	background: #FEC44F;
 }
