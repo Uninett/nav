@@ -1,7 +1,5 @@
 require(['libs/jquery-ui-1.8.21.custom.min'], function () {
     $(function () {
-
-        NAV.addGlobalAjaxHandlers();
         var selected_tools = $('#selected_tools');
         var deselected_tools = $('#deselected_tools');
         var layoutimage = $('.display-layout');

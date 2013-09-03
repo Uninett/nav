@@ -18,8 +18,6 @@ require(
     function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper) {
         /* Run javascript at document ready */
         $(document).ready(function () {
-            NAV.addGlobalAjaxHandlers();
-
             if ($('#infotabs').length != 0) {
                 add_tabs();
                 add_navigation();
