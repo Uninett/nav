@@ -45,24 +45,6 @@ The :file:`htdocs/js/require_config.dev.js` is in the global Mercurial ignore
 list (file:`.hgignore`).
 
 
-Handling resources that require authentication
-----------------------------------------------
-
-A user's authenticated session may expire while viewing a NAV page with
-Javascript interactive elements. After a session expires,
-any attempt by Javascript code to issue an AJAX request for a protected
-resource on the NAV server will result in an HTTP *401 Unauthorized* response.
-
-You can have the user be automatically sent to the login form on such an event;
-make sure to initialize your Javascript app by calling:
-
-.. code-block:: javascript
-
-  NAV.addGlobalAjaxHandlers()
-
-which is put in the global ``NAV`` namespace by :file:`htdocs/js/default.js`
-
-
 Javascript testing
 ==================
 
