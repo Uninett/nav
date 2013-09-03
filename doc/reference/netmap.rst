@@ -1,84 +1,88 @@
-Netmap 
+======
+Netmap
 ======
 
-Netmap is a topological weather map and representation of ``NAV``'s knowledge
-about your network topology. 
+Netmap is a topological weather map and representation of NAV's knowledge
+of your network topology.
 
-``Before`` you continune reading this techinical documentation, ``we highly
-suggest`` you read the :doc:`/reference/javascript` introduction as Netmap is a
-``Javascript Application`` written in `Backbone <http://backbonejs.org>`_ and `D3JS
-<http://d3js.org/>`_ with `handlebars <http://handlebarsjs.com/>`_ handling
-templates with JavaScript.
+Before you continune reading this technical reference documentation, we highly
+suggest you read the :doc:`/reference/javascript` introduction.
 
-Please see :ref:`API` for how topology data is fetched.
+Netmap is a JavaScript application (with a Django backend to feed it with
+topology data), using `Backbone <http://backbonejs.org>`_, `D3.js
+<http://d3js.org/>`_ and `Handlebars <http://handlebarsjs.com/>`_.
 
-Netmap is located in :file:`/media/js/src/netmap` and bootstraped with
-`requirejs` from :file:`/media/js/src/netmap/main.js` which initializes the
-application (:file:`/media/js/src/netmap/app.js`).
+Please see :ref:`Netmap_API` for how topology data is fetched.
+
+Netmap is located in :file:`htdocs/js/src/netmap/` and bootstraped with
+RequireJS from :file:`htdocs/js/src/netmap/main.js`, which initializes the
+application (:file:`htdocs/js/src/netmap/app.js`).
 
 .. _Bootstrap:
 
 Bootstrapping
 -------------
 
-:file:`/media/js/src/netmap/main.js` does a few things when we're bootstrapping
-the application:
+:file:`htdocs/js/src/netmap/main.js` does a few things when bootstrapping the
+application:
 
-* Doing a `sanity test for Internet Explorer` to make sure it supports the
-  required features we're using (SVG!). This includes checking for **required
-  IE version** and if **DocumentMode is enabled** in the browser. Particular
-  the last setting might be disabled by system administrators and can be
-  confusing for user's to understand why Netmap doesn't work as inteded as
-  DocumentMode is required for SVG support. That's why we do the sanity test so
-  we can ``inform the user``. 
+* Runs a "sanity test" for Internet Explorer to make sure it supports the
+  required features we're using (:abbr:`SVG (Scalable Vector Graphics)`). This
+  includes verifying the *required IE version* and that *DocumentMode is
+  enabled* in the browser. 
 
-* Initializing the application ``shared resources`` which is **bootstrapped**
-  in backbone template :file:`/templates/netmap/backbone.html`.  (from django
-  :file:`/python/nav/web/netmap` (**urls.py**, **views.py**)). See :ref:`Resources`
+  Particularly, the last setting is required for SVG support, but it is
+  sometimes disabled by corporate system administrators, causing users to
+  become confused over why Netmap isn't working properly.
 
-* Global Netmap application configuration 
+* Initializes the application's *shared resources*, which is bootstrapped in
+  the backbone template :file:`templates/netmap/backbone.html`. (served by
+  :py:mod:`nav.web.netmap`). See :ref:`Netmap_Resources`.
+
+* Global Netmap application configuration.
   
-* Registering of ``Handlebars helpers`` (todo: refactor into it's own requirejs
+* Registers of Handlebars "helpers" (TODO: refactor into it's own RequireJS
   dependency)
 
-* Starting the ``router`` (takes care of HTML5 history) and loading rest of the
-  application
+* Starting the Backbone *router* (takes care of HTML5 history) and loading
+  rest of the application.
+
 
 Application flow
 ----------------
 
-Views `accessing and sharing` the same **model/collection** from
-:ref:`Resources` uses the ``events`` `(doc)
+Views accessing and sharing the same model or collection from
+:ref:`Netmap_Resources` uses the *events* `(doc)
 <http://backbonejs.org/#View-delegateEvents>`_ keymap defined in views for
 reacting on changes. Other views not sharing the same model/collection instance
-should use ``Backbone.EventBroker`` `(doc)
-<https://github.com/efeminella/backbone-eventbroker>`_ to **trigger**
-notifications for data which is required else where. Views can attach an
-**interests** hashmap in it's view for listening to a certain **trigger**.
+should use :code:`Backbone.EventBroker` `(doc)
+<https://github.com/efeminella/backbone-eventbroker>`_ to trigger
+notifications for data which is required elsewhere. A view can attach an
+code:`interests` hashmap for listening to a certain trigger.
 
-See :doc:`javascript` section :ref:`backbone_application_flow` for a more
-detailed introduction!
+See :ref:`backbone_application_flow` for a more detailed introduction!
 
-Application views 
+
+Application views
 -----------------
 
-Netmap has **3 main views**, each one for it's own section in the layout. These
-sections are as follow:
+Netmap has *3 main views*, one for each section in the UI layout. These
+sections are as follows:
 
-* :ref:`NavigationView` (the **left** side,
-  :file:`/media/js/src/netmap/views/navigation.js`)
+* :ref:`NavigationView` (the *left* side panel,
+  :file:`htdocs/js/src/netmap/views/navigation.js`)
  
-* :ref:`DrawNetmapView` (D3JS topology graph in **center**,
-  :file:`/media/js/src/netmap/views/draw_map.js`)
+* :ref:`DrawNetmapView` (D3.js topology graph in the *center* panel,
+  :file:`htdocs/js/src/netmap/views/draw_map.js`)
  
-* :ref:`InfoView` (the **right** side, *
-  :file:`/media/js/src/netmap/views/info.js`)
+* :ref:`InfoView` (the *right* side panel,
+  :file:`htdocs/js/src/netmap/views/info.js`)
 
-These three main views renders quite a few subviews which we call `widgets`.
-The main views also has the responsibility for plugging in
-:file:`/media/js/src/plugins/header_footer_minimize.js` which adds
-functionaility for toggling hiding of sideviews (:ref:`NavigationView` &
-:ref:`InfoView`) and NAV's header (``css: #header``).
+These three main views render quite a few subviews, which we call *widgets*.
+The main views also have the responsibility for plugging in
+:file:`htdocs/js/src/plugins/header_footer_minimize.js`, which enables
+toggling the visibility of the side panels (:ref:`NavigationView` &
+:ref:`InfoView`) and NAV's header (:code:`css: #header`).
 
 .. _NavigationView: 
 
@@ -87,69 +91,71 @@ NavigationView
 
 NavigationView contains the configuration widgets for:
 
-``Layer`` :file:`/media/js/src/netmap/views/layer_toggler.js`
+Layer (:file:`htdocs/js/src/netmap/views/layer_toggler.js`)
 
-  ``Layer`` widget allows the user to change between network topology
-  presentation in the `OSI model <http://en.wikipedia.org/wiki/OSI_model>`_. 
+  The *Layer* widget allows the user to switch between which topology layers,
+  either the VLAN topology map (Layer 2), or the IP topology map (Layer 3).
 
-  State is stored in ``activeMapProperties``, also see :ref:`Resources`.
+  State is stored in :js:data:`activeMapProperties`, also see
+  :ref:`Netmap_Resources`.
 
 
-``Categories`` :file:`/media/js/src/netmap/views/categories_toggler.js`
+Categories (:file:`htdocs/js/src/netmap/views/categories_toggler.js`)
 
-  ``Categories`` widget allows the user to filter between categories added in
-  NAV for which categories should be included in the :ref:`DrawNetmapView`
-  topology rendering. 
+  The *Categories* widget allows the user to filter the map contents based on
+  NAV device categories.
 
-  State is stored in ``activeMapProperties``, also see :ref:`Resources`.
+  State is stored in :js:data:`activeMapProperties`, also see
+  :ref:`Netmap_Resources`.
 
-``Orphans filter`` :file:`/media/js/src/netmap/views/orphans_toggler.js`
+Orphans filter (:file:`htdocs/js/src/netmap/views/orphans_toggler.js`)
  
- ``Orphans filter`` widget allows the user to toggle if single instance nodes
- (not being a neighbor with any other netbox in the topology graph) or not.
- This also triggers ``updateRenderCategories`` function in
+ The *Orphans filter* widget allows the user to toggle whether orphan nodes
+ should be displayed in the map.
+ This also triggers :js:func:`updateRenderCategories` function in
  :ref:`DrawNetmapView`.
 
- State is stored in ``activeMapProperties``, also see :ref:`Resources`.
+ State is stored in :js:data:`activeMapProperties`, also see
+ :ref:`Netmap_Resources`.
 
-``Position marker`` :file:`/media/js/src/netmap/views/position_toggler.js`
+Position marker (:file:`htdocs/js/src/netmap/views/position_toggler.js`)
   
-  ``Position marker`` widget has the ability for rendering a marker around
-  netboxes which are located in either the same **room** or same **location**. 
+  The *Position marker* widget allows the user to mark netboxes which are
+  located in either the same *room* or same *location*.
 
-  State is stored in ``activeMapProperties``, also see :ref:`Resources`.
+  State is stored in :js:data:`activeMapProperties`, also see
+  :ref:`Netmap_Resources`.
 
-``Force-Algorithm`` :file:`/media/js/src/netmap/views/algorithm_toggler.js`
+Force-Algorithm (:file:`htdocs/js/src/netmap/views/algorithm_toggler.js`)
 
-  ``Force-Algorithm`` widget contains controll for controlling the `D3JS force
-  <https://github.com/mbostock/d3/wiki/Force-Layout>`_. As of now you can
-  **pause** the topology graph or **fix** or **unfix** the **positions of all
-  nodes**. It also displays a status indicator if the force algorithm is
-  running or not. 
+  The *Force-Algorithm* widget contains controls to manipulate the `D3.js
+  force layout <https://github.com/mbostock/d3/wiki/Force-Layout>`_. As of
+  now, you can *pause* the topology graph or *fix*/*unfix* the positions of
+  all nodes. It also contains a force layout algorithm activity indicator.
 
-  Positions in topology graph is saved in ``GraphModel``
-  :file:`/media/js/src/netmap/models/graph`, see :ref:`TopologyGraph` for more
-  details.
+  Positions in topology graph is saved in :js:class:`GraphModel`
+  (:file:`htdocs/js/src/netmap/models/graph`), see :ref:`TopologyGraph` for
+  more details.
 
-``Topology errors``
-:file:`/media/js/src/netmap/views/topology_error_toggler.js`
+Topology errors (:file:`htdocs/js/src/netmap/views/topology_error_toggler.js`)
 
- ``Topology errors`` widget allows the user to control if topology errors
- detection should be rendered, like unmatched link speed of interfaces between
- the netboxes in :ref:`DrawNetmapView`. This is work in progress and later all
- the topology errors functions should be documented here.
+ The *Topology errors* widget allows the user to control whether detected
+ topology errors should be rendered. Typical errors include link speed
+ mismatches between connected interfaces. This is work in progress and later
+ all the topology errors functions should be documented here.
 
-``Mouseover`` :file:`/media/js/src/netmap/views/mouseover_toggler.js`
+Mouseover (:file:`htdocs/js/src/netmap/views/mouseover_toggler.js`)
 
- Mouseover widget enables a UI-option for «auto clicking» a **netbox** or
- **link** when hovering it in the topology graph (:ref:`DrawNetmapView`).
+ The *Mouseover* widget contains a UI-option for "auto-selecting" a Netbox or
+ a link when hovering over it in the topology graph (:ref:`DrawNetmapView`).
 
-``Traffic gradient`` :file:`/media/js/src/netmap/views/navigation.js` 
+Traffic gradient (:file:`htdocs/js/src/netmap/views/navigation.js`)
 
-  Currenlty no widget. It renders a button and adds a event listner which calls
-  ``onTrafficGradientClick``. This function basically fetches color mapping
-  scheme defined by an API call (see :ref:`API_TrafficLoad`) and renders a
-  modal done by :file:`/media/js/src/netmap/views/modal/traffic_gradient.js`.
+  Currenlty no widget. It renders a button and adds an event listner which
+  calls :js:func:`onTrafficGradientClick`. This function basically fetches the
+  color mapping scheme defined by an API call (see :ref:`API_TrafficLoad`) and
+  renders a modal done by
+  :file:`htdocs/js/src/netmap/views/modal/traffic_gradient.js`.
 
 
 .. _DrawNetmapView:
@@ -157,14 +163,14 @@ NavigationView contains the configuration widgets for:
 DrawNetmapView
 ^^^^^^^^^^^^^^
 
-It's job is to a render a topology graph using `D3JS Force-directed graph
+Its job is to a render a topology graph using `D3.js force-directed graph
 layout <https://github.com/mbostock/d3/wiki/Force-Layout>`_.
 
-The topology graph includes traffic/link-load metadata in the graph. If
-fetching a topology graph related to an **activeMapProperty** it might include
-``metadata for netbox positions`` in the graph. 
+The topology graph includes traffic/link-load metadata. If fetching a topology
+graph related to an :js:data:`activeMapProperty` it might include metadata for
+netbox positions in the graph.
 
-Network Topology with traffic data get's refreshed every X-minutes. See
+Network topology with traffic data is refreshed every X minutes. See
 :ref:`API_TopologyGraph` for details about how topology data is fetched.
 
 
@@ -175,63 +181,68 @@ InfoView
 
 InfoView contains the configuration widget for:
 
-``ListMapPropertiesView`` :file:`/media/js/src/netmap/views/list_maps.js`
+ListMapPropertiesView (:file:`htdocs/js/src/netmap/views/widgets/list_maps.js`)
 
- It's job is to ``render available saved mapProperties (user's views)`` and let
- the user **toggle** between the views, **updating** and **saving new** views. 
-  
- Saving a new view will ``popup`` the modal
- (:file:`/media/js/src/netmap/views/modal/save_new_map.js`) which contains the
- business logic for saving ``activeMapProperties``.
+  Its job is to render available saved :js:data:`mapProperties` (users' views)
+  and let the user toggle between the views, *updating* and *saving* new views.
 
- Saved ``activeMapProperties`` is pr. today:
+  Saving a new view will pop up` the modal
+  (:file:`/media/js/src/netmap/views/modal/save_new_map.js`) which contains the
+  UI for saving :js:data:`activeMapProperties`.
 
- * Selected toplogy layer to fetch topology graph for
-  
- * Selected categories (gsw,gs,sw…) to render in topology graph
-   
- * Orphans filter Fixed positions for netboxes in the topology graph (this
-   excludes netboxes of the type ELINK's!) as ELINK is not a valid category in
-   NAV yet…
+  Saved :js:data:`activeMapProperties` contains (as of this writing):
 
-``MapInfoView`` :file:`/media/js/src/netmap/views/map_info.js`
+  * The selected topology layer.
+
+  * The category filter selections.
+
+  * The orphans filter option.
+
+  * Fixed positions for netboxes in the topology graph
+
+    .. note:: This excludes netboxes of the type ELINK, as ELINK is not a 
+              valid category in NAV yet
+
+MapInfoView (:file:`htdocs/js/src/netmap/views/widgets/map_info.js`)
  
- It's job is to render required views/information which is related to actions
- done in :ref:`DrawNetmapView`. 
+  Its job is to render required views/information which is related to actions
+  done in :ref:`DrawNetmapView`.
 
- We currently are rendering information about **selected netbox/node** or
- **selected link** in the following widgets:
-  
- * NodeInfoView
-  
- * LinkInfoView
+  We currently render information about the selected netbox/node or
+  the selected link in the following widgets:
 
- These two widgets also renders the
- :file:`/media/js/src/netmap/views/info/vlan.js` which ``lists available
- VLANs`` and has business logic for telling :ref:`DrawNetmapView` to render the
- **selected VLAN** in our topology map. 
+  * NodeInfoView
 
-.. _Resources:
+  * LinkInfoView
+
+  These two widgets also render
+  :file:`htdocs/js/src/netmap/views/info/vlan.js`, which lists available
+  VLANs, and has business logic for telling :ref:`DrawNetmapView` to render the
+  selected VLAN in our topology map. 
+
+.. _Netmap_Resources:
 
 Resources
 ---------
 
-:file:`/media/js/src/netmap/resource.js` is acting as an ``internal application
-state storage``.
+:file:`htdocs/js/src/netmap/resource.js` acts as an "internal application
+state storage".
 
-Resources is :ref:`Bootstrap` from :file:`/media/js/src/netmap/app.js` which
-makes sure to initalize the ``Resources``. Resources fetches saved
-``mapProperties`` from ``#netmap_bootstrap_mapPropertiesCollection``. If
-:ref:`bootstrap` also contains data for current `favorite mapProperties(view)`,
-this get's updated for it's related ``activeMapProperties`` in the
-``mapProperties`` collection. 
+Resources are bootstrapped from :file:`htdocs/js/src/netmap/app.js`, which
+makes sure to initalize the Resources. Resources fetches saved
+:js:data:`mapProperties` from :code:`#netmap_bootstrap_mapPropertiesCollection`.
 
-If a View requires access to data stored in ``activeMapProperties``, it
-`should` fetch the active map properties by **getMapProperties**.
+If :ref:`bootstrap` also contains data for the current favorite
+:code:`mapProperties(view)`, this gets updated for its related 
+:js:data:`activeMapProperties` in the js:data:`mapProperties` collection. 
 
-Router (:file:`/media/js/src/netmap/router.js`) makes sure to call
-**setViewId** which basically makes sure to swap the ``activeMapProperties``
-when using the `router's navigation <http://backbonejs.org/#Router-navigate>`_
+If a View requires access to data stored in :js:data:`activeMapProperties`, it
+should fetch the active map properties using :js:func:`getMapProperties`.
+
+The Router (:file:`htdocs/js/src/netmap/router.js`) makes sure to call
+:js:func:`setViewId`, which basically makes sure to swap the 
+:js:data`activeMapProperties` when using the
+`router's navigation <http://backbonejs.org/#Router-navigate>`_
 function in Backbone. 
 
 
@@ -247,7 +258,7 @@ with metadata from :file:`/python/nav/netmap/metadata.py` and
 :file:`/python/nav/netmap/rrd.py`. 
 
 
-.. _API:
+.. _Netmap_API:
 
 API
 ---
