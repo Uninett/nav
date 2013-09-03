@@ -222,7 +222,7 @@ class NetboxGroupForm(forms.Form):
         queryset = kwargs.pop('queryset')
         super(NetboxGroupForm, self).__init__(*args, **kwargs)
         self.fields['netboxgroups'] = forms.ModelMultipleChoiceField(
-            queryset=queryset, required=False)
+            queryset=queryset, required=False, label='Device Groups')
 
 
 def get_netbox_group_form(netbox_id=None, post_data=None):
