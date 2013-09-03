@@ -158,17 +158,17 @@ Views `should` load it's required resources from the ``shared resource
 instance`` by using your defined getter functions for retreiving `fundemental
 resources`. 
 
-You `may` pass resources with **this.options** hashmap in the view's contructor,
-but be aware of the ``scary`` depedency injection that easily turns your
-JavaScript application into a mess. Using this approach requires you to
-**trigger** signals with ``Backbone.EventBroker`` and catching them in relevant
-views with **interests** hashmap!
+You `may` pass resources with :code:`this.options` hashmap in the view's
+contructor, but be aware of the *scary* depedency injection that easily turns
+your JavaScript application into a mess. Using this approach requires you to
+*trigger* signals with :code:`Backbone.EventBroker` and catching them in
+relevant views with *interests* hashmap.
 
-Backbone.EventBroker is `required` if you ``need`` **cross-application** or
-**cross-modules** (ie: from different backbone applications) to communicate with
-each other. This because it doesn't make sense to have a ``shared resource
-instance`` between cross-application / cross-modules. ``shared resource instance``
-fits only for a given/particular backbone application. 
+Backbone.EventBroker is **required** if you need *cross-application* or
+*cross-modules* (i.e.: from different backbone applications) to communicate
+with each other. This is because it doesn't make sense to have a *shared
+resource instance* between cross-application / cross-modules. *Shared resource
+instance* fits only for a given/particular backbone application.
 
 
 .. _BackboneBootstrapping:
@@ -176,59 +176,62 @@ fits only for a given/particular backbone application.
 Backbone Bootstrapping
 ----------------------
 
-Bootstrapping data `must` be done in the **base HTML template**.
+Bootstrapping data **must** be done in the *base HTML template*.
 
-We ``suggest`` you **prefix** your **DOM-element(s)** with
-``applicationName_bootstrap_`` and `relevant name` for what you are
+We suggest you prefix your DOM-element(s) with
+:code:`applicationName_bootstrap_` and and relevant name for what you are
 bootstrapping.
 
-Example from Netmap application:
+An example from the Netmap application:
 
-A list over saved **mapProperties** is bootstrapped under
-**#netmap_bootstrap_mapPropertiesCollection** which is a `Collection
-<http://backbonejs.org/#Collection>`_ of mapProperties that is used for
-**toggling** between user's saved ``mapProperties (views in Netmap)``.
+A list of saved :code:`mapProperties` is bootstrapped under
+:code:`#netmap_bootstrap_mapPropertiesCollection`. This is a `Collection
+<http://backbonejs.org/#Collection>`_ of :code:`mapProperties` which is used
+for toggling between a user's saved *map properties* (a.k.a *views* in
+Netmap).
 
 .. _BackboneTemplates:
 
 Backbone Templates
 ------------------
 
-We ``suggest`` to use :file:`/media/js/libs/handlebars.js` for working with
-views (MVC/MVP) in JavaScript. `Handlebars.js <http://handlebarsjs.com>`_ is a
-logicless templating system for making **semantic templates**
+We suggest using :file:`htdocs/js/libs/handlebars.js` for working with views
+(MVC/MVP) in JavaScript. `Handlebars.js <http://handlebarsjs.com>`_ is a
+system for building *semantic templates*.
 
-As in logicless templating system we mean that it ``only supports`` simple **for
-loops**, **if**, **unless** and rendering of **context variables** given to
-Handlebars. This makes templates easily to modify and work with, without
-unnecessary and complex logic that shouldn't take place in views.
+*Handlebars*' only logic constructs are simple *for loops*, *if* statements,
+*unless* statements and rendering of *context variables*. This makes templates
+easy to modify and work with, and keeps complex business logic away from your
+views, where it shouldn't be in the first place.
 
-Handlebars homepage has a quick `introduction <http://handlebarsjs.com/>`_ for
-how to use Handlebars.
+Handlebars' homepage has a `quick introduction <http://handlebarsjs.com/>`_ on
+how to use it.
 
-For more complex functionality, Handlebars supports for **registering** helpers.
+For more complex functionality, Handlebars supports for registering helpers.
 This is useful in certain situations.
 
-**Example**
-  **Context** contains a **list of persons's first names and last names**. A
-  helper for directly printing the ``fullName`` given the **firstName** and
-  **lastName** in the **context** would be useful.  Maybe it's also useful to
-  have a helper to always ``lowerCase`` the data in given **context variable**.
+An example:
+  :code:`context` contains a list of persons' first names and last names. A
+  helper for directly printing the :code:`fullName` given the
+  :code:`firstName` and :code:`lastName` in the :code:`context` would be
+  useful. Maybe it's also useful to have a helper to always lower-case the
+  data in a given context variable.
 
-  ``Please`` do remember that **views (MVC/MVP)** should contain as little
-  «*logic*» as possible! It's the **controllers** job to work with the data.
+  *Please* do remember that views should contain as little «*logic*» as
+  possible! It's the controller's job to implement the business logic.
 
-Templates ``should`` be stored with the **.html** suffix in the **applications
-view folder**. You ``should`` also store the template in same **hierarchy
-layout** as where the Backbone.View is saved.
+Templates *should* be stored with the :file:`*.html` suffix in the
+application's view directory. You *should* also used the same directory
+structure under :file:`templates/` to store the template as you are using to
+store your Backbone views under :file:`views/`.
 
 ::
 
-    |/media/js/src/BackboneApplicationName
-    |
-    |- ./views/widget/vlan.js
-    |- ...
-    |- ./templates/widget/vlan.html
+  htdocs/js/src/BackboneApplicationName
+  |
+  |-- views/widget/vlan.js
+  |-- ...
+  `-- templates/widget/vlan.html
 
 See :ref:`BackboneLayout` for an example of how the **layout** ``should`` be done. 
 
@@ -242,17 +245,17 @@ application:
 
 ::
 
-    PWD: /media/js/src/BackboneApplicationName
-    |./
-    |./collections/* (for your collections)
-    |./models/* (for your models used in your collections) 
-    |./views/
-    |./views/widgets/*
-    |./views/modals/* 
-    |./templates/
-    |./templates/widgets/*
-    |./templates/modals/* 
-    | … 
+    htdocs/js/src/BackboneApplicationName
+    |
+    |-- collections/* (for your collections)
+    |-- models/*      (for your models used in your collections) 
+    |-- views/
+    |   |-- widgets/*
+    |   `-- modals/* 
+    |-- templates/
+    |   |-- widgets/*
+    |   `-- modals/* 
+    `-- … 
 
 /views can also be structured in more logical sections according to what your
 application does if that's more natural. Just keep in mind that **widgets** and
