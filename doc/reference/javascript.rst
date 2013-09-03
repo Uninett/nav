@@ -25,7 +25,7 @@ dependencies. RequireJS provides a
 
 
 Avoiding caching
-----------------
+================
 
 We highly suggest you create :file:`htdocs/js/require_config.dev.js` and enable
 Django debug in :file:`etc/nav.conf` when developing.
@@ -62,38 +62,44 @@ only be global configuration files for *RequireJS*, *jshint*, etc.
 
 ::
 
-  extras/
-  geomap/
-  libs/
-  resources/
-  src/
-  test/
+  htdocs/js
+  |-- extras/
+  |-- geomap/
+  |-- libs/
+  |-- resources/
+  |-- src/
+  `-- test/
 
-:file:`htdocs/js/extras/` contains special dependencies and tools that are
-useful for JavaScript hacking, but which aren't necessarily implemented using
-JavaScript themselves. As of this writing there is only ``downloadify``, which
-adds support for a *save-as dialog* for asynchronous download requests made
-from JavaScript.
+:file:`extras/`
+  contains special dependencies and tools that are
+  useful for JavaScript hacking, but which aren't necessarily implemented using
+  JavaScript themselves. As of this writing there is only ``downloadify``, which
+  adds support for a *save-as dialog* for asynchronous download requests made
+  from JavaScript.
 
-:file:`htdocs/js/geomap/` contains JavaScript files related to geomap module in
-NAV.
+:file:`geomap/`
+  contains JavaScript files related to geomap module in NAV.
 
-:file:`htdocs/js/libs/` contains 3rd party libraries (both *AMD* and *non-AMD*
-libraries) which we use in NAV. **Make sure** you add the JavaScript as a
-shimmed library in :file:`htdocs/js/require_config.*.js` **if it is not** an
-*AMD* library.
+:file:`libs/` 
+  contains 3rd party libraries (both *AMD* and *non-AMD* libraries) which we
+  use in NAV. **Make sure** you add the JavaScript as a shimmed library in
+  :file:`htdocs/js/require_config.*.js` **if it is not** an *AMD* library.
 
-:file:`htdocs/js/resources/` contains resources that should be available under
-the Karma testing environment. :file:`htdocs/js/resources/libs/text.js` is such
-a module which is required to be available in such an environment to run tests
-with templates that get loaded using the *AMD* pattern.
+:file:`resources/` 
+  contains resources that should be available under the Karma testing
+  environment. :file:`htdocs/js/resources/libs/text.js` is such a module which
+  is required to be available in such an environment to run tests with
+  templates that get loaded using the *AMD* pattern.
 
-:file:`htdocs/js/src/` contains the source code to NAV modules which use
-*RequireJS* for dependency handling.
+:file:`src/`
+  contains the source code to NAV modules which use *RequireJS* for dependency
+  handling.
 
-:file:`htdocs/js/src/netmap/` is the **Netmap** Backbone application.
+:file:`src/netmap/`
+  is the **Netmap** Backbone application.
 
-:file:`htdocs/js/src/plugins/` contains re-usable JavaScript plugins.
+:file:`src/plugins/` 
+  contains re-usable JavaScript plugins.
 
 
 Hacking with `Backbone <http://backbonejs.org>`__
@@ -233,45 +239,42 @@ store your Backbone views under :file:`views/`.
   |-- ...
   `-- templates/widget/vlan.html
 
-See :ref:`BackboneLayout` for an example of how the **layout** ``should`` be done. 
+See :ref:`BackboneLayout` for an example of how the layout should be done. 
 
 .. _BackboneLayout:
 
-Backbone Layout:
-----------------
+Backbone Layout
+---------------
 
-We ``suggest`` to use this following **layout** to `structurize` your Backbone
-application:
+We suggest using the following layout to structure your Backbone application::
 
-::
+  htdocs/js/src/BackboneApplicationName
+  |
+  |-- collections/* (for your collections)
+  |-- models/*      (for your models used in your collections) 
+  |-- views/
+  |   |-- widgets/*
+  |   `-- modals/* 
+  |-- templates/
+  |   |-- widgets/*
+  |   `-- modals/* 
+  `-- … 
 
-    htdocs/js/src/BackboneApplicationName
-    |
-    |-- collections/* (for your collections)
-    |-- models/*      (for your models used in your collections) 
-    |-- views/
-    |   |-- widgets/*
-    |   `-- modals/* 
-    |-- templates/
-    |   |-- widgets/*
-    |   `-- modals/* 
-    `-- … 
+:file:`views/` can also be structured in more logical sections according to
+what your application does, if that's more natural. Just keep in mind that
+the keywords *widgets* and *modals* keywords are «*reserved*».
 
-/views can also be structured in more logical sections according to what your
-application does if that's more natural. Just keep in mind that **widgets** and
-**modals** keywords are «`reserved`».
-
-Widgets are reusable «`mini`» components that can be used in multiple placed
+Widgets are reusable «mini» components that can be used in multiple placed
 cross views.
 
-Modals are known to be «`popup` views» ref. jQuery land.
+Modals are known as «*popup* views» in *jQuery* land.
 
 
 Things you shouldn't do when hacking with Backbone
 --------------------------------------------------
 
 * Dependency injection will turn your Javascript application into a mess. One
-  of the strong sides with using Backbone is it's declarative event handling! 
+  of the strong sides of using Backbone is it's declarative event handling! 
 
-* View's shouldn't modiy contents outside their given `DOM-element
-  <http://backbonejs.org/#View-el>`_. (MVC/MVP…)
+* Views shouldn't modify contents outside their given `DOM-element
+  <http://backbonejs.org/#View-el>`_.
