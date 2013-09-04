@@ -2,88 +2,93 @@
 PyCharm
 =======
 
-Activate NAV developers is privileged to have access to an open source license
-for `PyCharm IDE <http://www.jetbrains.com/pycharm/>`_ by
-`Jetbrains <http://www.jetbrains.com>`_.
+`JetBrains PyCharm <http://www.jetbrains.com/pycharm/>`_ is a Python IDE with
+a complete set of tools for productive development with the Python programming
+language. In addition, the IDE provides high-class capabilities for
+professional Web development with Django framework.
 
-Obtaining the open source license
----------------------------------
+JetBrains has kindly issued an open source license to the NAV development
+project.
 
-Contact the project leader for NAV to verify your eligible for obtaining
-a copy of our open source license. As of today the project lead is Morten
-Brekkevold.
+Obtaining a copy of the open source license
+-------------------------------------------
 
-Install
--------
+Active NAV developers may be eligible to receive a copy of the open source
+license. The license must be renewed annually. Contact nav-support@uninett.no
+for inquiries.
 
-TODO: fix a screen cast ;-)
+Configuring PyCharm for use with NAV
+------------------------------------
 
-Fetch `PyCharm <http://www.jetbrains.com/pycharm/download/index.html>`_ and
-follow the instruction at their web page for installing PyCharm.
+Here are some tips for configuring PyCharm for efficient NAV development.
 
-After install we assume you are using the :doc:`/howto/vagrant` setup for
-installing NAV. Ensure this is done before you continue.
+Running unit tests automagically on code changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Click :menuselection:`Run --> Edit Configurations`:
 
-Running unit tests automagically on code change
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-In the configuration (nav-bar, left for the green RUN arrow), click edit run
-configurations):
-
-* Top left, + sign for adding a new run configuration
-* Select "Python's test" and "py.test" in the tree-view on the left side bar.
+* Click the **+** sign on the top left of the dialog to add a new run
+  configuration.
+* Select :menuselection:`Python tests --> py.test` in the appearing menu.
 
 Run configuration options should be the following:
 
-* Name: NAV UNIT TESTS
-* Target: $NAV-ROOT/tests/unittests
-* Ensure you set correct python interpreter
+:Name: NAV UNIT TESTS
+:Target: :file:`tests/unittests`
+:Python interpreter: Select the correct interpreter for your project.
+:Working directory: Set this to the root of your checked out source code.
 
-Either use the `Remote python interpreter` from `vagrant` or if you have
-installed the same virtualenv locally to make tests run faster.
+If you are developing using Vagrant, make sure to select a *remote Python
+interpreter* on your virtual Vagrant box, otherwise make sure you have all NAV
+dependencies available to your selected interpreter.
 
-Click save and apply.
+Click :guilabel:`Ok` to save your changes.
 
 Generate documentation
 ^^^^^^^^^^^^^^^^^^^^^^
 
-In the configuration (nav-bar, left for the green RUN arrow), click edit run
-configurations):
+Click :menuselection:`Run --> Edit Configurations`:
 
-* Top left, + sign for adding a new run configuration
-* Select "Python docs" and "Sphinx Task" in the tree-view on the left side bar.
+* Click the **+** sign on the top left of the dialog to add a new run
+  configuration.
+* Select :menuselection:`Python docs --> Sphinx task` in the appearing menu.
 
 Run configuration options should be the following:
 
-* Command: html
-* input: :file:`$NAV-ROOT/doc`
-* output: :file:`$NAV-ROOT/doc/html`
-* Ensure you set to use the Remote python interpreter from vagrant.
+:Name: Build NAV Sphinx docs
+:Command: html
+:input: :file:`doc`
+:output: :file:`doc/html`
+:Project interpreter: Select the correct interpreter for your project.
+:Working directory: Set this to the root of your checked out source code.
 
-After run you should be able to access the documentation under
-:file:`$NAV-ROOT/doc/html`.
+Click :guilabel:`Ok` to save your changes. After run the new Sphinx task, you
+should be able to access the documentation under :file:`doc/html` in your
+checkout.
 
 Karma integration
 ^^^^^^^^^^^^^^^^^
 
-Approach the ``File menu`` at `top left` of the IDE-window and goto
-``Settings.``
+.. NOTE:: The Karma plugin is only available under PyCharm 3.0 and later.
 
-Select ``Install Jetbrains plugin`` and select ``Karma`` in the list.
+Select :menuselection:`File --> Settings` from the menu. Go to
+:guilabel:`Plugins` under :guilabel:`IDE Settings` and click the
+:guilabel:`Install Jetbrains plugin` button.
 
-Apply. A restart of the IDE might be necessary.
+Select and install the *Karma* plugin from the list. A restart of the IDE
+might be necessary.
 
-In the run configuration (nav-bar, left for the green RUN arrow), click edit run
-configurations):
+Click :menuselection:`Run --> Edit Configurations`:
 
-* Top left, + sign for adding a new run configuration
-* Select "Karma" in the tree-view on the left side bar.
+* Click the **+** sign on the top left of the dialog to add a new run
+  configuration.
+* Select :menuselection:`Karma` in the appearing menu.
 
 Run configuration options should be the following:
 
-* Node.js iterpreter should point to node binary. ie: /opt/node/bin/node
-* Karma Node.js package: $NAV-ROOT/htdocs/js/node_modules/karma
-* Configuration file: $NAV-ROOT/htdocs/js/test/karma.conf.js
+:Node.js interpreter: should point to wherever your :program:`node` binary is
+                      installed.
+:Karma Node.js package: :file:`{NAV_ROOT}/htdocs/js/node_modules/karma`
+:Configuration file: :file:`{NAV_ROOT}/htdocs/js/test/karma.conf.js`
 
-Now you can run both tests and tests with coverage.
+Now you should be able to run both tests and tests with coverage.
