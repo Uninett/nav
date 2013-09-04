@@ -2,6 +2,8 @@ define(['libs/jquery'], function () {
 
     function MultipleSelect() {
         this.container = $('.multiple-select-container');
+        this.form = this.container.parents('form:first');
+        this.addSubmitHandler();
         this.choiceNodeSelector = '.multiple-select-choices';
         this.initialNodeSelector = '.multiple-select-initial';
         this.choiceNode = $(this.choiceNodeSelector).find('select');
@@ -65,6 +67,12 @@ define(['libs/jquery'], function () {
             for (var i=0; i<values.length; i++) {
                 $node.append($('<option/>').val(values[i][0]).html(values[i][1]));
             }
+        },
+        addSubmitHandler: function () {
+            var self = this;
+            this.form.submit(function () {
+                self.initialNode.find('option').prop('selected', true);
+            });
         }
     };
 
