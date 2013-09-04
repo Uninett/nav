@@ -1,0 +1,15 @@
+{% extends "info/netboxgroup/base.html" %}
+
+{% block base_content %}
+
+    <h2>Edit devices in {{ netboxgroup.pk }}</h2>
+
+    {% block netboxgroup_content %}
+        <form action="" method="POST" class="netboxgroup">
+            {{ netboxform }}
+            <input type="submit" value="Save">
+        </form>
+
+    {% endblock %}
+
+{% endblock %}

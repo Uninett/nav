@@ -1,0 +1,26 @@
+.netboxgroup {
+    display: inline-block;
+    margin-right: 20px;
+    vertical-align: top;
+    width: 200px;
+}
+
+.netboxgroup li {
+    list-style-type: none;
+    margin-left: 0;
+}
+
+.netboxgroup li.list-heading {
+    border-bottom: 1px solid gray;
+    font-weight: bold;
+}
+
+.netboxgroup li.list-heading a {
+    float: right;
+}
+
+/* The multiple select for editing groups */
+#id_netboxes {
+    height: 500px;
+    width: 300px;
+}
