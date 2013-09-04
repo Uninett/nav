@@ -251,11 +251,11 @@ function in Backbone.
 TopologyGraph
 -------------
 
-We use NAV internal topology builder (:file:`/python/nav/topology/vlans.py`) to
-build a basic NetworkX topology graph and data goes thru
-:file:`/python/nav/netmap/topology.py` to extend the NetworkX topology graph
-with metadata from :file:`/python/nav/netmap/metadata.py` and
-:file:`/python/nav/netmap/rrd.py`. 
+NAV's internal topology builder (:py:mod:`nav.topology.vlans`) is used to
+build a basic *NetworkX* topology graph.
+:py:mod:`nav.netmap.topology` is used to extend this NetworkX topology graph
+with metadata from :py:mod:`nav.netmap.metadata` and traffic load data from
+:py:mod:`nav.netmap.rrd`. 
 
 
 .. _Netmap_API:
@@ -263,8 +263,9 @@ with metadata from :file:`/python/nav/netmap/metadata.py` and
 API
 ---
 
-Available «views» are mapped in :file:`/python/nav/web/netmap/urls.py` under
-the ``api/`` prefix. Currently it only returns data as ``application/json``.
+Available backend views are mapped in :py:mod:`nav.web.netmap.urls` under the
+``api/`` URL prefix. Currently it only returns data as
+:mimetype:`application/json`.
 
 See :ref:`TopologyGraph` section above for details about how the topology is
 crafted. 
@@ -276,40 +277,44 @@ See below for data you are able to fetch via API:
 API: TopologyGraph
 ^^^^^^^^^^^^^^^^^^
 
-* **api/graph/layer2$** returns a topology graph representation of ``layer 2``
-  in the OSI model with traffic/link-load metadata attached to it. 
+These external URLs are available to retrieve map data from NAV:
 
-* **api/graph/layer2/<viewId>$** Same as above, only it will include metadata
-  for netbox positions if there is any fixed positions saved. 
+``api/graph/layer2``
+  returns a topology graph representation of ``layer 2`` in the OSI model with
+  traffic/link-load metadata attached to it.
 
-* **api/graph/layer3$** returns a topology graph representation of ``layer 3``
-  in the OSI model with traffic/link-load metadata attached to it. 
+``api/graph/layer2/<viewId>``
+  Same as above, only it will include metadata for netbox positions if there
+  is any fixed positions saved.
 
-* **api/graph/layer3/<viewId>$** Same as above, only it will include metadata
-  for netbox positions if there is any fixed positions saved.
+``api/graph/layer3``
+  returns a topology graph representation of ``layer 3`` in the OSI model with
+  traffic/link-load metadata attached to it.
 
-Example of layer2 JSON representation:
+``api/graph/layer3/<viewId>``
+  Same as above, only it will include metadata for netbox positions if there
+  is any fixed positions saved.
 
-::
+Example of a layer2 JSON representation:
+
+.. code-block:: json
 
     {
-    "vlans": {
-        "136": {
-            "nav_vlan": 136,
-            "net_ident": "labnett",
-            "vlan": 22,
-            "description": "experimental"
+        "vlans": {
+            "136": {
+                "nav_vlan": 136,
+                "net_ident": "labnett",
+                "vlan": 22,
+                "description": "experimental"
+            },
+            "139": {
+                "nav_vlan": 139,
+                "net_ident": "awesomeness",
+                "vlan": 42,
+                "description": "foo"
+            }
         },
-        "139": {
-            "nav_vlan": 139,
-            "net_ident": "awesomeness",
-            "vlan": 42,
-            "description": "foo"
-        },
-        // more vlans ...
-    },
-    "nodes":
-        {
+        "nodes": {
             "1": {
                 "ip": "192.168.0.9",
                 "vlans": null,
@@ -326,154 +331,147 @@ Example of layer2 JSON representation:
                 "is_elink_node": false,
                 "roomid": "lab-nonexistent"
             },
+            "3": {
+                "ip": "192.168.20.3",
+                "vlans": [
+                    "nav_vlan_id",
+                    "nav_vlanid"
+                ],
+                "id": "3",
+                "category": "GW",
+                "sysname": "lab-nonexistent-gw2.example.com",
+                "room": "lab-nonexistent (None)",
+                "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw2.example.com/",
+                "up": "y",
+                "up_image": "green.png",
+                "locationid": "norge",
+                "location": "Norge",
+                "position": null,
+                "is_elink_node": false,
+                "roomid": "lab-nonexistent"
+            }
+        },
+        "links": [
             {
-                "3": {
-                    "ip": "192.168.20.3",
-                    "vlans": [nav_vlan_id, nav_vlanid],
-                    "id": "3",
-                    "category": "GW",
-                    "sysname": "lab-nonexistent-gw2.example.com",
-                    "room": "lab-nonexistent (None)",
-                    "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw2.example.com/",
-                    "up": "y",
-                    "up_image": "green.png",
-                    "locationid": "norge",
-                    "location": "Norge",
-                    "position": null,
-                    "is_elink_node": false,
-                    "roomid": "lab-nonexistent"
-                },
-            # Multiple more nodes....
-            # ...
-            # ...
-        },
-    }, // nodes
-    "links": [
-        {
-            "source": "1",
-            "vlans":  [
-                136,
-                139,
-                141,
-            ],
-            "target": "3",
-            "edges":  [
-                {
-                    "source":     {
-                        "interface": {
-                            "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw4.example.com/ifname=Gi1/31/",
-                            "ifname":         "Gi1/31"
-                        },
-                        "netbox":    "1",
-                        "vlans":     []
-                    },
-                    "link_speed": 1000,
-                    "vlans":      [],
-                    "traffic":    {
+                "source": "1",
+                "vlans": [
+                    136,
+                    139,
+                    141
+                ],
+                "target": "3",
+                "edges": [
+                    {
                         "source": {
-                            "rrd":              {
-                                "raw":         940.472009,
-                                "name":        "ds0",
-                                "description": "ifHCInOctets"
+                            "interface": {
+                                "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw4.example.com/ifname=Gi1/31/",
+                                "ifname": "Gi1/31"
                             },
-                            "load_in_percent":  0.0007523776072,
-                            "percent_by_speed": "0.00",
-                            "css":              [
-                                22,
-                                255,
-                                0
-                            ],
-                            "name":             "ifHCInOctets"
+                            "netbox": "1",
+                            "vlans": []
+                        },
+                        "link_speed": 1000,
+                        "vlans": [],
+                        "traffic": {
+                            "source": {
+                                "rrd": {
+                                    "raw": 940.472009,
+                                    "name": "ds0",
+                                    "description": "ifHCInOctets"
+                                },
+                                "load_in_percent": 0.0007523776072,
+                                "percent_by_speed": "0.00",
+                                "css": [
+                                    22,
+                                    255,
+                                    0
+                                ],
+                                "name": "ifHCInOctets"
+                            },
+                            "target": {
+                                "rrd": {
+                                    "raw": 8283.235853,
+                                    "name": "ds1",
+                                    "description": "ifHCOutOctets"
+                                },
+                                "load_in_percent": 0.0066265886824,
+                                "percent_by_speed": "0.01",
+                                "css": [
+                                    22,
+                                    255,
+                                    0
+                                ],
+                                "name": "ifHCOutOctets"
+                            }
                         },
                         "target": {
-                            "rrd":              {
-                                "raw":         8283.235853,
-                                "name":        "ds1",
-                                "description": "ifHCOutOctets"
+                            "interface": {
+                                "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw2.example.com/ifname=Gi4/24/",
+                                "ifname": "Gi4/24"
                             },
-                            "load_in_percent":  0.0066265886824,
-                            "percent_by_speed": "0.01",
-                            "css":              [
-                                22,
-                                255,
-                                0
-                            ],
-                            "name":             "ifHCOutOctets"
+                            "netbox": "3",
+                            "vlans": []
                         }
                     },
-                    "target":     {
-                        "interface": {
-                            "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw2.example.com/ifname=Gi4/24/",
-                            "ifname":         "Gi4/24"
-                        },
-                        "netbox":    "3",
-                        "vlans":     []
-                    }
-                },
-                {
-                    "source":     {
-                        "interface": {
-                            "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw4.example.com/ifname=Po2/",
-                            "ifname":         "Po2"
-                        },
-                        "netbox":    "1",
-                        "vlans":     [
-                        ]
-                    },
-                    "link_speed": 3000,
-                    "vlans":      [
-                        136,
-                        139,
-                        141,
-                    ],
-                    "traffic":    {
+                    {
                         "source": {
-                            "rrd":              {
-                                "raw":         17106.277051,
-                                "name":        "ds0",
-                                "description": "ifHCInOctets"
+                            "interface": {
+                                "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw4.example.com/ifname=Po2/",
+                                "ifname": "Po2"
                             },
-                            "load_in_percent":  0.0045616738802666664,
-                            "percent_by_speed": "0.00",
-                            "css":              [
-                                22,
-                                255,
-                                0
-                            ],
-                            "name":             "ifHCInOctets"
+                            "netbox": "1",
+                            "vlans": []
+                        },
+                        "link_speed": 3000,
+                        "vlans": [
+                            136,
+                            139,
+                            141
+                        ],
+                        "traffic": {
+                            "source": {
+                                "rrd": {
+                                    "raw": 17106.277051,
+                                    "name": "ds0",
+                                    "description": "ifHCInOctets"
+                                },
+                                "load_in_percent": 0.0045616738802666664,
+                                "percent_by_speed": "0.00",
+                                "css": [
+                                    22,
+                                    255,
+                                    0
+                                ],
+                                "name": "ifHCInOctets"
+                            },
+                            "target": {
+                                "rrd": {
+                                    "raw": 1998.513284,
+                                    "name": "ds1",
+                                    "description": "ifHCOutOctets"
+                                },
+                                "load_in_percent": 0.0005329368757333334,
+                                "percent_by_speed": "0.00",
+                                "css": [
+                                    22,
+                                    255,
+                                    0
+                                ],
+                                "name": "ifHCOutOctets"
+                            }
                         },
                         "target": {
-                            "rrd":              {
-                                "raw":         1998.513284,
-                                "name":        "ds1",
-                                "description": "ifHCOutOctets"
+                            "interface": {
+                                "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw2.example.com/ifname=Po2/",
+                                "ifname": "Po2"
                             },
-                            "load_in_percent":  0.0005329368757333334,
-                            "percent_by_speed": "0.00",
-                            "css":              [
-                                22,
-                                255,
-                                0
-                            ],
-                            "name":             "ifHCOutOctets"
+                            "netbox": "3",
+                            "vlans": []
                         }
-                    },
-                    "target":     {
-                        "interface": {
-                            "ipdevinfo_link": "/ipdevinfo/lab-nonexistent-gw2.example.com/ifname=Po2/",
-                            "ifname":         "Po2"
-                        },
-                        "netbox":    "3",
-                        "vlans":     [
-                        ]
                     }
-                }
-            ]
-        },
-        # Multiple more links... (edges in graph)
-        # ...
-        # ...
-    ] # /links
+                ]
+            }
+        ]
     }
 
 .. _API_MapProperties:
@@ -481,19 +479,22 @@ Example of layer2 JSON representation:
 API: MapProperties
 ^^^^^^^^^^^^^^^^^^
 
-* **api/netmap$** returns a collection over ``mapProperties`` which is used for
-  toggling between saved ``mapProperties`` (views)
+``api/netmap``
+  returns a collection of ``mapProperties`` which is used for toggling between
+  saved ``mapProperties`` (views)
 
-* **api/netmap/defaultview$** * returns the ``viewId`` (id for a mapProperties)
-  for the global favorite * ``mapProperties`` if administrator has set one.
+``api/netmap/defaultview``
+  returns the ``viewId`` (id for a mapProperties) for the global favorite
+  ``mapProperties``, if the administrator has set one.
 
-* **api/netmap/defaultview/user$** returns the ``viewId`` for user's favorite *
-  ``mapProperties`` if user has one.
+``api/netmap/defaultview/user``
+  returns the ``viewId`` for user's favorite ``mapProperties``, if the user
+  has one.
 
-Example of a saved view that tells it to load a **layer2** graph, and it's view
-is ``available`` for everyone since **it is public** and has the ``categories``: **SW**,
-**OTHER** and **ELINK** checked and ``visible`` in the view.
-::
+Here is an example of a *public*, saved *layer 2* view, which includes the
+categories **SW**, **OTHER** and **ELINK**:
+
+.. code-block:: json
 
     {
         "display_orphans": false,
@@ -517,11 +518,11 @@ is ``available`` for everyone since **it is public** and has the ``categories``:
 API: No category
 ^^^^^^^^^^^^^^^^
 
-* **api/traffic_load_gradient$** List of RGB values to ranging from 0 to
-  100% to be used for displaying link load. List[index] gives RGB values for
-  index%.
+``api/traffic_load_gradient``
+  Returns a list of 101 RGB color values representing a load range of 0 to
+  100%.  List[index] gives RGB values for index%.
 
-::
+.. code-block:: javascript
 
     [
         {
@@ -542,4 +543,4 @@ API: No category
     ....
     ]
 
-    # for 0 and up to 100 (for every percent)
+    // for 0 and up to 100 (for every percent)
