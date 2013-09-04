@@ -19,8 +19,19 @@
     float: right;
 }
 
-/* The multiple select for editing groups */
-#id_netboxes {
-    height: 500px;
+
+/* Styles for the multiple select component - to be moved */
+
+.multiple-select-container {
+    overflow: auto;
+}
+
+.multiple-select-container > div {
+    float: left;
+}
+
+.multiple-select-container select {
+    height: 200px;
     width: 300px;
 }
+

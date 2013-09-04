@@ -15,11 +15,11 @@
 #
 """Views for the netbox groups"""
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.db.models import Q
 
-from nav.web.info.netboxgroup.forms import NetboxGroupForm, NetboxSelectForm
-from nav.models.manage import NetboxGroup, Netbox
+from nav.web.info.netboxgroup.forms import NetboxGroupForm
+from nav.models.manage import NetboxGroup, Netbox, NetboxCategory
 
 
 def index(request):
@@ -50,12 +50,46 @@ def index(request):
 
 
 def edit_group(request, groupid):
+    """Renders the view for editing device groups
+
+    :param request:
+    :type request: django.http.HttpRequest
+
+    """
     group = NetboxGroup.objects.get(pk=groupid)
-    netboxform = NetboxSelectForm()
-    netboxform.fields['netboxes'].choices = [(x.pk, x.sysname) for x in
-                                             Netbox.objects.all()]
-    netboxform.fields['netboxes'].initial = [x.pk for x in
-                                             group.netbox_set.all()]
+
+    if request.method == 'POST':
+        return handle_edit_request(request, group)
+
+    netboxes = Netbox.objects.exclude(
+        pk__in=group.netbox_set.all().values_list('id', flat=True))
 
     return render(request, 'info/netboxgroup/edit_group.html',
-                  {'netboxgroup': group, 'netboxform': netboxform})
+                  {'netboxgroup': group, 'netboxes': netboxes})
+
+
+def handle_edit_request(request, group):
+    """Store new netbox categories and remove old ones
+
+    :param group:
+    :type group: nav.models.manage.NetboxGroup
+
+    :param request:
+    :type request: django.http.HttpRequest
+
+    """
+    netboxids = [int(x) for x in request.POST.getlist('netboxes')]
+
+    # Delete existing netboxcategories that are not in request
+    NetboxCategory.objects.filter(category=group).exclude(
+        netbox__pk__in=netboxids).delete()
+
+    # Add new netboxcategories that are in request
+    for netboxid in netboxids:
+        try:
+            NetboxCategory.objects.get(category=group, netbox__pk=netboxid)
+        except NetboxCategory.DoesNotExist:
+            netbox = Netbox.objects.get(pk=netboxid)
+            NetboxCategory.objects.create(category=group, netbox=netbox)
+
+    return redirect('netbox-group')

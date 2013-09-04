@@ -17,7 +17,6 @@
 
 
 from django import forms
-from nav.models.manage import NetboxCategory
 
 
 class NetboxGroupForm(forms.Form):
@@ -28,10 +27,3 @@ class NetboxGroupForm(forms.Form):
     def clean_query(self):
         """Returns a cleaned version of the searchstring"""
         return self.cleaned_data['query'].strip()
-
-
-class NetboxSelectForm(forms.Form):
-    """Form for adding and removing netboxes from a group"""
-
-    netboxes = forms.MultipleChoiceField(label='',
-                                         widget=forms.CheckboxSelectMultiple)
