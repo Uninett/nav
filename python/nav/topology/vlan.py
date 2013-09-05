@@ -455,6 +455,7 @@ def build_layer3_graph(related_extra=None):
                     else:
                         fictive_netbox.sysname = "%s, ???" % unicode(gwportprefixes[0].interface.netbox)
                     fictive_netbox.category_id = 'elink'
+                    fictive_netbox.id = fictive_netbox.sysname
 
 
                     fictive_interface = stubs.Interface()

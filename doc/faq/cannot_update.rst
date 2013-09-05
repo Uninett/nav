@@ -93,9 +93,9 @@ the correct rrd-file::
   
   cd $NAVPATH/lib/python/nav/rrd/
   # To add a datasource
-  sudo -u |nav_user| ./rrdtool_utils.py -f /path/to/target.rrd -a ds0
+  sudo -u navcron ./rrdtool_utils.py -f /path/to/target.rrd -a ds0
   # To remove a datasource
-  sudo -u |nav_user| ./rrdtool_utils.py -f /path/to/target.rrd -r ds0
+  sudo -u navcron ./rrdtool_utils.py -f /path/to/target.rrd -r ds0
 
 After this is done everything should be ok. Great! If not, feel free to ask for
 help on irc or email.

@@ -44,7 +44,6 @@ require([
     };
 
     $(document).ready(function () {
-        NAV.addGlobalAjaxHandlers();
         if ($(mainTabsSelector).length != 0) {
             addMainTabs();
         }

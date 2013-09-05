@@ -1,147 +1,69 @@
 define([
+    'netmap/views/widget_mixin',
     'plugins/netmap-extras',
     'libs-amd/text!netmap/templates/navigation.html',
-    'netmap/collections/traffic_gradient',
-    'netmap/views/modal/traffic_gradient',
-    'netmap/views/algorithm_toggler',
+    'netmap/views/widgets/searchbox',
+    'netmap/views/navigation_filters_options',
+    'netmap/views/navigation_others',
     'libs/handlebars',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (NetmapHelpers, netmapTemplate, TrafficGradientCollection, TrafficGradientView, AlgorithmView) {
+], function (WidgetMixin, NetmapHelpers, netmapTemplate, SearchView, FiltersOptionsContainerView, OthersContainerView) {
 
-    var NavigationView = Backbone.View.extend({
+    var NavigationView = Backbone.View.extend(_.extend({}, WidgetMixin, {
         broker: Backbone.EventBroker,
         interests: {
             'headerFooterMinimize:trigger': 'headerFooterMinimizeRequest',
-            'map:loading:done': 'eventLoadingDone'
+            "netmap:graph:isDoneLoading": "setIsViewEnabled"
         },
         events: {
-            'click #toggle_view':      'toggleView',
-            'click input[name="topology[]"]': 'onTopologyClick',
-            'click input[name="categories[]"]': 'onCheckboxLayerClick',
-            'click input[name="filter_orphans"]': 'onFilterOrphansClick',
-            'click input[name="group_position[]"]': 'onGroupByPositionClick',
-            'click input[name="mouseOver[]"]': 'onUIMouseOverClick',
-            'click input[name="topologyErrors"]': 'onUITopologyErrorsClick',
-            'click input[name="nodesFixed"]': 'onNodesFixedClick',
-            'click input[name="trafficGradient"]': 'onTrafficGradientClick'
+            'click #toggle_view':      'toggleView'
         },
         initialize: function () {
-            this.gradientView = null;
             this.isContentVisible = true;
             this.broker.register(this);
 
-            _.bindAll(this, 'on_keypress');
-            $(document).bind('keypress', this.on_keypress);
-
             this.template = Handlebars.compile(netmapTemplate);
-
-            // Registers Handlebars helpers
-
-            Handlebars.registerHelper('eachkeys', function(context, options) {
-                var fn = options.fn, inverse = options.inverse;
-                var ret = "";
-
-                var empty = true;
-                for (key in context) { empty = false; break; }
-
-                if (!empty) {
-                    for (key in context) {
-                        ret = ret + fn({ 'key': key, 'value': context[key]});
-                    }
-                } else {
-                    ret = inverse(this);
-                }
-                return ret;
-            });
-            Handlebars.registerHelper('ifequal', function (val1, val2, fn, elseFn) {
-                if (val1 === val2) {
-                    return fn();
-                }
-                else if (elseFn) {
-                    return elseFn();
-                }
-            });
-
-            // Bindings
-
-            this.model.bind("change", this.render, this);
-            this.model.bind("destroy", this.close, this);
-
-            this.context = {
-                'link_types': {
-                    'layer2':  false,
-                    'layer3':  false
-                },
-                // eew, should get available categories from app context somehow
-                // ie, load categories list on app start..
-                'categories': {
-                    'GSW':   false,
-                    'GW':    false,
-                    'SW':    false,
-                    'OTHER': false,
-                    'WLAN':  false,
-                    'SRV':   false,
-                    'EDGE':  false,
-                    'ELINK': false
-                },
-                'specific_filters': {
-                    'position': {
-                        'none':     false,
-                        'room':     false,
-                        'location': false
-                    },
-                    'filter_orphans': false
-                },
-                'ui': {
-                    'mouseover': {
-                        'nodes': { state: false, hotkey: 'n' },
-                        'links': { state: false, hotkey: 'l' }
-                    },
-                    'topology_errors': false,
-                    'freezeNodes': false
-                }
-            };
-            this.isLoading = !!(this.options.isLoading);
-
-
         },
-        eventLoadingDone: function () {
-            this.isLoading = false;
+        setIsViewEnabled: function (boolValue) {
+            this.isViewEnabled = boolValue;
             this.render();
         },
         render: function () {
-            var self = this;
-
-            this.context.categories = {
-                'GSW':   false,
-                'GW':    false,
-                'SW':    false,
-                'OTHER': false,
-                'WLAN':  false,
-                'SRV':   false,
-                'EDGE':  false,
-                'ELINK': false
-            };
-            for (var i = 0; i < this.model.attributes.categories.length; i++) {
-                var category = this.model.attributes.categories[i];
-                this.context.categories[category] = true;
-            }
-            this.context.specific_filters.filter_orphans = !this.model.attributes.display_orphans;
-            this.context.link_types[NetmapHelpers.topology_id_to_topology_link(this.model.attributes.topology)] = true;
-
-            var out = this.template({ model: this.context, isVisible: this.isContentVisible, isLoading: this.isLoading });
+            var out = this.template({ isVisible: this.isContentVisible, isViewEnabled: this.isViewEnabled });
             this.$el.html(out);
 
-            new AlgorithmView({el: $('#algorithm_view', this.$el)}).render();
+            this.searchWidget = this.attachSubView(this.searchWidget,
+                SearchView,
+                {
+                    el: '#search_view',
+                    isWidgetCollapsible: true,
+                    isWidgetVisible: true
+                }
+            );
+
+            this.containerFilterOptions = this.attachSubView(this.containerFilterOptions,
+                FiltersOptionsContainerView,
+                {
+                    el: '#widget_container_filter_options',
+                    isWidgetCollapsible: true
+                }
+            );
+            this.containerOthers = this.attachSubView(this.containerOthers,
+                OthersContainerView,
+                {
+                    el: '#widget_container_others',
+                    isWidgetCollapsible: true
+                }
+            );
 
             return this;
         },
         alignView: function () {
-            var $helper = $(this.$el.parent());
-            var $helper_content = $(".inner_wrap.left_sidebar");
+            var $helper = $(this.$el);
+            var $helper_content = $(".inner_wrap.left_sidebar", this.$el);
 
             var margin;
 
@@ -174,102 +96,14 @@ define([
         toggleView: function (e) {
             this.isContentVisible = !this.isContentVisible;
             var margin = this.alignView();
-            this.broker.trigger('map:resize:animate', {marginLeft: margin});
-        },
-        onTopologyClick: function (e) {
-            this.isLoading = true;
-            e.stopPropagation();
-
-            this.model.set({topology: NetmapHelpers.topology_link_to_id($(e.currentTarget).val())});
-            this.broker.trigger('map:topology_change', this.model.get('topology'));
-        },
-        onCheckboxLayerClick: function (e) {
-            // jQuery<=1.6
-            var categories = this.model.get('categories');
-            if (!$(e.currentTarget).prop('checked')) {
-                for (var i = 0; i < categories.length; i++) {
-                    var category = categories[i];
-                    if (category.toLowerCase() === $(e.currentTarget).val().toLowerCase()) {
-                        categories.splice(i, 1);
-                        break;
-                    }
-                }
-            } else {
-                categories.push($(e.currentTarget).val());
-            }
-            this.model.set({ categories: categories});
-
-            this.broker.trigger('map:redraw');
-        },
-        onFilterOrphansClick: function (e) {
-            this.broker.trigger('map:redraw', {
-                filter_orphans: $(e.currentTarget).prop('checked')
-            });
-        },
-        onGroupByPositionClick: function (e) {
-            e.stopPropagation();
-            var val = $(e.currentTarget).val().trim();
-
-            // haha…  here there be dragons. Cute shoulder dragons
-            this.context.specific_filters.position.location = false;
-            this.context.specific_filters.position.room = false;
-            this.context.specific_filters.position.none = false;
-            this.context.specific_filters.position[val] = true;
-            this.broker.trigger('map:redraw', {
-                groupby_position: val
-            });
-        },
-        onUIMouseOverClick: function (e) {
-            this.context.ui.mouseover[$(e.currentTarget).val()].state = $(e.currentTarget).prop('checked');
-            this.broker.trigger('map:ui:mouseover:'+$(e.currentTarget).val(), $(e.currentTarget).prop('checked'));
-            //this.render();
-        },
-        onUITopologyErrorsClick: function (e) {
-            this.context.ui.topology_errors = $(e.currentTarget).prop('checked');
-            this.broker.trigger('map:redraw', {
-                topologyErrors: $(e.currentTarget).prop('checked')
-            });
-        },
-        onNodesFixedClick: function (e) {
-            var val = $(e.currentTarget).val();
-            if (val === 'Fix') {
-                this.broker.trigger('map:fixNodes', true);
-            } else if (val === 'UnFix') {
-                this.broker.trigger('map:fixNodes', false);
-            }
-        },
-        onTrafficGradientClick: function (e) {
-            var self = this;
-            if (this.gradientView) {
-                this.gradientView.close();
-            }
-
-            var gradientModel = new TrafficGradientCollection();
-            gradientModel.fetch({
-                success: function (model) {
-                    self.gradientView = new TrafficGradientView({collection: model});
-                    self.gradientView.render();
-                }
-            });
-
-        },
-        on_keypress: function (e) {
-            if (e.charCode === 110) { // n
-                this.context.ui.mouseover.nodes.state = !this.context.ui.mouseover.nodes.state;
-                this.broker.trigger('map:ui:mouseover:nodes', this.context.ui.mouseover.nodes.state);
-            } else if (e.charCode === 108) { // l
-                this.context.ui.mouseover.links.state = !this.context.ui.mouseover.links.state;
-                this.broker.trigger('map:ui:mouseover:links', this.context.ui.mouseover.links.state);
-            }
-            this.render();
+            this.broker.trigger('netmap:resize:animate', {marginLeft: margin});
         },
         close:function () {
-            $(document).unbind('keypress', 'on_keypress');
             this.broker.unregister(this);
             $(this.el).unbind();
             $(this.el).remove();
         }
-    });
+    }));
     return NavigationView;
 });
 

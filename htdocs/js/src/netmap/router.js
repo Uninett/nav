@@ -1,228 +1,91 @@
 define([
+    'netmap/resource',
     'netmap/collections/map',
     'netmap/models/map',
     'netmap/models/graph',
     'netmap/models/default_map',
-    'netmap/views/map_info',
     'netmap/views/draw_map',
-    'netmap/views/list_maps',
     'netmap/views/navigation',
-    'netmap/views/searchbox',
+    'netmap/views/info',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
-    'libs/backbone-eventbroker',
-    'libs/spin.min'
+    'libs/spin.min',
+    'libs/d3.v2'
     /*'views/users/list'*/
-], function (MapCollection, MapModel, GraphModel, DefaultMapModel, MapInfoView, DrawNetmapView, ListNetmapView, NavigationView, SearchboxView) {
-
-    var collection_maps;
-    var context_selected_map = {};
-    var context_user_default_view;
-    var spinner_map;
-
-    var view_choose_map;
+], function (Resources, MapCollection, MapModel, GraphModel, DefaultMapModel, DrawNetmapView, NavigationView, InfoView) {
 
     var AppRouter = Backbone.Router.extend({
-        broker: Backbone.EventBroker,
         initialize: function () {
-            this.broker.register(this);
+            this.viewNavigation = null;
+            this.viewInfo = null;
         },
         routes: {
-            'netmap/:map_id': 'showNetmap',
-            '': 'loadPage'
+            'view/random': 'showRandomView',
+            'view/:map_id': 'showView',
+            'view/:map_id/vlan/:vlan_id': 'showViewWithVlanSelected',
+            'vlan/:vlan_id': 'showRandomViewWithVlanSelected',
+            '': 'showFavoriteViewOrLoadGeneric'
         },
-        interests: {
-            'map:loading:context_selected_map': 'loadingMap',
-            'map:context_selected_map': 'update_selected_map',
-            'map:topology_change': 'map_topology_change'
+        _setMapId: function (mapId) {
+            var mapIdAsInteger = parseInt(mapId, 10);
+            Resources.setViewId(mapIdAsInteger);
+            return mapIdAsInteger;
         },
-        update_selected_map: function (new_context) {
-            this.loadingMap();
-            if (new_context.map.id !== undefined && new_context.map.id) {
-                this.showNetmap(new_context.map.id);
-            } else if (new_context.map !== undefined && new_context.map) {
-                this.loadUi();
-            }
-        },
-        map_topology_change: function (topology_id) {
-            this.loadingMap();
-            this.loadUi(true); // force load!
-        },
-        loadingMap: function () {
-            $('#netmap_main_view #chart').hide();
-            $('#netmap_main_view #loading_chart').show();
-            var target = document.getElementById('loading_chart');
-            spinner_map.spin(target);
-        },
-
         // Routes below here
-
-        showNetmap: function(map_id) {
-            this.loadingMap();
-            //console.log("showNetmap({0})".format(map_id));
-            context_selected_map.id = parseInt(map_id);
-            this.loadPage();
+        showRandomView: function () {
+            this.showView(null);
         },
-        loadPage: function () {
-            var self = this;
-            this.loadingMap();
-
-            // check user's default view if he has any.
-
-
-            if (context_user_default_view === undefined) {
-                var user_id = $("#netmap_userid").html();
-                new DefaultMapModel({ownerid: parseInt(user_id)}).fetch({
-                    success: function (model) {
-                        context_user_default_view = model;
-                    },
-                    error: function () {
-                        context_user_default_view = null;
-                    }
-                });
-            }
-
-            // is "colelction_maps" set?
-
-            if (collection_maps === undefined) {
-                collection_maps = new MapCollection();
-                collection_maps.fetch({
-                    success: function () {
-                        self.checkContextMapId();
-                    }
-                });
+        showRandomViewWithVlanSelected: function (vlanId) {
+            this.showViewWithVlanSelected(null, vlanId);
+        },
+        showView: function(mapId) {
+            this.loadUi(this._setMapId(mapId), null);
+        },
+        showViewWithVlanSelected: function(mapId, vlanId) {
+            var vlanIdAsInteger= parseInt(vlanId, 10);
+            this.loadUi(this._setMapId(mapId), vlanIdAsInteger);
+        },
+        showFavoriteViewOrLoadGeneric: function() {
+            var favorite = Resources.getMapCollection().getFavorite();
+            if (favorite) {
+                this.navigate("view/"+favorite.get('viewid'), true);
             } else {
-                self.checkContextMapId();
+                this.navigate("view/random", true);
             }
 
-
         },
-        checkContextMapId: function () {
+
+        loadUi: function (viewId, vlanId) {
             var self = this;
+            this.viewInfo = Backbone.View.prototype.attachSubView(this.viewInfo, InfoView, '#netmap_infopanel');
+            this.viewNavigation = Backbone.View.prototype.attachSubView(this.viewNavigation, NavigationView, '#netmap_left_sidebar');
 
-            if (context_selected_map.id !== undefined) {
-                self.loadMap(collection_maps.get(context_selected_map.id));
-            } else {
-                self.checkDefaultMapSetByAdministrator();
-            }
-
-        },
-        checkDefaultMapSetByAdministrator: function () {
-            var self = this;
-            // todo add a map the administrator can set to be default view
-            // for every page request not containing a map id
-
-            if (context_user_default_view) {
-                Backbone.View.goTo("netmap/{0}".format(context_user_default_view.attributes.viewid));
-            } else {
-                new DefaultMapModel().fetch({
-                    success: function (model, attributes) {
-                        Backbone.View.goTo("netmap/{0}".format(attributes.viewid));
-                    },
-                    error: function () {
-                        // global not found, just do a graph
-                        context_selected_map.map = new MapModel({topology: 1});
-                        self.loadUi();
-                    }
-                });
-            }
-        },
-        loadMap: function (model) {
-            var self = this;
-            context_selected_map.map = model;
-            // render error if model is empty !
-            self.loadUi();
-        },
-        loadUi: function (forceLoad) {
-            var self = this;
-
-            /*if (view_choose_map !== undefined) {
-                view_choose_map.close(); //
-            } else {*/
-            view_choose_map = new ListNetmapView({collection: collection_maps, context_selected_map: context_selected_map, context_user_default_view: context_user_default_view});
-            //}
-            self.loadGraph(forceLoad);
-            self.loadNavigation();
-        },
-        loadNavigation: function () {
-            // draw navigation view!
-            var oldViewNavigationOptions = {model: context_selected_map.map};
-            if (this.view_navigation !== undefined) {
-                oldViewNavigationOptions.isLoading = this.view_navigation.isLoading;
-                this.view_navigation.close();
-            }
-            this.view_navigation = new NavigationView(oldViewNavigationOptions);
-            $('#netmap_left_sidebar #map_filters').html(this.view_navigation.render().el);
-
-            this.view_searchbox = new SearchboxView();
-            $('#netmap_left_sidebar #searchbox').html(this.view_searchbox.render().el);
-        },
-        loadGraph: function (forceLoad) {
-            var self = this;
-
-            if (self.view_map !== undefined) {
-                self.view_map.close();
-            }
-
-
-            if (context_selected_map.graph !== undefined && context_selected_map.graph && !forceLoad) {
-               self.drawPage();
-            } else {
-                if (context_selected_map.id !== undefined) {
-                    context_selected_map.graph = new GraphModel({id: context_selected_map.id, topology: context_selected_map.map.attributes.topology});
-                } else {
-                    context_selected_map.graph = new GraphModel({topology: context_selected_map.map.attributes.topology});
-                }
-                context_selected_map.graph.fetch({
-                    success: function () {
-                        self.drawPage();
-                    }
-                });
-            }
-        },
-        drawPage: function () {
-            var self = this;
-
-            if (self.view_map_info !== undefined) {
-                self.view_map_info.close();
-                $('#netmap_infopanel').append("<div id='mapinfo'></div>");
-            }
-            self.view_map_info = new MapInfoView({el: $('#mapinfo')});
-            // graph is now set in context_selected-map, we can render map!
-            $('#netmap_infopanel #list_views').html(view_choose_map.render().el);
-
-
-            self.view_map = new DrawNetmapView({context_selected_map: context_selected_map, view_map_info: self.view_map_info, cssWidth: $('#netmap_main_view').width()});
-            $('#netmap_main_view #wrapper_chart').html(self.view_map.render().el);
-            spinner_map.stop();
-            $('#netmap_main_view #loading_chart').hide();
+            self.view_map = new DrawNetmapView({
+                viewid: viewId,
+                nav_vlanid: {'navVlanId': vlanId },
+                view_map_info: self.view_map_info,
+                cssWidth: $('#netmap_main_view').width()
+            });
+            $('#wrapper_chart').html(self.view_map.render().el);
         }
 
     });
 
     var initialize = function () {
         var self = this;
-        spinner_map = new Spinner();
-        this.app_router = new AppRouter;
+        //spinner_map = new Spinner();
+        this.app_router = new AppRouter();
 
         // Extend the View class to include a navigation method goTo
-        Backbone.View.goTo = function (loc) {
-            self.app_router.navigate(loc, true);
+        Backbone.View.navigate = self.app_router.navigate;
+        Backbone.history.stripTrailingSlash = function (stringValue) {
+            return stringValue.replace(/\/$/, "");
         };
-
-
-        /*_.extend(context_selected_map, Backbone.Events);
-        context_selected_map.on('reattach', function (new_selected_map) {
-            context_selected_map = new_selected_map;
-            app_router.loadUi();
-        });*/
-        //var postListView = new postListView();
-        //var showPostView = new showPostView();
-
-
         Backbone.history.start();
     };
+
+
     return {
         initialize: initialize
     };
