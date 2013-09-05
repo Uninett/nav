@@ -53,10 +53,10 @@ Application flow
 
 Views accessing and sharing the same model or collection from
 :ref:`Netmap_Resources` uses the *events* `(doc)
-<http://backbonejs.org/#View-delegateEvents>`_ keymap defined in views for
+<http://backbonejs.org/#View-delegateEvents>`__ keymap defined in views for
 reacting on changes. Other views not sharing the same model/collection instance
 should use :code:`Backbone.EventBroker` `(doc)
-<https://github.com/efeminella/backbone-eventbroker>`_ to trigger
+<https://github.com/efeminella/backbone-eventbroker>`__ to trigger
 notifications for data which is required elsewhere. A view can attach an
 code:`interests` hashmap for listening to a certain trigger.
 
