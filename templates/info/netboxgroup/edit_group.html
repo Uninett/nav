@@ -11,7 +11,7 @@
             <div class="multiple-select-container">
 
                 <div class="multiple-select-choices">
-                    <h4>Add devices</h4>
+                    <h4>Devices not in group</h4>
                     <select multiple="multiple" class="multiple-select" name="choices">
                         {% for netbox in netboxes %}
                             <option value="{{ netbox.pk }}">{{ netbox.sysname }}</option>
@@ -21,7 +21,7 @@
                 </div>
 
                 <div class="multiple-select-initial">
-                    <h4>Remove devices</h4>
+                    <h4>Devices in group</h4>
                     <select multiple="multiple" name="netboxes"
                             class="multiple-select">
                         {% for netbox in netboxgroup.netbox_set.all %}
