@@ -1,5 +1,25 @@
 define(['libs/jquery'], function () {
 
+    /*
+     * MultipleSelect - an alternative to QuickSelect
+     * ----------------------------------------------
+     *
+     * Todo:
+     * - Get rid of the rigid html format.
+     * - Original attributes on options are lost
+     * - The redraw is simple and slow, make it more efficient.
+     *
+     * This plugin depends on some formatting from the template.
+     * It expects:
+     * - A container with the class 'multiple-select-container' where
+     *   the two multi selects reside.
+     * - Two multi selects inside two containers with the classes
+     *   '.multiple-select-choices' and '.multiple-select-initial'.
+     *   Choices are what the user can add and initial is the initial state.
+     * - Everything must be wrapped in a form.
+     *
+     */
+
     function MultipleSelect() {
         this.container = $('.multiple-select-container');
         this.form = this.container.parents('form:first');
