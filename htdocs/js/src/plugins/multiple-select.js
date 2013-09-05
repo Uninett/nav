@@ -34,7 +34,6 @@ define(['libs/jquery'], function () {
         // Create the data structures
         this.orig_choices = this.createDataStructure(this.choiceNode);
         this.choices = this.createDataStructure(this.choiceNode);
-        this.orig_initial = this.createDataStructure(this.initialNode);
         this.initial = this.createDataStructure(this.initialNode);
 
         this.addClickListeners();
@@ -72,8 +71,10 @@ define(['libs/jquery'], function () {
             if (this.isChoiceNode($node)) {
                 this.initial[id] = html;
                 delete this.choices[id];
+                delete this.orig_choices[id];
             } else {
                 this.choices[id] = html;
+                this.orig_choices[id] = html;
                 delete this.initial[id];
             }
         },
