@@ -9,7 +9,6 @@ simplejson==2.0.6 # freebsd doesn't have newer.
 networkx>=1.7,<1.8
 python-rrdtool==1.4.7
 xmpppy
-lxml==2.3.2
 PIL==1.1.7
 pyrad==1.2
 python-ldap==2.4.10
