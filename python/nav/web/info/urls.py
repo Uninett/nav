@@ -23,4 +23,5 @@ urlpatterns = patterns('',
     url(r'^osm_map_redirect/(.+)/(.+)/(.+)\.png', osm_map_redirecter, name='osm_map_redirect'),
     url(r'^room/', include('nav.web.info.room.urls')),
     url(r'^vlan/', include('nav.web.info.vlan.urls')),
+    url(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
 )

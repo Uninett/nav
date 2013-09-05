@@ -1,0 +1,37 @@
+{% extends "info/netboxgroup/base.html" %}
+
+{% block base_content %}
+
+    <h2>Device Groups</h2>
+
+    <form method="GET" action="">
+        {{ searchform }}
+        <input type="submit" value="Search">
+    </form>
+
+    <div class="float-clear"></div>
+
+    {% for netboxgroup in netboxgroups %}
+        <div class="netboxgroup">
+            <ul>
+                <li class="list-heading">{{ netboxgroup.pk }}
+                    <a href="{% url edit-netbox-group netboxgroup.pk %}">Edit</a>
+
+                </li>
+                {% with netboxgroup.netbox_set.all as netboxes %}
+                    {% if netboxes %}
+                        {% for netbox in netboxes %}
+                            <li>{{ netbox.sysname }}</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>No devices in this group</li>
+
+                    {% endif %}
+                {% endwith %}
+            </ul>
+        </div>
+    {% endfor %}
+
+    <div class="float-clear"></div>
+
+{% endblock %}
