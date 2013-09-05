@@ -34,6 +34,8 @@ First steps
    built and structured.  If there's something you can't find here, you should
    check with NAV's `wiki pages`_.
 
+See also :doc:`the release notes <release-notes>` for this version (|version|).
+
 * **From scratch:**
   :doc:`Overview <overview>` |
   :doc:`Installation <intro/install>` |
