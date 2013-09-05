@@ -28,6 +28,7 @@
 
 .multiple-select-container > div {
     float: left;
+    margin-right: 2em;
 }
 
 .multiple-select-container select {
