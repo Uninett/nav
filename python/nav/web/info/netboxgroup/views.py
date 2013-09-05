@@ -16,10 +16,26 @@
 """Views for the netbox groups"""
 
 from django.shortcuts import render, redirect
+from django.core.urlresolvers import reverse
 from django.db.models import Q
 
 from nav.web.info.netboxgroup.forms import NetboxGroupForm
+from nav.web.info.views import get_path
+from nav.web.utils import create_title
 from nav.models.manage import NetboxGroup, Netbox, NetboxCategory
+
+
+def get_netboxgroup_path(other=None):
+    """Get path for this page
+
+    :param other: more paths to append
+    :type other: tuple
+
+    """
+    navpath = get_path() + [('Device Groups', reverse('netbox-group'))]
+    if other:
+        navpath += [other]
+    return navpath
 
 
 def index(request):
@@ -30,6 +46,7 @@ def index(request):
 
     """
 
+    navpath = get_netboxgroup_path()
     groups = NetboxGroup.objects.none()
 
     if request.method == 'GET' and 'query' in request.GET:
@@ -46,7 +63,9 @@ def index(request):
 
     return render(request, 'info/netboxgroup/list_groups.html',
                   {'netboxgroups': groups,
-                   'searchform': form})
+                   'searchform': form,
+                   'navpath': navpath,
+                   'title': create_title(navpath)})
 
 
 def edit_group(request, groupid):
@@ -56,7 +75,9 @@ def edit_group(request, groupid):
     :type request: django.http.HttpRequest
 
     """
+
     group = NetboxGroup.objects.get(pk=groupid)
+    navpath = get_netboxgroup_path((group.pk,))
 
     if request.method == 'POST':
         return handle_edit_request(request, group)
@@ -65,7 +86,8 @@ def edit_group(request, groupid):
         pk__in=group.netbox_set.all().values_list('id', flat=True))
 
     return render(request, 'info/netboxgroup/edit_group.html',
-                  {'netboxgroup': group, 'netboxes': netboxes})
+                  {'netboxgroup': group, 'netboxes': netboxes,
+                   'navpath': navpath, 'title': create_title(navpath)})
 
 
 def handle_edit_request(request, group):
