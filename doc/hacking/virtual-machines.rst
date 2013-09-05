@@ -15,8 +15,8 @@ images to be used for virtualization.
 In this reference document you will get an introduction to using these
 scripts (from the :file:`tools/` directory) to build VM images.
 
-You can read more about Vagrant in :doc:`/howto/vagrant` and
-:doc:`/reference/vagrant`.
+You can read more about Vagrant in :doc:`using-vagrant` and
+:doc:`vagrant`.
 
 .. _rvm: https://github.com/uninett-nav/rvm
 .. _veewee: https://github.com/uninett-nav/veewee

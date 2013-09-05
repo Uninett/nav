@@ -114,5 +114,5 @@ to run them, without having to reboot your VM.
 Further reading
 ^^^^^^^^^^^^^^^
 
-If you want to learn the dirty details of NAV's Vagrant setup, use the
-:doc:`/reference/vagrant` reference.
+If you want to learn the dirty details of NAV's Vagrant setup, read
+:doc:`vagrant`.

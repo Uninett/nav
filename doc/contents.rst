@@ -20,6 +20,14 @@ NAV documentation contents
     reference/index
     glossary
     
+For developers
+==============
+
+.. toctree::
+   :maxdepth: 3
+
+   hacking/index
+
 Indices, glossary and tables
 ============================
 

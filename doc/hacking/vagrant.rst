@@ -7,7 +7,7 @@ reproducible, and portable development environments using virtualization
 technology.
 
 For day-to-day usage of Vagrant in NAV development, please refer to
-:doc:`/howto/using-vagrant`.
+:doc:`using-vagrant`.
 
 Provisioning scripts
 --------------------
@@ -59,7 +59,7 @@ version of Node.js_ and its package manager :program:`npm`. :program:`nvm` can
 install and manage multiple versions of Node.js
 
 This script also installs the javascript testing libraries defined in
-:file:`htdocs/js/package.json`. Please referr to :doc:`/reference/javascript`
+:file:`htdocs/js/package.json`. Please referr to :doc:`javascript`
 for more information about hacking with JavaScript in NAV.
 
 .. note:: Node.js and :program:`npm` is only used for installing the
@@ -134,4 +134,4 @@ of this writing.
 :file:`tools/build_vagrant_image.sh` can be used to build a minimal Debian
 Stable box image for Vagrant, by using :program:`rvm` and
 :program:`veewee`. You can read more about this in
-:doc:`/reference/virtual-machines`.
+:doc:`virtual-machines`.

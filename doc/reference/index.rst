@@ -8,10 +8,8 @@
    arnold
    geomap
    ipdevpoll
-   javascript
    ldap
    mailin
-   netmap
    portadmin
    radius
    radius-install

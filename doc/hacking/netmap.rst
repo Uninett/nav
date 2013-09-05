@@ -6,7 +6,7 @@ Netmap is a topological weather map and representation of NAV's knowledge
 of your network topology.
 
 Before you continune reading this technical reference documentation, we highly
-suggest you read the :doc:`/reference/javascript` introduction.
+suggest you read the :doc:`javascript` introduction.
 
 Netmap is a JavaScript application (with a Django backend to feed it with
 topology data), using `Backbone <http://backbonejs.org>`_, `D3.js

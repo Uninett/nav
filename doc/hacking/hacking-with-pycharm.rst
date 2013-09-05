@@ -1,6 +1,6 @@
-=======
-PyCharm
-=======
+====================
+Hacking with PyCharm
+====================
 
 `JetBrains PyCharm <http://www.jetbrains.com/pycharm/>`_ is a Python IDE with
 a complete set of tools for productive development with the Python programming
