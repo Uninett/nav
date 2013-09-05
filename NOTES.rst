@@ -23,11 +23,70 @@ patch has been submitted upstream, but not yet accepted into a new release.
 NAV 3.15
 ========
 
+To see the overview of scheduled features and reported bugs on the 3.15 series
+of NAV, please go to https://launchpad.net/nav/3.15 .
+
 Dependency changes
 ------------------
 
-- The Python Imaging Library (PIL) is a new dependency in NAV. Install the
-  python-imaging package.
+New dependencies:
+
+- The Python Imaging Library (`PIL`, aka. `python-imaging` on Debian).
+- `mod_wsgi`
+
+Changed version requirements:
+
+- `Django` >= 1.4
+- `PostgreSQL` >= 9.1
+
+Removed dependencies:
+
+- `mod_python`
+- Cheetah Templates
+
+
+Database schema changes
+-----------------------
+
+The database schema files have been moved to a new location, and so has the
+command to synchronize your running PostgreSQL database with changes. The
+syncing command previously known as :file:`syncdb.py` is now the
+:program:`navsyncdb` program, installed alongside NAV's other binaries.
+
+
+mod_python vs. mod_wsgi
+-----------------------
+
+NAV no longer depends on `mod_python`, but instead leverages Django's ability
+to serve a NAV web site using its various supported methods (such as `WSGI`,
+`flup` or `FastCGI`).
+
+This strictly means that NAV no longer is dependent on `Apache`; you should be
+able to serve it using *any web server* that supports any of Django's methods.
+However, we still ship with a reasonable Apache configuration file, which now
+now uses `mod_wsgi` as a replacement for `mod_python`.
+
+.. WARNING:: If you have taken advantage of NAV's authentication and
+             authorization system to protect arbitrary Apache resources, such
+             as static documents, CGI scripts or PHP applications, you **will
+             still need mod_python**. This ability was only there as an upshot
+             of `mod_python` being Apache specific, whereas `WSGI` is a
+             portable interface to web applications.
+
+NAV 3.15 still provides a `mod_python`-compatible module to authenticate and
+authorize requests for arbitrary Apache resources. To protect any resource,
+make sure `mod_python` is still enabled in your Apache and add something like
+this to your Apache config:
+
+.. code-block:: apacheconf
+
+  <Location /uri/to/protected-resource>
+      PythonHeaderParserHandler nav.web.modpython
+  </Location>
+
+Access to this resource can now be controlled through the regular
+authorization configuration of NAV's Useradmin panel.
+
 
 NAV 3.14
 ========
