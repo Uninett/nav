@@ -12,7 +12,7 @@ What is the problem?
 ====================
 
 Network equipment change. NAV has detected that it can collect more (or less)
-data from this equipment. However, Cricket (or more specifically rrd-files)
+data from this equipment. However, Cricket (or more specifically RRD files)
 expect the same number of datapoints every time. It does not adjust
 automatically to more or fewer datapoints.
 
@@ -25,8 +25,8 @@ like xml- and log-files.
 The easy way
 ------------
 
-Delete the rrd-file. Congratulations - you have now fixed the problem as Cricket
-will generate a new rrd-file with the correct number of datapoints. You have
+Delete the RRD file. *Congratulations* - you have now fixed the problem, as Cricket
+will generate a new RRD file with the correct number of datapoints. You have
 also gotten rid of all history - if this is ok, you are now done. If this is not
 ok, read on.
 
@@ -38,9 +38,9 @@ The hard way
 You have decided that history is important (it sure is!). This now requires some
 detective work from your side. The steps are:
 
-* Find out what Cricket collected to this rrd-file before the error started
+* Find out what Cricket collected to this RRD file before the error started
   occuring, and what it collects now.
-* Use a script to edit the rrd-file based on what you discovered.
+* Use a script to edit the RRD file based on what you discovered.
 
 Sounds easy right?
 
@@ -60,11 +60,13 @@ have to head to Cricket's config to found out.
 
 There are two scenarioes
 
-#. You collect too few datapoints. ``expected 5 data source readings (got 4)``. This means we need to remove a datasource from the rrd-file.
-#. You collect too many datapoints. ``expected 4 data source readings (got 5)``. This means we need to add a datasource to the rrd-file.
+#. You collect too few datapoints. ``expected 5 data source readings (got
+   4)``. This means we need to remove a datasource from the RRD file.
+#. You collect too many datapoints. ``expected 4 data source readings (got
+   5)``. This means we need to add a datasource to the RRD file.
 
 In our scenario we collect too few datapoints. Or, to put it more correctly, the
-rrd-file has one datasource too many. We need to remove that one. But which one?
+RRD file has one datasource too many. We need to remove that one. But which one?
 Which of the five datasources in the file do we need to remove? 
 
 Your best bet is to compare the values from before the error happened and
@@ -77,28 +79,28 @@ In this case it's rather obvious. In other cases it may not be, or the log-files
 may not be there or it seemed obvious but was wrong. Life is hard, but the worst
 that may happen is some skewed data (or angry boss).
 
-Datasources in rrd-files as 0-indexed, so lets enumerate the datasources::
+Datasources in RRD files are 0-indexed, so let's enumerate the datasources::
 
   ds0 ds1     ds2       ds3       ds4
   0,    7, 28624824, 38484040, 4242221020
 
-Thus we need to remove datasource 0 (zero). TADA!
+Thus we need to remove datasource 0 (zero). *TADA!*
 
 
-Editing the rrd-file
+Editing the RRD file
 ^^^^^^^^^^^^^^^^^^^^
 
 Ok, with that done the hard part is over. Now we just have to run the script on
-the correct rrd-file::
+the correct RRD file:
+
+.. code-block:: sh
   
-  cd $NAVPATH/lib/python/nav/rrd/
   # To add a datasource
-  sudo -u navcron ./rrdtool_utils.py -f /path/to/target.rrd -a ds0
+  sudo -u navcron python -m nav.rrd.rrdtool_utils -f /path/to/target.rrd -a ds0
   # To remove a datasource
-  sudo -u navcron ./rrdtool_utils.py -f /path/to/target.rrd -r ds0
+  sudo -u navcron python -m nav.rrd.rrdtool_utils -f /path/to/target.rrd -r ds0
 
 After this is done everything should be ok. Great! If not, feel free to ask for
-help on irc or email.
-
+help on IRC or email.
 
 
