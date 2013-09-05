@@ -22,19 +22,27 @@ define(['libs/jquery'], function () {
 
     function MultipleSelect() {
         this.container = $('.multiple-select-container');
+
         this.form = this.container.parents('form:first');
         this.addSubmitHandler();
+
         this.choiceNodeSelector = '.multiple-select-choices';
         this.initialNodeSelector = '.multiple-select-initial';
         this.choiceNode = $(this.choiceNodeSelector).find('select');
         this.initialNode = $(this.initialNodeSelector).find('select');
+
+        // Create the data structures
+        this.orig_choices = this.createDataStructure(this.choiceNode);
         this.choices = this.createDataStructure(this.choiceNode);
+        this.orig_initial = this.createDataStructure(this.initialNode);
         this.initial = this.createDataStructure(this.initialNode);
+
         this.addClickListeners();
     }
 
     MultipleSelect.prototype = {
         createDataStructure: function ($node) {
+            /* Create objects from the options */
             var choices = {};
             $node.find('option').each(function (index, element) {
                 var $element = $(element);
@@ -43,16 +51,19 @@ define(['libs/jquery'], function () {
             return choices;
         },
         addClickListeners: function () {
+            /* Add click listeners that detect when an option is clicked */
             var self = this;
             this.container.on('click', 'option', function (event) {
                 self.move($(event.target));
             });
         },
         move: function ($node) {
+            /* Move this node from one select to the other */
             this.switchPlace($node);
             this.reDraw();
         },
         switchPlace: function ($node) {
+            /* Switches the node from choice to inital list and vice versa */
             var id = $node.val(), html = $node.html();
             if (this.isChoiceNode($node)) {
                 this.initial[id] = html;
@@ -67,6 +78,7 @@ define(['libs/jquery'], function () {
             return '.' + $parent.attr('class') === this.choiceNodeSelector;
         },
         reDraw: function () {
+            /* Redraw the selects */
             this.choiceNode.empty();
             this.initialNode.empty();
 
@@ -74,6 +86,7 @@ define(['libs/jquery'], function () {
             this.appendNodes(this.sortByValue(this.initial), this.initialNode);
         },
         sortByValue: function (options) {
+            /* Sort the options by value => [[key, value], [key, value]] */
             var sortable = [];
             for (var key in options) {
                 sortable.push([key, options[key]]);
@@ -89,10 +102,26 @@ define(['libs/jquery'], function () {
             }
         },
         addSubmitHandler: function () {
+            /* Selects all elements in the initial node so that it is
+               sent in the post request */
             var self = this;
             this.form.submit(function () {
                 self.initialNode.find('option').prop('selected', true);
             });
+        },
+        search: function (word, data) {
+            var searchResult = {};
+            if (word.length < 3) {
+                return data;
+            }
+            for (var key in data) {
+                if (data.hasOwnProperty(key)) {
+                    if (data[key].match(word)) {
+                        searchResult[key] = data[key];
+                    }
+                }
+            }
+            return searchResult;
         }
     };
 
