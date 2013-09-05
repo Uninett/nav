@@ -5,8 +5,8 @@ for (var file in window.__karma__.files) {
     }
 }
 
-//console.log(tests);
-
+require.baseUrl = '/base';
+require.paths['testResources'] = 'test/resources';
 require.deps = tests;
 require.callback = window.__karma__.start;
 requirejs(require);

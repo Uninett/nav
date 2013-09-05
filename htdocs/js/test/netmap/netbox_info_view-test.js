@@ -1,6 +1,8 @@
 define(["netmap/models/node", "netmap/views/widgets/netbox_info", "libs/jquery"], function (Node, View) {
 
-    describe("View tests", function () {
+    // Skipping these tests as they produce warnings about missing images for each test run.
+    // Either find a way to ignore only missing images or better yet - make tests that do not rely on html with images
+    describe.skip("View tests", function () {
         beforeEach(function (done) {
             var node = new Node({
                 category: "GW",
