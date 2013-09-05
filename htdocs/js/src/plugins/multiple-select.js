@@ -38,6 +38,10 @@ define(['libs/jquery'], function () {
         this.initial = this.createDataStructure(this.initialNode);
 
         this.addClickListeners();
+        this.searchfield = this.container.find($("[type='search']"));
+        if (this.searchfield.length) {
+            this.addSearchListener();
+        }
     }
 
     MultipleSelect.prototype = {
@@ -109,11 +113,25 @@ define(['libs/jquery'], function () {
                 self.initialNode.find('option').prop('selected', true);
             });
         },
+        addSearchListener: function () {
+            var self = this;
+            this.searchfield.on('keyup', function () {
+                self.doSearch.call(self);
+            });
+        },
+        doSearch: function () {
+            /* Search if searchstring is long enough. If we backspace, display all */
+            var searchstring = this.searchfield.val();
+            if (searchstring.length >= 3) {
+                this.choices = this.search(searchstring, this.orig_choices);
+                this.reDraw();
+            } else if (Object.keys(this.choices).length !== Object.keys(this.orig_choices).length) {
+                this.choices = $.extend({}, this.orig_choices);
+                this.reDraw();
+            }
+        },
         search: function (word, data) {
             var searchResult = {};
-            if (word.length < 3) {
-                return data;
-            }
             for (var key in data) {
                 if (data.hasOwnProperty(key)) {
                     if (data[key].match(word)) {

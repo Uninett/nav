@@ -59,6 +59,33 @@ define(['plugins/multiple-select',
                     assert.deepEqual(keys, ['1', '39', '69']);
                 });
             });
+            describe('search', function () {
+                beforeEach(function () {
+                    this.testdata = {1: 'ajaua', 2: 'mjaus', 3: 'blapp'};
+                });
+                it('should have a searchfield', function () {
+                    assert(this.mselect.searchfield.length);
+                });
+                it('should skip searches that are too short', function () {
+                    this.mselect.searchfield.val('ab').keyup();
+                    assert.deepEqual(
+                        this.mselect.choices,
+                        {1: 'absint.online.ntnu.no', 39: 'blaasal-sw.uninett.no', 69: 'buick.lab.uninett.no'}
+                    );
+                });
+                it('should do searches on third character', function () {
+                    this.mselect.searchfield.val('bla').keyup();
+                    assert.deepEqual(this.mselect.choices, {39: 'blaasal-sw.uninett.no'});
+                });
+                it('should display all results when backspacing to less than 3 chars', function () {
+                    this.mselect.searchfield.val('bla').keyup();
+                    this.mselect.searchfield.val('bl').keyup();
+                    assert.strictEqual(this.mselect.choiceNode.find('option').length, 3);
+                });
+                it('should return matches based on values not keys', function () {
+                    assert.deepEqual(this.mselect.search('jau', this.testdata), {1: 'ajaua', 2: 'mjaus'});
+                });
+            });
         });
     }
 );
