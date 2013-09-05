@@ -2,9 +2,9 @@ htmldocfiles := $(shell test -e html && find html/ -type f)
 
 nobase_dist_doc_DATA = \
 	README.cricket \
-	$(wildcard mailin/alertmsg.d/*) \
 	$(wildcard intro/*.rst) \
 	$(wildcard reference/*.rst) \
+	$(wildcard hacking/*.rst) \
 	$(wildcard faq/*.rst) \
 	$(htmldocfiles)
 
