@@ -12,6 +12,7 @@
 
                 <div class="multiple-select-choices">
                     <h4>Devices not in group</h4>
+                    <input type="search" placeholder="Filter devices">
                     <select multiple="multiple" class="multiple-select" name="choices">
                         {% for netbox in netboxes %}
                             <option value="{{ netbox.pk }}">{{ netbox.sysname }}</option>

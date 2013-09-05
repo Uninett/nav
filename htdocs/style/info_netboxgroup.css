@@ -19,6 +19,10 @@
     float: right;
 }
 
+.multiple-select-container [type="search"] {
+    display: block;
+    width: 300px;
+}
 
 /* Styles for the multiple select component - to be moved */
 
