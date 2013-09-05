@@ -44,4 +44,5 @@ First steps
 
 
 * **For developers:**
-  :doc:`Making a new release <release-procedure>`
+  :doc:`Making a new release <release-procedure>` |
+  :doc:`Getting started as a developer with Vagrant <howto/vagrant>`
