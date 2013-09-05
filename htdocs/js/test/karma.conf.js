@@ -39,7 +39,7 @@ module.exports = function (config) {
           dir : 'coverage/'
         },
         junitReporter: {
-          outputFile: 'javascript-result.xml',
+          outputFile: 'javascript-results.xml',
           suite: ''
         },
 
