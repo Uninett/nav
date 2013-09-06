@@ -1,3 +1,36 @@
+Version 3.15.0
+(released 12 Sep 2013)
+
+ User-visible features and improvements:
+
+  * Next-hop neighbor map in ipdevinfo.
+
+  * What-if analysis.
+
+  * Room photo database.
+
+  * Subcategories replaced by cross-category IP Device Groups.
+
+  * Potentially out-of-date CAM and ARP records are highlighted in Machine
+    Tracker search results.
+
+  * Community strings are censored in SeedDB IP Device listing.
+
+  * New program enables streamlined dumping and reloading, with optional
+    filtering, of the NAV PostgreSQL database. This simplifies beta testing of
+    new NAV versions by copying the production database to a test server.
+
+  * 26 more metrics from APC UPS devices are now collected and graphed.
+
+  * mod_python is no longer required.
+
+  * Devices' conceptual layering of interfaces is now collected and presented
+    in ipdevinfo. This enables you to, among other things, see which physical
+    ports comprise a port- or etherchannel. Some vendors also use this to show
+    which physical switch-ports are forwarding packets to/from a given VLAN
+    interface.
+
+
 Version 3.14.1592653
 (released 15 Aug 2013)
 
