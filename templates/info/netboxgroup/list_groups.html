@@ -22,7 +22,11 @@
                 {% with netboxgroup.netbox_set.all as netboxes %}
                     {% if netboxes %}
                         {% for netbox in netboxes %}
-                            <li>{{ netbox.sysname }}</li>
+                            <li>
+                                <a href="{% url ipdevinfo-details-by-name netbox.sysname %}">
+                                    {{ netbox.sysname }}
+                                </a>
+                            </li>
                         {% endfor %}
                     {% else %}
                         <li>No devices in this group</li>
