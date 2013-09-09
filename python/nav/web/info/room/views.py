@@ -92,7 +92,6 @@ def roominfo(request, roomid):
     """Controller for displaying roominfo"""
     room = Room.objects.get(id=roomid)
     all_netboxes = room.netbox_set.order_by("sysname")
-    add_availability(all_netboxes)
     images = room.image_set.all()
 
     navpath = get_path() + [(room.id,)]
@@ -233,16 +232,3 @@ def render_netboxes(request, roomid):
                               {"netboxes": netboxes,
                                "room": room},
                               context_instance=RequestContext(request))
-
-
-def add_availability(netboxes):
-    """Add week availabilty for the netboxes"""
-    for netbox in netboxes:
-        avail = netbox.get_availability()
-        netbox.availability = "N/A"
-        try:
-            netbox.availability = "%.2f%%" % avail["availability"]["week"]
-        except KeyError:
-            pass
-        except TypeError:
-            pass
