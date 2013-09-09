@@ -6,7 +6,6 @@ define(['libs/jquery', 'libs/jquery.tinysort'], function () {
      *
      * Todo:
      * - Get rid of the rigid html format.
-     * - Original attributes on options are lost
      * - The redraw is simple and slow, make it more efficient.
      *
      * This plugin depends on some formatting from the template.
