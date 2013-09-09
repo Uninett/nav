@@ -544,6 +544,19 @@ p.paginator .active {
 }
 
 
+/*
+ * TAGS - made for use with netbox groups/device groups
+ */
+
+.navtag {
+    border: 1px solid #808080;
+    border-radius: 3px;
+    background-color: #A6CEE3;
+    color: black !important;
+    padding: 0 0.3em;
+}
+
+
 /************************************************
  *
  * MEDIA QUERIES FOR ADAPTION TO SMALLER SCREENS
