@@ -14,8 +14,9 @@
     {% for netboxgroup in netboxgroups %}
         <div class="netboxgroup">
             <ul>
-                <li class="list-heading">{{ netboxgroup.pk }}
-                    <a href="{% url edit-netbox-group netboxgroup.pk %}">Edit</a>
+                <li class="list-heading">
+                    <a href="{% url netbox-group-detail netboxgroup.pk %}">{{ netboxgroup.pk }}</a>
+                    <a href="{% url netbox-group-edit netboxgroup.pk %}">Edit</a>
 
                 </li>
                 {% with netboxgroup.netbox_set.all as netboxes %}

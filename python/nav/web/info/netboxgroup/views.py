@@ -29,12 +29,12 @@ def get_netboxgroup_path(other=None):
     """Get path for this page
 
     :param other: more paths to append
-    :type other: tuple
+    :type other: list
 
     """
     navpath = get_path() + [('Device Groups', reverse('netbox-group'))]
     if other:
-        navpath += [other]
+        navpath += other
     return navpath
 
 
@@ -68,7 +68,22 @@ def index(request):
                    'title': create_title(navpath)})
 
 
-def edit_group(request, groupid):
+def group_detail(request, groupid):
+    """Renders the view for group detail
+
+    :param request:
+    :type request: django.http.HttpRequest
+
+    """
+    group = NetboxGroup.objects.get(pk=groupid)
+    navpath = get_netboxgroup_path([(group.pk,)])
+
+    return render(request, 'info/netboxgroup/group_detail.html',
+                  {'netboxgroup': group, 'navpath': navpath,
+                   'title': create_title(navpath)})
+
+
+def group_edit(request, groupid):
     """Renders the view for editing device groups
 
     :param request:
@@ -77,7 +92,7 @@ def edit_group(request, groupid):
     """
 
     group = NetboxGroup.objects.get(pk=groupid)
-    navpath = get_netboxgroup_path((group.pk,))
+    navpath = get_netboxgroup_path([(group.pk,), ('edit',)])
 
     if request.method == 'POST':
         return handle_edit_request(request, group)
@@ -85,7 +100,7 @@ def edit_group(request, groupid):
     netboxes = Netbox.objects.exclude(
         pk__in=group.netbox_set.all().values_list('id', flat=True))
 
-    return render(request, 'info/netboxgroup/edit_group.html',
+    return render(request, 'info/netboxgroup/group_edit.html',
                   {'netboxgroup': group, 'netboxes': netboxes,
                    'navpath': navpath, 'title': create_title(navpath)})
 
