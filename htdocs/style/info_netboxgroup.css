@@ -1,6 +1,9 @@
 .netboxgroup {
+    background-color: #eee;
     display: inline-block;
-    margin-right: 20px;
+    margin-bottom: 1em;
+    margin-right: 2em;
+    padding: 0.5em 1em;
     vertical-align: top;
     width: 200px;
 }
@@ -15,7 +18,7 @@
     font-weight: bold;
 }
 
-.netboxgroup li.list-heading a {
+.netboxgroup li.list-heading a:last-child {
     float: right;
 }
 
