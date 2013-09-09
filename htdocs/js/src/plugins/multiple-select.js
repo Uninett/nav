@@ -1,4 +1,4 @@
-define(['libs/jquery'], function () {
+define(['libs/jquery', 'libs/jquery.tinysort'], function () {
 
     /*
      * MultipleSelect - an alternative to QuickSelect
@@ -32,9 +32,8 @@ define(['libs/jquery'], function () {
         this.initialNode = $(this.initialNodeSelector).find('select');
 
         // Create the data structures
-        this.orig_choices = this.createDataStructure(this.choiceNode);
-        this.choices = this.createDataStructure(this.choiceNode);
-        this.initial = this.createDataStructure(this.initialNode);
+        this.findOptions();
+        this.orig_choices = this.choiceNode.clone();
 
         this.addClickListeners();
         this.searchfield = this.container.find($("[type='search']"));
@@ -43,15 +42,16 @@ define(['libs/jquery'], function () {
         }
     }
 
-    MultipleSelect.prototype = {
-        createDataStructure: function ($node) {
-            /* Create objects from the options */
-            var choices = {};
-            $node.find('option').each(function (index, element) {
-                var $element = $(element);
-                choices[$element.val()] = $element.html();
-            });
-            return choices;
+   MultipleSelect.prototype = {
+        findOptions: function () {
+            this.findChoiceOptions();
+            this.findInitialOptions();
+        },
+        findChoiceOptions: function () {
+            this.choices = this.choiceNode.find('option');
+        },
+        findInitialOptions: function () {
+            this.initial = this.initialNode.find('option');
         },
         addClickListeners: function () {
             /* Add click listeners that detect when an option is clicked */
@@ -61,50 +61,30 @@ define(['libs/jquery'], function () {
             });
         },
         move: function ($node) {
-            /* Move this node from one select to the other */
-            this.switchPlace($node);
-            this.reDraw();
-        },
-        switchPlace: function ($node) {
             /* Switches the node from choice to inital list and vice versa */
-            var id = $node.val(), html = $node.html();
             if (this.isChoiceNode($node)) {
-                this.initial[id] = html;
-                delete this.choices[id];
-                delete this.orig_choices[id];
+                $node.appendTo(this.initialNode);
+                $node.prop('selected', false);
+                this.orig_choices.find('[value="' + $node.val() + '"]').remove();
+                this.sortInitial();
             } else {
-                this.choices[id] = html;
-                this.orig_choices[id] = html;
-                delete this.initial[id];
+                $node.appendTo(this.choiceNode);
+                $node.prop('selected', false);
+                this.orig_choices.append($node.clone());
+                this.sortChoices();
             }
         },
         isChoiceNode: function ($node) {
             var $parent = $node.parents('div:first');
             return '.' + $parent.attr('class') === this.choiceNodeSelector;
         },
-        reDraw: function () {
-            /* Redraw the selects */
-            this.choiceNode.empty();
-            this.initialNode.empty();
-
-            this.appendNodes(this.sortByValue(this.choices), this.choiceNode);
-            this.appendNodes(this.sortByValue(this.initial), this.initialNode);
+        sortInitial: function () {
+            this.findInitialOptions();
+            this.initial.tsort();
         },
-        sortByValue: function (options) {
-            /* Sort the options by value => [[key, value], [key, value]] */
-            var sortable = [];
-            for (var key in options) {
-                sortable.push([key, options[key]]);
-            }
-            sortable.sort(function (a, b) {
-                return a[1].localeCompare(b[1]);
-            });
-            return sortable;
-        },
-        appendNodes: function (values, $node) {
-            for (var i=0; i<values.length; i++) {
-                $node.append($('<option/>').val(values[i][0]).html(values[i][1]));
-            }
+        sortChoices: function () {
+            this.findChoiceOptions();
+            this.choices.tsort();
         },
         addSubmitHandler: function () {
             /* Selects all elements in the initial node so that it is
@@ -123,24 +103,22 @@ define(['libs/jquery'], function () {
         doSearch: function () {
             /* Search if searchstring is long enough. If we backspace, display all */
             var searchstring = this.searchfield.val();
-            if (searchstring.length >= 3) {
-                this.choices = this.search(searchstring, this.orig_choices);
-                this.reDraw();
-            } else if (Object.keys(this.choices).length !== Object.keys(this.orig_choices).length) {
-                this.choices = $.extend({}, this.orig_choices);
-                this.reDraw();
-            }
-        },
-        search: function (word, data) {
-            var searchResult = {};
-            for (var key in data) {
-                if (data.hasOwnProperty(key)) {
-                    if (data[key].match(word)) {
-                        searchResult[key] = data[key];
-                    }
+
+            if (searchstring.length < 3) {
+                if (this.choices.length !== this.orig_choices.find('option').length) {
+                    this.choices = this.orig_choices.find("option").clone();
+                    this.reDraw();
                 }
+            } else {
+                this.choices = this.orig_choices.find("option:contains('" + searchstring + "')").clone();
+                this.reDraw();
             }
-            return searchResult;
+
+        },
+        reDraw: function () {
+            /* Redraw the selects */
+            this.choiceNode.empty();
+            this.choiceNode.append(this.choices);
         }
     };
 

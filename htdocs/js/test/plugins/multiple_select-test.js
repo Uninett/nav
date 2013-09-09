@@ -9,17 +9,8 @@ define(['plugins/multiple-select',
                 this.mselect = new MultipleSelect();
             });
 
-            it('should create datastructure from options', function () {
-                assert.deepEqual(
-                    this.mselect.choices,
-                    {1: 'absint.online.ntnu.no', 39: 'blaasal-sw.uninett.no', 69: 'buick.lab.uninett.no'}
-                );
-            });
-            it('should create datastructure from initial', function () {
-                assert.deepEqual(
-                    this.mselect.initial,
-                    {9: 'kanari.uninett.no', 12: 'mi6-old.uninett.no', 34: 'ufisa.uninett.no'}
-                );
+            it('should create a list of option elements', function () {
+            assert.equal(this.mselect.choices.length, 3);
             });
             it('should find correct parent node on choices', function () {
                 var $node = $('.multiple-select-choices option:first');
@@ -29,53 +20,53 @@ define(['plugins/multiple-select',
                 var $node = $('.multiple-select-initial option:first');
                 assert.isFalse(this.mselect.isChoiceNode($node));
             });
-            describe('switchnodes', function () {
-                it('should switch dictionary from choice to initial', function () {
+            describe('move', function () {
+                it('should move option from choice to inital', function () {
                     var $node = $('.multiple-select-choices option:first');
-                    this.mselect.switchPlace($node);
-                    assert.deepEqual(this.mselect.initial, {1: 'absint.online.ntnu.no', 9: 'kanari.uninett.no', 12: 'mi6-old.uninett.no', 34: 'ufisa.uninett.no'});
-                    assert.deepEqual(this.mselect.choices, {39: 'blaasal-sw.uninett.no', 69: 'buick.lab.uninett.no'});
+                    this.mselect.move($node);
+                    assert.equal(this.mselect.choiceNode.find('option').length, 2);
+                    assert.equal(this.mselect.initialNode.find('option').length, 4);
                 });
-                it('should switch dictionary from initial to choice', function () {
+                it('should move option from initial to choice', function () {
                     var $node = $('.multiple-select-initial option:first');
-                    this.mselect.switchPlace($node);
-                    assert.deepEqual(this.mselect.initial, {12: 'mi6-old.uninett.no', 34: 'ufisa.uninett.no'});
-                    assert.deepEqual(this.mselect.choices, {1: 'absint.online.ntnu.no', 9: 'kanari.uninett.no', 39: 'blaasal-sw.uninett.no', 69: 'buick.lab.uninett.no'});
+                    this.mselect.move($node);
+                    assert.equal(this.mselect.choiceNode.find('option').length, 4);
+                    assert.equal(this.mselect.initialNode.find('option').length, 2);
                 });
             });
-            it('should sort dict by value', function () {
-                assert.deepEqual(
-                    this.mselect.sortByValue({1: 'b', 2: 'a'}),
-                    [['2', 'a'], ['1', 'b']]
-                );
+            describe('sort', function () {
+                it('should sort initial when new node is appended', function () {
+                    var $node = $('.multiple-select-choices option:first');
+                    this.mselect.move($node);
+                    assert.equal($('.multiple-select-initial option:first').val(), '1');
+                });
+                it('should sort choices when new node is appended', function () {
+                    var $node = $('.multiple-select-initial option:first');
+                    this.mselect.move($node);
+                    assert.equal($('.multiple-select-choices option:last').val(), '9');
+                });
             });
             describe('redraw', function () {
                 it('should redraw choices sorted on html', function () {
                     this.mselect.reDraw();
                     var keys = [];
-                    $(this.mselect.choiceNodeSelector).find('option').each(function () {
+                    $(this.mselect.choiceNode).find('option').each(function () {
                         keys.push(this.value);
                     });
                     assert.deepEqual(keys, ['1', '39', '69']);
                 });
             });
             describe('search', function () {
-                beforeEach(function () {
-                    this.testdata = {1: 'ajaua', 2: 'mjaus', 3: 'blapp'};
-                });
                 it('should have a searchfield', function () {
                     assert(this.mselect.searchfield.length);
                 });
                 it('should skip searches that are too short', function () {
                     this.mselect.searchfield.val('ab').keyup();
-                    assert.deepEqual(
-                        this.mselect.choices,
-                        {1: 'absint.online.ntnu.no', 39: 'blaasal-sw.uninett.no', 69: 'buick.lab.uninett.no'}
-                    );
+                    assert.strictEqual(this.mselect.choiceNode.find('option').length, 3);
                 });
                 it('should do searches on third character', function () {
                     this.mselect.searchfield.val('bla').keyup();
-                    assert.deepEqual(this.mselect.choices, {39: 'blaasal-sw.uninett.no'});
+                    assert.equal(this.mselect.choices.length, 1);
                 });
                 it('should display all results when backspacing to less than 3 chars', function () {
                     this.mselect.searchfield.val('bla').keyup();
@@ -83,7 +74,14 @@ define(['plugins/multiple-select',
                     assert.strictEqual(this.mselect.choiceNode.find('option').length, 3);
                 });
                 it('should return matches based on values not keys', function () {
-                    assert.deepEqual(this.mselect.search('jau', this.testdata), {1: 'ajaua', 2: 'mjaus'});
+                    this.mselect.searchfield.val('uninett').keyup();
+                    assert.equal(this.mselect.choiceNode.find('option').length, 2);
+                });
+                it('should return to original after search and move', function () {
+                    this.mselect.searchfield.val('bla').keyup();
+                    this.mselect.move(this.mselect.choices.eq(0));
+                    this.mselect.searchfield.val('').keyup();
+                    assert.equal(this.mselect.choiceNode.find('option').length, 2);
                 });
             });
         });
