@@ -61,15 +61,16 @@ class Snmpv2Mib(mibretriever.MibRetriever):
         return self._get_sysvariable('sysUpTime')
 
     @defer.inlineCallbacks
-    def get_gmtime_and_uptime(self):
-        """Retrieves the agent's current sysUpTime and gets the current GMT time
+    def get_timestamp_and_uptime(self):
+        """Retrieves the agent's current sysUpTime and gets the current system
+        time.
 
-        :returns: A tuple of (gmt_timestamp, collected_sysuptime)
+        :returns: A tuple of (timestamp, collected_sysuptime)
 
         """
         sysuptime = yield self._get_sysvariable('sysUpTime')
-        gmtime = time.mktime(time.gmtime())
-        defer.returnValue((gmtime, sysuptime))
+        timestamp = time.mktime(time.localtime())
+        defer.returnValue((timestamp, sysuptime))
 
     @staticmethod
     def get_uptime_deviation(first_uptime, second_uptime):
@@ -85,7 +86,7 @@ class Snmpv2Mib(mibretriever.MibRetriever):
                                 should be the wall clock of the NAV server
                                 when the sysUpTime value was collected.
 
-        :argument second_uptime: A (gmt_timestamp, sysUpTime) tuple. The
+        :argument second_uptime: A (timestamp, sysUpTime) tuple. The
                                  timestamp should be the wall clock of the NAV
                                  server when the sysUpTime value was
                                  collected.
