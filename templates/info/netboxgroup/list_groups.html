@@ -4,8 +4,10 @@
 
     <h2>Device Groups</h2>
 
-    <form method="GET" action="">
-        {{ searchform }}
+    <form method="GET" action="{% url netbox-group %}">
+        <table>
+            {{ searchform }}
+        </table>
         <input type="submit" value="Search">
     </form>
 
