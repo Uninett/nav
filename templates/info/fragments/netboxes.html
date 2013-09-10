@@ -11,32 +11,34 @@
     <th>Availability (week)</th>
 </tr>
 </thead>
-<tbody>
-{% for netbox in netboxes %}
-    <tr class="{% cycle "oddrow" "evenrow" %}">
-        <td>
-            <a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a>
-        </td>
-        <td>{{ netbox.ip }}</td>
-        <td>
-            <a href="/report/netbox?catid={{ netbox.category.id }}">{{ netbox.category.id }}</a>
-        </td>
-        <td>
-            <a href="/report/netbox?typeid={{ netbox.type.id }}">{{ netbox.type.name }}</a>
-        </td>
-        <td>
-            <a href="/report/netbox?orgid={{ netbox.organization.id }}">{{ netbox.organization.description }}</a>
-        </td>
-        <td>
-            <a href="/report/swport?netboxid={{ netbox.id }}">{{ netbox.get_swports|length }}</a>
-        </td>
-        <td>
-            <a href="/report/gwport?netboxid={{ netbox.id }}">{{ netbox.get_gwports|length }}</a>
-        </td>
-        <td><img
-                src="/images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}">
-        </td>
-        <td class="numeric">{{ netbox.get_week_availability }}</td>
-    </tr>
-{% endfor %}
-</tbody>
+{% if netboxes %}
+    <tbody>
+    {% for netbox in netboxes %}
+        <tr class="{% cycle "oddrow" "evenrow" %}">
+            <td>
+                <a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a>
+            </td>
+            <td>{{ netbox.ip }}</td>
+            <td>
+                <a href="/report/netbox?catid={{ netbox.category.id }}">{{ netbox.category.id }}</a>
+            </td>
+            <td>
+                <a href="/report/netbox?typeid={{ netbox.type.id }}">{{ netbox.type.name }}</a>
+            </td>
+            <td>
+                <a href="/report/netbox?orgid={{ netbox.organization.id }}">{{ netbox.organization.description }}</a>
+            </td>
+            <td>
+                <a href="/report/swport?netboxid={{ netbox.id }}">{{ netbox.get_swports|length }}</a>
+            </td>
+            <td>
+                <a href="/report/gwport?netboxid={{ netbox.id }}">{{ netbox.get_gwports|length }}</a>
+            </td>
+            <td><img
+                    src="/images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}">
+            </td>
+            <td class="numeric">{{ netbox.get_week_availability }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+{% endif %}
