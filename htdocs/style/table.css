@@ -27,6 +27,14 @@ table.highlightover tr:hover {
     background-color: #EEEEEE;
 }
 
+table.alternaterows tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+table.alternaterows tr:nth-child(even) {
+    background-color: #f6f6f6;
+}
+
 /* Table caption */
 table.vertitable caption,
 table.listtable caption {

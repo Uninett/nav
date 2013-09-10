@@ -1,33 +1,19 @@
-.netboxgroup {
-    background-color: #eee;
-    display: inline-block;
-    margin-bottom: 1em;
-    margin-right: 2em;
-    padding: 0.5em 1em;
-    vertical-align: top;
-    width: 200px;
+ul.netboxgroup {
+    margin: 0;
 }
 
 .netboxgroup li {
     list-style-type: none;
-    margin-left: 0;
+    margin: 0;
+    padding-bottom: 0.2em;
 }
 
-.netboxgroup li.list-heading {
-    border-bottom: 1px solid gray;
-    font-weight: bold;
-}
-
-.netboxgroup li.list-heading a:last-child {
-    float: right;
-}
+/* Styles for the multiple select component - to be moved */
 
 .multiple-select-container [type="search"] {
     display: block;
     width: 300px;
 }
-
-/* Styles for the multiple select component - to be moved */
 
 .multiple-select-container {
     overflow: auto;

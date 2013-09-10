@@ -9,34 +9,49 @@
         <input type="submit" value="Search">
     </form>
 
-    <div class="float-clear"></div>
+    <table class="listtable alternaterows">
+        <caption>Device Groups</caption>
 
-    {% for netboxgroup in netboxgroups %}
-        <div class="netboxgroup">
-            <ul>
-                <li class="list-heading">
+        <thead>
+        <tr>
+            <th>Group</th>
+            <th>Description</th>
+            <th>Devices</th>
+            <th>&nbsp;</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for netboxgroup in netboxgroups %}
+            <tr>
+                <td>
                     <a href="{% url netbox-group-detail netboxgroup.pk %}">{{ netboxgroup.pk }}</a>
+                </td>
+                <td>{{ netboxgroup.description }}</td>
+                <td>
+                    <ul class="netboxgroup">
+                        {% with netboxgroup.netbox_set.all as netboxes %}
+                            {% if netboxes %}
+                                {% for netbox in netboxes %}
+                                    <li>
+                                        <a href="{% url ipdevinfo-details-by-name netbox.sysname %}">
+                                            {{ netbox.sysname }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li>No devices in this group</li>
+                            {% endif %}
+                        {% endwith %}
+                    </ul>
+                </td>
+                <td>
                     <a href="{% url netbox-group-edit netboxgroup.pk %}">Edit</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
 
-                </li>
-                {% with netboxgroup.netbox_set.all as netboxes %}
-                    {% if netboxes %}
-                        {% for netbox in netboxes %}
-                            <li>
-                                <a href="{% url ipdevinfo-details-by-name netbox.sysname %}">
-                                    {{ netbox.sysname }}
-                                </a>
-                            </li>
-                        {% endfor %}
-                    {% else %}
-                        <li>No devices in this group</li>
-
-                    {% endif %}
-                {% endwith %}
-            </ul>
-        </div>
-    {% endfor %}
-
-    <div class="float-clear"></div>
+    </table>
 
 {% endblock %}
