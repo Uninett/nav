@@ -48,7 +48,9 @@ class AuthorizationMiddleware(object):
     def process_request(self, request):
         account = request.account
 
-        authorized = account.has_perm('web_access', request.get_full_path())
+        authorized = (authorization_not_required(request.get_full_path())
+                      or
+                      account.has_perm('web_access', request.get_full_path()))
         if not authorized:
             _logger.warn("User %s denied access to %s",
                          account.login, request.get_full_path())
@@ -76,6 +78,17 @@ class AuthorizationMiddleware(object):
             urllib.quote(request.get_full_path()))
         return HttpResponseRedirect(new_url)
 
+
+def authorization_not_required(fullpath):
+    """Checks is authorization is required for the requested url
+
+    Should the user be able to decide this? Currently not.
+
+    """
+    auth_not_required = ['/api/']
+    for url in auth_not_required:
+        if fullpath.startswith(url):
+            return True
 
 #
 # sudo-related functionality
