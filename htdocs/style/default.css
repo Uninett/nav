@@ -510,6 +510,10 @@ p.paginator .active {
     background: no-repeat 8px 7px;
 }
 
+.horizontal-button-list a span.noicon {
+    text-indent: 1em;
+}
+
 .horizontal-button-list a span.edit {
     background-image: url("/images/icons/pencil.png");
 }
@@ -536,6 +540,10 @@ p.paginator .active {
 
 .horizontal-button-list a span.photo {
     background-image: url("/images/icons/camera-photo.png");
+}
+
+.horizontal-button-list a span.info {
+    background-image: url("/images/icons/info.png");
 }
 
 /* GraphFetcher styles */
