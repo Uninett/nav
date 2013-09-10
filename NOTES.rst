@@ -31,8 +31,12 @@ Dependency changes
 
 New dependencies:
 
-- The Python Imaging Library (`PIL`, aka. `python-imaging` on Debian).
 - `mod_wsgi`
+- The following Python modules:
+    - The Python Imaging Library (`PIL`, aka. `python-imaging` on Debian).
+    - `django-oauth2-provider` >= 0.2.6
+    - `djangorestframework` >= 2.3.7
+    - `iso8601`
 
 Changed version requirements:
 
