@@ -138,14 +138,14 @@ def restore_from_dump(filename):
     """Restores a NAV database from an SQL dump produced by pg_dump"""
     postgres_opts = ConnectionParameters.for_postgres_user()
     postgres_opts.export(os.environ)
+    nav_opts = ConnectionParameters.from_config()
 
-    print "Restoring database %s from file %s" % (postgres_opts.dbname,
-                                                  filename)
+    print "Restoring database %s from file %s" % (nav_opts.dbname, filename)
     trap_and_die(
         subprocess.CalledProcessError,
-        "Failed to restore database %s from file %s" % (postgres_opts.dbname,
+        "Failed to restore database %s from file %s" % (nav_opts.dbname,
                                                         filename),
-        check_call, ["psql", "--quiet", "-f", filename])
+        check_call, ["psql", "--quiet", "-f", filename, nav_opts.dbname])
 
 
 def user_exists(username):
