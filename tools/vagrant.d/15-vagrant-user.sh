@@ -28,7 +28,7 @@ cd /vagrant
 cd /vagrant/python
 make
 
-if [ $1 != 0 ]; then
+if [ "$1" != 0 ]; then
   cd /vagrant/etc
   make
   make install
