@@ -13,6 +13,9 @@ define([
                parsedVlans.push(vlanModel.prototype.parse(model));
             });
             return parsedVlans;
+        },
+        comparator: function (item) {
+            return item.get('vlan');
         }
 
 
