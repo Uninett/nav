@@ -2,9 +2,9 @@ htmldocfiles := $(shell test -e html && find html/ -type f)
 
 nobase_dist_doc_DATA = \
 	README.cricket \
-	$(wildcard mailin/alertmsg.d/*) \
 	$(wildcard intro/*.rst) \
 	$(wildcard reference/*.rst) \
+	$(wildcard hacking/*.rst) \
 	$(wildcard faq/*.rst) \
 	$(htmldocfiles)
 
@@ -22,7 +22,7 @@ PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
-.PHONY: help clean html dirhtml pickle json htmlhelp qthelp latex changes linkcheck doctest
+.PHONY: help clean html dirhtml pickle json htmlhelp qthelp latex changes linkcheck doctest buildloop
 
 all: html
 
@@ -101,3 +101,6 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
+
+buildloop:
+	while inotifywait -e modify -e move -e create -r --exclude \# .; do sleep 1; $(MAKE); done

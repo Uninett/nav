@@ -19,15 +19,16 @@ fi
 
 export PYTHONPATH="/vagrant/python:$PYTHONPATH"
 
-pip install -r /vagrant/tools/vagrant-requirements.txt
+pip install -r /vagrant/requirements.txt
+pip install -r /vagrant/tests/requirements.txt
 
 cd /vagrant
 ./autogen.sh
-./configure NAV_USER="vagrant" --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc --datadir $PWD
+./configure NAV_USER="vagrant" CRICKETDIR="/usr/share/cricket" --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc --datadir $PWD
 cd /vagrant/python
 make
 
-if [ $1 != 0 ]; then
+if [ "$1" != 0 ]; then
   cd /vagrant/etc
   make
   make install

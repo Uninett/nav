@@ -66,8 +66,8 @@ quote http://www.bluerobot.com/web/layouts/
     width:150px;
     top:0px;
     left:0px;
-    border:1px dashed black;
-    padding:10px;
+    border:1px 1px 1px 0 dotted #333;
+    padding:5px;
     z-index:2;
 
     /* Here is the ugly brilliant hack that protects IE5/Win from its own stupidity.
@@ -77,13 +77,13 @@ declaration. The incorrect IE5/Win value is above, while the correct value is
 below. See http://glish.com/css/hacks.asp for details. */
     voice-family: "\"}\"";
     voice-family:inherit;
-    width:128px;
+    width:138px;
 }
 /* I've heard this called the "be nice to Opera 5" rule. Basically, it feeds correct
 length values to user agents that exhibit the parsing error exploited above yet get
 the CSS box model right and understand the CSS2 parent-child selector. ALWAYS include
 a "be nice to Opera 5" rule every time you use the Tantek Celik hack (above). */
-body>#netmap_left_sidebar {width:128px;}
+body>#netmap_left_sidebar {width:138px;}
 
 #netmap_left_sidebar div.inner_wrap {
     margin-top: 20px;
@@ -91,19 +91,19 @@ body>#netmap_left_sidebar {width:128px;}
 
 #netmap_infopanel {
     position:absolute;
-    width:190px;
+    width:210px;
     top:0px;
     right:0px;
-    border:1px dashed black;
-    padding:10px;
+    padding:5px;
     z-index:1;
+    border: 1px 0 1px 1px dotted #333;
     /* Again, the ugly brilliant hack. */
     voice-family: "\"}\"";
     voice-family:inherit;
-    width:168px;
+    width:188px;
 }
 /* Again, "be nice to Opera 5". */
-body>#netmap_infopanel {width:168px;}
+body>#netmap_infopanel {width:188px;}
 
 
 #loading_chart, #chart {
@@ -190,9 +190,6 @@ a#netmap_link_to_admin {
 .netmap-node-category {
 }
 
-li.selected_vlan a {
-    color: orange;
-}
 #toggle_view {
     cursor: pointer;
 }
@@ -222,7 +219,64 @@ li.selected_vlan a {
     min-height: 350px;
     height: 350px;
     overflow-y: scroll;
+    overflow-x: hidden;
 }
+
+#node_info_vlan {
+    list-style-type: none;
+}
+
+#node_info_vlan > li {
+    margin:0 0 2px 0;
+    border-bottom: 1px dotted #ccc;
+}
+
+#infoVlanContainer .vlan {
+    display: block;
+    width:auto;
+    font-size:11px;
+    padding-left: 2.5em;
+    position: relative;
+    height:auto !important;
+    min-height: 3.8em;
+    height:3.8em;
+    cursor: pointer;
+}
+
+#infoVlanContainer .vlan:hover {
+    color:orange;
+}
+
+#infoVlanContainer .vlan > span {
+    display: block;
+    position:absolute;
+    font-size:11px;
+    top:50%;
+    left:0;
+    margin:-1em 0 0 -.5em;
+    width:2em;
+    background:#577899;
+    color:#fff;
+    font-weight: normal;
+    padding:.2em .5em;
+    text-align: right;
+
+    transform:rotate(-90deg);
+    -ms-transform:rotate(-90deg); /* IE 9 */
+    -webkit-transform:rotate(-90deg); /* Safari and Chrome */
+
+}
+
+
+
+#node_info_vlan .selected_vlan a {
+    color:orange;
+}
+
+#node_info_vlan .selected_vlan a > span{
+    background:orange;
+}
+
 
 /* Navigation styles */
 
@@ -240,22 +294,39 @@ li.selected_vlan a {
     width: 45%;
 }
 .netmapWidget {
-    margin-top: 0.4em;
+    margin: 0.5em 0;
+    border-radius:5px;
+    border:1px solid #567899;
+    overflow:hidden;
+    position:relative;
 }
+
+.netmapWidget .netmapWidget {
+   border:0 !important;
+   border-radius:0 !important;
+   padding-bottom:5px;
+   border-bottom:1px dotted #567899 !important;
+}
+
+.netmapWidget .netmapWidget .body{
+   margin:0;
+}
+
 .netmapWidget .header {
     display: block;
     width: 100%;
     background: #567899;
     color: #fff;
+    overflow: hidden;
 }
 .netmapWidget .header .title {
     font-size: 12pt;
-    background: url('/images/icons/expand.png') no-repeat right top;
-    padding-right: 16px;
+    font-weight:bold;
+    background: url('/images/icons/expand_invert.png') top right no-repeat;
+    margin:3px;
 }
 .netmapWidget .body {
-    margin-top: 0.5em;
-    background: #fff;
+    margin: 0.5em;
 }
 
 .netmapWidget .header >.no-icon {
@@ -263,6 +334,7 @@ li.selected_vlan a {
 }
 .netmapWidget .no_collapse > .title {
     background: none;
+    margin:3px 0;
 }
 
 .hideSubWidgets .netmapWidget .header {
@@ -377,8 +449,8 @@ span.value {
 /* LINK INFO RENE */
 div.uplink {
 	display:block;
-	padding:5px;
-	border:1px solid #aaa;
+	padding:0px;
+	border:0;
 
     background: -moz-linear-gradient(top,  #f0f9ff 0%, #d8f0ff 100%); /* FF3.6+ */
     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f0f9ff), color-stop(100%,#d8f0ff)); /* Chrome, Safari4+ */
@@ -388,9 +460,53 @@ div.uplink {
     background: linear-gradient(to bottom,  #f0f9ff 0%,#d8f0ff 100%); /* W3C */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f0f9ff', endColorstr='#d8f0ff',GradientType=0 ); /* IE6-9 */
 
-	border-radius:5px;
-	margin-bottom:10px;
+	margin-bottom:2px;
 	font-family:Consolas, "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", Monaco, "Courier New", monospace;
+    overflow:hidden;
+}
+
+div.uplink:first-of-type {
+    margin-top:5px;
+    border-top-left-radius: 3px;
+    border-top-right-radius:3px;
+}
+
+div.uplink:last-of-type {
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+div.uplink > * {
+    padding: 0 3%;
+}
+
+div.uplink_header {
+    font-weight:bold;
+	font-size:.8em;
+	color:#fff;
+	text-align:center;
+	display:block;
+	width:94%;
+    padding:2px 3%;
+	background:#567899;
+}
+
+div.uplink_header span a {
+    color:#fff;
+}
+
+div.uplink_header .source_node_name {
+    text-align: right;
+    float:left;
+}
+
+div.uplink_header .node_separator {
+    margin:0 3px;
+}
+
+div.uplink_header .target_node_name {
+    text-align: left;
+    float:right;
 }
 
 div.uplink a {
@@ -400,23 +516,12 @@ div.uplink a {
 div.uplink a:hover {
 	color:#f90;
 }
-
 div.uplink > .uplink_linkspeed {
-	padding:2px 0;
-	font-weight:bold;
-	font-size:.8em;
-	color:#fff;
-	text-align:center;
-	display:block;
-	width:100%;
-	background:#567899;
+    font-size:0.8em;
+    margin:3px 0;
 }
-div.uplink > .uplink_linkspeed a {
-	color:#fff;
-}
-
 div.uplink > .uplink_linkspeed > span {
-	text-transform:uppercase;
+	text-transform:capitalize;
 	font-weight:bold;
 }
 
@@ -471,10 +576,6 @@ div.uplink_right > .load_arrow {
 	height:1px;
 	font-size:1px;
 	line-height:1px;
-}
-
-div.uplink .node_name {
-	display:block;
 }
 
 /* LINK INFO RENE END*/
@@ -543,13 +644,6 @@ circle.grouped_by_room {
     fill: transparent;
 }
 
-#node_info_vlan {
-    list-style-type: none;
-}
-#node_info_vlan li {
-    margin-left: 0;
-    padding-left: 0;
-}
 circle.grouped_by_vlan {
     stroke: orange;
     fill: transparent;
