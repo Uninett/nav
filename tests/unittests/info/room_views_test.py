@@ -20,7 +20,6 @@ import unittest
 
 from mock import Mock
 from nav.models.manage import Netbox
-from nav.web.info.room.views import add_availability
 
 
 class RoomViewsTest(unittest.TestCase):
