@@ -24,9 +24,14 @@ __all__ = ['COLOR_BLACK', 'COLOR_BLUE', 'COLOR_CYAN', 'COLOR_GREEN',
            'COLOR_MAGENTA', 'COLOR_RED', 'COLOR_WHITE', 'COLOR_YELLOW',
            'colorize', 'set_foreground', 'reset_foreground', 'print_color']
 
-curses.setupterm()
-_set_color = curses.tigetstr('setaf') or ''
-_reset_color = curses.tigetstr('sgr0') or ''
+try:
+    curses.setupterm()
+    _set_color = curses.tigetstr('setaf') or ''
+    _reset_color = curses.tigetstr('sgr0') or ''
+except curses.error:
+    # silently ignore errors and turn off colors
+    _set_color = ''
+    _reset_color = ''
 
 
 def colorize(color):
