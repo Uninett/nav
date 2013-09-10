@@ -24,7 +24,7 @@ pip install -r /vagrant/tests/requirements.txt
 
 cd /vagrant
 ./autogen.sh
-./configure NAV_USER="vagrant" --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc --datadir $PWD
+./configure NAV_USER="vagrant" CRICKETDIR="/usr/share/cricket" --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc --datadir $PWD
 cd /vagrant/python
 make
 
