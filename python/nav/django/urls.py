@@ -17,6 +17,7 @@
 
 from django.conf import settings
 from django.conf.urls.defaults import patterns, include, url
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from nav.web.webfront.urls import urlpatterns
 
 urlpatterns += patterns('',
@@ -50,12 +51,5 @@ urlpatterns += patterns('',
     url(r'^userinfo/', 'nav.web.useradmin.views.userinfo', name='userinfo'),
 )
 
-if settings.DEBUG:
-    from nav import buildconf
-    from os.path import join
-
-    # Serve static content via Django when debugging
-    for media in ('style', 'js', 'images'):
-        urlpatterns += patterns('',
-            (r'^%s/(?P<path>.*)$' % media, 'django.views.static.serve',
-             {'document_root': join(buildconf.webrootdir, media)}))
+# Make django serve static files (a webserver like apache overrides this)
+urlpatterns += staticfiles_urlpatterns()

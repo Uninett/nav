@@ -59,7 +59,33 @@ try:
 except IOError:
     pass
 
-INSTALLED_APPS = ( 'nav.models', 'nav.django', 'django.contrib.sessions')
+
+
+# Static files configuration
+STATIC_ROOT = os.path.join(nav.path.datadir, 'static')
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.join(nav.path.webrootdir),
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'compressor.finders.CompressorFinder',
+)
+
+# Compressor configuration
+COMPRESS_OUTPUT_DIR = 'cache'
+COMPRESS_PARSER = 'compressor.parser.HtmlParser'
+COMPRESS_PRECOMPILERS = (
+    ('text/scss', 'node-sass {infile} {outfile}'),
+)
+COMPRESS_CSS_FILTERS = [
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.cssmin.CSSMinFilter',
+]
+
+
 
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
@@ -77,6 +103,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'nav.django.context_processors.account_processor',
     'nav.django.context_processors.nav_version',
     'nav.django.context_processors.footer_info',
+    'django.core.context_processors.static',
 )
 
 # Middleware
@@ -130,6 +157,18 @@ NAVLETS = (
     'nav.web.navlets.messages.MessagesNavlet',
     'nav.web.navlets.welcome.WelcomeNavlet',
     'nav.web.navlets.room_map.RoomMapNavlet',
+)
+
+CRISPY_TEMPLATE_PACK = 'foundation'
+
+INSTALLED_APPS = ( 
+    'nav.models', 
+    'nav.django', 
+    'django.contrib.staticfiles', 
+    'django.contrib.sessions', 
+    'compressor', 
+    'crispy_forms', 
+    'crispy_forms_foundation'
 )
 
 # Hack for hackers to use features like debug_toolbar etc.
