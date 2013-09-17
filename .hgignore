@@ -56,3 +56,6 @@ version.m4
 Makefile$
 Makefile\.in$
 
+# Static files and cached static files genereated
+static/*
+
