@@ -92,6 +92,14 @@ Access to this resource can now be controlled through the regular
 authorization configuration of NAV's Useradmin panel.
 
 
+REST API
+--------
+
+NAV 3.15 also includes the beginnings of a read-only RESTful API. The API is
+not yet documented, and must be considered an unstable experiment at the
+moment. API access tokens can only be issued by a NAV administrator.
+
+
 NAV 3.14
 ========
 
