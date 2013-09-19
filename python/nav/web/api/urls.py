@@ -18,16 +18,25 @@
 
 from django.conf.urls import url, patterns
 from .views import (RoomList, RoomDetail, NetboxList, NetboxDetail,
-                    PrefixUsageDetail, get_or_create_token)
+                    PrefixUsageDetail, get_or_create_token, PrefixDetail,
+                    PrefixList, RoutedPrefixList)
 
 urlpatterns = patterns(
     "",
     url(r"^$", RoomList.as_view(), name="api-inventory"),  # TODO: Fix this
     url(r"^token/$", get_or_create_token, name="api-token"),
+
     url(r"^rooms/$", RoomList.as_view(), name="api-rooms"),
     url(r"^rooms/(?P<pk>\w+)$", RoomDetail.as_view(), name="api-room"),
+
     url(r"^netboxes/$", NetboxList.as_view(), name="api-netboxes"),
     url(r"^netboxes/(?P<pk>\d+)$", NetboxDetail.as_view(), name="api-netbox"),
+
+    url(r"^prefixes/routed/?$",
+        RoutedPrefixList.as_view(), name="api-prefixes-routed"),
+    url(r"^prefixes/?$", PrefixList.as_view(), name="api-prefixes"),
+    url(r"^prefixes/(?P<pk>\d+)/?$", PrefixDetail.as_view(),
+        name="api-prefix"),
     url(r"^activeip/(?P<prefix>.*)$", PrefixUsageDetail.as_view(),
         name="api-prefix-usage"),
 )

@@ -12,7 +12,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# pylint: disable=R0903
+# pylint: disable=R0903, R0901, R0904
 """Views for the NAV API"""
 
 from IPy import IP
@@ -27,10 +27,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from nav.models.api import APIToken
-from nav.models.manage import Room, Netbox
+from nav.models.manage import Room, Netbox, Prefix
 
 from .auth import APIPermission, APIAuthentication
-from .serializers import (RoomSerializer, NetboxSerializer,
+from .serializers import (RoomSerializer, NetboxSerializer, PrefixSerializer,
                           PrefixUsageSerializer)
 from .helpers import prefix_collector
 
@@ -68,12 +68,41 @@ class NetboxDetail(NAVAPIMixin, RetrieveAPIView):
     serializer_class = NetboxSerializer
 
 
+class PrefixList(NAVAPIMixin, ListAPIView):
+    """Makes prefixes available from api"""
+    queryset = Prefix.objects.all()
+    serializer_class = PrefixSerializer
+
+
+class PrefixDetail(NAVAPIMixin, RetrieveAPIView):
+    """Makes prefix available from api"""
+    queryset = Prefix.objects.all()
+    serializer_class = PrefixSerializer
+
+
+class RoutedPrefixList(NAVAPIMixin, APIView):
+    """Fetches routed prefixes"""
+    _router_categories = ['GSW', 'GW']
+
+    def get(self, request):
+        """Handles get requests"""
+        prefixes = Prefix.objects.filter(
+            gwportprefix__interface__netbox__category__in=
+            self._router_categories)
+        if 'family' in request.GET:
+            prefixes = prefixes.extra(where=['family(netaddr)=%s'],
+                                      params=[request.GET.get('family')])
+        serializer = PrefixSerializer(prefixes)
+        return Response(serializer.data)
+
+
 class PrefixUsageDetail(NAVAPIMixin, APIView):
     """Makes prefix usage accessible from api"""
 
     MINIMUMPREFIXLENGTH = 4
 
-    def get_times(self, request):
+    @staticmethod
+    def get_times(request):
         """Gets start and endtime from request"""
         starttime = request.GET.get('starttime')
         endtime = request.GET.get('endtime')
