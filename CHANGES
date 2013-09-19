@@ -19,7 +19,7 @@ Version 3.15.0
     black markers drawn across the link in question. Details of the underlying
     links are are now properly displayed when clicking on the link line.
 
-  * Navigateable next-hop neighbor map in new ipdevinfo tab.
+  * Interactive next-hop neighbor map in new ipdevinfo tab.
 
   * "What-if" analysis in new ipdevinfo tab displays devices and organizations
     that may be affected if the selected device goes down. Based on NAV's
