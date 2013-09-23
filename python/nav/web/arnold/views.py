@@ -150,6 +150,8 @@ def render_justifications(request, jid=None):
         form = JustificationForm()
 
     justifications = Justification.objects.all()
+    for justification in justifications:
+        justification.deletable = is_deletable(justification)
 
     return render_to_response(
         'arnold/justifications.html',
@@ -159,6 +161,19 @@ def render_justifications(request, jid=None):
                         'justifications': justifications}),
         context_instance=RequestContext(request)
     )
+
+
+def is_deletable(justification):
+    """Determines if a justification is deletable
+
+    :param justification: The Justification to verify is deletable
+    :type justification: Justification
+
+    """
+    is_in_detentionset = bool(justification.detentionprofile_set.all())
+    has_been_used = bool(justification.identity_set.all())
+
+    return not (has_been_used or is_in_detentionset)
 
 
 def process_justification_form(form):
@@ -176,6 +191,21 @@ def process_justification_form(form):
     justification.description = desc
 
     justification.save()
+
+
+def delete_justification(request, jid):
+    """Deletes a justification"""
+
+    try:
+        justification = Justification.objects.get(pk=jid)
+    except Justification.DoesNotExist:
+        # As this method is only called from ui on existing justifications
+        # this should not happen. Just redirect to list again
+        return redirect('arnold-justificatons')
+    else:
+        justification.delete()
+
+    return redirect('arnold-justificatons')
 
 
 def render_manual_detention_step_one(request):
