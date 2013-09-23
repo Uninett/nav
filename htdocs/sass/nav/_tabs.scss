@@ -16,66 +16,57 @@
  *
  */
 
-/* The following tabs CSS are tested to work with Firefox 2.0.0.6 on Linux,
- * Opera 9.20 on Linux and Internet Explorer 6.0 on Windows */
-
 .tabs {
     display: none;
 	margin-top: 1em;
     overflow: visible;
-}
-.tabs > ul {
-    font-size: 0.9em;
-	margin: 0;
-	padding: 0;
-}
-.tabs > ul li {
-    border-left: 1px solid #999999;
-    border-top: 1px solid #999999;
-    float: left;
-	list-style: none;
-	margin: 0;
-	padding: 0;
-    position: relative;
-}
-
-.tabs > ul li:last-child {
-    border-right: 1px solid #999999;
-}
-
-.tabs > ul li.tabactive {
-    position: relative;
-    z-index: 10;
-}
-
-.tabs > ul li a {
-	background: #dae1e6;
-	color: #333;
-    display: block;
-    line-height: 1.3em;
-    margin: 0;
-    padding: 0.6em 1em;
-    text-decoration: none;
-}
-.tabs > ul li a:hover {
-	background: #eee;
-	color: black;
-}
-
-.tabs > ul li.tabactive a,
-.tabs > ul li.tabactive a:hover {
-    background: white;
-	color: black;
-}
-
-.tabs > .tabcontent {
-    border: 1px solid #999999;
-    clear: both;
-    margin-bottom: 1em;
-    padding: 1em;
-    position: relative;
-    top: -1px;
-    z-index: 9;
+    > ul {
+        font-size: 0.9em;
+        margin: 0;
+        padding: 0;
+        li {
+            border-left: 1px solid #999999;
+            border-top: 1px solid #999999;
+            float: left;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            position: relative;
+            &:last-child {
+                border-right: 1px solid #999999;
+            }
+            &.tabactive {
+                position: relative;
+                z-index: 10;
+                a, a:hover {
+                    background: white;
+                    color: black;
+                }
+            }
+            a {
+                background: #dae1e6;
+                color: #333;
+                display: block;
+                line-height: 1.3em;
+                margin: 0;
+                padding: 0.6em 1em;
+                text-decoration: none;
+                &:hover {
+                    background: #eee;
+                    color: black;
+                }
+            }
+        }
+    }
+    > .tabcontent {
+        border: 1px solid #999999;
+        clear: both;
+        margin-bottom: 1em;
+        padding: 1em;
+        position: relative;
+        top: -1px;
+        z-index: 9;
+    }
 }
 
 /*
@@ -84,37 +75,40 @@
  * To adjust size of tabs, override the two marked styles
  */
 
-.tabs.tabs-vertical > ul {
-    border: 1px solid #999999;
-    border-right-width: 0;
-    float: left;
-    line-height: 1.6em;
-    padding: 0;
-    width: 200px;  /* Override to adjust tabsize */
+.tabs.tabs-vertical {
+    > ul {
+        border: 1px solid #999999;
+        border-right-width: 0;
+        float: left;
+        line-height: 1.6em;
+        padding: 0;
+        width: 200px; /* Override to adjust tabsize */
+        li {
+            border: none;
+            border-bottom: 1px solid #999999;
+            display: block;
+            float: none;
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+    }
+    > .tabcontent {
+        clear: none;
+        margin-left: 200px; /* Override to adjust tabsize */
+        min-height: 550px; /* Override to adjust for long ass vertical tabs */
+        top: 0;
+        left: -1px;
+    }
 }
 
-.tabs.tabs-vertical > ul li {
-    border: none;
-    border-bottom: 1px solid #999999;
-    display: block;
-    float: none;
-}
-
-.tabs.tabs-vertical > ul li:last-child {
-    border-bottom: none;
-}
-
-.tabs-vertical > .tabcontent {
-    clear: none;
-    margin-left: 200px;  /* Override to adjust tabsize */
-    min-height: 550px;  /* Override to adjust for long ass vertical tabs */
-    top: 0;
-    left: -1px;
-}
-
-/* Tabs inside tabs */
+/* Tabs inside tabs should have no border and no padding to make room for the most content possible */
 
 .tabs .tabs {
     margin-top: 0;
     overflow: auto;
+    > .tabcontent {
+        border: 0;
+        padding: 1em 0;
+    }
 }
