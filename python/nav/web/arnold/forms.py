@@ -19,6 +19,10 @@ from IPy import IP
 from django import forms
 from nav.util import is_valid_ip, is_valid_mac
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Fieldset, ButtonHolder
+
+from nav.web.crispyforms import NavSubmit
 from nav.models.arnold import (DETENTION_TYPE_CHOICES, STATUSES,
                                KEEP_CLOSED_CHOICES, Justification,
                                QuarantineVlan, DetentionProfile)
@@ -30,6 +34,29 @@ class JustificationForm(forms.Form):
     description = forms.CharField(label="Description", required=False)
     justificationid = forms.IntegerField(widget=forms.HiddenInput(),
                                          required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(JustificationForm, self).__init__(*args, **kwargs)
+
+        # Set correct helper text based on if this is an edit or add
+        submit_value = 'Add reason'
+        fieldset_legend = 'Add detention reason'
+        if self.initial.get('justificationid'):
+            submit_value = 'Save changes'
+            fieldset_legend = 'Edit detention reason'
+
+        # Create helper for crispy layout
+        self.helper = FormHelper()
+        self.helper.form_action = 'arnold-justificatons'
+        self.helper.layout = Layout(
+            Fieldset(
+                fieldset_legend,
+                'name', 'description', 'justificationid'
+            ),
+            ButtonHolder(
+                NavSubmit('submit', submit_value)
+            )
+        )
 
 
 class QuarantineVlanForm(forms.Form):
