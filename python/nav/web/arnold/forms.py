@@ -20,7 +20,7 @@ from django import forms
 from nav.util import is_valid_ip, is_valid_mac
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, ButtonHolder
+from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Field, Div
 
 from nav.web.crispyforms import NavSubmit
 from nav.models.arnold import (DETENTION_TYPE_CHOICES, STATUSES,
@@ -78,11 +78,35 @@ class SearchForm(forms.Form):
                       ('dns', 'DNS')]
     status_choices = STATUSES + [('any', 'Any')]
 
-    searchtype = forms.ChoiceField(choices=search_choices)
-    searchvalue = forms.CharField(required=True)
+    searchtype = forms.ChoiceField(choices=search_choices,
+                                   label='')
+    searchvalue = forms.CharField(required=True, label='')
     status = forms.ChoiceField(choices=status_choices, label='Status')
-    days = forms.IntegerField(label='Days',
-                              widget=forms.TextInput({'size': 3}))
+    days = forms.IntegerField(label='Days')
+
+    def __init__(self, *args, **kwargs):
+        super(SearchForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'custom'
+        self.helper.layout = Layout(
+            Fieldset(
+                'Search',
+                Div(
+                    Div('searchtype', css_class='large-3 column'),
+                    Div('searchvalue', css_class='large-9 column'),
+                    css_class='row collapse'
+                ),
+                Div(
+                    Div('status', css_class='large-6 column'),
+                    Div('days', css_class='large-6 column'),
+                    css_class='row'
+                )
+            ),
+            ButtonHolder(
+                NavSubmit('search', 'Search')
+            )
+        )
+
 
     def clean_searchvalue(self):
         """Clean whitespace from searchvalue"""

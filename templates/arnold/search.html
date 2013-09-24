@@ -1,46 +1,14 @@
 {% extends "arnold/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 
     {% comment %} Display form for defining search parameters {% endcomment %}
-
-    <form action="{% url arnold-search %}" method="POST">
-        <table class="vertitable">
-            <tr>
-                <th>{{ form.searchtype }}</th>
-                <td>{{ form.searchvalue }}</td>
-                <td>
-                    {% if form.searchvalue.errors %}
-                        <span class="error">{{ form.searchvalue.errors.0 }}</span>
-                    {% else %}
-                        &nbsp;
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th>{{ form.status.label }}</th>
-                <td>{{ form.status }}</td>
-                <td></td>
-            </tr>
-            <tr>
-                <th>{{ form.days.label }}</th>
-                <td class="days">{{ form.days }} days back</td>
-                <td>
-                    {% if form.days.errors %}
-                        <span class="error">{{ form.days.errors.0 }}</span>
-                    {% else %}
-                        &nbsp;
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th>&nbsp;</th>
-                <td><input type="submit" value="Search"></td>
-                <td>&nbsp;</td>
-            </tr>
-
-        </table>
-    </form>
+    <div class="row">
+        <div class="large-4 column">
+            {% crispy form %}
+        </div>
+    </div>
 
 
     {% comment %} Display search results {% endcomment %}
