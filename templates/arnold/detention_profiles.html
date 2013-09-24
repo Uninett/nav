@@ -24,7 +24,7 @@
                     <td>{{ profile.description }}</td>
                     <td>{{ profile.active|yesno:'Yes,No' }}</td>
                     <td>
-                        <a href="{% url arnold-detention-profile-edit profile.id %}">Edit</a>
+                        <a href="{% url arnold-detention-profile-edit profile.id %}" class="button small">Edit</a>
                     </td>
                 </tr>
             {% endfor %}
