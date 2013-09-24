@@ -1,13 +1,16 @@
 {% extends 'arnold/base.html' %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 
     {% if error %}
-    <div class="error">{{ error }}</div>
+        <div class="alert-box alert">{{ error }}</div>
     {% endif %}
-    <form action="{% url arnold-manual-detention %}" method="POST">
-        {{ form.as_p }}
-        <input type="submit" value="Go to step 2">
-    </form>
+
+    <div class="row">
+        <div class="large-4 column">
+            {% crispy form %}
+        </div>
+    </div>
 
 {% endblock %}

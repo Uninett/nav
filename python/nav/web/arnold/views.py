@@ -239,7 +239,7 @@ def render_manual_detention_step_two(request, target):
     camtuples = {}
     for candidate in candidates:
         camtuples[str(candidate.camid)] = candidate
-    camtuple_choices = [(str(x.camid), 'a') for x in candidates]
+    camtuple_choices = [(str(x.camid), humanize(x)) for x in candidates]
 
     if request.method == 'POST':
         form = ManualDetentionForm(request.POST)
@@ -262,6 +262,18 @@ def render_manual_detention_step_two(request, target):
                                   'now': datetime.now(),
                                   'error': error
                               }), RequestContext(request))
+
+
+def humanize(candidate):
+    return '%s - %s' % (candidate.interface, get_last_seen(candidate.camid))
+
+
+def get_last_seen(camid):
+    cam = Cam.objects.get(pk=camid)
+    if cam.end_time >= datetime.now():
+        return 'still active'
+    else:
+        return 'last seen %s' % cam.end_time.strftime('%Y-%m-%d %H:%M:%S')
 
 
 def process_manual_detention_form(form, account):

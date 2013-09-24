@@ -3,9 +3,9 @@ require(['libs/jquery', 'libs/jquery.tablesorter.min'], function () {
         if ($('form.profileDetentionForm').length > 0) {
             addVlanToggler($('#id_detention_type'));
         }
-//        if ($('form.manualDetentionForm').length > 0) {
-//            addVlanToggler('#id_method_0', '#id_method_1', '.vlanrow');
-//        }
+        if ($('form.manualDetentionForm').length > 0) {
+            addVlanToggler($('#id_method'));
+        }
 
         // Add tablesorter to history table
         if ($('.arnold-history tbody').length > 0) {

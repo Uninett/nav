@@ -237,6 +237,15 @@ class ManualDetentionTargetForm(forms.Form):
     """Form for step one of manual detention"""
     target = forms.CharField(label="IP/MAC to detain")
 
+    def __init__(self, *args, **kwargs):
+        super(ManualDetentionTargetForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = 'arnold-manual-detention'
+        self.helper.layout = Layout(
+            'target',
+            NavSubmit('submit', 'Go to step 2')
+        )
+
     def clean_target(self):
         """Validate target"""
         target = self.cleaned_data['target'].strip()
@@ -251,15 +260,16 @@ class ManualDetentionForm(forms.Form):
 
     method = forms.ChoiceField(label="Choose method",
                                choices=DETENTION_TYPE_CHOICES,
-                               initial=DETENTION_TYPE_CHOICES[0][0],
-                               widget=forms.RadioSelect())
+                               initial=DETENTION_TYPE_CHOICES[0][0])
     target = forms.CharField(label="IP/MAC to detain",
                              widget=forms.TextInput(attrs={'readonly': True}))
-    camtuple = forms.ChoiceField(label="Interface")
+    camtuple = forms.ChoiceField(label="Choose interface",
+                                 widget=forms.RadioSelect())
     justification = forms.ChoiceField(label="Reason")
     qvlan = forms.ChoiceField(label="Quarantine vlan", required=False)
     comment = forms.CharField(label="Comment", required=False)
-    days = forms.IntegerField(label="Autoenable in", required=False)
+    days = forms.IntegerField(label="Days to wait before autoenabling",
+                              required=False)
 
     def clean(self):
         cleaned_data = self.cleaned_data
@@ -275,6 +285,19 @@ class ManualDetentionForm(forms.Form):
         return cleaned_data
 
     def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.form_class = 'custom manualDetentionForm'
+        self.helper.layout = Layout(
+            'target',
+            Div('camtuple', css_class='interface_list'),
+            'method',
+            Div('qvlan', css_class='qvlanrow'),
+            'justification',
+            'comment',
+            'days',
+            NavSubmit('submit', 'Detain')
+        )
+
         super(ManualDetentionForm, self).__init__(*args, **kwargs)
         self.fields['justification'].choices = get_justifications()
         self.fields['qvlan'].choices = get_quarantine_vlans()

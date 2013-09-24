@@ -25,3 +25,7 @@ form table textarea {
     left: -9999px;
     top: -9999px;
 }
+
+.interface_list ul {
+    list-style-type: none;
+}
