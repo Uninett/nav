@@ -1,50 +1,50 @@
 {% extends "arnold/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 
-    {% comment %} List all existing quarantine vlans{% endcomment %}
-    <table class="listtable">
-        <caption>Current quarantine vlans</caption>
+    <div class="row">
 
-        <thead>
-        <tr>
-            <th>Vlan</th>
-            <th>Description</th>
-            <th>&nbsp;</th>
-        </tr>
-        </thead>
+        <div class="large-4 column">
+            {% comment %} List all existing quarantine vlans{% endcomment %}
+            <table class="listtable expand">
+                <caption>Current quarantine vlans</caption>
 
-        {% if qvlans %}
-            <tbody>
-            {% for qvlan in qvlans %}
+                <thead>
                 <tr>
-                    <td>{{ qvlan.vlan }}</td>
-                    <td>{{ qvlan.description }}</td>
-                    <td>
-                        <a href="{% url arnold-quarantinevlans-edit qvlan.id %}">
-                            Edit
-                        </a>
-                    </td>
+                    <th>Vlan</th>
+                    <th>Description</th>
+                    <th>&nbsp;</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        {% endif %}
+                </thead>
 
-    </table>
+                {% if qvlans %}
+                    <tbody>
+                    {% for qvlan in qvlans %}
+                        <tr>
+                            <td>{{ qvlan.vlan }}</td>
+                            <td>{{ qvlan.description }}</td>
+                            <td>
+                                <a href="{% url arnold-quarantinevlans-edit qvlan.id %}">
+                                    Edit
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                {% endif %}
 
-    {% comment %} Display form for creating a new quarantine vlan {% endcomment %}
-    <form action="{% url arnold-quarantinevlans %}" method="POST">
-        <table class="vertitable">
-            <tbody>
-            {{ form.as_table }}
-            <tr>
-                <th>&nbsp;</th>
-                <td>
-                    <input type="submit" value="{{ form.initial.qid|yesno:'Save changes, Add vlan' }}">
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </form>
+            </table>
+        </div>
 
+        {% comment %} Display form for creating a new quarantine vlan {% endcomment %}
+        <div class="large-4 column">
+            {% crispy form %}
+        </div>
+
+        <div class="large-4 column">
+            &nbsp;
+        </div>
+
+    </div>
 {% endblock %}

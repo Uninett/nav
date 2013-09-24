@@ -66,6 +66,29 @@ class QuarantineVlanForm(forms.Form):
     qid = forms.IntegerField(widget=forms.HiddenInput(),
                              required=False)
 
+    def __init__(self, *args, **kwargs):
+        super(QuarantineVlanForm, self).__init__(*args, **kwargs)
+
+        # Set correct helper text based on if this is an edit or add
+        submit_value = 'Add vlan'
+        fieldset_legend = 'Add quarantine vlan'
+        if self.initial.get('qid'):
+            submit_value = 'Save changes'
+            fieldset_legend = 'Edit vlan'
+
+        # Create helper for crispy layout
+        self.helper = FormHelper()
+        self.helper.form_action = 'arnold-quarantinevlans'
+        self.helper.layout = Layout(
+            Fieldset(
+                fieldset_legend,
+                'vlan', 'description', 'qid'
+            ),
+            ButtonHolder(
+                NavSubmit('submit', submit_value)
+            )
+        )
+
 
 class HistorySearchForm(forms.Form):
     """Form for searching in history"""
