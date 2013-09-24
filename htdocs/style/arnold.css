@@ -19,3 +19,9 @@ form table textarea, form table input[type="text"] {
 form table textarea {
     height: 3em;
 }
+
+.hidetrick {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+}

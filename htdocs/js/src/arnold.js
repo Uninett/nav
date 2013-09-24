@@ -1,11 +1,11 @@
 require(['libs/jquery', 'libs/jquery.tablesorter.min'], function () {
     $(function () {
         if ($('form.profileDetentionForm').length > 0) {
-            addVlanToggler('#id_detention_type_0', '#id_detention_type_1', '.vlanrow')
+            addVlanToggler($('#id_detention_type'));
         }
-        if ($('form.manualDetentionForm').length > 0) {
-            addVlanToggler('#id_method_0', '#id_method_1', '.vlanrow')
-        }
+//        if ($('form.manualDetentionForm').length > 0) {
+//            addVlanToggler('#id_method_0', '#id_method_1', '.vlanrow');
+//        }
 
         // Add tablesorter to history table
         if ($('.arnold-history tbody').length > 0) {
@@ -30,16 +30,19 @@ require(['libs/jquery', 'libs/jquery.tablesorter.min'], function () {
 
     });
 
-    function addVlanToggler(hideNode, showNode, node) {
-        if ($(hideNode).prop('checked')) {
-            $(node).hide();
+    function addVlanToggler($selectNode) {
+        var $row = $('.qvlanrow');
+        if ($selectNode.val() !== 'quarantine') {
+            $row.addClass('hidetrick');
         }
-        $(hideNode).click(function () {
-            $(node).hide()
+        $selectNode.change(function () {
+            var $this = $(this);
+            if ($this.val() === 'quarantine') {
+                $row.removeClass('hidetrick');
+            } else {
+                $row.addClass('hidetrick');
+            }
         });
-        $(showNode).click(function () {
-            $(node).show()
-        })
     }
 
 });

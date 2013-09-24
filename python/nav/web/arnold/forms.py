@@ -130,7 +130,6 @@ class SearchForm(forms.Form):
             )
         )
 
-
     def clean_searchvalue(self):
         """Clean whitespace from searchvalue"""
         return self.cleaned_data['searchvalue'].strip()
@@ -158,7 +157,6 @@ class DetentionProfileForm(forms.Form):
     detention_id = forms.IntegerField(widget=forms.HiddenInput(),
                                       required=False)
     detention_type = forms.ChoiceField(choices=DETENTION_TYPE_CHOICES,
-                                       widget=forms.RadioSelect(),
                                        initial=DETENTION_TYPE_CHOICES[0][0])
     title = forms.CharField(label="Title")
     description = forms.CharField(label="Description", widget=forms.Textarea,
@@ -168,7 +166,6 @@ class DetentionProfileForm(forms.Form):
     mail = forms.CharField(label="Path to mailfile", required=False)
     keep_closed = forms.ChoiceField(label="Detention pursuit",
                                     choices=KEEP_CLOSED_CHOICES,
-                                    widget=forms.RadioSelect(),
                                     initial=KEEP_CLOSED_CHOICES[0][0])
     exponential = forms.BooleanField(label="Exponential increase",
                                      required=False)
@@ -190,6 +187,45 @@ class DetentionProfileForm(forms.Form):
         return cleaned_data
 
     def __init__(self, *args, **kwargs):
+        super(DetentionProfileForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_class = 'profileDetentionForm custom'
+        self.helper.layout = Layout(
+            'detention_id',
+            'title', 'description',
+            Fieldset(
+                'Options',
+                Div(
+                    Div('detention_type', css_class='large-4 medium-4 column'),
+                    Div('justification', css_class='large-4 medium-4 column'),
+                    Div('duration', css_class='large-4 medium-4 column'),
+                    css_class='row'),
+                Div('qvlan', css_class='qvlanrow')
+            ),
+            Fieldset(
+                'Extra',
+                Div(
+                    Div('keep_closed', css_class='large-4 medium-4 column'),
+                    Div(Field('exponential',
+                              template='custom_crispy_templates'
+                                       '/horizontal_checkbox.html',
+                              style='line-height: 3em'),
+                        css_class='large-4 medium-4 column'),
+                    Div(css_class='large-4 medium-4 column'),
+                    css_class='row'
+                ),
+                'mail',
+                'active_on_vlans'
+            ),
+            Field('active',
+                  template='custom_crispy_templates/'
+                           'horizontal_checkbox.html'),
+            ButtonHolder(
+                NavSubmit('submit', 'Save')
+            )
+        )
+
         super(DetentionProfileForm, self).__init__(*args, **kwargs)
         self.fields['qvlan'].choices = get_quarantine_vlans()
         did = self.data.get('detention_id') or self.initial.get(
