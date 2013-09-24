@@ -1,21 +1,21 @@
 //
 // Inline List Variables
 //
-$include-html-global-classes: $include-html-classes !default;
+$include-html-inline-list-classes: $include-html-classes !default;
 
 // We use this to control the margins and padding of the inline list.
 $inline-list-top-margin: 0 !default;
 $inline-list-opposite-margin: 0 !default;
-$inline-list-bottom-margin: emCalc(17px) !default;
-$inline-list-default-float-margin: emCalc(-22px) !default;
+$inline-list-bottom-margin: em-calc(17) !default;
+$inline-list-default-float-margin: em-calc(-22) !default;
 
-$inline-list-padding:          0 !default;
+$inline-list-padding: 0 !default;
 
 // We use this to control the overflow of the inline list.
-$inline-list-overflow:         hidden !default;
+$inline-list-overflow: hidden !default;
 
 // We use this to control the list items
-$inline-list-display:          block !default;
+$inline-list-display: block !default;
 
 // We use this to control any elments within list items
 $inline-list-children-display: block !default;
@@ -26,7 +26,7 @@ $inline-list-children-display: block !default;
 
 // We use this mixin to create inline lists
 @mixin inline-list {
-  margin: $inline-list-top-margin auto $inline-list-bottom-margin auto; 
+  margin: $inline-list-top-margin auto $inline-list-bottom-margin auto;
   margin-#{$default-float}: $inline-list-default-float-margin;
   margin-#{$opposite-direction}: $inline-list-opposite-margin;
   padding: $inline-list-padding;
@@ -36,14 +36,14 @@ $inline-list-children-display: block !default;
   & > li {
     list-style: none;
     float: $default-float;
-    margin-#{$default-float}: emCalc(22px);
+    margin-#{$default-float}: em-calc(22);
     display: $inline-list-display;
     &>* { display: $inline-list-children-display; }
   }
 }
 
 
-@if $include-html-global-classes != false {
+@if $include-html-inline-list-classes != false {
 
   /* Inline Lists */
   .inline-list {
