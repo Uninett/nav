@@ -59,34 +59,6 @@ try:
 except IOError:
     pass
 
-
-
-# Static files configuration
-STATIC_ROOT = os.path.join(nav.path.datadir, 'static')
-STATIC_URL = '/static/'
-
-STATICFILES_DIRS = (
-    os.path.join(nav.path.webrootdir),
-)
-
-STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'compressor.finders.CompressorFinder',
-)
-
-# Compressor configuration
-COMPRESS_OUTPUT_DIR = 'cache'
-COMPRESS_PARSER = 'compressor.parser.HtmlParser'
-COMPRESS_PRECOMPILERS = (
-    ('text/scss', 'node-sass {infile} {outfile}'),
-)
-COMPRESS_CSS_FILTERS = [
-    'compressor.filters.css_default.CssAbsoluteFilter',
-    'compressor.filters.cssmin.CSSMinFilter',
-]
-
-
-
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
 
@@ -164,10 +136,8 @@ CRISPY_TEMPLATE_PACK = 'foundation'
 INSTALLED_APPS = ( 
     'nav.models', 
     'nav.django', 
-    'django.contrib.staticfiles', 
-    'django.contrib.sessions', 
-    'compressor', 
-    'crispy_forms', 
+    'django.contrib.sessions',
+    'crispy_forms',
     'crispy_forms_foundation'
 )
 

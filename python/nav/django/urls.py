@@ -17,7 +17,6 @@
 
 from django.conf import settings
 from django.conf.urls.defaults import patterns, include, url
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from nav.web.webfront.urls import urlpatterns
 
 urlpatterns += patterns('',
@@ -50,6 +49,3 @@ urlpatterns += patterns('',
     (r'^useradmin/', include('nav.web.useradmin.urls')),
     url(r'^userinfo/', 'nav.web.useradmin.views.userinfo', name='userinfo'),
 )
-
-# Make django serve static files (a webserver like apache overrides this)
-urlpatterns += staticfiles_urlpatterns()
