@@ -21,8 +21,8 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
     NavletsController.prototype = {
         createLayout: function () {
             var $row = $('<div class="row"/>').appendTo(this.container);
-            this.column1 = $('<div class="large-6 column navletColumn"/>').appendTo($row);
-            this.column2 = $('<div class="large-6 column navletColumn"/>').appendTo($row);
+            this.column1 = $('<div class="large-6 medium-6 column navletColumn"/>').appendTo($row);
+            this.column2 = $('<div class="large-6 medium-6 column navletColumn"/>').appendTo($row);
         },
         fetchNavlets: function () {
             var that = this;
