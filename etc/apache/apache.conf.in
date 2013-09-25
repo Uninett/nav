@@ -21,7 +21,7 @@ Alias /uploads @localstatedir@/uploads
     Options -Indexes
 </Location>
 
-AliasMatch ^/((images|js|style)/.*) @webrootdir@/$1
+AliasMatch ^/((images|js|style|static)/.*) @webrootdir@/$1
 
 WSGIDaemonProcess NAV user=@nav_user@ processes=2 display-name=%{GROUP}
 WSGIProcessGroup NAV
