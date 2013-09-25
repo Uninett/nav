@@ -62,8 +62,10 @@ def index(request):
         }
     )
 
+
 def login(request):
     if request.method == 'POST':
+        _logger.info('Got POST request - doing login')
         return do_login(request)
 
     origin = request.GET.get('origin', '').strip()
@@ -71,10 +73,11 @@ def login(request):
         request,
         'webfront/login.html',
         {
-            'form': LoginForm(),
+            'form': LoginForm(initial={'origin': origin}),
             'origin': origin,
         }
     )
+
 
 def do_login(request):
     # FIXME Log stuff?
@@ -102,7 +105,8 @@ def do_login(request):
                         origin = reverse('webfront-index')
                     return HttpResponseRedirect(origin)
             else:
-                errors.append('Authentication failed for the specified username and password.')
+                errors.append('Authentication failed for the specified '
+                              'username and password.')
 
     # Something went wrong. Display login page with errors.
     return direct_to_template(
