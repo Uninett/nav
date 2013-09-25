@@ -117,7 +117,7 @@ class NetworkAddress(IdType):
 
     def __new__(cls, *args, **kwargs):
         arg = args[0]
-        if isinstance(arg, basestring):
+        if arg and isinstance(arg, basestring):
             addr_type = ord(arg[0])
             addr_string = arg[1:]
             if addr_type in cls.ADDR_FAMILY:
@@ -127,7 +127,7 @@ class NetworkAddress(IdType):
                     arg = IP(ipstring)
                 except (socket.error, ValueError):
                     pass
-        elif isinstance(arg, cls):
+        elif arg and isinstance(arg, cls):
             return arg
         return IdType.__new__(cls, arg)
 

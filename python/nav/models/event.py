@@ -24,7 +24,6 @@ import datetime as dt
 
 from django.db import models
 
-from nav.models.manage import Device, Netbox
 from nav.models.fields import VarcharField, DateTimeInfinityField
 
 # Choices used in multiple models, "imported" into the models which use them
@@ -208,8 +207,8 @@ class EventQueue(models.Model, EventMixIn):
                                related_name='source_of_events')
     target = models.ForeignKey('Subsystem', db_column='target',
                                related_name='target_of_events')
-    device = models.ForeignKey(Device, db_column='deviceid', null=True)
-    netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
+    device = models.ForeignKey('models.Device', db_column='deviceid', null=True)
+    netbox = models.ForeignKey('models.Netbox', db_column='netboxid', null=True)
     subid = VarcharField()
     time = models.DateTimeField(default=dt.datetime.now)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
@@ -298,8 +297,8 @@ class AlertQueue(models.Model, EventMixIn):
 
     id = models.AutoField(db_column='alertqid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
-    device = models.ForeignKey(Device, db_column='deviceid', null=True)
-    netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
+    device = models.ForeignKey('models.Device', db_column='deviceid', null=True)
+    netbox = models.ForeignKey('models.Netbox', db_column='netboxid', null=True)
     subid = VarcharField()
     time = models.DateTimeField()
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
@@ -390,8 +389,8 @@ class AlertHistory(models.Model, EventMixIn):
 
     id = models.AutoField(db_column='alerthistid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')
-    device = models.ForeignKey(Device, db_column='deviceid', null=True)
-    netbox = models.ForeignKey(Netbox, db_column='netboxid', null=True)
+    device = models.ForeignKey('models.Device', db_column='deviceid', null=True)
+    netbox = models.ForeignKey('models.Netbox', db_column='netboxid', null=True)
     subid = VarcharField()
     start_time = models.DateTimeField()
     end_time = DateTimeInfinityField(null=True)

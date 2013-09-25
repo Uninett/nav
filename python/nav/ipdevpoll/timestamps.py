@@ -73,7 +73,7 @@ class TimestampChecker(object):
 
         """
         result = yield defer.DeferredList([
-                self.snmpv2mib.get_gmtime_and_uptime()
+                self.snmpv2mib.get_timestamp_and_uptime()
                 ] + list(collectors))
         tup = []
         for success, value in result:

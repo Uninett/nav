@@ -42,6 +42,7 @@ debug=no
 lookupmethod=direct
 manager=
 manager_password=
+encoding=utf-8
 """)
 
 _config = ConfigParser.SafeConfigParser()
@@ -174,7 +175,9 @@ class LDAPUser(object):
         """Performs an authenticated bind for this user using password"""
         user_dn = self.get_user_dn()
         _logger.debug("Attempting authenticated bind to %s", user_dn)
-        self.ldap.simple_bind_s(user_dn, password)
+        encoding = _config.get('ldap', 'encoding')
+        self.ldap.simple_bind_s(user_dn.encode(encoding),
+                                password.encode(encoding))
 
     def get_user_dn(self):
         """
@@ -208,16 +211,19 @@ class LDAPUser(object):
 
     def search_dn(self):
         """Searches for the user's Distinguished Name in the LDAP directory"""
-        manager = _config.get('ldap', 'manager')
-        manager_password = _config.get('ldap', 'manager_password', raw=True)
+        encoding = _config.get('ldap', 'encoding')
+        manager = _config.get('ldap', 'manager').encode(encoding)
+        manager_password = _config.get(
+            'ldap', 'manager_password', raw=True).encode(encoding)
         if manager:
             _logger.debug("Attempting authenticated bind as manager to %s",
-                         manager)
+                          manager)
             self.ldap.simple_bind_s(manager, manager_password)
-        filter_ = "(%s=%s)" % (_config.get('ldap', 'uid_attr'), self.username)
+        filter_ = "(%s:caseExactMatch:=%s)" % (_config.get('ldap', 'uid_attr'),
+                                               self.username)
         result = self.ldap.search_s(_config.get('ldap', 'basedn'),
                                     ldap.SCOPE_SUBTREE, filter_)
-        if not result:
+        if not result or not result[0] or not result[0][0]:
             raise UserNotFound(filter_)
         user_dn = result[0][0]
         return user_dn
@@ -226,14 +232,15 @@ class LDAPUser(object):
         """
         Attempt to retrieve the LDAP Common Name of the given login name.
         """
-        user_dn = self.get_user_dn()
+        encoding = _config.get('ldap', 'encoding')
+        user_dn = self.get_user_dn().encode(encoding)
         name_attr = _config.get('ldap', 'name_attr')
         try:
             res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE,
                                      '(objectClass=*)', [name_attr])
         except ldap.LDAPError:
             _logger.exception("Caught exception while retrieving user name "
-                             "from LDAP, returning None as name")
+                              "from LDAP, returning None as name")
             return None
 
         # Just look at the first result record, since we are searching for

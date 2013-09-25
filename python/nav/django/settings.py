@@ -116,15 +116,19 @@ DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
 
 # Cache backend. Used only for report subsystem in NAV 3.5.
 # FIXME: Make this configurable in nav.conf (or possibly webfront.conf)
-CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'	
+CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'
+
+SECRET_KEY = nav_config.get('SECRET_KEY', None) # Must be set in nav.conf!
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
 sys.path.append(os.path.join(nav.buildconf.sysconfdir, "python"))
 try:
+    # pylint: disable=E0602
     LOCAL_SETTINGS
 except NameError:
     try:
+        # pylint: disable=F0401
         from local_settings import *
     except ImportError:
         pass

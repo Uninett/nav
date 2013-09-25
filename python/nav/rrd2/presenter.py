@@ -88,29 +88,34 @@ class Presentation(object):
             units.append(i.units)
         return units
 
-    def add_datasource(self, datasource):
-        """Adds a datasource to the presentation, returns the default legend"""
-        if type(datasource) == list:
-            transaction = datasource
-            try:
-                [self.add_datasource(x) for x in datasource]
-            except ValueError, error:
-                _LOGGER.warning(error)
+    def add_datasource(self, datasources):
+        """Adds a datasource to the presentation"""
+        # TODO: check where this function is used, figure out if easily can
+        # refactor to add   add_datasources function instead of this fugliness
+        # without breaking existing code.
 
-                [self.datasources.remove(remove_datasource) for
-                 remove_datasource in transaction if
-                 remove_datasource in self.datasources]
+        if isinstance(datasources, RrdDataSource):
+            datasources = [datasources]
 
-                raise error
+        try:
+            if not all(
+                    [ds is not None and isinstance(ds, RrdDataSource) for ds in
+                        datasources]):
+                raise ValueError(
+                    ("datasource or datasources "
+                     "must be of instance RrdDataSource"))
+        except TypeError: # Not iterable values, as single None and int.
+                raise ValueError(
+                    ("datasource or datasources "
+                     "must be of instance RrdDataSource"))
 
-        elif type(datasource) == RrdDataSource:
-            self.datasources.add(datasource)
+        try:
+            self.datasources.update(datasources)
+        except ValueError, error:
+            _LOGGER.warning(error)
+            self.datasources.difference_update(datasources)
+            raise error
 
-        else:
-            raise ValueError(
-                "must be a RrdDataSource or a list of RrdDataSource's")
-
-        #return datasource.legend
 
     def fetch_valid(self):
         """Return the raw rrd-data as a list of dictionaries
@@ -153,13 +158,8 @@ class Presentation(object):
 
     def sum(self):
         """Returns the sum of the valid  rrd-data"""
-        sum_list = []
         data_list = self.fetch_valid()
-        for data in data_list:
-            sum = 0
-            for i in data['data']:
-                sum += i
-            sum_list.append(sum)
+        sum_list = [sum(data['data']) for data in data_list]
         return sum_list
 
     def max(self):

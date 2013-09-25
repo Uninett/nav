@@ -49,12 +49,12 @@ class TestNetboxBulkParser(TestCase):
         self.assertEquals(out_data['orgid'], 'myorg')
         self.assertEquals(out_data['catid'], 'SW')
         self.assertEquals(out_data['serial'], 'parrot')
-        self.assertEquals(out_data['subcat'], ['blah1', 'blah2'])
+        self.assertEquals(out_data['netboxgroup'], ['blah1', 'blah2'])
 
     def test_get_header(self):
         self.assertEquals(
             NetboxBulkParser.get_header(),
-            "#roomid:ip:orgid:catid[:ro:serial:rw:function:subcat:...]")
+            "#roomid:ip:orgid:catid[:ro:serial:rw:function:netboxgroup:...]")
 
     def test_two_rows_returned_with_empty_lines_in_input(self):
         data = ("room1:10.0.0.186:myorg:SW:public:parrot::\n"

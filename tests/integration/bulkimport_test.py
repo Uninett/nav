@@ -65,28 +65,29 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertEquals(netboxinfo.variable, 'function')
         self.assertEquals(netboxinfo.value, 'hella')
 
-    def test_netbox_subcats_are_set(self):
+    def test_netbox_groups_are_set(self):
         data = 'myroom:10.0.90.10:myorg:SRV::MOOSE123::fileserver:WEB:UNIX:MAIL'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         line_num, objects = importer.next()
 
-        subcats = [o for o in objects if isinstance(o, manage.NetboxCategory)]
-        self.assertTrue(len(subcats) > 0, objects)
+        netboxgroups = [o for o in objects
+                        if isinstance(o, manage.NetboxCategory)]
+        self.assertTrue(len(netboxgroups) > 0, objects)
 
-    def test_get_subcats_from_subcat(self):
+    def test_get_groups_from_group(self):
         importer = NetboxImporter(None)
         netbox = manage.Netbox()
         netbox.category = manage.Category.objects.get(id='SRV')
 
-        subcatids = ['LDAP', 'UNIX']
-        ncategories = importer._get_subcats_from_subcat(netbox, subcatids)
+        netboxgroups = ['LDAP', 'UNIX']
+        ncategories = importer._get_groups_from_group(netbox, netboxgroups)
         self.assertTrue(len(ncategories) == 2)
 
-        for subcatid, ncategory in zip(subcatids, ncategories):
+        for netboxgroup, ncategory in zip(netboxgroups, ncategories):
             self.assertTrue(isinstance(ncategory, manage.NetboxCategory),
                             ncategory)
-            self.assertEquals(ncategory.category_id, subcatid)
+            self.assertEquals(ncategory.category_id, netboxgroup)
 
     def test_duplicate_locations_should_give_error(self):
         netbox = manage.Netbox(

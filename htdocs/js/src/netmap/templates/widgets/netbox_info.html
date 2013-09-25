@@ -1,0 +1,33 @@
+<div class="netmapWidget">
+    <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
+        <div class="title no-icon">Netbox info</div>
+    </div>
+    <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
+        {{#if isElink}}
+        <h4 class="node_sysname">{{node.sysname}}</h4>
+        {{else}}
+        <img src='/images/lys/{{node.up_image}}' alt='{{node.up}}' class='netmap_node_status'/>
+        <h4 class="node_sysname"><a href="{{node.ipdevinfo_link}}">{{node.sysname}}</a></h4>
+        <div class="node_ip">{{node.ip}}</div>
+        {{/if}}
+
+        <div class="node_fixed_position">
+            <input type="checkbox" name="positionFixed" value="positionFixed" id="positionFixed" {{#if node.fixed}} checked{{/if}} />
+            <label for="positionFixed">Node is fixed position?</label>
+            {{#if isElink}}<p><em>Elink positions will not be saved when saving a view.</em></p>{{/if}}
+        </div>
+
+
+        <div class="node_category">
+            <img src="/images/netmap/{{{toLowerCase node.category}}}.png" alt="{{node.category}}" width="32px" height="32px" />
+            <span class="description">Category:</span><span class="value">{{node.category}}</span>
+        </div>
+
+        {{#if isElink}}
+        {{else}}
+        <div class="node_room"><span class="description">Room:</span><span class="value">{{#if node.data.room}}{{node.room}}{{else}}N/A{{/if}}</span></div>
+
+        <div class="node_location"><span class="description">Location:</span><span class="value">{{#if node.data.location}}{{node.location}}{{else}}N/A{{/if}}</span></div>
+        {{/if}}
+    </div>
+</div>

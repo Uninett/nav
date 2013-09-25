@@ -1,0 +1,11 @@
+<a id="toggle_view" style="float: right;">{{#if isVisible}}&lt;&lt;{{else}}&gt;&gt;{{/if}}</a>
+<div class="inner_wrap left_sidebar" {{#if isVisible}} {{else}} style="display: none"{{/if}}>
+    {{#ifequal 1 model.viewid}}class="active"{{/ifequal}}
+
+    <div id="search_view"></div>
+
+    <div id="widget_container_filter_options"></div>
+
+    <div id="widget_container_others"></div>
+</div>
+
