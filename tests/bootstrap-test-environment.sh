@@ -137,7 +137,7 @@ update_nav_db_conf() {
 
 create_nav_db() {
     # Create and populate database
-    "$WORKDIR/sql/syncdb.py" -c
+    "$BUILDDIR/bin/navsyncdb" -c
 
     if [ -n "$ADMINPASSWORD" ]; then
       psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'";

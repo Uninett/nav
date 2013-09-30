@@ -24,6 +24,7 @@ warnings.simplefilter("ignore")
 import os
 import re
 import logging
+import StringIO
 
 from nav.django.auth import AuthenticationMiddleware, AuthorizationMiddleware
 import nav.logs
@@ -73,6 +74,7 @@ def cgi_verify_authorization():
     environ = dict(os.environ.items())
     environ['SCRIPT_NAME'] = INDEX_PATTERN.sub(
         '', environ.get('SCRIPT_NAME', ''))
+    environ['wsgi.input'] = StringIO.StringIO()
     req = WSGIRequest(environ)
 
     for ware in (
