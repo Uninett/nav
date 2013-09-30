@@ -17,16 +17,11 @@ See individual source files for more detailed copyright notices.
 
 AC_PROG_INSTALL
 AM_PATH_PYTHON([2.6])
-AC_PATH_PROG(CHEETAH,cheetah)
-if test -z "$CHEETAH"; then
-  AC_MSG_ERROR([No Cheetah found, you will be unable to build any web templates])
-fi
 AC_PATH_PROG(SED, sed)
 AC_PATH_PROG(GREP, grep)
 AC_PATH_PROG(HG, hg)
 
 AC_SUBST(nav_user)
-AC_SUBST(webroot)
 AC_SUBST(webrootdir)
 AC_SUBST(imagedir)
 AC_SUBST(javascriptdir)
@@ -40,17 +35,16 @@ AC_SUBST(crondir)
 AC_SUBST(VERSION)
 dnl The location of the cricket binaries
 AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
+AC_ARG_VAR(NAV_USER,User to run cronjobs as)
 
 dnl Setting some default variables for NAV
-nav_user=navcron
-webroot='${prefix}/share/htdocs'
-webrootdir='${webroot}'
-imagedir='${webroot}/images'
-javascriptdir='${webroot}/js'
-stylesheetdir='${webroot}/style'
+webrootdir='${datadir}/htdocs'
+djangotmpldir='${datadir}/templates'
+imagedir='${webrootdir}/images'
+javascriptdir='${webrootdir}/js'
+stylesheetdir='${webrootdir}/style'
 pythonlibdir='${libdir}/python'
 pythondir='${pythonlibdir}'
-djangotmpldir='${libdir}/templates'
 initdir='${sysconfdir}/init.d'
 tooldir='${sysconfdir}/toolbox'
 docdir='${prefix}/doc'
@@ -58,6 +52,11 @@ crondir='${sysconfdir}/cron.d'
 VERSION=VERSION_NUMBER
 if test -z "$CRICKETDIR"; then
 	CRICKETDIR='${prefix}/cricket/cricket'
+fi
+if test -z "$NAV_USER"; then
+    nav_user=navcron
+else
+    nav_user=$NAV_USER
 fi
 
 AC_ARG_ENABLE(install-conf,
@@ -77,7 +76,7 @@ AC_CONFIG_FILES([
     templates/Makefile
     python/Makefile
     bin/Makefile
-    media/Makefile
+    htdocs/Makefile
 ])
 
 AC_OUTPUT

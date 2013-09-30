@@ -14,9 +14,9 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Bit vector manipulation."""
-
 import array
 import re
+
 
 class BitVector(object):
     """
@@ -71,6 +71,7 @@ class BitVector(object):
             return (self.vector[block] << shift) & 128 and 1 or 0
 
     _hexdigits = re.compile(r"[^0-9A-Fa-f]")
+
     @classmethod
     def from_hex(cls, hexstring):
         """Create a BitVector instance from a hexstring."""

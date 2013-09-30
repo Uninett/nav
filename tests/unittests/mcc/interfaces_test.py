@@ -81,31 +81,38 @@ class InterfaceTest(unittest.TestCase):
 
 
     def test_create_rrd_container(self):
+        def get_unit_mock_side_effect(*args):
+            return self.datasource_units[args[0]]
+
         with patch.dict('nav.mcc.interfaces.DATASOURCES', self.datasources):
-            interface = Mock()
-            netbox = Mock()
-            netbox.sysname = 'uninett-gw'
-            netbox.id = 1
-            netbox.snmp_version = 2
 
-            interface.netbox = netbox
-            interface.id = 2
-            interface.speed = 200
+            with patch('nav.mcc.interfaces.get_unit') as get_unit_mock:
+                get_unit_mock.side_effect=get_unit_mock_side_effect
 
-            targetname = 'blapp'
-            module = 'switch-port-counters'
+                interface = Mock()
+                netbox = Mock()
+                netbox.sysname = 'uninett-gw'
+                netbox.id = 1
+                netbox.snmp_version = 2
 
-            dummycontainer = RRDcontainer('blapp.rrd', 1, 'uninett-gw',
-                                          'interface', 2, speed=200,
-                                          category='switch-port-counters')
-            for index, datasource in enumerate(self.datasources['2c']):
-                dummycontainer.datasources.append(
-                    Datasource('ds' + str(index), datasource, 'DERIVE',
-                               self.datasource_units[datasource]))
+                interface.netbox = netbox
+                interface.id = 2
+                interface.speed = 200
 
-            container = create_rrd_container(interface, targetname, module)
-            self.assertEqual(container.datasources, dummycontainer.datasources)
-            self.assertEqual(container, dummycontainer)
+                targetname = 'blapp'
+                module = 'switch-port-counters'
+
+                dummycontainer = RRDcontainer('blapp.rrd', 1, 'uninett-gw',
+                                              'interface', 2, speed=200,
+                                              category='switch-port-counters')
+                for index, datasource in enumerate(self.datasources['2c']):
+                    dummycontainer.datasources.append(
+                        Datasource('ds' + str(index), datasource, 'DERIVE',
+                                   self.datasource_units[datasource]))
+
+                container = create_rrd_container(interface, targetname, module)
+                self.assertEqual(container.datasources, dummycontainer.datasources)
+                self.assertEqual(container, dummycontainer)
 
 
     def test_create_all_target(self):

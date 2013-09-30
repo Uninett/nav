@@ -27,26 +27,33 @@ Currently active contributors/maintainers
 * Morten Werner Forsbring <werner at debian.org>
   Packaging NAV for Debian since 2004.
 
-* Trond Kandal <trond.kandal at ntnu.no>
-  Wrote PortAdmin with John-Magne.
-
-* Ole Martin Bjørndalen <ole.martin.bjorndalen at uit.no>
-  Maintains the service monitor and the MailIn system.
-
-* Kai Arne Bjørnenak <kai.bjornenak at cc.uit.no>
-  Maintains the radius accounting logger.  Also a stand-in for Ole Martin.
-
 * Christian Strand Young <christian at strandyoung.com>
   Joined in the summer of 2011.  His main contributions are implementing IPv6
   support in pping and asynchronous DNS lookups in ipdevinfo & the Machine
   Tracker, as well as fixing various bugs.
 
-* Roy Sindre Norangshol <norangshol at uninett.no>
-  Joined in May 2012 to rewrite Netmap from a Java applet to a JavaScript
-  implementation based on D3.js.
-
 Other contributors and previous maintainers
 -------------------------------------------
+* Roy Sindre Norangshol <norangshol at uninett.no>
+  Rewrote Netmap from a Java applet to a JavaScript implementation based on
+  D3.js. Wrote the tools scripts for building NAV virtual machines based on
+  Vagrant, and contributed to improve our automated JavaScript testing.
+
+* Eivind Lysne <eivindlysne at gmail.com>
+  Rewrote the remaining Cheetah templates to Django templates during the
+  summer of 2013. Also contributed to the design changes scheduled for NAV
+  4.0.
+
+* Trond Kandal <trond.kandal at ntnu.no>
+  Wrote PortAdmin with John-Magne.
+
+* Ole Martin Bjørndalen <ole.martin.bjorndalen at uit.no>
+  Wrote the MailIn system based on a Perl implementation from UNINETT, and
+  periodically contributes to the service monitor.
+
+* Kai Arne Bjørnenak <kai.bjornenak at cc.uit.no>
+  Write radius accounting logger.
+
 * Magnus Motzfeldt Eide <magnus.eide at uninett.no>
   Active 2008-2012. Rewrote the old PHP-based Alert Profiles interface in
   Python/Django.  General code maintenance and rewrites of mod_python based

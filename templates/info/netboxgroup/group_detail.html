@@ -1,0 +1,18 @@
+{% extends "info/netboxgroup/base.html" %}
+
+{% block base_content %}
+
+    <h2>Details for group {{ netboxgroup.pk }}</h2>
+
+    <div class="horizontal-button-list">
+        <a href="{% url netbox-group-edit netboxgroup.pk %}"><span class="edit">Edit device group</span></a>
+    </div>
+
+    <table class="listtable">
+        <caption>Netboxes in {{ netboxgroup.pk }}</caption>
+        {% with netboxgroup.netbox_set.all as netboxes %}
+            {% include 'info/fragments/netboxes.html' %}
+        {% endwith %}
+    </table>
+
+{% endblock %}

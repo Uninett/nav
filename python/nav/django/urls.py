@@ -15,6 +15,7 @@
 #
 """Main Django URL configuration"""
 
+from django.conf import settings
 from django.conf.urls.defaults import patterns, include, url
 from nav.web.webfront.urls import urlpatterns
 
@@ -22,6 +23,7 @@ urlpatterns += patterns('',
     (r'^status/', include('nav.web.status.urls')),
     (r'^ajax/', include('nav.web.ajax.urls')),
     (r'^alertprofiles/', include('nav.web.alertprofiles.urls')),
+    (r'^api/', include('nav.web.api.urls')),
     (r'^arnold/', include('nav.web.arnold.urls')),
     (r'^devicehistory/', include('nav.web.devicehistory.urls')),
     (r'^geomap/', include('nav.web.geomap.urls')),
@@ -48,3 +50,13 @@ urlpatterns += patterns('',
     (r'^useradmin/', include('nav.web.useradmin.urls')),
     url(r'^userinfo/', 'nav.web.useradmin.views.userinfo', name='userinfo'),
 )
+
+if settings.DEBUG:
+    from nav import buildconf
+    from os.path import join
+
+    # Serve static content via Django when debugging
+    for media in ('style', 'js', 'images'):
+        urlpatterns += patterns('',
+            (r'^%s/(?P<path>.*)$' % media, 'django.views.static.serve',
+             {'document_root': join(buildconf.webrootdir, media)}))

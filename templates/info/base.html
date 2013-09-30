@@ -13,6 +13,21 @@
 
     <h2>Info</h2>
 
+    <div class="horizontal-button-list">
+        <a href="{% url ipdevinfo-search %}">
+            <span class="noicon">Ip Device Info</span>
+        </a>
+        <a href="{% url room-search %}">
+            <span class="noicon">Room Info</span>
+        </a>
+        <a href="{% url vlan-index %}">
+            <span class="noicon">Vlan Info</span>
+        </a>
+        <a href="{% url netbox-group %}">
+            <span class="noicon">Device Group Info</span>
+        </a>
+    </div>
+
     <p class="infobox">Search for netboxes, interfaces, rooms and vlans. This search is the same as searching in the navbar.</p>
 
     <form action="{% url info-search %}" method="get">

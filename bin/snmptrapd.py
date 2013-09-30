@@ -28,7 +28,7 @@ import signal
 # Import NAV libraries
 from nav import daemon
 import nav.buildconf
-from nav.errors import GeneralException
+from nav.snmptrapd.plugin import load_handler_modules, ModuleLoadError
 from nav.util import is_valid_ip, address_to_string
 from nav.db import getConnection
 import nav.logs
@@ -54,11 +54,6 @@ if socket.has_ipv6 and agent.BACKEND == 'pynetsnmp':
         re.compile(r"(?P<addr>[0-9a-fA-F:]+)$"),
         re.compile(r"\[(?P<addr>[^\]]+)\] (:(?P<port>[0-9]+))?$", re.VERBOSE),
     )
-
-
-class ModuleLoadError(GeneralException):
-    """Failed to load module"""
-    pass
 
 
 def main():
@@ -151,7 +146,7 @@ def main():
     # Load handlermodules
     try:
         logger.debug('Trying to load handlermodules')
-        handlermodules = loadHandlerModules()
+        handlermodules = load_handler_modules(config.get('snmptrapd','handlermodules').split(','))
     except ModuleLoadError, why:
         logger.error("Could not load handlermodules %s" %why)
         sys.exit(1)
@@ -268,28 +263,7 @@ def loginitfile(logfile, traplogfile, loglevel):
         return False
 
 
-def loadHandlerModules():
-    """
-    Loads handlermodules configured in snmptrapd.conf
-    """
 
-    # Get name of modules that want traps from configfile and import
-    # each module
-    
-    handlermodules = []
-    modulelist = config.get('snmptrapd','handlermodules').split(',')
-    for name in modulelist:
-        name = name.strip()
-        parts = name.split('.')
-        parent = '.'.join(parts[:-1])
-        try:
-            mod = __import__(name, globals(), locals(), [parent])
-            handlermodules.append(mod)
-        except Exception, why:
-            logger.exception("Module %s did not compile - %s" %(name, why))
-            raise ModuleLoadError, why
-
-    return handlermodules
 
 
 def trapHandler(trap):

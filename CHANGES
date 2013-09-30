@@ -1,3 +1,93 @@
+Version 3.15.0
+(released 19 Sep 2013)
+
+ User-visible features and improvements:
+
+  * Devices' conceptual layering of interfaces is now collected and presented
+    in ipdevinfo. This enables you to, among other things, see which physical
+    ports comprise a port- or etherchannel. Some vendors also use this to show
+    which physical switch-ports are forwarding packets to/from a given VLAN
+    interface.
+
+  * The Netmap tool has been redesigned and re-engineered. Multiple
+    improvements have been made based on user feedback.
+
+  * The Netmap contents can now be exported/downloaded as an SVG file, but
+    this feature is currently only supported by the Google Chrome browser.
+
+  * Multiple parallel links are now indicated by the Netmap by two parallel
+    black markers drawn across the link in question. Details of the underlying
+    links are are now properly displayed when clicking on the link line.
+
+  * Interactive next-hop neighbor map in new ipdevinfo tab.
+
+  * "What-if" analysis in new ipdevinfo tab displays devices and organizations
+    that may be affected if the selected device goes down. Based on NAV's
+    topology information.
+
+  * Images with descriptions can be uploaded and attached to rooms. Useful
+    for, among other things, photo-documenting the contents of wiring closets.
+
+  * Subcategories have been replaced by cross-category device groups.
+    Arbitrary selections of IP devices can be organized into device groups.
+
+  * Potentially out-of-date CAM and ARP records are highlighted in Machine
+    Tracker search results.
+
+  * Community strings are censored in SeedDB IP Device listing.
+
+  * New program enables streamlined dumping and reloading, with optional
+    filtering, of the NAV PostgreSQL database. This simplifies beta testing of
+    new NAV versions by copying the production database to a test server.
+
+  * 26 more metrics from APC UPS devices are now collected and graphed.
+
+  * mod_python is no longer required; mod_wsgi is the new recommended way to
+    deploy the NAV web interface.
+
+ Bugfixes:
+  * LP#1055383 (netmap saves a new view when it should update view)
+  * LP#1057423 (netmap algorithm indicator turns red when clicking on
+                something in left bar)
+  * LP#1062203 (ipdevpoll job configuration description)
+  * LP#1165039 (Selecting a datasource for bulk threshold config intermittently
+                fails with "internal server error")
+  * LP#1169926 (Replace mod_python with Django/WSGI)
+  * LP#1213818 (LDAP authentication crashes on non-ASCII usernames and/or
+                passwords)
+  * LP#1222666 ("Uptime" in ipdevinfo never resets)
+
+
+Version 3.14.1592653
+(released 15 Aug 2013)
+
+ Bugfixes:
+
+  * LP#1146778 (Statemon's icmp.py and ip.py maybe obsolete, remove if so)
+  * LP#1198897 (ipdevpoll doesn't guesstimate net_type correctly when rfc3021 is
+                in use)
+  * LP#1198970 (cricket switch config typo)
+  * LP#1200514 (power supply daemon bails out if pysnmp_se is not installed)
+  * LP#1206510 (ipdevpoll LLDP UnicodeDecodeError)
+  * LP#1207722 (Usernames are searched case insensitive in Microsoft AD)
+  * LP#1207737 (LDAP authentication crash on non-existant user in Microsoft AD)
+  * LP#1211299 (arnold interface crashes on missing interface)
+  * LP#1211692 (arnold must display former interface info when interface is
+                missing)
+
+Version 3.14.159265
+(released 27 Jun 2013)
+
+ This release rolls back changes to the camlogging system that were made in
+ the 3.14.1592 release. These changes caused cam records to be created
+ erroneously and also a massive load increase on the server NAV is running on.
+ Upgrading is HIGHLY recommended.
+
+ Bugfixes:
+
+  * LP#1195206 (MAC addresses are logged for most link ports, causing huge load
+                increase on NAV server)
+
 Version 3.14.15926
 (released 20 Jun 2013)
 

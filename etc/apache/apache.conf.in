@@ -23,6 +23,12 @@ Alias /uploads @localstatedir@/uploads
 
 AliasMatch ^/((images|js|style)/.*) @webrootdir@/$1
 
+<Location /api>
+    # Make sure WSGI allows the Authorization header to pass through to
+    # allow tokens to be used for authorization.
+    WSGIPassAuthorization On
+</Location>
+
 WSGIDaemonProcess NAV user=@nav_user@ processes=2 display-name=%{GROUP}
 WSGIProcessGroup NAV
 WSGIScriptAlias / @pythonlibdir@/nav/wsgi.py

@@ -20,7 +20,6 @@ import unittest
 
 from mock import Mock
 from nav.models.manage import Netbox
-from nav.web.info.room.views import add_availability
 
 
 class RoomViewsTest(unittest.TestCase):
@@ -41,12 +40,3 @@ class RoomViewsTest(unittest.TestCase):
                                              'month': 100.0,
                                              'week': None}})
         self.netboxes = [netbox1, netbox2]
-
-    def test_add_availability(self):
-        """Tests for the add_availability function"""
-        # pylint: disable=E1101
-
-        add_availability(self.netboxes)
-        netbox1, netbox2 = self.netboxes
-        self.assertTrue(netbox1.availability == "100.00%")
-        self.assertTrue(netbox2.availability == "N/A")

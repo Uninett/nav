@@ -33,7 +33,7 @@ def calltracer(function, logfunction=print):
                         default function will just print to stdout.
 
     """
-    def tracer(*args, **kwargs):
+    def _tracer(*args, **kwargs):
         logfunction('TRACE: Call to %s, args=%s, kwargs=%s' %
                     (repr(function), repr(args), repr(kwargs)))
         trace = StringIO()
@@ -46,7 +46,7 @@ def calltracer(function, logfunction=print):
     if not logfunction:
         return function
     else:
-        return tracer
+        return _tracer
 
 
 def log_stacktrace(logger, stacktrace):
@@ -79,12 +79,15 @@ def log_stacktrace(logger, stacktrace):
     logger.debug("Stack frame dump:\n%s", '\n'.join(dump))
     logger.debug("--- end of stack trace ---")
 
+
+# pylint: disable=W0703
 def _dumpvars(varitems):
     for var, val in varitems:
         try:
             yield "  %r: %s" % (var, pprint.pformat(val, indent=2))
-        except Exception, e:
-            yield "  %r: <<exception during formatting: %s>>" % (var, e)
+        except Exception as err:
+            yield "  %r: <<exception during formatting: %s>>" % (var, err)
+
 
 def log_last_django_query(logger):
     """Debug logs the latest SQL query made by Django.

@@ -17,8 +17,10 @@
 """
 Provides common database functionality for NAV.
 """
+from __future__ import absolute_import
 import atexit
 from functools import wraps
+import os
 import time
 import psycopg2
 import psycopg2.extensions
@@ -26,21 +28,22 @@ import nav
 from nav import config
 import logging
 
-logger = logging.getLogger('nav.db')
+_logger = logging.getLogger('nav.db')
+_connection_cache = nav.ObjectCache()
 driver = psycopg2
-_connectionCache = nav.ObjectCache()
+
 
 class ConnectionObject(nav.CacheableObject):
     """
     Specialization of nav.CacheableObject to implement psycopg
     connection caching.
     """
-    def __init__(self, object, key):
-        super(ConnectionObject, self).__init__(object)
+    def __init__(self, object_, key):
+        super(ConnectionObject, self).__init__(object_)
         self.key = key
-        self.lastValidated = time.time()
+        self.last_validated = time.time()
 
-    def isInvalid(self):
+    def is_invalid(self):
         """Attempt to check whether the database connection has become
         invalid, which would typically be caused by the connection
         having been terminated without our knowledge or consent.
@@ -48,16 +51,16 @@ class ConnectionObject(nav.CacheableObject):
         try:
             try:
                 if self.ping():
-                    self.lastValidated = time.time()
+                    self.last_validated = time.time()
                     return False
             except (psycopg2.ProgrammingError, psycopg2.OperationalError):
-                logger.debug('Invalid connection object (%r), age=%s',
-                             self.key, self.age())
+                _logger.debug('Invalid connection object (%r), age=%s',
+                              self.key, self.age())
                 self.object.close()
                 return True
         except psycopg2.InterfaceError:
-            logger.debug('Connection may already be closed (%r)',
-                         self.key)
+            _logger.debug('Connection may already be closed (%r)',
+                          self.key)
             return True
 
     def ping(self):
@@ -71,8 +74,15 @@ class ConnectionObject(nav.CacheableObject):
         # If we got this far withouth exceptions, we did OK
         return 1
 
+
 def escape(string):
+    """Escape a string for use in SQL statements.
+
+    ..warning:: You should be using parameterized queries if you can!
+
+    """
     return str(psycopg2.extensions.QuotedString(string, "UTF8"))
+
 
 def get_connection_parameters(script_name='default', database='nav'):
     """Return a tuple of database connection parameters.
@@ -80,47 +90,51 @@ def get_connection_parameters(script_name='default', database='nav'):
     The parameters are read from db.conf, using script_name as a
     lookup key to find the database user to log in as.
 
-    Returns a tuple containing the following elements:
-  
-    (dbhost, dbport, dbname, user, password)
+    :returns: A tuple containing the following elements:
+              (dbhost, dbport, dbname, user, password)
+
     """
     # Get the config setup for the requested connection
     conf = config.read_flat_config('db.conf')
     dbhost = conf['dbhost']
-    dbport   = conf['dbport']
+    dbport = conf['dbport']
 
     db_option = 'db_%s' % database
     if db_option not in conf:
-        logger.debug("connection parameter for database %s doesn't exist, "
-                     "reverting to default 'db_nav'", database)
+        _logger.debug("connection parameter for database %s doesn't exist, "
+                      "reverting to default 'db_nav'", database)
         db_option = 'db_nav'
     dbname = conf[db_option]
 
     user_option = 'script_%s' % script_name
     if user_option not in conf:
-        logger.debug("connection parameter for script %s doesn't exist, "
-                     "reverting to default", script_name)
+        _logger.debug("connection parameter for script %s doesn't exist, "
+                      "reverting to default", script_name)
         user_option = 'script_default'
-    user   = conf[user_option]
+    user = conf[user_option]
 
-    pw     = conf['userpw_%s' % user]
-    return (dbhost, dbport, dbname, user, pw)
+    password = conf['userpw_%s' % user]
+    return dbhost, dbport, dbname, user, password
+
 
 def get_connection_string(db_params=None, script_name='default'):
-    """Return a psycopg connection string.
+    """Returns a psycopg connection string.
 
-      db_params -- A tuple of db connection parameters.  If omitted,
-                   get_connection_parameters is called to get this
-                   data, with script_name as its argument.
+    :param db_params: A tuple of db connection parameters.  If omitted,
+                      get_connection_parameters is called to get this data,
+                      with script_name as its argument.
 
-      script_name -- Script name to use for looking up connection
-                     info, if dbparams is supplied.
+    :param script_name: Script name to use for looking up connection
+                        info, if dbparams is supplied.
+
+    :returns: A suitable dsn string to use when calling psycopg2.connect()
 
     """
     if not db_params:
         db_params = get_connection_parameters(script_name)
     conn_string = "host=%s port=%s dbname=%s user=%s password=%s" % db_params
     return conn_string
+
 
 def getConnection(scriptName, database='nav'):
     """
@@ -129,33 +143,31 @@ def getConnection(scriptName, database='nav'):
     calls using the same parameters will receive an already open
     connection.
     """
-    import nav
-    global _connectionCache
-
-    (dbhost, port, dbname, user, pw) = \
-             get_connection_parameters(scriptName, database)
-    cacheKey = (dbname, user)
+    (dbhost, port, dbname, user, password) = get_connection_parameters(
+        scriptName, database)
+    cache_key = (dbname, user)
 
     # First, invalidate any dead connections.  Return a connection
     # object from the cache if one exists, open a new one if not.
-    _connectionCache.invalidate()
+    _connection_cache.invalidate()
     try:
-        connection = _connectionCache[cacheKey].object
+        connection = _connection_cache[cache_key].object
     except KeyError:
         connection = psycopg2.connect(get_connection_string(
-                (dbhost, port, dbname, user, pw)))
-        logger.debug("Opened a new database connection, scriptName=%s, "
-                     "dbname=%s, user=%s", scriptName, dbname, user)
+                (dbhost, port, dbname, user, password)))
+        _logger.debug("Opened a new database connection, scriptName=%s, "
+                      "dbname=%s, user=%s", scriptName, dbname, user)
         # Se transaction isolation level READ COMMITTED
         connection.set_isolation_level(1)
-        connObject = ConnectionObject(connection, cacheKey)
-        _connectionCache.cache(connObject)
+        conn_object = ConnectionObject(connection, cache_key)
+        _connection_cache.cache(conn_object)
         
     return connection
 
+
 def closeConnections():
     """Close all cached database connections"""
-    for connection in _connectionCache.values():
+    for connection in _connection_cache.values():
         try:
             connection.object.close()
         except psycopg2.InterfaceError:
@@ -190,7 +202,7 @@ def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
                     return func(*args, **kwargs)
                 except handled:
                     remaining -= 1
-                    logger.error("cannot establish db connection. "
+                    _logger.error("cannot establish db connection. "
                                  "retries remaining: %d", remaining)
                     if remaining:
                         time.sleep(delay)
@@ -209,3 +221,67 @@ def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
 # avoid the numerous "unexpected EOF on client connection" that NAV
 # seems to generate in the PostgreSQL logs.
 atexit.register(closeConnections)
+
+
+class ConnectionParameters(object):
+    """Database Connection parameters"""
+
+    # this data container class needs all these args, period.
+    # pylint: disable=R0913
+    def __init__(self, dbhost, dbport, dbname, user, password):
+        self.dbhost = dbhost
+        self.dbport = dbport
+        self.dbname = dbname
+        self.user = user
+        self.password = password
+
+    @classmethod
+    def from_config(cls):
+        """Initializes and returns parameters from NAV's config"""
+        return cls(*get_connection_parameters())
+
+    @classmethod
+    def from_environment(cls):
+        """Initializes and returns parameters from environment vars"""
+        params = [os.environ.get(v, None) for v in
+                  ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD')]
+        return cls(*params)
+
+    @classmethod
+    def for_postgres_user(cls):
+        """Returns parameters suitable for logging in the postgres user using
+        PostgreSQL command line clients.
+        """
+        config = cls.from_config()
+        environ = cls.from_environment()
+
+        if not environ.dbhost and config.dbhost != 'localhost':
+            environ.dbhost = config.dbhost
+        if not environ.dbport and config.dbport:
+            environ.dbport = config.dbport
+
+        return environ
+
+    def export(self, environ):
+        """Exports parameters to environ.
+
+        Supply os.environ to export to subprocesses.
+
+        """
+        added_environ = dict(zip(
+            ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD'),
+            self.as_tuple()))
+        for var, val in added_environ.items():
+            if val:
+                environ[var] = val
+
+    def as_tuple(self):
+        """Returns parameters as a tuple"""
+        return (self.dbhost,
+                self.dbport,
+                self.dbname,
+                self.user,
+                self.password)
+
+    def __str__(self):
+        return get_connection_string(self.as_tuple())

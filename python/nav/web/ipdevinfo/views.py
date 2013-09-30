@@ -31,6 +31,7 @@ from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
 from nav.models.service import Service
 
 from nav import asyncdns
+from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.utils import create_title
 
@@ -269,6 +270,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         'days_since_active': 7,
     }
     alert_info = None
+    job_descriptions = None
 
     # If addr or host not a netbox it is not monitored by NAV
     if netbox is None:
@@ -277,7 +279,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             addr = host_info['addresses'][0]['addr']
 
         no_netbox['prefix'] = get_prefix_info(addr)
-        netboxsubcat = None
+        netboxgroups = None
         navpath = NAVPATH + [(host_info['host'], '')]
 
         if no_netbox['prefix']:
@@ -290,8 +292,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     else:
         alert_info = get_recent_alerts(netbox)
-        netboxsubcat = netbox.netboxcategory_set.all()
+        netboxgroups = netbox.netboxcategory_set.all()
         navpath = NAVPATH + [(netbox.sysname, '')]
+        job_descriptions = get_job_descriptions()
 
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
@@ -301,12 +304,13 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'heading': navpath[-1][0],
             'alert_info': alert_info,
             'no_netbox': no_netbox,
-            'netboxsubcat': netboxsubcat,
+            'netboxgroups': netboxgroups,
+            'job_descriptions': job_descriptions,
             'navpath': navpath,
             'title': create_title(navpath)
         },
         context_instance=RequestContext(request,
-            processors=[search_form_processor]))
+                                        processors=[search_form_processor]))
 
 
 def get_port_view(request, netbox_sysname, perspective):

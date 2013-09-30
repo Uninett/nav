@@ -113,7 +113,7 @@
     </tr>
 
     <tr>
-        <th>To switch port</th>
+        <th>To port</th>
         <td>
             {% if port.to_interface %}
                 <a href="{{ port.to_interface.get_absolute_url }}">
@@ -177,6 +177,42 @@
         </td>
     </tr>
 {% endif %}
+
+{% with port.below_me as below_me %}{% with port.above_me as above_me %}
+    {% if below_me or above_me %}
+
+        <tr>
+            <th colspan="2">Stacking/bundling</th>
+        </tr>
+
+        {% if below_me %}
+            <tr>
+                <th>Lower layer</th>
+                <td>
+                    <ul>
+                        {% for other_port in below_me %}
+                            <li><a href="{{ other_port.get_absolute_url }}">{{ other_port }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+        {% endif %}
+
+        {% if above_me %}
+            <tr>
+                <th>Higher layer</th>
+                <td>
+                    <ul>
+                        {% for other_port in above_me %}
+                            <li><a href="{{ other_port.get_absolute_url }}">{{ other_port }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+        {% endif %}
+
+    {% endif %}
+{% endwith %}{% endwith %}
 
     <tr>
         <th colspan="2">Statistics</th>

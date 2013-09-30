@@ -36,6 +36,7 @@ import sys
 import time
 from psycopg2 import InterfaceError
 
+import nav.buildconf
 import nav.config
 import nav.daemon
 import nav.logs
@@ -79,7 +80,7 @@ def main(args):
 
     # Set config defaults
     defaults = {
-        'username': 'navcron',
+        'username': nav.buildconf.nav_user,
         'delay': '30',
         'loglevel': 'INFO',
         'mailwarnlevel': 'ERROR',
@@ -105,7 +106,7 @@ def main(args):
     logger.setLevel(1) # Let all info through to the root node
     loginitstderr(loglevel)
 
-    # Switch user to navcron (only works if we're root)
+    # Switch user to $NAV_USER (navcron) (only works if we're root)
     if not opttest:
         try:
             nav.daemon.switchuser(username)
@@ -163,7 +164,7 @@ def main(args):
             # since the current auth code uses legacy db connections we need to
             # be sure that we end all and any transactions so that we don't
             # idle.
-            conns = [v.object for v in nav.db._connectionCache.values()]
+            conns = [v.object for v in nav.db._connection_cache.values()]
             for conn in conns:
                 conn.commit()
 

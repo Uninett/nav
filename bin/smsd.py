@@ -218,7 +218,7 @@ def main(args):
 
         sys.exit(0)
 
-    # Switch user to navcron (only works if we're root)
+    # Switch user to $NAV_USER (only works if we're root)
     try:
         nav.daemon.switchuser(username)
     except nav.daemon.DaemonError, error:
