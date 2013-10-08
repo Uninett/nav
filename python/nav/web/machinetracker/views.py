@@ -396,12 +396,10 @@ def netbios_do_search(request):
 
         result = Netbios.objects.filter(filters, end_time__gt=from_time)
         result = result.order_by('name', 'mac', 'start_time')
-        result = result.values('ip', 'mac', 'name', 'server', 'username',
-                               'start_time', 'end_time')
 
         nbt_count = len(result)
 
-        netbios_tracker = track_mac(('ip', 'mac', 'nbname', 'server',
+        netbios_tracker = track_mac(('ip', 'mac', 'name', 'server',
                                      'username', 'start_time', 'end_time'),
                                     result, dns)
 
