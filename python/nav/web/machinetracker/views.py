@@ -73,80 +73,22 @@ def ip_do_search(request):
     to_ip = None
 
     if form.is_valid():
-        ip_range = form.cleaned_data['ip_range']
-        dns = form.cleaned_data['dns']
-        active = form.cleaned_data['active']
         inactive = form.cleaned_data['inactive']
-        days = form.cleaned_data['days']
         form_data = form.cleaned_data
-
+        ip_range = form.cleaned_data['ip_range']
         from_ip, to_ip = (ip_range[0], ip_range[-1])
 
         if (to_ip.int() - from_ip.int()) > ADDRESS_LIMIT:
             inactive = False
 
-        from_time = date.today() - timedelta(days=days)
-
-        result = Arp.objects.filter(
-            end_time__gt=from_time,
-        ).extra(
-            select={'netbiosname': get_netbios_query()},
-            where=['ip BETWEEN %s and %s'],
-            params=[unicode(from_ip), unicode(to_ip)]
-        ).order_by('ip', 'mac', '-start_time')
-
-        # Get last ip2mac jobs on netboxes
-        netboxes = get_last_job_log_from_netboxes(result, 'ip2mac')
-
-        # Flag rows overdue as fishy
-        for row in result:
-            if row.netbox in netboxes:
-                job_log = netboxes[row.netbox]
-                row.fishy = job_log if job_log.is_overdue() else None
-
-        ip_result = ip_dict(result)
-
-        if inactive:
-            ip_range = [IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1)]
-        else:
-            ip_range = [key for key in ip_result]
-
-        if dns:
-            ips_to_lookup = [str(ip) for ip in ip_range]
-            dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
-
-        tracker = SortedDict()
-
-        for ip_key in ip_range:
-            ip = unicode(ip_key)
-            if active and ip_key in ip_result:
-                rows = ip_result[ip_key]
-                for row in rows:
-                    row = process_ip_row(row, dns=False)
-                    if dns:
-                        if (isinstance(dns_lookups[ip], Exception)
-                                or not dns_lookups[ip]):
-                            row.dns_lookup = ""
-                        else:
-                            row.dns_lookup = dns_lookups[ip][0]
-                    row.ip_int_value = normalize_ip_to_string(row.ip)
-                    if (row.ip, row.mac) not in tracker:
-                        tracker[(row.ip, row.mac)] = []
-                    tracker[(row.ip, row.mac)].append(row)
-            elif inactive and ip_key not in ip_result:
-                row = {'ip': ip}
-                row['ip_int_value'] = normalize_ip_to_string(ip)
-                if dns:
-                    if (dns_lookups[ip] and not
-                            isinstance(dns_lookups[ip], Exception)):
-                        row['dns_lookup'] = dns_lookups[ip][0]
-                    else:
-                        row['dns_lookup'] = ""
-                tracker[(ip, "")] = [row]
-
+        ip_result = get_result(form.cleaned_data['days'], from_ip, to_ip)
+        ip_range = create_ip_range(inactive, from_ip, to_ip, ip_result)
+        tracker = create_tracker(form.cleaned_data['active'],
+                                 form.cleaned_data['dns'], inactive,
+                                 ip_range, ip_result)
         row_count = sum(len(mac_ip_pair) for mac_ip_pair in tracker.values())
 
-    # If the form was valid, but we found no results, display error message
+   # If the form was valid, but we found no results, display error message
     display_no_results = False
     if form.is_valid() and not row_count:
         display_no_results = True
@@ -167,6 +109,92 @@ def ip_do_search(request):
         info_dict,
         RequestContext(request)
     )
+
+
+def get_result(days, from_ip, to_ip):
+    """Gets and formats search result"""
+    records = get_arp_records(days, from_ip, to_ip)
+    netboxes = get_last_job_log_from_netboxes(records, 'ip2mac')
+    flag_as_fishy(netboxes, records)
+    ip_result = ip_dict(records)
+    return ip_result
+
+
+def get_arp_records(days, from_ip, to_ip):
+    """Gets the result from ARP based on input parameters"""
+    from_time = date.today() - timedelta(days=days)
+    result = Arp.objects.filter(
+        end_time__gt=from_time,
+    ).extra(
+        select={'netbiosname': get_netbios_query()},
+        where=['ip BETWEEN %s and %s'],
+        params=[unicode(from_ip), unicode(to_ip)]
+    ).order_by('ip', 'mac', '-start_time')
+    return result
+
+
+def flag_as_fishy(netboxes, result):
+    """Flag rows overdue as fishy"""
+    for row in result:
+        if row.netbox in netboxes:
+            job_log = netboxes[row.netbox]
+            row.fishy = job_log if job_log.is_overdue() else None
+
+
+def create_ip_range(inactive, from_ip, to_ip, ip_result):
+    """Creates the range of ip objects to use when creating tracker"""
+    if inactive:
+        ip_range = [IP(ip) for ip in range(from_ip.int(), to_ip.int() + 1)]
+    else:
+        ip_range = [key for key in ip_result]
+    return ip_range
+
+
+def create_tracker(active, dns, inactive, ip_range, ip_result):
+    """Creates a result tracker based on form data"""
+    dns_lookups = None
+    if dns:
+        ips_to_lookup = [str(ip) for ip in ip_range]
+        dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
+
+    tracker = SortedDict()
+    for ip_key in ip_range:
+        if active and ip_key in ip_result:
+            create_active_row(tracker, dns, dns_lookups, ip_key, ip_result)
+        elif inactive and ip_key not in ip_result:
+            create_inactive_row(tracker, dns, dns_lookups, ip_key)
+    return tracker
+
+
+def create_active_row(tracker, dns, dns_lookups, ip_key, ip_result):
+    """Creates a tracker tuple where the result is active"""
+    ip = unicode(ip_key)
+    rows = ip_result[ip_key]
+    for row in rows:
+        row = process_ip_row(row, dns=False)
+        if dns:
+            if (isinstance(dns_lookups[ip], Exception)
+                    or not dns_lookups[ip]):
+                row.dns_lookup = ""
+            else:
+                row.dns_lookup = dns_lookups[ip][0]
+        row.ip_int_value = normalize_ip_to_string(row.ip)
+        if (row.ip, row.mac) not in tracker:
+            tracker[(row.ip, row.mac)] = []
+        tracker[(row.ip, row.mac)].append(row)
+
+
+def create_inactive_row(tracker, dns, dns_lookups, ip_key):
+    """Creates a tracker tuple where the result is inactive"""
+    ip = unicode(ip_key)
+    row = {'ip': ip, 'ip_int_value': normalize_ip_to_string(ip)}
+    if dns:
+        if (dns_lookups[ip] and not
+                isinstance(dns_lookups[ip], Exception)):
+            row['dns_lookup'] = dns_lookups[ip][0]
+        else:
+            row['dns_lookup'] = ""
+    tracker[(ip, "")] = [row]
 
 
 def mac_search(request):
