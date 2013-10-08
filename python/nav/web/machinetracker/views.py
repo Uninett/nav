@@ -115,8 +115,7 @@ def ip_do_search(request):
 def get_result(days, from_ip, to_ip, get_netbios=False):
     """Gets and formats search result"""
     records = get_arp_records(days, from_ip, to_ip, get_netbios)
-    netboxes = get_last_job_log_from_netboxes(records, 'ip2mac')
-    flag_as_fishy(netboxes, records)
+    flag_as_fishy(records)
     ip_result = ip_dict(records)
     return ip_result
 
@@ -137,9 +136,10 @@ def get_arp_records(days, from_ip, to_ip, get_netbios=False):
     return result
 
 
-def flag_as_fishy(netboxes, result):
+def flag_as_fishy(records):
     """Flag rows overdue as fishy"""
-    for row in result:
+    netboxes = get_last_job_log_from_netboxes(records, 'ip2mac')
+    for row in records:
         if row.netbox in netboxes:
             job_log = netboxes[row.netbox]
             row.fishy = job_log if job_log.is_overdue() else None
