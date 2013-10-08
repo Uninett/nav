@@ -81,7 +81,8 @@ def ip_do_search(request):
         if (to_ip.int() - from_ip.int()) > ADDRESS_LIMIT:
             inactive = False
 
-        ip_result = get_result(form.cleaned_data['days'], from_ip, to_ip)
+        ip_result = get_result(form.cleaned_data['days'], from_ip, to_ip,
+                               form.cleaned_data['netbios'])
         ip_range = create_ip_range(inactive, from_ip, to_ip, ip_result)
         tracker = create_tracker(form.cleaned_data['active'],
                                  form.cleaned_data['dns'], inactive,
@@ -111,25 +112,28 @@ def ip_do_search(request):
     )
 
 
-def get_result(days, from_ip, to_ip):
+def get_result(days, from_ip, to_ip, get_netbios=False):
     """Gets and formats search result"""
-    records = get_arp_records(days, from_ip, to_ip)
+    records = get_arp_records(days, from_ip, to_ip, get_netbios)
     netboxes = get_last_job_log_from_netboxes(records, 'ip2mac')
     flag_as_fishy(netboxes, records)
     ip_result = ip_dict(records)
     return ip_result
 
 
-def get_arp_records(days, from_ip, to_ip):
+def get_arp_records(days, from_ip, to_ip, get_netbios=False):
     """Gets the result from ARP based on input parameters"""
     from_time = date.today() - timedelta(days=days)
-    result = Arp.objects.filter(
-        end_time__gt=from_time,
-    ).extra(
-        select={'netbiosname': get_netbios_query()},
-        where=['ip BETWEEN %s and %s'],
-        params=[unicode(from_ip), unicode(to_ip)]
-    ).order_by('ip', 'mac', '-start_time')
+    extra_args = {
+        'where': ['ip BETWEEN %s and %s'],
+        'params': [unicode(from_ip), unicode(to_ip)]
+    }
+    if get_netbios:
+        extra_args['select'] = {'netbiosname': get_netbios_query()}
+
+    result = Arp.objects.filter(end_time__gt=from_time).extra(
+        **extra_args).order_by('ip', 'mac', '-start_time')
+
     return result
 
 
