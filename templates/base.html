@@ -11,14 +11,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block base_header_title %}{{ title }}{% endblock %}</title>
     <link rel="stylesheet" href="{{ STATIC_URL }}static/css/nav.css" />
-    <link rel="stylesheet" href="/style/custom.css" />
-    <link rel="stylesheet" href="/style/calendar.css" />
-    <link rel="stylesheet" href="/style/treeselect.css" />
-    <link rel="stylesheet" href="/style/quickselect.css" />
-    <link rel="stylesheet" href="/style/table.css" />
-    <link rel="stylesheet" href="/style/foundation_icon_fonts/stylesheets/general_foundicons.css" />
-    <script type="text/javascript" src="/js/require_config.js"></script>
-    <script src="/js/libs/require.js" data-main='src/main'></script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}style/custom.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}style/calendar.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}style/treeselect.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}style/quickselect.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}style/table.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}foundation_icon_fonts/stylesheets/general_foundicons.css" />
+    <script type="text/javascript" src="{{ STATIC_URL }}js/require_config.js"></script>
+    <script src="{{ STATIC_URL }}js/libs/require.js" data-main='src/main'></script>
     {% block base_header_additional_head %}
     {% endblock %}
 </head>
@@ -36,7 +36,7 @@
         <li>
             <h1 class="name">
                 <a href="/">
-                    <img src="/images/main/navlogo.png" title="Network Administration Visualized" alt="Network Administration Visualized">
+                    <img src="{{ STATIC_URL }}images/main/navlogo.png" title="Network Administration Visualized" alt="Network Administration Visualized">
                 </a>
             </h1>
         </li>
@@ -77,7 +77,7 @@
                         {% if tool.display %}
                             <li>
                                 <a href="{{ tool.uri }}">
-                                    <img src="{{ tool.icon }}" alt="{{ tool.name }}">
+                                    <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
                                     {{ tool.name }}
                                 </a>
                             </li>
@@ -103,7 +103,7 @@
 {% if current_user_data.sudoer %}
     <div class="sudoer-bar">
         <form action="{% url webfront-logout %}" method="post">
-            <img src="/images/main/emblem-important.png"
+            <img src="{{ STATIC_URL }}images/main/emblem-important.png"
                  alt="Important information"/>
             Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently
             logged in as <em>{{ current_user_data.account.name }}</em>.
