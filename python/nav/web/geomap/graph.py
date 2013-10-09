@@ -367,9 +367,9 @@ def combine_edges(graph, property_aggregators):
                  'ce[%s]' % combine_ids(eset, lambda e: e.reverse_id),
                  eset[0].source,
                  eset[0].target,
-                 aggregate_properties(map(lambda edge: edge.sourceData, eset),
+                 aggregate_properties(map(lambda edge: edge.source_data, eset),
                                       property_aggregators),
-                 aggregate_properties(map(lambda edge: edge.targetData, eset),
+                 aggregate_properties(map(lambda edge: edge.target_data, eset),
                                       property_aggregators)),
         edge_sets.values())
     graph.edges = dict([(e.id, e) for e in edges])
@@ -401,7 +401,7 @@ def reverse_edge(edge):
     """
     return Edge(edge.reverse_id, edge.id,
                 edge.target, edge.source,
-                edge.targetData, edge.sourceData)
+                edge.target_data, edge.source_data)
 
 
 class Node:
@@ -421,8 +421,8 @@ class Edge:
         self.reverse_id = reverse_id
         self.source = source
         self.target = target
-        self.sourceData = source_data
-        self.targetData = target_data
+        self.source_data = source_data
+        self.target_data = target_data
 
 
 class Graph:
