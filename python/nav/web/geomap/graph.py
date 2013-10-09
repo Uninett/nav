@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# pylint: disable=R0903
+# pylint: disable=R0903, R0913
 
 """Graph representation and manipulation."""
 
@@ -268,7 +268,7 @@ def collapse_nodes(graph, node_sets, property_aggregators):
     nodehash = {}
     for node_set in node_sets:
         properties = aggregate_properties(
-            map(lambda node: node.properties, node_set),
+            [x.properties for x in node_set],
             property_aggregators)
         new_node = Node('cn[%s]' % combine_ids(node_set),
                         avg([n.lon for n in node_set]),
@@ -322,7 +322,7 @@ def aggregate_properties(objects, aggregators):
         if isinstance(aggr, tuple):
             fun = aggr[0]
             prop = aggr[1]
-            lst = map(lambda o: o[prop], objects)
+            lst = [x[prop] for x in objects]
         else:
             fun = aggr
             lst = objects
@@ -361,18 +361,20 @@ def combine_edges(graph, property_aggregators):
 
     edge_sets = map_dict(equalize_edge_orientation, edge_sets)
 
-    edges = map(
-        lambda eset:
-            Edge('ce[%s]' % combine_ids(eset),
-                 'ce[%s]' % combine_ids(eset, lambda e: e.reverse_id),
-                 eset[0].source,
-                 eset[0].target,
-                 aggregate_properties(map(lambda edge: edge.source_data, eset),
-                                      property_aggregators),
-                 aggregate_properties(map(lambda edge: edge.target_data, eset),
-                                      property_aggregators)),
-        edge_sets.values())
+    edges = [create_edge(x, property_aggregators) for x in edge_sets.values()]
     graph.edges = dict([(e.id, e) for e in edges])
+
+
+def create_edge(eset, property_aggregators):
+    """Creates edge from the edge set and applies properties"""
+    return Edge('ce[%s]' % combine_ids(eset),
+                'ce[%s]' % combine_ids(eset, lambda e: e.reverse_id),
+                eset[0].source,
+                eset[0].target,
+                aggregate_properties([x.source_data for x in eset],
+                                     property_aggregators),
+                aggregate_properties([x.target_data for x in eset],
+                                     property_aggregators))
 
 
 def equalize_edge_orientation(edges):
@@ -390,7 +392,7 @@ def equalize_edge_orientation(edges):
         if edge.source != reference.source:
             return reverse_edge(edge)
         return edge
-    return map(fix_orientation, edges)
+    return [fix_orientation(x) for x in edges]
 
 
 def reverse_edge(edge):
