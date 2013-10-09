@@ -62,6 +62,19 @@ except IOError:
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
 
+#Static files
+STATIC_ROOT = os.path.join(nav.path.datadir, 'static')
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.join(nav.path.webrootdir),
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+)
+
+
 # Templates
 TEMPLATE_DIRS = (
     nav.path.djangotmpldir,
@@ -136,6 +149,7 @@ CRISPY_TEMPLATE_PACK = 'foundation'
 INSTALLED_APPS = ( 
     'nav.models', 
     'nav.django', 
+    'django.contrib.staticfiles',
     'django.contrib.sessions',
     'crispy_forms',
     'crispy_forms_foundation'
