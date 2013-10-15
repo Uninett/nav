@@ -5,9 +5,9 @@
     <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
         <div style="float: right;">
             {{#if isLayoutEngineRunning}}
-                <img src='/images/lys/green.png' title="Force is running" alt='Force is running' class='force_status'/>
+                <img href="{{ STATIC_URL }}images/lys/green.png' title="Force is running" alt='Force is running' class='force_status'/>
             {{else}}
-                <img src='/images/lys/red.png' title="Force is NOT running" alt='Force is NOT running' class='force_status'/>
+                <img href="{{ STATIC_URL }}images/lys/red.png' title="Force is NOT running" alt='Force is NOT running' class='force_status'/>
             {{/if}}
         </div>
         <div class="center-content">

@@ -16,14 +16,14 @@
         <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-address">
         Address</a>
         <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
         <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=address">
         Address</a>
         {% ifequal order_by "-address" %}
         <span class="sort">
-            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-up.png" alt="Sorted descending" />
         </span>
         {% endifequal %}
     {% endifequal %}
@@ -33,14 +33,14 @@
         <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-type">
         Type</a>
         <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
         <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=type">
         Type</a>
         {% ifequal order_by "-type" %}
         <span class="sort">
-            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-up.png" alt="Sorted descending" />
         </span>
         {% endifequal %}
     {% endifequal %}

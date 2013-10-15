@@ -46,7 +46,7 @@
             </td>
             <td>
                 <a href="{% url ipdevinfo-details-by-addr row.ip %}" title="Lookup this IP in IP Device Info">
-                <img src="/images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
+                <img src="{{ STATIC_URL }}images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
             </td>
             <td>
                 {% if row.mac %}

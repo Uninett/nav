@@ -4,12 +4,12 @@
 {% if gwport %}
     <dd id="gwport-{{ gwport.id }}">
         {% if gwport.has_children %}
-	        <img src="/images/networkexplorer/expand.gif" onclick="openNode(this);" class="tree-navigator"/>
+	        <img src="{{ STATIC_URL }}images/networkexplorer/expand.gif" onclick="openNode(this);" class="tree-navigator"/>
         {% else %}
 		{% if forloop.last %}
-   			<img src="/images/networkexplorer/end.gif">
+   			<img src="{{ STATIC_URL }}images/networkexplorer/end.gif">
 		{% else %}
-			<img src="/images/networkexplorer/vertical-bound.gif">
+			<img src="{{ STATIC_URL }}images/networkexplorer/vertical-bound.gif">
 		{% endif %}
         {% endif %}
         <a href="{{ gwport.get_absolute_url }}" target="_blank">{{ gwport.ifname }}</a>
@@ -24,9 +24,9 @@
 		        {% for prefix in prefix_list %}
 	        	<dd class="prefix">
 {% if forloop.last %}
-   <img src="/images/networkexplorer/end.gif">
+   <img src="{{ STATIC_URL }}images/networkexplorer/end.gif">
 {% else %}
-   <img src="/images/networkexplorer/vertical-bound.gif">
+   <img src="{{ STATIC_URL }}images/networkexplorer/vertical-bound.gif">
 {% endif %}
 				({{ prefix.display_addr }}, {{prefix.prefix.vlan.net_type}}, {{prefix.prefix.vlan.net_ident}})
 			</dd>

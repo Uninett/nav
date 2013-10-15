@@ -10,14 +10,14 @@
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-time">
         Time</a>
         <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=time">
         Time</a>
         {% ifequal order_by "-time" %}
             <span class="sort">
-                <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+                <img src="{{ STATIC_URL }}images/alertprofiles/go-up.png" alt="Sorted descending" />
             </span>
         {% endifequal %}
     {% endifequal %}
@@ -27,14 +27,14 @@
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-time_sent">
         Sent</a>
         <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=time_sent">
         Sent</a>
         {% ifequal order_by "-time_sent" %}
             <span class="sort">
-                <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+                <img src="{{ STATIC_URL }}images/alertprofiles/go-up.png" alt="Sorted descending" />
             </span>
         {% endifequal %}
     {% endifequal %}
@@ -44,14 +44,14 @@
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-phone">
         Phone</a>
         <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=phone">
         Phone</a>
         {% ifequal order_by "-phone" %}
             <span class="sort">
-                <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+                <img src="{{ STATIC_URL }}images/alertprofiles/go-up.png" alt="Sorted descending" />
             </span>
         {% endifequal %}
     {% endifequal %}
@@ -61,14 +61,14 @@
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-message">
         Message</a>
         <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=message">
         Message</a>
         {% ifequal order_by "-message" %}
             <span class="sort">
-                <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+                <img src="{{ STATIC_URL }}images/alertprofiles/go-up.png" alt="Sorted descending" />
             </span>
         {% endifequal %}
     {% endifequal %}
@@ -78,14 +78,14 @@
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-severity">
         Severity</a>
         <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=severity">
         Severity</a>
         {% ifequal order_by "-severity" %}
             <span class="sort">
-                <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+                <img src="{{ STATIC_URL }}images/alertprofiles/go-up.png" alt="Sorted descending" />
             </span>
         {% endifequal %}
     {% endifequal %}
@@ -95,14 +95,14 @@
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=-sent">
         Status</a>
         <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
         <a href="{% url alertprofiles-sms %}?page={{ page_obj.number }}&amp;order_by=sent">
         Status</a>
         {% ifequal order_by "-sent" %}
             <span class="sort">
-                <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+                <img src="{{ STATIC_URL }}images/alertprofiles/go-up.png" alt="Sorted descending" />
             </span>
         {% endifequal %}
     {% endifequal %}
@@ -124,17 +124,17 @@
             <td
                 {% ifequal sms.sent 'Y' %}
                     style="color: green">
-                    <img src="/images/lys/green.png" alt="" />
+                    <img src="{{ STATIC_URL }}images/lys/green.png" alt="" />
                     Sent
                 {% endifequal %}
                 {% ifequal sms.sent 'N' %}
                     style="color: red">
-                    <img src="/images/lys/red.png" alt="" />
+                    <img src="{{ STATIC_URL }}images/lys/red.png" alt="" />
                     Not sent
                 {% endifequal %}
                 {% ifequal sms.sent 'I' %}
                     style="color: orange">
-                    <img src="/images/lys/yellow.png" alt="" />
+                    <img src="{{ STATIC_URL }}images/lys/yellow.png" alt="" />
                     Ignored
                 {% endifequal %}
             </td>

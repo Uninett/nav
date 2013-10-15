@@ -11,14 +11,14 @@
         <a href="{% url alertprofiles-matchfields %}?page={{ page_obj.number }}&amp;order_by=-name">
         Name</a>
         <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
         <a href="{% url alertprofiles-matchfields %}?page={{ page_obj.number }}&amp;order_by=name">
         Name</a>
         {% ifequal order_by "-name" %}
         <span class="sort">
-            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-up.png" alt="Sorted descending" />
         </span>
         {% endifequal %}
     {% endifequal %}
@@ -28,14 +28,14 @@
         <a href="{% url alertprofiles-matchfields %}?page={{ page_obj.number }}&amp;order_by=-description">
         Description</a>
         <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-down.png" alt="Sorted ascending" />
         </span>
     {% else %}
         <a href="{% url alertprofiles-matchfields %}?page={{ page_obj.number }}&amp;order_by=description">
         Description</a>
         {% ifequal order_by "-description" %}
         <span class="sort">
-            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
+            <img src="{{ STATIC_URL }}images/alertprofiles/go-up.png" alt="Sorted descending" />
         </span>
         {% endifequal %}
     {% endifequal %}

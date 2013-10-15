@@ -2,7 +2,7 @@
 {{#if isElink}}
 <h4 class="node_sysname">{{node.data.sysname}}</h4>
 {{else}}
-<img src='/images/lys/{{node.data.up_image}}' alt='{{node.data.up}}' class='netmap_node_status'/>
+<img href="{{ STATIC_URL }}images/lys/{{node.data.up_image}}' alt='{{node.data.up}}' class='netmap_node_status'/>
 <h4 class="node_sysname"><a href="{{node.data.ipdevinfo_link}}">{{node.data.sysname}}</a></h4>
 <div class="node_ip">{{node.data.ip}}</div>
 {{/if}}

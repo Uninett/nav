@@ -33,7 +33,7 @@
             <td>
                 {% if row.netbox.sysname %}
                 <a href="{% url ipdevinfo-details-by-name row.netbox.sysname %}" title="Browse this switch (IP Device Info)">
-                <img src="/images/arpcam/ipinfolink.png" alt="IP Device info search" /></a>
+                <img src="{{ STATIC_URL }}images/arpcam/ipinfolink.png" alt="IP Device info search" /></a>
                 {% endif %}
             </td>
             <td>
@@ -48,7 +48,7 @@
             <td>
                 {% if row.netbox.sysname and row.port %}
                 <a href="{% url ipdevinfo-interface-details-by-name row.netbox.sysname row.port %}" title="Browse this interface (IP Device Info)">
-                <img src="/images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
+                <img src="{{ STATIC_URL }}images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
                 {% endif %}
             </td>
             {% else %}

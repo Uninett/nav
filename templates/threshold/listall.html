@@ -11,8 +11,8 @@
 <div class="netboxcontainer">
     <h3>
         <a href="{% url ipdevinfo-details-by-name netbox.grouper %}">{{ netbox.grouper }}</a>&nbsp;
-            <img class="toggler" src="/images/threshold/plus-button.png" alt="+"/>
-            <img class="toggler" src="/images/threshold/minus-button.png" alt="-" style="display: none;"/>
+            <img class="toggler" src="{{ STATIC_URL }}images/threshold/plus-button.png" alt="+"/>
+            <img class="toggler" src="{{ STATIC_URL }}images/threshold/minus-button.png" alt="-" style="display: none;"/>
     </h3>
 <table class="vertitable" style="display: none;">
     <thead>

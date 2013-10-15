@@ -119,7 +119,7 @@
                     <td><a href="/report/netbox?orgid={{ netbox.organization.id }}">{{ netbox.organization.description }}</a></td>
                     <td><a href="/report/swport?netboxid={{ netbox.id }}">{{ netbox.get_swports|length }}</a></td>
                     <td><a href="/report/gwport?netboxid={{ netbox.id }}">{{ netbox.get_gwports|length }}</a></td>
-                    <td><img src="/images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}"></td>
+                    <td><img src="{{ STATIC_URL }}images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}"></td>
                     <td class="numeric">{{ netbox.availability }}</td>
                 </tr>
                 {% endfor %}

@@ -13,7 +13,7 @@
     <ul class="infobox">
         <li>Add an image by clicking the file dialog, locating the image you want and clicking "Upload image"</li>
         <li>Captions may contain html - you can for instance create links</li>
-        <li>Sort the images by dragging the <img src="/images/icons/drag.png"> (if more than 1 image)</li>
+        <li>Sort the images by dragging the <img src="{{ STATIC_URL }}images/icons/drag.png"> (if more than 1 image)</li>
     </ul>
 
     <table id="editimages" class="listtable middle highlightover">
@@ -57,7 +57,7 @@
                 <td class="meta">{{ image.uploader.name }}</td>
                 <td class="meta">{{ image.created|date:"DATETIME_FORMAT" }}</td>
                 <td class="drag">
-                        <img src="/images/icons/drag.png">
+                        <img src="{{ STATIC_URL }}images/icons/drag.png">
                 </td>
 
             </tr>
