@@ -1,6 +1,6 @@
-/* Treeselect stylesheet for NAV
+/* plugin/message.js stylesheet
  *
- * Copyright (C) 2008 UNINETT AS
+ * Copyright (C) 2013 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV).
  *
@@ -16,22 +16,17 @@
  *
  */
 
-.treeselect label {
-	font-weight: bold;
-	display: block;
-}
-.treeselect select, .treeselect input {
-	margin-bottom: 1em;
-	width: 25em;
-}
-.treeselect div {
-	float: left;
-	margin-right: 0.5em;
-}
-.treeselect:after {
-	content: '.';
-	visibility: hidden;
-	display: block;
-	height: 0;
-	clear: both;
+a.messageTooltip {
+    display: block;
+    position: absolute;
+    top: 1px;
+    left: 5px;
+    background: #333;
+    background: rgba(0,0,0,.8);
+    border-radius: 5px;
+    color: #fff;
+    padding: 5px 15px;
+    width: 100%;
+    z-index: 999;
+
 }
