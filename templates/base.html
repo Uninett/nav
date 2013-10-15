@@ -16,7 +16,14 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/treeselect.css" />
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/quickselect.css" />
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/table.css" />
-    <script type="text/javascript" src="{{ STATIC_URL }}js/require_config.js"></script>
+    {% comment %} Javascript global variables {% endcomment %}
+    <script>
+        var NAV = {
+            'cssPath': '{{ STATIC_URL }}css/nav',
+            'imagePath': '{{ STATIC_URL }}images'
+        };
+    </script>
+    <script src="{{ STATIC_URL }}js/require_config.js"></script>
     <script src="{{ STATIC_URL }}js/libs/require.js" data-main='src/main'></script>
     {% block base_header_additional_head %}
     {% endblock %}
