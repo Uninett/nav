@@ -24,7 +24,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
     function addModuleTabs() {
         var tabconfig = {
             cache: true, // cache loaded pages
-            spinner: '<img src="/images/main/process-working.gif">',
+            spinner: '<img src="' + NAV.imagePath + '/main/process-working.gif">',
             load: addActivityButtonListener
         };
         $(moduleTabsSelector).tabs(tabconfig);
@@ -33,7 +33,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
     function addMainTabs() {
         var tabs = $(mainTabsSelector).tabs({
             cache: true,
-            spinner: '<img src="/images/main/process-working.gif">'
+            spinner: '<img src="' + NAV.imagePath + '/main/process-working.gif">'
         });
         markErrorTabs(tabs);
         tabs.show();

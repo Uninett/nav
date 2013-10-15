@@ -8,13 +8,13 @@ define(['libs/OpenLayers', 'libs/jquery'], function () {
         this.node = node;
         this.rooms = rooms;
         this.proxyurl = '/info/osm_map_redirect/${z}/${x}/${y}.png';
-        this.imagePath = '/images/openlayers/';
+        this.imagePath = NAV.imagePath + '/openlayers/';
         this.markerImages = {
             faulty: this.imagePath + 'marker.png',
             ok: this.imagePath + 'marker-green.png'
         };
         this.options = {
-            theme: '/style/openlayers.css'
+            theme: NAV.cssPath + '/openlayers.css'
         };
 
         OpenLayers.ImgPath = this.imagePath;

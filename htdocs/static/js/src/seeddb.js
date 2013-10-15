@@ -96,14 +96,14 @@ require([
     }
 
     function initMap() {
-        OpenLayers.ImgPath = '/images/openlayers/';
+        OpenLayers.ImgPath = NAV.imagePath + '/openlayers/';
         var map = new OpenLayers.Map('map', {
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
             controls: [
                 new OpenLayers.Control.PanZoomBar(),
                 new OpenLayers.Control.Navigation()
             ],
-            theme: '/style/openlayers.css'
+            theme: NAV.cssPath + '/openlayers.css'
         });
         map.addLayer(new OpenLayers.Layer.OSM(
             'OpenStreetMap',

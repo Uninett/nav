@@ -142,7 +142,7 @@ function init(mapElementId, url) {
  * Updating the displayed loading status:
  */
 function netLayerLoadStart() {
-    document.getElementById('geomap-heading').innerHTML = 'Geomap (<img src="/images/geomap/loading.gif" alt=""/> loading data ...)';
+    document.getElementById('geomap-heading').innerHTML = 'Geomap (<img src="' + NAV.imagePath + '/geomap/loading.gif" alt=""/> loading data ...)';
     document.getElementsByClassName('navbody')[0].className = 'navbody loading';
 }
 function netLayerLoadEnd() {

@@ -375,7 +375,7 @@ define([
         },
 
         showSpinner: function () {
-            this.$('img').attr('src', '/images/main/process-working.gif');
+            this.$('img').attr('src', NAV.imagePath + '/main/process-working.gif');
         },
 
         hideSpinner: function () {

@@ -14,16 +14,17 @@ define(["libs/d3.v2"], function () {
 
         /* Node and link properties */
         this.linkDistance = 250;
+        var imagePath = NAV.imagePath + '/netmap';
         this.nodeImages = {
-            'GSW': '/images/netmap/gsw.png',
-            'SW': '/images/netmap/sw.png',
-            'GW': '/images/netmap/gw.png',
-            'ELINK': '/images/netmap/elink.png',
-            'EDGE': '/images/netmap/edge.png',
-            'OTHER': '/images/netmap/other.png',
-            'SRV': '/images/netmap/srv.png',
-            'WLAN': '/images/netmap/wlan.png',
-            'UNRECOGNIZED': '/images/netmap/unrecognized.png'
+            'GSW': imagePath + '/gsw.png',
+            'SW': imagePath + '/sw.png',
+            'GW': imagePath + '/gw.png',
+            'ELINK': imagePath + '/elink.png',
+            'EDGE': imagePath + '/edge.png',
+            'OTHER': imagePath + '/other.png',
+            'SRV': imagePath + '/srv.png',
+            'WLAN': imagePath + '/wlan.png',
+            'UNRECOGNIZED': imagePath + '/unrecognized.png'
         };
 
         this.unrecognized = 'UNRECOGNIZED';
