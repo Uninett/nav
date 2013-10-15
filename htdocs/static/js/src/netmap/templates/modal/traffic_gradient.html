@@ -1,0 +1,21 @@
+<div class="modal fade hide" id="modal_traffic_gradient" title="Traffic gradient">
+    <div class="modal-header"></div>
+    <div class="modal-body">
+        <div class="traffic_gradient_box">
+            {{#each collection}}
+                <div style="background-color: rgb({{{round r}}},{{{round g}}},{{{round b}}});" class="traffic_gradient_row">
+                </div>
+            {{/each}}
+        </div>
+        <div class="traffic_gradient_meta">
+            {{#iter collection}}
+                {{#if isDecade}}
+                    <div class="measure_line">
+                        <span class="measure_line">&nbsp;</span>
+                        <span class="measure_line_description">{{percent}}%</span>
+                    </div>
+                {{/if}}
+            {{/iter}}
+        </div>
+    </div>
+</div>
