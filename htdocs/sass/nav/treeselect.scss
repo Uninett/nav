@@ -1,6 +1,6 @@
-/* Login stylesheet for NAV
+/* Treeselect stylesheet for NAV
  *
- * Copyright (C) 2007 UNINETT AS
+ * Copyright (C) 2008 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV).
  *
@@ -16,24 +16,22 @@
  *
  */
 
-body {
-	background: white;
-	color: #2d5a86;
-	font-family: Verdana, Gill, Helvetica, Sans-serif;
-	font-size: 12px;
-	text-align: center;
+.treeselect label {
+	font-weight: bold;
+	display: block;
 }
-
-#container {
-	margin: 5em auto;
-	padding: 1em;
-	text-align: center;
+.treeselect select, .treeselect input {
+	margin-bottom: 1em;
+	width: 25em;
 }
-
-p.message, ul.errorlist {
-	color: red;
+.treeselect div {
+	float: left;
+	margin-right: 0.5em;
 }
-
-#id_username, #id_password {
-	border: 1px solid #2d5a86;
+.treeselect:after {
+	content: '.';
+	visibility: hidden;
+	display: block;
+	height: 0;
+	clear: both;
 }
