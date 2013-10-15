@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-    <link rel="stylesheet" type="text/css" href="/style/messages.css" />
-    <link rel="stylesheet" type="text/css" href="/style/timepicker.css" />
-    <link rel="stylesheet" type="text/css" href="/style/jqueryui/jquery-ui-1.8.21.custom.css" />
+    <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/messages.css" />
+    <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/timepicker.css" />
+    <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/jqueryui/jquery-ui-1.8.21.custom.css" />
     <link rel="alternate" type="application/rss+xml"
         title="Messages Feed (RSS 2.0)" href="{% url messages-rss %}" />
     <script>require(['src/messages']);</script>

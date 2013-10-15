@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-    <link href="/style/info_room.css" type="text/css" rel="stylesheet">
-    <link href="/style/datatables.css" type="text/css" rel="stylesheet">
-    <link href="/style/nivo/nivo-slider.css" rel="stylesheet">
-    <link href="/style/nivo/default.css" rel="stylesheet">
-    <link href="/style/jqueryui/jquery-ui-1.8.21.custom.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/datatables.css"  rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/nivo/nivo-slider.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/nivo/default.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/jqueryui/jquery-ui-1.8.21.custom.css" rel="stylesheet">
     <script>require(["src/info_room"]);</script>
 {% endblock %}
 

@@ -1,8 +1,8 @@
 {% extends "info/room/base.html" %}
 
 {% block base_header_additional_head %}
-    <link href="/style/info_room.css" type="text/css" rel="stylesheet">
-    <link href="/style/info_room_upload.css" type="text/css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/info_room_upload.css"  rel="stylesheet">
     <script>require(["src/info_room_upload"]);</script>
 {% endblock %}
 

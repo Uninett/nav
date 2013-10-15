@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-    <link href="/style/seeddb.css" rel="stylesheet" />
+    <link href="{{ STATIC_URL }}css/nav/seeddb.css" rel="stylesheet" />
     <script>require(["src/seeddb"]);</script>
     {% block additional_seeddb_head %}
     {% endblock %}

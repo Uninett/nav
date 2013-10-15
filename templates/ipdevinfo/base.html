@@ -3,8 +3,8 @@
 {# FIXME hardcoded urls #}
 {% block base_header_additional_head %}
     <script>require(['src/ipdevinfo'])</script>
-    <link rel="stylesheet" type="text/css" href="/style/jqueryui/jquery-ui-1.8.21.custom.css">
-    <link rel="stylesheet" type="text/css" href="/style/ipdevinfo.css"/>
+    <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/jqueryui/jquery-ui-1.8.21.custom.css">
+    <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/ipdevinfo.css"/>
 {% endblock %}
 
 {% block base_content %}
