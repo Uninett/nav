@@ -1,0 +1,34 @@
+This directory contains copies of certain projection definitions for
+Proj4js[1] from Spatial Reference[2].  The files contain all necessary
+definitions for UTM projections (using WGS84 reference ellipsoid) of
+the whole world (except the polar areas).
+
+Proj4js will download these automatically as needed from Spatial
+Reference if they are not available otherwise, but it is convenient to
+have a local copy to avoid waiting.  The automatic download is done
+asynchronously, so it is much easier for users of Proj4js to assume
+that all definitions are already available.  See [3].
+
+
+File contents:
+
+EPSG326xx.js -- all definitions for the northern hemisphere
+EPSG327xx.js -- all definitions for the southern hemisphere
+EPSG32601.js |
+    .        |
+    .         > definitions for each zone
+    .        |
+EPSG32760.js |
+fetch.sh     -- script used to download the above files
+
+Usage:
+
+Include EPSG326xx.js and EPSG327xx.js together with Proj4js.
+
+References:
+
+[1] Proj4js, JavaScript library for map projections: http://proj4js.org/
+
+[2] Spatial Reference: http://spatialreference.org/
+
+[3] http://trac.osgeo.org/proj4js/wiki/UserGuide#Dynamiclookupofinitializationparameters
