@@ -49,6 +49,27 @@ table.listtable caption a {
     color: white;
 }
 
+/* --- List table with tablesorter --- */
+
+.tablesorter {
+    .header {
+        background-image: url('../../images/tablesorter/bg.gif');
+        background-repeat: no-repeat;
+        background-position: center right;
+        padding-right: 1.5em;
+        cursor: pointer;
+    }
+    .headerSortUp {
+        background-image: url('../../images/tablesorter/asc.gif');
+    }
+    .headerSortDown {
+        background-image: url('../../images/tablesorter/desc.gif');
+    }
+    .headerSortDown, .headerSortUp {
+        background-color: #8dbdd8;
+    }
+}
+
 /* --- Details table --- *//*
 
 table.vertitable {
@@ -138,35 +159,7 @@ table.listtable tbody.footer tr th, table.listtable tfoot tr th {
 }
 
 */
-/* --- List table with tablesorter --- *//*
 
-
-.tablesorter .header {
-    background-image: url('/images/tablesorter/bg.gif');
-    background-repeat: no-repeat;
-    background-position: center right;
-    padding-right: 1.5em;  */
-/* Prevent text from overlapping image *//*
-
-    cursor: pointer;
-}
-.tablesorter .even {
-    background-color: white;
-}
-.tablesorter .odd {
-    background-color:#f6f6f6;
-}
-.tablesorter .headerSortUp {
-    background-image: url('/images/tablesorter/asc.gif');
-}
-.tablesorter .headerSortDown {
-    background-image: url('/images/tablesorter/desc.gif');
-}
-.tablesorter .headerSortDown, .tablesorter .headerSortUp {
-    background-color: #8dbdd8;
-}
-
-*/
 /* --- Custom table additions --- *//*
 
 
