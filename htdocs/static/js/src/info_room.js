@@ -39,7 +39,7 @@ require(
         function add_tabs() {
             var tabconfig = {
                 cache: true, // cache loaded pages
-                spinner: '<img src="/images/main/process-working.gif">',
+                spinner: '<img src="' + NAV.imagePath + '/main/process-working.gif">',
                 ajaxOptions: {
                     error: request_error,
                     success: request_success
@@ -133,7 +133,7 @@ require(
                 },
                 transparent: false,
                 swf: '/js/extras/downloadify.swf',
-                downloadImage: '/images/roominfo/csv.png',
+                downloadImage: NAV.imagePath + '/roominfo/csv.png',
                 width: 41,
                 height: 13,
                 append: false

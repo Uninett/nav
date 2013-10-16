@@ -10,7 +10,7 @@ Supports Thumbs: true
 
 .theme-default .nivoSlider {
 	position:relative;
-	background:#fff url('/images/nivo/loading.gif') no-repeat 50% 50%;
+	background:#fff url('../../../images/nivo/loading.gif') no-repeat 50% 50%;
     margin-bottom:10px;
     -webkit-box-shadow: 0px 1px 5px 0px #4a4a4a;
     -moz-box-shadow: 0px 1px 5px 0px #4a4a4a;
@@ -35,7 +35,7 @@ Supports Thumbs: true
 	display:inline-block;
 	width:22px;
 	height:22px;
-	background:url('/images/nivo/bullets.png') no-repeat;
+	background:url('../../../images/nivo/bullets.png') no-repeat;
 	text-indent:-9999px;
 	border:0;
 	margin: 0 2px;
@@ -48,7 +48,7 @@ Supports Thumbs: true
 	display:block;
 	width:30px;
 	height:30px;
-	background:url('/images/nivo/arrows.png') no-repeat;
+	background:url('../../../images/nivo/arrows.png') no-repeat;
 	text-indent:-9999px;
 	border:0;
 	opacity: 0;
