@@ -23,12 +23,9 @@ nobase_webroot_DATA = $(wildcard images/*/*.gif \
 				 style/jqueryui/*.css \
 				 style/jqueryui/images/*.png \
 				 style/foundation_icon_fonts/stylesheets/*.css \
-				 cricket/cricket.css \
 				 static/css/*.css \
 				 static/css/*/*.css \
 				 */.htaccess)
-
-nobase_webroot_SCRIPTS = cricket/index.cgi
 
 .PHONY: sass
 
