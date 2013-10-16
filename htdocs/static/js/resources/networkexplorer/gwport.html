@@ -1,12 +1,12 @@
 <img id="expand-gwport-{{pk}}"
      {{#if expandable }}
       {{#equal state "expanded" }}
-        src="/images/networkexplorer/collapse.gif">
+        src="{{ navImagePath }}/networkexplorer/collapse.gif">
       {{else }}
-        src="/images/networkexplorer/expand.gif">
+        src="{{ navImagePath }}/networkexplorer/expand.gif">
       {{/equal }}
      {{else }}
-      src="/images/networkexplorer/vertical-bound.gif">
+      src="{{ navImagePath }}/networkexplorer/vertical-bound.gif">
      {{/if }}
 
 <a href="/ipdevinfo/{{sysname}}/interface={{pk}}/">{{fields.ifname}}</a>
@@ -24,7 +24,7 @@
     <ul class="prefixes">
       {{#each prefixes }}
         <li>
-          {{!<img src="/images/networkexplorer/vertical-bound.gif">}}
+          {{!<img src="{{ navImagePath }}/networkexplorer/vertical-bound.gif">}}
           ({{this.display_addr }}, {{this.net_type }}, {{this.net_ident }})
         </li>
       {{/each }}

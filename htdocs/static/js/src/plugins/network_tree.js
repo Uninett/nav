@@ -39,7 +39,8 @@ define([
             type: 'root',
             state: 'collapsed',
             expandable: false,
-            matched: false
+            matched: false,
+            navImagePath: NAV.imagePath
         },
 
         initialize: function () {

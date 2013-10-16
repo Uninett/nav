@@ -1,12 +1,12 @@
 <img
      {{#if expandable }}
       {{#equal state "expanded" }}
-        src="/images/networkexplorer/collapse.gif">
+        src="{{ navImagePath }}/networkexplorer/collapse.gif">
       {{else }}
-        src="/images/networkexplorer/expand.gif">
+        src="{{ navImagePath }}/networkexplorer/expand.gif">
       {{/equal }}
      {{else }}
-      src="/images/networkexplorer/vertical-bound.gif">
+      src="{{ navImagePath }}/networkexplorer/vertical-bound.gif">
      {{/if }}
 
 <a href="/ipdevinfo/{{interface_netbox_sysname}}/">{{interface_netbox_sysname}}</a>

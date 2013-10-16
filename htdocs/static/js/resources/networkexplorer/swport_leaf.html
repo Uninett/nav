@@ -1,6 +1,6 @@
 {{#if services }}
   {{#each services }}
-    <img src="/images/networkexplorer/vertical-bound.gif">
+    <img src="{{ navImagePath }}/networkexplorer/vertical-bound.gif">
     {{ service.handler }} - Status: {{ service.up }}
 
     <ul>
@@ -8,7 +8,7 @@
         <li>>Active hosts behind port</li>
         {{#each active_hosts }}
           <li>
-            <img src="/images/networkexplorer/vertical-bound.gif">
+            <img src="{{ navImagePath }}/networkexplorer/vertical-bound.gif">
             {{ host }}
           </li>
         {{/each }}

@@ -6,13 +6,13 @@
     th {
         padding-right: 1.4em;
         &.sorting_asc {
-            background: url('/images/datatables/sort_asc.png') no-repeat right center #EEEEEE;
+            background: url('../images/datatables/sort_asc.png') no-repeat right center #EEEEEE;
         }
         &.sorting_desc {
-            background: url('/images/datatables/sort_desc.png') no-repeat right center #EEEEEE;
+            background: url('../images/datatables/sort_desc.png') no-repeat right center #EEEEEE;
         }
         &.sorting {
-            background: url('/images/datatables/sort_both.png') no-repeat right center #EEEEEE;
+            background: url('../images/datatables/sort_both.png') no-repeat right center #EEEEEE;
         }
     }
 }

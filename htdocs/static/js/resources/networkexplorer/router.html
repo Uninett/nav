@@ -1,15 +1,15 @@
 <img id="expand-router-{{pk}}"
      {{#if expandable }}
       {{#equal state "expanded" }}
-        src="/images/networkexplorer/collapse.gif">
+        src="{{ navImagePath }}/networkexplorer/collapse.gif">
       {{else }}
-        src="/images/networkexplorer/expand.gif">
+        src="{{ navImagePath }}/networkexplorer/expand.gif">
       {{/equal }}
      {{else }}
       {{#if end }}
-        src="/images/networkexplorer/end.gif">
+        src="{{ navImagePath }}/networkexplorer/end.gif">
       {{else }}
-        src="/images/networkexplorer/vertical-bound.gif">
+        src="{{ navImagePath }}/networkexplorer/vertical-bound.gif">
       {{/if }}
      {{/if }}
 
