@@ -15,7 +15,6 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'li
 
             var controller = new NavletsController($('#navlets'));
             controller.container.on('navlet-rendered', function (event, node) {
-                console.log(node.children());
                 var mapwrapper = node.children('.mapwrapper');
                 var room_map = mapwrapper.children('#room_map');
                 if (room_map.length > 0) {
