@@ -381,7 +381,7 @@ define([
         hideSpinner: function () {
             // This should only be called on a node that fails to expand
             // and therefore we know it's expandable.
-            this.$('img').attr('src', 'images/networkexplorer/expand.gif');
+            this.$('img').attr('src', NAV.imagePath + '/images/networkexplorer/expand.gif');
         },
 
         registerExpandTrigger: function () {

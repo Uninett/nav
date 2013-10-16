@@ -4,7 +4,6 @@
 
 $(document).ready(
     function() {
-        NAV.addGlobalAjaxHandlers();
         $('#working').css('visibility', 'hidden');
     }
 );
@@ -147,7 +146,8 @@ function append_data(data_node, data) {
 
 // Change tree-icon to collapsed
 function switch_icon(node) {
-    $(node.children().select("img[src$='expand.gif']")).attr('src', '/images/networkexplorer/collapse.gif');
+    var collapseImage = NAV.imagePath + '/images/networkexplorer/collapse.gif';
+    $(node.children().select("img[src$='expand.gif']")).attr('src', collapseImage);
 }
 
 
@@ -175,19 +175,18 @@ function openNode(img){
     if ($(img).parent('dd').data("loaded") == "true"){
 	$(img).parent('dd').data('working', 'false');
 	$(img).parent('dd').children().select("dl").not("img").not("a").not('abbr').slideToggle("fast",
-												function () {
+        function () {
+            if ($(img).parent('dd').children().select("dl").not("img").css('display') == 'block') {
+                $(img).attr('src', NAV.imagePath + '/images/networkexplorer/collapse.gif');
+            } else {
+                $(img).attr('src', NAV.imagePath + '/images/networkexplorer/expand.gif');
+            }
+        });
 
-												    if ($(img).parent('dd').children().select("dl").not("img").css('display') == 'block'){ 
-													$(img).attr('src', '/images/networkexplorer/collapse.gif');
-												    } else {
-													$(img).attr('src', '/images/networkexplorer/expand.gif');
-												    }
-												});
-
-	return false;
+        return false;
     }
 
-    $(img).attr('src', '/images/main/process-working.gif');
+    $(img).attr('src', NAV.imagePath + '/images/main/process-working.gif');
     // We want to show/hide nodes when we actually have any data to show/hide
     $(img).parent('dd').ajaxSuccess(
 	function(){
@@ -200,7 +199,7 @@ function openNode(img){
 	      function(data){
 		  $(img).parent('dd').append(data);
 		  $(img).parent('dd').data("loaded", "true");
-		  $(img).attr('src', '/images/networkexplorer/collapse.gif');
+		  $(img).attr('src', NAV.imagePath + '/images/networkexplorer/collapse.gif');
 	      });
     }
     if (expand_type == "switch"){
@@ -209,7 +208,7 @@ function openNode(img){
 	      function(data){
 		  $(img).parent('dd').append(data);
 		  $(img).parent('dd').data("loaded", "true");
-		  $(img).attr('src', '/images/networkexplorer/collapse.gif');
+		  $(img).attr('src', NAV.imagePath + '/images/networkexplorer/collapse.gif');
 	      });
     }
     if (expand_type == "gwport"){
@@ -218,7 +217,7 @@ function openNode(img){
 	      function(data){
 		  $(img).parent('dd').append(data);
 		  $(img).parent('dd').data("loaded", "true");
-		  $(img).attr('src', '/images/networkexplorer/collapse.gif');
+		  $(img).attr('src', NAV.imagePath + '/images/networkexplorer/collapse.gif');
 	      });
     }
     if (expand_type == "swport"){
@@ -227,7 +226,7 @@ function openNode(img){
 	      function(data){
 		  $(img).parent('dd').append(data);
 		  $(img).parent('dd').data("loaded", "true");
-		  $(img).attr('src', '/images/networkexplorer/collapse.gif');
+		  $(img).attr('src', NAV.imagePath + '/images/networkexplorer/collapse.gif');
 	      });
     }
 };

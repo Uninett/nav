@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-<script type="text/javascript" src="/js/geomap/proj4js-compressed.js"></script>
-<script type="text/javascript" src="/js/geomap/projdefs/EPSG326xx.js"></script>
-<script type="text/javascript" src="/js/geomap/projdefs/EPSG327xx.js"></script>
-<script type="text/javascript" src="/js/libs/OpenLayers.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/proj4js-compressed.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/projdefs/EPSG326xx.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/projdefs/EPSG327xx.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/libs/OpenLayers.js"></script>
 <script>OpenLayers.ImgPath = NAV.imagePath + '/openlayers/';</script>
-<script type="text/javascript" src="/js/geomap/util.js"></script>
-<script type="text/javascript" src="/js/geomap/coordinates.js"></script>
-<script type="text/javascript" src="/js/geomap/NetworkLayer.js"></script>
-<script type="text/javascript" src="/js/geomap/PopupControl.js"></script>
-<script type="text/javascript" src="/js/geomap/PositionControl.js"></script>
-<script type="text/javascript" src="/js/geomap/MyHTTPProtocol.js"></script>
-<script type="text/javascript" src="/js/geomap/Calendar.js"></script>
-<script type="text/javascript" src="/js/geomap/Time.js"></script>
-<script type="text/javascript" src="/js/geomap/TimeInterval.js"></script>
-<script type="text/javascript" src="/js/geomap/TimeNavigator.js"></script>
-<script type="text/javascript" src="/js/geomap/Permalink.js"></script>
-<script type="text/javascript" src="/js/geomap/geomap.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/util.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/coordinates.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/NetworkLayer.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/PopupControl.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/PositionControl.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/MyHTTPProtocol.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/Calendar.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/Time.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/TimeInterval.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/TimeNavigator.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/Permalink.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/geomap.js"></script>
 
 <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/geomap.css" />
 {% endblock %}

@@ -96,7 +96,7 @@ function init(mapElementId, url) {
 	    new OpenLayers.Control.Attribution(),
 	    new OpenLayers.Control.LayerSwitcher()],
         displayProjection: new OpenLayers.Projection("EPSG:4326"),
-        theme: '/style/openlayers.css'
+        theme: NAV.cssPath + '/openlayers.css'
     } );
 
     mapnikLayer = new OpenLayers.Layer.OSM("OpenStreetMap", '/info/osm_map_redirect/${z}/${x}/${y}.png');
