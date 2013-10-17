@@ -20,6 +20,7 @@ fi
 export PYTHONPATH="/vagrant/python:$PYTHONPATH"
 
 pip install -r /vagrant/tools/vagrant-requirements.txt
+sudo gem install sass
 
 cd /vagrant
 ./autogen.sh
