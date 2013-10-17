@@ -1,3 +1,19 @@
+Version 3.15.1
+(released 16 Oct 2013)
+
+ Bugfixes:
+
+  * LP#1230240 (navsyncdb command is not installed in NAV 3.15.0)
+  * LP#1230299 (Cricket+NAV 3.15.0 may not work under Django 1.4.5)
+  * LP#1235355 (Machine Tracker performs unnecessary join on netbios table)
+  * LP#1235356 (The netbios table needs an index for efficient joins on the arp
+                table)
+  * LP#1236753 (machinetracker netbios search crashes)
+  * LP#1236813 (Alertengine crashes on nav version 3.14)
+  * LP#1239139 (Weathergoose2 GOOSENAME not initialized in snmptrap handler)
+  * LP#1240855 (Mac search + DNS crashes with TypeError in NAV 3.15.0)
+
+
 Version 3.15.0
 (released 19 Sep 2013)
 
@@ -35,6 +51,9 @@ Version 3.15.0
     Tracker search results.
 
   * Community strings are censored in SeedDB IP Device listing.
+
+  * Geolocation of rooms can now be set by clicking on interactive map in
+    SeedDB.
 
   * New program enables streamlined dumping and reloading, with optional
     filtering, of the NAV PostgreSQL database. This simplifies beta testing of

@@ -99,6 +99,15 @@ NAV 3.15 also includes the beginnings of a read-only RESTful API. The API is
 not yet documented, and must be considered an unstable experiment at the
 moment. API access tokens can only be issued by a NAV administrator.
 
+
+Write privileges for room image uploads
+---------------------------------------
+
+Uploaded images for rooms are stored in
+:file:`${prefix}/var/uploads/images/rooms/`. This directory needs to be
+writable for navcron, assuming you are using the default wsgi setup.
+
+
 Files to remove
 ---------------
 
