@@ -28,15 +28,20 @@
         <th>Category</th>
         <td>
             <a href="{% url report-netbox-category netbox.category.id %}">
-                {{ netbox.category }}</a></td>
+                {{ netbox.category }}
+            </a>
+        </td>
     </tr>
 
     {% if netboxgroups %}
         <tr>
-            <th>Netbox groups</th>
-            <td>{% for netboxgroup in netboxgroups %}
-                {{ netboxgroup.category_id }}
-            {% endfor %}
+            <th>Device groups</th>
+            <td>
+                {% for netboxgroup in netboxgroups %}
+                    <a class="navtag" href="{% url netbox-group-detail netboxgroup.category_id %}">
+                        {{ netboxgroup.category_id }}
+                    </a>
+                {% endfor %}
             </td>
         </tr>
     {% endif %}

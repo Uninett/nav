@@ -210,6 +210,14 @@ class Netbox(models.Model):
 
         return result
 
+    def get_week_availability(self):
+        """Gets the availability for this netbox for the last week"""
+        avail = self.get_availability()
+        try:
+            return "%.2f%%" % avail["availability"]["week"]
+        except (KeyError, TypeError):
+            return "N/A"
+
     def get_uplinks(self):
         """Returns a list of uplinks on this netbox. Requires valid vlan."""
         result = []

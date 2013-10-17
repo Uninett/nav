@@ -31,6 +31,11 @@ from nav.web.utils import create_title
 from random import choice
 
 
+def get_path():
+    """Get the path for this subsystem"""
+    return [('Home', '/'), ('Info', reverse('info-search'))]
+
+
 def index(request):
     """Main controller"""
 

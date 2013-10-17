@@ -45,7 +45,7 @@ define([
                         vlan.set({'is_selected': false}, {'silent': true});
                     });
                 }
-                var out = this.template({ vlans: self.vlans.toJSON(), selectedVLANObject: self.selectedVLANObject, isZoomAndTranslate: this.isZoomAndTranslate});
+                var out = this.template({ vlans: self.vlans.sort().toJSON(), selectedVLANObject: self.selectedVLANObject, isZoomAndTranslate: this.isZoomAndTranslate});
                 this.$el.html(out);
             } else {
                 this.$el.empty();

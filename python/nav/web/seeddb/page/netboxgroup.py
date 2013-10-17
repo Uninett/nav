@@ -48,10 +48,10 @@ from nav.web.seeddb.utils.delete import render_delete
 
 class NetboxGroupInfo(SeeddbInfo):
     active = {'netboxgroup': True}
-    caption = 'NetboxGroup'
+    caption = 'Device Group'
     tab_template = 'seeddb/tabs_netboxgroup.html'
-    _title = 'Netbox Groups'
-    _navpath = [('Netbox Groups', reverse_lazy('seeddb-netboxgroup'))]
+    _title = 'Device Groups'
+    _navpath = [('Device Groups', reverse_lazy('seeddb-netboxgroup'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-netboxgroup')
 

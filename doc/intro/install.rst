@@ -49,19 +49,29 @@ The following python modules are required:
  * :mod:`twisted` >= 10.1
  * :mod:`pynetsnmp` (or less preferably, :mod:`pysnmp-se` combined with :mod:`twistedsnmp` >= 0.3)
  * :mod:`PIL` >= 1.1.7 (python-imaging)
+ * :mod:`django-oauth2-provider` >= 0.2.6
+ * :mod:`djangorestframework` >= 2.3.7
+ * :mod:`iso8601`
 
 The following python modules are optional:
 
  * :mod:`xmpp` (optional)
 
-The :mod:`pynetsnmp` module is preferred over :mod:`twistedsnmp` for SNMP
-communication. The former is a Python binding to the well-known NetSNMP C
-library, whereas the latter is a pure-Python SNMP implementation.
-:mod:`pynetsnmp` will give better performance *and* IPv6-support.
-:mod:`twistedsnmp` also has a known, unfixed bug with table retrievals on slow
-SNMP agents. If, for some reason, you are forced to resort to using
-:mod:`twistedsnmp`, the :file:`contrib/patches` directory contains a
-recommended patch for this problem.
+.. tip:: NAV comes with a :file:`requirements.txt` file that can be used in
+         conjunction with `pip` to install all the Python dependencies using
+         :kbd:`pip install -r requirements.txt`. This file is also likely to
+         be more up-to-date for development versions than this install
+         document.
+
+.. note:: The :mod:`pynetsnmp` module is preferred over :mod:`twistedsnmp` for
+          SNMP communication. The former is a Python binding to the well-known
+          NetSNMP C library, whereas the latter is a pure-Python SNMP
+          implementation. :mod:`pynetsnmp` will give better performance *and*
+          IPv6-support. :mod:`twistedsnmp` also has a known, unfixed bug with
+          table retrievals on slow SNMP agents. If, for some reason, you are
+          forced to resort to using :mod:`twistedsnmp`, the
+          :file:`contrib/patches` directory contains a recommended patch for
+          this problem.
 
 
 Recommended add-ons

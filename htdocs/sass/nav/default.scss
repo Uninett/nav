@@ -510,6 +510,10 @@ p.paginator .active {
     background: no-repeat 8px 7px;
 }
 
+.horizontal-button-list a span.noicon {
+    text-indent: 1em;
+}
+
 .horizontal-button-list a span.edit {
     background-image: url("/images/icons/pencil.png");
 }
@@ -538,9 +542,26 @@ p.paginator .active {
     background-image: url("/images/icons/camera-photo.png");
 }
 
+.horizontal-button-list a span.info {
+    background-image: url("/images/icons/info.png");
+}
+
 /* GraphFetcher styles */
 .button-selected {
     font-weight: bold;
+}
+
+
+/*
+ * TAGS - made for use with netbox groups/device groups
+ */
+
+.navtag {
+    border: 1px solid #808080;
+    border-radius: 3px;
+    background-color: #A6CEE3;
+    color: black !important;
+    padding: 0 0.3em;
 }
 
 

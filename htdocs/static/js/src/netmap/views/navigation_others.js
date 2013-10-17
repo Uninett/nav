@@ -39,7 +39,6 @@ define([
             this.$el.html(out);
             this.positionView = this.attachSubView(this.positionView, PositionView, {el: '#position_view'});
             this.algorithmView = this.attachSubView(this.algorithmView, AlgorithmView, {el: '#algorithm_view'});
-            this.topologyErrorsView = this.attachSubView(this.topologyErrorsView, TopologyErrorView, {el: '#topology_errors_view'});
             this.mouseOverView = this.attachSubView(this.mouseOverView, MouseOverView, {el: '#mouseover_view'});
             this.dataRefreshView = this.attachSubView(this.dataRefreshView, DataRefreshView, {el: '#datarefresh_view'});
             this.trafficGradientView = this.attachSubView(this.trafficGradientView, TrafficGradientView, {el: '#traffic_gradient_view'});
