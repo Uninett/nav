@@ -3,6 +3,7 @@ require([
     'plugins/quickselect',
     'libs/jquery',
     'libs/jquery.dataTables.min',
+    'libs/OpenLayers',
     'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect) {
 
     var tableWrapper = '#tablewrapper',
@@ -109,6 +110,7 @@ require([
             'OpenStreetMap',
             '/info/osm_map_redirect/${z}/${x}/${y}.png')
         );
+        console.log(map);
         return map;
     }
 
