@@ -1,10 +1,13 @@
 /* Styles for / */
 
+#webfrontmain {
+    float: left;
+}
+
 @media screen and (max-width: 900px) {
 
     div.boxes {
         display: table;
-        float: none;
         width: 100%;
     }
 
