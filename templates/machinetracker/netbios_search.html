@@ -4,26 +4,26 @@
 
         <form action="{% url machinetracker-netbios %}" method="get">
             <div id="search_form" class="row">
-                <div class="large-6 column">
+                <div class="medium-6 column">
 
                     <div class="row collapse">
-                        <div class="large-3 column">
+                        <div class="medium-3 column">
                             <span class="prefix">Netbios name</span>
                         </div>
-                        <div class="large-7 column {% if form.search.errors %}error{% endif %}">
+                        <div class="medium-7 column {% if form.search.errors %}error{% endif %}">
                             {{ form.search }}
                             {% if form.search.errors %}
                                 <small>{{ form.search.errors }}</small>
                             {% endif %}
                         </div>
-                        <div class="large-2 column">
+                        <div class="medium-2 column">
                             <input type="submit" value="Search" class="button postfix"/>
                         </div>
                     </div>
 
                 </div>
 
-                <div class="large-2 column machinetracker-filter">
+                <div class="medium-2 column machinetracker-filter">
                     <div>
                         <label for="{{ form.dns.auto_id }}"
                                title="{{ form.dns.help_text }}">{{ form.dns.label }}
@@ -32,7 +32,7 @@
                     </div>
                 </div>
 
-                <div class="large-2 column machinetracker-filter">
+                <div class="medium-2 column machinetracker-filter">
                     <div class="machinetracker-filter-days">
                         <label for="{{ form.days.auto_id }}"
                                title="{{ form.days.help_text }}">{{ form.days.label }}
@@ -44,10 +44,10 @@
                     {% endif %}
                 </div>
 
-                <div class="large-2 column">
+                <div class="medium-2 column">
                     <a href="#" data-reveal-id="valid-search-terms"
                        title="Help"
-                       class="button small right">Help</a>
+                       class="button secondary small right">Help</a>
                 </div>
 
             </div>

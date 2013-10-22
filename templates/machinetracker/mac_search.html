@@ -5,41 +5,41 @@
     <form action="{% url machinetracker-mac %}" method="get">
         <div id="search_form">
             <div class="row">
-                <div class="large-6 column">
+                <div class="medium-6 column">
                     <div class="row collapse">
 
-                        <div class="large-3 column">
+                        <div class="medium-3 column">
                             <span class="prefix">Mac</span>
                         </div>
-                        <div class="large-7 column {% if form.mac.errors %}error{% endif %}">
+                        <div class="medium-7 column {% if form.mac.errors %}error{% endif %}">
                             {{ form.mac }}
                             {% if form.mac.errors %}
                                 <small>{{ form.mac.errors }}</small>
                             {% endif %}
                         </div>
-                        <div class="large-2 column">
+                        <div class="medium-2 column">
                             <input type="submit" value="Search" class="button postfix"/>
                         </div>
 
                     </div>
                 </div>
 
-                <div class="large-6 column">
+                <div class="medium-6 column">
                     <a href="#" data-reveal-id="valid-search-terms"
                        title="Help"
-                       class="button small right">Help</a>
+                       class="button secondary small right">Help</a>
                 </div>
             </div>
 
 
             {% comment %} FILTERS FOR MAC SEARCH {% endcomment %}
             <div class="row">
-                <div class="large-6 column">
+                <div class="medium-6 column">
                     <fieldset>
                         <legend>Period</legend>
 
                         <div class="row machinetracker-filter">
-                            <div class="large-6 column">
+                            <div class="small-6 column">
                                 <div class="machinetracker-filter-days">
                                     <label for="{{ form.days.auto_id }}"
                                            title="{{ form.days.help_text }}">{{ form.days.label }}</label>
@@ -49,7 +49,7 @@
                                     <small class="error nomargin">{{ form.days.errors }}</small>
                                 {% endif %}
                             </div>
-                            <div class="large-6 column">
+                            <div class="small-6 column">
                                 <label for="id_hide" title="Only show ip-addresses active now">Only active
                                     <input type="checkbox" id="id_hide"
                                            name="days" value="-1"
@@ -60,18 +60,18 @@
                     </fieldset>
                 </div>
 
-                <div class="large-6 column">
+                <div class="medium-6 column">
                     <fieldset>
                         <legend>Columns</legend>
 
                         <div class="row machinetracker-filter">
-                            <div class="large-6 column">
+                            <div class="small-6 column">
                                 <label for="{{ form.dns.auto_id }}" title="{{ form.dns.help_text }}">{{ form.dns.label }}
                                     {{ form.dns }}
                                 </label>
                             </div>
 
-                            <div class="large-6 column">
+                            <div class="small-6 column">
                                 <label for="{{ form.netbios.auto_id }}" title="{{ form.netbios.help_text }}">{{ form.netbios.label }}
                                     {{ form.netbios }}
                                 </label>
