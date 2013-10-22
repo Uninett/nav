@@ -38,8 +38,8 @@ urlpatterns = patterns('',
         name='machinetracker-ip_search'),
     # Short hand search url.
     # Accepts from_ip, days and dns. Active is set to true
-    url(r'^ip/\?ip_range=(?P<from_ip>[a-f\d\.:]+)&days=(?P<days>-?\d+)'
-        r'&dns=(?P<dns>\w*)&active=on',
+    url(r'^ip/\?ip_range=(?P<from_ip>[a-f\d\.:-]+)&days=(?P<days>-?\d+)'
+        r'&dns=(?P<dns>\w*)&period_filter=active',
         ip_do_search,
         name='machinetracker-ip_short_search'),
 
