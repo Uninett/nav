@@ -6,16 +6,16 @@
             <div class="row">
                 <div class="large-6 columns">
                     <div class="row collapse">
-                        <div class="large-3 columns">
+                        <div class="medium-3 columns">
                             <span class="prefix">Ip range</span>
                         </div>
-                        <div class="large-7 columns {% if form.ip_range.errors %}error{% endif %}">
+                        <div class="medium-7 columns {% if form.ip_range.errors %}error{% endif %}">
                             {{ form.ip_range }}
                             {% if form.ip_range.errors %}
                                 <small>{{ form.ip_range.errors }}</small>
                             {% endif %}
                         </div>
-                        <div class="large-2 columns">
+                        <div class="medium-2 columns">
                             <input type="submit" value="Search" class="button postfix"/>
                         </div>
                     </div>
@@ -29,7 +29,7 @@
             </div>
 
             <div class="row">
-                <div class="large-4 columns">
+                <div class="medium-4 columns">
                     <fieldset>
                         <legend>Filters</legend>
                         <div class="row machinetracker-filter">
@@ -42,7 +42,7 @@
                     </fieldset>
                 </div>
 
-                <div class="large-4 columns">
+                <div class="medium-4 columns">
                     <fieldset>
                         <legend>Period</legend>
                         <div class="row machinetracker-filter">
@@ -70,7 +70,7 @@
                     </fieldset>
                 </div>
 
-                <div class="large-4 columns">
+                <div class="medium-4 columns">
                     <fieldset>
                         <legend>Columns</legend>
                         <div class="row machinetracker-filter">
