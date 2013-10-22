@@ -55,7 +55,7 @@ def main():
 
     msg("""
 NAV database dump completed.
-Don't forget to run NAV's syncdb.py after rolling back the dump.
+Use NAV's navsyncdb command with the -r option to roll back the dump.
 """)
 
 
