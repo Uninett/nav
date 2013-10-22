@@ -15,8 +15,36 @@
 #
 """Machinetracker navlet"""
 
-from nav.web.navlets import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
 from django.shortcuts import redirect
+from IPy import IP
+from nav.web.navlets import Navlet
+from nav.macaddress import MacAddress
+
+
+def is_ip_address(thing):
+    """Checks if this is an ip-address valid for machinetracker"""
+    try:
+        IP(thing)
+    except ValueError:
+        try:
+            # In machinetracker ip-addresses can be ranges
+            IP(thing.split('-')[0])
+        except ValueError:
+            return False
+        else:
+            return True
+    else:
+        return True
+
+
+def is_mac_address(thing):
+    """Checks if this is a mac address"""
+    try:
+        MacAddress(thing)
+    except ValueError:
+        return False
+    else:
+        return True
 
 
 class MachineTrackerNavlet(Navlet):
@@ -29,11 +57,22 @@ class MachineTrackerNavlet(Navlet):
         return 'machinetracker'
 
     def post(self, request):
+        """POST controller"""
         return self.redirect_to_machinetracker(request)
 
-    def redirect_to_machinetracker(self, request):
-        return redirect('machinetracker-ip_short_search', **{
-            'from_ip': request.POST.get('from_ip'),
-            'days': int(request.POST.get('days', 7)),
-            'dns': request.POST.get('dns', '')
-        })
+    @staticmethod
+    def redirect_to_machinetracker(request):
+        """Redirects to machinetracker with given forminput"""
+        forminput = request.POST.get('from_ip')
+        days = int(request.POST.get('days', 7))
+        dns = request.POST.get('dns', '')
+
+        if is_ip_address(forminput):
+            return redirect('machinetracker-ip_short_search',
+                            **{'from_ip': forminput, 'days': days, 'dns': dns})
+        elif is_mac_address(forminput):
+            return redirect('machinetracker-mac_search',
+                            **{'mac': forminput, 'days': days, 'dns': dns})
+        else:
+            return redirect('machinetracker-swp_short_search',
+                            **{'switch': forminput, 'module': '', 'port': ''})
