@@ -1,9 +1,7 @@
-require(['src/plugins/table_utils', 'libs/jquery'], function (TableUtil) {
+require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
     $(function () {
-        $('.searchprovider').each(function (index, table) {
-            new TableUtil(table, 20).addRowToggleTrigger();
-        })
-    })
+        $('#infotabs').tabs().show();
+    });
 
 });
