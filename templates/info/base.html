@@ -15,16 +15,20 @@
 
     <div class="panel">Search for netboxes, interfaces, rooms and vlans. This search is the same as searching in the navbar.</div>
 
-    <form action="{% url info-search %}" method="get">
-        <div class="row collapse">
-            <div class="small-10 columns">
-                {{ form.query }}
-            </div>
-            <div class="small-2 columns">
-                <input type="submit" class="button prefix" value="Search">
-            </div>
+    <div class="row">
+        <div class="large-6 medium-8 small-12 column">
+            <form action="{% url info-search %}" method="get">
+                <div class="row collapse">
+                    <div class="large-10 medium-10 small-12 columns">
+                        {{ form.query }}
+                    </div>
+                    <div class="large-2 medium-2 small-12 columns">
+                        <input type="submit" class="button prefix" value="Search">
+                    </div>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 
     {% if form.is_bound %}
         {% if searchproviders %}
