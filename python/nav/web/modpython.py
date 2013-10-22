@@ -41,6 +41,7 @@ from nav.django.auth import AuthenticationMiddleware, AuthorizationMiddleware
 from nav.wsgi import loginit
 from django.db import connection
 
+
 def headerparserhandler(req):
     """A mod_python headerparserhandler to authenticate and authorize a request
     using NAV.
@@ -71,6 +72,7 @@ def headerparserhandler(req):
         # ensure we don't leak database connections. it's inefficient, yes, but
         # that's the price you pay for authorizing access to your other crap
         connection.close()
+
 
 def _get_cookie_dict(req):
     if 'Cookie' in req.headers_in:
