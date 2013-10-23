@@ -1,37 +1,38 @@
 {% extends "devicehistory/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block tabcontent %}
     <a href="{% url devicehistory-search %}" class="button small">New search</a>
 
-    <div class="resultfilter">
-        <form action="{% url devicehistory-view %}" method="get">
-            {% for type, elements in selection.items %}
-                {% for id in elements %}
-                    <input type="hidden" name="{{ type }}" value="{{ id }}" />
+    <div class="row">
+        <div class="medium-8 columns">
+            <form action="{% url devicehistory-view %}" method="get">
+                {% for type, elements in selection.items %}
+                    {% for id in elements %}
+                        <input type="hidden" name="{{ type }}" value="{{ id }}" />
+                    {% endfor %}
                 {% endfor %}
+                {% crispy form %}
+                <input type="submit" class="button small" value="Filter">
+            </form>
+        </div>
+
+        <div class="medium-4 columns">
+            <div class="panel searchparams">
+            {% for type, elements in search_description.items %}
+                <h5>{{ type|capfirst }}</h5>
+                <ul class="no-bullet">
+                {% for id in elements %}
+                    <li>{{ id }}</li>
+                {% endfor %}
+                </ul>
             {% endfor %}
-            <table class="vertitable">
-                {{ form.as_table }}
-                <tr>
-                    <th></th>
-                    <td><button type="submit">Filter</button></td>
-                </tr>
-            </table>
-        </form>
+            </div>
+        </div>
+
     </div>
 
-    <div class="searchparams">
-    <h2>Search terms</h2>
-    {% for type, elements in search_description.items %}
-        <h3>{{ type|capfirst }}</h3>
-        <ul>
-        {% for id in elements %}
-            <li>{{ id }}</li>
-        {% endfor %}
-        </ul>
-    {% endfor %}
-    </div>
-    <div style="clear:both;"></div>
+
 
     {% include "devicehistory/paginator.html" %}
 

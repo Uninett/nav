@@ -16,11 +16,8 @@
  *
  */
 
-.quickselect label {
-	font-weight: bold;
-}
-.quickselect select, .quickselect .search {
-	display: block;
-	width: 35em;
-	clear: both;
+.quickselect {
+    label {
+        font-weight: bold;
+    }
 }

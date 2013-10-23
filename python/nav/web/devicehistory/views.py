@@ -24,7 +24,7 @@ from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.db import connection, transaction
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 
 from nav.models.fields import INFINITY
@@ -71,7 +71,11 @@ _ = lambda a: a
 def devicehistory_search(request):
     """Implements the device history landing page / search form"""
     device_quickselect = QuickSelect(**DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS)
-    form = DeviceHistoryViewFilter()
+
+    if 'from_date' in request.REQUEST:
+        form = DeviceHistoryViewFilter(request.REQUEST)
+    else:
+        form = DeviceHistoryViewFilter()
 
     info_dict = {
         'active': {'device': True},
@@ -97,6 +101,9 @@ def devicehistory_view(request):
     group_by = request.REQUEST.get('group_by', 'netbox')
 
     form = DeviceHistoryViewFilter(request.REQUEST)
+    if not form.is_valid():
+        if request.REQUEST.get('main-search'):
+            return devicehistory_search(request)
 
     selection = {
         'organization': request.REQUEST.getlist('org'),
