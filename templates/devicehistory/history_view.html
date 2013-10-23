@@ -11,7 +11,7 @@
                 {% endfor %}
             {% endfor %}
             <table class="vertitable">
-                {% include "devicehistory/history_view_filter.html" %}
+                {{ form.as_table }}
                 <tr>
                     <th></th>
                     <td><button type="submit">Filter</button></td>

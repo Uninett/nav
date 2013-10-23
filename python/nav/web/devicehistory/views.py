@@ -42,6 +42,7 @@ from nav.web.devicehistory.utils.history import (get_selected_types,
                                                  group_history_and_messages,
                                                  describe_search_params)
 from nav.web.devicehistory.utils.error import register_error_events
+from nav.web.devicehistory.forms import DeviceHistoryViewFilter
 
 DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS = {
     'button': 'View %s history',
@@ -70,26 +71,14 @@ _ = lambda a: a
 def devicehistory_search(request):
     """Implements the device history landing page / search form"""
     device_quickselect = QuickSelect(**DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS)
-    from_date = request.POST.get('from_date',
-                                 date.fromtimestamp(time.time() - ONE_WEEK))
-    to_date = request.POST.get('to_date',
-                               date.fromtimestamp(time.time() + ONE_DAY))
-    types = request.POST.get('type', None)
-    group_by = request.REQUEST.get('group_by', 'netbox')
-
-    selected_types = get_selected_types(types)
-    event_types = get_event_and_alert_types()
+    form = DeviceHistoryViewFilter()
 
     info_dict = {
         'active': {'device': True},
         'quickselect': device_quickselect,
-        'selected_types': selected_types,
-        'event_type': event_types,
-        'from_date': from_date,
-        'to_date': to_date,
-        'group_by': group_by,
         'navpath': [('Home', '/'), ('Device History', '')],
         'title': 'NAV - Device History',
+        'form': form
     }
     return render_to_response(
         'devicehistory/history_search.html',
@@ -104,8 +93,11 @@ def devicehistory_view(request):
                                     date.fromtimestamp(time.time() - ONE_WEEK))
     to_date = request.REQUEST.get('to_date',
                                   date.fromtimestamp(time.time() + ONE_DAY))
-    types = request.REQUEST.get('type', None)
+    types = request.REQUEST.get('eventtype', None)
     group_by = request.REQUEST.get('group_by', 'netbox')
+
+    form = DeviceHistoryViewFilter(request.REQUEST)
+
     selection = {
         'organization': request.REQUEST.getlist('org'),
         'category': request.REQUEST.getlist('cat'),
@@ -122,7 +114,6 @@ def devicehistory_view(request):
         page = 1
 
     selected_types = get_selected_types(types)
-    event_types = get_event_and_alert_types()
 
     alert_history = fetch_history(
         selection,
@@ -160,7 +151,7 @@ def devicehistory_view(request):
         first_page_link = False
         last_page_link = False
 
-    url = "?from_date=%s&to_date=%s&type=%s&group_by=%s" % (
+    url = "?from_date=%s&to_date=%s&eventtype=%s&group_by=%s" % (
         from_date or "", to_date or "", types or "", group_by or "")
 
     search_description = describe_search_params(selection)
@@ -188,17 +179,13 @@ def devicehistory_view(request):
         'first_page_link': first_page_link,
         'last_page_link': last_page_link,
         'selection': selection,
-        'selected_types': selected_types,
-        'event_type': event_types,
-        'from_date': from_date,
-        'to_date': to_date,
-        'group_by': group_by,
         'get_url': url,
         'title': 'NAV - Device History',
         'navpath': [
             ('Home', '/'),
             ('Device History', reverse('devicehistory-search')),
-        ]
+        ],
+        'form': form
     }
     return render_to_response(
         'devicehistory/history_view.html',
