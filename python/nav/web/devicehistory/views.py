@@ -66,6 +66,7 @@ ORPHANS = 10
 
 _ = lambda a: a
 
+
 def devicehistory_search(request):
     """Implements the device history landing page / search form"""
     device_quickselect = QuickSelect(**DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS)
@@ -95,6 +96,7 @@ def devicehistory_search(request):
         info_dict,
         RequestContext(request)
     )
+
 
 def devicehistory_view(request):
     """Device history search results view"""
@@ -204,6 +206,7 @@ def devicehistory_view(request):
         RequestContext(request)
     )
 
+
 def error_form(request):
     """Implements the 'register error event' form"""
     device_quickselect = QuickSelect(**DEVICEQUICKSELECT_POST_ERROR_KWARGS)
@@ -224,6 +227,7 @@ def error_form(request):
         },
         RequestContext(request)
     )
+
 
 def confirm_error_form(request):
     """Implements confirmation form for device error event registration"""
@@ -254,6 +258,7 @@ def confirm_error_form(request):
         RequestContext(request)
     )
 
+
 def register_error(request):
     """Registers a device error event posted from a form"""
     selection = {
@@ -275,6 +280,7 @@ def register_error(request):
     register_error_events(request, selection=selection, comment=error_comment)
 
     return HttpResponseRedirect(reverse('devicehistory-registererror'))
+
 
 def delete_module(request):
     """Displays a list of modules that are down, offering to delete selected
@@ -317,6 +323,7 @@ def delete_module(request):
         RequestContext(request)
     )
 
+
 @commit_on_success
 def do_delete_module(request):
     """Executes an actual database deletion after deletion was confirmed by
@@ -344,6 +351,7 @@ def do_delete_module(request):
     transaction.set_dirty()
 
     return HttpResponseRedirect(reverse('devicehistory-module'))
+
 
 def _get_unresolved_module_states(limit_to=None):
     """Returns AlertHistory objects for all modules that are currently down.
