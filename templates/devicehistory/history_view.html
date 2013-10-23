@@ -1,6 +1,8 @@
-{% extends "devicehistory/base_history.html" %}
+{% extends "devicehistory/base.html" %}
 
-{% block devicehistory-content %}
+{% block tabcontent %}
+    <a href="{% url devicehistory-search %}" class="button small">New search</a>
+
     <div class="resultfilter">
         <form action="{% url devicehistory-view %}" method="get">
             {% for type, elements in selection.items %}
