@@ -4,12 +4,10 @@
 
 {% if not confirm_delete %}
     <p class="panel">
-        Select modules to delete from modules that are down. When deleting a
-        module, a choice will be given to either move the device to the
-        inventory or to set it as inactive.
+        These modules are down. If you know that they are permanently gone, you may remove them.
     </p>
 {% else %}
-    <h4>Do you really want to delete the selected modules?</h4>
+    <h4>Do you really want to remove the selected modules?</h4>
 {% endif %}
 
 {% if confirm_delete %}
@@ -78,9 +76,10 @@
     <p>
         {% if confirm_delete %}
             <input type="hidden" name="confirm_delete" value="1"/>
-            <button type="submit">Confirm deletion</button>
+            <button type="submit">Yes</button>
+            <a href="{% url devicehistory-module %}" class="button secondary">No</a>
         {% else %}
-            <button type="submit">Delete selected</button>
+            <button type="submit">Remove modules</button>
         {% endif %}
     </p>
 
