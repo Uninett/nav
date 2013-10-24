@@ -2,15 +2,15 @@
 
 {% block tabcontent %}
 
-<p>
 {% if not confirm_delete %}
-    Select modules to delete from modules that are down. When deleting a
-    module, a choice will be given to either move the device to the inventory
-    or to set it as inactive.
+    <p class="panel">
+        Select modules to delete from modules that are down. When deleting a
+        module, a choice will be given to either move the device to the
+        inventory or to set it as inactive.
+    </p>
 {% else %}
-    <h3>Do you really want to delete the selected modules?</h3>
+    <h4>Do you really want to delete the selected modules?</h4>
 {% endif %}
-</p>
 
 {% if confirm_delete %}
 <form action="{% url devicehistory-do_delete_module %}" method="post">
@@ -24,39 +24,39 @@
             {% else %}
             Modules down
             {% endif %}
-            <br />
-            <span class="subtitle">
+            <span class="subtitle right">
                 {{ modules|length }} entr{{ modules|pluralize:"y,ies" }}
             </span>
         </caption>
 
         <thead>
             <tr>
-                <th rowspan="2"></th>
-                <th rowspan="2">Sysname</th>
-                <th colspan="2">Module</th>
-                <th rowspan="2">Down since</th>
-                <th rowspan="2">Downtime</th>
-            </tr>
-            <tr>
+                <th>&nbsp;</th>
+                <th>Sysname</th>
                 <th>Name</th>
                 <th>Description</th>
+                <th>Down since</th>
+                <th>Downtime</th>
             </tr>
         </thead>
 
         {% if modules %}
             <tbody>
             {% for m in modules %}
-                <tr class="{% cycle oddrow,evenrow %}">
-                    <td><input type="checkbox" name="module" value="{{ m.moduleid }}"
+                <tr>
+                    <td>
+                        <input type="checkbox" name="module" value="{{ m.moduleid }}"
                         {% if confirm_delete %}
                         checked="checked"
                         {% endif %}
-                        /></td>
-                    <td><a href="{% url ipdevinfo-details-by-name m.sysname %}"
-                        >{{ m.sysname|default_if_none:"" }}</a></td>
-                    <td><a href="{% url ipdevinfo-module-details m.sysname m.name %}"
-                        >{{ m.name }}</a></td>
+                        />
+                    </td>
+                    <td>
+                        <a href="{% url ipdevinfo-details-by-name m.sysname %}">{{ m.sysname|default_if_none:"" }}</a>
+                    </td>
+                    <td>
+                        <a href="{% url ipdevinfo-module-details m.sysname m.name %}">{{ m.name }}</a>
+                    </td>
                     <td>{{ m.descr|default_if_none:"" }}</td>
                     <td>{{ m.start_time|date:'DATETIME_FORMAT' }}</td>
                     <td>{{ m.start_time|timesince }}</td>
@@ -67,7 +67,7 @@
 
         <tfoot>
             <tr>
-                <th colspan="0">
+                <th colspan="6">
                     {{ modules|length }}
                     entr{{ modules|pluralize:"y,ies" }}
                 </th>
@@ -77,10 +77,10 @@
 
     <p>
         {% if confirm_delete %}
-        <input type="hidden" name="confirm_delete" value="1" />
-        <button type="submit">Confirm deletion</button>
+            <input type="hidden" name="confirm_delete" value="1"/>
+            <button type="submit">Confirm deletion</button>
         {% else %}
-        <button type="submit">Delete selected</button>
+            <button type="submit">Delete selected</button>
         {% endif %}
     </p>
 
