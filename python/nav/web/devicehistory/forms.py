@@ -19,13 +19,17 @@ import time
 from datetime import date
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
-                                            Submit)
+from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column
 from nav.web.devicehistory.utils import get_event_and_alert_types
 
 # Often used timelimits, in seconds:
 ONE_DAY = 24 * 3600
 ONE_WEEK = 7 * ONE_DAY
+
+
+class MyDateInput(forms.DateInput):
+    """Set date as type on date input widget"""
+    input_type = 'date'
 
 
 class DeviceHistoryViewFilter(forms.Form):
@@ -40,9 +44,11 @@ class DeviceHistoryViewFilter(forms.Form):
         ('datetime', 'Date')
     ]
     from_date = forms.DateField(
-        initial=date.fromtimestamp(time.time() - ONE_WEEK), required=False)
+        initial=date.fromtimestamp(time.time() - ONE_WEEK), required=False,
+        widget=MyDateInput)
     to_date = forms.DateField(
-        initial=date.fromtimestamp(time.time() + ONE_DAY), required=False)
+        initial=date.fromtimestamp(time.time() + ONE_DAY), required=False,
+        widget=MyDateInput)
     eventtype = forms.ChoiceField(choices=eventtypes, initial='all',
                                   required=False, label='Type')
     group_by = forms.ChoiceField(choices=groupings, initial='netbox',
