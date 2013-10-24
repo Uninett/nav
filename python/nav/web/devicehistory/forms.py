@@ -19,7 +19,7 @@ import time
 from datetime import date
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column
+from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, Field
 from nav.web.devicehistory.utils import get_event_and_alert_types
 
 # Often used timelimits, in seconds:
@@ -67,8 +67,10 @@ class DeviceHistoryViewFilter(forms.Form):
                 Row(
                     Column('from_date', css_class='medium-3'),
                     Column('to_date', css_class='medium-3'),
-                    Column('eventtype', css_class='medium-3'),
-                    Column('group_by', css_class='medium-3'),
+                    Column(Field('eventtype', css_class='select2'),
+                           css_class='medium-3'),
+                    Column(Field('group_by', css_class='select2'),
+                           css_class='medium-3'),
                 )
             )
         )
