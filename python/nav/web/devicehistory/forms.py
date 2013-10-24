@@ -32,6 +32,11 @@ class MyDateInput(forms.DateInput):
     input_type = 'date'
 
 
+class MyDateField(forms.DateField):
+    """Set widget with type = date as default widget"""
+    widget = MyDateInput
+
+
 class DeviceHistoryViewFilter(forms.Form):
     """Form for filtering device history results"""
 
@@ -43,12 +48,10 @@ class DeviceHistoryViewFilter(forms.Form):
         ('device', 'Device serial'),
         ('datetime', 'Date')
     ]
-    from_date = forms.DateField(
-        initial=date.fromtimestamp(time.time() - ONE_WEEK), required=False,
-        widget=MyDateInput)
-    to_date = forms.DateField(
-        initial=date.fromtimestamp(time.time() + ONE_DAY), required=False,
-        widget=MyDateInput)
+    from_date = MyDateField(initial=date.fromtimestamp(time.time() - ONE_WEEK),
+                            required=False)
+    to_date = MyDateField(initial=date.fromtimestamp(time.time() + ONE_DAY),
+                          required=False)
     eventtype = forms.ChoiceField(choices=eventtypes, initial='all',
                                   required=False, label='Type')
     group_by = forms.ChoiceField(choices=groupings, initial='netbox',
