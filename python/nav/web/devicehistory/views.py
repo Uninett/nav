@@ -17,27 +17,19 @@
 
 from operator import attrgetter
 
-import time
-from datetime import date
-
-from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.db import connection, transaction
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.db.transaction import commit_on_success
 
 from nav.models.fields import INFINITY
 from nav.models.manage import Netbox, Module
 from nav.models.event import AlertHistory
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
-
-from django.db.transaction import commit_on_success
-
-from nav.web.devicehistory.utils import get_event_and_alert_types
-from nav.web.devicehistory.utils.history import (get_selected_types,
-                                                 fetch_history, get_page,
+from nav.web.devicehistory.utils.history import (fetch_history,
                                                  get_messages_for_history,
                                                  group_history_and_messages,
                                                  describe_search_params)
@@ -74,6 +66,8 @@ def devicehistory_search(request):
 
     if 'from_date' in request.REQUEST:
         form = DeviceHistoryViewFilter(request.REQUEST)
+        if form.is_valid():
+            return devicehistory_view(request)
     else:
         form = DeviceHistoryViewFilter()
 
@@ -93,17 +87,6 @@ def devicehistory_search(request):
 
 def devicehistory_view(request):
     """Device history search results view"""
-    from_date = request.REQUEST.get('from_date',
-                                    date.fromtimestamp(time.time() - ONE_WEEK))
-    to_date = request.REQUEST.get('to_date',
-                                  date.fromtimestamp(time.time() + ONE_DAY))
-    types = request.REQUEST.get('eventtype', None)
-    group_by = request.REQUEST.get('group_by', 'netbox')
-
-    form = DeviceHistoryViewFilter(request.REQUEST)
-    if not form.is_valid():
-        if request.REQUEST.get('main-search'):
-            return devicehistory_search(request)
 
     selection = {
         'organization': request.REQUEST.getlist('org'),
@@ -115,78 +98,25 @@ def devicehistory_view(request):
         'mode': request.REQUEST.getlist('mode')
     }
 
-    try:
-        page = int(request.REQUEST.get('page', '1'))
-    except ValueError:
-        page = 1
+    grouped_history = None
+    form = DeviceHistoryViewFilter(request.REQUEST)
+    if form.is_valid():
+        alert_history = fetch_history(selection, form)
+        grouped_history = group_history_and_messages(
+            alert_history,
+            get_messages_for_history(alert_history),
+            form.cleaned_data['group_by']
+        )
 
-    selected_types = get_selected_types(types)
-
-    alert_history = fetch_history(
-        selection,
-        from_date,
-        to_date,
-        selected_types,
-        group_by
-    )
-    paginated_history = Paginator(alert_history, HISTORY_PER_PAGE, ORPHANS)
-    this_page = get_page(paginated_history, page)
-    messages = get_messages_for_history(this_page.object_list)
-    grouped_history = group_history_and_messages(
-        this_page.object_list,
-        messages,
-        group_by
-    )
-    this_page.grouped_history = grouped_history
-
-    first_page_link = True
-    last_page_link = True
-    if this_page.paginator.num_pages > 20:
-        if page < 6:
-            index = 0
-            last_index = 10
-        else:
-            index = page - 6
-            last_index = page + 5
-        if page >= this_page.paginator.num_pages - 5:
-            last_page_link = False
-        if page <= 6:
-            first_page_link = False
-        pages = this_page.paginator.page_range[index:last_index]
-    else:
-        pages = this_page.paginator.page_range
-        first_page_link = False
-        last_page_link = False
-
-    url = "?from_date=%s&to_date=%s&eventtype=%s&group_by=%s" % (
-        from_date or "", to_date or "", types or "", group_by or "")
-
-    search_description = describe_search_params(selection)
-
-    for key, values in selection.items():
-        attr = key
-        if key == "room__location":
-            attr = "loc"
-        if key == "organization":
-            attr = "org"
-        if key == "category":
-            attr = "cat"
-        for ident in values:
-            url += "&%s=%s" % (attr, ident)
-
-    # Quickselect expects 'loc' and not 'location'
-    selection['loc'] = selection['room__location']
-    del selection['room__location']
+        # Quickselect expects 'loc' and not 'location'
+        selection['loc'] = selection['room__location']
+        del selection['room__location']
 
     info_dict = {
         'active': {'device': True},
-        'history': this_page,
-        'search_description': search_description,
-        'pages': pages,
-        'first_page_link': first_page_link,
-        'last_page_link': last_page_link,
+        'search_description': describe_search_params(selection),
         'selection': selection,
-        'get_url': url,
+        'history': grouped_history,
         'title': 'NAV - Device History',
         'navpath': [
             ('Home', '/'),

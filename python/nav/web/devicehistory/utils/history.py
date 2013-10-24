@@ -58,7 +58,7 @@ def get_selected_types(type):
         selected_types[kind] = name
     return selected_types
 
-def fetch_history(selection, from_date, to_date, selected_types=[], order_by=None):
+def fetch_history(selection, form):
     def type_query_filter(selected_types):
         # FIXME Selecting multiple is not accutally possible from the GUI.
         # Remove option for multiple and make it simpler?
@@ -78,6 +78,11 @@ def fetch_history(selection, from_date, to_date, selected_types=[], order_by=Non
 
         combinator = lambda x, y: (x & y) if and_mode else (x | y)
         return reduce(combinator, filters) if filters else None
+
+    from_date = form.cleaned_data['from_date']
+    to_date = form.cleaned_data['to_date']
+    selected_types = get_selected_types(form.cleaned_data['eventtype'])
+    order_by = form.cleaned_data['group_by']
 
     type_filter = type_query_filter(selected_types)
     order_by_keys = ['-start_time', '-end_time']
