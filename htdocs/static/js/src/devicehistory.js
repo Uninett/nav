@@ -17,22 +17,30 @@ require(['plugins/quickselect', 'libs/jquery'], function (QuickSelect) {
     $(document).ready(function() {
         new QuickSelect('.quickselect');
 
+        var showText = "Show email",
+            hideText = "Hide email";
+
         $("ul.email_message").hide();
 
         $("li.sms_message").each(function(i) {
-            var id = $(this).attr("id").split("_").slice(-1);
-            $("ul#email_" + id).before("<a id=\"#email_" + id + "\" class=\"expand_link\">Expand</a>");
+            var id = getPartialId(this),
+                button = $('<a/>').attr('id', '#email_' + id).addClass('expand_link button tiny').text(showText);
+
+            $("ul#email_" + id).before(button);
         });
 
         $("a.expand_link").toggle(function() {
-            $(this).text("Hide");
-            var id = $(this).attr("id").split("_").slice(-1);
-            $("ul#email_" + id).show("normal");
+            $(this).text(hideText);
+            $("ul#email_" + getPartialId(this)).show("normal");
         }, function() {
-            $(this).text("Expand");
-            var id = $(this).attr("id").split("_").slice(-1);
-            $("ul#email_" + id).hide("normal");
+            $(this).text(showText);
+            $("ul#email_" + getPartialId(this)).hide("normal");
         });
     });
+
+    function getPartialId(element) {
+        /* Get the part of the elements id after underscore */
+        return $(element).attr("id").split("_").slice(-1);
+    }
 
 });
