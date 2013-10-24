@@ -24,11 +24,13 @@
 
     <div class="tabcontent">
         {% if current_user_data.messages %}
-        <ul class="messages">
-            {% for m in current_user_data.messages %}
-            <li class="{{ m.type }}">{{ m.message }}</li>
-            {% endfor %}
-        </ul>
+            <div class="alert-box">
+                <ul class="messages no-bullet">
+                    {% for m in current_user_data.messages %}
+                        <li class="{{ m.type }}">{{ m.message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
         {% endif %}
 
         {% block tabcontent %}
