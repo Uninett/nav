@@ -27,8 +27,8 @@ LOCATION_GROUPING = {
     'group_by': lambda a: a.netbox.room.location.description,
 }
 ROOM_GROUPING = {
-    'order_by': 'netbox__room__description',
-    'group_by': lambda a: a.netbox.room.description,
+    'order_by': 'netbox__room__id',
+    'group_by': lambda a: a.netbox.room.id,
 }
 DEVICE_GROUPING = {
     'order_by': 'netbox__room__description',
