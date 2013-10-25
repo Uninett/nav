@@ -4,11 +4,11 @@ require(['libs/jquery'], function () {
             $('#advblock').toggle();
             var old_text = $(this).html().trim();
             var new_text;
-            if (old_text === 'Advanced Options') {
-                new_text = 'Close Advanced Options';
+            if (old_text === 'Report filters') {
+                new_text = 'Close report filters';
             }
             else {
-                new_text = 'Advanced Options';
+                new_text = 'Report filters';
             }
             $(this).html(new_text);
         });
