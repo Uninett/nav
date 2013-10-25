@@ -6,38 +6,16 @@
 
     <form action="" method="get" class="custom">
 
+    <a id="advToggle" class="button small">
+        {% if adv %}
+            Close report filters
+        {% else %}
+            Report filters
+        {% endif %}
+    </a>
+
     <div class="row">
-        <div class="column medium-9">
-            <a id="advToggle" class="button small">
-                {% if adv %}
-                    Close report filters
-                {% else %}
-                    Report filters
-                {% endif %}
-            </a>
-        </div>
-        <div class="column medium-3">
-            <label for="export">Delimiter: </label>
-
-            <div class="row collapse">
-                <div class="column small-6">
-                    <select name="export">
-                        {% for delim in delimiters %}
-                            <option value="{{ delim }}">{{ delim }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="column small-6">
-                    <button type="submit" name="exportcsv" value="1" class="prefix">Export CSV</button>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-
-    <div id="advblock" {% if not adv %}style="display: none;"{% endif %} class="row">
-        <div class="column small-12">
+        <div id="advblock" {% if not adv %}style="display: none;"{% endif %}  class="column small-9">
             <h5>Advanced Search</h5>
 
             <div id="advforms" class="column medium-6">
@@ -81,7 +59,7 @@
                                                                 {% ifequal element operator|get_item:a_raw|default:"" %}
                                                                 selected
                                                                 {% endifequal %}>
-                                                            {{ operators|get_item:element }}
+                                                            {{ operators|get_item:element|safe }}
                                                         </option>
 
                                                     {% endfor %}
@@ -132,13 +110,31 @@
             </div>
 
         </div>
+        <div class="column medium-3">
+            <label for="export">Delimiter: </label>
+
+            <div class="row collapse">
+                <div class="column small-6">
+                    <select name="export">
+                        {% for delim in delimiters %}
+                            <option value="{{ delim }}">{{ delim }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="column small-6">
+                    <button type="submit" name="exportcsv" value="1" class="prefix">Export CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div> {# advblock #}
     </form>
 
 
   {% if report %}
 
-    <table class="listtable reporttable float-clear">
+    <table class="listtable">
 
       <caption>
         {% if report.navigator.previous %}
@@ -155,8 +151,7 @@
         </span>
         {% endif %}
 
-        <br>
-        <span class="subtitle">{{ report.navigator.view }}</span>
+        <span class="subtitle right">{{ report.navigator.view }}</span>
       </caption>
 
       {% if report.table.header.cells %}
@@ -185,7 +180,7 @@
       {% endif %}
 
       <tr>
-        <th>
+        <th colspan="{{ report.table.header.cells|length }}">
           {% if report.navigator.previous %}
             <span class="previous">
               <a title="previous page" href="?{{ report.navigator.previous }}">&lt;&lt;</a>
