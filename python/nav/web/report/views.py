@@ -140,7 +140,7 @@ def matrix_report(request):
         if cursor.rowcount == 1:
             # Id there is only one scope in the database,
             # display that scope
-            scope = IP(cursor.fetchone())
+            scope = IP(cursor.fetchone()[0])
         else:
             # Else let the user select from a list
             scopes = cursor.fetchall()

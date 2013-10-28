@@ -10,53 +10,55 @@
 
   {% if matrix %}
 
-    <h1>Tabular view of {{ matrix.start_net.strCompressed }}</h1>
+    <h3>Tabular view of {{ matrix.start_net.strCompressed }}</h3>
 
-    <p>
-      Showing how the subnets with masklengths from
+    <p class="panel">
+      Showing utilization for subnets with masklengths
       {{ matrix.start_net.prefixlen }} to
-      {{ matrix.end_net.prefixlen }} are utilized
+      {{ matrix.end_net.prefixlen }}
     </p>
 
     {% with matrix.start_net.strNormal|urlencode|escapeslash as link %}
       {% if show_unused %}
-        <a href="{% url report-matrix-scope link %}">
+        <a href="{% url report-matrix-scope link %}" class="button small">
           Hide unused address rows
         </a>
       {% else %}
         {% if ipv4 %}
-          <a href="{% url report-matrix-scope-show_unused link 'True' %}">
+          <a href="{% url report-matrix-scope-show_unused link 'True' %}" class="button small">
             Show unused address rows
           </a>
         {% endif %}
       {% endif %}
     {% endwith %}
 
-    <table id="subnet-matrix">
-      <tr>
-        <td>
-          {{ matrix.start_net.prefixlen }} ... {{ sub }}
-        </td>
+    <table id="subnet-matrix" class="full-width">
+        <thead>
+          <tr>
+            <th>
+              {{ matrix.start_net.prefixlen }} ... {{ sub }}
+            </th>
 
-        {% for heading in matrix.column_headings %}
-          <th>{{ heading }}</th>
-        {% endfor %}
+            {% for heading in matrix.column_headings %}
+              <th>{{ heading }}</th>
+            {% endfor %}
 
-      </tr>
+          </tr>
+        </thead>
 
       {% for node in matrix.nodes %}
         <tr>
-          <td class="nocenter">
+          <td>
             {{ node.net.strCompressed }}
           </td>
-          <td colspan="16">&nbsp;</td>
+          <td colspan="8">&nbsp;</td>
         </tr>
         {% for subnet in node.subnets %}
           <tr>
             {% for cell in subnet %}
-              <td {% if forloop.first %}class="nocenter"{% endif %}
-                  colspan="{{ cell.colspan }}"
-                  style="background: {{ cell.color }};">
+              <td colspan="{{ cell.colspan }}"
+                  style="background: {{ cell.color }};"
+                  {% if cell.color %}class="add-border"{% endif %}>
                 {{ cell.content|safe }}
               </td>
             {% empty %}
@@ -70,23 +72,22 @@
 
   {% else %}
     {% if scopes %}
-      <h1>Subnet Matrix</h1>
+      <h3>Subnet Matrix</h3>
 
-      <p>
-        There are more than one prefix scope defined.
-        Please select one of them
+      <p class="alert-box secondary">
+        Select scope you want to see the subnet matrix for.
       </p>
-      <ul id="scopes">
+      <ul id="scopes" class="no-bullet">
         {% for scope in scopes %}
           <li>
-            <a href="{% url report-matrix-scope scope.0|urlencode|escapeslash %}">{{ scope.0 }} {{ scope.1|default:"" }}</a>
+            <a href="{% url report-matrix-scope scope.0|urlencode|escapeslash %}">{{ scope.0 }}</a>  {{ scope.1|default:"" }}
           </li>
         {% endfor %}
       </ul>
     {% else %}
-      <p>
+      <p class="alert-box secondary">
         The NAV-database does not contain any network scopes.
-        <a href="{% url seeddb-index %}">Seed the database</a> and return to this page to see some action.
+        <a href="{% url seeddb-index %}">Seed the database</a> and return here to see the subnet matrix.
       </p>
     {% endif %}
   {% endif %}

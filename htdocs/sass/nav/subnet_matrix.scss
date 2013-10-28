@@ -17,37 +17,16 @@
  *
  */
 
-#subnet-matrix td {
-	margin: 0;
-	padding: 0;
-	white-space: nowrap;
-	width: 14em;
-    text-align: center;
-}
-
-#subnet-matrix td.nocenter {
-    text-align: left;
-}
-
-#subnet-matrix td.blank {
-	height: 6px;
-}
-
-#subnet-matrix a.monosp {
-	font-family: Arial, Helvetica, monospace;
-}
-
-#subnet-matrix th {
-	text-align: center;
-}
-
 #subnet-matrix {
-	border-collapse: separate;
-	border-spacing: 2px;
-    border: 1px solid black;
-    font-size: 0.8em;
-}
-
-#scopes {
-    list-style: none;
+    td:first-child, th:first-child {
+        width: 12%;
+        text-align: left;
+    }
+    td, th {
+        width: 11%;
+        text-align: center;
+        &.add-border {
+            border: 1px solid #FFFFFF;
+        }
+    }
 }
