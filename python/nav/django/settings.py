@@ -122,7 +122,9 @@ EMAIL_USE_TLS = nav_config.get('EMAIL_USE_TLS', 'False') == 'True'
 # Date formatting
 DATE_FORMAT = 'Y-m-d'
 TIME_FORMAT = 'H:i:s'
+TIME_FORMAT_SHORT = 'H:i'
 DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
+DATETIME_FORMAT_SHORT = '%s %s' % (DATE_FORMAT, TIME_FORMAT_SHORT)
 
 TIME_ZONE = nav_config.get('TIME_ZONE', 'Europe/Oslo')
 DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
