@@ -57,6 +57,12 @@ table.listtable caption a {
     color: white;
 }
 
+table.vertitable {
+    th {
+        text-align: right;
+    };
+}
+
 /* --- List table with tablesorter --- */
 
 .tablesorter {
