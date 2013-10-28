@@ -26,11 +26,10 @@ from .forms import L2TraceForm
 def index(request):
     """Single view function of l2trace."""
 
-    query = {
-        'host_from': request.GET.get('host_from'),
-        'host_to': request.GET.get('host_to'),
-    }
-    form = L2TraceForm(query)
+    if 'host_from' in request.GET:
+        form = L2TraceForm(request.GET)
+    else:
+        form = L2TraceForm()
 
     context = {
         'title': 'Layer 2 Traceroute',

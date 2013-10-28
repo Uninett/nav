@@ -15,9 +15,30 @@
 #
 
 from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import Layout, Row, Column, Submit, Field
 
 
 class L2TraceForm(forms.Form):
+    """Form for l2traceroute search"""
     host_from = forms.CharField(label='From')
-    host_to = forms.CharField(label='To (optional)', required=False)
+    host_to = forms.CharField(label='To', required=False)
 
+    def __init__(self, *args, **kwargs):
+        super(L2TraceForm, self).__init__(*args, **kwargs)
+
+        placeholder_text = "Hostname or IP-address"
+
+        self.helper = FormHelper()
+        self.helper.form_action = ""
+        self.helper.form_method = 'GET'
+
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('host_from', placeholder=placeholder_text),
+                       css_class='medium-6'),
+                Column(Field('host_to', placeholder=placeholder_text),
+                       css_class='medium-6'),
+            ),
+            Submit('submit', 'Trace')
+        )
