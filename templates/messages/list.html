@@ -12,7 +12,7 @@
     <tbody>
         {% for message in messages %}
             <tr class="{% cycle 'oddrow' 'evenrow' %}">
-                <td>{{ message.publish_start|date:"Y-m-d H:i" }}</td>
+                <td>{{ message.publish_start|date:"DATETIME_FORMAT_SHORT" }}</td>
                 <td><a href="{% url messages-view message.id %}">{{ message.title }}</a></td>
                 <td>{{ message.description }}</td>
             </tr>
