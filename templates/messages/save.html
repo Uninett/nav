@@ -1,24 +1,23 @@
 {% extends "messages/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
-<form action="" method="post">
-    <table class="listtable vertitable">
-        <caption>{{ caption }}</caption>
-        {{ form.as_table }}
-        {% if replaces %}
-            <tr>
-                <th>Replaces message</th>
-                <td>
-                    <a href="{% url messages-view replaces.id %}">{{ replaces.title }}</a>
-                    from {{ replaces.publish_start|date:"DATETIME_FORMAT_SHORT" }}
-                    by {{ replaces.author }}
-                </td>
-            </tr>
-        {% endif %}
-        <tr>
-            <th></th>
-            <td><input type="submit" value="Save message" class="button small"/></td>
-        </tr>
-    </table>
-</form>
+
+    <h3>{{ caption }}</h3>
+
+    {% if replaces %}
+        <p class="alert-box secondary">
+            This message will replace
+            <a href="{% url messages-view replaces.id %}">{{ replaces.title }}</a>
+            from {{ replaces.publish_start|date:"DATETIME_FORMAT_SHORT" }}
+            by {{ replaces.author }}
+        </p>
+    {% endif %}
+
+    <div class="row">
+        <div class="column medium-6">
+            {% crispy form %}
+        </div>
+    </div>
+
 {% endblock %}
