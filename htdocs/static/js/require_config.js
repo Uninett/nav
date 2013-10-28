@@ -21,6 +21,7 @@ var require = {
         'libs/jquery.nivo.slider.pack': ['libs/jquery'],
         'libs/downloadify.min': ['libs/jquery', 'libs/swfobject'],
         'libs/spin.min': ['libs/jquery'],
+        'libs/select2.min': ['libs/jquery'],
         'libs/underscore': {
             exports: '_'
         },
