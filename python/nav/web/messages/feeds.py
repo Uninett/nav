@@ -31,7 +31,7 @@ class ActiveMessagesFeed(Feed):
     description = "NAV Message feed"
 
     def link(self):
-        return reverse('messages-rss') 
+        return reverse('messages-active')
 
     def items(self):
         return Message.objects.filter(

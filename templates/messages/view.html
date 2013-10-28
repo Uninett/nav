@@ -44,7 +44,7 @@
             <th>Expires</th>
             <td>{{ message.publish_end|date:"DATETIME_FORMAT_SHORT" }}
                 {% if message.publish_end > now %}
-                    | <a href="{% url messages-expire message.id %}">Expire now</a>
+                    <a href="{% url messages-expire message.id %}" class="button tiny">Expire now</a>
                 {% endif %}
             </td>
         </tr>
