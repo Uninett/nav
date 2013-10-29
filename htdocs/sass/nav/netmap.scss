@@ -1,38 +1,38 @@
 /* General styles */
-body {
-    margin: 0;
-    padding: 1em 0 1em 0;
-    border: 0; /* This removes the border around the viewport in old versions of IE */
-    width: 100%;
-    background: #fff;
-    min-width: 600px; /* Minimum width of layout - remove line if not required */
-    /* The min-width property does not work in old versions of Internet Explorer */
-}
-html {overflow-y: scroll} /* always render a vertical scrollbar so width doesn't keep changing */
+//body {
+//    margin: 0;
+//    padding: 1em 0 1em 0;
+//    border: 0; /* This removes the border around the viewport in old versions of IE */
+//    width: 100%;
+//    background: #fff;
+//    min-width: 600px; /* Minimum width of layout - remove line if not required */
+//    /* The min-width property does not work in old versions of Internet Explorer */
+//}
+//html {overflow-y: scroll} /* always render a vertical scrollbar so width doesn't keep changing */
 
-/* Header styles */
-#header {
-    margin: 0 1em 0 1em;
-}
-
-/* Footer styles */
-#footer hr {
-    display: none;
-
-}
-#debug {
-    display: none;
-}
-
-#save_new_view {
-    float:right;
-}
-
-#delete_view {
-    float: right;
-    clear: right;
-    margin-top: 20px;
-}
+///* Header styles */
+//#header {
+//    margin: 0 1em 0 1em;
+//}
+//
+///* Footer styles */
+//#footer hr {
+//    display: none;
+//
+//}
+//#debug {
+//    display: none;
+//}
+//
+//#save_new_view {
+//    float:right;
+//}
+//
+//#delete_view {
+//    float: right;
+//    clear: right;
+//    margin-top: 20px;
+//}
 
 /*
 2012-07-31
@@ -69,21 +69,19 @@ quote http://www.bluerobot.com/web/layouts/
     border:1px 1px 1px 0 dotted #333;
     padding:5px;
     z-index:2;
-
+}
     /* Here is the ugly brilliant hack that protects IE5/Win from its own stupidity.
 Thanks to Tantek Celik for the hack and to Eric Costello for publicizing it.
 IE5/Win incorrectly parses the "\"}"" value, prematurely closing the style
 declaration. The incorrect IE5/Win value is above, while the correct value is
 below. See http://glish.com/css/hacks.asp for details. */
-    voice-family: "\"}\"";
-    voice-family:inherit;
-    width:138px;
-}
-/* I've heard this called the "be nice to Opera 5" rule. Basically, it feeds correct
-length values to user agents that exhibit the parsing error exploited above yet get
-the CSS box model right and understand the CSS2 parent-child selector. ALWAYS include
-a "be nice to Opera 5" rule every time you use the Tantek Celik hack (above). */
-body>#netmap_left_sidebar {width:138px;}
+//    width:138px;
+//}
+///* I've heard this called the "be nice to Opera 5" rule. Basically, it feeds correct
+//length values to user agents that exhibit the parsing error exploited above yet get
+//the CSS box model right and understand the CSS2 parent-child selector. ALWAYS include
+//a "be nice to Opera 5" rule every time you use the Tantek Celik hack (above). */
+//body>#netmap_left_sidebar {width:138px;}
 
 #netmap_left_sidebar div.inner_wrap {
     margin-top: 20px;
@@ -102,31 +100,10 @@ body>#netmap_left_sidebar {width:138px;}
     voice-family:inherit;
     width:188px;
 }
-/* Again, "be nice to Opera 5". */
-body>#netmap_infopanel {width:188px;}
-
 
 #loading_chart, #chart {
     min-height: 300px;
     min-width: 300px;
-}
-
-/* Netmap Admin style */
-
-#netmap_admin {
-    margin: 1em;
-}
-
-div.netmapview_view {
-    clear: left;
-    margin: 2em;
-}
-.netmapview_view span {
-    float: left;
-}
-
-.netmapview_action form {
-    margin:  0;
 }
 
 td.current_favorite {
@@ -293,62 +270,68 @@ a#netmap_link_to_admin {
 .fix_options div input {
     width: 45%;
 }
+
+/*
+ * WIDGET STYLES
+ */
+
 .netmapWidget {
     margin: 0.5em 0;
-    border-radius:5px;
-    border:1px solid #567899;
-    overflow:hidden;
-    position:relative;
-}
-
-.netmapWidget .netmapWidget {
-   border:0 !important;
-   border-radius:0 !important;
-   padding-bottom:5px;
-   border-bottom:1px dotted #567899 !important;
-}
-
-.netmapWidget .netmapWidget .body{
-   margin:0;
-}
-
-.netmapWidget .header {
-    display: block;
-    width: 100%;
-    background: #567899;
-    color: #fff;
+    border: 1px solid #567899;
     overflow: hidden;
-}
-.netmapWidget .header .title {
-    font-size: 12pt;
-    font-weight:bold;
-    background: url('../../images/icons/expand_invert.png') top right no-repeat;
-    margin:3px;
-}
-.netmapWidget .body {
-    margin: 0.5em;
+    position: relative;
+    .netmapWidget {
+        border: 0 !important;
+        border-radius: 0 !important;
+        padding-bottom: 5px;
+        border-bottom: 1px dotted #567899 !important;
+        .body {
+            margin: 0;
+            input {
+                margin: 0;
+            }
+        }
+    }
+    .header {
+        background: #567899;
+        color: #fff;
+        overflow: hidden;
+        .title {
+            font-weight:bold;
+            background: url('../../images/icons/expand_invert.png') top right no-repeat;
+            margin:3px;
+        }
+        > .no-icon {
+            background: none;
+        }
+    }
+    .body {
+        margin: 0.5em;
+    }
+    .no_collapse > .title {
+        background: none;
+        margin: 3px 0;
+    }
 }
 
-.netmapWidget .header >.no-icon {
-    background: none;
-}
-.netmapWidget .no_collapse > .title {
-    background: none;
-    margin:3px 0;
-}
-
-.hideSubWidgets .netmapWidget .header {
-    background: none;
-}
-
-.hideSubWidgets .netmapWidget .title {
-    color: #000;
-    font-weight: bold;
-}
-.hideSubWidgets .netmapWidget .body {
-    margin-top: 0.1em;
+.hideSubWidgets {
+    .netmapWidget {
+        .header {
+            background: none;
+        }
+        .title {
+            color: #000;
+            font-weight: bold;
+        }
+        .body {
+            margin-top: 0.1em;
+        }
+    }
 }
 
+/*
+ * OTHER CRAZY STUFF
+ */
 
 #pauseForce {
     margin-top: 0.5em;

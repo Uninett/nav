@@ -1,22 +1,42 @@
 <div class="netmapWidget">
-    <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
-        <div class="title">{{ title }}{{#if title_help }}<img class="float-right" title="{{title_help}}" src="{{ imagePath }}/helpers/question.png" />{{/if}}</div>
-    </div>
-    <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
-        {{#each collection}}
-        <div>
-            {{#if value}}
-                <input type="{{../../type}}" name="{{../../identifier}}[]" value="{{value}}" id="{{../../identifier}}_{{name}}" {{#if is_selected}} checked{{/if}} {{#unless ../../isViewEnabled}} disabled{{/unless}} />
-            {{else}}
-                <input type="{{../../type}}" name="{{../../identifier}}[]" value="{{name}}" id="{{../../identifier}}_{{name}}" {{#if is_selected}} checked{{/if}} {{#unless ../../isViewEnabled}} disabled{{/unless}} />
-            {{/if}}
-            {{#if ../nameInUppercase}}
-                <label for="{{../../identifier}}_{{name}}">{{uppercase name}}</label>
-            {{else}}
-                <label for="{{../../identifier}}_{{name}}">{{capitalize name}}</label>
-            {{/if}}
 
-        </div>
-        {{/each}}
+  <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
+
+    <h5>
+      {{ title }}
+      {{#if title_help }}
+        <img class="right" title="{{ title_help }}" src="{{ imagePath }}/helpers/question.png"/>
+      {{/if}}
+    </h5>
+
+    <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
+
+      {{#each collection}}
+      <div>
+        <label for="{{../identifier}}_{{ name }}">
+          {{#if ../nameInUppercase}}
+            {{ uppercase name }}
+          {{ else }}
+            {{ capitalize name }}
+          {{/if}}
+
+          <input id="{{../identifier}}_{{ name }}"
+                 type="{{../type}}"
+                 name="{{../identifier}}[]"
+                 class="right"
+                 {{#if is_selected}} checked{{/if}}
+                 {{#if value}}
+                   value="{{ value }}"
+                 {{ else }}
+                   value="{{ name }}"
+                 {{/if}}
+                 {{#unless ../isViewEnabled}}disabled{{/unless}} />
+
+        </label>
+
+      </div>
+      {{/each}}
+
     </div>
+  </div>
 </div>
