@@ -31,7 +31,8 @@ define([
                 }
                 this.el = $(this.template_post({
                     'model': this.model.toJSON(),
-                    'isNew': this.options.isNew
+                    'isNew': this.options.isNew,
+                    imagePath: NAV.imagePath
                 })).dialog({
                         autoOpen: false
                     });

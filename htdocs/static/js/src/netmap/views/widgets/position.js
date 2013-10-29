@@ -42,7 +42,8 @@ define([
                     collection: this.collection.toJSON(),
                     isViewEnabled: this.isViewEnabled,
                     isWidgetVisible: this.isWidgetVisible,
-                    isWidgetCollapsible: !!this.options.isWidgetCollapsible
+                    isWidgetCollapsible: !!this.options.isWidgetCollapsible,
+                    imagePath: NAV.imagePath
                 })
             );
             return this;

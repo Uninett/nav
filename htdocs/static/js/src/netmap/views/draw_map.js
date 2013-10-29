@@ -74,7 +74,7 @@ define([
         },
         initialize: function () {
             // Settings
-            this.imagesPrefix = "/images/netmap/";
+            this.imagesPrefix = NAV.imagePath + "/netmap/";
             this.availableCategoriesDatauris = Resources.getAvailableCategoriesDatauris();
 
             // Initial states

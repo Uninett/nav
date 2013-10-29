@@ -34,7 +34,8 @@ define([
                 isVisible: this.isContentVisible,
                 isViewEnabled: this.isViewEnabled,
                 isWidgetVisible: this.isWidgetVisible,
-                isWidgetCollapsible: !!this.options.isWidgetCollapsible
+                isWidgetCollapsible: !!this.options.isWidgetCollapsible,
+                imagePath: NAV.imagePath
             });
             this.$el.html(out);
             this.positionView = this.attachSubView(this.positionView, PositionView, {el: '#position_view'});

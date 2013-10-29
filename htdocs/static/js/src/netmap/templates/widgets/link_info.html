@@ -4,10 +4,10 @@
     </div>
     <div class="body">
         <div class="uplink_netbox">
-            <img src="/images/netmap/{{{toLowerCase link.source.category}}}.png" alt="{{link.source.category}}" width="12px" height="12px" /> <a class="uplink_netbox_link" href="{{ link.source.ipdevinfo_link }}">{{ link.source.sysname }}</a>
+            <img src="{{ imagePath }}/netmap/{{{toLowerCase link.source.category}}}.png" alt="{{link.source.category}}" width="12px" height="12px" /> <a class="uplink_netbox_link" href="{{ link.source.ipdevinfo_link }}">{{ link.source.sysname }}</a>
         </div>
         <div class="uplink_netbox">
-            <img src="/images/netmap/{{{toLowerCase link.target.category}}}.png" alt="{{link.target.category}}" width="12px" height="12px" /> <a class="uplink_netbox_link" href="{{ link.target.ipdevinfo_link }}">{{ link.target.sysname }}</a>
+            <img src="{{ imagePath }}/netmap/{{{toLowerCase link.target.category}}}.png" alt="{{link.target.category}}" width="12px" height="12px" /> <a class="uplink_netbox_link" href="{{ link.target.ipdevinfo_link }}">{{ link.target.sysname }}</a>
         </div>
         {{#if l3 }}
             {{! Layer 3 template here.  }}

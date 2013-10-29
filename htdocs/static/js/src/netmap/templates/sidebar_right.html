@@ -5,10 +5,10 @@
             <div id="form_view" class="control-group">
                 <label class="control-label"
                        for="dropdown_view_id">Views</label>
-                <a class="save_view" id="save_new_view" title="Save new view"><img src="/images/threshold/plus-button.png"/></a>
+                <a class="save_view" id="save_new_view" title="Save new view"><img src="{{ imagePath }}/threshold/plus-button.png"/></a>
                 {{#if isNew}}
                 {{else}}
-                <a class="save_view" id="delete_view" title="Delete view"><img src="/images/threshold/minus-button.png"/></a>
+                <a class="save_view" id="delete_view" title="Delete view"><img src="{{ imagePath }}/threshold/minus-button.png"/></a>
                 {{/if}}
                 <select id="dropdown_view_id">
                     {{#if context_selected_map}}

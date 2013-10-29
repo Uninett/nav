@@ -57,7 +57,8 @@ define([
                     inOctets: inOctets ,
                     inOctetsRaw: inOctetsRaw,
                     outOctets: outOctets,
-                    outOctetsRaw: outOctetsRaw
+                    outOctetsRaw: outOctetsRaw,
+                    imagePath: NAV.imagePath
                 };
                 if (self.link.data.edges instanceof L3EdgeCollection) {
                     context.l3 = true;

@@ -9,10 +9,10 @@
                     <div id="form_view" class="control-group">
                         <label class="control-label"
                                for="dropdown_view_id">Views</label>
-                        <a class="save_view" id="save_new_view" title="Save new view" {{#unless ../isViewEnabled}} disabled{{/unless}}><img src="/images/threshold/plus-button.png"/></a>
+                        <a class="save_view" id="save_new_view" title="Save new view" {{#unless ../isViewEnabled}} disabled{{/unless}}><img src="{{ imagePath }}/threshold/plus-button.png"/></a>
                         {{#if isNew}}
                         {{else}}
-                            <a class="save_view" id="delete_view" title="Delete view" {{#unless ../isViewEnabled}} disabled{{/unless}}><img src="/images/threshold/minus-button.png"/></a>
+                            <a class="save_view" id="delete_view" title="Delete view" {{#unless ../isViewEnabled}} disabled{{/unless}}><img src="{{ imagePath }}/threshold/minus-button.png"/></a>
                         {{/if}}
                         <select id="dropdown_view_id" {{#unless ../isViewEnabled}} disabled{{/unless}}>
                             {{#maps}}
@@ -50,7 +50,7 @@
                 <div class="description_selected_view {{#if isFavorite}}isFavorite{{/if}}"><span class="description">Description:</span><span class="value">{{#if description}}{{description}}{{else}}N/A{{/if}}</span></div>
             {{/if}}
         {{else}}
-            <div class="loading">Waiting for data... <img src="/images/threshold/ajax-loader.gif" alt="" alt="Loading.." /></div>
+            <div class="loading">Waiting for data... <img src="{{ imagePath }}/threshold/ajax-loader.gif" alt="" alt="Loading.." /></div>
         {{/if}}
     </div>
 </div>

@@ -6,7 +6,7 @@
         {{#if isElink}}
         <h4 class="node_sysname">{{node.sysname}}</h4>
         {{else}}
-        <img href="{{ STATIC_URL }}images/lys/{{node.up_image}}' alt='{{node.up}}' class='netmap_node_status'/>
+        <img href="{{ imagePath }}/lys/{{node.up_image}}' alt='{{node.up}}' class='netmap_node_status'/>
         <h4 class="node_sysname"><a href="{{node.ipdevinfo_link}}">{{node.sysname}}</a></h4>
         <div class="node_ip">{{node.ip}}</div>
         {{/if}}
@@ -19,7 +19,7 @@
 
 
         <div class="node_category">
-            <img src="/images/netmap/{{{toLowerCase node.category}}}.png" alt="{{node.category}}" width="32px" height="32px" />
+            <img src="{{ imagePath }}/netmap/{{{toLowerCase node.category}}}.png" alt="{{node.category}}" width="32px" height="32px" />
             <span class="description">Category:</span><span class="value">{{node.category}}</span>
         </div>
 

@@ -31,7 +31,8 @@ define([
                 var out = this.template({
                     'node': nodeJson,
                     'isElink': !!self.node.get('category') && self.node.get('category') === 'elink',
-                    'isWidgetVisible': !!this.options.isWidgetVisible
+                    'isWidgetVisible': !!this.options.isWidgetVisible,
+                    imagePath: NAV.imagePath
                 });
                 this.$el.html(out);
                 this.$el.append(this.vlanView.render().el);

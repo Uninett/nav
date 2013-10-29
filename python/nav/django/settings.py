@@ -63,7 +63,7 @@ except IOError:
 ROOT_URLCONF = 'nav.django.urls'
 
 #Static files
-STATIC_ROOT = os.path.join(nav.path.datadir, 'static')
+STATIC_ROOT = os.path.join(nav.path.webrootdir, 'static')
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (

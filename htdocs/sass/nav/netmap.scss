@@ -130,7 +130,7 @@ div.netmapview_view {
 }
 
 td.current_favorite {
-    background: url(/images/netmap/emblem-favorite.png) no-repeat center left;
+    background: url('../../images/netmap/emblem-favorite.png') no-repeat center left;
     height: 33px;
 }
 td.current_favorite a {
@@ -138,7 +138,7 @@ td.current_favorite a {
 }
 
 div.isFavorite {
-    background: url(/images/netmap/emblem-favorite.png) no-repeat center right;
+    background: url('../../images/netmap/emblem-favorite.png') no-repeat center right;
     height: 33px;
 }
 div.isFavorite span.description {
@@ -322,7 +322,7 @@ a#netmap_link_to_admin {
 .netmapWidget .header .title {
     font-size: 12pt;
     font-weight:bold;
-    background: url('/images/icons/expand_invert.png') top right no-repeat;
+    background: url('../../images/icons/expand_invert.png') top right no-repeat;
     margin:3px;
 }
 .netmapWidget .body {

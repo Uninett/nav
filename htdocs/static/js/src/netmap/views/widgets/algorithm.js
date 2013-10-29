@@ -50,7 +50,8 @@ define([
                     isLayoutEngineRunning: this.isLayoutEngineRunning,
                     isViewEnabled: this.isViewEnabled,
                     isWidgetVisible: this.isWidgetVisible,
-                    isWidgetCollapsible: !!this.options.isWidgetCollapsible
+                    isWidgetCollapsible: !!this.options.isWidgetCollapsible,
+                    imagePath: NAV.imagePath
                 })
             );
 

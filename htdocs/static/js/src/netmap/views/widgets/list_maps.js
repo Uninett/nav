@@ -245,6 +245,7 @@ define([
             context.isWidgetVisible = this.isWidgetVisible;
             context.isWidgetCollapsible = !!this.options.isWidgetCollapsible;
             context.isBrowserSupportingSVGExport = $.browser.webkit;
+            context.imagePath = NAV.imagePath;
             var out = this.template(context);
 
             this.$el.html(out);

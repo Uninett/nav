@@ -17,6 +17,7 @@
 import datetime
 import logging
 import os
+from django.conf import settings
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -602,9 +603,10 @@ def traffic_load_gradient(request):
 def _convert_image_to_datauri(image):
     """Helper function for converting one image to base64 inline css"""
     image = image.lower()
-    return open("{0}/{1}.png".format(os.path.join(
-        nav.buildconf.webrootdir, "images", "netmap"
-    ), image), "rb").read().encode("base64").replace("\n","")
+    return open("{0}/{1}.png".format(
+        os.path.join(settings.STATIC_ROOT, "images", "netmap"), image),
+        "rb").read().encode("base64").replace("\n", "")
+
 
 def _get_datauris_for_categories():
     """Helper function for fetching datauris for every category"""
