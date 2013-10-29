@@ -62,43 +62,27 @@ quote http://www.bluerobot.com/web/layouts/
 }
 
 #netmap_left_sidebar {
+    background-color: #ffffff;
     position:absolute;
     width:150px;
     top:0px;
     left:0px;
-    border:1px 1px 1px 0 dotted #333;
     padding:5px;
     z-index:2;
 }
-    /* Here is the ugly brilliant hack that protects IE5/Win from its own stupidity.
-Thanks to Tantek Celik for the hack and to Eric Costello for publicizing it.
-IE5/Win incorrectly parses the "\"}"" value, prematurely closing the style
-declaration. The incorrect IE5/Win value is above, while the correct value is
-below. See http://glish.com/css/hacks.asp for details. */
-//    width:138px;
-//}
-///* I've heard this called the "be nice to Opera 5" rule. Basically, it feeds correct
-//length values to user agents that exhibit the parsing error exploited above yet get
-//the CSS box model right and understand the CSS2 parent-child selector. ALWAYS include
-//a "be nice to Opera 5" rule every time you use the Tantek Celik hack (above). */
-//body>#netmap_left_sidebar {width:138px;}
 
 #netmap_left_sidebar div.inner_wrap {
     margin-top: 20px;
 }
 
 #netmap_infopanel {
+    background-color: #ffffff;
     position:absolute;
-    width:210px;
+    width:188px;
     top:0px;
     right:0px;
     padding:5px;
     z-index:1;
-    border: 1px 0 1px 1px dotted #333;
-    /* Again, the ugly brilliant hack. */
-    voice-family: "\"}\"";
-    voice-family:inherit;
-    width:188px;
 }
 
 #loading_chart, #chart {
