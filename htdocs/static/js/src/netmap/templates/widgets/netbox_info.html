@@ -3,31 +3,38 @@
         <div class="title no-icon">Netbox info</div>
     </div>
     <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
-        {{#if isElink}}
-        <h4 class="node_sysname">{{node.sysname}}</h4>
-        {{else}}
-        <img src="{{ imagePath }}/lys/{{node.up_image}}" alt='{{node.up}}' class='netmap_node_status'/>
-        <h4 class="node_sysname"><a href="{{node.ipdevinfo_link}}">{{node.sysname}}</a></h4>
-        <div class="node_ip">{{node.ip}}</div>
-        {{/if}}
-
-        <div class="node_fixed_position">
-            <input type="checkbox" name="positionFixed" value="positionFixed" id="positionFixed" {{#if node.fixed}} checked{{/if}} />
-            <label for="positionFixed">Node is fixed position?</label>
-            {{#if isElink}}<p><em>Elink positions will not be saved when saving a view.</em></p>{{/if}}
-        </div>
-
-
-        <div class="node_category">
-            <img src="{{ imagePath }}/netmap/{{{toLowerCase node.category}}}.png" alt="{{node.category}}" width="32px" height="32px" />
-            <span class="description">Category:</span><span class="value">{{node.category}}</span>
-        </div>
-
+        <img src="{{ imagePath }}/netmap/{{{toLowerCase node.category}}}.png" alt="{{node.category}}" width="32px" height="32px" />
         {{#if isElink}}
         {{else}}
-        <div class="node_room"><span class="description">Room:</span><span class="value">{{#if node.data.room}}{{node.room}}{{else}}N/A{{/if}}</span></div>
-
-        <div class="node_location"><span class="description">Location:</span><span class="value">{{#if node.data.location}}{{node.location}}{{else}}N/A{{/if}}</span></div>
+        <img src="{{ imagePath }}/lys/{{node.up_image}}" alt='{{node.up}}' class='netmap_node_status right' />
         {{/if}}
+
+        <ul class="no-bullet">
+
+        {{#if isElink}}
+          <li>
+            <b>{{ node.sysname }}</b>
+          </li>
+        {{else}}
+          <li>
+            <b><a href="{{ node.ipdevinfo_link }}">{{ node.sysname }}</a></b>
+          </li>
+          <li>{{node.ip}}</li>
+        {{/if}}
+
+          <li>
+            <b>Category:</b> {{node.category}}
+          </li>
+        {{#if isElink}}
+        {{else}}
+          <li>
+            <b>Room:</b> {{#if node.room}}{{node.room}}{{else}}N/A{{/if}}
+          </li>
+          <li>
+            <b>Location:</b> {{#if node.location}}{{node.location}}{{else}}N/A{{/if}}
+          </li>
+        {{/if}}
+        </ul>
+
     </div>
 </div>

@@ -1,7 +1,7 @@
 <div class="netmapWidget" id="pauseForce">
 
   <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
-    <div class="title">Pause force algorithm?</div>
+    <h6>Force algorithm</h6>
   </div>
 
   <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
@@ -17,12 +17,21 @@
     </div>
 
     <div class="fix_options">
-      <span>Fix or unfix all nodes</span>
+      <h6>Fix nodes</h6>
 
-      <div class="squaredTwo">
-        <input type="button" class="button small" name="nodesFixed" value="Fix" id="setNodesFixed" {{#unless isViewEnabled}} disabled{{/unless}} />
-        <input type="button" class="button small" name="nodesFixed" value="UnFix" id="unsetNodesFixed" {{#unless isViewEnabled}}disabled{{/unless}} />
-      </div>
+      <ul class="squaredTwo button-group">
+
+        <li>
+          <input type="button" class="button small" name="nodesFixed"
+                 value="Fix" id="setNodesFixed" {{#unless isViewEnabled}}disabled{{/unless}} />
+        </li>
+
+        <li>
+          <input type="button" class="button small" name="nodesFixed"
+                 value="UnFix" id="unsetNodesFixed" {{#unless isViewEnabled}}disabled{{/unless}} />
+        </li>
+
+      </ul>
     </div>
 
   </div>

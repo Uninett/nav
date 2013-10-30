@@ -36,7 +36,7 @@ define([
         render: function () {
             this.$el.html(
                 this.template({
-                    title: 'Mark by position',
+                    title: 'Mark position',
                     type: 'radio',
                     identifier: 'group_position',
                     collection: this.collection.toJSON(),

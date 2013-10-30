@@ -62,7 +62,7 @@
         {{#if isBrowserSupportingSVGExport}}
         <button id="export_svg"
         {{#unless ../isViewEnabled}} disabled{{/unless}}
-        class="save_view small full-width">Export SVG
+        class="save_view small expand">Export SVG
         </button>
         {{/if}}
 
@@ -72,7 +72,8 @@
     {{#if isNew}}
     {{ else }}
     <div class="description_selected_view {{#if isFavorite}}isFavorite{{/if}}">
-      <span class="description">Description:</span><span class="value">{{#if description}}{{ description }}{{ else }}N/A{{/if}}</span>
+      <b>Description:</b>
+      <div>{{#if description}}{{ description }}{{ else }}N/A{{/if}}</div>
     </div>
     {{/if}}
     {{ else }}

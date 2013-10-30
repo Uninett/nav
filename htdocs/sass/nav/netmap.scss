@@ -64,7 +64,7 @@ quote http://www.bluerobot.com/web/layouts/
 #netmap_left_sidebar {
     background-color: #ffffff;
     position:absolute;
-    width:150px;
+    width:155px;
     top:0px;
     left:0px;
     padding:5px;
@@ -78,7 +78,7 @@ quote http://www.bluerobot.com/web/layouts/
 #netmap_infopanel {
     background-color: #ffffff;
     position:absolute;
-    width:188px;
+    width:195px;
     top:0px;
     right:0px;
     padding:5px;
@@ -123,15 +123,6 @@ div.isFavorite span.description {
 
 #netmap_userid {
     display: none;
-}
-
-#netmap_link_to_admin {
-    display: none;
-}
-
-#netmap_link_to_admin {
-    margin-top: 0.5em;
-    display: block;
 }
 
 #save_view_spinner {
@@ -234,31 +225,12 @@ div.isFavorite span.description {
 
 }
 
-
-
 #node_info_vlan .selected_vlan a {
-    color:orange;
+    color: orange;
 }
 
-#node_info_vlan .selected_vlan a > span{
-    background:orange;
-}
-
-
-/* Navigation styles */
-
-.fix_options {
-    margin-top: 0.5em;
-}
-.fix_options span {
-    font-size: 10pt;
-}
-.fix_options div {
-    margin-top: 0.5em;
-    text-align: center;
-}
-.fix_options div input {
-    width: 45%;
+#node_info_vlan .selected_vlan a > span {
+    background: orange;
 }
 
 /*
@@ -274,10 +246,9 @@ div.isFavorite span.description {
         border: 0 !important;
         border-radius: 0 !important;
         padding-bottom: 5px;
-        border-bottom: 1px dotted #567899 !important;
         .body {
             margin: 0;
-            input {
+            input[type='radio'], input[type='checkbox'] {
                 margin: 0;
             }
         }
@@ -300,7 +271,6 @@ div.isFavorite span.description {
     }
     .no_collapse > .title {
         background: none;
-        margin: 3px 0;
     }
 }
 
@@ -322,15 +292,6 @@ div.isFavorite span.description {
 /*
  * OTHER CRAZY STUFF
  */
-
-#pauseForce {
-    margin-top: 0.5em;
-}
-#pauseForce input {
-    margin-top: 0.5em;
-    text-align: center;
-    width: 100%;
-}
 
 #mapinfo {
     margin-top: 2em;
@@ -384,40 +345,6 @@ div.measure_line span.measure_line_description {
     margin-top: -9.5px; /* bump text up */
     font-weight: bold;
 }
-
-/* Node info styles */
-
-.netmap_node_status {
-    float: right;
-}
-
-.node_sysname {
-    margin-bottom: 0.5em;
-}
-.node_ip {
-    margin-bottom: 1em;
-}
-
-.node_fixed_position {
-    margin: 0.6em 0 1em 0;
-}
-
-
-.node_category img {
-    float: right;
-    margin-top: 15px;
-}
-
-.node_room {
-    margin-top: 1em;
-}
-span.description {
-    font-weight: bold;
-}
-span.value {
-    display: block;
-}
-
 
 /* LINK INFO RENE */
 div.uplink {

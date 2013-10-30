@@ -48,7 +48,7 @@ define([
         render: function () {
             this.$el.html(
                 this.template({
-                    title: 'Refresh intervals',
+                    title: 'Refresh',
                     type: 'radio',
                     identifier: 'dataRefreshInterval',
                     collection: this.collection.toJSON(),
