@@ -11,11 +11,14 @@
         <input type="input" name="searchbox_query" id="searchbox_query"
                placeholder="Device name"
           {{#unless isViewEnabled}} disabled{{/unless}} />
-        <button id="searchbox_search" class="expand small"
-          {{#unless isViewEnabled}} disabled{{/unless}}>Search
-        </button>
-        <button id="center_graph" class="expand small"
-        {{#unless isViewEnabled}} disabled{{/unless}}>Zoom to extent</button>
+
+        <div class="collapse_buttons">
+          <button id="searchbox_search" class="expand small"
+            {{#unless isViewEnabled}} disabled{{/unless}}>Search
+          </button>
+          <button id="center_graph" class="expand small"
+          {{#unless isViewEnabled}} disabled{{/unless}}>Zoom to extent</button>
+        </div>
       </div>
     </form>
   </div>

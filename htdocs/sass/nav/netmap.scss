@@ -90,6 +90,13 @@ quote http://www.bluerobot.com/web/layouts/
     min-width: 300px;
 }
 
+
+.collapse_buttons {
+    button, .button {
+        margin: 0;
+    }
+}
+
 /*
  * NETMAP ADMIN PAGE STYLES
  */
