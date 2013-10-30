@@ -1,56 +1,84 @@
 <div class="netmapWidget">
-    <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
-        <div class="title">Views</div>
-    </div>
-    <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
-        {{#if maps}}
-            <form class="well form-inline" action="#">
-                <fieldset>
-                    <div id="form_view" class="control-group">
-                        <label class="control-label"
-                               for="dropdown_view_id">Views</label>
-                        <a class="save_view" id="save_new_view" title="Save new view" {{#unless ../isViewEnabled}} disabled{{/unless}}><img src="{{ imagePath }}/threshold/plus-button.png"/></a>
-                        {{#if isNew}}
-                        {{else}}
-                            <a class="save_view" id="delete_view" title="Delete view" {{#unless ../isViewEnabled}} disabled{{/unless}}><img src="{{ imagePath }}/threshold/minus-button.png"/></a>
-                        {{/if}}
-                        <select id="dropdown_view_id" {{#unless ../isViewEnabled}} disabled{{/unless}}>
-                            {{#maps}}
-                                {{#if is_selected}}
-                                    <option value="{{../viewid}}" selected="selected">
-                                        {{../title}}
-                                    </option>
-                                {{else}}
-                                    <option value="{{viewid}} ">{{title}}</option>
-                                {{/if}}
-                            {{/maps}}
-                        </select>
+  <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
+    <div class="title">Views</div>
+  </div>
+  <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
+    {{#if maps}}
+    <form class="well form-inline" action="#">
+      <div id="form_view" class="control-group">
 
-                        <!-- Debug: context.viewid {{context_selected_map.viewid}} -->
-
-                        <button id="save_view" {{#unless ../isViewEnabled}} disabled{{/unless}}
-                                class="btn save_view">Save
-                        </button>
-                        <button id="set_as_user_favorite" {{#unless ../isFavoriteEnabled}} disabled{{/unless}}
-                                class="btn save_view">Favorite
-                        </button>
-
-                        {{#if isBrowserSupportingSVGExport}}
-                            <button id="export_svg" {{#unless ../isViewEnabled}} disabled{{/unless}}
-                                    class="btn save_view">Export SVG
-                            </button>
-                        {{/if}}
-
-                        <div id="save_view_spinner"></div>
-                    </div>
-                </fieldset>
-            </form>
+        <ul class="button-group even-2">
+          <li>
+            <a class="save_view button small" id="save_new_view"
+               title="Save new view" {{#unless ../isViewEnabled}}disabled{{/unless}}>
+              Create
+            </a>
+          </li>
+          <li>
             {{#if isNew}}
-            {{else}}
-                <div class="description_selected_view {{#if isFavorite}}isFavorite{{/if}}"><span class="description">Description:</span><span class="value">{{#if description}}{{description}}{{else}}N/A{{/if}}</span></div>
-            {{/if}}
-        {{else}}
-            <div class="loading">Waiting for data... <img src="{{ imagePath }}/threshold/ajax-loader.gif" alt="" alt="Loading.." /></div>
+            {{ else }}
+            <a class="save_view button small" id="delete_view"
+               title="Delete view" {{#unless ../isViewEnabled}} disabled{{/unless}}>
+              Delete
+            </a>
         {{/if}}
+
+          </li>
+        </ul>
+
+
+        <label class="control-label" for="dropdown_view_id">Views
+          <select id="dropdown_view_id" {{#unless ../isViewEnabled}}
+          disabled{{/unless}}>
+          {{#maps}}
+          {{#if is_selected}}
+          <option value="{{../viewid}}" selected="selected">
+            {{../title}}
+          </option>
+          {{ else }}
+          <option value="{{ viewid }} ">{{ title }}</option>
+          {{/if}}
+          {{/maps}}
+          </select>
+        </label>
+
+        <!-- Debug: context.viewid {{context_selected_map.viewid}} -->
+
+        <ul class="button-group even-2">
+          <li>
+            <button id="save_view"
+            {{#unless ../isViewEnabled}} disabled{{/unless}}
+            class="save_view small">Save
+            </button>
+          </li>
+          <li>
+            <button id="set_as_user_favorite"
+            {{#unless ../isFavoriteEnabled}} disabled{{/unless}}
+            class="save_view small">Favorite
+            </button>
+          </li>
+        </ul>
+
+        {{#if isBrowserSupportingSVGExport}}
+        <button id="export_svg"
+        {{#unless ../isViewEnabled}} disabled{{/unless}}
+        class="save_view small full-width">Export SVG
+        </button>
+        {{/if}}
+
+        <div id="save_view_spinner"></div>
+      </div>
+    </form>
+    {{#if isNew}}
+    {{ else }}
+    <div class="description_selected_view {{#if isFavorite}}isFavorite{{/if}}">
+      <span class="description">Description:</span><span class="value">{{#if description}}{{ description }}{{ else }}N/A{{/if}}</span>
     </div>
+    {{/if}}
+    {{ else }}
+    <div class="loading">Waiting for data... <img
+            src="{{ imagePath }}/threshold/ajax-loader.gif" alt=""
+            alt="Loading.."/></div>
+    {{/if}}
+  </div>
 </div>

@@ -90,18 +90,27 @@ quote http://www.bluerobot.com/web/layouts/
     min-width: 300px;
 }
 
+/*
+ * NETMAP ADMIN PAGE STYLES
+ */
+
 td.current_favorite {
     background: url('../../images/netmap/emblem-favorite.png') no-repeat center left;
     height: 33px;
-}
-td.current_favorite a {
-    padding-left: 33px;
+    a {
+        padding-left: 33px;
+    }
 }
 
+/*
+ * END NETMAP ADMIN STYLES
+ */
+
+
 div.isFavorite {
-    background: url('../../images/netmap/emblem-favorite.png') no-repeat center right;
-    height: 33px;
+    background: url('../../images/netmap/emblem-favorite.png') no-repeat top right;
 }
+
 div.isFavorite span.description {
     padding-right: 33px;
 }
@@ -116,10 +125,11 @@ div.isFavorite span.description {
     display: none;
 }
 
-div#netmap_link_to_admin {
+#netmap_link_to_admin {
     display: none;
 }
-a#netmap_link_to_admin {
+
+#netmap_link_to_admin {
     margin-top: 0.5em;
     display: block;
 }
@@ -132,10 +142,6 @@ a#netmap_link_to_admin {
 
 .clear {
     clear: both;
-}
-
-.netmap-node-status {
-    float: left;
 }
 
 .netmap-node-menu {
