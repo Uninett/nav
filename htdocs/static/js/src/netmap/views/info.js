@@ -74,7 +74,7 @@ define([
                 $("a#toggle_view", this.$el).html("&gt;&gt;");
 
                 $helper_content.fadeIn('fast');
-                $helper.animate({'width': "{0}px".format(margin - 40) }, 400);
+                $helper.animate({'width': "{0}px".format(margin - 15) }, 400);
             }
             return margin;
             //$("#netmap_main_view").animate({'margin-right': "{0}px".format(margin)}, 400);
