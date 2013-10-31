@@ -80,8 +80,9 @@ def get_last_job_log_from_netboxes(rows, job_type):
     """
     netboxes_job = dict((row.netbox, None) for row in rows)
     for netbox in netboxes_job:
-        netboxes_job[netbox] = netbox.job_log.filter(
-            job_name=job_type).order_by('-end_time')[0]
+        if netbox:
+            netboxes_job[netbox] = netbox.job_log.filter(
+                job_name=job_type).order_by('-end_time')[0]
     return netboxes_job
 
 
