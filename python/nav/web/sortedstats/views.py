@@ -38,7 +38,7 @@ TIMEFRAMES = (
 )
 
 TARGET = re.compile('cricket-data(/.*)')
-OUTPUT = re.compile('.*/([^/]+/[^/]+)$","\\1')
+OUTPUT = re.compile('.*/([^/]+/[^/]+)$')
 
 
 def index(request):
@@ -114,8 +114,8 @@ def index(request):
 
         values_formatted = [
             (
-                TARGET.search(key),
-                OUTPUT.sub(key),
+                TARGET.search(key).group(1),
+                OUTPUT.sub('\\1', key),
                 '{0:.2f}'.format(value)
             ) for key, value in values_sorted
         ]

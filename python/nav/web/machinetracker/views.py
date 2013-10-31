@@ -259,12 +259,14 @@ def mac_do_search(request):
         for row in arp_result:
             if row.netbox in netboxes_ip2mac:
                 job_log = netboxes_ip2mac[row.netbox]
-                row.fishy = job_log if job_log.is_overdue() else None
+                fishy = job_log and job_log.is_overdue()
+                row.fishy = job_log if fishy else None
 
         for row in cam_result:
             if row.netbox in netboxes_topo:
                 job_log = netboxes_topo[row.netbox]
-                row.fishy = job_log if job_log.is_overdue() else None
+                fishy = job_log and job_log.is_overdue()
+                row.fishy = job_log if fishy else None
 
         mac_count = len(cam_result)
         ip_count = len(arp_result)
@@ -352,7 +354,8 @@ def switch_do_search(request):
         for row in cam_result:
             if row.netbox in netboxes_topo:
                 job_log = netboxes_topo[row.netbox]
-                row.fishy = job_log if job_log.is_overdue() else None
+                fishy = job_log and job_log.is_overdue()
+                row.fishy = job_log if fishy else None
 
         swp_count = len(cam_result)
         swp_tracker = track_mac(('mac', 'sysname', 'module', 'port'),
