@@ -202,7 +202,7 @@
       {% if report.table.rows %}
 
         {% for row in report.table.rows %}
-          <tr class="{% cycle 'oddrow' 'evenrow' %}">
+          <tr>
 
             {% for cell in row.cells %}
               <td class="{% cycle 'oddcell' 'evencell' %}">
