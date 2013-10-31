@@ -27,12 +27,8 @@ table.expand {
     background-color: #FFF5E0;
 }
 
-table.alternaterows tr:nth-child(odd) {
-    background-color: #fff;
-}
-
-table.alternaterows tr:nth-child(even) {
-    background-color: #f6f6f6;
+table.align-top td {
+    vertical-align: top;
 }
 
 /* Table caption */

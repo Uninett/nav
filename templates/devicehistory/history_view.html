@@ -33,7 +33,7 @@
     </div>
 
     {% for group_name, group in history.items %}
-    <table class="listtable reporttable">
+    <table class="listtable full-width align-top">
         <caption>
             {{ group_name }}
             <span class="subtitle right">{{ group|length }} items.</span>
@@ -64,7 +64,7 @@
 
         <tbody>
         {% for h in group %}
-            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+            <tr>
                 <td>{{ h.netbox.room.location.id }}</td>
                 <td>{{ h.netbox.room.id }}</td>
                 <td>{{ h.netbox.sysname }}</td>
@@ -82,11 +82,11 @@
                 <td>{{ h.alert_type.name }}</td>
                 <td>
                 {% if h.extra_messages %}
-                    <ul>
+                    <ul class="no-bullet">
                     {% for state,m in h.extra_messages.items %}
                         <li class="sms_message" id="sms_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
                             <span>{{ m.sms }}</span>
-                            <ul class="email_message" id="email_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                            <ul class="email_message no-bullet" id="email_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
                                 <li>{{ m.email|linebreaks }}</li>
                             </ul>
                         </li>
