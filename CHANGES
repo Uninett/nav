@@ -1,3 +1,29 @@
+Version 3.15.2
+(released 31 Oct 2013)
+
+ Bugfixes:
+
+  * LP#1241441 (UnicodeDecodeErrors in reports with non-ASCII data on some
+                installations)
+  * LP#1241611 (Ranked statistics search results crash with TypeError)
+  * LP#1241627 (modpython authentication shim appears to leak open PostgreSQL
+                connections in Apache)
+  * LP#1241630 (thresholdMon crashes with TypeError when sending a threshold
+                event)
+  * LP#1242673 (frontpage small screens display links above status)
+  * LP#1242905 (Machine Tracker result sorting breaks down for MAC and Switch
+                search results)
+  * LP#1244120 (Subnet Matrix crashes under unknown circumstances)
+  * LP#1244175 (Using SQL to insert custom device categories will cause Netmap
+                to fail)
+  * LP#1244191 (eventengine dies instead of re-opening logs on the HUP signal)
+  * LP#1245370 (Subnet matrix crashes when only a single scope is registered)
+  * LP#1245419 (NoReverseMatch error on some Machine Tracker searches)
+  * LP#1246226 (Cannot delete IP devices with interface stacks)
+  * LP#1246684 (AttributeError crash in Machine Tracker when search results
+                include data from deleted IP devices)
+
+
 Version 3.15.1
 (released 17 Oct 2013)
 
