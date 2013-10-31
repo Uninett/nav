@@ -14,121 +14,125 @@
         {% endif %}
     </a>
 
-    <div class="row">
-        <div id="advblock" {% if not adv %}style="display: none;"{% endif %}  class="column small-9">
-            <h5>Advanced Search</h5>
+      <div class="row">
+        <div id="advblock" {% if not adv %}style="display: none;"{% endif %} class="column small-12">
+          <h5>Advanced Search</h5>
 
-            <div id="advforms" class="column medium-6">
-                    <input id="adv" type="hidden" name="adv" value="1"/>
+          <div id="advforms" class="column medium-6">
+            <input id="adv" type="hidden" name="adv" value="1"/>
 
-                    {% comment %} Wouldn't it be nice if we used Django model- and form objects for this instead? Just sayin'... {% endcomment %}
+            {% comment %} Wouldn't it be nice if we used Django model- and form objects for this instead? Just sayin'... {% endcomment %}
 
-                    <table class="full-width">
-                        {% if report.form %}
-                            {% for a in report.form %}
-                                {% with a.raw as a_raw %}
-                                    {% with forloop.counter0 as counter %}
-                                        <tr>
-                                            <th>
-                                                <label for="adv{{ counter }}">{{ a.title }}</label>
-                                            </th>
+            <table class="full-width">
+              {% if report.form %}
+                {% for a in report.form %}
+                  {% with a.raw as a_raw %}
+                    {% with forloop.counter0 as counter %}
+                      <tr>
+                        <th>
+                          <label for="adv{{ counter }}">{{ a.title }}</label>
+                        </th>
 
-                                            <td>
-                                                <input
-                                                        type="checkbox"
-                                                        name="not_{{ a_raw }}"
-                                                        id="not_adv{{ counter }}"
-                                                        {% if a_raw in neg %}
-                                                        checked
-                                                        {% endif %}>
-                                            </td>
+                        <td>
+                          <input
+                                  type="checkbox"
+                                  name="not_{{ a_raw }}"
+                                  id="not_adv{{ counter }}"
+                                  {% if a_raw in neg %}
+                                  checked
+                                  {% endif %}>
+                        </td>
 
-                                            <td>
-                                                <label for="not_adv{{ counter }}">not</label>
-                                            </td>
+                        <td>
+                          <label for="not_adv{{ counter }}">not</label>
+                        </td>
 
-                                            <td>
-                                                <select name="op_{{ a_raw }}">
-                                                    {% for element in operatorlist %}
-
-                                                        <option
-                                                                value="{{ element }}"
-                                                                {% if element in descriptions %}
-                                                                title="{{ descriptions|get_item:element }}"
-                                                                {% endif %}
-                                                                {% ifequal element operator|get_item:a_raw|default:"" %}
-                                                                selected
-                                                                {% endifequal %}>
-                                                            {{ operators|get_item:element|safe }}
-                                                        </option>
-
-                                                    {% endfor %}
-                                                </select>
-                                            </td>
-
-                                            <td>
-                                                <input
-                                                        type="text"
-                                                        name="{{ a_raw }}"
-                                                        id="adv{{ counter }}"
-                                                        value="{{ contents|get_item:a_raw|default:"" }}">
-                                            </td>
-                                        </tr>
-
-                                    {% endwith %}
-                                {% endwith %}
+                        <td>
+                          <select name="op_{{ a_raw }}">
+                            {% for element in operatorlist %}
+                              <option
+                                      value="{{ element }}"
+                                      {% if element in descriptions %}
+                                      title="{{ descriptions|get_item:element }}"
+                                      {% endif %}
+                                      {% ifequal element operator|get_item:a_raw|default:"" %}
+                                      selected
+                                      {% endifequal %}>
+                                {{ operators|get_item:element|safe }}
+                              </option>
                             {% endfor %}
-                        {% endif %}
+                          </select>
+                        </td>
 
-                    </table>
-                    <input type="submit" class="button small" value="Filter">
+                        <td>
+                          <input
+                                  type="text"
+                                  name="{{ a_raw }}"
+                                  id="adv{{ counter }}"
+                                  value="{{ contents|get_item:a_raw|default:"" }}">
+                        </td>
+                      </tr>
+
+                    {% endwith %}
+                  {% endwith %}
+                {% endfor %}
+              {% endif %}
+
+            </table>
+            <input type="submit" class="button small" value="Filter">
+          </div>
+
+          <div class="column medium-6">
+            <div class="panel">
+              <h4>Operator usage</h4>
+
+              <dl class="no-bullet">
+                <dt>=</dt>
+                <dd>"equals", enter null for empty string</dd>
+                <dt>~</dt>
+                <dd>case insensitive search, use * as wildcard</dd>
+                <dt>[:]</dt>
+                <dd>"between", takes two colon-separated arguments</dd>
+                <dt>(,,)</dt>
+                <dd>"is one of", takes a comma-separated list of any
+                  size
+                  as argument.
+                </dd>
+              </dl>
+
+              <p>&lt;, &gt;, &lt;= and &gt;= needs no explanation.</p>
+
+              <p>All these operators may be negated by clicking the "not"
+                checkbox.</p>
             </div>
-
-            <div class="column medium-6">
-                <div class="panel">
-                    <h4>Operator usage</h4>
-
-                    <dl class="no-bullet">
-                        <dt>=</dt>
-                        <dd>"equals", enter null for empty string</dd>
-                        <dt>~</dt>
-                        <dd>case insensitive search, use * as wildcard</dd>
-                        <dt>[:]</dt>
-                        <dd>"between", takes two colon-separated arguments</dd>
-                        <dt>(,,)</dt>
-                        <dd>"is one of", takes a comma-separated list of any
-                            size
-                            as argument.
-                        </dd>
-                    </dl>
-
-                    <p>&lt;, &gt;, &lt;= and &gt;= needs no explanation.</p>
-
-                    <p>All these operators may be negated by clicking the "not"
-                        checkbox.</p>
-                </div>
-            </div>
+          </div>
 
         </div>
-        <div class="column medium-3">
-            <label for="export">Delimiter: </label>
+      </div>
+      {# advblock #}
 
-            <div class="row collapse">
-                <div class="column small-6">
-                    <select name="export">
-                        {% for delim in delimiters %}
-                            <option value="{{ delim }}">{{ delim }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="column small-6">
-                    <button type="submit" name="exportcsv" value="1" class="prefix">Export CSV
-                    </button>
-                </div>
+
+      <div class="row">
+        <div class="column large-2 medium-4 small-12">
+          <label for="export">Delimiter: </label>
+
+          <div class="row collapse">
+            <div class="column small-4">
+              <select name="export">
+                {% for delim in delimiters %}
+                  <option value="{{ delim }}">{{ delim }}</option>
+                {% endfor %}
+              </select>
             </div>
+            <div class="column small-8">
+              <button type="submit" name="exportcsv" value="1"
+                      class="prefix">Export CSV
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
 
-    </div> {# advblock #}
     </form>
 
 
