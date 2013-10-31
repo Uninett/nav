@@ -17,13 +17,13 @@
     <div class="panel">Search for netboxes, interfaces, rooms and vlans. This search is the same as searching in the navbar.</div>
 
     <div class="row">
-        <div class="large-6 medium-9 small-12 column">
+        <div class="large-6 medium-10 small-12 column">
             <form action="{% url info-search %}" method="get">
                 <div class="row collapse">
-                    <div class="large-10 medium-10 small-12 columns">
+                    <div class="medium-10 small-12 columns">
                         {{ form.query }}
                     </div>
-                    <div class="large-2 medium-2 small-12 columns">
+                    <div class="medium-2 small-12 columns">
                         <input type="submit" class="button prefix" value="Search">
                     </div>
                 </div>
@@ -32,14 +32,14 @@
     </div>
 
     <div class="row">
-        <div class="large-6 medium-9 small-12 column">
+        <div class="large-6 medium-10 small-12 column">
         {% if form.is_bound %}
             <div id="infotabs" class="ui-helper-hidden">
             {% if searchproviders %}
                 <ul>
                 {% for searchprovider in searchproviders %}
                     {% if searchprovider.results %}
-                        <li><a href="#{{ searchprovider.name }}">{{ searchprovider.name }}</a></li>
+                        <li><a href="#{{ searchprovider.name }}">{{ searchprovider.name }} ({{ searchprovider.results|length }})</a></li>
                     {% endif %}
                 {% endfor %}
                 </ul>
@@ -47,7 +47,7 @@
                 {% for searchprovider in searchproviders %}
                     {% if searchprovider.results %}
                         <div id="{{ searchprovider.name }}">
-                            <table class="listtable">
+                            <table class="listtable full-width table-hover">
                                 <caption>
                                     {{ searchprovider.name }}
                                     <span class="subtitle right">
