@@ -114,14 +114,14 @@ def sigterm_handler(signum, _frame):
 
 
 def sighup_handler(_signum, _frame):
-        """Reopens log files."""
-        _logger.info("SIGHUP received; reopening log files")
-        nav.logs.reopen_log_files()
-        nav.daemon.redirect_std_fds(
-            stderr=nav.logs.get_logfile_from_logger())
-        nav.logs.reset_log_levels()
-        nav.logs.set_log_levels()
-        _logger.info("Log files reopened, log levels reloaded.")
+    """Reopens log files."""
+    _logger.info("SIGHUP received; reopening log files")
+    nav.logs.reopen_log_files()
+    nav.daemon.redirect_std_fds(
+        stderr=nav.logs.get_logfile_from_logger())
+    nav.logs.reset_log_levels()
+    nav.logs.set_log_levels()
+    _logger.info("Log files reopened, log levels reloaded.")
 
 
 def start_engine():
