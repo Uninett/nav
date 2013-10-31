@@ -74,5 +74,4 @@ class MachineTrackerNavlet(Navlet):
             return redirect('machinetracker-mac_search',
                             **{'mac': forminput, 'days': days, 'dns': dns})
         else:
-            return redirect('machinetracker-swp_short_search',
-                            **{'switch': forminput, 'module': '', 'port': ''})
+            return redirect('machinetracker')
