@@ -5,7 +5,7 @@
     <a href="{% url devicehistory-search %}" class="button small secondary">New search</a>
 
     <div class="row">
-        <div class="medium-8 columns">
+        <div class="medium-9 columns">
             <form action="{% url devicehistory-view %}" method="get">
                 {% for type, elements in selection.items %}
                     {% for id in elements %}
@@ -17,10 +17,11 @@
             </form>
         </div>
 
-        <div class="medium-4 columns">
+        <div class="medium-3 columns">
             <div class="panel searchparams">
             {% for type, elements in search_description.items %}
-                <h5>{{ type|capfirst }}</h5>
+                <h5>Search parameters</h5>
+                <h6>{{ type|capfirst }}</h6>
                 <ul class="no-bullet">
                 {% for id in elements %}
                     <li>{{ id }}</li>

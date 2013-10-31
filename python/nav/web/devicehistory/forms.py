@@ -59,18 +59,21 @@ class DeviceHistoryViewFilter(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(DeviceHistoryViewFilter, self).__init__(*args, **kwargs)
+
+        common_class = 'medium-3'
+
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Fieldset(
                 'Filters',
                 Row(
-                    Column('from_date', css_class='medium-3'),
-                    Column('to_date', css_class='medium-3'),
+                    Column('from_date', css_class=common_class),
+                    Column('to_date', css_class=common_class),
                     Column(Field('eventtype', css_class='select2'),
-                           css_class='medium-3'),
+                           css_class=common_class),
                     Column(Field('group_by', css_class='select2'),
-                           css_class='medium-3'),
+                           css_class=common_class),
                 )
             )
         )
