@@ -1,15 +1,15 @@
 {% extends "useradmin/base.html" %}
 
 {% block content %}
-    <h3>Are you sure you want to delete/remove the {{ type }} {{ name }}</h3>
+  <h5>Are you sure you want to delete/remove the {{ type }} {{ name }}</h5>
 
-    <form action="." method="post">
-        <p>
-            {% if type and id %}
-                <input type="hidden" name="{{ type }}" value="{{ id }}" />
-            {% endif %}
-            <input type="submit" value="Yes" class="button"/>
-            <a href="{{ back }}" class="button">Cancel</a>
-        </p>
-    </form>
+  <form action="." method="post">
+    <p>
+      {% if type and id %}
+        <input type="hidden" name="{{ type }}" value="{{ id }}"/>
+      {% endif %}
+      <input type="submit" value="Yes" class="button"/>
+      <a href="{{ back }}" class="button secondary">No</a>
+    </p>
+  </form>
 {% endblock %}
