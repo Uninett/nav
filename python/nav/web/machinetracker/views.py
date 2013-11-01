@@ -165,6 +165,7 @@ def ip_do_search(request):
         'subnet_start': unicode(from_ip),
         'subnet_end': unicode(to_ip),
         'display_no_results': display_no_results,
+        'colspan': find_colspan('ip', form)
     }
     info_dict.update(IP_DEFAULTS)
 
@@ -173,6 +174,20 @@ def ip_do_search(request):
         info_dict,
         RequestContext(request)
     )
+
+
+def find_colspan(view, form):
+    """Find correct colspan for the view"""
+    defaults = {'ip': 5, 'netbios': 7}
+    colspan = defaults[view]
+    netbios = form.data.get('netbios', False)
+    dns = form.data.get('dns', False)
+
+    if netbios:
+        colspan += 1
+    if dns:
+        colspan += 1
+    return colspan
 
 
 def mac_search(request):
@@ -252,6 +267,7 @@ def mac_do_search(request):
             'ip_tracker': ip_tracker,
             'mac_tracker_count': mac_count,
             'ip_tracker_count': ip_count,
+            'colspan': find_colspan('ip', form)
         })
 
     info_dict.update(MAC_DEFAULTS)
@@ -413,6 +429,7 @@ def netbios_do_search(request):
             'form_data': form.cleaned_data,
             'netbios_tracker': netbios_tracker,
             'netbios_tracker_count': nbt_count,
+            'colspan': find_colspan('netbios', form)
         })
 
     info_dict.update(NBT_DEFAULTS)
