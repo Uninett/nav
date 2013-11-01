@@ -6,16 +6,13 @@
             <div class="row">
                 <div class="medium-6 columns">
                     <div class="row collapse">
-                        <div class="medium-3 columns">
-                            <span class="prefix">Ip range</span>
-                        </div>
-                        <div class="medium-7 columns {% if form.ip_range.errors %}error{% endif %}">
+                        <div class="medium-9 columns {% if form.ip_range.errors %}error{% endif %}">
                             {{ form.ip_range }}
                             {% if form.ip_range.errors %}
                                 <small>{{ form.ip_range.errors }}</small>
                             {% endif %}
                         </div>
-                        <div class="medium-2 columns">
+                        <div class="medium-3 columns">
                             <input type="submit" value="Search" class="button postfix"/>
                         </div>
                     </div>

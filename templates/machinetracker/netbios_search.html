@@ -7,16 +7,13 @@
                 <div class="medium-6 column">
 
                     <div class="row collapse">
-                        <div class="medium-3 column">
-                            <span class="prefix">Netbios name</span>
-                        </div>
-                        <div class="medium-7 column {% if form.search.errors %}error{% endif %}">
+                        <div class="medium-9 column {% if form.search.errors %}error{% endif %}">
                             {{ form.search }}
                             {% if form.search.errors %}
                                 <small>{{ form.search.errors }}</small>
                             {% endif %}
                         </div>
-                        <div class="medium-2 column">
+                        <div class="medium-3 column">
                             <input type="submit" value="Search" class="button postfix"/>
                         </div>
                     </div>
@@ -59,6 +56,10 @@
             {% include "machinetracker/netbios_tracker.html" %}
         </div>
 
+    {% else %}
+      {% if form_data.search %}
+        <div class="alert-box">No results for "{{ form_data.search }}"</div>
+      {% endif %}
     {% endif %}
 
     <div id="valid-search-terms" class="reveal-modal">

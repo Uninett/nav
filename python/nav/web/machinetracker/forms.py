@@ -35,7 +35,9 @@ class IpTrackerForm(MachineTrackerForm):
     choices = [('active', 'Active'), ('inactive', 'Inactive'),
                ('both', 'Both')]
 
-    ip_range = forms.CharField()
+    ip_range = forms.CharField(widget=forms.TextInput(
+        attrs={'placeholder': 'IP-address or range'})
+    )
     period_filter = forms.ChoiceField(widget=forms.RadioSelect(),
                                       choices=choices,
                                       initial='active')
@@ -52,7 +54,9 @@ class IpTrackerForm(MachineTrackerForm):
 
 
 class MacTrackerForm(MachineTrackerForm):
-    mac = forms.CharField()
+    mac = forms.CharField(widget=forms.TextInput(
+        attrs={'placeholder': 'Mac-address'})
+    )
     netbios = forms.BooleanField(required=False, initial=False,
                                  help_text="Netbios name (if any)")
 
@@ -78,7 +82,8 @@ class SwitchTrackerForm(forms.Form):
 
 
 class NetbiosTrackerForm(MachineTrackerForm):
-    search = forms.CharField()
+    search = forms.CharField(widget=forms.TextInput(
+        attrs={'placeholder': 'Netbios name'}))
 
     def clean_search(self):
         """Make sure blank spaces and such is removed from search"""

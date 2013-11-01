@@ -7,17 +7,13 @@
             <div class="row">
                 <div class="medium-6 column">
                     <div class="row collapse">
-
-                        <div class="medium-3 column">
-                            <span class="prefix">Mac</span>
-                        </div>
-                        <div class="medium-7 column {% if form.mac.errors %}error{% endif %}">
+                        <div class="medium-9 column {% if form.mac.errors %}error{% endif %}">
                             {{ form.mac }}
                             {% if form.mac.errors %}
                                 <small>{{ form.mac.errors }}</small>
                             {% endif %}
                         </div>
-                        <div class="medium-2 column">
+                        <div class="medium-3 column">
                             <input type="submit" value="Search" class="button postfix"/>
                         </div>
 
