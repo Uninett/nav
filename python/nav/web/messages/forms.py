@@ -18,6 +18,7 @@
 from django.forms import ModelForm
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Submit
+from datetime import datetime, timedelta
 
 from nav.models.msgmaint import Message
 from nav.models.msgmaint import MessageToMaintenanceTask
@@ -40,6 +41,8 @@ class MessageForm(ModelForm):
         for task in tasks.all():
             initials.append(task.maintenance_task.pk)
         self.initial['maintenance_tasks'] = initials
+        self.initial['publish_start'] = datetime.now()
+        self.initial['publish_end'] = datetime.now() + timedelta(days=7)
 
         # Classes for javascript plugin
         self.fields['publish_start'].widget.attrs['class'] = 'datetimepicker'
