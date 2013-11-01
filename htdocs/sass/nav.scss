@@ -1,3 +1,7 @@
+// Custom fonts and icons
+@import "fonts";
+@import "font-awesome/font-awesome";
+
 // Nav settings comes first
 @import "navsettings";
 
@@ -11,3 +15,6 @@
 @import "nav/accordion";
 @import "nav/datatables";
 @import "nav/tabs";
+
+// Overriding classes and mixins
+@import "overrides";

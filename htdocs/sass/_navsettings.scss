@@ -3,5 +3,34 @@
 $row-width: 100%;
 
 // NAV color palette
-$primary-color: #447799;
+$primary-color: #027bbb;
 $secondary-color: #e9e9e9;
+
+$alert-color: #d2322d;
+$success-color: #5cb85c;
+
+$alert-box-bg: #f2dede;
+$alert-box-color: #b94a48;
+$alert-box-border: #eed3d7;
+
+$success-box-bg: #dff0d8;
+$success-box-color: #468847;
+$success-box-border: #d6e9c6;
+
+$info-box-bg: #d9edf7;
+$info-box-color: #3a87ad;
+$info-box-border: #bce8f1;
+
+// Variables
+// -----------------------------------------------------------------------
+
+// Alerts
+$include-html-alert-classes: false;
+
+// Fonts
+$body-font-family: "Open Sans", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+$body-font-weight: 400;
+
+// Menu
+$topbar-bg-color: #243640 !default;
+$topbar-dropdown-bg: #243640 !default;
