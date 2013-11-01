@@ -2,8 +2,10 @@
 
 {% block content %}
 
-<a href="{% url messages-edit message.id %}" class="button small">Edit</a>
-<a href="{% url messages-followup message.id %}" class="button small">Follow up</a>
+{% if not current_user_data.account.is_default_account %}
+  <a href="{% url messages-edit message.id %}" class="button small">Edit</a>
+  <a href="{% url messages-followup message.id %}" class="button small">Follow up</a>
+{% endif %}
 
 <table class="vertitable">
     <caption>{{ message.title }}</caption>
