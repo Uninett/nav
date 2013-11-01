@@ -324,7 +324,7 @@ Also, since `Django templates`_ are used, you have the full power of its
 template tag library to control and customize the appearance of an alert
 message based on the available variables.
 
-.. `_Django templates`: https://docs.djangoproject.com/en/1.2/ref/templates/
+.. _`Django templates`: https://docs.djangoproject.com/en/1.4/ref/templates/
 
 VLANs
 -----
