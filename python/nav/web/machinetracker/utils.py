@@ -155,9 +155,9 @@ def track_mac(keys, resultset, dns):
         if row.end_time > datetime.now():
             row.still_active = "Still active"
         if dns:
-            ip = row['ip']
+            ip = row.ip
             if dns_lookups[ip] and not isinstance(dns_lookups[ip], Exception):
-                row['dns_lookup'] = dns_lookups[ip].pop()
+                row.dns_lookup = dns_lookups[ip].pop()
             else:
                 row.dns_lookup = ""
         if not hasattr(row, 'module'):
@@ -166,7 +166,7 @@ def track_mac(keys, resultset, dns):
             row.port = ''
         key = []
         for k in keys:
-            key.append(getattr(row,k))
+            key.append(getattr(row, k))
         key = tuple(key)
         if key not in tracker:
             tracker[key] = []
