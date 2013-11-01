@@ -20,6 +20,10 @@ from django import forms
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
 
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
+                                            Column, Field, HTML)
+
 
 class AccountGroupForm(forms.ModelForm):
     """Form for adding an account to a group from account page"""
@@ -45,15 +49,40 @@ class AccountForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AccountForm, self).__init__(*args, **kwargs)
+        account = kwargs.get('instance', False)
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'POST'
 
-        if kwargs.get('instance', False):
+        fieldset_name = 'Account'
+        fieldset_args = [fieldset_name]
+        default_args = ['login', 'name', 'password1', 'password2']
+
+        if account:
             self.fields['password1'].required = False
+            submit_value = 'Save changes'
 
             # Remove password and login from external accounts
+            # This should really be two different forms because of this
             if kwargs['instance'].ext_sync:
+                authenticator = "" \
+                    "<p class='alert-box'>External authenticator: %s</p>" % (
+                    kwargs['instance'].ext_sync)
                 del self.fields['password1']
                 del self.fields['password2']
-                del self.fields['login']
+                self.fields['login'].widget.attrs['readonly'] = True
+                fieldset_args.extend(['login', 'name',
+                                      HTML(authenticator)])
+            else:
+                fieldset_args.extend(default_args)
+        else:
+            submit_value = 'Create account'
+            fieldset_args.extend(default_args)
+
+        submit = Submit('submit_account', submit_value, css_class='small')
+        fieldset_args.extend([submit])
+        fieldset = Fieldset(*fieldset_args)
+        self.helper.layout = Layout(fieldset)
 
     def clean_password1(self):
         """Validate password"""
@@ -136,7 +165,19 @@ class OrganizationAddForm(forms.Form):
             query = Organization.objects.all()
 
         self.fields['organization'] = forms.models.ModelChoiceField(
-            queryset=query, required=True)
+            queryset=query, required=True, label='')
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('organization', css_class='select2'),
+                       css_class='medium-8'),
+                Column(Submit('submit_org', 'Add organization',
+                              css_class='postfix'),
+                       css_class='medium-4'),
+                css_class='collapse'
+            )
+        )
 
 
 class GroupAddForm(forms.Form):
@@ -149,8 +190,20 @@ class GroupAddForm(forms.Form):
         else:
             query = AccountGroup.objects.all()
 
-        self.fields['group'] = forms.models.ModelChoiceField(queryset=query,
-                                                             required=True)
+        self.fields['group'] = forms.models.ModelChoiceField(
+            queryset=query, required=True, label='')
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('group', css_class='select2'),
+                       css_class='medium-8'),
+                Column(Submit('submit_group', 'Add membership',
+                              css_class='postfix'),
+                       css_class='medium-4'),
+                css_class='collapse'
+            )
+        )
 
 
 class AccountAddForm(forms.Form):

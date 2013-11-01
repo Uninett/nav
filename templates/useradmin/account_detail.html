@@ -1,4 +1,5 @@
 {% extends "useradmin/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
   {% if account %}
@@ -7,157 +8,110 @@
     <h4>Create new account</h4>
   {% endif %}
 
-  <a href="{% url useradmin-account_list %}">Back to account list</a>
+  <p><a href="{% url useradmin-account_list %}">Back to account list</a></p>
+
 
   {% comment %} ACTION BUTTONS {% endcomment %}
-  <ul class="button-group right">
-    {% if account and current_user_data.is_admin and not current_user_data.sudoer %}
-      {% ifnotequal current_user_data.account.id account.id %}
-        <li>
-          <form action="." method="post">
-            <input type="hidden" name="account" value="{{ account.id }}"/>
-            <input type="submit" value="Switch to this user" name="submit_sudo" class="button small"/>
-          </form>
-        </li>
-      {% endifnotequal %}
-    {% endif %}
-
-    {% if account and not account.is_system_account %}
-      <li>
-        <a href="{% url useradmin-account_delete account.id %}"
-           class="button alert small">
-          Delete account
-        </a>
-      </li>
-    {% endif %}
-  </ul>
-
-
-  {% comment %} ACCOUNT FORM {% endcomment %}
-  {% if account_form %}
-    <form action="." method="post">
-      <table class="vertitable">
-        {% if account.ext_sync %}
-          <tr>
-            <th>Login</th>
-            <td>{{ account.login }}</td>
-          </tr>
+  <div class="row">
+    <div class="small-12">
+      <ul class="button-group right">
+        {% if account and current_user_data.is_admin and not current_user_data.sudoer %}
+          {% ifnotequal current_user_data.account.id account.id %}
+            <li>
+              <form action="." method="post">
+                <input type="hidden" name="account" value="{{ account.id }}"/>
+                <input type="submit" value="Switch to this user"
+                       name="submit_sudo"
+                       class="button small"/>
+              </form>
+            </li>
+          {% endifnotequal %}
         {% endif %}
-        {{ account_form }}
-        <tr>
-          <th>External</th>
-          <td>{{ account.ext_sync|default:"None" }}</td>
-        </tr>
-        <tr>
-          <th></th>
-          <td><input type="submit" value="Submit changes" name="submit_account" class="button small"/></td>
-        </tr>
-      </table>
-    </form>
-  {% endif %}
+
+        {% if account and not account.is_system_account %}
+          <li>
+            <a href="{% url useradmin-account_delete account.id %}"
+               class="button alert small">
+              Delete account
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
 
 
-  {% if account %}
+  <div class="row">
 
-    {% comment %} ORGANIZATIONS {% endcomment %}
-    <div class="panel">
-      <h3>Organizations</h3>
+    {% comment %} ACCOUNT FORM {% endcomment %}
+    {% if account_form %}
+      <div class="column large-4 medium-5">
+        {% crispy account_form %}
+      </div>
+    {% endif %}
 
-      <div class="row">
-        <div class="large-6 columns">
-          {% if account.organizations.all %}
-            <table class="table-hover expand">
-              <tbody>
-              {% for org in account.organizations.all %}
-                <tr>
-                  <td>{{ org }}</td>
-                  <td class="text-right">
-                    <a href="{% url useradmin-account_organization_remove account.id,org.id %}"
+    {% if account %}
+      <div class="column large-8 medium-7">
+
+        {% comment %} ORGANIZATIONS {% endcomment %}
+        <h5>Organizations</h5>
+        {% if account.organizations.all %}
+          <table class="table-hover expand">
+            <tbody>
+            {% for org in account.organizations.all %}
+              <tr>
+                <td>{{ org }}</td>
+                <td class="text-right">
+                  <a href="{% url useradmin-account_organization_remove account.id,org.id %}"
+                     class="button secondary tiny">Remove</a>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>Not member of any organizations.</p>
+        {% endif %}
+
+        {% if org_form %}
+          {% crispy org_form %}
+        {% endif %}
+
+        <h5>Group memberships</h5>
+
+        {% if account.accountgroup_set.all %}
+          <table class="table-hover expand">
+            <tbody>
+            {% for group in account.accountgroup_set.all %}
+              <tr>
+                <td>
+                  <a href="{% url useradmin-group_detail group.id %}">{{ group }}</a>
+                </td>
+                <td>
+                  {{ group.description }}
+                </td>
+                <td>
+                  {% if not group.is_protected_group %}
+                    <a href="{% url useradmin-account_group_remove account.id,group.id %}"
                        class="button secondary tiny">Remove</a>
-                  </td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-          {% else %}
-            <p>Not member of any organizations.</p>
-          {% endif %}
-        </div>
+                  {% else %}
+                    &nbsp;
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>Not member of any groups.</p>
+        {% endif %}
 
-        <div class="large-6 columns">
-          {% if org_form %}
-            <form action="." method="post" class="custom">
-              {{ org_form.organization.errors }}
-              <div class="row collapse">
-                <div class="large-8 columns">
-                  {{ org_form.organization }}
-                </div>
-                <div class="large-4 columns">
-                  <input type="submit" value="Add organization"
-                         name="submit_org" class="button postfix"/>
-                </div>
-              </div>
-            </form>
-          {% endif %}
-        </div>
+        {% if group_form %}
+          {% crispy group_form %}
+        {% endif %}
       </div>
+    {% endif %}
+  </div>
 
-    </div>  {% comment %} PANEL ORGANIZATIONS {% endcomment %}
-
-
-    {% comment %} GROUP MEMBERSHIPS {% endcomment %}
-    <div class="panel">
-      <h3>Group memberships</h3>
-
-      <div class="row">
-        <div class="large-6 columns">
-          {% if account.accountgroup_set.all %}
-            <table class="table-hover expand">
-              <tbody>
-              {% for group in account.accountgroup_set.all %}
-                <tr>
-                  <td>
-                    <a href="{% url useradmin-group_detail group.id %}">{{ group }}</a>
-                  </td>
-                  <td>
-                    {{ group.description }}
-                  </td>
-                  <td>
-                    {% if not group.is_protected_group %}
-                      <a href="{% url useradmin-account_group_remove account.id,group.id %}"
-                         class="button secondary tiny">Remove</a>
-                    {% else %}
-                      &nbsp;
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-          {% else %}
-            <p>Not member of any groups.</p>
-          {% endif %}
-        </div>
-
-        <div class="large-6 columns">
-          {% if group_form %}
-            <form action="." method="post" class="custom">
-              {{ group_form.group.errors }}
-              <div class="row collapse">
-                <div class="large-8 columns">
-                  {{ group_form.group }}
-                </div>
-                <div class="large-4 columns">
-                  <input type="submit" value="Add membership"
-                         name="submit_group" class="button postfix"/>
-                </div>
-              </div>
-            </form>
-          {% endif %}
-        </div>
-      </div>
-    </div> {% comment %} PANEL GROUP MEMBERSHIPS {% endcomment %}
-
-  {% endif %}
 
 {% endblock %}
