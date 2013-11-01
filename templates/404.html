@@ -1,3 +1,25 @@
-<h1>Page not found!</h1>
+<!Doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" href="/static/css/nav.css" />
+		<link rel="stylesheet" href="/static/css/nav/errorpages.css" />
+	</head>
+	<body>
+		<div class="row hero">
+			<div class="large-10 columns">
+				<h1>Four, oh four... <i class="fa fa-thumbs-down"></i></h1>
+				<p>Our highly trained beavers did not find anything on {{ request_path }}, sorry.</p>
+			</div>
+			<div class="large-2 columns ">
+				<a href="/" class="button button-medium secondary right">Front page</a>
+			</div>
+		</div>
 
-<p>{{ request_path }} was not found on this server.</p>
+		<div class="row info">
+			<div class="large-12 columns">
+				<p>If this seem wrong to you, we suggest you contact the site administrator.</p>
+			</div>
+		</div>
+	</body>
+</html>
