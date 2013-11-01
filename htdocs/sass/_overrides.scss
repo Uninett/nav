@@ -9,6 +9,13 @@
 	font-weight:400;
 }
 
+// Override this mixin to default to secondary colors on alert-box
+@mixin alert($radius:false) {
+  @include alert-base;
+  @include alert-style();
+  @include radius($radius);
+}
+
 // Main configuration for alert-box class
 .alert-box {
     @include alert;
