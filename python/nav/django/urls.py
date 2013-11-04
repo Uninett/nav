@@ -52,5 +52,7 @@ urlpatterns += patterns('',
     url(r'^userinfo/', 'nav.web.useradmin.views.userinfo', name='userinfo'),
 )
 
+handler500 = 'nav.django.views.custom_500'
+
 # Make django serve static files (a webserver like apache overrides this)
 urlpatterns += staticfiles_urlpatterns()
