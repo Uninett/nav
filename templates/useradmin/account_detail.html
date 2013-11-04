@@ -8,12 +8,11 @@
     <h4>Create new account</h4>
   {% endif %}
 
-  <p><a href="{% url useradmin-account_list %}">Back to account list</a></p>
-
-
   {% comment %} ACTION BUTTONS {% endcomment %}
   <div class="row">
-    <div class="small-12">
+    <div class="column small-12">
+      <a href="{% url useradmin-account_list %}">Back to account list</a>
+
       <ul class="button-group right">
         {% if account and current_user_data.is_admin and not current_user_data.sudoer %}
           {% ifnotequal current_user_data.account.id account.id %}
