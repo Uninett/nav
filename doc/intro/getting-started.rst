@@ -162,6 +162,8 @@ categories:
 The `GW`, `GSW`, `SW` and `EDGE` categories will all require an SNMP community
 to be configured; this is optional with the remaining categories.
 
+.. _seeddb-bulk-import-intro:
+
 Importing multiple devices in bulk
 ----------------------------------
 
