@@ -1,4 +1,5 @@
 {% extends "useradmin/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
   {% if group %}
@@ -7,152 +8,101 @@
     <h4>Create new group</h4>
   {% endif %}
 
-  <a href="{% url useradmin-group_list %}">Back to group list</a>
+  <div class="row">
+    <div class="column small-12">
+      <a href="{% url useradmin-group_list %}">Back to group list</a>
 
-  {% comment %} ACTION BUTTONS {% endcomment %}
-  <div class="button-group right">
-    {% if group and not group.is_system_group %}
-      <a href="{% url useradmin-group_delete group.id %}"
-         class="button small alert">Delete group</a>
-    {% endif %}
+      {% comment %} ACTION BUTTONS {% endcomment %}
+      <ul class="button-group right">
+        {% if group and not group.is_system_group %}
+          <li>
+            <a href="{% url useradmin-group_delete group.id %}"
+               class="button small alert">Delete group</a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
   </div>
 
-  {% if group_form %}
-    <form action="." method="post">
-      <table class="vertitable">
-        {{ group_form.as_table }}
-        <tr>
-          <th></th>
-          <td><input type="submit" value="Submit changes" name="submit_group"
-                     class="button"/></td>
-        </tr>
-      </table>
-    </form>
-  {% endif %}
+  <div class="row">
 
-  {% if group %}
+    <div class="column medium-4">
+      {% if group_form %}
+        {% crispy group_form %}
+      {% endif %}
+    </div>
 
-    {% comment %} PRIVILEGES {% endcomment %}
-    <div class="panel">
-      <h3>Privileges</h3>
+    {% if group %}
+    <div class="column medium-8">
 
-      <div class="row">
+      {% comment %} PRIVILEGES {% endcomment %}
+      <h5>Privileges</h5>
 
-        <div class="large-6 columns">
-          {% if group.privilege_set.all %}
-            <table class="expand table-hover">
-              <tbody>
-              {% for privilege in group.privilege_set.all %}
-                <tr>
-                  <td>
-                    {{ privilege.type }}
-                  </td>
-                  <td class="break-word">
-                    {{ privilege.target }}
-                  </td>
-                  <td class="text-right">
-                    <a href="{% url useradmin-group_privilege_remove group.id,privilege.id %}"
-                       class="button secondary small">
-                      Revoke
-                    </a>
-                  </td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-          {% else %}
-            <p>Group has no privileges set.</p>
-          {% endif %}
-        </div>
+      {% if group.privilege_set.all %}
+        <table class="expand table-hover">
+          <tbody>
+          {% for privilege in group.privilege_set.all %}
+            <tr>
+              <td>{{ privilege.type }}</td>
+              <td class="break-word">{{ privilege.target }}</td>
+              <td class="text-right">
+                <a href="{% url useradmin-group_privilege_remove group.id,privilege.id %}"
+                   class="button secondary small">
+                  Revoke
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>Group has no privileges set.</p>
+      {% endif %}
 
-        <div class="large-6 columns">
-          {% if privilege_form %}
-            <h4>Grant privileges</h4>
-            <p>
-              See <a
-                    href="http://docs.python.org/howto/regex.html">
-              this
-              HOWTO</a> on the Regular expressions used for
-              matching
-              targets for privileges like 'web_access'.
-            </p>
+      {% if privilege_form %}
+        <p>Grant privileges <i class="fa fa-info-circle has-tip" data-tooltip data-options="hoverDelay: 2000" title="
+          See <a href='http://docs.python.org/howto/regex.html'>
+          this HOWTO</a> on the Regular expressions used for
+          matching targets for privileges like 'web_access'.
+          "></i></p>
 
-            <form action="." method="post">
-              {% if privilege_form.type.errors %}
-                <div class="alert-box alert">{{ privilege_form.type.errors }}</div>
-              {% endif %}
+        {% crispy privilege_form %}
+      {% endif %}
 
-              <ul class="inline-list">
-                {% for value, text in privilege_form.type.field.choices %}
-                  <li>
-                    <label><input type="radio" value="{{ value }}"
-                                  name="type"> {{ text }}</label>
-                  </li>
-                {% endfor %}
-              </ul>
 
-              {% if privilege_form.target.errors %}
-                <div class="alert-box alert">{{ privilege_form.target.errors }}</div>
-              {% endif %}
-              {{ privilege_form.target }}
-              <input type="submit" value="Grant" name="submit_privilege"
-                     class="button small"/>
-            </form>
-          {% endif %}
+        {% comment %} GROUP MEMBERSHIPS {% endcomment %}
+        <h5>Group memberships</h5>
 
-        </div>
+        {% if group.accounts.all %}
+          <table class="table-hover expand">
+            <tbody>
+            {% for account in group.accounts.all %}
+              <tr>
+                <td>
+                  <a href="{% url useradmin-account_detail account.id %}">{{ account }}</a>
+                </td>
+                <td class="text-right">
+                  {% if not group.is_protected_group %}
+                    <a href="{% url useradmin-group_account_remove group.id,account.id %}"
+                       class="button small secondary">Remove</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>Group does not have any members.</p>
+        {% endif %}
+
+        {% crispy account_form %}
+
       </div>
-
     </div>
 
 
-    {% comment %} GROUP MEMBERSHIPS {% endcomment %}
-    <div class="panel">
-      <h3>Group memberships</h3>
+    {% endif %}
 
-      <div class="row">
+  </div>
 
-        <div class="large-6 columns">
-          {% if group.accounts.all %}
-            <table class="table-hover expand">
-              <tbody>
-              {% for account in group.accounts.all %}
-                <tr>
-                  <td>
-                    <a href="{% url useradmin-account_detail account.id %}">{{ account }}</a>
-                  </td>
-                  <td class="text-right">
-                    {% if not group.is_protected_group %}
-                      <a href="{% url useradmin-group_account_remove group.id,account.id %}"
-                         class="button small secondary">Remove</a>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-          {% else %}
-            <p>Group does not have any members.</p>
-          {% endif %}
-        </div>
-
-        <div class="large-6 columns">
-          {{ account_form.account.errors }}
-          <form action="." method="post" class="custom">
-            <div class="row collapse">
-              <div class="large-8 columns">
-                {{ account_form.account }}
-              </div>
-              <div class="large-4 columns">
-                <input type="submit" value="Add to group" name="submit_account"
-                       class="button postfix"/>
-              </div>
-            </div>
-          </form>
-        </div>
-
-      </div>
-    </div>  {% comment %} PANEL GROUP MEMBERSHIPS{% endcomment %}
-
-  {% endif %}
 {% endblock %}

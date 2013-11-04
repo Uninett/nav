@@ -26,9 +26,18 @@ from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
 
 
 class AccountGroupForm(forms.ModelForm):
-    """Form for adding an account to a group from account page"""
+    """Form for adding or editing a group on the group page"""
     name = forms.CharField(required=True)
     description = forms.CharField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(AccountGroupForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Fieldset('Group', 'name', 'description',
+                     Submit('submit_group', 'Save changes')))
 
     class Meta:
         model = AccountGroup
@@ -147,11 +156,29 @@ class ChangePasswordForm(forms.Form):
 
 
 class PrivilegeForm(forms.Form):
-    """Form for adding a privilege to a group"""
-    type = forms.models.ModelChoiceField(PrivilegeType.objects.all(),
-                                         widget=forms.RadioSelect(),
-                                         empty_label=None)
-    target = forms.CharField(required=True)
+    """Form for adding a privilege to a group from the group page"""
+    type = forms.models.ModelChoiceField(PrivilegeType.objects.all(), label='',
+                                         empty_label='--- Type ---')
+    target = forms.CharField(required=True, label='',
+                             widget=forms.TextInput(
+                                 attrs={'placeholder': 'Target'}))
+
+    def __init__(self, *args, **kwargs):
+        super(PrivilegeForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = ""
+        self.helper.form_method = "POST"
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('type', css_class='select2'),
+                       css_class='medium-3'),
+                Column('target', css_class='medium-6'),
+                Column(Submit('submit_privilege', 'Grant',
+                              css_class='postfix'), css_class='medium-3'
+                ),
+                css_class='collapse'
+            )
+        )
 
 
 class OrganizationAddForm(forms.Form):
@@ -181,7 +208,7 @@ class OrganizationAddForm(forms.Form):
 
 
 class GroupAddForm(forms.Form):
-    """Form for adding or editing a group"""
+    """Form for adding a group to an account from the account page"""
     def __init__(self, account, *args, **kwargs):
         super(GroupAddForm, self).__init__(*args, **kwargs)
         if account:
@@ -215,5 +242,18 @@ class AccountAddForm(forms.Form):
         else:
             query = Account.objects.all()
 
-        self.fields['account'] = forms.models.ModelChoiceField(query,
-                                                               required=True)
+        self.fields['account'] = forms.models.ModelChoiceField(
+            query, required=True, widget=forms.Select(), label='',
+            empty_label='--- Choose account ---')
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('account', css_class='select2'),
+                       css_class='medium-9'),
+                Column(Submit('submit_account', 'Add to group',
+                              css_class='postfix'),
+                       css_class='medium-3'),
+                css_class='collapse'
+            )
+        )
