@@ -21,6 +21,7 @@ nobase_webroot_DATA = $(wildcard images/*/*.gif \
 				 static/js/src/netmap/templates/*/*.html \
 				 static/css/*.css \
 				 static/css/*/*.css \
+				 static/fonts/*.* \
 				 )
 
 .PHONY: sass
