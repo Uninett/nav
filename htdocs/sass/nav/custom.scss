@@ -150,3 +150,23 @@ li.list-header {
     top:3px;
     padding:0 10px 0 15px;
 }
+
+
+/* Form styles */
+
+form.inline-form {
+    display: inline-block;
+    > * {
+        display: inline-block;
+        width: auto;
+    }
+    input[type=submit] {
+        font-size: 0.875em;
+        padding-top: 0;
+        padding-bottom: 0;
+        text-align: center;
+        line-height: 2.125em;
+        height: 2.3125em;
+    }
+}
+
