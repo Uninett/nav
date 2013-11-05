@@ -17,7 +17,6 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Field
-from nav.web.crispyforms import CheckBox
 
 
 class MaintenanceTaskForm(forms.Form):
@@ -36,7 +35,8 @@ class MaintenanceTaskForm(forms.Form):
                        css_class="medium-5"),
                 Column(Field('end_time', css_class='datetimepicker'),
                        css_class="medium-5"),
-                Column(CheckBox('no_end_time'), css_class="medium-2"),
+                Column(Field('no_end_time', css_class='input-align'),
+                       css_class="medium-2")
             ),
             'description')
 
