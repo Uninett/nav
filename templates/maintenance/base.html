@@ -8,7 +8,7 @@
 
 {% if current_user_data.messages %}
 <div class="messages">
-    <ul>
+    <ul class="alertbox no-bullet">
     {% for m in current_user_data.messages %}
         <li class="{{ m.type }}">{{ m.message }}</li>
     {% endfor %}
