@@ -1,6 +1,14 @@
 {% extends "maintenance/base.html" %}
 
 {% block content %}
+  {% if not current_user_data.account.is_default_account %}
+    <a href="{% url maintenance-edit task.id %}" class="button small">Edit</a>
+    {% ifnotequal task.state "cancelled" %}
+      <a href="{% url maintenance-cancel task.id %}" class="button small">Cancel now</a>
+    {% endifnotequal %}
+  {% endif %}
+
+
 <table class="vertitable vertitablefull">
     <caption>
         {{ task.description }}
@@ -23,7 +31,7 @@
             <th>Components</th>
             <td>
             {% if components %}
-            <ul>
+            <ul class="no-bullet">
             {% for comp in components %}
                 <li>
                     {{ comp.title|capfirst }}:
@@ -53,15 +61,6 @@
         <tr>
             <th>State</th>
             <td>{{ task.state|capfirst }}</td>
-        </tr>
-        <tr>
-            <th>Actions</th>
-            <td>
-                <a href="{% url maintenance-edit task.id %}">Edit</a>
-                {% ifnotequal task.state "cancelled" %}
-                | <a href="{% url maintenance-cancel task.id %}">Cancel now</a>
-                {% endifnotequal %}
-            </td>
         </tr>
         {% endif %}
     </tbody>

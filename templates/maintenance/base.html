@@ -10,8 +10,8 @@
 {% block base_content %}
 
 {% if current_user_data.messages %}
-<div class="messages">
-    <ul class="alertbox no-bullet">
+<div class="alert-box alert">
+    <ul class="no-bullet">
     {% for m in current_user_data.messages %}
         <li class="{{ m.type }}">{{ m.message }}</li>
     {% endfor %}
