@@ -170,3 +170,13 @@ form.inline-form {
     }
 }
 
+
+/* This will align the label from crispy forms to the right of the checkbox */
+.checkboxinput + label {
+    display: inline-block;
+}
+
+/* This will try to center the checkbox vertically when adjacent to input fields */
+.checkboxinput.input-align {
+    margin: 1.5em 0.2em 1.5em 0.2em;
+}
