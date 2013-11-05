@@ -32,11 +32,13 @@ class MaintenanceTaskForm(forms.Form):
         self.helper.layout = Layout(
             Row(
                 Column(Field('start_time', css_class='datetimepicker'),
-                       css_class="medium-5"),
+                       css_class="medium-6"),
                 Column(Field('end_time', css_class='datetimepicker'),
-                       css_class="medium-5"),
-                Column(Field('no_end_time', css_class='input-align'),
-                       css_class="medium-2")
+                       css_class="medium-6"),
+            ),
+            Row(
+                Column(css_class='medium-6'),
+                Column('no_end_time', css_class="medium-6")
             ),
             'description')
 

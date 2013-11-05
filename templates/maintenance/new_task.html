@@ -7,69 +7,62 @@
 
   <h4>{{ heading }}</h4>
 
-  <div class="row">
-    <div class="small-12 columns">
-
   <form action="{{ request.path }}" method="post">
-    <table class="listtable vertitable">
-      <tr>
-        <th>Search/select components:</th>
-        <td>
-          {{ quickselect }}
-        </td>
-      </tr>
 
-      <tr>
-        <th>Selected components for this task:</th>
-        <td>
-          {% for key, identifiers in selected.items %}
-            {% for id in identifiers %}
-              <input type="hidden" name="{{ key }}" value="{{ id }}"/>
-            {% endfor %}
+    <div class="row">
+      <div class="medium-6 columns">
+        <fieldset>
+          <legend>Details</legend>
+          {% crispy task_form %}
+        </fieldset>
+
+        <fieldset>
+        <legend>Selected components</legend>
+        {% for key, identifiers in selected.items %}
+          {% for id in identifiers %}
+            <input type="hidden" name="{{ key }}" value="{{ id }}"/>
           {% endfor %}
+        {% endfor %}
 
-          {% if components %}
-            <ul class="no-bullet">
-              {% for comp in components %}
-                <li>
-                  <input type="hidden" name="{{ comp.type }}"
-                         value="{{ comp.id }}"/>
-                  <input type="checkbox" name="remove_{{ comp.type }}"
-                         value="{{ comp.id }}"/>
-                  {{ comp.title|capfirst }}:
-                  {% for elem in comp.trail %}
-                    {% if elem.url %}
-                      <a href="{{ elem.url }}"
-                         title="{{ elem.title }}">{{ elem.name }}</a>
-                    {% else %}
-                      {{ elem.name }}
-                    {% endif %}
-                    {% if not forloop.last %}
-                      &rarr;
-                    {% endif %}
-                  {% endfor %}
-                </li>
-              {% endfor %}
-            </ul>
-            <p><input type="submit" name="remove" value="Remove selected"/></p>
-          {% else %}
-            <p>(none)</p>
-            <p><input type="submit" name="remove" value="Remove selected"
-                      disabled="disabled"/></p>
-          {% endif %}
-        </td>
-      </tr>
-
-    {% crispy task_form %}
-
-      <tr>
-        <th></th>
-        <td><input type="submit" name="save" value="Save task" class="button small" /></td>
-      </tr>
-    </table>
-  </form>
+        {% if components %}
+          <ul class="no-bullet">
+            {% for comp in components %}
+              <li>
+                <input type="hidden" name="{{ comp.type }}" value="{{ comp.id }}"/>
+                <input type="checkbox" name="remove_{{ comp.type }}" value="{{ comp.id }}"/>
+                {{ comp.title|capfirst }}:
+                {% for elem in comp.trail %}
+                  {% if elem.url %}
+                    <a href="{{ elem.url }}" title="{{ elem.title }}">{{ elem.name }}</a>
+                  {% else %}
+                    {{ elem.name }}
+                  {% endif %}
+                  {% if not forloop.last %}
+                    &rarr;
+                  {% endif %}
+                {% endfor %}
+              </li>
+            {% endfor %}
+          </ul>
+          <input type="submit" name="remove" value="Remove selected" class="button small secondary"/>
+        {% else %}
+          <p>(none)</p>
+          <input type="submit" name="remove" value="Remove selected" disabled="disabled" class="button small secondary"/>
+        {% endif %}
+        </fieldset>
 
       </div>
-  </div>
+
+      <div class="medium-6 columns">
+        <fieldset>
+          <legend>Select components</legend>
+          {{ quickselect }}
+        </fieldset>
+      </div>
+
+    </div>
+
+    <input type="submit" name="save" value="Save task" class="button" />
+  </form>
 
 {% endblock %}
