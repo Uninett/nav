@@ -16,65 +16,65 @@
  *
  */
 
-div.calendar table {
-	width: 100%;
-}
-div.calendar tr th {
-	width: 14%;
-}
-div.calendar tr td {
-	border: 1px solid #999;
-	height: 5em; /* Content will increase height if necessary. */
-	vertical-align: top;
-}
-div.calendar .daynumber {
-    font-weight: bold;
-    margin-left: 0.3em;
-}
-
-div.calendar tr td.today {
-	background: #FFC;
-	color: black;
-}
-
-div.calendar tr th.month {
-	background: #567899;
-	color: white;
-	border-bottom: 2px solid white;
-	font-size: 1.2em;
-	font-weight: bolder;
-	padding: 0.3em 0.5em;
-	text-align: left;
-}
-
-div.calendar tr.weekheader th {
-    background: #eee;
-    font-weight: bold;
-	border-left: 1px solid white;
-	border-right: 2px solid white;
-	padding: 5px;
-	padding-bottom: 0;
-}
-
-div.calendar .noday {
-	background-color: #dddddd;
-}
-
-div.calendar .task ul {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-}
-div.calendar .task li {
-	margin: 0;
-	padding: 0;
-	font-size: 0.8em;
-}
-div.calendar .task li a, div.calendar .task li a:hover {
-	color: black;
-	display: block;
-	text-decoration:none;
-}
-div.calendar .task li.end a {
-	text-align: right;
+div.calendar {
+    table {
+    	width: 100%;
+        tr {
+            &.weekheader th {
+                background: #eee;
+                font-weight: bold;
+                border-left: 1px solid white;
+                border-right: 2px solid white;
+                padding: 5px;
+                padding-bottom: 0;
+            }
+            th {
+            	width: 14%;
+                &.month {
+                    background: #567899;
+                    color: white;
+                    border-bottom: 2px solid white;
+                    font-size: 1.2em;
+                    font-weight: bolder;
+                    padding: 0.3em 0.5em;
+                    text-align: left;
+                }
+            }
+            td {
+                border: 1px solid #999;
+                padding: 0;
+                height: 5em; /* Content will increase height if necessary. */
+                vertical-align: top;
+                &.today {
+                    background: #FFC;
+                    color: black;
+                }
+            }
+        }
+    }
+    .daynumber {
+        font-weight: bold;
+        margin-left: 0.3em;
+    }
+    .noday {
+        background-color: #dddddd;
+    }
+    .task ul {
+        list-style: none;
+    	margin: 0;
+	    padding: 0;
+        li {
+            margin: 0;
+            padding: 0;
+            font-size: 0.8em;
+            a, a:hover {
+                color: black;
+                display: block;
+                text-decoration:none;
+            }
+            &.end a {
+                text-align: right;
+            }
+        }
+    }
 }
