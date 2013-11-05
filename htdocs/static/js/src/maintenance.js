@@ -1,4 +1,4 @@
-require(['plugins/quickselect', 'plugins/hover_highlight', 'libs/jquery'], function (QuickSelect, HoverHighlight) {
+require(['plugins/quickselect', 'plugins/hover_highlight', 'libs/jquery', "libs/jquery-ui-timepicker-addon"], function (QuickSelect, HoverHighlight) {
     var calendar = $('.calendar');
     var quickselect = $('.quickselect');
 
@@ -13,6 +13,11 @@ require(['plugins/quickselect', 'plugins/hover_highlight', 'libs/jquery'], funct
     $(document).ready(function(){
         $('#id_no_end_time').change(function(){
             toggleEndTime(this);
+        });
+
+        $('.datetimepicker').datetimepicker({
+            'dateFormat': 'yy-mm-dd',
+            'timeFormat': 'HH:mm'
         });
     });
 
