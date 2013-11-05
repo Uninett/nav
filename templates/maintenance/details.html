@@ -1,13 +1,17 @@
 {% extends "maintenance/base.html" %}
 
 {% block content %}
+
+  {% include 'maintenance/back.html' %}
+
+  {% include 'maintenance/heading.html' %}
+
   {% if not current_user_data.account.is_default_account %}
     <a href="{% url maintenance-edit task.id %}" class="button small">Edit</a>
     {% ifnotequal task.state "cancelled" %}
       <a href="{% url maintenance-cancel task.id %}" class="button small">Cancel now</a>
     {% endifnotequal %}
   {% endif %}
-
 
 <table class="vertitable vertitablefull">
     <caption>

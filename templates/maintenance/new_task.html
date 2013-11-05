@@ -2,6 +2,14 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
+
+  {% include 'maintenance/back.html' %}
+
+  <h4>{{ heading }}</h4>
+
+  <div class="row">
+    <div class="small-12 columns">
+
   <form action="{{ request.path }}" method="post">
     <table class="listtable vertitable">
       <tr>
@@ -60,5 +68,8 @@
       </tr>
     </table>
   </form>
+
+      </div>
+  </div>
 
 {% endblock %}
