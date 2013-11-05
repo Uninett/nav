@@ -16,9 +16,15 @@
 """A collection of forms using the django crispy forms framework"""
 
 from crispy_forms.layout import BaseInput
+from crispy_forms_foundation.layout import Field
 
 
 class NavSubmit(BaseInput):
     """Displays proper Foundation submit button"""
     input_type = 'submit'
     field_classes = 'button small'
+
+
+class CheckBox(Field):
+    """Checkbox suited for the NAV layout"""
+    template = 'custom_crispy_templates/horizontal_checkbox.html'
