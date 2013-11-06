@@ -1,5 +1,6 @@
 from unittest import TestCase
-from nav.web.netmap.views import traffic_load_gradient
+from nav.web.netmap.views import (traffic_load_gradient,
+                                  _convert_image_to_datauri)
 from django.test.client import RequestFactory
 
 
@@ -18,3 +19,8 @@ class NetmapViewtests(TestCase):
         import simplejson
         # from 0 % to 100% , 101 entries.
         assert len(simplejson.loads(response.content)) == 101
+
+
+class NetmapViewHelperTests(TestCase):
+    def test_convert_image_to_datauri_should_not_raise_error(self):
+        _convert_image_to_datauri('non-existant-image-foobar')

@@ -21,10 +21,9 @@
     {% for key, result in mac_tracker.items %}
         {% for row in result %}
         {% if row.fishy %}<tr class="fishy-item">{% else %}<tr>{% endif %}
-            {% if forloop.first %}
             <td>
                 {% if row.netbox.sysname %}
-                <a href="{% url machinetracker-swp_search row.netbox.sysname None None form_data.days %}" title="Search for other machines on this switch">
+                <a href="{% url machinetracker-swp_search row.netbox.sysname '' '' form_data.days %}" title="Search for other machines on this switch">
                 {{ row.netbox.sysname }}</a>
                 {% else %}
                 {{ row.sysname }}
@@ -37,11 +36,11 @@
                 {% endif %}
             </td>
             <td>
-                {{ row.module }}
+                {{ row.module|default_if_none:"" }}
             </td>
             <td>
                 {% with form_data.dns|yesno:"True," as dns %}
-                <a href="{% url machinetracker-swp_search row.sysname row.module row.port form_data.days %}" title="Search for other machines on this port">
+                <a href="{% url machinetracker-swp_search row.sysname row.module|default_if_none:'' row.port form_data.days %}" title="Search for other machines on this port">
                 {{ row.port }}</a>
                 {% endwith %}
             </td>
@@ -51,9 +50,6 @@
                 <img src="{{ STATIC_URL }}images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
                 {% endif %}
             </td>
-            {% else %}
-            <td></td><td></td><td></td><td></td><td></td>
-            {% endif %}
             <td>{{ row.start_time|date:"Y-m-d H:i" }}</td>
             <td>
                 {% if row.still_active %}

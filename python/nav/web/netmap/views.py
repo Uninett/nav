@@ -600,13 +600,18 @@ def traffic_load_gradient(request):
     return response
 
 
-def _convert_image_to_datauri(image):
+def _convert_image_to_datauri(catid):
     """Helper function for converting one image to base64 inline css"""
-    image = image.lower()
-    staticdir = settings.STATICFILES_DIRS[0]
-    return open("{0}/{1}.png".format(
-        os.path.join(staticdir, "images", "netmap"), image),
-        "rb").read().encode("base64").replace("\n", "")
+    image_base = os.path.join(nav.buildconf.webrootdir, "images", "netmap")
+    filename = "{0}.png".format(catid.lower())
+
+    for image in (filename, "other.png"):
+        filepath = os.path.join(image_base, image)
+        try:
+            with open(filepath, "rb") as data:
+                return data.read().encode("base64").replace("\n", "")
+        except IOError:
+            pass
 
 
 def _get_datauris_for_categories():

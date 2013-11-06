@@ -58,6 +58,27 @@ syncing command previously known as :file:`syncdb.py` is now the
 :program:`navsyncdb` program, installed alongside NAV's other binaries.
 
 
+Configuration changes
+---------------------
+
+The configuration file :file:`nav.conf` has gained a new option called
+`SECRET_KEY`. NAV's web interface will not work unless you add this option to
+:file:`nav.conf`.
+
+Set it to a string of random characters that should be unique for your NAV
+installation. This is used by the Django framework for cryptographic signing
+in various situations. Here are three suggestions for generating a suitable
+string of random characters, depending on what tools you have available:
+
+    1. :kbd:`gpg -a --gen-random 1 51`
+    2. :kbd:`makepasswd --chars 51`
+    3. :kbd:`pwgen -s 51 1`
+
+Please see
+https://docs.djangoproject.com/en/1.4/ref/settings/#std:setting-SECRET_KEY if
+you want to know more about this.
+
+
 mod_python vs. mod_wsgi
 -----------------------
 
@@ -98,6 +119,15 @@ REST API
 NAV 3.15 also includes the beginnings of a read-only RESTful API. The API is
 not yet documented, and must be considered an unstable experiment at the
 moment. API access tokens can only be issued by a NAV administrator.
+
+
+Write privileges for room image uploads
+---------------------------------------
+
+Uploaded images for rooms are stored in
+:file:`${prefix}/var/uploads/images/rooms/`. This directory needs to be
+writable for navcron, assuming you are using the default wsgi setup.
+
 
 Files to remove
 ---------------
@@ -315,7 +345,7 @@ Also, since `Django templates`_ are used, you have the full power of its
 template tag library to control and customize the appearance of an alert
 message based on the available variables.
 
-.. `_Django templates`: https://docs.djangoproject.com/en/1.2/ref/templates/
+.. _`Django templates`: https://docs.djangoproject.com/en/1.4/ref/templates/
 
 VLANs
 -----

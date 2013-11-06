@@ -99,15 +99,30 @@ def daemonize():
         sys.exit(1)
     install_signal_handlers()
 
+
 def install_signal_handlers():
     """Installs signal handlers"""
     signal.signal(signal.SIGTERM, sigterm_handler)
+    signal.signal(signal.SIGHUP, sighup_handler)
+
 
 def sigterm_handler(signum, _frame):
     """Logs the imminent shutdown"""
     _logger.info("--- %s received: shutting down eventengine ---",
                  nav.daemon.signame(signum))
     sys.exit(0)
+
+
+def sighup_handler(_signum, _frame):
+    """Reopens log files."""
+    _logger.info("SIGHUP received; reopening log files")
+    nav.logs.reopen_log_files()
+    nav.daemon.redirect_std_fds(
+        stderr=nav.logs.get_logfile_from_logger())
+    nav.logs.reset_log_levels()
+    nav.logs.set_log_levels()
+    _logger.info("Log files reopened, log levels reloaded.")
+
 
 def start_engine():
     "Starts event queue processing"

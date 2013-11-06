@@ -290,8 +290,8 @@ def create_edge_features(edge, popup_template, default_style, indicators):
     middle = [(edge.source.lon+edge.target.lon)/2,
               (edge.source.lat+edge.target.lat)/2]
     target = [edge.target.lon, edge.target.lat]
-    return [make_feature(source, middle, edge.sourceData),
-            make_feature(middle, target, edge.targetData)]
+    return [make_feature(source, middle, edge.source_data),
+            make_feature(middle, target, edge.target_data)]
 
 
 def create_edge_popup(data, popup_template):

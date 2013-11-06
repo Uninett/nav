@@ -13,50 +13,46 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=R0903, R0913
 
-"""Graph representation and manipulation.
-
-
-
-"""
+"""Graph representation and manipulation."""
 
 import logging
 
 from math import sqrt
+from nav.web.geomap.utils import (map_dict, nansafe_max, identity, first,
+                                  group, avg, filter_dict, subdict,
+                                  map_dict_lazy)
 
-from nav.web.geomap.coordinates import utm_str_to_lonlat
-from nav.web.geomap.utils import *
-
-
-logger = logging.getLogger('nav.web.geomap.graph')
+_logger = logging.getLogger('nav.web.geomap.graph')
 
 
 # Specifications of how to combine the properties when combining nodes
 # and edges:
 
-aggregate_properties_place = {
+AGGREGATE_PROPERTIES_PLACE = {
     'load': (nansafe_max, 'load'),
     'num_rooms': len,
     'num_netboxes': (sum, 'num_netboxes'),
     'rooms': identity
-    }
+}
 
-aggregate_properties_room = {
+AGGREGATE_PROPERTIES_ROOM = {
     'id': (first, 'roomid'),
     'descr': (first, 'room_descr'),
     'load': (nansafe_max, 'load'),
     'num_netboxes': len,
     'netboxes': identity
-    }
+}
 
-aggregate_properties_edge = {
+AGGREGATE_PROPERTIES_EDGE = {
     'id': lambda edges: 'ce[%s]' % combine_ids(edges, lambda e: e['id']),
     'num_edges': len,
     'capacity': (sum, 'capacity'),
     'load_in': (sum, 'load_in'),
     'load_out': (sum, 'load_out'),
     'subedges': identity
-    }
+}
 
 
 def build_graph(db_results):
@@ -73,7 +69,7 @@ def build_graph(db_results):
     # create Edge objects:
     for connection in connections.values():
         if (not connection['forward']['local_netboxid'] in graph.nodes or
-            not connection['reverse']['local_netboxid'] in graph.nodes):
+                not connection['reverse']['local_netboxid'] in graph.nodes):
             continue
         graph.add_edge(
             Edge(connection['forward']['id'],
@@ -111,7 +107,7 @@ def simplify(graph, bounds, viewport_size, limit):
     area_filter(graph, bounds)
     create_rooms(graph)
     create_places(graph, bounds, viewport_size, limit)
-    combine_edges(graph, aggregate_properties_edge)
+    combine_edges(graph, AGGREGATE_PROPERTIES_EDGE)
 
 
 def area_filter(graph, bounds):
@@ -131,12 +127,15 @@ def area_filter(graph, bounds):
     describing the bounds of the interesting region.
 
     """
-    def in_bounds(n):
-        return (n.lon >= bounds['minLon'] and n.lon <= bounds['maxLon'] and
-                n.lat >= bounds['minLat'] and n.lat <= bounds['maxLat'])
+    def in_bounds(node):
+        """Check if node is within bounds"""
+        return (bounds['minLon'] <= node.lon <= bounds['maxLon'] and
+                bounds['minLat'] <= node.lat <= bounds['maxLat'])
 
     def edge_connected_to(edge, nodehash):
+        """Check if edge is connected to a node in the nodehash"""
         return edge.source.id in nodehash or edge.target.id in nodehash
+
     nodes = filter_dict(in_bounds, graph.nodes)
     edges = filter_dict(lambda edge: edge_connected_to(edge, nodes),
                         graph.edges)
@@ -159,13 +158,12 @@ def create_rooms(graph):
     Arguments:
 
     graph -- a Graph object.  It is destructively modified.
-    
+
     """
     collapse_nodes(graph,
                    group(lambda node: node.properties['roomid'],
                          graph.nodes.values()),
-                   'netboxes',
-                   aggregate_properties_room)
+                   AGGREGATE_PROPERTIES_ROOM)
 
 
 def create_places(graph, bounds, viewport_size, limit):
@@ -181,7 +179,7 @@ def create_places(graph, bounds, viewport_size, limit):
     Arguments:
 
     graph -- a Graph object.  It is destructively modified.
-    
+
     bounds -- a dictionary with keys (minLon, maxLon, minLat, maxLat)
     describing the bounds of the interesting region.
 
@@ -200,14 +198,20 @@ def create_places(graph, bounds, viewport_size, limit):
     # -- Should take into account that longitudes wrap around. Is
     #    there any way to detect whether we have a map wider than the
     #    earth, or do we need an extra parameter?
-    width = bounds['maxLon']-bounds['minLon']
-    height = bounds['maxLat']-bounds['minLat']
-    lon_scale = float(viewport_size['width'])/width
-    lat_scale = float(viewport_size['height'])/height
-    def square(x): return x*x
-    def distance(n1, n2):
-        return sqrt(square((n1.lon-n2.lon)*lon_scale) +
-                    square((n1.lat-n2.lat)*lat_scale))
+    width = bounds['maxLon'] - bounds['minLon']
+    height = bounds['maxLat'] - bounds['minLat']
+    lon_scale = float(viewport_size['width']) / width
+    lat_scale = float(viewport_size['height']) / height
+
+    def square(var):
+        """Square a number"""
+        return var * var
+
+    def distance(node1, node2):
+        """Calculate distance from node1 to node2"""
+        return sqrt(square((node1.lon - node2.lon) * lon_scale) +
+                    square((node1.lat - node2.lat) * lat_scale))
+
     places = []
     for node in graph.nodes.values():
         for place in places:
@@ -221,12 +225,10 @@ def create_places(graph, bounds, viewport_size, limit):
                            'rooms': [node]})
     collapse_nodes(graph,
                    [place['rooms'] for place in places],
-                   'rooms',
-                   aggregate_properties_place)
+                   AGGREGATE_PROPERTIES_PLACE)
 
 
-def collapse_nodes(graph, node_sets, subnode_list_name,
-                   property_aggregators={}):
+def collapse_nodes(graph, node_sets, property_aggregators):
     """Collapse sets of nodes to single nodes.
 
     Replaces each set of nodes in node_sets by a single (new) node and
@@ -260,24 +262,27 @@ def collapse_nodes(graph, node_sets, subnode_list_name,
     function should take a single argument, a list.
 
     """
+    if property_aggregators is None:
+        property_aggregators = {}
     graph.nodes = {}
     nodehash = {}
-    for s in node_sets:
-        properties = aggregate_properties(map(lambda node: node.properties, s),
-                                          property_aggregators)
-        new_node = Node('cn[%s]' % combine_ids(s),
-                        avg([n.lon for n in s]), avg([n.lat for n in s]),
+    for node_set in node_sets:
+        properties = aggregate_properties(
+            [x.properties for x in node_set],
+            property_aggregators)
+        new_node = Node('cn[%s]' % combine_ids(node_set),
+                        avg([n.lon for n in node_set]),
+                        avg([n.lat for n in node_set]),
                         properties)
-        for n in s:
-            nodehash[n.id] = new_node
+        for node in node_set:
+            nodehash[node.id] = new_node
         graph.add_node(new_node)
     # Now nodehash maps original node ids to new node objects.  Use it
     # to redirect the edges to the new nodes:
     for edge in graph.edges.values():
         edge.source = nodehash[edge.source.id]
         edge.target = nodehash[edge.target.id]
-    graph.edges = filter_dict(lambda edge: edge.source != edge.target,
-                              graph.edges)
+    graph.edges = filter_dict(lambda e: e.source != e.target, graph.edges)
 
 
 def combine_ids(objects, get_id=lambda o: o.id):
@@ -313,24 +318,19 @@ def aggregate_properties(objects, aggregators):
 
     """
     def apply_aggregator(aggr):
+        """Run aggregator with objects as arguments"""
         if isinstance(aggr, tuple):
             fun = aggr[0]
-            property = aggr[1]
-            lst = map(lambda o: o[property], objects)
+            prop = aggr[1]
+            lst = [x[prop] for x in objects]
         else:
             fun = aggr
             lst = objects
         return fun(lst)
     return map_dict_lazy(apply_aggregator, aggregators)
 
-#     return dict(map(lambda (property, aggregator):
-#                         (property,
-#                          aggregator(map(lambda obj: obj.properties[property],
-#                                         objects))),
-#                     aggregators.items()))
-    
 
-def combine_edges(graph, property_aggregators={}):
+def combine_edges(graph, property_aggregators):
     """Combine edges with the same endpoints.
 
     Replaces the edges in graph with new edge objects, where any set
@@ -344,7 +344,9 @@ def combine_edges(graph, property_aggregators={}):
     graph -- a Graph object.  It is destructively modified.
 
     """
-    edges_by_node = dict([(id, set()) for id in graph.nodes])
+    if property_aggregators is None:
+        property_aggregators = {}
+    edges_by_node = dict([(node_id, set()) for node_id in graph.nodes])
     for edge in graph.edges.values():
         edges_by_node[edge.source.id].add(edge)
         edges_by_node[edge.target.id].add(edge)
@@ -354,23 +356,25 @@ def combine_edges(graph, property_aggregators={}):
             continue
         eset = list(edges_by_node[edge.source.id] &
                     edges_by_node[edge.target.id])
-        for e in eset:
-            edge_sets[e] = eset
+        for edge_set in eset:
+            edge_sets[edge_set] = eset
 
     edge_sets = map_dict(equalize_edge_orientation, edge_sets)
 
-    edges = map(
-        lambda eset:
-            Edge('ce[%s]' % combine_ids(eset),
-                 'ce[%s]' % combine_ids(eset, lambda e: e.reverse_id),
-                 eset[0].source,
-                 eset[0].target,
-                 aggregate_properties(map(lambda edge: edge.sourceData, eset),
-                                      property_aggregators),
-                 aggregate_properties(map(lambda edge: edge.targetData, eset),
-                                      property_aggregators)),
-        edge_sets.values())
+    edges = [create_edge(x, property_aggregators) for x in edge_sets.values()]
     graph.edges = dict([(e.id, e) for e in edges])
+
+
+def create_edge(eset, property_aggregators):
+    """Creates edge from the edge set and applies properties"""
+    return Edge('ce[%s]' % combine_ids(eset),
+                'ce[%s]' % combine_ids(eset, lambda e: e.reverse_id),
+                eset[0].source,
+                eset[0].target,
+                aggregate_properties([x.source_data for x in eset],
+                                     property_aggregators),
+                aggregate_properties([x.target_data for x in eset],
+                                     property_aggregators))
 
 
 def equalize_edge_orientation(edges):
@@ -382,11 +386,13 @@ def equalize_edge_orientation(edges):
 
     """
     reference = edges[0]
+
     def fix_orientation(edge):
+        """Fix orientation of edge"""
         if edge.source != reference.source:
             return reverse_edge(edge)
         return edge
-    return map(fix_orientation, edges)
+    return [fix_orientation(x) for x in edges]
 
 
 def reverse_edge(edge):
@@ -397,13 +403,13 @@ def reverse_edge(edge):
     """
     return Edge(edge.reverse_id, edge.id,
                 edge.target, edge.source,
-                edge.targetData, edge.sourceData)
+                edge.target_data, edge.source_data)
 
 
 class Node:
     """Representation of a node in a graph."""
-    def __init__(self, id, lon, lat, properties):
-        self.id = id
+    def __init__(self, node_id, lon, lat, properties):
+        self.id = node_id
         self.lon = lon
         self.lat = lat
         self.properties = properties
@@ -411,13 +417,14 @@ class Node:
 
 class Edge:
     """Representation of an edge in a graph."""
-    def __init__(self, id, reverse_id, source, target, sourceData, targetData):
-        self.id = id
+    def __init__(self, edge_id, reverse_id, source, target, source_data,
+                 target_data):
+        self.id = edge_id
         self.reverse_id = reverse_id
         self.source = source
         self.target = target
-        self.sourceData = sourceData
-        self.targetData = targetData
+        self.source_data = source_data
+        self.target_data = target_data
 
 
 class Graph:
@@ -426,12 +433,10 @@ class Graph:
         self.nodes = {}
         self.edges = {}
 
-    def add_node(self, n):
-        self.nodes[n.id] = n
+    def add_node(self, node):
+        """Add node to graph"""
+        self.nodes[node.id] = node
 
-    def add_edge(self, e):
-        self.edges[e.id] = e
-
-
-
-
+    def add_edge(self, edge):
+        """Add edge to graph"""
+        self.edges[edge.id] = edge
