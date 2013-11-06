@@ -17,12 +17,13 @@
 
 from IPy import IP
 from django import forms
-from nav.util import is_valid_ip, is_valid_mac
-
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Field, Div
 
-from nav.web.crispyforms import NavSubmit
+from crispy_forms_foundation.layout import (Layout, Fieldset, Div, Row, Submit,
+                                            Column)
+
+from nav.util import is_valid_ip, is_valid_mac
+from nav.web.crispyforms import CheckBox
 from nav.models.arnold import (DETENTION_TYPE_CHOICES, STATUSES,
                                KEEP_CLOSED_CHOICES, Justification,
                                QuarantineVlan, DetentionProfile)
@@ -53,9 +54,7 @@ class JustificationForm(forms.Form):
                 fieldset_legend,
                 'name', 'description', 'justificationid'
             ),
-            ButtonHolder(
-                NavSubmit('submit', submit_value)
-            )
+            Submit('submit', submit_value, css_class='small')
         )
 
 
@@ -84,9 +83,7 @@ class QuarantineVlanForm(forms.Form):
                 fieldset_legend,
                 'vlan', 'description', 'qid'
             ),
-            ButtonHolder(
-                NavSubmit('submit', submit_value)
-            )
+            Submit('submit', submit_value, css_class='small')
         )
 
 
@@ -113,20 +110,17 @@ class SearchForm(forms.Form):
         self.helper.form_class = 'custom'
         self.helper.layout = Layout(
             Fieldset(
-                'Search',
-                Div(
-                    Div('searchtype', css_class='large-3 column'),
-                    Div('searchvalue', css_class='large-9 column'),
-                    css_class='row collapse'
+                'Search in history for ip- or mac-address',
+                Row(
+                    Column('searchtype', css_class='medium-3'),
+                    Column('searchvalue', css_class='medium-9'),
+                    css_class='collapse'
                 ),
-                Div(
-                    Div('status', css_class='large-6 column'),
-                    Div('days', css_class='large-6 column'),
-                    css_class='row'
-                )
-            ),
-            ButtonHolder(
-                NavSubmit('search', 'Search')
+                Row(
+                    Column('status', css_class='medium-6'),
+                    Column('days', css_class='medium-6')
+                ),
+                Submit('search', 'Search', css_class='small')
             )
         )
 
@@ -196,34 +190,26 @@ class DetentionProfileForm(forms.Form):
             'title', 'description',
             Fieldset(
                 'Options',
-                Div(
-                    Div('detention_type', css_class='large-4 medium-4 column'),
-                    Div('justification', css_class='large-4 medium-4 column'),
-                    Div('duration', css_class='large-4 medium-4 column'),
-                    css_class='row'),
+                Row(
+                    Column('detention_type', css_class='medium-4'),
+                    Column('justification', css_class='medium-4'),
+                    Column('duration', css_class='medium-4')
+                ),
                 Div('qvlan', css_class='qvlanrow')
             ),
             Fieldset(
                 'Extra',
-                Div(
-                    Div('keep_closed', css_class='large-4 medium-4 column'),
-                    Div(Field('exponential',
-                              template='custom_crispy_templates'
-                                       '/horizontal_checkbox.html',
-                              style='line-height: 3em'),
-                        css_class='large-4 medium-4 column'),
-                    Div(css_class='large-4 medium-4 column'),
-                    css_class='row'
+                Row(
+                    Column('keep_closed', css_class='medium-4'),
+                    Column(CheckBox('exponential', style='line-height: 3em'),
+                           css_class='medium-4'),
+                    Column(css_class='medium-4'),
                 ),
                 'mail',
                 'active_on_vlans'
             ),
-            Field('active',
-                  template='custom_crispy_templates/'
-                           'horizontal_checkbox.html'),
-            ButtonHolder(
-                NavSubmit('submit', 'Save')
-            )
+            CheckBox('active'),
+            Submit('submit', 'Save')
         )
 
         super(DetentionProfileForm, self).__init__(*args, **kwargs)
@@ -243,7 +229,7 @@ class ManualDetentionTargetForm(forms.Form):
         self.helper.form_action = 'arnold-manual-detention'
         self.helper.layout = Layout(
             'target',
-            NavSubmit('submit', 'Go to step 2')
+            Submit('submit', 'Go to step 2', css_class='small')
         )
 
     def clean_target(self):
@@ -288,14 +274,17 @@ class ManualDetentionForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_class = 'custom manualDetentionForm'
         self.helper.layout = Layout(
-            'target',
-            Div('camtuple', css_class='interface_list'),
-            'method',
-            Div('qvlan', css_class='qvlanrow'),
-            'justification',
-            'comment',
-            'days',
-            NavSubmit('submit', 'Detain')
+            Fieldset(
+                'Manual detention',
+                'target',
+                Div('camtuple', css_class='interface_list'),
+                'method',
+                Div('qvlan', css_class='qvlanrow'),
+                'justification',
+                'comment',
+                'days',
+                Submit('submit', 'Detain')
+            )
         )
 
         super(ManualDetentionForm, self).__init__(*args, **kwargs)
