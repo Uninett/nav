@@ -21,6 +21,12 @@ retentions = 60s:1d, 300s:7d, 30m:12d, 2h:50d, 1d:600d
 pattern = ^nav\..*\.ping\.
 retentions = 20s:6h, 60s:1d, 300s:7d, 30m:12d, 2h:50d, 1d:600d
 
+# NAV IP prefix utilization metrics. Default ARP/ND collection interval is
+# 30 minutes.
+[nav-prefix]
+pattern = ^nav\.prefixes\.
+retentions = 30m:30d, 2h:90d, 6h:600d
+
 # NAV generic metric retention archive
 [nav-generic]
 pattern = ^nav\.
