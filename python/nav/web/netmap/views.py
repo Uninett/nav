@@ -603,8 +603,9 @@ def traffic_load_gradient(request):
 def _convert_image_to_datauri(image):
     """Helper function for converting one image to base64 inline css"""
     image = image.lower()
+    staticdir = settings.STATICFILES_DIRS[0]
     return open("{0}/{1}.png".format(
-        os.path.join(settings.STATIC_ROOT, "images", "netmap"), image),
+        os.path.join(staticdir, "images", "netmap"), image),
         "rb").read().encode("base64").replace("\n", "")
 
 
