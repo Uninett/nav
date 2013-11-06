@@ -364,8 +364,8 @@ def render_edit_detention_profile(request, did=None):
     elif did:
         profile = DetentionProfile.objects.get(pk=did)
 
-        profile.active = True if profile.active == 'y' else False
-        profile.incremental = True if profile.incremental == 'y' else False
+        active = True if profile.active == 'y' else False
+        incremental = True if profile.incremental == 'y' else False
         qid = profile.quarantine_vlan.id if profile.quarantine_vlan else None
 
         form = DetentionProfileForm(initial={
@@ -377,10 +377,10 @@ def render_edit_detention_profile(request, did=None):
             'mail': profile.mailfile,
             'qvlan': qid,
             'keep_closed': profile.keep_closed,
-            'exponential': profile.incremental,
+            'exponential': incremental,
             'duration': profile.duration,
             'active_on_vlans': profile.active_on_vlans,
-            'active': profile.active
+            'active': active
         })
     else:
         form = DetentionProfileForm()
