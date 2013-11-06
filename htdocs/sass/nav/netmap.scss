@@ -44,6 +44,9 @@ quote http://www.bluerobot.com/web/layouts/
   code would help other developers to find this resource. Enjoy."
 */
 
+@import '../navsettings';
+$image-path: '../../images';
+
 #netmap_wrapper {
     position: relative;
     top: 0;
@@ -102,7 +105,7 @@ quote http://www.bluerobot.com/web/layouts/
  */
 
 td.current_favorite {
-    background: url('../../images/netmap/emblem-favorite.png') no-repeat center left;
+    background: url('#{$image-path}/netmap/emblem-favorite.png') no-repeat center left;
     height: 33px;
     a {
         padding-left: 33px;
@@ -115,7 +118,7 @@ td.current_favorite {
 
 
 div.isFavorite {
-    background: url('../../images/netmap/emblem-favorite.png') no-repeat top right;
+    background: url('#{$image-path}/netmap/emblem-favorite.png') no-repeat top right;
 }
 
 div.isFavorite span.description {
@@ -261,12 +264,12 @@ div.isFavorite span.description {
         }
     }
     .header {
-        background: #567899;
+        background: $table-caption-color;
         color: #fff;
         overflow: hidden;
         .title {
             font-weight:bold;
-            background: url('../../images/icons/expand_invert.png') top right no-repeat;
+            background: url('#{$image-path}/icons/expand_invert.png') top right no-repeat;
             margin:3px;
         }
         > .no-icon {
