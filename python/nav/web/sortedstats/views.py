@@ -109,8 +109,8 @@ def index(request):
 
         # Make a list of (key, value) tuples from values dict, taking
         # the first 'numrows' elements sorted by value
-        values_sorted = sorted(
-            islice(values.iteritems(), numrows), key=itemgetter(1))
+        values_sorted = islice(sorted(values.iteritems(), key=itemgetter(1),
+                                      reverse=True), numrows)
 
         values_formatted = [
             (
