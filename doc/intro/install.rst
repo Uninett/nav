@@ -28,8 +28,7 @@ To run NAV, these software packages are required:
 
  * Apache2
  * mod_wsgi
- * Cricket
- * PostgreSQL >= 8.4
+ * PostgreSQL >= 9.1
  * rrdtool
  * Python >= 2.6.0
  * nbtscan = 1.5.1
@@ -92,7 +91,7 @@ Installing NAV
 
 To build and install NAV::
 
-  ./configure CRICKETDIR=/path/to/cricket/binaries
+  ./configure
   make
   make install
 
@@ -109,11 +108,6 @@ the files installed in a physically different location (a temporary build
 directory) than what you configured the package for.  In this case, you should
 specify this build directory by adding
 ``DESTDIR=/your/build/directory`` to the ``make install`` command.
-
-If you omit the :makevar:`CRICKETDIR` variable, which specifies the path to your
-Cricket installation's binaries, it will be assumed that these can be found in
-:file:`${prefix}/cricket/cricket`.  A typical value for a Debian install is
-:file:`/usr/share/cricket`.
 
 
 Initializing the database
@@ -210,51 +204,7 @@ and pid files::
   sudo chown -R navcron:nav .
 
 
-Integrating Cricket with NAV
-----------------------------
+Integrating Graphite with NAV
+-----------------------------
 
-.. note:: 
-   
-  When you see the text ``PATH_TO_NAV``, this means you should replace this text
-  with the actual path to your NAV installation.
-
-You need to tell :program:`Cricket` where to locate the configuration. Locate
-your :file:`cricket-conf.pl` file and edit it. Make sure that it contains the
-following:
-
-.. code-block:: perl
-
-  $gConfigRoot = "PATH_TO_NAV/etc/cricket-config"
-
-To test that things work so far, have Cricket compile its configuration::
-
-  sudo -u navcron cricket-compile
-  [16-Nov-2012 15:22:22 ] Starting compile: Cricket version 1.0.5 (2004-03-28)
-  [16-Nov-2012 15:22:22 ] Config directory is PATH_TO_NAV/etc/cricket-config
-  [16-Nov-2012 15:22:23 ] Processed x nodes (in x files) in x seconds.
-
-NAV will generate a new version of the configuration tree every night. You kan
-manually generate the configuration (once you've seeded some devices into NAV)
-by issuing the command::
-
-  sudo -u navcron PATH_TO_NAV/bin/mcc.py
-
-
-Integrating the Cricket web interface
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Cricket comes with its own CGI based web interface for browsing the collected
-statistics. NAV provides its own front-end to Cricket's CGI script to ensure
-access is authenticated and authorized according to NAV's user database.
-
-You will at least need to symlink Cricket's :file:`images` directory into
-NAV's :file:`cricket` directory to render the interface properly. Assuming
-your Cricket installation's files are all located in
-:file:`/usr/share/cricket` (as they are on Debian)::
-
-  cd PATH_TO_NAV/share/htdocs/cricket
-  sudo ln -s /usr/share/cricket/images .
-
-You should now have a completely installed and integrated NAV. For a guide on
-how to get started using NAV, please refer to the :doc:`getting-started`
-tutorial.
+.. WARNING:: This needs to be documented! 
