@@ -7,13 +7,17 @@
 
   {% include 'arnold/back.html' %}
 
+  <h4>Manual detention</h4>
+
   {% if error %}
     <div class="alert-box alert">{{ error }}</div>
   {% endif %}
 
   <div class="row">
     <div class="medium-6 column">
-      {% crispy form %}
+      <div class="panel">
+        {% crispy form %}
+      </div>
     </div>
   </div>
 

@@ -109,19 +109,16 @@ class SearchForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_class = 'custom'
         self.helper.layout = Layout(
-            Fieldset(
-                'Search in history for ip- or mac-address',
-                Row(
-                    Column('searchtype', css_class='medium-3'),
-                    Column('searchvalue', css_class='medium-9'),
-                    css_class='collapse'
-                ),
-                Row(
-                    Column('status', css_class='medium-6'),
-                    Column('days', css_class='medium-6')
-                ),
-                Submit('search', 'Search', css_class='small')
-            )
+            Row(
+                Column('searchtype', css_class='medium-3'),
+                Column('searchvalue', css_class='medium-9'),
+                css_class='collapse'
+            ),
+            Row(
+                Column('status', css_class='medium-6'),
+                Column('days', css_class='medium-6')
+            ),
+            Submit('search', 'Search', css_class='small')
         )
 
     def clean_searchvalue(self):
@@ -274,17 +271,14 @@ class ManualDetentionForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_class = 'custom manualDetentionForm'
         self.helper.layout = Layout(
-            Fieldset(
-                'Manual detention',
-                'target',
-                Div('camtuple', css_class='interface_list'),
-                'method',
-                Div('qvlan', css_class='qvlanrow'),
-                'justification',
-                'comment',
-                'days',
-                Submit('submit', 'Detain')
-            )
+            'target',
+            Div('camtuple', css_class='interface_list'),
+            'method',
+            Div('qvlan', css_class='qvlanrow'),
+            'justification',
+            'comment',
+            'days',
+            Submit('submit', 'Detain')
         )
 
         super(ManualDetentionForm, self).__init__(*args, **kwargs)

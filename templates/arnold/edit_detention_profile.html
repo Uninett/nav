@@ -9,13 +9,15 @@
 
   <div class="row">
     <div class="large-8 column">
-      {% crispy form %}
+      <div class="panel">
 
-      {% if profile %}
-        <p>Last changed {{ profile.last_edited|date:'Y-m-d H:i:m' }}
-          by {{ profile.edited_by }}</p>
-      {% endif %}
+        {% crispy form %}
 
+        {% if profile %}
+          <p>Last changed {{ profile.last_edited|date:'Y-m-d H:i:m' }}
+            by {{ profile.edited_by }}</p>
+        {% endif %}
+      </div>
     </div>
 
   </div>
