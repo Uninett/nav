@@ -1,6 +1,16 @@
 <div class="netmapWidget hideSubWidgets">
     <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
-        <div class="title">Categories &amp; filters</div>
+        <div class="title">Filters
+
+        {{#if isWidgetCollapsible }}
+          {{#if isWidgetVisible}}
+            <i class="fa fa-toggle-up right"></i>
+          {{else}}
+            <i class="fa fa-toggle-down right"></i>
+          {{/if}}
+        {{/if}}
+
+        </div>
     </div>
     <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
         <div id="layer_view"></div>

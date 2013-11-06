@@ -14,6 +14,11 @@ define([
             if (!!this.options && !!this.options.isWidgetCollapsible) {
                 this.$el.find(".body:first").toggle();
                 this.isWidgetVisible = !this.isWidgetVisible;
+                if (this.isWidgetVisible) {
+                    this.$el.find('.title:first i').removeClass('fa-toggle-down').addClass('fa-toggle-up');
+                } else {
+                    this.$el.find('.title:first i').removeClass('fa-toggle-up').addClass('fa-toggle-down');
+                }
             }
             return true;
         },

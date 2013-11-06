@@ -1,7 +1,17 @@
 <div class="netmapWidget">
 
   <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
-    <div class="title">Search</div>
+    <div class="title">Search
+
+      {{#if isWidgetCollapsible}}
+        {{#if isWidgetVisible}}
+          <i class="fa fa-toggle-up right"></i>
+        {{else}}
+          <i class="fa fa-toggle-down right"></i>
+        {{/if}}
+      {{/if}}
+
+    </div>
   </div>
 
   <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">

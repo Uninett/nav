@@ -269,7 +269,7 @@ div.isFavorite span.description {
         overflow: hidden;
         .title {
             font-weight:bold;
-            background: url('#{$image-path}/icons/expand_invert.png') top right no-repeat;
+            //background: url('#{$image-path}/icons/expand_invert.png') top right no-repeat;
             margin:3px;
         }
         > .no-icon {
