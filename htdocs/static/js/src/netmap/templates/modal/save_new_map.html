@@ -6,10 +6,8 @@
                 <div class="control-group">
                     <label class="control-label" for="new_view_title">
                         Title
-                        <img src="{{ imagePath }}/helpers/question.png"
-                             class="help"
-                             title="The name of view"
-                             alt="The name of view" />
+                        <i class="fa fa-info-circle right has-tip"
+                           title="The name of view" data-tooltip></i>
                     </label>
 
                     <div class="controls">
@@ -20,10 +18,8 @@
                 <div class="control-group">
                     <label class="control-label" for="new_view_description">
                         Description
-                        <img src="{{ imagePath }}/helpers/question.png"
-                             class="help"
-                             title="The description of the view"
-                             alt="The description of the view" />
+                        <i class="fa fa-info-circle right has-tip"
+                           title="The description of the view" data-tooltip></i>
                     </label>
 
                     <div class="controls">
@@ -34,10 +30,9 @@
                 <div class="control-group choice_public">
                     <label class="control-label" for="new_view_is_public">
                         Public
-                        <img src="{{ imagePath }}/helpers/question.png"
-                             class="help"
-                             title="A public view is available for everyone"
-                             alt="A public view is available for everyone" />
+                        <i class="fa fa-info-circle right has-tip"
+                           title="A public view is available for everyone"
+                           data-tooltip></i>
                     </label>
 
                         <input id="new_view_is_public" type="checkbox" class="checkbox"
@@ -51,7 +46,7 @@
         </form>
     </div>
     <div class="modal-footer">
-        <button class="btn btn-primary" id="modal_save_view_button">
+        <button class="right" id="modal_save_view_button">
             Save
         </button>
     </div>

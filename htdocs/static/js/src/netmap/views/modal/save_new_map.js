@@ -34,7 +34,8 @@ define([
                     'isNew': this.options.isNew,
                     imagePath: NAV.imagePath
                 })).dialog({
-                        autoOpen: false
+                        autoOpen: false,
+                        zIndex: 500
                     });
                 this.$el = $(this.el);
 

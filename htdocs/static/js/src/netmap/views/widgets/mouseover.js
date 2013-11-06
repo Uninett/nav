@@ -40,7 +40,7 @@ define([
             this.$el.html(
                 this.template({
                     title: 'Mouseover',
-                    title_help: 'Enable &quot;auto clicking&quot; when hovering a node or a link',
+                    title_help: 'Automatically select node or link when mouse pointer is over it',
                     type: 'checkbox',
                     identifier: 'mouseOver',
                     collection: this.collection.toJSON(),
