@@ -33,8 +33,6 @@ AC_SUBST(tooldir)
 AC_SUBST(docdir)
 AC_SUBST(crondir)
 AC_SUBST(VERSION)
-dnl The location of the cricket binaries
-AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
 AC_ARG_VAR(NAV_USER,User to run cronjobs as)
 
 dnl Setting some default variables for NAV
@@ -50,9 +48,6 @@ tooldir='${sysconfdir}/toolbox'
 docdir='${prefix}/doc'
 crondir='${sysconfdir}/cron.d'
 VERSION=VERSION_NUMBER
-if test -z "$CRICKETDIR"; then
-	CRICKETDIR='${prefix}/cricket/cricket'
-fi
 if test -z "$NAV_USER"; then
     nav_user=navcron
 else
