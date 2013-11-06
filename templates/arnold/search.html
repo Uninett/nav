@@ -3,9 +3,14 @@
 
 {% block content %}
 
+  {% include 'arnold/back.html' %}
+
+
+  <h4>Search</h4>
+
     {% comment %} Display form for defining search parameters {% endcomment %}
     <div class="row">
-        <div class="large-4 column">
+        <div class="medium-6 column">
             {% crispy form %}
         </div>
     </div>

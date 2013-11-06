@@ -5,14 +5,16 @@
 
 {% block content %}
 
-    {% if error %}
-        <div class="alert-box alert">{{ error }}</div>
-    {% endif %}
+  {% include 'arnold/back.html' %}
 
-    <div class="row">
-        <div class="large-4 column">
-            {% crispy form %}
-        </div>
+  {% if error %}
+    <div class="alert-box alert">{{ error }}</div>
+  {% endif %}
+
+  <div class="row">
+    <div class="medium-6 column">
+      {% crispy form %}
     </div>
+  </div>
 
 {% endblock %}

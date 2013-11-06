@@ -3,19 +3,20 @@
 
 {% block content %}
 
-    <h4>Predefined Detention</h4>
+  {% include 'arnold/back.html' %}
 
-    <div class="row">
-        <div class="large-6 medium-12 column">
-            {% crispy form %}
+  <h4>Predefined Detention</h4>
 
-            {% if profile %}
-                <p>Last changed {{ profile.last_edited|date:'Y-m-d H:i:m' }}
-                    by {{ profile.edited_by }}</p>
-            {% endif %}
+  <div class="row">
+    <div class="large-8 column">
+      {% crispy form %}
 
-        </div>
+      {% if profile %}
+        <p>Last changed {{ profile.last_edited|date:'Y-m-d H:i:m' }}
+          by {{ profile.edited_by }}</p>
+      {% endif %}
 
-        <div class="large-6 column">&nbsp;</div>
     </div>
+
+  </div>
 {% endblock %}

@@ -1,33 +1,30 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-    <link href="{{ STATIC_URL }}css/nav/arnold.css" rel="stylesheet">
-    <script>require(["src/arnold"]);</script>
+  <link href="{{ STATIC_URL }}css/nav/arnold.css" rel="stylesheet">
+  <script>require(["src/arnold"]);</script>
 {% endblock %}
 
 {% block base_content %}
 
-    <h2>Arnold</h2>
+  <h2>Arnold</h2>
 
-    <div class="tabs">
+  <ul class="button-group">
+    <li>
+      <a href="{% url arnold-search %}" class="button small secondary">
+        Search
+        <i class="fa fa-search"></i>
+      </a>
+    </li>
+    <li>
+      <a href="{% url arnold-manual-detention %}" class="button small secondary">
+        Manual detention
+        <i class="fa fa-lock"></i>
+      </a>
+    </li>
+  </ul>
 
-        <ul>
-            <li class="{{ active.history|yesno:"tabactive," }}"><a href="{% url arnold-history %}">History</a></li>
-            <li class="{{ active.detentions|yesno:"tabactive," }}"><a href="{% url arnold-detainedports %}">Detained ports</a></li>
-            <li class="{{ active.search|yesno:"tabactive," }}"><a href="{% url arnold-search %}">Search</a></li>
-            <li class="{{ active.justifications|yesno:"tabactive," }}"><a href="{% url arnold-justificatons %}">Add detention reason</a></li>
-            <li class="{{ active.manualdetention|yesno:"tabactive," }}"><a href="{% url arnold-manual-detention %}">Manual detention</a></li>
-            <li class="{{ active.detentionprofiles|yesno:"tabactive," }}"><a href="{% url arnold-detention-profiles %}">Predefined detentions</a></li>
-            <li class="{{ active.quarantinevlans|yesno:"tabactive," }}"><a href="{% url arnold-quarantinevlans %}">Add quarantine vlan</a></li>
-        </ul>
-
-        <div class="tabcontent">
-            {% block content %}
-            {% endblock %}
-        </div>
-
-    </div>
-
-
+  {% block content %}
+  {% endblock %}
 
 {% endblock %}

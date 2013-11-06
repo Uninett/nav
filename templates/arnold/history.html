@@ -1,6 +1,6 @@
-{% extends "arnold/base.html" %}
+{% extends "arnold/tabs.html" %}
 
-{% block content %}
+{% block tabcontent %}
 
 
     {% comment %} Display history {% endcomment %}
@@ -46,7 +46,9 @@
                     <td>{{ identity.justification.name }}</td>
                     <td>{{ identity.last_changed|date:"DATETIME_FORMAT" }}</td>
                     <td>
-                        <a href="{% url arnold-details identity.id %}">Details</a>
+                        <a href="{% url arnold-details identity.id %}" class="button tiny secondary">
+                          Details
+                        </a>
                     </td>
                 </tr>
             {% endfor %}
