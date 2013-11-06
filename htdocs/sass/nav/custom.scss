@@ -152,6 +152,13 @@ li.list-header {
 }
 
 
+/* Add margin to font awesome in buttons */
+.button > i {
+    margin-left: 0.3em;
+}
+
+
+
 /* Form styles */
 
 form.inline-form {
