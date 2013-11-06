@@ -64,8 +64,8 @@
 
 
     {% comment %} Display form for searching in history {% endcomment %}
-    <form action="{% url arnold-history %}" method="GET">
-        {{ form.days }} days of history. <input type="submit" value="Change">
+    <form action="{% url arnold-history %}" method="GET" class="inline-form">
+        {{ form.days }} days of history. <input type="submit" value="Change" class="button small">
     </form>
 
 {% endblock %}
