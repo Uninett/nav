@@ -179,6 +179,12 @@ class DetentionProfileForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(DetentionProfileForm, self).__init__(*args, **kwargs)
+
+        self.fields['qvlan'].choices = get_quarantine_vlans()
+        did = self.data.get('detention_id') or self.initial.get(
+            'detention_id')
+        self.fields['justification'].choices = get_justifications(did)
+
         self.helper = FormHelper()
         self.helper.form_action = ''
         self.helper.form_class = 'profileDetentionForm custom'
@@ -198,22 +204,16 @@ class DetentionProfileForm(forms.Form):
                 'Extra',
                 Row(
                     Column('keep_closed', css_class='medium-4'),
-                    Column(CheckBox('exponential', style='line-height: 3em'),
+                    Column(CheckBox('exponential', css_class='input-align'),
                            css_class='medium-4'),
                     Column(css_class='medium-4'),
                 ),
                 'mail',
                 'active_on_vlans'
             ),
-            CheckBox('active'),
+            CheckBox('active', css_class='input-align'),
             Submit('submit', 'Save')
         )
-
-        super(DetentionProfileForm, self).__init__(*args, **kwargs)
-        self.fields['qvlan'].choices = get_quarantine_vlans()
-        did = self.data.get('detention_id') or self.initial.get(
-            'detention_id')
-        self.fields['justification'].choices = get_justifications(did)
 
 
 class ManualDetentionTargetForm(forms.Form):
