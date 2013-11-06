@@ -73,10 +73,16 @@ def ip_do_search(request):
     to_ip = None
 
     if form.is_valid():
-        inactive = form.cleaned_data['inactive']
         form_data = form.cleaned_data
         ip_range = form.cleaned_data['ip_range']
         from_ip, to_ip = (ip_range[0], ip_range[-1])
+        period_filter = form.cleaned_data['period_filter']
+        active = inactive = False
+
+        if period_filter in ['active', 'both']:
+            active = True
+        if period_filter in ['inactive', 'both']:
+            inactive = True
 
         if (to_ip.int() - from_ip.int()) > ADDRESS_LIMIT:
             inactive = False
@@ -84,8 +90,7 @@ def ip_do_search(request):
         ip_result = get_result(form.cleaned_data['days'], from_ip, to_ip,
                                form.cleaned_data['netbios'])
         ip_range = create_ip_range(inactive, from_ip, to_ip, ip_result)
-        tracker = create_tracker(form.cleaned_data['active'],
-                                 form.cleaned_data['dns'], inactive,
+        tracker = create_tracker(active, form.cleaned_data['dns'], inactive,
                                  ip_range, ip_result)
         row_count = sum(len(mac_ip_pair) for mac_ip_pair in tracker.values())
 
@@ -102,6 +107,7 @@ def ip_do_search(request):
         'subnet_start': unicode(from_ip),
         'subnet_end': unicode(to_ip),
         'display_no_results': display_no_results,
+        'colspan': find_colspan('ip', form)
     }
     info_dict.update(IP_DEFAULTS)
 
@@ -199,7 +205,6 @@ def create_inactive_row(tracker, dns, dns_lookups, ip_key):
         else:
             row['dns_lookup'] = ""
     tracker[(ip, "")] = [row]
-
 
 
 def find_colspan(view, form):
