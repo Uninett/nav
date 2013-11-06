@@ -69,17 +69,20 @@ def get_prefix_info(addr):
     except (IndexError, DatabaseError):
         return None
 
+
 def get_last_job_log_from_netboxes(rows, job_type):
     """Returns a dict with netbox object as key and job_log object as value.
-    
+
     Takes rows and a job type as parameters.
     The rows should needs a .netbox object on them from eg. CAM or ARP.
     The job_type is a string with job type such as 'ip2mac' or 'topo'
 
-    """ 
-    netboxes_job = dict((row.netbox,None) for row in rows)
+    """
+    netboxes_job = dict((row.netbox, None) for row in rows)
     for netbox in netboxes_job:
-        netboxes_job[netbox] = netbox.job_log.filter(job_name=job_type).order_by('-end_time')[0]
+        if netbox:
+            netboxes_job[netbox] = netbox.job_log.filter(
+                job_name=job_type).order_by('-end_time')[0]
     return netboxes_job
 
 
@@ -155,9 +158,9 @@ def track_mac(keys, resultset, dns):
         if row.end_time > datetime.now():
             row.still_active = "Still active"
         if dns:
-            ip = row['ip']
+            ip = row.ip
             if dns_lookups[ip] and not isinstance(dns_lookups[ip], Exception):
-                row['dns_lookup'] = dns_lookups[ip].pop()
+                row.dns_lookup = dns_lookups[ip].pop()
             else:
                 row.dns_lookup = ""
         if not hasattr(row, 'module'):
@@ -166,7 +169,7 @@ def track_mac(keys, resultset, dns):
             row.port = ''
         key = []
         for k in keys:
-            key.append(getattr(row,k))
+            key.append(getattr(row, k))
         key = tuple(key)
         if key not in tracker:
             tracker[key] = []
@@ -176,8 +179,11 @@ def track_mac(keys, resultset, dns):
 
 class ProcessInput:
     """Some sort of search form input processing class. Who the hell knows."""
-    def __init__(self, input):
-        self.input = input.copy()
+    def __init__(self, forminput):
+        """
+        :type forminput:  django.http.QueryDict
+        """
+        self.input = forminput.copy()
 
     def __common(self):
         if not self.input.get('days', False):
@@ -191,6 +197,7 @@ class ProcessInput:
         self.input['ip_range'] = ip.net_address
 
     def ip(self):
+        """Populates the GET dict with formatted values for an ip search"""
         if self.input.get('prefixid', False):
             self.__prefix()
         self.__common()
@@ -200,13 +207,16 @@ class ProcessInput:
         return self.input
 
     def mac(self):
+        """Populates the GET dict with formatted values for a mac search"""
         self.__common()
         return self.input
 
     def swp(self):
+        """Populates the GET dict with formatted values for a switch search"""
         self.__common()
         return self.input
 
     def netbios(self):
+        """Populates the GET dict with formatted values for a netbios search"""
         self.__common()
         return self.input

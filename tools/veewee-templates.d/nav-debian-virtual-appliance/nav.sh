@@ -5,10 +5,10 @@ date > /etc/nav_box_build_time
 # Customize the message of the day
 echo 'Welcome to Network Administration Visualized virtual appliance.' > /etc/motd.tail
 
-gpg --keyserver keys.gnupg.net --recv-keys 0xC3DE75AE036BAB8D # Morten Werner Forsbring <werner@debian.org>
-gpg --armor --export 0xC3DE75AE036BAB8D | sudo apt-key add -
+apt-get install -y apt-transport-https
+apt-key adv --keyserver keys.gnupg.net --recv-key 0xC9F583C2CE8E05E8 # UNINETT NAV APT repository
 
-echo "deb http://pkg-nav.alioth.debian.org/debian/ squeeze local" > /etc/apt/sources.list.d/nav.list
+echo "deb https://nav.uninett.no/debian/ wheezy nav" > /etc/apt/sources.list.d/nav.list
 
 export DEBIAN_FRONTEND=noninteractive
 

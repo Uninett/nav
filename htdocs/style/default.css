@@ -243,7 +243,7 @@ div#footer hr {
 /* Boxes (front page, quick search, etc) */
 div.boxes {
 	float: right;
-	width: 15em;
+	width: 210px;
 	overflow: hidden;
 }
 div.boxes table {

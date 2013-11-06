@@ -73,7 +73,7 @@
       <h1>Subnet Matrix</h1>
 
       <p>
-        There are more than one prefix scope defined.
+        There is more than one prefix scope defined.
         Please select one of them
       </p>
       <ul id="scopes">
@@ -85,8 +85,8 @@
       </ul>
     {% else %}
       <p>
-        The NAV-database does not contain any network scopes.
-        <a href="{% url seeddb-index %}">Seed the database</a> and return to this page to see some action.
+        The NAV database does not contain any network scopes.
+        <a href="{% url seeddb-prefix-edit %}">Seed the database</a> and return to this page to see some action.
       </p>
     {% endif %}
   {% endif %}

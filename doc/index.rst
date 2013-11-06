@@ -42,7 +42,8 @@ See also :doc:`the release notes <release-notes>` for this version (|version|).
   :doc:`Getting started <intro/getting-started>`
 
 * **Howto guides:**
-  :doc:`Troubleshooting topology problems <howto/debugging-topology>`
+  :doc:`Troubleshooting topology problems <howto/debugging-topology>` |
+  :doc:`Migrating data between NAV installations <howto/migrate-data>`
 
 
 * **For developers:**

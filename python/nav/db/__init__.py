@@ -159,6 +159,7 @@ def getConnection(scriptName, database='nav'):
                       "dbname=%s, user=%s", scriptName, dbname, user)
         # Se transaction isolation level READ COMMITTED
         connection.set_isolation_level(1)
+        connection.set_client_encoding('utf8')
         conn_object = ConnectionObject(connection, cache_key)
         _connection_cache.cache(conn_object)
         
