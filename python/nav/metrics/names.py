@@ -15,6 +15,7 @@
 #
 """Search & discovery functions for Graphite metric names and hierarchies"""
 
+from collections import OrderedDict
 import itertools
 import simplejson
 from urllib import urlencode
@@ -31,6 +32,23 @@ def escape_metric_name(string):
     for char in "./ ":
         string = string.replace(char, "_")
     return string
+
+
+def join_series(names):
+    """Joins a list of metric names to a single series list.
+
+    :param names: A list of series/metric names.
+    """
+    splitnames = [n.split('.') for n in names]
+    series = []
+    for names in zip(*splitnames):
+        uniq = OrderedDict.fromkeys(names)
+        if len(uniq) > 1:
+            name = '{%s}' % ",".join(uniq)
+        else:
+            name = "".join(uniq)
+        series.append(name)
+    return ".".join(series)
 
 
 def get_all_leaves_below(top, ignored=None):
