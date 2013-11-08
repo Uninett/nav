@@ -192,16 +192,17 @@ class DetentionProfileForm(forms.Form):
             'detention_id',
             'title', 'description',
             Fieldset(
-                'Options',
+                'Obligatory',
                 Row(
                     Column('detention_type', css_class='medium-4'),
                     Column('justification', css_class='medium-4'),
                     Column('duration', css_class='medium-4')
                 ),
-                Div('qvlan', css_class='qvlanrow')
+                Div('qvlan', css_class='qvlanrow'),
+                css_class='secondary'
             ),
             Fieldset(
-                'Extra',
+                'Extra options',
                 Row(
                     Column('keep_closed', css_class='medium-4'),
                     Column(CheckBox('exponential', css_class='input-align'),
@@ -209,7 +210,8 @@ class DetentionProfileForm(forms.Form):
                     Column(css_class='medium-4'),
                 ),
                 'mail',
-                'active_on_vlans'
+                'active_on_vlans',
+                css_class='secondary'
             ),
             CheckBox('active', css_class='input-align'),
             Submit('submit', 'Save')
