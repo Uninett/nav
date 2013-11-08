@@ -4,50 +4,31 @@ footer {
     font-size: 0.9em;
 }
 
-.foundation-form select {
-    background: transparent;
-    border: none;
-}
-
-.foundation-form .columns input[type=checkbox] {
-    vertical-align: middle;
-}
-
 .full-width {
     width: 100%;
 }
 
+.break-word { word-break: break-all; }
+.float-clear { clear: both; }
+.hidden {display: none; }
+.notvisible {visibility: hidden; }
+
+
+/* Sudoer bar is the bar that appears when you switch users from the
+   'User Administration' page */
 .sudoer-bar {
     background-color: #d3d7cf;
     border-bottom: 1px solid #555753;
     padding-left: 2em;
     line-height: 3em;
+    form, input {
+        margin: 0;
+    }
+    img {
+        vertical-align: middle;
+    }
 }
 
-.sudoer-bar form, .sudoer-bar input {
-    margin: 0;
-}
-
-.sudoer-bar img {
-    vertical-align: middle;
-}
-
-.break-word {
-    word-break: break-all;
-}
-
-.float-clear { clear: both; }
-.hidden {display: none; }
-.notvisible {visibility: hidden; }
-
-.error small.nomargin, small.error.nomargin {
-    margin: 0;
-}
-
-ul.errorlist {
-    margin-bottom: 0;
-    list-style-type: none;
-}
 
 /* Custom base page styles */
 
@@ -55,10 +36,6 @@ ul.errorlist {
     height: 24px;
     width: 24px;
     vertical-align: middle;
-}
-
-.top-bar .title-area img {
-    height: 55px;
 }
 
 
@@ -78,13 +55,13 @@ table .button {
     margin: 0;
 }
 
-/* Map styles */
+
+/* Styles regarding use of OpenLayers maps */
 .mapwrapper {
     margin: 1em 0;
-}
-
-.mapwrapper img {
-    max-width: none; /* Openlayers maps need this to override a foundation style to display properly */
+    img {
+        max-width: none; /* Openlayers maps need this to override a foundation style to display properly */
+    }
 }
 
 .smallmap {
@@ -109,7 +86,13 @@ ul.ui-tabs-nav {
     font-size: 0.9em;
 }
 
+
 /* List styles */
+
+ul.errorlist {
+    margin-bottom: 0;
+    list-style-type: none;
+}
 
 ul.clean, ol.clean, dl.clean {
     margin: 0;
@@ -156,8 +139,6 @@ li.list-header {
 .button > i {
     margin-left: 0.3em;
 }
-
-
 
 /* Form styles */
 
