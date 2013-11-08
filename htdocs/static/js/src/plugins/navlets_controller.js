@@ -44,7 +44,7 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
                     $('#navlet-list').foundation('reveal', 'close');
                 });
                 request.fail(function () {
-                    alert('Failed to add Navlet');
+                    alert('Failed to add widget');
                 });
             });
         },

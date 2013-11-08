@@ -83,11 +83,11 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 if (jqxhr.status === 401 || jqxhr.status === 403) {
                     that.displayError('Not allowed');
                 } else {
-                    that.displayError('Could not load Navlet');
+                    that.displayError('Could not load widget');
                 }
             });
             request.fail(function () {
-                that.displayError('Could not load Navlet');
+                that.displayError('Could not load widget');
             });
         },
         addReloader: function (mode) {
@@ -145,10 +145,10 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 removeButton = this.node.find('.navlet-remove-button');
 
             removeButton.click(function () {
-                if(confirm('Do you want to remove this navlet from the page?')) {
+                if(confirm('Do you want to remove this widget from the page?')) {
                     var request = $.post(that.removeUrl, {'navletid': that.navlet.id});
                     request.fail(function () {
-                        that.displayError('Could not remove Navlet, maybe it has become self aware...!');
+                        that.displayError('Could not remove widget, maybe it has become self aware...!');
                     });
                     request.done(function () {
                         that.node.remove();
