@@ -13,29 +13,33 @@
     <div class="column small-12">
       <a href="{% url useradmin-account_list %}">Back to account list</a>
 
-      <ul class="button-group right">
+      <div class="button-bar right">
         {% if account and current_user_data.is_admin and not current_user_data.sudoer %}
           {% ifnotequal current_user_data.account.id account.id %}
-            <li>
-              <form action="." method="post">
-                <input type="hidden" name="account" value="{{ account.id }}"/>
-                <input type="submit" value="Switch to this user"
-                       name="submit_sudo"
-                       class="button small"/>
-              </form>
-            </li>
+            <ul class="button-group">
+              <li>
+                <form action="." method="post">
+                  <input type="hidden" name="account" value="{{ account.id }}"/>
+                  <input type="submit" value="Operate as this user"
+                         name="submit_sudo" class="button small"/>
+                </form>
+              </li>
+            </ul>
           {% endifnotequal %}
         {% endif %}
 
         {% if account and not account.is_system_account %}
-          <li>
-            <a href="{% url useradmin-account_delete account.id %}"
-               class="button alert small">
-              Delete account
-            </a>
-          </li>
+          <ul class="button-group">
+            <li>
+              <a href="{% url useradmin-account_delete account.id %}"
+                 class="button alert small">
+                Delete account
+              </a>
+            </li>
+          </ul>
         {% endif %}
-      </ul>
+      </div>
+
     </div>
   </div>
 
@@ -89,7 +93,7 @@
                 <td>
                   {{ group.description }}
                 </td>
-                <td>
+                <td class="text-right">
                   {% if not group.is_protected_group %}
                     <a href="{% url useradmin-account_group_remove account.id,group.id %}"
                        class="button secondary tiny">Remove</a>

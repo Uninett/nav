@@ -174,9 +174,7 @@ class PrivilegeForm(forms.Form):
                        css_class='medium-3'),
                 Column('target', css_class='medium-6'),
                 Column(Submit('submit_privilege', 'Grant',
-                              css_class='postfix'), css_class='medium-3'
-                ),
-                css_class='collapse'
+                              css_class='postfix'), css_class='medium-3')
             )
         )
 
@@ -201,8 +199,7 @@ class OrganizationAddForm(forms.Form):
                        css_class='medium-8'),
                 Column(Submit('submit_org', 'Add organization',
                               css_class='postfix'),
-                       css_class='medium-4'),
-                css_class='collapse'
+                       css_class='medium-4')
             )
         )
 
@@ -227,8 +224,7 @@ class GroupAddForm(forms.Form):
                        css_class='medium-8'),
                 Column(Submit('submit_group', 'Add membership',
                               css_class='postfix'),
-                       css_class='medium-4'),
-                css_class='collapse'
+                       css_class='medium-4')
             )
         )
 
@@ -253,7 +249,6 @@ class AccountAddForm(forms.Form):
                        css_class='medium-9'),
                 Column(Submit('submit_account', 'Add to group',
                               css_class='postfix'),
-                       css_class='medium-3'),
-                css_class='collapse'
+                       css_class='medium-3')
             )
         )
