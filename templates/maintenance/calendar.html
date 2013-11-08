@@ -7,23 +7,23 @@
       {% url maintenance-calendar next_month.year next_month.month as next_month %}
 
       <a href="{{ previous_month }}">
-        <img src="{{ STATIC_URL }}images/alertprofiles/go-previous.png" alt="Previous month"/>
+        <i class="fa fa-step-backward fa-lg" title="Previous month"></i>
       </a>
 
       <form action="{% url maintenance-calendar %}" method="get" class="inline-form">
         <input type="text" name="year" value="{{ this_month.year }}" size="4" maxlength="4"/>
         <input type="text" name="month" value="{{ this_month.month }}" size="2" maxlength="2"/>
-        <input type="submit" value="Go" class="button small secondary"/>
+        <button type="submit" class="small secondary"><i class="fa fa-search"></i></button>
       </form>
 
       <form action="{% url maintenance-calendar %}" method="get" class="inline-form">
         <input type="hidden" name="year" value="{{ curr_month.year }}"/>
         <input type="hidden" name="month" value="{{ curr_month.month }}"/>
-        <input type="submit" value="Current month" class="button small secondary"/>
+        <button type="submit" class="small secondary">Current month</button>
       </form>
 
       <a href="{{ next_month }}">
-        <img src="{{ STATIC_URL }}images/alertprofiles/go-next.png" alt="Next month"/>
+        <i class="fa fa-step-forward fa-lg" title="Next month"></i>
       </a>
     </div>
 
