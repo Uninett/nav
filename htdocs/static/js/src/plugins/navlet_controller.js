@@ -69,7 +69,6 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         handleSuccessfulRequest: function (html, mode) {
             this.node.html(html);
             this.applyListeners();
-            this.node.foundation();  // Initialize Foundation script on this node
             this.addReloader(mode);
         },
         handleErrorRequest: function (jqxhr) {
