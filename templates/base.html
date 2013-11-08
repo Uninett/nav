@@ -68,7 +68,10 @@
         </ul>
 
         <ul class="right">
-            <li class="has-dropdown"><a href="{% url webfront-preferences-navigation %}">Your links</a>
+            <li class="has-dropdown">
+                <a href="{% url webfront-preferences-navigation %}">
+                    Your links <i class="fa fa-gear"></i>
+                </a>
                 <ul class="dropdown">
                     {% for link in current_user_data.navbar %}
                         <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
@@ -76,7 +79,10 @@
                 </ul>
             </li>
 
-            <li class="has-dropdown"><a href="{% url webfront-toolbox %}">Your tools</a>
+            <li class="has-dropdown">
+                <a href="{% url webfront-toolbox %}">
+                    Your tools <i class="fa fa-gear"></i>
+                </a>
                 <ul id="toolboxdropdown" class="dropdown">
                     {% for tool in current_user_data.tools %}
                         {% if tool.display %}
