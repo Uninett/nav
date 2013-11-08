@@ -13,32 +13,28 @@
     <div class="column small-12">
       <a href="{% url useradmin-account_list %}">Back to account list</a>
 
-      <div class="button-bar right">
+      <ul class="inline-list right">
         {% if account and current_user_data.is_admin and not current_user_data.sudoer %}
           {% ifnotequal current_user_data.account.id account.id %}
-            <ul class="button-group">
-              <li>
-                <form action="." method="post">
-                  <input type="hidden" name="account" value="{{ account.id }}"/>
-                  <input type="submit" value="Operate as this user"
-                         name="submit_sudo" class="button small"/>
-                </form>
-              </li>
-            </ul>
+            <li>
+              <form action="." method="post">
+                <input type="hidden" name="account" value="{{ account.id }}"/>
+                <input type="submit" value="Operate as this user"
+                       name="submit_sudo" class="button small"/>
+              </form>
+            </li>
           {% endifnotequal %}
         {% endif %}
 
         {% if account and not account.is_system_account %}
-          <ul class="button-group">
-            <li>
-              <a href="{% url useradmin-account_delete account.id %}"
-                 class="button alert small">
-                Delete account
-              </a>
-            </li>
-          </ul>
+          <li>
+            <a href="{% url useradmin-account_delete account.id %}"
+               class="button alert small">
+              Delete account
+            </a>
+          </li>
         {% endif %}
-      </div>
+      </ul>
 
     </div>
   </div>
