@@ -57,9 +57,6 @@ class TopologyLayer2TestCase(TopologyTestCase):
         self.build_l2 = patch.object(vlan, 'build_layer2_graph', return_value=self.nav_graph)
         self.build_l2.start()
 
-        self.rrd_lookup = patch.object(topology, '_get_datasource_lookup')
-        self.rrd_lookup.start()
-
         bar = vlan.build_layer2_graph()
         #foo = topology._get_vlans_map_layer2(bar)
 
@@ -74,7 +71,6 @@ class TopologyLayer2TestCase(TopologyTestCase):
     def tearDown(self):
         self.vlans.stop()
         self.build_l2.stop()
-        self.rrd_lookup.stop()
 
     def test_noop_layer2_testcase_setup(self):
         self.assertTrue(True)

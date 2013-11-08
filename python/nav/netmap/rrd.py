@@ -15,86 +15,50 @@
 #
 """Netmap functions for attaching RRD/traffic metadata to netmap"""
 import logging
+from nav.metrics.data import get_metric_average
+from nav.metrics.graphs import get_metric_meta
+from nav.metrics.templates import metric_path_for_interface
 from nav.models.manage import Interface
-from nav.rrd2 import presenter
 from nav.web.netmap.common import get_traffic_rgb, get_traffic_load_in_percent
-from collections import defaultdict
 
+TRAFFIC_TIMEPERIOD = '-10min'
 _LOGGER = logging.getLogger(__name__)
 
-
-def _get_datasources(interfaces):
-    from nav.models.rrd import RrdDataSource
-    return RrdDataSource.objects.filter(
-        rrd_file__key='interface').select_related('rrd_file').filter(
-        rrd_file__value__in=interfaces)
-
-
-def _get_datasource_lookup(interfaces):
-    datasources = _get_datasources(
-        [ifc.pk for ifc in interfaces if isinstance(ifc, Interface)])
-    _LOGGER.debug("netmap:attach_rrd_data_to_edges() Datasources fetched done")
-
-    lookup_dict = defaultdict(list)
-    for data in datasources:
-        pkey = int(data.rrd_file.value)
-        lookup_dict[pkey].append(data)
-    _LOGGER.debug(
-        "netmap:attach_rrd_data_to_edges() Datasources rearranged in dict")
-    return dict(lookup_dict)
-
-
-class DataSource(object):
-    def __init__(self, rrd_datasource):
-        # todo : what to do if rrd source is not where it should be?
-        # Will return 0 if it can't find RRD file for example
-        self.source = rrd_datasource
-        presentation = presenter.Presentation()
-        presentation.add_datasource(self.source)
-        self.raw = presentation.average(on_error_return=None,
-                                        on_nan_return=None)[0]
-
-
-    def to_json(self):
-        return {
-            'name': self.source.name,
-            'description': self.source.description,
-            'raw_bits': self.raw * 8 if self.raw else None,
-            'raw_bytes': self.raw
-        }
 
 class InterfaceLoad(object):
     """Represents link load for an Interface"""
 
-    def __init__(self, name, datasource, link_speed):
-        self.name = name
-        self.datasource = datasource
-        raw = datasource.raw
+    def __init__(self, in_bps, out_bps, link_speed):
+        self.in_bps = in_bps
+        self.out_bps = out_bps
+        self.link_speed = link_speed
 
-        self.load_in_percent = get_traffic_load_in_percent(raw, link_speed)
+        self.load_in_percent = get_traffic_load_in_percent(in_bps, link_speed)
         self.rgb = get_traffic_rgb(self.load_in_percent)
         if self.load_in_percent is not None:
-            self.octets_percent_by_speed = "{0:.2f}".format(
+            self.formatted_load_in_percent = "{0:.2f}".format(
                 self.load_in_percent)
         else:
-            self.octets_percent_by_speed = None
+            self.formatted_load_in_percent = None
 
     def __repr__(self):
-        return ("netmap.Octets(name={0!r}, source={1!r}, load_in_percent={2!r},"
-                "octets_percent_by_speed={3!r}, css={4!r})").format(
-            self.name, self.datasource, self.load_in_percent,
-            self.octets_percent_by_speed, self.rgb)
+        return (
+            "<InterfaceLoad in_bps={0!r} out_bps={1!r} load_in_percent={2!r} "
+            "css={3!r}>"
+        ).format(self.in_bps, self.out_bps, self.load_in_percent, self.rgb)
+
+    def reversed(self):
+        """Returns a copy of this InterfaceLoad for the reverse direction"""
+        return InterfaceLoad(self.out_bps, self.in_bps, self.link_speed)
 
     def to_json(self):
         return {
-            'rrd': self.datasource.to_json(),
             'css': self.rgb,
-            'percent_by_speed': self.octets_percent_by_speed,
+            'in_bps': self.in_bps,
+            'out_bps': self.out_bps,
+            'percent_by_speed': self.formatted_load_in_percent,
             'load_in_percent': self.load_in_percent,
-            'name': self.name
         }
-
-
 
 
 class Traffic(object):
@@ -103,21 +67,10 @@ class Traffic(object):
     def __init__(self):
         self.source = None
         self.target = None
-        self.has_swapped = False
 
     def __repr__(self):
-        return "netmap.Traffic(in={0!r}, out={1!r}, swapped={2!r})".format(
-            self.source, self.target,self.has_swapped)
-
-    def swap(self):
-        """Swaps direction, if we're using opposite 'direction' to feed both
-        source and target sources
-        """
-        tmp = self.source
-        self.source = self.target
-        self.target = tmp
-        self.has_swapped = not self.has_swapped
-
+        return "<Traffic source={0!r} target={1!r}>".format(
+            self.source, self.target)
 
     def to_json(self):
         """to_json presentation for given Traffic in an edge"""
@@ -126,61 +79,40 @@ class Traffic(object):
             'target': self.target and self.target.to_json() or None
         }
 
-def get_rrd_data(cache, port_pair):
-    """
-    :param cache: dict arriving from _get_datasource_lookup hopefully...
+
+def get_traffic_data(port_pair):
+    """Gets a Traffic instance for the link described by the port pair.
+
     :param port_pair: tuple containing (source, target)
-    :type cache: dict
-    :type port_pair: tuple(Interface)
+    :type port_pair: tuple(Interface, Interface)
+    :returns: A Traffic instance.
     """
-
-    # , u'ifInErrors', u'ifInUcastPkts', u'ifOutErrors', u'ifOutUcastPkts'
-    valid_traffic_sources = (
-        u'ifHCInOctets', u'ifHCOutOctets', u'ifInOctets', u'ifOutOctets')
-    datasource_lookup = cache
-
-    def _fetch_rrd(interface):
-        traffic = {}
+    def _fetch_data(interface):
+        in_bps = out_bps = speed = None
         if isinstance(interface, Interface):
-            if interface.pk in datasource_lookup:
-                datasources_for_interface = datasource_lookup[interface.pk]
-                for rrd_source in datasources_for_interface:
-                    if (rrd_source.description in valid_traffic_sources
-                        and rrd_source.description not in traffic):
-                        traffic[rrd_source.description] = InterfaceLoad(
-                            rrd_source.description,
-                            DataSource(rrd_source),
-                            interface.speed)
-        return traffic
+            speed = interface.speed
+            targets = [metric_path_for_interface(interface.netbox.sysname,
+                                                 interface.ifname, counter)
+                       for counter in ('ifInOctets', 'ifOutOctets')]
+            targets = [get_metric_meta(t)['target'] for t in targets]
 
+            data = get_metric_average(targets, start=TRAFFIC_TIMEPERIOD)
+            for key, value in data.iteritems():
+                if 'ifInOctets' in key:
+                    in_bps = value
+                elif 'ifOutOctets' in key:
+                    out_bps = value
 
+        return InterfaceLoad(in_bps, out_bps, speed)
 
     traffic = Traffic()
-    source_port = port_pair[0]
-    target_port = port_pair[1]
+    source_port, target_port = port_pair
 
-    should_swap_direction = False
-    rrd_sources = _fetch_rrd(source_port)
-
-    if not any(source in rrd_sources for source in valid_traffic_sources):
-        should_swap_direction = True
-        rrd_sources = _fetch_rrd(target_port)
-
-    if 'ifInOctets' in rrd_sources:
-        traffic.source = rrd_sources['ifInOctets']
-    if 'ifOutOctets' in rrd_sources:
-        traffic.target = rrd_sources['ifOutOctets']
-
-    # Overwrite traffic inOctets and outOctets
-    # if 64 bit counters are present
-    if 'ifHCInOctets' in rrd_sources:
-        traffic.source = rrd_sources['ifHCInOctets']
-
-    if 'ifHCOutOctets' in rrd_sources:
-        traffic.target = rrd_sources['ifHCOutOctets']
-
-    # swap
-    if should_swap_direction:
-        traffic.swap()
+    traffic.source = _fetch_data(source_port)
+    if None in (traffic.source.in_bps, traffic.source.out_bps):
+        traffic.target = _fetch_data(target_port)
+        traffic.source = traffic.target.reversed()
+    else:
+        traffic.target = traffic.source.reversed()
 
     return traffic
