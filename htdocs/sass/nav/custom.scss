@@ -55,6 +55,12 @@ table .button {
     margin: 0;
 }
 
+fieldset.secondary {
+    background-color: #f2f2f2;
+    legend {
+        background-color: transparent;
+    }
+}
 
 /* Styles regarding use of OpenLayers maps */
 .mapwrapper {
