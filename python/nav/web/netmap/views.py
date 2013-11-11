@@ -475,14 +475,14 @@ def api_graph_layer_3(request, map_id=None):
     Layer2 network topology representation in d3js force-direct graph layout
     http://mbostock.github.com/d3/ex/force.html
     """
-    collect_rrd = 'rrd' in request.GET
+    load_traffic = 'traffic' in request.GET
 
     if map_id:
         view = get_object_or_404(NetmapView, pk=map_id)
         session_user = get_account(request)
 
         if view.is_public or (session_user == view.owner):
-            json = _json_layer3(collect_rrd, view)
+            json = _json_layer3(load_traffic, view)
             response = HttpResponse(simplejson.dumps(json))
             response['Content-Type'] = 'application/json; charset=utf-8'
             response['Cache-Control'] = 'no-cache'
@@ -493,7 +493,7 @@ def api_graph_layer_3(request, map_id=None):
         else:
             return HttpResponseForbidden()
 
-    json = _json_layer3(collect_rrd)
+    json = _json_layer3(load_traffic)
     response = HttpResponse(simplejson.dumps(json))
     response['Content-Type'] = 'application/json; charset=utf-8'
     response['Cache-Control'] = 'no-cache'
@@ -507,14 +507,14 @@ def api_graph_layer_2(request, map_id=None):
     Layer2 network topology representation in d3js force-direct graph layout
     http://mbostock.github.com/d3/ex/force.html
     """
-    collect_rrd = 'rrd' in request.GET
+    load_traffic = 'traffic' in request.GET
 
     if map_id:
         view = get_object_or_404(NetmapView, pk=map_id)
         session_user = get_account(request)
 
         if view.is_public or (session_user == view.owner):
-            json = _json_layer2(collect_rrd, view)
+            json = _json_layer2(load_traffic, view)
             response = HttpResponse(simplejson.dumps(json))
             response['Content-Type'] = 'application/json; charset=utf-8'
             response['Cache-Control'] = 'no-cache'
@@ -525,7 +525,7 @@ def api_graph_layer_2(request, map_id=None):
         else:
             return HttpResponseForbidden()
 
-    json = _json_layer2(collect_rrd)
+    json = _json_layer2(load_traffic)
     response = HttpResponse(simplejson.dumps(json))
     response['Content-Type'] = 'application/json; charset=utf-8'
     response['Cache-Control'] = 'no-cache'
@@ -534,7 +534,7 @@ def api_graph_layer_2(request, map_id=None):
     return response
 
 
-def _json_layer2(collect_rrd=False, view=None):
+def _json_layer2(load_traffic=False, view=None):
     _LOGGER.debug("build_netmap_layer2_graph() start")
     topology_without_metadata = vlan.build_layer2_graph(
         (
@@ -549,7 +549,7 @@ def _json_layer2(collect_rrd=False, view=None):
 
     graph = build_netmap_layer2_graph(topology_without_metadata,
                                       vlan_by_interface, vlan_by_netbox,
-                                      collect_rrd, view)
+                                      load_traffic, view)
 
     return {
         'vlans': get_vlan_lookup_json(vlan_by_interface),
@@ -559,7 +559,7 @@ def _json_layer2(collect_rrd=False, view=None):
     }
 
 
-def _json_layer3(collect_rrd=False, view=None):
+def _json_layer3(load_traffic=False, view=None):
     _LOGGER.debug("build_netmap_layer3_graph() start")
     topology_without_metadata = vlan.build_layer3_graph(
         ('prefix__vlan__net_type', 'gwportprefix__prefix__vlan__net_type',))
@@ -568,7 +568,7 @@ def _json_layer3(collect_rrd=False, view=None):
     vlans_map = _get_vlans_map_layer3(topology_without_metadata)
     _LOGGER.debug("build_netmap_layer2_graph() vlan mappings done")
 
-    graph = build_netmap_layer3_graph(topology_without_metadata, collect_rrd,
+    graph = build_netmap_layer3_graph(topology_without_metadata, load_traffic,
                                       view)
     return {
         'vlans': [vlan_to_json(prefix.vlan) for prefix in vlans_map],

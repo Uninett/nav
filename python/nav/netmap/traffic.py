@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 UNINETT AS
+# Copyright (C) 2012, 2013 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Netmap functions for attaching RRD/traffic metadata to netmap"""
+"""Functions for attaching traffic metadata to netmap"""
 import logging
 from nav.metrics.data import get_metric_average
 from nav.metrics.graphs import get_metric_meta
