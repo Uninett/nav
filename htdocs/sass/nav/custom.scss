@@ -158,6 +158,10 @@ form.inline-form {
         display: inline-block;
         width: auto;
     }
+    > .custom.dropdown {
+        display: inline-block;
+        width: auto;
+    }
     input[type=submit] {
         font-size: 0.875em;
         padding-top: 0;
