@@ -36,18 +36,6 @@ define([
 
             var inOctets, outOctets, inOctetsRaw, outOctetsRaw = "N/A";
             if (self.link !== undefined) {
-                /*if (!!self.link.data.get('traffic').inOctets) {
-                    inOctets = NetmapExtras.convert_bits_to_si(self.link.data.get('traffic').inOctets.rrd.raw * 8);
-                    inOctetsRaw = self.link.data.get('traffic').inOctets.rrd.raw;
-                } else {
-                    inOctets = inOctetsRaw = 'N/A';
-                }
-                if (!!self.link.data.get('traffic').outOctets) {
-                    outOctets = NetmapExtras.convert_bits_to_si(self.link.data.get('traffic').outOctets.rrd.raw * 8);
-                    outOctetsRaw = self.link.data.get('traffic').outOctets.rrd.raw;
-                } else {
-                    outOctets = outOctetsRaw = 'N/A';
-                }*/
                 inOctets = inOctetsRaw = outOctets = outOctetsRaw = 'N/A';
 
 
