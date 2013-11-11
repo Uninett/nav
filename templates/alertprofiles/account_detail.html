@@ -2,16 +2,17 @@
 
 {% block tabcontent %}
 
-  <a href="#" class="button small" data-reveal-id="account_details">Account details</a>
+  <a href="#" class="button small secondary right" data-reveal-id="account_details">Groups and permissions</a>
 
   {% if active_profile %}
-    <h3>Active profile:
+    <h4>Active profile:
       <a href="{% url alertprofiles-profile-detail active_profile.id %}">
         {{ active_profile.name }}
       </a>
-    </h3>
+    </h4>
     {% include "alertprofiles/timeperiods.html" %}
   {% else %}
+    <h4>Account details</h4>
     <p>
       There is no active profile set. You can
       <a href="{% url alertprofiles-profile %}">activate an existing one</a> or
