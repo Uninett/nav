@@ -83,8 +83,6 @@ def overview(request):
         active_profile = None
 
     if not active_profile:
-        new_message(request, _('There\'s no active profile set.'),
-                    Messages.NOTICE)
         subscriptions = None
     else:
         periods = TimePeriod.objects.filter(
