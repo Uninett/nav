@@ -45,14 +45,17 @@
 
     <div class="tabcontent">
 
-        {% if current_user_data.messages %}
-        <ul class="messages">
-            {% for m in current_user_data.messages %}
-            <li class="{{ m.type }}">{{ m.message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+      {% if current_user_data.messages %}
+        {% for m in current_user_data.messages %}
+          <div class="alert-box {{ m.type }}">{{ m.message }}</div>
+        {% endfor %}
+      {% endif %}
 
+      {% block tabcontent %}
+      {% endblock %}
+
+
+{% comment %}
         {% if subsection %}
         <div class="tabs">
             {% include "alertprofiles/subsection_tabs.html" %}
@@ -63,6 +66,7 @@
             </div>
         </div>
         {% endif %}
+{% endcomment %}
 
     </div>
 
