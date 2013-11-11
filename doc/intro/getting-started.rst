@@ -30,6 +30,21 @@ before running NAV:
   interface will chop off this suffix to display abbreviated device
   names.
 
+`SECRET_KEY`
+  A string of random characters that should be unique to each NAV
+  installation. This is used by the Django framework for cryptographic signing
+  in various situations. Here are three suggestions for generating a suitable
+  string of random characters, depending on what tools you have available:
+
+    1. :kbd:`gpg -a --gen-random 1 51`
+    2. :kbd:`makepasswd --chars 51`
+    3. :kbd:`pwgen -s 51 1`
+
+  Please see
+  https://docs.djangoproject.com/en/1.4/ref/settings/#std:setting-SECRET_KEY
+  if you want to know more about this.
+
+
 Starting NAV
 ============
 
@@ -146,6 +161,8 @@ categories:
 
 The `GW`, `GSW`, `SW` and `EDGE` categories will all require an SNMP community
 to be configured; this is optional with the remaining categories.
+
+.. _seeddb-bulk-import-intro:
 
 Importing multiple devices in bulk
 ----------------------------------

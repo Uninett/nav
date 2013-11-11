@@ -1,20 +1,85 @@
+Version 3.15.2
+(released 31 Oct 2013)
+
+ Bugfixes:
+
+  * LP#1241441 (UnicodeDecodeErrors in reports with non-ASCII data on some
+                installations)
+  * LP#1241611 (Ranked statistics search results crash with TypeError)
+  * LP#1241627 (modpython authentication shim appears to leak open PostgreSQL
+                connections in Apache)
+  * LP#1241630 (thresholdMon crashes with TypeError when sending a threshold
+                event)
+  * LP#1242673 (frontpage small screens display links above status)
+  * LP#1242905 (Machine Tracker result sorting breaks down for MAC and Switch
+                search results)
+  * LP#1244120 (Subnet Matrix crashes under unknown circumstances)
+  * LP#1244175 (Using SQL to insert custom device categories will cause Netmap
+                to fail)
+  * LP#1244191 (eventengine dies instead of re-opening logs on the HUP signal)
+  * LP#1245370 (Subnet matrix crashes when only a single scope is registered)
+  * LP#1245419 (NoReverseMatch error on some Machine Tracker searches)
+  * LP#1246226 (Cannot delete IP devices with interface stacks)
+  * LP#1246684 (AttributeError crash in Machine Tracker when search results
+                include data from deleted IP devices)
+
+
+Version 3.15.1
+(released 17 Oct 2013)
+
+ Bugfixes:
+
+  * LP#1230240 (navsyncdb command is not installed in NAV 3.15.0)
+  * LP#1230299 (Cricket+NAV 3.15.0 may not work under Django 1.4.5)
+  * LP#1235355 (Machine Tracker performs unnecessary join on netbios table)
+  * LP#1235356 (The netbios table needs an index for efficient joins on the arp
+                table)
+  * LP#1236753 (machinetracker netbios search crashes)
+  * LP#1236813 (Alertengine crashes on nav version 3.14)
+  * LP#1239139 (Weathergoose2 GOOSENAME not initialized in snmptrap handler)
+  * LP#1240855 (Mac search + DNS crashes with TypeError in NAV 3.15.0)
+
+
 Version 3.15.0
-(released 12 Sep 2013)
+(released 19 Sep 2013)
 
  User-visible features and improvements:
 
-  * Next-hop neighbor map in ipdevinfo.
+  * Devices' conceptual layering of interfaces is now collected and presented
+    in ipdevinfo. This enables you to, among other things, see which physical
+    ports comprise a port- or etherchannel. Some vendors also use this to show
+    which physical switch-ports are forwarding packets to/from a given VLAN
+    interface.
 
-  * What-if analysis.
+  * The Netmap tool has been redesigned and re-engineered. Multiple
+    improvements have been made based on user feedback.
 
-  * Room photo database.
+  * The Netmap contents can now be exported/downloaded as an SVG file, but
+    this feature is currently only supported by the Google Chrome browser.
 
-  * Subcategories replaced by cross-category IP Device Groups.
+  * Multiple parallel links are now indicated by the Netmap by two parallel
+    black markers drawn across the link in question. Details of the underlying
+    links are are now properly displayed when clicking on the link line.
+
+  * Interactive next-hop neighbor map in new ipdevinfo tab.
+
+  * "What-if" analysis in new ipdevinfo tab displays devices and organizations
+    that may be affected if the selected device goes down. Based on NAV's
+    topology information.
+
+  * Images with descriptions can be uploaded and attached to rooms. Useful
+    for, among other things, photo-documenting the contents of wiring closets.
+
+  * Subcategories have been replaced by cross-category device groups.
+    Arbitrary selections of IP devices can be organized into device groups.
 
   * Potentially out-of-date CAM and ARP records are highlighted in Machine
     Tracker search results.
 
   * Community strings are censored in SeedDB IP Device listing.
+
+  * Geolocation of rooms can now be set by clicking on interactive map in
+    SeedDB.
 
   * New program enables streamlined dumping and reloading, with optional
     filtering, of the NAV PostgreSQL database. This simplifies beta testing of
@@ -22,13 +87,20 @@ Version 3.15.0
 
   * 26 more metrics from APC UPS devices are now collected and graphed.
 
-  * mod_python is no longer required.
+  * mod_python is no longer required; mod_wsgi is the new recommended way to
+    deploy the NAV web interface.
 
-  * Devices' conceptual layering of interfaces is now collected and presented
-    in ipdevinfo. This enables you to, among other things, see which physical
-    ports comprise a port- or etherchannel. Some vendors also use this to show
-    which physical switch-ports are forwarding packets to/from a given VLAN
-    interface.
+ Bugfixes:
+  * LP#1055383 (netmap saves a new view when it should update view)
+  * LP#1057423 (netmap algorithm indicator turns red when clicking on
+                something in left bar)
+  * LP#1062203 (ipdevpoll job configuration description)
+  * LP#1165039 (Selecting a datasource for bulk threshold config intermittently
+                fails with "internal server error")
+  * LP#1169926 (Replace mod_python with Django/WSGI)
+  * LP#1213818 (LDAP authentication crashes on non-ASCII usernames and/or
+                passwords)
+  * LP#1222666 ("Uptime" in ipdevinfo never resets)
 
 
 Version 3.14.1592653

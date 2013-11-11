@@ -58,6 +58,27 @@ syncing command previously known as :file:`syncdb.py` is now the
 :program:`navsyncdb` program, installed alongside NAV's other binaries.
 
 
+Configuration changes
+---------------------
+
+The configuration file :file:`nav.conf` has gained a new option called
+`SECRET_KEY`. NAV's web interface will not work unless you add this option to
+:file:`nav.conf`.
+
+Set it to a string of random characters that should be unique for your NAV
+installation. This is used by the Django framework for cryptographic signing
+in various situations. Here are three suggestions for generating a suitable
+string of random characters, depending on what tools you have available:
+
+    1. :kbd:`gpg -a --gen-random 1 51`
+    2. :kbd:`makepasswd --chars 51`
+    3. :kbd:`pwgen -s 51 1`
+
+Please see
+https://docs.djangoproject.com/en/1.4/ref/settings/#std:setting-SECRET_KEY if
+you want to know more about this.
+
+
 mod_python vs. mod_wsgi
 -----------------------
 
@@ -90,6 +111,100 @@ this to your Apache config:
 
 Access to this resource can now be controlled through the regular
 authorization configuration of NAV's Useradmin panel.
+
+
+REST API
+--------
+
+NAV 3.15 also includes the beginnings of a read-only RESTful API. The API is
+not yet documented, and must be considered an unstable experiment at the
+moment. API access tokens can only be issued by a NAV administrator.
+
+
+Write privileges for room image uploads
+---------------------------------------
+
+Uploaded images for rooms are stored in
+:file:`${prefix}/var/uploads/images/rooms/`. This directory needs to be
+writable for navcron, assuming you are using the default wsgi setup.
+
+
+Files to remove
+---------------
+
+Some files have been moved around. The SQL schema files are no longer
+installed as part of the documentation, but as data files into a subdirectory
+of whichever directory is configured as the datadir (the default is
+:file:`${prefix}/share`). The Django HTML templates have also moved into a
+subdirectory of datadir. Also, almost all the documentation source files have
+changed their file name extension from .txt to .rst to properly indicate that
+they employ reStructuredText markup.
+
+If any of the following files and directories are still in your installation
+after upgrading to NAV 3.15, they should be safe to remove (installation
+prefix has been stripped from these file names). If you installed and upgraded
+NAV using a packaging system, you should be able to safely ignore this
+section::
+
+  bin/navTemplate.py
+
+  doc/*.txt
+  doc/faq/*.txt
+  doc/intro/*.txt
+  doc/reference/*.txt
+
+  doc/cricket/
+  doc/mailin/
+  doc/sql/
+
+  etc/cricket-config/router-interfaces/
+  etc/cricket-config/switch-ports/
+
+  lib/python/nav/django/shortcuts.py
+  lib/python/nav/django/urls/*
+  lib/python/nav/getstatus.py
+  lib/python/nav/messages.py
+  lib/python/nav/report/utils.py
+  lib/python/nav/statemon/core.py
+  lib/python/nav/statemon/execute.py
+  lib/python/nav/statemon/icmp.py
+  lib/python/nav/statemon/ip.py
+  lib/python/nav/statemon/mailAlert.py
+  lib/python/nav/statemon/Socket.py
+  lib/python/nav/statemon/timeoutsocket.py
+  lib/python/nav/topology/d3_js
+  lib/python/nav/topology/d3_js/d3_js.py
+  lib/python/nav/topology/d3_js/__init__.py
+  lib/python/nav/web/encoding.py
+  lib/python/nav/web/noauth.py
+  lib/python/nav/web/seeddb/page/subcategory.py
+  lib/python/nav/web/state.py
+  lib/python/nav/web/templates/__init__.py
+  lib/python/nav/web/webfront/compability.py
+
+  lib/python/nav/web/templates/
+  lib/templates/
+
+  share/htdocs/js/arnold.js
+  share/htdocs/js/d3.v2.js
+  share/htdocs/js/default.js
+  share/htdocs/js/report.js
+  share/htdocs/js/require_config.test.js
+  share/htdocs/js/src/netmap/templates/algorithm_toggler.html
+  share/htdocs/js/src/netmap/templates/link_info.html
+  share/htdocs/js/src/netmap/templates/list_maps.html
+  share/htdocs/js/src/netmap/templates/map_info.html
+  share/htdocs/js/src/netmap/templates/netbox_info.html
+  share/htdocs/js/src/netmap/templates/searchbox.html
+  share/htdocs/js/src/netmap/views/algorithm_toggler.js
+  share/htdocs/js/src/netmap/views/link_info.js
+  share/htdocs/js/src/netmap/views/list_maps.js
+  share/htdocs/js/src/netmap/views/map_info.js
+  share/htdocs/js/src/netmap/views/netbox_info.js
+  share/htdocs/js/src/netmap/views/searchbox.js
+  share/htdocs/js/threshold.js
+  share/htdocs/style/MatrixScopesTemplate.css
+  share/htdocs/style/MatrixTemplate.css
 
 
 NAV 3.14
@@ -230,7 +345,7 @@ Also, since `Django templates`_ are used, you have the full power of its
 template tag library to control and customize the appearance of an alert
 message based on the available variables.
 
-.. `_Django templates`: https://docs.djangoproject.com/en/1.2/ref/templates/
+.. _`Django templates`: https://docs.djangoproject.com/en/1.4/ref/templates/
 
 VLANs
 -----

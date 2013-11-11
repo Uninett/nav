@@ -1,10 +1,18 @@
 /* Styles for / */
 
+#index-leftcontent {
+    float: left;
+    width: 600px;
+}
+
 @media screen and (max-width: 900px) {
+
+    #index-leftcontent {
+        width: 100%;
+    }
 
     div.boxes {
         display: table;
-        float: none;
         width: 100%;
     }
 

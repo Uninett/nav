@@ -136,7 +136,7 @@ class MatrixIPv4(Matrix):
                     mnets = self.generate_matrix_nets(lastnet)
                     subnet_extended = IPy.IP(
                         '/'.join([
-                            subnet.net.strNormal(),
+                            subnet.net().strNormal(),
                             str(self.matrix_nets.keys()[0].prefixlen())
                         ]))
                     subnet_matrix.extend(

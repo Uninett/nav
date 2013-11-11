@@ -142,7 +142,7 @@ def get_or_create_token(request):
 
     :type request: django.http.HttpRequest
     """
-    if request.account.is_admin_account():
+    if request.account.is_admin():
         token, _ = APIToken.objects.get_or_create(
             client=request.account,
             defaults={'token': long_token(),

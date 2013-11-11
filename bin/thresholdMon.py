@@ -38,6 +38,7 @@ import logging
 import nav.buildconf
 from nav.event import Event
 from nav.rrd import presenter
+from nav.models import manage  # ensure RrdFile model has the Netbox field
 from nav.models.rrd import RrdFile, RrdDataSource
 
 LOG_FILE = nav.buildconf.localstatedir + "/log/thresholdMon.log"

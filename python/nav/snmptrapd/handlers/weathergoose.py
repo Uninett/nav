@@ -169,6 +169,7 @@ class WeatherGoose2(WeatherGoose1):
     TRAPS = MIB['notifications']
     NODES = MIB['nodes']
     TRIPTYPE = "." + NODES['alarmTripType']['oid'] + '.0'
+    GOOSENAME = "." + NODES['climateName']['oid'] + '.1'
 
     TRIGGERTRAPS = {
         'cmClimateTempCNOTIFY': 'weathergoose_temperature',

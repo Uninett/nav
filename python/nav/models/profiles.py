@@ -384,7 +384,7 @@ class AlertAddress(models.Model):
                 'Unhandeld error from %s (the handler has been blacklisted)',
                 self.type)
             transaction.rollback()
-            self.type.blacklist(e)
+            self.type.blacklist(error)
             return False
 
         return True
