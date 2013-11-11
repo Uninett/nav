@@ -1,69 +1,78 @@
 {% extends "alertprofiles/base_list.html" %}
 
 {% block tabcontent %}
-<form action="{% url alertprofiles-profile-remove %}" method="post">
-<table class="listtable">
-    <caption>
+  <a href="{% url alertprofiles-profile-new %}" class="button small">New profile</a>
+
+  <form action="{% url alertprofiles-profile-remove %}" method="post">
+    <table class="listtable">
+      <caption>
         Profiles
-    </caption>
+      </caption>
 
-    <thead>
-        <tr>
-            <th></th>
-            <th>
-            {% ifequal order_by "name" %}
-                <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=-name">
-                Name</a>
-                <span class="sort">
-                    <img src="{{ STATIC_URL }}images/alertprofiles/go-down.png" alt="Sorted ascending" />
-                </span>
-            {% else %}
-                <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=name">
-                Name</a>
-                {% ifequal order_by "-name" %}
-                <span class="sort">
-                    <img src="{{ STATIC_URL }}images/alertprofiles/go-up.png" alt="Sorted descending" />
-                </span>
-                {% endifequal %}
+      <thead>
+      <tr>
+        <th>&nbsp;</th>
+
+        <th>
+          {% ifequal order_by "name" %}
+            <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=-name">
+              Name <i class="fa fa-sort-alpha-asc"></i>
+            </a>
+          {% else %}
+            <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=name">
+              Name
+            {% ifequal order_by "-name" %}
+              <i class="fa fa-sort-alpha-desc"></i>
             {% endifequal %}
-            </th>
-            <th>
-                Active
-            </th>
-            <th></th>
-        </tr>
-    </thead>
+            </a>
+          {% endifequal %}
+        </th>
 
-    {% if profiles %}
+        <th>
+          Active
+        </th>
+
+        <th>&nbsp;</th>
+      </tr>
+      </thead>
+
+      {% if profiles %}
         <tbody>
         {% for profile in profiles %}
-            <tr class="{% cycle oddrow,evenrow %}">
-                <td><input type="checkbox" name="profile" value="{{ profile.id }}" /></td>
-                <td><a href="{% url alertprofiles-profile-detail profile.id %}">
-                    {{ profile.name }}</a></td>
-                {% ifequal profile.id active_profile.id %}
-                <td>
-                    Active
-                </td>
-                <td>
-                    <input type="submit" name="deactivate={{ profile.id }}" value="Click to deactivate" />
-                </td>
-                {% else %}
-                <td>
-                    Inactive
-                </td>
-                <td>
-                    <input type="submit" name="activate={{ profile.id }}" value="Click to activate" />
-                </td>
-                {% endifequal %}
-            </tr>
+          <tr class="{% cycle oddrow,evenrow %}">
+            <td>
+              <input type="checkbox" name="profile" value="{{ profile.id }}"/>
+            </td>
+
+            <td>
+              <a href="{% url alertprofiles-profile-detail profile.id %}">{{ profile.name }}</a>
+            </td>
+
+            {% ifequal profile.id active_profile.id %}
+              <td>
+                Active
+              </td>
+              <td>
+                <input type="submit" name="deactivate={{ profile.id }}" value="Deactivate" class="button secondary tiny"/>
+              </td>
+            {% else %}
+              <td>
+                Inactive
+              </td>
+              <td>
+                <input type="submit" name="activate={{ profile.id }}" value="Activate" class="button secondary tiny"/>
+              </td>
+            {% endifequal %}
+          </tr>
         {% endfor %}
         </tbody>
-    {% endif %}
-</table>
-<p>
-    <input type="submit" name="remove" value="Remove selected" />
-</p>
-</form>
+      {% endif %}
+    </table>
+
+    <p>
+      <input type="submit" name="remove" value="Remove selected" class="button secondary small"/>
+    </p>
+
+  </form>
 
 {% endblock %}
