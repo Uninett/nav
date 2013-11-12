@@ -14,7 +14,7 @@
     {% endblock %}
   </h4>
 
-  <form action="{% block url_edit %}{% endblock %}" method="post" class="custom">
+  <form action="{% block url_edit %}{% endblock %}" method="post" >
     {% crispy form %}
 
     {% block form_additional_fields %}
@@ -31,55 +31,54 @@
 
   {% if detail_id %}
 
-{% block filter_content %}
+    {% block filter_content %}
 
-<div class="expressionstable">
-    {% block expressions %}
-    <form action="{% block url_remove_expression %}{% endblock %}" method="post">
-        <table class="listtable">
-            <caption>
-            {% block expressions_caption_content %}
-            {% endblock %}
-            </caption>
+    <div class="expressionstable">
+        {% block expressions %}
+        <h5>
+          {% block expressions_caption_content %}
+          {% endblock %}
+        </h5>
+        <form action="{% block url_remove_expression %}{% endblock %}" method="post">
+            <table class="listtable">
+                <thead>
+                    <tr>
+                    {% block expressions_thead_cols %}
+                    {% endblock %}
+                    </tr>
+                </thead>
 
-            <thead>
-                <tr>
-                {% block expressions_thead_cols %}
+                <tbody>
+                {% block expressions_tbody_content %}
                 {% endblock %}
-                </tr>
-            </thead>
+                </tbody>
+            </table>
 
-            <tbody>
-            {% block expressions_tbody_content %}
-            {% endblock %}
-            </tbody>
-        </table>
+            {% if owner%}
+                {% block expressions_extra_fields %}
+                <p>
+                    <input type="hidden" name="id" value="{{ detail_id }}" />
+                    <input type="submit" name="delete" value="Delete selected" class="button small secondary" />
+                </p>
+                {% endblock %}
+            {% endif %}
+        </form>
+        {% endblock expressions %}
+    </div>
 
-        {% if owner%}
-            {% block expressions_extra_fields %}
+    <div class="addexpressionform">
+        <form action="{% block url_add_expression %}{% endblock %}" method="post">
+        {% block addexpression %}
             <p>
                 <input type="hidden" name="id" value="{{ detail_id }}" />
-                <input type="submit" name="delete" value="Delete selected" class="button small secondary" />
+                <input type="submit" value="Add" class="button small" />
             </p>
-            {% endblock %}
-        {% endif %}
-    </form>
-    {% endblock expressions %}
-</div>
+        {% endblock addexpression %}
+        </form>
+    </div>
 
-<div class="addexpressionform">
-    <form action="{% block url_add_expression %}{% endblock %}" method="post">
-    {% block addexpression %}
-        <p>
-            <input type="hidden" name="id" value="{{ detail_id }}" />
-            <input type="submit" value="Add" class="button small" />
-        </p>
-    {% endblock addexpression %}
-    </form>
-</div>
+    {% endblock filter_content %}
 
-{% endblock filter_content %}
-
-{% endif %}
+  {% endif %}
 
 {% endblock %}

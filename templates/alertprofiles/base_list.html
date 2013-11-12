@@ -2,23 +2,16 @@
 
 {% block tabcontent %}
 
-  {% block top_header %}{% endblock %}
+{% block top_header %}{% endblock %}
 
 {% block top_links %}
 {% endblock %}
 
 <form action="{{ form_action }}" method="post">
 
-<table class="listtable">
+  <h4>{% block captioncontent %}{% endblock %}</h4>
 
-    <caption>
-    {% block captioncontent %}
-    {% endblock %}
-        <span class="subtitle right">&nbsp;
-        {% include "alertprofiles/paginator.html" %}
-        </span>
-    </caption>
-
+  <table class="listtable">
     <thead>
         <tr>
         {% block theadcols %}

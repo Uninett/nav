@@ -1,5 +1,9 @@
 {% extends "alertprofiles/base_list.html" %}
 
+{% block top_links %}
+  <a href="{% url alertprofiles-filter_groups-new %}" class="button small">Add filter group</a>
+{% endblock %}
+
 {% block captioncontent %}
     Filter groups
 {% endblock %}

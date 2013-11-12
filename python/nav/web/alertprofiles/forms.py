@@ -301,6 +301,17 @@ class FilterGroupForm(forms.Form):
             for field in self.fields.itervalues():
                 field.widget.attrs['disabled'] = 'disabled'
 
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id',
+            Row(
+                Column('name', css_class='medium-4'),
+                Column('description', css_class='medium-4'),
+                Column('owner', css_class='medium-4')
+            )
+        )
+
 
 class FilterForm(forms.Form):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
