@@ -1,8 +1,14 @@
-<div id="timeperiods_table_container">
+<div id="timeperiods_table_container" class="row">
 {% for type in alert_subscriptions %}
-<table class="listtable">
+  <div class="column medium-6">
+<table class="listtable full-width">
     <caption>
         {{ type.title }}
+      <i class="fa fa-info-circle right" data-tooltip title="
+        If, when hovering over one period in one of the tables, two rows
+        in different tables are highlighted, those two periods are
+        actually the one and same period. It's just an <em>all days</em> period.
+      "></i>
     </caption>
 
     <thead>
@@ -58,5 +64,6 @@
     {% endfor %}
     </tbody>
 </table>
+  </div>
 {% endfor %}
 </div>

@@ -30,6 +30,8 @@
 {% endblock %}
 
 {% block expressions %}
+    <h4>Time periods</h4>
+
 <form action="{% url alertprofiles-profile-timeperiod-remove %}" method="post">
     {% include "alertprofiles/timeperiods.html" %}
     <p>
