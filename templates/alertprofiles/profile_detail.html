@@ -13,19 +13,15 @@
 
 {% block form_additional_fields %}
 {% if time_period_templates %}
-<tr>
-    <th>
-        <label for="id_template">Choose a template for time periods:</label>
-    </th>
-    <td>
-        <select name="template" id="id_template">
-            <option value="">No template</option>
-            {% for key, template in time_period_templates.items %}
-                <option value="{{ key }}">{{ template.main.description }}</option>
-            {% endfor %}
-        </select>
-    </td>
-</tr>
+  <div>
+    <label for="id_template">Choose a template for time periods:</label>
+    <select name="template" id="id_template">
+      <option value="">No template</option>
+      {% for key, template in time_period_templates.items %}
+        <option value="{{ key }}">{{ template.main.description }}</option>
+      {% endfor %}
+    </select>
+  </div>
 {% endif %}
 {% endblock %}
 

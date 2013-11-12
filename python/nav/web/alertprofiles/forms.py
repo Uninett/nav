@@ -29,7 +29,11 @@ from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
 from nav.models.profiles import AlertAddress, AccountProperty
 
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import Layout, Row, Column, Field,Submit
+
 _ = lambda a: a
+
 
 class AccountPropertyForm(forms.ModelForm):
 
@@ -47,23 +51,27 @@ class AccountPropertyForm(forms.ModelForm):
             widget=forms.widgets.HiddenInput, initial=property)
         self.fields['value'] = forms.ChoiceField(choices=values)
 
+
 class AlertProfileForm(forms.ModelForm):
-    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
-    name = forms.CharField(required=True)
-    daily_dispatch_time = forms.TimeField(
-        initial='08:00',
-        input_formats=['%H:%M:%S', '%H:%M', '%H'],
-        help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
-    )
-    weekly_dispatch_time = forms.TimeField(
-        initial='08:00',
-        input_formats=['%H:%M:%S', '%H:%M', '%H'],
-        help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
-    )
+    id = forms.IntegerField(required=False, widget=forms.HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super(AlertProfileForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id', 'name',
+            Row(
+                Column('daily_dispatch_time', css_class='medium-4'),
+                Column('weekly_dispatch_time', css_class='medium-4'),
+                Column('weekly_dispatch_day', css_class='medium-4')
+            )
+        )
 
     class Meta:
         model = AlertProfile
         exclude = ('account',)
+
 
 class AlertAddressForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)

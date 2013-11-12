@@ -1,38 +1,33 @@
 {% extends "alertprofiles/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block tabcontent %}
-<h3>
-{% block headercontent %}
-    {% if detail_id %}
+  <h4>
+    {% block headercontent %}
+      {% if detail_id %}
         Filter details
-    {% else %}
+      {% else %}
         New filter
-    {% endif %}
-{% endblock %}
-</h3>
-<form action="{% block url_edit %}{% endblock %}" method="post">
-<table class="vertitable">
-    <tbody>
-        {{ form }}
-        {% block form_additional_fields %}
-        {% endblock %}
-        {% if owner %}
-        <tr>
-            <th></th>
-            <td>
-                {% if detail_id %}
-                    <input type="submit" value="Save changes" />
-                {% else %}
-                    <input type="submit" value="Save new" />
-                {% endif %}
-            </td>
-        </tr>
-        {% endif %}
-    </tbody>
-</table>
-</form>
+      {% endif %}
+    {% endblock %}
+  </h4>
 
-{% if detail_id %}
+  <form action="{% block url_edit %}{% endblock %}" method="post" class="custom">
+    {% crispy form %}
+
+    {% block form_additional_fields %}
+    {% endblock %}
+
+    {% if owner %}
+      {% if detail_id %}
+        <input type="submit" value="Save changes"/>
+      {% else %}
+        <input type="submit" value="Save new"/>
+      {% endif %}
+    {% endif %}
+  </form>
+
+  {% if detail_id %}
 
 {% block filter_content %}
 
