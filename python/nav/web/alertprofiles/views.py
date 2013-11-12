@@ -640,6 +640,7 @@ def profile_time_period_remove(request):
                 RequestContext(request),
             )
 
+
 def profile_time_period_setup(request, time_period_id=None):
     if not time_period_id:
         new_message(request, _('No time period were specified'),

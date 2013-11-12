@@ -196,9 +196,11 @@ class AlertSubscriptionForm(forms.ModelForm):
         time_period = kwargs.pop('time_period', None)
         super(AlertSubscriptionForm, self).__init__(*args, **kwargs)
 
+        hidden_fields = ['id']
         if isinstance(time_period, TimePeriod):
             self.fields['time_period'] = forms.IntegerField(
                 widget=forms.HiddenInput, initial=time_period.id)
+            hidden_fields.append('time_period')
             # Get account
             account = time_period.profile.account
 
@@ -217,14 +219,30 @@ class AlertSubscriptionForm(forms.ModelForm):
                     'required': 'Alert address is a required field.',
                     'invalid_choice': ('The selected alert address is an '
                                        'invalid choice.'),
-                })
+                }, label='Send alerts to')
             self.fields['filter_group'] = forms.ChoiceField(
                 choices=filter_group_choices,
                 error_messages={
                     'required': 'Filter group is a required field.',
                     'invalid_choice': ('The selected filter group is a '
                                        'invalid choice.'),
-                })
+                }, label='Watch')
+            self.fields['type'].label = '&nbsp;'
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('filter_group', css_class='select2'),
+                       css_class='medium-3'),
+                Column(Field('alert_address', css_class='select2'),
+                       css_class='medium-3'),
+                Column(Field('type', css_class='select2'),
+                       css_class='medium-3'),
+                Column(Field('ignore_resolved_alerts',
+                             css_class='input-align'),
+                       css_class='medium-3')
+            ), *hidden_fields
+        )
 
     def clean(self):
         alert_address = self.cleaned_data.get('alert_address', None)
