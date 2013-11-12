@@ -30,7 +30,7 @@ from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
 from nav.models.profiles import AlertAddress, AccountProperty
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Field,Submit
+from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
 
 _ = lambda a: a
 
@@ -104,6 +104,7 @@ class AlertAddressForm(forms.ModelForm):
 
         return cleaned_data
 
+
 class TimePeriodForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     profile = forms.ModelChoiceField(
@@ -125,7 +126,6 @@ class TimePeriodForm(forms.ModelForm):
         start_time = self.cleaned_data.get('start', None)
         valid_during = self.cleaned_data.get('valid_during', None)
 
-        valid_during_choices = None
         if valid_during == TimePeriod.ALL_WEEK:
             valid_during_choices = (TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS,
                                     TimePeriod.WEEKENDS)
@@ -151,6 +151,7 @@ class TimePeriodForm(forms.ModelForm):
         else:
             return self.cleaned_data
 
+
 class AlertSubscriptionForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
 
@@ -163,9 +164,7 @@ class AlertSubscriptionForm(forms.ModelForm):
 
         if isinstance(time_period, TimePeriod):
             self.fields['time_period'] = forms.IntegerField(
-                    widget=forms.widgets.HiddenInput,
-                    initial=time_period.id
-                )
+                widget=forms.HiddenInput, initial=time_period.id)
             # Get account
             account = time_period.profile.account
 
@@ -179,21 +178,19 @@ class AlertSubscriptionForm(forms.ModelForm):
             filter_group_choices = [(f.id, f.name) for f in filter_groups]
 
             self.fields['alert_address'] = forms.ChoiceField(
-                    choices=address_choices,
-                    error_messages={
-                        'required': 'Alert address is a required field.',
-                        'invalid_choice': ('The selected alert address is an '
-                                           'invalid choice.'),
-                    }
-                )
+                choices=address_choices,
+                error_messages={
+                    'required': 'Alert address is a required field.',
+                    'invalid_choice': ('The selected alert address is an '
+                                       'invalid choice.'),
+                })
             self.fields['filter_group'] = forms.ChoiceField(
-                    choices=filter_group_choices,
-                    error_messages={
-                        'required': 'Filter group is a required field.',
-                        'invalid_choice': ('The selected filter group is a '
-                                           'invalid choice.'),
-                    }
-                )
+                choices=filter_group_choices,
+                error_messages={
+                    'required': 'Filter group is a required field.',
+                    'invalid_choice': ('The selected filter group is a '
+                                       'invalid choice.'),
+                })
 
     def clean(self):
         alert_address = self.cleaned_data.get('alert_address', None)
@@ -206,11 +203,11 @@ class AlertSubscriptionForm(forms.ModelForm):
         error_msg = []
 
         existing_subscriptions = AlertSubscription.objects.filter(
-                Q(alert_address=alert_address),
-                Q(time_period=time_period),
-                Q(filter_group=filter_group),
-                ~Q(pk=ident)
-            )
+            Q(alert_address=alert_address),
+            Q(time_period=time_period),
+            Q(filter_group=filter_group),
+            ~Q(pk=ident)
+        )
 
         for sub in existing_subscriptions:
             error_msg.append(
@@ -221,17 +218,18 @@ class AlertSubscriptionForm(forms.ModelForm):
 
         if subscription_type == AlertSubscription.NOW and ignore:
             error_msg.append(u'Resolved alerts can not be ignored ' +
-                'for now subscriptions')
+                             'for now subscriptions')
 
         if error_msg:
             raise forms.util.ValidationError(error_msg)
 
         return self.cleaned_data
 
+
 class FilterGroupForm(forms.Form):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
-    owner = forms.BooleanField(required=False, label='Private',
-        help_text=_(u'Uncheck to allow all users to use this filter group.'))
+    owner = forms.BooleanField(required=False, label='Private', help_text=_(
+        u'Uncheck to allow all users to use this filter group.'))
     name = forms.CharField(required=True)
     description = forms.CharField(required=False)
 
@@ -251,10 +249,11 @@ class FilterGroupForm(forms.Form):
             for field in self.fields.itervalues():
                 field.widget.attrs['disabled'] = 'disabled'
 
+
 class FilterForm(forms.Form):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
-    owner = forms.BooleanField(required=False, label=u'Private',
-        help_text=_(u'Uncheck to allow all users to use this filter.'))
+    owner = forms.BooleanField(required=False, label=u'Private', help_text=_(
+        u'Uncheck to allow all users to use this filter.'))
     name = forms.CharField(required=True)
 
     class Meta:
@@ -272,16 +271,17 @@ class FilterForm(forms.Form):
             for field in self.fields.itervalues():
                 field.widget.attrs['disabled'] = 'disabled'
 
+
 class MatchFieldForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     list_limit = forms.ChoiceField(
-            choices=((100, 100), (200, 200), (300, 300), (500, 500),
-                     (1000, '1 000'), (10000, '10 000')),
-            initial=300,
-            help_text=_(u'Only this many options will be available in the '
-                        u'list. Only does something when "Show list" is '
-                        u'checked.'),
-        )
+        choices=((100, 100), (200, 200), (300, 300), (500, 500),
+                 (1000, '1 000'), (10000, '10 000')),
+        initial=300,
+        help_text=_(u'Only this many options will be available in the '
+                    u'list. Only does something when "Show list" is '
+                    u'checked.'),
+    )
 
     class Meta:
         model = MatchField
@@ -305,7 +305,6 @@ class MatchFieldForm(forms.ModelForm):
                         u'or not set at all.')
         return clean_value_name
 
-
     def clean_value_sort(self):
         clean_value_sort = self.cleaned_data['value_sort']
         try:
@@ -324,6 +323,7 @@ class MatchFieldForm(forms.ModelForm):
                         u'This field must be the same model as match field, '
                         u'or not set at all.')
         return clean_value_sort
+
 
 class ExpressionForm(forms.ModelForm):
     filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
