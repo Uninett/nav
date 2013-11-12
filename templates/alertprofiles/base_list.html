@@ -12,8 +12,7 @@
     <caption>
     {% block captioncontent %}
     {% endblock %}
-        <br />
-        <span class="subtitle">&nbsp;
+        <span class="subtitle right">&nbsp;
         {% include "alertprofiles/paginator.html" %}
         </span>
     </caption>
@@ -37,7 +36,7 @@
     {# FIXME colspan="0", replace with block override perhaps? #}
     <tfoot>
         <tr>
-            <th colspan="0">
+            <th colspan="{% block tablecolspan %}2{% endblock %}">
                 {% include "alertprofiles/paginator.html" %}
             </th>
         </tr>
@@ -48,7 +47,7 @@
 <div>
     {% block additional_fields %}
     {% endblock %}
-    <input type="submit" value="Delete selected" />
+    <input type="submit" value="Delete selected" class="button small" />
 </div>
 {% endblock %}
 

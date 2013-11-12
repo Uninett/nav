@@ -2,6 +2,8 @@
 {% load crispy_forms_tags %}
 
 {% block tabcontent %}
+  {% block backnavigation %}{% endblock %}
+
   <h4>
     {% block headercontent %}
       {% if detail_id %}

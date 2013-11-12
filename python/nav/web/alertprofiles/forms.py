@@ -78,6 +78,19 @@ class AlertAddressForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     address = forms.CharField(required=True)
 
+    def __init__(self, *args, **kwargs):
+        super(AlertAddressForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id',
+            Row(
+                Column('type', css_class='medium-4'),
+                Column('address', css_class='medium-4'),
+                Column(HTML(''), css_class='medium-4')
+            )
+        )
+
     class Meta:
         model = AlertAddress
         exclude = ('account',)
