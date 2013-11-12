@@ -59,7 +59,7 @@
             {% block expressions_extra_fields %}
             <p>
                 <input type="hidden" name="id" value="{{ detail_id }}" />
-                <input type="submit" name="delete" value="Delete selected" />
+                <input type="submit" name="delete" value="Delete selected" class="button small secondary" />
             </p>
             {% endblock %}
         {% endif %}
@@ -68,11 +68,11 @@
 </div>
 
 <div class="addexpressionform">
-    <form action="{% block url_add_expression %}{% endblock %}" method="post" class="custom">
+    <form action="{% block url_add_expression %}{% endblock %}" method="post">
     {% block addexpression %}
         <p>
             <input type="hidden" name="id" value="{{ detail_id }}" />
-            <input type="submit" value="Add" />
+            <input type="submit" value="Add" class="button small" />
         </p>
     {% endblock addexpression %}
     </form>

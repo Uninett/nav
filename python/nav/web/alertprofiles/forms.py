@@ -279,7 +279,7 @@ class AlertSubscriptionForm(forms.ModelForm):
 
 
 class FilterGroupForm(forms.Form):
-    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    id = forms.IntegerField(required=False, widget=forms.HiddenInput)
     owner = forms.BooleanField(required=False, label='Private', help_text=_(
         u'Uncheck to allow all users to use this filter group.'))
     name = forms.CharField(required=True)

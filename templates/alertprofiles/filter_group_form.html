@@ -29,11 +29,13 @@
 
 {% block expressions_tbody_content %}
     {% for f in filter_group_content %}
-        <tr class="{% cycle oddrow,evenrow %}">
+        <tr>
             {% if owner %}
             <td><input type="checkbox" name="filter" value="{{ f.id }}" /></td>
             {% endif %}
+
             <td>{{ f.priority }}</td>
+
             <td>
                 {% if f.include %}
                     {{ f.positive|yesno:"Add,Add inverse" }}
@@ -41,15 +43,18 @@
                     {{ f.positive|yesno:"Subtract,And" }}
                 {% endif %}
             </td>
+
             <td>{{ f.filter }}</td>
+
             <td>
                 {% if not forloop.first %}
-                <input type="submit" name="moveup={{ f.id }}" value="Move up" />
+                <input type="submit" name="moveup={{ f.id }}" value="Move up" class="button secondary tiny"/>
                 {% endif %}
             </td>
+
             <td>
                 {% if not forloop.last %}
-                <input type="submit" name="movedown={{ f.id }}" value="Move down" />
+                <input type="submit" name="movedown={{ f.id }}" value="Move down" class="button secondary tiny" />
                 {% endif %}
             </td>
         </tr>
@@ -58,27 +63,45 @@
 
 {% block addexpression %}
     {% if owner %}
-    <h3>Add filter</h3>
-    <div class="formcontainer">
-        <label for="select_operation">Use operation</label>
-        <select name="operator" id="select_operation">
-            <option value="11">Add</option>
-            <option value="01">Subtract</option>
-            <option value="00">And</option>
-            <option value="10">Add inverse</option>
-        </select>
+      <div class="row">
+        <div class="column small-12">
+          <a href="#" data-reveal-id="operator_help" class="button small secondary right">Operator help</a>
+          <h5>Add filter</h5>
+        </div>
+      </div>
 
-        <label for="select_filter">on filter</label>
-        <select name="filter" id="select_filter">
-        {% for f in filters %}
-            <option value="{{ f.id }}">{{ f.name }}</option>
-        {% endfor %}
-        </select>
-        {{ block.super }}
+    <div class="row">
+
+      <div class="column medium-6">
+        <label for="select_operation">Use operation
+          <select name="operator" id="select_operation" class="select2">
+              <option value="11">Add</option>
+              <option value="01">Subtract</option>
+              <option value="00">And</option>
+              <option value="10">Add inverse</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="column medium-6">
+        <label for="select_filter">on filter
+          <select name="filter" id="select_filter" class="select2">
+          {% for f in filters %}
+              <option value="{{ f.id }}">{{ f.name }}</option>
+          {% endfor %}
+          </select>
+        </label>
+      </div>
+
     </div>
 
-    <div class="infobox">
-        <h3>Operator help</h3>
+    <br/>
+    {{ block.super }}  {% comment %}This is the form submit button....{% endcomment %}
+
+
+
+    <div id="operator_help" class="reveal-modal">
+        <h5>Operator help</h5>
         <p>
             The four operators are in the database represented by to flags, one
             for «include» and one for «positive». The table below shows how
