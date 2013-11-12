@@ -454,6 +454,7 @@ def profile_deactivate(request):
     )
     return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
+
 def profile_time_period(request, time_period_id, time_period_form=None):
     time_period = TimePeriod.objects.get(pk=time_period_id)
     profile = time_period.profile
@@ -480,6 +481,7 @@ def profile_time_period(request, time_period_id, time_period_form=None):
         info_dict,
         RequestContext(request),
     )
+
 
 @requires_post('alertprofiles-profile', ('profile',))
 def profile_time_period_add(request):

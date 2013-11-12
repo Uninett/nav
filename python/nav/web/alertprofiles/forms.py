@@ -30,7 +30,8 @@ from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
 from nav.models.profiles import AlertAddress, AccountProperty
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
+from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
+                                            HTML)
 
 _ = lambda a: a
 
@@ -106,16 +107,36 @@ class AlertAddressForm(forms.ModelForm):
 
 
 class TimePeriodForm(forms.ModelForm):
-    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    id = forms.IntegerField(required=False, widget=forms.HiddenInput)
     profile = forms.ModelChoiceField(
         AlertProfile.objects.all(),
-        widget=forms.widgets.HiddenInput
+        widget=forms.HiddenInput
     )
     start = forms.TimeField(
         initial='08:00',
         input_formats=['%H:%M:%S', '%H:%M', '%H'],
         help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
     )
+
+    def __init__(self, *args, **kwargs):
+        super(TimePeriodForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = 'alertprofiles-profile-timeperiod-add'
+        submit_text = 'Add'
+
+        if self.instance and self.instance.id:
+            self.fields['valid_during'].widget.attrs['disabled'] = 'disabled'
+            submit_text = 'Save'
+
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id', 'profile',
+            Row(
+                Column('start', css_class='medium-6'),
+                Column('valid_during', css_class='medium-6')
+            ),
+            Submit('submit', submit_text, css_class='small')
+        )
 
     class Meta:
         model = TimePeriod

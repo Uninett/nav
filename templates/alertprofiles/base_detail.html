@@ -20,9 +20,9 @@
 
     {% if owner %}
       {% if detail_id %}
-        <input type="submit" value="Save changes"/>
+        <input type="submit" value="Save changes" class="button small"/>
       {% else %}
-        <input type="submit" value="Save new"/>
+        <input type="submit" value="Save new" class="button small"/>
       {% endif %}
     {% endif %}
   </form>
@@ -66,7 +66,7 @@
 </div>
 
 <div class="addexpressionform">
-    <form action="{% block url_add_expression %}{% endblock %}" method="post">
+    <form action="{% block url_add_expression %}{% endblock %}" method="post" class="custom">
     {% block addexpression %}
         <p>
             <input type="hidden" name="id" value="{{ detail_id }}" />
