@@ -29,7 +29,7 @@ To run NAV, these software packages are required:
  * Apache2
  * mod_wsgi
  * Cricket
- * PostgreSQL >= 8.4
+ * PostgreSQL >= 9.1
  * rrdtool
  * Python >= 2.6.0
  * nbtscan = 1.5.1
