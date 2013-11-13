@@ -35,8 +35,9 @@ SERVICE_SECTIONS = (
     StatusPreference.SECTION_SERVICE_MAINTENANCE
 )
 
+
 def status(request):
-    '''Main status view.'''
+    """Main status view."""
     account = get_account(request)
     sections = get_user_sections(account)
 
@@ -55,8 +56,9 @@ def status(request):
         RequestContext(request)
     )
 
+
 def preferences(request):
-    '''Allows user customization of the status page.'''
+    """Allows user customization of the status page."""
     if request.method == 'POST':
         request.POST = extract_post(request.POST.copy())
         if request.POST.get('moveup') or request.POST.get('movedown'):
@@ -79,12 +81,15 @@ def preferences(request):
         RequestContext(request)
     )
 
+
 def edit_preferences(request, section_id):
+    """Controller for editing preferences"""
     if request.method == 'POST':
         return save_preferences(request)
 
     account = get_account(request)
-    status_prefs = get_object_or_404(StatusPreference, id=section_id, account=account)
+    status_prefs = get_object_or_404(StatusPreference, id=section_id,
+                                     account=account)
 
     section_model = get_section_model(status_prefs.type)
     form = section_model.form(status_prefs)
@@ -102,7 +107,9 @@ def edit_preferences(request, section_id):
         RequestContext(request)
     )
 
+
 def add_section(request):
+    """Controller for adding a section"""
     if not request.method == 'POST':
         return HttpResponseRedirect(reverse('status-preferences'))
     elif 'save' in request.POST:
@@ -128,7 +135,9 @@ def add_section(request):
         RequestContext(request),
     )
 
+
 def save_preferences(request):
+    """Controller for saving the preferences"""
     if not request.method == 'POST':
         return HttpResponseRedirect(reverse('status-preferences'))
 
@@ -192,7 +201,9 @@ def save_preferences(request):
             RequestContext(request)
         )
 
+
 def move_section(request):
+    """Controller for moving a section up or down"""
     account = get_account(request)
 
     # Moving up, or moving down?
@@ -245,7 +256,9 @@ def move_section(request):
                 Messages.SUCCESS)
     return HttpResponseRedirect(reverse('status-preferences'))
 
+
 def delete_section(request):
+    """Controller for deleting a section"""
     if not request.method == 'POST':
         return HttpResponseRedirect(reverse('status-preferences'))
 
