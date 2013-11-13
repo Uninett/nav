@@ -22,17 +22,21 @@ from nav.models.profiles import StatusPreference
 from nav.models.manage import Netbox, Organization, Category
 from nav.web import servicecheckers
 
+
 def _organization_choices():
     org = [(org.id, org.description) for org in Organization.objects.all()]
     return [('', '(all)')] + org
+
 
 def _category_choices():
     cat = [(cat.id, cat.description) for cat in Category.objects.all()]
     return [('', '(all)')] + cat
 
+
 def _service_choices():
     service = [(s, s) for s in servicecheckers.get_checkers()]
     return [('', '(all)')] + service
+
 
 def _state_choices():
     return (
@@ -40,12 +44,14 @@ def _state_choices():
         (Netbox.UP_SHADOW, 'shadow'),
     )
 
+
 def _all_state_choices():
     return (
         (Netbox.UP_UP, 'up'),
         (Netbox.UP_DOWN, 'down'),
         (Netbox.UP_SHADOW, 'shadow'),
     )
+
 
 class SectionForm(forms.Form):
     id = forms.IntegerField(widget=forms.HiddenInput(), required=False)
@@ -61,33 +67,42 @@ class SectionForm(forms.Form):
         if 'services' in self.fields:
             self.fields['services'].choices = _service_choices()
 
+
 class NetboxForm(SectionForm):
     categories = forms.MultipleChoiceField()
     states = forms.MultipleChoiceField(choices=_state_choices())
+
 
 class NetboxMaintenanceForm(SectionForm):
     categories = forms.MultipleChoiceField()
     states = forms.MultipleChoiceField(choices=_all_state_choices())
 
+
 class ServiceForm(SectionForm):
     services = forms.MultipleChoiceField()
     states = forms.MultipleChoiceField(choices=_state_choices())
+
 
 class ServiceMaintenanceForm(SectionForm):
     services = forms.MultipleChoiceField()
     states = forms.MultipleChoiceField(choices=_all_state_choices())
 
+
 class ModuleForm(NetboxForm):
     pass
+
 
 class ThresholdForm(SectionForm):
     categories = forms.MultipleChoiceField()
 
+
 class LinkStateForm(SectionForm):
     categories = forms.MultipleChoiceField()
 
+
 class SNMPAgentForm(SectionForm):
     categories = forms.MultipleChoiceField()
+
 
 class AddSectionForm(forms.Form):
     section = forms.ChoiceField(
