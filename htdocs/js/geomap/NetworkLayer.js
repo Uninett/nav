@@ -79,7 +79,7 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
 	// RRD syntax (used for creating parameters below):
 	function formattedTime(timeFunc) {
 	    return function() {
-		return timeFunc().format('%H:%M %Y%m%d');
+		return timeFunc().format('%H:%M_%Y%m%d');
 	    };
 	}
 
