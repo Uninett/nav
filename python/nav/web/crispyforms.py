@@ -16,13 +16,18 @@
 """A collection of forms using the django crispy forms framework"""
 
 from crispy_forms.layout import BaseInput
-from crispy_forms_foundation.layout import Field
+from crispy_forms_foundation.layout import Field, Submit
 
 
 class NavSubmit(BaseInput):
     """Displays proper Foundation submit button"""
     input_type = 'submit'
     field_classes = 'button small'
+
+
+class LabelSubmit(Submit):
+    """Submitbutton with a label above it to align within a row"""
+    template = 'custom_crispy_templates/submit.html'
 
 
 class CheckBox(Field):
