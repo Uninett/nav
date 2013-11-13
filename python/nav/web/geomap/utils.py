@@ -20,6 +20,7 @@ This file contains functions which I wish were in the standard
 library.
 
 """
+import math
 
 
 def identity(x):
@@ -116,6 +117,7 @@ def nansafe_max(lst):
     return max(values)
 
 
+# TODO How is this different from what functools.partial() does?
 def fix(fun, argvalues, argnums=0):
     """Fix one or more arguments to a function.
 
@@ -172,15 +174,11 @@ def float_or_nan(string):
 
 
 def is_nan(val):
-    """Check if val is the special NaN (not a number) floating point value.
-
-    This test is, apparently, somewhat platform-dependent (see [1]).
-    From Python 2.6, this should be replaced by math.isnan.
-
-    [1]: http://groups.google.com/group/comp.lang.python/browse_thread/thread/17f4cae77e28814b/eaa6a2753877737d#msg_61950ec8cae12f8f
-
-    """
-    return val != val
+    """Verifies whether val is the special NaN floating point value."""
+    try:
+        return math.isnan(val)
+    except TypeError:
+        return False
 
 
 def compose(*functions):
