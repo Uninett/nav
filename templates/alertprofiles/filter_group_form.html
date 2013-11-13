@@ -4,6 +4,11 @@
 {% block url_remove_expression %}{% url alertprofiles-filter_groups-removefilter %}{% endblock %}
 {% block url_add_expression %}{% url alertprofiles-filter_groups-addfilter %}{% endblock %}
 
+{% block backnavigation %}
+  <p><a href="{% url alertprofiles-filter_groups %}">Back to filter-groups</a></p>
+{% endblock %}
+
+
 {% block headercontent %}
     {% if detail_id %}
         Filter group details

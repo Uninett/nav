@@ -101,6 +101,8 @@
     </th>
 {% endblock %}
 
+{% block tablecolspan %}6{% endblock %}
+
 {% block tbodycontent %}
     {% for sms in object_list %}
         <tr class="{% cycle oddrow,evenrow %}">

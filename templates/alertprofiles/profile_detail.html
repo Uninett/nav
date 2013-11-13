@@ -3,6 +3,11 @@
 {% block url_edit %}{% url alertprofiles-profile-save %}{% endblock %}
 {% block url_add_expression %}{% url alertprofiles-profile-timeperiod-add %}{% endblock %}
 
+{% block backnavigation %}
+  <p><a href="{% url alertprofiles-profile %}">Back to profiles</a></p>
+{% endblock %}
+
+
 {% block headercontent %}
     {% if detail_id %}
        Profile details 

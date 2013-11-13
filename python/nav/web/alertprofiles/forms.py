@@ -65,7 +65,8 @@ class AlertProfileForm(forms.ModelForm):
             Row(
                 Column('daily_dispatch_time', css_class='medium-4'),
                 Column('weekly_dispatch_time', css_class='medium-4'),
-                Column('weekly_dispatch_day', css_class='medium-4')
+                Column(Field('weekly_dispatch_day', css_class='select2'),
+                       css_class='medium-4')
             )
         )
 
@@ -85,7 +86,8 @@ class AlertAddressForm(forms.ModelForm):
         self.helper.layout = Layout(
             'id',
             Row(
-                Column('type', css_class='medium-4'),
+                Column(Field('type', css_class='select2'),
+                       css_class='medium-4'),
                 Column('address', css_class='medium-4'),
                 Column(HTML(''), css_class='medium-4')
             )
@@ -134,7 +136,6 @@ class TimePeriodForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(TimePeriodForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_action = 'alertprofiles-profile-timeperiod-add'
         submit_text = 'Add'
 
         if self.instance and self.instance.id:
@@ -146,7 +147,8 @@ class TimePeriodForm(forms.ModelForm):
             'id', 'profile',
             Row(
                 Column('start', css_class='medium-6'),
-                Column('valid_during', css_class='medium-6')
+                Column(Field('valid_during', css_class='select2'),
+                       css_class='medium-6')
             ),
             Submit('submit', submit_text, css_class='small')
         )
