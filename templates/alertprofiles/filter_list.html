@@ -15,13 +15,13 @@
     {% ifequal order_by "name" %}
         <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=-name">
           Name
-          <i class="fa fa-sort-alpha-asc"></i>
+          <i class="fa fa-caret-down"></i>
         </a>
     {% else %}
         <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=name">
           Name
           {% ifequal order_by "-name" %}
-            <i class="fa fa-sort-alpha-desc"></i>
+            <i class="fa fa-caret-up"></i>
           {% endifequal %}
         </a>
     {% endifequal %}
@@ -31,13 +31,13 @@
     {% ifequal order_by "owner" %}
         <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=-owner">
           Owner
-          <i class="fa fa-sort-alpha-asc"></i>
+          <i class="fa fa-caret-down"></i>
         </a>
     {% else %}
         <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=owner">
           Owner
           {% ifequal order_by "-owner" %}
-            <i class="fa fa-sort-alpha-desc"></i>
+            <i class="fa fa-caret-up"></i>
           {% endifequal %}
         </a>
     {% endifequal %}

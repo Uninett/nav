@@ -17,13 +17,13 @@
     {% ifequal order_by "address" %}
       <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-address">
         Address
-        <i class="fa fa-sort-alpha-asc"></i>
+        <i class="fa fa-caret-down"></i>
       </a>
     {% else %}
       <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=address">
         Address
         {% ifequal order_by "-address" %}
-        <i class="fa fa-sort-alpha-desc"></i>
+        <i class="fa fa-caret-up"></i>
         {% endifequal %}
       </a>
     {% endifequal %}
@@ -33,13 +33,13 @@
     {% ifequal order_by "type" %}
       <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-type">
         Type
-        <i class="fa fa-sort-alpha-asc"></i>
+        <i class="fa fa-caret-down"></i>
       </a>
     {% else %}
         <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=type">
           Type
           {% ifequal order_by "-type" %}
-            <i class="fa fa-sort-alpha-desc"></i>
+            <i class="fa fa-caret-up"></i>
           {% endifequal %}
         </a>
     {% endifequal %}

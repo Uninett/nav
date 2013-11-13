@@ -15,13 +15,13 @@
         <th>
           {% ifequal order_by "name" %}
             <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=-name">
-              Name <i class="fa fa-sort-alpha-asc"></i>
+              Name <i class="fa fa-caret-down"></i>
             </a>
           {% else %}
             <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=name">
               Name
             {% ifequal order_by "-name" %}
-              <i class="fa fa-sort-alpha-desc"></i>
+              <i class="fa fa-caret-up"></i>
             {% endifequal %}
             </a>
           {% endifequal %}
