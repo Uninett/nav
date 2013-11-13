@@ -334,6 +334,16 @@ class FilterForm(forms.Form):
             for field in self.fields.itervalues():
                 field.widget.attrs['disabled'] = 'disabled'
 
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id',
+            Row(
+                Column('name', css_class='medium-6'),
+                Column('owner', css_class='medium-6')
+            )
+        )
+
 
 class MatchFieldForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)

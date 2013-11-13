@@ -4,6 +4,10 @@
 {% block url_remove_expression %}{% url alertprofiles-filters-removeexpression %}{% endblock %}
 {% block url_add_expression %}{% url alertprofiles-filters-addexpression %}{% endblock %}
 
+{% block backnavigation %}
+  <p></p><a href="{% url alertprofiles-filters %}">Back to filters</a></p>
+{% endblock %}
+
 {% block expressions_caption_content %}
     Expressions
 {% endblock %}
@@ -38,24 +42,32 @@
 
 {% block addexpression %}
     {% if owner %}
-    <h3>Add another expression to this filter</h3>
-    <div class="formcontainer">
+    <h5>
+      Add another expression to this filter
+      <i data-tooltip class="fa fa-info-circle" title="
+            Expressions are ANDed together.<br />
+            This means that an alert must match all the above expressions to match
+            this filter.
+      "></i>
+    </h5>
+
+    <div class="row">
+      <div class="medium-8 column">
         <label for="select_matchfield">Expression</label>
-        <select name="matchfield" id="select_matchfield">
+        <select name="matchfield" id="select_matchfield" class="select2">
         {% for m in matchfields %}
             <option value="{{ m.id }}">{{ m.name }}</option>
         {% endfor %}
         </select>
 
-        {{ block.super }}
+      </div>
+
+      <div class="medium-4 column">
+        <label>&nbsp;</label>
+        <input type="hidden" name="id" value="{{ detail_id }}" />
+        <input type="submit" class="postfix button" value="Add" />
+      </div>
     </div>
     {% endif%}
 
-    <div class="infobox">
-        <p>
-            Expressions are ANDed together.<br />
-            This means that an alert must match all the above expressions to match
-            this filter.
-        </p>
-    </div>
 {% endblock %}
