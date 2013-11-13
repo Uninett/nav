@@ -74,7 +74,7 @@ def preferences(request):
         {
             'active': {'preferences': True},
             'sections': sections,
-            'add_section': AddSectionForm(),
+            'add_section_form': AddSectionForm(),
             'title': 'Nav - Status preferences',
             'navpath': [('Home', '/'), ('Status', '')],
         },

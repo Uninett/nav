@@ -79,7 +79,9 @@
     {% for section in sections %}
       {% if not section.history %}
         <li>
-          <a href="{{ section.devicehistory_url }}">{{ section.type_title }}</a>
+          <a href="{{ section.devicehistory_url }}">
+            {{ section.prefs.name }} ({{ section.type_title }})
+          </a>
         </li>
       {% endif %}
     {% endfor %}

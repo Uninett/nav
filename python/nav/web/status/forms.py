@@ -22,6 +22,10 @@ from nav.models.profiles import StatusPreference
 from nav.models.manage import Netbox, Organization, Category
 from nav.web import servicecheckers
 
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import Layout, Row, Column, Field
+from nav.web.crispyforms import LabelSubmit
+
 
 def _organization_choices():
     org = [(org.id, org.description) for org in Organization.objects.all()]
@@ -105,7 +109,22 @@ class SNMPAgentForm(SectionForm):
 
 
 class AddSectionForm(forms.Form):
+    """Form for adding a status section to be displayed"""
     section = forms.ChoiceField(
         choices=StatusPreference.SECTION_CHOICES,
-        label='Add section',
+        label='Section type',
     )
+
+    def __init__(self, *args, **kwargs):
+        super(AddSectionForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = 'status-preferences-addsection'
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('section', css_class='select2'),
+                       css_class='medium-8'),
+                Column(LabelSubmit('add_section', 'Add section',
+                                   css_class='postfix'),
+                       css_class='medium-4')
+            )
+        )
