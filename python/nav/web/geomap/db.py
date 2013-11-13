@@ -396,8 +396,8 @@ def get_cpu_load(sysname, time_interval):
     :param sysname: The sysname of the device whose CPU load we're to get.
     :param time_interval: A dict(start=..., end=...) describing the desired
                           time interval in terms valid to Graphite web.
-    :returns: A floating number representation of the load, where 1.0
-              represents 100%.
+    :returns: A floating number representation of the load between 0 and
+              100.0 (possibly higher in some multi-CPU settings).
 
     """
     data = None
@@ -416,5 +416,6 @@ def get_cpu_load(sysname, time_interval):
         except Exception:
             data = None
 
-    result = data.values()[0] / 100.0 if data else float('nan')
+    result = data.values()[0] if data else float('nan')
     _logger.debug("get_cpu_load(%r, %r) == %r", sysname, time_interval, result)
+    return result
