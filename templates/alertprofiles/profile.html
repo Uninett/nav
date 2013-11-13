@@ -2,16 +2,12 @@
 
 {% block tabcontent %}
 
+  <a href="{% url alertprofiles-profile-new %}" class="button small">New profile</a>
   <h4>Profiles</h4>
 
-  <a href="{% url alertprofiles-profile-new %}" class="button small">New profile</a>
 
   <form action="{% url alertprofiles-profile-remove %}" method="post">
     <table class="listtable">
-      <caption>
-        Profiles
-      </caption>
-
       <thead>
       <tr>
         <th>&nbsp;</th>

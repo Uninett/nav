@@ -32,7 +32,7 @@
             {% endif %}
             <td>{{ e.get_operator_display }}</td>
             {% ifequal e.operator 11 %}
-            <td><ul>{{ e.value|unordered_list }}</ul></td>
+            <td><ul class="inside">{{ e.value|unordered_list }}</ul></td>
             {% else %}
             <td>{{ e.value }}</td>
             {% endifequal %}
