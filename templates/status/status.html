@@ -75,12 +75,12 @@
 
 
   {% comment %} Give access to history for other event types {% endcomment %}
-  <h3>
+  <h4>
     History for events
     <i class="fa fa-info-circle" data-tooltip title="
     These sections have no active events. View the device history by clicking on them.
     "></i>
-  </h3>
+  </h4>
   <ul class="inside">
     {% for section in sections %}
       {% if not section.history %}
