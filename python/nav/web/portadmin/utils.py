@@ -18,7 +18,7 @@ import re
 import ConfigParser
 import django.template
 
-from django.template.loaders import filesystem
+from django.template.loaders.filesystem import Loader
 from nav.models.profiles import AccountGroup
 from nav.path import sysconfdir
 from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
@@ -253,8 +253,8 @@ def get_aliastemplate():
     """Fetch template for displaying ifalias format as help to user"""
     templatepath = join(sysconfdir, "portadmin")
     templatename = "aliasformat.html"
-    rawdata, _ = filesystem.load_template_source(templatename,
-                                                 [templatepath])
+    loader = Loader()
+    rawdata, _ = loader.load_template_source(templatename, [templatepath])
     tmpl = django.template.Template(rawdata)
     return tmpl
 
