@@ -17,12 +17,29 @@
 
 
 from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
 
 
 class NetboxGroupForm(forms.Form):
     """Form for searching for netbox groups"""
 
     query = forms.CharField(max_length=100, label='')
+
+    def __init__(self, *args, **kwargs):
+        super(NetboxGroupForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = 'netbox-group'
+        self.helper.form_method = 'GET'
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('query', placeholder='Device group'),
+                       css_class='medium-9'),
+                Column(Submit('submit', 'Search', css_class='postfix'),
+                       css_class='medium-3'),
+                css_class='collapse'
+            )
+        )
 
     def clean_query(self):
         """Returns a cleaned version of the searchstring"""

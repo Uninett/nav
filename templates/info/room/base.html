@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
     <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
@@ -20,20 +21,11 @@
 
     {% block roominfo %}
 
-        <form action="{% url room-search %}" method="get">
-            <div class="row">
-                <div class="medium-6 column">
-                    <div class="row collapse">
-                        <div class="medium-8 columns">
-                            {{ searchform.query }}
-                        </div>
-                        <div class="small-4 columns">
-                            <input type="submit" class="button prefix" value="Search">
-                        </div>
-                    </div>
-                </div>
+        <div class="row">
+            <div class="medium-6 column">
+                {% crispy searchform %}
             </div>
-        </form>
+        </div>
 
         {% if searchform.is_bound %}
             {% if rooms %}

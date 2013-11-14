@@ -31,8 +31,9 @@ class SearchForm(forms.Form):
         self.helper.layout = Layout(
             Row(
                 Column(Field('query', placeholder='Vlan'),
-                       css_class='medium-8'),
+                       css_class='medium-9'),
                 Column(Submit('submit', 'Search', css_class='postfix'),
-                       css_class='medium-4')
+                       css_class='medium-3'),
+                css_class='collapse'
             )
         )
