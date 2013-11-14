@@ -16,6 +16,23 @@
 """Forms for vlan view"""
 
 from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
+
 
 class SearchForm(forms.Form):
     query = forms.CharField(max_length=100, label="", required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(SearchForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = 'vlan-index'
+        self.helper.form_method = 'GET'
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('query', placeholder='Vlan'),
+                       css_class='medium-8'),
+                Column(Submit('submit', 'Search', css_class='postfix'),
+                       css_class='medium-4')
+            )
+        )

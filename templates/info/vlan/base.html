@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/info_vlan.css"/>
@@ -7,15 +8,15 @@
 
 {% block base_content %}
 
-    <h2>Vlan search</h2>
+    <h3>Vlan search</h3>
 
     {% block vlandetails %}
 
-        <form action="{% url vlan-index %}" method="get">
-            <p>{{ form.query }}
-                <button type="submit">Search</button>
-            </p>
-        </form>
+        <div class="row">
+            <div class="medium-6 column">
+                {% crispy form %}
+            </div>
+        </div>
 
         {% if form.is_bound %}
             {% if vlans %}
