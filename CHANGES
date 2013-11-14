@@ -1,3 +1,18 @@
+Version 3.15.3
+(released 14 Nov 2013)
+
+ Bugfixes:
+
+  * LP#1239998 (Invalid MAC addresses collected in ARP data from Cisco Nexus
+                routers)
+  * LP#1247051 (The necessity of SECRET_KEY in NAV 3.15 is not documented)
+  * LP#1248524 (Ranked statistics report results seem random in NAV 3.15.2)
+  * LP#1248941 (Enabling [defaultvlan] in portadmin.conf makes portadmin fail)
+  * LP#1250760 (Existing CAM records aren't closed when switch has _no_ more CAM
+                records)
+  * LP#1250846 (netbiostracker crashes on non standard result)
+
+
 Version 3.15.2
 (released 31 Oct 2013)
 
