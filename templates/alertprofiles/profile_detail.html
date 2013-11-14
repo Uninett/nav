@@ -3,6 +3,11 @@
 {% block url_edit %}{% url alertprofiles-profile-save %}{% endblock %}
 {% block url_add_expression %}{% url alertprofiles-profile-timeperiod-add %}{% endblock %}
 
+{% block backnavigation %}
+  <p><a href="{% url alertprofiles-profile %}">Back to profiles</a></p>
+{% endblock %}
+
+
 {% block headercontent %}
     {% if detail_id %}
        Profile details 
@@ -13,19 +18,15 @@
 
 {% block form_additional_fields %}
 {% if time_period_templates %}
-<tr>
-    <th>
-        <label for="id_template">Choose a template for time periods:</label>
-    </th>
-    <td>
-        <select name="template" id="id_template">
-            <option value="">No template</option>
-            {% for key, template in time_period_templates.items %}
-                <option value="{{ key }}">{{ template.main.description }}</option>
-            {% endfor %}
-        </select>
-    </td>
-</tr>
+  <div>
+    <label for="id_template">Choose a template for time periods:</label>
+    <select name="template" id="id_template">
+      <option value="">No template</option>
+      {% for key, template in time_period_templates.items %}
+        <option value="{{ key }}">{{ template.main.description }}</option>
+      {% endfor %}
+    </select>
+  </div>
 {% endif %}
 {% endblock %}
 
@@ -34,11 +35,13 @@
 {% endblock %}
 
 {% block expressions %}
+    <h4>Time periods</h4>
+
 <form action="{% url alertprofiles-profile-timeperiod-remove %}" method="post">
     {% include "alertprofiles/timeperiods.html" %}
     <p>
         <input type="hidden" name="profile" value="{{ detail_id }}" />
-        <input type="submit" value="Delete selected" />
+        <input type="submit" value="Delete selected periods" class="button small" />
     </p>
 </form>
 {% endblock %}

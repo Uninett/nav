@@ -541,8 +541,9 @@ class AlertProfile(models.Model):
 
         return active_timeperiod
 
+
 class TimePeriod(models.Model):
-    '''Defines TimerPeriods and which part of the week they are valid'''
+    """Defines TimerPeriods and which part of the week they are valid"""
 
     ALL_WEEK = 1
     WEEKDAYS = 2
@@ -565,6 +566,7 @@ class TimePeriod(models.Model):
     def __unicode__(self):
         return u'from %s for %s profile on %s' % (
             self.start, self.profile, self.get_valid_during_display())
+
 
 class AlertSubscription(models.Model):
     """Links an address and timeperiod to a filtergroup with a given

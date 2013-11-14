@@ -49,7 +49,7 @@ LOGGER_NAME = 'nav.web.maintenance'
 logger = logging.getLogger(LOGGER_NAME)
 
 def calendar(request, year=None, month=None):
-    heading = "Task calendar"
+    heading = "Maintenance schedule"
     try:
         year = int(request.GET.get('year'))
         month = int(request.GET.get('month'))

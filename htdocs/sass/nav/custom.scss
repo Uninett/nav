@@ -55,6 +55,12 @@ table .button {
     margin: 0;
 }
 
+fieldset.secondary {
+    background-color: #f2f2f2;
+    legend {
+        background-color: transparent;
+    }
+}
 
 /* Styles regarding use of OpenLayers maps */
 .mapwrapper {
@@ -99,6 +105,10 @@ ul.clean, ol.clean, dl.clean {
     list-style-type: none;
 }
 
+ul.inside {
+    margin-left: 1.2em;
+}
+
 li.list-header {
     background: #567899;
     color: white;
@@ -136,8 +146,10 @@ li.list-header {
 
 
 /* Add margin to font awesome in buttons */
-.button > i {
-    margin-left: 0.3em;
+.button, a {
+    > i {
+        margin-left: 0.375em;
+    }
 }
 
 /* Form styles */
@@ -145,6 +157,10 @@ li.list-header {
 form.inline-form {
     display: inline-block;
     > * {
+        display: inline-block;
+        width: auto;
+    }
+    > .custom.dropdown {
         display: inline-block;
         width: auto;
     }

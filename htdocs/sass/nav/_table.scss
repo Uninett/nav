@@ -27,8 +27,12 @@ table.expand {
     background-color: #FFF5E0;
 }
 
-table.align-top td {
-    vertical-align: top;
+table, tr {
+    &.align-top {
+        td {
+            vertical-align: top;
+        }
+    }
 }
 
 /* Table caption */

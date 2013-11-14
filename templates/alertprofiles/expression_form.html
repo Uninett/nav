@@ -1,11 +1,12 @@
 {% extends "alertprofiles/base.html" %}
 
 {% block tabcontent %}
-<h3>
+<a href="#" data-reveal-id="operator-help" class="button secondary right small">Operator help</a>
+<h4>
     Add expression
-</h3>
+</h4>
 
-<form action="{% url alertprofiles-filters-saveexpression %}" method="post">
+<form action="{% url alertprofiles-filters-saveexpression %}" method="post" class="custom">
 <table class="vertitable">
     <tbody>
         <tr>
@@ -48,23 +49,25 @@
         </tr>
         <tr>
             <th></th>
-            <td><input type="submit" value="Save" /></td>
+            <td><input type="submit" value="Save" class="button small"/></td>
         </tr>
     </tbody>
 </table>
 </form>
 
-<div class="infobox">
-    <h3>
+<div id="operator-help" class="reveal-modal">
+    <h5>
         Operators
-    </h3>
+    </h5>
     <p>
-        Below is a table with short descriptions for each available operator.
-        Note that for lists, only "equals" and "in" makes sense, but an admin
-        can, if he/she wishes, make every operator available for any
-        matchfield, even the ones that allows for list selection.
+      Below are short descriptions for each available operator. Note that for
+      lists only "equals" and "in" makes sense.
     </p>
-    <table>
+    <p>
+      An admin can make every operator available for any matchfield, even the
+      ones that allows for list selection.
+    </p>
+    <table class="vertitable">
         <tbody>
             <tr>
                 <th>Equals</th>
