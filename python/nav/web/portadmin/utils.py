@@ -229,7 +229,9 @@ def check_format_on_ifalias(ifalias):
     section = "ifaliasformat"
     option = "format"
     config = read_config()
-    if config.has_section(section) and config.has_option(section, option):
+    if not ifalias:
+        return True
+    elif config.has_section(section) and config.has_option(section, option):
         ifalias_format = re.compile(config.get(section, option))
         if ifalias_format.match(ifalias):
             return True
