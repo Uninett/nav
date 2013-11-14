@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
 {% load info %}
+{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/info.css"/>
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"/>
     <script>require(['src/info']);</script>
 {% endblock %}
-
 
 
 {% block base_content %}
@@ -29,20 +29,13 @@
         </li>
     </ul>
 
+    {% block content %}
+
     <div class="panel">Search for netboxes, interfaces, rooms and vlans. This search is the same as searching in the navbar.</div>
 
     <div class="row">
-        <div class="large-6 medium-10 small-12 column">
-            <form action="{% url info-search %}" method="get">
-                <div class="row collapse">
-                    <div class="medium-10 small-12 columns">
-                        {{ form.query }}
-                    </div>
-                    <div class="medium-2 small-12 columns">
-                        <input type="submit" class="button prefix" value="Search">
-                    </div>
-                </div>
-            </form>
+        <div class="medium-6 column">
+            {% crispy form %}
         </div>
     </div>
 
@@ -106,5 +99,7 @@
         {% endif %}
         </div>
     </div>
+
+    {% endblock content %}
 
 {% endblock %}

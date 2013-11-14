@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "info/base.html" %}
 {% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
@@ -10,7 +10,7 @@
     <script>require(["src/info_room"]);</script>
 {% endblock %}
 
-{% block base_content %}
+{% block content %}
     <h4>
         {% if room %}
             Room view for {{ room.id }}
