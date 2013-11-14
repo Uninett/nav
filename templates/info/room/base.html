@@ -10,18 +10,27 @@
 {% endblock %}
 
 {% block base_content %}
-    <h3>{% if room %} Room view for {{ room.id }} {% else %}
-        Room search{% endif %}</h3>
+    <h4>
+        {% if room %}
+            Room view for {{ room.id }}
+        {% else %}
+            Room search
+        {% endif %}
+    </h4>
 
     {% block roominfo %}
 
         <form action="{% url room-search %}" method="get">
-            <div class="row collapse">
-                <div class="small-10 columns">
-                    {{ searchform.query }}
-                </div>
-                <div class="small-2 columns">
-                    <input type="submit" class="button prefix" value="Search">
+            <div class="row">
+                <div class="medium-6 column">
+                    <div class="row collapse">
+                        <div class="medium-8 columns">
+                            {{ searchform.query }}
+                        </div>
+                        <div class="small-4 columns">
+                            <input type="submit" class="button prefix" value="Search">
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>
