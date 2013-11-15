@@ -44,71 +44,63 @@ NAVPATH = [('Home', '/'), ('IP Device Info', '/ipdevinfo')]
 _logger = logging.getLogger('nav.web.ipdevinfo')
 
 
+def find_netboxes(errors, query):
+    """Find netboxes based on query parameter
+
+    :param errors: list of errors
+    :param query: form input
+    :return: querylist
+    """
+    ip = is_valid_ip(query)
+    netboxes = None
+    if ip:
+        netboxes = Netbox.objects.filter(ip=ip)
+    elif is_valid_hostname(query):
+        # Check perfect match first
+        sysname_filter = Q(sysname=query)
+        if settings.DOMAIN_SUFFIX is not None:
+            sysname_filter |= Q(sysname='%s%s' %
+                                        (query, settings.DOMAIN_SUFFIX))
+        netboxes = Netbox.objects.filter(sysname_filter)
+        if len(netboxes) != 1:
+            # No exact match, search for matches in substrings
+            netboxes = Netbox.objects.filter(sysname__icontains=query)
+    else:
+        errors.append('The query does not seem to be a valid IP address'
+                      ' (v4 or v6) or a hostname.')
+
+    return netboxes
+
+
 def search(request):
     """Search for an IP device"""
 
     titles = NAVPATH
     errors = []
+    netboxes = None
     query = None
-    netboxes = Netbox.objects.none()
 
-    # FIXME use request.REQUEST?
-    search_form = None
-    if request.method == 'GET':
-        search_form = SearchForm(request.GET, auto_id=False)
-    elif request.method == 'POST':
-        search_form = SearchForm(request.POST, auto_id=False)
+    if 'query' in request.GET:
+        search_form = SearchForm(request.GET)
+        if search_form.is_valid():
+            # Preprocess query string
+            query = search_form.cleaned_data['query'].strip().lower()
+            titles = titles + [("Search for %s" % query,)]
+            netboxes = find_netboxes(errors, query)
 
-    if search_form is not None and search_form.is_valid():
-        # Preprocess query string
-        query = search_form.cleaned_data['query'].strip().lower()
-        titles = titles + [("Search for %s" % query,)]
+            # If only one hit, redirect to details view
+            if len(netboxes) == 1:
+                return ipdev_details(request, name=netboxes[0].sysname)
+    else:
+        search_form = SearchForm()
 
-        # IPv4, v6 or hostname?
-        ip = is_valid_ip(query)
-
-        # Find matches to query
-        if ip:
-            netboxes = Netbox.objects.filter(ip=ip)
-            if len(netboxes) == 0:
-                # Could not find IP device, redirect to host detail view
-                return HttpResponseRedirect(
-                    reverse('ipdevinfo-details-by-addr', kwargs={'addr': ip}))
-        elif is_valid_hostname(query):
-            # Check perfect match first
-            sysname_filter = Q(sysname=query)
-            if settings.DOMAIN_SUFFIX is not None:
-                sysname_filter |= Q(sysname='%s%s' %
-                                            (query, settings.DOMAIN_SUFFIX))
-            netboxes = Netbox.objects.filter(sysname_filter)
-            if len(netboxes) != 1:
-                # No exact match, search for matches in substrings
-                netboxes = Netbox.objects.filter(sysname__icontains=query)
-            if len(netboxes) == 0:
-                # Could not find IP device, redirect to host detail view
-                return HttpResponseRedirect(reverse(
-                    'ipdevinfo-details-by-name', kwargs={'name': query}))
-        else:
-            errors.append('The query does not seem to be a valid IP address'
-                + ' (v4 or v6) or a hostname.')
-
-        # If only one hit, redirect to details view
-        if len(netboxes) == 1:
-            return HttpResponseRedirect(reverse('ipdevinfo-details-by-name',
-                    kwargs={'name': netboxes[0].sysname}))
-
-    # Else, show list of results
     return render_to_response('ipdevinfo/search.html',
-        {
-            'errors': errors,
-            'query': query,
-            'netboxes': netboxes,
-            'heading': NAVPATH[-1][0],
-            'navpath': NAVPATH,
-            'title': create_title(titles)
-        },
-        context_instance=RequestContext(request,
-            processors=[search_form_processor]))
+                              {'errors': errors, 'netboxes': netboxes,
+                               'navpath': NAVPATH, 'query': query,
+                               'title': create_title(titles),
+                               'search_form': search_form},
+                              context_instance=RequestContext(
+                                  request, processors=[search_form_processor]))
 
 
 def is_valid_hostname(hostname):
