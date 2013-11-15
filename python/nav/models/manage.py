@@ -529,6 +529,7 @@ class Organization(models.Model):
     class Meta:
         db_table = 'org'
         verbose_name = 'organization'
+        ordering = ['id']
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
@@ -1075,11 +1076,7 @@ class Interface(models.Model):
 
     @classmethod
     def sort_ports_by_ifname(cls, ports):
-        interface_names = [p.ifname for p in ports]
-        unsorted = dict(zip(interface_names, ports))
-        interface_names.sort(key=nav.natsort.split)
-        sorted_ports = [unsorted[i] for i in interface_names]
-        return sorted_ports
+        return sorted(ports, key=lambda p: nav.natsort.split(p.ifname))
 
     def get_absolute_url(self):
         kwargs = {

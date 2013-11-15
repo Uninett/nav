@@ -1,34 +1,35 @@
-{% extends "base.html" %} {# Don't need a deeper hierarchy for one template #}
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
 
-
-{% block base_header_additional_head %}
-  <link rel="stylesheet" type="text/css" href="/style/l2trace.css"/>
-{% endblock base_header_additional_head %}
 
 {% block base_content %}
   <h2>Layer 2 Traceroute</h2>
 
   <div id="l2trace">
-    <form id="l2traceform" action="" method="get">
-      {% csrf_token %}
-      {% for field in form %}
-        {{ field.label_tag }}: {{ field }}
-      {% endfor %}
-      <input type="submit" name="send" value="Trace">
-    </form>
+
+    <div class="row">
+
+      <div class="column medium-6">
+        {% crispy form %}
+      </div>
+
+      <div class="column medium-6">
+        <i class="fa fa-info-circle has-tip" data-tooltip title="
+          <ul>
+            <li>Enter a hostname or IP address and trace up to its router.</li>
+            <li>Optionally enter a destination hostname or IP address and trace between the two.</li>
+            <li>Press the trace button to start.</li>
+          </ul>
+        "></i>
+      </div>
+
+    </div>
 
     <div id="results">
       {% if l2tracer %}
 
         <table class=listtable>
-          <caption>
-            Layer 2 Trace Results<br>
-            {% comment %}
-                TODO: Do we really need rowcount here?
-                If so, precompute in view. Either way we
-                loose the benefit of the generator function
-                {% endcomment %}
-          </caption>
+          <caption>Layer 2 Trace Results</caption>
 
           <thead>
           <tr>
@@ -46,11 +47,11 @@
 
           {% for row in l2tracer.make_rows %}
 
-            <tr class="{% cycle 'oddrow' 'evenrow' %}">
-              <td style="text-align: right;">{{ row.idx }}</td>
-              <td style="text-align: center;">{{ row.level }}</td>
+            <tr>
+              <td>{{ row.idx }}</td>
+              <td>{{ row.level }}</td>
 
-              <td style="text-align: right;">
+              <td>
                 {% ifequal row.vlan "trunk" %}
                   {{ row.vlan }}
                 {% else %}
@@ -86,15 +87,6 @@
 
         </table>
 
-      {% else %}
-        <div class="infobox">
-          <h4>L2 Trace usage</h4>
-          <ul>
-            <li>Enter a hostname or IP address and trace up to its router.</li>
-            <li>Optionally enter a destination hostname or IP address and trace between the two.</li>
-            <li>Press the trace button to start.</li>
-          </ul>
-        </div>
       {% endif %}
     </div> {# results #}
 

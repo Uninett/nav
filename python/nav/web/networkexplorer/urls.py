@@ -15,24 +15,45 @@
 #
 """Django URL config for network explorer."""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
-from nav.web.networkexplorer.views import index, expand_router, expand_gwport
-from nav.web.networkexplorer.views import expand_swport, expand_switch, search
+from nav.web.networkexplorer.views import (
+    IndexView,
+    RouterJSONView,
+    ExpandRouterView,
+    ExpandGWPortView,
+    ExpandSwitchView,
+    ExpandSWPortView,
+    SearchView)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
-    url(r'^$', index,
+    url(r'^$', IndexView.as_view(),
         name='networkexplorer-index'),
-    url(r'^expand/router', expand_router,
-        name="networkexplorer-expand-router"),
-    url(r'^expand/gwport', expand_gwport,
-        name="networkexplorer-expand-gwport"),
-    url(r'^expand/swport', expand_swport,
-        name="networkexplorer-expand-swport"),
-    url(r'^expand/switch', expand_switch,
-        name="networkexplorer-expand-switch"),
-    url(r'^search', search ,
-        name="networkexplorer-search"),
-)
 
+    url(r'^search/$', SearchView.as_view(),
+        name="networkexplorer-search"),
+
+    url(r'^routers/$', RouterJSONView.as_view(),
+        name='networkexplorer-routers'),
+
+    url(r'^expand/router/(?P<pk>\d+)/$',
+        ExpandRouterView.as_view(),
+        name='networkexplorer-expand-router'),
+
+    url(r'^expand/gwport/(?P<pk>\d+)/$',
+        ExpandGWPortView.as_view(),
+        name='networkexplorer-expand-gwport'),
+
+    url(r'^expand/switch/(?P<pk>\d+)/$',
+        ExpandSwitchView.as_view(),
+        name='networkexplorer-expand-switch'),
+
+    url(r'^expand/switch/(?P<pk>\d+)/vlan/(?P<vlan_id>\d+)/$',
+        ExpandSwitchView.as_view(),
+        name='networkexplorer-expand-switch-vlan'),
+
+    url(r'^expand/swport/(?P<pk>\d+)/$',
+        ExpandSWPortView.as_view(),
+        name='networkexplorer-expand-swport'),
+)

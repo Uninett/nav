@@ -45,9 +45,9 @@ class Messages(list):
     Uses sessions.
     """
     SUCCESS = 'success'
-    NOTICE = 'notice'
+    NOTICE = 'secondary'
     WARNING = 'warning'
-    ERROR = 'error'
+    ERROR = 'alert'
 
     session = None
 

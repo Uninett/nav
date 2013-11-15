@@ -1,43 +1,43 @@
-{% extends "devicehistory/base_history.html" %}
+{% extends "devicehistory/base.html" %}
+{% load crispy_forms_tags %}
 
-{% block devicehistory-content %}
-    <div class="resultfilter">
-        <form action="{% url devicehistory-view %}" method="get">
-            {% for type, elements in selection.items %}
-                {% for id in elements %}
-                    <input type="hidden" name="{{ type }}" value="{{ id }}" />
+{% block tabcontent %}
+    <a href="{% url devicehistory-search %}" class="button small secondary">New search</a>
+
+    <div class="row">
+        <div class="medium-9 columns">
+            <form action="{% url devicehistory-view %}" method="get">
+                {% for type, elements in selection.items %}
+                    {% for id in elements %}
+                        <input type="hidden" name="{{ type }}" value="{{ id }}" />
+                    {% endfor %}
                 {% endfor %}
+                {% crispy form %}
+                <input type="submit" class="button small" value="Filter">
+            </form>
+        </div>
+
+        <div class="medium-3 columns">
+            <div class="panel searchparams">
+            {% for type, elements in search_description.items %}
+                <h5>Search parameters</h5>
+                <h6>{{ type|capfirst }}</h6>
+                <ul class="no-bullet">
+                {% for id in elements %}
+                    <li>{{ id }}</li>
+                {% endfor %}
+                </ul>
             {% endfor %}
-            <table class="vertitable">
-                {% include "devicehistory/history_view_filter.html" %}
-                <tr>
-                    <th></th>
-                    <td><button type="submit">Filter</button></td>
-                </tr>
-            </table>
-        </form>
+            </div>
+        </div>
+
     </div>
 
-    <div class="searchparams">
-    <h2>Search terms</h2>
-    {% for type, elements in search_description.items %}
-        <h3>{{ type|capfirst }}</h3>
-        <ul>
-        {% for id in elements %}
-            <li>{{ id }}</li>
-        {% endfor %}
-        </ul>
-    {% endfor %}
-    </div>
-    <div style="clear:both;"></div>
-
-    {% include "devicehistory/paginator.html" %}
-
-    {% for group_name, group in history.grouped_history.items %}
-    <table class="listtable reporttable">
+    {% for group_name, group in history.items %}
+    <table class="listtable full-width align-top">
         <caption>
-            {{ group_name }}<br />
-            <span class="subtitle">{{ group|length }} items.</span>
+            {{ group_name }}
+            <span class="subtitle right">{{ group|length }} items.</span>
         </caption>
 
         <thead>
@@ -65,7 +65,7 @@
 
         <tbody>
         {% for h in group %}
-            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+            <tr>
                 <td>{{ h.netbox.room.location.id }}</td>
                 <td>{{ h.netbox.room.id }}</td>
                 <td>{{ h.netbox.sysname }}</td>
@@ -83,11 +83,11 @@
                 <td>{{ h.alert_type.name }}</td>
                 <td>
                 {% if h.extra_messages %}
-                    <ul>
+                    <ul class="no-bullet">
                     {% for state,m in h.extra_messages.items %}
                         <li class="sms_message" id="sms_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
                             <span>{{ m.sms }}</span>
-                            <ul class="email_message" id="email_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                            <ul class="email_message no-bullet" id="email_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
                                 <li>{{ m.email|linebreaks }}</li>
                             </ul>
                         </li>
@@ -100,7 +100,5 @@
         </tbody>
     </table>
     {% endfor %}
-
-    {% include "devicehistory/paginator.html" %}
 
 {% endblock %}

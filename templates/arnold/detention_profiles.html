@@ -1,6 +1,6 @@
-{% extends 'arnold/base.html' %}
+{% extends 'arnold/tabs.html' %}
 
-{% block content %}
+{% block tabcontent %}
 
     <table class="listtable">
         <caption>List of current detention profiles</caption>
@@ -24,7 +24,7 @@
                     <td>{{ profile.description }}</td>
                     <td>{{ profile.active|yesno:'Yes,No' }}</td>
                     <td>
-                        <a href="{% url arnold-detention-profile-edit profile.id %}">Edit</a>
+                        <a href="{% url arnold-detention-profile-edit profile.id %}" class="button small secondary">Edit</a>
                     </td>
                 </tr>
             {% endfor %}
@@ -39,6 +39,6 @@
 
     </table>
 
-    <a href="{% url arnold-detention-profile-add %}">Add new detention profile</a>
+    <a href="{% url arnold-detention-profile-add %}" class="button small">Add new detention profile</a>
 
 {% endblock %}

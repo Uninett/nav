@@ -5,7 +5,7 @@
 <div id="affected">
 
     {% if affected %}
-        <h3>AFFECTED DEVICES  <img src="/images/helpers/question.png" title="Devices with or behind devices with redundant links"></h3>
+        <h3>AFFECTED DEVICES  <img src="{{ STATIC_URL }}images/helpers/question.png" title="Devices with or behind devices with redundant links"></h3>
         <ul>
             {% for netbox in affected %}
                 <li>

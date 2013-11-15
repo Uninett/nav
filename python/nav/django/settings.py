@@ -59,10 +59,20 @@ try:
 except IOError:
     pass
 
-INSTALLED_APPS = ( 'nav.models', 'nav.django', 'django.contrib.sessions')
-
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
+
+#Static files
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.join(nav.path.webrootdir, 'static'),
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+)
+
 
 # Templates
 TEMPLATE_DIRS = (
@@ -76,6 +86,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'nav.django.context_processors.debug',
     'nav.django.context_processors.account_processor',
     'nav.django.context_processors.nav_version',
+    'nav.django.context_processors.footer_info',
+    'django.core.context_processors.static',
 )
 
 # Middleware
@@ -110,7 +122,9 @@ EMAIL_USE_TLS = nav_config.get('EMAIL_USE_TLS', 'False') == 'True'
 # Date formatting
 DATE_FORMAT = 'Y-m-d'
 TIME_FORMAT = 'H:i:s'
+TIME_FORMAT_SHORT = 'H:i'
 DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
+DATETIME_FORMAT_SHORT = '%s %s' % (DATE_FORMAT, TIME_FORMAT_SHORT)
 
 TIME_ZONE = nav_config.get('TIME_ZONE', 'Europe/Oslo')
 DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
@@ -120,6 +134,28 @@ DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
 CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'
 
 SECRET_KEY = nav_config.get('SECRET_KEY', None) # Must be set in nav.conf!
+
+NAVLETS = (
+    'nav.web.navlets.machinetracker.MachineTrackerNavlet',
+    'nav.web.navlets.status.StatusNavlet',
+    'nav.web.navlets.vlangraph.VlanGraphNavlet',
+    'nav.web.navlets.portadmin.PortadminNavlet',
+    'nav.web.navlets.linklist.LinkListNavlet',
+    'nav.web.navlets.messages.MessagesNavlet',
+    'nav.web.navlets.welcome.WelcomeNavlet',
+    'nav.web.navlets.room_map.RoomMapNavlet',
+)
+
+CRISPY_TEMPLATE_PACK = 'foundation'
+
+INSTALLED_APPS = ( 
+    'nav.models', 
+    'nav.django', 
+    'django.contrib.staticfiles',
+    'django.contrib.sessions',
+    'crispy_forms',
+    'crispy_forms_foundation'
+)
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)

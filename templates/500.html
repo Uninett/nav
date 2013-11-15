@@ -1,7 +1,54 @@
-<h1>Something went wrong</h1>
+<!Doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" href="/static/css/nav.css" />
+		<link rel="stylesheet" href="/static/css/nav/errorpages.css" />
 
-<p>Something went wrong while processing your request. Please try again
-later.</p>
+		<script src="/static/js/require_config.js"></script>
+    	<script src="/static/js/libs/require.js" data-main='src/main'></script>
+    	<script>require(['src/500']);</script>
+	</head>
+	<body>
+		<div class="row hero">
+			<div class="large-10 columns">
+				<h1>Ouch... <i class="fa fa-bug"></i></h1>
+				<p>Something went wrong while processing your request. Please try again.</p>
+			</div>
+			<div class="large-2 columns ">
+				<a href="/" class="button button-medium secondary right">Front page</a>
+			</div>
+		</div>
 
-<p>If the problems persists, contact your system administrator and/or report a
-bug on <a href="http://bugs.launchpad.net/nav/+filebug">NAV bugtracker</a>.</p>
+		<div class="row info">
+			<div class="large-12 columns">
+				<p>
+					An email has been sent to the site administrator explaining what went wrong.<br />
+					If the problem persists, please contact the administrator
+
+{% if current_user_data.account.is_default_account %}
+					.
+				</p>
+			</div>
+		</div>
+{% else %}
+					and/or report a bug on <a href="http://bugs.launchpad.net/nav/+filebug">NAV bugtracker</a>.<br />
+					(Please include the traceback from below in the bug report.)
+				</p>
+				<p></p>
+			</div>
+			<div class="large-12 columns">
+				<a id="traceback" href="#">View traceback <i id="chevron" class="fa fa-chevron-down"></i></a>
+				<div class="traceback-info" style="display:none;">
+					<code>{{ type }}: {{ value }}</p>
+					<code>
+						{% for line in traceback %}
+							{{ line }}<br />
+						{% endfor %}
+					</code>
+				</div>
+			</div>
+		</div>
+{% endif %}
+	</body>
+</html>

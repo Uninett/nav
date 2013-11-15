@@ -1,0 +1,28 @@
+<div class="netmapWidget hideSubWidgets">
+    <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
+        <div class="title">Other
+
+          {{#if isWidgetCollapsible }}
+            {{#if isWidgetVisible}}
+              <i class="fa fa-toggle-up right"></i>
+            {{else}}
+              <i class="fa fa-toggle-down right"></i>
+            {{/if}}
+          {{/if}}
+
+        </div>
+    </div>
+    <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
+        <div id="position_view"></div>
+
+        <div id="algorithm_view"></div>
+
+        <div id="topology_errors_view"></div>
+
+        <div id="mouseover_view"></div>
+
+        <div id="datarefresh_view"></div>
+
+        <div id="traffic_gradient_view"></div>
+    </div>
+</div>

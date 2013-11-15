@@ -19,8 +19,8 @@ PortAdmin - {{ netbox.get_short_sysname }}
 	
 	<div id="infobox" class="infobox">
 		<h4>
-            <img src="/images/icons/expand.png" class="toggler expand float-right" alt="Show available vlans" title="Show available vlans">
-            <img src="/images/icons/collapse.png" class="toggler collapse float-right hidden" alt="Hide available vlans" title="Hide available vlans">
+            <img src="{{ STATIC_URL }}images/icons/expand.png" class="toggler expand float-right" alt="Show available vlans" title="Show available vlans">
+            <img src="{{ STATIC_URL }}images/icons/collapse.png" class="toggler collapse float-right hidden" alt="Hide available vlans" title="Hide available vlans">
             Available vlans for {{ account.login }}@{{ netbox.get_short_sysname }}
         </h4>
 		
@@ -60,11 +60,11 @@ PortAdmin - {{ netbox.get_short_sysname }}
 		<td>{{ interface.ifname }}</td>
 
 		<td class="text-center">
-            <img title="AdminStatus - If red the interface is down" src="/images/lys/{{ interface.ifadminstatus|drawLight }}" />
+            <img title="AdminStatus - If red the interface is down" src="{{ STATIC_URL }}images/lys/{{ interface.ifadminstatus|drawLight }}" />
         </td>
 
 		<td class="text-center">
-            <img title="OperStatus - If red there is no link on the interface" src="/images/lys/{{ interface.ifoperstatus|drawLight }}" />
+            <img title="OperStatus - If red there is no link on the interface" src="{{ STATIC_URL }}images/lys/{{ interface.ifoperstatus|drawLight }}" />
         </td>
 
 

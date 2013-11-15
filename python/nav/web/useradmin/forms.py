@@ -13,21 +13,39 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+# pylint: disable=R0903
+"""Forms for the user admin system"""
 from django import forms
 
-from nav.models.profiles import Account, AccountGroup, Privilege
+from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
 
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
+                                            Column, Field, HTML)
+
+
 class AccountGroupForm(forms.ModelForm):
+    """Form for adding or editing a group on the group page"""
     name = forms.CharField(required=True)
     description = forms.CharField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(AccountGroupForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Fieldset('Group', 'name', 'description',
+                     Submit('submit_group', 'Save changes')))
 
     class Meta:
         model = AccountGroup
         fields = ('name', 'description')
 
+
 class AccountForm(forms.ModelForm):
+    """Form for creating and editing an account"""
     password1 = forms.CharField(label='New password',
                                 min_length=Account.MIN_PASSWD_LENGTH,
                                 widget=forms.widgets.PasswordInput)
@@ -40,18 +58,43 @@ class AccountForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AccountForm, self).__init__(*args, **kwargs)
+        account = kwargs.get('instance', False)
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'POST'
 
-        if kwargs.get('instance', False):
+        fieldset_name = 'Account'
+        fieldset_args = [fieldset_name]
+        default_args = ['login', 'name', 'password1', 'password2']
+
+        if account:
             self.fields['password1'].required = False
+            submit_value = 'Save changes'
 
             # Remove password and login from external accounts
+            # This should really be two different forms because of this
             if kwargs['instance'].ext_sync:
+                authenticator = "" \
+                    "<p class='alert-box'>External authenticator: %s</p>" % (
+                    kwargs['instance'].ext_sync)
                 del self.fields['password1']
                 del self.fields['password2']
-                del self.fields['login']
+                self.fields['login'].widget.attrs['readonly'] = True
+                fieldset_args.extend(['login', 'name',
+                                      HTML(authenticator)])
+            else:
+                fieldset_args.extend(default_args)
+        else:
+            submit_value = 'Create account'
+            fieldset_args.extend(default_args)
 
+        submit = Submit('submit_account', submit_value, css_class='small')
+        fieldset_args.extend([submit])
+        fieldset = Fieldset(*fieldset_args)
+        self.helper.layout = Layout(fieldset)
 
     def clean_password1(self):
+        """Validate password"""
         password1 = self.data.get('password1')
         password2 = self.data.get('password2')
 
@@ -73,7 +116,9 @@ class AccountForm(forms.ModelForm):
         model = Account
         exclude = ('password', 'ext_sync', 'organizations')
 
+
 class ChangePasswordForm(forms.Form):
+    """Form for changing password for an account"""
     old_password = forms.CharField(label='Old password',
                                    widget=forms.widgets.PasswordInput)
     new_password1 = forms.CharField(label='New password',
@@ -85,6 +130,7 @@ class ChangePasswordForm(forms.Form):
                                     required=False)
 
     def clean_password1(self):
+        """Validate password for an account"""
         password1 = self.data.get('new_password1')
         password2 = self.data.get('new_password2')
 
@@ -93,6 +139,7 @@ class ChangePasswordForm(forms.Form):
         return password1
 
     def clear_passwords(self):
+        """Clear passwords from the form"""
         self.data = self.data.copy()
         if 'new_password1' in self.data:
             del self.data['new_password1']
@@ -107,21 +154,101 @@ class ChangePasswordForm(forms.Form):
             return False
         return True
 
-class PrivilegeForm(forms.ModelForm):
-    target = forms.CharField(required=True)
 
-    class Meta:
-        model = Privilege
-        exclude = ('group',)
+class PrivilegeForm(forms.Form):
+    """Form for adding a privilege to a group from the group page"""
+    type = forms.models.ModelChoiceField(PrivilegeType.objects.all(), label='',
+                                         empty_label='--- Type ---')
+    target = forms.CharField(required=True, label='',
+                             widget=forms.TextInput(
+                                 attrs={'placeholder': 'Target'}))
+
+    def __init__(self, *args, **kwargs):
+        super(PrivilegeForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = ""
+        self.helper.form_method = "POST"
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('type', css_class='select2'),
+                       css_class='medium-3'),
+                Column('target', css_class='medium-6'),
+                Column(Submit('submit_privilege', 'Grant',
+                              css_class='postfix'), css_class='medium-3')
+            )
+        )
+
 
 class OrganizationAddForm(forms.Form):
-    organization = forms.models.ModelChoiceField(
-        Organization.objects.all().order_by('id'), required=True)
+    """Form for adding an organization to an account"""
+    def __init__(self, account, *args, **kwargs):
+        super(OrganizationAddForm, self).__init__(*args, **kwargs)
+        if account:
+            query = Organization.objects.exclude(
+                id__in=account.organizations.all())
+        else:
+            query = Organization.objects.all()
+
+        self.fields['organization'] = forms.models.ModelChoiceField(
+            queryset=query, required=True, label='')
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('organization', css_class='select2'),
+                       css_class='medium-8'),
+                Column(Submit('submit_org', 'Add organization',
+                              css_class='postfix'),
+                       css_class='medium-4')
+            )
+        )
+
 
 class GroupAddForm(forms.Form):
-    group = forms.models.ModelChoiceField(AccountGroup.objects.all(),
-                                          required=True)
+    """Form for adding a group to an account from the account page"""
+    def __init__(self, account, *args, **kwargs):
+        super(GroupAddForm, self).__init__(*args, **kwargs)
+        if account:
+            query = AccountGroup.objects.exclude(
+                id__in=account.accountgroup_set.all())
+        else:
+            query = AccountGroup.objects.all()
+
+        self.fields['group'] = forms.models.ModelChoiceField(
+            queryset=query, required=True, label='')
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('group', css_class='select2'),
+                       css_class='medium-8'),
+                Column(Submit('submit_group', 'Add membership',
+                              css_class='postfix'),
+                       css_class='medium-4')
+            )
+        )
+
 
 class AccountAddForm(forms.Form):
-    account = forms.models.ModelChoiceField(Account.objects.all(),
-                                            required=True)
+    """Form for adding a user to a group from the group page"""
+    def __init__(self, group, *args, **kwargs):
+        super(AccountAddForm, self).__init__(*args, **kwargs)
+        if group:
+            query = Account.objects.exclude(id__in=group.accounts.all())
+        else:
+            query = Account.objects.all()
+
+        self.fields['account'] = forms.models.ModelChoiceField(
+            query, required=True, widget=forms.Select(), label='',
+            empty_label='--- Choose account ---')
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('account', css_class='select2'),
+                       css_class='medium-9'),
+                Column(Submit('submit_account', 'Add to group',
+                              css_class='postfix'),
+                       css_class='medium-3')
+            )
+        )

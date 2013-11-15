@@ -83,8 +83,6 @@ def overview(request):
         active_profile = None
 
     if not active_profile:
-        new_message(request, _('There\'s no active profile set.'),
-                    Messages.NOTICE)
         subscriptions = None
     else:
         periods = TimePeriod.objects.filter(
@@ -456,6 +454,7 @@ def profile_deactivate(request):
     )
     return HttpResponseRedirect(reverse('alertprofiles-profile'))
 
+
 def profile_time_period(request, time_period_id, time_period_form=None):
     time_period = TimePeriod.objects.get(pk=time_period_id)
     profile = time_period.profile
@@ -482,6 +481,7 @@ def profile_time_period(request, time_period_id, time_period_form=None):
         info_dict,
         RequestContext(request),
     )
+
 
 @requires_post('alertprofiles-profile', ('profile',))
 def profile_time_period_add(request):
@@ -639,6 +639,7 @@ def profile_time_period_remove(request):
                 info_dict,
                 RequestContext(request),
             )
+
 
 def profile_time_period_setup(request, time_period_id=None):
     if not time_period_id:

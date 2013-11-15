@@ -1,37 +1,21 @@
 {% extends 'arnold/base.html' %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 
-    <form action="" method="POST" class="profileDetentionForm">
+  {% include 'arnold/back.html' %}
 
-        {% for field in form.hidden_fields %}
-            {{ field.as_hidden }}
-        {% endfor %}
+  <h4>Predefined Detention</h4>
 
-        <table class="vertitable">
-            <tbody>
+  <div class="row">
+    <div class="large-8 column">
+      {% crispy form %}
 
-            {% for field in form.visible_fields %}
-                <tr {% if field.html_name == 'qvlan' %} class="vlanrow"{% endif %}>
-                    <th>{{ field.label_tag }}</th>
-                    <td>{{ field }}</td>
-                    <td>{{ field.errors }}</td>
-                </tr>
-            {% endfor %}
+      {% if profile %}
+        <p>Last changed {{ profile.last_edited|date:'DATETIME_FORMAT' }}
+          by {{ profile.edited_by }}</p>
+      {% endif %}
+    </div>
 
-            <tr>
-                <th>&nbsp;</th>
-                <td><input type="submit" value="Save"></td>
-                <td>&nbsp;</td>
-            </tr>
-
-            </tbody>
-        </table>
-
-    </form>
-
-    {% if profile %}
-    <p>Last changed {{ profile.last_edited|date:'Y-m-d H:i:m' }} by {{ profile.edited_by }}</p>
-    {% endif %}
-
+  </div>
 {% endblock %}

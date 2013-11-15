@@ -29,7 +29,12 @@ from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
 from nav.models.profiles import AlertAddress, AccountProperty
 
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
+                                            HTML)
+
 _ = lambda a: a
+
 
 class AccountPropertyForm(forms.ModelForm):
 
@@ -47,27 +52,46 @@ class AccountPropertyForm(forms.ModelForm):
             widget=forms.widgets.HiddenInput, initial=property)
         self.fields['value'] = forms.ChoiceField(choices=values)
 
+
 class AlertProfileForm(forms.ModelForm):
-    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
-    name = forms.CharField(required=True)
-    daily_dispatch_time = forms.TimeField(
-        initial='08:00',
-        input_formats=['%H:%M:%S', '%H:%M', '%H'],
-        help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
-    )
-    weekly_dispatch_time = forms.TimeField(
-        initial='08:00',
-        input_formats=['%H:%M:%S', '%H:%M', '%H'],
-        help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
-    )
+    id = forms.IntegerField(required=False, widget=forms.HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super(AlertProfileForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id', 'name',
+            Row(
+                Column('daily_dispatch_time', css_class='medium-4'),
+                Column('weekly_dispatch_time', css_class='medium-4'),
+                Column(Field('weekly_dispatch_day', css_class='select2'),
+                       css_class='medium-4')
+            )
+        )
 
     class Meta:
         model = AlertProfile
         exclude = ('account',)
 
+
 class AlertAddressForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     address = forms.CharField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(AlertAddressForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id',
+            Row(
+                Column(Field('type', css_class='select2'),
+                       css_class='medium-4'),
+                Column('address', css_class='medium-4'),
+                Column(HTML(''), css_class='medium-4')
+            )
+        )
 
     class Meta:
         model = AlertAddress
@@ -96,17 +120,38 @@ class AlertAddressForm(forms.ModelForm):
 
         return cleaned_data
 
+
 class TimePeriodForm(forms.ModelForm):
-    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    id = forms.IntegerField(required=False, widget=forms.HiddenInput)
     profile = forms.ModelChoiceField(
         AlertProfile.objects.all(),
-        widget=forms.widgets.HiddenInput
+        widget=forms.HiddenInput
     )
     start = forms.TimeField(
         initial='08:00',
         input_formats=['%H:%M:%S', '%H:%M', '%H'],
         help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
     )
+
+    def __init__(self, *args, **kwargs):
+        super(TimePeriodForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        submit_text = 'Add'
+
+        if self.instance and self.instance.id:
+            self.fields['valid_during'].widget.attrs['disabled'] = 'disabled'
+            submit_text = 'Save'
+
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id', 'profile',
+            Row(
+                Column('start', css_class='medium-6'),
+                Column(Field('valid_during', css_class='select2'),
+                       css_class='medium-6')
+            ),
+            Submit('submit', submit_text, css_class='small')
+        )
 
     class Meta:
         model = TimePeriod
@@ -117,7 +162,6 @@ class TimePeriodForm(forms.ModelForm):
         start_time = self.cleaned_data.get('start', None)
         valid_during = self.cleaned_data.get('valid_during', None)
 
-        valid_during_choices = None
         if valid_during == TimePeriod.ALL_WEEK:
             valid_during_choices = (TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS,
                                     TimePeriod.WEEKENDS)
@@ -143,6 +187,7 @@ class TimePeriodForm(forms.ModelForm):
         else:
             return self.cleaned_data
 
+
 class AlertSubscriptionForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
 
@@ -153,11 +198,11 @@ class AlertSubscriptionForm(forms.ModelForm):
         time_period = kwargs.pop('time_period', None)
         super(AlertSubscriptionForm, self).__init__(*args, **kwargs)
 
+        hidden_fields = ['id']
         if isinstance(time_period, TimePeriod):
             self.fields['time_period'] = forms.IntegerField(
-                    widget=forms.widgets.HiddenInput,
-                    initial=time_period.id
-                )
+                widget=forms.HiddenInput, initial=time_period.id)
+            hidden_fields.append('time_period')
             # Get account
             account = time_period.profile.account
 
@@ -171,21 +216,35 @@ class AlertSubscriptionForm(forms.ModelForm):
             filter_group_choices = [(f.id, f.name) for f in filter_groups]
 
             self.fields['alert_address'] = forms.ChoiceField(
-                    choices=address_choices,
-                    error_messages={
-                        'required': 'Alert address is a required field.',
-                        'invalid_choice': ('The selected alert address is an '
-                                           'invalid choice.'),
-                    }
-                )
+                choices=address_choices,
+                error_messages={
+                    'required': 'Alert address is a required field.',
+                    'invalid_choice': ('The selected alert address is an '
+                                       'invalid choice.'),
+                }, label='Send alerts to')
             self.fields['filter_group'] = forms.ChoiceField(
-                    choices=filter_group_choices,
-                    error_messages={
-                        'required': 'Filter group is a required field.',
-                        'invalid_choice': ('The selected filter group is a '
-                                           'invalid choice.'),
-                    }
-                )
+                choices=filter_group_choices,
+                error_messages={
+                    'required': 'Filter group is a required field.',
+                    'invalid_choice': ('The selected filter group is a '
+                                       'invalid choice.'),
+                }, label='Watch')
+            self.fields['type'].label = '&nbsp;'
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('filter_group', css_class='select2'),
+                       css_class='medium-3'),
+                Column(Field('alert_address', css_class='select2'),
+                       css_class='medium-3'),
+                Column(Field('type', css_class='select2'),
+                       css_class='medium-3'),
+                Column(Field('ignore_resolved_alerts',
+                             css_class='input-align'),
+                       css_class='medium-3')
+            ), *hidden_fields
+        )
 
     def clean(self):
         alert_address = self.cleaned_data.get('alert_address', None)
@@ -198,11 +257,11 @@ class AlertSubscriptionForm(forms.ModelForm):
         error_msg = []
 
         existing_subscriptions = AlertSubscription.objects.filter(
-                Q(alert_address=alert_address),
-                Q(time_period=time_period),
-                Q(filter_group=filter_group),
-                ~Q(pk=ident)
-            )
+            Q(alert_address=alert_address),
+            Q(time_period=time_period),
+            Q(filter_group=filter_group),
+            ~Q(pk=ident)
+        )
 
         for sub in existing_subscriptions:
             error_msg.append(
@@ -213,17 +272,18 @@ class AlertSubscriptionForm(forms.ModelForm):
 
         if subscription_type == AlertSubscription.NOW and ignore:
             error_msg.append(u'Resolved alerts can not be ignored ' +
-                'for now subscriptions')
+                             'for now subscriptions')
 
         if error_msg:
             raise forms.util.ValidationError(error_msg)
 
         return self.cleaned_data
 
+
 class FilterGroupForm(forms.Form):
-    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
-    owner = forms.BooleanField(required=False, label='Private',
-        help_text=_(u'Uncheck to allow all users to use this filter group.'))
+    id = forms.IntegerField(required=False, widget=forms.HiddenInput)
+    owner = forms.BooleanField(required=False, label='Private', help_text=_(
+        u'Uncheck to allow all users to use this filter group.'))
     name = forms.CharField(required=True)
     description = forms.CharField(required=False)
 
@@ -243,10 +303,22 @@ class FilterGroupForm(forms.Form):
             for field in self.fields.itervalues():
                 field.widget.attrs['disabled'] = 'disabled'
 
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id',
+            Row(
+                Column('name', css_class='medium-4'),
+                Column('description', css_class='medium-4'),
+                Column('owner', css_class='medium-4')
+            )
+        )
+
+
 class FilterForm(forms.Form):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
-    owner = forms.BooleanField(required=False, label=u'Private',
-        help_text=_(u'Uncheck to allow all users to use this filter.'))
+    owner = forms.BooleanField(required=False, label=u'Private', help_text=_(
+        u'Uncheck to allow all users to use this filter.'))
     name = forms.CharField(required=True)
 
     class Meta:
@@ -264,16 +336,27 @@ class FilterForm(forms.Form):
             for field in self.fields.itervalues():
                 field.widget.attrs['disabled'] = 'disabled'
 
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id',
+            Row(
+                Column('name', css_class='medium-6'),
+                Column('owner', css_class='medium-6')
+            )
+        )
+
+
 class MatchFieldForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     list_limit = forms.ChoiceField(
-            choices=((100, 100), (200, 200), (300, 300), (500, 500),
-                     (1000, '1 000'), (10000, '10 000')),
-            initial=300,
-            help_text=_(u'Only this many options will be available in the '
-                        u'list. Only does something when "Show list" is '
-                        u'checked.'),
-        )
+        choices=((100, 100), (200, 200), (300, 300), (500, 500),
+                 (1000, '1 000'), (10000, '10 000')),
+        initial=300,
+        help_text=_(u'Only this many options will be available in the '
+                    u'list. Only does something when "Show list" is '
+                    u'checked.'),
+    )
 
     class Meta:
         model = MatchField
@@ -297,7 +380,6 @@ class MatchFieldForm(forms.ModelForm):
                         u'or not set at all.')
         return clean_value_name
 
-
     def clean_value_sort(self):
         clean_value_sort = self.cleaned_data['value_sort']
         try:
@@ -316,6 +398,7 @@ class MatchFieldForm(forms.ModelForm):
                         u'This field must be the same model as match field, '
                         u'or not set at all.')
         return clean_value_sort
+
 
 class ExpressionForm(forms.ModelForm):
     filter = forms.IntegerField(widget=forms.widgets.HiddenInput)

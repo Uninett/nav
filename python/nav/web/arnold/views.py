@@ -150,6 +150,8 @@ def render_justifications(request, jid=None):
         form = JustificationForm()
 
     justifications = Justification.objects.all()
+    for justification in justifications:
+        justification.deletable = is_deletable(justification)
 
     return render_to_response(
         'arnold/justifications.html',
@@ -159,6 +161,19 @@ def render_justifications(request, jid=None):
                         'justifications': justifications}),
         context_instance=RequestContext(request)
     )
+
+
+def is_deletable(justification):
+    """Determines if a justification is deletable
+
+    :param justification: The Justification to verify is deletable
+    :type justification: Justification
+
+    """
+    is_in_detentionset = bool(justification.detentionprofile_set.all())
+    has_been_used = bool(justification.identity_set.all())
+
+    return not (has_been_used or is_in_detentionset)
 
 
 def process_justification_form(form):
@@ -176,6 +191,21 @@ def process_justification_form(form):
     justification.description = desc
 
     justification.save()
+
+
+def delete_justification(request, jid):
+    """Deletes a justification"""
+
+    try:
+        justification = Justification.objects.get(pk=jid)
+    except Justification.DoesNotExist:
+        # As this method is only called from ui on existing justifications
+        # this should not happen. Just redirect to list again
+        return redirect('arnold-justificatons')
+    else:
+        justification.delete()
+
+    return redirect('arnold-justificatons')
 
 
 def render_manual_detention_step_one(request):
@@ -209,7 +239,7 @@ def render_manual_detention_step_two(request, target):
     camtuples = {}
     for candidate in candidates:
         camtuples[str(candidate.camid)] = candidate
-    camtuple_choices = [(str(x.camid), 'a') for x in candidates]
+    camtuple_choices = [(str(x.camid), humanize(x)) for x in candidates]
 
     if request.method == 'POST':
         form = ManualDetentionForm(request.POST)
@@ -232,6 +262,18 @@ def render_manual_detention_step_two(request, target):
                                   'now': datetime.now(),
                                   'error': error
                               }), RequestContext(request))
+
+
+def humanize(candidate):
+    return '%s - %s' % (candidate.interface, get_last_seen(candidate.camid))
+
+
+def get_last_seen(camid):
+    cam = Cam.objects.get(pk=camid)
+    if cam.end_time >= datetime.now():
+        return 'still active'
+    else:
+        return 'last seen %s' % cam.end_time.strftime('%Y-%m-%d %H:%M:%S')
 
 
 def process_manual_detention_form(form, account):
@@ -322,8 +364,8 @@ def render_edit_detention_profile(request, did=None):
     elif did:
         profile = DetentionProfile.objects.get(pk=did)
 
-        profile.active = True if profile.active == 'y' else False
-        profile.incremental = True if profile.incremental == 'y' else False
+        active = True if profile.active == 'y' else False
+        incremental = True if profile.incremental == 'y' else False
         qid = profile.quarantine_vlan.id if profile.quarantine_vlan else None
 
         form = DetentionProfileForm(initial={
@@ -335,10 +377,10 @@ def render_edit_detention_profile(request, did=None):
             'mail': profile.mailfile,
             'qvlan': qid,
             'keep_closed': profile.keep_closed,
-            'exponential': profile.incremental,
+            'exponential': incremental,
             'duration': profile.duration,
             'active_on_vlans': profile.active_on_vlans,
-            'active': profile.active
+            'active': active
         })
     else:
         form = DetentionProfileForm()

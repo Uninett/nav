@@ -18,14 +18,12 @@
 """Functions for rendering seeddb list views"""
 
 from django.core.urlresolvers import reverse
-from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models.fields import FieldDoesNotExist
 
 from nav.django.utils import get_verbose_name
 
-ITEMS_PER_PAGE = 100
 
 def render_list(request, queryset, value_list, edit_url=None,
                 edit_url_attr='pk', filter_form=None,
@@ -51,12 +49,7 @@ def render_list(request, queryset, value_list, edit_url=None,
     if not extra_context:
         extra_context = {}
 
-    order_by = request.GET.get('sort')
-    order_by = _get_order_by(order_by, value_list)
-    order_by_meta = _order_by_meta(order_by)
-
     queryset = _filter_query(filter_form, queryset)
-    queryset = queryset.order_by(order_by)
 
     # Get values specified in value_list from the queryset.
     # Also make sure that the primary key and the edit_url_attr appears.
@@ -65,55 +58,28 @@ def render_list(request, queryset, value_list, edit_url=None,
     else:
         value_queryset = queryset.values('pk', edit_url_attr, *value_list)
 
-    per_page = request.GET.get('per_page', ITEMS_PER_PAGE)
-    if per_page == 'all':
-        per_page = value_queryset.count()
-    else:
-        per_page = _get_num(request.GET, 'per_page', ITEMS_PER_PAGE)
-    page_num = _get_num(request.GET, 'page', 1)
-
-    page = _paginate(value_queryset, per_page, page_num)
-
     if not edit_url:
-        objects = _process_objects(page, value_list)
+        objects = _process_objects(value_queryset, value_list)
     else:
-        objects = _process_objects(page, value_list, edit_url, edit_url_attr)
+        objects = _process_objects(value_queryset, value_list, edit_url,
+                                   edit_url_attr)
 
     labels = _label(queryset.model, value_list)
 
     context = {
         'object_list': objects,
         'labels': labels,
-        'current_sort': order_by,
-        'current_sort_label': order_by_meta['current_sort_label'],
-        'other_sort': order_by_meta['other_sort'],
-        'sort_asc': order_by_meta['sort_asc'],
         'filter_form': filter_form,
-        'page': page,
         'sub_active': {'list': True},
         'censor_list': censor_list
     }
+
     # Update extra_context with context.
     # Doing it this way makes sure that the context dictionary overrides any
     # user-supplied data, not the other way around.
     extra_context.update(context)
-    return render_to_response(template,
-        extra_context, RequestContext(request))
+    return render_to_response(template, extra_context, RequestContext(request))
 
-def _get_num(get, key, default=1):
-    """Returns a number identified by key from the dictionary get.
-    Defaults to default.
-
-    Parameters:
-     - get: A dictionary
-     - key: The key used to lookup the given value in get.
-     - default: The default value.
-    """
-    try:
-        num = int(get.get(key, default))
-    except ValueError:
-        num = default
-    return num
 
 def _filter_query(filter_form, queryset):
     """Apply filter_form to queryset.
@@ -125,39 +91,8 @@ def _filter_query(filter_form, queryset):
         queryset = queryset.filter(**query_filter)
     return queryset
 
-def _get_order_by(order_by, value_list):
-    """Check if the specified order is valid.
-    Returns order_by if it's valid, else it returns the first value in value_list.
-    """
-    if order_by:
-        hyp_find = order_by.find('-')
-        key = order_by.lstrip('-')
-    if not order_by or hyp_find not in (-1, 0) or key not in value_list:
-        order_by = value_list[0]
-    return order_by
 
-def _order_by_meta(order_by):
-    """Populates a dictionary with meta information about the current ordering
-    given by order_by.
-    """
-    sort_asc = '-' not in order_by
-    return {
-        'sort_asc': sort_asc,
-        'current_sort_label': order_by.lstrip('-'),
-        'other_sort': sort_asc and '-' + order_by or order_by.lstrip('-'),
-    }
-
-def _paginate(value_qs, per_page, page_num):
-    """Apply pagination to the queryset.
-    """
-    paginator = Paginator(value_qs, per_page)
-    try:
-        page = paginator.page(page_num)
-    except InvalidPage:
-        page = paginator.page(paginator.num_pages)
-    return page
-
-def _process_objects(page, value_list, edit_url=None, edit_url_attr=None):
+def _process_objects(query_set_values, value_list, edit_url=None, edit_url_attr=None):
     """Packs values into a format the template understands.
 
     A list contains each row.
@@ -168,7 +103,7 @@ def _process_objects(page, value_list, edit_url=None, edit_url_attr=None):
                     table.
     """
     objects = []
-    for obj in page.object_list:
+    for obj in query_set_values:
         if not edit_url:
             row = {
                 'pk': obj['pk'],
@@ -182,6 +117,7 @@ def _process_objects(page, value_list, edit_url=None, edit_url_attr=None):
             }
         objects.append(row)
     return objects
+
 
 def _label(model, value_list):
     """Make labels for the table head.

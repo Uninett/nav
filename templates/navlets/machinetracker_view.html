@@ -1,0 +1,16 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+    <form action="{% url get-user-navlet navlet.navlet_id %}" method="post">
+        <div class="row collapse">
+            <div class="large-9 column">
+                <input type="text" name="from_ip" placeholder="IP or MAC-address">
+            </div>
+            <div class="large-3 column">
+                <input type="submit" value="Search" class="button postfix">
+            </div>
+        </div>
+    </form>
+
+{% endblock %}

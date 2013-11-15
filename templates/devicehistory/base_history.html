@@ -10,10 +10,10 @@
             <a href="{% url devicehistory-view %}">Results</a>
         </li>
     </ul>
+    <div class="tabcontent">
+        {% block devicehistory-content %}
+        {% endblock %}
+    </div>
 </div>
 
-<div class="tabcontent">
-    {% block devicehistory-content %}
-    {% endblock %}
-</div>
 {% endblock %}

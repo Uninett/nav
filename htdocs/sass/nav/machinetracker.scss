@@ -1,0 +1,42 @@
+#search_form form {
+	margin: 0;
+	padding: 0;
+}
+
+.infobox {
+		margin-bottom: 1em;
+}
+
+.errorbox {
+padding:10px; 
+margin-bottom:10px; 
+background-color:#ed6a6a;
+border:1px solid #999;
+}
+
+.tablesorter .fishy-item {
+    background-color: #ffe4e4 !important;
+}
+
+/* Style the filters on the ip-address search */
+#search_form fieldset {
+    padding: 0.35em 0.625em 0.75em;
+}
+
+.machinetracker-filter {
+    line-height: 2em;
+}
+
+.machinetracker-filter .column {
+    text-align: center;
+}
+
+.machinetracker-filter-days label {
+    display: inline;
+}
+
+.machinetracker-filter-days input[type=text] {
+    margin: 0;
+    display: inline;
+    width: auto;
+}

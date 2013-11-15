@@ -21,7 +21,7 @@ Alias /uploads @localstatedir@/uploads
     Options -Indexes
 </Location>
 
-AliasMatch ^/((images|js|style)/.*) @webrootdir@/$1
+AliasMatch (^/static/.*) @webrootdir@/$1
 
 <Location /api>
     # Make sure WSGI allows the Authorization header to pass through to

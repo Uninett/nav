@@ -1,7 +1,7 @@
 <div class="network-popup">
   {% if network.subedges|length_is:"1" %}
   {% else %}
-  <table class="vertitable" style="font-size: 80%">
+  <table class="vertitable">
     <caption>
       Combined details of {{ network.subedges|length }} link{{ network.subedges|length|pluralize }}
     </caption>
@@ -10,12 +10,12 @@
     <tr><th>Load out</th> <td>{{ network.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}</td></tr>
   </table>
 
-  <h3>Individual links:</h3>
+  <h5>Individual links:</h5>
   {% endif %}
 
   {% for sub in network.subedges %}
 
-  <table class="vertitable" style="font-size: 80%">
+  <table class="vertitable">
     <caption>{{ sub.netident }}</caption>
     <tr>
         <th>From</th>
@@ -49,7 +49,7 @@
       <tr><th colspan="2">Debug</th></tr>
       <tr><th>Port from</th>    <td>{{ sub.local_portid }}</td></tr>
       <tr><th>Port to</th>      <td>{{ sub.remote_portid }}</td></tr>
-      <tr><th>RRD file</th>     <td>{{ sub.local_rrdfile }}</th></tr>
+      <tr><th>RRD file</th>     <td>{{ sub.local_rrdfile }}</td></tr>
     {% endif %}
   </table>
 

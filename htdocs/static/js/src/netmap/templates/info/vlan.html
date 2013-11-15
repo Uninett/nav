@@ -1,0 +1,20 @@
+{{#if vlans}}
+<div>
+  <span class="description">Vlans</span>
+  <a href="#" id="unselectVlan">(unselect vlan)</a>
+  <label for="zoomAndTranslateVlanSelection" >Zoom and translate?
+    <input type="checkbox" id="zoomAndTranslateVlanSelection" value="Zoom and translate?" {{#if isZoomAndTranslate}}checked{{/if}} />
+  </label>
+</div>
+<div id="infoVlanContainer" class="body">
+    <ul id="node_info_vlan">
+        {{#each vlans}}
+        <li {{#if this.is_selected}}class="selected_vlan"{{/if}}>
+            <a class="vlan" data-nav-vlan="{{this.nav_vlan}}" title="{{this.vlan}} - {{this.net_ident}}">
+                <span>{{this.vlan}}</span>{{this.net_ident}}
+            </a>
+        </li>
+        {{/each}}
+    </ul>
+</div>
+{{/if}}

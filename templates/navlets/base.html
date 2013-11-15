@@ -1,0 +1,24 @@
+{% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
+    <ul class="navlet-action-group button-group right">
+        {% if navlet.is_editable %}
+            <li>
+                <a href="javascript:void(0);" class="navlet-mode-switch button tiny right secondary"
+                   data-mode="{{ navlet.mode }}">
+                    {% if navlet.mode == 'VIEW' %}
+                        Edit
+                    {% else %}
+                        View
+                    {% endif %}
+                </a>
+            </li>
+        {% endif %}
+        <li>
+            <a href="javascript:void(0);" class="navlet-remove-button button tiny right secondary">Remove</a>
+        </li>
+    </ul>
+{% endif %}
+
+<span class="subheader" title="{{ navlet.description }}">{{ navlet.title }}</span>
+
+{% block navlet-content %}
+{% endblock %}

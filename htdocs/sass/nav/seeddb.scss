@@ -1,0 +1,43 @@
+.readonly {
+		border: none;
+}
+
+/* Style the tables on the index page */
+
+.seeddbtable td:first-child {
+    width: 15%;
+}
+
+.seeddbtable td:nth-child(2) {
+    width: 70%;
+}
+
+.seeddbtable td:nth-child(3) {
+    width: 5%;
+}
+
+.seeddbtable td:last-child {
+    width: 10%;
+}
+
+.required:after {
+	content: " *";
+	color: #F00;
+	font-weight: bold;
+}
+
+/* Style the general info tables */
+
+#tablewrapper {
+    margin-bottom: 1em;
+}
+
+#seeddb-content th {
+    white-space: nowrap;
+}
+
+/* Style the form for bulk upload */
+
+#id_bulk_data {
+    height: 20em;
+}

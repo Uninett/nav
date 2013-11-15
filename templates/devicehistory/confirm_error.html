@@ -2,7 +2,7 @@
 
 {% block devices %}
     <h3>Selected devices</h3>
-    <ul>
+    <ul class="no-bullet">
         {% for d in netbox %}
             <li>
                 {{ d.sysname }}
@@ -18,6 +18,6 @@
     </ul>
     <div>
         <input type="hidden" name="confirm" value="yes" />
-        <input type="submit" value="Confirm" />
+        <input type="submit" class="button small" value="Confirm" />
     </div>
 {% endblock %}

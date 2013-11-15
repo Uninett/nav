@@ -2,30 +2,15 @@
 
 {% block base_content %}
 
-<div class="tabs">
-    <ul>
-        <li class="{{ active.preferences|yesno:"tabactive," }}">
-            <a href="{% url status-preferences %}">Preferences</a>
-        </li>
-        <li class="{{ active.status|yesno:"tabactive," }}">
-            <a href="{% url status-index %}">Status now</a>
-        </li>
-    </ul>
-</div>
+  <h3>{% block page_header %}Status{% endblock %}</h3>
 
-<div class="tabcontent">
-
-{% if current_user_data.messages %}
-<ul class="messages">
+  {% if current_user_data.messages %}
     {% for m in current_user_data.messages %}
-    <li class="{{ m.type }}">{{ m.message }}</li>
+      <div class="alert-box {{ m.type }}">{{ m.message }}</div>
     {% endfor %}
-</ul>
-{% endif %}
+  {% endif %}
 
-{% block content %}
-{% endblock %}
-
-</div>
+  {% block content %}
+  {% endblock %}
 
 {% endblock %}

@@ -2,55 +2,62 @@
 
 {% block tabcontent %}
 
-<h3>Account details</h3>
-<table class="vertitable">
-    <tbody>
-        <tr class="oddrow">
-            <th>Groups you are member of</th>
-            <td>
-                <ul>
-                {% for group in groups %}
-                    <li>{{ group.name }}<br />{{ group.description }}</li>
-                {% endfor %}
-                </ul>
-            </td>
-        </tr>
-        <tr class="evenrow">
-            <th>Alerts you have permissions to recieve</th>
-            <td>
-                <ul>
-                {% for filter_group in filter_groups %}
-                    <li>{{ filter_group.name }}<br />{{ filter_group.description }}</li>
-                {% endfor %}
-                </ul>
-            </td>
-        </tr>
-        <tr class="oddrow">
-            <th>Alert by sms</th>
-            <td>
-                <img src="/images/lys/{{ sms_privilege|yesno:"green,red" }}.png" alt="" />
-                You {% if not sms_privilege %}<em>do not</em> {% endif %}have
-                permissions to be alerted by SMS.
-            </td>
-        </tr>
-        <tr class="evenrow">
-            <th>Language</th>
-            <td>
-                <form action="{% url alertprofiles-language-save %}" method="post">
-                    {{ language_form.value }}
-                    {{ language_form.property }}
-                    <input type="submit" value="Save changes" />
-                </form>
-            </td>
-    </tbody>
-</table>
+  <a href="#" class="button small secondary right" data-reveal-id="account_details">Groups and permissions</a>
 
-{% if active_profile %}
-    <h3>Active profile: 
-    <a href="{% url alertprofiles-profile-detail active_profile.id %}">
-    {{ active_profile.name }}</a></h3>
+  {% if active_profile %}
+    <h4>Active profile:
+      <a href="{% url alertprofiles-profile-detail active_profile.id %}">
+        {{ active_profile.name }}
+      </a>
+    </h4>
     {% include "alertprofiles/timeperiods.html" %}
-{% endif %}
+  {% else %}
+    <h4>Account details</h4>
+    <p>
+      There is no active profile set. You can
+      <a href="{% url alertprofiles-profile %}">activate an existing one</a> or
+      <a href="{% url alertprofiles-profile-new %}">create a new profile</a>.
+    </p>
+  {% endif %}
+
+  <div id="account_details" class="reveal-modal">
+    <div class="row">
+
+      <div class="column medium-4">
+        <h5>Groups you are member of</h5>
+        <ul>
+          {% for group in groups %}
+            <li><em>{{ group.name }}</em><br/>{{ group.description }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="column medium-4">
+        <h5>Alerts you have permissions to recieve</h5>
+        <ul>
+          {% for filter_group in filter_groups %}
+            <li><em>{{ filter_group.name }}</em><br/>{{ filter_group.description }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="column medium-4">
+        <h5>Alert language</h5>
+        <form action="{% url alertprofiles-language-save %}" method="post" class="inline-form custom">
+          {{ language_form.value }}
+          {{ language_form.property }}
+          <input type="submit" value="Save changes" class="button tiny"/>
+        </form>
+
+        <p>
+        <img src="{{ STATIC_URL }}images/lys/{{ sms_privilege|yesno:"green,red" }}.png"/>
+        You {% if not sms_privilege %}<em>do not</em> {% endif %}have
+        permissions to be alerted by SMS.
+        </p>
+      </div>
+
+    </div>
+  </div>
 
 {% endblock %}
 

@@ -1,112 +1,24 @@
 {% extends 'arnold/base.html' %}
+{% load crispy_forms_tags %}
 
 {% load info %}
 
 {% block content %}
 
-    {% if error %}
-        <div class="error">{{ error }}</div>
-    {% endif %}
+  {% include 'arnold/back.html' %}
 
+  <h4>Manual detention</h4>
 
-    <form action="" method="POST" class="manualDetentionForm">
-        <table class="vertitable">
+  {% if error %}
+    <div class="alert-box alert">{{ error }}</div>
+  {% endif %}
 
-            <tbody>
-            <tr>
-                <th>{{ form.target.label }}</th>
-                <td>{{ form.target }}</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <th>Choose interface</th>
-                <td>
-                    <table class="listtable">
-                        <thead>
-                        <tr>
-                            <th>Switch</th>
-                            <th>Ifname</th>
-                            <th>Target last seen</th>
-                            <th>&nbsp;</th>
-                        </tr>
-                        </thead>
-
-                        <tbody>
-                        {% comment %} Manually print form for choosing interface to detain {% endcomment %}
-                        {% for choice in form.camtuple.field.choices %}
-                            {% with camtuples|lookup:choice.0 as camtuple %}
-                            <tr>
-                                <td>
-                                    <a href="{% url ipdevinfo-details-by-name camtuple.interface.netbox.sysname %}"
-                                       title="Link to Ip Device Info" target="_blank">
-                                        {{ camtuple.interface.netbox.sysname }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <a href="{% url ipdevinfo-interface-details camtuple.interface.netbox.sysname camtuple.interface.id %}"
-                                       title="Link to interface details" target="_blank">
-                                        {{ camtuple.interface.ifname }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {% if camtuple.endtime >= now %}
-                                        Still active
-                                    {% else %}
-                                        {{ camtuple.endtime|date:'DATETIME_FORMAT' }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <input type="radio" name="camtuple" value="{{ choice.0 }}"
-                                        {% if form.is_bound %}
-                                            {% ifequal form.camtuple.data choice.0 %} checked{% endifequal %}
-                                        {% else %}
-                                            {% ifequal form.camtuple.field.initial choice.0 %} checked {% endifequal %}
-                                        {% endif %}
-                                    >
-                                </td>
-                            </tr>
-                            {% endwith %}
-                        {% endfor %}
-                        </tbody>
-
-                    </table>
-                </td>
-                <td><span class="error">{{ form.camtuple.errors.0 }}</span></td>
-            </tr>
-            <tr>
-                <th>{{ form.method.label }}</th>
-                <td>{{ form.method }}</td>
-                <td><span class="error">{{ form.method.errors.0 }}</span></td>
-            </tr>
-            <tr>
-                <th>{{ form.justification.label }}</th>
-                <td>{{ form.justification }}</td>
-                <td><span class="error">{{ form.justification.errors.0 }}</span></td>
-            </tr>
-            <tr class="vlanrow">
-                <th>{{ form.qvlan.label }}</th>
-                <td>{{ form.qvlan }}</td>
-                <td><span class="error">{{ form.qvlan.errors.0 }}</span></td>
-            </tr>
-            <tr>
-                <th>{{ form.comment.label }}</th>
-                <td>{{ form.comment }}</td>
-                <td><span class="error">{{ form.comment.errors.0 }}</span></td>
-            </tr>
-            <tr>
-                <th>{{ form.days.label }}</th>
-                <td class="days">{{ form.days }} days</td>
-                <td><span class="error">{{ form.days.errors.0 }}</span></td>
-            </tr>
-
-            <tr>
-                <th>&nbsp;</th>
-                <td><input type="submit" value="Detain"></td>
-            </tr>
-            </tbody>
-
-        </table>
-
-    </form>
+  <div class="row">
+    <div class="medium-6 column">
+      <div class="panel">
+        {% crispy form %}
+      </div>
+    </div>
+  </div>
 
 {% endblock %}

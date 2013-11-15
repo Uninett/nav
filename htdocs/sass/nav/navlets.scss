@@ -1,0 +1,42 @@
+#navlets .highlight {
+    background-color: greenyellow;
+}
+
+.navlet .subheader {
+    font-size: 1.1em;
+    position: relative;
+    top: -20px;
+    left: -8px;
+}
+
+/* Is a column is empty, make sure it has some size to be visible */
+.navletColumn {
+    min-width: 20px;
+    min-height: 20px;
+}
+
+.navlet {
+    box-shadow: 2px 2px 6px #999;
+    margin-bottom: 1em;
+    padding: 1.5em 1em 1em 1em;
+    position: relative;
+    min-height: 100px;
+}
+
+.navlet.outline {
+    border: 2px solid red;
+}
+
+.navlet .navlet-action-group {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.navlet .navlet-action-group .button {
+    margin-bottom: 0;
+}
+
+.navlet .panel {
+    font-size: 0.9em;
+}

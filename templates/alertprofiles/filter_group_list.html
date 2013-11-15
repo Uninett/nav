@@ -1,63 +1,66 @@
 {% extends "alertprofiles/base_list.html" %}
 
+{% block top_links %}
+  <a href="{% url alertprofiles-filter_groups-new %}" class="button small">Add filter group</a>
+{% endblock %}
+
 {% block captioncontent %}
     Filter groups
 {% endblock %}
 
 {% block theadcols %}
     <th></th>
+
     <th>
     {% ifequal order_by "name" %}
         <a href="{% url alertprofiles-filter_groups %}?page={{ page_obj.number }}&amp;order_by=-name">
-            Name</a>
-        <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
-        </span>
+          Name
+          <i class="fa fa-caret-down"></i>
+        </a>
     {% else %}
         <a href="{% url alertprofiles-filter_groups %}?page={{ page_obj.number }}&amp;order_by=name">
-            Name</a>
-        {% ifequal order_by "-name" %}
-        <span class="sort">
-            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
-        </span>
-        {% endifequal %}
+          Name
+          {% ifequal order_by "-name" %}
+            <i class="fa fa-caret-up"></i>
+          {% endifequal %}
+        </a>
     {% endifequal %}
     </th>
+
     <th>
     {% ifequal order_by "owner" %}
         <a href="{% url alertprofiles-filter_groups %}?page={{ page}}&amp;order_by=-owner">
-            Owner</a>
-        <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
-        </span>
+          Owner
+          <i class="fa fa-caret-down"></i>
+        </a>
     {% else %}
         <a href="{% url alertprofiles-filter_groups %}?page={{ page}}&amp;order_by=owner">
-            Owner</a>
-        {% ifequal order_by "-owner" %}
-        <span class="sort">
-            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
-        </span>
-        {% endifequal %}
+          Owner
+          {% ifequal order_by "-owner" %}
+            <i class="fa fa-caret-up"></i>
+          {% endifequal %}
+        </a>
     {% endifequal %}
     </th>
+
     <th>
     {% ifequal order_by "description" %}
         <a href="{% url alertprofiles-filter_groups %}?page={{ page }}&amp;order_by=-description">
-            Description</a>
-        <span class="sort">
-            <img src="/images/alertprofiles/go-down.png" alt="Sorted ascending" />
-        </span>
+          Description
+          <i class="fa fa-caret-down"></i>
+        </a>
     {% else %}
         <a href="{% url alertprofiles-filter_groups %}?page={{ page }}&amp;order_by=description">
-            Description</a>
-        {% ifequal order_by "-description" %}
-        <span class="sort">
-            <img src="/images/alertprofiles/go-up.png" alt="Sorted descending" />
-        </span>
-        {% endifequal %}
+          Description
+          {% ifequal order_by "-description" %}
+            <i class="fa fa-caret-up"></i>
+          {% endifequal %}
+        </a>
     {% endifequal %}
     </th>
 {% endblock %}
+
+{% block tablecolspan %}4{% endblock %}
 
 {% block tbodycontent %}
     {% for filter in object_list %}

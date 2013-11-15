@@ -21,26 +21,33 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.generic.list_detail import object_list
 
-from nav.models.profiles import Account, AccountGroup
+from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.django.utils import get_account
 
 from nav.django.auth import sudo
 from nav.web.message import new_message, Messages
 from nav.web.useradmin.forms import *
 
-# FIXME make this global
+
 class UserAdminContext(RequestContext):
     def __init__(self, *args, **kwargs):
         # account_processor is in the settings file.
-        # if 'processors' not in kwargs:
-        #     kwargs['processors'] = [account_processor]
+        if 'processors' not in kwargs:
+            kwargs['processors'] = [custom_processor]
         super(UserAdminContext, self).__init__(*args, **kwargs)
 
+
+def custom_processor(request):
+    """Return some always available variables"""
+    return {'navpath': [('Home', '/'), ('User Administration', )]}
+
 def account_list(request):
-    return object_list(request, Account.objects.all(),
-                        template_object_name='account',
-                        template_name='useradmin/account_list.html',
-                        extra_context={'active': {'account_list': 1}})
+    accounts = Account.objects.all()
+    return render_to_response('useradmin/account_list.html',
+                              {'active': {'account_list': 1},
+                               'accounts': accounts},
+                              UserAdminContext(request))
+
 
 def account_detail(request, account_id=None):
     try:
@@ -49,8 +56,8 @@ def account_detail(request, account_id=None):
         account = None
 
     account_form = AccountForm(instance=account)
-    org_form = OrganizationAddForm()
-    group_form = GroupAddForm()
+    org_form = OrganizationAddForm(account)
+    group_form = GroupAddForm(account)
 
     if request.method == 'POST':
         if 'submit_account' in request.POST:
@@ -71,7 +78,7 @@ def account_detail(request, account_id=None):
                                                     args=[account.id]))
 
         elif 'submit_org' in request.POST:
-            org_form = OrganizationAddForm(request.POST)
+            org_form = OrganizationAddForm(account, request.POST)
 
             if org_form.is_valid():
                 organization = org_form.cleaned_data['organization']
@@ -93,7 +100,7 @@ def account_detail(request, account_id=None):
                                                     args=[account.id]))
 
         elif 'submit_group' in request.POST:
-            group_form = GroupAddForm(request.POST)
+            group_form = GroupAddForm(account, request.POST)
 
             if group_form.is_valid():
                 group = group_form.cleaned_data['group']
@@ -279,10 +286,15 @@ def account_group_remove(request, account_id, group_id, missing_redirect=None,
 
 
 def group_list(request):
-    return object_list(request, AccountGroup.objects.all(),
-                        template_object_name='group',
-                        template_name='useradmin/group_list.html',
-                        extra_context={'active': {'group_list': True}})
+    groups = AccountGroup.objects.all()
+    return render_to_response('useradmin/group_list.html',
+                              {'active': {'group_list': True},
+                               'groups': groups},
+                              UserAdminContext(request))
+    # return object_list(request, AccountGroup.objects.all(),
+    #                     template_object_name='group',
+    #                     template_name='useradmin/group_list.html',
+    #                     extra_context={'active': {'group_list': True}})
 
 def group_detail(request, group_id=None):
     try:
@@ -291,7 +303,7 @@ def group_detail(request, group_id=None):
         group = None
 
     group_form = AccountGroupForm(instance=group)
-    account_form = AccountAddForm()
+    account_form = AccountAddForm(group)
     privilege_form = PrivilegeForm()
 
     if request.method == 'POST':
@@ -328,7 +340,7 @@ def group_detail(request, group_id=None):
                 return HttpResponseRedirect(reverse('useradmin-group_detail',
                                                     args=[group.id]))
         elif 'submit_account' in request.POST:
-            account_form = AccountAddForm(request.POST)
+            account_form = AccountAddForm(group, request.POST)
 
             if account_form.is_valid():
                 try:

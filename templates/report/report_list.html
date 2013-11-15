@@ -5,17 +5,17 @@
 
 {% if report_list_local %}
 
-    <table class="listtable vertitablefull">
+    <table class="listtable full-width">
         <caption>Local reports</caption>
         <thead>
             <tr>
-                <th style="width: 30%">Name</th>
-                <th style="width: 70%">Description</th>
+                <th>Name</th>
+                <th>Description</th>
             </tr>
         </thead>
         <tbody>
         {% for report in report_list_local %}
-            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+            <tr>
                 <td><a href="/report/{{ report.0 }}">{{ report.1 }}</a></td>
                 <td>{{ report.2 }}</td>
             </tr>
@@ -25,17 +25,17 @@
 
 {% endif %}
 
-    <table class="listtable vertitablefull">
+    <table class="listtable full-width">
         <caption>Default reports</caption>
         <thead>
             <tr>
-                <th style="width: 30%">Name</th>
-                <th style="width: 70%">Description</th>
+                <th>Name</th>
+                <th>Description</th>
             </tr>
         </thead>
         <tbody>
         {% for report in report_list %}
-            <tr class="{% cycle 'oddrow' 'evenrow' %}">
+            <tr>
                 <td><a href="/report/{{ report.0 }}">{{ report.1 }}</a></td>
                 <td>{{ report.2 }}</td>
             </tr>

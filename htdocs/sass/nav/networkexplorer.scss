@@ -1,0 +1,97 @@
+#working {
+    visibility: hidden;
+}
+
+#networktree {
+	clear: both;
+    font-size: 14px;
+}
+
+#networktree ul {
+    line-height: 1;
+    list-style: none;
+}
+
+#networktree .node  {
+    background: url('../../images/networkexplorer/vertical.gif') repeat-y top left;
+}
+
+#networktree #root {
+    background: none;
+}
+
+#root > ul.children {
+    margin-left: 0;
+}
+
+#networktree ul.children > .tree-header {
+    font-weight: bold;
+}
+
+.gwport_match {
+	font-weight: bold;
+	background: #ddd;
+}
+.gwport_match * {
+	font-weight: normal;
+	background: #fff;
+}
+.swport_match {
+	font-weight: bold;
+	background: #ccc;
+}
+
+.prefixes {
+	font-weight: normal;
+	font-family: monospace;
+	font-size: 90%;
+	background: #fff;
+	padding-left: 25px;
+}
+
+dl, dl dd {
+    margin: 0;
+}
+
+dl, dt, dd {
+	padding-left: 1em;
+	background-image: url('../../images/networkexplorer/vertical.gif');
+	background-repeat: repeat-y;
+}
+
+.tree-navigators {
+	background-image: url('../../images/networkexplorer/vertical.gif');
+	background-repeat: repeat-y;
+	}
+#tree > dl, dt, dd {
+	background-image: none;
+}
+
+.routers  {
+	background-image: none;
+}
+
+dt dt dt {
+    font-weight: bold;
+}
+
+#search-form input[type="checkbox"] {
+    margin: 0;
+}
+
+#search-form fieldset {
+    margin: 0;
+}
+
+.info {
+    clear: right;
+    border: solid 1px #DEDEDE;
+    background: #EFEFEF;
+    color: #222222;
+    display: block;
+    float: left;
+    margin: 0.5em;
+    padding: 4px;
+    text-align: center;
+}
+

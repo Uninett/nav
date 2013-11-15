@@ -141,7 +141,7 @@ class MetaIP:
 
     def calc_ipv6_color(self, active_ip_cnt):
         new_color = 256 - int(255 * self.double_log(active_ip_cnt) / self.double_log(2**64)) - 1
-        return "#%02x%02xff" % (new_color,new_color)
+        return "#ff%02x%02x" % (new_color, new_color)
 
     def _setupIpv6(self):
         if self.netaddr in MetaIP.IPv6MetaMap:

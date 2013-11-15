@@ -1,27 +1,31 @@
 {% extends "messages/base.html" %}
 {% block content %}
-<table class="listtable">
-    <caption>{{ caption }}</caption>
-    <thead>
-        <tr>
-            <th>Published</th>
-            <th>Title</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for message in messages %}
-            <tr class="{% cycle 'oddrow' 'evenrow' %}">
-                <td>{{ message.publish_start|date:"Y-m-d H:i" }}</td>
-                <td><a href="{% url messages-view message.id %}">{{ message.title }}</a></td>
-                <td>{{ message.description }}</td>
-            </tr>
-        {% empty %}
-            <tr>
-                <td colspan="3">No messages found</td>
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<a href="{% url messages-create %}">Create new message</a>
+
+    {% if messages %}
+        <table class="listtable">
+            <caption>{{ caption }}</caption>
+            <thead>
+                <tr>
+                    <th>Published</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for message in messages %}
+                    <tr>
+                        <td>{{ message.publish_start|date:"DATETIME_FORMAT_SHORT" }}</td>
+                        <td><a href="{% url messages-view message.id %}">{{ message.title }}</a></td>
+                        <td>{{ message.description }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="alert-box secondary">No messages</p>
+    {% endif %}
+
+    {% if not current_user_data.account.is_default_account %}
+      <a href="{% url messages-create %}" class="button small">Create new message</a>
+    {% endif %}
 {% endblock %}

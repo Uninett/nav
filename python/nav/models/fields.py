@@ -15,6 +15,8 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import pickle
+
 from datetime import datetime
 from decimal import Decimal
 
@@ -48,6 +50,28 @@ class VarcharField(models.TextField):
         }
         defaults.update(kwargs)
         return super(VarcharField, self).formfield(**defaults)
+
+
+class PickleField(models.TextField):
+    """Automatically pickles and unpickles values"""
+
+    __metaclass__ = models.SubfieldBase  # Ensure to_python is called on init
+    description = "Field for storing pickles"
+
+    def db_type(self, connection=None):
+        return 'varchar'
+
+    def to_python(self, value):
+        if value:
+            if isinstance(value, dict):
+                return value
+            else:
+                return pickle.loads(value)
+
+    def get_prep_value(self, value):
+        if value is not None:
+            return pickle.dumps(value)
+
 
 class CIDRField(VarcharField):
     __metaclass__ = models.SubfieldBase

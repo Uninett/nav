@@ -3,7 +3,8 @@
 {% load info %}
 
 {% block base_header_additional_head %}
-    <link rel="stylesheet" type="text/css" href="/style/info.css"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/info.css"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"/>
     <script>require(['src/info']);</script>
 {% endblock %}
 
@@ -11,81 +12,84 @@
 
 {% block base_content %}
 
-    <h2>Info</h2>
+    <h3>Info</h3>
 
-    <div class="horizontal-button-list">
-        <a href="{% url ipdevinfo-search %}">
-            <span class="noicon">Ip Device Info</span>
-        </a>
-        <a href="{% url room-search %}">
-            <span class="noicon">Room Info</span>
-        </a>
-        <a href="{% url vlan-index %}">
-            <span class="noicon">Vlan Info</span>
-        </a>
-        <a href="{% url netbox-group %}">
-            <span class="noicon">Device Group Info</span>
-        </a>
+    <div class="panel">Search for netboxes, interfaces, rooms and vlans. This search is the same as searching in the navbar.</div>
+
+    <div class="row">
+        <div class="large-6 medium-10 small-12 column">
+            <form action="{% url info-search %}" method="get">
+                <div class="row collapse">
+                    <div class="medium-10 small-12 columns">
+                        {{ form.query }}
+                    </div>
+                    <div class="medium-2 small-12 columns">
+                        <input type="submit" class="button prefix" value="Search">
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <p class="infobox">Search for netboxes, interfaces, rooms and vlans. This search is the same as searching in the navbar.</p>
+    <div class="row">
+        <div class="large-6 medium-10 small-12 column">
+        {% if form.is_bound %}
+            <div id="infotabs" class="ui-helper-hidden">
+            {% if searchproviders %}
+                <ul>
+                {% for searchprovider in searchproviders %}
+                    {% if searchprovider.results %}
+                        <li><a href="#{{ searchprovider.name }}">{{ searchprovider.name }} ({{ searchprovider.results|length }})</a></li>
+                    {% endif %}
+                {% endfor %}
+                </ul>
 
-    <form action="{% url info-search %}" method="get">
-        <p>{{ form.query }}
-            <button type="submit">Search</button>
-        </p>
-    </form>
+                {% for searchprovider in searchproviders %}
+                    {% if searchprovider.results %}
+                        <div id="{{ searchprovider.name }}">
+                            <table class="listtable full-width table-hover">
+                                <caption>
+                                    {{ searchprovider.name }}
+                                    <span class="subtitle right">
+                                        {{ searchprovider.results|length }} result{{ searchprovider.results|pluralize:'s' }}
+                                    </span>
+                                </caption>
 
-    {% if form.is_bound %}
-        {% if searchproviders %}
+                                <thead>
+                                <tr>
+                                    {% for header, getter in searchprovider.headers %}
+                                        <th>{{ header }}</th>
+                                    {% endfor %}
+                                </tr>
+                                </thead>
 
-            {% for searchprovider in searchproviders %}
-                {% if searchprovider.results %}
-
-                    <table class="searchprovider listtable {% if searchprovider.headers|length > 2 %}medium{% else %}small{% endif %}">
-                        <caption>
-                            {{ searchprovider.name }}
-                            <span class="resultcounter">
-                                {{ searchprovider.results|length }} result{{ searchprovider.results|pluralize:'s' }}
-                            </span>
-                        </caption>
-
-                        <thead>
-                        <tr>
-                            {% for header, getter in searchprovider.headers %}
-                                <th>{{ header }}</th>
-                            {% endfor %}
-                        </tr>
-                        </thead>
-
-                        <tbody>
-                        {% for result in searchprovider.results %}
-                            <tr class="{% cycle 'oddrow' 'evenrow' %}">
-                                {% for header, getter in searchprovider.headers %}
-                                    <td>
-                                        {% if header == searchprovider.link %}
-                                            <a href="{{ result.href }}">
-                                        {% endif  %}
-                                        {{ result.inst|get_attr:getter }}
-                                        {% if header == searchprovider.link %}
-                                            </a>
-                                        {% endif  %}
-                                    </td>
+                                <tbody>
+                                {% for result in searchprovider.results %}
+                                    <tr>
+                                        {% for header, getter in searchprovider.headers %}
+                                            <td>
+                                                {% if header == searchprovider.link %}
+                                                    <a href="{{ result.href }}">
+                                                {% endif  %}
+                                                {{ result.inst|get_attr:getter }}
+                                                {% if header == searchprovider.link %}
+                                                    </a>
+                                                {% endif  %}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
                                 {% endfor %}
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-
-                    </table>
-
-                {% endif %}
-            {% endfor %}
-
-        {% else %}
-            <p class="messages">No results for "{{ form.data.query }}"</p>
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="alert-box secondary">No results for "{{ form.data.query }}"</div>
+            {% endif %}
+            </div>
         {% endif %}
-    {% endif %}
-
-    <div class="float-clear"></div>
+        </div>
+    </div>
 
 {% endblock %}

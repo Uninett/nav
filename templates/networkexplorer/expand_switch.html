@@ -4,12 +4,12 @@
 {% for swportvlan in swportvlans %}
 <dd id="swport-{{ swportvlan.interface.id }}">
 {% if swportvlan.interface.has_children %}
-   <img src="/images/networkexplorer/expand.gif" onclick="openNode(this);" class="expand"/>
+   <img src="{{ STATIC_URL }}images/networkexplorer/expand.gif" onclick="openNode(this);" class="expand"/>
 {% else %}
 {% if forloop.last %}
-   <img src="/images/networkexplorer/end.gif">
+   <img src="{{ STATIC_URL }}images/networkexplorer/end.gif">
 {% else %}
-   <img src="/images/networkexplorer/vertical-bound.gif">
+   <img src="{{ STATIC_URL }}images/networkexplorer/vertical-bound.gif">
 {% endif %}
 {% endif %}
 <a target="_blank" href="{% url ipdevinfo-details-by-name swportvlan.interface.netbox.sysname %}">{{ swportvlan.interface.netbox.sysname }}</a>

@@ -204,7 +204,7 @@ class NetboxSection(_Section):
         'Down since',
         'Downtime',
         'History',
-        'Actions',
+        '',
     ]
     devicehistory_type = 'a_boxDown'
 

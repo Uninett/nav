@@ -2,10 +2,10 @@
 
 {% block content %}
 
-<table class="listtable seeddbtable">
+<table class="listtable seeddbtable expand">
     <caption>IP devices and services</caption>
     <tbody>
-        <tr class="oddrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-netbox %}">IP Devices</a>
             </td>
@@ -15,7 +15,7 @@
             <td><a href="{% url seeddb-netbox-edit %}">Add</a></td>
             <td><a href="{% url seeddb-netbox-bulk %}">Bulk import</a></td>
         </tr>
-        <tr class="evenrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-service %}">Services</a>
             </td>
@@ -28,10 +28,10 @@
     </tbody>
 </table>
 
-<table class="listtable seeddbtable">
+<table class="listtable seeddbtable expand">
     <caption>Rooms and locations</caption>
     <tbody>
-        <tr class="oddrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-room %}">Rooms</a>
             </td>
@@ -42,7 +42,7 @@
             <td><a href="{% url seeddb-room-edit %}">Add</a></td>
             <td><a href="{% url seeddb-room-bulk %}">Bulk import</a></td>
         </tr>
-        <tr class="evenrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-location %}">Locations</a>
             </td>
@@ -55,10 +55,10 @@
     </tbody>
 </table>
 
-<table class="listtable seeddbtable">
+<table class="listtable seeddbtable expand">
     <caption>Organizations and usage categories</caption>
     <tbody>
-        <tr class="oddrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-organization %}">Organizations</a>
             </td>
@@ -69,7 +69,7 @@
             <td><a href="{% url seeddb-organization-edit %}">Add</a></td>
             <td><a href="{% url seeddb-organization-bulk %}">Bulk import</a></td>
         </tr>
-        <tr class="evenrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-usage %}">Usage categories</a>
             </td>
@@ -82,10 +82,10 @@
     </tbody>
 </table>
 
-<table class="listtable seeddbtable">
+<table class="listtable seeddbtable expand">
     <caption>Types and vendors</caption>
     <tbody>
-        <tr class="oddrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-type %}">Types</a>
             </td>
@@ -97,7 +97,7 @@
             <td><a href="{% url seeddb-type-edit %}">Add</a></td>
             <td><a href="{% url seeddb-type-bulk %}">Bulk import</a></td>
         </tr>
-        <tr class="evenrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-vendor %}">Vendors</a>
             </td>
@@ -107,7 +107,7 @@
             <td><a href="{% url seeddb-vendor-edit %}">Add</a></td>
             <td><a href="{% url seeddb-vendor-bulk %}">Bulk import</a></td>
         </tr>
-        <tr class="oddrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-netboxgroup %}">Device groups</a>
             </td>
@@ -120,10 +120,10 @@
     </tbody>
 </table>
 
-<table class="listtable seeddbtable">
+<table class="listtable seeddbtable expand">
     <caption>Vlans and special subnets</caption>
     <tbody>
-        <tr class="oddrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-vlan %}">Vlan</a>
             </td>
@@ -137,7 +137,7 @@
             <td></td>
             <td></td>
         </tr>
-        <tr class="evenrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-prefix %}">Prefix</a>
             </td>
@@ -156,10 +156,10 @@
     </tbody>
 </table>
 
-<table class="listtable seeddbtable">
+<table class="listtable seeddbtable expand">
     <caption>Cabling system</caption>
     <tbody>
-        <tr class="oddrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-cabling %}">Cabling</a>
             </td>
@@ -169,7 +169,7 @@
             <td><a href="{% url seeddb-cabling-edit %}">Add</a></td>
             <td><a href="{% url seeddb-cabling-bulk %}">Bulk import</a></td>
         </tr>
-        <tr class="evenrow">
+        <tr>
             <td>
                 <a href="{% url seeddb-patch %}">Patch</a>
             </td>

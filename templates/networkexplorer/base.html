@@ -1,81 +1,76 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-<link rel="stylesheet" type="text/css" href="/style/networkexplorer.css" />
-<script type="text/javascript" src="/js/jquery.js"></script>
-<script type="text/javascript" src="/js/networkexplorer.js"></script>
+  <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/networkexplorer.css">
+  <script>require(['src/networkexplorer']);</script>
 {% endblock %}
 
 {% block base_header_title %}NAV - Network explorer{% endblock %}
 
 {% block base_content %}
 
-<h2>Network explorer</h2>
+  <div class="row">
+    <div class="large-12 columns">
+      <h2>
+        Network explorer <small id="working">(<img src="{{ STATIC_URL }}images/main/process-working.gif"> Searching ...)</small>
+      </h2>
+    </div>
+  </div>
 
-{% if errors %}
-<ul class="error">
-    {% for error in errors %}
-    <li>{{ error }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
+  {% if errors %}
+    <div class="row">
+      <div id="notify_area" class="large-12 columns">
 
-{% block content %}
-<form action="." method="post" id="searchForm">
-<table class="vertitable">
-	<tr>
-		<th colspan="2">Search</th>
-	</tr>
-	<tr>
-		<td>Type:</td>
-		<td>
-			<select name="lookup_field">
-				<option value="sysname">Sysname</option>
-				<option value="ip">IP</option>
-				<option value="mac">MAC</option>
-				<option value="port">Port Description</option>
-				<option value="vlan">Vlan</option>
-				<option value="room">Room</option>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td>Query:</td>
-		<td><input type="text" name="query" id="search" /></td>
-	</tr>
-	<tr>
-		<td>Search exact (no substring):</td>
-		<td><input type="checkbox" name="exact"/></td>
-	</tr>
-	<tr>
-		<td>Hide ports with no description:</td>
-		<td><input type="checkbox" name="hide" /></td>
-	</tr>
-	<tr>
-		<td colspan="2">
-            <input type="submit" value="Search" />
-	    <img src="/images/main/process-working.gif" alt="" id="working"/>
-        </td>
-    </tr>
-</table>
-</form>
+      </div>
+    </div>
+  {% endif %}
 
-<div class="networktree">
-	<dl id="tree" class="routers">
-	<dt>Routers:</dt>
-	{% for router in routers %}
-		<dd id="router-{{ router.id }}">
-		{% if router.has_children %}
-			<img src="/images/networkexplorer/expand.gif" onclick="openNode(this);" class="tree-navigators" alt=""/>
-		{% else %}
-			<img src="/images/networkexplorer/end.gif" class="tree-navigators" alt=""/>
-		{% endif %}
-			<a target="_blank" href="{% url ipdevinfo-details-by-name router.sysname %}">{{router}}</a>
-		</dd>
-	{% endfor %}
-	</dl>
-</div>
+  {% block content %}
+    <div class="row">
 
-{% endblock %}
+      <form action="" method="get" class="foundation-form" id="search-form">
+        <fieldset>
+          {% csrf_token %}
+
+          <div class="large-4 columns">
+            <div class="row collapse">
+              {{ form.query }}
+            </div>
+          </div>
+
+          <div class="large-3 columns">
+            <div class="row">
+              <div class="large-2 columns">
+                {{ form.exact_results }}
+              </div>
+              <div class="large-10 columns">
+                <label for="id_exact_results">
+                  {{ form.exact_results.label }}
+                </label>
+              </div>
+            </div>
+            <div class="row">
+              <div class="large-2 columns">
+                {{ form.hide_ports }}
+              </div>
+              <div class="large-10 columns">
+                <label for="id_hide_ports">
+                  {{ form.hide_ports.label }}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="large-5 columns">
+            <input class="small button" type="submit" value="Search">
+          </div>
+        </fieldset>
+      </form>
+
+    </div>
+
+    <div id="networktree"></div>
+
+  {% endblock %}
 
 {% endblock %}

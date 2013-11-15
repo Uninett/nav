@@ -17,6 +17,10 @@ See individual source files for more detailed copyright notices.
 
 AC_PROG_INSTALL
 AM_PATH_PYTHON([2.6])
+AC_PATH_PROG(SASS,sass)
+if test -z "$SASS"; then
+   AC_MSG_ERROR([No sass found. sass is needed to compile style sheets. Install latest sass gem])
+fi
 AC_PATH_PROG(SED, sed)
 AC_PATH_PROG(GREP, grep)
 AC_PATH_PROG(HG, hg)

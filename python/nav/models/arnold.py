@@ -71,7 +71,11 @@ class Identity(models.Model):
     textual_interface = VarcharField(default='')
 
     def __unicode__(self):
-        return "%s/%s %s" % (self.ip, self.mac, self.interface)
+        try:
+            interface = self.interface
+        except Interface.DoesNotExist:
+            interface = "N/A"
+        return "%s/%s %s" % (self.ip, self.mac, interface)
 
     class Meta:
         db_table = 'identity'

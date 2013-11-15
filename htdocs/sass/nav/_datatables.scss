@@ -1,0 +1,82 @@
+/* Styling for using datatables plugin on tables */
+
+/* Sorting indicators */
+
+.dataTable {
+    th {
+        padding-right: 1.4em;
+        &.sorting_asc {
+            background: url('../images/datatables/sort_asc.png') no-repeat right center #EEEEEE;
+        }
+        &.sorting_desc {
+            background: url('../images/datatables/sort_desc.png') no-repeat right center #EEEEEE;
+        }
+        &.sorting {
+            background: url('../images/datatables/sort_both.png') no-repeat right center #EEEEEE;
+        }
+    }
+}
+
+.dataTables_wrapper {
+    background-color: #eeeeee;
+    border-radius: 3px;
+    border: 1px solid #dddddd;
+    select {
+        width: auto;
+    }
+    label {
+        display: inline;
+    }
+    &:after {
+        content: ".";
+        display: block;
+        clear: both;
+        visibility: hidden;
+        line-height: 0;
+        height: 0;
+    }
+}
+
+
+/* Styles for the elements surrounding the table */
+
+.dataTables_length, .dataTables_info, .dataTables_paginate {
+    padding: 0.7em;
+}
+
+.dataTables_length, .dataTables_info {
+    display: inline-block;
+}
+
+.dataTables_info {
+    font-size: 0.9em;
+    line-height: 1.6em;
+    clear: right;
+}
+
+.dataTables_paginate {
+    a {
+        &.paginate_button,
+        &.paginate_active {
+            margin-left: 2px;
+            cursor: pointer;
+        }
+        &.paginate_button_disabled {
+            color: #999999;
+            cursor: default;
+        }
+    }
+    .button {
+        margin-bottom: 0;
+    }
+}
+
+/* Special styles for overriding global styles */
+
+.dataTables_scroll table, .DTFC_ScrollWrapper table {
+    border: 0;
+    margin-bottom: 0;
+    th {
+        box-sizing: content-box; /*Override when using scrolling in datatables*/
+    }
+}

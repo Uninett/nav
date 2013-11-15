@@ -271,14 +271,14 @@
                                 </td>
                                 <td class="cell-center">
                                     {% if job.is_overdue %}
-                                        <img src="/images/lys/yellow.png"
+                                        <img src="{{ STATIC_URL }}images/lys/yellow.png"
                                              alt="Overdue"
                                              title="Overdue - interval is {{ job.interval|interval }}">
                                     {% else %}
                                         {% if job.success %}
-                                            <img src="/images/lys/green.png" alt="Success" title="Success">
+                                            <img src="{{ STATIC_URL }}images/lys/green.png" alt="Success" title="Success">
                                         {% else %}
-                                            <img src="/images/lys/red.png" alt="Failed" title="Failed">
+                                            <img src="{{ STATIC_URL }}images/lys/red.png" alt="Failed" title="Failed">
                                         {% endif %}
                                     {% endif %}
                                 </td>

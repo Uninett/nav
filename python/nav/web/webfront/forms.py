@@ -16,11 +16,28 @@
 #
 
 from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout
+from nav.web.crispyforms import NavSubmit
+
 
 class LoginForm(forms.Form):
+    origin = forms.CharField(widget=forms.HiddenInput, required=False)
     username = forms.CharField(label='Username')
-    password = forms.CharField(label='Password',
-        widget=forms.widgets.PasswordInput(render_value=False))
+    password = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(render_value=False))
+
+    def __init__(self, *args, **kwargs):
+        super(LoginForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = 'webfront-login'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            'username', 'password', 'origin',
+            NavSubmit('submit', 'Log in')
+        )
+
 
 class PersonalNavbarForm(forms.Form):
     id = forms.IntegerField(
@@ -32,6 +49,7 @@ class PersonalNavbarForm(forms.Form):
     navbar = forms.BooleanField(required=False)
     qlink1 = forms.BooleanField(required=False)
     qlink2 = forms.BooleanField(required=False)
+
 
 class NavbarForm(PersonalNavbarForm):
     name = forms.CharField(
