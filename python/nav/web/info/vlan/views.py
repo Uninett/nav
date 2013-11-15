@@ -129,7 +129,21 @@ def create_prefix_graph(request, prefixid):
 
 
 def create_vlan_graph(request, vlanid, family=4):
-    """Returns a Graphite graph render URL for this VLAN"""
+    """Returns a JSON response containing a Graphite graph render URL for this
+    VLAN.
+    """
+    timeframe = request.GET.get('timeframe', 'day')
+    url = get_vlan_graph_url(vlanid, family, timeframe)
+
+    if url:
+        json = simplejson.dumps({'url': url})
+        return HttpResponse(json, mimetype='application/json')
+    else:
+        return HttpResponse(status=500)
+
+
+def get_vlan_graph_url(vlanid, family=4, timeframe="day"):
+    """Returns a Graphite graph render URL for a VLAN"""
     vlan = get_object_or_404(Vlan, pk=vlanid)
     try:
         family = int(family)
@@ -144,17 +158,10 @@ def create_vlan_graph(request, vlanid, family=4):
         return None
 
     metrics = _vlan_metrics_from_prefixes(prefixes, family)
-    timeframe = "1" + request.GET.get('timeframe', 'day')
-    url = get_simple_graph_url(
-        metrics, timeframe,
+    return get_simple_graph_url(
+        metrics, "1" + timeframe,
         title="Total IPv{0} addresses on VLAN {1}".format(family, vlan),
         width=597, height=251)
-
-    if url:
-        json = simplejson.dumps({'url': url})
-        return HttpResponse(json, mimetype='application/json')
-    else:
-        return HttpResponse(status=500)
 
 
 def _vlan_metrics_from_prefixes(prefixes, ip_version):
