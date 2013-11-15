@@ -48,16 +48,17 @@ class DeviceHistoryViewFilter(forms.Form):
         ('device', 'Device serial'),
         ('datetime', 'Date')
     ]
-    from_date = MyDateField(initial=date.fromtimestamp(time.time() - ONE_WEEK),
-                            required=False)
-    to_date = MyDateField(initial=date.fromtimestamp(time.time() + ONE_DAY),
-                          required=False)
+    from_date = MyDateField(required=False)
+    to_date = MyDateField(required=False)
     eventtype = forms.ChoiceField(choices=eventtypes, initial='all',
                                   required=False, label='Type')
     group_by = forms.ChoiceField(choices=groupings, initial='netbox',
                                  required=False)
 
     def __init__(self, *args, **kwargs):
+        initial = dict(from_date=date.fromtimestamp(time.time() - ONE_WEEK),
+                       to_date=date.fromtimestamp(time.time() + ONE_DAY))
+        kwargs.setdefault('initial', dict()).update(initial)
         super(DeviceHistoryViewFilter, self).__init__(*args, **kwargs)
 
         common_class = 'medium-3'
