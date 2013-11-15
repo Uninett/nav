@@ -29,6 +29,7 @@ TIDY_OPTIONS = {
 
 TIDY_IGNORE = [
     'trimming empty <option>',
+    'trimming empty <i>',
     '<table> lacks "summary" attribute',
 ]
 
