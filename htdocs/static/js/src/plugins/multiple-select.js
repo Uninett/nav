@@ -74,8 +74,14 @@ define(['libs/jquery', 'libs/jquery.tinysort'], function () {
             }
         },
         isChoiceNode: function ($node) {
-            var $parent = $node.parents('div:first');
-            return '.' + $parent.attr('class') === this.choiceNodeSelector;
+            var $parent = $node.parents('div:first'),
+                classList = $parent.attr('class').split(/\s+/);
+            for (var i=0; i<classList.length; i++) {
+                if ('.' + classList[i] === this.choiceNodeSelector) {
+                    return true;
+                }
+            }
+            return false;
         },
         sortInitial: function () {
             this.findInitialOptions();
