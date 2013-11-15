@@ -78,3 +78,12 @@ class DeviceHistoryViewFilter(forms.Form):
                 )
             )
         )
+
+    def clean(self):
+        """Uses the initial values for empty fields"""
+        super(forms.Form, self).clean()
+        for field in self.fields:
+            if (self[field].html_name not in self.data
+                    and self.fields[field].initial):
+                self.cleaned_data[field] = self.fields[field].initial
+        return self.cleaned_data
