@@ -230,7 +230,7 @@
                     </tr>
                     {% for metric in metrics %}
                     <tr>
-                        <td class="nav-metric" data-metric-id="{{ metric.id }}"><img src="/images/icons/graph.png" alt="Graph" title="Graph"></td>
+                        <td class="nav-metric" data-metric-id="{{ metric.id }}"><img src="{{ STATIC_URL }}/images/icons/graph.png" alt="Graph" title="Graph"></td>
                         <td>{{ metric.suffix }}</td>
                         <td><a href="{% url threshold-interface port.id %}">{% if metric.threshold %}{{ metric.threshold }}{% else %}not configured{% endif %}</a></td>
                     </tr>
