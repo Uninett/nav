@@ -173,8 +173,10 @@ def _vlan_metrics_from_prefixes(prefixes, ip_version):
         ip_range = metric_path_for_prefix(prefix.net_address, 'ip_range')
         ip_counts.append(ip_count)
         ip_ranges.append(ip_range)
-        series = 'cactiStyle(alias(stacked({0}), "{1}"))'.format(
+        series = 'stacked(cactiStyle(alias({0}, "{1}")))'.format(
             ip_count, prefix.net_address)
+        series = (r'aliasSub(aliasSub(aliasSub({0},"stacked",""),'
+                  r'"\(",""),"\)","")').format(series)
         metrics.append(series)
 
     if ip_version == 4:
