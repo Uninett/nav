@@ -1,4 +1,5 @@
-require(['plugins/network_tree'], function (NetworkTree) {
+/* TODO: Rewrite to chai
+define(['plugins/network_tree'], function (NetworkTree) {
 
     var Node = NetworkTree.Node;
     var NodeView = NetworkTree.NodeView;
@@ -128,3 +129,4 @@ require(['plugins/network_tree'], function (NetworkTree) {
         }
     });
 });
+*/

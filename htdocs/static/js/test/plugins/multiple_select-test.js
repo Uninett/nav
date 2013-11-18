@@ -1,3 +1,4 @@
+/* TODO: Rewrite during rewrite of multiple-select
 define(['plugins/multiple-select',
     'libs-amd/text!testResources/templates/multipleselect.html',
     'libs/jquery'],
@@ -87,3 +88,4 @@ define(['plugins/multiple-select',
         });
     }
 );
+*/
