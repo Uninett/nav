@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load info %}
+{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/info.css"/>
@@ -9,25 +10,32 @@
 {% endblock %}
 
 
-
 {% block base_content %}
 
     <h3>Info</h3>
 
+    <ul class="button-group">
+        <li>
+            <a href="{% url ipdevinfo-search %}" class="button small secondary">Ip Device Info</a>
+        </li>
+        <li>
+            <a href="{% url room-search %}" class="button small secondary">Room info</a>
+        </li>
+        <li>
+            <a href="{% url vlan-index %}" class="button small secondary">Vlan info</a>
+        </li>
+        <li>
+            <a href="{% url netbox-group %}" class="button small secondary">Device group info</a>
+        </li>
+    </ul>
+
+    {% block content %}
+
     <div class="panel">Search for netboxes, interfaces, rooms and vlans. This search is the same as searching in the navbar.</div>
 
     <div class="row">
-        <div class="large-6 medium-10 small-12 column">
-            <form action="{% url info-search %}" method="get">
-                <div class="row collapse">
-                    <div class="medium-10 small-12 columns">
-                        {{ form.query }}
-                    </div>
-                    <div class="medium-2 small-12 columns">
-                        <input type="submit" class="button prefix" value="Search">
-                    </div>
-                </div>
-            </form>
+        <div class="medium-6 column">
+            {% crispy form %}
         </div>
     </div>
 
@@ -91,5 +99,7 @@
         {% endif %}
         </div>
     </div>
+
+    {% endblock content %}
 
 {% endblock %}
