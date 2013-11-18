@@ -257,8 +257,8 @@ define([
                         self.zoomRescaleFromActiveProperty(self.options.activeMapModel.get('zoom'));
                     }
                     self.update(); // calls rest of the updateRender functions which updates the SVG.
-                    if (!self.model.get('rrd')) {
-                        self.model.set({'rrd': true});
+                    if (!self.model.get('traffic')) {
+                        self.model.set({"traffic": true});
                         self.loadTopologyGraph(shouldRezoomAndTranslate);
                     }
                     self.broadcastGraphCopy();
@@ -379,7 +379,7 @@ define([
         setMapPropertyTopology: function (layer) {
             this.model.set({
                 topology: layer,
-                rrd: false
+                traffic: false
             });
             this.options.activeMapModel.set({'topology': layer});
             this.loadTopologyGraph();

@@ -46,6 +46,7 @@ urlpatterns += patterns('',
     (r'^stats/', include('nav.web.sortedstats.urls')),
     (r'^syslogger/', include('nav.web.syslogger.urls')),
     (r'^threshold/', include('nav.web.threshold.urls')),
+    (r'^graphite/', include('nav.web.graphite.urls')),
     (r'^navlets/', include('nav.web.navlets.urls')),
 
     (r'^useradmin/', include('nav.web.useradmin.urls')),

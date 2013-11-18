@@ -41,7 +41,7 @@ const TI_SIZES = [
     {n: 1, unit: 'week', format: '%Y, week %V', shortFormat: '%V'},
     {n: 1, unit: 'day', format: '%Y-%m-%d', shortFormat: '%m-%d: %a'},
     {n: 1, unit: 'hour', format: ['%Y-%m-%d %H:00','–%H:00'], shortFormat: '%H'},
-    {n: 5, unit: 'minute', format: ['%Y-%m-%d %H:%M','–%H:%M'], shortFormat: '%M'}
+    {n: 10, unit: 'minute', format: ['%Y-%m-%d %H:%M','–%H:%M'], shortFormat: '%M'}
 ];
 
 /*
@@ -52,6 +52,7 @@ const TI_MONTH = 1;
 const TI_WEEK = 2;
 const TI_DAY = 3;
 const TI_HOUR = 4;
+const TI_10MIN = 5;
 const TI_5MIN = 5;
 
 /*

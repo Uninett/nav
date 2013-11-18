@@ -10,7 +10,7 @@ apt-get -y update
 apt-get -y --no-install-recommends build-dep -y python-psycopg2 python-lxml \
  librrd-dev python-imaging python-ldap
 apt-get -y --no-install-recommends install mercurial subversion python-virtualenv build-essential \
- autoconf postgresql-client cricket libapache2-mod-wsgi postgresql-9.1 \
+ autoconf postgresql-client libapache2-mod-wsgi postgresql-9.1 \
  librrd-dev libsnmp15 git-core python-dev automake rubygems
 
 IS_INSTALLED=$( (test -f ~vagrant/nav_installed); echo $?)

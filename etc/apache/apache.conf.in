@@ -37,11 +37,4 @@ WSGIScriptAlias / @pythonlibdir@/nav/wsgi.py
     Allow from all
 </Directory>
 
-# Cricket integration
-Alias /cricket @webrootdir@/cricket
-<Location /cricket>
-    SetHandler none
-    AddHandler cgi-script .cgi
-</Location>
-
 Include @sysconfdir@/apache/subsystems/*.conf

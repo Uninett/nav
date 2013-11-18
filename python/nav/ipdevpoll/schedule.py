@@ -19,12 +19,14 @@ import logging
 import datetime
 import time
 from operator import itemgetter
+from collections import defaultdict
 from random import randint
 from math import ceil
 
 from twisted.python.failure import Failure
 from twisted.internet import task, reactor
 from twisted.internet.defer import Deferred, maybeDeferred, inlineCallbacks
+from twisted.internet.task import LoopingCall
 
 from nav import ipdevpoll
 from nav.ipdevpoll import db
@@ -32,6 +34,8 @@ from nav.ipdevpoll.snmp import SnmpError, AgentProxy
 from . import shadows, config, signals
 from .dataloader import NetboxLoader
 from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
+from nav.metrics.carbon import send_metrics
+from nav.metrics.templates import metric_prefix_for_ipdevpoll_job
 from nav.models import manage
 from nav.tableformat import SimpleTableFormatter
 
@@ -163,7 +167,7 @@ class NetboxJobScheduler(object):
             self._log_finished_job(True)
         else:
             self._logger.debug("job did nothing")
-        log_job_to_db(self.job_handler, True, self.job.interval)
+        log_job_externally(self.job_handler, True, self.job.interval)
         return result
 
     def _reschedule_on_failure(self, failure):
@@ -174,7 +178,7 @@ class NetboxJobScheduler(object):
             delay = randint(5*60, 10*60) # within 5-10 minutes
         self.reschedule(delay)
         self._log_finished_job(False)
-        log_job_to_db(self.job_handler, False, self.job.interval)
+        log_job_externally(self.job_handler, False, self.job.interval)
         failure.trap(AbortedJobError)
 
     def _log_finished_job(self, success=True):
@@ -411,28 +415,87 @@ class JobScheduler(object):
                        "no active jobs (%d JobHandlers)",
                        JobHandler.get_instance_count())
 
+
 # pylint: disable=W0703
 @inlineCallbacks
-def log_job_to_db(job_handler, success=True, interval=None):
+def log_job_externally(job_handler, success=True, interval=None):
     """Logs a job to the database"""
+    duration = job_handler.get_current_runtime()
+    duration_in_seconds = (duration.days * 86400 +
+                           duration.seconds +
+                           duration.microseconds / 1e6)
+    timestamp = time.time()
+
     @db.autocommit
     def _create_record(timestamp):
-        duration = job_handler.get_current_runtime()
-        duration_in_seconds = (duration.days * 86400 +
-                               duration.seconds +
-                               duration.microseconds / 1e6)
         log = manage.IpdevpollJobLog(
-            netbox_id = job_handler.netbox.id,
-            job_name = job_handler.name,
-            end_time = timestamp,
-            duration = duration_in_seconds,
-            success = success,
-            interval = interval
+            netbox_id=job_handler.netbox.id,
+            job_name=job_handler.name,
+            end_time=datetime.datetime.fromtimestamp(timestamp),
+            duration=duration_in_seconds,
+            success=success,
+            interval=interval
         )
         log.save()
 
-    timestamp = datetime.datetime.now()
+    def _log_to_graphite():
+        prefix = metric_prefix_for_ipdevpoll_job(job_handler.netbox.sysname,
+                                                 job_handler.name)
+        runtime_path = prefix + ".runtime"
+        runtime = (runtime_path, (timestamp, duration_in_seconds))
+        send_metrics([runtime])
+
+        counter_path = (
+            prefix + (".success-count" if success else ".failure-count"))
+        _COUNTERS.increment(counter_path)
+        _COUNTERS.start()
+
+    _log_to_graphite()
     try:
         yield db.run_in_thread(_create_record, timestamp)
     except Exception, error:
         _logger.warning("failed to log job to database: %s", error)
+
+
+class CounterFlusher(defaultdict):
+    """
+    A dictionary of counters that can be incremented and be flushed as
+    Graphite metrics at specific intervals.
+    """
+    def __init__(self, interval=60):
+        """
+        Initialize a dictionary of counters.
+
+        :param interval: How often (in seconds) to flush the counters to
+                         a Carbon backend.
+        """
+        super(CounterFlusher, self).__init__(int)
+        self.loop = LoopingCall(self.flush)
+        self.interval = interval
+
+    def start(self):
+        """Starts the counter flushing task if it isn't running already"""
+        if not self.loop.running:
+            self.loop.start(self.interval, now=False)
+
+    def increment(self, name):
+        """Increments a named counter by one"""
+        self[name] += 1
+
+    def flush(self):
+        """
+        Flushes all the counters to the Carbon backend and resets them to zero
+        """
+        if not self:
+            _logger.debug("no counters to flush yet")
+
+        _logger.debug("flushing %d counters to graphite", len(self))
+        metrics = []
+        timestamp = time.time()
+        for counter, count in self.iteritems():
+            metrics.append((counter, (timestamp, count)))
+            self[counter] = 0
+
+        send_metrics(metrics)
+
+_COUNTERS = CounterFlusher()

@@ -9,16 +9,25 @@
   {% for room in place.rooms %}
   <table class="vertitable">
 
-    <caption>{{ room.id }} ({{ room.descr }})</caption>
+    <caption>
+        <a href="{% url room-info room.id %}"
+           target="_blank"
+           title="View room information">
+            {{ room.id }}
+            {% if room.descr %}({{ room.descr }}){% endif %}
+        </a>
+    </caption>
     <tr><th>IP Devices</th>     <td>{{ room.num_netboxes }}</td></tr>
     <tr><th>CPU load (max)</th> <td>{{ room.load|nan2none|floatformat:2|default:"unknown" }}</td></tr>
 
     <td colspan="2">
       {% for box in room.netboxes %}
       <table class="vertitable">
-	<caption><a href="/ipdevinfo/?query={{ box.ip }}"
-                    target="_blank"
-                    title="View in IP Device Info">{{ box.sysname }}</a></caption>
+	<caption>
+        <a href="{% url ipdevinfo-details-by-name box.sysname %}"
+           target="_blank"
+           title="View in IP Device Info">{{ box.sysname }}</a>
+    </caption>
 	<tr><th>IP</th>       <td>{{ box.ip }}</td></tr>
 	<tr><th>Category</th> <td>{{ box.catid }}</td></tr>
 	<tr><th>Type</th>     <td>{{ box.type|default:"N/A" }}</td></tr>

@@ -17,6 +17,11 @@
 """Django ORM wrapper for the NAV manage database"""
 
 from django.db import models
+from nav import metrics
+from nav.metrics.templates import (
+    metric_path_for_service_availability,
+    metric_path_for_service_response_time
+)
 
 from nav.models.manage import Netbox
 from nav.models.fields import VarcharField
@@ -50,53 +55,34 @@ class Service(models.Model):
         return u'%s, at %s' % (self.handler, self.netbox)
 
     def get_statistics(self):
-        from nav.models.rrd import RrdDataSource
-
-        def average(rds, time_frame):
-            from nav.rrd import presenter
-            rrd = presenter.Presentation()
-            rrd.time_last(time_frame)
-            rrd.add_datasource(rds.id)
-            value = rrd.average(on_error_return=None, on_nan_return=None)
-            if not value:
-                return None
-            else:
-                return value[0]
-
-        try:
-            data_sources = RrdDataSource.objects.filter(
-                rrd_file__key='serviceid', rrd_file__value=str(self.id))
-            data_source_status = None
-            data_source_response_time = None
-            for ds in data_sources:
-                if ds.name == 'STATUS':
-                    data_source_status = ds
-                if ds.name == 'RESPONSETIME':
-                    data_source_response_time = ds
-        except RrdDataSource.DoesNotExist:
-            return None
+        args = (self.netbox.sysname, self.handler, self.id)
+        avail_id = metric_path_for_service_availability(*args)
+        rtime_id = metric_path_for_service_response_time(*args)
 
         result = {
             'availability': {
-                'data_source': data_source_status,
+                'data_source': avail_id,
             },
             'response_time': {
-                'data_source': data_source_response_time,
+                'data_source': rtime_id,
             },
         }
 
         for time_frame in self.TIME_FRAMES:
+            avg = metrics.get_metric_average([avail_id, rtime_id],
+                                              start="-1%s" % time_frame)
+
             # Availability
-            value = average(data_source_status, time_frame)
-            if value is not None:
-                value = 100 - (value * 100)
-            result['availability'][time_frame] = value
+            pktloss = avg.get(avail_id, None)
+            if pktloss is not None:
+                pktloss = 100 - (pktloss * 100)
+            result['availability'][time_frame] = pktloss
 
             # Response time
-            value = average(data_source_response_time, time_frame)
-            result['response_time'][time_frame] = value
+            result['response_time'][time_frame] = avg.get(rtime_id, None)
 
         return result
+
 
 class ServiceProperty(models.Model):
     """From NAV Wiki: Each service may have an additional set of attributes.

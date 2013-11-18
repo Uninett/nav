@@ -1,0 +1,30 @@
+# Recommended Whisper aggregation methods for using Graphite with NAV.
+#
+# If you already have a Graphite installation you wish to use, use these
+# examples to adapt your own config.
+#
+
+# ipdevpoll jobs don't necesarily run very often; an xFilesFactor of 0 ensures
+# we roll up everything into the lower precision archives no matter how often
+# runs are logged.
+[ipdevpoll]
+pattern = ^nav\..*\.ipdevpoll\..*runtime$
+xFilesFactor = 0
+aggregationMethod = average
+
+# Any kind of event counter NAV uses will log the number of events since the
+# last time the metric was logged, so the approprate aggregation is to sum the
+# counts.
+[event-counts]
+pattern = ^nav\..*-count$
+xFilesFactor = 0
+aggregationMethod = sum
+
+# NAV stores the raw octet/packet/error/etc counters of interfaces in Graphite.
+# Since these counter values are absolute, and the rates are calculated using
+# the difference of the port counter and the time difference between two
+# counter numbers, the appropriate aggregation method would be to picke the
+# last counter value when rolling up.
+[port-counters]
+pattern = ^nav\..*ports\..*
+aggregationMethod = last

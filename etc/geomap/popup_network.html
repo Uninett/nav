@@ -17,8 +17,28 @@
 
   <table class="vertitable">
     <caption>{{ sub.netident }}</caption>
-    <tr><th>From</th>         <td>{{ sub.local_sysname }} {{ sub.local_interface }}</td></tr>
-    <tr><th>To</th>           <td>{{ sub.remote_sysname }} {{ sub.remote_interface }}</td></tr>
+    <tr>
+        <th>From</th>
+        <td>
+            <a href="{% url ipdevinfo-details-by-name sub.local_sysname %}"
+               target="_blank"
+               title="View device details">{{ sub.local_sysname }}</a>
+            <a href="{% url ipdevinfo-interface-details-by-name sub.local_sysname sub.local_interface %}"
+               target="_blank"
+               title="View interface details">{{ sub.local_interface }}</a>
+        </td>
+    </tr>
+    <tr>
+        <th>To</th>
+        <td>
+            <a href="{% url ipdevinfo-details-by-name sub.remote_sysname %}"
+               target="_blank"
+               title="View device details">{{ sub.remote_sysname }}</a>
+            <a href="{% url ipdevinfo-interface-details-by-name sub.remote_sysname sub.remote_interface %}"
+               target="_blank"
+               title="View interface details">{{ sub.remote_interface }}</a>
+        </td>
+    </tr>
     <tr><th>Capacity</th>     <td>{{ sub.capacity|floatformat:0 }} Mbps</td></tr>
     <tr><th>Load in</th>      <td>{{ sub.load_in|nan2none|format:"%.3f Mbps"|default:"unknown" }}</td></tr>
     <tr><th>Load out</th>     <td>{{ sub.load_out|nan2none|format:"%.3f Mbps"|default:"unknown" }}</td></tr>

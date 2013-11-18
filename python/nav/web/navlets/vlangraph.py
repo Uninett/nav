@@ -22,7 +22,7 @@ from nav.django.utils import get_account
 from nav.models.manage import Vlan
 from nav.models.profiles import AccountNavlet
 from nav.web.navlets import Navlet, NAVLET_MODE_VIEW, NAVLET_MODE_EDIT
-from nav.web.info.vlan.views import create_vlan_graph
+from nav.web.info.vlan.views import get_vlan_graph_url
 
 _logger = logging.getLogger(__name__)
 
@@ -44,8 +44,8 @@ class VlanGraphNavlet(Navlet):
         vlanid = (self.preferences['vlanid']
                   if 'vlanid' in self.preferences else None)
         if self.mode == NAVLET_MODE_VIEW and vlanid:
-            graph = create_vlan_graph(vlanid)
-            context['graph_url'] = graph.get_url()
+            url = get_vlan_graph_url(vlanid)
+            context['graph_url'] = url
         elif self.mode == NAVLET_MODE_EDIT:
             context['vlans'] = Vlan.objects.filter(
                 vlan__isnull=False).order_by('vlan')

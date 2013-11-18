@@ -10,15 +10,15 @@ define([
 ], function (VlanCollection, NodesCollection, LinksCollection, EdgesCollection, L3EdgesCollection, L3Edge, VlanModel) {
     var graphModel = Backbone.Model.extend({
         defaults: {
-                  rrd: false,
+                  traffic: false,
                   topology: 2 // change default value in models/map.js ;-)
         },
         initialize: function () {
         },
         url: function () {
             var options = '';
-            if (this.get('rrd')) {
-                options = '?rrd=1';
+            if (this.get('traffic')) {
+                options = '?traffic=1';
             }
             var base = 'api/graph/layer{0}'.format(this.get('topology'));
             if (this.isNew()) return base+options;

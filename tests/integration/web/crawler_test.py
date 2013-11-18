@@ -25,10 +25,12 @@ TIDY_OPTIONS = {
     'doctype': 'auto',
     'output_xhtml': True,
     'input_encoding': 'utf8',
+    'show-warnings': False,
 }
 
 TIDY_IGNORE = [
     'trimming empty <option>',
+    'trimming empty <i>',
     '<table> lacks "summary" attribute',
 ]
 

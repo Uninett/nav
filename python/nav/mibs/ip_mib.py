@@ -23,6 +23,12 @@ from nav.oids import OID
 from nav.ipdevpoll.utils import binary_mac_to_hex
 import mibretriever
 
+IPV4_ID = 1
+IPV6_ID = 2
+
+IP_IN_OCTETS = 'ipIfStatsHCInOctets'
+IP_OUT_OCTETS = 'ipIfStatsHCOutOctets'
+
 class IpMib(mibretriever.MibRetriever):
     from nav.smidumps.ip_mib import MIB as mib
 
@@ -272,6 +278,18 @@ class IpMib(mibretriever.MibRetriever):
         addrs_from_deprecated_table = yield self._get_interface_ipv4_addresses()
 
         returnValue(addrs_from_new_table | addrs_from_deprecated_table)
+
+    @inlineCallbacks
+    def get_ipv6_octet_counters(self):
+        """For each applicable interface retrieves IPv6 octet in/out counters.
+
+        :returns: A deferred with a dict {ifindex: (in_octets, out_octets)}
+
+        """
+        octets = yield self.retrieve_columns([IP_IN_OCTETS, IP_OUT_OCTETS])
+        result = dict((index[-1], (row[IP_IN_OCTETS], row[IP_OUT_OCTETS]))
+                      for index, row in octets.items() if index[-2] == IPV6_ID)
+        defer.returnValue(result)
 
 
 class IndexToIpException(Exception):

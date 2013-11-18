@@ -53,7 +53,7 @@ function TimeNavigator(idPrefix, changeCallback, initialInterval) {
     if (initialInterval)
 	this.interval = initialInterval;
     else
-	this.interval = new TimeInterval(TI_5MIN);
+	this.interval = new TimeInterval(TI_10MIN);
 
     this.onChange = makeHook();
     if (changeCallback)

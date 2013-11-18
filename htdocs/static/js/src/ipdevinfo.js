@@ -1,7 +1,8 @@
-require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
-], function (TableUtil, TabNavigation, NeighborMap) {
+require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/graph_fetcher", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
+], function (TableUtil, TabNavigation, NeighborMap, GraphLoader) {
 
     var mainTabsSelector = '#ipdevinfotabs';
+    var metricTabsSelector = "#metrictabs";
     var moduleTabsSelector = '#moduletabs';
 
     $(document).ready(function () {
@@ -11,12 +12,20 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
 
         if ($(mainTabsSelector).length !== 0) {
             addModuleTabs();
+            addMetricTabs();
             addMainTabs();
         }
 
         var $neighbornode = $('.neighbormap');
         if ($neighbornode.length) {
             new NeighborMap($neighbornode.get(0));
+        }
+
+        var $metrics = $('.nav-metrics');
+        if ($metrics.length) {
+            $metrics.each(function () {
+                addGraphLoader($(this));
+            });
         }
 
     });
@@ -38,6 +47,30 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         markErrorTabs(tabs);
         tabs.show();
         TabNavigation.add(mainTabsSelector);
+    }
+
+    function addMetricTabs() {
+        var tabs = $(metricTabsSelector).tabs({
+            cache: true,
+            spinner: '<img src="/images/main/process-working.gif">'
+        });
+        tabs.show();
+    }
+
+    function addGraphLoader($container) {
+         var $renderUrl = $container.attr('data-render-url');
+
+         $container.find('.nav-metric').each(function () {
+            var $node = $(this),
+                metric = $node.attr('data-metric-id'),
+                $thisRow = $node.parents('tr:first'),
+                $displayRow = $('<tr/>'),
+                $displayCell = $('<td/>').attr('colspan', 3).appendTo($displayRow).hide(),
+                $handler = $thisRow.find('td:first img');
+
+            $displayRow.insertAfter($thisRow);
+            new GraphLoader($renderUrl + metric, $displayCell, $handler);
+        });
     }
 
     /*
