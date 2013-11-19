@@ -24,7 +24,7 @@ META_LOOKUPS = (
 
     # Various counter type values
 
-    (re.compile(r'\.ports\.(?P<ifname>[^\.]+)\.(?P<counter>[^\.]+)$'),
+    (re.compile(r'\.ports\.(?P<ifname>[^\.]+)\.(?P<counter>[^\.,\)]+)$'),
      dict(alias='{ifname} {counter}')),
 
     (re.compile(r'\.if(In|Out)Octets$'),
