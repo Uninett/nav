@@ -140,8 +140,6 @@ def populate_infodict(request, account, netbox, interfaces):
         if not netbox.read_only:
             messages.error(request, "Read only community not set")
             messages.error(request, "Values displayed are from database")
-    except Exception, error:
-        messages.error(request, error)
 
     check_read_write(netbox, request)
 

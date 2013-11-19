@@ -69,10 +69,16 @@ class CamManager(DefaultManager):
         self.netbox = self.containers.get(None, Netbox)
 
     def prepare(self):
+        self._remove_sentinel()
         self._load_open_records()
         self._map_found_to_open()
         self._log_stats()
         self._fix_missing_vars()
+
+    def _remove_sentinel(self):
+        if self.sentinel in self.containers[self.cls]:
+            del self.containers[self.cls][self.sentinel]
+            self._logger.debug("removed cam cleanup sentinel")
 
     def _load_open_records(self):
         match_open = Q(end_time__gte=INFINITY) | Q(miss_count__gte=0)
@@ -181,3 +187,14 @@ class Cam(Shadow):
     def get_existing_model(self, containers=None):
         "Returns only a cached object, if available"
         return getattr(self, '_cached_existing_model', None)
+
+    @classmethod
+    def add_sentinel(cls, containers):
+        """Adds a Cam cleanup sentinel to a ContainerRepository, signifying
+        that a full CAM collection has taken place and that old CAM records
+        can be safely expired.
+
+        """
+        containers.setdefault(cls, {})[cls.sentinel] = cls.sentinel
+
+CamManager.sentinel = Cam.sentinel = Cam()
