@@ -53,7 +53,7 @@ META_LOOKUPS = (
 
 
 def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
-                         width=480, height=250):
+                         width=480, height=250, **kwargs):
     """
     Returns an URL, fetchable by an end user, to render a simple graph,
     given a Graphite metric known to NAV
@@ -77,6 +77,8 @@ def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
         'height': height,
         'title': title or '',
     })
+    if kwargs:
+        args.update(kwargs)
 
     url = reverse("graphite-render") + "?" + urlencode(args, True)
     return url
