@@ -397,7 +397,6 @@ def sort_by_netbox(netboxes):
 
 def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets'):
     """Returns a Graphite graph render URL for an interface traffic graph"""
-    assert kind in ('Octets', 'Errors', 'UcastPkts')
 
     def _get_target(direction):
         assert direction.lower() in ('in', 'out')
