@@ -107,7 +107,9 @@ def create_prefix_graph(request, prefixid):
 
     path = partial(metric_path_for_prefix, prefix.net_address)
     ip_count = (
-        'color(cactiStyle(alias(stacked({0}), "IP addresses ")), "green")'
+        'alpha('
+        'color(cactiStyle(alias(stacked({0}), "IP addresses ")), "green"),'
+        '0.8)'
     ).format(path('ip_count'))
     ip_range = 'color(cactiStyle(alias({0}, "Max addresses")), "red")'.format(
         path('ip_range'))
@@ -173,7 +175,7 @@ def _vlan_metrics_from_prefixes(prefixes, ip_version):
         ip_range = metric_path_for_prefix(prefix.net_address, 'ip_range')
         ip_counts.append(ip_count)
         ip_ranges.append(ip_range)
-        series = 'stacked(cactiStyle(alias({0}, "{1}")))'.format(
+        series = 'alpha(stacked(cactiStyle(alias({0}, "{1}"))),0.8)'.format(
             ip_count, prefix.net_address)
         series = (r'aliasSub(aliasSub(aliasSub({0},"stacked",""),'
                   r'"\(",""),"\)","")').format(series)
