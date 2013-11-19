@@ -1,8 +1,8 @@
 define(['libs/jquery', 'libs/spin.min'], function () {
     /*
-     * GraphFetcher (whisper-version)
+     * GraphFetcher (Graphite version)
      *
-     * Displays graphs from whisper-files
+     * Displays graphs from Graphite
      *
      * graphurl - url for fetching an url to an image
      * handler - the node used for interaction - displaying and hiding the graph

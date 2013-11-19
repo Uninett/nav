@@ -1,5 +1,5 @@
-require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/graph_fetcher", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
-], function (TableUtil, TabNavigation, NeighborMap, GraphLoader) {
+require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/graph_fetcher", "plugins/graphfetcher", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
+], function (TableUtil, TabNavigation, NeighborMap, GraphLoader, GraphFetcher) {
 
     var mainTabsSelector = '#ipdevinfotabs';
     var metricTabsSelector = "#metrictabs";
@@ -28,6 +28,13 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             });
         }
 
+        $('.countergraph').each(function (index, element) {
+            var interfaceid = $(element).attr('data-interface');
+            var counter = $(element).attr('data-counter')
+            var url = '/ipdevinfo/g/port/' + interfaceid + '/' + counter;
+            var config = {};
+            new GraphFetcher($(element), url, config);
+        })
     });
 
     function addModuleTabs() {
