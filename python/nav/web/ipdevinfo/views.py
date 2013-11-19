@@ -475,8 +475,8 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'port_type': port_type,
             'port': port,
             'navpath': navpath,
-            'heading': navpath[-1][0],
-            'title': create_title(navpath)
+            'heading': unicode(port),
+            'title': unicode(port),
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
