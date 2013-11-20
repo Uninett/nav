@@ -8,6 +8,12 @@
     Subscriptions
   </h4>
 
+  {% if profile %}
+    <p><a href="{% url alertprofiles-profile-detail profile.id %}">Back to profile</a></p>
+  {% else %}
+    <p><a href="{% url alertprofiles-profile %}">Back to profiles</a></p>
+  {% endif %}
+
   {% if not editing %}
   <p>
      For profile "{{ time_period.profile.name }}".
