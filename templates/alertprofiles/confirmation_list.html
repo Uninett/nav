@@ -1,5 +1,9 @@
 {% extends "alertprofiles/base_list.html" %}
 
+{% block top_links %}
+    <p><a href="{{ request.META.HTTP_REFERER }}">Back</a></p>
+{% endblock %}
+
 {% block captioncontent %}
     Confirm deletion
 {% endblock %}

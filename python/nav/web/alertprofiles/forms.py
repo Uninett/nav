@@ -229,7 +229,7 @@ class AlertSubscriptionForm(forms.ModelForm):
                     'invalid_choice': ('The selected filter group is a '
                                        'invalid choice.'),
                 }, label='Watch')
-            self.fields['type'].label = '&nbsp;'
+            self.fields['type'].label = 'When'
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
