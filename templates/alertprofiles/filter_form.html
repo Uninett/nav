@@ -23,7 +23,7 @@
 
 {% block expressions_tbody_content %}
     {% for e in expressions %}
-        <tr class="{% cycle oddrow,evenrow %}">
+        <tr>
             {% if owner %}
             <td><input type="checkbox" name="expression" value="{{ e.id }}" id="expressionid_{{ e.id }}" /></td>
             <td><label for="expressionid_{{ e.id }}">{{ e.match_field }}</label></td>

@@ -38,7 +38,7 @@
       {% if profiles %}
         <tbody>
         {% for profile in profiles %}
-          <tr class="{% cycle oddrow,evenrow %}">
+          <tr>
             <td>
               <input type="checkbox" name="profile" value="{{ profile.id }}"/>
             </td>
