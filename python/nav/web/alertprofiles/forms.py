@@ -58,6 +58,11 @@ class AlertProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AlertProfileForm, self).__init__(*args, **kwargs)
+
+        self.fields['daily_dispatch_time'].widget = forms.TimeInput(
+            format='%H:%M')
+        self.fields['weekly_dispatch_time'].widget = forms.TimeInput(
+            format='%H:%M')
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
@@ -130,7 +135,7 @@ class TimePeriodForm(forms.ModelForm):
     start = forms.TimeField(
         initial='08:00',
         input_formats=['%H:%M:%S', '%H:%M', '%H'],
-        help_text=_(u'Valid time formats are HH:MM:SS, HH:MM and HH')
+        help_text=_(u'Valid time formats are HH:MM and HH')
     )
 
     def __init__(self, *args, **kwargs):

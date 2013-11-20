@@ -36,7 +36,7 @@
 
         <td>
           <a href="{% url alertprofiles-profile-timeperiod  a.time_period.id %}">
-            {{ a.time_period.start }} - {{ a.time_period.end }}
+            {{ a.time_period.start|time:'TIME_FORMAT_SHORT' }} - {{ a.time_period.end|time:'TIME_FORMAT_SHORT' }}
           </a>
         </td>
 
