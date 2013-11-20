@@ -41,9 +41,12 @@ OTHER_COUNTERS = (
     "ifOutUcastPkts",
 )
 
+IF_IN_OCTETS_IPV6 = 'ifInOctetsIPv6'
+IF_OUT_OCTETS_IPV6 = 'ifOutOctetsIPv6'
+
 IP_COUNTERS = (
-    'ipv6InOctets',
-    'ipv6OutOctets',
+    IF_IN_OCTETS_IPV6,
+    IF_OUT_OCTETS_IPV6,
 )
 
 USED_COUNTERS = OCTET_COUNTERS + HC_OCTET_COUNTERS + OTHER_COUNTERS
@@ -66,10 +69,13 @@ class StatPorts(Plugin):
         stats = yield ifmib.retrieve_columns(
             ("ifName", "ifDescr") + USED_COUNTERS).addCallback(reduce_index)
         ipv6stats = yield ipmib.get_ipv6_octet_counters()
+        if ipv6stats:
+            self._logger.debug("found ipv6 octet counters for %d interfaces",
+                               len(ipv6stats))
         for ifindex, (in_octets, out_octets) in ipv6stats.items():
             if ifindex in stats:
-                stats[ifindex]['ipv6InOctets'] = in_octets
-                stats[ifindex]['ipv6OutOctets'] = out_octets
+                stats[ifindex][IF_IN_OCTETS_IPV6] = in_octets
+                stats[ifindex][IF_OUT_OCTETS_IPV6] = out_octets
 
         defer.returnValue(stats)
 
