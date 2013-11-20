@@ -53,7 +53,7 @@
 
     <div class="row">
       <div class="medium-8 column">
-        <label for="select_matchfield">Expression</label>
+        <label for="select_matchfield">Field to match</label>
         <select name="matchfield" id="select_matchfield" class="select2">
         {% for m in matchfields %}
             <option value="{{ m.id }}">{{ m.name }}</option>
@@ -65,7 +65,7 @@
       <div class="medium-4 column">
         <label>&nbsp;</label>
         <input type="hidden" name="id" value="{{ detail_id }}" />
-        <input type="submit" class="postfix button" value="Add" />
+        <input type="submit" class="postfix button" value="Build expression" />
       </div>
     </div>
     {% endif%}
