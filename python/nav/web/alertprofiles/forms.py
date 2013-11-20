@@ -28,6 +28,7 @@ from nav.alertengine.dispatchers.sms_dispatcher import sms
 from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
 from nav.models.profiles import AlertAddress, AccountProperty
+from nav.web.crispyforms import HelpField
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
@@ -235,6 +236,22 @@ class AlertSubscriptionForm(forms.ModelForm):
                                        'invalid choice.'),
                 }, label='Watch')
             self.fields['type'].label = 'When'
+            self.fields['type'].help_text = """
+            <dl>
+                <dt>Immidiately</dt>
+                <dd>Send the alert as soon as alertengine has processed it.</dd>
+
+                <dt>Daily at predefined time</dt>
+                <dd>Send all matched alerts at the specified daily
+                    dispatch time.</dd>
+                <dt>Weekly at predefined time</dt>
+                <dd>Send all matched alerts at the specified weekly
+                    dispatch time.</dd>
+                <dt>At end of timeperiod</dt>
+                <dd>Send all matched alerts when the current timeperiod is
+                    over and a new one starts.</dd>
+            </dl>
+            """
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -243,7 +260,7 @@ class AlertSubscriptionForm(forms.ModelForm):
                        css_class='medium-3'),
                 Column(Field('alert_address', css_class='select2'),
                        css_class='medium-3'),
-                Column(Field('type', css_class='select2'),
+                Column(HelpField('type', css_class='select2'),
                        css_class='medium-3'),
                 Column(Field('ignore_resolved_alerts',
                              css_class='input-align'),

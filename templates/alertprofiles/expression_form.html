@@ -1,7 +1,6 @@
 {% extends "alertprofiles/base.html" %}
 
 {% block tabcontent %}
-<a href="#" data-reveal-id="operator-help" class="button secondary right small">Operator help</a>
 <h4>
     Add expression
 </h4>
@@ -18,7 +17,13 @@
             <td>{{ matchfield.name }}{{ form.match_field }}</td>
         </tr>
         <tr>
-            <th><label for="id_operator">{{ form.operator.label }}</label><div id="kake"></div></th>
+            <th>
+                <label for="id_operator">{{ form.operator.label }}
+                    <a href="#" data-reveal-id="operator-help">
+                        <i class="fa fa-info-circle"></i>
+                    </a>
+                </label>
+            </th>
             <td>{{ form.operator }}</td>
         </tr>
         <tr>
