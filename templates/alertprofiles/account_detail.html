@@ -14,14 +14,16 @@
   {% else %}
     <h4>Account details</h4>
     <p>
-      There is no active profile set. You can
-      <a href="{% url alertprofiles-profile %}" class="button small">
-        activate an existing one
-      </a> or
-      <a href="{% url alertprofiles-profile-new %}" class="button small">
-        create a new profile
-      </a>.
+      There is no active profile set.
     </p>
+
+      <a href="{% url alertprofiles-profile %}" class="button small">
+          Activate an existing one
+      </a>
+      <a href="{% url alertprofiles-profile-new %}" class="button small">
+          Create a new profile
+      </a>
+
   {% endif %}
 
   <div id="account_details" class="reveal-modal">
