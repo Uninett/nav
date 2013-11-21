@@ -3,7 +3,7 @@
         <p>Request generated at {{ timestamp }}. <a href="{{ bookmark }}">Hotlink for search</a></p>
         <div class="multitable">
             {% for name, aggregate in aggregates.items %}
-                <table class="vertitable" >
+                <table class="listtable" >
                     <caption>{{ name }}</caption>
                     <thead>
                         <tr>
@@ -57,7 +57,7 @@
     {% endif %}
     {% if show_log %}
         {% if log_messages %}
-            <table class="listtable">
+            <table class="listtable full-width log">
                 <caption>Log</caption>
                 <thead>
                 <tr>
