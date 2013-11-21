@@ -16,55 +16,114 @@
  *
  */
 
-.tabs {
+/* Mixins for tabs */
+ @mixin tab_base {
     display: none;
-	margin-top: 1em;
+    margin-top: 1em;
     overflow: visible;
-    > ul {
-        font-size: 0.9em;
+ }
+
+ @mixin tab_ul {
+    font-size: 0.9em;
+    margin: 0;
+    padding: 0;
+ }
+
+ @mixin tab_li {
+    border-left: 1px solid #999999;
+    border-top: 1px solid #999999;
+    float: left;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    &:last-child {
+        border-right: 1px solid #999999;
+    }
+    &.tabactive {
+        position: relative;
+        z-index: 10;
+        a, a:hover {
+            background: white;
+            color: black;
+        }
+    }
+    a {
+        background: #dae1e6;
+        color: #333;
+        display: block;
+        line-height: 1.3em;
         margin: 0;
-        padding: 0;
+        padding: 0.6em 1em;
+        text-decoration: none;
+        &:hover {
+            background: #eee;
+            color: black;
+        }
+    }
+}
+
+@mixin tab_selected {
+    position: relative;
+    z-index: 10;
+    a, a:hover {
+        background: white;
+        color: black;
+    }
+}
+
+@mixin tab_content {
+    border: 1px solid #999999;
+    clear: both;
+    margin-bottom: 1em;
+    padding: 1em;
+    position: relative;
+    top: -1px;
+}
+
+/* Normal tabs */
+.tabs {
+    @include tab_base;
+
+    > ul {
+        @include tab_ul;
+        
         li {
-            border-left: 1px solid #999999;
-            border-top: 1px solid #999999;
-            float: left;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            position: relative;
-            &:last-child {
-                border-right: 1px solid #999999;
-            }
-            &.tabactive {
-                position: relative;
-                z-index: 10;
-                a, a:hover {
-                    background: white;
-                    color: black;
-                }
-            }
-            a {
-                background: #dae1e6;
-                color: #333;
-                display: block;
-                line-height: 1.3em;
-                margin: 0;
-                padding: 0.6em 1em;
-                text-decoration: none;
-                &:hover {
-                    background: #eee;
-                    color: black;
-                }
-            }
+            @include tab_li;
         }
     }
     > .tabcontent {
-        border: 1px solid #999999;
-        clear: both;
-        margin-bottom: 1em;
-        padding: 1em;
-        position: relative;
-        top: -1px;
+        @include tab_content;
+    }
+}
+
+/* JQuery UI tabs NAV style */
+
+.ui-tabs {
+    @include tab_base;  
+    
+    .ui-tabs-nav { 
+        @include tab_ul; 
+
+        li {
+            @include tab_li;
+
+            &.ui-tabs-selected { 
+                @include tab_selected; 
+            }
+        }
+    }
+    .ui-tabs-panel { 
+        @include tab_content; 
+    }
+    .ui-tabs-hide { 
+        display: none !important;
+        position: absolute;
+        left: -10000px;
+    }
+
+    .ui-state-error {
+        color: #b94a48;
     }
 }
 
@@ -111,3 +170,7 @@
         padding: 1em 0;
     }
 }
+
+
+
+

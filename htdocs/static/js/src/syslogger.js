@@ -52,7 +52,7 @@ require([
     function addMainTabs() {
         var tabconfig = {
             cache: true, // cache loaded pages
-            spinner: '<img src="/images/main/process-working.gif">',
+            spinner: '<img src="/static/images/main/process-working.gif">',
             load: eventLoadingComplete
         };
         var tabs = $(mainTabsSelector).tabs(tabconfig);
@@ -234,7 +234,7 @@ require([
                 $('.results').html("<p>Failed to load search results, please try again</p>");
         }).complete(function () {
                 $("#syslog_loader").spin(false);
-                enrich_tables($('.logger_search_results table.listtable'));
+                enrich_tables($('.logger_search_results table.listtable.log'));
         });
     }
 });
