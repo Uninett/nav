@@ -27,7 +27,7 @@ META_LOOKUPS = (
     (re.compile(r'\.ports\.(?P<ifname>[^\.]+)\.(?P<counter>[^\.,\)]+)$'),
      dict(alias='{ifname} {counter}')),
 
-    (re.compile(r'\.if(In|Out)Octets$'),
+    (re.compile(r'\.if[^.()]+Octets(IPv6)?$'),
      dict(transform="scaleToSeconds(nonNegativeDerivative(scale({id},8)),1)",
           unit="bits/s")),
 
