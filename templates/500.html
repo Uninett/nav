@@ -11,12 +11,9 @@
 	</head>
 	<body>
 		<div class="row hero">
-			<div class="large-10 columns">
+			<div class="large-12 columns">
 				<h1>Ouch... <i class="fa fa-bug"></i></h1>
 				<p>Something went wrong while processing your request. Please try again.</p>
-			</div>
-			<div class="large-2 columns ">
-				<a href="/" class="button button-medium secondary right">Front page</a>
 			</div>
 		</div>
 
@@ -41,14 +38,17 @@
 				<a id="traceback" href="#">View traceback <i id="chevron" class="fa fa-chevron-down"></i></a>
 				<div class="traceback-info" style="display:none;">
 					<code>{{ type }}: {{ value }}</p>
-					<code>
 						{% for line in traceback %}
 							{{ line }}<br />
 						{% endfor %}
 					</code>
 				</div>
 			</div>
+			<div class="large-12 columns frontpage-button">
+				<a href="/" class="button button-medium primary">Front page</a>
+			</div>
 		</div>
+
 {% endif %}
 	</body>
 </html>
