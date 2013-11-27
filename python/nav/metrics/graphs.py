@@ -32,11 +32,11 @@ META_LOOKUPS = (
           unit="bits/s")),
 
     (re.compile(r'\.if(In|Out)Errors$'),
-     dict(transform="scaleToSeconds(nonNegativeDerivative({id},8),1)",
+     dict(transform="scaleToSeconds(nonNegativeDerivative({id}),1)",
           unit="errors/s")),
 
-    (re.compile(r'\.if(In|Out)[^\.]*Pkts$'),
-     dict(transform="scaleToSeconds(nonNegativeDerivative({id},8),1)",
+    (re.compile(r'\.if(In|Out)[^\.]*(Pkts|Discards)$'),
+     dict(transform="scaleToSeconds(nonNegativeDerivative({id}),1)",
           unit="packets/s")),
 
     (re.compile(r'\.sysuptime$'),

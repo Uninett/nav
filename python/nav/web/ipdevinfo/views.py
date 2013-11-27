@@ -489,7 +489,7 @@ def port_counter_graph(request, interfaceid, kind='Octets'):
     counter values for an interface.
 
     """
-    if kind not in ('Octets', 'Errors', 'UcastPkts'):
+    if kind not in ('Octets', 'Errors', 'UcastPkts', 'Discards'):
         raise Http404
 
     timeframe = request.GET.get('timeframe', 'day')

@@ -39,6 +39,8 @@ OTHER_COUNTERS = (
     "ifOutErrors",
     "ifInUcastPkts",
     "ifOutUcastPkts",
+    "ifInDiscards",
+    "ifOutDiscards",
 )
 
 IF_IN_OCTETS_IPV6 = 'ifInOctetsIPv6'

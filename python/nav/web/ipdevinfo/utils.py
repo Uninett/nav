@@ -415,7 +415,8 @@ def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets'):
 
     titlemap = dict(octets='Traffic on {ifname}',
                     errors='Errors on {ifname}',
-                    ucastpkts='Unicast packets on {ifname}')
+                    ucastpkts='Unicast packets on {ifname}',
+                    discards='Discarded packets on {ifname}')
     title = titlemap.get(kind.lower(),
                          '{ifname}').format(ifname=interface.ifname)
 
