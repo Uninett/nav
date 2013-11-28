@@ -91,8 +91,11 @@ def get_metric_data(target, start="-5min", end="now"):
     url = "%s?%s" % (base, query)
 
     req = urllib2.Request(url)
-    response = urllib2.urlopen(req)
     try:
+        response = urllib2.urlopen(req)
         return simplejson.load(response)
     finally:
-        response.close()
+        try:
+            response.close()
+        except NameError:
+            pass
