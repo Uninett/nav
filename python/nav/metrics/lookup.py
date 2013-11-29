@@ -54,19 +54,19 @@ def reverses(pattern):
 
 ### Reverse lookup functions
 
-@reverses(r'\.devices\.(?P<sysname>[^.]+)\.ports\.(?P<ifname>[^\.]+)$')
+@reverses(r'\.devices\.(?P<sysname>[^.]+)\.ports\.(?P<ifname>[^\.]+)')
 def _reverse_interface(sysname, ifname):
     return _single_like_match(Interface, related=['netbox'],
                               sysname=sysname, ifname=ifname)
 
 
-@reverses(r'\.devices\.(?P<sysname>[^.]+)\.sensors\.(?P<name>[^\.]+)$')
+@reverses(r'\.devices\.(?P<sysname>[^.]+)\.sensors\.(?P<name>[^\.]+)')
 def _reverse_sensor(sysname, name):
     return _single_like_match(Sensor, related=['netbox'],
                               sysname=sysname, name=name)
 
 
-@reverses(r'\.devices\.(?P<sysname>[^.]+)')
+@reverses(r'\.devices\.(?P<sysname>[^.]+)$')
 def _reverse_device(sysname):
     return _single_like_match(Netbox, sysname=sysname)
 
