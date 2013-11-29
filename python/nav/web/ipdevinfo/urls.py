@@ -18,7 +18,8 @@
 
 from django.conf.urls.defaults import url, patterns
 
-from nav.web.ipdevinfo.views import search, service_list, service_matrix
+from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
+                                     port_counter_graph)
 from nav.web.ipdevinfo.views import (ipdev_details, module_details,
                                      port_details, get_port_view, affected)
 
@@ -55,6 +56,10 @@ urlpatterns = patterns('',
         port_details, name='ipdevinfo-interface-details'),
     url(r'^(?P<netbox_sysname>[\w\d\.-]+)/ifname=(?P<port_name>[^&]+)/$',
         port_details, name='ipdevinfo-interface-details-by-name'),
+    url(r'^g/port/(?P<interfaceid>\d+)/$', port_counter_graph,
+        name='interface-counter-graph'),
+    url(r'^g/port/(?P<interfaceid>\d+)/(?P<kind>[^/]+)/$', port_counter_graph,
+        name='interface-counter-graph'),
 
     # Modules
     url(r'^(?P<netbox_sysname>.+)/modules/(?P<perspective>\w+)/$',

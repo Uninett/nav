@@ -31,7 +31,7 @@ SPLITCHAR = '!'
 NetbiosResult = namedtuple('NetbiosResult',
                            'ip name server username mac')
 
-_logger = logging.getLogger('tracker')
+_logger = logging.getLogger(__name__)
 
 
 def timed(f):
@@ -91,9 +91,13 @@ def parse(output, encoding=None):
     parsed_results = []
     for result in results:
         if result:
-            parsed_results.append(
-                NetbiosResult(
-                    *[wash(x, encoding) for x in result.split(SPLITCHAR)]))
+            try:
+                args = [wash(x, encoding) for x in result.split(SPLITCHAR)]
+                netbiosresult = NetbiosResult(*args)
+            except TypeError:
+                _logger.error('Error parsing %s', result)
+            else:
+                parsed_results.append(netbiosresult)
 
     return parsed_results
 

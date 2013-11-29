@@ -21,11 +21,12 @@ import datetime as dt
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.views.generic.list_detail import object_list
+import simplejson
 
 from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
 from nav.models.service import Service
@@ -33,6 +34,7 @@ from nav.models.service import Service
 from nav import asyncdns
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
+from nav.web.ipdevinfo.utils import get_interface_counter_graph_url
 from nav.web.utils import create_title
 
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
@@ -475,11 +477,30 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'port_type': port_type,
             'port': port,
             'navpath': navpath,
-            'heading': navpath[-1][0],
-            'title': create_title(navpath)
+            'heading': unicode(port),
+            'title': unicode(port),
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
+
+
+def port_counter_graph(request, interfaceid, kind='Octets'):
+    """Returns a JSON response containing a Graphite graph render URL for
+    counter values for an interface.
+
+    """
+    if kind not in ('Octets', 'Errors', 'UcastPkts', 'Discards'):
+        raise Http404
+
+    timeframe = request.GET.get('timeframe', 'day')
+    port = get_object_or_404(Interface, id=interfaceid)
+    url = get_interface_counter_graph_url(port, timeframe, kind)
+
+    if url:
+        json = simplejson.dumps({'url': url})
+        return HttpResponse(json, mimetype='application/json')
+    else:
+        return HttpResponse(status=500)
 
 
 def service_list(request, handler=None):

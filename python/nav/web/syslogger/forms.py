@@ -3,9 +3,11 @@ forms and functions used for syslogger in NAV
 """
 
 from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, Field
 from nav.models.logger import Priority, LoggerCategory, Origin, LogMessageType
 
-DATEFORMAT = ("%Y-%m-%d %H:%M:%S",)
+DATEFORMAT = ("%Y-%m-%d %H:%M",)
 
 def choice_values(model, field_name):
     """
@@ -43,3 +45,36 @@ class LoggerGroupSearchForm(forms.Form):
         self.fields['mnemonic'].choices = choice_values(LogMessageType,
                                                         'mnemonic')
         self.fields['origin'].choices = choice_values(Origin, 'name')
+
+        self.fields['timestamp_from'].widget.format = DATEFORMAT[0]
+        self.fields['timestamp_to'].widget.format = DATEFORMAT[0]
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column(
+                    Fieldset(
+                        'Filter <a href="http://www.cisco.com/en/US/docs/ios/system/messages/guide/sm_cnovr.html"><i class="fa fa-info-circle"></i></a>',
+                        Row(
+                            Column(Field('facility', css_class='select2 medium-12'),
+                                    css_class='medium-12'),
+                            Column(Field('priority', css_class='select2'),
+                                    css_class='medium-12'),
+                            Column(Field('mnemonic', css_class='select2'),
+                                    css_class='medium-12'),
+                            Column(Field('origin', css_class='select2'),
+                                    css_class='medium-12'),
+                            Column(Field('category', css_class='select2'),
+                                    css_class='medium-12'),
+                            Column('timestamp_from', css_class='medium-12'),
+                            Column('timestamp_to', css_class='medium-12'),
+                            Column('show_log', css_class='medium-12'),
+                           
+                        ),
+                    ),
+                    css_class='medium-12'
+                ),
+            ),
+        )
+        

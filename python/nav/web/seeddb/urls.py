@@ -121,8 +121,6 @@ urlpatterns = patterns('',
     url(r'^vendor/bulk/$', vendor_bulk,
         name='seeddb-vendor-bulk'),
 
-    # SNMPoid
-
     # Netbox Group
     url(r'^netboxgroup/$', netboxgroup,
         name='seeddb-netboxgroup'),

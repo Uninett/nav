@@ -50,6 +50,9 @@ from nav.ipdevpoll import Plugin, db
 from nav.ipdevpoll import storage, shadows
 from nav.ipdevpoll.db import autocommit
 
+INCOMPLETE_MAC = '00:00:00:00:00:00'
+
+
 class Arp(Plugin):
     """Collects ARP records for IPv4 devices and NDP cache for IPv6 devices."""
     prefix_cache = [] # prefix cache, should be sorted by descending mask length
@@ -106,7 +109,11 @@ class Arp(Plugin):
         """
         # Collected mappings include ifindexes.  Arp table doesn't
         # care about this, so we prune those.
-        found_mappings = set((ip, mac) for (ifindex, ip, mac) in mappings)
+        found_mappings = set((ip, mac) for (ifindex, ip, mac) in mappings
+                             if mac != INCOMPLETE_MAC)
+        stripped = len(mappings) - len(found_mappings)
+        if stripped:
+            self._logger.debug("stripped %d incomplete mappings", stripped)
 
         # Get open mappings from database to compare with
         open_mappings = yield self._load_existing_mappings()

@@ -24,19 +24,19 @@ META_LOOKUPS = (
 
     # Various counter type values
 
-    (re.compile(r'\.ports\.(?P<ifname>[^\.]+)\.(?P<counter>[^\.]+)$'),
+    (re.compile(r'\.ports\.(?P<ifname>[^\.]+)\.(?P<counter>[^\.,\)]+)$'),
      dict(alias='{ifname} {counter}')),
 
-    (re.compile(r'\.if(In|Out)Octets$'),
+    (re.compile(r'\.if[^.()]+Octets(IPv6)?$'),
      dict(transform="scaleToSeconds(nonNegativeDerivative(scale({id},8)),1)",
           unit="bits/s")),
 
     (re.compile(r'\.if(In|Out)Errors$'),
-     dict(transform="scaleToSeconds(nonNegativeDerivative({id},8),1)",
+     dict(transform="scaleToSeconds(nonNegativeDerivative({id}),1)",
           unit="errors/s")),
 
-    (re.compile(r'\.if(In|Out)[^\.]*Pkts$'),
-     dict(transform="scaleToSeconds(nonNegativeDerivative({id},8),1)",
+    (re.compile(r'\.if(In|Out)[^\.]*(Pkts|Discards)$'),
+     dict(transform="scaleToSeconds(nonNegativeDerivative({id}),1)",
           unit="packets/s")),
 
     (re.compile(r'\.sysuptime$'),
@@ -53,7 +53,7 @@ META_LOOKUPS = (
 
 
 def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
-                         width=480, height=250):
+                         width=480, height=250, **kwargs):
     """
     Returns an URL, fetchable by an end user, to render a simple graph,
     given a Graphite metric known to NAV
@@ -77,6 +77,8 @@ def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
         'height': height,
         'title': title or '',
     })
+    if kwargs:
+        args.update(kwargs)
 
     url = reverse("graphite-render") + "?" + urlencode(args, True)
     return url

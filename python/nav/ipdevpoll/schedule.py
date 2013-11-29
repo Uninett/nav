@@ -175,7 +175,8 @@ class NetboxJobScheduler(object):
         if failure.check(SuggestedReschedule):
             delay = int(failure.value.delay)
         else:
-            delay = randint(5*60, 10*60) # within 5-10 minutes
+            # within 5-10 minutes, but no longer than set interval
+            delay = min(self.job.interval, randint(5*60, 10*60))
         self.reschedule(delay)
         self._log_finished_job(False)
         log_job_externally(self.job_handler, False, self.job.interval)

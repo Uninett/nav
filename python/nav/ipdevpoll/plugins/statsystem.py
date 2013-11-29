@@ -17,6 +17,7 @@
 import time
 
 from twisted.internet import defer
+from twisted.internet.error import TimeoutError
 
 from nav.ipdevpoll import Plugin
 from nav.metrics.carbon import send_metrics
@@ -77,34 +78,50 @@ class StatSystem(Plugin):
     def _collect_bandwidth(self):
         for mib in self._mibs_for_me(BANDWIDTH_MIBS):
             try:
-                bandwidth = yield mib.get_bandwidth()
-                bandwidth_peak = yield mib.get_bandwidth_peak()
-                percent = False
-            except AttributeError:
-                bandwidth = yield mib.get_bandwidth_percent()
-                bandwidth_peak = yield mib.get_bandwidth_percent_peak()
-                percent = True
-
-            if bandwidth or bandwidth_peak:
-                self._logger.debug("Found bandwidth values from %s: %s, %s",
-                                   mib.mib['moduleName'], bandwidth,
-                                   bandwidth_peak)
-                timestamp = time.time()
-                metrics = [
-                    (metric_path_for_bandwith(self.netbox, percent),
-                     (timestamp, bandwidth)),
-                    (metric_path_for_bandwith_peak(self.netbox, percent),
-                     (timestamp, bandwidth_peak)),
-                ]
-                defer.returnValue(metrics)
+                metrics = yield self._collect_bandwidth_from_mib(mib)
+            except (TimeoutError, defer.TimeoutError):
+                self._logger.debug("collect_bandwidth: ignoring timeout in %s",
+                                   mib.mib['moduleName'])
+            else:
+                if metrics:
+                    defer.returnValue(metrics)
         defer.returnValue([])
+
+    @defer.inlineCallbacks
+    def _collect_bandwidth_from_mib(self, mib):
+        try:
+            bandwidth = yield mib.get_bandwidth()
+            bandwidth_peak = yield mib.get_bandwidth_peak()
+            percent = False
+        except AttributeError:
+            bandwidth = yield mib.get_bandwidth_percent()
+            bandwidth_peak = yield mib.get_bandwidth_percent_peak()
+            percent = True
+
+        if bandwidth or bandwidth_peak:
+            self._logger.debug("Found bandwidth values from %s: %s, %s",
+                               mib.mib['moduleName'], bandwidth,
+                               bandwidth_peak)
+            timestamp = time.time()
+            metrics = [
+                (metric_path_for_bandwith(self.netbox, percent),
+                 (timestamp, bandwidth)),
+                (metric_path_for_bandwith_peak(self.netbox, percent),
+                 (timestamp, bandwidth_peak)),
+            ]
+            defer.returnValue(metrics)
 
     @defer.inlineCallbacks
     def _collect_cpu(self):
         for mib in self._mibs_for_me(CPU_MIBS):
-            load = yield self._get_cpu_loadavg(mib)
-            utilization = yield self._get_cpu_utilization(mib)
-            defer.returnValue(load + utilization)
+            try:
+                load = yield self._get_cpu_loadavg(mib)
+                utilization = yield self._get_cpu_utilization(mib)
+            except (TimeoutError, defer.TimeoutError):
+                self._logger.debug("collect_cpu: ignoring timeout in %s",
+                                   mib.mib['moduleName'])
+            else:
+                defer.returnValue(load + utilization)
         defer.returnValue([])
 
     @defer.inlineCallbacks
@@ -161,11 +178,16 @@ class StatSystem(Plugin):
     def _collect_memory(self):
         memory = dict()
         for mib in self._mibs_for_me(MEMORY_MIBS):
-            mem = yield mib.get_memory_usage()
-            if mem:
-                self._logger.debug("Found memory values from %s: %r",
-                                   mib.mib['moduleName'], mem)
-                memory.update(mem)
+            try:
+                mem = yield mib.get_memory_usage()
+            except (TimeoutError, defer.TimeoutError):
+                self._logger.debug("collect_memory: ignoring timeout in %s",
+                                   mib.mib['moduleName'])
+            else:
+                if mem:
+                    self._logger.debug("Found memory values from %s: %r",
+                                       mib.mib['moduleName'], mem)
+                    memory.update(mem)
 
         timestamp = time.time()
         result = []

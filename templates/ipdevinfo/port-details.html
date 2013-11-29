@@ -215,7 +215,7 @@
 {% endwith %}{% endwith %}
 
     <tr>
-        <th colspan="2">Statistics</th>
+        <th colspan="2">Single metrics</th>
     </tr>
     <tr>
         <th></th>
@@ -260,5 +260,11 @@
     </tr>
 {% endif %}
 </table>
+
+<h3>Activity graphs</h3>
+<div class="countergraph float-left" data-interface="{{ port.id }}" data-counter="Octets"></div>
+<div class="countergraph float-left" data-interface="{{ port.id }}" data-counter="UcastPkts"></div>
+<div class="countergraph float-left" data-interface="{{ port.id }}" data-counter="Errors"></div>
+<div class="countergraph float-left" data-interface="{{ port.id }}" data-counter="Discards"></div>
 
 {% endblock %}
