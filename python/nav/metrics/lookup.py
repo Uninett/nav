@@ -17,11 +17,12 @@
 
 import re
 from nav.models.manage import Netbox, Interface, Prefix, Sensor
+from django.utils.functional import memoize
 
 _reverse_handlers = []
 
 
-def lookup(metric):
+def _lookup(metric):
     """
     Looks up a NAV object from a metric path.
 
@@ -35,6 +36,8 @@ def lookup(metric):
         match = pattern.search(metric)
         if match:
             return func(**match.groupdict())
+# pylint: disable=C0103
+lookup = memoize(_lookup, {}, 1)
 
 
 def reverses(pattern):
@@ -44,12 +47,11 @@ def reverses(pattern):
     except AttributeError:
         pattern = re.compile(pattern)
 
-    def decorator(func):
-        global _reverse_handlers
+    def _decorator(func):
         _reverse_handlers.append((pattern, func))
         return func
 
-    return decorator
+    return _decorator
 
 
 ### Reverse lookup functions
