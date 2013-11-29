@@ -1,8 +1,6 @@
 {% extends "useradmin/base.html" %}
 
-{% block tabs %}{% endblock %}
-
-{% block outercontent %}
+{% block content %}
     {% if current_user_data.messages %}
         <ul class="messages">
             {% for m in current_user_data.messages %}
@@ -10,8 +8,8 @@
             {% endfor %}
         </ul>
     {% endif %}
-    <h3>User information</h3>
-    <table class="vertitable">
+    <h5>User information</h5>
+    <table class="vertitable align-top">
         <tr>
             <th>Login:</th>
             <td>{{ account.login }}</td>
@@ -24,7 +22,7 @@
             <th>Groups:</th>
             <td>
                 {% if account.accountgroup_set.all %}
-                    <ul>
+                    <ul class="inside">
                         {% for g in account.accountgroup_set.all %}
                             <li>{{ g }}</li>
                         {% endfor %}
@@ -38,7 +36,7 @@
             <th>Organizations:</th>
             <td>
                 {% if account.organizations.all %}
-                    <ul>
+                    <ul class="inside">
                         {% for o in account.organizations.all %}
                             <li>{{ o }}</li>
                         {% endfor %}
@@ -50,7 +48,7 @@
         </tr>
     </table>
 
-    <h4>Change password</h4>
+    <h5>Change password</h5>
     {% if account.ext_sync %}
         <p>
             You are not allowed to change your password from this page. Your
@@ -62,7 +60,7 @@
                 {{ password_form.as_table }}
                 <tr>
                     <th></th>
-                    <td><input type="submit" value="Change password" /></td>
+                    <td><input type="submit" value="Change password" class="button small" /></td>
                 </tr>
             </table>
         </form>
