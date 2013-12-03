@@ -60,6 +60,7 @@ Alerting is outside of the scope of this module.
 
 """
 from functools import partial
+import logging
 import re
 from nav.metrics.data import get_metric_average
 from nav.metrics.graphs import get_metric_meta
@@ -78,6 +79,8 @@ EXPRESSION_PATTERN = re.compile(r'^ \s* (?P<operator> [<>] ) \s* '
 DEFAULT_INTERVAL = '-10min'
 MEGA = 1e6
 
+_logger = logging.getLogger(__name__)
+
 
 class ThresholdEvaluator(object):
     """Threshold evaluator class.
@@ -86,9 +89,11 @@ class ThresholdEvaluator(object):
 
     >>> t = ThresholdEvaluator('nav.devices.*.ports.*.if{In,Out}Octets')
     >>> t.get_values()
-    >>> list(t.evaluate('>50%'))
-    [('nav.devices.test-sw_example_org.ports.Gi1/1.ifOutOctets', True),
-     ('nav.devices.test-sw_example_org.ports.Gi1/1.ifInOctets', False)]
+    >>> t.evaluate('>50%')
+    [('nav.devices.test-sw_example_org.ports.Gi1/1.ifOutOctets',
+      989982359.3691884),
+     ('nav.devices.test-sw_example_org.ports.Gi1/1.ifInOctets',
+      824604510.7694222)]
     >>>
 
     """
@@ -110,12 +115,20 @@ class ThresholdEvaluator(object):
             if meta:
                 self.target = meta['target']
 
+    def __repr__(self):
+        return "{cls}({orig_target!r}, {period!r}, {raw!r})".format(
+            cls=self.__class__.__name__,
+            **vars(self)
+        )
+
     def get_values(self):
         """
         Retrieves actual values from Graphite based on the evaluators target.
         """
         averages = get_metric_average(
             self.target, start=DEFAULT_INTERVAL, end='now', ignore_unknown=True)
+        _logger.debug("retrieved %d values from graphite for %r",
+                      len(averages), self.target)
         self.result = dict((extract_metric_id(key), dict(value=value))
                            for key, value in averages.iteritems())
         return self.result
@@ -125,14 +138,14 @@ class ThresholdEvaluator(object):
         Evaluates expression for each of the retrieved values from the last
         call to get_values().
 
-        :returns: A generator of (metric, bool) tuples, where bool indicates
-                  whether the expression evaluated to True or False for the
-                  given metric. If the expression could not be evaluated for
-                  some reason, the bool value is None.
+        :returns: A list of (metric, current_value) tuples for metrics whose
+                  last retrieved current value matches the expression.
         """
         matcher = self._get_matcher(expression)
-        for metric in self.result.iterkeys():
-            yield metric, matcher(metric)
+        result = [(metric, self.result[metric]['value'])
+                  for metric in self.result.iterkeys()
+                  if matcher(metric)]
+        return result
 
     def _get_matcher(self, expression):
         match = EXPRESSION_PATTERN.match(expression)
