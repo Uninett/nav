@@ -65,7 +65,7 @@ def get_metric_max(target, start="-5min", end="now"):
 
 def get_metric_data(target, start="-5min", end="now"):
     """
-    Retrieves datapoints from a graphite metric for a given period of time.
+    Retrieves raw datapoints from a graphite target for a given period of time.
 
     :param target: A metric path string or a list of multiple metric paths
     :param start: A start time specification that Graphite will accept.
@@ -78,8 +78,8 @@ def get_metric_data(target, start="-5min", end="now"):
                   [{'target': 'x', 'datapoints': [(value, timestamp), ...]}]
 
     """
-    base = CONFIG.get("graphiteweb", "base")
-    base = urljoin(base, "/render/")
+    url = CONFIG.get("graphiteweb", "base")
+    url = urljoin(url, "/render/")
 
     query = {
         'target': target,
@@ -88,9 +88,8 @@ def get_metric_data(target, start="-5min", end="now"):
         'format': 'json',
     }
     query = urlencode(query, True)
-    url = "%s?%s" % (base, query)
 
-    req = urllib2.Request(url)
+    req = urllib2.Request(url, data=query)
     try:
         response = urllib2.urlopen(req)
         return simplejson.load(response)
