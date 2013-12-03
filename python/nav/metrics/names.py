@@ -18,18 +18,18 @@
 from collections import OrderedDict
 import itertools
 import simplejson
-from urllib import urlencode
+from urllib import urlencode, quote
 import urllib2
 from urlparse import urljoin
 from nav.metrics import CONFIG
 
 
 def escape_metric_name(string):
-    """Escapes any character of string that may not be used in graphite metric
-    names, by replacing them with underscores.
-
     """
-    for char in "./ ":
+    Escapes any character of string that may not be used in graphite metric
+    names.
+    """
+    for char in "./ ()":
         string = string.replace(char, "_")
     return string
 
