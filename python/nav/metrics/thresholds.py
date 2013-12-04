@@ -133,10 +133,15 @@ class ThresholdEvaluator(object):
                            for key, value in averages.iteritems())
         return self.result
 
-    def evaluate(self, expression):
+    def evaluate(self, expression, invert=False):
         """
         Evaluates expression for each of the retrieved values from the last
         call to get_values().
+
+        :param expression: A comparison expression to evaluate against the
+                           collected data. Example: '>20%'.
+        :type expression: basestring
+        :param invert: Invert the expression logic if True.
 
         :returns: A list of (metric, current_value) tuples for metrics whose
                   last retrieved current value matches the expression.
@@ -144,7 +149,7 @@ class ThresholdEvaluator(object):
         matcher = self._get_matcher(expression)
         result = [(metric, self.result[metric]['value'])
                   for metric in self.result.iterkeys()
-                  if matcher(metric)]
+                  if bool(matcher(metric)) ^ bool(invert)]
         return result
 
     def _get_matcher(self, expression):
