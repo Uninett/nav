@@ -1,6 +1,9 @@
-require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
+require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], function () {
     var $inputElement = $('#metricsearchinput'),
-        $displayElement = $('.selectedMetric');
+        $infoElement = $('#metricInfo'),
+        $metricName = $infoElement.find('.metricName'),
+        $metricGraph = $infoElement.find('.metricGraph'),
+        spinner = new Spinner();
 
     $(function () {
         $inputElement.autocomplete(
@@ -22,16 +25,31 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     function displayGraph(metric) {
-        $displayElement.empty();
+        $metricName.empty().text(metric);
+        startSpinner();
+
         $.get($inputElement.attr('data-renderurl'),
             {'metric': metric},
             function (data) {
-                $displayElement.append(
-                    $('<p>').text(metric),
-                    $('<img>').attr('src', data.url)
-                );
+                var image = new Image();
+                image.src = data.url;
+                image.onload = function () {
+                    stopSpinner();
+                    $(image).appendTo($metricGraph);
+                };
             }
         );
+    }
+
+    function startSpinner() {
+        $metricGraph.empty();
+        $metricGraph.addClass('spinContainer');
+        spinner.spin($metricGraph.get(0));  // Remember that spin does not accept jquery objects
+    }
+
+    function stopSpinner() {
+        spinner.stop();
+        $metricGraph.removeClass('spinContainer');
     }
 
 });
