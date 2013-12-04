@@ -443,6 +443,7 @@ def group_privilege_remove(request, group_id, privilege_id):
                                             args=[group.id]),
                         }, UserAdminContext(request))
 
+
 def userinfo(request):
     account = get_account(request)
 
@@ -450,30 +451,22 @@ def userinfo(request):
         return render_to_response('useradmin/not-logged-in.html', {},
                                   UserAdminContext(request))
 
-    if account.ext_sync:
-        password_form = None
-    else:
-        password_form = ChangePasswordForm()
-
-    if request.method == 'POST' and password_form:
-        password_form = ChangePasswordForm(request.POST)
+    if request.method == 'POST':
+        password_form = ChangePasswordForm(request.POST, my_account=account)
 
         if password_form.is_valid():
-            if not account.check_password(
-                password_form.cleaned_data['old_password']):
-                password_form.clear_passwords()
-                new_message(request, 'Old password is incorrect.',
-                            type=Messages.ERROR)
-            else:
-                account.set_password(
-                    password_form.cleaned_data['new_password1'])
-                account.save()
-                new_message(request, 'Your password has been changed.',
-                            type=Messages.SUCCESS)
-                return HttpResponseRedirect(reverse('userinfo'))
+            account.set_password(password_form.cleaned_data['new_password1'])
+            account.save()
+            new_message(request, 'Your password has been changed.',
+                        type=Messages.SUCCESS)
+            return HttpResponseRedirect(reverse('userinfo'))
+    else:
+        if account.ext_sync:
+            password_form = None
+        else:
+            password_form = ChangePasswordForm()
 
     return render_to_response('useradmin/userinfo.html',
-                        {
-                            'account': account,
-                            'password_form': password_form,
-                        }, UserAdminContext(request))
+                              {'account': account,
+                               'password_form': password_form,
+                               }, UserAdminContext(request))

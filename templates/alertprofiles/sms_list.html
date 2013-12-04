@@ -105,7 +105,7 @@
 
 {% block tbodycontent %}
     {% for sms in object_list %}
-        <tr class="{% cycle oddrow,evenrow %}">
+        <tr>
             <td>{{ sms.time|date:"DATETIME_FORMAT" }}</td>
             <td>
                 {% if sms.time_sent %}

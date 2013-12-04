@@ -687,6 +687,7 @@ def profile_time_period_setup(request, time_period_id=None):
              time_period.get_valid_during_display(), None),
         ],
         'title': 'NAV - Alert profiles',
+        'profile': profile
     }
     return render_to_response(
         'alertprofiles/subscription_form.html',
@@ -777,6 +778,7 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
             ('Edit subscription', None)
         ],
         'title': 'NAV - Alert profiles',
+        'profile': profile
     }
     return render_to_response(
         'alertprofiles/subscription_form.html',

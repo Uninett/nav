@@ -2,11 +2,15 @@
 {% load crispy_forms_tags %}
 
 {% block tabcontent %}
-  <a data-reveal-id="dispatch_time_help" href="#" class="button secondary small right">Dispatch time help</a>
-
   <h4>
     Subscriptions
   </h4>
+
+  {% if profile %}
+    <p><a href="{% url alertprofiles-profile-detail profile.id %}">Back to profile</a></p>
+  {% else %}
+    <p><a href="{% url alertprofiles-profile %}">Back to profiles</a></p>
+  {% endif %}
 
   {% if not editing %}
   <p>
@@ -81,34 +85,6 @@
     </form>
 </div>
 
-
-<div id="dispatch_time_help" class="reveal-modal">
-    <h5>
-        Dispatch time help
-    </h5>
-
-    <table class="vertitable">
-        <tbody>
-            <tr>
-                <th>Immidiately</th>
-                <td>Send the alert as soon as alertengine has processed it.</td>
-            </tr>
-            <tr>
-                <th>Daily at predefined time</th>
-                <td>Send all matched alerts at the specified daily dispatch time.</td>
-            </tr>
-            <tr>
-                <th>Weekly at predefined time</th>
-                <td>Send all matched alerts at the specified weekly dispatch time.</td>
-            </tr>
-            <tr>
-                <th>At end of timeperiod</th>
-                <td>Send all matched alerts when the current timeperiod is over and
-                a new one starts.</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
 {% endblock subscription_form %}
 
 {% endblock %}

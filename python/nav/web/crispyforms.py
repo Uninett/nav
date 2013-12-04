@@ -33,3 +33,8 @@ class LabelSubmit(Submit):
 class CheckBox(Field):
     """Checkbox suited for the NAV layout"""
     template = 'custom_crispy_templates/horizontal_checkbox.html'
+
+
+class HelpField(Field):
+    """Field that displays an icon with tooltip as helptext"""
+    template = 'custom_crispy_templates/field_helptext_as_icon.html'

@@ -44,7 +44,7 @@
 
 {% block tbodycontent %}
     {% for matchfield in object_list %}
-        <tr class="{% cycle oddrow,evenrow %}">
+        <tr>
             <td><input name="matchfield" value="{{ matchfield.id }}" type="checkbox" /></td>
             <td><a href="{% url alertprofiles-matchfields-detail matchfield.id %}">
                 {{ matchfield.name }}</a></td>

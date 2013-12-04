@@ -38,7 +38,7 @@
       {% if profiles %}
         <tbody>
         {% for profile in profiles %}
-          <tr class="{% cycle oddrow,evenrow %}">
+          <tr>
             <td>
               <input type="checkbox" name="profile" value="{{ profile.id }}"/>
             </td>
@@ -52,7 +52,7 @@
                 Active
               </td>
               <td>
-                <input type="submit" name="deactivate={{ profile.id }}" value="Deactivate" class="button success tiny"/>
+                <input type="submit" name="deactivate={{ profile.id }}" value="Deactivate" class="button secondary tiny"/>
               </td>
             {% else %}
               <td>

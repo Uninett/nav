@@ -20,7 +20,7 @@
 {% if time_period_templates %}
   <div>
     <label for="id_template">Choose a template for time periods:</label>
-    <select name="template" id="id_template">
+    <select name="template" id="id_template" class="select2">
       <option value="">No template</option>
       {% for key, template in time_period_templates.items %}
         <option value="{{ key }}">{{ template.main.description }}</option>
