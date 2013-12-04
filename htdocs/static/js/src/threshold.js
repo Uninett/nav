@@ -1,8 +1,11 @@
 require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], function () {
+    /* The global variable metric is set in the base template of the threshold page */
+
     var $inputElement = $('#metricsearchinput'),
+        metric = $inputElement.attr('data-metric'),
         $infoElement = $('#metricInfo'),
-        $metricName = $infoElement.find('.metricName'),
         $metricGraph = $infoElement.find('.metricGraph'),
+        $formInput = $('#id_metric'),
         spinner = new Spinner();
 
     $(function () {
@@ -15,18 +18,23 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
             }
         );
         $inputElement.focus();
+
+        if (metric) {
+            $inputElement.val(metric);
+            displayMetricInfo(metric);
+        }
     });
 
     function handleSelect(event, ui) {
         if (ui.item.expandable) {
             $inputElement.autocomplete('search', ui.item.value + '.');
         } else {
-            displayGraph(ui.item.value);
+            displayMetricInfo(ui.item.value);
         }
     }
 
-    function displayGraph(metric) {
-        $metricName.empty().text(metric);
+    function displayMetricInfo(metric) {
+        $formInput.val(metric);
         startSpinner();
 
         $.get($inputElement.attr('data-renderurl'),

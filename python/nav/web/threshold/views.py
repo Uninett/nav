@@ -19,15 +19,28 @@ import json
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import render
+
 from nav.metrics.names import raw_metric_query
 from nav.metrics.graphs import get_simple_graph_url
+from nav.web.threshold.forms import ThresholdForm
 
 
 def index(request):
     """Base controller for threshold search"""
 
+    if request.method == 'POST':
+        form = ThresholdForm(request.POST)
+        metric = request.POST.get('metric')
+        if form.is_valid():
+            pass
+    else:
+        form = ThresholdForm()
+        metric = None
+
     title = "Threshold Manager"
     context = {
+        'form': form,
+        'metric': metric,
         'title': title,
         'navpath': [('Home', '/'),
                     (title, reverse('threshold-index'))]
@@ -100,6 +113,8 @@ def get_graph_url(request):
     """Get graph url based on metric"""
     url = None
     if 'metric' in request.GET:
-        url = get_simple_graph_url(request.GET['metric'])
+        url = get_simple_graph_url(request.GET['metric'],
+                                   title='Latest values for this metric',
+                                   width=600, height=400)
     return HttpResponse(json.dumps({'url': url}),
                         content_type='application/json')

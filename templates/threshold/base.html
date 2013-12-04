@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
   <script>require(['src/threshold']);</script>
@@ -11,13 +12,27 @@
 
   <div class="ui-widget">
     <label>Metric search
-      <input type="search" id="metricsearchinput" data-url="{% url threshold-search %}" data-renderurl="{% url threshold-graph %}">
+      <input type="search"
+             id="metricsearchinput"
+             data-url="{% url threshold-search %}"
+             data-renderurl="{% url threshold-graph %}"
+             data-metric="{{ metric|default_if_none:'' }}" >
     </label>
   </div>
 
-  <div id="metricInfo">
-    <p class="metricName"></p>
-    <div class="metricGraph"></div>
+  <div class="row">
+
+    <div class="column medium-6">
+      <div id="metricInfo">
+        <div class="metricGraph"></div>
+      </div>
+    </div>
+
+    <div class="column medium-6">
+      {% crispy form %}
+    </div>
+
+
   </div>
 
 {% endblock %}
