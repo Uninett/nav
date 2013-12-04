@@ -176,8 +176,10 @@ def make_event(start, rule, metric, value):
     event.state = event.STATE_START if start else event.STATE_END
     event.subid = "{rule}:{metric}".format(rule=rule.id, metric=metric)
 
-    varmap = dict(metric=metric, alert=rule.alert, clear=rule.clear,
-                  ruleid=str(rule.id), value=str(value))
+    varmap = dict(metric=metric, alert=rule.alert,
+                  ruleid=unicode(rule.id), value=unicode(value))
+    if rule.clear:
+        varmap['clear'] = unicode(rule.clear)
     _add_subject_details(event, metric, varmap)
 
     event.save()
