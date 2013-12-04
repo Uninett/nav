@@ -11,14 +11,11 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
                 'select': handleSelect
             }
         );
-
     });
 
     function handleSelect(event, ui) {
         if (ui.item.expandable) {
             $inputElement.autocomplete('search', ui.item.value + '.');
-//            $inputElement.val(ui.item.value + '.');
-//            $inputElement.autocomplete('search');
         } else {
             displayGraph(ui.item.value);
         }

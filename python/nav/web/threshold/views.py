@@ -64,6 +64,18 @@ def get_metrics(term):
         term += '*'
         metrics = raw_metric_query(term)
 
+    all_leaves = True
+    for metric in metrics:
+        if metric['expandable']:
+            all_leaves = False
+            break
+
+    if all_leaves:
+        metrics.insert(0, {
+            'id': term,
+            'expandable': False
+        })
+
     return metrics
 
 
