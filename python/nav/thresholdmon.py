@@ -119,7 +119,10 @@ def evaluate_rule(rule, alerts):
     if rule.id in alerts:
         clearable = alerts[rule.id]
         try:
-            cleared = evaluator.evaluate(rule.clear)
+            if rule.clear:
+                cleared = evaluator.evaluate(rule.clear)
+            else:
+                cleared = evaluator.evaluate(rule.alert, invert=True)
         except Exception:
             _logger.exception(
                 "Unhandled exception while evaluating rule clear: %r", rule)
