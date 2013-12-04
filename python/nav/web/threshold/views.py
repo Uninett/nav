@@ -70,7 +70,7 @@ def get_metrics(term):
             all_leaves = False
             break
 
-    if all_leaves:
+    if all_leaves and len(metrics) > 1:
         metrics.insert(0, {
             'id': term,
             'expandable': False
