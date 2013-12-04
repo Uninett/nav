@@ -14,6 +14,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
                 'select': handleSelect
             }
         );
+        $inputElement.focus();
     });
 
     function handleSelect(event, ui) {
