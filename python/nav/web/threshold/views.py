@@ -64,19 +64,27 @@ def get_metrics(term):
         term += '*'
         metrics = raw_metric_query(term)
 
-    all_leaves = True
-    for metric in metrics:
-        if metric['expandable']:
-            all_leaves = False
-            break
-
-    if all_leaves and len(metrics) > 1:
+    if len(metrics) > 1 and is_all_leaves(metrics):
         metrics.insert(0, {
             'id': term,
             'expandable': False
         })
 
     return metrics
+
+
+def is_all_leaves(metrics):
+    """Determine if all metrics are leaf nodes
+
+    :type metrics: list
+    :rtype: bool
+    """
+    all_leaves = True
+    for metric in metrics:
+        if metric['expandable']:
+            all_leaves = False
+            break
+    return all_leaves
 
 
 def get_graph_url(request):
