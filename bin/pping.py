@@ -36,7 +36,7 @@ import pwd
 
 import nav.daemon
 from nav.daemon import safesleep as sleep
-from nav.statemon import rrd
+from nav.statemon import statistics
 from nav.statemon import megaping
 from nav.statemon import db
 from nav.statemon import config
@@ -111,10 +111,12 @@ class pinger:
             self.replies[netboxid].push(rtt)
             netbox = self.netboxmap[netboxid]
             if rtt != -1:
-                rrd.update(netbox.netboxid, netbox.sysname, 'N', 'UP', rtt)
+                statistics.update(netbox.netboxid, netbox.sysname, 'N', 'UP',
+                                  rtt)
             else:
                 # ugly...
-                rrd.update(netbox.netboxid, netbox.sysname, 'N', 'DOWN', 5)
+                statistics.update(netbox.netboxid, netbox.sysname, 'N', 'DOWN',
+                                  5)
 
         downNow = []
         # Find out which netboxes to consider down
