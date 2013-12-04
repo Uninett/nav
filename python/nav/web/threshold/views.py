@@ -16,6 +16,7 @@
 """Controllers for threshold app"""
 
 import json
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import render
 from nav.metrics.names import raw_metric_query
@@ -24,7 +25,15 @@ from nav.metrics.graphs import get_simple_graph_url
 
 def index(request):
     """Base controller for threshold search"""
-    return render(request, 'threshold/base.html')
+
+    title = "Threshold Manager"
+    context = {
+        'title': title,
+        'navpath': [('Home', '/'),
+                    (title, reverse('threshold-index'))]
+    }
+
+    return render(request, 'threshold/base.html', context)
 
 
 def threshold_search(request):
