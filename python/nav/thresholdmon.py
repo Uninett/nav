@@ -13,19 +13,21 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Threshold monitoring program"""
+
 from __future__ import absolute_import
 
 import os
 import sys
 import logging
 from optparse import OptionParser
-from nav import buildconf
+from collections import defaultdict
 
+from nav import buildconf
+from nav.models.fields import INFINITY
 from nav.models.manage import Netbox, Interface, Sensor
 from nav.models.thresholds import ThresholdRule
-from nav.models.event import EventQueue as Event
-#from nav.models.event import AlertHistory
-
+from nav.models.event import EventQueue as Event, AlertHistory
 from nav.metrics.lookup import lookup
 
 from django.db.transaction import commit_on_success
@@ -37,8 +39,9 @@ _logger = logging.getLogger('nav.thresholdmon')
 
 
 def main():
+    """Main thresholdmon program"""
     parser = make_option_parser()
-    (options, _args) = parser.parse_args()
+    (_options, _args) = parser.parse_args()
 
     init_logging()
     scan()
@@ -76,30 +79,96 @@ def init_logging():
 def scan():
     """Scans for threshold rules and evaluates them"""
     rules = ThresholdRule.objects.all()
+    alerts = get_unresolved_threshold_alerts()
+
     _logger.info("evaluating %d rules", len(rules))
     for rule in rules:
-        _logger.debug("evaluating rule %r", rule)
-
-        evaluator = rule.get_evaluator()
-        if not evaluator.get_values():
-            _logger.warning("did not find any values for this rule")
-        new_exceeded = evaluator.evaluate(rule.alert)
-        for metric, value in new_exceeded:
-            _logger.debug("%s %s (=%s)", metric, rule.alert, value)
-            # TODO: verify there isn't already an unresolved threshold alert for this
-            start_event(rule, evaluator, metric, value)
+        evaluate_rule(rule, alerts)
+    _logger.info("done")
 
 
-def start_event(rule, evaluator, metric, value):
-    return make_event(True, rule, evaluator, metric, value)
+# pylint: disable=W0703
+def evaluate_rule(rule, alerts):
+    """
+    Evaluates the current status of a single rule and posts events if
+    necessary.
+    """
+    _logger.debug("evaluating rule %r", rule)
+
+    evaluator = rule.get_evaluator()
+    if not evaluator.get_values():
+        _logger.warning("did not find any matching values for rule %r %s",
+                        rule.target, rule.alert)
+
+    # post new exceed events
+    try:
+        exceeded = evaluator.evaluate(rule.alert)
+    except Exception:
+        _logger.exception("Unhandled exception while evaluating rule alert: %r",
+                          rule)
+        return
+
+    for metric, value in exceeded:
+        alert = alerts.get(rule.id, {}).get(metric, None)
+        _logger.info("%s: %s %s (=%s)",
+                     "old" if alert else "new", metric, rule.alert, value)
+        if not alert:
+            start_event(rule, metric, value)
+
+    # try to clear any existing threshold alerts
+    if rule.id in alerts:
+        clearable = alerts[rule.id]
+        try:
+            cleared = evaluator.evaluate(rule.clear)
+        except Exception:
+            _logger.exception(
+                "Unhandled exception while evaluating rule clear: %r", rule)
+            return
+
+        for metric, value in cleared:
+            if metric in clearable:
+                _logger.info("cleared: %s %s (=%s)",
+                             metric, rule.clear, value)
+                end_event(rule, metric, value)
 
 
-def end_event(rule, evaluator, metric, value):
-    return make_event(False, rule, evaluator, metric, value)
+def get_unresolved_threshold_alerts():
+    """
+    Retrieves unresolved threshold alerts from the database, mapped to rules
+    and metric names.
+    """
+    alert_map = defaultdict(dict)
+    alerts = AlertHistory.objects.filter(event_type__id='thresholdState',
+                                         end_time__gte=INFINITY)
+    for alert in alerts:
+        try:
+            ruleid, metric = alert.subid.split(':', 1)
+            ruleid = int(ruleid)
+        except (AttributeError, ValueError):
+            continue
+        else:
+            alert_map[ruleid][metric] = alert
+
+    return dict(alert_map)
+
+
+def start_event(rule, metric, value):
+    """Makes and posts a threshold start event"""
+    event = make_event(True, rule, metric, value)
+    _logger.debug("posted start event: %r", event)
+    return event
+
+
+def end_event(rule, metric, value):
+    """Makes and posts a threshold end event"""
+    event = make_event(False, rule,  metric, value)
+    _logger.debug("posted end event: %r", event)
+    return event
 
 
 @commit_on_success
-def make_event(start, rule, evaluator, metric, value):
+def make_event(start, rule, metric, value):
+    """Makes and posts a threshold event"""
     event = _event_template()
     event.state = event.STATE_START if start else event.STATE_END
     event.subid = "{rule}:{metric}".format(rule=rule.id, metric=metric)
@@ -133,6 +202,7 @@ def make_event(start, rule, evaluator, metric, value):
     event.save()
     if varmap:
         event.varmap = varmap
+    return event
 
 
 def _event_template():
