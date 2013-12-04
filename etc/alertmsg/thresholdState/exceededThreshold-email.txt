@@ -1,4 +1,4 @@
-Subject: Threshold for box {{ netbox.sysname }} (exeeded)
+Subject: Threshold exceeded on {{ metric }}
 
-Threshold ({{ descr }}, {{ threshold }}) for box {{ netbox.sysname }}
-has been exceeded since {{ time }}.
+The metric {{ metric }} was measured at {{ value }} on {{ time }},
+exceeding the configured threshold of {{ alert|safe }}.

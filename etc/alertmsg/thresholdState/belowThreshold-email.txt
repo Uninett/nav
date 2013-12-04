@@ -1,4 +1,4 @@
-Subject: Threshold for box {{ netbox.sysname }} (normal again)
+Subject: Threshold cleared for {{ metric }}
 
-Threshold ({{ descr }}, {{ threshold }}) for box {{ netbox.sysname }}
-is below the limit since {{ time }}.
+The metric {{ metric }} was measured at {{ value }} on {{ time }},
+clearing the configured threshold of {% firstof clear alert %}
