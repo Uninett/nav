@@ -1,75 +1,20 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-    <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/threshold.css" />
-    <script>require(['src/threshold']);</script>
+  <script>require(['src/threshold']);</script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css">
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/threshold.css">
 {% endblock %}
 
 {% block base_content %}
-<h3>Threshold manager</h3>
+  <h4>Threshold manager</h4>
 
-{# Only when tabbed page #}
-{% if active %}
-<div class="tabs">
-    <ul>
-        <li class="{{ active.bulk|yesno:"tabactive," }}">
-            <a href="{% url threshold-index %}">Bulk configure</a>
-        </li>
-        <li class="{{ active.all|yesno:"tabactive," }}">
-            <a href="{% url threshold-all %}">Configured thresholds</a>
-        </li>
-        <li class="{{ active.exceeded|yesno:"tabactive," }}">
-            <a href="{% url threshold-exceeded %}">Exceeded thresholds</a>
-        </li>
-    </ul>
-    <div class="tabcontent">
+  <div class="ui-widget">
+    <label>Metric search
+      <input type="search" id="metricsearchinput" data-url="{% url threshold-search %}" data-renderurl="{% url threshold-graph %}">
+    </label>
+  </div>
 
-        {% if active.all %}
-        <div class="infobox">
-            <ul><li>These are the currently configured thresholds, which may be adjusted here.</li></ul>
-        </div>
-
-        {% if not netboxes %}
-        <p><em>No thresholds are currently configured</em></p>
-        {% endif %}
-
-        {% endif %}
-
-        {% if active.exceeded %}
-        <div class="infobox">
-            <ul><li>These are the currently exceeded thresholds, which may be adjusted here.</li></ul>
-        </div>
-
-        {% if not netboxes %}
-        <p><em>No thresholds are currently exceeded</em></p>
-        {% endif %}
-
-        {% endif %}
-
-        {% if active.bulk %}
-
-        <div class="infobox">
-            <ul>
-                <li>Please select a type of data source you want to adjust thresholds for.</li>
-                <li>Then, select the IP devices whose thresholds you want to adjust.</li>
-                <li>If you selected a network interface datasource, also select the
-                    interfaces you wish to adjust thresholds for.</li>
-            </ul>
-        </div>
-
-        {% endif %}
-
-        {% endif %}
-
-        {% block content %}
-
-        {% endblock %}
-
-        {# Only when tabbed page #}
-        {% if active %}
-    </div>
-</div>
-
-{% endif %}
+  <div class="selectedMetric"></div>
 
 {% endblock %}

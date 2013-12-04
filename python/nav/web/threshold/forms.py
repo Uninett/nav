@@ -13,11 +13,4 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
-from django import forms
-from nav.models.rrd import RrdDataSource
-
-class RrdDataSourceForm(forms.ModelForm):
-    class Meta:
-        model = RrdDataSource
-        fields = ('delimiter', 'threshold')
+"""Forms for threshold app"""
