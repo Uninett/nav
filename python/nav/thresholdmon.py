@@ -175,6 +175,15 @@ def make_event(start, rule, metric, value):
 
     varmap = dict(metric=metric, alert=rule.alert, clear=rule.clear,
                   ruleid=str(rule.id), value=str(value))
+    _add_subject_details(event, metric, varmap)
+
+    event.save()
+    if varmap:
+        event.varmap = varmap
+    return event
+
+
+def _add_subject_details(event, metric, varmap):
     obj = lookup(metric)
     if obj:
         varmap['subject'] = "{table}:{pk}".format(
@@ -192,17 +201,15 @@ def make_event(start, rule, metric, value):
         try:
             event.device = obj.device
         except AttributeError:
-            pass
+            try:
+                event.device = obj.netbox.device
+            except AttributeError:
+                pass
 
         if isinstance(obj, Interface):
             varmap['interface'] = obj.ifname
         elif isinstance(obj, Sensor):
             varmap['sensor'] = obj.name
-
-    event.save()
-    if varmap:
-        event.varmap = varmap
-    return event
 
 
 def _event_template():
