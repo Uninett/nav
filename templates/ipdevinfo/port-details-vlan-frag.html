@@ -17,14 +17,14 @@
     <td>
       {% with port.get_sorted_vlans as swportvlans %}
         {% if swportvlans %}
-          <ul class="no-bullet">
+          <ul class="no-bullet limit-size">
             {% for swportvlan in swportvlans %}
               <li>
                 <i class="fa {{ swportvlan.get_direction_display|get_direction_class }}"
                    title="Direction {{ swportvlan.get_direction_display }}"></i>&nbsp;
                 <a href="{% url report-swporttrunk-vlanid swportvlan.vlan.id %}">
                   {{ swportvlan.vlan }}
-                </a> - {{ swportvlan.get_direction_display }}
+                </a>
 
               </li>
             {% endfor %}

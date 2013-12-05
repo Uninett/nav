@@ -190,3 +190,9 @@ form.inline-form {
 .checkboxinput.input-align {
     margin: 1.5em 0.2em 1.5em 0.2em;
 }
+
+/* Limit the vertical size of an element and display a scroll-bar instead */
+.limit-size {
+    max-height: 200px;
+    overflow: auto;
+}
