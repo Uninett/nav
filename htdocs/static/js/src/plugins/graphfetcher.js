@@ -39,7 +39,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             }
         },
         addButtons: function () {
-            var headerNode = $('<div/>').appendTo(this.node);
+            var headerNode = $('<div>').appendTo(this.node);
             this.headerNode = headerNode;
 
             for (var key in this.buttons) {
@@ -50,7 +50,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         },
         addButton: function (node, timeframe, text) {
             var that = this;
-            var button= $('<button />').addClass('graph-button-' + timeframe).html(text);
+            var button= $('<button />').addClass('tiny secondary graph-button-' + timeframe).html(text);
             button.click(function () {
                 that.loadGraph(timeframe);
             });
@@ -58,9 +58,9 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         },
         selectButton: function(timeframe) {
             $('button', this.headerNode).each(function (index, element) {
-                $(element).removeClass('button-selected');
+                $(element).removeClass('active');
             });
-            $('button.graph-button-' + timeframe, this.node).addClass('button-selected');
+            $('button.graph-button-' + timeframe, this.node).addClass('active');
         },
         loadGraph: function (timeframe) {
             var that = this;
