@@ -1,0 +1,38 @@
+{% with port.below_me as below_me %}{% with port.above_me as above_me %}
+  {% if below_me or above_me %}
+    <table class="listtable align-top">
+      <caption>Stacking/bundling</caption>
+
+      {% if below_me %}
+        <tr>
+          <th>Lower layer</th>
+          <td>
+            <ul class="inside">
+              {% for other_port in below_me %}
+                <li>
+                  <a href="{{ other_port.get_absolute_url }}">{{ other_port.ifname }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </td>
+        </tr>
+      {% endif %}
+
+      {% if above_me %}
+        <tr>
+          <th>Higher layer</th>
+          <td>
+            <ul class="inside">
+              {% for other_port in above_me %}
+                <li>
+                  <a href="{{ other_port.get_absolute_url }}">{{ other_port.ifname }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </td>
+        </tr>
+      {% endif %}
+
+    </table>
+  {% endif %}
+{% endwith %}{% endwith %}
