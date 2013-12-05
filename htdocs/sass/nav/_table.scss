@@ -19,49 +19,55 @@
 
 /* --- Common --- */
 
-table.expand {
-    width: 100%;
+@mixin table-caption {
+    caption {
+        border-bottom: 2px solid #000;
+        font-weight: bold;
+        padding: 0.3em 0.5em;
+        text-align: left;
+        span.subtitle {
+            font-size: 0.9em;
+            font-weight: normal;
+        }
+        a {
+            text-decoration: underline;
+            background: transparent;
+        }
+    }
 }
 
-.table-hover tbody tr:hover {
-    background-color: #FFF5E0;
-}
-
-table, tr {
+table {
+    &.vertitable {
+        @include table-caption;
+        th {
+            text-align: right;
+        }
+    }
+    &.listtable {
+        @include table-caption;
+    }
+    &.expand {
+        width: 100%;
+    }
+    &.hover {
+        tbody tr:hover {
+            background-color: #FFF5E0;
+        }
+    }
     &.align-top {
         td, th {
             vertical-align: top;
         }
     }
+    tr.align-top {
+        td, th {
+            vertical-align: top;
+        }
+    }
+    border-bottom: 1px solid #ddd;
 }
 
-/* Table caption */
-table.vertitable caption,
-table.listtable caption {
-    background: $table-caption-color;
-    border-bottom: 2px solid white;
-    color: white;
-    font-weight: bold;
-    padding: 0.3em 0.5em;
-    text-align: left;
-}
-table.vertitable caption span.subtitle,
-table.listtable caption span.subtitle {
-    font-size: 0.9em;
-    font-weight: normal;
-}
-table.vertitable caption a,
-table.listtable caption a {
-    text-decoration:underline;
-    background: transparent;
-    color: white;
-}
 
-table.vertitable {
-    th {
-        text-align: right;
-    };
-}
 
 /* --- List table with tablesorter --- */
 
