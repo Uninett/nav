@@ -29,7 +29,7 @@ table.expand {
 
 table, tr {
     &.align-top {
-        td {
+        td, th {
             vertical-align: top;
         }
     }

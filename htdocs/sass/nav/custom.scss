@@ -95,6 +95,12 @@ ul.ui-tabs-nav {
 
 /* List styles */
 
+.alert-box {
+  ul, ol {
+    margin-left: 1.2em;
+  }
+}
+
 ul.errorlist {
     margin-bottom: 0;
     list-style-type: none;

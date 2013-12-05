@@ -15,7 +15,7 @@
 #
 
 import time
-from nav.statemon import config, RunQueue, db, rrd, event
+from nav.statemon import config, RunQueue, db, statistics, event
 from nav.statemon.debug import debug
 
 TIMEOUT = 5  # default, hardcoded timeout :)
@@ -160,7 +160,7 @@ class AbstractChecker:
 
     def updateRrd(self):
         try:
-            rrd.update(self.getNetboxid(),
+            statistics.update(self.getNetboxid(),
                    self.getSysname(),
                    'N',
                    self.getStatus(),

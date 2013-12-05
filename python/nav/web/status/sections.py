@@ -23,11 +23,13 @@ from datetime import datetime
 
 from django.db.models import Q
 from django.core.urlresolvers import reverse
+from nav.metrics.templates import metric_prefix_for_device
 
 from nav.models.profiles import StatusPreference, StatusPreferenceCategory
 from nav.models.profiles import StatusPreferenceOrganization
 from nav.models.event import AlertHistory, AlertType, AlertHistoryVariable
 from nav.models.manage import Netbox, Module, Category, Organization
+from nav.models.thresholds import ThresholdRule
 
 from nav.web import servicecheckers
 
@@ -605,6 +607,7 @@ class ModuleSection(_Section):
             history.append(row)
         self.history = history
 
+
 class ThresholdSection(_Section):
     columns = [
         'Sysname',
@@ -626,10 +629,10 @@ class ThresholdSection(_Section):
             'name': status_prefs.name,
             'type': status_prefs.type,
             'organizations': list(status_prefs.organizations.values_list(
-                    'id', flat=True)) or [''],
-        }
-        data['categories'] = list(status_prefs.categories.values_list(
+                'id', flat=True)) or [''],
+            'categories': list(status_prefs.categories.values_list(
                 'id', flat=True)) or ['']
+        }
         return data
 
     def fetch_history(self):
@@ -644,47 +647,50 @@ class ThresholdSection(_Section):
         ).extra(
             select={
                 'downtime': "date_trunc('second', NOW() - start_time)",
-                'rrd_description': 'rrd_datasource.descr',
-                'rrd_units': 'rrd_datasource.units',
-                'rrd_threshold': 'rrd_datasource.threshold',
             },
-            tables=['rrd_datasource'],
-            where=['subid = rrd_datasource.rrd_datasourceid::text']
         ).order_by('-start_time')
 
         history = []
-        for t in thresholds:
-            rrd_description = t.rrd_description
-            if not rrd_description:
-                rrd_description = 'Unknown datasource'
-            description = '%(descr)s exceeded %(threshold)s%(units)s' % {
-                'descr': rrd_description,
-                'threshold': t.rrd_threshold,
-                'units': t.rrd_units,
-            }
-
-            row = {'netboxid': t.netbox.id,
+        for alert in thresholds:
+            description = self._description_from_alert(alert)
+            row = {'netboxid': alert.netbox.id,
                    'tabrow': (
-                    (
-                        t.netbox.sysname,
+                       (alert.netbox.sysname,
                         reverse('ipdevinfo-details-by-name',
-                            args=[t.netbox.sysname])
-                    ),
-                    (description, None),
-                    (t.start_time, None),
-                    (t.downtime, None),
-                    (
-                        'history',
+                                args=[alert.netbox.sysname])),
+                       (description, None),
+                       (alert.start_time, None),
+                       (alert.downtime, None),
+                       ('history',
                         reverse('devicehistory-view') +
                         '?netbox=%(id)s&type=a_exceededThreshold'
                         '&group_by=datetime' % {
-                            'id': t.netbox.id,
-                        }
-                    ),
-                ),
-            }
+                            'id': alert.netbox.id,
+                        }),
+                   ),
+                   }
             history.append(row)
         self.history = history
+
+    @staticmethod
+    def _description_from_alert(alert):
+        try:
+            ruleid, metric = alert.subid.split(':', 1)
+        except ValueError:
+            description = None
+        else:
+            try:
+                rule = ThresholdRule.objects.get(id=ruleid)
+            except ThresholdRule.DoesNotExist:
+                limit = ''
+            else:
+                limit = rule.alert
+
+            prefix = metric_prefix_for_device(alert.netbox.sysname)
+            if metric.startswith(prefix):
+                metric = metric[len(prefix)+1:]
+            description = "{0} {1}".format(metric, limit)
+        return description
 
 class LinkStateSection(_Section):
     columns =  [
