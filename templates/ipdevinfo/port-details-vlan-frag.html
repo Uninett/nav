@@ -1,3 +1,4 @@
+{% load port_info %}
 <table class="vertitable full-width">
   <caption>Connection</caption>
 
@@ -19,7 +20,8 @@
           <ul class="no-bullet">
             {% for swportvlan in swportvlans %}
               <li>
-                <i class="fa fa-arrow-circle-o-down"></i>&nbsp;
+                <i class="fa {{ swportvlan.get_direction_display|get_direction_class }}"
+                   title="Direction {{ swportvlan.get_direction_display }}"></i>&nbsp;
                 <a href="{% url report-swporttrunk-vlanid swportvlan.vlan.id %}">
                   {{ swportvlan.vlan }}
                 </a> - {{ swportvlan.get_direction_display }}
