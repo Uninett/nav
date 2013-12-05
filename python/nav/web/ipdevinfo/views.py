@@ -470,6 +470,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
                                      ifdescr=port_name)
 
     navpath = NAVPATH + [('Port Details',)]
+    heading = title = 'Port details: ' + unicode(port)
 
     return render_to_response(
         'ipdevinfo/port-details.html',
@@ -477,8 +478,8 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'port_type': port_type,
             'port': port,
             'navpath': navpath,
-            'heading': unicode(port),
-            'title': unicode(port),
+            'heading': heading,
+            'title': title,
         },
         context_instance=RequestContext(request,
             processors=[search_form_processor]))
