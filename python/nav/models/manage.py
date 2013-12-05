@@ -1207,6 +1207,11 @@ class Interface(models.Model):
         """Returns interfaces stacked with this one on a layer above"""
         return Interface.objects.filter(higher_layer__lower=self)
 
+    def get_sorted_vlans(self):
+        """Returns a queryset of sorted swportvlans"""
+        return self.swportvlan_set.select_related('vlan').order_by(
+            'vlan__vlan')
+
 
 class InterfaceStack(models.Model):
     """Interface layered stacking relationships"""
