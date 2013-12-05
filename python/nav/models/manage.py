@@ -1243,11 +1243,10 @@ class RoutingProtocolAttribute(models.Model):
 class Sensor(models.Model):
     """
     This table contains meta-data about available sensors in
-    network-equipment.
+    network equipment.
 
-    Information in this table is used to make configurations for
-    Cricket,- and Cricket maintain the resulting RRD-files for
-    statistics.
+    Information from this table is used to poll metrics and display graphs for
+    sensor data.
     """
 
     UNIT_OTHER = 'other'         # Other than those listed
