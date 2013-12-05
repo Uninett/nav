@@ -32,13 +32,11 @@
                                         {{ metric.suffix }}
                                     </td>
                                     <td>
-                                        <a href="{% url threshold-netbox netbox.id %}">
-                                            {% if metric.threshold %}
-                                                {{ metric.threshold }}
-                                            {% else %}
-                                                not configured
-                                            {% endif %}
-                                        </a>
+                                        {% if metric.threshold %}
+                                            {{ metric.threshold }}
+                                        {% else %}
+                                            not configured
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}
