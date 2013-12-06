@@ -61,10 +61,13 @@ table {
     }
     tr.align-top {
         td, th {
-            vertical-align: top;
+            vertical-align: baseline;
         }
     }
     border-bottom: 1px solid #ddd;
+    ul {
+        margin-bottom: 0;
+    }
 }
 
 
