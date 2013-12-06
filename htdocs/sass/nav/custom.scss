@@ -152,7 +152,7 @@ li.list-header {
 
 
 /* Add margin to font awesome in buttons */
-.button, a {
+button, .button, a {
     > i {
         margin-left: 0.375em;
     }
