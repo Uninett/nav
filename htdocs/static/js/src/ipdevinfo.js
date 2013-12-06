@@ -30,7 +30,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
 
         $('.countergraph').each(function (index, element) {
             var interfaceid = $(element).attr('data-interface');
-            var counter = $(element).attr('data-counter')
+            var counter = $(element).attr('data-counter');
             var url = '/ipdevinfo/g/port/' + interfaceid + '/' + counter;
             var config = {};
             new GraphFetcher($(element), url, config);

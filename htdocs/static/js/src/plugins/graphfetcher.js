@@ -34,7 +34,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             if (!(node instanceof jQuery && node.length)) {
                 throw new Error('Need a valid node to attach to');
             }
-            if (!(typeof url === "string")) {
+            if (typeof url !== "string") {
                 throw new Error('Need a string as url');
             }
         },
@@ -50,7 +50,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         },
         addButton: function (node, timeframe, text) {
             var that = this;
-            var button= $('<button />').addClass('tiny secondary graph-button-' + timeframe).html(text);
+            var button = $('<button>').addClass('tiny secondary graph-button-' + timeframe).html(text);
             button.click(function () {
                 that.loadGraph(timeframe);
             });
@@ -83,7 +83,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             if ($('img', this.node).length > 0) {
                 $('img', this.node).attr('src', url);
             } else {
-                $('<img/>').attr(attrs).appendTo(this.node);
+                $('<img>').attr(attrs).appendTo(this.node);
             }
         },
         handleXhr: function (xhr, requestData) {
@@ -99,7 +99,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 $('span.error', that).remove();
             });
             xhr.always(function () {
-                if (xhr.status != 503) {
+                if (xhr.status !== 503) {
                     that.node.show();
                 }
                 that.spinner.stop();
