@@ -1,416 +1,438 @@
 {% load info %}
 
 <div id="deviceinfo">
-<table id="ipdevinfo" class="vertitable">
-{% if netbox %}
-    <caption>
-        IP Device: {{ netbox.get_short_sysname }}
-    </caption>
 
-    <tr>
+<div class="row">
+
+{% if netbox %}
+
+  {% comment %} IP DEVICE {% endcomment %}
+  <div class="medium-4 column">
+    <table class="vertitable">
+      <caption>
+        IP Device: {{ netbox.get_short_sysname }}
+      </caption>
+      <tbody>
+      <tr>
         <th>Full sysname</th>
         <td>{{ netbox.sysname }}</td>
-    </tr>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Type</th>
         <td>
-            {% if netbox.type %}
-                <a href="{% url report-type-type netbox.type.id %}">
-                    {{ netbox.type }}</a></td>
-            {% else %}
-                N/A
-            {% endif %}
+          {% if netbox.type %}
+            <a href="{% url report-type-type netbox.type.id %}">
+              {{ netbox.type }}</a></td>
+          {% else %}
+            N/A
+          {% endif %}
         </td>
-    </tr>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Category</th>
         <td>
-            <a href="{% url report-netbox-category netbox.category.id %}">
-                {{ netbox.category }}
-            </a>
+          <a href="{% url report-netbox-category netbox.category.id %}">
+            {{ netbox.category }}
+          </a>
         </td>
-    </tr>
+      </tr>
 
-    {% if netboxgroups %}
+      {% if netboxgroups %}
         <tr>
-            <th>Device groups</th>
-            <td>
-                {% for netboxgroup in netboxgroups %}
-                    <a class="navtag" href="{% url netbox-group-detail netboxgroup.category_id %}">
-                        {{ netboxgroup.category_id }}
-                    </a>
-                {% endfor %}
-            </td>
+          <th>Device groups</th>
+          <td>
+            {% for netboxgroup in netboxgroups %}
+              <a class="navtag"
+                 href="{% url netbox-group-detail netboxgroup.category_id %}">
+                {{ netboxgroup.category_id }}
+              </a>
+            {% endfor %}
+          </td>
         </tr>
-    {% endif %}
+      {% endif %}
 
-    <tr>
+      <tr>
         <th>Function</th>
         <td>{{ netbox.get_function|default:"N/A" }}</td>
-    </tr>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Organization</th>
         <td>
-            <a href="{% url report-organization-organization netbox.organization.id|urlencode %}">
-                {{ netbox.organization }}</a></td>
-    </tr>
+          <a href="{% url report-organization-organization netbox.organization.id|urlencode %}">
+            {{ netbox.organization }}</a></td>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Room</th>
         <td>
-            <a href="{% url room-info netbox.room.id %}">
-                {{ netbox.room }}</a></td>
-    </tr>
+          <a href="{% url room-info netbox.room.id %}">
+            {{ netbox.room }}</a></td>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Serial number</th>
         <td>{{ netbox.device.serial|default:"N/A" }}</td>
-    </tr>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Software</th>
         <td>{{ netbox.device.software_version|default:"N/A" }}</td>
-    </tr>
+      </tr>
 
-    <tr>
+      <tr>
         <th>IP address</th>
         <td><a href="{% url ipdevinfo-details-by-addr netbox.ip %}">
-            {{ netbox.ip }}</a></td>
-    </tr>
+          {{ netbox.ip }}</a></td>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Prefix</th>
         <td>
-            {% with netbox.get_filtered_prefix as prefix %}
-                {% if prefix %}
-                    <a href="{% url report-prefix-prefix prefix.id %}">
-                        {{ prefix }}</a>
-                {% else %}
-                    N/A
-                {% endif %}
-            {% endwith %}
+          {% with netbox.get_filtered_prefix as prefix %}
+            {% if prefix %}
+              <a href="{% url report-prefix-prefix prefix.id %}">
+                {{ prefix }}</a>
+            {% else %}
+              N/A
+            {% endif %}
+          {% endwith %}
         </td>
-    </tr>
+      </tr>
 
-    <tr>
+      <tr>
         {% with netbox.get_uplinks as uplinks %}
-            <th>Uplink{{ uplinks|pluralize }}</th>
-            <td>
-                {% if uplinks %}
-                    {% if uplinks|length_is:1 %}
-                        {% if uplinks.0.this %}
-                            From <a href="{{ uplinks.0.this.get_absolute_url }}">
-                            {{ uplinks.0.this }}</a><br/>
-                            To
-                        {% endif %}
-                        <a href="{{ uplinks.0.other.get_absolute_url }}">
-                            {{ uplinks.0.other }}</a>
-                    {% else %}
-                        <ul>
-                            {% for uplink in uplinks %}
-                                <li>
-                                    {% if uplinks.0.this %}
-                                        From <a href="{{ uplink.this.get_absolute_url }}">
-                                        {{ uplink.this }}</a><br/>
-                                        To
-                                    {% endif %}
-                                    <a href="{{ uplink.other.get_absolute_url }}">
-                                        {{ uplink.other }}</a>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                {% else %}
-                    N/A
+          <th>Uplink{{ uplinks|pluralize }}</th>
+          <td>
+            {% if uplinks %}
+              {% if uplinks|length_is:1 %}
+                {% if uplinks.0.this %}
+                  From <a href="{{ uplinks.0.this.get_absolute_url }}">
+                  {{ uplinks.0.this }}</a><br/>
+                  To
                 {% endif %}
-            </td>
+                <a href="{{ uplinks.0.other.get_absolute_url }}">
+                  {{ uplinks.0.other }}</a>
+              {% else %}
+                <ul>
+                  {% for uplink in uplinks %}
+                    <li>
+                      {% if uplinks.0.this %}
+                        From <a href="{{ uplink.this.get_absolute_url }}">
+                        {{ uplink.this }}</a><br/>
+                        To
+                      {% endif %}
+                      <a href="{{ uplink.other.get_absolute_url }}">
+                        {{ uplink.other }}</a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
         {% endwith %}
-    </tr>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Modules</th>
         <td><a href="{% url report-modules-netbox netbox.id %}">
-            {{ netbox.module_set.count }}</a></td>
-    </tr>
+          {{ netbox.module_set.count }}</a></td>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Interfaces</th>
         <td><a href="{% url report-interfaces-netbox netbox.id %}">
-            {{ netbox.interface_set.count }}</a></td>
-    </tr>
+          {{ netbox.interface_set.count }}</a></td>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Switch ports</th>
         <td><a href="{% url report-swport-netbox netbox.id %}">
-            {{ netbox.get_swports.count }}</a></td>
-    </tr>
+          {{ netbox.get_swports.count }}</a></td>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Router ports</th>
         <td><a href="{% url report-gwport-netbox netbox.id %}">
-            {{ netbox.get_gwports.count }}</a></td>
-    </tr>
+          {{ netbox.get_gwports.count }}</a></td>
+      </tr>
 
-    <tr>
-        <th colspan="2">Status</th>
-    </tr>
+      </tbody>
+    </table>
+  </div>
 
-    <tr>
+
+  {% comment %} STATUS {% endcomment %}
+  <div class="medium-4 column">
+    <table class="vertitable">
+      <caption>
+        Status
+      </caption>
+      <tbody>
+      <tr>
         <th>Uptime</th>
         <td>
-            {{ netbox.get_up_display|capfirst }}
-            {% ifequal netbox.up netbox.UP_UP %}
-                for {{ netbox.up_since|timesince }}
-            {% endifequal %}
+          {{ netbox.get_up_display|capfirst }}
+          {% ifequal netbox.up netbox.UP_UP %}
+            for {{ netbox.up_since|timesince }}
+          {% endifequal %}
         </td>
-    </tr>
+      </tr>
 
-    {% with netbox.get_availability as stats %}
+      {% with netbox.get_availability as stats %}
         <tr>
-            <th>Availability</th>
-            <td>
-                {% if stats %}
-                    {% with stats.availability as a %}
-                            {% if a.day %}
-                                {{ a.day|floatformat:2 }}%
-                            {% else %}
-                                (N/A)
-                            {% endif %}
-                            last day,
-
-                            {% if a.week %}
-                                {{ a.week|floatformat:2 }}%
-                            {% else %}
-                                (N/A)
-                            {% endif %}
-                            last week,
-
-                            {% if a.month %}
-                                {{ a.month|floatformat:2 }}%
-                            {% else %}
-                                (N/A)
-                            {% endif %}
-                            last month
-                    {% endwith %}
+          <th>Availability</th>
+          <td>
+            {% if stats %}
+              {% with stats.availability as a %}
+                {% if a.day %}
+                  {{ a.day|floatformat:2 }}%
                 {% else %}
-                    N/A
+                  (N/A)
                 {% endif %}
-            </td>
+                last day,
+
+                {% if a.week %}
+                  {{ a.week|floatformat:2 }}%
+                {% else %}
+                  (N/A)
+                {% endif %}
+                last week,
+
+                {% if a.month %}
+                  {{ a.month|floatformat:2 }}%
+                {% else %}
+                  (N/A)
+                {% endif %}
+                last month
+              {% endwith %}
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
         </tr>
 
         <tr>
-            <th>Response time</th>
-            <td>
-                {% if stats %}
-                    {% with stats.response_time as rt %}
-                            {% if rt.day %}
-                                {{ rt.day|floatformat:3 }}s
-                            {% else %}
-                                (N/A)
-                            {% endif %}
-                            last day,
-
-                            {% if rt.week %}
-                                {{ rt.week|floatformat:3 }}s
-                            {% else %}
-                                (N/A)
-                            {% endif %}
-                            last week,
-
-                            {% if rt.month %}
-                                {{ rt.month|floatformat:3 }}s
-                            {% else %}
-                                (N/A)
-                            {% endif %}
-                            last month
-                    {% endwith %}
+          <th>Response time</th>
+          <td>
+            {% if stats %}
+              {% with stats.response_time as rt %}
+                {% if rt.day %}
+                  {{ rt.day|floatformat:3 }}s
                 {% else %}
-                    N/A
+                  (N/A)
                 {% endif %}
-            </td>
-        </tr>
-    {% endwith %}
+                last day,
 
-    <tr>
+                {% if rt.week %}
+                  {{ rt.week|floatformat:3 }}s
+                {% else %}
+                  (N/A)
+                {% endif %}
+                last week,
+
+                {% if rt.month %}
+                  {{ rt.month|floatformat:3 }}s
+                {% else %}
+                  (N/A)
+                {% endif %}
+                last month
+              {% endwith %}
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
+        </tr>
+      {% endwith %}
+
+      <tr>
         <th>First discovered</th>
         <td>{{ netbox.discovered|date|default:"N/A" }}
-            {{ netbox.discovered|time }}</td>
-    </tr>
+          {{ netbox.discovered|time }}</td>
+      </tr>
 
-    <tr>
-        <th colspan="2">Jobs</th>
-    </tr>
+      </tbody>
+    </table>
+  </div>
 
+
+  {% comment %} JOBS {% endcomment %}
+  <div class="medium-4 column">
     {% with netbox.get_last_jobs as jobs %}
-        {% if jobs %}
-            <tr>
-                <th>&nbsp;</th>
-                <td>
-                    <table style="width:100%">
-                        <thead>
-                        <th>Name</th>
-                        <th>End time</th>
-                        <th>Duration</th>
-                        <th class="cell-center">Status</th>
-                        </thead>
+      {% if jobs %}
+        <table class="listtable full-width">
+          <caption>Jobs</caption>
+          <thead>
+          <tr>
+            <th>Name</th>
+            <th>End time</th>
+            <th>Duration</th>
+            <th class="cell-center">Status</th>
+          </tr>
+          </thead>
 
-                        <tbody>
-                        {% for job in jobs|dictsortreversed:'end_time' %}
-                            <tr>
-                                <td title="{{ job_descriptions|lookup:job.job_name|default:'No description' }}">
-                                    {{ job.job_name|capfirst }}
-                                </td>
-                                <td title="Next run expected at {{ job.end_time|add_interval:job.interval|date:"DATETIME_FORMAT" }}">
-                                    {{ job.end_time|date:"DATETIME_FORMAT" }}
-                                </td>
-                                <td class="cell-right">
-                                    {{ job.duration|stringformat:".2f" }}s
-                                </td>
-                                <td class="cell-center">
-                                    {% if job.is_overdue %}
-                                        <img src="{{ STATIC_URL }}images/lys/yellow.png"
-                                             alt="Overdue"
-                                             title="Overdue - interval is {{ job.interval|interval }}">
-                                    {% else %}
-                                        {% if job.success %}
-                                            <img src="{{ STATIC_URL }}images/lys/green.png" alt="Success" title="Success">
-                                        {% else %}
-                                            <img src="{{ STATIC_URL }}images/lys/red.png" alt="Failed" title="Failed">
-                                        {% endif %}
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-        {% else %}
+          <tbody>
+          {% for job in jobs|dictsortreversed:'end_time' %}
             <tr>
-                <th>&nbsp;</th>
-                <td>No jobs have run on this netbox</td>
+              <td title="{{ job_descriptions|lookup:job.job_name|default:'No description' }}">
+                {{ job.job_name|capfirst }}
+              </td>
+              <td title="Next run expected at {{ job.end_time|add_interval:job.interval|date:"DATETIME_FORMAT" }}">
+                {{ job.end_time|date:"DATETIME_FORMAT" }}
+              </td>
+              <td class="cell-right">
+                {{ job.duration|stringformat:".2f" }}s
+              </td>
+              <td class="cell-center">
+                {% if job.is_overdue %}
+                  <img src="{{ STATIC_URL }}images/lys/yellow.png"
+                       alt="Overdue"
+                       title="Overdue - interval is {{ job.interval|interval }}">
+                {% else %}
+                  {% if job.success %}
+                    <img src="{{ STATIC_URL }}images/lys/green.png"
+                         alt="Success" title="Success">
+                  {% else %}
+                    <img src="{{ STATIC_URL }}images/lys/red.png"
+                         alt="Failed" title="Failed">
+                  {% endif %}
+                {% endif %}
+              </td>
             </tr>
-        {% endif %}
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>No jobs have run on this netbox</p>
+      {% endif %}
     {% endwith %}
+  </div>
+
 
 
 {% else %}
 
 
-    <caption class="nowrap">IP
+  {% comment %} IF NO NETBOX SHOW THIS {% endcomment %}
+  <div class="small-12 column">
+    <table id="ipdevinfo" class="vertitable">
+      <caption class="nowrap">IP
         Address: {{ host_info.addresses.0.addr|default:"N/A" }}</caption>
-    <tr>
+      <tr>
         <th>Status</th>
         <td>Not monitored</td>
-    </tr>
+      </tr>
 
-    <tr>
+      <tr>
         <th>Prefix</th>
         <td>
-            {% with no_netbox.prefix as prefix %}
-                {% if prefix %}
-                    <a href="{% url report-prefix-prefix prefix.id %}">
-                        {{ prefix.net_address }}
-                    </a>
-                {% else %}
-                    N/A
-                {% endif %}
-            {% endwith %}
+          {% with no_netbox.prefix as prefix %}
+            {% if prefix %}
+              <a href="{% url report-prefix-prefix prefix.id %}">
+                {{ prefix.net_address }}
+              </a>
+            {% else %}
+              N/A
+            {% endif %}
+          {% endwith %}
         </td>
-    </tr>
+      </tr>
 
-    {% with no_netbox.prefix.vlan as vlan %}
+      {% with no_netbox.prefix.vlan as vlan %}
         <tr>
-            <th>VLAN</th>
-            <td>
-                {% if vlan %}
-                    <a href="{% url report-swporttrunk-vlanid vlan.id %}">
-                        {{ vlan }}
-                    </a>
-                {% else %}
-                    N/A
-                {% endif %}
-            </td>
+          <th>VLAN</th>
+          <td>
+            {% if vlan %}
+              <a href="{% url report-swporttrunk-vlanid vlan.id %}">
+                {{ vlan }}
+              </a>
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
         </tr>
 
         <tr>
-            <th class="indent">Usage</th>
-            <td>{{ vlan.usage|default:"N/A" }}</td>
+          <th class="indent">Usage</th>
+          <td>{{ vlan.usage|default:"N/A" }}</td>
         </tr>
 
         <tr>
-            <th class="indent">Description</th>
-            <td>{{ vlan.description|default:"N/A" }}</td>
+          <th class="indent">Description</th>
+          <td>{{ vlan.description|default:"N/A" }}</td>
         </tr>
 
         <tr>
-            <th class="indent">Organization</th>
-            <td>
-                {% if vlan.organization %}
-                    <a href="{% url report-organization-organization vlan.organization.id|urlencode %}">
-                        {{ vlan.organization|default:"N/A" }}
-                    </a>
-                {% else %}
-                    N/A
-                {% endif %}
-            </td>
+          <th class="indent">Organization</th>
+          <td>
+            {% if vlan.organization %}
+              <a href="{% url report-organization-organization vlan.organization.id|urlencode %}">
+                {{ vlan.organization|default:"N/A" }}
+              </a>
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
         </tr>
 
         <tr>
-            <th class="indent">Optional #1</th>
-            <td>{{ vlan.organization.optional_1|default:"N/A" }}</td>
+          <th class="indent">Optional #1</th>
+          <td>{{ vlan.organization.optional_1|default:"N/A" }}</td>
         </tr>
 
         <tr>
-            <th class="indent">Optional #2</th>
-            <td>{{ vlan.organization.optional_2|default:"N/A" }}</td>
+          <th class="indent">Optional #2</th>
+          <td>{{ vlan.organization.optional_2|default:"N/A" }}</td>
         </tr>
 
         <tr>
-            <th class="indent">Optional #3</th>
-            <td>{{ vlan.organization.optional_3|default:"N/A" }}</td>
+          <th class="indent">Optional #3</th>
+          <td>{{ vlan.organization.optional_3|default:"N/A" }}</td>
         </tr>
-    {% endwith %}
+      {% endwith %}
 
-    {% with no_netbox.arp as arp %}
+      {% with no_netbox.arp as arp %}
         <tr>
-            <th>Last active</th>
-            <td>
-                {% ifequal no_netbox.dt_max arp.end_time %}
-                    <a href="{% url machinetracker-mac_search arp.mac 1 "" %}">
-                        Right now
-                    </a>
-                {% else %}
-                    {% if arp.end_time %}
-                        <a href="{% url machinetracker-mac_search arp.mac no_netbox.days_since_active "" %}">
-                            {{ arp.end_time|date }}
-                            {{ arp.end_time|time }}
-                        </a>
-                    {% else %}
-                        Never
-                    {% endif %}
-                {% endifequal %}
-            </td>
+          <th>Last active</th>
+          <td>
+            {% ifequal no_netbox.dt_max arp.end_time %}
+              <a href="{% url machinetracker-mac_search arp.mac 1 "" %}">
+                Right now
+              </a>
+            {% else %}
+              {% if arp.end_time %}
+                <a href="{% url machinetracker-mac_search arp.mac no_netbox.days_since_active "" %}">
+                  {{ arp.end_time|date }}
+                  {{ arp.end_time|time }}
+                </a>
+              {% else %}
+                Never
+              {% endif %}
+            {% endifequal %}
+          </td>
         </tr>
 
         <tr>
-            <th>Last seen with MAC</th>
-            <td>
-                {% if arp.mac %}
-                    <a href="{% url machinetracker-mac_search arp.mac 30 "" %}">
-                        {{ arp.mac }}
-                    </a>
-                {% else %}
-                    N/A
-                {% endif %}
-            </td>
+          <th>Last seen with MAC</th>
+          <td>
+            {% if arp.mac %}
+              <a href="{% url machinetracker-mac_search arp.mac 30 "" %}">
+                {{ arp.mac }}
+              </a>
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
         </tr>
-    {% endwith %}
+      {% endwith %}
 
+    </table>
+  </div>
 {% endif %}
-</table>
 
+</div>
 </div>
