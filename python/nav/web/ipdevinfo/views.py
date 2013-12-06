@@ -469,7 +469,10 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             port = get_object_or_404(ports, netbox__sysname=netbox_sysname,
                                      ifdescr=port_name)
 
-    navpath = NAVPATH + [('Port Details',)]
+    navpath = NAVPATH + [
+        (netbox_sysname,
+         reverse('ipdevinfo-details-by-name',
+                 kwargs={'name': netbox_sysname})), ('Port Details',)]
     heading = title = 'Port details: ' + unicode(port)
 
     return render_to_response(
@@ -482,7 +485,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'title': title,
         },
         context_instance=RequestContext(request,
-            processors=[search_form_processor]))
+                                        processors=[search_form_processor]))
 
 
 def port_counter_graph(request, interfaceid, kind='Octets'):
