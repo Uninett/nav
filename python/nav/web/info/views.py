@@ -33,7 +33,7 @@ from random import choice
 
 def get_path():
     """Get the path for this subsystem"""
-    return [('Home', '/'), ('Info', reverse('info-search'))]
+    return [('Home', '/'), ('Search', reverse('info-search'))]
 
 
 def index(request):
@@ -41,7 +41,7 @@ def index(request):
 
     searchproviders = []
 
-    navpath = [('Home', '/'), ('Info', reverse('info-search'))]
+    navpath = [('Home', '/'), ('Search', reverse('info-search'))]
     titles = navpath
 
     if "query" in request.GET:

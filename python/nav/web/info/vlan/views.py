@@ -42,7 +42,7 @@ def get_path(extra=None):
     """Return breadcrumb list"""
     if not extra:
         extra = []
-    return [('Home', '/'), ('Info', reverse('info-search')),
+    return [('Home', '/'), ('Search', reverse('info-search')),
             ('Vlan', reverse('vlan-index'))] + extra
 
 

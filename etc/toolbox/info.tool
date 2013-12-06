@@ -1,5 +1,5 @@
-name=Info
-uri=/info/
+name=Search
+uri=/search/
 icon=/images/toolbox/info.png
-description=Find detailed information about devices, rooms, prefixes and more.
+description=Search for devices, rooms, prefixes and more.
 priority=1

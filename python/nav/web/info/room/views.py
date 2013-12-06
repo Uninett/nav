@@ -42,7 +42,7 @@ _logger = logging.getLogger('nav.web.info.room')
 
 def get_path():
     """Get the path for this subsystem"""
-    return [('Home', '/'), ('Info', reverse('info-search')),
+    return [('Home', '/'), ('Search', reverse('info-search')),
             ('Room', reverse('room-search'))]
 
 
