@@ -2,6 +2,8 @@
 
 {% block content %}
 
+  <p><a href="{% url ipdevinfo-details-by-name port.netbox.sysname %}">Back to {{ port.netbox.sysname }}</a></p>
+
   {% if port.baseport %}
     <div class="row">
       <div class="small-12 column">
@@ -37,20 +39,13 @@
 
   </div>
 
-
-  </table>
-
   <h3>Activity graphs</h3>
-  <div class="countergraph left" data-interface="{{ port.id }}"
-       data-counter="Octets"></div>
-  <div class="countergraph left" data-interface="{{ port.id }}"
-       data-counter="UcastPkts"></div>
-  <div class="countergraph left" data-interface="{{ port.id }}"
-       data-counter="Errors"></div>
-  <div class="countergraph left" data-interface="{{ port.id }}"
-       data-counter="Discards"></div>
+  <div class="countergraph left" data-interface="{{ port.id }}" data-counter="Octets"></div>
+  <div class="countergraph left" data-interface="{{ port.id }}" data-counter="UcastPkts"></div>
+  <div class="countergraph left" data-interface="{{ port.id }}" data-counter="Errors"></div>
+  <div class="countergraph left" data-interface="{{ port.id }}" data-counter="Discards"></div>
 
-{% include 'ipdevinfo/port-details-metrics-frag.html' %}
+  {% include 'ipdevinfo/port-details-metrics-frag.html' %}
 
 
 {% endblock %}
