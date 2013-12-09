@@ -1,12 +1,10 @@
 require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], function () {
     /* The global variable metric is set in the base template of the threshold page */
 
-    var $inputElement = $('#metricsearchinput'),
-        metric = $inputElement.attr('data-metric'),
-        $formContainer = $('.navbody .formcontainer'),
-        $infoElement = $('#metricInfo'),
-        $metricGraph = $infoElement.find('.metricGraph'),
-        $formInput = $('#id_target'),
+    var $inputElement = $('#id_target'),
+        $dataElement = $inputElement.parents('.dataelement'),
+        metric = $dataElement.attr('data-metric'),
+        $metricGraph = $('.metricGraph'),
         spinner = new Spinner();
 
     $(function () {
@@ -14,14 +12,13 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
             {
                 'delay': 300,
                 'minLength': 3,
-                'source': $inputElement.attr('data-url'),
+                'source': $dataElement.attr('data-url'),
                 'select': handleSelect
             }
         );
         $inputElement.focus();
 
         if (metric) {
-            $inputElement.val(metric);
             displayMetricInfo(metric);
         }
     });
@@ -35,11 +32,9 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
     }
 
     function displayMetricInfo(metric) {
-        $formContainer.removeClass('hide');
-        $formInput.val(metric);
         startSpinner();
 
-        $.get($inputElement.attr('data-renderurl'),
+        $.get($dataElement.attr('data-renderurl'),
             {'metric': metric},
             function (data) {
                 var image = new Image();

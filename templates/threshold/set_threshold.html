@@ -12,6 +12,7 @@
 
   <p><a href="{% url threshold-index %}">Back to thresholds</a></p>
 
+{% comment %}
   <div class="ui-widget">
     <label>Metric search
       <input type="search"
@@ -21,17 +22,21 @@
              data-metric="{{ metric|default_if_none:'' }}" >
     </label>
   </div>
+{% endcomment %}
 
-  <div class="row hide formcontainer">
+  <div class="row">
 
     <div class="column medium-6">
-      {% crispy form %}
+      <div class="dataelement"
+           data-url="{% url threshold-search %}"
+           data-renderurl="{% url threshold-graph %}"
+           data-metric="{{ metric|default_if_none:'' }}">
+        {% crispy form %}
+      </div>
     </div>
 
     <div class="column medium-6">
-      <div id="metricInfo">
-        <div class="metricGraph"></div>
-      </div>
+      <div class="metricGraph"></div>
     </div>
 
   </div>
