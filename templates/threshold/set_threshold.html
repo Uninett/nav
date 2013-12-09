@@ -8,21 +8,9 @@
 {% endblock %}
 
 {% block base_content %}
-  <h4>Add threshold</h4>
+  <h4>{{ heading }}</h4>
 
   <p><a href="{% url threshold-index %}">Back to thresholds</a></p>
-
-{% comment %}
-  <div class="ui-widget">
-    <label>Metric search
-      <input type="search"
-             id="metricsearchinput"
-             data-url="{% url threshold-search %}"
-             data-renderurl="{% url threshold-graph %}"
-             data-metric="{{ metric|default_if_none:'' }}" >
-    </label>
-  </div>
-{% endcomment %}
 
   <div class="row">
 

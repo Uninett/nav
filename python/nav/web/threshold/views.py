@@ -19,7 +19,7 @@ import datetime
 import json
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpRequest
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from nav.metrics.names import raw_metric_query
 from nav.metrics.graphs import get_simple_graph_url
@@ -56,13 +56,16 @@ def add_threshold(request):
         metric = request.POST.get('target')
         if form.is_valid():
             handle_threshold_form(form, request)
+            return redirect('threshold-index')
     else:
         form = ThresholdForm()
         metric = None
 
-    navpath = get_path() + [('Add threshold',)]
+    heading = 'Add threshold'
+    navpath = get_path() + [(heading,)]
     title = create_title(navpath)
     context = {
+        'heading': heading,
         'form': form,
         'metric': metric,
         'title': title,
@@ -74,7 +77,30 @@ def add_threshold(request):
 
 def edit_threshold(request, rule_id):
     """Controller for editing threshold rules"""
-    pass
+
+    rule = ThresholdRule.objects.get(pk=rule_id)
+
+    if request.method == 'POST':
+        form = ThresholdForm(request.POST, instance=rule)
+        metric = request.POST.get('target')
+        if form.is_valid():
+            handle_threshold_form(form, request)
+            return redirect('threshold-index')
+    else:
+        form = ThresholdForm(instance=rule)
+        metric = rule.target
+
+    heading = 'Edit threshold'
+    navpath = get_path() + [(heading,)]
+    title = create_title(navpath)
+    context = {
+        'heading': heading,
+        'form': form,
+        'metric': metric,
+        'title': title,
+        'navpath': navpath
+    }
+    return render(request, 'threshold/set_threshold.html', context)
 
 
 def delete_threshold(request, rule_id):

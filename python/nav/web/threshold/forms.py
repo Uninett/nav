@@ -30,11 +30,16 @@ class ThresholdForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ThresholdForm, self).__init__(*args, **kwargs)
+        if self.instance.pk is None:
+            action_text = 'Create threshold'
+        else:
+            action_text = 'Edit threshold'
+
         self.helper = FormHelper()
         self.helper.form_action = ''
         self.helper.layout = Layout(
             Fieldset(
-                'Create threshold',
+                action_text,
                 'target',
                 Row(
                     Column(HelpField('alert'), css_class='small-4'),
@@ -42,7 +47,7 @@ class ThresholdForm(forms.ModelForm):
                     Column(HelpField('period'), css_class='small-4')
                 ),
                 'description',
-                Submit('submit', 'Create threshold', css_class='small')
+                Submit('submit', action_text, css_class='small')
             )
         )
 
