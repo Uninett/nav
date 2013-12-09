@@ -21,6 +21,7 @@ from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
                                             Column)
 from nav.web.crispyforms import HelpField
 from nav.models.thresholds import ThresholdRule
+from nav.util import parse_interval
 
 
 class ThresholdForm(forms.ModelForm):
@@ -43,6 +44,16 @@ class ThresholdForm(forms.ModelForm):
                 Submit('submit', 'Create threshold', css_class='small')
             )
         )
+
+    def clean_period(self):
+        """Verify that period is correctly formatted"""
+        period = self.cleaned_data['period']
+        try:
+            parse_interval(period)
+        except ValueError:
+            raise forms.ValidationError('Invalid period')
+
+        return period
 
     class Meta:
         model = ThresholdRule

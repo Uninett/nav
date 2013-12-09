@@ -26,6 +26,7 @@ from nav.metrics.graphs import get_simple_graph_url
 from nav.models.thresholds import ThresholdRule
 from nav.web.threshold.forms import ThresholdForm
 from nav.django.utils import get_account
+from nav.util import parse_interval
 
 
 def index(request):
@@ -33,7 +34,7 @@ def index(request):
 
     if request.method == 'POST':
         form = ThresholdForm(request.POST)
-        metric = request.POST.get('metric')
+        metric = request.POST.get('target')
         if form.is_valid():
             handle_threshold_form(form, request)
     else:
@@ -61,6 +62,14 @@ def handle_threshold_form(form, request):
     threshold = form.save(commit=False)
     threshold.created = datetime.datetime.now()
     threshold.creator = get_account(request)
+    try:
+        period = parse_interval(form.cleaned_data['period'])
+    except ValueError:
+        pass
+    else:
+        if period:
+            threshold.period = period
+
     threshold.save()
 
 
