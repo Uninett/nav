@@ -3,6 +3,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
 
     var $inputElement = $('#metricsearchinput'),
         metric = $inputElement.attr('data-metric'),
+        $formContainer = $('.navbody .formcontainer'),
         $infoElement = $('#metricInfo'),
         $metricGraph = $infoElement.find('.metricGraph'),
         $formInput = $('#id_target'),
@@ -34,6 +35,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
     }
 
     function displayMetricInfo(metric) {
+        $formContainer.removeClass('hide');
         $formInput.val(metric);
         startSpinner();
 
