@@ -73,6 +73,21 @@ class ThresholdForm(forms.ModelForm):
 
         return alert
 
+    def clean_clear(self):
+        """Validate that the threshold is correctly formatted"""
+        clear = self.cleaned_data['clear']
+        if not clear:
+            return clear
+
+        target = self.cleaned_data['target']
+        evaluator = ThresholdEvaluator(target)
+        try:
+            evaluator.evaluate(clear)
+        except InvalidExpressionError:
+            raise forms.ValidationError('Invalid threshold expression')
+
+        return clear
+
     class Meta:
         model = ThresholdRule
         fields = ('target', 'alert', 'clear', 'period', 'description')
