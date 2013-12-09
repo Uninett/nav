@@ -64,13 +64,7 @@ class ThresholdForm(forms.ModelForm):
     def clean_alert(self):
         """Validate that the threshold is correctly formatted"""
         alert = self.cleaned_data['alert']
-        target = self.cleaned_data['target']
-        evaluator = ThresholdEvaluator(target)
-        try:
-            evaluator.evaluate(alert)
-        except InvalidExpressionError:
-            raise forms.ValidationError('Invalid threshold expression')
-
+        validate_expression(alert, self)
         return alert
 
     def clean_clear(self):
@@ -78,14 +72,7 @@ class ThresholdForm(forms.ModelForm):
         clear = self.cleaned_data['clear']
         if not clear:
             return clear
-
-        target = self.cleaned_data['target']
-        evaluator = ThresholdEvaluator(target)
-        try:
-            evaluator.evaluate(clear)
-        except InvalidExpressionError:
-            raise forms.ValidationError('Invalid threshold expression')
-
+        validate_expression(clear, self)
         return clear
 
     class Meta:
@@ -94,3 +81,12 @@ class ThresholdForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea()
         }
+
+
+def validate_expression(expression, form):
+    target = form.cleaned_data['target']
+    evaluator = ThresholdEvaluator(target)
+    try:
+        evaluator.evaluate(expression)
+    except InvalidExpressionError:
+        raise forms.ValidationError('Invalid threshold expression')
