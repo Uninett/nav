@@ -127,6 +127,8 @@ def get_metric_meta(metric_path):
         match = pattern.search(metric_path)
         if match:
             result.update(match.groupdict())
+            if callable(meta):
+                meta = meta(metric_path)
             result.update(meta)
 
     if result['transform']:
