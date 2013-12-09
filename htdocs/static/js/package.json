@@ -4,6 +4,7 @@
   "version": "0.3.14",
   "private": true,
   "optionalDependencies": {
+    "requirejs": "*",
     "chai": "*",
     "istanbul": "*",
     "mocha": "~1.12.0",
