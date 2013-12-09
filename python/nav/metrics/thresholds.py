@@ -59,9 +59,11 @@ This module should provide an API for evaluating threshold expressions.
 Alerting is outside of the scope of this module.
 
 """
+from datetime import timedelta
 from functools import partial
 import logging
 import re
+
 from nav.metrics.data import get_metric_average
 from nav.metrics.graphs import get_metric_meta
 
@@ -76,7 +78,11 @@ EXPRESSION_PATTERN = re.compile(r'^ \s* (?P<operator> [<>] ) \s* '
                                 r'(?P<value> ([+-])? [0-9]+(\.[0-9]+)? ) \s*'
                                 r'(?P<percent>%)? \s* $', re.VERBOSE)
 
-DEFAULT_INTERVAL = '-10min'
+DEFAULT_INTERVAL = timedelta(minutes=10)
+MINUTE = timedelta(minutes=1).total_seconds()
+DAY = timedelta(days=1).total_seconds()
+YEAR = timedelta(days=365).total_seconds()
+
 MEGA = 1e6
 
 _logger = logging.getLogger(__name__)
@@ -100,8 +106,8 @@ class ThresholdEvaluator(object):
     def __init__(self, target, period=DEFAULT_INTERVAL, raw=False):
         """
         :param target: A graphite target/seriesList to look at.
-        :param period: How far back in historic data to look. Given as a valid
-                       Graphite time expression.
+        :param period: How far back in historic data to look.
+        :type period: datetime.timedelta
         :param raw: If True, the target is fed raw to Graphite, otherwise it is
                     evaluated and possibly transformed by NAV's rules first.
         """
@@ -125,8 +131,9 @@ class ThresholdEvaluator(object):
         """
         Retrieves actual values from Graphite based on the evaluators target.
         """
+        start = "-{0}".format(interval_to_graphite(self.period))
         averages = get_metric_average(
-            self.target, start=DEFAULT_INTERVAL, end='now', ignore_unknown=True)
+            self.target, start=start, end='now', ignore_unknown=True)
         _logger.debug("retrieved %d values from graphite for %r",
                       len(averages), self.target)
         self.result = dict((extract_metric_id(key), dict(value=value))
@@ -215,3 +222,20 @@ def get_metric_maximum(metric):
 class InvalidExpressionError(Exception):
     """Invalid threshold match expression"""
     pass
+
+
+def interval_to_graphite(delta):
+    """Converts a timedelta to a usable Graphite time specification.
+
+    :type delta: datetime.timedelta
+
+    """
+    secs = delta.total_seconds()
+    if secs % YEAR == 0:
+        return "{0}year".format(int(secs/YEAR))
+    elif secs % DAY == 0:
+        return "{0}day".format(int(secs/DAY))
+    elif secs % MINUTE == 0:
+        return "{0}min".format(int(secs/MINUTE))
+    else:
+        return "{0}s".format(int(secs))
