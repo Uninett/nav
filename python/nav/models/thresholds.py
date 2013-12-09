@@ -24,10 +24,16 @@ class ThresholdRule(models.Model):
     """A threshold rule"""
     id = models.AutoField(primary_key=True)
     target = VarcharField()
-    alert = VarcharField()
-    clear = VarcharField(null=True, blank=True)
+    alert = VarcharField(help_text='Examples: >95%, >20, <10')
+    clear = VarcharField(
+        null=True, blank=True,
+        help_text='The threshold for cancelling an alert. '
+                  'Uses same format as the alert field')
     raw = models.BooleanField(default=False)
-    period = VarcharField(null=True, blank=True)
+    period = VarcharField(
+        null=True, blank=True,
+        help_text="Inspection interval when calculating values. "
+                  "For ports this should be set to -15m")
     description = VarcharField(null=True, blank=True)
     creator = models.ForeignKey(Account, null=True)
     created = models.DateTimeField(auto_now=True)
