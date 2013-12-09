@@ -20,6 +20,30 @@ from django.core.urlresolvers import reverse
 
 TIMETICKS_IN_DAY = 100 * 3600 * 24
 
+
+def get_sensor_meta(metric_path):
+    """
+    Returns meta information for drawing a Sensor metric graph annotated with
+    the correct yUnits, among other things.
+    """
+
+    from nav.models.manage import Sensor
+    from nav.metrics.lookup import lookup
+
+    sensor = lookup(metric_path)
+    if not sensor:
+        return dict()
+    assert isinstance(sensor, Sensor)
+
+    meta = dict(alias=sensor.name)
+    scale = (sensor.get_data_scale_display()
+             if sensor.data_scale != sensor.SCALE_UNITS else None) or ''
+    uom = (sensor.unit_of_measurement
+           if sensor.unit_of_measurement != sensor.UNIT_OTHER else None) or ''
+    meta['unit'] = scale + uom
+    return meta
+
+
 META_LOOKUPS = (
 
     # Various counter type values
@@ -42,6 +66,8 @@ META_LOOKUPS = (
     (re.compile(r'\.sysuptime$'),
      dict(transform="scale({id},%.20f)" % (1.0/TIMETICKS_IN_DAY),
           unit="days")),
+
+    (re.compile(r'\.sensors\.'), get_sensor_meta),
 
     (re.compile(r'\.loadavg[0-9]+min$'), dict(unit="%")),
     (re.compile(r'_percent$'), dict(unit="%")),
