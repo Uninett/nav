@@ -52,7 +52,7 @@ def make_option_parser():
     parser = OptionParser(
         version="NAV " + buildconf.VERSION,
         description=("Scans metric values for exceeded thresholds, according"
-                     "to configured threhold rules.")
+                     "to configured threshold rules.")
     )
     return parser
 
