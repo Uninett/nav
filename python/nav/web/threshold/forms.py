@@ -20,6 +20,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
                                             Column)
 from nav.web.crispyforms import HelpField
+from nav.metrics.thresholds import ThresholdEvaluator, InvalidExpressionError
 from nav.models.thresholds import ThresholdRule
 from nav.util import parse_interval
 
@@ -54,6 +55,18 @@ class ThresholdForm(forms.ModelForm):
             raise forms.ValidationError('Invalid period')
 
         return period
+
+    def clean_alert(self):
+        """Validate that the threshold is correctly formatted"""
+        alert = self.cleaned_data['alert']
+        target = self.cleaned_data['target']
+        evaluator = ThresholdEvaluator(target)
+        try:
+            evaluator.evaluate(alert)
+        except InvalidExpressionError:
+            raise forms.ValidationError('Invalid threshold expression')
+
+        return alert
 
     class Meta:
         model = ThresholdRule
