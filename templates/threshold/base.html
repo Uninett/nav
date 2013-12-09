@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block base_content %}
+  <h4>Thresholds</h4>
+
+  {% if rules %}
+    <a href="{% url threshold-add %}" class="button small">Add rule</a>
+
+    <table class="listtable">
+      <caption>Existing threshold rules</caption>
+      <thead>
+      <tr>
+        <th>Target</th>
+        <th>Threshold</th>
+        <th>Clear</th>
+        <th>Description</th>
+        <th>Period</th>
+        <th>Creator</th>
+        <th>Created</th>
+        <th>&nbsp;</th>
+        <th>&nbsp;</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for rule in rules %}
+        <tr>
+          <td>{{ rule.target }}</td>
+          <td>{{ rule.alert }}</td>
+          <td>{{ rule.clear }}</td>
+          <td>{{ rule.description }}</td>
+          <td>{{ rule.period }}</td>
+          <td>{{ rule.creator.name }}</td>
+          <td>{{ rule.created }}</td>
+          <td>
+            <a href="{% url threshold-edit rule.id %}" class="button tiny secondary">
+              Edit
+              <i class="fa fa-edit"></i>
+            </a>
+          </td>
+          <td>
+            <a href="{% url threshold-delete rule.id %}" class="button tiny secondary">
+              Delete
+              <i class="fa fa-times"></i>
+            </a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+  {% else %}
+    <p>
+      No threshold rules defined. <a href="{% url threshold-add %}">Add one.</a>
+    </p>
+  {% endif %}
+
+
+{% endblock %}
