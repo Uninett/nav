@@ -20,14 +20,11 @@ from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
                                             Column)
 from nav.web.crispyforms import HelpField
+from nav.models.thresholds import ThresholdRule
 
 
-class ThresholdForm(forms.Form):
-    metric = forms.CharField()
-    threshold = forms.CharField(help_text='Examples: >95%, >20, <10')
-    lower = forms.CharField(label='Lower threshold',
-                            help_text='The threshold for cancelling an alert')
-    comment = forms.CharField(widget=forms.Textarea, required=False)
+class ThresholdForm(forms.ModelForm):
+    """Form for creating a threshold rule"""
 
     def __init__(self, *args, **kwargs):
         super(ThresholdForm, self).__init__(*args, **kwargs)
@@ -36,12 +33,20 @@ class ThresholdForm(forms.Form):
         self.helper.layout = Layout(
             Fieldset(
                 'Create threshold',
-                'metric',
+                'target',
                 Row(
-                    Column(HelpField('threshold'), css_class='small-6'),
-                    Column(HelpField('lower'), css_class='small-6')
+                    Column(HelpField('alert'), css_class='small-4'),
+                    Column(HelpField('clear'), css_class='small-4'),
+                    Column(HelpField('period'), css_class='small-4')
                 ),
-                'comment',
+                'description',
                 Submit('submit', 'Create threshold', css_class='small')
             )
         )
+
+    class Meta:
+        model = ThresholdRule
+        fields = ('target', 'alert', 'clear', 'period', 'description')
+        widgets = {
+            'description': forms.Textarea()
+        }

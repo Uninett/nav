@@ -5,7 +5,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
         metric = $inputElement.attr('data-metric'),
         $infoElement = $('#metricInfo'),
         $metricGraph = $infoElement.find('.metricGraph'),
-        $formInput = $('#id_metric'),
+        $formInput = $('#id_target'),
         spinner = new Spinner();
 
     $(function () {

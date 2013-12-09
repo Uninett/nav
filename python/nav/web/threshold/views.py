@@ -15,14 +15,17 @@
 #
 """Controllers for threshold app"""
 
+import datetime
 import json
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render
 
 from nav.metrics.names import raw_metric_query
 from nav.metrics.graphs import get_simple_graph_url
+from nav.models.thresholds import ThresholdRule
 from nav.web.threshold.forms import ThresholdForm
+from nav.django.utils import get_account
 
 
 def index(request):
@@ -32,7 +35,7 @@ def index(request):
         form = ThresholdForm(request.POST)
         metric = request.POST.get('metric')
         if form.is_valid():
-            pass
+            handle_threshold_form(form, request)
     else:
         form = ThresholdForm()
         metric = None
@@ -47,6 +50,18 @@ def index(request):
     }
 
     return render(request, 'threshold/base.html', context)
+
+
+def handle_threshold_form(form, request):
+    """Create threshold based on form data
+
+    :param ThresholdForm form: A user defined threshold
+    :param HttpRequest request: The request object
+    """
+    threshold = form.save(commit=False)
+    threshold.created = datetime.datetime.now()
+    threshold.creator = get_account(request)
+    threshold.save()
 
 
 def threshold_search(request):
