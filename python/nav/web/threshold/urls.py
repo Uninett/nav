@@ -16,11 +16,18 @@
 """url config for thresholds app"""
 
 from django.conf.urls import url, patterns
-from nav.web.threshold.views import index, threshold_search, get_graph_url
+from nav.web.threshold.views import (index, threshold_search, get_graph_url,
+                                     add_threshold, edit_threshold,
+                                     delete_threshold)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
     url(r'^$', index, name='threshold-index'),
+    url(r'^threshold/add$', add_threshold, name='threshold-add'),
+    url(r'^threshold/edit/(?P<rule_id>\d+)$', edit_threshold,
+        name='threshold-edit'),
+    url(r'^threshold/delete/(?P<rule_id>\d+)$', delete_threshold,
+        name='threshold-delete'),
     url(r'^search/$', threshold_search, name='threshold-search'),
     url(r'^graph_url/$', get_graph_url, name='threshold-graph'),
 )

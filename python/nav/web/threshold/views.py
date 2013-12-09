@@ -27,10 +27,29 @@ from nav.models.thresholds import ThresholdRule
 from nav.web.threshold.forms import ThresholdForm
 from nav.django.utils import get_account
 from nav.util import parse_interval
+from nav.web.utils import create_title
+
+
+TITLE = 'Thresholds'
+
+
+def get_path():
+    """Get default navpath for this app"""
+    return [('Home', '/'), (TITLE, reverse('threshold-index'))]
 
 
 def index(request):
-    """Base controller for threshold search"""
+    """Base controller"""
+
+    rules = ThresholdRule.objects.all().order_by('created')
+    context = {'title': TITLE,
+               'navpath': get_path(),
+               'rules': rules}
+    return render(request, 'threshold/base.html', context)
+
+
+def add_threshold(request):
+    """Controller for threshold search"""
 
     if request.method == 'POST':
         form = ThresholdForm(request.POST)
@@ -41,16 +60,26 @@ def index(request):
         form = ThresholdForm()
         metric = None
 
-    title = "Threshold Manager"
+    navpath = get_path() + [('Add threshold',)]
+    title = create_title(navpath)
     context = {
         'form': form,
         'metric': metric,
         'title': title,
-        'navpath': [('Home', '/'),
-                    (title, reverse('threshold-index'))]
+        'navpath': navpath
     }
 
-    return render(request, 'threshold/base.html', context)
+    return render(request, 'threshold/set_threshold.html', context)
+
+
+def edit_threshold(request, rule_id):
+    """Controller for editing threshold rules"""
+    pass
+
+
+def delete_threshold(request, rule_id):
+    """Controller for editing threshold rules"""
+    pass
 
 
 def handle_threshold_form(form, request):
