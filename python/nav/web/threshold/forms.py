@@ -37,9 +37,9 @@ class ThresholdForm(forms.ModelForm):
         self.fields['alert'].label = 'Threshold'
 
         if self.instance.pk is None:
-            action_text = 'Create threshold'
+            action_text = 'Create rule'
         else:
-            action_text = 'Edit threshold'
+            action_text = 'Edit rule'
 
         self.helper = FormHelper()
         self.helper.form_action = ''

@@ -90,7 +90,7 @@ def edit_threshold(request, rule_id):
         form = ThresholdForm(instance=rule)
         metric = rule.target
 
-    heading = 'Edit threshold'
+    heading = 'Edit threshold rule'
     navpath = get_path() + [(heading,)]
     title = create_title(navpath)
     context = {
