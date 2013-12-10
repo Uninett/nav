@@ -30,6 +30,8 @@ class ThresholdForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ThresholdForm, self).__init__(*args, **kwargs)
+        self.fields['alert'].label = 'Threshold'
+
         if self.instance.pk is None:
             action_text = 'Create threshold'
         else:
@@ -68,7 +70,7 @@ class ThresholdForm(forms.ModelForm):
         return alert
 
     def clean_clear(self):
-        """Validate that the threshold is correctly formatted"""
+        """Validate that the clear threshold is correctly formatted"""
         clear = self.cleaned_data['clear']
         if not clear:
             return clear
@@ -84,6 +86,7 @@ class ThresholdForm(forms.ModelForm):
 
 
 def validate_expression(expression, form):
+    """Validate the expression"""
     target = form.cleaned_data['target']
     evaluator = ThresholdEvaluator(target)
     try:

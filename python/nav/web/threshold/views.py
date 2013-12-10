@@ -61,7 +61,7 @@ def add_threshold(request):
         form = ThresholdForm()
         metric = None
 
-    heading = 'Add threshold'
+    heading = 'Add threshold rule'
     navpath = get_path() + [(heading,)]
     title = create_title(navpath)
     context = {
