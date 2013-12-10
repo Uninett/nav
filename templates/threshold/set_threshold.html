@@ -12,6 +12,8 @@
 
   <p><a href="{% url threshold-index %}">Back to thresholds</a></p>
 
+  <a href="#" class="button small secondary" data-reveal-id="add-threshold-help">Help</a>
+
   <div class="row">
 
     <div class="column medium-6">
@@ -26,6 +28,33 @@
     <div class="column medium-6">
       <div class="metricGraph"></div>
     </div>
+
+  </div>
+
+  <div id="add-threshold-help" class="reveal-modal" data-reveal>
+    <h5>How to create a threshold rule</h5>
+    <p>
+      To create a treshold rule you need to find the target of the threshold.
+      The target is the value you want to create a threshold for, for instance
+      memory and cpu usage, response time and so on.
+    </p>
+    <p>
+      To find the target, start typing in the target field. All devices in NAV
+      are located under 'nav.devices'. Use that as a starting point. Then use a
+      dot (.) to list the devices we collect statistics from. A star (*)
+      indicates a wildcard.
+    </p>
+    <p>
+      Continue searching until you find the target you are looking for. When
+      you select a valid target, a graph will be displayed showing the last
+      values for the selected target.
+
+      Examples:
+      <ul class="inside">
+        <li><code>nav.devices.*.ping.roundTripTime</code> - matches all roundtriptimes of all the devices.</li>
+        <li><code>nav.devices.*.sensors.*Temp*</code> - matches all temperature sensors of all the devices.</li>
+      </ul>
+    </p>
 
   </div>
 
