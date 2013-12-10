@@ -14,11 +14,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Machine tracker forms"""
+from datetime import date, timedelta
 
 from nav.macaddress import MacPrefix
 from nav.web.machinetracker import iprange
 from django import forms
-from django.forms.util import ErrorList
 
 
 class MachineTrackerForm(forms.Form):
@@ -28,6 +28,15 @@ class MachineTrackerForm(forms.Form):
     days = forms.IntegerField(initial=7,
                               widget=forms.TextInput(attrs={'size': 3}),
                               help_text="Days back in time to search")
+
+    def clean_days(self):
+        data = self.cleaned_data['days']
+        try:
+            date.today() - timedelta(days=int(data))
+        except OverflowError:
+            raise forms.ValidationError(
+                "They didn't have computers %s days ago" % data)
+        return int(data)
 
 
 class IpTrackerForm(MachineTrackerForm):
