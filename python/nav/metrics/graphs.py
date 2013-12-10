@@ -19,6 +19,7 @@ from urllib import urlencode
 from django.core.urlresolvers import reverse
 
 TIMETICKS_IN_DAY = 100 * 3600 * 24
+TARGET_TOKENS = re.compile(r'[\w*?]+|[(){}]|,|\.')
 
 
 def get_sensor_meta(metric_path):
@@ -162,3 +163,42 @@ def get_metric_meta(metric_path):
     if result['alias']:
         result['alias'] = result['alias'].format(**result)
     return result
+
+
+def extract_series_name(series):
+    """
+    Extracts a series name from a graphite target expression,
+    wildcards included verbatim.
+
+    This is best-effort and is by no means 100% accurate.
+
+    """
+    inwild = False
+    buffer = ""
+    bufferok = lambda: len(buffer) > 3 and '.' in buffer
+
+    for tok in TARGET_TOKENS.finditer(series):
+        tok = tok.group()
+        if tok == '(':
+            buffer = ""
+        elif tok == ')':
+            if bufferok():
+                return buffer
+            else:
+                buffer = ""
+        elif tok == '{':
+            inwild = True
+            buffer += tok
+        elif tok == ',':
+            if inwild:
+                buffer += tok
+            elif bufferok():
+                return buffer
+            else:
+                buffer = ""
+        elif tok == '}':
+            inwild = False
+            buffer += tok
+        else:
+            buffer += tok
+    return buffer if bufferok() else series
