@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Metric threshold related models"""
+from datetime import timedelta
 from django.db import models
 from nav.models.profiles import Account
 from nav.models.fields import VarcharField
@@ -30,10 +31,10 @@ class ThresholdRule(models.Model):
         help_text='The threshold for cancelling an alert. '
                   'Uses same format as the alert field')
     raw = models.BooleanField(default=False)
-    period = VarcharField(
+    period = models.IntegerField(
         null=True, blank=True,
         help_text="Inspection interval when calculating values. "
-                  "For ports this should be set to -15m")
+                  "For interface counters this should be set to 15 minutes")
     description = VarcharField(null=True, blank=True)
     creator = models.ForeignKey(Account, null=True)
     created = models.DateTimeField(auto_now=True)
@@ -49,6 +50,10 @@ class ThresholdRule(models.Model):
                                      var=", ".join(var))
 
     def get_evaluator(self):
-        return ThresholdEvaluator(self.target,
-                                  period=self.period or DEFAULT_INTERVAL,
-                                  raw=self.raw)
+        """
+        Returns a ThresholdEvaluator instance pre-filled with the details of
+        this rule.
+        """
+        period = (timedelta(seconds=self.period) if self.period
+                  else DEFAULT_INTERVAL)
+        return ThresholdEvaluator(self.target, period=period, raw=self.raw)
