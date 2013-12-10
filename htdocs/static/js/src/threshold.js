@@ -20,6 +20,17 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
         if (metric) {
             displayMetricInfo(metric);
         }
+
+        /* Closes dialog for deleting rules when button inside dialog is clicked */
+        $('#thresholdrules').on('click', '.f-dropdown .close-button', function () {
+            var $element = $(this),
+                $parent = $element.parents('.f-dropdown').first();
+
+            if ($parent.hasClass('open')) {
+                $(document).foundation('dropdown', 'close', $parent);
+            }
+        });
+
     });
 
     function handleSelect(event, ui) {

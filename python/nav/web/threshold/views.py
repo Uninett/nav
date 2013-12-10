@@ -104,8 +104,12 @@ def edit_threshold(request, rule_id):
 
 
 def delete_threshold(request, rule_id):
-    """Controller for editing threshold rules"""
-    pass
+    """Controller for deleting threshold rules"""
+    if request.method == 'POST':
+        rule = ThresholdRule.objects.get(pk=rule_id)
+        rule.delete()
+
+    return redirect('threshold-index')
 
 
 def handle_threshold_form(form, request):
