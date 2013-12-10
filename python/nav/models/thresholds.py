@@ -29,7 +29,7 @@ class ThresholdRule(models.Model):
     clear = VarcharField(
         null=True, blank=True,
         help_text='The threshold for cancelling an alert. '
-                  'Uses same format as the alert field')
+                  'Uses same format as the threshold field')
     raw = models.BooleanField(default=False)
     period = models.IntegerField(
         null=True, blank=True,

@@ -27,6 +27,10 @@ from nav.util import parse_interval
 
 class ThresholdForm(forms.ModelForm):
     """Form for creating a threshold rule"""
+    period = forms.CharField(
+        max_length=200, required=False,
+        help_text="Inspection interval when calculating values. For "
+                  "interface counters this should be set to 15 minutes (15m)")
 
     def __init__(self, *args, **kwargs):
         super(ThresholdForm, self).__init__(*args, **kwargs)
@@ -57,7 +61,7 @@ class ThresholdForm(forms.ModelForm):
         """Verify that period is correctly formatted"""
         period = self.cleaned_data['period']
         try:
-            parse_interval(period)
+            period = parse_interval(period)
         except ValueError:
             raise forms.ValidationError('Invalid period')
 

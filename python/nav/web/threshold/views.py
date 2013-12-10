@@ -121,14 +121,6 @@ def handle_threshold_form(form, request):
     threshold = form.save(commit=False)
     threshold.created = datetime.datetime.now()
     threshold.creator = get_account(request)
-    try:
-        period = parse_interval(form.cleaned_data['period'])
-    except ValueError:
-        pass
-    else:
-        if period:
-            threshold.period = period
-
     threshold.save()
 
 
