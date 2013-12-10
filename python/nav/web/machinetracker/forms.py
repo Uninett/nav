@@ -30,13 +30,20 @@ class MachineTrackerForm(forms.Form):
                               help_text="Days back in time to search")
 
     def clean_days(self):
-        data = self.cleaned_data['days']
+        data = int(self.cleaned_data['days'])
+        if data < -1:
+            # -1 has a specific meaning of "only active", for backwards
+            # compatibility. Anything else is an error.
+            raise forms.ValidationError("I can't see into the future. "
+                                        "Please enter a positive number.")
+
         try:
-            date.today() - timedelta(days=int(data))
+            date.today() - timedelta(days=data)
         except OverflowError:
             raise forms.ValidationError(
                 "They didn't have computers %s days ago" % data)
-        return int(data)
+
+        return data
 
 
 class IpTrackerForm(MachineTrackerForm):
