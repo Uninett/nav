@@ -16,20 +16,45 @@ define(['libs/jquery', 'libs/spin.min'], function () {
      *
     */
 
-    function GraphFetcher(node, url, config) {
+    $(function () {
+        $('.graphitegraph').each(function () {
+            var $node = $(this);
+            new GraphFetcher($node, $node.attr('data-url'));
+        });
+    });
+
+    function GraphFetcher(node, url) {
         this.checkInput(node, url);
         this.node = node;
         this.url = url;
-        this.config = config;
 
         this.buttons = {'day': 'Day', 'week': 'Week', 'month': 'Month', 'year': 'Year'};
         this.spinner = this.createSpinner();
 
-        this.addButtons();
-        this.loadGraph('day');
+        var handlerId = this.node.attr('data-handler-id');
+        if (handlerId) {
+            var self = this;
+            this.handler = $('#' + handlerId);
+            this.handler.one('click', function () {
+                self.init();
+            });
+        } else {
+            this.init();
+        }
+
     }
 
     GraphFetcher.prototype = {
+        init: function () {
+            this.addButtons();
+            this.loadGraph('day');
+            var self = this;
+            if (this.handler) {
+                $(this.handler).click(function () {
+                    self.node.toggle();
+                });
+            }
+        },
         checkInput: function (node, url) {
             if (!(node instanceof jQuery && node.length)) {
                 throw new Error('Need a valid node to attach to');
@@ -63,47 +88,17 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             $('button.graph-button-' + timeframe, this.node).addClass('active');
         },
         loadGraph: function (timeframe) {
-            var that = this;
-            var requestData = {'timeframe': timeframe};
-            var jqxhr = $.ajax(this.url, {
-                data: requestData,
-                beforeSend: function () {
-                    that.spinner.spin(that.node.get(0));
-                }
-            });
-            this.handleXhr(jqxhr, requestData);
+            this.displayGraph(this.url + '?timeframe=' + timeframe);
+            this.selectButton(timeframe);
         },
         displayGraph: function (url) {
-            var title = this.config.title || '';
-            var attrs = {
-                'src': url,
-                'title': title
+            var self = this;
+            var image = new Image();
+            image.src = url;
+            image.onload = function () {
+                self.node.find('img').remove();
+                self.node.append(image);
             };
-
-            if ($('img', this.node).length > 0) {
-                $('img', this.node).attr('src', url);
-            } else {
-                $('<img>').attr(attrs).appendTo(this.node);
-            }
-        },
-        handleXhr: function (xhr, requestData) {
-            var that = this;
-            xhr.fail(function () {
-                if (!$('span.error', that.node).length) {
-                    $('<span class="error"/>').text('Failed to load graph').appendTo(that.node);
-                }
-            });
-            xhr.done(function (data) {
-                that.displayGraph(data.url);
-                that.selectButton(requestData.timeframe);
-                $('span.error', that).remove();
-            });
-            xhr.always(function () {
-                if (xhr.status !== 503) {
-                    that.node.show();
-                }
-                that.spinner.stop();
-            });
         },
         createSpinner: function () {
             var options = {};  // Who knows, maybe in the future?

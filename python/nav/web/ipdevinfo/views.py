@@ -23,7 +23,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.views.generic.list_detail import object_list
 import simplejson
@@ -501,8 +501,7 @@ def port_counter_graph(request, interfaceid, kind='Octets'):
     url = get_interface_counter_graph_url(port, timeframe, kind)
 
     if url:
-        json = simplejson.dumps({'url': url})
-        return HttpResponse(json, mimetype='application/json')
+        return redirect(url)
     else:
         return HttpResponse(status=500)
 

@@ -21,20 +21,12 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             new NeighborMap($neighbornode.get(0));
         }
 
-        var $metrics = $('.nav-metrics');
-        if ($metrics.length) {
-            $metrics.each(function () {
-                addGraphLoader($(this));
-            });
-        }
-
-        $('.countergraph').each(function (index, element) {
-            var interfaceid = $(element).attr('data-interface');
-            var counter = $(element).attr('data-counter');
-            var url = '/ipdevinfo/g/port/' + interfaceid + '/' + counter;
-            var config = {};
-            new GraphFetcher($(element), url, config);
-        })
+//        var $metrics = $('.nav-metrics');
+//        if ($metrics.length) {
+//            $metrics.each(function () {
+//                addGraphLoader($(this));
+//            });
+//        }
     });
 
     function addModuleTabs() {
