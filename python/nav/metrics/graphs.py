@@ -79,6 +79,77 @@ META_LOOKUPS = (
 )
 
 
+class Graph(object):
+    """Builds a Graphite render URL for a graph.
+
+    Instances of this class can be manipulated to produce the desired graph,
+    whereas the URL to the currently represented graph can be retrieved by
+    coercing the instances to a string or unicode object.
+
+    """
+    def __init__(self, title=u'', width=480, height=250, targets=None,
+                 magic_targets=None):
+        self.args = dict(template=u'nav',
+                         title=title, width=width, height=height,
+                         yMin=0)
+
+        if targets:
+            for target in targets:
+                self.add_target(target)
+
+        if magic_targets:
+            for target in magic_targets:
+                self.add_magic_target(target)
+
+    def __str__(self):
+        return reverse("graphite-render") + "?" + urlencode(self.args, True)
+
+    def __repr__(self):
+        return '<{cls} {args!r}>'.format(cls=self.__class__.__name__,
+                                         args=self.args)
+
+    def set_timeframe(self, timeframe):
+        """Sets the graph timeframe in terms relative to the current time.
+
+        :param timeframe: An interval that matches Graphite syntax,
+                          e.g. '1min', '1day', '24h'. The Graph's 'from'
+                          argument will be set to a negative version of this,
+                          while the graph's 'until' argument will be set to
+                          'now'.
+        :type timeframe: basestring
+        """
+        self.args['from'] = '-%s' % timeframe
+        self.args['until'] = 'now'
+
+    def add_target(self, target):
+        """Adds a raw target to the graph"""
+        self.args.setdefault('target', []).append(target)
+
+    def add_magic_target(self, target):
+        """
+        Adds a target to the graph, but uses the magic lookups in
+        META_LOOKUPS to possibly transform the target using Graphite
+        functions and to possibly change some parameters of the graph itself.
+
+        :type target: basestrng
+        :returns: The (possibly) modified target.
+
+        """
+        meta = get_metric_meta(target)
+        target = meta['target']
+        if meta['alias']:
+            target = 'alias({target}, "{alias}")'.format(
+                target=target, alias=meta['alias'])
+
+        self.args.setdefault('target', []).append(target)
+        if meta['unit']:
+            self.args['vtitle'] = meta['unit']
+        if meta['yUnitSystem']:
+            self.args['yUnitSystem'] = meta['yUnitSystem']
+
+        return target
+
+
 def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
                          width=480, height=250, **kwargs):
     """
@@ -98,40 +169,14 @@ def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
     if isinstance(metric_paths, basestring):
         metric_paths = [metric_paths]
 
-    args = _get_simple_graph_args(metric_paths, time_frame)
-    args.update({
-        'width': width,
-        'height': height,
-        'title': title or '',
-    })
+    graph = Graph(title=title, width=width, height=height,
+                  magic_targets=metric_paths)
+    graph.set_timeframe(time_frame)
+
     if kwargs:
-        args.update(kwargs)
+        graph.args.update(kwargs)
 
-    url = reverse("graphite-render") + "?" + urlencode(args, True)
-    return url
-
-
-def _get_simple_graph_args(metric_paths, time_frame):
-    args = {
-        'target': [],
-        'from': "-%s" % time_frame,
-        'template': 'nav',
-        'yMin': 0,
-    }
-
-    for target in metric_paths:
-        meta = get_metric_meta(target)
-        target = meta['target']
-        if meta['alias']:
-            target = 'alias({target}, "{alias}")'.format(
-                target=target, alias=meta['alias'])
-        args['target'].append(target)
-        if meta['unit']:
-            args['vtitle'] = meta['unit']
-        if meta['yUnitSystem']:
-            args['yUnitSystem'] = meta['yUnitSystem']
-
-    return args
+    return unicode(graph)
 
 
 def get_metric_meta(metric_path):
