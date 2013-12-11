@@ -1,6 +1,8 @@
+{% load thresholds %}
+
 <div id="metrics">
   {% if netbox %}
-    {% regroup netbox.get_system_metrics by group as metric_groups %}
+    {% regroup netbox.get_system_metrics|find_rules by group as metric_groups %}
 
     <div id="metrictabs">
 
@@ -36,10 +38,23 @@
                   {{ metric.suffix }}
                 </td>
                 <td>
-                  {% if metric.threshold %}
-                    {{ metric.threshold }}
+                  {% if metric.thresholds %}
+
+                    {% for rule in metric.thresholds %}
+
+                        <strong>
+                            <a href="{% url threshold-edit rule.id %}"
+                               {% if rule.description %}title="{{ rule.description }}"{% endif %}
+                                    >{{ rule.alert }}</a></strong
+                                >{% if not forloop.last %},{% endif %}
+
+                    {% endfor %}
+
                   {% else %}
-                    not configured
+
+                    <a href="{% url threshold-add %}" title="Add a new threshold rule for this metric"
+                            ><i class="fa fa-plus-square-o"></i></a>
+
                   {% endif %}
                 </td>
               </tr>

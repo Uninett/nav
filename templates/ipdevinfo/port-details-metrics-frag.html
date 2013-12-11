@@ -1,4 +1,6 @@
-{% with port.get_port_metrics|dictsort:"suffix" as metrics %}
+{% load thresholds %}
+
+{% with port.get_port_metrics|find_rules|dictsort:"suffix" as metrics %}
   {% if metrics|length %}
     <table class="nav-metrics listtable full-width"
            data-render-url="{% url graphite-base-render-url %}">
@@ -14,7 +16,26 @@
                   src="{{ STATIC_URL }}/images/icons/graph.png" alt="Graph"
                   title="Graph"></td>
           <td>{{ metric.suffix }}</td>
-          <td>{% if metric.threshold %}{{ metric.threshold }}{% else %}not configured{% endif %}</td>
+          <td>
+              {% if metric.thresholds %}
+
+                {% for rule in metric.thresholds %}
+
+                    <strong>
+                        <a href="{% url threshold-edit rule.id %}"
+                           {% if rule.description %}title="{{ rule.description }}"{% endif %}
+                                >{{ rule.alert }}</a></strong
+                            >{% if not forloop.last %},{% endif %}
+
+                {% endfor %}
+
+              {% else %}
+
+                <a href="{% url threshold-add %}" title="Add a new threshold rule for this metric"
+                        ><i class="fa fa-plus-square-o"></i></a>
+
+              {% endif %}
+          </td>
         </tr>
       {% endfor %}
     </table>
