@@ -202,3 +202,25 @@ def extract_series_name(series):
         else:
             buffer += tok
     return buffer if bufferok() else series
+
+
+def translate_serieslist_to_regex(series):
+    """Translates a Graphite seriesList expression into a regexp pattern"""
+    def _convert_char(char):
+        if char == '*':
+            return r'[^\.]*'
+        if char == '?':
+            return '.'
+        elif char == '.':
+            return r'\.'
+        elif char == '{':
+            return '('
+        elif char == '}':
+            return ')'
+        elif char == ',':
+            return '|'
+        else:
+            return char
+
+    pat = "".join(_convert_char(c) for c in series)
+    return re.compile(pat)
