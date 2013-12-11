@@ -21,6 +21,7 @@ The view definitions does not necessarily need to be placed here.
 
 from django.http import HttpResponse
 from django.utils import simplejson
+from django.shortcuts import redirect
 
 from nav.models.manage import Room, Netbox
 from nav.metrics.graphs import get_simple_graph_url
@@ -28,8 +29,8 @@ from nav.metrics.graphs import get_simple_graph_url
 
 def get_graphite_render_url(request, metric=None):
     if metric:
-        return HttpResponse(get_simple_graph_url(
-            metric, time_frame=request.REQUEST.get('timeframe', '1w')))
+        return redirect(get_simple_graph_url(
+            metric, time_frame='1' + request.REQUEST.get('timeframe', 'w')))
     else:
         return HttpResponse(status=400)
 

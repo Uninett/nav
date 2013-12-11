@@ -3,20 +3,30 @@
     <table class="nav-metrics listtable full-width"
            data-render-url="{% url graphite-base-render-url %}">
       <caption>Counters</caption>
+      <thead>
       <tr>
         <th>&nbsp;</th>
         <th>Metric</th>
         <th>Threshold</th>
       </tr>
+      </thead>
+      <tbody>
       {% for metric in metrics %}
         <tr>
-          <td class="nav-metric" data-metric-id="{{ metric.id }}"><img
-                  src="{{ STATIC_URL }}/images/icons/graph.png" alt="Graph"
-                  title="Graph"></td>
+          <td id="metric-graph-{{ forloop.counter }}">
+            <img src="{{ STATIC_URL }}/images/icons/graph.png" alt="Graph"
+                 title="Graph">
+          </td>
           <td>{{ metric.suffix }}</td>
           <td>{% if metric.threshold %}{{ metric.threshold }}{% else %}not configured{% endif %}</td>
         </tr>
+        <tr>
+          <td class="graphitegraph hide" colspan="3"
+              data-url="{% url graphite-render-url metric.id %}"
+              data-handler-id="metric-graph-{{ forloop.counter }}"></td>
+        </tr>
       {% endfor %}
+      </tbody>
     </table>
   {% else %}
     <p class="alert-box secondary">No metrics for this interface</p>

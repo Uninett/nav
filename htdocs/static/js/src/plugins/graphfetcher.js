@@ -37,6 +37,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.handler = $('#' + handlerId);
             this.handler.one('click', function () {
                 self.init();
+                self.node.show();
             });
         } else {
             this.init();
@@ -88,7 +89,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             $('button.graph-button-' + timeframe, this.node).addClass('active');
         },
         loadGraph: function (timeframe) {
-            this.displayGraph(this.url + '?timeframe=' + timeframe);
+            this.displayGraph(this.getUrl(timeframe));
             this.selectButton(timeframe);
         },
         displayGraph: function (url) {
@@ -99,6 +100,17 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 self.node.find('img').remove();
                 self.node.append(image);
             };
+            image.onerror = function () {
+                self.node.find('img').remove();
+                self.node.append("<span class='alert-box alert'>Error loading image</span>");
+            };
+        },
+        getUrl: function (timeframe) {
+            var separator = '?';
+            if (this.url.indexOf('?') >= 0) {
+                separator = '&';
+            }
+            return this.url + separator + 'timeframe=' + timeframe;
         },
         createSpinner: function () {
             var options = {};  // Who knows, maybe in the future?
