@@ -19,6 +19,7 @@ import re
 from nav.models.manage import Netbox, Interface, Prefix, Sensor
 from django.utils.functional import memoize
 
+__all__ = ['reverses', 'lookup']
 _reverse_handlers = []
 
 

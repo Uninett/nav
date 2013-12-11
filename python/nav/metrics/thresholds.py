@@ -65,7 +65,7 @@ import logging
 import re
 
 from nav.metrics.data import get_metric_average
-from nav.metrics.graphs import get_metric_meta
+from nav.metrics.graphs import get_metric_meta, extract_series_name
 
 
 # Pattern to extract the ID of a metric from a series name returned in a
@@ -73,7 +73,7 @@ from nav.metrics.graphs import get_metric_meta
 from nav.metrics.lookup import lookup
 from nav.models.manage import Interface
 
-METRIC_PATTERN = re.compile(r'^ ( .*\( )? (?P<id> [^,)]+ ) (.*) $', re.VERBOSE)
+
 EXPRESSION_PATTERN = re.compile(r'^ \s* (?P<operator> [<>] ) \s* '
                                 r'(?P<value> ([+-])? [0-9]+(\.[0-9]+)? ) \s*'
                                 r'(?P<percent>%)? \s* $', re.VERBOSE)
@@ -136,7 +136,7 @@ class ThresholdEvaluator(object):
             self.target, start=start, end='now', ignore_unknown=True)
         _logger.debug("retrieved %d values from graphite for %r",
                       len(averages), self.target)
-        self.result = dict((extract_metric_id(key), dict(value=value))
+        self.result = dict((extract_series_name(key), dict(value=value))
                            for key, value in averages.iteritems())
         return self.result
 
@@ -192,15 +192,6 @@ class ThresholdEvaluator(object):
                 self.result[metric]['max'] = maximum
                 current = (current / maximum) * 100.0
             return current
-
-
-def extract_metric_id(series):
-    """Extracts a metric id from a graphite target expression"""
-    match = METRIC_PATTERN.match(series)
-    if match:
-        return match.group('id')
-    else:
-        return series
 
 
 def get_metric_maximum(metric):
