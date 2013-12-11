@@ -22,7 +22,7 @@ from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, redirect
 
 from nav.metrics.names import raw_metric_query
-from nav.metrics.graphs import get_simple_graph_url
+from nav.metrics.graphs import get_simple_graph_url, Graph
 from nav.models.thresholds import ThresholdRule
 from nav.web.threshold.forms import ThresholdForm
 from nav.django.utils import get_account
@@ -41,7 +41,7 @@ def get_path():
 def index(request):
     """Base controller"""
 
-    rules = ThresholdRule.objects.all().order_by('created')
+    rules = ThresholdRule.objects.all().order_by('id')
     context = {'title': TITLE,
                'navpath': get_path(),
                'rules': rules}
@@ -188,10 +188,16 @@ def is_all_leaves(metrics):
 
 def get_graph_url(request):
     """Get graph url based on metric"""
-    url = None
+    graph_args = {
+        'title': 'Latest values for this metric',
+        'width': 600, 'height': 400
+    }
     if 'metric' in request.GET:
-        url = get_simple_graph_url(request.GET['metric'],
-                                   title='Latest values for this metric',
-                                   width=600, height=400)
-    return HttpResponse(json.dumps({'url': url}),
-                        content_type='application/json')
+        metric = request.GET['metric']
+        if 'raw' in request.GET:
+            graph = Graph(targets=[metric], **graph_args)
+            return redirect(unicode(graph))
+        else:
+            return redirect(get_simple_graph_url([metric], **graph_args))
+
+    return HttpResponse()
