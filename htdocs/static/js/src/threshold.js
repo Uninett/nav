@@ -2,6 +2,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
     /* The global variable metric is set in the base template of the threshold page */
 
     var $inputElement = $('#id_target'),
+        $rawButton = $('#id_raw'),
         $dataElement = $inputElement.parents('.dataelement'),
         metric = $dataElement.attr('data-metric'),
         $metricGraph = $('.metricGraph'),
@@ -20,6 +21,11 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
         if (metric) {
             displayMetricInfo(metric);
         }
+
+        /* Redraw graph when raw checkbox is clicked */
+        $rawButton.on('click', function () {
+            displayMetricInfo($inputElement.val());
+        });
 
         /* Closes dialog for deleting rules when button inside dialog is clicked */
         $('#thresholdrules').on('click', '.f-dropdown .close-button', function () {
@@ -43,18 +49,20 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
 
     function displayMetricInfo(metric) {
         startSpinner();
-
-        $.get($dataElement.attr('data-renderurl'),
-            {'metric': metric},
-            function (data) {
-                var image = new Image();
-                image.src = data.url;
-                image.onload = function () {
-                    stopSpinner();
-                    $(image).appendTo($metricGraph);
-                };
-            }
-        );
+        var image = new Image();
+        var url = $dataElement.attr('data-renderurl') + '?metric=' + metric;
+        if ($rawButton.prop('checked')) {
+            url += '&raw=true';
+        }
+        image.src = url;
+        image.onload = function () {
+            stopSpinner();
+            $(image).appendTo($metricGraph);
+        };
+        image.onerror = function () {
+            stopSpinner();
+            $metricGraph.append('<span class="alert-box alert">Error loading image</span>');
+        };
     }
 
     function startSpinner() {
