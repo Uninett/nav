@@ -95,10 +95,8 @@ ul.ui-tabs-nav {
 
 /* List styles */
 
-.alert-box {
-  ul, ol {
+ul, ol, dl {
     margin-left: 1.2em;
-  }
 }
 
 ul.errorlist {
@@ -109,10 +107,6 @@ ul.errorlist {
 ul.clean, ol.clean, dl.clean {
     margin: 0;
     list-style-type: none;
-}
-
-ul.inside {
-    margin-left: 1.2em;
 }
 
 li.list-header {
