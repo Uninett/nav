@@ -20,27 +20,30 @@
         <th>Description</th>
         <th>Period</th>
         <th>Creator</th>
-        <th>Created</th>
-        <th>&nbsp;</th>
+        <th>Last edited</th>
         <th>&nbsp;</th>
       </tr>
       </thead>
       <tbody>
       {% for rule in rules %}
         <tr>
-          <td>{{ rule.target }}</td>
+          <td>
+            <a href="{% url threshold-edit rule.id %}">{{ rule.target }}</a>
+          </td>
           <td>{{ rule.alert }}</td>
           <td>{{ rule.clear }}</td>
           <td>{{ rule.description }}</td>
           <td>{{ rule.period|default_if_none:'' }}</td>
           <td>{{ rule.creator.name }}</td>
           <td>{{ rule.created }}</td>
+{% comment %}
           <td>
             <a href="{% url threshold-edit rule.id %}" class="button tiny secondary">
               Edit
               <i class="fa fa-edit"></i>
             </a>
           </td>
+{% endcomment %}
           <td>
             <a href="#" class="button tiny secondary" data-dropdown="delete-drop-{{ rule.id }}">
               Delete
