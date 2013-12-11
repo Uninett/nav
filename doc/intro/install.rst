@@ -31,7 +31,7 @@ To run NAV, these software packages are required:
  * Apache2
  * mod_wsgi
  * PostgreSQL >= 9.1
- * Graphite (http://graphite.wikidot.com)
+ * Graphite_
  * Python >= 2.7.0
  * nbtscan = 1.5.1
  * dhcping (only needed if using DHCP service monitor)
@@ -75,6 +75,8 @@ The following python modules are optional:
           forced to resort to using :mod:`twistedsnmp`, the :file:`contrib/patches`
           directory contains a recommended patch for this problem.
 
+
+.. _Graphite: http://graphite.wikidot.com/
 
 Recommended add-ons
 -------------------
@@ -211,6 +213,8 @@ files and various other state information::
 Integrating Graphite with NAV
 -----------------------------
 
+.. highlight:: ini
+
 NAV uses Graphite to store and retrieve/graph time-series data. NAV must be
 configured with the IP address and port of your Graphite installation's Carbon
 backend, and the URL to the Graphite-web frontend used for graphing. These
@@ -233,20 +237,24 @@ configuration file at all, but at its simplest it looks like this::
 Configuring Graphite
 ~~~~~~~~~~~~~~~~~~~~
 
-Installing Graphite itself is out of scope for this guide, but you will need
+Installing Graphite_ itself is out of scope for this guide, but you will need
 to configure some options before letting NAV send data to Graphite.
 
 1. First and foremost, you will need to enable the UDP listener in the
-   configuration file :file:`carbon.conf`. For performance reasons, Carbon
-   will also limit the number of new Whisper files that can be created per
-   minute. This number is fairly low by default, and when starting NAV for the
-   first time, it may send a ton of new metrics very fast. If the limit is set
-   to 50, it will take a long time before all the metrics are created. You
-   might want to increase the ``MAX_CREATES_PER_MINUTE`` option, or
-   temporarily set it to ``inf``.
+   configuration file :file:`carbon.conf`. 
+
+   For performance reasons, Carbon will also limit the number of new Whisper
+   files that can be created per minute. This number is fairly low by default,
+   and when starting NAV for the first time, it may send a ton of new metrics
+   very fast. If the limit is set to 50, it will take a long time before all
+   the metrics are created. You might want to increase the
+   ``MAX_CREATES_PER_MINUTE`` option, or temporarily set it to ``inf``.
 
 2. You should add the suggested *storage-schema* configurations for the
-   various NAV prefixes listed in :file:`etc/graphite/storage-schemas.conf`.
+   various ``nav`` prefixes listed in :file:`etc/graphite/storage-schemas.conf`:
+
+   .. literalinclude:: ../../etc/graphite/storage-schemas.conf
+
    The smallest resolution retention archives are the most important ones
    here, as their resolution must correspond with the collection intervals of
    various NAV processes. Other than that, the retention periods and the
@@ -258,7 +266,10 @@ to configure some options before letting NAV send data to Graphite.
    data may be munged or inaccurate, and your graphs will be spotty.
 
 3. You should add the suggested *storage-aggregation* configurations listed in
-   :file:`etc/graphite/storage-aggregation.conf`. These will ensure that
-   time-series data sent to Graphite by NAV will be aggregated properly when they
-   are rolled into lower-resolution archives.
+   the file :file:`etc/graphite/storage-aggregation.conf`:
 
+   .. literalinclude:: ../../etc/graphite/storage-aggregation.conf
+
+   These will ensure that time-series data sent to Graphite by NAV will be
+   aggregated properly when Graphite rolls them into lower-resolution
+   archives.
