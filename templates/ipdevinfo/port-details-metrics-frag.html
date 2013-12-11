@@ -1,7 +1,6 @@
 {% with port.get_port_metrics|dictsort:"suffix" as metrics %}
   {% if metrics|length %}
-    <table class="nav-metrics listtable full-width"
-           data-render-url="{% url graphite-base-render-url %}">
+    <table class="listtable full-width">
       <caption>Counters</caption>
       <thead>
       <tr>

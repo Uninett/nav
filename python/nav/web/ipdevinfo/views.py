@@ -26,7 +26,6 @@ from django.db.models import Q
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.views.generic.list_detail import object_list
-import simplejson
 
 from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
 from nav.models.service import Service
@@ -36,6 +35,7 @@ from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import get_interface_counter_graph_url
 from nav.web.utils import create_title
+from nav.metrics.graphs import get_simple_graph_url
 
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
@@ -598,3 +598,14 @@ def affected(request, netboxid):
             'affected_hosts': affected_hosts
         },
         context_instance=RequestContext(request))
+
+
+def get_graphite_render_url(request, metric=None):
+    """Redirect to graphite graph based on request data"""
+    if metric:
+        return redirect(get_simple_graph_url(
+            metric, time_frame='1' + request.REQUEST.get('timeframe', 'w')))
+    else:
+        return HttpResponse(status=400)
+
+
