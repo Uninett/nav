@@ -54,12 +54,7 @@ table {
             background-color: #FFF5E0;
         }
     }
-    &.align-top {
-        td, th {
-            vertical-align: top;
-        }
-    }
-    tr.align-top {
+    &.align-top, tr.align-top {
         td, th {
             vertical-align: baseline;
         }
