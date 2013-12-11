@@ -19,7 +19,7 @@ from urllib import urlencode
 from django.core.urlresolvers import reverse
 
 TIMETICKS_IN_DAY = 100 * 3600 * 24
-TARGET_TOKENS = re.compile(r'[\w*?]+|[(){}]|,|\.')
+TARGET_TOKENS = re.compile(r'[\w\-*?]+|[(){}]|,|\.')
 
 
 def get_sensor_meta(metric_path):
