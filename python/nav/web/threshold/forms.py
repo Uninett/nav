@@ -35,6 +35,8 @@ class ThresholdForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ThresholdForm, self).__init__(*args, **kwargs)
         self.fields['alert'].label = 'Threshold'
+        self.fields['raw'].help_text = "(Advanced): Do not transform the " \
+                                       "target according to NAV's own rules"
 
         if self.instance.pk is None:
             action_text = 'Create rule'
@@ -48,9 +50,11 @@ class ThresholdForm(forms.ModelForm):
                 action_text,
                 'target',
                 Row(
-                    Column(HelpField('alert'), css_class='small-4'),
-                    Column(HelpField('clear'), css_class='small-4'),
-                    Column(HelpField('period'), css_class='small-4')
+                    Column(HelpField('alert'), css_class='small-3'),
+                    Column(HelpField('clear'), css_class='small-3'),
+                    Column(HelpField('period'), css_class='small-3'),
+                    Column(HelpField('raw', css_class='input-align'),
+                           css_class='small-3')
                 ),
                 'description',
                 Submit('submit', action_text, css_class='small')
@@ -86,7 +90,7 @@ class ThresholdForm(forms.ModelForm):
 
     class Meta:
         model = ThresholdRule
-        fields = ('target', 'alert', 'clear', 'period', 'description')
+        fields = ('target', 'alert', 'clear', 'period', 'description', 'raw')
         widgets = {
             'description': forms.Textarea()
         }
