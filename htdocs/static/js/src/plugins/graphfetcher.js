@@ -2,24 +2,30 @@ define(['libs/jquery', 'libs/spin.min'], function () {
     /*
      * GraphFetcher
      *
-     * Usage: new GraphFetcher(node, url, [config])
+     * Automatically loads graphite graphs based on class attributes.
      *
-     * node - jQuery element to work in
-     * url - url to use when fetching graph-url
-     * config - object containing options. (currently only image title)
+     * In the template set the following attributes on the element that the
+     * graph should load in:
      *
-     * NAV's rrdgrapher returns an url when creating a graph. GraphFetcher
-     * fetches that url with ajax, creates an image and puts the url as source
+     * class='graphitegraph'
+     * data-url: The url of the controller returning the graph image
+     *   (you need to write this controller). GraphFetcher adds a 'timeframe'
+     *   parameter indicating timeframe. Valid timeframes are in the buttons
+     *   list.
+     * data-handler-id: If you have a button or something that shows the
+     *   graph, set this to the id of that element. Otherwise the graph is
+     *   loaded on page load.
      *
-     * In addition GraphFetcher adds some parameters to the request that may
-     * be used to modify the graph.
-     *
-    */
+     */
 
     $(function () {
         $('.graphitegraph').each(function () {
             var $node = $(this);
-            new GraphFetcher($node, $node.attr('data-url'));
+            try {
+                new GraphFetcher($node, $node.attr('data-url'));
+            } catch (error) {
+                console.log('Error initializing graphloader');
+            }
         });
     });
 
