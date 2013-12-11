@@ -57,7 +57,7 @@ class ThresholdForm(forms.ModelForm):
                            css_class='small-3')
                 ),
                 'description',
-                Submit('submit', action_text, css_class='small')
+                Submit('submit', 'Save', css_class='small')
             )
         )
 
