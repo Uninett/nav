@@ -2,34 +2,66 @@ define(['libs/jquery', 'libs/spin.min'], function () {
     /*
      * GraphFetcher
      *
-     * Usage: new GraphFetcher(node, url, [config])
+     * Automatically loads graphite graphs based on class attributes.
      *
-     * node - jQuery element to work in
-     * url - url to use when fetching graph-url
-     * config - object containing options. (currently only image title)
+     * In the template set the following attributes on the element that the
+     * graph should load in:
      *
-     * NAV's rrdgrapher returns an url when creating a graph. GraphFetcher
-     * fetches that url with ajax, creates an image and puts the url as source
+     * class='graphitegraph'
+     * data-url: The url of the controller returning the graph image
+     *   (you need to write this controller). GraphFetcher adds a 'timeframe'
+     *   parameter indicating timeframe. Valid timeframes are in the buttons
+     *   list.
+     * data-handler-id: If you have a button or something that shows the
+     *   graph, set this to the id of that element. Otherwise the graph is
+     *   loaded on page load.
      *
-     * In addition GraphFetcher adds some parameters to the request that may
-     * be used to modify the graph.
-     *
-    */
+     */
 
-    function GraphFetcher(node, url, config) {
+    $(function () {
+        $('.graphitegraph').each(function () {
+            var $node = $(this);
+            try {
+                new GraphFetcher($node, $node.attr('data-url'));
+            } catch (error) {
+                console.log('Error initializing graphloader');
+            }
+        });
+    });
+
+    function GraphFetcher(node, url) {
         this.checkInput(node, url);
         this.node = node;
         this.url = url;
-        this.config = config;
 
         this.buttons = {'day': 'Day', 'week': 'Week', 'month': 'Month', 'year': 'Year'};
         this.spinner = this.createSpinner();
 
-        this.addButtons();
-        this.loadGraph('day');
+        var handlerId = this.node.attr('data-handler-id');
+        if (handlerId) {
+            var self = this;
+            this.handler = $('#' + handlerId);
+            this.handler.one('click', function () {
+                self.init();
+                self.node.show();
+            });
+        } else {
+            this.init();
+        }
+
     }
 
     GraphFetcher.prototype = {
+        init: function () {
+            this.addButtons();
+            this.loadGraph('day');
+            var self = this;
+            if (this.handler) {
+                $(this.handler).click(function () {
+                    self.node.toggle();
+                });
+            }
+        },
         checkInput: function (node, url) {
             if (!(node instanceof jQuery && node.length)) {
                 throw new Error('Need a valid node to attach to');
@@ -63,47 +95,28 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             $('button.graph-button-' + timeframe, this.node).addClass('active');
         },
         loadGraph: function (timeframe) {
-            var that = this;
-            var requestData = {'timeframe': timeframe};
-            var jqxhr = $.ajax(this.url, {
-                data: requestData,
-                beforeSend: function () {
-                    that.spinner.spin(that.node.get(0));
-                }
-            });
-            this.handleXhr(jqxhr, requestData);
+            this.displayGraph(this.getUrl(timeframe));
+            this.selectButton(timeframe);
         },
         displayGraph: function (url) {
-            var title = this.config.title || '';
-            var attrs = {
-                'src': url,
-                'title': title
+            var self = this;
+            var image = new Image();
+            image.src = url;
+            image.onload = function () {
+                self.node.find('img').remove();
+                self.node.append(image);
             };
-
-            if ($('img', this.node).length > 0) {
-                $('img', this.node).attr('src', url);
-            } else {
-                $('<img>').attr(attrs).appendTo(this.node);
-            }
+            image.onerror = function () {
+                self.node.find('img').remove();
+                self.node.append("<span class='alert-box alert'>Error loading image</span>");
+            };
         },
-        handleXhr: function (xhr, requestData) {
-            var that = this;
-            xhr.fail(function () {
-                if (!$('span.error', that.node).length) {
-                    $('<span class="error"/>').text('Failed to load graph').appendTo(that.node);
-                }
-            });
-            xhr.done(function (data) {
-                that.displayGraph(data.url);
-                that.selectButton(requestData.timeframe);
-                $('span.error', that).remove();
-            });
-            xhr.always(function () {
-                if (xhr.status !== 503) {
-                    that.node.show();
-                }
-                that.spinner.stop();
-            });
+        getUrl: function (timeframe) {
+            var separator = '?';
+            if (this.url.indexOf('?') >= 0) {
+                separator = '&';
+            }
+            return this.url + separator + 'timeframe=' + timeframe;
         },
         createSpinner: function () {
             var options = {};  // Who knows, maybe in the future?

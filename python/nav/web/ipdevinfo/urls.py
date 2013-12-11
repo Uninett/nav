@@ -21,7 +21,8 @@ from django.conf.urls.defaults import url, patterns
 from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
                                      port_counter_graph)
 from nav.web.ipdevinfo.views import (ipdev_details, module_details,
-                                     port_details, get_port_view, affected)
+                                     port_details, get_port_view, affected,
+                                     get_graphite_render_url)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
@@ -68,5 +69,10 @@ urlpatterns = patterns('',
 
     # What happens if the device goes down
     url(r'(?P<netboxid>\d+)/affected', affected,
-        name="ipdevinfo-affected")
+        name="ipdevinfo-affected"),
+
+    #metrics
+    url(r'graphite-render/(?P<metric>.+)/$', get_graphite_render_url,
+        name="graphite-render-url")
+
 )

@@ -40,10 +40,10 @@
   </div>
 
   <h3>Activity graphs</h3>
-  <div class="countergraph left" data-interface="{{ port.id }}" data-counter="Octets"></div>
-  <div class="countergraph left" data-interface="{{ port.id }}" data-counter="UcastPkts"></div>
-  <div class="countergraph left" data-interface="{{ port.id }}" data-counter="Errors"></div>
-  <div class="countergraph left" data-interface="{{ port.id }}" data-counter="Discards"></div>
+  <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Octets' %}"></div>
+  <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'UcastPkts' %}"></div>
+  <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Errors' %}"></div>
+  <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Discards' %}"></div>
 
   {% include 'ipdevinfo/port-details-metrics-frag.html' %}
 

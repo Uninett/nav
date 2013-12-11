@@ -48,7 +48,7 @@ def index(request):
     return render(request, 'threshold/base.html', context)
 
 
-def add_threshold(request):
+def add_threshold(request, metric=None):
     """Controller for threshold search"""
 
     if request.method == 'POST':
@@ -58,8 +58,10 @@ def add_threshold(request):
             handle_threshold_form(form, request)
             return redirect('threshold-index')
     else:
-        form = ThresholdForm()
-        metric = None
+        if metric:
+            form = ThresholdForm(initial={'target': metric})
+        else:
+            form = ThresholdForm()
 
     heading = 'Add threshold rule'
     navpath = get_path() + [(heading,)]
