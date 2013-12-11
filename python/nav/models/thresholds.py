@@ -16,6 +16,7 @@
 """Metric threshold related models"""
 from datetime import timedelta
 from django.db import models
+from nav.metrics.graphs import extract_series_name, translate_serieslist_to_regex
 from nav.models.profiles import Account
 from nav.models.fields import VarcharField
 from nav.metrics.thresholds import ThresholdEvaluator, DEFAULT_INTERVAL
@@ -57,3 +58,12 @@ class ThresholdRule(models.Model):
         period = (timedelta(seconds=self.period) if self.period
                   else DEFAULT_INTERVAL)
         return ThresholdEvaluator(self.target, period=period, raw=self.raw)
+
+    def get_pattern(self):
+        """
+        Returns a compiled regexp pattern that represents the target metrics
+        of this rule.
+        """
+        series = extract_series_name(self.target)
+        pat = translate_serieslist_to_regex(series)
+        return pat
