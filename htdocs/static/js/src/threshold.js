@@ -3,6 +3,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
 
     var $inputElement = $('#id_target'),
         $rawButton = $('#id_raw'),
+        $refreshButton = $('#refresh-graph'),
         $dataElement = $inputElement.parents('.dataelement'),
         metric = $dataElement.attr('data-metric'),
         $metricGraph = $('.metricGraph'),
@@ -24,6 +25,11 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
 
         /* Redraw graph when raw checkbox is clicked */
         $rawButton.on('click', function () {
+            displayMetricInfo($inputElement.val());
+        });
+
+        /* Redraw graph when refreshbutton is clicked */
+        $refreshButton.on('click', function () {
             displayMetricInfo($inputElement.val());
         });
 
@@ -61,7 +67,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
         };
         image.onerror = function () {
             stopSpinner();
-            $metricGraph.append('<span class="alert-box alert">Error loading image</span>');
+            $metricGraph.append('<span class="alert-box alert">Error loading graph</span>');
         };
     }
 
