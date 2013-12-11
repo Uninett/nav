@@ -18,8 +18,10 @@ To build NAV, you need at least the following:
  * make
  * automake
  * autoconf
- * Python >= 2.6.0
+ * Python >= 2.7.0
  * Sphinx >= 1.0 (for building this documentation)
+ * A `sass` compiler (to build the NAV web interface's stylesheets. Installing
+   the rubygem `sass` would satisfy this requirement)
 
 Runtime requirements
 --------------------
@@ -29,13 +31,15 @@ To run NAV, these software packages are required:
  * Apache2
  * mod_wsgi
  * PostgreSQL >= 9.1
- * rrdtool
- * Python >= 2.6.0
+ * Graphite (http://graphite.wikidot.com)
+ * Python >= 2.7.0
  * nbtscan = 1.5.1
  * dhcping (only needed if using DHCP service monitor)
 
+PostgreSQL and Graphite are services that do not necessarily need to run on
+the same server as NAV.
 
-The following python modules are required:
+The following Python modules are required:
 
  * :mod:`django` >= 1.2
  * :mod:`IPy` >= 0.70
@@ -57,8 +61,8 @@ The following python modules are optional:
  * :mod:`xmpp` (optional)
 
 .. tip:: NAV comes with a :file:`requirements.txt` file that can be used in
-         conjunction with `pip` to install all the Python dependencies using
-         :kbd:`pip install -r requirements.txt`. This file is also likely to
+         conjunction with `pip` to install all the Python dependencies 
+         using :kbd:`pip install -r requirements.txt`. This file is also likely to
          be more up-to-date for development versions than this install
          document.
 
@@ -68,9 +72,8 @@ The following python modules are optional:
           implementation. :mod:`pynetsnmp` will give better performance *and*
           IPv6-support. :mod:`twistedsnmp` also has a known, unfixed bug with
           table retrievals on slow SNMP agents. If, for some reason, you are
-          forced to resort to using :mod:`twistedsnmp`, the
-          :file:`contrib/patches` directory contains a recommended patch for
-          this problem.
+          forced to resort to using :mod:`twistedsnmp`, the :file:`contrib/patches`
+          directory contains a recommended patch for this problem.
 
 
 Recommended add-ons
@@ -154,8 +157,8 @@ You should now be able to run the python command line interpreter and run
 .. code-block:: console
 
   $ python
-  Python 2.6.6 (r266:84292, Dec 27 2010, 00:02:40) 
-  [GCC 4.4.5] on linux2
+  Python 2.7.3 (default, Sep 26 2013, 20:03:06) 
+  [GCC 4.6.3] on linux2
   Type "help", "copyright", "credits" or "license" for more information.
   >>> import nav
   >>>
@@ -182,23 +185,24 @@ included in your virtualhost config, which needn't contain much more than this:
 Create users and groups
 -----------------------
 
-NAV processes should run as the `navcron` user, and preferably, a
-separate nav group should be added to the system::
+NAV processes should run as the `navcron` user (the name of this user is
+configurable via the :kbd:`./configure` command at build-time), and
+preferably, a separate nav group should be added to the system::
 
   sudo addgroup --system nav
   sudo adduser --system --no-create-home --home /usr/local/nav \
-	       --shell /bin/sh --ingroup nav navcron;
+               --shell /bin/sh --ingroup nav navcron;
 
 If you want to use NAV's SMS functionality in conjunction with Gammu, you
 should make sure the `navcron` user is allowed to write to the serial device
-you've connected your GSM device to.  Often, this device has a group ownership
-set to the dialout group, so the easieast route is to add the `navcron` user to
-the dialout group::
+you've connected your GSM device to. Often, this device has a group ownership
+set to the `dialout` group, so the easieast route is to add the `navcron` user
+to the dialout group::
 
   sudo addgroup navcron dialout
 
-You should also make sure `navcron` has permission to write log files, rrd files
-and pid files::
+You should also make sure `navcron` has permission to write log files, pid
+files and various other state information::
 
   cd /usr/local/nav/var
   sudo chown -R navcron:nav .
@@ -207,4 +211,54 @@ and pid files::
 Integrating Graphite with NAV
 -----------------------------
 
-.. WARNING:: This needs to be documented! 
+NAV uses Graphite to store and retrieve/graph time-series data. NAV must be
+configured with the IP address and port of your Graphite installation's Carbon
+backend, and the URL to the Graphite-web frontend used for graphing. These
+settings can be configured in the :file:`graphite.conf` configuration file.
+
+.. note:: NAV requires the Carbon backend's UDP listener to be enabled, as it
+          will only transmit metrics over UDP.
+
+For a simple, local Graphite installation, you may not need to touch this
+configuration file at all, but at its simplest it looks like this::
+
+  [carbon]
+  host = 127.0.0.1
+  port = 2003
+
+  [graphiteweb]
+  base = http://localhost:8000/
+
+
+Configuring Graphite
+~~~~~~~~~~~~~~~~~~~~
+
+Installing Graphite itself is out of scope for this guide, but you will need
+to configure some options before letting NAV send data to Graphite.
+
+1. First and foremost, you will need to enable the UDP listener in the
+   configuration file :file:`carbon.conf`. For performance reasons, Carbon
+   will also limit the number of new Whisper files that can be created per
+   minute. This number is fairly low by default, and when starting NAV for the
+   first time, it may send a ton of new metrics very fast. If the limit is set
+   to 50, it will take a long time before all the metrics are created. You
+   might want to increase the ``MAX_CREATES_PER_MINUTE`` option, or
+   temporarily set it to ``inf``.
+
+2. You should add the suggested *storage-schema* configurations for the
+   various NAV prefixes listed in :file:`etc/graphite/storage-schemas.conf`.
+   The smallest resolution retention archives are the most important ones
+   here, as their resolution must correspond with the collection intervals of
+   various NAV processes. Other than that, the retention periods and the
+   resolution of any other archive can be freely experimented with.
+
+   Remember, these schemas apply to new Whisper files as they are created. You
+   should not start NAV until the schemas have been configured, otherwise the
+   Whisper files will be created with the global Graphite defaults, and your
+   data may be munged or inaccurate, and your graphs will be spotty.
+
+3. You should add the suggested *storage-aggregation* configurations listed in
+   :file:`etc/graphite/storage-aggregation.conf`. These will ensure that
+   time-series data sent to Graphite by NAV will be aggregated properly when they
+   are rolled into lower-resolution archives.
+
