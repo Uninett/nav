@@ -34,7 +34,7 @@
 
               {% else %}
 
-                <a href="{% url threshold-add %}" title="Add a new threshold rule for this metric"
+                <a href="{% url threshold-add metric.id %}" title="Add a new threshold rule for this metric"
                         ><i class="fa fa-plus-square-o"></i></a>
 
               {% endif %}
