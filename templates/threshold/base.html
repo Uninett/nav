@@ -32,7 +32,7 @@
           <td>{{ rule.alert }}</td>
           <td>{{ rule.clear }}</td>
           <td>{{ rule.description }}</td>
-          <td>{{ rule.period }}</td>
+          <td>{{ rule.period|default_if_none:'' }}</td>
           <td>{{ rule.creator.name }}</td>
           <td>{{ rule.created }}</td>
           <td>

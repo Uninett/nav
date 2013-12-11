@@ -60,6 +60,9 @@ class ThresholdForm(forms.ModelForm):
     def clean_period(self):
         """Verify that period is correctly formatted"""
         period = self.cleaned_data['period']
+        if not period:
+            return None
+
         try:
             period = parse_interval(period)
         except ValueError:
