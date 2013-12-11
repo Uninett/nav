@@ -1,5 +1,5 @@
-require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/graph_fetcher", "plugins/graphfetcher", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
-], function (TableUtil, TabNavigation, NeighborMap, GraphLoader, GraphFetcher) {
+require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/graphfetcher", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
+], function (TableUtil, TabNavigation, NeighborMap) {
 
     var mainTabsSelector = '#ipdevinfotabs';
     var metricTabsSelector = "#metrictabs";
@@ -20,13 +20,6 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         if ($neighbornode.length) {
             new NeighborMap($neighbornode.get(0));
         }
-
-//        var $metrics = $('.nav-metrics');
-//        if ($metrics.length) {
-//            $metrics.each(function () {
-//                addGraphLoader($(this));
-//            });
-//        }
     });
 
     function addModuleTabs() {
@@ -54,22 +47,6 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             spinner: '<img src="/images/main/process-working.gif">'
         });
         tabs.show();
-    }
-
-    function addGraphLoader($container) {
-         var $renderUrl = $container.attr('data-render-url');
-
-         $container.find('.nav-metric').each(function () {
-            var $node = $(this),
-                metric = $node.attr('data-metric-id'),
-                $thisRow = $node.parents('tr:first'),
-                $displayRow = $('<tr/>'),
-                $displayCell = $('<td/>').attr('colspan', 3).appendTo($displayRow).hide(),
-                $handler = $thisRow.find('td:first img');
-
-            $displayRow.insertAfter($thisRow);
-            new GraphLoader($renderUrl + metric, $displayCell, $handler);
-        });
     }
 
     /*
