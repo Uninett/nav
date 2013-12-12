@@ -1,3 +1,33 @@
+Version 4.0b1
+(released 12 Dec 2013)
+
+ User-visible features and improvements:
+
+  * The web-based user interface has been overhauled/redesigned, using the
+    Foundation CSS framework. One of the goals of this process is to have
+    design elements that are properly re-usable, and a responsive design that
+    will work better on small-screen devices.
+
+  * Cricket and RRDtool have been replaced with ipdevpoll plugins for
+    time-series data collection and Graphite for data storage and
+    presentation. More information about Graphite can be found at
+    http://graphite.wikidot.com/ .
+
+  * System and port traffic graphs are now browsable directly in the ipdevinfo
+    tool under each IP device or network interface. The advanced user can also
+    build more complex, customized graphs from the data collected by NAV by
+    utilizing Graphite's own web interface.
+
+  * The threshold management interface has been rewritten from scratch to work
+    with data from Graphite.
+
+ These are fairly large, not backwards compatible changes to NAV. Please refer
+ to the release notes for upgrade instructions. For testing the 4.0 beta
+ version we recommend installing NAV on a separate, perhaps virtual, server,
+ and migrate production data according to the data migration howto found in
+ the documentation.
+
+
 Version 3.15.3
 (released 14 Nov 2013)
 
