@@ -74,7 +74,7 @@ uses *"threshold rules"*, which leverage functionality built-in to Graphite.
 It is also essentially independent of NAV, which means it can also monitor
 thresholds for data that was put into Graphite by 3rd party software.
 
-Existing threshold values for RRD-bases datasources cannot be consistently
+Existing threshold values for RRD-based datasources cannot be consistently
 migrated to the new threshold rule system, so you will need to configure your
 threshold rules from scratch. We do, however, provide tools for migrating
 time-series data stored in RRD files into Graphite, which will enable you to
