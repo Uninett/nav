@@ -74,20 +74,20 @@ uses *"threshold rules"*, which leverage functionality built-in to Graphite.
 It is also essentially independent of NAV, which means it can also monitor
 thresholds for data that was put into Graphite by 3rd party software.
 
+Migrating existing data
+-----------------------
+
 Existing threshold values for RRD-based datasources cannot be consistently
 migrated to the new threshold rule system, so you will need to configure your
-threshold rules from scratch. We do, however, provide tools for migrating
-time-series data stored in RRD files into Graphite, which will enable you to
-keep historic data when upgrading from an older NAV version.
+threshold rules from scratch. 
 
-
-Migrating data from Cricket/RRD to Graphite
--------------------------------------------
-
-Run the migration script and put the whisper files in your Graphite server's
-storage directory.
-
-.. warning:: Fill in the blanks ;-)
+We will, however, provide a program for migrating time-series data stored in
+RRD files into Graphite, which will enable you to keep historic data when
+upgrading from an older NAV version. The current development version of this
+program cannot be distributed because of licensing issues arising from
+combining NAV and Graphite code. The program will be rewritten during the 4.0
+beta period, so that we can provide a workable migration solution for the
+final 4.0 release.
 
 
 NAV 3.15
