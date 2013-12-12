@@ -20,8 +20,9 @@ To build NAV, you need at least the following:
  * autoconf
  * Python >= 2.7.0
  * Sphinx >= 1.0 (for building this documentation)
- * A `sass` compiler (to build the NAV web interface's stylesheets. Installing
-   the rubygem `sass` would satisfy this requirement. Version >= 3.2.12)
+ * A `sass` compiler >= 3.2.12 to build the NAV web interface's stylesheets.
+   Installing the rubygem `sass` or using the package `ruby-sass` from the
+   `jessie (testing)` distribution would satisfy this requirement.
 
 Runtime requirements
 --------------------
