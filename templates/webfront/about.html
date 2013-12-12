@@ -6,10 +6,17 @@
 <h3>What is NAV?</h3>
 
 <div style="float: right;">
-        <a href="http://www.ntnu.no/"><img src="{{ STATIC_URL }}images/about/ntnu.jpg"
-        width="200" height="58" alt="NTNU" /></a><br />
+        {% comment %}
+        Margins around the UNINETT logo are as suggested by the UNINETT logo
+        policy; they should be about the vertical height of the logo font on all
+        sides.
+        {% endcomment %}
         <a href="http://www.uninett.no/index.en.html"><img
-        src="{{ STATIC_URL }}images/about/uninett.png" width="111" height="27" alt="UNINETT" /></a>
+        src="{{ STATIC_URL }}images/about/uninett.png" width="157" height="43" alt="UNINETT"
+        style="margin: 22px; margin-top: 0;"/></a><br />
+        <a href="http://www.ntnu.no/"><img src="{{ STATIC_URL }}images/about/ntnu.jpg"
+        width="200" height="58" alt="NTNU" /></a>
+
 </div>
 
 <p>
