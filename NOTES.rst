@@ -32,7 +32,7 @@ Dependency changes
 New dependencies:
 
 - Graphite_
-- Sass_ (only required at build time)
+- Sass_ >= 3.2.12 (only required at build time)
 
 Changed version requirements:
 

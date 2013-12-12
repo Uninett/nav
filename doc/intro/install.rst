@@ -21,7 +21,7 @@ To build NAV, you need at least the following:
  * Python >= 2.7.0
  * Sphinx >= 1.0 (for building this documentation)
  * A `sass` compiler (to build the NAV web interface's stylesheets. Installing
-   the rubygem `sass` would satisfy this requirement)
+   the rubygem `sass` would satisfy this requirement. Version >= 3.2.12)
 
 Runtime requirements
 --------------------
