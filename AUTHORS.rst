@@ -15,8 +15,7 @@ Currently active contributors/maintainers
 
 * John-Magne Bredal <john.m.bredal at uninett.no>
   Joined in 2000, and is instrumental in anything related to Cricket,
-  end user detentions (Arnold), threshold monitoring and snmp trap
-  processing.
+  end user detentions (Arnold) and the web front end in general.
 
 * Morten Brekkevold (formerly Vold) <morten.brekkevold at uninett.no>
   Joined in 2002 to make NAV useable outside of NTNU.  Has been
@@ -24,16 +23,21 @@ Currently active contributors/maintainers
   project's opinionated know-it-all, working as the current project
   lead, after taking over for Vidar Faltinsen.
 
-* Morten Werner Forsbring <werner at debian.org>
-  Packaging NAV for Debian since 2004.
-
 * Christian Strand Young <christian at strandyoung.com>
   Joined in the summer of 2011.  His main contributions are implementing IPv6
   support in pping and asynchronous DNS lookups in ipdevinfo & the Machine
   Tracker, as well as fixing various bugs.
 
+* Christine Anne Sætre <christine.satre at ntnu.no>
+  Interaction designer, hired as a consultant from NTNU to give feedback on UX
+  during the NAV 4.0 interface redesign process.
+
+
 Other contributors and previous maintainers
 -------------------------------------------
+* Morten Werner Forsbring <werner at debian.org>
+  Packaging NAV for Debian 2004-2013.
+
 * Roy Sindre Norangshol <norangshol at uninett.no>
   Rewrote Netmap from a Java applet to a JavaScript implementation based on
   D3.js. Wrote the tools scripts for building NAV virtual machines based on
