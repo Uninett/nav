@@ -34,7 +34,8 @@ class ThresholdForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ThresholdForm, self).__init__(*args, **kwargs)
-        self.fields['alert'].label = 'Threshold'
+        self.fields['alert'].label = 'Alert threshold'
+        self.fields['clear'].label = 'Clear alert'
         self.fields['raw'].help_text = "(Advanced): Do not transform the " \
                                        "target according to NAV's own rules"
 
@@ -43,6 +44,7 @@ class ThresholdForm(forms.ModelForm):
         else:
             action_text = 'Edit rule'
 
+        column_class = 'small-4'
         self.helper = FormHelper()
         self.helper.form_action = ''
         self.helper.layout = Layout(
@@ -50,14 +52,18 @@ class ThresholdForm(forms.ModelForm):
                 action_text,
                 'target',
                 Row(
-                    Column(HelpField('alert'), css_class='small-3'),
-                    Column(HelpField('clear'), css_class='small-3'),
-                    Column(HelpField('period'), css_class='small-3'),
-                    Column(HelpField('raw', css_class='input-align'),
-                           css_class='small-3')
+                    Column(HelpField('alert'), css_class=column_class),
+                    Column(HelpField('clear'), css_class=column_class),
+                    Column(HelpField('period'), css_class=column_class),
                 ),
                 'description',
-                Submit('submit', 'Save', css_class='small')
+                Row(
+                    Column(Submit('submit', 'Save', css_class='small'),
+                           css_class='small-6'),
+                    Column(HelpField('raw'),
+                           css_class='small-6'),
+                )
+
             )
         )
 
