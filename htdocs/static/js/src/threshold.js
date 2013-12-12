@@ -19,6 +19,14 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min', 'libs/spin.min'], fu
             }
         );
 
+        /* Prevent form submission on enter, draw graph instead */
+        $inputElement.keydown(function (event) {
+            if (event.which === 13) {
+                event.preventDefault();
+                displayMetricInfo($inputElement.val());
+            }
+        });
+
         if (metric) {
             displayMetricInfo(metric);
         }
