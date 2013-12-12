@@ -19,7 +19,8 @@
     <script>
         var NAV = {
             'cssPath': '{{ STATIC_URL }}css/nav',
-            'imagePath': '{{ STATIC_URL }}images'
+            'imagePath': '{{ STATIC_URL }}images',
+            'proxyOsmUrl': '{% url base_osm_map_redirect %}'
         };
     </script>
     <script src="{{ STATIC_URL }}js/require_config.js"></script>

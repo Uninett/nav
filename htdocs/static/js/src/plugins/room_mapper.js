@@ -7,7 +7,7 @@ define(['libs/OpenLayers', 'libs/jquery'], function () {
     function RoomMapper(node, rooms) {
         this.node = node;
         this.rooms = rooms;
-        this.proxyurl = '/info/osm_map_redirect/${z}/${x}/${y}.png';
+        this.proxyurl = NAV.proxyOsmUrl + '${z}/${x}/${y}.png';
         this.imagePath = NAV.imagePath + '/openlayers/';
         this.markerImages = {
             faulty: this.imagePath + 'marker.png',
@@ -112,6 +112,6 @@ define(['libs/OpenLayers', 'libs/jquery'], function () {
         return reverse ? obj.transform(EPSGMERC, EPSG4326) : obj.transform(EPSG4326, EPSGMERC);
     }
 
-    return RoomMapper
+    return RoomMapper;
 
 });
