@@ -99,10 +99,7 @@ def devicehistory_view(request):
     }
 
     grouped_history = None
-    if 'from_date' in request.REQUEST:
-        form = DeviceHistoryViewFilter(request.REQUEST)
-    else:
-        form = DeviceHistoryViewFilter()
+    form = DeviceHistoryViewFilter(request.REQUEST)
     if form.is_valid():
         alert_history = fetch_history(selection, form)
         grouped_history = group_history_and_messages(
