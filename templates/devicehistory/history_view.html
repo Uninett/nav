@@ -19,8 +19,8 @@
 
         <div class="medium-3 columns">
             <div class="panel searchparams">
+            <h5>Search parameters</h5>
             {% for type, elements in search_description.items %}
-                <h5>Search parameters</h5>
                 <h6>{{ type|capfirst }}</h6>
                 <ul class="no-bullet">
                 {% for id in elements %}

@@ -15,16 +15,14 @@
 #
 """Module comment"""
 
-import time
-from datetime import date
+from datetime import date, timedelta
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, Field
 from nav.web.devicehistory.utils import get_event_and_alert_types
+import logging
 
-# Often used timelimits, in seconds:
-ONE_DAY = 24 * 3600
-ONE_WEEK = 7 * ONE_DAY
+_logger = logging.getLogger(__name__)
 
 
 class MyDateInput(forms.DateInput):
@@ -56,10 +54,9 @@ class DeviceHistoryViewFilter(forms.Form):
                                  required=False)
 
     def __init__(self, *args, **kwargs):
-        initial = dict(from_date=date.fromtimestamp(time.time() - ONE_WEEK),
-                       to_date=date.fromtimestamp(time.time() + ONE_DAY))
-        kwargs.setdefault('initial', dict()).update(initial)
         super(DeviceHistoryViewFilter, self).__init__(*args, **kwargs)
+        self.fields['from_date'].initial = date.today() - timedelta(days=7)
+        self.fields['to_date'].initial = date.today() + timedelta(days=1)
 
         common_class = 'medium-3'
 
@@ -81,9 +78,9 @@ class DeviceHistoryViewFilter(forms.Form):
 
     def clean(self):
         """Uses the initial values for empty fields"""
-        super(forms.Form, self).clean()
-        for field in self.fields:
-            if (self[field].html_name not in self.data
-                    and self.fields[field].initial):
-                self.cleaned_data[field] = self.fields[field].initial
-        return self.cleaned_data
+        cleaned_data = super(DeviceHistoryViewFilter, self).clean()
+        for field in self.fields.keys():
+            if cleaned_data[field] is None and self.fields[field].initial:
+                cleaned_data[field] = self.fields[field].initial
+        self.data = cleaned_data
+        return cleaned_data

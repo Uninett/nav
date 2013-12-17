@@ -99,7 +99,8 @@ def devicehistory_view(request):
     }
 
     grouped_history = None
-    if 'from_date' in request.REQUEST:
+    valid_params = ['to_date', 'from_date', 'eventtype', 'group_by']
+    if len(set(valid_params) & set(request.REQUEST.keys())) > 1:
         form = DeviceHistoryViewFilter(request.REQUEST)
     else:
         form = DeviceHistoryViewFilter()

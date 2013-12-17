@@ -156,7 +156,7 @@ class _Section(object):
     def devicehistory_url(self):
         """Make history urls for this device"""
         url = reverse('devicehistory-view')
-        url += "?type=%s" % self.devicehistory_type
+        url += "?eventtype=%s" % self.devicehistory_type
         url += "&group_by=datetime"
 
         if not self.prefs.all_organizations:
@@ -247,7 +247,7 @@ class NetboxSection(_Section):
                     (
                         'history',
                         reverse('devicehistory-view') +
-                        '?netbox=%(id)s&type=a_boxDown&group_by=datetime' % {
+                        '?netbox=%(id)s&eventtype=a_boxDown&group_by=datetime' % {
                         'id': h.netbox.id,
                         }
                     ),
@@ -321,7 +321,7 @@ class NetboxMaintenanceSection(_Section):
                     (
                         'history',
                         reverse('devicehistory-view') +
-                        ('?netbox=%(id)s&type=e_maintenanceState'
+                        ('?netbox=%(id)s&eventtype=e_maintenanceState'
                          '&group_by=datetime' %
                          {'id': m.alert_history.netbox.id})
                     ),
@@ -440,7 +440,7 @@ class ServiceSection(_Section):
                     (
                         'history',
                         reverse('devicehistory-view') +
-                        ('?netbox=%(id)s&type=e_serviceState'
+                        ('?netbox=%(id)s&eventtype=e_serviceState'
                          '&group_by=datetime' %
                          {'id': s.netbox.id})
                     )
@@ -451,7 +451,7 @@ class ServiceSection(_Section):
 
     def devicehistory_url(self):
         url = reverse('devicehistory-view')
-        url += "?type=%s" % self.devicehistory_type
+        url += "?eventtype=%s" % self.devicehistory_type
         url += "&group_by=datetime"
 
         if not self.prefs.all_organizations:
@@ -529,7 +529,7 @@ class ServiceMaintenanceSection(ServiceSection):
                     (
                         'history',
                         reverse('devicehistory-view') +
-                        ('?netbox=%(id)s&type=e_maintenanceState'
+                        ('?netbox=%(id)s&eventtype=e_maintenanceState'
                          '&group_by=datetime' %
                          {'id': m.alert_history.netbox.id})
                     ),
@@ -598,7 +598,7 @@ class ModuleSection(_Section):
                     (
                         'history',
                         reverse('devicehistory-view') +
-                        '?module=%(id)s&type=a_moduleDown&group_by=datetime' % {
+                        '?module=%(id)s&eventtype=a_moduleDown&group_by=datetime' % {
                             'id': module.module_id,
                         }
                     ),
@@ -663,7 +663,7 @@ class ThresholdSection(_Section):
                        (alert.downtime, None),
                        ('history',
                         reverse('devicehistory-view') +
-                        '?netbox=%(id)s&type=a_exceededThreshold'
+                        '?netbox=%(id)s&eventtype=a_exceededThreshold'
                         '&group_by=datetime' % {
                             'id': alert.netbox.id,
                         }),
@@ -745,7 +745,7 @@ class LinkStateSection(_Section):
                     (
                         'history',
                         reverse('devicehistory-view') +
-                        '?netbox=%(id)s&type=a_linkDown&group_by=datetime' % {
+                        '?netbox=%(id)s&eventtype=a_linkDown&group_by=datetime' % {
                             'id': h.netbox.id,
                         }
                     ),
@@ -810,7 +810,7 @@ class SNMPAgentSection(_Section):
                     (
                         'history',
                         reverse('devicehistory-view') +
-                        ('?netbox=%(id)s&type=a_snmpAgentDown'
+                        ('?netbox=%(id)s&eventtype=a_snmpAgentDown'
                          '&group_by=datetime' % {'id': h.netbox.id})
                     ),
                 ),
@@ -867,7 +867,7 @@ class PSUSection(_Section):
             (psu.downtime, None),
             ('history',
              (reverse('devicehistory-view') + '?powersupply=%s'
-                                              '&type=a_psuNotOK'
+                                              '&eventtype=a_psuNotOK'
                                               '&group_by=datetime' %
                                               psu.powersupply_id)),
         )
