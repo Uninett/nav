@@ -39,7 +39,13 @@ line_number_memory=$(grep -n -A4 '2048 MB of memory' box.ovf | grep VirtualQuant
 sed -e "${line_number_memory}s/256/2048/" -i box.ovf
 echo "Changed memory from 256 MB to 2048 MB in .ovf template."
 
-ovftool --lax $tmp_dir/box.ovf $tmp_dir/vmware-nav.vmx
+OVFTOOL=$(which ovftool)
+if [[ -n "$OVFTOOL" ]]; then
+    "$OVFTOOL" --lax "${tmp_dir}/box.ovf" "${tmp_dir}/vmware-nav.vmx"
+else
+    echo "could not find ovftool binary. ovftool must be used if you want"
+    echo "to use the resulting OVF image on VMWare"
+fi
 
 echo 
 echo "Virtual appliance image(s) done for NAV. You find it in $tmp_dir !"
