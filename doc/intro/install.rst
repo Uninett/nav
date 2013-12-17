@@ -56,6 +56,8 @@ The following Python modules are required:
  * :mod:`django-oauth2-provider` >= 0.2.6
  * :mod:`djangorestframework` >= 2.3.7
  * :mod:`iso8601`
+ * :mod:`django-crispy-forms` == 1.3.2
+ * :mod:`crispy-forms-foundation` == 0.2.3
 
 The following python modules are optional:
 
