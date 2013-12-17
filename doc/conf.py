@@ -47,7 +47,7 @@ copyright = u'2012-2013, UNINETT AS'
 # built documents.
 #
 # The short X.Y version.
-version = '4.0'
+version = 'dev'
 #version = '.'.join(buildconf.VERSION.split('.')[:2])
 # The full version, including alpha/beta/rc tags.
 release = buildconf.VERSION
