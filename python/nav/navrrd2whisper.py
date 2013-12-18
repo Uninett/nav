@@ -18,6 +18,7 @@
 
 import logging
 import os
+import re
 import rrdtool
 import nav.path
 from collections import namedtuple
@@ -34,7 +35,7 @@ Datasource = namedtuple('Datasource', 'name type')
 _logger = logging.getLogger(__name__)
 
 
-def convert_to_whisper(rrdfile, metrics, extra_retention=None):
+def convert_to_whisper(rrdfile, mapping, extra_retention=None):
     """Convert a rrd-file to whisper"""
 
     rrd_file = str(join(rrdfile.path, rrdfile.filename))
@@ -43,10 +44,10 @@ def convert_to_whisper(rrdfile, metrics, extra_retention=None):
     except rrdtool.error, error:
         _logger.error(error)
     else:
-        convert(rrd_file, rrd_info, metrics, extra_retention)
+        convert(rrd_file, rrd_info, mapping, extra_retention)
 
 
-def convert(rrd_file, rrd_info, metrics, extra_retention=None):
+def convert(rrd_file, rrd_info, mapping, extra_retention=None):
     """Does the convertion from rrd to whisper
 
     Creates a whisper-file for each datasource in the rrd-file. If the
@@ -67,10 +68,13 @@ def convert(rrd_file, rrd_info, metrics, extra_retention=None):
                               extra_retention[1] / extra_retention[0]))
 
     for datasource in get_datasources(rrd_info):
-        whisper_file_path = create_whisper_path(metrics[datasource.name])
+        metric = mapping[datasource.name]['metric']
+        whisper_file_path = create_whisper_path(
+            mapping[datasource.name]['path'])
         if not os.path.exists(whisper_file_path):
             try:
-                create_whisper_file(retentions, whisper_file_path)
+                config = find_meta(metric)
+                create_whisper_file(retentions, whisper_file_path, config)
             except CalledProcessError, error:
                 _logger.error(error)
                 continue
@@ -139,7 +143,30 @@ def create_whisper_path(whisper_path):
     return whisper_path + '.wsp'
 
 
-def create_whisper_file(retentions, whisper_file):
+def find_meta(metric):
+    """Find meta information for this metric
+
+    Config based on NAV recommendations from storage-aggregation.conf
+    """
+    meta = {
+        '^nav\..*-count$': {
+            'xFilesFactor': 0,
+            'aggregationMethod': 'sum'
+        },
+        '^nav\..*ports\..*': {
+            'aggregationMethod': 'last'
+        }
+    }
+    for pattern, config in meta.items():
+        match = re.match(pattern, metric)
+        if match:
+            _logger.info('%s matched %s', metric, pattern)
+            return config
+
+    return {}
+
+
+def create_whisper_file(retentions, whisper_file, config=None):
     """Create the whisper file with the correct retentions
 
     Will fail if file exists
@@ -147,7 +174,13 @@ def create_whisper_file(retentions, whisper_file):
     if dirname(whisper_file) and not exists(dirname(whisper_file)):
         os.makedirs(dirname(whisper_file))
     args = ['whisper-create.py', whisper_file]
+    if 'aggregationMethod' in config and config['aggregationMethod'] in \
+            ['average', 'min', 'max', 'last', 'sum']:
+        args.extend(['--aggregationMethod', config['aggregationMethod']])
+    if 'xFilesFactor' in config:
+        args.extend(['--xFilesFactor', config['xFilesFactor']])
     args.extend("%s:%s" % x for x in retentions)
+    _logger.info(args)
     check_output(args, stderr=STDOUT)
 
 

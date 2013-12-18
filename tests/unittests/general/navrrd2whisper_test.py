@@ -21,7 +21,7 @@ from nav.navrrd2whisper import (get_rras, calculate_time_periods,
                                 calculate_retentions, get_datasources,
                                 create_whisper_path,
                                 calculate_absolute_from_rate,
-                                insert_missing_values)
+                                insert_missing_values, find_meta)
 
 
 class NavRrd2WhisperTest(unittest.TestCase):
@@ -192,3 +192,27 @@ class NavRrd2WhisperTest(unittest.TestCase):
         num_missing = 3
         modified = insert_missing_values(values, num_missing)
         self.assertEqual(modified, [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3])
+
+    def test_get_meta_port(self):
+        meta = {
+            '^nav\..*ports\..*': {
+                'aggregationMethod': 'last'
+            }
+        }
+        self.assertEqual(
+            find_meta(
+                'nav.devices.blaasal-sw_uninett_no.ports.Gi2_46.ifInOctets'),
+            meta['^nav\..*ports\..*'])
+
+    def test_get_meta_count(self):
+        meta = {
+            '^nav\..*-count$': {
+                'xFilesFactor': 0,
+                'aggregationMethod': 'sum'
+            }
+        }
+        self.assertEqual(
+            find_meta(
+                'nav.devices.blaasal-sw_uninett_no.blapp.something-count'),
+            meta['^nav\..*-count$'])
+

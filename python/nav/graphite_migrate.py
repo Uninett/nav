@@ -62,9 +62,9 @@ class Migrator(object):
         """Get data from rrd-file and create one file for each datasource"""
         for rrdfile in self.rrdfiles:
             _logger.info('Migrating %s', rrdfile)
-            metrics = self.find_metrics(rrdfile)
-            if metrics:
-                convert_to_whisper(rrdfile, metrics, self.extra_retention)
+            mapping = self.find_metrics(rrdfile)
+            if mapping:
+                convert_to_whisper(rrdfile, mapping, self.extra_retention)
 
     def find_metrics(self, rrdfile):
         """Find metrics for datasources"""
@@ -86,7 +86,9 @@ class Migrator(object):
         for datasource in rrdfile.rrddatasource_set.all():
             metric = self.find_metric(datasource, sysname, info_object)
             if metric:
-                mapping[datasource.name] = self.create_path_from_metric(metric)
+                mapping[datasource.name] = {
+                    'path': self.create_path_from_metric(metric),
+                    'metric': metric}
 
         return mapping
 
