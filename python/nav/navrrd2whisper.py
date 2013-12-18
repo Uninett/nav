@@ -1,14 +1,29 @@
 #!/usr/bin/python
+#
+# Copyright (C) 2013 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
 """Migrate rrd-files to whisper-files"""
 
 import logging
 import os
 import rrdtool
-import whisper
+import nav.path
 from collections import namedtuple
-from datetime import datetime
 from operator import attrgetter
 from os.path import join, exists, dirname
+from subprocess import Popen, PIPE, check_output, CalledProcessError, STDOUT
 
 
 # pylint:disable=C0103
@@ -32,7 +47,11 @@ def convert_to_whisper(rrdfile, metrics, extra_retention=None):
 
 
 def convert(rrd_file, rrd_info, metrics, extra_retention=None):
-    """Does the convertion from rrd to whisper"""
+    """Does the convertion from rrd to whisper
+
+    Creates a whisper-file for each datasource in the rrd-file. If the
+    whisper-file exists, the file will be used to fill migration data.
+    """
     seconds_per_point = rrd_info['step']
     last_update = rrd_info['last_update']
     rras = get_rras(rrd_info)
@@ -41,22 +60,23 @@ def convert(rrd_file, rrd_info, metrics, extra_retention=None):
     periods = calculate_time_periods(rras, seconds_per_point, last_update,
                                      extra_retention)
 
-    # Add additional retention and period for special cases
+    # For some metrics we have higher resolution on the shortest retention.
+    # Add additional retention and period for these special cases.
     if extra_retention:
         retentions.insert(0, (extra_retention[0],
                               extra_retention[1] / extra_retention[0]))
 
     for datasource in get_datasources(rrd_info):
-        whisper_file = create_whisper_path(metrics[datasource.name])
-        try:
-            create_whisper_file(retentions, whisper_file)
-        except whisper.InvalidConfiguration, err:
-            _logger.error(err)
-            continue
-
+        whisper_file_path = create_whisper_path(metrics[datasource.name])
+        if not os.path.exists(whisper_file_path):
+            try:
+                create_whisper_file(retentions, whisper_file_path)
+            except CalledProcessError, error:
+                _logger.error(error)
+                continue
         datapoints = fetch_datapoints(rrd_file, periods, datasource)
-        whisper.update_many(whisper_file, datapoints)
-        _logger.info('Created %s', whisper_file)
+        save_data(whisper_file_path, datapoints)
+        _logger.info('%s done', whisper_file_path)
 
 
 def get_rras(rrd_info):
@@ -120,10 +140,15 @@ def create_whisper_path(whisper_path):
 
 
 def create_whisper_file(retentions, whisper_file):
-    """Create the whisper file with the correct retentions"""
+    """Create the whisper file with the correct retentions
+
+    Will fail if file exists
+    """
     if dirname(whisper_file) and not exists(dirname(whisper_file)):
         os.makedirs(dirname(whisper_file))
-    whisper.create(whisper_file, retentions)
+    args = ['whisper-create.py', whisper_file]
+    args.extend("%s:%s" % x for x in retentions)
+    check_output(args, stderr=STDOUT)
 
 
 def fetch_datapoints(rrd_file, periods, datasource):
@@ -178,3 +203,15 @@ def calculate_absolute_from_rate(rates, interval):
             values.append(value)
             last_value = value
     return values
+
+
+def save_data(whisper_file, datapoints):
+    """Save the datapoints to a whisper_file using whisper_update_many.py
+
+    :param basestring whisper_file: Name of file to use
+    :param list datapoints: List of (timestamp, value) tuples
+    """
+
+    program = os.path.join(nav.path.bindir, 'whisper_update_many.py')
+    pipe = Popen([program, whisper_file], stdin=PIPE)
+    pipe.communicate("\n".join(["%s:%s" % x for x in datapoints]))

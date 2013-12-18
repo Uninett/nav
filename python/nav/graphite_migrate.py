@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #
 # Copyright (C) 2013 UNINETT AS
 #
@@ -13,7 +14,9 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Module comment"""
+"""
+This module implements migrator classes for migrating rrd data to whisper data
+"""
 
 from __future__ import absolute_import
 
