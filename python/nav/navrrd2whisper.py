@@ -149,18 +149,17 @@ def find_meta(metric):
     Config based on NAV recommendations from storage-aggregation.conf
     """
     meta = {
-        '^nav\..*-count$': {
+        r'^nav\..*-count$': {
             'xFilesFactor': 0,
             'aggregationMethod': 'sum'
         },
-        '^nav\..*ports\..*': {
+        r'^nav\..*ports\..*': {
             'aggregationMethod': 'last'
         }
     }
     for pattern, config in meta.items():
         match = re.match(pattern, metric)
         if match:
-            _logger.info('%s matched %s', metric, pattern)
             return config
 
     return {}
@@ -180,7 +179,7 @@ def create_whisper_file(retentions, whisper_file, config=None):
     if 'xFilesFactor' in config:
         args.extend(['--xFilesFactor', config['xFilesFactor']])
     args.extend("%s:%s" % x for x in retentions)
-    _logger.info(args)
+    _logger.debug(args)
     check_output(args, stderr=STDOUT)
 
 

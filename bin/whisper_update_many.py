@@ -15,10 +15,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Based on
-https://github.com/graphite-project/whisper/blob/master/bin/whisper-update.py
+"""
+Updates a whisper file with values from stdin
 
-except it accepts input from stdin.
+Based on
+https://github.com/graphite-project/whisper/blob/master/bin/whisper-update.py
 """
 import sys
 import time
