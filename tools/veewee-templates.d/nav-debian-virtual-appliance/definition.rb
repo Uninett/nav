@@ -2,7 +2,7 @@
 
 Veewee::Definition.declare({
   :cpu_count => '1',
-  :memory_size=> '256',
+  :memory_size=> '2048',
   :disk_size => '10140', :disk_format => 'VDI', :hostiocache => 'off',
   :os_type_id => 'Debian_64',
   :iso_file => "debian-7.3.0-amd64-netinst.iso",

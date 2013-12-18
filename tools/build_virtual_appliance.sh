@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Build virtual appliance of NAV in virtualbox format
-# and also exports a vmware format from the ovf. 
 
+# Builds a virtual appliance in OVF format out of NAV, based on Debian Wheezy
+# and the latest available NAV Debian package.
+#
+# If ovftool is available, the OVF will additionally be converted to VMWare
+# format.
 
 debian='nav-debian-virtual-appliance'
 
@@ -32,12 +35,6 @@ bundle exec veewee vbox export "$debian" --force
 tar -C $tmp_dir -xvf $debian.box
 
 cd $tmp_dir
-
-# Change memory from 256MB to 2048MB
-sed -e 's#256 MB of memory#2048 MB of memory#' -i box.ovf
-line_number_memory=$(grep -n -A4 '2048 MB of memory' box.ovf | grep VirtualQuantity | sed 's/^\([0-9]\+\).*$/\1/')
-sed -e "${line_number_memory}s/256/2048/" -i box.ovf
-echo "Changed memory from 256 MB to 2048 MB in .ovf template."
 
 OVFTOOL=$(which ovftool)
 if [[ -n "$OVFTOOL" ]]; then
