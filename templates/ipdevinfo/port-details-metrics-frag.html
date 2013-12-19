@@ -15,8 +15,9 @@
       {% for metric in metrics %}
         <tr>
           <td id="metric-graph-{{ forloop.counter }}" class="graph-toggler">
-            <i class="fa fa-toggle-right"></i>&nbsp;
-            {{ metric.suffix }}
+            <a href="javascript:void(0);"><i class="fa fa-toggle-right"></i>&nbsp;
+              {{ metric.suffix }}
+            </a>
           </td>
           <td>
             {% if metric.thresholds %}

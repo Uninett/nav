@@ -32,8 +32,10 @@
             {% for metric in group.list %}
               <tr>
                 <td id="graph-toggler-{{ group.grouper }}-{{ forloop.counter }}" class="graph-toggler">
-                  <i class="fa fa-toggle-right"></i>&nbsp;
-                  {{ metric.suffix }}
+                  <a href="javascript:void(0);">
+                    <i class="fa fa-toggle-right"></i>&nbsp;
+                    {{ metric.suffix }}
+                  </a>
                 </td>
                 <td>
                   {% if metric.thresholds %}
