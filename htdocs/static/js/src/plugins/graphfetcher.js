@@ -16,6 +16,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
      *   graph, set this to the id of that element. Otherwise the graph is
      *   loaded on page load.
      *
+     * NB: Expected icon for indicating exxpandable is 'fa-toggle-right'
      */
 
     $(function () {
@@ -41,9 +42,11 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         if (handlerId) {
             var self = this;
             this.handler = $('#' + handlerId);
+            this.icon = this.handler.find('i');
             this.handler.one('click', function () {
                 self.init();
-                self.node.show();
+                self.node.show(400);
+                self.icon.removeClass('fa-toggle-right').addClass('fa-toggle-down');
             });
         } else {
             this.init();
@@ -58,7 +61,13 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             var self = this;
             if (this.handler) {
                 $(this.handler).click(function () {
-                    self.node.toggle();
+                    self.node.toggle(function () {
+                        if (self.node.is(':visible')) {
+                            self.icon.removeClass('fa-toggle-right').addClass('fa-toggle-down');
+                        } else {
+                            self.icon.removeClass('fa-toggle-down').addClass('fa-toggle-right');
+                        }
+                    });
                 });
             }
         },
