@@ -15,6 +15,7 @@
 #
 """Utils for the info room views"""
 import hashlib
+import time
 import os
 from os.path import exists, join, splitext
 from PIL import Image
@@ -29,9 +30,10 @@ def get_extension(filename):
     return splitext(filename)[-1]
 
 
-def create_hash(something):
-    """Create a hash from something"""
-    return hashlib.sha1(something).hexdigest()
+def create_hash(something, salt=False):
+    """Create a hash from something, optionally salted with current epoch"""
+    data = something + str(time.time()) if salt else something
+    return hashlib.sha1(data).hexdigest()
 
 
 def get_next_priority(room):

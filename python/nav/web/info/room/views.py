@@ -122,12 +122,11 @@ def upload_image(request, roomid):
         if uploadform.is_valid():
             image = request.FILES['roomimage'].read()
             original_name = request.FILES['roomimage'].name
-            imagename = "%s%s" % (create_hash(image),
+            imagename = "%s%s" % (create_hash(image, True),
                                   get_extension(original_name))
             imagedirectory = create_hash(room.id)
             imagedirectorypath = join(ROOMIMAGEPATH, imagedirectory)
-            title = (request.POST.get('title') or
-                     original_name)
+            title = request.POST.get('title') or original_name
 
             create_image_directory(imagedirectorypath)
             save_image(image, join(imagedirectorypath, imagename))
