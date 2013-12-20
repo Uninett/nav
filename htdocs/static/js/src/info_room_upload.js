@@ -27,9 +27,14 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
             var titletext = $titlecell.html(),
                 $input = $('<input type="text">').val(titletext);
 
-            $input.keypress(function (event) {
+            $input.keydown(function (event) {
+                // Enter
                 if (event.which === 13) {
                     saveTitle($(this));
+                }
+                // Escape
+                if (event.which === 27) {
+                    $titlecell.html(titletext);
                 }
             });
 
