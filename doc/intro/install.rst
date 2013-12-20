@@ -258,10 +258,10 @@ to configure some options before letting NAV send data to Graphite.
 
    .. literalinclude:: ../../etc/graphite/storage-schemas.conf
 
-   The smallest resolution retention archives are the most important ones
-   here, as their resolution must correspond with the collection intervals of
-   various NAV processes. Other than that, the retention periods and the
-   resolution of any other archive can be freely experimented with.
+   The highest precision retention archives are the most important ones here,
+   as their data point interval must correspond with the collection intervals
+   of various NAV processes. Other than that, the retention periods and the
+   precision of any other archive can be freely experimented with.
 
    Remember, these schemas apply to new Whisper files as they are created. You
    should not start NAV until the schemas have been configured, otherwise the
@@ -274,5 +274,4 @@ to configure some options before letting NAV send data to Graphite.
    .. literalinclude:: ../../etc/graphite/storage-aggregation.conf
 
    These will ensure that time-series data sent to Graphite by NAV will be
-   aggregated properly when Graphite rolls them into lower-resolution
-   archives.
+   aggregated properly when Graphite rolls them into lower-precision archives.
