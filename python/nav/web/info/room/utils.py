@@ -20,7 +20,8 @@ from os.path import exists, join, splitext
 from PIL import Image
 from django.db.models import Max
 
-THUMBNAILHEIGHT = 75
+THUMBNAILWIDTH = 300  # Maximum width for thumbnail
+THUMBNAILHEIGHT = 600  # Maximum height for thumbnail
 
 
 def get_extension(filename):
@@ -57,5 +58,5 @@ def save_thumbnail(imagename, imagedirectory, thumb_dir):
     """Save a thumbnail for this image"""
     create_image_directory(thumb_dir)
     image = Image.open(join(imagedirectory, imagename))
-    image.thumbnail((300, THUMBNAILHEIGHT))
+    image.thumbnail((THUMBNAILWIDTH, THUMBNAILHEIGHT))
     image.save(join(thumb_dir, imagename))
