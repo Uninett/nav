@@ -52,3 +52,54 @@ img.textbottom {
 .slider-wrapper {
     width: 600px;
 }
+
+/* Drag styles */
+.drag {
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+.drag:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+
+/* Image cards */
+.imagecard {
+    border: 1px solid #DDDDDD;
+    display: inline-block;
+    vertical-align: top;
+    padding: 0.5em 1em;
+    margin-right: 2em;
+    margin-bottom: 2em;
+    width: 300px;
+    .heading {
+        margin-bottom: 0.3em;
+    }
+    img {
+        width: 100%;
+        margin-bottom: 0.3em;
+    }
+    .actions {
+        overflow: hidden;
+        margin-bottom: 0.3em;
+        clear: both;
+        i {
+            margin-left: 0.5em;
+            cursor: pointer;
+        }
+    }
+    .meta {
+        overflow: hidden;
+        font-size: 0.7em;
+    }
+    p.drag {
+        margin-bottom: 0;
+        text-align: center;
+        i {
+            color: #bbbbbb;
+        }
+    }
+}
