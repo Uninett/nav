@@ -36,7 +36,7 @@ def create_hash(something):
 def get_next_priority(room):
     """Get the next priority value for the images in this room"""
     priority = room.image_set.all().aggregate(Max('priority'))['priority__max']
-    return priority + 1 if priority else 0
+    return priority + 1 if priority is not None else 0
 
 
 def create_image_directory(imagedirectory):
