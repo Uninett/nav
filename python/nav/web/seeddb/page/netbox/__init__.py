@@ -14,7 +14,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""Controllers for the netbox part of seedDB"""
 from django import forms
 
 from nav.models.manage import Category, Room, Organization, Netbox
@@ -30,7 +30,9 @@ from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
+
 class NetboxFilterForm(forms.Form):
+    """Form for filtering netboxes"""
     category = forms.ModelChoiceField(
         Category.objects.order_by('id').all(), required=False)
     room = forms.ModelChoiceField(
@@ -38,13 +40,17 @@ class NetboxFilterForm(forms.Form):
     organization = forms.ModelChoiceField(
         Organization.objects.order_by('id').all(), required=False)
 
+
 class NetboxMoveForm(forms.Form):
+    """Form for moving netboxes to another room and/or organization"""
     room = forms.ModelChoiceField(
         Room.objects.order_by('id').all(), required=False)
     organization = forms.ModelChoiceField(
         Organization.objects.order_by('id').all(), required=False)
 
+
 class NetboxInfo(SeeddbInfo):
+    """Variable container"""
     active = {'netbox': True}
     caption = 'IP Devices'
     tab_template = 'seeddb/tabs_netbox.html'
@@ -52,13 +58,15 @@ class NetboxInfo(SeeddbInfo):
     _navpath = [('IP Devices', reverse_lazy('seeddb-netbox'))]
     delete_url = reverse_lazy('seeddb-netbox')
 
+
 def netbox(request):
-    return view_switcher(request,
-        list_view=netbox_list,
-        move_view=netbox_move,
-        delete_view=netbox_delete)
+    """Controller for landing page for netboxes"""
+    return view_switcher(request, list_view=netbox_list,
+                         move_view=netbox_move, delete_view=netbox_delete)
+
 
 def netbox_list(request):
+    """Controller for showing all netboxes"""
     info = NetboxInfo()
     query = Netbox.objects.all()
     filter_form = NetboxFilterForm(request.GET)
@@ -80,20 +88,23 @@ def create_index_list(value_list, values_to_index):
 
 
 def netbox_delete(request):
+    """Controller for handling a request for deleting a netbox"""
     info = NetboxInfo()
     return render_delete(request, Netbox, 'seeddb-netbox',
-        whitelist=SEEDDB_EDITABLE_MODELS,
-        extra_context=info.template_context)
+                         whitelist=SEEDDB_EDITABLE_MODELS,
+                         extra_context=info.template_context)
+
 
 def netbox_move(request):
+    """Controller for handling a move request"""
     info = NetboxInfo()
     return move(request, Netbox, NetboxMoveForm, 'seeddb-netbox',
-        title_attr='sysname',
-        extra_context=info.template_context)
+                title_attr='sysname', extra_context=info.template_context)
+
 
 def netbox_bulk(request):
+    """Controller for bulk importing netboxes"""
     info = NetboxInfo()
-    return render_bulkimport(
-            request, NetboxBulkParser, NetboxImporter,
-            'seeddb-netbox',
-            extra_context=info.template_context)
+    return render_bulkimport(request, NetboxBulkParser, NetboxImporter,
+                             'seeddb-netbox',
+                             extra_context=info.template_context)

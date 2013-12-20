@@ -28,6 +28,9 @@ nobase_dist_sysconf_DATA = $(sort $(generated_config) $(wildcard \
 	geomap/*.py \
 	alertmsg/*.txt \
 	alertmsg/*/*.txt \
+	graphite/README \
+	graphite/*.conf \
+	graphite/*.conf.example \
 	))
 
 init_SCRIPTS = $(scripts_out)

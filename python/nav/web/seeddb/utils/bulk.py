@@ -14,20 +14,22 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""Module for handling bulk import requests"""
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 
-from nav.bulkimport import reset_object_foreignkeys, BulkImportError
+from nav.bulkimport import reset_object_foreignkeys
 from nav.bulkparse import BulkParseError
 from nav.web.message import Messages
 from nav.web.seeddb.forms.bulk import BulkImportForm
 
-def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context=None):
+
+def render_bulkimport(request, parser_cls, importer_cls, redirect,
+                      extra_context=None):
+    """Renders the bulkimport interface"""
     extra_context = extra_context or {}
-    data = None
     processed = []
     if request.method == 'POST':
         form = BulkImportForm(parser_cls, request.POST, request.FILES)
@@ -57,9 +59,11 @@ def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context
         RequestContext(request)
     )
 
+
 def bulk_save(importer):
+    """Saves the bulk data stored in the importer"""
     saved = []
-    for line_num, objects in importer:
+    for _, objects in importer:
         if not isinstance(objects, BulkParseError):
             for obj in objects:
                 reset_object_foreignkeys(obj)
@@ -67,7 +71,9 @@ def bulk_save(importer):
             saved.append(objects)
     return saved
 
+
 def post_save_message(request, saved):
+    """Displays information to the user about what was imported"""
     messages = Messages(request)
     for objects in saved:
         for obj in objects:
