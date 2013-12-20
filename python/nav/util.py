@@ -17,6 +17,7 @@
 """General utility functions for Network Administration Visualized"""
 import os
 import re
+import stat
 import datetime
 from functools import wraps
 from itertools import chain, tee, ifilter
@@ -131,14 +132,14 @@ def is_setuid_root(path):
     if not os.path.isfile(path):
         return False
 
-    stat = os.stat(path)
+    pstat = os.stat(path)
 
     # Owned by root?
-    if stat.st_uid != 0:
+    if pstat.st_uid != 0:
         return False
 
     # Setuid bit set?
-    if stat.st_mode & stat.S_ISUID == 0:
+    if pstat.st_mode & stat.S_ISUID == 0:
         return False
 
     # Yay, passed all test!
