@@ -57,57 +57,10 @@
       <div class="left">{{ image.uploader.name }}</div>
       <div class="right">{{ image.created }}</div>
     </div>
+    <div class="float-clear"></div>
     <p class="drag"><i class="fa fa-bars"></i></p>
   </div>
   {% endfor %}
   </div>
-
-
-{% comment %}
-  <table id="editimages" class="listtable table-hover full-width">
-
-    <thead>
-    <tr>
-      <th>Image</th>
-      <th>Image caption</th>
-      <th>Actions</th>
-      <th>Uploader</th>
-      <th>Date</th>
-      <th>Slideshow order</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    {% for image in room.image_set.all %}
-      <tr data-imageid='{{ image.id }}' class="imagerow">
-        {% if image.image_exists and image.is_readable %}
-          <td class="thumbnail">
-            <img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}">
-          </td>
-        {% else %}
-          {% if not image.image_exists %}
-            <td>Image does not exist</td>
-          {% else %}
-            <td>Image exists but is not readable</td>
-          {% endif %}
-        {% endif %}
-        <td class="imagetitle">{{ image.title|safe }}</td>
-        <td class="actions">
-          <button class="edit small secondary">Edit caption</button>
-          <button class="save hidden small secondary">Save caption</button>
-          <button class="delete small secondary">Delete image</button>
-        </td>
-        <td class="meta">{{ image.uploader.name }}</td>
-        <td class="meta">{{ image.created|date:"DATETIME_FORMAT" }}</td>
-        <td class="drag">
-          <i class="fa fa-bars fa-2x" style="color: grey;"></i>
-        </td>
-
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-{% endcomment %}
-
 
 {% endblock %}
