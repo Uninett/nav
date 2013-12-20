@@ -1,3 +1,5 @@
+@import "../foundation/components/global";
+
 #netboxes .dataTables_wrapper {
     display: inline-block;
     margin-bottom: 1em;
@@ -74,7 +76,7 @@ img.textbottom {
     padding: 0.5em 1em;
     margin-right: 2em;
     margin-bottom: 2em;
-    width: 300px;
+    width: 100%;
     .heading {
         margin-bottom: 0.3em;
     }
@@ -100,5 +102,14 @@ img.textbottom {
         i {
             color: #bbbbbb;
         }
+    }
+}
+
+/* Use Foundation variable to set styles based on media queries
+ * See: http://foundation.zurb.com/docs/v/4.3.2/media-queries.html
+ */
+@media #{$small} {
+    .imagecard {
+        width: 300px;
     }
 }
