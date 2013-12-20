@@ -37,8 +37,8 @@
   {% for image in room.image_set.all %}
   <div data-imageid="{{ image.id }}" class="imagecard">
     <div class="actions">
-      <i class="fa fa-times right delete"></i>
-      <i class="fa fa-edit right edit"></i>
+      <i class="fa fa-times right delete" title="Delete image"></i>
+      <i class="fa fa-edit right edit" title="Edit image caption"></i>
     </div>
     <div class="heading">{{ image.title|safe }}</div>
 
@@ -52,13 +52,12 @@
       {% endif %}
     {% endif %}
 
-
     <div class="meta">
       <div class="left">{{ image.uploader.name }}</div>
       <div class="right">{{ image.created }}</div>
     </div>
     <div class="float-clear"></div>
-    <p class="drag"><i class="fa fa-bars"></i></p>
+    <p class="drag"><i class="fa fa-bars" title="Change display order by dragging the image"></i></p>
   </div>
   {% endfor %}
   </div>
