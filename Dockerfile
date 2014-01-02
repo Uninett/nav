@@ -11,7 +11,7 @@
 # be immediately live in the web interface.
 #
 # The NAV web interface is exposed through Apache/WSGI on port 80.
-# The graphite web interface is exposed through Apache/WSGI on port 8080.
+# The graphite web interface is exposed through Apache/WSGI on port 8000.
 #
 # REQUIREMENT: For the users inside the container to be able to access the
 # source code mounted at /source, the directory and its files on the host must
@@ -77,5 +77,5 @@ VOLUME ["/source"]
 ENV    PYTHONPATH /source/python
 ENV    PATH /source/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin
 RUN    echo "PATH=$PATH" > /etc/profile.d/navpath.sh
-EXPOSE 22 80 8080
+EXPOSE 22 80 8000
 CMD    ["/source/tools/docker/run.sh"]
