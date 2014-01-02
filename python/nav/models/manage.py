@@ -813,7 +813,7 @@ class Arp(models.Model):
     start, time end)."""
 
     id = models.AutoField(db_column='arpid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
     prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     sysname = VarcharField()
     ip = models.IPAddressField()

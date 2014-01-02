@@ -15,12 +15,14 @@
 #
 """Utils for the info room views"""
 import hashlib
+import time
 import os
 from os.path import exists, join, splitext
 from PIL import Image
 from django.db.models import Max
 
-THUMBNAILHEIGHT = 75
+THUMBNAILWIDTH = 300  # Maximum width for thumbnail
+THUMBNAILHEIGHT = 600  # Maximum height for thumbnail
 
 
 def get_extension(filename):
@@ -28,15 +30,16 @@ def get_extension(filename):
     return splitext(filename)[-1]
 
 
-def create_hash(something):
-    """Create a hash from something"""
-    return hashlib.sha1(something).hexdigest()
+def create_hash(something, salt=False):
+    """Create a hash from something, optionally salted with current epoch"""
+    data = something + str(time.time()) if salt else something
+    return hashlib.sha1(data).hexdigest()
 
 
 def get_next_priority(room):
     """Get the next priority value for the images in this room"""
     priority = room.image_set.all().aggregate(Max('priority'))['priority__max']
-    return priority + 1 if priority else 0
+    return priority + 1 if priority is not None else 0
 
 
 def create_image_directory(imagedirectory):
@@ -57,5 +60,5 @@ def save_thumbnail(imagename, imagedirectory, thumb_dir):
     """Save a thumbnail for this image"""
     create_image_directory(thumb_dir)
     image = Image.open(join(imagedirectory, imagename))
-    image.thumbnail((300, THUMBNAILHEIGHT))
+    image.thumbnail((THUMBNAILWIDTH, THUMBNAILHEIGHT))
     image.save(join(thumb_dir, imagename))

@@ -1,61 +1,55 @@
 require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
-    var tableSelector = '#editimages';
+    var $container = $('#editimages');
 
     $(function () {
-        var $table = $(tableSelector);
+        var $cards = $container.find('.imagecard');
 
-        addButtonListeners($table);
+        $cards.each(addButtonListeners);
 
-        if ($table.find('.imagerow').length >= 2) {
+        if ($container.find('.imagecard').length >= 2) {
             addOrdering();
         }
     });
 
-    function addButtonListeners($element) {
+    function addButtonListeners(index, element) {
+        var $element = $(element);
         addEditHandler($element);
-        addSaveHandler($element);
         addDeleteHandler($element);
     }
 
     function addEditHandler($element) {
         $element.on('click', '.actions .edit', function () {
-            var $this = $(this),
-                $saveButton = $this.siblings('.save'),
-                $titlecell = $this.parents('tr').find('.imagetitle'),
-                titletext = $titlecell.html(),
+            var $titlecell = $element.find('.heading');
+            if ($titlecell.find('input').length > 0) {
+                return;
+            }
+            var titletext = $titlecell.html(),
                 $input = $('<input type="text">').val(titletext);
 
-            $input.keypress(function (event) {
+            $input.keydown(function (event) {
+                // Enter
                 if (event.which === 13) {
                     saveTitle($(this));
                 }
+                // Escape
+                if (event.which === 27) {
+                    $titlecell.html(titletext);
+                }
             });
 
-            $this.hide();
-            $saveButton.show();
             $titlecell.empty().append($input);
         });
     }
 
-    function addSaveHandler($element) {
-        $element.on('click', '.actions .save', function () {
-            saveTitle($(this));
-        });
-    }
-
     function saveTitle($element) {
-        var $row = $element.parents('tr'),
-            imageid = $row.attr('data-imageid'),
-            $titlecell = $row.find('.imagetitle'),
-            $saveButton = $row.find('.save'),
-            $editButton = $row.find('.edit'),
+        var $card = $element.parents('.imagecard'),
+            imageid = $card.attr('data-imageid'),
+            $titlecell = $card.find('.heading'),
             title = $titlecell.find('input').val(),
             jqxhr = $.post('update_title', {'id': imageid, 'title': title});
 
         jqxhr.done(function () {
-            $saveButton.hide();
-            $editButton.show();
             $titlecell.html(title);
         });
 
@@ -69,7 +63,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         $element.on('click', '.actions .delete', function (event) {
             if (confirm('Do you want to delete this image?')) {
                 var $this = $(this),
-                    $row = $this.parents('tr'),
+                    $row = $this.parents('.imagecard'),
                     $imageid = $row.attr('data-imageid'),
                     jqxhr = $.post('delete_image', {'id': $imageid});
 
@@ -85,16 +79,12 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
     }
 
     function addOrdering() {
-        var $table = $(tableSelector),
-            $tbody = $table.find('tbody'),
-            $lastColumn = $table.find('td:last-child,th:last-child');
-        $lastColumn.show();
-        $tbody.sortable({
-            items: '.imagerow',
+        $container.sortable({
+            items: '.imagecard',
             handle: '.drag',
             update: saveOrder
         });
-        $tbody.find('.drag').disableSelection();
+        $container.find('.drag').disableSelection();
     }
 
     function saveOrder() {
@@ -107,7 +97,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
     function get_image_priorities() {
         var priorities = {};
-        $(tableSelector).find('.imagerow').each(function (index, element) {
+        $container.find('.imagecard').each(function (index, element) {
             priorities[$(element).attr('data-imageid')] = index;
         });
         return priorities;

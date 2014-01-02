@@ -8,64 +8,58 @@
 
 {% block base_content %}
 
-    <div class="row">
-        <div class="column small-12">
-            <a href="#" data-reveal-id="add_image_help" class="small secondary button right">Help</a>
-            <h4>Images in {{ room.id }}</h4>
-        </div>
+  <div class="row">
+    <div class="column small-12">
+      <a href="#" data-reveal-id="add_image_help" class="small secondary button right">Help</a>
+      <h4>Images in {{ room.id }}</h4>
     </div>
+  </div>
 
-    <div id="add_image_help" class="reveal-modal">
-        <ul class="inside">
-            <li>Add an image by clicking the file dialog, locating the image you want and clicking "Upload image"</li>
-            <li>Captions may contain html - you can for instance create links</li>
-            <li>Sort the images by dragging the <img src="{{ STATIC_URL }}images/icons/drag.png"> (if more than 1 image)</li>
-        </ul>
+  <div id="add_image_help" class="reveal-modal">
+    <ul class="inside">
+      <li>
+        Add an image by clicking the file dialog, locating the image you want and clicking "Upload image"
+      </li>
+      <li>
+        Captions may contain html - you can for instance create links
+      </li>
+      <li>
+        Sort the images by dragging the <img src="{{ STATIC_URL }}images/icons/drag.png"> (if more than 1 image)
+      </li>
+    </ul>
+  </div>
+
+  <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
+    {% crispy uploadform %}
+  </form>
+
+  <div id="editimages">
+  {% for image in room.image_set.all %}
+  <div data-imageid="{{ image.id }}" class="imagecard">
+    <div class="actions">
+      <i class="fa fa-times right delete" title="Delete image"></i>
+      <i class="fa fa-edit right edit" title="Edit image caption"></i>
     </div>
+    <div class="heading">{{ image.title|safe }}</div>
 
-    <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
-        {% crispy uploadform %}
-    </form>
+    {% if image.image_exists and image.is_readable %}
+      <img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}">
+    {% else %}
+      {% if not image.image_exists %}
+        <span class="alert-box alert">Image does not exist</span>
+      {% else %}
+        <span class="alert-box alert">Image exists but is not readable</span>
+      {% endif %}
+    {% endif %}
 
-    <table id="editimages" class="listtable table-hover full-width">
-        <thead>
-        <tr>
-            <th>Image</th>
-            <th>Image caption</th>
-            <th>Actions</th>
-            <th>Uploader</th>
-            <th>Date</th>
-            <th>&nbsp;</th>
-        </tr>
-        </thead>
-        <tbody>
-            {% for image in room.image_set.all %}
-            <tr data-imageid='{{ image.id }}' class="imagerow">
-                {% if image.image_exists and image.is_readable %}
-                    <td class="thumbnail"><img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}"></td>
-                {% else %}
-                    {% if not image.image_exists %}
-                        <td>Image does not exist</td>
-                    {% else %}
-                        <td>Image exists but is not readable</td>
-                    {% endif %}
-                {% endif %}
-                <td class="imagetitle">{{ image.title|safe }}</td>
-                <td class="actions">
-                    <button class="edit small secondary">Edit caption</button>
-                    <button class="save hidden small secondary">Save caption</button>
-                    <button class="delete small secondary">Delete image</button>
-                </td>
-                <td class="meta">{{ image.uploader.name }}</td>
-                <td class="meta">{{ image.created|date:"DATETIME_FORMAT" }}</td>
-                <td class="drag">
-                        <i class="fa fa-sort fa-2x"></i>
-                </td>
-
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
+    <div class="meta">
+      <div class="left">{{ image.uploader.name }}</div>
+      <div class="right">{{ image.created }}</div>
+    </div>
+    <div class="float-clear"></div>
+    <p class="drag"><i class="fa fa-bars" title="Change display order by dragging the image"></i></p>
+  </div>
+  {% endfor %}
+  </div>
 
 {% endblock %}
