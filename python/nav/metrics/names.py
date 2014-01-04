@@ -21,7 +21,7 @@ import simplejson
 from urllib import urlencode, quote
 import urllib2
 from urlparse import urljoin
-from nav.metrics import CONFIG
+from nav.metrics import CONFIG, errors
 
 
 def escape_metric_name(string):
@@ -123,15 +123,20 @@ def raw_metric_query(query):
 
     """
     base = CONFIG.get("graphiteweb", "base")
-    base = urljoin(base, "/metrics/find")
+    url = urljoin(base, "/metrics/find")
     query = urlencode({'query': query})
-    url = "%s?%s" % (base, query)
+    url = "%s?%s" % (url, query)
 
     req = urllib2.Request(url)
     try:
         response = urllib2.urlopen(req)
         return simplejson.load(response)
+    except urllib2.URLError as err:
+        raise errors.GraphiteUnreachableError(
+            "{0} is unreachable".format(base),err)
     finally:
-        response.close()
-
+        try:
+            response.close()
+        except NameError:
+            pass
 
