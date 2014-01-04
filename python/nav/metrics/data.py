@@ -19,7 +19,7 @@ import simplejson
 from urllib import urlencode
 import urllib2
 from urlparse import urljoin
-from nav.metrics import CONFIG
+from nav.metrics import CONFIG, errors
 
 
 def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
@@ -78,8 +78,8 @@ def get_metric_data(target, start="-5min", end="now"):
                   [{'target': 'x', 'datapoints': [(value, timestamp), ...]}]
 
     """
-    url = CONFIG.get("graphiteweb", "base")
-    url = urljoin(url, "/render/")
+    base = CONFIG.get("graphiteweb", "base")
+    url = urljoin(base, "/render/")
 
     query = {
         'target': target,
@@ -93,6 +93,9 @@ def get_metric_data(target, start="-5min", end="now"):
     try:
         response = urllib2.urlopen(req)
         return simplejson.load(response)
+    except urllib2.URLError as err:
+        raise errors.GraphiteUnreachableError(
+            "{0} is unreachable".format(base),err)
     finally:
         try:
             response.close()
