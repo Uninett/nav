@@ -2,10 +2,11 @@
 
 <div id="metrics">
   {% if netbox %}
-    {% regroup netbox.get_system_metrics|find_rules by group as metric_groups %}
+    {% regroup system_metrics|find_rules by group as metric_groups %}
 
     <div id="metrictabs">
 
+      {% if metric_groups %}
       <ul>
         {% for group in metric_groups %}
           <li>
@@ -13,6 +14,20 @@
           </li>
         {% endfor %}
       </ul>
+
+      {% elif graphite_error %}
+
+          <p data-alert class="alert-box alert">
+              Unable to get a response from Graphite!
+          </p>
+
+      {% else %}
+
+          <p data-alert class="alert-box secondary">
+              No metrics were found.
+          </p>
+
+      {% endif %}
 
       {% for group in metric_groups %}
         <div id="metric{{ group.grouper }}" class="nav-metrics">

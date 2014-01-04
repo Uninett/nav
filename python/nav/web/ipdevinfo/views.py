@@ -26,6 +26,7 @@ from django.db.models import Q
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.views.generic.list_detail import object_list
+from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
 from nav.models.service import Service
@@ -265,6 +266,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     }
     alert_info = None
     job_descriptions = None
+    system_metrics = netbox_availability = []
 
     # If addr or host not a netbox it is not monitored by NAV
     if netbox is None:
@@ -289,6 +291,17 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         netboxgroups = netbox.netboxcategory_set.all()
         navpath = NAVPATH + [(netbox.sysname, '')]
         job_descriptions = get_job_descriptions()
+        graphite_error = False
+
+        try:
+            system_metrics = netbox.get_system_metrics()
+        except GraphiteUnreachableError:
+            graphite_error = True
+
+        try:
+            netbox_availability = netbox.get_availability()
+        except GraphiteUnreachableError:
+            graphite_error = True
 
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
@@ -301,7 +314,10 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'netboxgroups': netboxgroups,
             'job_descriptions': job_descriptions,
             'navpath': navpath,
-            'title': create_title(navpath)
+            'title': create_title(navpath),
+            'system_metrics': system_metrics,
+            'netbox_availability': netbox_availability,
+            'graphite_error': graphite_error,
         },
         context_instance=RequestContext(request,
                                         processors=[search_form_processor]))
@@ -475,6 +491,13 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
                  kwargs={'name': netbox_sysname})), ('Port Details',)]
     heading = title = 'Port details: ' + unicode(port)
 
+    try:
+        port_metrics = port.get_port_metrics()
+        graphite_error = False
+    except GraphiteUnreachableError:
+        port_metrics = []
+        graphite_error = True
+
     return render_to_response(
         'ipdevinfo/port-details.html',
         {
@@ -483,6 +506,8 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'navpath': navpath,
             'heading': heading,
             'title': title,
+            'port_metrics': port_metrics,
+            'graphite_error': graphite_error,
         },
         context_instance=RequestContext(request,
                                         processors=[search_form_processor]))
