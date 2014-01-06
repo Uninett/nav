@@ -183,7 +183,7 @@
         </td>
       </tr>
 
-      {% with netbox.get_availability as stats %}
+      {% with netbox_availability as stats %}
         <tr>
           <th>Availability</th>
           <td>
@@ -210,6 +210,8 @@
                 {% endif %}
                 last month
               {% endwith %}
+            {% elif graphite_error %}
+                <span class="error">Graphite unreachable</span>
             {% else %}
               N/A
             {% endif %}
@@ -242,6 +244,8 @@
                 {% endif %}
                 last month
               {% endwith %}
+            {% elif graphite_error %}
+                <span class="error">Graphite unreachable</span>
             {% else %}
               N/A
             {% endif %}

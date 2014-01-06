@@ -1,6 +1,6 @@
 {% load thresholds %}
 
-{% with port.get_port_metrics|find_rules|dictsort:"suffix" as metrics %}
+{% with port_metrics|find_rules|dictsort:"suffix" as metrics %}
   {% if metrics|length %}
     <table class="listtable full-width">
       <caption>Counters</caption>
@@ -48,7 +48,9 @@
       {% endfor %}
       </tbody>
     </table>
+  {% elif graphite_error %}
+      <div data-alert class="alert-box alert">Unable to get a response from Graphite!</div>
   {% else %}
-    <p class="alert-box secondary">No metrics for this interface</p>
+      <div data-alert class="alert-box secondary">No metrics for this interface</div>
   {% endif %}
 {% endwith %}
