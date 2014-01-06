@@ -2,10 +2,11 @@
 
 <div id="metrics">
   {% if netbox %}
-    {% regroup netbox.get_system_metrics|find_rules by group as metric_groups %}
+    {% regroup system_metrics|find_rules by group as metric_groups %}
 
     <div id="metrictabs">
 
+      {% if metric_groups %}
       <ul>
         {% for group in metric_groups %}
           <li>
@@ -13,6 +14,20 @@
           </li>
         {% endfor %}
       </ul>
+
+      {% elif graphite_error %}
+
+          <p data-alert class="alert-box alert">
+              Unable to get a response from Graphite!
+          </p>
+
+      {% else %}
+
+          <p data-alert class="alert-box secondary">
+              No metrics were found.
+          </p>
+
+      {% endif %}
 
       {% for group in metric_groups %}
         <div id="metric{{ group.grouper }}" class="nav-metrics">
@@ -22,40 +37,41 @@
 
             <thead>
             <tr>
-              <th>&nbsp;</th>
               <th>Metric</th>
               <th>Threshold</th>
+              <th>&nbsp;</th>
             <tr>
             </thead>
 
             <tbody>
             {% for metric in group.list %}
               <tr>
-                <td><img class="graph-toggler" src="{{ STATIC_URL }}images/icons/graph.png"
-                         id="graph-toggler-{{ group.grouper }}-{{ forloop.counter }}"
-                         alt="Graph" title="Graph"></td>
-                <td>
-                  {{ metric.suffix }}
+                <td id="graph-toggler-{{ group.grouper }}-{{ forloop.counter }}" class="graph-toggler">
+                  <a href="javascript:void(0);">
+                    <i class="fa fa-toggle-right"></i>&nbsp;
+                    {{ metric.suffix }}
+                  </a>
                 </td>
                 <td>
                   {% if metric.thresholds %}
-
                     {% for rule in metric.thresholds %}
-
-                        <strong>
-                            <a href="{% url threshold-edit rule.id %}"
-                               {% if rule.description %}title="{{ rule.description }}"{% endif %}
-                                    >{{ rule.alert }}</a></strong
-                                >{% if not forloop.last %},{% endif %}
-
+                      <strong>
+                        <a href="{% url threshold-edit rule.id %}"
+                           {% if rule.description %}title="{{ rule.description }}"{% endif %}>
+                          {{ rule.alert }}
+                        </a>
+                      </strong>{% if not forloop.last %},{% endif %}
                     {% endfor %}
-
                   {% else %}
-
-                    <a href="{% url threshold-add metric.id %}" title="Add a new threshold rule for this metric"
-                            ><i class="fa fa-plus-square-o"></i></a>
-
+                    &ndash;
                   {% endif %}
+                </td>
+                <td>
+                  <a href="{% url threshold-add metric.id %}"
+                     title="Add a new threshold rule for this metric"
+                     class="tiny button secondary">
+                    Add
+                  </a>
                 </td>
               </tr>
               <tr>

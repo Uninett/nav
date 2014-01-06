@@ -42,18 +42,26 @@
             <input type="submit" name="confirm" value="Import" class="button small"/>
         {% endif %}
 
-        {% if not form.bulk_file.is_hidden %}
-            <fieldset>
-                <legend>{{ form.bulk_file.label }}</legend>
-                {{ form.bulk_file }}
-            </fieldset>
+        {% comment %}
+        If elements are hidden it'a a part of the preview. We need to print
+        out the form hidden to get it in the request
+        {% endcomment %}
+        {% if form.bulk_file.is_hidden %}
+            {{ form.bulk_file }}
+        {% else %}
+          <fieldset>
+            <legend>{{ form.bulk_file.label }}</legend>
+            {{ form.bulk_file }}
+          </fieldset>
         {% endif %}
 
-        {% if not form.bulk_data.is_hidden %}
-            <fieldset>
-                <legend>{{ form.bulk_data.label }}</legend>
-                {{ form.bulk_data }}
-            </fieldset>
+        {% if form.bulk_data.is_hidden %}
+          {{ form.bulk_data }}
+        {% else %}
+          <fieldset>
+            <legend>{{ form.bulk_data.label }}</legend>
+            {{ form.bulk_data }}
+          </fieldset>
         {% endif %}
 
         {% if not form.is_bound or not form.is_valid %}

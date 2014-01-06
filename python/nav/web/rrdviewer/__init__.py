@@ -1,5 +1,0 @@
-"""rrdviewer
-
-RRD graphing system.
-
-"""

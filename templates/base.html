@@ -80,25 +80,27 @@
                 </ul>
             </li>
 
-            <li class="has-dropdown">
+            {% comment %} This dropdown only visible on small screens {% endcomment %}
+            <li class="has-dropdown hide-for-medium-up">
                 <a href="{% url webfront-toolbox %}">
-                    Your tools <i class="fa fa-gear"></i>
+                    Tools
                 </a>
                 <ul id="toolboxdropdown" class="dropdown">
                     {% for tool in current_user_data.tools %}
-                        {% if tool.display %}
-                            <li>
-                                <a href="{{ tool.uri }}">
-                                    <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
-                                    {{ tool.name }}
-                                </a>
-                            </li>
-                        {% endif %}
+                        <li>
+                            <a href="{{ tool.uri }}">
+                                <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
+                                {{ tool.name }}
+                            </a>
+                        </li>
                     {% endfor %}
                 </ul>
             </li>
 
+            <li class="hide-for-small"><a id="megadroptoggler" href="javascript:void(0);">Tools <i class="fa fa-caret-down"></i></a></li>
+
             <li><a href="/doc">Documentation</a></li>
+
             {% if current_user_data.account.is_default_account %}
                 <li>
                     <a class="navbar login button" href="/index/login">Login</a>
@@ -111,6 +113,51 @@
         </ul>
     </section>
 </nav>
+
+<div id="megadrop" class="row hide">
+  <div class="medium-4 column">
+    <ul class="no-bullet">
+    {% for tool in current_user_data.tools %}
+      {% if forloop.counter <= 7 %}
+        <li>
+          <a href="{{ tool.uri }}" title="{{ tool.description }}">
+            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
+            {{ tool.name }}
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+    </ul>
+  </div>
+  <div class="medium-4 column">
+    <ul class="no-bullet">
+    {% for tool in current_user_data.tools %}
+      {% if forloop.counter > 7 and forloop.counter <= 14 %}
+        <li>
+          <a href="{{ tool.uri }}" title="{{ tool.description }}">
+            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
+            {{ tool.name }}
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+    </ul>
+  </div>
+  <div class="medium-4 column">
+    <ul class="no-bullet">
+    {% for tool in current_user_data.tools %}
+      {% if forloop.counter > 14 %}
+        <li>
+          <a href="{{ tool.uri }}" title="{{ tool.description }}">
+            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
+            {{ tool.name }}
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+    </ul>
+  </div>
+</div>
 
 {% if current_user_data.sudoer %}
     <div class="sudoer-bar">

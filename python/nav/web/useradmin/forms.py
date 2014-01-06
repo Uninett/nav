@@ -46,7 +46,7 @@ class AccountGroupForm(forms.ModelForm):
 
 class AccountForm(forms.ModelForm):
     """Form for creating and editing an account"""
-    password1 = forms.CharField(label='New password',
+    password1 = forms.CharField(label='New password (>= 8 characters)',
                                 min_length=Account.MIN_PASSWD_LENGTH,
                                 widget=forms.widgets.PasswordInput)
     password2 = forms.CharField(label='Repeat password',
@@ -121,7 +121,7 @@ class ChangePasswordForm(forms.Form):
     """Form for changing password for an account"""
     old_password = forms.CharField(label='Old password',
                                    widget=forms.widgets.PasswordInput)
-    new_password1 = forms.CharField(label='New password',
+    new_password1 = forms.CharField(label='New password (>= 8 characters)',
                                     min_length=Account.MIN_PASSWD_LENGTH,
                                     widget=forms.widgets.PasswordInput)
     new_password2 = forms.CharField(label='Repeat password',

@@ -8,7 +8,7 @@ echo 'Welcome to Network Administration Visualized virtual appliance.' > /etc/mo
 apt-get install -y apt-transport-https
 apt-key adv --keyserver keys.gnupg.net --recv-key 0xC9F583C2CE8E05E8 # UNINETT NAV APT repository
 
-echo "deb https://nav.uninett.no/debian/ wheezy nav" > /etc/apt/sources.list.d/nav.list
+echo "deb https://nav.uninett.no/debian/ wheezy nav navbeta" > /etc/apt/sources.list.d/nav.list
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -24,31 +24,60 @@ nav	nav/cricket_movegiga	boolean	false
 EOF
 
 apt-get -y update
-apt-get --force-yes -y --no-install-recommends install nav
+apt-get --force-yes -y --no-install-recommends install nav graphite-carbon graphite-web
+# Explicitly install rrdtool to enable data migrations from older NAV versions
+apt-get --force-yes -y --no-install-recommends install rrdtool python-rrdtool
 
 a2dissite default
 a2dissite default-ssl
 a2ensite nav-default
-/etc/init.d/apache2 force-reload
 
-export NAV_CRICKET_CONFIG="/etc/nav/cricket-config"
-echo "Set cricket config root: $NAV_CRICKET_CONFIG"
-sed -e "s|\$gConfigRoot.*|\$gConfigRoot = '$NAV_CRICKET_CONFIG';|" -i /etc/cricket/cricket-conf.pl
+# Ensure Carbon's UDP listener is enabled, and that Carbon doesn't initially
+# limit the amount of new whisper files that can be created per minute.
+CARBONCONF="/etc/carbon/carbon.conf"
+sed -e 's/^MAX_CREATES_PER_MINUTE\b.*$/MAX_CREATES_PER_MINUTE = inf/g' -i "$CARBONCONF"
+sed -e 's/^ENABLE_UDP_LISTENER\b.*$/ENABLE_UDP_LISTENER = True/g' -i "$CARBONCONF"
 
-# Disable system default cricket cron job. 
-echo "Killing/commenting out default cricket cron job"
-sed -e 's$\(\*/5 \* \* \* \*[ \t]*cricket\)$#\1$g' -i /etc/cron.d/cricket
+# enable carbon-cache start at boot time
+sed -e 's/^CARBON_CACHE_ENABLED\b.*$/CARBON_CACHE_ENABLED=true/g' -i /etc/default/graphite-carbon
 
-# Rename default alias from /cricket to /cricket-orig
-echo "Renaming alias /cricket to /cricket-orig in apache2/conf.d/cricket"
-sed -e 's$\(Alias /cricket\)\(.*\)\( /usr/share/cricket\)$\1-orig\3$g' -i /etc/apache2/conf.d/cricket
+# Initialize graphite-web database
+sudo -u _graphite graphite-manage syncdb --noinput
 
-export NAV_CRICKET_LOG="/var/log/nav/cricket"
-echo "Cricket log is now under $NAV_CRICKET_LOG"
-sed -e "s|\$gLogDir.*|\$gLogDir = '$NAV_CRICKET_LOG';|g" -i /etc/cricket/cricket-conf.pl
+# Configure graphite-web to run openly on port 8000
+# WARNING: May be a security risk if port 8000 is exposed outside the virtual
+# machine without authorization measures.
+cat > /etc/apache2/sites-available/graphite-web <<EOF
+Listen 8000
+<VirtualHost *:8000>
 
-su - -c cricket-compile navcron
-su - -c /usr/lib/nav/mcc.py navcron
+	WSGIDaemonProcess _graphite processes=1 threads=1 display-name='%{GROUP}' inactivity-timeout=120 user=_graphite group=_graphite
+	WSGIProcessGroup _graphite
+	WSGIImportScript /usr/share/graphite-web/graphite.wsgi process-group=_graphite application-group=%{GLOBAL}
+	WSGIScriptAlias / /usr/share/graphite-web/graphite.wsgi
+
+	Alias /content/ /usr/share/graphite-web/static/
+	<Location "/content/">
+		SetHandler None
+	</Location>
+
+	ErrorLog \${APACHE_LOG_DIR}/graphite-web_error.log
+
+	# Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+
+	CustomLog \${APACHE_LOG_DIR}/graphite-web_access.log combined
+
+</VirtualHost>
+
+EOF
+a2ensite graphite-web
+
+# Configure carbon according to NAV's wishes
+cp /etc/nav/graphite/*.conf /etc/carbon/
+
+apache2ctl restart
 
 # Enable NAV at start up
 echo "Enable NAV to run at start up"

@@ -44,7 +44,9 @@
   <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'UcastPkts' %}"></div>
   <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Errors' %}"></div>
   <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Discards' %}"></div>
+  <div class="float-clear"></div>
 
+  <h3>Metrics</h3>
   {% include 'ipdevinfo/port-details-metrics-frag.html' %}
 
 
