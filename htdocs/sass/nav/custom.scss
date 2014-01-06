@@ -1,5 +1,22 @@
 /* Custom global styles */
 
+#megadrop {
+    background-color: hotpink;
+    position: absolute;
+    top: 45px;
+    z-index: 100;
+    ul {
+        margin-top: 1em;
+        li {
+            margin: 0.2em 0;
+        }
+    }
+    img {
+        height: 32px;
+        width: 32px;
+    }
+}
+
 footer {
     font-size: 0.9em;
 }
