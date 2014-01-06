@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2013 UNINETT AS
+# Copyright (C) 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -20,6 +20,12 @@ Updates a whisper file with values from stdin
 
 Based on
 https://github.com/graphite-project/whisper/blob/master/bin/whisper-update.py
+
+The license of this file is explicitly Apache License 2.0 in accordance with
+this, and its usage of the whisper libraries. It is designed to be called
+externally by NAV migration tools to avoid license incompatibilities between
+GPL v2 and Apache License v2.
+
 """
 import sys
 import time
