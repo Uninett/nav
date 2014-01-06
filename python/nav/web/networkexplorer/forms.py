@@ -15,13 +15,13 @@ class MultitypeQueryWidget(forms.MultiWidget):
         # FIXME: Backport to radius
         return ''.join(
             [
-                '<div class="large-6 columns">',
-                rendered_widgets[0],
-                '</div>',
-                '<div class="large-6 columns">',
-                '<span class="postfix dropdown">',
+                '<div class="medium-6 columns">',
+                '<span class="dropdown prefix">',
                 rendered_widgets[1],
                 '</span>',
+                '</div>',
+                '<div class="medium-6 columns">',
+                rendered_widgets[0],
                 '</div>',
             ]
         )
