@@ -19,6 +19,7 @@
 
 import os
 from django.conf import settings
+from operator import attrgetter
 from nav.django.auth import get_sudoer
 
 from nav.django.utils import get_account, is_admin
@@ -67,7 +68,7 @@ def account_processor(request):
     qlink1 = []
     qlink2 = []
 
-    tools = sorted(get_account_tools(account, tool_list(account)))
+    tools = sorted(tool_list(account), key=attrgetter('name'))
 
     preferences = AccountNavbar.objects.select_related(
         'navbarlink'
