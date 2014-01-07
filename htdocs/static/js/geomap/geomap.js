@@ -153,17 +153,18 @@ function getLong(position) {
             themap.zoomToExtent(nav.geomapBBox);
         }
 
-        //    try {
-        //        var permalink = new Permalink('permalink', themap,
-        //            {
-        //                set time(t) { timeNavigator.setInterval(new TimeInterval(t)); },
-        //                get time() { return timeNavigator.interval.toReadableString(); }
-        //            },
-        //            [timeNavigator.onChange]
-        //        );
-        //    } catch (e) {
-        //        alert('Error parsing URL query string:\n' + e);
-        //    }
+        try {
+            var permalink = new Permalink('permalink', themap, {
+                    set time(t) {
+                        timeNavigator.setInterval(new TimeInterval(t));
+                    },
+                    get time() {
+                        return timeNavigator.interval.toReadableString();
+                    }
+                }, [timeNavigator.onChange]);
+        } catch (e) {
+            alert('Error parsing URL query string:\n' + e);
+        }
 
     }
 
