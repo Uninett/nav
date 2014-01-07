@@ -18,6 +18,12 @@
  * geomap.js: Shows a map with a network information overlay.
  */
 
+require(['libs/jquery'], function () {
+    $(function () {
+        create_bounding_box();
+    });
+
+
 var zoom=6;
 
 // Variables holding the objects created by init:
@@ -86,31 +92,42 @@ function init(mapElementId, url) {
     window.onresize = setMapSize;
 
     timeNavigator = new TimeNavigator('time-navigation',
-				      function() { netLayer.update(); });
+        function () {
+            netLayer.update();
+        }
+    );
 
-    themap = new OpenLayers.Map(mapElementId, {
-        controls:[
-	    new OpenLayers.Control.Navigation(),
-	    new OpenLayers.Control.PanZoomBar(),
-	    //new OpenLayers.Control.NavToolbar(),
-	    new OpenLayers.Control.Attribution(),
-	    new OpenLayers.Control.LayerSwitcher()],
-        displayProjection: new OpenLayers.Projection("EPSG:4326"),
-        theme: NAV.cssPath + '/openlayers.css'
-    } );
+    themap = new OpenLayers.Map(mapElementId,
+        {
+            controls: [
+                new OpenLayers.Control.Navigation(), new OpenLayers.Control.PanZoomBar(), //new OpenLayers.Control.NavToolbar(),
+                new OpenLayers.Control.Attribution(), new OpenLayers.Control.LayerSwitcher()
+            ],
+            displayProjection: new OpenLayers.Projection("EPSG:4326"),
+            theme: NAV.cssPath + '/openlayers.css'
+        }
+    );
 
     mapnikLayer = new OpenLayers.Layer.OSM("OpenStreetMap", '/info/osm_map_redirect/${z}/${x}/${y}.png');
     themap.addLayer(mapnikLayer);
 
-    netLayer = new NetworkLayer(
-	'Networks', url,
-	{start: function() { return timeNavigator.interval.beginning(); },
-	 end: function() { return timeNavigator.interval.end(); }},
-	{eventListeners: {
-	    loadstart: netLayerLoadStart,
-	    loadend: netLayerLoadEnd,
-	    loadcancel: netLayerLoadCancel }
-	});
+    netLayer = new NetworkLayer('Networks', url,
+        {
+            start: function () {
+                return timeNavigator.interval.beginning();
+            },
+            end: function () {
+                return timeNavigator.interval.end();
+            }
+        },
+        {
+            eventListeners: {
+                loadstart: netLayerLoadStart,
+                loadend: netLayerLoadEnd,
+                loadcancel: netLayerLoadCancel
+            }
+        }
+    );
     themap.addLayer(netLayer);
 
     posControl = new PositionControl('pos');
@@ -118,22 +135,24 @@ function init(mapElementId, url) {
     posControl.activate();
 
     if (parameters.bbox) {
-	var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
-	requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
-	themap.zoomToExtent(requestedBounds);
+        var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
+        requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
+        themap.zoomToExtent(requestedBounds);
     } else {
-	nav.geomapBBox.transform(themap.displayProjection, themap.getProjectionObject());
-	themap.zoomToExtent(nav.geomapBBox);
+        nav.geomapBBox.transform(themap.displayProjection, themap.getProjectionObject());
+        themap.zoomToExtent(nav.geomapBBox);
     }
 
     try {
-	var permalink = new Permalink(
-	    'permalink', themap,
-	    {set time(t) { timeNavigator.setInterval(new TimeInterval(t)); },
-	     get time() { return timeNavigator.interval.toReadableString(); }},
-	    [timeNavigator.onChange]);
+        var permalink = new Permalink('permalink', themap,
+            {
+                set time(t) { timeNavigator.setInterval(new TimeInterval(t)); },
+                get time() { return timeNavigator.interval.toReadableString(); }
+            },
+            [timeNavigator.onChange]
+        );
     } catch (e) {
-	alert('Error parsing URL query string:\n' + e);
+        alert('Error parsing URL query string:\n' + e);
     }
 }
 
@@ -210,3 +229,4 @@ function toggleFullscreen() {
 }
 
 
+});

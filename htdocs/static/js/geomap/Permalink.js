@@ -70,8 +70,8 @@ function Permalink(htmlId, mapObj, parameters, listenHooks) {
 
     var queryString = OpenLayers.Util.getParameters();
     for (var i in parameters)
-	if (i in queryString)
-	    parameters[i] = queryString[i];
+        if (i in queryString)
+            parameters[i] = queryString[i];
 
     if (listenHooks)
 	listenHooks.forEach(fix(addHook, encapsulate(this, this.update), 1));
