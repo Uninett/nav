@@ -18,6 +18,12 @@
  * geomap.js: Shows a map with a network information overlay.
  */
 
+require(['libs/jquery'], function () {
+    $(function () {
+        create_bounding_box();
+    });
+
+
 var zoom=6;
 
 // Variables holding the objects created by init:
@@ -35,6 +41,7 @@ var mapElemId;
 // viewport:
 var mapFullscreen = false;
 var nav = nav || {};
+var getDataUrl = 'data';
 
 
 function create_bounding_box() {
@@ -52,7 +59,7 @@ function create_bounding_box() {
         var roomPositions = new OpenLayers.Geometry.MultiPoint(roomPosArray);
         nav.geomapBBox = roomPositions.getBounds();
 
-        init('map', 'data');
+        init('map');
     });
 }
 
@@ -76,67 +83,90 @@ function getLong(position) {
      *
      * mapElementId -- id of HTML element for map
      *
-     * url -- URL for network data requests
      */
-function init(mapElementId, url) {
-    var parameters = OpenLayers.Util.getParameters();
+    function init(mapElementId) {
 
-    mapElemId = mapElementId;
-    setMapSize();
-    window.onresize = setMapSize;
+        mapElemId = mapElementId;
+        setMapSize();
+        window.onresize = setMapSize;
 
-    timeNavigator = new TimeNavigator('time-navigation',
-				      function() { netLayer.update(); });
+        themap = new OpenLayers.Map(mapElementId, {
+                controls: [
+                    new OpenLayers.Control.Navigation(), new OpenLayers.Control.PanZoomBar(), //new OpenLayers.Control.NavToolbar(),
+                    new OpenLayers.Control.Attribution(), new OpenLayers.Control.LayerSwitcher()
+                ],
+                displayProjection: new OpenLayers.Projection("EPSG:4326"),
+                theme: NAV.cssPath + '/openlayers.css'
+            });
 
-    themap = new OpenLayers.Map(mapElementId, {
-        controls:[
-	    new OpenLayers.Control.Navigation(),
-	    new OpenLayers.Control.PanZoomBar(),
-	    //new OpenLayers.Control.NavToolbar(),
-	    new OpenLayers.Control.Attribution(),
-	    new OpenLayers.Control.LayerSwitcher()],
-        displayProjection: new OpenLayers.Projection("EPSG:4326"),
-        theme: NAV.cssPath + '/openlayers.css'
-    } );
+        addLayersIfHeight();
 
-    mapnikLayer = new OpenLayers.Layer.OSM("OpenStreetMap", '/info/osm_map_redirect/${z}/${x}/${y}.png');
-    themap.addLayer(mapnikLayer);
-
-    netLayer = new NetworkLayer(
-	'Networks', url,
-	{start: function() { return timeNavigator.interval.beginning(); },
-	 end: function() { return timeNavigator.interval.end(); }},
-	{eventListeners: {
-	    loadstart: netLayerLoadStart,
-	    loadend: netLayerLoadEnd,
-	    loadcancel: netLayerLoadCancel }
-	});
-    themap.addLayer(netLayer);
-
-    posControl = new PositionControl('pos');
-    themap.addControl(posControl);
-    posControl.activate();
-
-    if (parameters.bbox) {
-	var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
-	requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
-	themap.zoomToExtent(requestedBounds);
-    } else {
-	nav.geomapBBox.transform(themap.displayProjection, themap.getProjectionObject());
-	themap.zoomToExtent(nav.geomapBBox);
     }
 
-    try {
-	var permalink = new Permalink(
-	    'permalink', themap,
-	    {set time(t) { timeNavigator.setInterval(new TimeInterval(t)); },
-	     get time() { return timeNavigator.interval.toReadableString(); }},
-	    [timeNavigator.onChange]);
-    } catch (e) {
-	alert('Error parsing URL query string:\n' + e);
+    function addLayersIfHeight() {
+        /* There is a race condition somewhere that the layers are added before Viewport has any height.
+           This problem is experienced by other people aswell when width and height is 100% and not a
+           fixed value. We solve this by adding layers after the viewport has gotten height. */
+        var height = themap.getSize().h;
+        if (height === 0) {
+            setTimeout(addLayersIfHeight, 200);
+        } else {
+            addLayers();
+        }
     }
-}
 
+    function addLayers() {
+        var parameters = OpenLayers.Util.getParameters();
+        timeNavigator = new TimeNavigator('time-navigation', function () {
+                netLayer.update();
+            });
+
+        mapnikLayer = new OpenLayers.Layer.OSM("OpenStreetMap", '/info/osm_map_redirect/${z}/${x}/${y}.png');
+        themap.addLayer(mapnikLayer);
+
+        netLayer = new NetworkLayer('Networks', getDataUrl, {
+                start: function () {
+                    return timeNavigator.interval.beginning();
+                },
+                end: function () {
+                    return timeNavigator.interval.end();
+                }
+            }, {
+                eventListeners: {
+                    loadstart: netLayerLoadStart,
+                    loadend: netLayerLoadEnd,
+                    loadcancel: netLayerLoadCancel
+                }
+            });
+        themap.addLayer(netLayer);
+
+        posControl = new PositionControl('pos');
+        themap.addControl(posControl);
+        posControl.activate();
+
+        if (parameters.bbox) {
+            var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
+            requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
+            themap.zoomToExtent(requestedBounds);
+        } else {
+            nav.geomapBBox.transform(themap.displayProjection, themap.getProjectionObject());
+            themap.zoomToExtent(nav.geomapBBox);
+        }
+
+        try {
+            var permalink = new Permalink('permalink', themap, {
+                    set time(t) {
+                        timeNavigator.setInterval(new TimeInterval(t));
+                    },
+                    get time() {
+                        return timeNavigator.interval.toReadableString();
+                    }
+                }, [timeNavigator.onChange]);
+        } catch (e) {
+            alert('Error parsing URL query string:\n' + e);
+        }
+
+    }
 
 /*
  * Updating the displayed loading status:
@@ -167,25 +197,25 @@ function setMapSize() {
     var mapE = document.getElementById(mapElemId);
 
     if (mapFullscreen) {
-	mapE.style.position = 'absolute';
-	//mapE.style.zIndex = '1';
-	mapE.style.top = '0';
-	mapE.style.bottom = '0';
-	mapE.style.left = '0';
-	mapE.style.right = '0';
-	mapE.style.height = 'auto';
-	mapE.style.width = 'auto';
+        mapE.style.position = 'absolute';
+        //mapE.style.zIndex = '1';
+        mapE.style.top = '0';
+        mapE.style.bottom = '0';
+        mapE.style.left = '0';
+        mapE.style.right = '0';
+        mapE.style.height = 'auto';
+        mapE.style.width = 'auto';
     } else {
-	//var height = window.innerHeight - elemOffsetTop(mapE) - 4;
-    var height = document.getElementById('map-container').innerHeight;
-    var width = document.getElementById('map-container').innerWidth;
+        //var height = window.innerHeight - elemOffsetTop(mapE) - 4;
+        var height = document.getElementById('map-container').innerHeight;
+        var width = document.getElementById('map-container').innerWidth;
 
-	mapE.style.position = '';
-	mapE.style.height = height + 'px';
-	mapE.style.width = width + 'px';
+        mapE.style.position = '';
+        mapE.style.height = height + 'px';
+        mapE.style.width = width + 'px';
     }
     if (themap)
-	themap.updateSize();
+        themap.updateSize();
 }
 
 /*
@@ -210,3 +240,4 @@ function toggleFullscreen() {
 }
 
 
+});

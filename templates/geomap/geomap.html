@@ -24,14 +24,14 @@
 
 
 {% block base_body_start %}
-<body onload="create_bounding_box()">
+<body>
 {% endblock %}
 
 
 {% block base_content %}
 
 <div class="row">
-  <div class="large-12 columns">
+  <div class="small-12 columns">
     <h2 id="geomap-heading">Geomap</h2>
 
     <p>Variant:
@@ -52,14 +52,14 @@
 
 <div class="row map-control-bar">
 
-  <div class="large-4 columns">
+  <div class="medium-2 columns">
     <p id="time-navigation-selected-time"></p>
     <p class="permalink">
       <a id="permalink">Link to this configuration</a>
     </p>
   </div>
 
-  <div class="large-2 columns">
+  <div class="medium-3 columns">
     <div id="time-navigation">
       <p><h6>Interval size:</h6> <select id="time-navigation-interval-size"></select></p>
       <p>
@@ -74,7 +74,7 @@
     </div>
   </div>
 
-  <div class="large-3 columns">
+  <div class="medium-3 columns">
 
     <table id="time-navigation-calendar">
       <tr id="time-navigation-calendar-head-row">
@@ -92,22 +92,22 @@
     </table>
   </div>
 
-  <div class="large-3 columns">
+  <div class="medium-4 columns">
     <div id="position">
       <h6>Last clicked position:</h6>
       <div class="row collapse">
-        <div class="large-9 columns">
+        <div class="medium-9 columns">
           <input type="text" id="pos-clicked-lonlat" size="18"/>
         </div>
-        <div class="large-3 columns">
+        <div class="medium-3 columns">
           <span class="postfix">(lat/lon)</span>
         </div>
       </div>
       <div class="row collapse">
-        <div class="large-9 columns">
+        <div class="medium-9 columns">
           <input type="text" id="pos-clicked-utm" size="18"/>
         </div>
-        <div class="large-3 columns">
+        <div class="medium-3 columns">
           <span class="postfix">(UTM)</span>
         </div>
       </div>

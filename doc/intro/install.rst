@@ -212,6 +212,7 @@ files and various other state information::
   cd /usr/local/nav/var
   sudo chown -R navcron:nav .
 
+.. _integrating-graphite-with-nav:
 
 Integrating Graphite with NAV
 -----------------------------
