@@ -17,61 +17,33 @@
 """Sorted statistics views."""
 
 import logging
-from operator import itemgetter
+from django.shortcuts import render
 
-from django.shortcuts import render_to_response
-from django.template import RequestContext
-
-from .statmodules import (StatCpuAverage, StatUptime, StatIfInOctets,
-                          StatIfOutOctets, StatIfOutErrors, StatIfInErrors,
-                          StatMinFreeAddresses)
+from .forms import ViewForm
+from . import CLASSMAP
 
 _logger = logging.getLogger(__name__)
-
-TIMEFRAMES = (
-    ('-1h', 'Last Hour'),
-    ('-1d', 'Last Day'),
-    ('-1w', 'Last Week'),
-    ('-1month', 'Last Month'),
-)
-
-CLASSMAP = {'cpu_routers_highestmax': StatCpuAverage,
-            'uptime': StatUptime,
-            'ifinoctets': StatIfInOctets,
-            'ifoutoctets': StatIfOutOctets,
-            'ifouterrors': StatIfOutErrors,
-            'ifinerrors': StatIfInErrors,
-            'leastfreeaddresses': StatMinFreeAddresses,
-            }
 
 
 def index(request):
     """Sorted stats search & result view"""
-    numrows = int(request.GET.get('numrows', 5))
-    fromtime = request.GET.get('fromtime', '-1d')
-    sectionslist = [(x[0], x[1].title) for x in CLASSMAP.items()]
-    sectionslist = sorted(sectionslist, key=itemgetter(0))
+    result = None
+    if 'view' in request.GET:
+        form = ViewForm(request.GET)
+        if form.is_valid():
+            cls = CLASSMAP[form.cleaned_data['view']]
+            result = cls(form.cleaned_data['timeframe'],
+                         form.cleaned_data['rows'])
+            result.collect()
+
+    else:
+        form = ViewForm()
 
     context = {
         'title': 'Statistics',
         'navpath': [('Home', '/'), ('Statistics', False)],
-        'numrows': numrows,
-        'fromtime': fromtime,
-        'timeframes': TIMEFRAMES,
-        'sectionslist': sectionslist,
+        'result': result,
+        'form': form
     }
 
-    if 'view' in request.GET:
-        view = request.GET['view']
-        cls = CLASSMAP[view]
-        result = cls(fromtime, numrows)
-        result.collect()
-
-        context.update({
-            'view': view,
-            'view_timeframe': dict(TIMEFRAMES)[fromtime],
-            'result': result
-        })
-
-    return render_to_response('sortedstats/sortedstats.html', context,
-                              context_instance=RequestContext(request))
+    return render(request, 'sortedstats/sortedstats.html', context)

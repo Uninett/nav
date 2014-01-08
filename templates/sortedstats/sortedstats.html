@@ -1,60 +1,14 @@
 {% extends "base.html" %} {# Don't need a deeper hierarchy for one template #}
+{% load crispy_forms_tags %}
 
 {% block base_content %}
 
   <h2>Ranked statistics</h2>
 
-  <form action="" method="get">
-
-    <table class="vertitable">
-
-      <tr>
-        <th>Choose view</th>
-        <td>
-          <select name="view">
-            {% for section in sectionslist %}
-              <option value="{{ section.0 }}"
-                      {% ifequal section.0 view %}
-                      selected
-                      {% endifequal %}>
-              {{ section.1 }}
-            {% endfor %}
-          </select>
-        </td>
-      </tr>
-
-      <tr>
-        <th>Timeframe</th>
-        <td>
-          <select name="fromtime">
-            {% for timeframe in timeframes %}
-              <option value="{{ timeframe.0 }}"
-                      {% ifequal timeframe.0 fromtime %}
-                        selected
-                      {% endifequal %}>
-              {{ timeframe.1 }}
-            {% endfor %}
-          </select>
-        </td>
-      </tr>
-
-      <tr>
-        <th>Rows</th>
-        <td>
-          <input type="text" name="numrows" value="{{ numrows }}" size="3">
-        </td>
-      </tr>
-
-      <tr>
-        <th></th>
-        <td><input type="submit" name="normalview" value="View"></td>
-      </tr>
-
-    </table>
-  </form>
+  {% crispy form %}
 
   {# Display view if exists #}
-  {% if view %}
+  {% if result %}
       {% if result.graph_url %}
           <img src="{{ result.graph_url }}" alt="Graph" title="Graph">
 
