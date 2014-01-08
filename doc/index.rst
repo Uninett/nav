@@ -43,7 +43,8 @@ See also :doc:`the release notes <release-notes>` for this version (|version|).
 
 * **Howto guides:**
   :doc:`Troubleshooting topology problems <howto/debugging-topology>` |
-  :doc:`Migrating data between NAV installations <howto/migrate-data>`
+  :doc:`Migrating data between NAV installations <howto/migrate-data>` |
+  :doc:`howto/migrate-rrd-to-graphite`
 
 
 * **For developers:**

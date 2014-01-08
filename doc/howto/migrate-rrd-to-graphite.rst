@@ -1,0 +1,183 @@
+######################################################
+ Migrating RRD data to Graphite (from NAV 3 to NAV 4)
+######################################################
+
+When upgrading from NAV 3 to NAV 4, you may want to keep historic traffic
+graphs and other time-series data collected into RRD files by NAV 3 and
+Cricket.
+
+NAV 4 comes with a utility for converting NAV 3 RRD files into Whisper_ files
+(Whisper_ is the data format used by Graphite). This how-to documents usage of
+the utility and limitations of the conversion process.
+
+
+*****
+TL;DR
+*****
+
+On the NAV server, run this program::
+
+  migrate_to_whisper.py <PATH>
+
+where `PATH` is the directory where your whisper file hierarchy will be
+placed.
+
+* If your Graphite Carbon backend runs on the same server as NAV, this
+  can point directly to its whisper storage directory (most commonly
+  :file:`/opt/graphite/storage/whisper/`).
+* If not, specify a temporary directory and move the files to your Carbon server.
+
+
+**********
+Conversion
+**********
+
+Assumptions before we start:
+
+* You have stopped NAV 3 and installed NAV 4.
+* You have installed and configured Graphite according to
+  :ref:`integrating-graphite-with-nav`.
+* :mod:`py-rrdtool` must still be installed on the NAV server, as well as
+  :mod:`whisper`.
+* You have **NOT** started NAV 4.
+
+.. note:: If you do start NAV 4 before proceeding with the RRD conversion, NAV
+          will start sending metrics to Graphite, and you will have to
+          overwrite the Whisper files created by Graphite with the ones
+          produced during this conversion step.
+
+On the NAV server, run this program::
+
+  migrate_to_whisper.py <PATH>
+
+where `PATH` is the directory where your whisper file hierarchy will be
+placed.
+
+* If your Graphite Carbon backend runs on the same server as NAV, this
+  can point directly to its whisper storage directory (most commonly
+  :file:`/opt/graphite/storage/whisper/`).
+* If not, specify a temporary directory and move the files to your Carbon
+  server afterwards.
+
+When conversion is complete and the Whisper files are on the target server,
+ensure they are readable/writable by the user that runs the Carbon daemon
+(e.g. :kbd:`chmod -R graphite:graphite /opt/graphite/storage/whisper/nav`).
+
+The conversion script will log its actions to :file:`migrate_to_whisper.log`.
+
+
+Migrating between different platforms
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The RRD file format is platform/architecture dependent, whereas Whisper files
+are not. If you are attempting to migrate your RRD data to a new NAV server,
+the two servers' architectures must match. If they don't, you must run the
+conversion step on the original server (a typical scenario is migrating from a
+32-bit platform to a 64-bit platform).
+
+Your only other option in the face of an architecture mismatch is to dump the
+RRD files to XML files on the original server, and then load those back into
+RRD files on the new server.
+
+If you choose the latter option, things can get complicated quick. Here's a
+suggestion that has been employed by the authors of NAV (and requires the
+`rrdtool` command line program to be present on both servers):
+
+1. Put the following shell script on your original NAV server, as
+   :file:`/root/migrate-rrd.sh`, and make sure it is executable:
+
+   .. code-block:: bash
+
+      #!/usr/bin/env bash
+
+      list_nav_rrdfiles() {
+	sudo -u postgres psql nav -P format=unaligned -q -t -c "SELECT path || '/' || filename FROM rrd_file"
+      }
+
+      list_nav_rrdfiles | while read RRD
+      do
+	  TARGET=".$RRD"
+	  TARGETDIR=`dirname "$TARGET"`
+	  echo "mkdir -p \"$TARGETDIR\""
+	  echo "rm -f \"$TARGET\""
+	  echo "cat << EOF | rrdtool restore - \"$TARGET\""
+	  rrdtool dump $RRD
+	  echo "EOF"
+      done
+
+2. On the new NAV-server, run the following:
+
+   .. code-block:: bash
+
+      cd /
+      ssh root@oldnavserver /root/migrate-rrd.sh | bash
+
+   This will make the old NAV server produce a stream of shell commands to
+   load RRD files from XML and put these in the same paths as the originals.
+   Piping these commands to a `bash` shell will execute them on the new
+   server.
+
+   .. warning:: Yes, we know this is an ugly hack; make sure you make a backup
+                of everything, **don't run this as root** if you can help it,
+                and don't blame us if anything goes wrong.
+
+
+***********
+Limitations
+***********
+
+Data archives
+~~~~~~~~~~~~~
+
+What rrdtool refers to as a Round Robin Archive (RRA) corresponds to what
+Whisper_ calls a "retention archive". Each archive stores data points at a
+specific time resolution, for a specific period of time.
+
+Conventional wisdom says "recent data is more interesting than old data",
+meaning one wants high resolution on recent data, but low resolution on old
+data is OK. The convention is to have multiple archives covering increasing
+periods of time with decreasing resolution.
+
+NAV ships with a Graphite/Carbon config file with recommended storage schemas
+for NAV data. The precisions and lengths of the defined retention archives
+will in some instances deviate from those used in NAV 3's RRD files; some data
+will be stored at higher precision in NAV 4 compared to NAV 3.
+
+For practical resons, the conversion tool will mirror the RRAs in RRD files as
+retention archives in the Whisper files it creates, regardless of this
+configuration. However, the highest precision archives are important, so if
+the recommended precision in NAV 4 is higher than what the old RRD file
+provides, the tool will create a higher precision archive and interpolate data
+from RRD into this.
+
+Any new metrics collected by NAV will be subject to the storage schemas
+configured in Carbon.
+
+Whisper comes with `command line tools`_ for altering/adding retention
+archives in existing Whisper files, if you wish to make changes
+after-the-fact. A common wish is to retain data for longer periods than the
+default - these tools would enable that.
+
+
+Aggregation methods
+~~~~~~~~~~~~~~~~~~~
+
+What rrdtool refers to as "consolidation functions" corresponds to what
+Whisper_ calls "aggregation methods".
+
+In an RRD file, consolidation functions are an attribute of each RRA, meaning
+you can have multiple, overlapping archives which consolidate data points in
+different ways. In Whisper, the aggregation method is an attribute of the
+Whisper file itself.
+
+NAV 3 may have RRD files with overlapping archives to include `maximum` and
+`average` consolidation of the same data points. The default of the NAV 4
+Graphite setup is to use the `average` aggregation for Whisper files. The
+conversion tool will therefore only extract the average values from the RRD
+files.
+
+
+
+
+.. _Whisper: https://graphite.readthedocs.org/en/latest/whisper.html
+.. _`command line tools`: https://github.com/graphite-project/whisper
