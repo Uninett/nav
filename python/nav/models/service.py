@@ -17,7 +17,7 @@
 """Django ORM wrapper for the NAV manage database"""
 
 from django.db import models
-from nav import metrics
+from nav.metrics.data import get_metric_average
 from nav.metrics.templates import (
     metric_path_for_service_availability,
     metric_path_for_service_response_time
@@ -69,8 +69,8 @@ class Service(models.Model):
         }
 
         for time_frame in self.TIME_FRAMES:
-            avg = metrics.get_metric_average([avail_id, rtime_id],
-                                              start="-1%s" % time_frame)
+            avg = get_metric_average([avail_id, rtime_id],
+                                     start="-1%s" % time_frame)
 
             # Availability
             pktloss = avg.get(avail_id, None)
