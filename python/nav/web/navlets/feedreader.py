@@ -36,17 +36,21 @@ class FeedReaderNavlet(Navlet):
         context = super(FeedReaderNavlet, self).get_context_data(**kwargs)
         blogurl = None
         feed = None
+        maxposts = 5
 
         navlet = AccountNavlet.objects.get(pk=self.navlet_id)
         if navlet.preferences:
             blogurl = navlet.preferences.get('blogurl')
+            maxposts = int(navlet.preferences.get('maxposts', maxposts))
 
         if self.mode == NAVLET_MODE_VIEW and blogurl:
             feed = feedparser.parse(blogurl)
+            feed['maxentries'] = feed['entries'][:maxposts]
 
         context.update({
             'feed': feed,
-            'blogurl': blogurl
+            'blogurl': blogurl,
+            'maxposts': maxposts
         })
         return context
 
@@ -58,13 +62,16 @@ class FeedReaderNavlet(Navlet):
         """
         account = get_account(request)
         blogurl = request.POST.get('blogurl')
+        maxposts = request.POST.get('maxposts')
 
         account_navlet = AccountNavlet.objects.get(pk=self.navlet_id,
                                                    account=account)
         if not account_navlet.preferences:
-            account_navlet.preferences = {'blogurl': blogurl}
+            account_navlet.preferences = {'blogurl': blogurl,
+                                          'maxposts': maxposts}
         else:
             account_navlet.preferences['blogurl'] = blogurl
+            account_navlet.preferences['maxposts'] = maxposts
         account_navlet.save()
 
         return HttpResponse()

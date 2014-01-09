@@ -7,7 +7,7 @@
       {% if feed %}
         <h4>{{ feed.feed.title }}</h4>
         <ul>
-          {% for entry in feed.entries|slice:":5" %}
+          {% for entry in feed.maxentries %}
             <li>
               <a href="{{ entry.link }}" title="Read this entry">{{ entry.title }}</a>
             </li>

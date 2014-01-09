@@ -2,11 +2,25 @@
 
 {% block navlet-content %}
   <form action="{% url get-user-navlet navlet.navlet_id %}">
-    <label for="status_refresh_interval">
-      URL to feed
-      <input id="feedreader_blog_url" type="text" name="blogurl" placeholder="URL"
-             value="{{ blogurl|default_if_none:'' }}">
-    </label>
-    <input type="submit" class="button small" value="Save url">
+
+    <div class="row">
+      <div class="medium-10 column">
+        <label for="feedreader_blog_url">
+          URL to feed
+          <input id="feedreader_blog_url" type="text" name="blogurl"
+                 placeholder="URL" value="{{ blogurl|default_if_none:'' }}">
+        </label>
+      </div>
+
+      <div class="medium-2 column">
+        <label for="max_posts">
+          Maximum posts
+          <input id="max_posts" type="number" name="maxposts" min="1"
+                 value="{{ maxposts|default:'5' }}">
+        </label>
+      </div>
+
+    </div>
+    <input type="submit" class="button small" value="Save">
   </form>
 {% endblock %}
