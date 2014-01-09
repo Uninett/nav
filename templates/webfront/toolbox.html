@@ -1,21 +1,7 @@
 {% extends "base.html" %}
 
-{% block base_header_additional_head %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/tool.css" />
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css" />
-    <script>require(["src/toolbox"]);</script>
-{% endblock %}
-
 {% block base_content %}
 <h2>Toolbox</h2>
-
-    {% if not current_user_data.account.is_default_account %}
-        <div class="buttoncontainer">
-            <button class="editbutton button small">Edit</button>
-            <button class="savebutton button small">Save</button>
-            <span class="info">Drag to sort existing tools. Click to make them available in the your tools list when you leave the page.</span>
-        </div>
-    {% endif %}
 
     <table id="tool_list" class="table-hover">
         <tbody>
@@ -33,17 +19,6 @@
                 </td>
                 <td>
                     {{ tool.description }}
-                </td>
-                <td class="switch-cell">
-                    <div class="switch small">
-                        <input id="{{ forloop.counter }}" name="switch-{{ forloop.counter }}" data-state="off" type="radio" {% if not tool.display %}checked{% endif %} >
-                        <label for="{{ forloop.counter }}" onclick="">Off</label>
-
-                        <input id="{{ forloop.counter }}100" name="switch-{{ forloop.counter }}" data-state="on" type="radio" {% if tool.display %}checked{% endif %} >
-                        <label for="{{ forloop.counter }}100" onclick="">On</label>
-
-                        <span>&nbsp;</span>
-                    </div>
                 </td>
             </tr>
         {% endfor %}
