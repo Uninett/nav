@@ -41,11 +41,6 @@ Assumptions before we start:
   :mod:`whisper`.
 * You have **NOT** started NAV 4.
 
-.. note:: If you do start NAV 4 before proceeding with the RRD conversion, NAV
-          will start sending metrics to Graphite, and you will have to
-          overwrite the Whisper files created by Graphite with the ones
-          produced during this conversion step.
-
 On the NAV server, run this program::
 
   migrate_to_whisper.py <PATH>
@@ -63,7 +58,39 @@ When conversion is complete and the Whisper files are on the target server,
 ensure they are readable/writable by the user that runs the Carbon daemon
 (e.g. :kbd:`chmod -R graphite:graphite /opt/graphite/storage/whisper/nav`).
 
-The conversion script will log its actions to :file:`migrate_to_whisper.log`.
+Runtime considerations
+~~~~~~~~~~~~~~~~~~~~~~
+
+Conversion may take a long time to complete, depending on the amount of data
+you have to convert. We have only one data point so far:
+
+On a reasonably modern computer (Intel i7 Quad core with 8GB RAM, an SSD and a
+64-bit OS), converting *2512* RRD files to Whisper took approximately 19
+minutes. This is from a small NAV installation with only 39 monitored IP
+devices and 108 monitored subnet prefixes on 63 VLANs.
+
+
+Converting while NAV 4 is running
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you start NAV 4 before proceeding with the RRD conversion, NAV will begin
+to send metrics to Graphite; the Whisper files the conversion tool wants to
+produce will therefore already exist in Carbon's storage directory.
+
+Any Whisper files that already exist will not be overwritten by the conversion
+tool, but they will be *updated* with old data from the RRD file (aka.
+"backfilling"). You may think this will help you avoid downtime data gaps in
+your resulting graphs, **but** because of the precision mismatches detailed in
+the :ref:`rrd-migration-data-archives-mismatch` section, you may get multiple
+gaps in older data instead.
+
+.. note:: If you cannot live with this downtime, you can opt to start NAV 4
+          and have the conversion tool place Whisper files in a temporary
+          directory. When the conversion process is over, you can overwrite
+          the Whisper files in Carbon's storage directory with those produced
+          by NAV. You will, of course, still have the downtime gap in your
+          graphs, but NAV will at least monitor and dispatch alerts as usual
+          during the conversion.
 
 
 Migrating between different platforms
@@ -126,10 +153,12 @@ suggestion that has been employed by the authors of NAV (and requires the
 Limitations
 ***********
 
+.. _rrd-migration-data-archives-mismatch:
+
 Data archives
 ~~~~~~~~~~~~~
 
-What rrdtool refers to as a Round Robin Archive (RRA) corresponds to what
+What _rrdtool refers to as a Round Robin Archive (RRA) corresponds to what
 Whisper_ calls a "retention archive". Each archive stores data points at a
 specific time resolution, for a specific period of time.
 
@@ -162,7 +191,7 @@ default - these tools would enable that.
 Aggregation methods
 ~~~~~~~~~~~~~~~~~~~
 
-What rrdtool refers to as "consolidation functions" corresponds to what
+What _rrdtool refers to as "consolidation functions" corresponds to what
 Whisper_ calls "aggregation methods".
 
 In an RRD file, consolidation functions are an attribute of each RRA, meaning
@@ -177,7 +206,21 @@ conversion tool will therefore only extract the average values from the RRD
 files.
 
 
+Network interface counter discontinuities
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+NAV 3's RRD files use DERIVE-based data sources for interface counters (octet,
+packet and error counters, etc.), meaning the values stored in the RRD files
+are the actual traffic data rates. Whisper does not support DERIVE-type
+calculations at insert time, so NAV 4 will instead store the raw counter
+values in Graphite, and convert to rates when presenting graphs/data.
+
+The rates stored in RRD files will therefore be converted to absolute counter
+values when inserted into the corresponding Whisper files. Unless there is a
+gap between the converted data and the new data collected by NAV 4, this may
+result in huge spikes in your graphs at the point in time you converted.
 
 
 .. _Whisper: https://graphite.readthedocs.org/en/latest/whisper.html
 .. _`command line tools`: https://github.com/graphite-project/whisper
+.. _rrdtool: http://oss.oetiker.ch/rrdtool/

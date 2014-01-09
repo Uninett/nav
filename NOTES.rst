@@ -70,7 +70,7 @@ values collected via SNMP, ping roundtrip times or ipdevpoll job performance
 metrics, will now send these to a configured Carbon backend (Graphite's
 metric-receiving daemon).
 
-Due to this extensive change, the threshold manager interface and the treshold
+Due to this extensive change, the threshold manager interface and the threshold
 monitor have been rewritten from scratch. The new threshold monitoring system
 uses *"threshold rules"*, which leverage functionality built-in to Graphite.
 It is also essentially independent of NAV, which means it can also monitor
@@ -79,17 +79,17 @@ thresholds for data that was put into Graphite by 3rd party software.
 Migrating existing data
 -----------------------
 
-Existing threshold values for RRD-based datasources cannot be consistently
+Existing threshold values for RRD-based data sources cannot be consistently
 migrated to the new threshold rule system, so you will need to configure your
 threshold rules from scratch. 
 
-We will, however, provide a program for migrating time-series data stored in
-RRD files into Graphite, which will enable you to keep historic data when
-upgrading from an older NAV version. The current development version of this
-program cannot be distributed because of licensing issues arising from
-combining NAV and Graphite code. The program will be rewritten during the 4.0
-beta period, so that we can provide a workable migration solution for the
-final 4.0 release.
+We do provide a program for migrating time-series data stored in RRD files
+into Graphite, which will enable you to keep old data when upgrading from an
+older NAV version. Usage and limitations of this program is documented in a
+separate howto guide: :doc:`/howto/migrate-rrd-to-graphite`.
+
+.. note:: If you wish to migrate time-series data, please read :doc:`the guide
+          </howto/migrate-rrd-to-graphite>` **before** starting NAV 4.
 
 
 NAV 3.15
