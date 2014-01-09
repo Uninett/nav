@@ -28,6 +28,7 @@ class FeedReaderNavlet(Navlet):
     title = "FeedReader"
     description = "Reads an RSS or ATOM feed"
     is_editable = True
+    refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
 
     def get_template_basename(self):
         return "feedreader"
