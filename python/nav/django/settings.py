@@ -144,6 +144,7 @@ NAVLETS = (
     'nav.web.navlets.messages.MessagesNavlet',
     'nav.web.navlets.welcome.WelcomeNavlet',
     'nav.web.navlets.room_map.RoomMapNavlet',
+    'nav.web.navlets.feedreader.FeedReaderNavlet',
 )
 
 CRISPY_TEMPLATE_PACK = 'foundation'

@@ -1,0 +1,12 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+  <form action="{% url get-user-navlet navlet.navlet_id %}">
+    <label for="status_refresh_interval">
+      URL to feed
+      <input id="feedreader_blog_url" type="text" name="blogurl" placeholder="URL"
+             value="{{ blogurl|default_if_none:'' }}">
+    </label>
+    <input type="submit" class="button small" value="Save url">
+  </form>
+{% endblock %}
