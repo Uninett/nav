@@ -1,3 +1,18 @@
+Version 4.0b2
+(released 9 Jan 2014)
+
+ Bugfixes:
+
+  * LP#1262644 (seeddb bulk import does not work)
+  * LP#1263040 (ipdevinfo should not crash when Graphite-web is not reachable)
+  * LP#1267464 (NAV 4 must provide a tool for migrating RRD data from NAV 3)
+
+ User-visible features and improvements:
+  
+  Various UI improvements to the room photo database, toolbox dropdown,
+  Network Explorer, Geomap and Ranked statistics.
+
+
 Version 4.0b1
 (released 12 Dec 2013)
 
