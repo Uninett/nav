@@ -28,6 +28,18 @@ Version 4.0b1
  the documentation.
 
 
+Version 3.15.4
+(released 9 Jan 2014)
+
+ Bugfixes:
+
+  * LP#1246684 (AttributeError crash in Machine Tracker when search results
+                include data from deleted IP devices)
+  * LP#1255958 (DHCP service-check failure)
+  * LP#1265753 (portadmin does not allow empty ifalias)
+  * LP#1265755 (portadmin fails to load template for ifalias format)
+
+
 Version 3.15.3
 (released 14 Nov 2013)
 
