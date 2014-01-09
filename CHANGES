@@ -1,3 +1,18 @@
+Version 4.0b2
+(released 9 Jan 2014)
+
+ Bugfixes:
+
+  * LP#1262644 (seeddb bulk import does not work)
+  * LP#1263040 (ipdevinfo should not crash when Graphite-web is not reachable)
+  * LP#1267464 (NAV 4 must provide a tool for migrating RRD data from NAV 3)
+
+ User-visible features and improvements:
+  
+  Various UI improvements to the room photo database, toolbox dropdown,
+  Network Explorer, Geomap and Ranked statistics.
+
+
 Version 4.0b1
 (released 12 Dec 2013)
 
@@ -26,6 +41,18 @@ Version 4.0b1
  version we recommend installing NAV on a separate, perhaps virtual, server,
  and migrate production data according to the data migration howto found in
  the documentation.
+
+
+Version 3.15.4
+(released 9 Jan 2014)
+
+ Bugfixes:
+
+  * LP#1246684 (AttributeError crash in Machine Tracker when search results
+                include data from deleted IP devices)
+  * LP#1255958 (DHCP service-check failure)
+  * LP#1265753 (portadmin does not allow empty ifalias)
+  * LP#1265755 (portadmin fails to load template for ifalias format)
 
 
 Version 3.15.3

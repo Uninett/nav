@@ -28,10 +28,9 @@ import sys
 from nav.graphite_migrate import (InterfaceMigrator, SystemMigrator,
                                   PpingMigrator, SensorMigrator,
                                   ActiveIpMigrator, ServicePingMigrator)
-from nav.logs import init_file_logging
+from nav.logs import init_stderr_logging
 from nav.path import localstatedir
 
-LOGFILE = join(localstatedir, 'log', 'migrate_to_whisper.log')
 _logger = logging.getLogger('nav.graphite.migrate')
 
 
@@ -39,7 +38,7 @@ def main():
     """Controller"""
 
     options, args = parse_options()
-    init_file_logging(LOGFILE)
+    init_stderr_logging()
 
     start_time = datetime.now()
     _logger.info('Starting migrate at %s', start_time)

@@ -16,6 +16,7 @@
 #
 """NAV related logging functionality."""
 
+import sys
 import os.path
 import logging
 import ConfigParser
@@ -113,12 +114,18 @@ def get_logfile_from_logger(logger=logging.root):
             return handler.stream
 
 
-def init_file_logging(logfile, formatter=None):
-    """Create logger for logging to file"""
+def init_stderr_logging(formatter=None):
+    """Initializes logging to stderr.
+
+    Log levels are read from logging.conf, the root logger's format is set to
+    NAV's default format, and its handler is set to a StreamHandler writing
+    to sys.stderr.
+
+    """
     set_log_levels()
 
-    filehandler = logging.FileHandler(logfile)
+    handler = logging.StreamHandler(sys.stderr)
     formatter = formatter or DEFAULT_LOG_FORMATTER
-    filehandler.setFormatter(formatter)
+    handler.setFormatter(formatter)
     root = logging.getLogger('')
-    root.addHandler(filehandler)
+    root.addHandler(handler)
