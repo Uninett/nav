@@ -24,7 +24,8 @@ from nav.django.auth import get_sudoer
 
 from nav.django.utils import get_account, is_admin
 from nav.web.message import Messages
-from nav.web.webfront.utils import get_account_tools, tool_list, quick_read
+from nav.web.webfront.utils import (get_account_tools, tool_list, quick_read,
+                                    split_tools)
 from nav.models.profiles import AccountNavbar
 from nav.buildconf import VERSION
 from nav.path import sysconfdir
@@ -98,7 +99,8 @@ def account_processor(request):
         'navbar': navbar,
         'qlink1': qlink1,
         'qlink2': qlink2,
-        'tools': tools
+        'tools': tools,
+        'split_tools': split_tools(tools)
     }
     return {
         'current_user_data': current_user_data,

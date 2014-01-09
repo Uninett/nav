@@ -114,52 +114,39 @@
     </section>
 </nav>
 
-<div id="megadrop" class="row hide">
-  <div class="medium-4 column">
-    <ul class="no-bullet">
-    {% for tool in current_user_data.tools %}
-      {% if forloop.counter <= 7 %}
-        <li>
-          <a href="{{ tool.uri }}" title="{{ tool.description }}">
-            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
-            {{ tool.name }}
-          </a>
-        </li>
-      {% endif %}
-    {% endfor %}
-    </ul>
-  </div>
-  <div class="medium-4 column">
-    <ul class="no-bullet">
-    {% for tool in current_user_data.tools %}
-      {% if forloop.counter > 7 and forloop.counter <= 14 %}
-        <li>
-          <a href="{{ tool.uri }}" title="{{ tool.description }}">
-            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
-            {{ tool.name }}
-          </a>
-        </li>
-      {% endif %}
-    {% endfor %}
-    </ul>
-  </div>
-  <div class="medium-4 column">
-    <ul class="no-bullet">
-    {% for tool in current_user_data.tools %}
-      {% if forloop.counter > 14 %}
-        <li>
-          <a href="{{ tool.uri }}" title="{{ tool.description }}">
-            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
-            {{ tool.name }}
-          </a>
-        </li>
-      {% endif %}
-    {% endfor %}
-    </ul>
-  </div>
-</div>
+  <div id="megadrop" class="row hide">
+    {% comment %} split_tools are split into 3 lists of tools {% endcomment %}
+    <div class="small-12 column">
 
-{% if current_user_data.sudoer %}
+      <div class="row">
+        {% for column in current_user_data.split_tools %}
+          <div class="medium-4 column">
+            <ul class="no-bullet">
+              {% for tool in column %}
+                <li>
+                  <a href="{{ tool.uri }}" title="{{ tool.description }}">
+                    <img src="{{ STATIC_URL }}{{ tool.icon }}"
+                         alt="{{ tool.name }}">
+                    {{ tool.name }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="row">
+        <div class="small-12 column">
+          <p><a href="{% url webfront-toolbox %}">Go to toolbox</a></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  {% if current_user_data.sudoer %}
     <div class="sudoer-bar">
         <form action="{% url webfront-logout %}" method="post">
             <img src="{{ STATIC_URL }}images/main/emblem-important.png"
