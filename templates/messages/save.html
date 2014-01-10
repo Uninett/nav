@@ -5,10 +5,13 @@
 
   <h3>{{ caption }}</h3>
 
+  <p>
   {% if message %}
-    <p><a href="{% url messages-view message.id %}">Back to message</a></p>
+    <a href="{% url messages-view message.id %}">Back to message</a>
+  {% else %}
+    <a href="{% url messages-home %}">To message lists</a>
   {% endif %}
-
+  </p>
 
   {% if replaces %}
     <p class="alert-box secondary">
