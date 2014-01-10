@@ -1,5 +1,5 @@
 {% extends "messages/base.html" %}
-{% block content %}
+{% block tabcontent %}
 
     {% if messages %}
         <table class="listtable">
@@ -28,4 +28,4 @@
     {% if not current_user_data.account.is_default_account %}
       <a href="{% url messages-create %}" class="button small">Create new message</a>
     {% endif %}
-{% endblock %}
+{% endblock tabcontent %}

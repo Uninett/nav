@@ -131,12 +131,14 @@ def save(request, message_id=None, replaces=None):
     if message_id and not replaces:
         message = get_object_or_404(Message, pk=message_id)
         info_dict.update(EDIT)
+        info_dict['message'] = message
     else:
         message = Message()
 
         # If this is a replacement, load some initial data to a
         # clean object to help out
         if replaces:
+            info_dict['message'] = replaces
             message.title = replaces.title
             message.publish_start = replaces.publish_start
             message.publish_end = replaces.publish_end
