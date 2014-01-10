@@ -80,9 +80,11 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
     function addOrdering() {
         $container.sortable({
-            items: '.imagecard',
+            items: '.imagecardcontainer',
             handle: '.drag',
-            update: saveOrder
+            update: saveOrder,
+            placeholder: "ui-state-highlight",
+            forcePlaceholderSize: true
         });
         $container.find('.drag').disableSelection();
     }

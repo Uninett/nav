@@ -3,6 +3,7 @@
 
 {% block base_header_additional_head %}
     <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"  rel="stylesheet">
     <script>require(["src/info_room_upload"]);</script>
 {% endblock %}
 
@@ -33,33 +34,37 @@
     {% crispy uploadform %}
   </form>
 
-  <div id="editimages">
+  <ul id="editimages" class="large-block-grid-4">
   {% for image in room.image_set.all %}
-  <div data-imageid="{{ image.id }}" class="imagecard">
-    <div class="actions">
-      <i class="fa fa-times right delete" title="Delete image"></i>
-      <i class="fa fa-edit right edit" title="Edit image caption"></i>
-      <i class="fa fa-arrows right drag" title="Change display order by dragging the image"></i>
-    </div>
-    <div class="heading">{{ image.title|safe }}</div>
+    <li class="imagecardcontainer">
+      <div data-imageid="{{ image.id }}" class="imagecard">
+        <div class="actions">
+          <i class="fa fa-times right delete" title="Delete image"></i>
+          <i class="fa fa-edit right edit" title="Edit image caption"></i>
+          <i class="fa fa-arrows right drag"
+             title="Change display order by dragging the image"></i>
+        </div>
+        <div class="heading">{{ image.title|safe }}</div>
 
-    {% if image.image_exists and image.is_readable %}
-      <img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}">
-    {% else %}
-      {% if not image.image_exists %}
-        <span class="alert-box alert">Image does not exist</span>
-      {% else %}
-        <span class="alert-box alert">Image exists but is not readable</span>
-      {% endif %}
-    {% endif %}
+        {% if image.image_exists and image.is_readable %}
+          <img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}">
+        {% else %}
+          {% if not image.image_exists %}
+            <span class="alert-box alert">Image does not exist</span>
+          {% else %}
+            <span class="alert-box alert">Image exists but is not readable</span>
+          {% endif %}
+        {% endif %}
 
-    <div class="meta">
-      <div class="left">{{ image.uploader.name }}</div>
-      <div class="right">{{ image.created }}</div>
-    </div>
-    <div class="float-clear"></div>
-  </div>
+        <div class="meta">
+          <div class="left">{{ image.uploader.name }}</div>
+          <div class="right">{{ image.created }}</div>
+        </div>
+        <div class="float-clear"></div>
+      </div>
+    </li>
+
   {% endfor %}
-  </div>
+  </ul>
 
 {% endblock %}

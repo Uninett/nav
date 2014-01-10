@@ -71,23 +71,12 @@ img.textbottom {
 /* Image cards */
 .imagecard {
     border: 1px solid #DDDDDD;
-    display: inline-block;
-    vertical-align: top;
     padding: 0.5em 1em;
-    margin-right: 2em;
-    margin-bottom: 2em;
-    width: 100%;
-    .heading {
-        margin-bottom: 0.3em;
-    }
     img {
         width: 100%;
-        margin-bottom: 0.3em;
     }
     .actions {
         overflow: hidden;
-        margin-bottom: 0.3em;
-        clear: both;
         i {
             margin-left: 0.5em;
             cursor: pointer;
@@ -95,21 +84,5 @@ img.textbottom {
     }
     .meta {
         font-size: 0.7em;
-    }
-    p.drag {
-        margin-bottom: 0;
-        text-align: center;
-        i {
-            color: #bbbbbb;
-        }
-    }
-}
-
-/* Use Foundation variable to set styles based on media queries
- * See: http://foundation.zurb.com/docs/v/4.3.2/media-queries.html
- */
-@media #{$small} {
-    .imagecard {
-        width: 300px;
     }
 }
