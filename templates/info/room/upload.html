@@ -39,6 +39,7 @@
     <div class="actions">
       <i class="fa fa-times right delete" title="Delete image"></i>
       <i class="fa fa-edit right edit" title="Edit image caption"></i>
+      <i class="fa fa-arrows right drag" title="Change display order by dragging the image"></i>
     </div>
     <div class="heading">{{ image.title|safe }}</div>
 
@@ -57,7 +58,6 @@
       <div class="right">{{ image.created }}</div>
     </div>
     <div class="float-clear"></div>
-    <p class="drag"><i class="fa fa-bars" title="Change display order by dragging the image"></i></p>
   </div>
   {% endfor %}
   </div>
