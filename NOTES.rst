@@ -34,7 +34,8 @@ New dependencies:
 - Graphite_
 - Sass_ >= 3.2.12 (only required at build time)
 - The Python module :mod:`django-crispy-forms` == 1.3.2
-- the Python module :mod:`crispy-forms-foundation` == 0.2.3
+- The Python module :mod:`crispy-forms-foundation` == 0.2.3
+- The Python module :mod:`feedparser` >=5.1.2,<5.2
 
 Changed version requirements:
 

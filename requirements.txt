@@ -18,7 +18,7 @@ crispy-forms-foundation==0.2.3
 django-oauth2-provider>=0.2.6
 djangorestframework>=2.3.7
 iso8601
-feedparser>=5.1.2
+feedparser>=5.1.2,<5.2
 # SNMP libraries, pick only one of them. pynetsnmp is recommended; it provides
 # better performance and IPv6 support.
 svn+http://dev.zenoss.org/svn/tags/pynetsnmp-0.28.14
