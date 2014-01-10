@@ -17,10 +17,10 @@
                 <a href="{% url messages-active %}">Active</a>
             </li>
             <li class="{{ active.planned|yesno:"tabactive," }}">
-                <a href="{% url messages-planned %}">Planned</a>
+                <a href="{% url messages-planned %}">Scheduled</a>
             </li>
             <li class="{{ active.historic|yesno:"tabactive," }}">
-                <a href="{% url messages-historic %}">Historic</a>
+                <a href="{% url messages-historic %}">Archive</a>
             </li>
         </ul>
 
