@@ -12,7 +12,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""Controller functions for Messages"""
 import datetime
 
 from django.db.models import Q
@@ -25,7 +25,7 @@ from nav.django.utils import get_account
 from nav.models.msgmaint import Message
 from nav.web.messages.forms import MessageForm
 
-""" Navigation and tab management """
+# Navigation and tab management
 NAVBAR = [('Home', '/'), ('Messages', None)]
 ACTIVE_TITLE = 'NAV - Messages - Active'
 PLANNED_TITLE = 'NAV - Messages - Planned'
@@ -33,9 +33,12 @@ HISTORIC_TITLE = 'NAV - Messages - Historic'
 SAVE_TITLE = 'NAV - Messages - Save'
 VIEW_TITLE = 'NAV - Messages - View message - '
 
-ACTIVE_DEFAULTS = {'title': ACTIVE_TITLE, 'navpath': NAVBAR, 'active': {'active': True}, 'caption': 'Active'}
-PLANNED_DEFAULTS = {'title': PLANNED_TITLE, 'navpath': NAVBAR, 'active': {'planned': True}, 'caption': 'Planned'}
-HISTORIC_DEFAULTS = {'title': HISTORIC_TITLE, 'navpath': NAVBAR, 'active': {'historic': True}, 'caption': 'Historic'}
+ACTIVE_DEFAULTS = {'title': ACTIVE_TITLE, 'navpath': NAVBAR,
+                   'active': {'active': True}, 'caption': 'Active'}
+PLANNED_DEFAULTS = {'title': PLANNED_TITLE, 'navpath': NAVBAR,
+                    'active': {'planned': True}, 'caption': 'Planned'}
+HISTORIC_DEFAULTS = {'title': HISTORIC_TITLE, 'navpath': NAVBAR,
+                     'active': {'historic': True}, 'caption': 'Historic'}
 SAVE_DEFAULTS = {'title': SAVE_TITLE, 'navpath': NAVBAR}
 VIEW_DEFAULTS = {'title': VIEW_TITLE, 'navpath': NAVBAR}
 
@@ -44,53 +47,48 @@ CREATE = {'caption': 'Create new message'}
 FOLLOWUP = {'caption': 'Follow up message'}
 
 
-""" Views """
 def active(request):
     """ Displays active messages that is not replaced """
     active_messages = Message.objects.filter(
-            publish_start__lte=datetime.datetime.now(),
-            publish_end__gte=datetime.datetime.now(),
-            replaced_by__isnull=True,
-            )
+        publish_start__lte=datetime.datetime.now(),
+        publish_end__gte=datetime.datetime.now(),
+        replaced_by__isnull=True,
+    )
 
     info_dict = {'messages': active_messages}
     info_dict.update(ACTIVE_DEFAULTS)
 
-    return render_to_response(
-            'messages/list.html', 
-            info_dict, 
-            context_instance=RequestContext(request))
+    return render_to_response('messages/list.html', info_dict,
+                              context_instance=RequestContext(request))
+
 
 def planned(request):
     """ Displays messages that are planned in the future"""
     planned_messages = Message.objects.filter(
-            publish_start__gte=datetime.datetime.now(),
-            publish_end__gte=datetime.datetime.now(),
-            replaced_by__isnull=True,
-            )
+        publish_start__gte=datetime.datetime.now(),
+        publish_end__gte=datetime.datetime.now(),
+        replaced_by__isnull=True,
+    )
 
     info_dict = {'messages': planned_messages}
     info_dict.update(PLANNED_DEFAULTS)
 
-    return render_to_response(
-            'messages/list.html', 
-            info_dict, 
-            context_instance=RequestContext(request))
+    return render_to_response('messages/list.html',  info_dict,
+                              context_instance=RequestContext(request))
+
 
 def historic(request):
     """ Displays ended or replaced messages """
     historic_messages = Message.objects.filter(
-            Q(publish_end__lt=datetime.datetime.now()) |
-            Q(replaced_by__isnull=False)
-            )
+        Q(publish_end__lt=datetime.datetime.now()) |
+        Q(replaced_by__isnull=False))
 
     info_dict = {'messages': historic_messages}
     info_dict.update(HISTORIC_DEFAULTS)
 
-    return render_to_response(
-            'messages/list.html', 
-            info_dict, 
-            context_instance=RequestContext(request))
+    return render_to_response('messages/list.html', info_dict,
+                              context_instance=RequestContext(request))
+
 
 def view(request, message_id):
     """ Displays details about a single message """
@@ -98,12 +96,11 @@ def view(request, message_id):
 
     info_dict = {'message': message, 'now': datetime.datetime.now()}
     info_dict.update(VIEW_DEFAULTS)
-    info_dict['title'] = info_dict['title'] + message.title
+    info_dict['title'] += message.title
 
-    return render_to_response(
-            'messages/view.html', 
-            info_dict, 
-            context_instance=RequestContext(request))
+    return render_to_response('messages/view.html', info_dict,
+                              context_instance=RequestContext(request))
+
 
 def expire(request, message_id):
     """ Expires a message. Sets the end date to now """
@@ -114,14 +111,16 @@ def expire(request, message_id):
     return HttpResponseRedirect(
         reverse('messages-view', args=(message_id,)))
 
+
 def followup(request, message_id):
-    """ 
+    """
     Follow up means that you ought to replace a task for a new one.
     This method sends the object you are replacing to the
     same form that creates and edits.
     """
     replaces = get_object_or_404(Message, pk=message_id)
-    return save(request, message_id, replaces) 
+    return save(request, message_id, replaces)
+
 
 def save(request, message_id=None, replaces=None):
     """ Displays the form for create, edit and followup, and saves them """
@@ -145,7 +144,7 @@ def save(request, message_id=None, replaces=None):
             info_dict.update(FOLLOWUP)
         else:
             info_dict.update(CREATE)
-     
+
     form = MessageForm(instance=message)
 
     if request.method == 'POST':
@@ -163,6 +162,6 @@ def save(request, message_id=None, replaces=None):
         info_dict['replaces'] = replaces
 
     return render_to_response(
-        'messages/save.html', 
-        info_dict, 
+        'messages/save.html',
+        info_dict,
         context_instance=RequestContext(request))
