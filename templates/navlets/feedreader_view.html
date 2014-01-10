@@ -5,7 +5,9 @@
   <div class="row">
     <div class="small-12 column">
       {% if feed %}
-        <h4>{{ feed.feed.title }}</h4>
+      <h4>
+        <a href="{{ feed.feed.link }}" title="Link to blog">{{ feed.feed.title }}</a>
+      </h4>
         <ul>
           {% for entry in feed.maxentries %}
             <li>
