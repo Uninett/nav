@@ -2,13 +2,6 @@
     background-color: greenyellow;
 }
 
-.navlet .subheader {
-    font-size: 1.1em;
-    position: relative;
-    top: -20px;
-    left: -8px;
-}
-
 /* Is a column is empty, make sure it has some size to be visible */
 .navletColumn {
     min-width: 20px;
@@ -21,20 +14,27 @@
     padding: 1.5em 1em 1em 1em;
     position: relative;
     min-height: 100px;
-}
-
-.navlet.outline {
-    border: 2px solid red;
-}
-
-.navlet .navlet-action-group {
-    position: absolute;
-    right: 0;
-    top: 0;
-}
-
-.navlet .navlet-action-group .button {
-    margin-bottom: 0;
+    &.outline {
+        border: 2px solid red;
+    }
+    .navlet-action-group {
+        position: absolute;
+        right: 0.5em;
+        top: 0;
+        i {
+            color: darkgrey;
+            margin-left: 0.5em;
+            &:hover {
+                color: black;
+            }
+        }
+    }
+    .subheader {
+        font-size: 1.1em;
+        position: relative;
+        top: -20px;
+        left: -8px;
+    }
 }
 
 .navlet .panel {

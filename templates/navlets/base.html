@@ -1,19 +1,26 @@
 {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
     <ul class="navlet-action-group button-group right">
+        <li>
+            <a href="javascript:void(0);" class="right">
+              <i class="fa fa-refresh" title="Refresh"></i>
+            </a>
+        </li>
         {% if navlet.is_editable %}
             <li>
-                <a href="javascript:void(0);" class="navlet-mode-switch button tiny right secondary"
+                <a href="javascript:void(0);" class="navlet-mode-switch right"
                    data-mode="{{ navlet.mode }}">
                     {% if navlet.mode == 'VIEW' %}
-                        Edit
+                        <i class="fa fa-edit" title="Edit"></i>
                     {% else %}
-                        View
+                        <i class="fa fa-check-square-o" title="View"></i>
                     {% endif %}
                 </a>
             </li>
         {% endif %}
         <li>
-            <a href="javascript:void(0);" class="navlet-remove-button button tiny right secondary">Remove</a>
+            <a href="javascript:void(0);" class="navlet-remove-button right">
+              <i class="fa fa-times-circle" title="Remove"></i>
+            </a>
         </li>
     </ul>
 {% endif %}
