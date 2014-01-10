@@ -96,6 +96,8 @@ def view(request, message_id):
 
     info_dict = {'message': message, 'now': datetime.datetime.now()}
     info_dict.update(VIEW_DEFAULTS)
+    info_dict['navpath'] = [NAVBAR[0], ('Messages', reverse('messages-home')),
+                            (message,)]
     info_dict['title'] += message.title
 
     return render_to_response('messages/view.html', info_dict,
@@ -126,12 +128,14 @@ def save(request, message_id=None, replaces=None):
     """ Displays the form for create, edit and followup, and saves them """
     account = get_account(request)
     info_dict = SAVE_DEFAULTS.copy()
+    navpath = [NAVBAR[0], ('Messages', reverse('messages-home'))]
 
     # If it's an edit, load the initial data
     if message_id and not replaces:
         message = get_object_or_404(Message, pk=message_id)
         info_dict.update(EDIT)
         info_dict['message'] = message
+        navpath += [("Edit %s" % message,)]
     else:
         message = Message()
 
@@ -139,6 +143,7 @@ def save(request, message_id=None, replaces=None):
         # clean object to help out
         if replaces:
             info_dict['message'] = replaces
+            navpath += [("Replace %s" % replaces,)]
             message.title = replaces.title
             message.publish_start = replaces.publish_start
             message.publish_end = replaces.publish_end
@@ -146,6 +151,7 @@ def save(request, message_id=None, replaces=None):
             info_dict.update(FOLLOWUP)
         else:
             info_dict.update(CREATE)
+            navpath += [("Create message",)]
 
     form = MessageForm(instance=message)
 
@@ -157,7 +163,7 @@ def save(request, message_id=None, replaces=None):
             return HttpResponseRedirect(
                 reverse('messages-view', args=(form.instance.id,)))
 
-    info_dict.update({'form': form})
+    info_dict.update({'form': form, 'navpath': navpath})
 
     # If replacement, add the object so we can view it
     if replaces:
