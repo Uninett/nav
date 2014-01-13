@@ -10,6 +10,12 @@
   {# Display view if exists #}
   {% if result %}
     {% if result.graph_url %}
+      <p>
+        <a href="{{ graphite_base }}{{ result.graph_url }}">
+          View graph in graphite dashboard
+        </a>
+      </p>
+
       <img src="{{ result.graph_url }}" alt="Graph" title="Graph">
 
       <table class="listtable">
