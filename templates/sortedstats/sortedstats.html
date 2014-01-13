@@ -9,26 +9,26 @@
 
   {# Display view if exists #}
   {% if result %}
-      {% if result.graph_url %}
-          <img src="{{ result.graph_url }}" alt="Graph" title="Graph">
+    {% if result.graph_url %}
+      <img src="{{ result.graph_url }}" alt="Graph" title="Graph">
 
-          <table class="listtable">
-              <caption>Average values</caption>
-              {% for metric, value in result.display_data %}
-                  <tr>
-                      <td>
-                          {{ metric }}
-                      </td>
-                      <td>
-                          {{ value }}{{ result.graph_args.vtitle }}
-                      </td>
-                  </tr>
-              {% endfor %}
+      <table class="listtable">
+        <caption>Average values</caption>
+        {% for metric, value in result.display_data %}
+          <tr>
+            <td>
+              {{ metric }}
+            </td>
+            <td>
+              {{ value }}{{ result.graph_args.vtitle }}
+            </td>
+          </tr>
+        {% endfor %}
 
-          </table>
-      {% else %}
-          <p>Error fetching data</p>
-      {% endif %}
+      </table>
+    {% else %}
+      <p>Error fetching data</p>
+    {% endif %}
   {% endif %}
 
 {% endblock base_content %}
