@@ -29,6 +29,7 @@ from nav.web.webfront.utils import (get_account_tools, tool_list, quick_read,
 from nav.models.profiles import AccountNavbar
 from nav.buildconf import VERSION
 from nav.path import sysconfdir
+from nav.metrics import CONFIG
 
 WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
 CONTACT_INFORMATION_PATH = os.path.join(WEBCONF_DIR_PATH,
@@ -122,3 +123,10 @@ def footer_info(request):
 
 def toolbox(request):
     return {'available_tools': tool_list(get_account(request))}
+
+
+def graphite_base(request):
+    """Provide graphite dashboard url in context"""
+    return {
+        'graphite_base': CONFIG.get('graphiteweb', 'base')
+    }

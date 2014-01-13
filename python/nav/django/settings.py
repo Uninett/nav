@@ -86,6 +86,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'nav.django.context_processors.debug',
     'nav.django.context_processors.account_processor',
     'nav.django.context_processors.nav_version',
+    'nav.django.context_processors.graphite_base',
     'nav.django.context_processors.footer_info',
     'django.core.context_processors.static',
 )
