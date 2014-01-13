@@ -21,8 +21,17 @@
 require(['libs/jquery'], function () {
     $(function () {
         create_bounding_box();
-        $('#time-panel-toggler').on('click', function () {
-            $('#time-panel').slideToggle();
+        var $timePanelToggler = $('#time-panel-toggler'),
+            $icon = $timePanelToggler.find('i');
+        $timePanelToggler.on('click', function () {
+            $('#time-panel').slideToggle(function () {
+                var $panel = $(this);
+                if ($panel.is(':visible')) {
+                    $icon.removeClass('fa-caret-down').addClass('fa-caret-up');
+                } else {
+                    $icon.removeClass('fa-caret-up').addClass('fa-caret-down');
+                }
+            });
         });
     });
 
