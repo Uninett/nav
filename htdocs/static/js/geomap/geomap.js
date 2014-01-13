@@ -21,6 +21,9 @@
 require(['libs/jquery'], function () {
     $(function () {
         create_bounding_box();
+        $('#time-panel-toggler').on('click', function () {
+            $('#time-panel').slideToggle();
+        });
     });
 
 
