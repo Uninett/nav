@@ -19,6 +19,7 @@ from django.core.urlresolvers import reverse
 
 from nav.web.seeddb.constants import TITLE_DEFAULT, NAVPATH_DEFAULT
 
+
 def reverse_lazy(*args, **kwargs):
     # Lazy reverse will become part of the Django framework in future releases.
     class Proxy(object):
@@ -32,6 +33,7 @@ def reverse_lazy(*args, **kwargs):
             return self.reverse_url
 
     return Proxy(*args, **kwargs)
+
 
 class SeeddbInfo(object):
     active = {'index': True}
