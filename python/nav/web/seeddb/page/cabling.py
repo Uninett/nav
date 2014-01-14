@@ -29,28 +29,36 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
 
+
 class CablingInfo(SeeddbInfo):
     active = {'cabling': True}
     caption = 'Cabling'
-    tab_template = 'seeddb/tabs_cabling.html'
+    tab_template = 'seeddb/tabs_generic.html'
     _title = 'Cabling'
     _navpath = [('Cabling', reverse_lazy('seeddb-cabling'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-cabling')
+    back_url = reverse_lazy('seeddb-cabling')
+    add_url = reverse_lazy('seeddb-cabling-edit')
+    bulk_url = reverse_lazy('seeddb-cabling-bulk')
+
 
 class CablingFilterForm(forms.Form):
     room = forms.ModelChoiceField(
         Room.objects.order_by('id').all(), required=False)
 
+
 class CablingForm(forms.ModelForm):
     class Meta:
         model = Cabling
 
+
 def cabling(request):
     return view_switcher(request,
-        list_view=cabling_list,
-        move_view=not_implemented,
-        delete_view=cabling_delete)
+                         list_view=cabling_list,
+                         move_view=not_implemented,
+                         delete_view=cabling_delete)
+
 
 def cabling_list(request):
     info = CablingInfo()
@@ -59,20 +67,23 @@ def cabling_list(request):
     value_list = (
         'room', 'jack', 'building', 'target_room', 'category', 'description')
     return render_list(request, query, value_list, 'seeddb-cabling-edit',
-        filter_form=filter_form,
-        extra_context=info.template_context)
+                       filter_form=filter_form,
+                       extra_context=info.template_context)
+
 
 def cabling_delete(request):
     info = CablingInfo()
     return render_delete(request, Cabling, 'seeddb-cabling',
-        whitelist=SEEDDB_EDITABLE_MODELS,
-        extra_context=info.template_context)
+                         whitelist=SEEDDB_EDITABLE_MODELS,
+                         extra_context=info.template_context)
+
 
 def cabling_edit(request, cabling_id=None):
     info = CablingInfo()
     return render_edit(request, Cabling, CablingForm, cabling_id,
-        'seeddb-cabling-edit',
-        extra_context=info.template_context)
+                       'seeddb-cabling-edit',
+                       extra_context=info.template_context)
+
 
 def cabling_bulk(request):
     info = CablingInfo()

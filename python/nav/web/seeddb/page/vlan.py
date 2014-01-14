@@ -23,6 +23,7 @@ from nav.web.seeddb import SeeddbInfo, reverse_lazy
 from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
 
+
 class VlanInfo(SeeddbInfo):
     active = {'vlan': True}
     caption = 'Vlan'
@@ -31,6 +32,8 @@ class VlanInfo(SeeddbInfo):
     _navpath = [('Vlan', reverse_lazy('seeddb-vlan'))]
     hide_move = True
     hide_delete = True
+    back_url = reverse_lazy('seeddb-vlan')
+
 
 class VlanFilterForm(forms.Form):
     net_type = forms.ModelChoiceField(
@@ -40,10 +43,12 @@ class VlanFilterForm(forms.Form):
     usage = forms.ModelChoiceField(
         Usage.objects.order_by('id').all(), required=False)
 
+
 class VlanForm(forms.ModelForm):
     class Meta:
         model = Vlan
         fields = ('vlan', 'organization', 'usage')
+
 
 def vlan_list(request):
     info = VlanInfo()
@@ -57,12 +62,13 @@ def vlan_list(request):
         'net_type', 'vlan', 'organization', 'usage', 'net_ident',
         'description', 'prefixes')
     return render_list(request, query, value_list, 'seeddb-vlan-edit',
-        filter_form=filter_form,
-        extra_context=info.template_context)
+                       filter_form=filter_form,
+                       extra_context=info.template_context)
+
 
 def vlan_edit(request, vlan_id=None):
     info = VlanInfo()
     return render_edit(request, Vlan, VlanForm, vlan_id,
-        'seeddb-vlan-edit',
-        template='seeddb/edit_vlan.html',
-        extra_context=info.template_context)
+                       'seeddb-vlan-edit',
+                       template='seeddb/edit_vlan.html',
+                       extra_context=info.template_context)

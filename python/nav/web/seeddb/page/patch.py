@@ -29,24 +29,31 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
 
+
 class PatchInfo(SeeddbInfo):
     active = {'patch': True}
     caption = 'Patch'
-    tab_template = 'seeddb/tabs_patch.html'
+    tab_template = 'seeddb/tabs_generic.html'
     _title = 'Patch'
     _navpath = [('Patch', reverse_lazy('seeddb-patch'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-patch')
+    back_url = reverse_lazy('seeddb-patch')
+    add_url = reverse_lazy('seeddb-patch-edit')
+    bulk_url = reverse_lazy('seeddb-patch-bulk')
+
 
 class PatchForm(forms.ModelForm):
     class Meta:
         model = Patch
 
+
 def patch(request):
     return view_switcher(request,
-        list_view=patch_list,
-        move_view=not_implemented,
-        delete_view=patch_delete)
+                         list_view=patch_list,
+                         move_view=not_implemented,
+                         delete_view=patch_delete)
+
 
 def patch_list(request):
     query = Patch.objects.all()
@@ -55,18 +62,22 @@ def patch_list(request):
         'interface__netbox__sysname', 'interface__ifname',
         'cabling__room', 'cabling__jack', 'split')
     return render_list(request, query, value_list, 'seeddb-patch-edit',
-        extra_context=info.template_context)
+                       extra_context=info.template_context)
+
 
 def patch_delete(request):
     info = PatchInfo()
     return render_delete(request, Patch, 'seeddb-patch',
-        whitelist=SEEDDB_EDITABLE_MODELS, extra_context=info.template_context)
+                         whitelist=SEEDDB_EDITABLE_MODELS,
+                         extra_context=info.template_context)
+
 
 def patch_edit(request, patch_id=None):
     info = PatchInfo()
     return render_edit(request, Patch, PatchForm, patch_id,
-        'seeddb-patch-edit',
-        extra_context=info.template_context)
+                       'seeddb-patch-edit',
+                       extra_context=info.template_context)
+
 
 def patch_bulk(request):
     info = PatchInfo()
