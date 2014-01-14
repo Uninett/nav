@@ -116,7 +116,8 @@ require([
             center = new OpenLayers.LonLat(0, 0);
             navigator.geolocation.getCurrentPosition(
                 gotPosition,
-                errorGettingPosition
+                errorGettingPosition,
+                {timeout: 1000}  // Default is infinity, yay. No map for you.
             );
         }
         else {
