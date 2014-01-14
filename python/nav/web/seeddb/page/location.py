@@ -46,6 +46,7 @@ class LocationInfo(SeeddbInfo):
     _navpath = [('Locations', reverse_lazy('seeddb-location'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-location')
+    back_url = reverse_lazy('seeddb-location')
 
 def location(request):
     return view_switcher(request,
