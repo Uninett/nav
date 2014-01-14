@@ -45,6 +45,8 @@ class SeeddbInfo(object):
     hide_delete = False
     delete_url = None
     back_url = None
+    add_url = None
+    bulk_url = None
 
     @property
     def title(self):
@@ -69,4 +71,6 @@ class SeeddbInfo(object):
             'hide_delete': self.hide_delete,
             'delete_url': self.delete_url,
             'back_url': self.back_url,
+            'add_url': self.add_url,
+            'bulk_url': self.bulk_url,
         }

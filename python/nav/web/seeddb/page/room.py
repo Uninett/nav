@@ -55,11 +55,13 @@ class RoomInfo(SeeddbInfo):
     """Room info object"""
     active = {'room': True}
     caption = 'Rooms'
-    tab_template = 'seeddb/tabs_room.html'
+    tab_template = 'seeddb/tabs_generic.html'
     _title = 'Rooms'
     _navpath = [('Rooms', reverse_lazy('seeddb-room'))]
     delete_url = reverse_lazy('seeddb-room')
     back_url = reverse_lazy('seeddb-room')
+    add_url = reverse_lazy('seeddb-room-edit')
+    bulk_url = reverse_lazy('seeddb-room-bulk')
 
 
 def room(request):
