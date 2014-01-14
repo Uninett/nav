@@ -33,6 +33,7 @@ class ServiceInfo(SeeddbInfo):
     _title = 'Services'
     _navpath = [('Services', reverse_lazy('seeddb-service'))]
     delete_url = reverse_lazy('seeddb-service')
+    back_url = reverse_lazy('seeddb-service')
     hide_move = True
 
 def service(request):
