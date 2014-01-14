@@ -59,6 +59,7 @@ class RoomInfo(SeeddbInfo):
     _title = 'Rooms'
     _navpath = [('Rooms', reverse_lazy('seeddb-room'))]
     delete_url = reverse_lazy('seeddb-room')
+    back_url = reverse_lazy('seeddb-room')
 
 
 def room(request):

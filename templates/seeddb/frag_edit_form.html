@@ -1,5 +1,7 @@
-<form class="seeddb-edit" action="" method="post">
-    <table class="listtable">
+<form class="seeddb-edit custom" action="" method="post">
+  <fieldset>
+    <legend>{{ title }}</legend>
+    <table class="listtable {% if map %}expand{% endif %}">
     {% if object %}
     <caption>
         {{ object }}
@@ -22,22 +24,16 @@
     {% endfor %}
     <tr>
         <th></th>
-        <td><input type="submit" value="Save" /></td>
+        <td><input type="submit" value="Save" class="button small" /></td>
     </tr>
     {% endblock %}
     </table>
+  </fieldset>
 </form>
 
 {% if delete_url and object %}
   <form action="{{ delete_url }}" method="post">
-    <table class="listtable">
-      <tr>
-        <th>Delete this:</th>
-        <td>
-          <input type="hidden" name="object" value="{{ object.pk }}"/>
-          <input type="submit" name="delete" value="Delete"/>
-        </td>
-      </tr>
-    </table>
+    <input type="hidden" name="object" value="{{ object.pk }}"/>
+    <input type="submit" name="delete" value="Delete this {{ verbose_name }}" class="button small"/>
   </form>
 {% endif %}

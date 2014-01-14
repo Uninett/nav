@@ -60,7 +60,8 @@ def render_edit(request, model, form_model, object_id, redirect,
                         "Saved %s %s" % (verbose_name, title),
                         Messages.SUCCESS)
             try:
-                return HttpResponseRedirect(reverse(redirect, args=(identifier,)))
+                return HttpResponseRedirect(
+                    reverse(redirect, args=(identifier,)))
             except NoReverseMatch:
                 return HttpResponseRedirect(reverse(redirect))
     else:
@@ -70,6 +71,7 @@ def render_edit(request, model, form_model, object_id, redirect,
         'object': obj,
         'form': form,
         'title': 'Add new %s' % verbose_name,
+        'verbose_name': verbose_name,
         'sub_active': {'add': True},
     }
     if obj and obj.pk:
@@ -78,8 +80,8 @@ def render_edit(request, model, form_model, object_id, redirect,
             'sub_active': {'edit': True},
         })
     extra_context.update(context)
-    return render_to_response(template,
-        extra_context, RequestContext(request))
+    return render_to_response(template, extra_context, RequestContext(request))
+
 
 def _get_object(model, object_id, identifier_attr):
     """Fetches the object where identifier_attr=object_id.
