@@ -97,13 +97,13 @@ def room_delete(request):
                          extra_context=info.template_context)
 
 
-def room_edit(request, room_id=None):
+def room_edit(request, room_id=None, lat=None, lon=None):
     """Controller for editing a room"""
     info = RoomInfo()
     extra_context = {'map': True}
     extra_context.update(info.template_context)
     return render_edit(request, Room, RoomForm, room_id,
-                       'seeddb-room-edit',
+                       'seeddb-room-edit', lon=lon, lat=lat,
                        extra_context=extra_context)
 
 
