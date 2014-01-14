@@ -57,6 +57,7 @@ class NetboxInfo(SeeddbInfo):
     _title = 'IP Devices'
     _navpath = [('IP Devices', reverse_lazy('seeddb-netbox'))]
     delete_url = reverse_lazy('seeddb-netbox')
+    back_url = reverse_lazy('seeddb-netbox')
 
 
 def netbox(request):

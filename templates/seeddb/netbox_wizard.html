@@ -1,52 +1,53 @@
 {% extends "seeddb/base.html" %}
 
 {% block content %}
-<form action="" method="post">
-    <table class="listtable">
-    {% if object %}
-    <caption>
-        {{ object.sysname }}
-    </caption>
-    {% endif %}
-    {{ form.as_table }}
-    {% if serial_form %}
-    {{ serial_form.as_table }}
-    {% endif %}
-    {% if netboxgroup_form %}
-    {{ netboxgroup_form.as_table }}
-    {% endif %}
-    {% if data.type %}
-    <tr>
-        <th>Netbox type</th>
-        <td>{{ netbox_type }}</td>
-    </tr>
-    {% endif %}
-    <tr>
-        <th></th>
-        <td>
-            <input type="hidden" name="step" value="{{ step }}" />
-            {% ifequal step 2 %}
-            <input type="submit" value="Save" />
-            {% else %}
-            <input type="submit" value="Continue" />
-            {% endifequal %}
-        </td>
-    </tr>
-    </table>
-</form>
 
-{% if object %}
-<form action="{% url seeddb-netbox %}" method="post">
-    <table class="listtable">
+  <p><a href="{{ back_url }}">Back to list</a></p>
+
+  <form action="" method="post" class="custom">
+    <fieldset>
+      <legend>{{ title }}</legend>
+
+      <table class="listtable edit">
+        {% if object %}
+          <caption>{{ object.sysname }}</caption>
+        {% endif %}
+
+        {{ form.as_table }}
+
+        {% if serial_form %}
+          {{ serial_form.as_table }}
+        {% endif %}
+        {% if netboxgroup_form %}
+          {{ netboxgroup_form.as_table }}
+        {% endif %}
+        {% if data.type %}
+          <tr>
+            <th>Netbox type</th>
+            <td>{{ netbox_type }}</td>
+          </tr>
+        {% endif %}
         <tr>
-            <th>Delete this IP device:</th>
-            <td>
-                <input type="hidden" name="object" value="{{ object.pk }}" />
-                <input type="submit" name="delete" value="Delete" />
-            </td>
+          <th></th>
+          <td>
+            <input type="hidden" name="step" value="{{ step }}"/>
+            {% ifequal step 2 %}
+              <input type="submit" value="Save" class="button small"/>
+            {% else %}
+              <input type="submit" value="Continue" class="button small"/>
+            {% endifequal %}
+          </td>
         </tr>
-    </table>
-</form>
-{% endif %}
+      </table>
+
+    </fieldset>
+  </form>
+
+  {% if object %}
+    <form action="{% url seeddb-netbox %}" method="post">
+      <input type="hidden" name="object" value="{{ object.pk }}"/>
+      <input type="submit" name="delete" value="Delete this IP device" class="button small"/>
+    </form>
+  {% endif %}
 
 {% endblock %}
