@@ -30,7 +30,7 @@ from nav.web.seeddb.utils.bulk import render_bulkimport
 class ServiceInfo(SeeddbInfo):
     active = {'service': True}
     caption = 'Services'
-    tab_template = 'seeddb/tabs_service.html'
+    tab_template = 'seeddb/tabs_generic.html'
     _title = 'Services'
     _navpath = [('Services', reverse_lazy('seeddb-service'))]
     delete_url = reverse_lazy('seeddb-service')
