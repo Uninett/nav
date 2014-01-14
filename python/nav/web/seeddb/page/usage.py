@@ -29,14 +29,19 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
+
 class UsageInfo(SeeddbInfo):
     active = {'usage': True}
     caption = 'Usage categories'
-    tab_template = 'seeddb/tabs_usage.html'
+    tab_template = 'seeddb/tabs_generic.html'
     _title = 'Usage categories'
     _navpath = [('Usage', reverse_lazy('seeddb-usage'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-usage')
+    back_url = reverse_lazy('seeddb-usage')
+    add_url = reverse_lazy('seeddb-usage-edit')
+    bulk_url = reverse_lazy('seeddb-usage-bulk')
+
 
 class UsageForm(forms.ModelForm):
     class Meta:
@@ -47,30 +52,35 @@ class UsageForm(forms.ModelForm):
         if kwargs.get('instance'):
             del self.fields['id']
 
+
 def usage(request):
     return view_switcher(request,
-        list_view=usage_list,
-        move_view=not_implemented,
-        delete_view=usage_delete)
+                         list_view=usage_list,
+                         move_view=not_implemented,
+                         delete_view=usage_delete)
+
 
 def usage_list(request):
     info = UsageInfo()
     query = Usage.objects.all()
     value_list = ('id', 'description')
     return render_list(request, query, value_list, 'seeddb-usage-edit',
-        extra_context=info.template_context)
+                       extra_context=info.template_context)
+
 
 def usage_delete(request):
     info = UsageInfo()
     return render_delete(request, Usage, 'seeddb-usage',
-        whitelist=SEEDDB_EDITABLE_MODELS,
-        extra_context=info.template_context)
+                         whitelist=SEEDDB_EDITABLE_MODELS,
+                         extra_context=info.template_context)
+
 
 def usage_edit(request, usage_id=None):
     info = UsageInfo()
     return render_edit(request, Usage, UsageForm, usage_id,
-        'seeddb-usage-edit',
-        extra_context=info.template_context)
+                       'seeddb-usage-edit',
+                       extra_context=info.template_context)
+
 
 def usage_bulk(request):
     info = UsageInfo()
