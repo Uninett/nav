@@ -19,51 +19,82 @@ require([
             $(tableWrapper).removeClass('notvisible');
         }
 
-        // Mapstuff
-        if ($('#map').length) {
-
-            var map = initMap();
-            var marker_layer = addMarkerLayer(map);
-            var marker;
-            var displayProjection = map.displayProjection;
-            var inputProjection = map.getProjectionObject();
-
-            var position_input = $('#id_position');
-            var deferredCenter = $.when(getLocation(position_input.val()));
-
-            deferredCenter.done(function(center) {
-                center.transform(displayProjection, inputProjection);
-                map.setCenter(center, 14);
-                marker = addMarkerToLayer(center, marker_layer);
-                moveMarker(
-                    map,
-                    center,
-                    marker,
-                    position_input,
-                    displayProjection,
-                    inputProjection);
-
-                initGetLonLatOnClickControl(
-                    map, marker ,inputProjection, displayProjection, position_input);
-            });
-
-            deferredCenter.fail(function() {
-                map.zoomToMaxExtent();
-                var center = map.center;
-                marker = addMarkerToLayer(center, marker_layer);
-                moveMarker(
-                    map,
-                    center,
-                    marker,
-                    position_input,
-                    displayProjection,
-                    inputProjection);
-
-                initGetLonLatOnClickControl(
-                    map, marker ,inputProjection, displayProjection, position_input);
-            });
-        }
+        // Show map for coordinates
+        initializeMapIfVisible($('#map'));
     });
+
+    function initializeMapIfVisible($mapElement) {
+        /* For some reason (Foundation/Tabs?) the map div is not always
+           visible when initializing the map. This leads to the map not
+           loading. Wait until it's visible before initializing map */
+        if ($mapElement.is(':visible')) {
+            populateMap(initMap());
+        } else {
+            setTimeout(function () {
+                initializeMapIfVisible($mapElement);
+            }, 200);
+        }
+    }
+
+    function initMap() {
+        OpenLayers.ImgPath = NAV.imagePath + '/openlayers/';
+        var map = new OpenLayers.Map('map', {
+            displayProjection: new OpenLayers.Projection("EPSG:4326"),
+            controls: [
+                new OpenLayers.Control.PanZoomBar(),
+                new OpenLayers.Control.Navigation()
+            ],
+            theme: NAV.cssPath + '/openlayers.css'
+        });
+        map.addLayer(new OpenLayers.Layer.OSM(
+            'OpenStreetMap',
+            '/info/osm_map_redirect/${z}/${x}/${y}.png')
+        );
+        return map;
+    }
+
+
+    function populateMap(map) {
+        var marker_layer = addMarkerLayer(map);
+        var marker;
+        var displayProjection = map.displayProjection;
+        var inputProjection = map.getProjectionObject();
+
+        var position_input = $('#id_position');
+        var deferredCenter = $.when(getLocation(position_input.val()));
+
+        deferredCenter.done(function(center) {
+            center.transform(displayProjection, inputProjection);
+            map.setCenter(center, 14);
+            marker = addMarkerToLayer(center, marker_layer);
+            moveMarker(
+                map,
+                center,
+                marker,
+                position_input,
+                displayProjection,
+                inputProjection);
+
+            initGetLonLatOnClickControl(
+                map, marker ,inputProjection, displayProjection, position_input);
+        });
+
+        deferredCenter.fail(function() {
+            map.zoomToMaxExtent();
+            var center = map.center;
+            marker = addMarkerToLayer(center, marker_layer);
+            moveMarker(
+                map,
+                center,
+                marker,
+                position_input,
+                displayProjection,
+                inputProjection);
+
+            initGetLonLatOnClickControl(
+                map, marker ,inputProjection, displayProjection, position_input);
+        });
+    }
 
     function getLocation(position_string) {
         var deferred = $.Deferred();
@@ -94,24 +125,6 @@ require([
         }
 
         return deferred.promise();
-    }
-
-    function initMap() {
-        OpenLayers.ImgPath = NAV.imagePath + '/openlayers/';
-        var map = new OpenLayers.Map('map', {
-            displayProjection: new OpenLayers.Projection("EPSG:4326"),
-            controls: [
-                new OpenLayers.Control.PanZoomBar(),
-                new OpenLayers.Control.Navigation()
-            ],
-            theme: NAV.cssPath + '/openlayers.css'
-        });
-        map.addLayer(new OpenLayers.Layer.OSM(
-            'OpenStreetMap',
-            '/info/osm_map_redirect/${z}/${x}/${y}.png')
-        );
-        console.log(map);
-        return map;
     }
 
     function addMarkerLayer(map) {
