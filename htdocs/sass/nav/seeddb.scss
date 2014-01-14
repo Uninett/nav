@@ -46,3 +46,9 @@
     height: 400px;
     width: 100%;
 }
+
+/* Make sure tables are wide enough */
+
+.tabcontent form table.edit {
+    min-width: 50%;
+}
