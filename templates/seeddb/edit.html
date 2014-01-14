@@ -32,16 +32,14 @@
     </table>
 </form>
 
-{% if map %}
-  <div id="map-container">
-    <h4>Click the map to update the geo position</h4>
-    <div id="map"></div>
-  </div>
-{% endif %}
+  {% if map %}
+    <div id="map-container">
+      <h4>Click the map to update the geo position</h4>
+      <div id="map" class="mapwrapper"></div>
+    </div>
+  {% endif %}
 
-<div style="clear:both;"></div>
-
-{% if delete_url and object %}
+  {% if delete_url and object %}
 <form action="{{ delete_url }}" method="post">
     <table class="listtable">
         <tr>
