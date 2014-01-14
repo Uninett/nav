@@ -53,11 +53,13 @@ class NetboxInfo(SeeddbInfo):
     """Variable container"""
     active = {'netbox': True}
     caption = 'IP Devices'
-    tab_template = 'seeddb/tabs_netbox.html'
+    tab_template = 'seeddb/tabs_generic.html'
     _title = 'IP Devices'
     _navpath = [('IP Devices', reverse_lazy('seeddb-netbox'))]
     delete_url = reverse_lazy('seeddb-netbox')
     back_url = reverse_lazy('seeddb-netbox')
+    add_url = reverse_lazy('seeddb-netbox-edit')
+    bulk_url = reverse_lazy('seeddb-netbox-bulk')
 
 
 def netbox(request):

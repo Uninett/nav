@@ -26,6 +26,7 @@ from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
+
 class ServiceInfo(SeeddbInfo):
     active = {'service': True}
     caption = 'Services'
@@ -34,30 +35,36 @@ class ServiceInfo(SeeddbInfo):
     _navpath = [('Services', reverse_lazy('seeddb-service'))]
     delete_url = reverse_lazy('seeddb-service')
     back_url = reverse_lazy('seeddb-service')
+    add_url = reverse_lazy('seeddb-service-edit')
+    bulk_url = reverse_lazy('seeddb-service-bulk')
     hide_move = True
+
 
 def service(request):
     return view_switcher(request,
-        list_view=service_list,
-        move_view=not_implemented,
-        delete_view=service_delete)
+                         list_view=service_list,
+                         move_view=not_implemented,
+                         delete_view=service_delete)
+
 
 def service_list(request):
     info = ServiceInfo()
     query = Service.objects.all()
     value_list = ('netbox__sysname', 'handler', 'version')
     return render_list(request, query, value_list, 'seeddb-service-edit',
-        extra_context=info.template_context)
+                       extra_context=info.template_context)
+
 
 def service_delete(request):
     info = ServiceInfo()
     return render_delete(request, Service, 'seeddb-service',
-        whitelist=SEEDDB_EDITABLE_MODELS,
-        extra_context=info.template_context)
+                         whitelist=SEEDDB_EDITABLE_MODELS,
+                         extra_context=info.template_context)
+
 
 def service_bulk(request):
     info = ServiceInfo()
     return render_bulkimport(
-            request, ServiceBulkParser, ServiceImporter,
-            'seeddb-service',
-            extra_context=info.template_context)
+        request, ServiceBulkParser, ServiceImporter,
+        'seeddb-service',
+        extra_context=info.template_context)
