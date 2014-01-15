@@ -184,7 +184,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             }
         },
         applyOnRenderedListener: function () {
-            this.container.triggerHandler('navlet-rendered', [this.node]);
+            this.container.trigger('navlet-rendered', [this.node]);
         },
         displayError: function (errorMessage) {
             this.getOrCreateErrorElement().text(errorMessage);
