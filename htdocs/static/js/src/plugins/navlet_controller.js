@@ -123,6 +123,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             /* Applies listeners to the relevant elements */
             this.applyModeListener();
             this.applyRemoveListener();
+            this.applyRefreshListener();
             this.applySubmitListener();
             this.applyOnRenderedListener();
         },
@@ -154,6 +155,13 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                         that.node.remove();
                     });
                 }
+            });
+        },
+        applyRefreshListener: function () {
+            var that = this,
+                refreshButton = this.node.find('.navlet-refresh-button');
+            refreshButton.on('click', function () {
+                that.renderNavlet();
             });
         },
         applySubmitListener: function () {
