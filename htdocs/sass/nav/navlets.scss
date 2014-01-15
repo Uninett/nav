@@ -11,15 +11,18 @@
 .navlet {
     box-shadow: 2px 2px 6px #999;
     margin-bottom: 1em;
-    padding: 1.5em 1em 1em 1em;
+    padding: 0 1em 1em 1em;
     position: relative;
     min-height: 100px;
     &.outline {
         border: 2px solid red;
     }
+    .navlet-header {
+        margin-bottom: 1em;
+    }
     .navlet-action-group {
         position: absolute;
-        right: 0.5em;
+        right: 0.3em;
         top: 0;
         i {
             color: darkgrey;
@@ -32,8 +35,8 @@
     .subheader {
         font-size: 1.1em;
         position: relative;
-        top: -20px;
         left: -8px;
+        top: 4px;
     }
 }
 
