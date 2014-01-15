@@ -123,7 +123,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             /* Applies listeners to the relevant elements */
             this.applyModeListener();
             this.applyRemoveListener();
-            this.applyRefreshListener();
+            this.applyReloadListener();
             this.applySubmitListener();
             this.applyOnRenderedListener();
         },
@@ -157,10 +157,10 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 }
             });
         },
-        applyRefreshListener: function () {
+        applyReloadListener: function () {
             var that = this,
-                refreshButton = this.node.find('.navlet-refresh-button');
-            refreshButton.on('click', function () {
+                reloadButton = this.node.find('.navlet-reload-button');
+            reloadButton.on('click', function () {
                 that.renderNavlet();
             });
         },
