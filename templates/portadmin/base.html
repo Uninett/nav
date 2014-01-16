@@ -10,15 +10,11 @@
 <h3>PortAdmin</h3>
 
 {% if messages %}
-    <div id="messages" class="messages infobox">
-        <ul>
-            {% for message in messages %}
-                <li {% if message.tags %}class="{{ message.tags }}"{% endif %}>
-                    {{ message }}
-                </li>
-            {% endfor %}
-        </ul>
+  {% for message in messages %}
+    <div class="alert-box {{ message.tags }}">
+    {{ message }}
     </div>
+  {% endfor %}
 {% endif %}
 
 
