@@ -44,7 +44,7 @@
     padding: 0.7em;
 }
 
-.dataTables_length, .dataTables_info {
+.dataTables_length, .dataTables_info, .dataTables_paginate {
     display: inline-block;
 }
 
@@ -55,6 +55,7 @@
 }
 
 .dataTables_paginate {
+    float: right;
     a {
         &.paginate_button,
         &.paginate_active {

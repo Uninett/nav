@@ -224,7 +224,7 @@ require([
                 { 'bSortable': false, 'sWidth': '16px', 'aTargets': [ 0 ] }  // Do not sort on first column
             ],
             "sPaginationType": "full_numbers", // Display page numbers in pagination
-            "sDom": "<li>t<p>",   // display order of metainfo (lengthchange, info, pagination)
+            "sDom": "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
             "fnDrawCallback": function (oSettings) {
                 /* Run this on redraw of table */
                 $('.paginate_button').removeClass('disabled').addClass('button tiny');
