@@ -15,9 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django import forms
+from ..forms import NetboxTypeFilterForm, NetboxTypeForm
 
-from nav.models.manage import NetboxType, Vendor
+from nav.models.manage import NetboxType
 from nav.bulkparse import NetboxTypeBulkParser
 from nav.bulkimport import NetboxTypeImporter
 
@@ -41,16 +41,6 @@ class NetboxTypeInfo(SeeddbInfo):
     back_url = reverse_lazy('seeddb-type')
     add_url = reverse_lazy('seeddb-type-edit')
     bulk_url = reverse_lazy('seeddb-type-bulk')
-
-
-class NetboxTypeFilterForm(forms.Form):
-    vendor = forms.ModelChoiceField(
-        Vendor.objects.order_by('id').all(), required=False)
-
-
-class NetboxTypeForm(forms.ModelForm):
-    class Meta:
-        model = NetboxType
 
 
 def netboxtype(request):

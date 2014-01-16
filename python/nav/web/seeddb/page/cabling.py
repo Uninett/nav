@@ -15,9 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django import forms
+from ..forms import CablingFilterForm, CablingForm
 
-from nav.models.cabling import Cabling, Room
+from nav.models.cabling import Cabling
 from nav.bulkparse import CablingBulkParser
 from nav.bulkimport import CablingImporter
 
@@ -41,16 +41,6 @@ class CablingInfo(SeeddbInfo):
     back_url = reverse_lazy('seeddb-cabling')
     add_url = reverse_lazy('seeddb-cabling-edit')
     bulk_url = reverse_lazy('seeddb-cabling-bulk')
-
-
-class CablingFilterForm(forms.Form):
-    room = forms.ModelChoiceField(
-        Room.objects.order_by('id').all(), required=False)
-
-
-class CablingForm(forms.ModelForm):
-    class Meta:
-        model = Cabling
 
 
 def cabling(request):

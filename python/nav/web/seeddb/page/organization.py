@@ -15,7 +15,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django import forms
+from ..forms import (OrganizationFilterForm, OrganizationForm,
+                     OrganizationMoveForm)
 
 from nav.models.manage import Organization
 from nav.bulkparse import OrgBulkParser
@@ -41,39 +42,6 @@ class OrganizationInfo(SeeddbInfo):
     back_url = reverse_lazy('seeddb-organization')
     add_url = reverse_lazy('seeddb-organization-edit')
     bulk_url = reverse_lazy('seeddb-organization-bulk')
-
-
-class OrganizationFilterForm(forms.Form):
-    parent = forms.ModelChoiceField(
-        Organization.objects.filter(
-            pk__in=Organization.objects.filter(
-                parent__isnull=False
-            ).values_list('parent', flat=True)
-        ).order_by('id'), required=False)
-
-
-class OrganizationForm(forms.ModelForm):
-    parent = forms.ModelChoiceField(
-        queryset=Organization.objects.order_by('id'),
-        required=False)
-
-    class Meta:
-        model = Organization
-
-    def __init__(self, *args, **kwargs):
-        super(OrganizationForm, self).__init__(*args, **kwargs)
-        if kwargs.get('instance'):
-            # disallow editing the primary key of existing record
-            del self.fields['id']
-            # remove self from list of selectable parents
-            parent = self.fields['parent']
-            parent.queryset = parent.queryset.exclude(
-                id=kwargs['instance'].id)
-
-
-class OrganizationMoveForm(forms.Form):
-    parent = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all(), required=False)
 
 
 def organization(request):

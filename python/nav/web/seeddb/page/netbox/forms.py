@@ -18,6 +18,11 @@ from socket import error as SocketError
 from django import forms
 from django.db.models import Q
 
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import (Layout, Row, Column, Submit,
+                                            Fieldset)
+from nav.web.crispyforms import LabelSubmit
+
 from nav.models.manage import Room, Category, Organization, Netbox
 from nav.models.manage import NetboxGroup, NetboxCategory
 from nav.Snmp import Snmp
@@ -226,13 +231,34 @@ class NetboxGroupForm(forms.Form):
 
 
 class NetboxFilterForm(forms.Form):
-    """Form for filtering netboxes"""
+    """Form for filtering netboxes on the list page"""
     category = forms.ModelChoiceField(
         Category.objects.order_by('id').all(), required=False)
     room = forms.ModelChoiceField(
         Room.objects.order_by('id').all(), required=False)
     organization = forms.ModelChoiceField(
         Organization.objects.order_by('id').all(), required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(NetboxFilterForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'GET'
+        self.helper.form_class = 'custom'
+
+        self.helper.layout = Layout(
+            Fieldset(
+                'Filter devices',
+                Row(
+                    Column('category', css_class='medium-3'),
+                    Column('room', css_class='medium-3'),
+                    Column('organization', css_class='medium-3'),
+                    Column(LabelSubmit('submit', 'Filter',
+                                       css_class='postfix'),
+                           css_class='medium-3')
+                )
+            )
+        )
 
 
 class NetboxMoveForm(forms.Form):

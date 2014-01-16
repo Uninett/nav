@@ -15,9 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms and view functions for SeedDB's Room view"""
-from django import forms
+from ..forms import RoomForm, RoomFilterForm, RoomMoveForm
 
-from nav.models.manage import Location, Room
+from nav.models.manage import Room
 from nav.bulkparse import RoomBulkParser
 from nav.bulkimport import RoomImporter
 
@@ -29,26 +29,6 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
-
-
-class RoomFilterForm(forms.Form):
-    """Form for filtering rooms"""
-    location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all(), required=False)
-
-
-class RoomForm(forms.ModelForm):
-    """Form for editing/adding rooms"""
-    location = forms.ModelChoiceField(queryset=Location.objects.order_by('id'))
-
-    class Meta:
-        model = Room
-
-
-class RoomMoveForm(forms.Form):
-    """Form for moving a room to a new location"""
-    location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all(), required=False)
 
 
 class RoomInfo(SeeddbInfo):
