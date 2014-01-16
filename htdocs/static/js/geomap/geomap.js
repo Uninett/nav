@@ -20,7 +20,6 @@
 
 require(['libs/jquery'], function () {
     $(function () {
-        create_bounding_box();
         var $timePanelToggler = $('#time-panel-toggler'),
             $icon = $timePanelToggler.find('i');
         $timePanelToggler.on('click', function () {
@@ -35,6 +34,10 @@ require(['libs/jquery'], function () {
         });
     });
 
+    /* Start creating map when all content is rendered */
+    $(window).load(function () {
+        create_bounding_box();
+    });
 
 var zoom=6;
 
@@ -71,10 +74,7 @@ function create_bounding_box() {
         var roomPositions = new OpenLayers.Geometry.MultiPoint(roomPosArray);
         nav.geomapBBox = roomPositions.getBounds();
 
-        /* Initialize map when page is fuly rendered */
-        $(window).load(function () {
-            init('map');
-        });
+        init('map');
     });
 }
 
