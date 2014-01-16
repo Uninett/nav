@@ -268,6 +268,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     job_descriptions = None
     system_metrics = netbox_availability = []
 
+    graphite_error = False
     # If addr or host not a netbox it is not monitored by NAV
     if netbox is None:
         if addr is None and len(host_info['addresses']) > 0:
@@ -291,7 +292,6 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         netboxgroups = netbox.netboxcategory_set.all()
         navpath = NAVPATH + [(netbox.sysname, '')]
         job_descriptions = get_job_descriptions()
-        graphite_error = False
 
         try:
             system_metrics = netbox.get_system_metrics()
