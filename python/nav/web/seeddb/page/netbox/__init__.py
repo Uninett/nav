@@ -15,8 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Controllers for the netbox part of seedDB"""
-from django import forms
-
 from nav.models.manage import Category, Room, Organization, Netbox
 from nav.bulkparse import NetboxBulkParser
 from nav.bulkimport import NetboxImporter
@@ -29,24 +27,7 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
-
-
-class NetboxFilterForm(forms.Form):
-    """Form for filtering netboxes"""
-    category = forms.ModelChoiceField(
-        Category.objects.order_by('id').all(), required=False)
-    room = forms.ModelChoiceField(
-        Room.objects.order_by('id').all(), required=False)
-    organization = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all(), required=False)
-
-
-class NetboxMoveForm(forms.Form):
-    """Form for moving netboxes to another room and/or organization"""
-    room = forms.ModelChoiceField(
-        Room.objects.order_by('id').all(), required=False)
-    organization = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all(), required=False)
+from .forms import NetboxFilterForm, NetboxMoveForm
 
 
 class NetboxInfo(SeeddbInfo):

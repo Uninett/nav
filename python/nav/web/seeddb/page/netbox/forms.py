@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""Forms for seeddb netbox view"""
 from socket import error as SocketError
 from django import forms
 from django.db.models import Q
@@ -223,6 +223,24 @@ class NetboxGroupForm(forms.Form):
         super(NetboxGroupForm, self).__init__(*args, **kwargs)
         self.fields['netboxgroups'] = forms.ModelMultipleChoiceField(
             queryset=queryset, required=False, label='Device Groups')
+
+
+class NetboxFilterForm(forms.Form):
+    """Form for filtering netboxes"""
+    category = forms.ModelChoiceField(
+        Category.objects.order_by('id').all(), required=False)
+    room = forms.ModelChoiceField(
+        Room.objects.order_by('id').all(), required=False)
+    organization = forms.ModelChoiceField(
+        Organization.objects.order_by('id').all(), required=False)
+
+
+class NetboxMoveForm(forms.Form):
+    """Form for moving netboxes to another room and/or organization"""
+    room = forms.ModelChoiceField(
+        Room.objects.order_by('id').all(), required=False)
+    organization = forms.ModelChoiceField(
+        Organization.objects.order_by('id').all(), required=False)
 
 
 def get_netbox_group_form(netbox_id=None, post_data=None):
