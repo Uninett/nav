@@ -23,7 +23,7 @@ from nav.web.messages.feeds import ActiveMessagesFeed
 
 urlpatterns = patterns('',
 
-    url(r'^$', active,
+    url(r'^active/$', active,
         name='messages-home'),
 
     url(r'^create/$', save,
