@@ -240,10 +240,6 @@ require([
         });
 
         table.fnSort([[1, 'asc']]);  // When loaded, sort ascending on second column
-        $(window).bind('resize', function () {
-            /* Adjust table size when resizing window */
-            table.fnAdjustColumnSizing();
-        });
     }
 
 });
