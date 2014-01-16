@@ -11,10 +11,10 @@
         <a href="{% url maintenance-active %}">Active</a>
       </li>
       <li class="{{ active.planned|yesno:"tabactive," }}">
-        <a href="{% url maintenance-planned %}">Planned</a>
+        <a href="{% url maintenance-planned %}">Scheduled</a>
       </li>
       <li class="{{ active.historic|yesno:"tabactive," }}">
-        <a href="{% url maintenance-historic %}">Historic</a>
+        <a href="{% url maintenance-historic %}">Archive</a>
       </li>
     </ul>
 
