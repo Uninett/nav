@@ -71,7 +71,10 @@ function create_bounding_box() {
         var roomPositions = new OpenLayers.Geometry.MultiPoint(roomPosArray);
         nav.geomapBBox = roomPositions.getBounds();
 
-        init('map');
+        /* Initialize map when page is fuly rendered */
+        $(window).load(function () {
+            init('map');
+        });
     });
 }
 
@@ -111,20 +114,7 @@ function getLong(position) {
                 theme: NAV.cssPath + '/openlayers.css'
             });
 
-        addLayersIfHeight();
-
-    }
-
-    function addLayersIfHeight() {
-        /* There is a race condition somewhere that the layers are added before Viewport has any height.
-           This problem is experienced by other people aswell when width and height is 100% and not a
-           fixed value. We solve this by adding layers after the viewport has gotten height. */
-        var height = themap.getSize().h;
-        if (height === 0) {
-            setTimeout(addLayersIfHeight, 200);
-        } else {
-            addLayers();
-        }
+        addLayers();
     }
 
     function addLayers() {
