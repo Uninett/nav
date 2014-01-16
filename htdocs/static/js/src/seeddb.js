@@ -12,29 +12,21 @@ require([
     $(function() {
         new CheckboxSelector('#select', '.selector').add();
         new QuickSelect('.quickselect');
+    });
 
+    $(window).load(function () {
+        if ($('#map').length) {
+            populateMap(initMap());     // Show map for coordinates
+        }
+
+        /* The Datatables plugin works best when content is rendered. Thus
+         * we activate it on load */
         if ($(tableSelector).find('tbody tr').length > 1) {
             enrichTable();
         } else {
             $(tableWrapper).removeClass('notvisible');
         }
-
-        // Show map for coordinates
-        initializeMapIfVisible($('#map'));
     });
-
-    function initializeMapIfVisible($mapElement) {
-        /* For some reason (Foundation/Tabs?) the map div is not always
-           visible when initializing the map. This leads to the map not
-           loading. Wait until it's visible before initializing map */
-        if ($mapElement.is(':visible')) {
-            populateMap(initMap());
-        } else {
-            setTimeout(function () {
-                initializeMapIfVisible($mapElement);
-            }, 200);
-        }
-    }
 
     function initMap() {
         OpenLayers.ImgPath = NAV.imagePath + '/openlayers/';
