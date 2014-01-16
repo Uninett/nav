@@ -24,7 +24,7 @@ from nav.web.maintenance.views import add_box_to_maintenance
 dummy = lambda *args, **kwargs: None
 
 urlpatterns = patterns('',
-    url(r'^$', calendar,
+    url(r'^calendar/$', calendar,
         name='maintenance'),
     url(r'^calendar/$', calendar,
         name='maintenance-calendar'),
