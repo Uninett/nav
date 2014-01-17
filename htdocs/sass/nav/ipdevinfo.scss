@@ -153,6 +153,11 @@
     text-align: right;
 }
 
+table.module {
+  border-collapse: separate;
+  border-spacing: 0.2em;
+}
+
 table.module td div.portcell {
     position: relative;
     width: 100%;
