@@ -72,7 +72,7 @@ def search_by_ip(request, ip):
         interfaces = netbox.get_swports_sorted()
         info_dict = populate_infodict(request, account, netbox, interfaces)
         return render_to_response(
-            'portadmin/portlist.html',
+            'portadmin/netbox.html',
             info_dict,
             RequestContext(request))
 
@@ -95,7 +95,7 @@ def search_by_sysname(request, sysname):
     else:
         interfaces = netbox.get_swports_sorted()
         info_dict = populate_infodict(request, account, netbox, interfaces)
-        return render_to_response('portadmin/portlist.html',
+        return render_to_response('portadmin/netbox.html',
                                   info_dict,
                                   RequestContext(request))
 
@@ -120,7 +120,7 @@ def search_by_interfaceid(request, interfaceid):
         netbox = interface.netbox
         interfaces = [interface]
         info_dict = populate_infodict(request, account, netbox, interfaces)
-        return render_to_response('portadmin/portlist.html',
+        return render_to_response('portadmin/netbox.html',
                                   info_dict,
                                   RequestContext(request))
 
