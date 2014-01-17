@@ -34,7 +34,7 @@ try:
 except IOError:
     webfront_config = {}
 
-DEBUG = nav_config.get('DJANGO_DEBUG', False)
+DEBUG = nav_config.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
 TEMPLATE_DEBUG = DEBUG
 
 # Admins
