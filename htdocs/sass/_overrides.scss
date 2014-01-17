@@ -34,6 +34,8 @@
 // Adds class for marking a button as active.
 // Shadow and color styles copied from mixin inset-shadow()
 button, .button {
+    box-shadow: none;
+    -webkit-box-shadow: none;
     &.active {
         box-shadow: $shiny-edge-size $shiny-edge-active-color inset;
         background-color: darken($primary-color, $button-function-factor);
