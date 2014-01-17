@@ -221,6 +221,21 @@ gap between the converted data and the new data collected by NAV 4, this may
 result in huge spikes in your graphs at the point in time you converted.
 
 
+Environmental sensor precision changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some environmental sensor values are reported at a specific decimal precision.
+
+NAV versions prior to 4.0 would configure Cricket to store raw values into the
+RRD files (meaning a Celsius temperature value of 314 with a precision of 1
+would be stored as 314, not as 31.4, which is the actual temperature value).
+
+NAV 4.0 will scale the values according to their precision before storing in
+Graphite. The conversion tool will, however, not scale old values from RRD
+files. Any sensor metric graphs with a decimal precision point will have a
+visible scale-related jump at the point in time you converted.
+
+
 .. _Whisper: https://graphite.readthedocs.org/en/latest/whisper.html
 .. _`command line tools`: https://github.com/graphite-project/whisper
 .. _rrdtool: http://oss.oetiker.ch/rrdtool/
