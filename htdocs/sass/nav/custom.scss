@@ -22,7 +22,7 @@
 /* Padding for all pages */
 
 $global-padding: 3.5em;
-.navbody, .breadcrumbs, .top-bar, #megadrop {
+footer, .navbody, .breadcrumbs, .top-bar, #megadrop {
     padding-left: $global-padding;
     padding-right: $global-padding;
 }
@@ -33,7 +33,11 @@ $global-padding: 3.5em;
 }
 
 footer {
+    background-color: #ffffff;
+    border-top: 1px solid #bbbbbb;
     font-size: 0.9em;
+    padding-top: 1.5em;
+    padding-bottom: 3em;
 }
 
 .full-width {
