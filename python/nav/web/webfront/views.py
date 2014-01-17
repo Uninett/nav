@@ -115,8 +115,7 @@ def do_login(request):
                         origin = reverse('webfront-index')
                     return HttpResponseRedirect(origin)
             else:
-                errors.append('Authentication failed for the specified '
-                              'username and password.')
+                errors.append('Username or password is incorrect.')
 
     # Something went wrong. Display login page with errors.
     return direct_to_template(
