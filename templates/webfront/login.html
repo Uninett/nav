@@ -16,6 +16,14 @@
 
 <img src="/images/main/navlogo-281x100.png" alt="NAV" />
 
+{% if errors %}
+    <ul class="errorlist">
+        {% for e in errors %}
+        <li>{{ e }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
 {% if origin %}
 <p>
 After successfully logging in, you will be redirected to:<br />
@@ -23,13 +31,6 @@ After successfully logging in, you will be redirected to:<br />
 </p>
 {% endif %}
 
-<div>
-    <ul class="errorlist">
-        {% for e in errors %}
-        <li>{{ e }}</li>
-        {% endfor %}
-    </ul>
-</div>
 
 <form method="post" action="/index/login/">
     <input type="hidden" name="origin" value="{{ origin }}" />
