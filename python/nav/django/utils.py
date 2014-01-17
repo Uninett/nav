@@ -53,18 +53,6 @@ def is_admin(account):
     return account.accountgroup_set.filter(
         pk=AccountGroup.ADMIN_GROUP).count() > 0;
 
-def permission_required(function):
-    """Decorator to check if user have access"""
-    def _check_permission(request, *args, **kwargs):
-        account = get_account(request)
-        if account.has_perm('web_access', request.path):
-            return function(request, *args, **kwargs)
-        else:
-            # FIXME better 403 handling
-            return HttpResponseForbidden(
-                '<h1>403 Forbidden</h1>'
-                '<p>You do not have access to this page</p>')
-    return _check_permission
 
 def get_verbose_name(model, lookup):
     """Verbose name introspection of ORM models.
