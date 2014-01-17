@@ -18,6 +18,20 @@
     }
 }
 
+
+/* Padding for all pages */
+
+$global-padding: 3.5em;
+.navbody, .breadcrumbs, .top-bar, #megadrop {
+    padding-left: $global-padding;
+    padding-right: $global-padding;
+}
+
+.breadcrumbs {
+    padding-top: 0.5625em;
+    padding-bottom: 0.5625em;
+}
+
 footer {
     font-size: 0.9em;
 }
@@ -159,7 +173,6 @@ li.list-header {
     font-size:28px;
     position:relative;
     top:3px;
-    padding:0 10px 0 15px;
 }
 
 

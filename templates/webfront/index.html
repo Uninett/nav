@@ -9,60 +9,55 @@
 
 {% block base_content %}
 
-    <div id="webfrontmain" class="large-12 columns">
+  <div class="row">
+      <div class="large-12 columns">
+          {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
+              {% comment %} Buttons for adding and sorting navlets {% endcomment %}
+              <div class="right">
+                  <a href="javascript:void(0);" data-reveal-id="navlet-list"
+                     class="button small">Add widget</a>
+                  <a href="javascript:void(0);" id="navlet-ordering-activate"
+                     class="button small"
+                     title="Click to be able to drag and sort widgets">Reorder
+                      widgets</a>
+                  <a href="javascript:void(0);" id="navlet-ordering-save"
+                     class="hidden button alert small">Save order</a>
+              </div>
 
-        <div class="row">
-            <div class="large-12 columns">
-                {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
-                    {% comment %} Buttons for adding and sorting navlets {% endcomment %}
-                    <div class="right">
-                        <a href="javascript:void(0);" data-reveal-id="navlet-list"
-                           class="button small">Add widget</a>
-                        <a href="javascript:void(0);" id="navlet-ordering-activate"
-                           class="button small"
-                           title="Click to be able to drag and sort widgets">Reorder
-                            widgets</a>
-                        <a href="javascript:void(0);" id="navlet-ordering-save"
-                           class="hidden button alert small">Save order</a>
-                    </div>
+              {% comment %} List of navlets to add {% endcomment %}
+              <div id="navlet-list" class="reveal-modal">
+                  <h4>Add a widget to your page</h4>
+                  <table class="expand table-hover">
+                      <tbody>
+                      {% for navlet in navlets %}
+                          <tr>
+                              <td>{{ navlet.title }}</td>
+                              <td>{{ navlet.description }}</td>
+                              <td>
+                                  <form class="add-user-navlet" action="{% url add-user-navlet %}"
+                                        method="post">
+                                      <input type="hidden" name="navlet"
+                                             value="{{ navlet.identifier }}">
+                                      <input type="submit"
+                                             class="button tiny" value="Add">
+                                  </form>
+                              </td>
+                          </tr>
+                      {% endfor %}
+                      </tbody>
+                  </table>
+              </div>
+          {% endif %}
 
-                    {% comment %} List of navlets to add {% endcomment %}
-                    <div id="navlet-list" class="reveal-modal">
-                        <h4>Add a widget to your page</h4>
-                        <table class="expand table-hover">
-                            <tbody>
-                            {% for navlet in navlets %}
-                                <tr>
-                                    <td>{{ navlet.title }}</td>
-                                    <td>{{ navlet.description }}</td>
-                                    <td>
-                                        <form class="add-user-navlet" action="{% url add-user-navlet %}"
-                                              method="post">
-                                            <input type="hidden" name="navlet"
-                                                   value="{{ navlet.identifier }}">
-                                            <input type="submit"
-                                                   class="button tiny" value="Add">
-                                        </form>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
+      </div>
+  </div>
 
-            </div>
-        </div>
-
-        {% comment %} Main container for navlets {% endcomment %}
-        <div id="navlets"
-             data-list-navlets="{% url get-user-navlets %}"
-             data-remove-navlet="{% url remove-user-navlet %}"
-             data-save-order-url="{% url save-navlet-order %}"
-             data-base-template-url={% url navlet-base-template %}
-                ></div>
-
-    </div>
-
+  {% comment %} Main container for navlets {% endcomment %}
+  <div id="navlets"
+       data-list-navlets="{% url get-user-navlets %}"
+       data-remove-navlet="{% url remove-user-navlet %}"
+       data-save-order-url="{% url save-navlet-order %}"
+       data-base-template-url={% url navlet-base-template %}
+          ></div>
 
 {% endblock %}

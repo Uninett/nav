@@ -57,11 +57,11 @@
             <li class="has-form search">
                 <form action="{% url info-search %}" method="get">
                     <div class="row collapse">
-                        <div class="small-10 columns">
+                        <div class="small-8 columns">
                             <input id="query" type="text" name="query" maxlength="100"/>
                         </div>
-                        <div class="small-2 columns">
-                            <input class="button" type="submit" value="Search" />
+                        <div class="small-4 columns">
+                            <input class="button postfix secondary" type="submit" value="Search" />
                         </div>
                     </div>
                 </form>
@@ -99,15 +99,13 @@
 
             <li class="hide-for-small"><a id="megadroptoggler" href="javascript:void(0);">Tools <i class="fa fa-caret-down"></i></a></li>
 
-            <li><a href="/doc">Documentation</a></li>
-
             {% if current_user_data.account.is_default_account %}
                 <li>
-                    <a class="navbar login button" href="/index/login">Login</a>
+                    <a class="navbar login button secondary" href="/index/login">Login</a>
                 </li>
             {% else %}
                 <li>
-                    <a class="navbar logout button" href="/index/logout">Logout {{ current_user_data.account.login }}</a>
+                    <a class="navbar logout button secondary" href="/index/logout">Logout {{ current_user_data.account.login }}</a>
                 </li>
             {% endif %}
         </ul>
@@ -159,36 +157,28 @@
 {% endif %}
 
 {% comment %} BREADCRUMB {% endcomment %}
-<div class="row">
-
-    <div class="large-12 columns">
-        <ul id="nav-breadcrumbs" class="breadcrumbs">
-            {% for title, url in navpath %}
-                {% if url %}
-                    <li><a href="{{ url }}">{{ title }}</a></li>
-                {% else %}
-                    <li class="unavailable"><a href="#">{{ title }}</a></li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </div>
-
-</div>
+<ul id="nav-breadcrumbs" class="breadcrumbs">
+  {% for title, url in navpath %}
+    {% if url %}
+      <li><a href="{{ url }}">{{ title }}</a></li>
+    {% else %}
+      <li class="unavailable"><a href="#">{{ title }}</a></li>
+    {% endif %}
+  {% endfor %}
+</ul>
 
 {% endblock base_header %}
 
 {% comment %} MAIN CONTENT {% endcomment %}
 {% block base_navbody_start %}
 <div class="row">
-    <div class="large-12 columns">
-        <div class="navbody">
+    <div class="large-12 columns navbody">
 {% endblock %}
 
     {% block base_content %}
     {% endblock %}
 
 {% block base_navbody_end %}
-        </div>
     </div>
 </div>
 {% endblock %}
