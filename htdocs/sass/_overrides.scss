@@ -44,3 +44,7 @@ button, .button {
         &.success { background-color: darken($success-color, $button-function-factor); }
     }
 }
+
+.top-bar-section ul li > a.button {
+    font-size: $input-font-size;
+}
