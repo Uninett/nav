@@ -16,13 +16,6 @@
     <div class="large-3 medium-4 large-centered medium-centered column">
         <img src="{{ STATIC_URL }}images/main/navlogo-281x100.png" alt="NAV" class="navlogo"/>
 
-        {% if origin %}
-            <div class="alert-box secondary">
-                After successfully logging in, you will be redirected to:<br/>
-                {{ origin }}
-            </div>
-        {% endif %}
-
         {% if errors %}
             <div class="alert-box alert">
                 <ul class="no-bullet">
@@ -30,6 +23,13 @@
                         <li>{{ e }}</li>
                     {% endfor %}
                 </ul>
+            </div>
+        {% endif %}
+
+        {% if origin %}
+            <div class="alert-box secondary">
+                After successfully logging in, you will be redirected to:<br/>
+                {{ origin }}
             </div>
         {% endif %}
 
