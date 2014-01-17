@@ -54,10 +54,7 @@ class AuthorizationMiddleware(object):
         if not authorized:
             _logger.warn("User %s denied access to %s",
                          account.login, request.get_full_path())
-            if account.is_default_account():
-                return self.redirect_to_login(request)
-            else:
-                return HttpResponseForbidden()
+            return self.redirect_to_login(request)
         else:
             if not account.is_default_account():
                 os.environ['REMOTE_USER'] = account.login
@@ -73,7 +70,7 @@ class AuthorizationMiddleware(object):
         if request.is_ajax():
             return HttpResponse(status=401)
 
-        new_url = '{0}?origin={1}'.format(
+        new_url = '{0}?origin={1}&noaccess'.format(
             reverse('webfront-login'),
             urllib.quote(request.get_full_path()))
         return HttpResponseRedirect(new_url)
