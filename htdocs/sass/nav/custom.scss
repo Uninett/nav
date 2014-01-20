@@ -27,6 +27,10 @@ footer, .navbody, .breadcrumbs, .top-bar, #megadrop {
     padding-right: $global-padding;
 }
 
+.navbody {
+    margin-bottom: 1em;
+}
+
 .breadcrumbs {
     padding-top: 0.5625em;
     padding-bottom: 0.5625em;
