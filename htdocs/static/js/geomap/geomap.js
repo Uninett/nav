@@ -142,10 +142,6 @@ function getLong(position) {
             });
         themap.addLayer(netLayer);
 
-        posControl = new PositionControl('pos');
-        themap.addControl(posControl);
-        posControl.activate();
-
         if (parameters.bbox) {
             var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
             requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
