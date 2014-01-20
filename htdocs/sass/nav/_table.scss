@@ -20,31 +20,33 @@
 /* --- Common --- */
 
 @mixin table-caption {
-    caption {
-        border-bottom: 2px solid #000;
-        font-weight: bold;
-        padding: 0.3em 0.5em;
-        text-align: left;
-        span.subtitle {
-            font-size: 0.9em;
-            font-weight: normal;
-        }
-        a {
-            text-decoration: underline;
-            background: transparent;
-        }
+    border-bottom: 2px solid #000;
+    font-weight: bold;
+    padding: 0.3em 0.5em;
+    text-align: left;
+    span.subtitle {
+        font-size: 0.9em;
+        font-weight: normal;
+    }
+    a {
+        text-decoration: underline;
+        background: transparent;
     }
 }
 
 table {
     &.vertitable {
-        @include table-caption;
+        caption {
+            @include table-caption;
+        }
         th {
             text-align: right;
         }
     }
     &.listtable {
-        @include table-caption;
+        caption {
+            @include table-caption;
+        }
     }
     &.expand {
         width: 100%;
@@ -65,7 +67,37 @@ table {
     }
 }
 
-
+/* Create a table using grid. Why? To make it responsive for small screens */
+.faketable {
+    background-color: #ffffff;
+    display: table;
+    font-size: 0.9em;
+    width: 100%;
+    .caption {
+        @include table-caption;
+        display: table-caption;
+    }
+    .row {
+        &:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        display: table-row;
+        input, button, form, .custom.dropdown {
+            margin-bottom: 0;
+        }
+        .column, .columns {
+            height: 29px;
+            line-height: 29px;
+            margin: 0.3em 0;
+        }
+    }
+    .header_row {
+        display: table-row;
+        background-color: #f5f5f5;
+        padding: 0.3em 0;
+    }
+    border-bottom: 1px solid #ddd;
+}
 
 /* --- List table with tablesorter --- */
 
