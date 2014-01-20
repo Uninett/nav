@@ -23,7 +23,7 @@ from django.core.urlresolvers import reverse
 from django.db import transaction, connection
 from django.db.models import Count, Q
 from django.template import RequestContext
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 
@@ -47,6 +47,12 @@ INFINITY = datetime.max
 LOGGER_NAME = 'nav.web.maintenance'
 
 logger = logging.getLogger(LOGGER_NAME)
+
+
+def redirect_to_calendar(request):
+    """Redirect to main page for this tool"""
+    return redirect(reverse('maintenance'))
+
 
 def calendar(request, year=None, month=None):
     heading = "Maintenance schedule"
