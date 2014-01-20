@@ -37,10 +37,10 @@ urlpatterns = patterns('',
     url(r'^active/$', active,
         name='messages-active'),
 
-    url(r'^planned/$', planned,
+    url(r'^scheduled/$', planned,
         name='messages-planned'),
 
-    url(r'^historic/$', historic,
+    url(r'^archive/$', historic,
         name='messages-historic'),
 
     url(r'^view/(?P<message_id>\d+)$', view,

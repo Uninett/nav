@@ -28,17 +28,17 @@ from nav.web.messages.forms import MessageForm
 # Navigation and tab management
 NAVBAR = [('Home', '/'), ('Messages', None)]
 ACTIVE_TITLE = 'NAV - Messages - Active'
-PLANNED_TITLE = 'NAV - Messages - Planned'
-HISTORIC_TITLE = 'NAV - Messages - Historic'
+PLANNED_TITLE = 'NAV - Messages - Scheduled'
+HISTORIC_TITLE = 'NAV - Messages - Archive'
 SAVE_TITLE = 'NAV - Messages - Save'
 VIEW_TITLE = 'NAV - Messages - View message - '
 
 ACTIVE_DEFAULTS = {'title': ACTIVE_TITLE, 'navpath': NAVBAR,
                    'active': {'active': True}, 'caption': 'Active'}
 PLANNED_DEFAULTS = {'title': PLANNED_TITLE, 'navpath': NAVBAR,
-                    'active': {'planned': True}, 'caption': 'Planned'}
+                    'active': {'scheduled': True}, 'caption': 'Scheduled'}
 HISTORIC_DEFAULTS = {'title': HISTORIC_TITLE, 'navpath': NAVBAR,
-                     'active': {'historic': True}, 'caption': 'Historic'}
+                     'active': {'archive': True}, 'caption': 'Archive'}
 SAVE_DEFAULTS = {'title': SAVE_TITLE, 'navpath': NAVBAR}
 VIEW_DEFAULTS = {'title': VIEW_TITLE, 'navpath': NAVBAR}
 
