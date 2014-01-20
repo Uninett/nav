@@ -2,9 +2,17 @@
 
 @media only screen and (max-width: $small-screen) {
     #portadmin-wrapper {
-        .portadmin_status, .portadmin_save {
+        .portadmin_status, .portadmin-save {
             float: right;
         }
     }
 }
 
+#portadmin-wrapper {
+    .changed {
+        background-color: bisque;
+    }
+    .success {
+        background-color: #dff0d8;
+    }
+}

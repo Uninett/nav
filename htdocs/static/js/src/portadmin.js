@@ -87,7 +87,9 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     }
 
     function bulkSave() {
-        $("tr.changed").each(saveRow);
+        $(".changed").each(function (index, row) {
+            saveRow($(row));
+        });
     }
 
     function textFieldChanged(row) {
@@ -186,11 +188,11 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
             return;
         }
 
-        doAjaxRequest($row);
+        doAjaxRequest(rowid);
     }
 
-    function doAjaxRequest($row) {
-        var rowid = $row.prop('id');
+    function doAjaxRequest(rowid) {
+        var $row = $('#' + rowid);
         var interfaceData = queue_data[rowid];
         $.ajax({url: "save_interfaceinfo",
             data: interfaceData,
@@ -236,10 +238,9 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         /* Animate row to indicate success */
 
         $row.addClass('success');
-//        $cells.animate({'background-color': '#FFF'}, 1000, function () {
-//            $cells.removeAttr('style');
-//            $row.removeClass('success');
-//        });
+        setTimeout(function () {
+            $row.removeClass('success');
+        }, 1500);
     }
 
     function indicateError($row, messages) {
