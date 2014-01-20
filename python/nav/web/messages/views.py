@@ -19,7 +19,7 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 
 from nav.django.utils import get_account
 from nav.models.msgmaint import Message
@@ -45,6 +45,11 @@ VIEW_DEFAULTS = {'title': VIEW_TITLE, 'navpath': NAVBAR}
 EDIT = {'caption': 'Edit message'}
 CREATE = {'caption': 'Create new message'}
 FOLLOWUP = {'caption': 'Follow up message'}
+
+
+def redirect_to_active(request):
+    """Redirect to main page for this tool"""
+    return redirect(reverse('messages-home'))
 
 
 def active(request):
