@@ -83,6 +83,7 @@ class Navlet(TemplateView):
     is_editable = False
     preferences = {}  # See DEFAULT PREFERENCES for adding default values here
     navlet_id = None
+    highlight = None
 
     @property
     def mode(self):
@@ -158,9 +159,14 @@ def get_user_navlets(request):
 def create_navlet_object(usernavlet):
     """Create a structure suitable for json transfer of a navlet"""
     url = reverse('get-user-navlet', kwargs={'navlet_id': usernavlet.id})
+    navlet_module = usernavlet.navlet
+    highlight = get_navlet_from_name(navlet_module).highlight
+
     return {'id': usernavlet.id, 'url': url,
             'column': usernavlet.column,
-            'preferences': usernavlet.preferences}
+            'preferences': usernavlet.preferences,
+            'highlight': highlight,
+            'navlet_class': navlet_module.split('.')[-1]}
 
 
 def dispatcher(request, navlet_id):

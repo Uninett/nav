@@ -18,6 +18,16 @@
     &.outline {
         border: 2px solid red;
     }
+    &.colorblock-navlet {
+        background-color: #1570a6;
+        color: #fff;
+        .subheader {
+            color: #fff;
+        }
+        a {
+            color: #fff;
+        }
+    }
     .navlet-header {
         margin-bottom: 1em;
     }

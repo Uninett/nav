@@ -37,6 +37,12 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 'class': 'navlet'
             });
 
+            $div.addClass(this.navlet.navlet_class);
+
+            if (this.navlet.highlight) {
+                $div.addClass('colorblock-navlet');
+            }
+
             this.renderNode.append($div);
             return $div;
         },
