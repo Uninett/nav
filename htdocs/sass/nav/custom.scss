@@ -40,6 +40,16 @@ footer {
     padding-bottom: 3em;
 }
 
+/* Background-color for main display elements  */
+.tabs .tabcontent, .ui-tabs .ui-tabs-panel {
+    background-color: #fff;
+}
+
+fieldset legend {
+    background-color: transparent;
+}
+
+
 .full-width {
     width: 100%;
 }
