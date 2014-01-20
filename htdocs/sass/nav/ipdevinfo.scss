@@ -72,7 +72,7 @@
 
 /* Port legend box */
 #portlegend table th, #portlegend table td {
-	padding: 0.3em;
+	padding: 0.5em;
 }
 #portlegend table td {
 	padding-right: 1em;
@@ -151,6 +151,11 @@
 
 .cell-right {
     text-align: right;
+}
+
+table.module {
+  border-collapse: separate;
+  border-spacing: 0.2em;
 }
 
 table.module td div.portcell {

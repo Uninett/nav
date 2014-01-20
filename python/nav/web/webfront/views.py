@@ -69,12 +69,22 @@ def login(request):
         return do_login(request)
 
     origin = request.GET.get('origin', '').strip()
+    if 'noaccess' in request.GET:
+        if request.account.is_default_account():
+            errors = ['You need to log in to access this resource']
+        else:
+            errors = ['You have insufficient privileges to access this '
+                      'resource. Please log in as another user.']
+    else:
+        errors = []
+
     return direct_to_template(
         request,
         'webfront/login.html',
         {
             'form': LoginForm(initial={'origin': origin}),
             'origin': origin,
+            'errors': errors,
         }
     )
 
@@ -105,8 +115,7 @@ def do_login(request):
                         origin = reverse('webfront-index')
                     return HttpResponseRedirect(origin)
             else:
-                errors.append('Authentication failed for the specified '
-                              'username and password.')
+                errors.append('Username or password is incorrect.')
 
     # Something went wrong. Display login page with errors.
     return direct_to_template(
