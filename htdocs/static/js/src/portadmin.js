@@ -19,17 +19,13 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
 
     $(document).ready(function(){
+        var $wrapper = $('#portadmin-wrapper');
 
-        var interfaceTable = $('#portadmin-interfacecontainer');
-        var infoBox = $('#infobox');
-
-        if (interfaceTable.length) {
-            addTrunkSelectedListener(interfaceTable);
-            addChangeListener(interfaceTable);
-            addSaveListener(interfaceTable);
-            addSaveAllListener(interfaceTable);
-            addUndoListener(interfaceTable);
-            addToggleVlanInfoListener(infoBox);
+        if ($wrapper.length) {
+            addTrunkSelectedListener($wrapper);
+            addChangeListener($wrapper);
+            addSaveListener($wrapper);
+            addSaveAllListener($wrapper);
         }
     });
 
@@ -37,8 +33,8 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
      * If user selects the trunk value in a drop-down list, the user shall
      * be redirected to the trunk edit page.
      */
-    function addTrunkSelectedListener(table) {
-        $(table).find('.vlanlist').on('change click', function (event) {
+    function addTrunkSelectedListener($wrapper) {
+        $wrapper.find('.vlanlist').on('change click', function (event) {
             var $select = $(this);
             if ($select.val() === 'trunk') {
                 event.stopPropagation();
@@ -52,15 +48,15 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
      * listeners for each row. Also split up events to avoid acting
      * on irrelevant changes.
      */
-    function addChangeListener(table) {
-        $(table).find('tbody').on('keyup change', '.ifalias', function (event) {
-            actOnChange($(event.target).parents('tr'));
+    function addChangeListener($wrapper) {
+        $wrapper.on('keyup change', '.ifalias', function (event) {
+            actOnChange($(event.target).parents('.port_row'));
         });
-        $(table).find('tbody').on('change', '.vlanlist', function (event) {
-            actOnChange($(event.target).parents('tr'));
+        $wrapper.on('change', '.vlanlist', function (event) {
+            actOnChange($(event.target).parents('.port_row'));
         });
-        $(table).find('tbody').on('click', '.voicevlan', function (event) {
-            actOnChange($(event.target).parents('tr'));
+        $wrapper.on('click', '.voicevlan', function (event) {
+            actOnChange($(event.target).parents('.port_row'));
         });
     }
 
@@ -75,14 +71,14 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         }
     }
 
-    function addSaveListener(element) {
+    function addSaveListener($wrapper) {
         /*
         Save when clicking on the save buttons. As the save button is in
         another row than the form, find the correct row and run save on it.
         */
-        $('.save', element).click(function (event) {
-            var motherId = $(event.target).parents('tr').attr('data-mother-row');
-            saveRow.call($('#' + motherId));
+        $wrapper.on('click', '.portadmin-save', function (event) {
+            var $row = $(event.target).parents('.port_row');
+            saveRow($row);
         });
     }
 
@@ -92,55 +88,6 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
     function bulkSave() {
         $("tr.changed").each(saveRow);
-    }
-
-    /*
-     * Undo the changes the user has done on the form fields
-     */
-    function addUndoListener(element) {
-        $('.undo', element).click(function (event) {
-            var motherId = $(event.target).parents('tr').attr('data-mother-row');
-            var $row = $('#' + motherId);
-            var $ifalias = $row.find(".ifalias");
-            var $vlan = $row.find(".vlanlist");
-            var $voicevlan = $row.find(".voicevlan");
-
-            // Set ifalias back to original value
-            $ifalias.val($ifalias.attr('data-orig'));
-
-            // Set vlan back to original value
-            $vlan.val($('[data-orig]', $vlan).val());
-
-            // Check or uncheck telephone checkbox
-            if ($voicevlan.length) {
-                if ($voicevlan.attr('data-orig').toLowerCase() === 'true') {
-                    $voicevlan.prop('checked', 'checked');
-                } else {
-                    $voicevlan.prop('checked', false);
-                }
-            }
-
-            clearChangedState($row);
-        });
-    }
-
-    function addToggleVlanInfoListener(element) {
-        // Toggler for the available vlans list
-        $('.toggler', element).click(function () {
-            var vlanlist = $('ul', element),
-                expandButton = $('.toggler.expand'),
-                collapseButton = $('.toggler.collapse');
-
-            if (vlanlist.is(':visible')) {
-                vlanlist.hide();
-                expandButton.removeClass('hidden');
-                collapseButton.addClass('hidden');
-            } else {
-                vlanlist.show();
-                expandButton.addClass('hidden');
-                collapseButton.removeClass('hidden');
-            }
-        });
     }
 
     function textFieldChanged(row) {
@@ -172,42 +119,26 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     function markAsChanged(row) {
         var $row = $(row);
         if (!$row.hasClass('changed')) {
-            showActionRow($row);
             $row.addClass("changed");
         }
-    }
-
-    function showActionRow($row) {
-        /* Slide down the actionrow */
-        $($row.nextAll('.actionrow')[0]).find('.slider').slideDown();
     }
 
     function markAsUnchanged(row) {
         var $row = $(row);
         if ($row.hasClass('changed')) {
-            hideActionRow($row);
             $row.removeClass("changed");
         }
-    }
-
-    function hideActionRow($row) {
-        $($row.nextAll('.actionrow')[0]).find('.slider').slideUp();
     }
 
     function clearChangedState(row) {
         markAsUnchanged(row);
     }
 
-    function saveRow() {
+    function saveRow($row) {
         /*
          * This funcion does an ajax call to save the information given by the user
          * when the save-button is clicked.
          */
-
-        var $row = $(this);
-        if (!$row.is('tr')) {
-            $row = $row.parents('tr');
-        }
 
         var rowid = $row.prop('id');
         if (!rowid) {
@@ -255,21 +186,20 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
             return;
         }
 
-        doAjaxRequest(rowid);
+        doAjaxRequest($row);
     }
 
-    function doAjaxRequest(rowid) {
-        var $row = $('#' + rowid);
+    function doAjaxRequest($row) {
+        var rowid = $row.prop('id');
         var interfaceData = queue_data[rowid];
-        var actionCell = $($row.nextAll('.actionrow')[0]).find('td').get(0);
         $.ajax({url: "save_interfaceinfo",
             data: interfaceData,
             dataType: 'json',
             type: 'POST',
             beforeSend: function () {
                 $('tr.error').remove();
-                disableButtons(actionCell);
-                spinner.spin(actionCell);
+                disableButtons($row);
+                spinner.spin($row);
             },
             success: function () {
                 clearChangedState($row);
@@ -282,7 +212,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
             },
             complete: function (jqXhr) {
                 removeFromQueue(rowid);
-                enableButtons(actionCell);
+                enableButtons($row);
                 spinner.stop();
                 if (nav_ajax_queue.length === 0) {
                     enableSaveallButtons();
@@ -304,13 +234,12 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
     function indicateSuccess($row) {
         /* Animate row to indicate success */
-        var $cells = $row.find('td');
 
         $row.addClass('success');
-        $cells.animate({'background-color': '#FFF'}, 1000, function () {
-            $cells.removeAttr('style');
-            $row.removeClass('success');
-        });
+//        $cells.animate({'background-color': '#FFF'}, 1000, function () {
+//            $cells.removeAttr('style');
+//            $row.removeClass('success');
+//        });
     }
 
     function indicateError($row, messages) {
@@ -386,6 +315,55 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
     function enableSaveallButtons() {
         $("input.saveall_button").removeAttr('disabled');
+    }
+
+    function addToggleVlanInfoListener(element) {
+        // Toggler for the available vlans list
+        $('.toggler', element).click(function () {
+            var vlanlist = $('ul', element),
+                expandButton = $('.toggler.expand'),
+                collapseButton = $('.toggler.collapse');
+
+            if (vlanlist.is(':visible')) {
+                vlanlist.hide();
+                expandButton.removeClass('hidden');
+                collapseButton.addClass('hidden');
+            } else {
+                vlanlist.show();
+                expandButton.addClass('hidden');
+                collapseButton.removeClass('hidden');
+            }
+        });
+    }
+
+    /*
+     * Undo the changes the user has done on the form fields
+     */
+    function addUndoListener(element) {
+        $('.undo', element).click(function (event) {
+            var motherId = $(event.target).parents('tr').attr('data-mother-row');
+            var $row = $('#' + motherId);
+            var $ifalias = $row.find(".ifalias");
+            var $vlan = $row.find(".vlanlist");
+            var $voicevlan = $row.find(".voicevlan");
+
+            // Set ifalias back to original value
+            $ifalias.val($ifalias.attr('data-orig'));
+
+            // Set vlan back to original value
+            $vlan.val($('[data-orig]', $vlan).val());
+
+            // Check or uncheck telephone checkbox
+            if ($voicevlan.length) {
+                if ($voicevlan.attr('data-orig').toLowerCase() === 'true') {
+                    $voicevlan.prop('checked', 'checked');
+                } else {
+                    $voicevlan.prop('checked', false);
+                }
+            }
+
+            clearChangedState($row);
+        });
     }
 
 });
