@@ -2,7 +2,11 @@
 
 <input type="button" class="saveall_button" value="Save all"/>
 
-<div id="portadmin-wrapper">
+<div id="portadmin-wrapper" class="faketable">
+
+<div class="caption">
+  {{ netbox.get_short_sysname }}
+</div>
 
 <div class="row header_row">
   <div class="hide-for-small medium-2 column">

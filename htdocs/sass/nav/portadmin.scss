@@ -1,28 +1,5 @@
 @import "../navsettings";
 
-@mixin row_setup() {
-    max-width: 900px;
-    margin-bottom: 0.3em;
-    .column {
-        line-height: 1.8em;
-    }
-}
-
-#portadmin-wrapper {
-    .port_row {
-        @include row_setup;
-        &:hover {
-            background-color: #f6f6f6;
-        }
-        input, button, form, .custom.dropdown {
-            margin-bottom: 0;
-        }
-    }
-    .header_row {
-        @include row_setup;
-    }
-}
-
 @media only screen and (max-width: $small-screen) {
     #portadmin-wrapper {
         .portadmin_status, .portadmin_save {
