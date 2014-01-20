@@ -22,9 +22,21 @@
 /* Padding for all pages */
 
 $global-padding: 3.5em;
-footer, .navbody, .breadcrumbs, .top-bar, #megadrop {
+$body-padding: 3.5em;
+
+@media only screen and (max-width: 768px) {
+    $global-padding: 0;
+    $body-padding: 1em;
+}
+
+footer, .top-bar, #megadrop {
     padding-left: $global-padding;
     padding-right: $global-padding;
+}
+
+.navbody, .breadcrumbs {
+    padding-left: $body-padding;
+    padding-right: $body-padding;
 }
 
 .navbody {
