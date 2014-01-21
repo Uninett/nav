@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/messages.css"/>
@@ -10,7 +11,11 @@
 {% endblock %}
 
 {% block base_content %}
-  <h2>Messages <a href="{% url messages-rss %}"><i class="fa fa-rss"></i></a></h2>
+  {% with tool=current_user_data.tools|get_tool:'Messages' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
+  <a href="{% url messages-rss %}"><i class="fa fa-rss fa-2x"></i></a>
 
   {% block content %}
     <div class="tabs">

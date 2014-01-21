@@ -1,9 +1,13 @@
 {% extends "base.html" %} {# Don't need a deeper hierarchy for one template #}
 {% load crispy_forms_tags %}
+{% load tools %}
 
 {% block base_content %}
 
-  <h2>Ranked statistics</h2>
+  {% with tool=current_user_data.tools|get_tool:'Statistics' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
 
   {% crispy form %}
 

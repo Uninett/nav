@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
     <link href="{{ STATIC_URL }}css/nav/seeddb.css" rel="stylesheet" />
@@ -19,7 +20,10 @@
 </div>
 {% endif %}
 
-<h2>Seed Database</h2>
+  {% with tool=current_user_data.tools|get_tool:'Seed Database' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
 
 <div class="tabs tabs-vertical">
     <ul>

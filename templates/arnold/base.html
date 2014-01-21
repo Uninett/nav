@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
   <link href="{{ STATIC_URL }}css/nav/arnold.css" rel="stylesheet">
@@ -7,7 +8,10 @@
 
 {% block base_content %}
 
-  <h2>Arnold</h2>
+  {% with tool=current_user_data.tools|get_tool:'Arnold' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
 
   <ul class="button-group">
     <li>

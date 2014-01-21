@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
   <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/networkexplorer.css">
@@ -9,13 +10,9 @@
 
 {% block base_content %}
 
-  <div class="row">
-    <div class="large-12 columns">
-      <h2>
-        Network explorer <small id="working">(<img src="{{ STATIC_URL }}images/main/process-working.gif"> Searching ...)</small>
-      </h2>
-    </div>
-  </div>
+  {% with tool=current_user_data.tools|get_tool:'Network Explorer' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
 
   {% if errors %}
     <div class="row">

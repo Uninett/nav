@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
 <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/alertprofiles.css" />
@@ -8,7 +9,10 @@
 
 {% block base_content %}
 
-<h2>Alert profiles</h2>
+{% with tool=current_user_data.tools|get_tool:'Alert Profiles' %}
+  {% include 'nav_header.html' %}
+{% endwith %}
+
 
 <div class="tabs">
     {% block tabs %}
