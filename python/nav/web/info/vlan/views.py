@@ -19,11 +19,10 @@ import logging
 from IPy import IP
 from operator import methodcaller, attrgetter
 from functools import partial
-import simplejson
 
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template.context import RequestContext
 from django.http import HttpResponse
 
@@ -124,8 +123,7 @@ def create_prefix_graph(request, prefixid):
     url = get_simple_graph_url(metrics, timeframe, title=prefix.net_address,
                                width=397, height=201)
     if url:
-        json = simplejson.dumps({'url': url})
-        return HttpResponse(json, mimetype='application/json')
+        return redirect(url)
     else:
         return HttpResponse(status=500)
 
@@ -138,8 +136,7 @@ def create_vlan_graph(request, vlanid, family=4):
     url = get_vlan_graph_url(vlanid, family, timeframe)
 
     if url:
-        json = simplejson.dumps({'url': url})
-        return HttpResponse(json, mimetype='application/json')
+        return redirect(url)
     else:
         return HttpResponse(status=500)
 
