@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/radius.css" >
@@ -7,24 +8,32 @@
 
 {% block base_content %}
 
+  {% with tool=current_user_data.tools|get_tool:'Radius' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
+
   <div class="tabs">
     <ul>
       <li class="{{ acctsearch|yesno:"tabactive," }}"><a href="acctsearch">Account Log</a></li>
       <li class="{{ logsearch|yesno:"tabactive," }}"><a href="logsearch">Error Log</a></li>
       <li class="{{ acctcharts|yesno:"tabactive," }}"><a href="acctcharts">Account Charts</a></li>
     </ul>
-  </div>
 
-  <div class="tabcontent">
+    <div class="tabcontent">
 
-    <div class="error">
-      {% if errors %}
-        {{ errors.as_ul }}
-      {% endif %}
+      <div class="error">
+        {% if errors %}
+          {{ errors.as_ul }}
+        {% endif %}
+      </div>
+
+      {% block content %}
+      {% endblock content %}
+
     </div>
 
-    {% block content %}
-    {% endblock content %}
   </div>
+
 
 {% endblock base_content %}
