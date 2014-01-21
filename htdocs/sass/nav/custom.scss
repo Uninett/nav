@@ -1,4 +1,5 @@
 /* Custom global styles */
+@import '../navsettings';
 
 #megadrop {
     background-color: #f8f8ff;
@@ -22,12 +23,9 @@
 /* Padding for all pages */
 
 $global-padding: 3.5em;
+$global-padding-small: 0em;
 $body-padding: 3.5em;
-
-@media only screen and (max-width: 768px) {
-    $global-padding: 0;
-    $body-padding: 1em;
-}
+$body-padding-small: 1em;
 
 footer, .top-bar, #megadrop {
     padding-left: $global-padding;
@@ -37,6 +35,18 @@ footer, .top-bar, #megadrop {
 .navbody, .breadcrumbs {
     padding-left: $body-padding;
     padding-right: $body-padding;
+}
+
+@media only screen and (max-width: $small-screen) {
+    footer, .top-bar, #megadrop {
+        padding-left: $global-padding-small;
+        padding-right: $global-padding-small;
+    }
+
+    .navbody, .breadcrumbs {
+        padding-left: $body-padding-small;
+        padding-right: $body-padding-small;
+    }
 }
 
 .navbody {
