@@ -36,18 +36,26 @@
   <div id="{{ interface.id }}" class="row port_row">
 
     {# Interface name #}
-    <div class="medium-2 small-6 column">
+    <div class="medium-2 small-12 column">
       <span title="{{ interface.ifname }}">{{ interface.ifname }}</span>
 
     </div>
 
     {# Status indicators #}
-    <div class="medium-2 small-6 column portadmin-status">
-      <div class="portadmin_status">
-        <img title="AdminStatus - If red the interface is down"
-             src="{{ STATIC_URL }}images/lys/{{ interface.ifadminstatus|drawLight }}"/>
-        <img title="OperStatus - If red there is no link on the interface"
-             src="{{ STATIC_URL }}images/lys/{{ interface.ifoperstatus|drawLight }}"/>
+    <div class="medium-2 small-12 column portadmin-status">
+      <div class="portadmin_status row">
+        <div class="small-6 column">
+          <span class="left hide-for-medium-up">AdminStatus&nbsp;</span>
+          <img title="AdminStatus - If red the interface is down"
+               src="{{ STATIC_URL }}images/lys/{{ interface.ifadminstatus|drawLight }}"
+               />
+        </div>
+        <div class="small-6 column">
+          <span class="left hide-for-medium-up">OperStatus&nbsp;</span>
+          <img title="OperStatus - If red there is no link on the interface"
+               src="{{ STATIC_URL }}images/lys/{{ interface.ifoperstatus|drawLight }}"
+               />
+        </div>
       </div>
     </div>
 
