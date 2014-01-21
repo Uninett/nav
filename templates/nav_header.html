@@ -1,0 +1,10 @@
+{% comment %}
+  This template requires a tool available in the context
+{% endcomment %}
+
+{% if tool %}
+  <div class="nav-header">
+    <h3>{{ tool.name }}</h3>
+    <h5 class="subheader">{{ tool.description }}</h5>
+  </div>
+{% endif %}

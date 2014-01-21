@@ -267,3 +267,16 @@ form.inline-form {
 .deleteicon {
     color: #d2322d;
 }
+
+
+/* NAV header */
+.nav-header {
+    h3 {
+        margin-bottom: 0;
+    }
+    h5 {
+        position: relative;
+        font-size: 1em;
+        top: -10px;
+    }
+}
