@@ -170,15 +170,15 @@ function getLong(position) {
  * Updating the displayed loading status:
  */
 function netLayerLoadStart() {
-    document.getElementById('geomap-heading').innerHTML = 'Geomap (<img src="' + NAV.imagePath + '/geomap/loading.gif" alt=""/> loading data ...)';
+//    document.getElementById('geomap-spinner').style.display = 'block';
     document.getElementsByClassName('navbody')[0].className = 'navbody loading';
 }
 function netLayerLoadEnd() {
-    document.getElementById('geomap-heading').innerHTML = "Geomap";
+//    document.getElementById('geomap-spinner').style.display = 'none';
     document.getElementsByClassName('navbody')[0].className = 'navbody';
 }
 function netLayerLoadCancel() {
-    document.getElementById('geomap-heading').innerHTML = "Geomap";
+//    document.getElementById('geomap-spinner').style.display = 'none';
     document.getElementsByClassName('navbody')[0].className = 'navbody';
 }
 
