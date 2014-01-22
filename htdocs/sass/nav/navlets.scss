@@ -55,11 +55,7 @@
 /* Styling for individual navlets */
 
 .MessagesNavlet {
-    .navlet-message-card {
-        background-color: #f6f6f6;
-        border: 1px solid #ddd;
-        margin-bottom: 1em;
-        padding: 1em;
+    .panel {
         .message-card-footer {
             font-size: 0.8em;
             color: #999;

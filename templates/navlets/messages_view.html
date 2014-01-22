@@ -8,7 +8,7 @@
       {% if current_messages %}
 
         {% for m in current_messages %}
-          <div class="navlet-message-card">
+          <div class="panel">
             <h6>
               <a href="{% url messages-view m.id %}">{{ m.title }}</a>
             </h6>
@@ -16,13 +16,12 @@
               <p>{{ m.description }}</p>
             </div>
             <div class="message-card-footer">
-              <span class="message-card-publish left">
+              <span class="message-card-publish">
                 {{ m.publish_start }}
               </span>
-              <span class="message-card-tasks right">
+              <span class="message-card-tasks">
                 Tasks: {{ m.maintenance_tasks.all|length }}
               </span>
-              <div class="float-clear"></div>
             </div>
           </div>
         {% endfor %}
