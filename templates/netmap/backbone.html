@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/netmap.css"  />
@@ -11,7 +12,13 @@
 
 
 {% block base_content %}
-    <div class="clear" style="padding-top: 10px"></div>
+  {% with tool=current_user_data.tools|get_tool:'Netmap' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
+
+
+  <div class="clear" style="padding-top: 10px"></div>
     <div id="netmap_wrapper">
 
         <div id="netmap_main_view">
