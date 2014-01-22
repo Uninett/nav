@@ -4,6 +4,10 @@ from django import forms
 from django.core.validators import validate_ipv4_address
 from django.core.validators import validate_integer as django_validate_integer
 
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import (Layout, Row, Column,
+                                            MultiWidgetField, Submit)
+
 from nav.util import is_valid_cidr
 
 
@@ -51,18 +55,18 @@ class MultitypeQueryField(forms.MultiValueField):
         """
         super(MultitypeQueryField, self).__init__(*args, **kwargs)
         self.fields = (
-            forms.CharField(min_length=1),
-            forms.ChoiceField(choices=choices)
+            forms.ChoiceField(choices=choices),
+            forms.CharField(min_length=1)
         )
         self.widget = MultitypeQueryWidget(
-            (forms.TextInput(),
-             forms.Select(choices=choices))
+            (forms.Select(choices=choices),
+             forms.TextInput())
         )
         self.query_validators = validators
 
     def validate(self, value):
-        query = value[0]
-        query_type = value[1]
+        query = value[1]
+        query_type = value[0]
         if query_type in self.query_validators:
             self.query_validators[query_type](query)
 
@@ -152,6 +156,23 @@ class AccountLogSearchForm(forms.Form):
         required=False,
         choices=DNS_LOOKUPS,
         widget=forms.CheckboxSelectMultiple)
+
+    def __init__(self, *args, **kwargs):
+        super(AccountLogSearchForm, self).__init__(*args, **kwargs)
+        css_class = 'medium-3'
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'GET'
+        self.helper.form_class = 'custom'
+        self.helper.layout = Layout(
+            Row(
+                Column(MultiWidgetField('query'), css_class=css_class),
+                Column(MultiWidgetField('time'), css_class=css_class),
+                Column('port_type', css_class=css_class),
+                Column('dns_lookup', css_class=css_class),
+            ),
+            Submit('send', 'Search', css_class='small')
+        )
 
 
 class AccountChartsForm(forms.Form):

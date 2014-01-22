@@ -1,15 +1,14 @@
 require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
 
     function initTimeField() {
-        var time_field = $('#id_time_0');
-        var slack_help = $('a.tooltip');
+        var time_field = $('#id_time_1');
 
         // Disable input if all time is pre-selected
-        if ($('#id_time_1 :selected').val() === '') {
+        if ($('#id_time_0 :selected').val() === '') {
             time_field.attr('disabled', 'disabled');
         }
 
-        $('#id_time_1').change(function() {
+        $('#id_time_0').change(function() {
             var selected = $(this, 'option:selected');
 
             if (selected.val() === '') {
@@ -20,10 +19,8 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
                 time_field.removeAttr('disabled');
                 if (selected.val() === 'timestamp') {
                     time_field.val('YYYY-MM-DD hh:mm|slack');
-                    slack_help.show();
                 } else {
                     time_field.val('');
-                    slack_help.hide();
                 }
             }
         });

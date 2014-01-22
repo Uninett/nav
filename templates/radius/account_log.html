@@ -1,40 +1,19 @@
 {% extends "radius/base.html" %}
+{% load crispy_forms_tags %}
 
 {% load radius %}
 
 {% block content %}
 
-  <a href="javascript:void(0);" class="button small right" data-reveal-id="account-log-hints">Search hints</a>
+
+  <div class="row">
+    <div class="small-12 column">
+      <a href="javascript:void(0);" class="button small right" data-reveal-id="account-log-hints">Search hints</a>
+    </div>
+  </div>
 
   <div id="forms">
-    <form id="search" action="" method="get">
-      {% csrf_token %}
-      <table class="vertitable">
-        <tr>
-          <th>{{ form.query.label_tag }}</th>
-          <td colspan="2">{{ form.query }}</td>
-        </tr>
-        <tr>
-          <th>{{ form.time.label_tag }}</th>
-          <td colspan="2">
-            {{ form.time }}
-            <a href="#" class="tooltip" title="number of minutes results can deviate">
-              <span title="more">slack?</span>
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <th>{{ form.port_type.label_tag }}</th>
-          <td>{{ form.port_type }}</td>
-        </tr>
-        <tr>
-          <th rowspan="2">{{ form.dns_lookup.label_tag }}</th>
-          <td rowspan="2">{{ form.dns_lookup }}</td>
-        </tr>
-      </table>
-
-      <input type="submit" name="send" value="Search">
-    </form>
+    {% crispy form %}
   </div>
 
   {% if result %}
@@ -105,6 +84,12 @@
   <div id="account-log-hints" class="reveal-modal">
     <h5>Radius accounting search hints and information</h5>
     <ul>
+      <li>
+        When choosing timestamp as time filter, the slack is the number of
+        minutes relative to the timestamp that will be used as interval. A
+        timestamp of 2011-03-16 08:57|2 will search between 2011-03-16 08:55
+        and 2011-03-16 08:59
+      </li>
       <li>Username search allows wildcard searching, e.g. you can search for
         &quot;dat3*&quot;. Please note that the more letters of the
         username you include, the faster the search will be. A search for

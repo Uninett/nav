@@ -195,17 +195,17 @@ def account_search(request):
             # TODO? Put this logic in the form itself
             days = timestamp = slack = ''
             time = data.get('time')
-            timemode = time[1] if time and len(time) == 2 else ''
+            timemode = time[0] if time and len(time) == 2 else ''
             if timemode == 'days':
-                days = time[0]
+                days = time[1]
             elif timemode == 'timestamp':
-                timestamp, slack = time[0].split('|')
+                timestamp, slack = time[1].split('|')
 
             dns_lookup = data.get('dns_lookup')
 
             query = AcctSearchQuery(
-                data.get('query')[0],
                 data.get('query')[1],
+                data.get('query')[0],
                 data.get('port_type'),
                 timemode,
                 timestamp,
