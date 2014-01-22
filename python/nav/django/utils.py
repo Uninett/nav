@@ -35,23 +35,16 @@ def get_request_body(request):
     else:
         return request.raw_post_data
 
+
 def get_account(request):
-    """Tries to fetch account from request object. If it's not found we look it
-    up in the database.
-    """
-    try:
-        account = request.account
-    except AttributeError:
-        account = Account.objects.get(
-            login=request._req.session['user']['login'])
-        request.account = account
-    return account
+    """Returns the account associated with the request"""
+    return request.account
 
 
 def is_admin(account):
     """Check if user is a member of the administrator group"""
     return account.accountgroup_set.filter(
-        pk=AccountGroup.ADMIN_GROUP).count() > 0;
+        pk=AccountGroup.ADMIN_GROUP).count() > 0
 
 
 def get_verbose_name(model, lookup):
