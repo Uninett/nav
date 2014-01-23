@@ -182,41 +182,7 @@
 {% endblock %}
 
 {% block base_footer %}
-<footer class="row">
-    <div class="medium-3 columns">
-        <h5 class="subheader">NAV Version</h5>
-
-        <p>
-            <a href="/about/">Network Administration Visualized</a>
-            <br/>
-            {{ nav_version }}
-        </p>
-
-
-        <p>
-            {% if current_user_data.account.is_default_account %}
-                You are not logged in.
-            {% else %}
-                You are logged in as <a href="/userinfo/">{{ current_user_data.account.name }}</a>.
-            {% endif %}
-        </p>
-    </div>
-
-    <div class="medium-3 columns">
-        <h5 class="subheader">External links</h5>
-        {{ external_links|safe }}
-    </div>
-
-    <div class="medium-3 columns">
-        <h5 class="subheader">Other stuff</h5>
-    </div>
-
-    <div class="medium-3 columns">
-        <h5 class="subheader"
-                >Contact information</h5>
-        {{ contact_information|safe }}
-    </div>
-</footer>
+  {% include 'footer.html' %}
 
   {% block base_debug %}
     {% if debug %}

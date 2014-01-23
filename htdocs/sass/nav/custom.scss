@@ -29,12 +29,7 @@
 
 /* Padding for all pages */
 
-$global-padding: 3.5em;
-$global-padding-small: 0em;
-$body-padding: 3.5em;
-$body-padding-small: 1em;
-
-footer, .top-bar, #megadrop {
+.top-bar, #megadrop {
     padding-left: $global-padding;
     padding-right: $global-padding;
 }
@@ -63,14 +58,6 @@ footer, .top-bar, #megadrop {
 .breadcrumbs {
     padding-top: 0.5625em;
     padding-bottom: 0.5625em;
-}
-
-footer {
-    background-color: #ffffff;
-    border-top: 1px solid #bbbbbb;
-    font-size: 0.9em;
-    padding-top: 1.5em;
-    padding-bottom: 3em;
 }
 
 /* Background-color for main display elements  */
