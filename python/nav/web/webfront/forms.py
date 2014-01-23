@@ -18,7 +18,7 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout
-from nav.web.crispyforms import NavSubmit
+from crispy_forms_foundation.layout import Submit
 
 
 class LoginForm(forms.Form):
@@ -35,7 +35,7 @@ class LoginForm(forms.Form):
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
             'username', 'password', 'origin',
-            NavSubmit('submit', 'Log in')
+            Submit('submit', 'Log in', css_class='expand')
         )
 
 

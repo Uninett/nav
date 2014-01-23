@@ -4,37 +4,44 @@
 <html>
 
 <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-    <title>NAV Login</title>
-    <link rel="stylesheet" href="/static/css/nav.css" />
-    <link rel="stylesheet" href="/static/css/nav/login.css" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+  <title>NAV Login</title>
+  <link rel="stylesheet" href="/static/css/nav.css"/>
+  <link rel="stylesheet" href="/static/css/nav/login.css"/>
 </head>
 
 <body onload="document.getElementById('id_username').focus();">
 
 <div class="row logincontainer">
-    <div class="large-3 medium-4 large-centered medium-centered column">
-        <img src="{{ STATIC_URL }}images/main/navlogo-281x100.png" alt="NAV" class="navlogo"/>
+  <div class="small-12 small-centered column">
 
-        {% if errors %}
-            <div class="alert-box alert">
-                <ul class="no-bullet">
-                    {% for e in errors %}
-                        <li>{{ e }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
-
-        {% if origin %}
-            <div class="alert-box secondary">
-                After successfully logging in, you will be redirected to:<br/>
-                {{ origin }}
-            </div>
-        {% endif %}
-
-        {% crispy form %}
+    <div class="logo-wrapper">
+      <a href="/">
+        <img src="{{ STATIC_URL }}images/main/nav-logo.svg" alt="NAV"
+             class="navlogo"/>
+      </a>
     </div>
+
+    {% if errors %}
+      <div class="alert-box alert">
+        <ul class="no-bullet">
+          {% for e in errors %}
+            <li>{{ e }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    {% if origin %}
+      <div class="alert-box secondary">
+        After successfully logging in, you will be redirected to:<br/>
+        {{ origin }}
+      </div>
+    {% endif %}
+
+    {% crispy form %}
+ 
+  </div>
 </div>
 
 </body>

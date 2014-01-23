@@ -15,12 +15,25 @@
  * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+@import '../navsettings';
 
+html, body {
+    background-color: $body-bg;
+}
+
+.logo-wrapper {
+    background-color: $topbar-bg-color;
+    padding: 2em;
+    margin-bottom: 1.5em;
+    .navlogo {
+        width: 100%;
+    }
+}
 
 .logincontainer {
-	margin: 5em auto;
-	padding: 1em;
-	text-align: center;
+    margin: 5em auto;
+    text-align: center;
+    width: 350px;
     .alert-box {
         text-align: left;
     }
@@ -29,8 +42,10 @@
     }
 }
 
-.navlogo {
-    margin-bottom: 1em;
+@media only screen and (max-width: #{$small-screen}) {
+    .logincontainer {
+        width: 100%;
+    }
 }
 
 .asteriskField {
