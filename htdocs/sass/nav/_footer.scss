@@ -13,7 +13,6 @@ footer {
     padding-top: 4em;
     padding-bottom: 3em;
     .column {
-        border-right: 1px solid #DDD;
         > div {
             font-size: 0.8em;
         }
@@ -22,10 +21,11 @@ footer {
             padding-right: $footer-content-padding;
         }
         &:nth-child(2) {
+            border-right: 1px solid #DDD;
+            border-left: 1px solid #DDD;
             padding: 0 $footer-content-padding;
         }
         &:last-child {
-            border-right: none;
             padding-left: $footer-content-padding;
             padding-right: $global-padding;
         }
