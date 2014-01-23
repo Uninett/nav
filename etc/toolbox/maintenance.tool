@@ -1,4 +1,4 @@
 name=Maintenance Tasks
 uri=/maintenance/calendar
 icon=/images/toolbox/maintenance.png
-description=Create and edit equipment maintenance schedules. Equipment on maintenance does not cause alerts when down or unavailable.
+description=Edit device maintenance schedules. Alerts for devices are suppressed while on maintenance.

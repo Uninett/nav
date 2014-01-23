@@ -1,6 +1,4 @@
 name=Seed Database
 uri=/seeddb/
 icon=/images/toolbox/seeddb.png
-description=NAV does not auto-discover devices, you need to enter seed information. Use this tool to insert, update and remove seed data.
-
-
+description=Edit NAV seed data: Which devices and services to monitor, location/room/organization registry, cabling and patch registry.
