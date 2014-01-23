@@ -1,5 +1,4 @@
 name=Device History
 uri=/devicehistory/
 icon=/images/toolbox/devicehistory.png
-description=View device history. Clear modules that have been taken out of operation.
-priority=10
+description=Browse and search alert history of devices. Delete modules that are no longer in operation.
