@@ -262,7 +262,10 @@ form.inline-form {
     overflow: auto;
 }
 
-
+/* Reveal modal should always be as high as possible */
+.reveal-modal {
+    top: 0px;
+}
 /* Alert icon */
 .deleteicon {
     color: #d2322d;
