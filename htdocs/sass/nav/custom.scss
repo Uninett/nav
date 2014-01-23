@@ -1,6 +1,13 @@
 /* Custom global styles */
 @import '../navsettings';
 
+/* NAV logo top-bar style */
+.top-bar .nav-logo {
+    position: relative;
+    height: 28px;
+    top: 8px;
+}
+
 #megadrop {
     background-color: #f8f8ff;
     border: 1px solid #dcdcdc;
