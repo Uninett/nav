@@ -852,7 +852,8 @@ class PSUSection(_Section):
 
     @staticmethod
     def _psu_to_table_row(psu):
-        return (
+        return {'netboxid': psu.netbox.id,
+                'tabrow': (
             (psu.netbox.sysname,
              reverse('ipdevinfo-details-by-name', args=[psu.netbox.sysname])),
             (psu.netbox.ip, None),
@@ -864,4 +865,4 @@ class PSUSection(_Section):
                                               '&type=a_psuNotOK'
                                               '&group_by=datetime' %
                                               psu.powersupply_id)),
-        )
+        )}
