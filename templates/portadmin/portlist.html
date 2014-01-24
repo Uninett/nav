@@ -12,8 +12,11 @@
   <div class="hide-for-small medium-2 column">
     Port
   </div>
-  <div class="hide-for-small medium-2 column">
-    Status
+  <div class="hide-for-small medium-1 column">
+    Enabled
+  </div>
+  <div class="hide-for-small medium-1 column">
+    Linked
   </div>
   <div class="hide-for-small medium-4 column">
     Port description
@@ -37,26 +40,23 @@
 
     {# Interface name #}
     <div class="medium-2 small-12 column">
+      <span class="left hide-for-medium-up">Port&nbsp;</span>
       <span title="{{ interface.ifname }}">{{ interface.ifname }}</span>
-
     </div>
 
     {# Status indicators #}
-    <div class="medium-2 small-12 column portadmin-status">
-      <div class="portadmin_status row">
-        <div class="small-6 column">
-          <span class="left hide-for-medium-up">AdminStatus&nbsp;</span>
-          <img title="AdminStatus - If red the interface is down"
-               src="{{ STATIC_URL }}images/lys/{{ interface.ifadminstatus|drawLight }}"
-               />
-        </div>
-        <div class="small-6 column">
-          <span class="left hide-for-medium-up">OperStatus&nbsp;</span>
-          <img title="OperStatus - If red there is no link on the interface"
-               src="{{ STATIC_URL }}images/lys/{{ interface.ifoperstatus|drawLight }}"
-               />
-        </div>
-      </div>
+    <div class="medium-1 small-6 column portadmin-status">
+      <span class="left hide-for-medium-up">Enabled&nbsp;</span>
+      <img title="AdminStatus - If red the interface is down"
+           src="{{ STATIC_URL }}images/lys/{{ interface.ifadminstatus|drawLight }}"
+           />
+
+    </div>
+    <div class="medium-1 small-6 column portadmin-status">
+      <span class="left hide-for-medium-up">Linked&nbsp;</span>
+      <img title="OperStatus - If red there is no link on the interface"
+           src="{{ STATIC_URL }}images/lys/{{ interface.ifoperstatus|drawLight }}"
+           />
     </div>
 
     {# Port Description - input field #}
