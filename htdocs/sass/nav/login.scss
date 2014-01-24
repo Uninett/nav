@@ -21,33 +21,57 @@ html, body {
     background-color: $body-bg;
 }
 
-.logo-wrapper {
-    background-color: $topbar-bg-color;
-    padding: 2em;
-    margin-bottom: 1.5em;
-    .navlogo {
-        width: 100%;
+.logincontainer {
+    margin-top: 100px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 350px;
+    ul {
+        margin-bottom: 0;
+    }
+    .logo-wrapper {
+        margin-bottom: 1em;
+        .navlogo {
+            width: 30%;
+        }
+    }
+    .asteriskField {
+        display: none;
     }
 }
 
-.logincontainer {
-    margin: 5em auto;
-    text-align: center;
+.logincontainer2 {
+    background-color: $primary-color;
+    margin-top: 100px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1.25em;
     width: 350px;
-    .alert-box {
-        text-align: left;
-    }
     ul {
         margin-bottom: 0;
+    }
+    .logo-wrapper {
+        margin-bottom: 1em;
+        .navlogo {
+            width: 30%;
+        }
+    }
+    .asteriskField {
+        display: none;
+    }
+    label {
+        color: white;
     }
 }
 
 @media only screen and (max-width: #{$small-screen}) {
     .logincontainer {
-        width: 100%;
+        margin-top: 1em;
+        width: 90%;
+    }
+    .logincontainer2 {
+        margin-top: 1em;
+        width: 90%;
     }
 }
 
-.asteriskField {
-    display: none;
-}

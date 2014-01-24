@@ -35,7 +35,7 @@ class LoginForm(forms.Form):
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
             'username', 'password', 'origin',
-            Submit('submit', 'Log in', css_class='expand')
+            Submit('submit', 'Log in', css_class='small')
         )
 
 
