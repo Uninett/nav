@@ -5,17 +5,6 @@
   <div class="row">
     <div class="small-12 column">
       {% if feed %}
-        <h4>
-          <a href="{{ feed.feed.link }}"
-             title="Link to blog">{{ feed.feed.title }}</a>
-          <a href="{{ feed.feed.title_detail.base }}">
-            <i class="fa fa-rss"></i>
-          </a>
-
-        </h4>
-
-
-
         <ul>
           {% for entry in feed.maxentries %}
             <li>
