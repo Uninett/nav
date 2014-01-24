@@ -2,10 +2,17 @@
 @import '../navsettings';
 
 /* NAV logo top-bar style */
-.top-bar .nav-logo {
-    position: relative;
-    height: 28px;
-    top: 8px;
+.top-bar {
+    .name h1 {
+        a {
+            padding: 0;
+            .nav-logo {
+                position: relative;
+                height: 28px;
+                top: -2px;
+            }
+        }
+    }
 }
 
 #megadrop {
