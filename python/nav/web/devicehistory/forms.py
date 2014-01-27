@@ -38,7 +38,6 @@ class MyDateField(forms.DateField):
 class DeviceHistoryViewFilter(forms.Form):
     """Form for filtering device history results"""
 
-    eventtypes = get_event_and_alert_types()
     groupings = [
         ('location', 'Location'),
         ('room', 'Room'),
@@ -48,13 +47,14 @@ class DeviceHistoryViewFilter(forms.Form):
     ]
     from_date = MyDateField(required=False)
     to_date = MyDateField(required=False)
-    eventtype = forms.ChoiceField(choices=eventtypes, initial='all',
-                                  required=False, label='Type')
+    eventtype = forms.ChoiceField(required=False, label='Type')
     group_by = forms.ChoiceField(choices=groupings, initial='netbox',
                                  required=False)
 
     def __init__(self, *args, **kwargs):
         super(DeviceHistoryViewFilter, self).__init__(*args, **kwargs)
+        self.fields['eventtype'].choices = get_event_and_alert_types()
+        self.fields['eventtype'].initial = 'all'
         self.fields['from_date'].initial = date.today() - timedelta(days=7)
         self.fields['to_date'].initial = date.today() + timedelta(days=1)
 
