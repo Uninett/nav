@@ -41,6 +41,14 @@ class MultitypeQueryWidget(forms.MultiWidget):
     def decompress(self, value):
         return [value]
 
+    def format_output(self, rendered_widgets):
+        """Place the assumed two widgets side by side"""
+        output = u"""<div class="row collapse">
+        <div class="medium-6 column">{0:s}</div>
+        <div class="medium-6 column">{1:s}</div>
+        </div>""".format(*rendered_widgets)
+        return output
+
 
 class MultitypeQueryField(forms.MultiValueField):
     """
@@ -159,15 +167,17 @@ class AccountLogSearchForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(AccountLogSearchForm, self).__init__(*args, **kwargs)
-        css_class = 'medium-3'
+        css_class = 'medium-6'
         self.helper = FormHelper()
         self.helper.form_action = ''
         self.helper.form_method = 'GET'
         self.helper.form_class = 'custom'
         self.helper.layout = Layout(
             Row(
-                Column(MultiWidgetField('query'), css_class=css_class),
-                Column(MultiWidgetField('time'), css_class=css_class),
+                Column('query', css_class=css_class),
+                Column('time', css_class=css_class)
+            ),
+            Row(
                 Column('port_type', css_class=css_class),
                 Column('dns_lookup', css_class=css_class),
             ),
