@@ -12,6 +12,7 @@
     {% include 'nav_header.html' %}
   {% endwith %}
 
+  {# Place helper div here to make modal come as high as possible #}
   {% block radius-helper %}{% endblock %}
 
   <div class="tabs">
@@ -22,16 +23,8 @@
     </ul>
 
     <div class="tabcontent">
-
-      <div class="error">
-        {% if errors %}
-          {{ errors.as_ul }}
-        {% endif %}
-      </div>
-
       {% block content %}
       {% endblock content %}
-
     </div>
 
   </div>
