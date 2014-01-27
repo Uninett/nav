@@ -1,5 +1,7 @@
 #navlets .highlight {
-    background-color: greenyellow;
+    background-color: #d6d6d6;
+    border: 1px solid #aaaaaa;
+    margin-bottom: 1em;
 }
 
 /* Is a column is empty, make sure it has some size to be visible */
@@ -16,7 +18,7 @@
     position: relative;
     min-height: 100px;
     &.outline {
-        border: 2px solid red;
+        border: 1px dashed black;
     }
     &.colorblock-navlet {
         background-color: #1570a6;
