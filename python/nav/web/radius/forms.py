@@ -5,8 +5,9 @@ from django.core.validators import validate_ipv4_address
 from django.core.validators import validate_integer as django_validate_integer
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Row, Column,
+from crispy_forms_foundation.layout import (Layout, Row, Column, Field,
                                             MultiWidgetField, Submit)
+from django.utils.safestring import mark_safe
 
 from nav.util import is_valid_cidr
 
@@ -201,6 +202,14 @@ class AccountLogSearchForm(forms.Form):
         )
 
 
+class MyCheckBoxSelectMultiple(forms.CheckboxSelectMultiple):
+    """Display the list of checkboxes with inline style"""
+    def render(self, name, value, attrs=None, choices=()):
+        html = super(MyCheckBoxSelectMultiple, self).render(
+            name, value, attrs, choices)
+        return mark_safe(html.replace('<ul>', '<ul class="inline-list">'))
+
+
 class AccountChartsForm(forms.Form):
     CHARTS = (
         ('sentrecv', 'Overall'),
@@ -214,4 +223,18 @@ class AccountChartsForm(forms.Form):
         label='Last # day(s)')
     charts = forms.MultipleChoiceField(
         choices=CHARTS,
-        widget=forms.CheckboxSelectMultiple)
+        widget=MyCheckBoxSelectMultiple(),
+        initial=CHARTS[0])
+
+    def __init__(self, *args, **kwargs):
+        super(AccountChartsForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'GET'
+        self.helper.layout = Layout(
+            Row(
+                Column('days', css_class='medium-3'),
+                Column('charts', css_class='medium-9')
+            ),
+            Submit('send', 'Create', css_class='small')
+        )
