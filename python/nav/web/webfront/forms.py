@@ -16,9 +16,11 @@
 #
 
 from django import forms
+from django.forms.models import BaseModelFormSet
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout
 from crispy_forms_foundation.layout import Submit
+from nav.models.profiles import NavbarLink
 
 
 class LoginForm(forms.Form):
@@ -38,29 +40,34 @@ class LoginForm(forms.Form):
             Submit('submit', 'Log in', css_class='small')
         )
 
+class YourLinksFormSet(BaseModelFormSet):
 
-class PersonalNavbarForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        account = kwargs.pop('account', None)
+
+        super(YourLinksFormSet, self).__init__(*args, **kwargs)
+
+        self.queryset= NavbarLink.objects.filter(account=account)
+
+        self.helper = FormHelper()
+        self.helper.form_action = 'webfront-preferences'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            'name', 'url',
+            NavSubmit('submit', 'Lagre')
+        )
+
+    class Meta:
+        model = NavbarLink
+        exclude = ('account',)
+
+    
+
+
+class NavbarlinkForm(forms.Form):
     id = forms.IntegerField(
         widget=forms.widgets.HiddenInput(),
         required=False
     )
     name = forms.CharField()
     url = forms.CharField()
-    navbar = forms.BooleanField(required=False)
-    qlink1 = forms.BooleanField(required=False)
-    qlink2 = forms.BooleanField(required=False)
-
-
-class NavbarForm(PersonalNavbarForm):
-    name = forms.CharField(
-        widget=forms.widgets.TextInput(attrs={
-            'readonly': 'readonly'
-        }),
-        required=False
-    )
-    url = forms.CharField(
-        widget=forms.widgets.TextInput(attrs={
-            'readonly': 'readonly'
-        }),
-        required=False
-    )

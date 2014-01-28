@@ -1,8 +1,42 @@
 {% extends "base.html" %}
-
+{% load crispy_forms_tags %}
 {% block base_content %}
 <h2>Navigation preferences</h2>
 
+<div class="row">
+    <div class="large-6 columns">
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="row" style="margin-bottom:10px;">
+                <div class="large-4 columns">
+                    <b>Name</b>
+                </div>
+                <div class="large-4 columns">
+                    <b>URI</b>
+                </div>
+                <div class="large-4 columns"></div>
+            </div>
+            {{ navbar_formset.management_form }}
+            {% for form in navbar_formset %}
+                {{ form.id }}
+                <div class="row">
+                    <div class="large-4 columns">
+                        {{ form.name }}
+                    </div>
+                    <div class="large-4 columns">
+                        {{ form.uri }}
+                    </div>
+                    <div class="large-4 columns">
+                        <a href="#{{ form.account }}" class="button alert small">Delete</a>
+                    </div>
+                </div>
+            {% endfor %}
+            <input type="submit" name="submit" value="Save links" />
+        </form>
+    </div>
+</div>
+
+{% comment %}
 <form action="" method="post">
 <table class="listtable">
     <caption>
@@ -96,5 +130,7 @@
     </tfoot>
 </table>
 </form>
+
+{% endcomment %}
 
 {% endblock %}

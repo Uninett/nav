@@ -21,6 +21,7 @@ import logging
 
 from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
+from django.forms.models import modelformset_factory
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
 
@@ -31,7 +32,7 @@ from nav.models.profiles import (Account, AccountNavbar, NavbarLink,
                                  AccountTool, AccountProperty)
 from nav.web import ldapauth, auth
 from nav.web.webfront.utils import quick_read, tool_list
-from nav.web.webfront.forms import LoginForm, NavbarForm, PersonalNavbarForm
+from nav.web.webfront.forms import LoginForm, NavbarlinkForm
 from nav.web.navlets import get_navlets
 
 
@@ -358,52 +359,63 @@ def preferences_navigation(request):
                         positions=position,
                     )
 
+    # account = get_account(request)
+    # account_navbar = get_or_create_accountnavbar(account)
+    # NavbarFormset = formset_factory(NavbarlinkForm, extra=1, can_delete=True)
+
+    # if request.method == 'POST':
+    #     navbar_formset = NavbarFormset(
+    #         request.POST,
+    #         prefix='user'
+    #     )
+        
+    #     if personal_navbar_formset.is_valid() and navbar_formset.is_valid():
+    #         save_navbar(personal_navbar_formset.cleaned_data, account)
+    #         save_navbar(navbar_formset.cleaned_data, account)
+    #         return HttpResponseRedirect(reverse('webfront-preferences-navigation'))
+    # else:
+    #     # Figure out which positions should be checked for which links.
+    #     checked = {}
+    #     for navbar in account_navbar:
+    #         check = {}
+    #         if navbar.navbarlink_id not in checked:
+    #             checked[navbar.navbarlink_id] = {}
+    #         checked[navbar.navbarlink_id][navbar.positions] = True
+
+    #     # Get user links and default links if user is not default account.
+    #     # Default account only has user links, and editing them will effect
+    #     # everyone who uses those links.
+    #     links = {
+    #         'user': NavbarLink.objects.filter(account=account),
+    #         'default': None,
+    #     }
+    #     if account.id != Account.DEFAULT_ACCOUNT:
+    #         links['default'] = NavbarLink.objects.filter(
+    #             account__id=Account.DEFAULT_ACCOUNT)
+
+    #     personal_navbar_formset = PersonalNavbarFormset(
+    #         initial=formset_wrapper(links['user'], checked),
+    #         prefix='user'
+    #     )
+    #     navbar_formset = NavbarFormset(
+    #         initial=formset_wrapper(links['default'], checked),
+    #         prefix='default'
+    #     )
+
     account = get_account(request)
-    account_navbar = get_or_create_accountnavbar(account)
-    NavbarFormset = formset_factory(NavbarForm, extra=0)
-    PersonalNavbarFormset = formset_factory(PersonalNavbarForm, extra=1, can_delete=True)
-
+    YourLinksFormSet = modelformset_factory(NavbarLink, exclude=('account',), extra=3)
     if request.method == 'POST':
-        personal_navbar_formset = PersonalNavbarFormset(
-            request.POST,
-            prefix='user'
-        )
-        navbar_formset = NavbarFormset(
-            request.POST,
-            prefix='default'
-        )
-        if personal_navbar_formset.is_valid() and navbar_formset.is_valid():
-            save_navbar(personal_navbar_formset.cleaned_data, account)
-            save_navbar(navbar_formset.cleaned_data, account)
-            return HttpResponseRedirect(reverse('webfront-preferences-navigation'))
+        formset = YourLinksFormSet(request.POST, queryset=NavbarLink.objects.filter(account=account))
+
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.account = account
+                instance.save()
     else:
-        # Figure out which positions should be checked for which links.
-        checked = {}
-        for navbar in account_navbar:
-            check = {}
-            if navbar.navbarlink_id not in checked:
-                checked[navbar.navbarlink_id] = {}
-            checked[navbar.navbarlink_id][navbar.positions] = True
+        formset = YourLinksFormSet(queryset=NavbarLink.objects.filter(account=account))
 
-        # Get user links and default links if user is not default account.
-        # Default account only has user links, and editing them will effect
-        # everyone who uses those links.
-        links = {
-            'user': NavbarLink.objects.filter(account=account),
-            'default': None,
-        }
-        if account.id != Account.DEFAULT_ACCOUNT:
-            links['default'] = NavbarLink.objects.filter(
-                account__id=Account.DEFAULT_ACCOUNT)
 
-        personal_navbar_formset = PersonalNavbarFormset(
-            initial=formset_wrapper(links['user'], checked),
-            prefix='user'
-        )
-        navbar_formset = NavbarFormset(
-            initial=formset_wrapper(links['default'], checked),
-            prefix='default'
-        )
 
     navpath = [
         ('Home', '/'),
@@ -415,8 +427,8 @@ def preferences_navigation(request):
         'webfront/preferences_navigation.html',
         {
             'navpath': navpath,
-            'personal_navbar_formset': personal_navbar_formset,
-            'navbar_formset': navbar_formset,
+            #'personal_navbar_formset': personal_navbar_formset,
+            'navbar_formset': formset,
             'title': 'NAVbar preferences',
         }
     )
