@@ -17,6 +17,8 @@
  *
  */
 
+@import "../navsettings";
+
 /* --- Common --- */
 
 @mixin table-caption {
@@ -105,20 +107,17 @@ table {
 
 .tablesorter {
     .header {
-        background-image: url('../../images/tablesorter/bg.gif');
+        background-image: url('#{$image-path-partials}/tablesorter/bg.gif');
         background-repeat: no-repeat;
         background-position: center right;
         padding-right: 1.5em;
         cursor: pointer;
     }
     .headerSortUp {
-        background-image: url('../../images/tablesorter/asc.gif');
+        background-image: url('#{$image-path-partials}/tablesorter/asc.gif');
     }
     .headerSortDown {
-        background-image: url('../../images/tablesorter/desc.gif');
-    }
-    .headerSortDown, .headerSortUp {
-        background-color: #8dbdd8;
+        background-image: url('#{$image-path-partials}/tablesorter/desc.gif');
     }
 }
 
