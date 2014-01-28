@@ -49,7 +49,7 @@
                 {% endif %}
             </td>
 
-            <td>{{ f.filter }}</td>
+            <td><a href="{% url alertprofiles-filters-detail f.filter.id  %}">{{ f.filter }}</a></td>
 
             <td>
                 {% if not forloop.first %}
