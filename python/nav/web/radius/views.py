@@ -72,7 +72,7 @@ def log_search(request):
             if timemode == 'hours':
                 hours = time[0]
             elif timemode == 'timestamp':
-                timestamp, slack = time[1].split('|')
+                timestamp, slack = split_time(time[1])
 
             query = LogSearchQuery(
                 searchstring,
@@ -201,7 +201,7 @@ def account_search(request):
             if timemode == 'days':
                 days = time[1]
             elif timemode == 'timestamp':
-                timestamp, slack = time[1].split('|')
+                timestamp, slack = split_time(time[1])
 
             dns_lookup = data.get('dns_lookup')
 
@@ -244,3 +244,13 @@ def account_search(request):
 
     return render_to_response('radius/account_log.html', context,
                               context_instance=RequestContext(request))
+
+
+def split_time(timestring):
+    """Splits timestrin in timestamp and optional slack. Default slack is 1"""
+    time_values = timestring.split('|')
+    timestamp = time_values[0]
+    slack = 1
+    if len(time_values) > 1:
+        slack = time_values[1]
+    return timestamp, slack

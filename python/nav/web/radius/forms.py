@@ -27,7 +27,11 @@ def validate_cidr(value):
 
 def validate_datetime_with_slack(value):
     try:
-        time, slack = value.split('|')
+        values = value.split('|')
+        time = values[0]
+        slack = 0
+        if len(values) > 1:
+            slack = values[1]
         datetime.strptime(time, '%Y-%m-%d %H:%M')
         int(slack)
     except (ValueError, TypeError):
