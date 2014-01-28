@@ -1,3 +1,7 @@
+// Relative image path
+$image-path: '../../images';
+$image-path-partials: '../images';
+
 // Width of a row. To create a limited viewport use em-calc
 // Default from Foundation is $row-width: em-calc(1000);
 $row-width: 100%;
