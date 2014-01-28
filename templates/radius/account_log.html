@@ -55,29 +55,28 @@
         </tbody>
     </table>
 
-    <div class="infobox">
-      <h5>Search summary</h5>
-      <p>
-      <table border="0" cellspacing="2" style="font-size: 13px;">
-        <tr>
-          <td width="150">Total online time:</td>
-          <td>{{ total_time|time_from_seconds }}</td>
-        </tr>
-        <tr>
-          <td>Total data sent:</td>
-          <td>{{ total_sent|filesizeformat }}</td>
-        </tr>
-        <tr>
-          <td>Total received data:</td>
-          <td>{{ total_received|filesizeformat }}</td>
-        </tr>
-        <tr>
-          <td>Total traffic:</td>
-          <td>{{ total_sent|add:total_received|filesizeformat }}</td>
-        </tr>
-      </table>
-      </p>
-    </div>
+    <p>
+    <table class="vertitable">
+      <caption>Search summary</caption>
+      <tr>
+        <th>Total online time:</th>
+        <td>{{ total_time|time_from_seconds }}</td>
+      </tr>
+      <tr>
+        <th>Total data sent:</th>
+        <td>{{ total_sent|filesizeformat }}</td>
+      </tr>
+      <tr>
+        <th>Total received data:</th>
+        <td>{{ total_received|filesizeformat }}</td>
+      </tr>
+      <tr>
+        <th>Total traffic:</th>
+        <td>{{ total_sent|add:total_received|filesizeformat }}</td>
+      </tr>
+    </table>
+    </p>
+
   {% endif %}
 
   {% block radius-helper %}
