@@ -238,7 +238,7 @@ class AlertSubscriptionForm(forms.ModelForm):
             self.fields['type'].label = 'When'
             self.fields['type'].help_text = """
             <dl>
-                <dt>Immidiately</dt>
+                <dt>Immediately</dt>
                 <dd>Send the alert as soon as alertengine has processed it.</dd>
 
                 <dt>Daily at predefined time</dt>
