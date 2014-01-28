@@ -118,6 +118,22 @@ class ErrorLogSearchForm(forms.Form):
         required=False
     )
 
+    def __init__(self, *args, **kwargs):
+        super(ErrorLogSearchForm, self).__init__(*args, **kwargs)
+        css_class = 'medium-4'
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'GET'
+        self.helper.form_class = 'custom'
+        self.helper.layout = Layout(
+            Row(
+                Column('query', css_class=css_class),
+                Column('log_entry_type', css_class=css_class),
+                Column('time', css_class=css_class)
+            ),
+            Submit('send', 'Search', css_class='small')
+        )
+
 
 class AccountLogSearchForm(forms.Form):
     QUERY_TYPES = (

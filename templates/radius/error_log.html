@@ -1,35 +1,14 @@
 {% extends "radius/base.html" %}
+{% load crispy_forms_tags %}
 
 {% load report %}
 
 {% block content %}
 
-  <a href="javascript:void(0);" class="button small right" data-reveal-id="error-log-hints">Search hints</a>
+  <a href="javascript:void(0);" class="button small secondary" data-reveal-id="error-log-hints">Search hints</a>
 
   <div id="forms">
-    <form id="search" action="" method="get">
-      {% csrf_token %}
-      <table class="vertitable">
-        <tr>
-          <th>{{ form.query.label_tag }}</th>
-          <td colspan="2">{{ form.query }}</td>
-        </tr>
-        <tr>
-          <th>{{ form.time.label_tag }}</th>
-          <td colspan="2">
-            {{ form.time }}
-            <a href="#" class="tooltip" title="number of minutes results can deviate">
-              <span title="more">slack?</span>
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <th>{{ form.log_entry_type.label_tag }}</th>
-          <td>{{ form.log_entry_type }}</td>
-        </tr>
-      </table>
-      <input type="submit" name="send" value="Search">
-    </form>
+    {% crispy form %}
   </div>
 
   {% if result %}
@@ -69,6 +48,7 @@
 
   {% endif %}
 
+  {% block radius-helper %}
   <div id="error-log-hints" class="reveal-modal">
     <h5>Radius log search hints and information</h5>
     <ul>
@@ -146,6 +126,6 @@
       </li>
     </ul>
   </div>
-
+  {% endblock %}
 
 {% endblock content %}
