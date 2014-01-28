@@ -1,4 +1,4 @@
-require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
+require(['libs/jquery', 'src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_address_typedetect'], function () {
 
     function initTimeField() {
         var time_field = $('#id_time_1');
@@ -45,12 +45,6 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
     }
     function initResulttable(resulttable) {
         // Add classes
-        $.fn.dataTableExt.oStdClasses.sStripeOdd = 'oddrow';
-        $.fn.dataTableExt.oStdClasses.sStripeEven = 'evenrow';
-        $.fn.dataTableExt.oStdClasses.sSortAsc = 'headerSortDown';
-        $.fn.dataTableExt.oStdClasses.sSortDesc = 'headerSortUp';
-
-
         var nosort = resulttable.children('thead').data('nosort');
 
         // Iniialize
