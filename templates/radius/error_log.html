@@ -12,8 +12,10 @@
   </div>
 
   {% if result %}
+    <div id="detailsmodal" class="reveal-modal"></div>
 
-    <table id="resulttable" class="listtable tablesorter">
+
+    <table id="resulttable" class="listtable full-width">
       <thead data-nosort='[-1]'>
         <tr>
           {% for desc in field_desc %}
@@ -33,6 +35,7 @@
             {% endfor %}
              <td>
                 <a href="logdetail?id={{ row.id }}"
+                   data-reveal-id="detailsmodal" data-reveal-ajax="true"
                    title="View all available information on this session">
                   View
                    </a>
