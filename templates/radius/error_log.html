@@ -1,6 +1,5 @@
 {% extends "radius/base.html" %}
 {% load crispy_forms_tags %}
-
 {% load report %}
 
 {% block content %}
@@ -11,44 +10,47 @@
     {% crispy form %}
   </div>
 
-  {% if result %}
-    <div id="detailsmodal" class="reveal-modal"></div>
+  {% if form.is_bound %}
+    {% if result %}
+      <div id="detailsmodal" class="reveal-modal"></div>
 
-
-    <table id="resulttable" class="listtable full-width">
-      <thead data-nosort='[-1]'>
-        <tr>
-          {% for desc in field_desc %}
-            <th class="header">{{ desc }}</th>
-          {% endfor %}
-            <th></th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {% for row in result %}
+      <table id="resulttable" class="listtable full-width">
+        <thead data-nosort='[-1]'>
           <tr>
-            {% for field in row %}
-              {% if not forloop.first %}
-                <td>{{ field|safe }}</td>
-              {% endif %}
+            {% for desc in field_desc %}
+              <th class="header">{{ desc }}</th>
             {% endfor %}
-             <td>
-                <a href="logdetail?id={{ row.id }}"
-                   data-reveal-id="detailsmodal" data-reveal-ajax="true"
-                   title="View all available information on this session">
-                  View
-                   </a>
-              </td>
+              <th></th>
           </tr>
-        {% empty %}
-          <tr>
-            <td>No results found</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </thead>
 
+        <tbody>
+          {% for row in result %}
+            <tr>
+              {% for field in row %}
+                {% if not forloop.first %}
+                  <td>{{ field|safe }}</td>
+                {% endif %}
+              {% endfor %}
+               <td>
+                  <a href="logdetail?id={{ row.id }}"
+                     data-reveal-id="detailsmodal" data-reveal-ajax="true"
+                     title="View all available information on this session">
+                    View
+                     </a>
+                </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td>No results found</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+    {% else %}
+      <p class="alert-box">No result</p>
+    {% endif %}
   {% endif %}
 
   {% block radius-helper %}

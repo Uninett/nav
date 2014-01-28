@@ -16,7 +16,9 @@
     {% crispy form %}
   </div>
 
-  {% if result %}
+  {% if form.is_bound %}
+
+    {% if result %}
 
     <div id="details_modal" class="reveal-modal"></div>
 
@@ -79,6 +81,10 @@
       </tr>
     </table>
     </p>
+
+    {% else %}
+      <p class="alert-box">No results</p>
+    {% endif %}
 
   {% endif %}
 
