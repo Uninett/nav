@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """radius accounting interface views"""
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -112,9 +113,21 @@ def log_search(request):
                               context_instance=RequestContext(request))
 
 
-def log_detail(request):
+def log_detail_page(request, accountid):
+    """Displays log details as a separate page"""
+    template = 'radius/detail.html'
+    return log_detail(request, accountid, template)
 
-    query = LogDetailQuery(request.GET.get('id'))
+
+def log_detail_modal(request, accountid):
+    """Displays log details as a separate page"""
+    template = 'radius/detail_modal.html'
+    return log_detail(request, accountid, template)
+
+
+def log_detail(request, accountid, template):
+    """Displays log details for accountid with the given template"""
+    query = LogDetailQuery(accountid)
     query.execute()
     result = query.result[0]
 
@@ -124,12 +137,13 @@ def log_detail(request):
     fields = zip(field_desc, result)
 
     context = {
+        'reverse': reverse('radius-log_detail', args=(accountid, )),
         'title': TITLE,
         'navpath': NAVPATH,
         'fields': fields,
     }
 
-    return render_to_response('radius/detail.html', context,
+    return render_to_response(template, context,
                               context_instance=RequestContext(request))
 
 
@@ -187,7 +201,7 @@ def account_detail(request, accountid, template):
     fields = zip(field_desc, result)
 
     context = {
-        'accountid': accountid,
+        'reverse': reverse('radius-account_detail', args=(accountid, )),
         'title': TITLE,
         'navpath': NAVPATH,
         'fields': fields,
