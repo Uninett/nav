@@ -59,11 +59,6 @@ require(['libs/jquery', 'src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_add
             'oLanguage': {'sSearch': 'Filter results:'}
         });
 
-        // Set caption width to the table width
-        $('.caption').css('width', function() {
-           return resulttable.css('width');
-        });
-
         // Add listeners
         addTableCellListener(resulttable, datatable);
         addFilterInputListener(resulttable, datatable);
