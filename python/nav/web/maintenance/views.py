@@ -326,9 +326,16 @@ def edit(request, task_id=None, start_time=None):
 
 
 def add_box_to_maintenance(request):
-    """A method that should get called to set a single netbox on
-    maintenance.  This method expects to get the netbox-identity
-    (or primary key) posted in the variable 'netboxid'."""
+    """
+    This view puts a Netbox on immediate, indefinite maintenance and
+    redirects the user to the status page. It implements the functionality
+    behind the "Put on maintenance" button present in the Status page's "IP
+    Devices down" items.
+
+    The maintenance engine will close the maintenance task automatically when
+    the Netbox has been consistently up for a period of time.
+
+    """
     before = time.clock()
     account = get_account(request)
     if request.method == 'POST':
@@ -338,41 +345,44 @@ def add_box_to_maintenance(request):
             netbox = get_object_or_404(Netbox, pk=netbox_id)
 
             # Check if device is already on maintenance
-            already_on_maint = MaintenanceComponent.objects.filter(key='netbox',
-                        value=str(netbox.id),
-                        maintenance_task__state=MaintenanceTask.STATE_ACTIVE,
-                        maintenance_task__end_time=datetime.max)
+            already_on_maint = MaintenanceComponent.objects.filter(
+                key='netbox',
+                value=str(netbox.id),
+                maintenance_task__state=MaintenanceTask.STATE_ACTIVE,
+                maintenance_task__end_time=datetime.max)
             if len(already_on_maint) == 0:
                 # Box is not on maintenance
-                logger.debug('Adding maintenance task...')
-                maint_task = MaintenanceTask()
-                maint_task.start_time = datetime.now()
-                maint_task.end_time = INFINITY
-                descr = ("On maintenance till up again; set " +
-                        "from status page by user %s" % account.login)
-                maint_task.description = descr
-                maint_task.author = account.login
-                maint_task.state = MaintenanceTask.STATE_SCHEDULED
-                maint_task.save()
-
-                logger.debug('Maintenance task %d; Adding component %s (id=%d)' %
-                             (maint_task.id, netbox.sysname, netbox.id))
-                maint_component = MaintenanceComponent()
-                maint_component.maintenance_task = maint_task
-                maint_component.key = 'netbox'
-                maint_component.value = '%d' % netbox.id
-                maint_component.save()
+                _add_neverending_maintenance_task(account, netbox)
 
                 logger.debug('Run maintenance checker')
-                nav.maintengine.get_logger(LOGGER_NAME)
                 nav.maintengine.check_devices_on_maintenance()
                 logger.debug('Maintenance checker finished')
 
-                logger.debug('Add netbox to maintenance finished in %.3fs' %
-                             (time.clock() - before))
+                logger.debug('Add netbox to maintenance finished in %.3fs',
+                             time.clock() - before)
             else:
                 # What should we do here?
-                logger.error('Netbox %s (id=%d) is already on maintenance' %
-                             (netbox.sysname, netbox.id))
+                logger.error('Netbox %s (id=%d) is already on maintenance',
+                             netbox.sysname, netbox.id)
     return HttpResponseRedirect(reverse('status-index'))
 
+
+@transaction.commit_on_success
+def _add_neverending_maintenance_task(owner, netbox):
+    logger.debug('Adding maintenance task...')
+    maint_task = MaintenanceTask()
+    maint_task.start_time = datetime.now()
+    maint_task.end_time = INFINITY
+    descr = ("On maintenance till up again; set " +
+             "from status page by user %s" % owner.login)
+    maint_task.description = descr
+    maint_task.author = owner.login
+    maint_task.state = MaintenanceTask.STATE_SCHEDULED
+    maint_task.save()
+    logger.debug("Maintenance task %d; Adding component %s (id=%d)",
+                 maint_task.id, netbox.sysname, netbox.id)
+    maint_component = MaintenanceComponent()
+    maint_component.maintenance_task = maint_task
+    maint_component.key = 'netbox'
+    maint_component.value = '%d' % netbox.id
+    maint_component.save()
