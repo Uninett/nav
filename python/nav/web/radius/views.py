@@ -18,7 +18,7 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-
+from nav.web.utils import create_title
 from .forms import (AccountChartsForm,
                     AccountLogSearchForm,
                     ErrorLogSearchForm)
@@ -34,8 +34,13 @@ from .db import (AcctChartsQuery,
                  LogSearchQuery)
 
 
-TITLE = 'NAV - Radius'
-NAVPATH = [('Home', '/'), ('Radius', None)]
+def get_navpath(path):
+    """Add path to root path.
+
+    :type path: tuple
+    """
+    navpath = [('Home', '/'), ('Radius', reverse('radius-index'))]
+    return navpath + [path]
 
 
 def index(request):
@@ -97,9 +102,10 @@ def log_search(request):
     else:
         form = ErrorLogSearchForm()
 
+    navpath = get_navpath(('Error Log',))
     context.update({
-        'title': TITLE,
-        'navpath': NAVPATH,
+        'navpath': navpath,
+        'title': create_title(navpath),
         'form': form,
         'logsearch': True
     })
@@ -131,10 +137,11 @@ def log_detail(request, accountid, template):
         for field in LOG_DETAILFIELDS]
     fields = zip(field_desc, result)
 
+    navpath = get_navpath(('Log Detail', ))
     context = {
         'reverse': reverse('radius-log_detail', args=(accountid, )),
-        'title': TITLE,
-        'navpath': NAVPATH,
+        'title': create_title(navpath),
+        'navpath': navpath,
         'fields': fields,
     }
 
@@ -161,9 +168,10 @@ def account_charts(request):
     else:
         form = AccountChartsForm()
 
+    navpath = get_navpath(('Account Charts', ))
     context.update({
-        'title': TITLE,
-        'navpath': NAVPATH,
+        'navpath': navpath,
+        'title': create_title(navpath),
         'form': form,
         'acctcharts': True
     })
@@ -195,10 +203,11 @@ def account_detail(request, accountid, template):
         for field in ACCT_DETAILSFIELDS]
     fields = zip(field_desc, result)
 
+    navpath = get_navpath(('Account Detail',))
     context = {
         'reverse': reverse('radius-account_detail', args=(accountid, )),
-        'title': TITLE,
-        'navpath': NAVPATH,
+        'title': create_title(navpath),
+        'navpath': navpath,
         'fields': fields,
         'result': query.result
     }
@@ -252,9 +261,10 @@ def account_search(request):
     else:
         form = AccountLogSearchForm()
 
+    navpath = get_navpath(('Account Log', ))
     context.update({
-        'title': TITLE,
-        'navpath': NAVPATH,
+        'title': create_title(navpath),
+        'navpath': navpath,
         'form': form,
         'acctsearch': True
     })
