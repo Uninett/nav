@@ -33,7 +33,12 @@ def get_extension(filename):
 def create_hash(something, salt=False):
     """Create a hash from something, optionally salted with current epoch"""
     data = something + str(time.time()) if salt else something
-    return hashlib.sha1(data).hexdigest()
+    try:
+        hash_object = hashlib.sha1(data)
+    except UnicodeEncodeError:
+        hash_object = hashlib.sha1(data.encode('utf-8'))
+
+    return hash_object.hexdigest()
 
 
 def get_next_priority(room):
