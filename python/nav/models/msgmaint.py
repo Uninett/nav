@@ -18,7 +18,8 @@
 
 from django.db import models
 
-from nav.models.fields import VarcharField, LegacyGenericForeignKey
+from nav.models.fields import (VarcharField, LegacyGenericForeignKey,
+                               DateTimeInfinityField)
 
 
 class Message(models.Model):
@@ -63,7 +64,7 @@ class MaintenanceTask(models.Model):
 
     id = models.AutoField(db_column='maint_taskid', primary_key=True)
     start_time = models.DateTimeField(db_column='maint_start')
-    end_time = models.DateTimeField(db_column='maint_end', blank=True)
+    end_time = DateTimeInfinityField(db_column='maint_end', blank=True)
     description = models.TextField()
     author = VarcharField()
     state = VarcharField(choices=STATES)

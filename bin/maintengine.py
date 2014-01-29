@@ -25,7 +25,7 @@ schedule in NAVdb.
 import os.path
 import time
 import nav.path
-from nav.maintengine import get_logger
+from nav.maintengine import init_logging
 from nav.maintengine import check_devices_on_maintenance
 
 
@@ -34,7 +34,7 @@ def main():
     before = time.clock()
     log_file = os.path.join(nav.path.localstatedir, 'log', 'maintengine.log')
     fmt = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s"
-    logger = get_logger('nav.maintengine', log_file, fmt)
+    logger = init_logging(log_file, fmt)
     logger.debug('------------------------------------------------------------')
     try:
         check_devices_on_maintenance()

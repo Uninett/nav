@@ -15,7 +15,7 @@
   {% if not editing %}
   <p>
      For profile "{{ time_period.profile.name }}".
-     Time period starting at {{ time_period.start }} for
+     Time period starting at {{ time_period.start }} on
      {{ time_period.get_valid_during_display }}.
   </p>
   {% endif %}
@@ -41,8 +41,8 @@
             <tr>
                 <td><input type="checkbox" name="subscription"
                 id="id_subscription_{{ s.id }}" value="{{ s.id }}" /></td>
-                <td>{{ s.filter_group.name }}</td>
-                <td>{{ s.alert_address }}</td>
+                <td><a href="{% url alertprofiles-filter_groups-detail s.filter_group.id %}">{{ s.filter_group.name }}</a></td>
+                <td><a href="{% url alertprofiles-address-detail s.alert_address.id %}">{{ s.alert_address }}</a></td>
                 <td>{{ s.get_type_display|capfirst }}</td>
                 <td>{{ s.ignore_resolved_alerts|yesno:"Yes,No" }}</td>
                 <td><a href="{% url alertprofiles-profile-timeperiod-subscription s.id %}">
