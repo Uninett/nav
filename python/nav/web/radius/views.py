@@ -163,9 +163,21 @@ def account_charts(request):
                               context_instance=RequestContext(request))
 
 
-def account_detail(request):
+def account_detail_page(request, accountid):
+    """Displays account details as a separate page"""
+    template = 'radius/detail.html'
+    return account_detail(request, accountid, template)
 
-    query = AcctDetailQuery(request.GET.get('acctuniqueid'))
+
+def account_detail_modal(request, accountid):
+    """Displays account details suitable for a modal"""
+    template = 'radius/detail_modal.html'
+    return account_detail(request, accountid, template)
+
+
+def account_detail(request, accountid, template):
+    """Finds account details for a specific accountid"""
+    query = AcctDetailQuery(accountid)
     query.execute()
     result = query.result[0]
 
@@ -175,13 +187,14 @@ def account_detail(request):
     fields = zip(field_desc, result)
 
     context = {
+        'accountid': accountid,
         'title': TITLE,
         'navpath': NAVPATH,
         'fields': fields,
         'result': query.result
     }
 
-    return render_to_response('radius/detail.html', context,
+    return render_to_response(template, context,
                               context_instance=RequestContext(request))
 
 

@@ -1,13 +1,6 @@
-<table class="vertitable">
-  <caption>Details</caption>
-  {% for desc, field in fields %}
-    <tr>
-      <th>
-        {{ desc }}
-      </th>
-      <td>
-        {{ field|default:""|safe }}
-      </td>
-    </tr>
-  {% endfor %}
-</table>
+{% extends 'radius/base.html' %}
+{% block page_content %}
+  <p><a href="{% url radius-account_search %}">To radius search</a></p>
+
+  {% include 'radius/details_table.html' %}
+{% endblock %}

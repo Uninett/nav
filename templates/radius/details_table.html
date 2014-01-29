@@ -1,0 +1,13 @@
+<table class="vertitable">
+  <caption>Details</caption>
+  {% for desc, field in fields %}
+    <tr>
+      <th>
+        {{ desc }}
+      </th>
+      <td>
+        {{ field|default:""|safe }}
+      </td>
+    </tr>
+  {% endfor %}
+</table>

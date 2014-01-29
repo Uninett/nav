@@ -14,11 +14,18 @@
   {# Place helper div here to make modal come as high as possible #}
   {% block radius-helper %}{% endblock %}
 
+  {% block page_content %}
   <div class="tabs">
     <ul>
-      <li class="{{ acctsearch|yesno:"tabactive," }}"><a href="acctsearch">Account Log</a></li>
-      <li class="{{ logsearch|yesno:"tabactive," }}"><a href="logsearch">Error Log</a></li>
-      <li class="{{ acctcharts|yesno:"tabactive," }}"><a href="acctcharts">Account Charts</a></li>
+      <li class="{{ acctsearch|yesno:"tabactive," }}">
+        <a href="{% url radius-account_search %}">Account Log</a>
+      </li>
+      <li class="{{ logsearch|yesno:"tabactive," }}">
+        <a href="{% url radius-log_search %}">Error Log</a>
+      </li>
+      <li class="{{ acctcharts|yesno:"tabactive," }}">
+        <a href="{% url radius-account_charts %}">Account Charts</a>
+      </li>
     </ul>
 
     <div class="tabcontent">
@@ -27,6 +34,7 @@
     </div>
 
   </div>
+  {% endblock page_content %}
 
 
 {% endblock base_content %}
