@@ -16,7 +16,6 @@
 #
 """radius accounting interface views"""
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
@@ -24,12 +23,9 @@ from .forms import (AccountChartsForm,
                     AccountLogSearchForm,
                     ErrorLogSearchForm)
 
-from radius_config import (INDEX_PAGE,
-                           LOG_SEARCHRESULTFIELDS,
-                           ACCT_DETAILSFIELDS,
-                           ACCT_DBFIELDSDESCRIPTIONS,
-                           LOG_DETAILFIELDS,
-                           LOG_FIELDDESCRIPTIONS)
+from .radius_config import (INDEX_PAGE, LOG_SEARCHRESULTFIELDS,
+                            ACCT_DETAILSFIELDS, ACCT_DBFIELDSDESCRIPTIONS,
+                            LOG_DETAILFIELDS, LOG_FIELDDESCRIPTIONS)
 
 from .db import (AcctChartsQuery,
                  AcctDetailQuery,
@@ -48,15 +44,15 @@ def index(request):
     Uses redirect to get the whole urls
     """
     if INDEX_PAGE == 'acctcharts':
-        return HttpResponseRedirect('acctcharts')
+        return account_charts(request)
     elif INDEX_PAGE == 'logsearch':
-        return HttpResponseRedirect('logsearch')
+        return log_search(request)
     else:
-        return HttpResponseRedirect('acctsearch')
+        return account_search(request)
 
 
 def log_search(request):
-
+    """Displays the page for doing a radius log search"""
     context = {}
 
     if 'send' in request.GET:
@@ -66,7 +62,6 @@ def log_search(request):
             searchstring = data.get('query')[1]
             searchtype = data.get('query')[0]
 
-            # TODO? Put this logic in the form itself
             hours = timestamp = slack = ''
             time = data.get('time')
             timemode = time[0] if time and len(time) == 2 else ''
@@ -148,7 +143,7 @@ def log_detail(request, accountid, template):
 
 
 def account_charts(request):
-
+    """Displays the page for account charts"""
     context = {}
 
     if 'send' in request.GET:
@@ -213,7 +208,7 @@ def account_detail(request, accountid, template):
 
 
 def account_search(request):
-
+    """Displays the page for doing an account log search"""
     context = {}
 
     if 'send' in request.GET:
@@ -221,7 +216,6 @@ def account_search(request):
         if form.is_valid():
             data = form.cleaned_data
 
-            # TODO? Put this logic in the form itself
             days = timestamp = slack = ''
             time = data.get('time')
             timemode = time[0] if time and len(time) == 2 else ''
@@ -246,11 +240,7 @@ def account_search(request):
                 'DESC'
             )
             query.execute()
-            (
-                total_time,
-                total_sent,
-                total_received
-            ) = query.make_stats()
+            (total_time, total_sent, total_received) = query.make_stats()
             context.update({
                 'result': query.result,
                 'total_time': total_time,
