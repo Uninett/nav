@@ -194,13 +194,15 @@ def check_tasks_without_end():
 
 
 def check_state(events, maxdate_boxes):
-    """Checks if there are some maintenance tasks to be set active or
-    passed."""
+    """
+    Checks if there are some maintenance tasks to be set active or passed.
+    """
+    time_now = datetime.datetime.now()
 
     db = _get_db()
     sql = """SELECT maint_taskid FROM maint_task
-        WHERE maint_start < NOW() AND state = 'scheduled'"""
-    db.execute(sql)
+        WHERE maint_start < %s AND state = 'scheduled'"""
+    db.execute(sql, (time_now,))
     for (taskid,) in db.fetchall():
         sched_event = {}
         sched_event['type'] = 'active'
@@ -208,8 +210,8 @@ def check_state(events, maxdate_boxes):
         events.append(sched_event)
 
     sql = """SELECT maint_taskid, maint_end FROM maint_task
-        WHERE maint_end < NOW() AND state = 'active'"""
-    db.execute(sql)
+        WHERE maint_end < %s AND state = 'active'"""
+    db.execute(sql, (time_now,))
     for (taskid, maint_end) in db.fetchall():
         active_event = {}
         active_event['type'] = 'passed'
@@ -220,9 +222,9 @@ def check_state(events, maxdate_boxes):
     # Get boxes that should still stay on maintenance
     sql = """SELECT max(maint_end) AS maint_end, key, value
         FROM maint_task INNER JOIN maint_component USING (maint_taskid)
-        WHERE state = 'active' AND maint_end > NOW()
+        WHERE state = 'active' AND maint_end > %s
         GROUP BY key, value"""
-    db.execute(sql)
+    db.execute(sql, (time_now,))
     for (maint_end, key, value) in db.fetchall():
         boxids = get_boxids_by_key(key, value)
         for boxid in boxids:
