@@ -46,7 +46,7 @@
     padding-right: $body-padding;
 }
 
-@media only screen and (max-width: $small-screen) {
+@media #{$small-only} {
     footer, .top-bar, #megadrop {
         padding-left: $global-padding-small;
         padding-right: $global-padding-small;

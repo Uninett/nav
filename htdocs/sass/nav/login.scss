@@ -64,7 +64,7 @@ html, body {
     }
 }
 
-@media only screen and (max-width: #{$small-screen}) {
+@media #{$small-only} {
     .logincontainer {
         margin-top: 1em;
         width: 90%;

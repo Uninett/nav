@@ -1,6 +1,6 @@
 @import "../navsettings";
 
-@media only screen and (max-width: $small-screen) {
+@media #{$small-only} {
     #portadmin-wrapper {
         .portadmin-save {
             float: right;
