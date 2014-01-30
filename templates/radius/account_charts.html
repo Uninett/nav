@@ -7,7 +7,7 @@
   <div class="row">
     <div class="small-12 column">
       <a href="javascript:void(0);" class="button small secondary"
-         data-reveal-id="account-chart-hints">Chart information</a>
+         data-reveal-id="account-chart-hints" data-reveal>Chart information</a>
     </div>
   </div>
 
@@ -49,19 +49,17 @@
   </ul>
 
   {% block radius-helper %}
-    <div id="account-chart-hints" class="reveal-modal">
-      <h5>Radius accounting chart information</h5>
+    <div id="account-chart-hints" class="reveal-modal" data-reveal>
+      <h3>About top talkers</h3>
+
+      <blockquote>"There are three types of lies - lies, damn lies, and
+        statistics." <cite>Mark Twain</cite>
+      </blockquote>
 
       <p>
-        <i>"There are three types of lies - lies, damn lies, and
-          statistics."</i>
-      </p>
-
-      <p>
-        We get transfer data from sessions that have ended, and where we
-        received an explicit Stop message. These charts show transfer data
-        for all sessions that <u>ended</u> during the specified time
-        period, so the data could actually have been transferred before
+        Shows data from sessions that have ended, with an explicit
+        <code>Stop</code> message. Top talkers lists sessions using the <em>end
+        time</em> , but the data could actually have been transferred before
         this period.
       </p>
     </div>
