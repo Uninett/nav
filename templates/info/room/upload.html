@@ -11,14 +11,14 @@
 
   <div class="row">
     <div class="column small-12">
-      <a href="#" data-reveal-id="add_image_help" class="small secondary button right">Help</a>
+      <a href="#" data-reveal-id="add_image_help" class="small secondary button right" data-reveal>Help</a>
       <h4>Images for {{ room.id }}</h4>
     </div>
   </div>
 
   <p><a href="{% url room-info room.id %}">Back to room</a></p>
 
-  <div id="add_image_help" class="reveal-modal">
+  <div id="add_image_help" class="reveal-modal" data-reveal>
     <ul class="inside">
       <li>
         Add an image by clicking the file dialog, locating the image you want and clicking "Upload image"
@@ -27,7 +27,7 @@
         Captions may contain html - you can for instance create links
       </li>
       <li>
-        Sort the images by dragging the <img src="{{ STATIC_URL }}images/icons/drag.png"> (if more than 1 image)
+        Sort the images by dragging the <i class="fa fa-arrows"></i> (if more than 1 image)
       </li>
     </ul>
   </div>

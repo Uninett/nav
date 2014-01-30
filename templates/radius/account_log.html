@@ -8,7 +8,9 @@
 
   <div class="row">
     <div class="small-12 column">
-      <a href="javascript:void(0);" class="button small secondary" data-reveal-id="account-log-hints">Search hints</a>
+      <a href="javascript:void(0);"
+         class="button small secondary right"
+         data-reveal-id="account-log-hints" data-reveal>Search hints</a>
     </div>
   </div>
 
@@ -20,7 +22,7 @@
 
     {% if result %}
 
-    <div id="details_modal" class="reveal-modal"></div>
+    <div id="details_modal" class="reveal-modal" data-reveal></div>
 
     <table id="resulttable" class="listtable full-width">
         <thead data-nosort='[5, 6]'>
@@ -52,6 +54,7 @@
                 <a href="{% url radius-account_detail-modal row.radacctid %}"
                    data-reveal-id="details_modal"
                    data-reveal-ajax="true"
+                   data-reveal
                    title="View all available information on this session">
                   Details
                    </a>
@@ -94,7 +97,7 @@
   {% endif %}
 
   {% block radius-helper %}
-  <div id="account-log-hints" class="reveal-modal">
+  <div id="account-log-hints" class="reveal-modal" data-reveal>
     <h3>Radius accounting search hints and information</h3>
 
     <h5>Slack</h5>
