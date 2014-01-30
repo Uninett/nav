@@ -1,6 +1,6 @@
 require(['libs/jquery'], function () {
     $(function () {
-        // Find all divs with medium-2 class inside navbarlink form
+        // Find all delete buttons in the link form
         // Slice so we get the last two empty elements
         // Clear the content so the checkboxes are removed
         var length = $('.link-delete').length;
