@@ -2,19 +2,11 @@
 
 /* Sorting indicators */
 
-.dataTable {
-    th {
-        padding-right: 1.4em;
-        &.sorting_asc {
-            background: url('../images/datatables/sort_asc.png') no-repeat right center #EEEEEE;
-        }
-        &.sorting_desc {
-            background: url('../images/datatables/sort_desc.png') no-repeat right center #EEEEEE;
-        }
-        &.sorting {
-            background: url('../images/datatables/sort_both.png') no-repeat right center #EEEEEE;
-        }
-    }
+@import '../navsettings';
+
+@mixin common_header_styles() {
+    display: inline-block;
+    padding: 0.7em;
 }
 
 .dataTables_wrapper {
@@ -35,39 +27,45 @@
         line-height: 0;
         height: 0;
     }
-}
-
-
-/* Styles for the elements surrounding the table */
-
-.dataTables_length, .dataTables_info, .dataTables_paginate {
-    padding: 0.7em;
-}
-
-.dataTables_length, .dataTables_info, .dataTables_paginate {
-    display: inline-block;
-}
-
-.dataTables_info {
-    font-size: 0.9em;
-    line-height: 1.6em;
-    clear: right;
-}
-
-.dataTables_paginate {
-    float: right;
-    a {
-        &.paginate_button,
-        &.paginate_active {
-            margin-left: 2px;
-            cursor: pointer;
-        }
-        &.paginate_button_disabled {
-            cursor: default;
+    .dataTable {
+        th {
+            padding-right: 1.4em;
+            &.sorting_asc {
+                background: url('#{$image-path-partials}/datatables/sort_asc.png') no-repeat right center #EEEEEE;
+            }
+            &.sorting_desc {
+                background: url('#{$image-path-partials}/datatables/sort_desc.png') no-repeat right center #EEEEEE;
+            }
+            &.sorting {
+                background: url('#{$image-path-partials}/datatables/sort_both.png') no-repeat right center #EEEEEE;
+            }
         }
     }
-    .button {
-        margin-bottom: 0;
+    .dataTables_length {
+        @include common_header_styles;
+    }
+    .dataTables_info {
+        @include common_header_styles;
+        font-size: 0.9em;
+        line-height: 1.6em;
+        clear: right;
+    }
+    .dataTables_paginate {
+        @include common_header_styles;
+        float: right;
+        a {
+            &.paginate_button,
+            &.paginate_active {
+                margin-left: 2px;
+                cursor: pointer;
+            }
+            &.paginate_button_disabled {
+                cursor: default;
+            }
+        }
+        .button {
+            margin-bottom: 0;
+        }
     }
 }
 
