@@ -102,16 +102,6 @@ fieldset legend {
     }
 }
 
-
-/* Custom base page styles */
-
-#toolboxdropdown img {
-    height: 24px;
-    width: 24px;
-    vertical-align: middle;
-}
-
-
 /* Custom form styles */
 
 table form, table input[type="text"], table input[type="password"],
@@ -167,10 +157,6 @@ ul.ui-tabs-nav {
 
 
 /* List styles */
-
-//ul, ol, dl {
-//    margin-left: 1.2em;
-//}
 
 ul.errorlist {
     margin-bottom: 0;
@@ -288,4 +274,10 @@ form.inline-form {
 /* Debug */
 #debug {
     background-color: #ffffff;
+}
+
+/* Foundation does strange things with select multiple */
+select[multiple] {
+    background: #FFFFFF;
+    height: auto;
 }
