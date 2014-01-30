@@ -32,27 +32,11 @@
   }
 
 // Adds class for marking a button as active.
-// Shadow and color styles copied from mixin inset-shadow()
-//button, .button {
-//    box-shadow: none;
-//    -webkit-box-shadow: none;
-//    &.active {
-//        box-shadow: $shiny-edge-size $shiny-edge-active-color inset;
-//        background-color: darken($primary-color, $button-function-factor);
-//        &.secondary { background-color: darken($secondary-color, $button-function-factor); }
-//        &.alert { background-color: darken($alert-color, $button-function-factor); }
-//        &.success { background-color: darken($success-color, $button-function-factor); }
-//    }
-//    box-shadow: none;
-//    -webkit-box-shadow: none;
-//    &.active {
-//        background-color: darken($primary-color, $button-function-factor);
-//        &.secondary { background-color: darken($secondary-color, $button-function-factor); }
-//        &.alert { background-color: darken($alert-color, $button-function-factor); }
-//        &.success { background-color: darken($success-color, $button-function-factor); }
-//    }
-//}
-
-//.top-bar-section ul li > a.button {
-//    font-size: $input-font-size;
-//}
+button, .button {
+    &.active {
+        background-color: scale-color($primary-color, $lightness: $button-function-factor);
+        &.secondary { background-color: scale-color($secondary-color, $lightness: $button-function-factor); }
+        &.alert { background-color: scale-color($alert-color, $lightness: $button-function-factor); }
+        &.success { background-color: scale-color($success-color, $lightness: $button-function-factor); }
+    }
+}
