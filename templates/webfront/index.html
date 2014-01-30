@@ -14,7 +14,7 @@
           {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
               {% comment %} Buttons for adding and sorting navlets {% endcomment %}
               <div class="right">
-                  <a href="javascript:void(0);" data-reveal-id="navlet-list"
+                  <a href="javascript:void(0);" data-reveal-id="navlet-list" data-reveal
                      class="button small secondary">
                     Add widget
                     <i class="fa fa-plus"></i>
@@ -30,7 +30,7 @@
               </div>
 
               {% comment %} List of navlets to add {% endcomment %}
-              <div id="navlet-list" class="reveal-modal">
+              <div id="navlet-list" class="reveal-modal" data-reveal>
                   <h4>Add a widget to your page</h4>
                   <table class="expand table-hover">
                       <tbody>

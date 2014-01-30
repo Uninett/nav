@@ -24,15 +24,11 @@
         </a>
       </div>
 
-      {% if errors %}
+      {% for e in errors %}
         <div class="alert-box alert">
-          <ul class="no-bullet">
-            {% for e in errors %}
-              <li>{{ e }}</li>
-            {% endfor %}
-          </ul>
+          {{ e }}
         </div>
-      {% endif %}
+      {% endfor %}
 
       {% if origin %}
         <div class="alert-box secondary">
@@ -57,18 +53,14 @@
         </a>
       </div>
 
-      {% if errors %}
+      {% for e in errors %}
         <div class="alert-box alert">
-          <ul class="no-bullet">
-            {% for e in errors %}
-              <li>{{ e }}</li>
-            {% endfor %}
-          </ul>
+          {{ e }}
         </div>
-      {% endif %}
+      {% endfor %}
 
       {% if origin %}
-        <div class="alert-box secondary">
+        <div class="alert-box info">
           After successfully logging in, you will be redirected to:<br/>
           {{ origin }}
         </div>

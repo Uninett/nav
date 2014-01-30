@@ -11,7 +11,7 @@ var require = {
         "netmap": "src/netmap"
     },
     shim: {
-        'libs/foundation.min': ['libs/jquery', 'libs/custom.modernizr'],
+        'libs/foundation.min': ['libs/jquery', 'libs/modernizr', 'libs/fastclick'],
         'libs/FixedColumns.min': ['libs/jquery'],
         'libs/jquery-ui-1.8.21.custom.min': ['libs/jquery'],
         'libs/jquery.dataTables.min': ['libs/jquery'],
