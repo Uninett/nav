@@ -49,7 +49,6 @@ urlpatterns += patterns('',
     (r'^navlets/', include('nav.web.navlets.urls')),
 
     (r'^useradmin/', include('nav.web.useradmin.urls')),
-    url(r'^userinfo/', 'nav.web.useradmin.views.userinfo', name='userinfo'),
 )
 
 handler500 = 'nav.django.views.custom_500'
