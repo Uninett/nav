@@ -24,17 +24,18 @@ from django.forms.formsets import formset_factory
 from django.forms.models import modelformset_factory
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
+from django.shortcuts import get_object_or_404
 
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
 from nav.django.utils import get_account
-from nav.models.profiles import (Account, AccountNavbar, NavbarLink,
+from nav.models.profiles import (Account, NavbarLink,
                                  AccountTool, AccountProperty)
 from nav.web import ldapauth, auth
 from nav.web.webfront.utils import quick_read, tool_list
-from nav.web.webfront.forms import LoginForm, NavbarlinkForm
+from nav.web.webfront.forms import LoginForm, NavbarlinkForm, NavbarLinkFormSet, ChangePasswordForm
 from nav.web.navlets import get_navlets
-
+from nav.web.message import new_message, Messages
 
 _logger = logging.getLogger('nav.web.tools')
 
@@ -129,6 +130,7 @@ def do_login(request):
         }
     )
 
+
 def logout(request):
     if request.method == 'POST' and 'submit_desudo' in request.POST:
         desudo(request)
@@ -140,6 +142,7 @@ def logout(request):
         request.session.save()
     return HttpResponseRedirect('/')
 
+
 def about(request):
     return direct_to_template(
         request,
@@ -149,6 +152,7 @@ def about(request):
             'title': 'About NAV',
         }
     )
+
 
 def toolbox(request):
     """Render the toolbox"""
@@ -236,199 +240,91 @@ def set_tool_layout(request):
     return HttpResponse()
 
 
+def _create_preference_context(request):
+    """ Creates a context used by different views for the multiform preference page """
+    account = get_account(request)
+
+    if account.ext_sync:
+        password_form = None
+    else:
+        password_form = ChangePasswordForm()
+
+    context = {
+        'navpath': [('Home', '/'), ('Preferences', None)],
+        'title': 'Personal NAV preferences',
+        'password_form' : password_form,
+        'account' : account,
+        'navbar_formset': NavbarLinkFormSet(queryset=NavbarLink.objects.filter(account=account)),
+    }
+
+    return context
+
+
 def preferences(request):
+    """ My preferences """
+    context = _create_preference_context(request)
+
     return direct_to_template(
         request,
         'webfront/preferences.html',
-        {
-            'navpath': [('Home', '/'), ('Preferences', None)],
-            'title': 'Personal NAV preferences',
-        }
+        context
     )
 
-def preferences_navigation(request):
-    def formset_wrapper(link_set, checked):
-        """Massages data retrieved from the database to fit the forms used.
-        """
-        data = []
-        for link in link_set:
-            check = checked.get(link.id, {})
-            data.append({
-                'id': link.id,
-                'name': link.name,
-                'url': link.uri,
-                'navbar': check.get('navbar', False),
-                'qlink1': check.get('qlink1', False),
-                'qlink2': check.get('qlink2', False),
-            })
-        return data
 
-    def get_or_create_accountnavbar(account):
-        """Tries to retrive this users navigation bar preferences from the
-        database. If nothing is found, we copy the default users preferences.
-        """
-        account_navbar = AccountNavbar.objects.filter(account=account)
-        if len(account_navbar) == 0:
-            # No preferences. Set them according to default user
-            default_navbar = AccountNavbar.objects.filter(
-                account__id=Account.DEFAULT_ACCOUNT)
-            for navbar in default_navbar:
-                AccountNavbar.objects.create(
-                    account=account,
-                    navbarlink=navbar.navbarlink,
-                    positions=navbar.positions,
-                )
-            account_navbar = AccountNavbar.objects.filter(account=account)
-
-        # Convert old style positon preferences to new style.
-        # Old style is a single string for all positions, new style is a
-        # table row per position.
-        did_convert = False
-        for navbar in account_navbar:
-            if navbar.positions not in ('navbar', 'qlink1', 'qlink2'):
-                positions = []
-                if navbar.positions.count('navbar'):
-                    positions.append('navbar')
-                if navbar.positions.count('qlink1'):
-                    positions.append('qlink1')
-                if navbar.positions.count('qlink2'):
-                    positions.append('qlink2')
-                navbar.delete()
-
-                for position in positions:
-                    AccountNavbar.objects.create(
-                        account=account,
-                        navbarlink=navbar.navbarlink,
-                        positions=position,
-                    )
-                did_convert = True
-
-        # If we did convert preferences, we need to fetch the new objects.
-        if did_convert:
-            account_navbar = AccountNavbar.objects.filter(account=account)
-        return account_navbar
-
-    def save_navbar(data, account):
-        """Saves a given formsets cleaned data to the database.
-
-            - data: should be the cleaned data from a formset, not the formset
-                    itself
-        """
-        for link in data:
-            # If link is a empty dictionary, we should skip it
-            if link:
-                # Try to fetch the navbar link from the database if id is
-                # supplied.
-                try:
-                    navbarlink = NavbarLink.objects.get(id=link['id'])
-                except (KeyError, NavbarLink.DoesNotExist):
-                    navbarlink = NavbarLink()
-                    navbarlink.account = account
-                else:
-                    # If the navbar link was found, and the DELETE flag was
-                    # set, we should delete the navbar link.
-                    if navbarlink.account == account:
-                        if 'DELETE' in link and link['DELETE']:
-                            navbarlink.delete()
-                            continue
-
-                # Only save navbar link if this user is it's owner.
-                if navbarlink.account == account:
-                    navbarlink.name = link['name']
-                    navbarlink.uri = link['url']
-                    navbarlink.save()
-
-                # Remove existing accountnavbar position preferences
-                AccountNavbar.objects.filter(
-                    account=account, navbarlink=navbarlink
-                ).delete()
-
-                positions = []
-                if 'navbar' in link and link['navbar']:
-                    positions.append('navbar')
-                if 'qlink1' in link and link['qlink1']:
-                    positions.append('qlink1')
-                if 'qlink2' in link and link['qlink2']:
-                    positions.append('qlink2')
-
-                # Save the new accountnavbar position preferences
-                for position in positions:
-                    AccountNavbar.objects.create(
-                        account=account,
-                        navbarlink=navbarlink,
-                        positions=position,
-                    )
-
-    # account = get_account(request)
-    # account_navbar = get_or_create_accountnavbar(account)
-    # NavbarFormset = formset_factory(NavbarlinkForm, extra=1, can_delete=True)
-
-    # if request.method == 'POST':
-    #     navbar_formset = NavbarFormset(
-    #         request.POST,
-    #         prefix='user'
-    #     )
-        
-    #     if personal_navbar_formset.is_valid() and navbar_formset.is_valid():
-    #         save_navbar(personal_navbar_formset.cleaned_data, account)
-    #         save_navbar(navbar_formset.cleaned_data, account)
-    #         return HttpResponseRedirect(reverse('webfront-preferences-navigation'))
-    # else:
-    #     # Figure out which positions should be checked for which links.
-    #     checked = {}
-    #     for navbar in account_navbar:
-    #         check = {}
-    #         if navbar.navbarlink_id not in checked:
-    #             checked[navbar.navbarlink_id] = {}
-    #         checked[navbar.navbarlink_id][navbar.positions] = True
-
-    #     # Get user links and default links if user is not default account.
-    #     # Default account only has user links, and editing them will effect
-    #     # everyone who uses those links.
-    #     links = {
-    #         'user': NavbarLink.objects.filter(account=account),
-    #         'default': None,
-    #     }
-    #     if account.id != Account.DEFAULT_ACCOUNT:
-    #         links['default'] = NavbarLink.objects.filter(
-    #             account__id=Account.DEFAULT_ACCOUNT)
-
-    #     personal_navbar_formset = PersonalNavbarFormset(
-    #         initial=formset_wrapper(links['user'], checked),
-    #         prefix='user'
-    #     )
-    #     navbar_formset = NavbarFormset(
-    #         initial=formset_wrapper(links['default'], checked),
-    #         prefix='default'
-    #     )
-
+def change_password(request):
+    """ Handles POST requests to change a users password """
+    context = _create_preference_context(request)
     account = get_account(request)
-    YourLinksFormSet = modelformset_factory(NavbarLink, exclude=('account',), extra=3)
-    if request.method == 'POST':
-        formset = YourLinksFormSet(request.POST, queryset=NavbarLink.objects.filter(account=account))
 
+    if account.is_default_account():
+        return direct_to_template(request, 'useradmin/not-logged-in.html', {})
+
+    if request.method == 'POST':
+        password_form = ChangePasswordForm(request.POST, my_account=account)
+
+        if password_form.is_valid():
+            account.set_password(password_form.cleaned_data['new_password1'])
+            account.save()
+            new_message(request, 'Your password has been changed.',
+                        type=Messages.SUCCESS)
+        else:
+            context['password_form'] = password_form
+            return direct_to_template(
+                request,
+                'webfront/preferences.html',
+                context
+            )
+            
+    return HttpResponseRedirect(reverse('webfront-preferences'))
+
+
+def save_links(request):
+    """ Saves navigation preference links on a user """
+    account = get_account(request)
+    formset_from_post = None
+    context = _create_preference_context(request)
+
+    if request.method == 'POST':
+        formset = NavbarLinkFormSet(request.POST)
         if formset.is_valid():
-            instances = formset.save(commit=False)
-            for instance in instances:
+            for form in formset.deleted_forms:
+                instance = form.save(commit=False)
                 instance.account = account
                 instance.save()
-    else:
-        formset = YourLinksFormSet(queryset=NavbarLink.objects.filter(account=account))
 
+            instances = formset.save(commit=False)
+            for instance in instances:
+                    instance.account = account
+                    instance.save()
+            new_message(request, 'Your links were saved.',
+                        type=Messages.SUCCESS)
+        else:
+            context['navbar_formset'] = formset
 
+            return direct_to_template(
+                request,
+                'webfront/preferences.html',
+                context
+            )
 
-    navpath = [
-        ('Home', '/'),
-        ('Preferences', reverse('webfront-preferences')),
-        ('Navigation preferences', None)
-    ]
-    return direct_to_template(
-        request,
-        'webfront/preferences_navigation.html',
-        {
-            'navpath': navpath,
-            #'personal_navbar_formset': personal_navbar_formset,
-            'navbar_formset': formset,
-            'title': 'NAVbar preferences',
-        }
-    )
+    return HttpResponseRedirect(reverse('webfront-preferences'))

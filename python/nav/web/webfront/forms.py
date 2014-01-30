@@ -16,11 +16,14 @@
 #
 
 from django import forms
-from django.forms.models import BaseModelFormSet
+from django.forms.models import BaseModelFormSet, BaseFormSet
+from django.forms.models import modelformset_factory
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout
+from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, Field, HTML
 from crispy_forms_foundation.layout import Submit
 from nav.models.profiles import NavbarLink
+from nav.web.crispyforms import LabelSubmit, CheckBox
+from nav.models.profiles import Account
 
 
 class LoginForm(forms.Form):
@@ -40,34 +43,79 @@ class LoginForm(forms.Form):
             Submit('submit', 'Log in', css_class='small')
         )
 
-class YourLinksFormSet(BaseModelFormSet):
-
+class NavbarlinkForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        account = kwargs.pop('account', None)
-
-        super(YourLinksFormSet, self).__init__(*args, **kwargs)
-
-        self.queryset= NavbarLink.objects.filter(account=account)
-
+        super(NavbarlinkForm, self).__init__(*args, **kwargs)
+        self.empty_permitted = True
         self.helper = FormHelper()
-        self.helper.form_action = 'webfront-preferences'
-        self.helper.form_method = 'post'
+        self.helper.form_tag = False
+        self.render_unmentioned_fields = True
+
         self.helper.layout = Layout(
-            'name', 'url',
-            NavSubmit('submit', 'Lagre')
+            Row(
+                Column('name', css_class='medium-5'),
+                Column('uri', css_class='medium-5'),
+                Column(HTML('<label>&nbsp;</label>'), CheckBox('DELETE'), css_class='link-delete medium-2'),
+            ),
         )
 
-    class Meta:
-        model = NavbarLink
-        exclude = ('account',)
+NavbarLinkFormSet = modelformset_factory(NavbarLink, exclude=('account',), form=NavbarlinkForm, extra=2, can_delete=1)
 
-    
+class ChangePasswordForm(forms.Form):
+    """Form for changing password for an account"""
+    old_password = forms.CharField(label='Old password',
+                                   widget=forms.widgets.PasswordInput)
+    new_password1 = forms.CharField(label='New password (>= 8 characters)',
+                                    min_length=Account.MIN_PASSWD_LENGTH,
+                                    widget=forms.widgets.PasswordInput)
+    new_password2 = forms.CharField(label='Repeat password',
+                                    min_length=Account.MIN_PASSWD_LENGTH,
+                                    widget=forms.widgets.PasswordInput)
 
+    def __init__(self, *args, **kwargs):
+        if 'my_account' in kwargs:
+            self.account = kwargs.pop('my_account')
+        else:
+            self.account = None
 
-class NavbarlinkForm(forms.Form):
-    id = forms.IntegerField(
-        widget=forms.widgets.HiddenInput(),
-        required=False
-    )
-    name = forms.CharField()
-    url = forms.CharField()
+        super(ChangePasswordForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Fieldset(
+                'Change password',
+                'old_password', 'new_password1', 'new_password2',
+                Submit('submit', 'Change password', css_class='small')
+            )
+        )
+
+    def clean_old_password(self):
+        """Verify that old password is correct"""
+        old_password = self.cleaned_data['old_password']
+        is_valid_password = self.account.check_password(old_password)
+        if not is_valid_password:
+            self.clear_passwords(self.cleaned_data)
+            raise forms.ValidationError('Password is incorrect')
+        return
+
+    def clean(self):
+        """Check that passwords match. If not clear form data"""
+        cleaned_data = super(ChangePasswordForm, self).clean()
+        password1 = cleaned_data.get('new_password1')
+        password2 = cleaned_data.get('new_password2')
+
+        if password1 != password2:
+            self.clear_passwords(cleaned_data)
+            raise forms.ValidationError('Passwords did not match')
+        return cleaned_data
+
+    @staticmethod
+    def clear_passwords(cleaned_data):
+        """Clear passwords from the cleaned data"""
+        if 'new_password1' in cleaned_data:
+            del cleaned_data['new_password1']
+        if 'new_password2' in cleaned_data:
+            del cleaned_data['new_password2']
+        if 'old_password' in cleaned_data:
+            del cleaned_data['old_password']
