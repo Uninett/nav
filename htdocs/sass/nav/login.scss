@@ -40,30 +40,6 @@ html, body {
     }
 }
 
-.logincontainer2 {
-    background-color: $primary-color;
-    margin-top: 100px;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 1.25em;
-    width: 350px;
-    ul {
-        margin-bottom: 0;
-    }
-    .logo-wrapper {
-        margin-bottom: 1em;
-        .navlogo {
-            width: 30%;
-        }
-    }
-    .asteriskField {
-        display: none;
-    }
-    label {
-        color: white;
-    }
-}
-
 @media #{$small-only} {
     .logincontainer {
         margin-top: 1em;
