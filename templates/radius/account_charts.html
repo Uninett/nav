@@ -10,12 +10,14 @@
     </div>
     <div class="small-3 column">
       <a href="javascript:void(0);" class="button small secondary right"
-         data-reveal-id="account-chart-hints" data-reveal>Chart information</a>
+         data-reveal-id="account-chart-hints" data-reveal>About the data</a>
     </div>
   </div>
 
-  <div id="form">
-    {% crispy form %}
+  <div id="form" class="row">
+    <div class="medium-6 columns">
+      {% crispy form %}
+    </div>
   </div>
 
   <ul class="large-block-grid-2">

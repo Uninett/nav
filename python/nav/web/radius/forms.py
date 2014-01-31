@@ -218,9 +218,9 @@ class MyCheckBoxSelectMultiple(forms.CheckboxSelectMultiple):
 
 class AccountChartsForm(forms.Form):
     CHARTS = (
-        ('sentrecv', 'Overall'),
-        ('recv', 'Download'),
-        ('sent', 'Upload'),
+        ('sentrecv', 'Bandwidth hogs'),
+        ('recv', 'Downloaders'),
+        ('sent', 'Uploaders'),
     )
 
     days = forms.FloatField(
@@ -238,9 +238,5 @@ class AccountChartsForm(forms.Form):
         self.helper.form_action = ''
         self.helper.form_method = 'GET'
         self.helper.layout = Layout(
-            Row(
-                Column('days', css_class='medium-3'),
-                Column('charts', css_class='medium-9')
-            ),
-            Submit('send', 'Create', css_class='small')
+            'days', 'charts', Submit('send', 'Show me', css_class='small')
         )
