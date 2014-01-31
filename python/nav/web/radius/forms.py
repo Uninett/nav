@@ -95,8 +95,8 @@ class ErrorLogSearchForm(forms.Form):
         ('message', 'Message'),
     )
     TIME_TYPES = (
-        ('hours', 'Last # hour(s)'),
-        ('timestamp', 'Timestamp'),
+        ('hours', 'Hour(s)'),
+        ('timestamp', 'Timespan'),
         ('', 'All time'),
     )
     LOG_ENTRY_TYPES = (
@@ -110,7 +110,8 @@ class ErrorLogSearchForm(forms.Form):
         QUERY_TYPES,
         validators={
             'port': validate_integer
-        })
+        },
+        label='Search for')
     log_entry_type = forms.ChoiceField(
         required=False,
         choices=LOG_ENTRY_TYPES)
@@ -120,7 +121,7 @@ class ErrorLogSearchForm(forms.Form):
             'hours': validate_integer,
             'timestamp': validate_datetime_with_slack
         },
-        required=False
+        required=False, label='Time options'
     )
 
     def __init__(self, *args, **kwargs):
@@ -148,8 +149,8 @@ class AccountLogSearchForm(forms.Form):
         ('iprange', 'IP-range'),
     )
     TIME_TYPES = (
-        ('days', 'Last # day(s)'),
-        ('timestamp', 'Timestamp'),
+        ('days', 'Day(s)'),
+        ('timestamp', 'Timespan'),
         ('', 'All time'),
     )
     PORT_TYPES = (
@@ -168,7 +169,8 @@ class AccountLogSearchForm(forms.Form):
         validators={
             'nasipaddress': validate_ipv4_address,
             'iprange': validate_cidr
-        }
+        },
+        label='Search for'
     )
     time = MultitypeQueryField(
         TIME_TYPES,
@@ -176,7 +178,7 @@ class AccountLogSearchForm(forms.Form):
             'days': validate_integer,
             'timestamp': validate_datetime_with_slack
         },
-        required=False
+        required=False, label='Time options'
     )
     port_type = forms.ChoiceField(
         required=False,
@@ -224,7 +226,7 @@ class AccountChartsForm(forms.Form):
     days = forms.FloatField(
         min_value=0.5,
         initial=7,
-        label='Last # day(s)')
+        label='Day(s)')
     charts = forms.MultipleChoiceField(
         choices=CHARTS,
         widget=MyCheckBoxSelectMultiple(),
