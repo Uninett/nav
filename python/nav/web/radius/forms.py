@@ -7,9 +7,9 @@ from django.core.validators import validate_integer as django_validate_integer
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Field,
                                             MultiWidgetField, Submit)
-from django.utils.safestring import mark_safe
 
 from nav.util import is_valid_cidr
+from nav.web.djangoforms import InlineMultipleChoiceField
 
 
 def validate_integer(value):
@@ -183,10 +183,9 @@ class AccountLogSearchForm(forms.Form):
     port_type = forms.ChoiceField(
         required=False,
         choices=PORT_TYPES)
-    dns_lookup = forms.MultipleChoiceField(
+    dns_lookup = InlineMultipleChoiceField(
         required=False,
-        choices=DNS_LOOKUPS,
-        widget=forms.CheckboxSelectMultiple)
+        choices=DNS_LOOKUPS)
 
     def __init__(self, *args, **kwargs):
         super(AccountLogSearchForm, self).__init__(*args, **kwargs)
@@ -208,14 +207,6 @@ class AccountLogSearchForm(forms.Form):
         )
 
 
-class MyCheckBoxSelectMultiple(forms.CheckboxSelectMultiple):
-    """Display the list of checkboxes with inline style"""
-    def render(self, name, value, attrs=None, choices=()):
-        html = super(MyCheckBoxSelectMultiple, self).render(
-            name, value, attrs, choices)
-        return mark_safe(html.replace('<ul>', '<ul class="inline-list">'))
-
-
 class AccountChartsForm(forms.Form):
     CHARTS = (
         ('sentrecv', 'Bandwidth hogs'),
@@ -227,9 +218,8 @@ class AccountChartsForm(forms.Form):
         min_value=0.5,
         initial=7,
         label='Day(s)')
-    charts = forms.MultipleChoiceField(
+    charts = InlineMultipleChoiceField(
         choices=CHARTS,
-        widget=MyCheckBoxSelectMultiple(),
         initial=CHARTS[0])
 
     def __init__(self, *args, **kwargs):
