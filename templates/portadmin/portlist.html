@@ -1,5 +1,123 @@
 {% load portadmin %}
 
+<h4>{{ netbox.sysname }}</h4>
+
+<ul class="large-block-grid-5 medium-block-grid-3 small-block-grid-1">
+
+  {% for interface in interfaces %}
+    <li>
+    <div class="portadmin-card {% if readonly %}readonly{% endif %}">
+
+      {# Interface Name #}
+      <h5>Port {{ interface.ifname }}</h5>
+
+
+      {# Status indicators #}
+      <div class="row">
+        <div class="small-6 column">
+          <label>Enabled
+          <img title="AdminStatus - If red the interface is down"
+               src="{{ STATIC_URL }}images/lys/{{ interface.ifadminstatus|drawLight }}"/>
+          </label>
+        </div>
+        <div class="small-6 column">
+          <label>Linked
+          <img title="OperStatus - If red there is no link on the interface"
+               src="{{ STATIC_URL }}images/lys/{{ interface.ifoperstatus|drawLight }}"/>
+          </label>
+        </div>
+      </div>
+
+
+      {# Port description #}
+      <div class="port-description">
+        <h6>Port Description</h6>
+        <span class="description">
+        {% if interface.iseditable %}
+          <input class="ifalias" type="text"
+                 value="{{ interface.ifalias|default_if_none:'' }}"
+                 data-orig="{{ interface.ifalias|default_if_none:'' }}"/>
+        {% else %}
+          {{ interface.ifalias|default:'No description' }}
+        {% endif %}
+        </span>
+      </div>
+
+
+      {# Vlan/Trunk and voice vlan #}
+      <div class="row">
+
+        {# Vlan / Trunk #}
+        <div class="small-6 columns">
+          <h6>Vlan</h6>
+          {% if interface.trunk and not interface.voice_activated %}
+            <div class="trunk-link">
+              <a href="{% url portadmin-render-trunk-edit interface.id %}">
+                Trunk
+              </a>
+            </div>
+
+          {% else %}
+            {% if interface.iseditable %}
+              <form>
+              <select class="vlanlist" name="{{ interface.ifname }}">
+                {% for vlan in allowed_vlans %}
+                  {% if not interface.voice_activated or vlan.vlan != voice_vlan %}
+                    <option value="{{ vlan.vlan }}"
+                            {% if interface.vlan == vlan.vlan %}selected="selected"
+                            data-orig="{{ vlan.vlan }}"{% endif %}>
+                      {{ vlan.vlan }}
+                    </option>
+                  {% endif %}
+                {% endfor %}
+                <option value="trunk"
+                        data-url="{% url portadmin-render-trunk-edit interface.id %}">
+                  Trunk
+                </option>
+              </select>
+              </form>
+            {% else %}
+              <span class="description">{{ interface.vlan|default_if_none:'' }}</span>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        {# Optional checkbox for voice vlan #}
+        <div class="small-6 columns">
+        {% if voice_vlan %}
+          {% if interface.voice_activated or not interface.trunk %}
+            <h6>Voice vlan</h6>
+            <input class="voicevlan"
+                   type="checkbox"
+                   name="voice_vlan"
+                   data-orig="{{ interface.voice_activated|default:'false' }}"
+                   {% if interface.voice_activated %}checked{% endif %}
+                   {% if not interface.iseditable %}disabled="disabled"{% endif %}>
+          {% else %}
+            &nbsp;
+          {% endif %}
+        {% endif %}
+        </div>
+
+      </div>
+
+      {# Save button #}
+      {% if interface.iseditable %}
+        <button class="tiny save-interface">Save</button>
+      {% endif %}
+
+    </div>
+    </li>
+  {% endfor %}
+
+
+</ul>
+
+{% if not readonly %}
+  <input type="button" class="saveall_button button small" value="Save all"/>
+{% endif %}
+
+{% comment %}
 <div id="portadmin-wrapper" class="faketable">
 
 <div class="caption">
@@ -36,13 +154,13 @@
 {% for interface in interfaces %}
   <div id="{{ interface.id }}" class="row port_row">
 
-    {# Interface name #}
+    Interface name
     <div class="medium-2 small-12 column">
       <span class="left hide-for-medium-up">Port&nbsp;</span>
       <span title="{{ interface.ifname }}">{{ interface.ifname }}</span>
     </div>
 
-    {# Status indicators #}
+    Status indicators
     <div class="medium-1 small-6 column portadmin-status">
       <span class="left hide-for-medium-up">Enabled&nbsp;</span>
       <img title="AdminStatus - If red the interface is down"
@@ -57,7 +175,7 @@
            />
     </div>
 
-    {# Port Description - input field #}
+    Port Description - input field
     <div class="medium-4 column">
       {% if interface.iseditable %}
         <input class="ifalias" type="text"
@@ -68,7 +186,7 @@
       {% endif %}
     </div>
 
-    {# Vlan / Trunk #}
+    Vlan / Trunk
     <div class="medium-2 small-4 column">
       {% if interface.trunk and not interface.voice_activated %}
         <a href="{% url portadmin-render-trunk-edit interface.id %}">
@@ -99,7 +217,7 @@
       {% endif %}
     </div>
 
-    {# Optional checkbox for voice vlan #}
+    Optional checkbox for voice vlan
     {% if voice_vlan %}
     <div class="small-4 medium-1 column">
       {% if interface.voice_activated or not interface.trunk %}
@@ -115,7 +233,7 @@
     </div>
     {% endif %}
 
-    {# Button for saving #}
+    Button for saving
     <div class="column {% if voice_vlan %}medium-1 small-4{% else %}medium-2 small-6{% endif %}">
       {% if interface.iseditable %}
         <button class="tiny portadmin-save">Save</button>
@@ -125,6 +243,7 @@
 {% endfor %}
 
 </div>
+{% endcomment %}
 
 {% comment %}
 <table id="portadmin-interfacecontainer" class="listtable full-width">
@@ -253,5 +372,3 @@
 </table>
 {% endcomment %}
 
-
-<input type="button" class="saveall_button button small" value="Save all"/>

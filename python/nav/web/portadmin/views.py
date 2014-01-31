@@ -175,12 +175,14 @@ def populate_infodict(request, account, netbox, interfaces):
 
     allowed_vlans = []
     voice_vlan = None
+    readonly = False
     try:
         fac = get_and_populate_livedata(netbox, interfaces)
         allowed_vlans = find_and_populate_allowed_vlans(account, netbox,
                                                         interfaces, fac)
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
     except SnmpError:
+        readonly = True
         messages.error(request, "Timeout when contacting %s" % netbox.sysname)
         messages.error(request, "Values displayed are from database")
         if not netbox.read_only:
@@ -205,6 +207,7 @@ def populate_infodict(request, account, netbox, interfaces):
                       'voice_vlan': voice_vlan,
                       'allowed_vlans': allowed_vlans,
                       'account': account,
+                      'readonly': readonly,
                       'aliastemplate': aliastemplate})
     return info_dict
 

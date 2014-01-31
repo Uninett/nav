@@ -1,18 +1,25 @@
 @import "../navsettings";
 
-@media #{$small-only} {
-    #portadmin-wrapper {
-        .portadmin-save {
-            float: right;
-        }
+.portadmin-card {
+    background-color: #dcdcdc;
+    border: 1px solid #b6b6b6;
+    padding: 0.7em;
+    h6, .save-interface {
+        margin-bottom: 0;
     }
-}
-
-#portadmin-wrapper {
-    .changed {
+    .ifalias {
+        margin-bottom: 0.5em;
+    }
+    .trunk-link {
+        margin-bottom: 1rem;
+    }
+    .description {
+        font-size: small;
+    }
+    &.changed {
         background-color: bisque;
     }
-    .success {
+    &.success {
         background-color: #dff0d8;
     }
 }
