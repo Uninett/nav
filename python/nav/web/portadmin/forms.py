@@ -25,7 +25,7 @@ class SearchForm(forms.Form):
     query = forms.CharField(
         label='',
         widget=forms.TextInput(
-            attrs={'placeholder': 'Search for ip device or port description'}))
+            attrs={'placeholder': 'Search for ip device or interface'}))
 
     def __init__(self, *args, **kwargs):
         super(SearchForm, self).__init__(*args, **kwargs)
