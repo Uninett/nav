@@ -60,7 +60,9 @@
       </table>
 
     {% else %}
-      <p class="alert-box">No result</p>
+      {% if not form.errors %}
+        <p class="alert-box">No result</p>
+      {% endif %}
     {% endif %}
   {% endif %}
 

@@ -94,7 +94,9 @@
     </p>
 
     {% else %}
-      <p class="alert-box">No results</p>
+      {% if not form.errors %}
+        <p class="alert-box">No results</p>
+      {% endif %}
     {% endif %}
 
   {% endif %}
