@@ -1,24 +1,39 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
-	<link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/portadmin.css" />
-    <script>require(['src/portadmin']);</script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/portadmin.css"/>
+  <script>require(['src/portadmin']);</script>
 {% endblock %}
 
 {% block base_content %}
 
-<h3>PortAdmin</h3>
+  {% with header as tool %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
 
-{% if messages %}
-  {% for message in messages %}
-    <div class="alert-box {{ message.tags }}">
-    {{ message }}
-    </div>
-  {% endfor %}
-{% endif %}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert-box {{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
 
+  {% crispy form %}
 
-{% block content %}
-{% endblock %}
+  {% block content %}
+    {% if form.is_bound %}
+      <ol>
+        {% for netbox in netboxes %}
+          <li>
+            <a href="{% url portadmin-sysname netbox.sysname %}">
+              {{ netbox.sysname }}
+            </a>
+          </li>
+        {% endfor %}
+      </ol>
+    {% endif %}
+  {% endblock %}
 
 {% endblock %}

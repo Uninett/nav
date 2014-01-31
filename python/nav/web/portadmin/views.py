@@ -17,11 +17,14 @@
 import simplejson
 import logging
 
+from operator import or_ as OR
+
 from django.http import HttpResponse
 from django.template import RequestContext, Context
 from django.shortcuts import render_to_response
 from django.contrib import messages
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 
 from nav.django.utils import get_account
 from nav.web.utils import create_title
@@ -37,25 +40,62 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      should_check_access_rights)
 from nav.Snmp.errors import SnmpError
 from nav.portadmin.snmputils import SNMPFactory
-
-NAVBAR = [('Home', '/'), ('PortAdmin', None)]
-DEFAULT_VALUES = {'title': "PortAdmin", 'navpath': NAVBAR}
+from .forms import SearchForm
 
 _logger = logging.getLogger("nav.web.portadmin")
 
 
+def get_base_context(additional_paths=None, form=None):
+    """Returns a base context for portadmin
+
+    :type additional_paths: list of tuple
+    """
+    navpath = [('Home', '/'), ('PortAdmin', reverse('portadmin-index'))]
+    if additional_paths:
+        navpath += additional_paths
+    form = form if form else SearchForm()
+    return {
+        'header': {'name': 'PortAdmin',
+                   'description': 'Configure interfaces on ip devices'},
+        'navpath': navpath,
+        'title': create_title(navpath),
+        'form': form
+    }
+
+
 def index(request):
     """View for showing main page"""
-    info_dict = {}
-    info_dict.update(DEFAULT_VALUES)
+    netboxes = []
+    if 'query' in request.GET:
+        form = SearchForm(request.GET)
+        if form.is_valid():
+            netboxes = search(form.cleaned_data['query'])
+            if len(netboxes) == 1:
+                netbox = netboxes[0]
+                return search_by_sysname(request, netbox.sysname)
+    else:
+        form = SearchForm()
+    context = get_base_context(form=form)
+    context['netboxes'] = netboxes
+
     return render_to_response('portadmin/base.html',
-                              info_dict,
+                              context,
                               RequestContext(request))
+
+
+def search(query):
+    """Search for something in portadmin"""
+    filters = [
+        Q(sysname__icontains=query),
+        Q(ip=query)
+    ]
+    netboxes = Netbox.objects.filter(reduce(OR, filters))
+    return netboxes
 
 
 def search_by_ip(request, ip):
     """View for showing a search done by ip-address"""
-    info_dict = {}
+    info_dict = get_base_context()
     account = get_account(request)
     try:
         netbox = Netbox.objects.get(ip=ip)
@@ -79,7 +119,7 @@ def search_by_ip(request, ip):
 
 def search_by_sysname(request, sysname):
     """View for showing a search done by sysname"""
-    info_dict = {}
+    info_dict = get_base_context()
     account = get_account(request)
     try:
         netbox = Netbox.objects.get(sysname=sysname)
@@ -102,7 +142,7 @@ def search_by_sysname(request, sysname):
 
 def search_by_interfaceid(request, interfaceid):
     """View for showing a search done by interface id"""
-    info_dict = {}
+    info_dict = get_base_context()
     account = get_account(request)
     try:
         interface = Interface.objects.get(id=interfaceid)
@@ -137,9 +177,9 @@ def populate_infodict(request, account, netbox, interfaces):
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
     except SnmpError:
         messages.error(request, "Timeout when contacting %s" % netbox.sysname)
+        messages.error(request, "Values displayed are from database")
         if not netbox.read_only:
             messages.error(request, "Read only community not set")
-            messages.error(request, "Values displayed are from database")
 
     check_read_write(netbox, request)
 
@@ -154,13 +194,13 @@ def populate_infodict(request, account, netbox, interfaces):
     if voice_vlan:
         set_voice_vlan_attribute(voice_vlan, interfaces)
 
-    info_dict = {'interfaces': interfaces,
-                 'netbox': netbox,
-                 'voice_vlan': voice_vlan,
-                 'allowed_vlans': allowed_vlans,
-                 'account': account,
-                 'aliastemplate': aliastemplate}
-    info_dict.update(DEFAULT_VALUES)
+    info_dict = get_base_context([(netbox.sysname, )])
+    info_dict.update({'interfaces': interfaces,
+                      'netbox': netbox,
+                      'voice_vlan': voice_vlan,
+                      'allowed_vlans': allowed_vlans,
+                      'account': account,
+                      'aliastemplate': aliastemplate})
     return info_dict
 
 
