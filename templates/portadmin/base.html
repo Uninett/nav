@@ -24,15 +24,37 @@
 
   {% block content %}
     {% if form.is_bound %}
-      <ol>
-        {% for netbox in netboxes %}
-          <li>
-            <a href="{% url portadmin-sysname netbox.sysname %}">
-              {{ netbox.sysname }}
-            </a>
-          </li>
-        {% endfor %}
-      </ol>
+      <div class="row">
+        <div class="medium-5 column">
+          <h5>IP Devices</h5>
+          <ul>
+          {% for netbox in netboxes %}
+            <li>
+              <a href="{% url portadmin-sysname netbox.sysname %}">
+                {{ netbox.sysname }}
+              </a>
+            </li>
+          {% empty %}
+            <li>No ip devices found</li>
+          {% endfor %}
+          </ul>
+        </div>
+
+        <div class="medium-7 column">
+          <h5>Interfaces</h5>
+          <ul>
+            {% for interface in interfaces %}
+              <li>
+                <a href="{% url portadmin-interface interface.id %}">
+                  {{ interface.netbox }} - {{ interface.ifname }} - {{ interface.ifalias }}
+                </a>
+              </li>
+            {% empty %}
+              <li>No interfaces found</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
     {% endif %}
   {% endblock %}
 

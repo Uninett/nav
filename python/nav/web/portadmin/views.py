@@ -69,14 +69,16 @@ def index(request):
     if 'query' in request.GET:
         form = SearchForm(request.GET)
         if form.is_valid():
-            netboxes = search(form.cleaned_data['query'])
-            if len(netboxes) == 1:
-                netbox = netboxes[0]
-                return search_by_sysname(request, netbox.sysname)
+            netboxes, interfaces = search(form.cleaned_data['query'])
+            if len(netboxes) == 1 and not interfaces:
+                return search_by_sysname(request, netboxes[0].sysname)
+            elif len(interfaces) == 1 and not netboxes:
+                return search_by_interfaceid(request, interfaces[0].id)
     else:
         form = SearchForm()
     context = get_base_context(form=form)
     context['netboxes'] = netboxes
+    context['interfaces'] = interfaces
 
     return render_to_response('portadmin/base.html',
                               context,
@@ -85,12 +87,15 @@ def index(request):
 
 def search(query):
     """Search for something in portadmin"""
-    filters = [
+    netbox_filters = [
         Q(sysname__icontains=query),
         Q(ip=query)
     ]
-    netboxes = Netbox.objects.filter(reduce(OR, filters))
-    return netboxes
+    netboxes = Netbox.objects.filter(
+        reduce(OR, netbox_filters)).order_by('sysname')
+    interfaces = Interface.objects.filter(
+        ifalias__icontains=query).order_by('netbox__sysname', 'ifname')
+    return netboxes, interfaces
 
 
 def search_by_ip(request, ip):
