@@ -2,11 +2,12 @@
 
 <h4>{{ netbox.sysname }}</h4>
 
-<ul class="large-block-grid-5 medium-block-grid-3 small-block-grid-1">
+<ul id='portadmin-wrapper'
+    class="large-block-grid-5 medium-block-grid-3 small-block-grid-1">
 
   {% for interface in interfaces %}
     <li>
-    <div class="portadmin-card {% if readonly %}readonly{% endif %}">
+    <div id="{{ interface.id }}" class="portadmin-card {% if readonly %}readonly{% endif %}">
 
       {# Interface Name #}
       <h5>Port {{ interface.ifname }}</h5>

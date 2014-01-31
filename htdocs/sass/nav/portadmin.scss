@@ -20,6 +20,13 @@
         background-color: bisque;
     }
     &.success {
-        background-color: #dff0d8;
+        background-color: $success-box-bg;
+    }
+    &.error {
+        background-color: $alert-box-bg;
+    }
+    .alert-box {
+        margin-bottom: 0;
+        margin-top: 1em;
     }
 }
