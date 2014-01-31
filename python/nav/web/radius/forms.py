@@ -1,3 +1,19 @@
+#
+# Copyright (C) 2014 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+"""Forms for the radius tool"""
 from datetime import datetime
 
 from django import forms
@@ -5,14 +21,14 @@ from django.core.validators import validate_ipv4_address
 from django.core.validators import validate_integer as django_validate_integer
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Row, Column, Field,
-                                            MultiWidgetField, Submit)
+from crispy_forms_foundation.layout import Layout, Row, Column, Submit
 
 from nav.util import is_valid_cidr
 from nav.web.djangoforms import InlineMultipleChoiceField
 
 
 def validate_integer(value):
+    """Validator for integer"""
     try:
         django_validate_integer(value)
     except forms.ValidationError:
@@ -20,12 +36,14 @@ def validate_integer(value):
 
 
 def validate_cidr(value):
+    """Validator for cidr xxx.xxx.xxx.xxx/xx"""
     if not value or not is_valid_cidr(value):
         raise forms.ValidationError(
             'Must be a valid CIDR address!')
 
 
 def validate_datetime_with_slack(value):
+    """Validates a timestamp with or without slack"""
     try:
         values = value.split('|')
         time = values[0]
@@ -61,11 +79,13 @@ class MultitypeQueryField(forms.MultiValueField):
     input, and validates the query according to the type.
     """
 
-    def __init__(self, choices, validators={}, *args, **kwargs):
+    def __init__(self, choices, validators, *args, **kwargs):
         """
         :param validators:  A dict that maps query type
         values to validators.
         """
+        if validators is None:
+            validators = {}
         super(MultitypeQueryField, self).__init__(*args, **kwargs)
         self.fields = (
             forms.ChoiceField(choices=choices),
@@ -88,6 +108,7 @@ class MultitypeQueryField(forms.MultiValueField):
 
 
 class ErrorLogSearchForm(forms.Form):
+    """Form for searching in radius error log"""
     QUERY_TYPES = (
         ('username', 'Username'),
         ('client', 'Client'),
@@ -142,6 +163,7 @@ class ErrorLogSearchForm(forms.Form):
 
 
 class AccountLogSearchForm(forms.Form):
+    """Form for searching in the radius account log"""
     QUERY_TYPES = (
         ('username', 'Username'),
         ('framedipaddress', 'User Hostname/IP Address'),
@@ -208,6 +230,7 @@ class AccountLogSearchForm(forms.Form):
 
 
 class AccountChartsForm(forms.Form):
+    """Form for displaying top talkers"""
     CHARTS = (
         ('sentrecv', 'Bandwidth hogs'),
         ('recv', 'Downloaders'),
