@@ -193,8 +193,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         $.ajax({url: "save_interfaceinfo",
             data: interfaceData,
             dataType: 'json',
-//            type: 'POST',
-            type: 'GET',
+            type: 'POST',
             beforeSend: function () {
                 $('tr.error').remove();
                 disableButtons($card);
