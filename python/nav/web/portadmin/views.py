@@ -66,6 +66,7 @@ def get_base_context(additional_paths=None, form=None):
 def index(request):
     """View for showing main page"""
     netboxes = []
+    interfaces = []
     if 'query' in request.GET:
         form = SearchForm(request.GET)
         if form.is_valid():
