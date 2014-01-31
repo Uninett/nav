@@ -14,11 +14,8 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Contains the class for the PortAdmin navlet"""
-from django.shortcuts import redirect
-
-from nav.models.manage import Netbox
-from nav.util import is_valid_ip
 from nav.web.navlets import Navlet
+from nav.web.portadmin.forms import SearchForm
 
 
 class PortadminNavlet(Navlet):
@@ -30,16 +27,7 @@ class PortadminNavlet(Navlet):
     def get_template_basename(self):
         return "portadmin"
 
-    def post(self, request):
-        search = request.POST.get('searchvalue')
-        if is_valid_ip(search):
-            return redirect('portadmin-ip', kwargs={'ip': search})
-        else:
-            try:
-                netboxes = Netbox.objects.filter(sysname__istartswith=search)
-            except Netbox.DoesNotExist:
-                pass
-            else:
-                # Pick the first and best of the results
-                return redirect('portadmin-sysname',
-                                sysname=netboxes[0].sysname)
+    def get_context_data(self, **kwargs):
+        context = super(PortadminNavlet, self).get_context_data(**kwargs)
+        context['form'] = SearchForm()
+        return context
