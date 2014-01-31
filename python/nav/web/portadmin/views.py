@@ -423,13 +423,9 @@ def render_trunk_edit(request, interfaceid):
         else:
             messages.success(request, 'Trunk edit successful')
 
-    account = get_account(request)
+    account = request.account
     netbox = interface.netbox
     check_read_write(netbox, request)
-    navpath = [('Home', '/'), ('PortAdmin', reverse('portadmin-index')),
-               (netbox.sysname, reverse('portadmin-sysname',
-                                        kwargs={'sysname': netbox.sysname}))]
-
     vlans = agent.get_netbox_vlans()  # All vlans on this netbox
     native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
     if should_check_access_rights(account):
@@ -439,14 +435,18 @@ def render_trunk_edit(request, interfaceid):
     else:
         allowed_vlans = vlans
 
+    extra_path = [(netbox.sysname,
+                   reverse('portadmin-sysname',
+                           kwargs={'sysname': netbox.sysname})),
+                  ("Trunk %s" % interface,)]
+
+    context = get_base_context(extra_path)
+    context.update({'interface': interface, 'available_vlans': vlans,
+                    'native_vlan': native_vlan, 'trunked_vlans': trunked_vlans,
+                    'allowed_vlans': allowed_vlans})
+
     return render_to_response('portadmin/trunk_edit.html',
-                              {'interface': interface,
-                               'available_vlans': vlans,
-                               'native_vlan': native_vlan,
-                               'trunked_vlans': trunked_vlans,
-                               'allowed_vlans': allowed_vlans,
-                               'navpath': navpath,
-                               'title': create_title(navpath)},
+                              context,
                               RequestContext(request))
 
 
