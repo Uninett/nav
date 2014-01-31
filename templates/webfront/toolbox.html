@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-    <link rel="stylesheet" href="/style/tool.css" />
-    <link rel="stylesheet" href="/style/jqueryui/jquery-ui-1.8.21.custom.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/tool.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css" />
     <script>require(["src/toolbox"]);</script>
 {% endblock %}
 
@@ -11,71 +11,43 @@
 
     {% if not current_user_data.account.is_default_account %}
         <div class="buttoncontainer">
-            <img class="display-layout" title="Change layout" alt="Change layout"
-                    {% if layout == 'grid' %}
-                 src="/images/icons/edit-list.png" data-value='list'
-                    {% else %}
-                 src="/images/icons/grid.png" data-value='grid'
-                    {% endif %}
-                    >
-            <button class="editbutton">Edit</button>
-            <button class="savebutton showonclick">Save</button>
-            <span class="showonclick">Drag to sort existing tools. Drag them to the yellow list to hide them.</span>
+            <button class="editbutton button small">Edit</button>
+            <button class="savebutton button small">Save</button>
+            <span class="info">Drag to sort existing tools. Click to make them available in the your tools list when you leave the page.</span>
         </div>
     {% endif %}
 
+    <table id="tool_list" class="table-hover">
+        <tbody>
+        {% for tool in tools %}
+            <tr data-toolid="{{ tool.name }}">
+                <td>
+                    <a href="{{ tool.uri }}" title="{{ tool.description }}">
+                        <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
+                    </a>
+                </td>
+                <td>
+                    <a href="{{ tool.uri }}" title="{{ tool.description }}">
+                        <span>{{ tool.name }}</span>
+                    </a>
+                </td>
+                <td>
+                    {{ tool.description }}
+                </td>
+                <td class="switch-cell">
+                    <div class="switch small">
+                        <input id="{{ forloop.counter }}" name="switch-{{ forloop.counter }}" data-state="off" type="radio" {% if not tool.display %}checked{% endif %} >
+                        <label for="{{ forloop.counter }}" onclick="">Off</label>
 
-    {% if layout == 'grid' %}
+                        <input id="{{ forloop.counter }}100" name="switch-{{ forloop.counter }}" data-state="on" type="radio" {% if tool.display %}checked{% endif %} >
+                        <label for="{{ forloop.counter }}100" onclick="">On</label>
 
-        <ul id="deselected_tools" class="gridlist ui-helper-hidden deselected toollist">
-            {% for tool in tools %}
-                {% if not tool.display %}
-                    {% include "webfront/toolbox_big_frag.html" %}
-                {% endif %}
-            {% endfor %}
-        </ul>
-
-        <div class="float-clear"></div>
-
-        <ul id="selected_tools" class="gridlist toollist">
-            {% for tool in tools %}
-                {% if tool.display %}
-                    {% include "webfront/toolbox_big_frag.html" %}
-                {% endif %}
-            {% endfor %}
-        </ul>
-
-    {% else %}
-
-
-        <div class='linklistwrapper'>
-            <ul id="selected_tools" class="linklist toollist">
-                {% for tool in tools %}
-                    {% if tool.display %}
-                        {% include 'webfront/toolbox_small_frag.html' %}
-                    {% endif %}
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="linklistwrapper">
-            <ul id="deselected_tools"
-                class="ui-helper-hidden linklist toollist">
-                <li class="permanent ui-state-highlight">
-                    <span>Drag tools you do not want here</span>
-                </li>
-                {% for tool in tools %}
-                    {% if not tool.display %}
-                        {% include 'webfront/toolbox_small_frag.html' %}
-                    {% endif %}
-                {% endfor %}
-            </ul>
-        </div>
-
-
-    {% endif %}
-
-    <div class="float-clear"></div>
-
+                        <span>&nbsp;</span>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 
 {% endblock %}

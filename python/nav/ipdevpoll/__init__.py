@@ -19,12 +19,6 @@ Packages:
 
   plugins -- polling plugin system
 
-Modules:
-
-  daemon  -- device polling daemon
-  models  -- internal data models
-  snmpoid -- snmpoid based poll run scheduling
-
 """
 from .log import ContextLogger, ContextFormatter
 

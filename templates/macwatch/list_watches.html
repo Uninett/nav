@@ -3,39 +3,40 @@
 
 {% block content %}
 
-<p><a href="/macwatch/add">Add mac watch</a></p>
+    <a href="/macwatch/add" class="button small">Add mac watch</a>
 
-{% if macwatches %}
-<table class="vertitable">
-  <caption>Current mac watches</caption>
+    {% if macwatches %}
+        <table class="vertitable">
+            <caption>Current mac addresses on watch</caption>
 
-  <tr>
-    <th>Mac Address</th>
-    <th>Description</th>
-    <th>Added by</th>
-    <th>Created</th>
-    <th>&nbsp;</th>
-  </tr>
-  {% for macwatch in macwatches %}
+            <tr>
+                <th>Mac Address</th>
+                <th>Description</th>
+                <th>Added by</th>
+                <th>Created</th>
+                <th>&nbsp;</th>
+            </tr>
+            {% for macwatch in macwatches %}
 
-  <tr>
-    <td>
-        <a href="{% url machinetracker-mac_search mac=macwatch.get_mac_addr,days=-1,dns=on %}">
-        {{ macwatch.get_mac_addr }}</a></td>
-    <td>{{ macwatch.description }}</td>
-    <td>{{ macwatch.userid.name }}</td>
-    <td>{{ macwatch.created|default_datetime }}</td>
-    {% comment %}
-    <td>{{ macwatch.created }}</td>
-    {% endcomment %}
-    <td><a href="/macwatch/delete/{{ macwatch.id }}/">Delete</a></td>
-  </tr>
+                <tr>
+                    <td>
+                        <a href="{% url machinetracker-mac_search mac=macwatch.get_mac_addr,days=-1,dns=on %}">
+                            {{ macwatch.get_mac_addr }}
+                        </a>
+                    </td>
+                    <td>{{ macwatch.description }}</td>
+                    <td>{{ macwatch.userid.name }}</td>
+                    <td>{{ macwatch.created|default_datetime }}</td>
+                    <td>
+                        <a href="/macwatch/delete/{{ macwatch.id }}/" class="button tiny alert">Delete</a>
+                    </td>
+                </tr>
 
-  {% endfor %}
-</table>
-{% else %}
-<p>No active mac watches.</p>
-{% endif %}
+            {% endfor %}
+        </table>
+    {% else %}
+        <p class="alert-box secondary">No active mac watches.</p>
+    {% endif %}
 
 
 {% endblock %}

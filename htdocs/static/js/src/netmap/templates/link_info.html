@@ -1,0 +1,66 @@
+<h3>Link info</h3>
+{{#if link.data.uplink.vlan}}
+<div class="uplink_prefix">
+
+    <h4>{{link.data.uplink.vlan.net_ident}}</h4>
+    <span class="prefix_description">{{link.data.uplink.vlan.description}}</span>
+    <span class="description">Prefix members</span>
+    <ul class="uplink_prefixes">
+        {{#each link.data.uplink.prefixes}}
+            <li class="prefix_net_address">{{this}}</li>
+        {{/each}}
+    </ul>
+
+</div>
+{{/if}}
+<div>
+    <div class="uplink_this uplink">
+        {{#if link.data.uplink.thiss.netbox_link}}
+            <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{link.data.uplink.thiss.netbox_link}}">{{link.data.uplink.thiss.netbox}}</a></span> <span class="uplink_interface">[<a class="uplink_interface_link" href="{{link.data.uplink.thiss.interface_link}}">{{link.data.uplink.thiss.interface}}</a>]</span>
+            {{#if link.data.uplink.vlan}}
+                <span class="uplink_gw_ip">{{link.data.uplink.thiss.gw_ip}}</span>
+                <span class="uplink_virtual">virtual: {{link.data.uplink.thiss.virtual}}</span>
+            {{/if}}
+        {{else}}
+            <span class="uplink_netbox">{{link.data.uplink.thiss.netbox}}</span> <span class="uplink_interface">[{{link.data.uplink.thiss.interface}}]</span>
+            {{#if link.data.uplink.vlan}}
+                <span class="uplink_gw_ip">{{link.data.uplink.thiss.gw_ip}}</span>
+                <span class="uplink_virtual">virtual: {{link.data.uplink.thiss.virtual}}</span>
+            {{/if}}
+        {{/if}}
+    </div>
+
+    <div class="uplink_other uplink">
+        {{#if link.data.uplink.other.netbox_link}}
+            <span class="uplink_netbox"><a class="uplink_netbox_link" href="{{link.data.uplink.other.netbox_link}}">{{link.data.uplink.other.netbox}}</a></span> <span class="uplink_interface">[<a class="uplink_interface_link" href="{{link.data.uplink.other.interface_link}}">{{link.data.uplink.other.interface}}</a>]</span>
+            {{#if link.data.uplink.vlan}}
+                <span class="uplink_gw_ip">{{link.data.uplink.other.gw_ip}}</span>
+                <span class="uplink_virtual">virtual: {{link.data.uplink.other.virtual}}</span>
+            {{/if}}
+        {{else}}
+            <span class="uplink_netbox">{{link.data.uplink.other.netbox}}</span> <span class="uplink_interface">[{{link.data.uplink.other.interface}}]</span>
+            {{#if link.data.uplink.vlan}}
+                <span class="uplink_gw_ip">{{link.data.uplink.other.gw_ip}}</span>
+                <span class="uplink_virtual">virtual: {{link.data.uplink.other.virtual}}</span>
+            {{/if}}
+        {{/if}}
+    </div>
+</div>
+<div class="traffic">
+    <div class="link_speed"><span class="description">Link speed:</span><span class="value">{{link.data.link_speed}}mbps</span></div>
+    <span class="description">Traffic</span>
+    <div class="trafficIn">
+        <span class="trafficInDescription description">in:</span>
+        <span class="trafficInOctets">{{inOctets}}</span>
+        {{#if link.data.traffic.inOctetsPercentBySpeed}}
+            <span class="trafficInPercentByLinkSpeed">({{link.data.traffic.inOctetsPercentBySpeed}}%)</span>
+        {{/if}}
+    </div>
+    <div class="trafficOut">
+        <span class="trafficOutDescription description">out:</span>
+        <span class="trafficOutOctets">{{outOctets}}</span>
+        {{#if link.data.traffic.outOctetsPercentBySpeed}}
+            <span class="trafficOutPercentByLinkSpeed">({{link.data.traffic.outOctetsPercentBySpeed}}%)</span>
+        {{/if}}
+    </div>
+</div>

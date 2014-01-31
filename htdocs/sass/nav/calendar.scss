@@ -1,0 +1,80 @@
+/* Calendar style sheet for NAV
+ *
+ * Copyright (C) 2006-2008 UNINETT AS
+ *
+ * This file is part of Network Administration Visualized (NAV).
+ *
+ * NAV is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.  You should have received a copy of the GNU General Public
+ * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+div.calendar {
+    table {
+    	width: 100%;
+        tr {
+            &.weekheader th {
+                background: #eee;
+                font-weight: bold;
+                border-left: 1px solid white;
+                border-right: 2px solid white;
+                padding: 5px;
+                padding-bottom: 0;
+            }
+            th {
+            	width: 14%;
+                &.month {
+                    background: #567899;
+                    color: white;
+                    border-bottom: 2px solid white;
+                    font-size: 1.2em;
+                    font-weight: bolder;
+                    padding: 0.3em 0.5em;
+                    text-align: left;
+                }
+            }
+            td {
+                border: 1px solid #999;
+                padding: 0;
+                height: 5em; /* Content will increase height if necessary. */
+                vertical-align: top;
+                &.today {
+                    background: #FFC;
+                    color: black;
+                }
+            }
+        }
+    }
+    .daynumber {
+        font-weight: bold;
+        margin-left: 0.3em;
+    }
+    .noday {
+        background-color: #dddddd;
+    }
+    .task ul {
+        list-style: none;
+    	margin: 0;
+	    padding: 0;
+        li {
+            margin: 0;
+            padding: 0;
+            font-size: 0.8em;
+            a, a:hover {
+                color: black;
+                display: block;
+                text-decoration:none;
+            }
+            &.end a {
+                text-align: right;
+            }
+        }
+    }
+}

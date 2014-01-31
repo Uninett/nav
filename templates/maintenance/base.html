@@ -2,53 +2,23 @@
 
 {% block base_header_additional_head %}
     <script>require(["src/maintenance"]);</script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/color.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/timepicker.css">
 {% endblock %}
 
 {% block base_content %}
 
-{% if current_user_data.messages %}
-<div class="messages">
-    <ul>
-    {% for m in current_user_data.messages %}
-        <li class="{{ m.type }}">{{ m.message }}</li>
-    {% endfor %}
-    </ul>
-</div>
-{% endif %}
+  {% if current_user_data.messages %}
+      {% for m in current_user_data.messages %}
+          <div class="alert-box {{ m.type }}">{{ m.message }}</div>
+      {% endfor %}
+  {% endif %}
 
-<h2>Maintenance</h2>
+  <h2>Maintenance</h2>
 
-<div class="tabs">
-    <ul>
-        <li class="{{ active.calendar|yesno:"tabactive," }}">
-            <a href="{% url maintenance-calendar %}">Calendar</a>
-        </li>
-        <li class="{{ active.active|yesno:"tabactive," }}">
-            <a href="{% url maintenance-active %}">Active</a>
-        </li>
-        <li class="{{ active.planned|yesno:"tabactive," }}">
-            <a href="{% url maintenance-planned %}">Planned</a>
-        </li>
-        <li class="{{ active.historic|yesno:"tabactive," }}">
-            <a href="{% url maintenance-historic %}">Historic</a>
-        </li>
-        {% if active.new and task_id %}
-        <li class="tabactive">
-            <a href="{% url maintenance-edit task_id %}">Edit</a>
-        </li>
-        {% else  %}
-        <li class="{{ active.new|yesno:"tabactive," }}">
-            <a href="{% url maintenance-new %}">New</a>
-        </li>
-        {% endif %}
-    </ul>
-</div>
+  {% block content %}
+  {% endblock %}
 
-<div class="tabcontent">
-
-{% block content %}
-{% endblock %}
-
-</div>
 {% endblock %}
 

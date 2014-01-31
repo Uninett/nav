@@ -16,131 +16,34 @@
 #
 """Sorted statistics views."""
 
-import re
-import time
-from operator import itemgetter
-from itertools import islice
-from ConfigParser import NoOptionError
-
-from django.shortcuts import render_to_response
-from django.template import RequestContext
-
-from . import get_data, get_configuration
-
 import logging
+from django.shortcuts import render
 
+from .forms import ViewForm
+from . import CLASSMAP
 
-TIMEFRAMES = (
-    ('hour', 'Last Hour'),
-    ('day', 'Last Day'),
-    ('week', 'Last Week'),
-    ('month', 'Last Month'),
-)
-
-TARGET = re.compile('cricket-data(/.*)')
-OUTPUT = re.compile('.*/([^/]+/[^/]+)$')
+_logger = logging.getLogger(__name__)
 
 
 def index(request):
     """Sorted stats search & result view"""
-    logger = logging.getLogger(__name__)
-    logger.debug('sortedstats started at %s' % time.ctime())
+    result = None
+    if 'view' in request.GET:
+        form = ViewForm(request.GET)
+        if form.is_valid():
+            cls = CLASSMAP[form.cleaned_data['view']]
+            result = cls(form.cleaned_data['timeframe'],
+                         form.cleaned_data['rows'])
+            result.collect()
 
-    numrows = int(request.GET.get('numrows', 20))
-    fromtime = request.GET.get('fromtime', 'day')
-
-    config = get_configuration()
-
-    # TODO: Use namedtuple for more expressive templates?
-    sectionslist = [
-        (
-            section,
-            config.get(section, 'name'),
-        )
-        for section in sorted(config.sections())
-        if section != 'ss_general'
-    ]
+    else:
+        form = ViewForm()
 
     context = {
         'title': 'Statistics',
         'navpath': [('Home', '/'), ('Statistics', False)],
-        'numrows': numrows,
-        'fromtime': fromtime,
-        'timeframes': TIMEFRAMES,
-        'sectionslist': sectionslist,
-        'exetime': 0,
+        'result': result,
+        'form': form
     }
 
-    if 'view' in request.GET:
-        view = request.GET['view']
-        viewname = config.get(view, 'name')
-
-        cachetimeout = config.get('ss_general', 'cachetimeout' + fromtime)
-
-        # Modifier is an optional variable in the configfile that is
-        # used to modify the value we fetch from the rrd-file with a
-        # mathematical expression.
-        try:
-            modifier = config.get(view, 'modifier')
-        except NoOptionError:
-            modifier = False
-
-        try:
-            linkview = config.get(view, 'linkview')
-        except NoOptionError:
-            linkview = False
-
-        # If forcedview is checked, ask getData to get values live.
-        forcedview = bool(request.GET.get('forcedview', False))
-
-        logger.debug('forcedview: %s, path: %s, dsdescr: %s, fromtime: %s, '
-                     'view: %s, cachetimeout: %s, modifier: %s\n'
-                     % (forcedview, config.get(view, 'path'),
-                     config.get(view, 'dsdescr'), fromtime, view,
-                     cachetimeout, modifier))
-
-        values, exetime, units, cachetime, cached = get_data(
-            forcedview,
-            config.get(view, 'path'),
-            config.get(view, 'dsdescr'),
-            fromtime, view, cachetimeout, modifier)
-
-        logger.debug('VALUES: %s\n' % (str(values)))
-
-        # Make a list of (key, value) tuples from values dict, taking
-        # the first 'numrows' elements sorted by value
-        values_sorted = sorted(
-            islice(values.iteritems(), numrows), key=itemgetter(1))
-
-        values_formatted = [
-            (
-                TARGET.search(key).group(1),
-                OUTPUT.sub('\\1', key),
-                '{0:.2f}'.format(value)
-            ) for key, value in values_sorted
-        ]
-
-        # If units are set in the config-file, use it instead of what
-        # we find in the database.
-        if config.has_option(view, 'units'):
-            units = config.get(view, 'units')
-
-        if cached:
-            footer = 'using cached data from {0}'.format(cachetime)
-        else:
-            footer = 'using live data'
-
-        context.update({
-            'view': view,
-            'viewname': viewname,
-            'view_timeframe': dict(TIMEFRAMES)[fromtime],
-            'linkview': linkview,
-            'forcedview': forcedview,
-            'values': values_formatted,
-            'exetime': exetime,
-            'units': units,
-            'footer': footer,
-        })
-
-    return render_to_response('sortedstats/sortedstats.html', context,
-                              context_instance=RequestContext(request))
+    return render(request, 'sortedstats/sortedstats.html', context)

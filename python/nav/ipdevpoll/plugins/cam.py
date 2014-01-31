@@ -161,6 +161,7 @@ class Cam(Plugin):
                 cam = self.containers.factory((port, mac), shadows.Cam)
                 cam.ifindex = port
                 cam.mac = mac
+        shadows.Cam.add_sentinel(self.containers)  # ensure cleanup runs!
 
     def _store_adjacency_candidates(self):
         shadows.AdjacencyCandidate.sentinel(self.containers, 'cam')

@@ -16,13 +16,49 @@
 #
 
 from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import (Layout, Row, Column, Submit, Field,
+                                            Fieldset)
 
 
 class SearchForm(forms.Form):
-    query = forms.CharField(max_length=100, label='Room', required=False)
+    query = forms.CharField(max_length=100, label='', required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(SearchForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = 'room-search'
+        self.helper.form_method = 'GET'
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('query', placeholder='Room'),
+                       css_class='medium-9'),
+                Column(Submit('submit', 'Search', css_class='postfix'),
+                       css_class='medium-3'),
+                css_class='collapse'
+            )
+        )
 
 
 class UploadForm(forms.Form):
     """Form to upload images for a room"""
-    title = forms.CharField(max_length=50, required=False)
-    roomimage = forms.ImageField(label='Select image')
+    title = forms.CharField(max_length=50, required=False, label='')
+    roomimage = forms.ImageField(label='')
+
+    def __init__(self, *args, **kwargs):
+        super(UploadForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Fieldset(
+                'Upload image',
+                Row(
+                    Column('roomimage', css_class='medium-3'),
+                    Column(Field('title', placeholder='Image caption'),
+                           css_class='medium-6'),
+                    Column(
+                        Submit('submit', 'Upload image', css_class='postfix'),
+                        css_class='medium-3')
+                )
+            )
+        )

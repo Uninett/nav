@@ -73,10 +73,16 @@ def ip_do_search(request):
     to_ip = None
 
     if form.is_valid():
-        inactive = form.cleaned_data['inactive']
         form_data = form.cleaned_data
         ip_range = form.cleaned_data['ip_range']
         from_ip, to_ip = (ip_range[0], ip_range[-1])
+        period_filter = form.cleaned_data['period_filter']
+        active = inactive = False
+
+        if period_filter in ['active', 'both']:
+            active = True
+        if period_filter in ['inactive', 'both']:
+            inactive = True
 
         if (to_ip.int() - from_ip.int()) > ADDRESS_LIMIT:
             inactive = False
@@ -84,8 +90,7 @@ def ip_do_search(request):
         ip_result = get_result(form.cleaned_data['days'], from_ip, to_ip,
                                form.cleaned_data['netbios'])
         ip_range = create_ip_range(inactive, from_ip, to_ip, ip_result)
-        tracker = create_tracker(form.cleaned_data['active'],
-                                 form.cleaned_data['dns'], inactive,
+        tracker = create_tracker(active, form.cleaned_data['dns'], inactive,
                                  ip_range, ip_result)
         row_count = sum(len(mac_ip_pair) for mac_ip_pair in tracker.values())
 
@@ -102,6 +107,7 @@ def ip_do_search(request):
         'subnet_start': unicode(from_ip),
         'subnet_end': unicode(to_ip),
         'display_no_results': display_no_results,
+        'colspan': find_colspan('ip', form)
     }
     info_dict.update(IP_DEFAULTS)
 
@@ -201,6 +207,20 @@ def create_inactive_row(tracker, dns, dns_lookups, ip_key):
     tracker[(ip, "")] = [row]
 
 
+def find_colspan(view, form):
+    """Find correct colspan for the view"""
+    defaults = {'ip': 5, 'netbios': 7}
+    colspan = defaults[view]
+    netbios = form.data.get('netbios', False)
+    dns = form.data.get('dns', False)
+
+    if netbios:
+        colspan += 1
+    if dns:
+        colspan += 1
+    return colspan
+
+
 def mac_search(request):
     """Controller for doing a search based on a mac address"""
     if 'mac' in request.GET:
@@ -280,6 +300,7 @@ def mac_do_search(request):
             'ip_tracker': ip_tracker,
             'mac_tracker_count': mac_count,
             'ip_tracker_count': ip_count,
+            'colspan': find_colspan('ip', form)
         })
 
     info_dict.update(MAC_DEFAULTS)
@@ -442,6 +463,7 @@ def netbios_do_search(request):
             'form_data': form.cleaned_data,
             'netbios_tracker': netbios_tracker,
             'netbios_tracker_count': nbt_count,
+            'colspan': find_colspan('netbios', form)
         })
 
     info_dict.update(NBT_DEFAULTS)

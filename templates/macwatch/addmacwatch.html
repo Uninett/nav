@@ -1,13 +1,13 @@
 {% extends "macwatch/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 
-<form action="." method="post">
-  <table class="vertitable">
-  <caption>Add mac watch</caption>
-    {{ form.as_table }}
-  </table>
-  <input type="submit" value="Add mac watch" />
-</form>
+    <div class="row">
+        <div class="large-4 column">
+            <a href="{% url listwatch %}" class="button small secondary">Back</a>
+            {% crispy form %}
+        </div>
+    </div>
 
 {% endblock %}

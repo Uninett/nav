@@ -1,25 +1,23 @@
-{% extends "base.html" %}
+{% extends "info/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
-    <link href="/style/info_room.css" type="text/css" rel="stylesheet">
-    <link href="/style/datatables.css" type="text/css" rel="stylesheet">
-    <link href="/style/nivo/nivo-slider.css" rel="stylesheet">
-    <link href="/style/nivo/default.css" rel="stylesheet">
-    <link href="/style/jqueryui/jquery-ui-1.8.21.custom.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/nivo/nivo-slider.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/nivo/default.css" rel="stylesheet">
     <script>require(["src/info_room"]);</script>
 {% endblock %}
 
-{% block base_content %}
-    <h2>{% if room %} Room view for {{ room.id }} {% else %}
-        Room search{% endif %}</h2>
+{% block content %}
+    <h4>Room search</h4>
 
     {% block roominfo %}
 
-        <form action="{% url room-search %}" method="get">
-            <p>{{ searchform.query }}
-                <button type="submit">Search</button>
-            </p>
-        </form>
+        <div class="row">
+            <div class="medium-6 column">
+                {% crispy searchform %}
+            </div>
+        </div>
 
         {% if searchform.is_bound %}
             {% if rooms %}
@@ -58,7 +56,7 @@
 
         {% endif %}
 
-        <div id="mapcontainer" class="smallmap"></div>
+        <div id="mapcontainer" class="mapwrapper smallmap"></div>
         <div id="coordinates"></div>
 
     {% endblock %}

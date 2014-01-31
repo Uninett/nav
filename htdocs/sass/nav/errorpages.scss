@@ -1,0 +1,41 @@
+body, html {
+	background:#e9e9e9;
+}
+
+code {
+	font-size:14px;
+	font-weight:normal;
+}
+
+.hero {
+	padding-left:50px;
+	background:#01547F;
+	color:white;
+
+	h1 {
+		color:white;
+		font-weight:600;
+		font-family: "Open Sans";
+		font-size:74px;
+	}
+
+	p {
+		font-size:20px;
+		font-weight:600;
+	}
+}
+
+.info {
+	padding:50px;
+
+	.frontpage-button {
+		margin-top:20px;
+	}
+}
+
+.traceback-info {
+	margin-top:10px;
+	background:white;
+	padding:20px;
+	color:#333;
+}

@@ -17,31 +17,24 @@
 
 from operator import attrgetter
 
-import time
-from datetime import date
-
-from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.db import connection, transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.db.transaction import commit_on_success
 
 from nav.models.fields import INFINITY
 from nav.models.manage import Netbox, Module
 from nav.models.event import AlertHistory
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
-
-from django.db.transaction import commit_on_success
-
-from nav.web.devicehistory.utils import get_event_and_alert_types
-from nav.web.devicehistory.utils.history import (get_selected_types,
-                                                 fetch_history, get_page,
+from nav.web.devicehistory.utils.history import (fetch_history,
                                                  get_messages_for_history,
                                                  group_history_and_messages,
                                                  describe_search_params)
 from nav.web.devicehistory.utils.error import register_error_events
+from nav.web.devicehistory.forms import DeviceHistoryViewFilter
 
 DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS = {
     'button': 'View %s history',
@@ -66,29 +59,24 @@ ORPHANS = 10
 
 _ = lambda a: a
 
+
 def devicehistory_search(request):
     """Implements the device history landing page / search form"""
     device_quickselect = QuickSelect(**DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS)
-    from_date = request.POST.get('from_date',
-                                 date.fromtimestamp(time.time() - ONE_WEEK))
-    to_date = request.POST.get('to_date',
-                               date.fromtimestamp(time.time() + ONE_DAY))
-    types = request.POST.get('type', None)
-    group_by = request.REQUEST.get('group_by', 'netbox')
 
-    selected_types = get_selected_types(types)
-    event_types = get_event_and_alert_types()
+    if 'from_date' in request.REQUEST:
+        form = DeviceHistoryViewFilter(request.REQUEST)
+        if form.is_valid():
+            return devicehistory_view(request)
+    else:
+        form = DeviceHistoryViewFilter()
 
     info_dict = {
-        'active': {'device': {'search': True}},
+        'active': {'device': True},
         'quickselect': device_quickselect,
-        'selected_types': selected_types,
-        'event_type': event_types,
-        'from_date': from_date,
-        'to_date': to_date,
-        'group_by': group_by,
         'navpath': [('Home', '/'), ('Device History', '')],
         'title': 'NAV - Device History',
+        'form': form
     }
     return render_to_response(
         'devicehistory/history_search.html',
@@ -96,14 +84,10 @@ def devicehistory_search(request):
         RequestContext(request)
     )
 
+
 def devicehistory_view(request):
     """Device history search results view"""
-    from_date = request.REQUEST.get('from_date',
-                                    date.fromtimestamp(time.time() - ONE_WEEK))
-    to_date = request.REQUEST.get('to_date',
-                                  date.fromtimestamp(time.time() + ONE_DAY))
-    types = request.REQUEST.get('type', None)
-    group_by = request.REQUEST.get('group_by', 'netbox')
+
     selection = {
         'organization': request.REQUEST.getlist('org'),
         'category': request.REQUEST.getlist('cat'),
@@ -114,95 +98,42 @@ def devicehistory_view(request):
         'mode': request.REQUEST.getlist('mode')
     }
 
-    try:
-        page = int(request.REQUEST.get('page', '1'))
-    except ValueError:
-        page = 1
-
-    selected_types = get_selected_types(types)
-    event_types = get_event_and_alert_types()
-
-    alert_history = fetch_history(
-        selection,
-        from_date,
-        to_date,
-        selected_types,
-        group_by
-    )
-    paginated_history = Paginator(alert_history, HISTORY_PER_PAGE, ORPHANS)
-    this_page = get_page(paginated_history, page)
-    messages = get_messages_for_history(this_page.object_list)
-    grouped_history = group_history_and_messages(
-        this_page.object_list,
-        messages,
-        group_by
-    )
-    this_page.grouped_history = grouped_history
-
-    first_page_link = True
-    last_page_link = True
-    if this_page.paginator.num_pages > 20:
-        if page < 6:
-            index = 0
-            last_index = 10
-        else:
-            index = page - 6
-            last_index = page + 5
-        if page >= this_page.paginator.num_pages - 5:
-            last_page_link = False
-        if page <= 6:
-            first_page_link = False
-        pages = this_page.paginator.page_range[index:last_index]
+    grouped_history = None
+    valid_params = ['to_date', 'from_date', 'eventtype', 'group_by']
+    if len(set(valid_params) & set(request.REQUEST.keys())) > 1:
+        form = DeviceHistoryViewFilter(request.REQUEST)
     else:
-        pages = this_page.paginator.page_range
-        first_page_link = False
-        last_page_link = False
+        form = DeviceHistoryViewFilter()
+    if form.is_valid():
+        alert_history = fetch_history(selection, form)
+        grouped_history = group_history_and_messages(
+            alert_history,
+            get_messages_for_history(alert_history),
+            form.cleaned_data['group_by']
+        )
 
-    url = "?from_date=%s&to_date=%s&type=%s&group_by=%s" % (
-        from_date or "", to_date or "", types or "", group_by or "")
-
-    search_description = describe_search_params(selection)
-
-    for key, values in selection.items():
-        attr = key
-        if key == "room__location":
-            attr = "loc"
-        if key == "organization":
-            attr = "org"
-        if key == "category":
-            attr = "cat"
-        for ident in values:
-            url += "&%s=%s" % (attr, ident)
-
-    # Quickselect expects 'loc' and not 'location'
-    selection['loc'] = selection['room__location']
-    del selection['room__location']
+        # Quickselect expects 'loc' and not 'location'
+        selection['loc'] = selection['room__location']
+        del selection['room__location']
 
     info_dict = {
-        'active': {'device': {'history': True}},
-        'history': this_page,
-        'search_description': search_description,
-        'pages': pages,
-        'first_page_link': first_page_link,
-        'last_page_link': last_page_link,
+        'active': {'device': True},
+        'search_description': describe_search_params(selection),
         'selection': selection,
-        'selected_types': selected_types,
-        'event_type': event_types,
-        'from_date': from_date,
-        'to_date': to_date,
-        'group_by': group_by,
-        'get_url': url,
+        'history': grouped_history,
         'title': 'NAV - Device History',
         'navpath': [
             ('Home', '/'),
             ('Device History', reverse('devicehistory-search')),
-        ]
+        ],
+        'form': form
     }
     return render_to_response(
         'devicehistory/history_view.html',
         info_dict,
         RequestContext(request)
     )
+
 
 def error_form(request):
     """Implements the 'register error event' form"""
@@ -224,6 +155,7 @@ def error_form(request):
         },
         RequestContext(request)
     )
+
 
 def confirm_error_form(request):
     """Implements confirmation form for device error event registration"""
@@ -254,6 +186,7 @@ def confirm_error_form(request):
         RequestContext(request)
     )
 
+
 def register_error(request):
     """Registers a device error event posted from a form"""
     selection = {
@@ -275,6 +208,7 @@ def register_error(request):
     register_error_events(request, selection=selection, comment=error_comment)
 
     return HttpResponseRedirect(reverse('devicehistory-registererror'))
+
 
 def delete_module(request):
     """Displays a list of modules that are down, offering to delete selected
@@ -317,6 +251,7 @@ def delete_module(request):
         RequestContext(request)
     )
 
+
 @commit_on_success
 def do_delete_module(request):
     """Executes an actual database deletion after deletion was confirmed by
@@ -344,6 +279,7 @@ def do_delete_module(request):
     transaction.set_dirty()
 
     return HttpResponseRedirect(reverse('devicehistory-module'))
+
 
 def _get_unresolved_module_states(limit_to=None):
     """Returns AlertHistory objects for all modules that are currently down.

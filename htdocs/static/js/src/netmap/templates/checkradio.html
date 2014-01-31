@@ -1,0 +1,42 @@
+<div class="netmapWidget">
+
+  <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
+
+    <h6>
+      {{ title }}
+      {{#if title_help }}
+        <i class="fa fa-info-circle right has-tip" title="{{ title_help }}" data-tooltip></i>
+      {{/if}}
+    </h6>
+
+    <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
+
+      {{#each collection}}
+      <div>
+        <label for="{{../identifier}}_{{ name }}">
+          {{#if ../nameInUppercase}}
+            {{ uppercase name }}
+          {{ else }}
+            {{ capitalize name }}
+          {{/if}}
+
+          <input id="{{../identifier}}_{{ name }}"
+                 type="{{../type}}"
+                 name="{{../identifier}}[]"
+                 class="right"
+                 {{#if is_selected}} checked{{/if}}
+                 {{#if value}}
+                   value="{{ value }}"
+                 {{ else }}
+                   value="{{ name }}"
+                 {{/if}}
+                 {{#unless ../isViewEnabled}}disabled{{/unless}} />
+
+        </label>
+
+      </div>
+      {{/each}}
+
+    </div>
+  </div>
+</div>

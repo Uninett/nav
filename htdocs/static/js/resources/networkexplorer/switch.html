@@ -1,0 +1,31 @@
+<img
+     {{#if expandable }}
+      {{#equal state "expanded" }}
+        src="{{ navImagePath }}/networkexplorer/collapse.gif">
+      {{else }}
+        src="{{ navImagePath }}/networkexplorer/expand.gif">
+      {{/equal }}
+     {{else }}
+      src="{{ navImagePath }}/networkexplorer/vertical-bound.gif">
+     {{/if }}
+
+<a href="/ipdevinfo/{{interface_netbox_sysname}}/">{{interface_netbox_sysname}}</a>
+[{{interface.ifname}}]
+
+{{#if interface.ifalias }}
+  ({{ interface.ifalias }})
+{{/if }}
+
+{{#if connected_to }}
+  {{#if interface.trunk }}
+    <abbr title="trunk port">⇉</abbr>
+  {{else }}
+    <abbr title="non-trunk port">→</abbr>
+  {{/if }}
+    <a href="/ipdevinfo/{{ connected_to.sysname }}/">{{ connected_to.short }}</a>
+{{else }}
+  ({{ interface.ifalias }})
+  {{#if interface.trunk }}
+    <abbr title="trunk port">(trunk)</abbr>
+  {{/if }}
+{{/if }}

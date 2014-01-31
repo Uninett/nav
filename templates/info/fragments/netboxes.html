@@ -35,7 +35,7 @@
                 <a href="/report/gwport?netboxid={{ netbox.id }}">{{ netbox.get_gwports|length }}</a>
             </td>
             <td><img
-                    src="/images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}">
+                    src="{{ STATIC_URL }}images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}">
             </td>
             <td class="numeric">{{ netbox.get_week_availability }}</td>
         </tr>

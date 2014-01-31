@@ -1,0 +1,24 @@
+<img id="expand-router-{{pk}}"
+     {{#if expandable }}
+      {{#equal state "expanded" }}
+        src="{{ navImagePath }}/networkexplorer/collapse.gif">
+      {{else }}
+        src="{{ navImagePath }}/networkexplorer/expand.gif">
+      {{/equal }}
+     {{else }}
+      {{#if end }}
+        src="{{ navImagePath }}/networkexplorer/end.gif">
+      {{else }}
+        src="{{ navImagePath }}/networkexplorer/vertical-bound.gif">
+      {{/if }}
+     {{/if }}
+
+<a href="/ipdevinfo/{{fields.sysname}}/">{{fields.sysname}}</a>
+
+{{#if expandable }}
+  <ul class="children">
+    {{#equal state "expanded" }}
+      <li class="tree-header">Router ports:</li>
+    {{/equal }}
+  </ul>
+{{/if }}

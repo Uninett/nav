@@ -16,10 +16,31 @@
 #
 
 from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
+
 
 class SearchForm(forms.Form):
-    query = forms.CharField(max_length=100, label='IP or hostname')
+    """Form for searching for ip devices in info"""
+    query = forms.CharField(max_length=100, label='')
+
+    def __init__(self, *args, **kwargs):
+        super(SearchForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = 'ipdevinfo-search'
+        self.helper.form_method = 'GET'
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('query', placeholder='IP or hostname'),
+                       css_class='medium-9'),
+                Column(Submit('submit', 'Search', css_class='postfix'),
+                       css_class='medium-3'),
+                css_class='collapse'
+            )
+        )
+
 
 class ActivityIntervalForm(forms.Form):
+    """Form for setting an interval in switch port activity"""
     interval = forms.IntegerField(min_value=0, label='Interval in days',
-        widget=forms.TextInput(attrs={'size': 3}))
+                                  widget=forms.TextInput(attrs={'size': 3}))

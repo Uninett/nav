@@ -1,0 +1,38 @@
+<img id="expand-swport-{{pk}}"
+     {{#if expandable }}
+      {{#equal state "expanded" }}
+        src="{{ navImagePath }}/networkexplorer/collapse.gif">
+      {{else }}
+        src="{{ navImagePath }}/networkexplorer/expand.gif">
+      {{/equal }}
+     {{else }}
+      src="{{ navImagePath }}/networkexplorer/vertical-bound.gif">
+     {{/if }}
+
+<a href="/ipdevinfo/{{netbox_sysname }}/">{{module_netbox_sysname }}</a>
+[{{interface.ifname }}]
+
+{{#if connected_to }}
+  {{#if interface.trunk }}
+    <abbr title="trunk port">⇉</abbr>
+  {{else }}
+    <abbr title="non-trunk port">→</abbr>
+  {{/if }}
+    <a href="/ipdevinfo/{{ connected_to.sysname }}/">{{ connected_to.short }}</a>
+{{else }}
+  ({{ interface.ifalias }})
+  {{#if interface.trunk }}
+    <abbr title="trunk port">(trunk)</abbr>
+  {{/if }}
+{{/if }}
+
+
+{{#if expandable }}
+  <ul class="children">
+    {{#equal state "expanded" }}
+      {{#if connected_to_switch }}
+        <li class="tree-header">Swports on Vlan{{ subheader_vlan }} on {{ subheader_netbox }}</li>
+      {{/if }}
+    {{/equal }}
+  </ul>
+{{/if }}

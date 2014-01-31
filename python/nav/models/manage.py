@@ -29,6 +29,16 @@ from django.db.models import Q
 from itertools import count, groupby
 
 from nav.bitvector import BitVector
+from nav.metrics.data import get_metric_average
+from nav.metrics.graphs import get_simple_graph_url
+from nav.metrics.names import get_all_leaves_below
+from nav.metrics.templates import (
+    metric_prefix_for_interface,
+    metric_prefix_for_ports,
+    metric_prefix_for_device,
+    metric_path_for_packet_loss,
+    metric_path_for_roundtrip_time
+)
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
@@ -162,51 +172,30 @@ class Netbox(models.Model):
 
     def get_availability(self):
         """Calculates and returns an availability data structure."""
-        def average(rds, time_frame):
-            """Calculates the average value within a time_frame."""
-            from nav.rrd import presenter
-            rrd = presenter.Presentation()
-            rrd.time_last(time_frame)
-            rrd.add_datasource(rds.id)
-            value = rrd.average(on_error_return=None, on_nan_return=None)
-            if not value:
-                return None
-            else:
-                return value[0]
-
-        try:
-            data_sources = RrdDataSource.objects.filter(
-                rrd_file__subsystem='pping', rrd_file__netbox=self)
-            # Multiple identical data sources in the database have been
-            # observed. Using the result with highest primary key.
-            # FIXME: Should probably check the mtime of the RRD files on disk
-            # and use the newest one.
-            data_source_status = data_sources.filter(name='STATUS'
-                ).order_by('-pk')[0]
-            data_source_response_time = data_sources.filter(
-                name='RESPONSETIME').order_by('-pk')[0]
-        except IndexError:
-            return None
+        pktloss_id = metric_path_for_packet_loss(self.sysname)
+        rtt_id = metric_path_for_roundtrip_time(self.sysname)
 
         result = {
             'availability': {
-                'data_source': data_source_status,
+                'data_source': pktloss_id,
             },
             'response_time': {
-                'data_source': data_source_response_time,
+                'data_source': rtt_id,
             },
         }
 
         for time_frame in self.TIME_FRAMES:
+            avg = get_metric_average([pktloss_id, rtt_id],
+                                              start="-1%s" % time_frame)
+
             # Availability
-            value = average(data_source_status, time_frame)
-            if value is not None:
-                value = 100 - (value * 100)
-            result['availability'][time_frame] = value
+            pktloss = avg.get(pktloss_id, None)
+            if pktloss is not None:
+                pktloss = 100 - (pktloss * 100)
+            result['availability'][time_frame] = pktloss
 
             # Response time
-            value = average(data_source_response_time, time_frame)
-            result['response_time'][time_frame] = value
+            result['response_time'][time_frame] = avg.get(rtt_id, None)
 
         return result
 
@@ -305,6 +294,29 @@ class Netbox(models.Model):
         return self.powersupplyorfan_set.filter(
             physical_class='fan').order_by('name')
 
+    def get_system_metrics(self):
+        """Gets a list of available Graphite metrics related to this Netbox,
+        except for ports, which are seen as separate.
+
+        :returns: A list of dicts describing the metrics, e.g.:
+                  {id:"nav.devices.some-gw.cpu.cpu1.loadavg1min",
+                   group="cpu",
+                   suffix="cpu1.loadavg1min"}
+
+        """
+        exclude = metric_prefix_for_ports(self.sysname)
+        base = metric_prefix_for_device(self.sysname)
+
+        nodes = get_all_leaves_below(base, [exclude])
+        result = []
+        for node in nodes:
+            suffix = node.replace(base + '.', '')
+            elements = suffix.split('.')
+            group = elements[0]
+            suffix = '.'.join(elements[1:])
+            result.append(dict(id=node, group=group, suffix=suffix))
+
+        return result
 
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place
@@ -517,6 +529,7 @@ class Organization(models.Model):
     class Meta:
         db_table = 'org'
         verbose_name = 'organization'
+        ordering = ['id']
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
@@ -800,7 +813,7 @@ class Arp(models.Model):
     start, time end)."""
 
     id = models.AutoField(db_column='arpid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
     prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     sysname = VarcharField()
     ip = models.IPAddressField()
@@ -1063,11 +1076,7 @@ class Interface(models.Model):
 
     @classmethod
     def sort_ports_by_ifname(cls, ports):
-        interface_names = [p.ifname for p in ports]
-        unsorted = dict(zip(interface_names, ports))
-        interface_names.sort(key=nav.natsort.split)
-        sorted_ports = [unsorted[i] for i in interface_names]
-        return sorted_ports
+        return sorted(ports, key=lambda p: nav.natsort.split(p.ifname))
 
     def get_absolute_url(self):
         kwargs = {
@@ -1132,6 +1141,23 @@ class Interface(models.Model):
                 rrd_file__key='interface', rrd_file__value=str(self.id)
             ).order_by('description')
 
+    def get_port_metrics(self):
+        """Gets a list of available Graphite metrics related to this Interface.
+
+        :returns: A list of dicts describing the metrics, e.g.:
+                  {id:"nav.devices.some-gw.ports.gi1_1.ifInOctets",
+                   suffix:"ifInOctets"}
+
+        """
+        base = metric_prefix_for_interface(self.netbox, self.ifname)
+
+        nodes = get_all_leaves_below(base)
+        result = [dict(id=n,
+                       suffix=n.replace(base + '.', ''),
+                       url=get_simple_graph_url(n, '1day'))
+                  for n in nodes]
+        return result
+
     def get_link_display(self):
         """Returns a display value for this interface's link status."""
         if self.ifoperstatus == self.OPER_UP:
@@ -1181,6 +1207,11 @@ class Interface(models.Model):
         """Returns interfaces stacked with this one on a layer above"""
         return Interface.objects.filter(higher_layer__lower=self)
 
+    def get_sorted_vlans(self):
+        """Returns a queryset of sorted swportvlans"""
+        return self.swportvlan_set.select_related('vlan').order_by(
+            'vlan__vlan')
+
 
 class InterfaceStack(models.Model):
     """Interface layered stacking relationships"""
@@ -1217,11 +1248,10 @@ class RoutingProtocolAttribute(models.Model):
 class Sensor(models.Model):
     """
     This table contains meta-data about available sensors in
-    network-equipment.
+    network equipment.
 
-    Information in this table is used to make configurations for
-    Cricket,- and Cricket maintain the resulting RRD-files for
-    statistics.
+    Information from this table is used to poll metrics and display graphs for
+    sensor data.
     """
 
     UNIT_OTHER = 'other'         # Other than those listed

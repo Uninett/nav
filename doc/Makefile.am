@@ -103,4 +103,4 @@ doctest:
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
 buildloop:
-	while inotifywait -e modify -e move -e create -r --exclude \# .; do sleep 1; $(MAKE); done
+	while inotifywait -e modify -e move -e create -r --exclude \# . ../NOTES.rst; do sleep 1; $(MAKE); done

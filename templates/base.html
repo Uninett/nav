@@ -1,7 +1,6 @@
 {% block base_header %}
 
 <!DOCTYPE html>
-
 <html>
 
 {# FIXME Hardcoded urls #}
@@ -11,164 +10,247 @@
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block base_header_title %}{{ title }}{% endblock %}</title>
-    <link rel="stylesheet" href="/style/reset.css" />
-    <link rel="stylesheet" href="/style/default.css" />
-    <link rel="stylesheet" href="/style/color.css" />
-    <link rel="stylesheet" href="/style/table.css" />
-    <link rel="stylesheet" href="/style/form.css" />
-    <link rel="stylesheet" href="/style/tabs.css" />
-    <link rel="stylesheet" href="/style/calendar.css" />
-    <link rel="stylesheet" href="/style/treeselect.css" />
-    <link rel="stylesheet" href="/style/quickselect.css" />
-    <script type="text/javascript" src="/js/require_config.js"></script>
-    {% if debug %}
-        <script type="text/javascript" src="/js/require_config.dev.js"></script>
-    {% endif %}
-    <script src="/js/libs/require.js" data-main='src/main'></script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/custom.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/calendar.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/treeselect.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/quickselect.css" />
+    {% comment %} Javascript global variables {% endcomment %}
+    <script>
+        var NAV = {
+            'cssPath': '{{ STATIC_URL }}css/nav',
+            'imagePath': '{{ STATIC_URL }}images',
+            'proxyOsmUrl': '{% url base_osm_map_redirect %}'
+        };
+    </script>
+    <script src="{{ STATIC_URL }}js/require_config.js"></script>
+    <script src="{{ STATIC_URL }}js/libs/require.js" data-main='src/main'></script>
     {% block base_header_additional_head %}
     {% endblock %}
 </head>
 {% endblock %}
 
+
 {% block base_body_start %}
 <body>
 {% endblock %}
 
-{% if current_user_data.sudoer %}
-<div id="top-bar">
-<form action="{% url webfront-logout %}" method="post">
-<img src="/images/main/emblem-important.png" alt="Important information" />
-Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently logged in as <em>{{ current_user_data.account.name }}</em>.
-    <input type="submit" name="submit_desudo" value="Log back in as {{ current_user_data.sudoer.login }}" />
-</form>
-</div>
-{% endif %}
 
-<div id="header">
-    {% block base_header_logo %}
-        <div id="navlogo">
-            <h1>
-                <a href="/">
-                    <img src="/images/main/navlogo-141x50.png" width="141"
-                         height="50" alt="NAV"/>
-                    <span>Network Administration Visualized</span>
+{% comment %} TOP BAR {% endcomment %}
+<nav class="top-bar">
+    <ul class="title-area">
+        <li>
+            <h1 class="name">
+                <a href="/" title="Network Administration Visualized">
+                    <span class="logo-text">NAV</span>
                 </a>
             </h1>
-        </div>
-    {% endblock %}
+        </li>
+        <li class="toggle-topbar menu-icon">
+            <a href="#"><span>Menu</span></a>
+        </li>
+    </ul>
 
-    {% block base_header_navbar %}
-    <div id="navbar">
 
-        <div id="navpath">
-            {% block base_header_navpath %}
-                {% for title, url in navpath %}
-                    {% if url %}
-                        <a href="{{ url }}">{{ title }}</a>
-                    {% else %}
-                        {{ title }}
-                    {% endif %}
-                    {% if not forloop.last %}
-                        &gt;
-                    {% endif %}
-                {% endfor %}
-            {% endblock %}
-        </div>
+    <section class="top-bar-section">
+        <ul class="left">
+            <li class="has-form search">
+                <form action="{% url info-search %}" method="get">
+                    <div class="row collapse">
+                        <div class="small-10 columns">
+                            <input id="query" type="text" name="query" maxlength="100"/>
+                        </div>
+                        <div class="small-2 columns">
+                            <input class="button" type="submit" value="Search" />
+                        </div>
+                    </div>
+                </form>
+            </li>
+        </ul>
 
-        <div id="navbarlogininfo">
+        <ul class="right">
+            <li class="has-dropdown">
+                <a href="{% url webfront-preferences-navigation %}">
+                    Your links <i class="fa fa-gear"></i>
+                </a>
+                <ul class="dropdown">
+                    {% for link in current_user_data.navbar %}
+                        <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </li>
+
+            {% comment %} This dropdown only visible on small screens {% endcomment %}
+            <li class="has-dropdown hide-for-medium-up">
+                <a href="{% url webfront-toolbox %}">
+                    Tools
+                </a>
+                <ul id="toolboxdropdown" class="dropdown">
+                    {% for tool in current_user_data.tools %}
+                        <li>
+                            <a href="{{ tool.uri }}">
+                                <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
+                                {{ tool.name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </li>
+
+            <li class="hide-for-small"><a id="megadroptoggler" href="javascript:void(0);">Tools <i class="fa fa-caret-down"></i></a></li>
+
+            <li><a href="/doc">Documentation</a></li>
+
             {% if current_user_data.account.is_default_account %}
-                <a class="navbar login" href="/index/login">Login</a>
+                <li>
+                    <a class="navbar login button" href="/index/login">Login</a>
+                </li>
             {% else %}
-                <a class="navbar logout" href="/index/logout">
-                    Logout {{ current_user_data.account.login }}
-                </a>
+                <li>
+                    <a class="navbar logout button" href="/index/logout">Logout {{ current_user_data.account.login }}</a>
+                </li>
             {% endif %}
-        </div>
+        </ul>
+    </section>
+</nav>
 
-        <div id="navbarquicklinks">
-            {% if current_user_data.qlink1 %}
-                <select onchange="return NAV.jump(this);">
-                    <option selected="selected">Quicklink #1</option>
-                    {% for link in current_user_data.qlink1 %}
-                        <option value="{{ link.uri }}">{{ link.name }}</option>
-                    {% endfor %}
-                </select>
-            {% endif %}
+<div id="megadrop" class="row hide">
+  <div class="medium-4 column">
+    <ul class="no-bullet">
+    {% for tool in current_user_data.tools %}
+      {% if forloop.counter <= 7 %}
+        <li>
+          <a href="{{ tool.uri }}" title="{{ tool.description }}">
+            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
+            {{ tool.name }}
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+    </ul>
+  </div>
+  <div class="medium-4 column">
+    <ul class="no-bullet">
+    {% for tool in current_user_data.tools %}
+      {% if forloop.counter > 7 and forloop.counter <= 14 %}
+        <li>
+          <a href="{{ tool.uri }}" title="{{ tool.description }}">
+            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
+            {{ tool.name }}
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+    </ul>
+  </div>
+  <div class="medium-4 column">
+    <ul class="no-bullet">
+    {% for tool in current_user_data.tools %}
+      {% if forloop.counter > 14 %}
+        <li>
+          <a href="{{ tool.uri }}" title="{{ tool.description }}">
+            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
+            {{ tool.name }}
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+    </ul>
+  </div>
+</div>
 
-            {% if current_user_data.qlink2 %}
-                <select onchange="return NAV.jump(this);">
-                    <option selected="selected">Quicklink #2</option>
-                    {% for link in current_user_data.qlink2 %}
-                        <option value="{{ link.uri }}">{{ link.name }}</option>
-                    {% endfor %}
-                </select>
-            {% endif %}
+{% if current_user_data.sudoer %}
+    <div class="sudoer-bar">
+        <form action="{% url webfront-logout %}" method="post">
+            <img src="{{ STATIC_URL }}images/main/emblem-important.png"
+                 alt="Important information"/>
+            Hi <em>{{ current_user_data.sudoer.name }}</em>, you are currently
+            logged in as <em>{{ current_user_data.account.name }}</em>.
+            <input type="submit" name="submit_desudo" value="Log back in as {{ current_user_data.sudoer.login }}" class="button secondary small"/>
+        </form>
+    </div>
+{% endif %}
 
-        </div>
+{% comment %} BREADCRUMB {% endcomment %}
+<div class="row">
 
-        <div id="navbarlinks">
-            {% for link in current_user_data.navbar %}
-                <a href="{{ link.uri }}" class="navbar">
-                    {{ link.name }}
-                </a>
+    <div class="large-12 columns">
+        <ul id="nav-breadcrumbs" class="breadcrumbs">
+            {% for title, url in navpath %}
+                {% if url %}
+                    <li><a href="{{ url }}">{{ title }}</a></li>
+                {% else %}
+                    <li class="unavailable"><a href="#">{{ title }}</a></li>
+                {% endif %}
             {% endfor %}
-        </div>
-
-        <div id="navbarsearch">
-            <form action="/info/" method="get">
-                <input id="query" type="text" name="query" maxlength="100"
-                       size="12"/>
-                <button type="submit">Search</button>
-            </form>
-        </div>
-
-        <div id="navbartoggler" class="hidden">
-            <img src="/images/icons/expand.png" class="expand" alt="Show navbar" title="Show navbar">
-            <img src="/images/icons/collapse.png" class="collapse" alt="Hide navbar" title="Hide navbar">
-        </div>
-
-        <div class="float-clear"></div>
-
+        </ul>
     </div>
 
-    {% endblock base_header_navbar %}
 </div>
+
 {% endblock base_header %}
 
-{% block base_toolbar %}
-    {% if available_tools %}
-        {% include "toolbar.html" %}
-    {% endif %}
+{% comment %} MAIN CONTENT {% endcomment %}
+{% block base_navbody_start %}
+<div class="row">
+    <div class="large-12 columns">
+        <div class="navbody">
 {% endblock %}
 
-{% block base_navbody_start %}<div id="navbody">{% endblock %}
-{% block base_content %}
-{% endblock %}
-{% block base_navbody_end %}</div>{% endblock %}
+    {% block base_content %}
+    {% endblock %}
 
-{% block base_debug %}
-    {% if debug %}
-        {% if not current_user_data.account.is_default_account %}
-            {% include "debug.html" %}
-        {% endif %}
-    {% endif %}
+{% block base_navbody_end %}
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block base_footer %}
-<div id="footer">
-    <hr />
-    <p>
-        <a href="/about/">Network Administration Visualized</a>
-        version {{ nav_version }}
-        <br />
-        {% if current_user_data.account.is_default_account %}
-        You are not logged in.
-        {% else %}
-        You are logged in as <a href="/userinfo/">{{ current_user_data.account.name }}</a>.
-        {% endif %}
-    </p>
-</div>
+<hr />
 
-</body>
+<footer class="row">
+    <div class="large-4 medium-4 columns">
+        <h5 class="subheader">NAV Version</h5>
+
+        <p>
+            <a href="/about/">Network Administration Visualized</a>
+            <br/>
+            {{ nav_version }}
+        </p>
+
+
+        <p>
+            {% if current_user_data.account.is_default_account %}
+                You are not logged in.
+            {% else %}
+                You are logged in as <a href="/userinfo/">{{ current_user_data.account.name }}</a>.
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="large-4 medium-4 columns">
+        <h5 class="subheader">External links</h5>
+        {{ external_links|safe }}
+    </div>
+
+    <div class="large-4 medium-4 columns">
+        <h5 class="subheader"
+                >Contact information</h5>
+        {{ contact_information|safe }}
+    </div>
+</footer>
+
+  {% block base_debug %}
+    {% if debug %}
+      {% if not current_user_data.account.is_default_account %}
+        {% include "debug.html" %}
+      {% endif %}
+    {% endif %}
+  {% endblock %}
+
+
+  </body>
 </html>
-{% endblock %}
+
+{% endblock base_footer %}

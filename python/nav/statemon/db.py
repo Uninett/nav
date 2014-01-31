@@ -46,10 +46,8 @@ def db():
 
     return _db._instance
 
-class dbError(Exception):
-    pass
 
-class UnknownRRDFileError(Exception):
+class dbError(Exception):
     pass
 
 _queryLock = threading.Lock()
@@ -291,88 +289,3 @@ class _db(threading.Thread):
             self._checkers += [newChecker]
         debug("Returned %s checkers" % len(self._checkers))
         return self._checkers
-
-
-    def verify_rrd(self, filename):
-        """Verifies that a given RRD file is registered in the db.
-
-        Returns: The netboxid of the netbox to which this RRD file belongs.
-
-        If the RRD file is unknown, a UnknownRRDFileError is raised.
-
-        """
-        statement = """SELECT rrd_fileid, netboxid FROM rrd_file
-                       WHERE path=%s AND filename=%s"""
-        rows = self.query(statement, (os.path.dirname(filename),
-                                      os.path.basename(filename)))
-        if len(rows) > 0:
-            (rrd_fileid, netboxid) = rows[0]
-            return netboxid
-        raise UnknownRRDFileError(filename)
-
-    def get_existing_rrd(self, netboxid, serviceid=None):
-        """Returns the filename tuple of the last registered RRD file
-        for the given netboxid/serviceid combination"""
-        if serviceid:
-            where = """WHERE netboxid=%s AND subsystem='serviceping' AND
-                       key='serviceid' AND value=%s"""
-            values = (netboxid, str(serviceid))
-        else:
-            where = "WHERE netboxid=%s AND subsystem='pping'"
-            values = (netboxid,)
-
-        statement = """SELECT path, filename FROM rrd_file %s
-                       ORDER BY rrd_fileid DESC LIMIT 1""" % where
-        rows = self.query(statement, values)
-        if len(rows) > 0:
-            return os.path.join(*rows[0])
-        else:
-            raise UnknownRRDFileError(netboxid, serviceid)
-
-    def rename_rrd(self, from_file, to_file):
-        """Renames a referenced RRD file in the database, but not on disk"""
-        statement = """UPDATE rrd_file
-                       SET path=%s, filename=%s
-                       WHERE path=%s AND filename=%s"""
-        self.execute(statement,
-                     (os.path.dirname(to_file), os.path.basename(to_file),
-                      os.path.dirname(from_file), os.path.basename(from_file)))
-
-    def reconnect_rrd(self, filename, netboxid):
-        """Reconnects a known, disconnected RRD file with a netboxid."""
-        statement = """UPDATE rrd_file
-                       SET netboxid=%s
-                       WHERE path=%s AND
-                             filename=%s AND
-                             netboxid IS NULL"""
-        return self.execute(statement, (netboxid,
-                                        os.path.dirname(filename),
-                                        os.path.basename(filename)))
-
-    def registerRrd(self, filename, step, netboxid, subsystem, key="",
-                    val=""):
-        rrdid = self.query("SELECT nextval('rrd_file_rrd_fileid_seq')")[0][0]
-        if key and val:
-            statement = """INSERT INTO rrd_file
-                           (rrd_fileid, path, filename, step, netboxid,
-                            key, value, subsystem)
-                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
-            values = (rrdid,
-                      os.path.dirname(filename), os.path.basename(filename),
-                      step, netboxid, key, val, subsystem)
-        else:
-            statement = """INSERT INTO rrd_file
-                           (rrd_fileid, path, filename, step, netboxid,
-                            subsystem)
-                           VALUES (%s, %s, %s, %s, %s, %s)"""
-            values = (rrdid,
-                      os.path.dirname(filename), os.path.basename(filename),
-                      step, netboxid, subsystem)
-        self.execute(statement, values)
-        return rrdid
-
-    def registerDS(self, rrd_fileid, name, descr, dstype, unit):
-        statement = """INSERT INTO rrd_datasource
-        (rrd_fileid, name, descr, dstype, units) VALUES
-        (%s, %s, %s, %s, %s)"""
-        self.execute(statement, (rrd_fileid, name, descr, dstype, unit))

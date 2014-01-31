@@ -20,6 +20,5 @@ from django.conf.urls.defaults import patterns, url
 from nav.web.sortedstats.views import index
 
 urlpatterns = patterns('',
-    url(r'^$', index,
-        name='sortedstats'),
+    url(r'^$', index, name='sortedstats'),
 )

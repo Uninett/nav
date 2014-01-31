@@ -19,6 +19,7 @@ from nav.bulkimport import BulkImportError
 
 from django import forms
 
+
 class BulkImportForm(forms.Form):
     """Generic bulk import form"""
     bulk_file = forms.FileField(label="Upload a bulk data file",
@@ -28,13 +29,13 @@ class BulkImportForm(forms.Form):
         label="Or paste data here",
         required=False,
         widget=forms.Textarea(attrs={
-                'rows': 25,
-                'cols':80
-                }))
+            'rows': 25,
+            'cols': 80
+        }))
 
     def __init__(self, parser, *args, **kwargs):
         self.parser = parser
-        kwargs['initial'] = {'bulk_data':"%s\n" % self.parser.get_header()}
+        kwargs['initial'] = {'bulk_data': "%s\n" % self.parser.get_header()}
         super(BulkImportForm, self).__init__(*args, **kwargs)
 
         bulk_file = self.files.get('bulk_file', None)
@@ -99,17 +100,16 @@ class BulkImportForm(forms.Form):
             if isinstance(objects, BulkParseError):
                 processed.append({
                     'status': (isinstance(objects, BulkImportError)
-                             and 'other' or 'syntax'),
+                               and 'other' or 'syntax'),
                     'line_number': line_num,
-                    'input': lines[line_num-1],
+                    'input': lines[line_num - 1],
                     'message': objects,
                 })
             else:
                 processed.append({
                     'status': 'ok',
                     'line_number': line_num,
-                    'input': lines[line_num-1],
+                    'input': lines[line_num - 1],
                     'message': ''
                 })
         return processed
-

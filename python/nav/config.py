@@ -129,7 +129,7 @@ class NAVConfigParser(ConfigParser.ConfigParser):
         if files_read:
             _logger.debug("Read config files %r", files_read)
         else:
-            _logger.warning("Found no config files")
+            _logger.debug("Found none of %r", filenames)
         return files_read
 
 

@@ -76,7 +76,7 @@ class BulkParser(object):
         """Validate an entire row"""
         for fieldnum in range(self.required):
             fieldname = self.format[fieldnum]
-            if not row.has_key(fieldname) or not row[fieldname]:
+            if not fieldname in row or not row[fieldname]:
                 raise RequiredFieldMissing(self.line_num, fieldname)
 
         for fieldname, value in row.items():
@@ -87,7 +87,7 @@ class BulkParser(object):
         """Verify the validity of a specific value"""
         validatorname = "_validate_%s" % fieldname
         if (hasattr(self, validatorname) and
-            callable(getattr(self, validatorname))):
+                callable(getattr(self, validatorname))):
             return getattr(self, validatorname)(value)
         else:
             return True
@@ -293,4 +293,3 @@ class InvalidFieldValue(BulkParseError):
     def __str__(self):
         return ("%s: '%s' is invalid value for field '%s' on line %d" %
                 (self.__doc__, self.value, self.field, self.line_num))
-

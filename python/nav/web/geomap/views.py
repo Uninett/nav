@@ -34,7 +34,6 @@ from nav.django.utils import get_account
 
 from nav.web.geomap.conf import get_configuration
 from nav.web.geomap.db import get_data
-from nav.web.geomap.db import get_data_finish
 from nav.web.geomap.graph import build_graph
 from nav.web.geomap.graph import simplify
 from nav.web.geomap.features import create_features
@@ -199,5 +198,4 @@ def get_formatted_data(variant, db, format_, bounds, viewport_size, limit,
     features = create_features(variant, graph)
     logger.debug('format')
     output = format_data(format_, features)
-    get_data_finish()
     return output

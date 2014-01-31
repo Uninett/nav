@@ -17,14 +17,23 @@
 
 """Context processors for NAV."""
 
+import os
 from django.conf import settings
+from operator import attrgetter
 from nav.django.auth import get_sudoer
 
 from nav.django.utils import get_account, is_admin
-from nav.web.message import new_message, Messages
-from nav.web.webfront.utils import tool_list
+from nav.web.message import Messages
+from nav.web.webfront.utils import get_account_tools, tool_list, quick_read
 from nav.models.profiles import AccountNavbar
 from nav.buildconf import VERSION
+from nav.path import sysconfdir
+
+WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
+CONTACT_INFORMATION_PATH = os.path.join(WEBCONF_DIR_PATH,
+                                        "contact-information.txt")
+EXTERNAL_LINKS_PATH = os.path.join(WEBCONF_DIR_PATH, "external-links.txt")
+
 
 def debug(request):
     """Returns context variables helpful for debugging.
@@ -37,6 +46,7 @@ def debug(request):
         from django.db import connection
         context_extras['sql_queries'] = connection.queries
     return context_extras
+
 
 def account_processor(request):
     """Provides account information to RequestContext.
@@ -57,6 +67,8 @@ def account_processor(request):
     navbar = []
     qlink1 = []
     qlink2 = []
+
+    tools = sorted(tool_list(account), key=attrgetter('name'))
 
     preferences = AccountNavbar.objects.select_related(
         'navbarlink'
@@ -86,15 +98,25 @@ def account_processor(request):
         'navbar': navbar,
         'qlink1': qlink1,
         'qlink2': qlink2,
+        'tools': tools
     }
     return {
         'current_user_data': current_user_data,
     }
 
+
 def nav_version(request):
     return {
         'nav_version': VERSION,
     }
+
+
+def footer_info(request):
+    return {
+        'external_links': quick_read(EXTERNAL_LINKS_PATH),
+        'contact_information': quick_read(CONTACT_INFORMATION_PATH)
+    }
+
 
 def toolbox(request):
     return {'available_tools': tool_list(get_account(request))}

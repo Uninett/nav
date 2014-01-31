@@ -1,6 +1,0 @@
-#
-# Default Cricket config for ipv6-interfaces
-#
-
-Target  --default--
-    inst         =    map(interface-name)

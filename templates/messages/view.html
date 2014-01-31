@@ -2,11 +2,16 @@
 
 {% block content %}
 
-<table class="vertitable veritablefull">
+{% if not current_user_data.account.is_default_account %}
+  <a href="{% url messages-edit message.id %}" class="button small">Edit</a>
+  <a href="{% url messages-followup message.id %}" class="button small">Follow up</a>
+{% endif %}
+
+<table class="vertitable">
     <caption>{{ message.title }}</caption>
         <tr>
             <th>Published</th>
-            <td>{{ message.publish_start|date:"Y-m-d H:i" }}</td>
+            <td>{{ message.publish_start|date:"DATETIME_FORMAT_SHORT" }}</td>
         </tr>
         <tr>
             <th>Author</th>
@@ -29,8 +34,8 @@
                         <a href="{% url maintenance-view task_mapper.maintenance_task.pk %}">
                             {{ task_mapper.maintenance_task.description }}
                         </a>
-                        , from {{ task_mapper.maintenance_task.start_time|date:"Y-m-d H:i" }}
-                        to {{ task_mapper.maintenance_task.end_time|date:"Y-m-d H:i" }}
+                        , from {{ task_mapper.maintenance_task.start_time|date:"DATETIME_FORMAT_SHORT" }}
+                        to {{ task_mapper.maintenance_task.end_time|date:"DATETIME_FORMAT_SHORT" }}
                         , current state is <i>{{ task_mapper.maintenance_task.state }}</i>
                     </li>
                 {% endfor %}
@@ -39,9 +44,9 @@
         {% endif %}
         <tr>
             <th>Expires</th>
-            <td>{{ message.publish_end|date:"Y-m-d H:i" }} 
+            <td>{{ message.publish_end|date:"DATETIME_FORMAT_SHORT" }}
                 {% if message.publish_end > now %}
-                    | <a href="{% url messages-expire message.id %}">Expire now</a>
+                    <a href="{% url messages-expire message.id %}" class="button tiny">Expire now</a>
                 {% endif %}
             </td>
         </tr>
@@ -52,30 +57,23 @@
                     <a href="{% url messages-view message.replaces_message.id %}">
                         {{ message.replaces_message.title }},
                     </a>
-                        from {{ message.replaces_message.publish_start|date:"Y-m-d H:i" }},
+                        from {{ message.replaces_message.publish_start|date:"DATETIME_FORMAT_SHORT" }},
                         by {{ message.replaces_message.author }}
                 </td>
             </tr>
-            {% endif %}
-            {% for item in message.replaced_by.all %}
+        {% endif %}
+        {% for item in message.replaced_by.all %}
             <tr>
                 <th>Replaced by</th>
                 <td>
                     <a href="{% url messages-view item.id %}">
                         {{ item.title }},
                     </a>
-                        from {{ item.publish_start|date:"Y-m-d H:i" }},
+                        from {{ item.publish_start|date:"DATETIME_FORMAT_SHORT" }},
                         by {{ item.author }}
                 </td>
             </tr>
-            {% endfor %}
-        <tr>
-            <th>Actions</th>
-            <td>
-                <a href="{% url messages-edit message.id %}">Edit</a> | 
-                <a href="{% url messages-followup message.id %}">Follow up</a>
-            </td>
-        </tr>
+        {% endfor %}
 </table>
 
 

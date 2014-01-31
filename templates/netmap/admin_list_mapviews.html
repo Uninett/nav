@@ -1,18 +1,17 @@
 {% extends "base.html" %}
 {% block base_header_additional_head %}
-    <link rel="stylesheet" href="/style/netmap.css" media="screen" type="text/css" />
-    <link rel="stylesheet" href="/style/datatables.css" media="screen" type="text/css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/netmap.css" media="screen" />
 {% endblock %}
 {% block base_content %}
 
 <div id="netmap_admin">
 
 
-<table id="netmap_admin_list" class="vertitable">
+<table id="netmap_admin_list" class="listtable full-width">
     <caption>Available Netmap views</caption>
     <thead>
     <tr>
-        <td colspan="4">Choosing a private view to be a default view,
+        <td colspan="6">Choosing a private view to be a default view,
             will convert the current view to public! Heart shows current global view.
         </td>
     </tr>
@@ -46,8 +45,8 @@
     </tbody>
 </table>
 </div>
-<script type="text/javascript" src="/js/libs/jquery.js"></script>
-<script type="text/javascript" src="/js/libs/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery.dataTables.min.js"></script>
 <script type="text/javascript">
     var dt_config = {
         bAutoWidth: false,

@@ -20,6 +20,78 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 4.0
+========
+
+To see the overview of scheduled features and reported bugs on the 4.0 series
+of NAV, please go to https://launchpad.net/nav/4.0 .
+
+Dependency changes
+------------------
+
+New dependencies:
+
+- Graphite_
+- Sass_ >= 3.2.12 (only required at build time)
+- The Python module :mod:`django-crispy-forms` == 1.3.2
+- the Python module :mod:`crispy-forms-foundation` == 0.2.3
+
+Changed version requirements:
+
+- `Python` >= 2.7.0
+
+Removed dependencies:
+
+- Cricket
+- rrdtool
+
+.. _Graphite: http://graphite.wikidot.com/
+.. _Sass: http://sass-lang.com/
+
+Major changes to statistics collection
+--------------------------------------
+
+NAV 4.0 ditches Cricket for collection and presentation of time-series data.
+Cricket is great for manually maintaining large configurations, but becomes
+quite inflexible when integrating with a tool like NAV. Also, Cricket has not
+been actively developed since 2004.
+
+Collection of time-series data via SNMP has become the responsibility of NAV's
+existing SNMP collector engine, `ipdevpoll`, implemented as new plugins and
+job configurations.
+
+RRDtool has also been ditched in favor of Graphite_, a more flexible and
+scalable system for storage of time-series data. Graphite provides a networked
+service for receiving *"metrics"*, meaning it can be installed on a separate
+server, if desirable. It will even scale horizontally, if needed.
+
+The parts of NAV that collect or otherwise produce time-series data, such as
+values collected via SNMP, ping roundtrip times or ipdevpoll job performance
+metrics, will now send these to a configured Carbon backend (Graphite's
+metric-receiving daemon).
+
+Due to this extensive change, the threshold manager interface and the threshold
+monitor have been rewritten from scratch. The new threshold monitoring system
+uses *"threshold rules"*, which leverage functionality built-in to Graphite.
+It is also essentially independent of NAV, which means it can also monitor
+thresholds for data that was put into Graphite by 3rd party software.
+
+Migrating existing data
+-----------------------
+
+Existing threshold values for RRD-based data sources cannot be consistently
+migrated to the new threshold rule system, so you will need to configure your
+threshold rules from scratch. 
+
+We do provide a program for migrating time-series data stored in RRD files
+into Graphite, which will enable you to keep old data when upgrading from an
+older NAV version. Usage and limitations of this program is documented in a
+separate howto guide: :doc:`/howto/migrate-rrd-to-graphite`.
+
+.. note:: If you wish to migrate time-series data, please read :doc:`the guide
+          </howto/migrate-rrd-to-graphite>` **before** starting NAV 4.
+
+
 NAV 3.15
 ========
 

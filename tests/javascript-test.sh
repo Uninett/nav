@@ -5,7 +5,7 @@ if [ ! -n "$1" ]; then
 fi
 
 WORKSPACE=$1
-JSDIR="${WORKSPACE}/htdocs/js"
+JSDIR="${WORKSPACE}/htdocs/static/js"
 
 
 NPM=`which npm`

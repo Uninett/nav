@@ -44,7 +44,7 @@ from nav.models.manage import Arp, Cam, Category, Device, Location
 from nav.models.manage import Memory, Netbox, NetboxInfo, NetboxType
 from nav.models.manage import Organization, Prefix, Room, NetboxGroup
 from nav.models.manage import Interface, Usage, Vlan, Vendor
-from nav.models.fields import VarcharField
+from nav.models.fields import VarcharField, PickleField
 
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 
@@ -541,8 +541,9 @@ class AlertProfile(models.Model):
 
         return active_timeperiod
 
+
 class TimePeriod(models.Model):
-    '''Defines TimerPeriods and which part of the week they are valid'''
+    """Defines TimerPeriods and which part of the week they are valid"""
 
     ALL_WEEK = 1
     WEEKDAYS = 2
@@ -565,6 +566,7 @@ class TimePeriod(models.Model):
     def __unicode__(self):
         return u'from %s for %s profile on %s' % (
             self.start, self.profile, self.get_valid_during_display())
+
 
 class AlertSubscription(models.Model):
     """Links an address and timeperiod to a filtergroup with a given
@@ -1357,3 +1359,19 @@ class AccountTool(models.Model):
 
     class Meta:
         db_table = u'accounttool'
+
+
+class AccountNavlet(models.Model):
+    """Store information about a users navlets"""
+    navlet = VarcharField()
+    order = models.IntegerField(default=0, db_column='displayorder')
+    account = models.ForeignKey(Account, db_column='account')
+    preferences = PickleField(null=True)
+    column = models.IntegerField(db_column='col')
+
+    def __unicode__(self):
+        return "%s - %s" % (self.navlet, self.account)
+
+    class Meta:
+        db_table = 'account_navlet'
+        ordering = ['order']

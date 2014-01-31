@@ -1,3 +1,75 @@
+Version 4.0b2
+(released 9 Jan 2014)
+
+ Bugfixes:
+
+  * LP#1262644 (seeddb bulk import does not work)
+  * LP#1263040 (ipdevinfo should not crash when Graphite-web is not reachable)
+  * LP#1267464 (NAV 4 must provide a tool for migrating RRD data from NAV 3)
+
+ User-visible features and improvements:
+  
+  Various UI improvements to the room photo database, toolbox dropdown,
+  Network Explorer, Geomap and Ranked statistics.
+
+
+Version 4.0b1
+(released 12 Dec 2013)
+
+ User-visible features and improvements:
+
+  * The web-based user interface has been overhauled/redesigned, using the
+    Foundation CSS framework. One of the goals of this process is to have
+    design elements that are properly re-usable, and a responsive design that
+    will work better on small-screen devices.
+
+  * Cricket and RRDtool have been replaced with ipdevpoll plugins for
+    time-series data collection and Graphite for data storage and
+    presentation. More information about Graphite can be found at
+    http://graphite.wikidot.com/ .
+
+  * System and port traffic graphs are now browsable directly in the ipdevinfo
+    tool under each IP device or network interface. The advanced user can also
+    build more complex, customized graphs from the data collected by NAV by
+    utilizing Graphite's own web interface.
+
+  * The threshold management interface has been rewritten from scratch to work
+    with data from Graphite.
+
+ These are fairly large, not backwards compatible changes to NAV. Please refer
+ to the release notes for upgrade instructions. For testing the 4.0 beta
+ version we recommend installing NAV on a separate, perhaps virtual, server,
+ and migrate production data according to the data migration howto found in
+ the documentation.
+
+
+Version 3.15.4
+(released 9 Jan 2014)
+
+ Bugfixes:
+
+  * LP#1246684 (AttributeError crash in Machine Tracker when search results
+                include data from deleted IP devices)
+  * LP#1255958 (DHCP service-check failure)
+  * LP#1265753 (portadmin does not allow empty ifalias)
+  * LP#1265755 (portadmin fails to load template for ifalias format)
+
+
+Version 3.15.3
+(released 14 Nov 2013)
+
+ Bugfixes:
+
+  * LP#1239998 (Invalid MAC addresses collected in ARP data from Cisco Nexus
+                routers)
+  * LP#1247051 (The necessity of SECRET_KEY in NAV 3.15 is not documented)
+  * LP#1248524 (Ranked statistics report results seem random in NAV 3.15.2)
+  * LP#1248941 (Enabling [defaultvlan] in portadmin.conf makes portadmin fail)
+  * LP#1250760 (Existing CAM records aren't closed when switch has _no_ more CAM
+                records)
+  * LP#1250846 (netbiostracker crashes on non standard result)
+
+
 Version 3.15.2
 (released 31 Oct 2013)
 

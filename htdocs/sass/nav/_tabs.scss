@@ -1,0 +1,186 @@
+/* Stylesheet for tables in NAV style
+ *
+ * Copyright (C) 2007 UNINETT AS
+ *
+ * This file is part of Network Administration Visualized (NAV).
+ *
+ * NAV is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.  You should have received a copy of the GNU General Public
+ * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/* Mixins for tabs */
+ @mixin tab_base {
+    display: none;
+    margin-top: 1em;
+    overflow: visible;
+ }
+
+ @mixin tab_ul {
+    font-size: 0.9em;
+    margin: 0;
+    padding: 0;
+ }
+
+ @mixin tab_li {
+    border-left: 1px solid #999999;
+    border-top: 1px solid #999999;
+    float: left;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    &:last-child {
+        border-right: 1px solid #999999;
+    }
+    &.tabactive {
+        position: relative;
+        z-index: 10;
+        a, a:hover {
+            background: white;
+            color: black;
+        }
+    }
+    a {
+        background: #dae1e6;
+        color: #333;
+        display: block;
+        line-height: 1.3em;
+        margin: 0;
+        padding: 0.6em 1em;
+        text-decoration: none;
+        &:hover {
+            background: #eee;
+            color: black;
+        }
+    }
+}
+
+@mixin tab_selected {
+    position: relative;
+    z-index: 10;
+    a, a:hover {
+        background: white;
+        color: black;
+    }
+}
+
+@mixin tab_content {
+    border: 1px solid #999999;
+    clear: both;
+    margin-bottom: 1em;
+    padding: 1em;
+    position: relative;
+    top: -1px;
+}
+
+/* Normal tabs */
+.tabs {
+    @include tab_base;
+
+    > ul {
+        @include tab_ul;
+        
+        li {
+            @include tab_li;
+        }
+    }
+    > .tabcontent {
+        @include tab_content;
+    }
+}
+
+/* JQuery UI tabs NAV style */
+
+.ui-tabs {
+    @include tab_base;  
+    
+    .ui-tabs-nav { 
+        @include tab_ul; 
+
+        li {
+            @include tab_li;
+
+            &.ui-tabs-selected { 
+                @include tab_selected; 
+            }
+        }
+    }
+    .ui-tabs-panel { 
+        @include tab_content; 
+    }
+    .ui-tabs-hide { 
+        display: none !important;
+        position: absolute;
+        left: -10000px;
+    }
+
+    .ui-state-error {
+        color: #b94a48;
+    }
+}
+
+/*
+ * Vertical tabs
+ *
+ * To adjust size of tabs, override the two marked styles
+ */
+
+.tabs.tabs-vertical {
+    > ul {
+        border: 1px solid #999999;
+        border-right-width: 0;
+        float: left;
+        line-height: 1.6em;
+        padding: 0;
+        width: 200px; /* Override to adjust tabsize */
+        li {
+            border: none;
+            border-bottom: 1px solid #999999;
+            display: block;
+            float: none;
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+    }
+    > .tabcontent {
+        clear: none;
+        margin-left: 200px; /* Override to adjust tabsize */
+        min-height: 550px; /* Override to adjust for long ass vertical tabs */
+        top: 0;
+        left: -1px;
+    }
+}
+
+/* Tabs inside tabs should have no border and no padding to make room for the most content possible */
+
+.tabs .tabs {
+    margin-top: 0;
+    overflow: auto;
+    > .tabcontent {
+        border: 0;
+        padding: 1em 0;
+    }
+}
+
+/* Layout helpers
+----------------------------------*/
+.ui-helper-hidden { display: none; }
+.ui-helper-reset { margin: 0; padding: 0; border: 0; outline: 0; line-height: 1.3; text-decoration: none; font-size: 100%; list-style: none; }
+.ui-helper-clearfix:before, .ui-helper-clearfix:after { content: ""; display: table; }
+.ui-helper-clearfix:after { clear: both; }
+.ui-helper-clearfix { zoom: 1; }
+.ui-helper-zfix { width: 100%; height: 100%; top: 0; left: 0; position: absolute; opacity: 0; filter:Alpha(Opacity=0); }
+
+/* Interaction Cues
+----------------------------------*/
+.ui-state-disabled { cursor: default !important; }
+.ui-state-disabled, .ui-widget-content .ui-state-disabled, .ui-widget-header .ui-state-disabled { opacity: .35; filter:Alpha(Opacity=35); background-image: none; }

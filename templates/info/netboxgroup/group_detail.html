@@ -1,12 +1,10 @@
 {% extends "info/netboxgroup/base.html" %}
 
-{% block base_content %}
+{% block content %}
 
-    <h2>Details for group {{ netboxgroup.pk }}</h2>
+    <h4>Details for group {{ netboxgroup.pk }}</h4>
 
-    <div class="horizontal-button-list">
-        <a href="{% url netbox-group-edit netboxgroup.pk %}"><span class="edit">Edit device group</span></a>
-    </div>
+    <a href="{% url netbox-group-edit netboxgroup.pk %}" class="button small">Edit device group</a>
 
     <table class="listtable">
         <caption>Netboxes in {{ netboxgroup.pk }}</caption>

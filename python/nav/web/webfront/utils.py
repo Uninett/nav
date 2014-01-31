@@ -25,6 +25,7 @@ from nav.config import read_flat_config
 from nav.models.msgmaint import Message
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox
+from nav.models.profiles import AccountTool
 
 _logger = logging.getLogger('nav.web.tools.utils')
 
@@ -116,3 +117,19 @@ def tool_list(account):
                         tool_list.append(tool)
     tool_list.sort()
     return tool_list
+
+
+def get_account_tools(account, all_tools):
+    """Get tools for this account"""
+    account_tools = account.accounttool_set.all()
+    tools = []
+    for tool in all_tools:
+        try:
+            account_tool = account_tools.get(toolname=tool.name)
+        except AccountTool.DoesNotExist:
+            tools.append(tool)
+        else:
+            tool.priority = account_tool.priority
+            tool.display = account_tool.display
+            tools.append(tool)
+    return tools

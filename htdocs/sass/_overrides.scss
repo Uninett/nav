@@ -1,0 +1,43 @@
+// Override alert mixins
+// -------------------------------------------
+
+// Override mixin to handle new parameters for font color and border
+@mixin alert-style($bg:$info-box-bg, $color:$info-box-color, $border:$info-box-border) {
+	background-color: $bg;
+	color: $color;
+	border-color: $border;
+	font-weight:400;
+}
+
+// Override this mixin to default to secondary colors on alert-box
+@mixin alert($radius:false) {
+  @include alert-base;
+  @include alert-style();
+  @include radius($radius);
+}
+
+// Main configuration for alert-box class
+.alert-box {
+    @include alert;
+
+    .close { @include alert-close; }
+
+    &.radius { @include radius($alert-radius); }
+    &.round { @include radius($global-rounded); }
+
+    &.success { @include alert-style($success-box-bg, $success-box-color, $success-box-border); }
+    &.alert { @include alert-style($alert-box-bg, $alert-box-color, $alert-box-border); }
+    &.secondary { @include alert-style($info-box-bg, $info-box-color, $info-box-border); }
+  }
+
+// Adds class for marking a button as active.
+// Shadow and color styles copied from mixin inset-shadow()
+button, .button {
+    &.active {
+        box-shadow: $shiny-edge-size $shiny-edge-active-color inset;
+        background-color: darken($primary-color, $button-function-factor);
+        &.secondary { background-color: darken($secondary-color, $button-function-factor); }
+        &.alert { background-color: darken($alert-color, $button-function-factor); }
+        &.success { background-color: darken($success-color, $button-function-factor); }
+    }
+}

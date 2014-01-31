@@ -1,0 +1,16 @@
+.multitable {
+    overflow: auto;
+}
+
+.multitable > table {
+    float: left;
+    margin-right: 1em;
+}
+
+.dataTables_wrapper {
+	padding:5px;
+}
+
+.ctrlHolder {
+	margin-bottom:10px;
+}

@@ -1,0 +1,34 @@
+{% extends 'arnold/base.html' %}
+
+{% block content %}
+  <div class="tabs">
+
+    <ul>
+      <li class="{{ active.history|yesno:"tabactive," }}">
+        <a href="{% url arnold-history %}">History</a>
+      </li>
+      <li class="{{ active.detentions|yesno:"tabactive," }}">
+        <a href="{% url arnold-detainedports %}">Detained ports</a>
+      </li>
+      {#            <li class="{{ active.search|yesno:"tabactive," }}"><a href="{% url arnold-search %}">Search</a></li>#}
+      <li class="{{ active.justifications|yesno:"tabactive," }}">
+        <a href="{% url arnold-justificatons %}">Detention reasons</a>
+      </li>
+{#      <li class="{{ active.manualdetention|yesno:"tabactive," }}">#}
+{#        <a href="{% url arnold-manual-detention %}">Manual detention</a>#}
+{#      </li>#}
+      <li class="{{ active.quarantinevlans|yesno:"tabactive," }}">
+        <a href="{% url arnold-quarantinevlans %}">Quarantine vlans</a>
+      </li>
+      <li class="{{ active.detentionprofiles|yesno:"tabactive," }}">
+        <a href="{% url arnold-detention-profiles %}">Detention profiles</a>
+      </li>
+    </ul>
+
+    <div class="tabcontent">
+      {% block tabcontent %}
+      {% endblock %}
+    </div>
+
+  </div>
+{% endblock %}

@@ -1,0 +1,667 @@
+/* General styles */
+//body {
+//    margin: 0;
+//    padding: 1em 0 1em 0;
+//    border: 0; /* This removes the border around the viewport in old versions of IE */
+//    width: 100%;
+//    background: #fff;
+//    min-width: 600px; /* Minimum width of layout - remove line if not required */
+//    /* The min-width property does not work in old versions of Internet Explorer */
+//}
+//html {overflow-y: scroll} /* always render a vertical scrollbar so width doesn't keep changing */
+
+///* Header styles */
+//#header {
+//    margin: 0 1em 0 1em;
+//}
+//
+///* Footer styles */
+//#footer hr {
+//    display: none;
+//
+//}
+//#debug {
+//    display: none;
+//}
+//
+//#save_new_view {
+//    float:right;
+//}
+//
+//#delete_view {
+//    float: right;
+//    clear: right;
+//    margin-top: 20px;
+//}
+
+/*
+2012-07-31
+view-source:http://bluerobot.com/web/layouts/layout3.css
+quote http://www.bluerobot.com/web/layouts/
+"Please feel free to borrow, steal, abduct, and/or torture the documents
+ contained in the Layout Reservoir.
+ Though you need not give credit to BlueRobot.com, a comment in your source
+  code would help other developers to find this resource. Enjoy."
+*/
+
+@import '../navsettings';
+$image-path: '../../images';
+
+#netmap_wrapper {
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+#netmap_main_view {
+    position:relative; /* Position is declared "relative" to gain control of stacking order (z-index). */
+    width:auto;
+    min-width:120px;
+    margin:0px 210px 20px 170px;
+    border:1px solid black;
+    background-color:white;
+    padding:10px;
+    z-index:3; /* This allows the content to overlap the right menu in narrow windows in good browsers. */
+}
+
+#netmap_left_sidebar {
+    background-color: #ffffff;
+    position:absolute;
+    width:155px;
+    top:0px;
+    left:0px;
+    padding:5px;
+    z-index:2;
+}
+
+#netmap_left_sidebar div.inner_wrap {
+    margin-top: 20px;
+}
+
+#netmap_infopanel {
+    background-color: #ffffff;
+    position:absolute;
+    width:195px;
+    top:0px;
+    right:0px;
+    padding:5px;
+    z-index:1;
+}
+
+#loading_chart, #chart {
+    min-height: 300px;
+    min-width: 300px;
+}
+
+
+.collapse_buttons {
+    button, .button {
+        margin: 0;
+    }
+}
+
+/*
+ * NETMAP ADMIN PAGE STYLES
+ */
+
+td.current_favorite {
+    background: url('#{$image-path}/netmap/emblem-favorite.png') no-repeat center left;
+    height: 33px;
+    a {
+        padding-left: 33px;
+    }
+}
+
+/*
+ * END NETMAP ADMIN STYLES
+ */
+
+
+div.isFavorite {
+    background: url('#{$image-path}/netmap/emblem-favorite.png') no-repeat top right;
+}
+
+div.isFavorite span.description {
+    padding-right: 33px;
+}
+
+#wrapper_chart {
+    min-height: 400px;
+}
+
+/* D3JS Netmap style */
+
+#netmap_userid {
+    display: none;
+}
+
+#save_view_spinner {
+    margin-left: 10px;
+    margin-bottom: 2px;
+    display: inline-block;
+}
+
+.clear {
+    clear: both;
+}
+
+.netmap-node-menu {
+    margin: 0 0 10px 0;
+    list-style-type: none;
+}
+
+.netmap-node-menu li {
+    margin: 0;
+    display: inline;
+}
+
+.netmap-node-category {
+}
+
+#toggle_view {
+    cursor: pointer;
+}
+
+#search_view label {
+    display: none;
+}
+
+#searchbox_search {
+     cursor: pointer;
+}
+
+#searchbox_query {
+    width: 100%;
+}
+
+.toggleUplink {
+    float: right;
+}
+.toggleUplink > .linkSource  {
+    display: none;
+
+}
+
+/* templates/info/vlan.html */
+#infoVlanContainer {
+    min-height: 350px;
+    height: 350px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+#node_info_vlan {
+    list-style-type: none;
+}
+
+#node_info_vlan > li {
+    margin:0 0 2px 0;
+    border-bottom: 1px dotted #ccc;
+}
+
+#infoVlanContainer .vlan {
+    display: block;
+    width:auto;
+    font-size:11px;
+    padding-left: 2.5em;
+    position: relative;
+    height:auto !important;
+    min-height: 3.8em;
+    height:3.8em;
+    cursor: pointer;
+}
+
+#infoVlanContainer .vlan:hover {
+    color:orange;
+}
+
+#infoVlanContainer .vlan > span {
+    display: block;
+    position:absolute;
+    font-size:11px;
+    top:50%;
+    left:0;
+    margin:-1em 0 0 -.5em;
+    width:2em;
+    background:#577899;
+    color:#fff;
+    font-weight: normal;
+    padding:.2em .5em;
+    text-align: right;
+
+    transform:rotate(-90deg);
+    -ms-transform:rotate(-90deg); /* IE 9 */
+    -webkit-transform:rotate(-90deg); /* Safari and Chrome */
+
+}
+
+#node_info_vlan .selected_vlan a {
+    color: orange;
+}
+
+#node_info_vlan .selected_vlan a > span {
+    background: orange;
+}
+
+/*
+ * WIDGET STYLES
+ */
+
+.netmapWidget {
+    margin: 0.5em 0;
+    border: 1px solid #567899;
+    overflow: hidden;
+    position: relative;
+    .netmapWidget {
+        border: 0 !important;
+        border-radius: 0 !important;
+        padding-bottom: 5px;
+        .body {
+            margin: 0;
+            input[type='radio'], input[type='checkbox'] {
+                margin: 0;
+            }
+        }
+    }
+    .header {
+        background: #01547F;
+        color: #fff;
+        overflow: hidden;
+        .title {
+            font-weight:bold;
+            //background: url('#{$image-path}/icons/expand_invert.png') top right no-repeat;
+            margin:3px;
+        }
+        > .no-icon {
+            background: none;
+        }
+    }
+    .body {
+        margin: 0.5em;
+    }
+    .no_collapse > .title {
+        background: none;
+    }
+}
+
+.hideSubWidgets {
+    .netmapWidget {
+        .header {
+            background: none;
+        }
+        .title {
+            color: #000;
+            font-weight: bold;
+        }
+        .body {
+            margin-top: 0.1em;
+        }
+    }
+}
+
+/*
+ * OTHER CRAZY STUFF
+ */
+
+#mapinfo {
+    margin-top: 2em;
+}
+
+#netmap_wrapper .float-right {
+    float: right;
+    padding: 0;;
+}
+
+/* Traffic gradient */
+
+#modal_traffic_gradient {
+    overflow: hidden;
+}
+#modal_traffic_gradient div.modal-body {
+    margin: 6px 0 6px 32px;
+}
+
+.traffic_gradient_row {
+    width: 30px;
+    height: 6px;
+}
+
+div.traffic_gradient_meta {
+    position: absolute;
+    top: 13px;
+    height: 606px;
+}
+
+div.measure_line {
+    width: 70px;
+    height: 60.4px;
+    padding-left: 20px;
+    position: relative;
+    top: 0px;
+    left: 0px;
+    display: block;
+}
+div.measure_line span.measure_line {
+    position: relative;
+    left: -10px;
+    height: 0px;
+    display: block;
+    border-bottom: 2px solid black;
+    width: 28px;
+}
+div.measure_line span.measure_line_description {
+    display: block;
+    margin-left: 20px; /* dont hit measure_line */
+    margin-top: -9.5px; /* bump text up */
+    font-weight: bold;
+}
+
+/* LINK INFO RENE */
+div.uplink {
+	display:block;
+	padding:0px;
+	border:0;
+
+    background: -moz-linear-gradient(top,  #f0f9ff 0%, #d8f0ff 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f0f9ff), color-stop(100%,#d8f0ff)); /* Chrome, Safari4+ */
+    background: -webkit-linear-gradient(top,  #f0f9ff 0%,#d8f0ff 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #f0f9ff 0%,#d8f0ff 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #f0f9ff 0%,#d8f0ff 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #f0f9ff 0%,#d8f0ff 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f0f9ff', endColorstr='#d8f0ff',GradientType=0 ); /* IE6-9 */
+
+	margin-bottom:2px;
+	font-family:Consolas, "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", Monaco, "Courier New", monospace;
+    overflow:hidden;
+}
+
+div.uplink:first-of-type {
+    margin-top:5px;
+    border-top-left-radius: 3px;
+    border-top-right-radius:3px;
+}
+
+div.uplink:last-of-type {
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+div.uplink > * {
+    padding: 0 3%;
+}
+
+div.uplink_header {
+    font-weight:bold;
+	font-size:.8em;
+	color:#fff;
+	text-align:center;
+	display:block;
+	width:94%;
+    padding:2px 3%;
+	background:#567899;
+}
+
+div.uplink_header span a {
+    color:#fff;
+}
+
+div.uplink_header .source_node_name {
+    text-align: right;
+    float:left;
+}
+
+div.uplink_header .node_separator {
+    margin:0 3px;
+}
+
+div.uplink_header .target_node_name {
+    text-align: left;
+    float:right;
+}
+
+div.uplink a {
+	color:#567899;
+}
+
+div.uplink a:hover {
+	color:#f90;
+}
+div.uplink > .uplink_linkspeed {
+    font-size:0.8em;
+    margin:3px 0;
+}
+div.uplink > .uplink_linkspeed > span {
+	text-transform:capitalize;
+	font-weight:bold;
+}
+
+
+div.uplink_left, div.uplink_right {
+	display:block;
+	position:relative;
+	width:67px;
+	height:auto;
+	padding:5px;
+	font-size:12px;
+	font-weight:bold;
+	overflow:hidden;
+}
+
+div.uplink_left {
+	/* border-radius:5px 0 0 5px; */
+	text-align:left;
+	float:left;
+}
+
+div.uplink_right {
+	/* border-radius:0 5px 5px 0;	*/
+	float:right;
+	text-align:right;
+}
+
+div.uplink .load_arrow {
+	display:block;
+	height:20px;
+	width:20px;
+	position:absolute;
+    transform:rotate(45deg);
+    -ms-transform:rotate(45deg); /* IE 9 */
+    -webkit-transform:rotate(45deg); /* Safari and Chrome */
+	top:50%;
+	margin-top:-10px;
+}
+
+div.uplink_left > .load_arrow {
+	right:-12px;
+}
+
+div.uplink_right > .load_arrow {
+	left:-12px;
+}
+
+
+.breaker {
+	display:block;
+	clear:both;
+	height:1px;
+	font-size:1px;
+	line-height:1px;
+}
+
+/* LINK INFO RENE END*/
+
+/* svg styles below */
+
+circle {
+    stroke-width: 1.5px;
+}
+
+line.speed0-100 {
+    stroke-width: 2px;
+}
+
+line.speed100-512 {
+    stroke-width: 2.5px;
+}
+
+line.speed512-2048 {
+    stroke-width: 4px;
+}
+
+line.speed2048-4096 {
+    stroke-width: 5.5px;
+}
+
+line.speed4096 {
+    stroke-width: 7px;
+}
+
+line.warning_inspect {
+    stroke: red;
+    stroke-dasharray: 0, 2 1;
+    stroke-width: 7px; /* must be larger the largest link to show */
+}
+
+path.link {
+    fill: none;
+    stroke: #666;
+    stroke-width: 2px;
+}
+
+marker#licensing {
+    fill: lightgreen;
+}
+
+path.link.licensing {
+    stroke: lightgreen;
+}
+
+path.link.resolved {
+    stroke-dasharray: 0, 2 1;
+}
+
+circle {
+    fill: #ccc;
+    stroke: #333;
+    stroke-width: 3px;
+}
+
+circle.node {
+    stroke-opacity: 1;
+}
+circle.grouped_by_room {
+    stroke: red;
+    fill: transparent;
+}
+
+circle.grouped_by_vlan {
+    stroke: orange;
+    fill: transparent;
+}
+line.grouped_by_vlan {
+    stroke: orange;
+    stroke-width: 12px;
+    stroke-opacity: 0.5;
+    stroke-dasharray: 0, 10 10;
+}
+
+.node.fade,.link.fade {
+    opacity: 0.2;
+}
+
+text {
+    font: 14px sans-serif;
+    pointer-events: none;
+    background: #c0c0c0;
+}
+
+text.node {
+    font: 12pt sans-serif;
+}
+
+text.shadow {
+    stroke: #fff;
+    stroke-width: 4px;
+}
+
+#tooltip.pretty {
+    font-family: Arial;
+    border: none;
+    width: 210px;
+    padding: 20px;
+    height: 135px;
+    opacity: 0.8;
+    background: url('/images/shadow.png');
+}
+
+#tooltip.pretty h3 {
+    margin-bottom: 0.75em;
+    font-size: 12pt;
+    width: 220px;
+    text-align: center;
+}
+
+#tooltip.pretty div {
+    width: 220px;
+    text-align: left;
+}
+
+#tooltip.fancy {
+    background: url('/images/shadow2.png');
+    padding-top: 5em;
+    height: 100px;
+}
+
+/*
+http://bl.ocks.org/2514276
+https://groups.google.com/group/d3-js/browse_thread/thread/29ddd76c646f5921/de483e446abf4d39?lnk=gst&q=zoom#de483e446abf4d39
+*/
+
+div#pop-up {
+    display: none;
+    position: absolute;
+    color: white;
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px 5px 10px;
+    -moz-border-radius: 8px 8px;
+    border-radius: 8px 8px;
+}
+
+div#pop-up-title {
+    font-size: 15px;
+    width: 200px;
+    margin-bottom: 4px;
+    font-weight: bolder;
+}
+
+div#pop-up-content {
+    font-size: 12px;
+}
+
+div#pop-desc {
+    width: 100px;
+}
+
+div#pop-img {
+    font-size: 30px;
+    font-weight: bolder;
+}
+
+#modal_new_view fieldset > div {
+    margin-bottom: 1em;
+}
+
+#modal_new_view input[type=text], #modal_new_view textarea {
+    width: 100%;
+}
+
+#modal_new_view input[type=checkbox] {
+    margin-left: 0.5em;
+}
+
+/* Print CSS below here */
+
+@media print {
+    #netmap_left_sidebar, #netmap_infopanel, #debug, #footer, #header { display: none; }
+}

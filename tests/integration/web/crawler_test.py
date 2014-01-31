@@ -25,10 +25,12 @@ TIDY_OPTIONS = {
     'doctype': 'auto',
     'output_xhtml': True,
     'input_encoding': 'utf8',
+    'show-warnings': False,
 }
 
 TIDY_IGNORE = [
     'trimming empty <option>',
+    'trimming empty <i>',
     '<table> lacks "summary" attribute',
 ]
 
@@ -59,10 +61,19 @@ def test_webpages():
     register_seen(HOST_URL)
     while queue:
         url = queue.pop()
-        yield ('is %s reachable' % url,) + check_response(url)
+        yield ('is %s reachable' % url2path(url),) + check_response(url)
 
     for url in html_store.keys():
-        yield "does %s validate" % url, check_validates, url
+        yield "does %s validate" % url2path(url), check_validates, url
+
+
+def url2path(url):
+    """Strips everything but the path, query and fragment of a full URL"""
+    uri = urlparse.urlsplit(url)
+    uri = urlparse.SplitResult('', '', uri.path, uri.query, uri.fragment)
+    uri = urlparse.urlunsplit(uri)
+    return uri
+
 
 def handle_http_error(func):
     def _decorator(*args, **kwargs):

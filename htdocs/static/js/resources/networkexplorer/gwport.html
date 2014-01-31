@@ -1,0 +1,40 @@
+<img id="expand-gwport-{{pk}}"
+     {{#if expandable }}
+      {{#equal state "expanded" }}
+        src="{{ navImagePath }}/networkexplorer/collapse.gif">
+      {{else }}
+        src="{{ navImagePath }}/networkexplorer/expand.gif">
+      {{/equal }}
+     {{else }}
+      src="{{ navImagePath }}/networkexplorer/vertical-bound.gif">
+     {{/if }}
+
+<a href="/ipdevinfo/{{sysname}}/interface={{pk}}/">{{fields.ifname}}</a>
+{{#if netbox_sysname }}
+  {{#if trunk_port }}
+    <abbr title="trunk port">⇉</abbr>
+  {{else}}
+    <abbr title="non-trunk port">→</abbr>
+  {{/if }}
+  {{netbox_sysname}}
+{{/if }}
+{{#if prefixes.length }}
+  <ul>
+    <li class="tree-header">Prefixes:</li>
+    <ul class="prefixes">
+      {{#each prefixes }}
+        <li>
+          ({{this.display_addr }}, {{this.net_type }}, {{this.net_ident }})
+        </li>
+      {{/each }}
+    </ul>
+  </ul>
+{{/if }}
+
+{{#if expandable }}
+  <ul class="children">
+    {{#equal state "expanded" }}
+      <li class="tree-header">Connected swports:</li>
+    {{/equal }}
+  </ul>
+{{/if }}

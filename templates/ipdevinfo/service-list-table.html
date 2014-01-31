@@ -54,27 +54,21 @@
         {% with stats.availability as a %}
         <td class="numeric">
             {% if a.day %}
-                <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"day" %}">
                 {{ a.day|floatformat:2 }}%
-                </a>
             {% else %}
                 N/A
             {% endif %}
         </td>
         <td class="numeric">
             {% if a.week %}
-                <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"week" %}">
                 {{ a.week|floatformat:2 }}%
-                </a>
             {% else %}
                 N/A
             {% endif %}
         </td>
         <td class="numeric">
             {% if a.month %}
-                <a href="{% url rrdviewer-rrd-by-ds-tf a.data_source.id,"month" %}">
                 {{ a.month|floatformat:2 }}%
-                </a>
             {% else %}
                 N/A
             {% endif %}
@@ -83,27 +77,21 @@
         {% with stats.response_time as rt %}
         <td class="numeric">
             {% if rt.day %}
-                <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"day" %}">
                 {{ rt.day|floatformat:3 }}{{ rt.data_source.units }}
-                </a>
             {% else %}
                 N/A
             {% endif %}
         </td>
         <td class="numeric">
             {% if rt.week %}
-                <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"week" %}">
                 {{ rt.week|floatformat:3 }}{{ rt.data_source.units }}
-                </a>
             {% else %}
                 N/A
             {% endif %}
         </td>
         <td class="numeric">
             {% if rt.month %}
-                <a href="{% url rrdviewer-rrd-by-ds-tf rt.data_source.id,"month" %}">
                  {{ rt.month|floatformat:3 }}{{ rt.data_source.units }}
-                </a>
             {% else %}
                 N/A
             {% endif %}

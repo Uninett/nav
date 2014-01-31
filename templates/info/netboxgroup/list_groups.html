@@ -1,17 +1,17 @@
 {% extends "info/netboxgroup/base.html" %}
+{% load crispy_forms_tags %}
 
-{% block base_content %}
+{% block content %}
 
-    <h2>Device Groups</h2>
+    <h4>Device Group search</h4>
 
-    <form method="GET" action="{% url netbox-group %}">
-        <table>
-            {{ searchform }}
-        </table>
-        <input type="submit" value="Search">
-    </form>
+    <div class="row">
+        <div class="medium-6 column">
+            {% crispy searchform %}
+        </div>
+    </div>
 
-    <table class="listtable alternaterows">
+    <table class="listtable">
         <caption>Device Groups</caption>
 
         <thead>
@@ -31,7 +31,7 @@
                 </td>
                 <td>{{ netboxgroup.description }}</td>
                 <td>
-                    <ul class="netboxgroup">
+                    <ul class="netboxgroup inside">
                         {% with netboxgroup.netbox_set.all as netboxes %}
                             {% if netboxes %}
                                 {% for netbox in netboxes %}

@@ -615,15 +615,6 @@ class SwPortAllowedVlan(Shadow):
     __shadowclass__ = manage.SwPortAllowedVlan
     __lookups__ = ['interface']
 
-class SnmpOid(Shadow):
-    __shadowclass__ = oid.SnmpOid
-    __lookups__ = ['oidkey']
-
-class NetboxSnmpOid(Shadow):
-    __shadowclass__ = oid.NetboxSnmpOid
-
-NetboxSnmpOid._fields.append('snmp_oid_id')
-
 class Sensor(Shadow):
     __shadowclass__ = manage.Sensor
     __lookups__ = [('netbox', 'internal_name', 'mib')]

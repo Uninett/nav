@@ -1,0 +1,31 @@
+table ul {
+    margin: 0;
+}
+
+table li {
+    display: inline;
+    list-style-type: none;
+    margin: 0 1em 0 0;
+}
+
+form table td.days input[type="text"] {
+    width: 3em;
+}
+
+form table textarea, form table input[type="text"] {
+    width: 260px;
+}
+
+form table textarea {
+    height: 3em;
+}
+
+.hidetrick {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+}
+
+.interface_list ul {
+    list-style-type: none;
+}

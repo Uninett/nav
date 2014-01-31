@@ -1,69 +1,65 @@
 {% extends "info/room/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
-    <link href="/style/info_room.css" type="text/css" rel="stylesheet">
-    <link href="/style/info_room_upload.css" type="text/css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
     <script>require(["src/info_room_upload"]);</script>
 {% endblock %}
 
 {% block base_content %}
 
-    <h2>Images in {{ room.id }}</h2>
+  <div class="row">
+    <div class="column small-12">
+      <a href="#" data-reveal-id="add_image_help" class="small secondary button right">Help</a>
+      <h4>Images in {{ room.id }}</h4>
+    </div>
+  </div>
 
-    <ul class="infobox">
-        <li>Add an image by clicking the file dialog, locating the image you want and clicking "Upload image"</li>
-        <li>Captions may contain html - you can for instance create links</li>
-        <li>Sort the images by dragging the <img src="/images/icons/drag.png"> (if more than 1 image)</li>
+  <div id="add_image_help" class="reveal-modal">
+    <ul class="inside">
+      <li>
+        Add an image by clicking the file dialog, locating the image you want and clicking "Upload image"
+      </li>
+      <li>
+        Captions may contain html - you can for instance create links
+      </li>
+      <li>
+        Sort the images by dragging the <img src="{{ STATIC_URL }}images/icons/drag.png"> (if more than 1 image)
+      </li>
     </ul>
+  </div>
 
-    <table id="editimages" class="listtable middle highlightover">
-        <thead>
-            <th>Image</th>
-            <th>Image caption</th>
-            <th>Actions</th>
-            <th>Uploader</th>
-            <th>Date</th>
-            <th>&nbsp;</th>
-        </thead>
-        <tbody>
-            <tr class="formcontainer">
-                {% comment %} Note from the future: This is really ugly {% endcomment %}
-                <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
-                <td>{{ uploadform.roomimage }}{{ uploadform.roomimage.errors }}</td>
-                <td>{{ uploadform.title }}{{ uploadform.title.errors }}</td>
-                <td><input type="submit" value="Upload image"></td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                </form>
-            </tr>
-            {% for image in room.image_set.all %}
-            <tr data-imageid='{{ image.id }}' class="imagerow">
-                {% if image.image_exists and image.is_readable %}
-                    <td class="thumbnail"><img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}"></td>
-                {% else %}
-                    {% if not image.image_exists %}
-                        <td>Image does not exist</td>
-                    {% else %}
-                        <td>Image exists but is not readable</td>
-                    {% endif %}
-                {% endif %}
-                <td class="imagetitle">{{ image.title|safe }}</td>
-                <td class="actions">
-                    <button class="edit">Edit caption</button>
-                    <button class="save hidden">Save caption</button>
-                    <button class="delete">Delete image</button>
-                </td>
-                <td class="meta">{{ image.uploader.name }}</td>
-                <td class="meta">{{ image.created|date:"DATETIME_FORMAT" }}</td>
-                <td class="drag">
-                        <img src="/images/icons/drag.png">
-                </td>
+  <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
+    {% crispy uploadform %}
+  </form>
 
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+  <div id="editimages">
+  {% for image in room.image_set.all %}
+  <div data-imageid="{{ image.id }}" class="imagecard">
+    <div class="actions">
+      <i class="fa fa-times right delete" title="Delete image"></i>
+      <i class="fa fa-edit right edit" title="Edit image caption"></i>
+    </div>
+    <div class="heading">{{ image.title|safe }}</div>
 
+    {% if image.image_exists and image.is_readable %}
+      <img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}">
+    {% else %}
+      {% if not image.image_exists %}
+        <span class="alert-box alert">Image does not exist</span>
+      {% else %}
+        <span class="alert-box alert">Image exists but is not readable</span>
+      {% endif %}
+    {% endif %}
+
+    <div class="meta">
+      <div class="left">{{ image.uploader.name }}</div>
+      <div class="right">{{ image.created }}</div>
+    </div>
+    <div class="float-clear"></div>
+    <p class="drag"><i class="fa fa-bars" title="Change display order by dragging the image"></i></p>
+  </div>
+  {% endfor %}
+  </div>
 
 {% endblock %}

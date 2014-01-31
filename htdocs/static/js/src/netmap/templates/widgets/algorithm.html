@@ -1,0 +1,38 @@
+<div class="netmapWidget" id="pauseForce">
+
+  <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
+    <h6>Force algorithm</h6>
+  </div>
+
+  <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
+
+    {{#if isLayoutEngineRunning}}
+    <img src="{{ imagePath }}/lys/green.png" title="Force is running" alt='Force is running' class='force_status right'/>
+    {{ else }}
+    <img src="{{ imagePath }}/lys/red.png" title="Force is NOT running" alt='Force is NOT running' class='force_status right'/>
+    {{/if}}
+
+    <div class="center-content">
+      <input type="button" name="freezeNodes" value="Pause" id="freezeNodes" class="button small"/>
+    </div>
+
+    <div class="fix_options">
+      <h6>Fix nodes</h6>
+
+      <ul class="squaredTwo button-group">
+
+        <li>
+          <input type="button" class="button small" name="nodesFixed"
+                 value="Fix" id="setNodesFixed" {{#unless isViewEnabled}}disabled{{/unless}} />
+        </li>
+
+        <li>
+          <input type="button" class="button small" name="nodesFixed"
+                 value="UnFix" id="unsetNodesFixed" {{#unless isViewEnabled}}disabled{{/unless}} />
+        </li>
+
+      </ul>
+    </div>
+
+  </div>
+</div>

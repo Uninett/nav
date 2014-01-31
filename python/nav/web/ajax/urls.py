@@ -35,5 +35,5 @@ urlpatterns = patterns('',
    url(r'^open/roommapper/rooms/(?P<roomid>.+)/$', get_rooms_with_position,
        name='room-position'),
    url(r'^open/neighbormap/(?P<netboxid>\d+)/$', get_neighbors,
-       name='ajax-get-neighbors')
+       name='ajax-get-neighbors'),
 )

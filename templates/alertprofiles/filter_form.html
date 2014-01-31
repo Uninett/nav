@@ -4,6 +4,10 @@
 {% block url_remove_expression %}{% url alertprofiles-filters-removeexpression %}{% endblock %}
 {% block url_add_expression %}{% url alertprofiles-filters-addexpression %}{% endblock %}
 
+{% block backnavigation %}
+  <p><a href="{% url alertprofiles-filters %}">Back to filters</a></p>
+{% endblock %}
+
 {% block expressions_caption_content %}
     Expressions
 {% endblock %}
@@ -19,7 +23,7 @@
 
 {% block expressions_tbody_content %}
     {% for e in expressions %}
-        <tr class="{% cycle oddrow,evenrow %}">
+        <tr>
             {% if owner %}
             <td><input type="checkbox" name="expression" value="{{ e.id }}" id="expressionid_{{ e.id }}" /></td>
             <td><label for="expressionid_{{ e.id }}">{{ e.match_field }}</label></td>
@@ -28,7 +32,7 @@
             {% endif %}
             <td>{{ e.get_operator_display }}</td>
             {% ifequal e.operator 11 %}
-            <td><ul>{{ e.value|unordered_list }}</ul></td>
+            <td><ul class="inside">{{ e.value|unordered_list }}</ul></td>
             {% else %}
             <td>{{ e.value }}</td>
             {% endifequal %}
@@ -38,24 +42,32 @@
 
 {% block addexpression %}
     {% if owner %}
-    <h3>Add another expression to this filter</h3>
-    <div class="formcontainer">
-        <label for="select_matchfield">Expression</label>
-        <select name="matchfield" id="select_matchfield">
+    <h5>
+      Add another expression to this filter
+      <i data-tooltip class="fa fa-info-circle" title="
+            Expressions are ANDed together.<br />
+            This means that an alert must match all the above expressions to match
+            this filter.
+      "></i>
+    </h5>
+
+    <div class="row">
+      <div class="medium-8 column">
+        <label for="select_matchfield">Field to match</label>
+        <select name="matchfield" id="select_matchfield" class="select2">
         {% for m in matchfields %}
             <option value="{{ m.id }}">{{ m.name }}</option>
         {% endfor %}
         </select>
 
-        {{ block.super }}
+      </div>
+
+      <div class="medium-4 column">
+        <label>&nbsp;</label>
+        <input type="hidden" name="id" value="{{ detail_id }}" />
+        <input type="submit" class="postfix button" value="Build expression" />
+      </div>
     </div>
     {% endif%}
 
-    <div class="infobox">
-        <p>
-            Expressions are ANDed together.<br />
-            This means that an alert must match all the above expressions to match
-            this filter.
-        </p>
-    </div>
 {% endblock %}

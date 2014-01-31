@@ -18,19 +18,21 @@
 import logging
 from IPy import IP
 from operator import methodcaller, attrgetter
+from functools import partial
 import simplejson
 
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template.context import RequestContext
 from django.http import HttpResponse
 
 from nav.models.manage import Prefix, Vlan
-from nav.models.rrd import RrdFile
-from nav.rrd2.presenter import Graph
 from nav.web.utils import create_title
 from nav.web.info.vlan.forms import SearchForm
+from nav.metrics.graphs import get_simple_graph_url
+from nav.metrics.names import join_series
+from nav.metrics.templates import metric_path_for_prefix
 
 LOGGER = logging.getLogger('nav.web.info.vlan')
 ADDRESS_RESERVED_SPACE = 18
@@ -40,7 +42,7 @@ def get_path(extra=None):
     """Return breadcrumb list"""
     if not extra:
         extra = []
-    return [('Home', '/'), ('Info', reverse('info-search')),
+    return [('Home', '/'), ('Search', reverse('info-search')),
             ('Vlan', reverse('vlan-index'))] + extra
 
 
@@ -100,115 +102,96 @@ def vlan_details(request, vlanid):
 
 
 def create_prefix_graph(request, prefixid):
-    """Create graph based on prefix and rrdfile"""
+    """Returns a Graphite graph render URL for this prefix"""
+    prefix = get_object_or_404(Prefix, pk=prefixid)
 
-    try:
-        prefix = Prefix.objects.get(pk=prefixid)
-        rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
-    except (Prefix.DoesNotExist, RrdFile.DoesNotExist):
-        return HttpResponse(status=500)
+    path = partial(metric_path_for_prefix, prefix.net_address)
+    ip_count = (
+        'alpha('
+        'color(cactiStyle(alias(stacked({0}), "IP addresses ")), "green"),'
+        '0.8)'
+    ).format(path('ip_count'))
+    ip_range = 'color(cactiStyle(alias({0}, "Max addresses")), "red")'.format(
+        path('ip_range'))
+    mac_count = 'color(cactiStyle(alias({0}, "MAC addresses")), "blue")'.format(
+        path('mac_count'))
 
-    timeframe = request.GET.get('timeframe', 'day')
+    metrics = [ip_count, mac_count]
+    if IP(prefix.net_address).version() == 4:
+        metrics.append(ip_range)
 
-    datasources = rrdfile.rrddatasource_set.all()
-
-    options = {'-l': '0', '-v': 'IP-addresses', '-w': 300, '-h': 100}
-    graph = Graph(title=prefix.net_address, time_frame=timeframe, opts=options)
-
-    add_ip_count(graph, datasources.get(name='ip_count'))
-    add_mac_count(graph, datasources.get(name='mac_count'))
-    add_ip_range(graph, prefix, datasources.get(name='ip_range'))
-
-    graphurl = graph.get_url()
-    if graphurl:
-        json = simplejson.dumps({'url': graphurl})
+    timeframe = "1" + request.GET.get('timeframe', 'day')
+    url = get_simple_graph_url(metrics, timeframe, title=prefix.net_address,
+                               width=397, height=201)
+    if url:
+        json = simplejson.dumps({'url': url})
         return HttpResponse(json, mimetype='application/json')
     else:
         return HttpResponse(status=500)
 
 
-def add_ip_count(graph, datasource):
-    """Add ip count to graph"""
-    vname = graph.add_datasource(datasource, 'AREA', 'IP-addresses ')
-    add_graph_text(graph, vname)
-
-
-def add_mac_count(graph, datasource):
-    """Add mac count to graph"""
-    vname = graph.add_datasource(datasource, 'LINE2', 'MAC-addresses')
-    add_graph_text(graph, vname)
-
-
-def add_ip_range(graph, prefix, datasource):
-    """Add ip range to graph if not ipv6 address or scope"""
-    if add_max(prefix):
-        vname = graph.add_datasource(datasource, 'LINE2',
-                                     'Max addresses')
-        add_graph_text(graph, vname)
-    else:
-        # Add an empty comment so that the graphs with and without
-        # max are equal in size
-        graph.add_argument("COMMENT:   ")
-
-
 def create_vlan_graph(request, vlanid, family=4):
-    """Create graph for this vlan"""
+    """Returns a JSON response containing a Graphite graph render URL for this
+    VLAN.
+    """
+    timeframe = request.GET.get('timeframe', 'day')
+    url = get_vlan_graph_url(vlanid, family, timeframe)
 
-    try:
-        vlan = Vlan.objects.get(pk=vlanid)
-    except Vlan.DoesNotExist:
-        return None
+    if url:
+        json = simplejson.dumps({'url': url})
+        return HttpResponse(json, mimetype='application/json')
+    else:
+        return HttpResponse(status=500)
 
+
+def get_vlan_graph_url(vlanid, family=4, timeframe="day"):
+    """Returns a Graphite graph render URL for a VLAN"""
+    vlan = get_object_or_404(Vlan, pk=vlanid)
     try:
         family = int(family)
     except ValueError:
         family = 4
 
-    timeframe = request.GET.get('timeframe', 'day')
-
     extra = {'where': ['family(netaddr) = %s' % family]}
     prefixes = sorted(vlan.prefix_set.all().extra(**extra),
                       key=methodcaller('get_prefix_size'),
                       reverse=True)
-
     if not prefixes:
-        return HttpResponse(status=503)
+        return None
 
-    options = {'-v': 'IP-addresses', '-l': '0'}
-    graph = Graph(title='Total IPv%s addresses on vlan %s' % (family, vlan),
-                  time_frame=timeframe, opts=options)
+    metrics = _vlan_metrics_from_prefixes(prefixes, family)
+    return get_simple_graph_url(
+        metrics, "1" + timeframe,
+        title="Total IPv{0} addresses on VLAN {1}".format(family, vlan),
+        width=597, height=251)
 
-    stack = False
-    ipranges = []
-    vnames = []
+
+def _vlan_metrics_from_prefixes(prefixes, ip_version):
+    metrics = []
+    ip_ranges = []
+    ip_counts = []
     for prefix in prefixes:
-        rrdfile = RrdFile.objects.get(key='prefix', value=prefix.id)
-        ipcount = rrdfile.rrddatasource_set.get(name='ip_count')
+        ip_count = metric_path_for_prefix(prefix.net_address, 'ip_count')
+        ip_range = metric_path_for_prefix(prefix.net_address, 'ip_range')
+        ip_counts.append(ip_count)
+        ip_ranges.append(ip_range)
+        series = 'alpha(stacked(cactiStyle(alias({0}, "{1}"))),0.8)'.format(
+            ip_count, prefix.net_address)
+        series = (r'aliasSub(aliasSub(aliasSub({0},"stacked",""),'
+                  r'"\(",""),"\)","")').format(series)
+        metrics.append(series)
 
-        vname = graph.add_datasource(
-            ipcount, 'AREA',
-            prefix.net_address.ljust(ADDRESS_RESERVED_SPACE), stack)
-        add_graph_text(graph, vname)
-        vnames.append(vname)
-
-        iprange = rrdfile.rrddatasource_set.get(name='ip_range')
-        ipranges.append(graph.add_def(iprange))
-
-        stack = True  # Stack all ip_counts after the first
+    if ip_version == 4:
+        series = 'alias(color(sumSeries({0}), "red"), "MAX")'.format(
+            join_series(ip_ranges))
+        metrics.append(series)
 
     if len(prefixes) > 1:
-        add_total_text(graph, vnames)
+        series = 'color(cactiStyle(alias(sumSeries({0}), "Total")), "00000000")'
+        series = series.format(join_series(ip_counts))
+        metrics.append(series)
 
-    if family == 4:
-        graph.add_cdef('iprange', rpn_sum(ipranges))
-        graph.add_graph_element('iprange', draw_as='LINE2')
-
-    graphurl = graph.get_url()
-    if graphurl:
-        json = simplejson.dumps({'url': graphurl})
-        return HttpResponse(json, mimetype='application/json')
-    else:
-        return HttpResponse(status=500)
+    return metrics
 
 
 def find_gwportprefixes(vlan):
@@ -218,49 +201,3 @@ def find_gwportprefixes(vlan):
         gwportprefixes.extend(prefix.gwportprefix_set.filter(
             interface__netbox__category__id__in=['GSW', 'GW']))
     return sorted(gwportprefixes, key=attrgetter('gw_ip'))
-
-
-def rpn_sum(vnames):
-    """Create rpn for adding all vnames"""
-    if len(vnames) == 1:
-        return vnames[0]
-    elif len(vnames) > 1:
-        first = vnames.pop(0)
-        return ",".join([first] + [",".join((x, '+')) for x in vnames])
-
-
-def add_max(prefix):
-    """Check if we should create max-values for this datasource"""
-    return is_ipv4(prefix) and not is_scope(prefix)
-
-
-def is_scope(prefix):
-    """Check if this prefix is a scope-prefix"""
-    return prefix.vlan.net_type.id == 'scope'
-
-
-def is_ipv4(prefix):
-    """Check if prefix netaddress is of type 4"""
-    return IP(prefix.net_address).version() == 4
-
-
-def add_graph_text(graph, vname):
-    """Add text below graph indicating last, average and max values"""
-    graph.add_argument("VDEF:cur_%s=%s,LAST" % (vname, vname))
-    graph.add_argument("GPRINT:cur_%s:%s" % (vname, r'Now\: %-6.0lf'))
-    graph.add_argument("VDEF:avg_%s=%s,AVERAGE" % (vname, vname))
-    graph.add_argument("GPRINT:avg_%s:%s" % (vname, r'Avg\: %-6.0lf'))
-    graph.add_argument("VDEF:max_%s=%s,MAXIMUM" % (vname, vname))
-    graph.add_argument("GPRINT:max_%s:%s" % (vname, r'Max\: %-6.0lf\l'))
-
-
-def add_total_text(graph, vnames):
-    """Total all values for all prefixes and print them"""
-    graph.add_cdef('total', rpn_sum(vnames))
-
-    # Add 2 to padding to compensate for legend image
-    graph.add_argument("COMMENT:%s" %
-                       'Total'.ljust(ADDRESS_RESERVED_SPACE + 2))
-    graph.add_argument("GPRINT:total:LAST:%s" % r'Now\: %-6.0lf')
-    graph.add_argument("GPRINT:total:AVERAGE:%s" % r'Avg\: %-6.0lf')
-    graph.add_argument("GPRINT:total:MAX:%s" % r'Max\: %-6.0lf\l')

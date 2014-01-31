@@ -3,14 +3,34 @@
 {% block content %}
 
     {% if netbox %}
-        <div class="horizontal-button-list">
-            <a href="{% url seeddb-netbox-edit netbox.id %}"><span class="edit">Edit IP device</span></a>
-            <a href="{% url maintenance-new-netbox netbox.id %}"><span class="maintenance">Schedule maintenance</span></a>
-            <a href="{% url devicehistory-view-netbox netbox.id %}"><span class="history">View device history</span></a>
+        <ul class="button-group">
+            <li>
+                <a href="{% url seeddb-netbox-edit netbox.id %}" class="button small secondary">
+                    Edit IP device
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url maintenance-new-netbox netbox.id %}" class="button small secondary">
+                    Schedule maintenance
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url devicehistory-view-netbox netbox.id %}" class="button small secondary">
+                    View device history
+                </a>
+            </li>
+
             {% if netbox.get_swports.count %}
-                <a href="{% url portadmin-sysname netbox.sysname %}"><span class="configure">Configure ports</span></a>
+                <li>
+                    <a href="{% url portadmin-sysname netbox.sysname %}" class="button small secondary">
+                        Configure ports
+                    </a>
+                </li>
+
             {% endif %}
-        </div>
+        </ul>
     {% endif %}
 
     <div id="ipdevinfotabs" class="ui-helper-hidden">
@@ -19,7 +39,7 @@
             <li><a href="#deviceinfo">Device Info</a></li>
             <li><a href="#neighbors">Neighbors</a></li>
             <li><a href="#ports">Ports</a></li>
-            <li><a href="#datasources">Datasources</a></li>
+            <li><a href="#metrics">Metrics</a></li>
             <li data-mark-as-error="{{ alert_info.has_unresolved_alerts }}">
                 <a href="#alerts">Recent alerts</a>
             </li>
@@ -33,7 +53,7 @@
         {% include "ipdevinfo/frag-ipdevinfo.html" %}
         {% include "ipdevinfo/frag-neighbors.html" %}
         {% include "ipdevinfo/frag-ports.html" %}
-        {% include "ipdevinfo/frag-datasources.html" %}
+        {% include "ipdevinfo/frag-metrics.html" %}
         {% include "ipdevinfo/frag-alerts.html" %}
         {% include "ipdevinfo/frag-powerfans.html" %}
         {% include "ipdevinfo/frag-services.html" %}

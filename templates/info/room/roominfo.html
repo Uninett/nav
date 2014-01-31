@@ -1,13 +1,39 @@
 {% extends "info/room/base.html" %}
 
-{% block roominfo %}
+{% block base_content %}
 
-    <div class="horizontal-button-list">
-        <a href="{% url seeddb-room-edit room.id %}"><span class="edit">Edit room</span></a>
-        <a href="{% url room-info-upload room.id %}"><span class="photo">Edit images</span></a>
-        <a href="{% url maintenance-new-room room.id %}"><span class="maintenance">Schedule Maintenance</span></a>
-        <a href="{% url devicehistory-view-room room.id %}"><span class="history">View room history</span></a>
-    </div>
+    <h4>Room view for {{ room.id }}</h4>
+
+    <ul class="button-group">
+        <li>
+            <a href="{% url seeddb-room-edit room.id %}" class="button secondary small">
+                Edit room
+                <i class="fa fa-edit"></i>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url room-info-upload room.id %}" class="button secondary small">
+                Edit images
+                <i class="fa fa-camera"></i>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url maintenance-new-room room.id %}" class="button secondary small">
+                Schedule Maintenance
+                <i class="fa fa-wrench"></i>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url devicehistory-view-room room.id %}" class="button secondary small">
+                View room history
+                <i class="fa fa-clock-o"></i>
+            </a>
+        </li>
+
+    </ul>
 
     <div id="infotabs" class="ui-helper-hidden">
         <ul>
@@ -66,7 +92,10 @@
                 {% endfor %}
 
             {% else %}
-                <span class="infobox"><a href="{% url room-info-upload room.id %}">Click here</a> to add images to this room.</span>
+                <a href="{% url room-info-upload room.id %}" class="button secondary small">
+                    Add images
+                    <i class="fa fa-camera"></i>
+                </a>
             {% endif %}
 
             <div class="float-clear"></div>

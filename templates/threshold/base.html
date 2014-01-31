@@ -1,75 +1,61 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-    <link rel="stylesheet" type="text/css" href="/style/threshold.css" />
-    <script>require(['src/threshold']);</script>
+  <script>require(['src/threshold']);</script>
 {% endblock %}
 
 {% block base_content %}
-<h3>Threshold manager</h3>
+  <h4>Thresholds</h4>
 
-{# Only when tabbed page #}
-{% if active %}
-<div class="tabs">
-    <ul>
-        <li class="{{ active.bulk|yesno:"tabactive," }}">
-            <a href="{% url threshold-index %}">Bulk configure</a>
-        </li>
-        <li class="{{ active.all|yesno:"tabactive," }}">
-            <a href="{% url threshold-all %}">Configured thresholds</a>
-        </li>
-        <li class="{{ active.exceeded|yesno:"tabactive," }}">
-            <a href="{% url threshold-exceeded %}">Exceeded thresholds</a>
-        </li>
-    </ul>
-</div>
+  {% if rules %}
+    <a href="{% url threshold-add %}" class="button small">Add rule</a>
 
-<div class="tabcontent">
+    <table id="thresholdrules" class="listtable">
+      <caption>Existing threshold rules</caption>
+      <thead>
+      <tr>
+        <th>Target</th>
+        <th>Threshold</th>
+        <th>Clear</th>
+        <th class="hide-for-small">Description</th>
+        <th class="hide-for-medium-down">Period</th>
+        <th class="hide-for-medium-down">Creator</th>
+        <th class="hide-for-medium-down">Last edited</th>
+        <th>&nbsp;</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for rule in rules %}
+        <tr>
+          <td>
+            <a href="{% url threshold-edit rule.id %}">{{ rule.target }}</a>
+          </td>
+          <td>{{ rule.alert }}</td>
+          <td>{{ rule.clear }}</td>
+          <td class="hide-for-small">{{ rule.description }}</td>
+          <td class="hide-for-medium-down">{{ rule.period|default_if_none:'' }}</td>
+          <td class="hide-for-medium-down">{{ rule.creator.name }}</td>
+          <td class="hide-for-medium-down">{{ rule.created }}</td>
+          <td>
+            <i href="#" class="fa fa-times-circle deleteicon" data-dropdown="delete-drop-{{ rule.id }}"></i>
+            <div id="delete-drop-{{ rule.id }}" data-dropdown-content class="f-dropdown content">
+              <h5>Delete this rule?</h5>
+              <form action="{% url threshold-delete rule.id %}" method="POST">
+                <input type="submit" value="Yes" class="button small alert left">
+              </form>
+              <span class="button small secondary close-button left">No way!</span>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
 
-  {% if active.all %}
-    <div class="infobox">
-      <ul><li>These are the currently configured thresholds, which may be adjusted here.</li></ul>
-    </div>
-
-    {% if not netboxes %}
-      <p><em>No thresholds are currently configured</em></p>
-    {% endif %}
-
+  {% else %}
+    <p>
+      No threshold rules defined. <a href="{% url threshold-add %}">Add one.</a>
+    </p>
   {% endif %}
 
-  {% if active.exceeded %}
-    <div class="infobox">
-      <ul><li>These are the currently exceeded thresholds, which may be adjusted here.</li></ul>
-    </div>
-
-    {% if not netboxes %}
-      <p><em>No thresholds are currently exceeded</em></p>
-    {% endif %}
-
-  {% endif %}
-
-  {% if active.bulk %}
-    
-    <div class="infobox">
-      <ul>
-        <li>Please select a type of data source you want to adjust thresholds for.</li>
-        <li>Then, select the IP devices whose thresholds you want to adjust.</li>
-        <li>If you selected a network interface datasource, also select the
-            interfaces you wish to adjust thresholds for.</li>
-      </ul>
-    </div>
-
-  {% endif %}
-
-{% endif %}
-
-{% block content %}
-
-{% endblock %}
-
-{# Only when tabbed page #}
-{% if active %}
-</div>
-{% endif %}
 
 {% endblock %}

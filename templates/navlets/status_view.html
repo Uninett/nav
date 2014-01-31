@@ -1,0 +1,42 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+    {% if boxes_down %}
+        <table class="listtable expand table-hover">
+
+            <caption>
+                <a href="{% url status-index %}">Status now</a>
+                &ndash;
+                <span class="subtitle">
+                            {{ boxes_down|length }} IP device{{ boxes_down|pluralize }} down,
+                            {{ num_shadow }} in shadow
+                </span>
+            </caption>
+
+            <thead>
+            <tr>
+                <th>Sysname</th>
+                <th>IP</th>
+                <th>Down since</th>
+                <th>Downtime</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for b in boxes_down %}
+                <tr>
+                    <td>
+                        <a href="{% url ipdevinfo-details-by-name b.netbox.sysname %}">
+                            {{ b.netbox.sysname }}</a></td>
+                    <td>{{ b.netbox.ip }}</td>
+                    <td>{{ b.start_time|date:"DATETIME_FORMAT" }}</td>
+                    <td>{{ b.start_time|timesince:date_now }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No boxes down</p>
+    {% endif %}
+
+{% endblock %}

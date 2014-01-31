@@ -34,7 +34,7 @@ from nav.models.manage import Netbox
 
 def render_edit(request, model, form_model, object_id, redirect, \
         identifier_attr='pk', title_attr='pk', template='seeddb/edit.html', \
-        extra_context=None):
+        lon=None, lat=None, extra_context=None):
     """Handles editing for objects in seeddb.
     """
 
@@ -45,6 +45,9 @@ def render_edit(request, model, form_model, object_id, redirect, \
     (identifier, title) = _get_identifier_title(
         obj, identifier_attr, title_attr)
     verbose_name = model._meta.verbose_name
+
+    if not obj and lat and lon:
+        obj = model(position='({0},{1})'.format(lat, lon))
 
     if request.method == 'POST':
         form = form_model(request.POST, instance=obj)
@@ -68,7 +71,7 @@ def render_edit(request, model, form_model, object_id, redirect, \
         'title': 'Add new %s' % verbose_name,
         'sub_active': {'add': True},
     }
-    if obj:
+    if obj and obj.pk:
         context.update({
             'title': 'Edit %s "%s"' % (verbose_name, title),
             'sub_active': {'edit': True},

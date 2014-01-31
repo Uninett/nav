@@ -15,57 +15,40 @@
 #
 
 import os
-from ConfigParser import ConfigParser
 from datetime import datetime
-from urllib import quote, unquote
+import simplejson
+import logging
 
 from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
-from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
 
-from nav.config import read_flat_config
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
 from nav.django.utils import get_account
 from nav.models.profiles import (Account, AccountNavbar, NavbarLink,
                                  AccountTool, AccountProperty)
-from nav.models.manage import Netbox
-
 from nav.web import ldapauth, auth
-from nav.web.webfront.utils import quick_read, current_messages, boxes_down, tool_list
+from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import LoginForm, NavbarForm, PersonalNavbarForm
+from nav.web.navlets import get_navlets
 
-import simplejson
-import logging
 
 _logger = logging.getLogger('nav.web.tools')
 
 WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
 WELCOME_ANONYMOUS_PATH = os.path.join(WEBCONF_DIR_PATH, "welcome-anonymous.txt")
 WELCOME_REGISTERED_PATH = os.path.join(WEBCONF_DIR_PATH, "welcome-registered.txt")
-CONTACT_INFORMATION_PATH = os.path.join(WEBCONF_DIR_PATH, "contact-information.txt")
-EXTERNAL_LINKS_PATH = os.path.join(WEBCONF_DIR_PATH, "external-links.txt")
 NAV_LINKS_PATH = os.path.join(WEBCONF_DIR_PATH, "nav-links.conf")
+
 
 def index(request):
     # Read files that will be displayed on front page
-    external_links = quick_read(EXTERNAL_LINKS_PATH)
-    contact_information = quick_read(CONTACT_INFORMATION_PATH)
     if request.account.is_default_account():
         welcome = quick_read(WELCOME_ANONYMOUS_PATH)
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
-
-    # Read nav-links
-    nav_links = read_flat_config(NAV_LINKS_PATH)
-
-    down = boxes_down()
-    num_shadow = 0
-    for box in down:
-        if box.netbox.up == Netbox.UP_SHADOW:
-            num_shadow += 1
 
     return direct_to_template(
         request,
@@ -73,19 +56,16 @@ def index(request):
         {
             'navpath': [('Home', '/')],
             'date_now': datetime.today(),
-            'external_links': external_links,
-            'contact_information': contact_information,
             'welcome': welcome,
-            'nav_links': nav_links,
-            'current_messages': current_messages(),
-            'boxes_down': down,
-            'num_shadow': num_shadow,
+            'navlets': get_navlets(),
             'title': 'Welcome to NAV',
         }
     )
 
+
 def login(request):
     if request.method == 'POST':
+        _logger.info('Got POST request - doing login')
         return do_login(request)
 
     origin = request.GET.get('origin', '').strip()
@@ -93,10 +73,11 @@ def login(request):
         request,
         'webfront/login.html',
         {
-            'form': LoginForm(),
+            'form': LoginForm(initial={'origin': origin}),
             'origin': origin,
         }
     )
+
 
 def do_login(request):
     # FIXME Log stuff?
@@ -124,7 +105,8 @@ def do_login(request):
                         origin = reverse('webfront-index')
                     return HttpResponseRedirect(origin)
             else:
-                errors.append('Authentication failed for the specified username and password.')
+                errors.append('Authentication failed for the specified '
+                              'username and password.')
 
     # Something went wrong. Display login page with errors.
     return direct_to_template(

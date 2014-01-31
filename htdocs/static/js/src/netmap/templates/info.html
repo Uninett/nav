@@ -1,0 +1,16 @@
+<a id="toggle_view" style="clear: left;">{{#if isVisible}}&gt;&gt;{{else}}&lt;&lt;{{/if}}</a>
+<div class="inner_wrap right_sidebar" {{#if isVisible}} {{else}} style="display: none"{{/if}}>
+{{#ifequal 1 model.viewid}}class="active"{{/ifequal}}
+
+<div id="list_mapproperties_view"></div>
+
+<div id="map_info_view"></div>
+
+{{#if link_to_admin}}
+<div>
+  <a href="{{link_to_admin}}">Admin page for Netmap</a>
+</div>
+{{/if}}
+
+</div>
+

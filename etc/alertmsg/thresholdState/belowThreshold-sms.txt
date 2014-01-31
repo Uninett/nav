@@ -1,1 +1,1 @@
-Threshold ({{ descr }}, {{ threshold }}) for box {{ netbox.sysname }} is below the limit since {{ time }}.
+{{ metric }} cleared at {{ value }} {% firstof clear alert %} on {{ time }}.

@@ -1,0 +1,56 @@
+{% load thresholds %}
+
+{% with port_metrics|find_rules|dictsort:"suffix" as metrics %}
+  {% if metrics|length %}
+    <table class="listtable full-width">
+      <caption>Counters</caption>
+      <thead>
+      <tr>
+        <th>Metric</th>
+        <th>Threshold</th>
+        <th>&nbsp;</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for metric in metrics %}
+        <tr>
+          <td id="metric-graph-{{ forloop.counter }}" class="graph-toggler">
+            <a href="javascript:void(0);"><i class="fa fa-toggle-right"></i>&nbsp;
+              {{ metric.suffix }}
+            </a>
+          </td>
+          <td>
+            {% if metric.thresholds %}
+              {% for rule in metric.thresholds %}
+                <strong>
+                  <a href="{% url threshold-edit rule.id %}"
+                     {% if rule.description %}title="{{ rule.description }}"{% endif %}>
+                    {{ rule.alert }}
+                  </a>
+                </strong>
+                {% if not forloop.last %},{% endif %}
+              {% endfor %}
+            {% else %}
+              &ndash;
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url threshold-add metric.id %}"
+               title="Add a new threshold rule for this metric"
+               class="tiny button secondary">Add</a>
+          </td>
+        </tr>
+        <tr>
+          <td class="graphitegraph hide" colspan="3"
+              data-url="{% url graphite-render-url metric.id %}"
+              data-handler-id="metric-graph-{{ forloop.counter }}"></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% elif graphite_error %}
+      <div data-alert class="alert-box alert">Unable to get a response from Graphite!</div>
+  {% else %}
+      <div data-alert class="alert-box secondary">No metrics for this interface</div>
+  {% endif %}
+{% endwith %}

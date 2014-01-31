@@ -55,25 +55,25 @@ def convert_bits_to_ieee1541():
     return None
 
 
-def get_traffic_load_in_percent(octets, capacity=None):
-    """Traffic load in procent
-    Returns traffic load in percent
+MEGABIT = 1e6
 
-     :param traffic: octets pr second (bytes a second)
-     :param capacity: capacity on link in mbps. (ie 1Gbit = 1000 mbps)
+
+def get_traffic_load_in_percent(bps, capacity=None):
+    """Calculates the load percentage of a link.
+
+     :param bps: bits per second
+     :param capacity: capacity on link in Mbps. (ie 1Gbit = 1000 mbps)
+     :returns: A
     """
-    if not capacity or not octets:
+    if not capacity or not bps:
         return None
 
-    MEGABITS_TO_BITS = 1000000
-
-    average_traffic = (float(octets) * 8)  # from octets (bytes) to bits
-
-    traffic_in_percent = (average_traffic / (capacity * MEGABITS_TO_BITS)) * 100
+    traffic_in_percent = (bps / (capacity * MEGABIT)) * 100.0
 
     if traffic_in_percent > 100 or traffic_in_percent < 0:
-        traffic_in_percent = 100 # set to red, this indicates something is odd
+        traffic_in_percent = 100.0  # something is odd here
     return traffic_in_percent
+
 
 def get_traffic_rgb(percent):
     """Traffic load color

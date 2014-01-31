@@ -1,7 +1,0 @@
-#
-# Default Config for ports
-#
-
-Target  --default--
-    inst         =    map(interface-name)
-    target-type  =    standard-interface

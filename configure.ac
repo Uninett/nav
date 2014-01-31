@@ -8,7 +8,7 @@ AC_COPYRIGHT([
 There are multiple copyright holders to NAV code.  The major copyright holders
 are:
 
-Copyright 2002-2013 UNINETT AS
+Copyright 2002-2014 UNINETT AS
 Copyright 1999-2010 Norwegian University of Science and Technology
 Copyright 2007-2010 University of Tromsø
 
@@ -16,7 +16,11 @@ See individual source files for more detailed copyright notices.
 ])
 
 AC_PROG_INSTALL
-AM_PATH_PYTHON([2.6])
+AM_PATH_PYTHON([2.7])
+AC_PATH_PROG(SASS,sass)
+if test -z "$SASS"; then
+   AC_MSG_ERROR([No sass found. sass is needed to compile style sheets. Install latest sass gem])
+fi
 AC_PATH_PROG(SED, sed)
 AC_PATH_PROG(GREP, grep)
 AC_PATH_PROG(HG, hg)
@@ -33,8 +37,6 @@ AC_SUBST(tooldir)
 AC_SUBST(docdir)
 AC_SUBST(crondir)
 AC_SUBST(VERSION)
-dnl The location of the cricket binaries
-AC_ARG_VAR(CRICKETDIR,The directory containing the Cricket executables)
 AC_ARG_VAR(NAV_USER,User to run cronjobs as)
 
 dnl Setting some default variables for NAV
@@ -50,9 +52,6 @@ tooldir='${sysconfdir}/toolbox'
 docdir='${prefix}/doc'
 crondir='${sysconfdir}/cron.d'
 VERSION=VERSION_NUMBER
-if test -z "$CRICKETDIR"; then
-	CRICKETDIR='${prefix}/cricket/cricket'
-fi
 if test -z "$NAV_USER"; then
     nav_user=navcron
 else

@@ -1,0 +1,19 @@
+ul.email_message li {
+	border: 1px solid #729FCF;
+	background-color: #acf;
+}
+
+li.sms_message {
+	clear: both;
+    .expand_link {
+        float: right;
+    }
+    ul {
+        clear: both;
+    }
+}
+
+div.searchparams {
+	height: 12em;
+	overflow: auto;
+}

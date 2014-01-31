@@ -21,11 +21,12 @@ import datetime as dt
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.views.generic.list_detail import object_list
+from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
 from nav.models.service import Service
@@ -33,7 +34,9 @@ from nav.models.service import Service
 from nav import asyncdns
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
+from nav.web.ipdevinfo.utils import get_interface_counter_graph_url
 from nav.web.utils import create_title
+from nav.metrics.graphs import get_simple_graph_url
 
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
@@ -44,71 +47,63 @@ NAVPATH = [('Home', '/'), ('IP Device Info', '/ipdevinfo')]
 _logger = logging.getLogger('nav.web.ipdevinfo')
 
 
+def find_netboxes(errors, query):
+    """Find netboxes based on query parameter
+
+    :param errors: list of errors
+    :param query: form input
+    :return: querylist
+    """
+    ip = is_valid_ip(query)
+    netboxes = None
+    if ip:
+        netboxes = Netbox.objects.filter(ip=ip)
+    elif is_valid_hostname(query):
+        # Check perfect match first
+        sysname_filter = Q(sysname=query)
+        if settings.DOMAIN_SUFFIX is not None:
+            sysname_filter |= Q(sysname='%s%s' %
+                                        (query, settings.DOMAIN_SUFFIX))
+        netboxes = Netbox.objects.filter(sysname_filter)
+        if len(netboxes) != 1:
+            # No exact match, search for matches in substrings
+            netboxes = Netbox.objects.filter(sysname__icontains=query)
+    else:
+        errors.append('The query does not seem to be a valid IP address'
+                      ' (v4 or v6) or a hostname.')
+
+    return netboxes
+
+
 def search(request):
     """Search for an IP device"""
 
     titles = NAVPATH
     errors = []
+    netboxes = None
     query = None
-    netboxes = Netbox.objects.none()
 
-    # FIXME use request.REQUEST?
-    search_form = None
-    if request.method == 'GET':
-        search_form = SearchForm(request.GET, auto_id=False)
-    elif request.method == 'POST':
-        search_form = SearchForm(request.POST, auto_id=False)
+    if 'query' in request.GET:
+        search_form = SearchForm(request.GET)
+        if search_form.is_valid():
+            # Preprocess query string
+            query = search_form.cleaned_data['query'].strip().lower()
+            titles = titles + [("Search for %s" % query,)]
+            netboxes = find_netboxes(errors, query)
 
-    if search_form is not None and search_form.is_valid():
-        # Preprocess query string
-        query = search_form.cleaned_data['query'].strip().lower()
-        titles = titles + [("Search for %s" % query,)]
+            # If only one hit, redirect to details view
+            if len(netboxes) == 1:
+                return ipdev_details(request, name=netboxes[0].sysname)
+    else:
+        search_form = SearchForm()
 
-        # IPv4, v6 or hostname?
-        ip = is_valid_ip(query)
-
-        # Find matches to query
-        if ip:
-            netboxes = Netbox.objects.filter(ip=ip)
-            if len(netboxes) == 0:
-                # Could not find IP device, redirect to host detail view
-                return HttpResponseRedirect(
-                    reverse('ipdevinfo-details-by-addr', kwargs={'addr': ip}))
-        elif is_valid_hostname(query):
-            # Check perfect match first
-            sysname_filter = Q(sysname=query)
-            if settings.DOMAIN_SUFFIX is not None:
-                sysname_filter |= Q(sysname='%s%s' %
-                                            (query, settings.DOMAIN_SUFFIX))
-            netboxes = Netbox.objects.filter(sysname_filter)
-            if len(netboxes) != 1:
-                # No exact match, search for matches in substrings
-                netboxes = Netbox.objects.filter(sysname__icontains=query)
-            if len(netboxes) == 0:
-                # Could not find IP device, redirect to host detail view
-                return HttpResponseRedirect(reverse(
-                    'ipdevinfo-details-by-name', kwargs={'name': query}))
-        else:
-            errors.append('The query does not seem to be a valid IP address'
-                + ' (v4 or v6) or a hostname.')
-
-        # If only one hit, redirect to details view
-        if len(netboxes) == 1:
-            return HttpResponseRedirect(reverse('ipdevinfo-details-by-name',
-                    kwargs={'name': netboxes[0].sysname}))
-
-    # Else, show list of results
     return render_to_response('ipdevinfo/search.html',
-        {
-            'errors': errors,
-            'query': query,
-            'netboxes': netboxes,
-            'heading': NAVPATH[-1][0],
-            'navpath': NAVPATH,
-            'title': create_title(titles)
-        },
-        context_instance=RequestContext(request,
-            processors=[search_form_processor]))
+                              {'errors': errors, 'netboxes': netboxes,
+                               'navpath': NAVPATH, 'query': query,
+                               'title': create_title(titles),
+                               'search_form': search_form},
+                              context_instance=RequestContext(
+                                  request, processors=[search_form_processor]))
 
 
 def is_valid_hostname(hostname):
@@ -271,6 +266,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     }
     alert_info = None
     job_descriptions = None
+    system_metrics = netbox_availability = []
 
     # If addr or host not a netbox it is not monitored by NAV
     if netbox is None:
@@ -295,6 +291,17 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         netboxgroups = netbox.netboxcategory_set.all()
         navpath = NAVPATH + [(netbox.sysname, '')]
         job_descriptions = get_job_descriptions()
+        graphite_error = False
+
+        try:
+            system_metrics = netbox.get_system_metrics()
+        except GraphiteUnreachableError:
+            graphite_error = True
+
+        try:
+            netbox_availability = netbox.get_availability()
+        except GraphiteUnreachableError:
+            graphite_error = True
 
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
@@ -307,7 +314,10 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'netboxgroups': netboxgroups,
             'job_descriptions': job_descriptions,
             'navpath': navpath,
-            'title': create_title(navpath)
+            'title': create_title(navpath),
+            'system_metrics': system_metrics,
+            'netbox_availability': netbox_availability,
+            'graphite_error': graphite_error,
         },
         context_instance=RequestContext(request,
                                         processors=[search_form_processor]))
@@ -475,7 +485,18 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             port = get_object_or_404(ports, netbox__sysname=netbox_sysname,
                                      ifdescr=port_name)
 
-    navpath = NAVPATH + [('Port Details',)]
+    navpath = NAVPATH + [
+        (netbox_sysname,
+         reverse('ipdevinfo-details-by-name',
+                 kwargs={'name': netbox_sysname})), ('Port Details',)]
+    heading = title = 'Port details: ' + unicode(port)
+
+    try:
+        port_metrics = port.get_port_metrics()
+        graphite_error = False
+    except GraphiteUnreachableError:
+        port_metrics = []
+        graphite_error = True
 
     return render_to_response(
         'ipdevinfo/port-details.html',
@@ -483,11 +504,31 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'port_type': port_type,
             'port': port,
             'navpath': navpath,
-            'heading': navpath[-1][0],
-            'title': create_title(navpath)
+            'heading': heading,
+            'title': title,
+            'port_metrics': port_metrics,
+            'graphite_error': graphite_error,
         },
         context_instance=RequestContext(request,
-            processors=[search_form_processor]))
+                                        processors=[search_form_processor]))
+
+
+def port_counter_graph(request, interfaceid, kind='Octets'):
+    """Returns a JSON response containing a Graphite graph render URL for
+    counter values for an interface.
+
+    """
+    if kind not in ('Octets', 'Errors', 'UcastPkts', 'Discards'):
+        raise Http404
+
+    timeframe = request.GET.get('timeframe', 'day')
+    port = get_object_or_404(Interface, id=interfaceid)
+    url = get_interface_counter_graph_url(port, timeframe, kind)
+
+    if url:
+        return redirect(url)
+    else:
+        return HttpResponse(status=500)
 
 
 def service_list(request, handler=None):
@@ -582,3 +623,14 @@ def affected(request, netboxid):
             'affected_hosts': affected_hosts
         },
         context_instance=RequestContext(request))
+
+
+def get_graphite_render_url(request, metric=None):
+    """Redirect to graphite graph based on request data"""
+    if metric:
+        return redirect(get_simple_graph_url(
+            metric, time_frame='1' + request.REQUEST.get('timeframe', 'w')))
+    else:
+        return HttpResponse(status=400)
+
+

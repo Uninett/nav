@@ -1,20 +1,30 @@
 {% extends "alertprofiles/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block tabcontent %}
+  <h4>
+    Subscriptions
+  </h4>
+
+  {% if profile %}
+    <p><a href="{% url alertprofiles-profile-detail profile.id %}">Back to profile</a></p>
+  {% else %}
+    <p><a href="{% url alertprofiles-profile %}">Back to profiles</a></p>
+  {% endif %}
+
+  {% if not editing %}
+  <p>
+     For profile "{{ time_period.profile.name }}".
+     Time period starting at {{ time_period.start }} for
+     {{ time_period.get_valid_during_display }}.
+  </p>
+  {% endif %}
 
 {% block subscriptions %}
 {% if subscriptions %}
-<form action="{% url alertprofiles-profile-timeperiod-subscription-remove %}" method="post">
-    <table class="listtable">
-        <caption>
-            Subscriptions<br />
-            <span class="subtitle">
-               For profile {{ time_period.profile.name }}<br />
-               Time period starting at {{ time_period.start }} for
-               {{ time_period.get_valid_during_display }}
-            </span>
-        </caption>
 
+<form action="{% url alertprofiles-profile-timeperiod-subscription-remove %}" method="post">
+    <table class="listtable full-width">
         <thead>
             <tr>
                 <th></th>
@@ -43,79 +53,38 @@
     </table>
     <p>
         <input type="hidden" name="id" value="{{ time_period.id }}" />
-        <input type="submit" value="Delete selected" />
+        <input type="submit" value="Delete selected" class="button small secondary" />
     </p>
 </form>
 {% endif %}
 {% endblock subscriptions %}
 
 {% block subscription_form %}
+
 <div class="addexpressionform">
     <form action="{% url alertprofiles-profile-timeperiod-subscription-add %}" method="post">
-        <h3>{{ editing|yesno:"Edit,Add new" }} subscription</h3>
+        <h5>{{ editing|yesno:"Edit,Add new" }} subscription</h5>
         <div class="formcontainer">
+
         {% if not num_addresses %}
-            <p class="error">
-                There are no available alert addresses.<br />
-                You can go and
-                <a href="{% url alertprofiles-address-new %}">add your first address</a>
-                to fix this problem.
-            </p>
-        {% endif %}
-        {% if not num_filter_groups %}
-            <p class="error">
-                There are no available filter groups.<br />
-                You can go and
-                <a href="{% url alertprofiles-filter_groups-new %}">add your first filter group</a>
-                to fix this problem.
-            </p>
+            <div class="alert-box alert">
+              There are no alert addresses.
+              <a href="{% url alertprofiles-address-new %}">Add your first address</a> to fix this problem.
+            </div>
         {% endif %}
 
-            {{ form.non_field_errors }}
-            {{ form.filter_group.errors }}
-            {{ form.alert_address.errors }}
-            {{ form.type.errors }}
-            {{ form.ignore_resolved_alerts.errors }}
-            <p>
-                Watch {{ form.filter_group }},
-                send alerts to {{ form.alert_address }} {{ form.type }}
-                and ignore resolved alerts {{ form.ignore_resolved_alerts }}
-            </p>
-            <p>
-                {{ form.time_period }}
-                {{ form.id }}
-                <input type="submit" value="{{ editing|yesno:"Save,Add" }}" />
-            </p>
+        {% if not num_filter_groups %}
+            <div class="alert-box alert">
+              There are no available filter groups.
+              <a href="{% url alertprofiles-filter_groups-new %}">Add your first filter group</a> to fix this problem.
+            </div>
+        {% endif %}
+          {% crispy form %}
+          <input type="submit" value="{{ editing|yesno:"Save,Add" }}" class="button small"/>
         </div>
     </form>
 </div>
 
-<div class="infobox">
-    <table>
-        <caption>
-            Dispatch time help
-        </caption>
-        <tbody>
-            <tr>
-                <th>Immidiately</th>
-                <td>Send the alert as soon as alertengine has processed it.</td>
-            </tr>
-            <tr>
-                <th>Daily at predefined time</th>
-                <td>Send all matched alerts at the specified daily dispatch time.</td>
-            </tr>
-            <tr>
-                <th>Weekly at predefined time</th>
-                <td>Send all matched alerts at the specified weekly dispatch time.</td>
-            </tr>
-            <tr>
-                <th>At end of timeperiod</th>
-                <td>Send all matched alerts when the current timeperiod is over and
-                a new one starts.</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
 {% endblock subscription_form %}
 
 {% endblock %}

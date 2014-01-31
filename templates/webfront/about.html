@@ -6,10 +6,17 @@
 <h3>What is NAV?</h3>
 
 <div style="float: right;">
-        <a href="http://www.ntnu.no/"><img src="/images/about/ntnu.jpg"
-        width="200" height="58" alt="NTNU" /></a><br />
+        {% comment %}
+        Margins around the UNINETT logo are as suggested by the UNINETT logo
+        policy; they should be about the vertical height of the logo font on all
+        sides.
+        {% endcomment %}
         <a href="http://www.uninett.no/index.en.html"><img
-        src="/images/about/uninett.png" width="111" height="27" alt="UNINETT" /></a>
+        src="{{ STATIC_URL }}images/about/uninett.png" width="157" height="43" alt="UNINETT"
+        style="margin: 22px; margin-top: 0;"/></a><br />
+        <a href="http://www.ntnu.no/"><img src="{{ STATIC_URL }}images/about/ntnu.jpg"
+        width="200" height="58" alt="NTNU" /></a>
+
 </div>
 
 <p>
@@ -69,6 +76,55 @@
         </li>
 </ol>
 
-<p>That's all folks - keep using NAV - keep sending us bug reports and feature
-requests!</p>
+<h3>Contributors</h3>
+<p>
+    We wish to thank the following people who have contributed to NAV in some
+    form over the years:
+</p>
+
+<ul>
+    <li>Vidar Faltinsen</li>
+    <li>John-Magne Bredal</li>
+    <li>Morten Brekkevold</li>
+    <li>Christian Strand Young</li>
+    <li>Christine Anne Sætre</li>
+    <li>Morten Werner Forsbring</li>
+    <li>Roy Sindre Norangshol</li>
+    <li>Eivind Lysne</li>
+    <li>Trond Kandal</li>
+    <li>Ole Martin Bjørndalen</li>
+    <li>Kai Arne Bjørnenak</li>
+    <li>Magnus Motzfeldt Eide</li>
+    <li>Marius Halden</li>
+    <li>Matej Gregr</li>
+    <li>Fredrik Skolmli</li>
+    <li>Thomas Adamcik</li>
+    <li>Jørgen Abrahamsen</li>
+    <li>Kristian Klette</li>
+    <li>Øystein Skartsæterhagen</li>
+    <li>Roger Kristiansen
+    <li>Stein Magnus Jodal</li>
+    <li>Erlend Midttun</li>
+    <li>Jostein Gogstad</li>
+    <li>Kristian Eide</li>
+    <li>Gro-Anita Vindheim</li>
+    <li>Magnar Sveen</li>
+    <li>Hans Jørgen Hoel</li>
+    <li>Arne Øslebø</li>
+    <li>Andreas Åkre Solberg</li>
+    <li>Stian Søiland</li>
+    <li>Magnus Thanem Nordseth</li>
+    <li>Sigurd Gartmann</li>
+    <li>Arve Vanvik</li>
+    <li>Erlend Mjåvatten</li>
+    <li>Bjørn Ove Grøtan</li>
+    <li>Daniel Sandvold</li>
+    <li>Erik Gorset</li>
+    <li>Knut-Helge Vindheim</li>
+    <li>Trygve Lunheim</li>
+    <li>Stig Venås</li>
+    <li>Eric Sandnes</li>
+    <li>Tor-Arne Kvaløy</li>
+</ul>
+
 {% endblock %}

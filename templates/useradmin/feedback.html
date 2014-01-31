@@ -1,0 +1,9 @@
+{% if current_user_data.messages %}
+  <div class="alert-box">
+    <ul class="no-bullet">
+      {% for m in current_user_data.messages %}
+        <li class="{{ m.type }}">{{ m.message }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}

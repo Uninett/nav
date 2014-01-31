@@ -16,6 +16,9 @@
 """macwatch form definitions"""
 
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Fieldset, ButtonHolder
+from nav.web.crispyforms import NavSubmit
 from django import forms
 from nav.web.macwatch.models import MacWatch
 from nav.web.macwatch.utils import MAC_ADDR_MAX_LEN
@@ -31,9 +34,24 @@ class MacWatchForm(forms.Form):
     macaddress = forms.CharField(max_length=17)
     description = forms.CharField(max_length=200, required=False)
 
+    def __init__(self, *args, **kwargs):
+        super(MacWatchForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = '.'
+        self.helper.layout = Layout(
+            Fieldset(
+                'Add mac to watch list',
+                'macaddress',
+                'description'
+            ),
+            ButtonHolder(
+                NavSubmit('submit', 'Add')
+            )
+        )
+
     def clean_macaddress(self):
         """ Validate macaddress """
-        macaddress = self.cleaned_data.get('macaddress','')
+        macaddress = self.cleaned_data.get('macaddress', '')
 
         filteredmacaddress = strip_delimiters(macaddress)
         if len(filteredmacaddress) < MAC_ADDR_MIN_LEN:
@@ -56,5 +74,5 @@ class MacWatchForm(forms.Form):
 
         if int(MacWatch.objects.filter(mac=filteredmacaddress).count()) > 0:
             raise forms.ValidationError("This mac address is already watched.")
-        
+
         return filteredmacaddress

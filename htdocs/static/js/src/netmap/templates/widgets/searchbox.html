@@ -1,0 +1,36 @@
+<div class="netmapWidget">
+
+  <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
+    <div class="title">Search
+
+      {{#if isWidgetCollapsible}}
+        {{#if isWidgetVisible}}
+          <i class="fa fa-toggle-up right"></i>
+        {{else}}
+          <i class="fa fa-toggle-down right"></i>
+        {{/if}}
+      {{/if}}
+
+    </div>
+  </div>
+
+  <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
+    <form class="" action="#">
+      <div id="form_view" class="control-group">
+        <label class="control-label" for="searchbox_query">Search</label>
+        <input type="input" name="searchbox_query" id="searchbox_query"
+               placeholder="Device name"
+          {{#unless isViewEnabled}} disabled{{/unless}} />
+
+        <div class="collapse_buttons">
+          <button id="searchbox_search" class="expand small"
+            {{#unless isViewEnabled}} disabled{{/unless}}>Search
+          </button>
+          <button id="center_graph" class="expand small"
+          {{#unless isViewEnabled}} disabled{{/unless}}>Zoom to extent</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+</div>

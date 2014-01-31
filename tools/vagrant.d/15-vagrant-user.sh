@@ -19,12 +19,13 @@ fi
 
 export PYTHONPATH="/vagrant/python:$PYTHONPATH"
 
-pip install -r /vagrant/requirements.txt
+pip install -r /vagrant/tools/vagrant-requirements.txt
 pip install -r /vagrant/tests/requirements.txt
+sudo gem install sass
 
 cd /vagrant
 ./autogen.sh
-./configure NAV_USER="vagrant" CRICKETDIR="/usr/share/cricket" --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc --datadir $PWD
+./configure NAV_USER="vagrant" --prefix /vagrant --localstatedir ~vagrant/var --sysconfdir ~vagrant/etc --datadir $PWD
 cd /vagrant/python
 make
 

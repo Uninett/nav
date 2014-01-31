@@ -1,0 +1,53 @@
+<div class="modal fade hide" id="modal_new_view" title="{{#if isNew}}Create new view{{else}}Update view{{/if}}">
+    <div class="modal-header"></div>
+    <div class="modal-body">
+        <form class="form-horizontal">
+            <fieldset>
+                <div class="control-group">
+                    <label class="control-label" for="new_view_title">
+                        Title
+                        <i class="fa fa-info-circle right has-tip"
+                           title="The name of view" data-tooltip></i>
+                    </label>
+
+                    <div class="controls">
+                        <input type="text" class="input" id="new_view_title" value="{{model.title}}" />
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="new_view_description">
+                        Description
+                        <i class="fa fa-info-circle right has-tip"
+                           title="The description of the view" data-tooltip></i>
+                    </label>
+
+                    <div class="controls">
+                        <textarea class="input-xlarge" id="new_view_description" rows="5">{{model.description}}</textarea>
+                    </div>
+                </div>
+
+                <div class="control-group choice_public">
+                    <label class="control-label" for="new_view_is_public">
+                        Public
+                        <i class="fa fa-info-circle right has-tip"
+                           title="A public view is available for everyone"
+                           data-tooltip></i>
+                    </label>
+
+                        <input id="new_view_is_public" type="checkbox" class="checkbox"
+                               {{#if model.is_public}}
+                               checked
+                               {{/if}}
+                        />
+                </div>
+
+            </fieldset>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="right" id="modal_save_view_button">
+            Save
+        </button>
+    </div>
+</div>

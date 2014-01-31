@@ -1,0 +1,71 @@
+<table class="vertitable full-width">
+  <caption>
+    Interface {{ port.ifname }}
+    {% if port.module %}
+      at {{ port.module.netbox.get_short_sysname }}
+    {% endif %}
+  </caption>
+
+  <tr>
+    <th>At IP device</th>
+    <td>
+      <a href="{{ port.netbox.get_absolute_url }}">
+        {{ port.netbox }}
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <th>Interface</th>
+    <td>{{ port.ifdescr }}</td>
+  </tr>
+
+  <tr>
+    <th>At module</th>
+    <td>
+      {% if port.module %}
+        <a href="{{ port.module.get_absolute_url }}">
+          Module {{ port.module.name }}
+        </a>
+      {% else %}
+        No module
+      {% endif %}
+    </td>
+  </tr>
+
+  <tr>
+    <th>Port name</th>
+    <td>{{ port.ifalias|default:"N/A" }}</td>
+  </tr>
+
+  <tr>
+    <th>Link</th>
+    <td>{{ port.get_link_display|capfirst }}</td>
+  </tr>
+
+  <tr>
+    <th>Speed</th>
+    <td>
+      {{ port.speed }} Mbit
+      {% if port.duplex %}
+        {{ port.get_duplex_display|capfirst }}
+      {% endif %}
+
+    </td>
+  </tr>
+
+  {% if debug %}
+  <tr>
+    <th>ifIndex</th>
+    <td>{{ port.ifindex }}</td>
+  </tr>
+
+  <tr>
+    <th>Baseport</th>
+    <td>{{ port.baseport }}</td>
+  </tr>
+  {% endif %}
+
+
+
+</table>

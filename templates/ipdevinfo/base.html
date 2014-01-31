@@ -3,17 +3,12 @@
 {# FIXME hardcoded urls #}
 {% block base_header_additional_head %}
     <script>require(['src/ipdevinfo'])</script>
-    <link rel="stylesheet" type="text/css" href="/style/jqueryui/jquery-ui-1.8.21.custom.css">
-    <link rel="stylesheet" type="text/css" href="/style/ipdevinfo.css"/>
+    <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/ipdevinfo.css"/>
 {% endblock %}
 
 {% block base_content %}
-    <h2>{{ heading }}</h2>
+    <h3>{{ heading }}</h3>
 
-    <div id="service-matrix-links" class="horizontal-button-list">
-            <a href="{% url ipdevinfo-service-list-all %}"><span class="list">Service List</span></a>
-            <a href="{% url ipdevinfo-service-matrix %}"><span class="matrix">Service matrix</span></a>
-    </div>
 
     {% if errors %}
         <ul class="error">

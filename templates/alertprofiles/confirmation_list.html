@@ -1,5 +1,9 @@
 {% extends "alertprofiles/base_list.html" %}
 
+{% block top_links %}
+    <p><a href="{{ request.META.HTTP_REFERER }}">Back</a></p>
+{% endblock %}
+
 {% block captioncontent %}
     Confirm deletion
 {% endblock %}
@@ -9,9 +13,11 @@
     <th>Warnings</th>
 {% endblock %}
 
+{% block tablecolspan %}3{% endblock %}
+
 {% block tbodycontent %}
     {% for element in object_list %}
-    <tr class="{% cycle 'oddrow' 'evenrow' %}">
+    <tr>
         <td><input type="checkbox" name="element" value="{{ element.id }}" id="elementid_{{ element.id }}" checked="checked" /></td>
         <td>
             <label for="elementid_{{ element.id }}">{{ element.description }}</label>

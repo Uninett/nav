@@ -1,0 +1,23 @@
+<div class="netmapWidget hideSubWidgets">
+    <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
+        <div class="title">Filters
+
+        {{#if isWidgetCollapsible }}
+          {{#if isWidgetVisible}}
+            <i class="fa fa-toggle-up right"></i>
+          {{else}}
+            <i class="fa fa-toggle-down right"></i>
+          {{/if}}
+        {{/if}}
+
+        </div>
+    </div>
+    <div class="body{{#unless isWidgetVisible}} hidden{{/unless}}">
+        <div id="layer_view"></div>
+        <div id="categories_view"></div>
+
+        <div id="orphan_view"></div>
+
+    </div>
+</div>
+

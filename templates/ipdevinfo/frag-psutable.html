@@ -13,16 +13,16 @@
         <td>{{ psu.descr }}</td>
         <td class="cell-center">
             {% if psu.up == 'y' %}
-                <img src="/images/lys/green.png" title="Up">
+                <img src="{{ STATIC_URL }}images/lys/green.png" title="Up">
             {% endif %}
             {% if psu.up == 'n' %}
-                <img src="/images/lys/red.png" title="Down">
+                <img src="{{ STATIC_URL }}images/lys/red.png" title="Down">
             {% endif %}
             {% if psu.up == 'u' %}
-                <img src="/images/lys/grey.png" title="Unknown">
+                <img src="{{ STATIC_URL }}images/lys/grey.png" title="Unknown">
             {% endif %}
             {% if psu.up == 'w' %}
-                <img src="/images/lys/yellow.png" title="Warning">
+                <img src="{{ STATIC_URL }}images/lys/yellow.png" title="Warning">
             {% endif %}
         </td>
     </tr>

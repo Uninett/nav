@@ -1,0 +1,19 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+    <form action="{% url get-user-navlet navlet.navlet_id %}" method="post" class="custom">
+        <input type="hidden" name="id" value="{{ navlet.navlet_id }}">
+        <select name="vlanid">
+            <option value="-1">---Select vlan---</option>
+           {% for vlan in vlans %}
+               <option value="{{ vlan.id }}" {% if vlan.id == vlanid %}selected{% endif %}>
+                   {{ vlan.vlan }} - {{ vlan.net_ident }} - {{ vlan.description }}
+               </option>
+           {% endfor %}
+        </select>
+
+        <input type="submit" value="Save" class="button small">
+    </form>
+
+{% endblock %}

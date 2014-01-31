@@ -1,0 +1,134 @@
+<div class="netmapWidget">
+    <div class="header{{#unless isWidgetCollapsible}} no_collapse{{/unless}}">
+        <div class="header"><div class="title no-icon">Link info</div></div>
+    </div>
+    <div class="body">
+        <div class="uplink_netbox">
+            <img src="{{ imagePath }}/netmap/{{{toLowerCase link.source.category}}}.png" alt="{{link.source.category}}" width="12px" height="12px" /> <a class="uplink_netbox_link" href="{{ link.source.ipdevinfo_link }}">{{ link.source.sysname }}</a>
+        </div>
+        <div class="uplink_netbox">
+            <img src="{{ imagePath }}/netmap/{{{toLowerCase link.target.category}}}.png" alt="{{link.target.category}}" width="12px" height="12px" /> <a class="uplink_netbox_link" href="{{ link.target.ipdevinfo_link }}">{{ link.target.sysname }}</a>
+        </div>
+        {{#if l3 }}
+            {{! Layer 3 template here.  }}
+            {{#each link.edges}}
+                {{! this.id is an netmap.models.Vlan FYI }}
+                <div class="uplink_prefix">
+                    <h4>{{ this.id.net_ident }}</h4>
+                    <span class="prefix_description">{{ this.id.description }}</span>
+
+                        {{#each this.edges}}
+                            <div class="uplink">
+                                <div class="uplink_linkspeed">
+                                    <a href="{{ this.prefix.report_link }}">{{ this.prefix.net_address }}</a>
+                                </div>
+                                <div class="uplink_left">
+                                                    <span class="node_name">
+                                                        {{#if this.source.interface.ifname }}
+                                                            {{#if this.source.interface.ipdevinfo_link}}
+                                                                <a href="{{ this.source.interface.ipdevinfo_link }}" title="{{ this.source.interface.ifname }} @ {{../source.netbox.sysname}}">{{ this.source.interface.ifname }}</a>
+                                                            {{ else }}
+                                                                {{ this.source.interface.ifname }}
+                                                            {{/if}}
+                                                        {{ else }}
+                                                            N/A
+                                                        {{/if}}
+
+                                                    </span>
+
+                                    {{#if traffic.source.percent_by_speed }}
+                                        <span class="node_load">{{ traffic_si traffic.source.in_bps }}</span>
+                                        <span class="node_load">{{ traffic.source.percent_by_speed }}%</span>
+                                        <div class="load_arrow" style="background-color: rgb({{ traffic.source.css }});"></div>
+                                    {{/if}}
+                                </div>
+
+                                <div class="uplink_right">
+                                                    <span class="node_name">
+                                                         {{#if this.target.interface.ifname }}
+                                                            {{#if this.target.interface.ipdevinfo_link}}
+                                                                <a href="{{ this.target.interface.ipdevinfo_link }}" title="{{ this.target.interface.ifname }} @ {{../target.netbox.sysname}}">{{ this.target.interface.ifname }}</a>
+                                                            {{ else }}
+                                                                {{ this.target.interface.ifname }}
+                                                            {{/if}}
+                                                        {{ else }}
+                                                            N/A
+                                                        {{/if}}}
+                                                    </span>
+
+                                    {{#if traffic.target.percent_by_speed }}
+                                        <span class="node_load">{{ traffic_si traffic.target.in_bps }}</span>
+                                        <span class="node_load">{{ traffic.target.percent_by_speed }}%</span>
+                                        <div class="load_arrow" style="background-color: rgb({{ traffic.target.css }});"></div>
+                                    {{/if}}
+                                </div>
+                                <div>{{ this.source.gw_ip }}</div>
+                                <div>{{ this.target.gw_ip }}</div>
+                                <div class="breaker"></div>
+                            </div>
+
+                    {{/each}}
+                </div>
+            {{/each}}
+        {{else}}
+            {{! Layer 2 template here.  }}
+            <div>
+                {{#each link.edges}}
+                    <div class="uplink">
+                        <div class="uplink_header">
+                            <span class="source_node_name">
+                                {{#if this.source.interface.ifname }}
+                                    {{#if this.source.interface.ipdevinfo_link}}
+                                        <a href="{{this.source.interface.ipdevinfo_link}}"  title="{{ this.source.interface.ifname }} @ {{../source.netbox.sysname}}">{{this.source.interface.ifname}}</a>
+                                    {{else}}
+                                        {{this.source.interface.ifname}}
+                                    {{/if}}
+                                {{else}}
+                                    N/A
+                                {{/if}}
+
+                            </span>
+                            <span class="node_separator"><></span>
+                            <span class="target_node_name">
+
+                                 {{#if this.target.interface.ifname }}
+                                    {{#if this.target.interface.ipdevinfo_link}}
+                                        <a href="{{this.target.interface.ipdevinfo_link}}"  title="{{ this.target.interface.ifname }} @ {{../target.netbox.sysname}}">{{this.target.interface.ifname}}</a>
+                                    {{else}}
+                                        {{this.target.interface.ifname}}
+                                    {{/if}}
+                                {{else}}
+                                    N/A
+                                {{/if}}}
+
+                            </span>
+                            <div class="breaker"></div>
+                        </div>
+
+
+
+                        <div class="uplink_left">
+                            {{#if traffic.source.percent_by_speed }}
+                                <span class="node_load">{{ traffic_si traffic.source.in_bps }}</span>
+                                <span class="node_load">{{ traffic.source.percent_by_speed }}%</span>
+                                <div class="load_arrow" style="background-color: rgb({{ traffic.source.css }});"></div>
+                            {{/if}}
+                        </div>
+
+                        <div class="uplink_right">
+                            {{#if traffic.target.percent_by_speed }}
+                                <span class="node_load">{{ traffic_si traffic.target.in_bps }}</span>
+                                <span class="node_load">{{ traffic.target.percent_by_speed }}%</span>
+                                <div class="load_arrow" style="background-color: rgb({{ traffic.target.css }});"></div>
+                            {{/if}}
+                        </div>
+
+                        <div class="uplink_linkspeed"><span>Link speed:</span> {{ this.link_speed }} mbps</div>
+                        <div class="breaker"></div>
+                    </div>
+                {{/each}}
+        {{/if}}
+        </div>
+
+    </div>
+</div>

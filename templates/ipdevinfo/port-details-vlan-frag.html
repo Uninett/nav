@@ -1,0 +1,120 @@
+{% load port_info %}
+<table class="vertitable full-width">
+  <caption>Connection</caption>
+
+  <tr>
+    <th>Trunk</th>
+    <td>{{ port.trunk|yesno:"Yes,No,N/A" }}</td>
+  </tr>
+
+  <tr>
+    <th>Configured VLAN</th>
+    <td>{{ port.vlan|default:"N/A" }}</td>
+  </tr>
+
+  <tr class="align-top">
+    <th>Detected VLANs</th>
+    <td>
+      {% with port.get_sorted_vlans as swportvlans %}
+        {% if swportvlans %}
+          <ul class="no-bullet limit-size">
+            {% for swportvlan in swportvlans %}
+              <li>
+                <i class="fa {{ swportvlan.get_direction_display|get_direction_class }}"
+                   title="Direction {{ swportvlan.get_direction_display }}"></i>&nbsp;
+                <a href="{% url report-swporttrunk-vlanid swportvlan.vlan.id %}">
+                  {{ swportvlan.vlan }}
+                </a>
+
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          N/A
+        {% endif %}
+      {% endwith %}
+    </td>
+  </tr>
+
+  <tr>
+    <th>To IP device</th>
+    <td>
+      {% if port.to_netbox %}
+        <a href="{{ port.to_netbox.get_absolute_url }}">
+          {{ port.to_netbox }}</a>
+      {% else %}
+        N/A
+      {% endif %}
+    </td>
+  </tr>
+
+  <tr>
+    <th>To port</th>
+    <td>
+      {% if port.to_interface %}
+        <a href="{{ port.to_interface.get_absolute_url }}">
+          {{ port.to_interface }}</a>
+      {% else %}
+        N/A
+      {% endif %}
+    </td>
+  </tr>
+
+  {% if port.baseport %}
+    <tr>
+      <th>Patched to</th>
+      <td>
+        {% if port.patch_set.count %}
+          <ul>
+            {% for patch in port.patch_set.all %}
+              <li>Jack {{ patch.cabling.jack }}, in room
+                <a href="{% url report-netbox-room patch.cabling.room.id %}">
+                  {{ patch.cabling.room.id }}</a></li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          N/A
+        {% endif %}
+      </td>
+    </tr>
+
+    <tr>
+      <th>Last CAM record</th>
+      <td>
+        {% with port.get_last_cam_record.end_time|timesince as time_since %}
+          {% if time_since %}
+            {{ time_since }} ago
+          {% else %}
+            Today
+          {% endif %}
+        {% endwith %}<br/>
+      </td>
+    </tr>
+  {% endif %}
+
+  {% if port.gwportprefix_set.all %}
+    <tr>
+      <th colspan="2">Addresses</th>
+    </tr>
+    <tr>
+      <th></th>
+      <td>
+        <table>
+          <tr>
+            <th>IP</th>
+            <th>Prefix</th>
+          </tr>
+          {% for gwprefix in port.gwportprefix_set.all %}
+            <tr>
+              <td>{{ gwprefix.gw_ip }}</td>
+              <td>
+                <a href="{% url report-prefix-prefix gwprefix.prefix.id %}">{{ gwprefix.prefix.net_address }}</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      </td>
+    </tr>
+  {% endif %}
+
+</table>

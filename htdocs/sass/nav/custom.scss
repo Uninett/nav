@@ -1,0 +1,216 @@
+/* Custom global styles */
+
+#megadrop {
+    background-color: #f8f8ff;
+    border: 1px solid #dcdcdc;
+    position: absolute;
+    top: 45px;
+    z-index: 100;
+    ul {
+        margin-top: 1em;
+        li {
+            margin: 0.2em 0;
+        }
+    }
+    img {
+        height: 32px;
+        width: 32px;
+    }
+}
+
+footer {
+    font-size: 0.9em;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.break-word { word-break: break-all; }
+.float-clear { clear: both; }
+.hidden {display: none; }
+.notvisible {visibility: hidden; }
+
+
+/* Sudoer bar is the bar that appears when you switch users from the
+   'User Administration' page */
+.sudoer-bar {
+    background-color: #d3d7cf;
+    border-bottom: 1px solid #555753;
+    padding-left: 2em;
+    line-height: 3em;
+    form, input {
+        margin: 0;
+    }
+    img {
+        vertical-align: middle;
+    }
+}
+
+
+/* Custom base page styles */
+
+#toolboxdropdown img {
+    height: 24px;
+    width: 24px;
+    vertical-align: middle;
+}
+
+
+/* Custom form styles */
+
+table form, table input[type="text"], table input[type="password"],
+table input[type="date"], table input[type="datetime"], table input[type="checkbox"],
+table input[type="datetime-local"], table input[type="month"],
+table input[type="week"], table input[type="email"],
+table input[type="number"], table input[type="search"], table select,
+table input[type="tel"], table input[type="time"], table input[type="url"],
+table textarea, form.custom table .custom.dropdown {
+    margin: 0;
+}
+
+table .button {
+    margin: 0;
+}
+
+fieldset.secondary {
+    background-color: #f2f2f2;
+    legend {
+        background-color: transparent;
+    }
+}
+
+/* Styles regarding use of OpenLayers maps */
+.mapwrapper {
+    margin: 1em 0;
+    img {
+        max-width: none; /* Openlayers maps need this to override a foundation style to display properly */
+    }
+}
+
+.smallmap {
+    height: 400px;
+    width: 600px;
+}
+
+.navletmap {
+    height: 400px;
+    width: auto;
+    position:relative;
+}
+
+.bigmap {
+    height: 600px;
+}
+
+
+/* jquery ui tabs */
+
+ul.ui-tabs-nav {
+    font-size: 0.9em;
+}
+
+
+/* List styles */
+
+ul, ol, dl {
+    margin-left: 1.2em;
+}
+
+ul.errorlist {
+    margin-bottom: 0;
+    list-style-type: none;
+}
+
+ul.clean, ol.clean, dl.clean {
+    margin: 0;
+    list-style-type: none;
+}
+
+li.list-header {
+    background: #567899;
+    color: white;
+    font-weight: bold;
+    padding: 0.3em 0.5em;
+    text-align: left;
+}
+
+/* Alert-box style */
+
+.alert-box ul, .error ul {
+    margin-bottom: 0;
+}
+
+
+/* highlighting */
+
+.highlight {
+	background: #FFF7BC;
+}
+.highlight .highlight {
+	background: #FEE391;
+}
+.highlight .highlight .highlight {
+	background: #FEC44F;
+}
+
+.logo-text {
+    color:white;
+    font-size:28px;
+    position:relative;
+    top:3px;
+    padding:0 10px 0 15px;
+}
+
+
+/* Add margin to font awesome in buttons */
+button, .button, a {
+    > i {
+        margin-left: 0.375em;
+    }
+}
+
+/* Form styles */
+
+form.inline-form {
+    display: inline-block;
+    > * {
+        display: inline-block;
+        width: auto;
+    }
+    > .custom.dropdown {
+        display: inline-block;
+        width: auto;
+    }
+    input[type=submit] {
+        font-size: 0.875em;
+        padding-top: 0;
+        padding-bottom: 0;
+        text-align: center;
+        line-height: 2.125em;
+        height: 2.3125em;
+    }
+}
+
+
+/* This will align the label from crispy forms to the right of the checkbox */
+.checkboxinput + label {
+    display: inline-block;
+}
+
+/* This will try to center the checkbox vertically when adjacent to input fields */
+.checkboxinput.input-align {
+    margin: 1.5em 0.2em 1.5em 0.2em;
+}
+
+/* Limit the vertical size of an element and display a scroll-bar instead */
+.limit-size {
+    max-height: 200px;
+    overflow: auto;
+}
+
+
+/* Alert icon */
+.deleteicon {
+    color: #d2322d;
+}

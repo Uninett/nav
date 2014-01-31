@@ -1,126 +1,189 @@
+<div class="row">
 
-<div class="infobox float-forms">
-    <form action="netbox">
-        <input type="hidden" name="op_roomid" value="like" />
-        <div>Room search</div>
-        <input type="text" name="roomid" size="15" />
-        <input type="submit" value="Find" />
-        <div><i>room (*)</i></div>
-    </form>
+    <div class="medium-3 column">
+        <div class="panel">
+            <!-- Insert new search forms here -->
+            <form action="netbox">
+                <label>Room search</label>
+                <input type="hidden" name="op_roomid" value="like"/>
 
-    <form action="device">
-        <div>Device search</div>
-        <input type="text" name="serial" size="15" />
-        <input type="hidden" name="op_serial" value="like" />
-        <input type="submit" value="Find" />
-        <div><i>serial number (*)</i></div>
-    </form>
+                <div class="row collapse">
+                    <div class="column large-8">
+                        <input type="text" name="roomid" placeholder="Room (*)"/>
+                    </div>
+                    <div class="column large-4">
+                        <input type="submit" class="button prefix" value="Find"/>
+                    </div>
+                </div>
+            </form>
 
-    <form action="swporttrunk">
-        <div>Switchports with VLAN</div>
-        <input type="text" name="vlan" size="15" />
-        <input type="submit" value="Find" />
-        <div><i>vlan number</i></div>
-    </form>
+            <form action="device">
+                <label>Device search</label>
+                <input type="hidden" name="op_serial" value="like"/>
 
+                <div class="row collapse">
+                    <div class="column large-8">
+                        <input type="text" name="serial"
+                               placeholder="Serial number (*)"/>
+                    </div>
+                    <div class="column large-4">
+                        <input type="submit" class="button prefix" value="Find"/>
+                    </div>
+                </div>
+            </form>
 
-    <form action="netbox">
-        <input type="hidden" name="op_sysname" value="like" />
-        <div>IP Device report</div>
-        <input type="text" name="sysname" size="15" />
-        <input type="submit" value="Find" />
-        <div><i>sysname (*)</i></div>
-    </form>
+            <form action="swporttrunk">
+                <label>Switchports with VLAN</label>
 
-    <form action="swport">
-        <input type="hidden" name="op_alias" value="like" />
-        <div>Portname search</div>
-        <input type="text" name="alias" size="15" />
-        <input type="submit" value="Find" />
-        <div><i>text (*)</i></div>
-    </form>
+                <div class="row collapse">
+                    <div class="column large-8">
+                        <input type="number" name="vlan"
+                               placeholder="Vlan number"/>
+                    </div>
+                    <div class="column large-4">
+                        <input type="submit" class="button prefix" value="Find"/>
+                    </div>
+                </div>
+            </form>
 
-    <form action="prefix">
-        <input type="hidden" name="op_netident" value="like" />
-        <div>Prefix search</div>
-        <input type="text" name="netident" size="15" />
-        <input type="submit" value="Find" />
-        <div><i>text (*)</i></div>
-    </form>
+            <form action="netbox">
+                <label>IP Device report</label>
+                <input type="hidden" name="op_sysname" value="like"/>
 
-    <hr />
-    <p>(*) asterisk wildcards allowed.</p>
-</div>
+                <div class="row collapse">
+                    <div class="column large-8">
+                        <input type="text" name="sysname" placeholder="Sysname (*)"/>
+                    </div>
+                    <div class="column large-4">
+                        <input type="submit" class="button prefix" value="Find"/>
+                    </div>
+                </div>
+            </form>
 
+            <form action="swport">
+                <label>Portname search</label>
+                <input type="hidden" name="op_alias" value="like"/>
 
-<div class="float-list">
-<h3>Collected information</h3>
+                <div class="row collapse">
+                    <div class="column large-8">
+                        <input type="text" name="alias" placeholder="Text (*)"/>
+                    </div>
+                    <div class="column large-4">
+                        <input type="submit" class="button prefix" value="Find"/>
+                    </div>
+                </div>
+            </form>
 
-<ul>
-    <li><a href="netbox">All IP Devices</a></li>
-    <li><a href="matrix" title="See your subnet allocations and utilization levels in a table matrix"><em>Subnet Matrix</em></a></li>
-    <li><a href="netbox?catid=GW%2CGSW&amp;op_catid=in">Routers</a>
-        <ul>
-            <li><a href="prefix">Prefixes</a></li>
-            <li><a href="gwport">Router ports</a></li>
-        </ul>
-    </li>
-    <li><a href="netbox?catid=SW%2CGSW&amp;op_catid=in">Core Switches</a>
-        <ul>
-            <li><a href="swport?op_catid=in&amp;catid=SW,GSW">Core switch ports</a></li>
-            <li><a href="swport?catid=SW&amp;trunk=Y">Trunked core switch ports</a></li>
-            <li><a href="swporttrunk?catid=SW">Core switch ports (expand trunks to VLAN)</a></li>
-            <li><a href="stpblock">STP blocked switch ports</a></li>
-            <li><a href="aggregate?op_speed=gt&amp;speed=0">Ether-/Portchannels</a></li>
-        </ul>
-    </li>
-    <li><a href="netbox?catid=EDGE">Edge Switches and Hubs</a>
-        <ul>
-            <li><a href="swporttrunk?catid=EDGE">Edge switch ports</a></li>
-        </ul>
-    </li>
-    <li><a href="netbox?catid=WLAN">Wireless</a></li>
+            <form action="prefix">
+                <label>Prefix search</label>
+                <input type="hidden" name="op_netident" value="like"/>
 
-    <li><a href="srv">Servers</a>
-        <ul>
-            <li><a href="/ipdevinfo/service/">Service list</a></li>
-            <li><a href="/ipdevinfo/service/matrix/">Service matrix</a></li>
-        </ul>
-    </li>
-    <li><a href="netbox?catid=OTHER">Other devices</a></li>
-    <li><a href="modules">Modules</a></li>
-    <li><a href="mem">Memory</a></li>
-    <li><a href="unrecognized_neighbors">Unrecognized device neighbors</a></li>
-    <li><a href="duplexmismatch">Duplex mismatches</a></li>
-    <li><a href="offline_devices">Offline/shelved devices</a></li>
-</ul>
-</div>
+                <div class="row collapse">
+                    <div class="column large-8">
+                        <input type="text" name="netident" placeholder="Text (*)"/>
+                    </div>
+                    <div class="column large-4">
+                        <input type="submit" class="button prefix" value="Find"/>
+                    </div>
+                </div>
+            </form>
 
-<div class="float-list">
-<h3>Summaries</h3>
-  <ul>
-    <li><a href="availability_month">Availability summary for last month</a>
-  </ul>
-</div>
+            <small>
+              (*) asterisk wildcards allowed.
+            </small>
 
- <div class="float-list">
-<h3>Manually updated information</h3>
+        </div>
+    </div>
 
-<ul>
-    <li><a href="/seeddb/"><i>[Seed database]</i></a></li>
-    <li><a href="type">Equipment types</a></li>
-    <li><a href="room">Rooms</a></li>
-    <li><a href="location">Locations</a></li>
-    <li><a href="org">Organisations</a></li>
-    <li><a href="usage">User groups</a></li>
-    <li><a href="vendor">Vendors</a></li>
-</ul>
-</div>
+    <!--
+         This div contains all report links. To create a new column,
+         create a div with class "left".
+      -->
+    <div class="column medium-9 reportlist">
 
-<div class="float-list">
-<h3>Automatically generated information</h3>
+        <div class="left">
+            <h5>Collected information</h5>
 
-<ul>
-    <li><a href="reportlist">Report List</a></li>
-</ul>
+            <ul>
+                <li><a href="netbox">All IP Devices</a></li>
+                <li>
+                    <a href="matrix"
+                       title="See your subnet allocations and utilization levels in a table matrix">
+                    <em>Subnet Matrix</em>
+                    </a>
+                </li>
+                <li><a href="netbox?catid=GW%2CGSW&amp;op_catid=in">Routers</a>
+                    <ul>
+                        <li><a href="prefix">Prefixes</a></li>
+                        <li><a href="gwport">Router ports</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="netbox?catid=SW%2CGSW&amp;op_catid=in">Core Switches</a>
+                    <ul>
+                        <li><a href="swport?op_catid=in&amp;catid=SW,GSW">Core switch ports</a></li>
+                        <li><a href="swport?catid=SW&amp;trunk=Y">Trunked core switch ports</a></li>
+                        <li><a href="swporttrunk?catid=SW">Core switch ports (expand trunks to VLAN)</a></li>
+                        <li><a href="stpblock">STP blocked switch ports</a></li>
+                        <li><a href="aggregate?op_speed=gt&amp;speed=0">Ether-/Portchannels</a></li>
+                    </ul>
+                </li>
+                <li><a href="netbox?catid=EDGE">Edge Switches and Hubs</a>
+                    <ul>
+                        <li>
+                            <a href="swporttrunk?catid=EDGE">Edge switch ports</a>
+                        </li>
+                    </ul>
+                </li>
+                <li><a href="netbox?catid=WLAN">Wireless</a></li>
+
+                <li><a href="srv">Servers</a>
+                    <ul>
+                        <li><a href="/ipdevinfo/service/">Service list</a></li>
+                        <li><a href="/ipdevinfo/service/matrix/">Service matrix</a></li>
+                    </ul>
+                </li>
+                <li><a href="netbox?catid=OTHER">Other devices</a></li>
+                <li><a href="modules">Modules</a></li>
+                <li><a href="mem">Memory</a></li>
+                <li><a href="unrecognized_neighbors">Unrecognized device neighbors</a></li>
+                <li><a href="duplexmismatch">Duplex mismatches</a></li>
+                <li><a href="offline_devices">Offline/shelved devices</a></li>
+            </ul>
+
+        </div>
+
+        <div class="left">
+            <h5>Summaries</h5>
+            <ul>
+                <li>
+                    <a href="availability_month">Availability summary for last month</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="left">
+            <h5>Manually updated information</h5>
+
+            <ul>
+                <li><a href="/seeddb/"><i>[Seed database]</i></a></li>
+                <li><a href="type">Equipment types</a></li>
+                <li><a href="room">Rooms</a></li>
+                <li><a href="location">Locations</a></li>
+                <li><a href="org">Organisations</a></li>
+                <li><a href="usage">User groups</a></li>
+                <li><a href="vendor">Vendors</a></li>
+            </ul>
+        </div>
+
+        <div class="left">
+            <h5>Automatically generated information</h5>
+
+            <ul>
+                <li><a href="reportlist">Report List</a></li>
+            </ul>
+        </div>
+
+    </div>
+
 </div>

@@ -14,33 +14,51 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Machine tracker forms"""
+from datetime import date, timedelta
 
 from nav.macaddress import MacPrefix
 from nav.web.machinetracker import iprange
 from django import forms
-from django.forms.util import ErrorList
 
 
-class IpTrackerForm(forms.Form):
-    # IPAddressField only supports IPv4 as of Django 1.1
-    ip_range = forms.CharField()
-    active = forms.BooleanField(required=False, initial=True)
-    inactive = forms.BooleanField(required=False)
-    dns = forms.BooleanField(required=False, initial=False)
-    netbios = forms.BooleanField(required=False, initial=False)
-    days = forms.IntegerField(
-        initial=7,
-        widget=forms.TextInput(attrs={'size': 3}))
+class MachineTrackerForm(forms.Form):
+    """General fields for forms in machinetracker"""
+    dns = forms.BooleanField(required=False, initial=False,
+                             help_text="Show dns (if any)")
+    days = forms.IntegerField(initial=7,
+                              widget=forms.TextInput(attrs={'size': 3}),
+                              help_text="Days back in time to search")
 
-    def clean(self):
-        data = self.cleaned_data
+    def clean_days(self):
+        data = int(self.cleaned_data['days'])
+        if data < -1:
+            # -1 has a specific meaning of "only active", for backwards
+            # compatibility. Anything else is an error.
+            raise forms.ValidationError("I can't see into the future. "
+                                        "Please enter a positive number.")
 
-        if not data['active'] and not data['inactive']:
-            msg = u"Either active, inactive or both must be checked."
-            self._errors['active'] = ErrorList([msg])
-            del data['active']
-            del data['inactive']
+        try:
+            date.today() - timedelta(days=data)
+        except OverflowError:
+            raise forms.ValidationError(
+                "They didn't have computers %s days ago" % data)
+
         return data
+
+
+class IpTrackerForm(MachineTrackerForm):
+    # IPAddressField only supports IPv4 as of Django 1.1
+    choices = [('active', 'Active'), ('inactive', 'Inactive'),
+               ('both', 'Both')]
+
+    ip_range = forms.CharField(widget=forms.TextInput(
+        attrs={'placeholder': 'IP-address or range'})
+    )
+    period_filter = forms.ChoiceField(widget=forms.RadioSelect(),
+                                      choices=choices,
+                                      initial='active')
+    netbios = forms.BooleanField(required=False, initial=False,
+                                 help_text="Show netbios name (if any)")
 
     def clean_ip_range(self):
         data = self.cleaned_data['ip_range']
@@ -51,13 +69,12 @@ class IpTrackerForm(forms.Form):
         return data
 
 
-class MacTrackerForm(forms.Form):
-    mac = forms.CharField()
-    dns = forms.BooleanField(required=False, initial=False)
-    netbios = forms.BooleanField(required=False, initial=False)
-    days = forms.IntegerField(
-        initial=7,
-        widget=forms.TextInput(attrs={'size': 3}))
+class MacTrackerForm(MachineTrackerForm):
+    mac = forms.CharField(widget=forms.TextInput(
+        attrs={'placeholder': 'Mac-address'})
+    )
+    netbios = forms.BooleanField(required=False, initial=False,
+                                 help_text="Netbios name (if any)")
 
     def clean_mac(self):
         try:
@@ -80,12 +97,9 @@ class SwitchTrackerForm(forms.Form):
         widget=forms.TextInput(attrs={'size': 3}))
 
 
-class NetbiosTrackerForm(forms.Form):
-    search = forms.CharField()
-    dns = forms.BooleanField(required=False, initial=False)
-    days = forms.IntegerField(
-        initial=7,
-        widget=forms.TextInput(attrs={'size': 3}))
+class NetbiosTrackerForm(MachineTrackerForm):
+    search = forms.CharField(widget=forms.TextInput(
+        attrs={'placeholder': 'Netbios name'}))
 
     def clean_search(self):
         """Make sure blank spaces and such is removed from search"""

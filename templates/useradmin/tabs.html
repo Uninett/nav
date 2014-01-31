@@ -1,0 +1,9 @@
+<ul>
+  <li{% if active.account_list %} class="tabactive"{% endif %}>
+    <a href="{% url useradmin-account_list %}">Account List</a>
+  </li>
+  {% block extra_tab_account %}{% endblock %}
+  <li{% if active.group_list %} class="tabactive"{% endif %}>
+    <a href="{% url useradmin-group_list %}">Group List</a>
+  </li>
+</ul>

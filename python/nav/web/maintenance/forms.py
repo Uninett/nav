@@ -15,6 +15,8 @@
 #
 
 from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import Layout, Row, Column, Field
 
 
 class MaintenanceTaskForm(forms.Form):
@@ -22,6 +24,23 @@ class MaintenanceTaskForm(forms.Form):
     end_time = forms.DateTimeField(required=False)
     no_end_time = forms.BooleanField(initial=False, required=False)
     description = forms.CharField(widget=forms.Textarea, required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(MaintenanceTaskForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('start_time', css_class='datetimepicker'),
+                       css_class="medium-6"),
+                Column(Field('end_time', css_class='datetimepicker'),
+                       css_class="medium-6"),
+            ),
+            Row(
+                Column(css_class='medium-6'),
+                Column('no_end_time', css_class="medium-6")
+            ),
+            'description')
 
     def clean(self):
         if any(self.errors):
@@ -34,6 +53,7 @@ class MaintenanceTaskForm(forms.Form):
             raise forms.ValidationError(
                 "End time or no end time must be specified")
         return self.cleaned_data
+
 
 class MaintenanceAddSingleNetbox(forms.Form):
     """A form used for error-checking only; less code than writing

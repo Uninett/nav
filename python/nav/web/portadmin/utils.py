@@ -18,7 +18,7 @@ import re
 import ConfigParser
 import django.template
 
-from django.template.loaders import filesystem
+from django.template.loaders.filesystem import Loader
 from nav.models.profiles import AccountGroup
 from nav.path import sysconfdir
 from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
@@ -105,7 +105,7 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
 
     defaultvlan = find_default_vlan()
     if defaultvlan and defaultvlan not in allowed_vlans:
-        allowed_vlans.append(FantasyVlan(vlan=defaultvlan))
+        allowed_vlans.append(defaultvlan)
 
     return sorted(allowed_vlans, key=attrgetter('vlan'))
 
@@ -125,6 +125,8 @@ def find_vlans_on_netbox(netbox, factory=None):
     fac: already instantiated factory instance. Use this if possible
     to enable use of cached values
 
+    :returns: list of FantasyVlans
+    :rtype: list
     """
     if not factory:
         factory = SNMPFactory.get_instance(netbox)
@@ -140,7 +142,10 @@ def find_allowed_vlans_for_user(account):
 
 
 def find_default_vlan(include_netident=False):
-    """Check config to see if a default vlan is set"""
+    """Check config to see if a default vlan is set
+
+    :rtype: FantasyVlan
+    """
     defaultvlan = ""
     netident = ""
 
@@ -151,10 +156,11 @@ def find_default_vlan(include_netident=False):
         if config.has_option("defaultvlan", "netident"):
             netident = config.get("defaultvlan", "netident")
 
-    if include_netident:
-        return (defaultvlan, netident)
-    else:
-        return defaultvlan
+    if defaultvlan:
+        if include_netident:
+            return FantasyVlan(defaultvlan, netident)
+        else:
+            return FantasyVlan(defaultvlan)
 
 
 def fetch_voice_vlans():
@@ -198,7 +204,11 @@ def intersect(list_a, list_b):
 
 
 def find_vlans_in_org(org):
-    """Find all vlans in an organization and child organizations"""
+    """Find all vlans in an organization and child organizations
+
+    :returns: list of FantasyVlans
+    :rtype: list
+    """
     vlans = list(org.vlan_set.all())
     for child_org in org.organization_set.all():
         vlans.extend(find_vlans_in_org(child_org))
@@ -219,7 +229,9 @@ def check_format_on_ifalias(ifalias):
     section = "ifaliasformat"
     option = "format"
     config = read_config()
-    if config.has_section(section) and config.has_option(section, option):
+    if not ifalias:
+        return True
+    elif config.has_section(section) and config.has_option(section, option):
         ifalias_format = re.compile(config.get(section, option))
         if ifalias_format.match(ifalias):
             return True
@@ -243,8 +255,8 @@ def get_aliastemplate():
     """Fetch template for displaying ifalias format as help to user"""
     templatepath = join(sysconfdir, "portadmin")
     templatename = "aliasformat.html"
-    rawdata, _ = filesystem.load_template_source(templatename,
-                                                 [templatepath])
+    loader = Loader()
+    rawdata, _ = loader.load_template_source(templatename, [templatepath])
     tmpl = django.template.Template(rawdata)
     return tmpl
 

@@ -1,55 +1,73 @@
 {% extends "seeddb/base.html" %}
 
 {% block content %}
-<form enctype="multipart/form-data" action="" method="post">
-{{ form.non_field_errors }}
 
-{% if processed_objects %}
-<table class="listtable">
-    <thead>
-        <tr>
-            <th>Status</th>
-            <th>Line</th>
-            <th>Input</th>
-            <th>Remark</th>
-        </tr>
-    </thead>
-    {% for obj in processed_objects %}
-    <tr class="{% cycle 'oddrow' 'evenrow' %}">
-        <td>
-          {% ifequal obj.status "ok" %}
-            <img src="/images/lys/green.png" alt="{{ obj.status }}" />
-          {% else %}{% ifequal obj.status "other" %}
-            <img src="/images/lys/yellow.png" alt="{{ obj.status }}" />
-          {% else %}{% ifequal obj.status "syntax" %}
-            <img src="/images/lys/red.png" alt="{{ obj.status }}" />
-          {% else %}
-            {{ obj.status }}
-          {% endifequal %}{% endifequal %}{% endifequal %}
-	</td>
-        <td>{{ obj.line_number }}</td>
-	<td>{{ obj.input }}</td>
-        <td>{{ obj.message|capfirst }}</td>
-    </tr>
-    {% endfor %}
-</table>
-<p>
-    <input type="submit" name="confirm" value="Import" />
-</p>
-{% endif %}
+    <form enctype="multipart/form-data" action="" method="post">
+        {% if form.non_field_errors %}
+            <div class="alert-box alert">{{ form.non_field_errors }}</div>
+        {% endif %}
 
-{% for field in form %}
-<p>{% if not field.is_hidden %}{{ field.label_tag }}:<br/>{% endif %}
-{{ field.errors }}
-{{ field }}
-</p>
-{% endfor %}
+        {% if processed_objects %}
+            <table class="listtable">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Line</th>
+                        <th>Input</th>
+                        <th>Remark</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for obj in processed_objects %}
+                    <tr class="{% cycle 'oddrow' 'evenrow' %}">
+                        <td>
+                          {% ifequal obj.status "ok" %}
+                            <img src="{{ STATIC_URL }}images/lys/green.png" alt="{{ obj.status }}" />
+                          {% else %}{% ifequal obj.status "other" %}
+                            <img src="{{ STATIC_URL }}images/lys/yellow.png" alt="{{ obj.status }}" />
+                          {% else %}{% ifequal obj.status "syntax" %}
+                            <img src="{{ STATIC_URL }}images/lys/red.png" alt="{{ obj.status }}" />
+                          {% else %}
+                            {{ obj.status }}
+                          {% endifequal %}{% endifequal %}{% endifequal %}
+                        </td>
+                        <td>{{ obj.line_number }}</td>
+                        <td>{{ obj.input }}</td>
+                        <td>{{ obj.message|capfirst }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
 
-{% if not form.is_bound or not form.is_valid %}
-<p>
-    <input type="submit" value="Preview import" />
-</p>
-{% endif %}
+            <input type="submit" name="confirm" value="Import" class="button small"/>
+        {% endif %}
 
-</form>
+        {% comment %}
+        If elements are hidden it'a a part of the preview. We need to print
+        out the form hidden to get it in the request
+        {% endcomment %}
+        {% if form.bulk_file.is_hidden %}
+            {{ form.bulk_file }}
+        {% else %}
+          <fieldset>
+            <legend>{{ form.bulk_file.label }}</legend>
+            {{ form.bulk_file }}
+          </fieldset>
+        {% endif %}
+
+        {% if form.bulk_data.is_hidden %}
+          {{ form.bulk_data }}
+        {% else %}
+          <fieldset>
+            <legend>{{ form.bulk_data.label }}</legend>
+            {{ form.bulk_data }}
+          </fieldset>
+        {% endif %}
+
+        {% if not form.is_bound or not form.is_valid %}
+            <input type="submit" value="Preview import" class="button small"/>
+        {% endif %}
+
+    </form>
+
 {% endblock %}

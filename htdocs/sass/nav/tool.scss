@@ -1,0 +1,19 @@
+#tool_list td a {
+    white-space: nowrap;
+}
+
+.buttoncontainer .savebutton, .buttoncontainer .info {
+    display: none;
+}
+
+.switch {
+    width: 100px;  /* Otherwise switch gets too little space */
+    margin-bottom: 0;
+}
+
+
+.switch-cell {
+    font-size: 1em !important;  /* To fix layout for switch */
+    vertical-align: middle;
+    display: none;
+}

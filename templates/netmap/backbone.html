@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
-    <link rel="stylesheet" href="/style/netmap.css" type="text/css" />
-    <link rel="stylesheet" href="/style/message.css" media="screen" type="text/css" />
-    <link rel="stylesheet" href="/style/jqueryui/jquery-ui-1.8.21.custom.css" type="text/css" />
-    <script type="text/javascript" src="/js/libs/spin.min.js"></script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/netmap.css"  />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/message.css" media="screen"  />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"  />
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/spin.min.js"></script>
     <script>require(["src/netmap/main"]);</script>
     <!-- check out https://github.com/jrburke/jqueryui-amd -->
 {% endblock %}
@@ -39,7 +39,7 @@
             <div id="chart_header"></div>
             <div id="netmap_userid">{{ auth_id }}</div>
             {% if link_to_admin %}
-                <div id="netmap_link_to_admin">{{link_to_admin}}</div>
+                <div id="netmap_link_to_admin" class="hide">{{link_to_admin}}</div>
             {% endif %}
         </div>
         <div id="netmap_left_sidebar">

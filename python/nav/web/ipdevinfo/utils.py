@@ -26,6 +26,9 @@ from nav.models.manage import SwPortVlan, SwPortBlocked, Cam
 from nav.models.manage import Netbox
 from nav.topology.vlan import build_layer2_graph
 
+from nav.metrics.graphs import get_metric_meta, get_simple_graph_url
+from nav.metrics.templates import metric_path_for_interface
+
 _logger = logging.getLogger('nav.web.ipdevinfo.utils')
 
 
@@ -390,3 +393,35 @@ def find_uplink_nodes(netbox):
 def sort_by_netbox(netboxes):
     """Sort netboxes by category and sysname"""
     return sorted(netboxes, key=attrgetter('category.id', 'sysname'))
+
+
+def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets'):
+    """Returns a Graphite graph render URL for an interface traffic graph"""
+
+    def _get_target(direction):
+        assert direction.lower() in ('in', 'out')
+        path = metric_path_for_interface(
+            interface.netbox.sysname, interface.ifname,
+            'if{0}{1}'.format(direction.capitalize(), kind)
+        )
+        meta = get_metric_meta(path)
+        return meta['target'], meta.get('unit', None)
+
+    (out_series, unit), (in_series, unit) = [
+        _get_target(d) for d in ('out', 'in')]
+
+    in_series = 'alias(color(stacked({0}),"00ff00cc"),"In")'.format(in_series)
+    out_series = 'alias({0},"Out")'.format(out_series)
+
+    titlemap = dict(octets='Traffic on {ifname}',
+                    errors='Errors on {ifname}',
+                    ucastpkts='Unicast packets on {ifname}',
+                    discards='Discarded packets on {ifname}')
+    title = titlemap.get(kind.lower(),
+                         '{ifname}').format(ifname=interface.ifname)
+
+    return get_simple_graph_url(
+        [in_series, out_series], "1" + timeframe,
+        title=title,
+        width=597, height=251,
+        vtitle=unit or '')

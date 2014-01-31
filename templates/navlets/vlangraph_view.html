@@ -1,0 +1,11 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+    {% if graph_url %}
+        <img src="{{ graph_url }}" alt="Graph for vlan">
+    {% else %}
+        <p>Edit the widget and add a Vlan to graph for.</p>
+    {% endif %}
+
+{% endblock %}

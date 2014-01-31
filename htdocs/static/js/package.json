@@ -1,0 +1,25 @@
+{
+  "name": "NAV",
+  "description": "Network Administration Visualized",
+  "version": "0.3.14",
+  "private": true,
+  "optionalDependencies": {
+    "requirejs": "*",
+    "chai": "*",
+    "istanbul": "*",
+    "mocha": "~1.12.0",
+    "karma": "~0.10.1",
+    "karma-requirejs": "*",
+    "karma-mocha": "*",
+    "karma-chai": "git+https://github.com/norrs/karma-chai.git",
+    "karma-coverage": "*",
+    "karma-chrome-launcher": "~0.1.0",
+    "karma-firefox-launcher": "*",
+    "karma-phantomjs-launcher": "*",
+    "karma-junit-reporter": "~0.1.0",
+    "jshint": "*"
+  },
+  "scripts": {
+    "test": "karma start test/karma.conf.js"
+  }
+}

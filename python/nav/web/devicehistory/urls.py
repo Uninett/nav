@@ -17,35 +17,28 @@
 
 from django.conf.urls.defaults import url, patterns
 
-from nav.web.devicehistory.views import devicehistory_search, devicehistory_view
-from nav.web.devicehistory.views import error_form, register_error
-from nav.web.devicehistory.views import delete_module, do_delete_module
+from nav.web.devicehistory.views import (devicehistory_search,
+                                         devicehistory_view, error_form,
+                                         register_error, delete_module,
+                                         do_delete_module)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
-    # Search
-    url(r'^$', devicehistory_search,
-        name='devicehistory-search'),
+    url(r'^$', devicehistory_search, name='devicehistory-search'),
 
-    url(r'^history/$', devicehistory_view,
-        name='devicehistory-view'),
-
+    url(r'^history/$', devicehistory_view, name='devicehistory-view'),
     url(r'^history/\?netbox=(?P<netbox_id>\d+)$', devicehistory_view,
         name='devicehistory-view-netbox'),
-
     url(r'^history/\?room=(?P<room_id>.+)$', devicehistory_view,
         name='devicehistory-view-room'),
 
     url(r'^registererror/$', error_form,
         name='devicehistory-registererror'),
-
     url(r'^do_registererror/$', register_error,
         name='devicehistory-do-registererror'),
 
     url(r'^delete_module/$', delete_module,
         name='devicehistory-module'),
-
     url(r'^do_delete_module/$', do_delete_module,
         name='devicehistory-do_delete_module'),
 )
-

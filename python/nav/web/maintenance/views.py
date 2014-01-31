@@ -49,6 +49,7 @@ LOGGER_NAME = 'nav.web.maintenance'
 logger = logging.getLogger(LOGGER_NAME)
 
 def calendar(request, year=None, month=None):
+    heading = "Maintenance schedule"
     try:
         year = int(request.GET.get('year'))
         month = int(request.GET.get('month'))
@@ -82,6 +83,7 @@ def calendar(request, year=None, month=None):
             'active': {'calendar': True},
             'navpath': NAVPATH,
             'title': TITLE,
+            'heading': heading,
             'calendar': mark_safe(cal),
             'prev_month': prev_month_start,
             'this_month': this_month_start,
@@ -93,6 +95,7 @@ def calendar(request, year=None, month=None):
 
 
 def active(request):
+    heading = "Active tasks"
     tasks = MaintenanceTask.objects.filter(
         start_time__lt=datetime.now(),
         end_time__gt=datetime.now(),
@@ -121,8 +124,9 @@ def active(request):
         'maintenance/list.html',
         {
             'active': {'active': True},
-            'navpath': NAVPATH + [('Active tasks', '')],
-            'title': TITLE + " - Active tasks",
+            'navpath': NAVPATH + [(heading, '')],
+            'title': TITLE + " - " + heading,
+            'heading': heading,
             'tasks': tasks,
         },
         RequestContext(request)
@@ -130,6 +134,7 @@ def active(request):
 
 
 def planned(request):
+    heading = "Planned tasks"
     tasks = MaintenanceTask.objects.filter(
         start_time__gt=datetime.now(),
         end_time__gt=datetime.now(),
@@ -141,8 +146,9 @@ def planned(request):
         'maintenance/list.html',
         {
             'active': {'planned': True},
-            'navpath': NAVPATH + [('Planned tasks', '')],
-            'title': TITLE + " - Planned tasks",
+            'navpath': NAVPATH + [(heading, '')],
+            'title': TITLE + " - " + heading,
+            'heading': heading,
             'tasks': tasks,
         },
         RequestContext(request)
@@ -150,6 +156,7 @@ def planned(request):
 
 
 def historic(request):
+    heading = "Historic tasks"
     tasks = MaintenanceTask.objects.filter(
         Q(end_time__lt=datetime.now()) |
         Q(state__in=(MaintenanceTask.STATE_CANCELED,
@@ -161,7 +168,8 @@ def historic(request):
         {
             'active': {'historic': True},
             'navpath': NAVPATH + [('Historic tasks', '')],
-            'title': TITLE + " - Historic tasks",
+            'title': TITLE + " - " + heading,
+            'heading': heading,
             'tasks': tasks,
         },
         RequestContext(request)
@@ -183,13 +191,15 @@ def view(request, task_id):
     components = structure_component_data(component_data)
     component_trail = task_component_trails(component_keys, components)
 
+    heading = 'Task "%s"' % task.description
     infodict = infodict_by_state(task)
     return render_to_response(
         'maintenance/details.html',
         {
             'active': infodict['active'],
             'navpath': infodict['navpath'],
-            'title': TITLE + " - Task \"%s\"" % task.description,
+            'title': TITLE + " - " + heading,
+            'heading': heading,
             'task': task,
             'components': component_trail,
         },
@@ -199,6 +209,7 @@ def view(request, task_id):
 
 def cancel(request, task_id):
     task = get_object_or_404(MaintenanceTask, pk=task_id)
+    heading = 'Cancel task'
     if request.method == 'POST':
         task.state = 'canceled'
         task.save()
@@ -212,7 +223,8 @@ def cancel(request, task_id):
             {
                 'active': infodict['active'],
                 'navpath': infodict['navpath'],
-                'title': TITLE + " - Cancel task",
+                'title': TITLE + " - " + heading,
+                'heading': heading,
                 'task': task,
             },
             RequestContext(request)
@@ -305,16 +317,19 @@ def edit(request, task_id=None, start_time=None):
 
     if task:
         navpath = NAVPATH + [('Edit', '')]
-        title = TITLE + " - Editing \"%s\"" % task.description
+        heading = 'Editing "%s"' % task.description
+        title = TITLE + " - " + heading
     else:
         navpath = NAVPATH + [('New', '')]
-        title = TITLE + " - New task"
+        heading = 'New task'
+        title = TITLE + " - " + heading
     return render_to_response(
         'maintenance/new_task.html',
         {
             'active': {'new': True},
             'navpath': navpath,
             'title': title,
+            'heading': heading,
             'task_form': task_form,
             'task_id': task_id,
             'quickselect': mark_safe(quickselect),

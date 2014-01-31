@@ -19,7 +19,7 @@ import networkx as nx
 from collections import defaultdict
 from nav.models.manage import SwPortVlan
 from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2
-from nav.netmap.rrd import _get_datasource_lookup, get_rrd_data
+from nav.netmap.traffic import get_traffic_data, Traffic
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -244,7 +244,7 @@ def _get_vlans_map_layer3(graph):
 
 
 def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
-                              vlan_by_netbox, collect_rrd=False, view=None):
+                              vlan_by_netbox, load_traffic=False, view=None):
     """
     Builds a netmap layer 2 graph, based on nav's build_layer2_graph method.
     Reduces a topology graph from nav.topology.vlan, but retains it's
@@ -305,17 +305,16 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     _LOGGER.debug(
         "build_netmap_layer2_graph() graph reduced.Port_pair metadata attached")
 
-    rrd_datasources = collect_rrd and _get_datasource_lookup(interfaces) or {}
-
+    empty_traffic = Traffic()
     for source, target, metadata_dict in netmap_graph.edges_iter(data=True):
         for interface_a, interface_b in metadata_dict.get('port_pairs'):
-            rrd_traffic = get_rrd_data(rrd_datasources,
-                                       (interface_a, interface_b))
+            traffic = get_traffic_data(
+                (interface_a, interface_b)) if load_traffic else empty_traffic
             additional_metadata = edge_metadata_layer2((source, target),
                                                        interface_a,
                                                        interface_b,
                                                        vlan_by_interface,
-                                                       rrd_traffic)
+                                                       traffic)
 
             metadata = metadata_dict.setdefault('metadata', list())
             metadata.append(additional_metadata)
@@ -340,16 +339,16 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     return netmap_graph
 
 
-def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False,
+def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False,
                               view=None):
     """
     Builds a netmap layer 3 graph, based on nav's build_layer3_graph method.
 
-    :param collect_rrd: set to true for fetching RRD/Traffic statistics data
-     for your network topology.
+    :param load_traffic: set to true for fetching Traffic statistics data
+                         for your network topology.
     :param view: A NetMapView for getting node positions according to saved
-     netmap view.
-    :type collect_rrd: bool
+                 netmap view.
+    :type load_traffic: bool
     :type view: nav.models.profiles.NetmapView
 
     :return NetworkX Graph with attached metadata for edges and nodes
@@ -385,16 +384,16 @@ def build_netmap_layer3_graph(topology_without_metadata, collect_rrd=False,
             attr_dict=existing_metadata)
     _LOGGER.debug("build_netmap_layer3_graph() graph copy with metadata done")
 
-    rrd_datasources = collect_rrd and _get_datasource_lookup(interfaces) or {}
-
+    empty_traffic = Traffic()
     for source, target, metadata_dict in graph.edges_iter(data=True):
         for gwpp_a, gwpp_b in metadata_dict.get('gwportprefix_pairs'):
-            rrd_traffic = get_rrd_data(rrd_datasources, (gwpp_a.interface,
-                                                         gwpp_b.interface))
+            traffic = get_traffic_data(
+                (gwpp_a.interface, gwpp_b.interface)
+            ) if load_traffic else empty_traffic
             additional_metadata = edge_metadata_layer3((source, target),
                                                        gwpp_a,
                                                        gwpp_b,
-                                                       rrd_traffic)
+                                                       traffic)
             assert gwpp_a.prefix.vlan.id == gwpp_b.prefix.vlan.id, (
                 "GwPortPrefix must reside inside VLan for given Prefix, "
                 "bailing!")

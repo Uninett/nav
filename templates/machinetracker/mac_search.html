@@ -2,65 +2,109 @@
 
 {% block content %}
 
-<div id="search_form">
     <form action="{% url machinetracker-mac %}" method="get">
-        <table class="listtable">
-            <caption>MAC search</caption>
-            <tbody>
-            <tr>
-                <th><label for="id_mac">Mac:</label></th>
-                <td>{{ form.mac.errors }}{{ form.mac }}</td>
-            </tr>
-            <tr>
-                <th><label for="id_dns">Dns:</label></th>
-                <td>{{ form.dns }}</td>
-            </tr>
-            <tr>
-                <th><label>Netbios:</label></th>
-                <td>{{ form.netbios }}</td>
-            </tr>
-            <tr>
-                <th><label for="id_hide">Show only active records:</label></th>
-                <td><input type="checkbox" id="id_hide" name="days" value="-1" onclick="document.getElementById('id_days').disabled = this.checked;" /></td>
-            </tr>
-            <tr>
-                <th><label for="id_days">Days:</label></th>
-                <td>{{ form.days.errors }}{{ form.days }}</td>
-            </tr>
-                <tr>
-                    <th></th>
-                    <td><input type="submit" value="Search" /></td>
-                </tr>
-            </tbody>
-        </table>
+        <div id="search_form">
+            <div class="row">
+                <div class="medium-6 column">
+                    <div class="row collapse">
+                        <div class="medium-9 column {% if form.mac.errors %}error{% endif %}">
+                            {{ form.mac }}
+                            {% if form.mac.errors %}
+                                <small>{{ form.mac.errors }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="medium-3 column">
+                            <input type="submit" value="Search" class="button postfix"/>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="medium-6 column">
+                    <a href="#" data-reveal-id="valid-search-terms"
+                       title="Help"
+                       class="button secondary small right">Help</a>
+                </div>
+            </div>
+
+
+            {% comment %} FILTERS FOR MAC SEARCH {% endcomment %}
+            <div class="row">
+                <div class="medium-6 column">
+                    <fieldset>
+                        <legend>Period</legend>
+
+                        <div class="row machinetracker-filter">
+                            <div class="small-6 column">
+                                <div class="machinetracker-filter-days">
+                                    <label for="{{ form.days.auto_id }}"
+                                           title="{{ form.days.help_text }}">{{ form.days.label }}</label>
+                                    {{ form.days }}
+                                </div>
+                                {% if form.days.errors %}
+                                    <small class="error nomargin">{{ form.days.errors }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="small-6 column">
+                                <label for="id_hide" title="Only show ip-addresses active now">Only active
+                                    <input type="checkbox" id="id_hide"
+                                           name="days" value="-1"
+                                           onclick="document.getElementById('id_days').disabled = this.checked;"/>
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="medium-6 column">
+                    <fieldset>
+                        <legend>Columns</legend>
+
+                        <div class="row machinetracker-filter">
+                            <div class="small-6 column">
+                                <label for="{{ form.dns.auto_id }}" title="{{ form.dns.help_text }}">{{ form.dns.label }}
+                                    {{ form.dns }}
+                                </label>
+                            </div>
+
+                            <div class="small-6 column">
+                                <label for="{{ form.netbios.auto_id }}" title="{{ form.netbios.help_text }}">{{ form.netbios.label }}
+                                    {{ form.netbios }}
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+
+            </div>
+        </div>
     </form>
-</div>
 
-{% if mac_tracker or ip_tracker %}
-<div class="results">
-    {% include "machinetracker/mac_tracker.html" %}
-</div>
-<div class="results">
-    {% include "machinetracker/ip_tracker.html" %}
-</div>
-{% else %}
+    {% if mac_tracker or ip_tracker %}
+        <div class="results">
+            {% include "machinetracker/mac_tracker.html" %}
+        </div>
 
-<div class="infobox">
-    <h4>Search Hints</h4>
-    <ul>
-        <li>
-            MAC search allows searching for a MAC prefix, e.g. a search for
-            &quot;<tt>00aabbcc</tt>&quot; will return all matches between
-            <tt>00:aa:bb:cc:00:00</tt> and <tt>00:aa:bb:cc:ff:ff</tt>.
-        </li>
-        <li>
-            The use of colon in the MAC search is optional, e.g.
-            &quot;<tt>00aabbcc</tt>&quot; and &quot;<tt>00:aa:bb:cc</tt>&quot;
-            are equal.
-        </li>
-    </ul>
-</div>
+        <div class="results">
+            {% include "machinetracker/ip_tracker.html" %}
+        </div>
+    {% endif %}
 
-{% endif %}
+    <div id="valid-search-terms" class="reveal-modal">
+        <h4>Search Hints</h4>
+        <ul>
+            <li>
+                MAC search allows searching for a MAC prefix, e.g. a search for
+                &quot;<tt>00aabbcc</tt>&quot; will return all matches between
+                <tt>00:aa:bb:cc:00:00</tt> and <tt>00:aa:bb:cc:ff:ff</tt>.
+            </li>
+            <li>
+                The use of colon in the MAC search is optional, e.g.
+                &quot;<tt>00aabbcc</tt>&quot; and &quot;<tt>00:aa:bb:cc</tt>&quot;
+                are equal.
+            </li>
+        </ul>
+    </div>
+
 
 {% endblock %}
