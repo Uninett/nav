@@ -37,11 +37,12 @@ require([
                 new OpenLayers.Control.Navigation()
             ],
             theme: NAV.cssPath + '/openlayers.css'
-        });
-        map.addLayer(new OpenLayers.Layer.OSM(
-            'OpenStreetMap',
-            '/info/osm_map_redirect/${z}/${x}/${y}.png')
-        );
+        }),
+            mapLayer = new OpenLayers.Layer.OSM('OpenStreetMap',
+                '/info/osm_map_redirect/${z}/${x}/${y}.png');
+
+        mapLayer.tileOptions = {crossOriginKeyword: null};
+        map.addLayer(mapLayer);
         return map;
     }
 

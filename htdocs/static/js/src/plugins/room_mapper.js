@@ -27,7 +27,9 @@ define(['libs/OpenLayers', 'libs/jquery'], function () {
                 return;
             }
             this.map = new OpenLayers.Map(this.node, this.options);
-            this.map.addLayer(new OpenLayers.Layer.OSM("OpenStreetMap", this.proxyurl));
+            var mapLayer = new OpenLayers.Layer.OSM("OpenStreetMap", this.proxyurl);
+            mapLayer.tileOptions = {'crossOriginKeyword': null};
+            this.map.addLayer(mapLayer);
             var markers = addMarkers(this.rooms, this.map, this.markerImages);
             addMarkerControl(markers, this.map);
             addCoordinatePicker(this.map);
