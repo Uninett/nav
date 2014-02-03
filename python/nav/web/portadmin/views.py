@@ -184,8 +184,8 @@ def populate_infodict(request, account, netbox, interfaces):
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
     except SnmpError:
         readonly = True
-        messages.error(request, "Timeout when contacting %s" % netbox.sysname)
-        messages.error(request, "Values displayed are from database")
+        messages.error(request, "Timeout when contacting %s. Values displayed "
+                                "are from database" % netbox.sysname)
         if not netbox.read_only:
             messages.error(request, "Read only community not set")
 
