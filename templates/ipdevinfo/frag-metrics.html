@@ -31,6 +31,7 @@
 
       {% for group in metric_groups %}
         <div id="metric{{ group.grouper }}" class="nav-metrics">
+          <a href="javascript:void(0);" class="all-graph-toggler button secondary small">Show/hide all graphs</a>
           <table class="listtable">
 
             <caption>{{ group.grouper|capfirst }}</caption>
