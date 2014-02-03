@@ -9,12 +9,7 @@ require([
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
 
-    $(function() {
-        new CheckboxSelector('#select', '.selector').add();
-        new QuickSelect('.quickselect');
-    });
-
-    $(window).load(function () {
+    function executeOnLoad() {
         if ($('#map').length) {
             populateMap(initMap());     // Show map for coordinates
         }
@@ -26,7 +21,19 @@ require([
         } else {
             $(tableWrapper).removeClass('notvisible');
         }
-    });
+
+        new CheckboxSelector('#select', '.selector').add();
+        new QuickSelect('.quickselect');
+    }
+
+    /* Internet Explorer caching leads to onload event firing before script
+       is loaded - thus we never get the load event. This code will at least
+       make it usable. */
+    if (document.readyState === 'complete') {
+        executeOnLoad();
+    } else {
+        $(window).load(executeOnLoad);
+    }
 
     function initMap() {
         OpenLayers.ImgPath = NAV.imagePath + '/openlayers/';
