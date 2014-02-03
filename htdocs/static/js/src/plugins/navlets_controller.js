@@ -25,9 +25,16 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
             this.column2 = $('<div class="large-6 medium-6 column navletColumn"/>').appendTo($row);
         },
         fetchNavlets: function () {
-            var that = this;
-            $.getJSON(this.fetch_navlets_url, function (data) {
-                var navlets = data, i, l;
+            var that = this,
+                request_config = {
+                    cache: false, // Need to disable caching because of IE
+                    dataType: 'json',
+                    url: this.fetch_navlets_url
+                },
+                request = $.ajax(request_config);
+
+            request.done(function (data) {
+                var i, l;
                 for (i = 0, l = data.length; i < l; i++) {
                     that.addNavlet(data[i]);
                 }
