@@ -25,6 +25,7 @@ from nav.models.profiles import AccountNavlet
 from nav.web.navlets import (Navlet, REFRESH_INTERVAL, NAVLET_MODE_VIEW,
                              NAVLET_MODE_EDIT)
 from nav.web.webfront.utils import boxes_down
+from nav.web.status.sections import get_user_sections
 
 
 class StatusNavlet(Navlet):
@@ -37,6 +38,17 @@ class StatusNavlet(Navlet):
 
     def get_template_basename(self):
         return "status"
+
+    def get(self, request, *args, **kwargs):
+        """Fetch all status and display it to user"""
+        sections = get_user_sections(request.account)
+        problems = 0
+        for section in sections:
+            if section.history and section.devicehistory_type != 'a_boxDown':
+                problems += len(section.history)
+        context = self.get_context_data(**kwargs)
+        context['problems'] = problems
+        return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         context = super(StatusNavlet, self).get_context_data(**kwargs)

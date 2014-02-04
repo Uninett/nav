@@ -9,7 +9,7 @@
                 &ndash;
                 <span class="subtitle">
                             {{ boxes_down|length }} IP device{{ boxes_down|pluralize }} down,
-                            {{ num_shadow }} in shadow
+                            of these {{ num_shadow }} are in shadow
                 </span>
             </caption>
 
@@ -35,8 +35,21 @@
             {% endfor %}
             </tbody>
         </table>
+
+        {% if problems %}
+          <p class="alert-box alert">
+            There are also {{ problems }} other problems.
+            <a href="{% url status-index %}">See the full list.</a>
+          </p>
+        {% endif %}
     {% else %}
-        <p>No boxes down</p>
+        <p class="alert-box success">No boxes down - yay!</p>
+        {% if problems %}
+          <p class="alert-box alert">
+            However there are {{ problems }} other problems.
+            <a href="{% url status-index %}">See the full list.</a>
+          </p>
+        {% endif %}
     {% endif %}
 
 {% endblock %}
