@@ -13,11 +13,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=E1101
 """Status navlet"""
+
 import simplejson
 from datetime import datetime
 from django.http import HttpResponse
-from django.shortcuts import redirect
 
 from nav.django.utils import get_account
 from nav.models.manage import Netbox
@@ -70,6 +71,7 @@ class StatusNavlet(Navlet):
         return context
 
     def post(self, request):
+        """Save refresh interval for this widget"""
         account = get_account(request)
         try:
             interval = int(request.POST.get('interval')) * 1000
