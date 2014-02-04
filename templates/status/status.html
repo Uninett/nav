@@ -19,10 +19,14 @@
     {% if section.history %}
       <table class="listtable full-width">
         <caption>
-          {{ section.prefs.name }}
-          <span class="subtitle">
-          ({{ section.type_title }})
-          </span>
+          {% if section.prefs.name == section.type_title %}
+            {{ section.type_title }}
+          {% else %}
+            {{ section.prefs.name }}
+            <span class="subtitle">
+            ({{ section.type_title }})
+            </span>
+          {% endif %}
           <a href="{{ section.devicehistory_url }}" class="right">History</a>
         </caption>
 
