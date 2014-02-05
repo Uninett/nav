@@ -1,64 +1,80 @@
-<p>
+<h4>
     If this ip-device stops working the following will likely be affected.
-</p>
+</h4>
 
-<div id="affected">
+<div class="panel">
+  {# List of affected ip-devices #}
+  {% if affected %}
+    <section>
+      <h5>
+        Affected devices
+        <i class="fa fa-question-circle" title="Devices with or behind devices with redundant links"></i>
+      </h5>
 
-    {% if affected %}
-        <h3>AFFECTED DEVICES  <img src="{{ STATIC_URL }}images/helpers/question.png" title="Devices with or behind devices with redundant links"></h3>
-        <ul>
-            {% for netbox in affected %}
-                <li>
-                    <a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a>
-                    ({{ netbox.category.id }})
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-
-    {% if unreachable %}
-
-        <h3>DEVICES GOING DOWN</h3>
-        <ul>
-            {% for netbox in unreachable %}
-                <li>
-                    <a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a>
-                    ({{ netbox.category.id }})
-                </li>
-            {% endfor %}
-        </ul>
-
-        <h3>Affected hosts</h3>
-        {{ affected_hosts }} active hosts/users
-
-        <br/>
-
-    {% endif %}
-
-    {% if services %}
-
-        <h3>SERVICES ON DEVICES GOING DOWN</h3>
-        <ul>
-            {% for service in services %}
-                <li>{{ service }}</li>
-            {% endfor %}
-        </ul>
-
-    {% endif %}
-
-    {% if contacts %}
-        <h3>ORGANIZATIONS</h3>
-        <ul>
-        {% for organization in organizations %}
-            <li>{{ organization }} - {{ organization.contact }}</li>
+      <ul>
+        {% for netbox in affected %}
+          <li>
+            <a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a>
+            ({{ netbox.category.id }})
+          </li>
         {% endfor %}
-        </ul>
-        <br/>
+      </ul>
+    </section>
+  {% endif %}
 
-    {% endif %}
 
-    <form action="mailto:{{ contacts|join:"," }}">
-        <input type="submit" value="Send mail to affected organizations">
-    </form>
+  {# List of unreachable ip-devices #}
+  {% if unreachable %}
+    <section>
+      <h5>Devices going down</h5>
+
+      <ul>
+        {% for netbox in unreachable %}
+          <li>
+            <a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a>
+            ({{ netbox.category.id }})
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section>
+      <h5>Affected hosts</h5>
+
+      <p>{{ affected_hosts }} active hosts/users</p>
+    </section>
+  {% endif %}
+
+
+  {# List of unreachable services #}
+  {% if services %}
+    <section>
+      <h5>Services on devices going down</h5>
+
+      <ul>
+        {% for service in services %}
+          <li>{{ service }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+
+  {# List of contacts that are involved #}
+  {% if contacts %}
+    <section>
+      <h5>Organizations</h5>
+      <ul>
+        {% for organization in organizations %}
+          <li>{{ organization }} - {{ organization.contact }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  {# Form to send mail to involved contacts #}
+  <form action="mailto:{{ contacts|join:"," }}">
+    <input type="submit" class="button small" value="Send mail to affected organizations">
+  </form>
 
 </div>
