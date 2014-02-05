@@ -130,11 +130,13 @@ def do_login(request):
                 except ldapauth.Error, e:
                     errors.append('Error while talking to LDAP:\n%s' % e)
                 else:
+                    _logger.info("%s successfully logged in", account.login)
                     if not origin:
                         origin = reverse('webfront-index')
                     return HttpResponseRedirect(origin)
             else:
-                errors.append('Authentication failed for the specified username and password.')
+                _logger.info("failed login: %r", username)
+                errors.append('Username or password is incorrect.')
 
     # Something went wrong. Display login page with errors.
     return direct_to_template(
