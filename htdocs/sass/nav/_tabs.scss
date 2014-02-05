@@ -16,6 +16,8 @@
  *
  */
 
+@import "../navsettings";
+
 /* Mixins for tabs */
  @mixin tab_base {
     display: none;
@@ -111,6 +113,12 @@
             &.ui-tabs-selected { 
                 @include tab_selected; 
             }
+            &.ui-state-error {
+                a {
+                    background-color: $alert-box-bg;
+                    color: $alert-box-color;
+                }
+            }
         }
     }
     .ui-tabs-panel { 
@@ -120,10 +128,6 @@
         display: none !important;
         position: absolute;
         left: -10000px;
-    }
-
-    .ui-state-error {
-        color: #b94a48;
     }
 }
 
