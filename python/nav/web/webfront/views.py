@@ -65,7 +65,6 @@ def index(request):
 
 def login(request):
     if request.method == 'POST':
-        _logger.info('Got POST request - doing login')
         return do_login(request)
 
     origin = request.GET.get('origin', '').strip()
@@ -111,10 +110,12 @@ def do_login(request):
                 except ldapauth.Error, e:
                     errors.append('Error while talking to LDAP:\n%s' % e)
                 else:
+                    _logger.info("%s successfully logged in", account.login)
                     if not origin:
                         origin = reverse('webfront-index')
                     return HttpResponseRedirect(origin)
             else:
+                _logger.info("failed login: %r", username)
                 errors.append('Username or password is incorrect.')
 
     # Something went wrong. Display login page with errors.
