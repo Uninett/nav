@@ -16,15 +16,11 @@
 """Provides a function for getting host information"""
 
 
-import re
 import IPy
 from django.utils.functional import memoize
 from nav import asyncdns
 
-import logging
 from nav.util import is_valid_ip
-
-_logger = logging.getLogger('nav.web.ipdevinfo.hostinfo')
 
 
 def address_sorter(addr_tuple):
@@ -52,8 +48,6 @@ def reverse_lookup(addresses):
 
 def _get_host_info(host):
     """Returns a dictionary containing DNS information about the host"""
-    _logger.debug('Getting hostinfo for %s', host)
-
     if is_valid_ip(host):
         addresses = list(reverse_lookup([host]))
     else:
@@ -63,4 +57,3 @@ def _get_host_info(host):
 
     return {'host': host, 'addresses': addresses}
 get_host_info = memoize(_get_host_info, {}, 1)
-
