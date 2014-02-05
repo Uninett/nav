@@ -22,7 +22,7 @@ from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
                                      port_counter_graph)
 from nav.web.ipdevinfo.views import (ipdev_details, module_details,
                                      port_details, get_port_view, affected,
-                                     get_graphite_render_url)
+                                     get_graphite_render_url, render_host_info)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
@@ -64,12 +64,15 @@ urlpatterns = patterns('',
 
     # Modules
     url(r'^(?P<netbox_sysname>.+)/modules/(?P<perspective>\w+)/$',
-        get_port_view, name='ipdevinfo-get-port-view'
-    ),
+        get_port_view, name='ipdevinfo-get-port-view'),
 
     # What happens if the device goes down
     url(r'(?P<netboxid>\d+)/affected', affected,
         name="ipdevinfo-affected"),
+
+    # DNS
+    url(r'hostinfo/(?P<identifier>.+)', render_host_info,
+        name="ipdevinfo-hostinfo"),
 
     #metrics
     url(r'graphite-render/(?P<metric>.+)/$', get_graphite_render_url,

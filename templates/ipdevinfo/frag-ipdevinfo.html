@@ -332,6 +332,32 @@
       </tr>
 
       <tr>
+        <th>DNS</th>
+        <td>
+          <ul class="no-bullet" style="font-size: 1em;">
+            {% for address in host_info.addresses %}
+              <li>
+                <a href="{% url ipdevinfo-details-by-addr address.addr %}">
+                  {{ address.addr }}
+                </a>
+
+                {% if address.name %}
+                  &ndash; <a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>
+                {% endif %}
+
+                {% if address.error %}
+                  ({{ address.error }})
+                {% endif %}
+
+              </li>
+            {% empty %}
+              <li>N/A</li>
+            {% endfor %}
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
         <th>Prefix</th>
         <td>
           {% with no_netbox.prefix as prefix %}
