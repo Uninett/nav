@@ -21,7 +21,7 @@ from django.conf.urls.defaults import url, patterns
 from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
                                      port_counter_graph)
 from nav.web.ipdevinfo.views import (ipdev_details, module_details,
-                                     port_details, get_port_view, affected,
+                                     port_details, get_port_view, render_affected,
                                      get_graphite_render_url, render_host_info)
 
 # The patterns are relative to the base URL of the subsystem
@@ -67,7 +67,7 @@ urlpatterns = patterns('',
         get_port_view, name='ipdevinfo-get-port-view'),
 
     # What happens if the device goes down
-    url(r'(?P<netboxid>\d+)/affected', affected,
+    url(r'(?P<netboxid>\d+)/affected', render_affected,
         name="ipdevinfo-affected"),
 
     # DNS

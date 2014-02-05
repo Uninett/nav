@@ -23,7 +23,8 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
-from django.shortcuts import render_to_response, get_object_or_404, redirect, render
+from django.shortcuts import (render_to_response, get_object_or_404, redirect,
+                              render)
 from django.template import RequestContext
 from django.views.generic.list_detail import object_list
 from nav.metrics.errors import GraphiteUnreachableError
@@ -311,7 +312,6 @@ def get_port_view(request, netbox_sysname, perspective):
     # Get port activity search interval from form
     activity_interval = 30
     activity_interval_form = None
-    _logger.debug('perspective = %s' % perspective)
     if perspective == 'swportactive':
         if 'interval' in request.GET:
             activity_interval_form = ActivityIntervalForm(request.GET)
@@ -574,7 +574,7 @@ def service_matrix(request):
             processors=[search_form_processor]))
 
 
-def affected(request, netboxid):
+def render_affected(request, netboxid):
     """Controller for the affected tab in ipdevinfo"""
     netbox = Netbox.objects.get(pk=netboxid)
     netboxes = utils.find_children(netbox)
