@@ -43,6 +43,20 @@ Version 4.0b1
  the documentation.
 
 
+Version 3.15.5
+(released 06 Feb 2014)
+
+  * LP#1241624 (Attempting to access a restricted resource when logged in as an
+                underprivileged user causes a 403 Forbidden response with an
+                empty body)
+  * LP#1269714 (Physically replacing a device may cause all further SNMP polling
+                of it to stop)
+  * LP#1272226 (PSU alerts are not shown in the status page)
+  * LP#1273706 ("put on maintenance" from status page doesn't work properly when
+                NAV and PostgreSQL are configured with differing timezones)
+  * LP#1276509 (Access ports sometimes wrongly categorized as uplinks/downlinks)
+
+
 Version 3.15.4
 (released 9 Jan 2014)
 
