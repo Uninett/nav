@@ -26,7 +26,7 @@ from nav.django.utils import get_account, is_admin
 from nav.web.message import Messages
 from nav.web.webfront.utils import (get_account_tools, tool_list, quick_read,
                                     split_tools)
-from nav.models.profiles import AccountNavbar
+from nav.models.profiles import NavbarLink
 from nav.buildconf import VERSION
 from nav.path import sysconfdir
 from nav.metrics import CONFIG
@@ -66,40 +66,16 @@ def account_processor(request):
     messages = messages.get_and_delete()
     sudo = get_sudoer(request)
 
-    navbar = []
-    qlink1 = []
-    qlink2 = []
+    my_links = NavbarLink.objects.filter(account=account)
 
     tools = sorted(tool_list(account), key=attrgetter('name'))
-
-    preferences = AccountNavbar.objects.select_related(
-        'navbarlink'
-    ).filter(account=account)
-    if preferences.count() == 0:
-        preferences = AccountNavbar.objects.select_related(
-            'navbarlink'
-        ).filter(account__id=0)
-
-    for p in preferences:
-        link = {
-            'name': p.navbarlink.name,
-            'uri': p.navbarlink.uri,
-        }
-        if p.positions.count('navbar'):
-            navbar.append(link)
-        if p.positions.count('qlink1'):
-            qlink1.append(link)
-        if p.positions.count('qlink2'):
-            qlink2.append(link)
 
     current_user_data = {
         'account': account,
         'is_admin': admin,
         'sudoer': sudo,
         'messages': messages,
-        'navbar': navbar,
-        'qlink1': qlink1,
-        'qlink2': qlink2,
+        'my_links': my_links,
         'tools': tools,
         'split_tools': split_tools(tools)
     }

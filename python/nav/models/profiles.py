@@ -252,23 +252,12 @@ class AccountProperty(models.Model):
     def __unicode__(self):
         return '%s=%s' % (self.property, self.value)
 
-class AccountNavbar(models.Model):
-    """A user's web ui navigation bar."""
-    account = models.ForeignKey('Account', db_column='accountid')
-    navbarlink = models.ForeignKey('NavbarLink', db_column='navbarlinkid')
-    positions = VarcharField()
-
-    class Meta:
-        db_table = u'accountnavbar'
-
-    def __unicode__(self):
-        return '%s in %s' % (self.navbarlink.name, self.positions)
 
 class NavbarLink(models.Model):
     """A hyperlink on a user's navigation bar."""
     account = models.ForeignKey('Account', db_column='accountid')
-    name = VarcharField()
-    uri = VarcharField()
+    name = models.CharField(blank=False, max_length=100)
+    uri = models.CharField(blank=False, max_length=100)
 
     class Meta:
         db_table = u'navbarlink'

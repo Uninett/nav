@@ -22,44 +22,9 @@ import os
 import logging
 
 from nav.web import ldapauth
-from nav.models.profiles import Account, AccountNavbar
+from nav.models.profiles import Account
 
 logger = logging.getLogger("nav.web.auth")
-
-# FIXME Should probably be refactored out if this file, as it does not directly
-# have anything to do with authentication.
-def _find_user_preferences(user, req):
-    if not hasattr(user, "preferences"):
-        # if user preferences is not loaded, it's time to do so
-        user['preferences'] = {
-            'navbar': [],
-            'qlink1': [],
-            'qlink2': [],
-            'hidelogo': 0,
-        }
-        prefs = AccountNavbar.objects.select_related(
-            'navbarlink'
-        ).filter(account__id=user['id'])
-
-        if prefs.count() == 0:
-            # if user has no preferences set, use default preferences
-            prefs = AccountNavbar.objects.select_related(
-                'navbarlink'
-            ).filter(account__id=0)
-
-        for pref in prefs:
-            link = {
-                'name': pref.navbarlink.name,
-                'uri': pref.navbarlink.uri,
-            }
-            if pref.positions.count('navbar'):
-                user['preferences']['navbar'].append(link)
-            if pref.positions.count('qlink1'):
-                user['preferences']['qlink1'].append(link)
-            if pref.positions.count('qlink2'):
-                user['preferences']['qlink2'].append(link)
-        if req:
-            req.session.save() # remember this to next time
 
 
 def authenticate(username, password):
