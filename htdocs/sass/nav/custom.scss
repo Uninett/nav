@@ -15,22 +15,27 @@
     }
 }
 
+/* MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP  */
 #megadrop {
-    background-color: #f8f8ff;
-    border: 1px solid #dcdcdc;
+    background-color: white;
+    border-bottom: 5px solid #027BBB;
     position: absolute;
     top: 45px;
     z-index: 10000;
+    -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
     ul {
         margin-top: 1em;
         li {
-            margin: 0.2em 0;
+            margin: 1em 0;
+            a { color: black; }
         }
     }
     img {
         height: 24px;
         width: 24px;
     }
+    h5 { margin-top: 1.3em; }
 }
 
 
