@@ -22,7 +22,7 @@ import os
 import logging
 
 from nav.web import ldapauth
-from nav.models.profiles import Account, AccountNavbar
+from nav.models.profiles import Account
 
 logger = logging.getLogger("nav.web.auth")
 
