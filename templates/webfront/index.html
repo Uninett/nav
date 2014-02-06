@@ -13,7 +13,7 @@
       <div class="large-12 columns">
           {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
               {% comment %} Buttons for adding and sorting navlets {% endcomment %}
-              <div class="right">
+              <div id="widget-actions" class="right">
                   <a href="javascript:void(0);" data-reveal-id="navlet-list" data-reveal
                      class="button small secondary">
                     Add widget
@@ -64,5 +64,37 @@
        data-save-order-url="{% url save-navlet-order %}"
        data-base-template-url={% url navlet-base-template %}
           ></div>
+
+  <ul data-joyride class="joyride-list">
+    <li data-text="Next" data-id="joyrideme">
+      <p>Welcome to NAV!</p>
+      <p>This 30 second tour will show you the basics.</p>
+    </li>
+    <li data-id="navbar-search-form" data-text="Next">
+      <h4>Search</h4>
+
+      <p>Search for ip-devices, rooms, interfaces, etc., here.</p>
+    </li>
+    <li data-id="megadroptoggler" data-text="Next">
+      <h4>Your tools</h4>
+      <p>All your tools can be found here.</p>
+    </li>
+    <li data-id="widget-actions" data-text="Next">
+      <h4>Widgets</h4>
+
+      <p>Add more widgets or reorder them any way you
+        want, using these buttons.</p>
+    </li>
+    <li data-class="navlet-action-group" data-text="Next">
+      <h4>Widget controls</h4>
+
+      <p>Refresh the information or remove it. In many cases you will also see an edit option so that you can personalize the display.</p>
+    </li>
+    <li data-id="footer-documentation-link" data-text="End">
+      <p>Our wiki is stuffed with more information about NAV. A <a href="/doc" title="local documentation">local version</a> is also available.</p>
+    </li>
+  </ul>
+
+
 
 {% endblock %}
