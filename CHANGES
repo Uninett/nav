@@ -1,3 +1,27 @@
+Version 4.0b3
+(released 06 Feb 2014)
+
+ Bugfixes:
+
+  * LP#1270095 (APC sensors stored at wrong precision)
+  * All VLAN utilization graphs produced error messages in b2.
+
+ User-visible features and improvements:
+
+  * Inserted the new NAV logo, and completely reworked the page footer.
+
+  * New NAV blog feed widget added as default.
+
+  * UI clean-ups and improvements in front page widgets, login page, Geomap,
+    SeedDB, Messages, PortAdmin, Radius, Syslog Analyzer, IP Device Info, room
+    photo database, personal preferences page and others.
+
+  * Fixed Internet Explorer 9 brokenness.
+
+  * Tool descriptions have been completely re-authored, and are now also
+    available as a subheading inside each tool.
+
+
 Version 4.0b2
 (released 9 Jan 2014)
 
