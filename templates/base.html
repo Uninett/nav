@@ -69,16 +69,19 @@
         </ul>
 
         <ul class="right">
-            <li class="has-dropdown">
-                <a href="{% url webfront-preferences-navigation %}">
-                    Your links <i class="fa fa-gear"></i>
-                </a>
-                <ul class="dropdown">
-                    {% for link in current_user_data.navbar %}
-                        <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
-                    {% endfor %}
-                </ul>
-            </li>
+            {% if not current_user_data.account.is_default_account %}
+                <li class="has-dropdown">
+                    <a href="{% url webfront-preferences %}">
+                        My stuff
+                    </a>
+                    <ul class="dropdown">
+                        {% for link in current_user_data.my_links %}
+                            <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
+                        {% endfor %}
+                        <li class="divider"><a href="{% url webfront-preferences %}">My account <i class="fa fa-gear"></i></a></li>
+                    </ul>
+                </li>
+            {% endif %}
 
             {% comment %} This dropdown only visible on small screens {% endcomment %}
             <li class="has-dropdown hide-for-medium-up">
@@ -94,6 +97,7 @@
                             </a>
                         </li>
                     {% endfor %}
+
                 </ul>
             </li>
 

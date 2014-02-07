@@ -117,66 +117,6 @@ class AccountForm(forms.ModelForm):
         exclude = ('password', 'ext_sync', 'organizations')
 
 
-class ChangePasswordForm(forms.Form):
-    """Form for changing password for an account"""
-    old_password = forms.CharField(label='Old password',
-                                   widget=forms.widgets.PasswordInput)
-    new_password1 = forms.CharField(label='New password (>= 8 characters)',
-                                    min_length=Account.MIN_PASSWD_LENGTH,
-                                    widget=forms.widgets.PasswordInput)
-    new_password2 = forms.CharField(label='Repeat password',
-                                    min_length=Account.MIN_PASSWD_LENGTH,
-                                    widget=forms.widgets.PasswordInput)
-
-    def __init__(self, *args, **kwargs):
-        if 'my_account' in kwargs:
-            self.account = kwargs.pop('my_account')
-        else:
-            self.account = None
-
-        super(ChangePasswordForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper()
-        self.helper.form_action = '.'
-        self.helper.layout = Layout(
-            Fieldset(
-                'Change password',
-                'old_password', 'new_password1', 'new_password2',
-                Submit('submit', 'Change password', css_class='small')
-            )
-        )
-
-    def clean_old_password(self):
-        """Verify that old password is correct"""
-        old_password = self.cleaned_data['old_password']
-        is_valid_password = self.account.check_password(old_password)
-        if not is_valid_password:
-            self.clear_passwords(self.cleaned_data)
-            raise forms.ValidationError('Password is incorrect')
-        return
-
-    def clean(self):
-        """Check that passwords match. If not clear form data"""
-        cleaned_data = super(ChangePasswordForm, self).clean()
-        password1 = cleaned_data.get('new_password1')
-        password2 = cleaned_data.get('new_password2')
-
-        if password1 != password2:
-            self.clear_passwords(cleaned_data)
-            raise forms.ValidationError('Passwords did not match')
-        return cleaned_data
-
-    @staticmethod
-    def clear_passwords(cleaned_data):
-        """Clear passwords from the cleaned data"""
-        if 'new_password1' in cleaned_data:
-            del cleaned_data['new_password1']
-        if 'new_password2' in cleaned_data:
-            del cleaned_data['new_password2']
-        if 'old_password' in cleaned_data:
-            del cleaned_data['old_password']
-
-
 class PrivilegeForm(forms.Form):
     """Form for adding a privilege to a group from the group page"""
     type = forms.models.ModelChoiceField(PrivilegeType.objects.all(), label='',

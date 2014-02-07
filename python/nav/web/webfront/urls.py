@@ -19,7 +19,7 @@ from django.conf.urls.defaults import url, patterns
 
 from nav.web.webfront.views import (index, login, logout, about, toolbox,
                                     save_tools, set_tool_layout)
-from nav.web.webfront.views import preferences, preferences_navigation
+from nav.web.webfront.views import preferences, save_links, change_password
 
 urlpatterns = patterns('',
     url(r'^$', index,
@@ -38,6 +38,8 @@ urlpatterns = patterns('',
         name='webfront-set-tool-layout'),
     url(r'^preferences/$', preferences,
         name='webfront-preferences'),
-    url(r'^preferences/navigation/', preferences_navigation,
-        name='webfront-preferences-navigation'),
+    url(r'^preferences/savelinks$', save_links,
+        name='webfront-preferences-savelinks'),
+    url(r'^preferences/changepassword$', change_password,
+        name='webfront-preferences-changepassword'),
 )

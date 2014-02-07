@@ -35,7 +35,8 @@ class CiscoProcessMib(mibretriever.MibRetriever):
         ])
 
         by_physindex = dict((row[PHYSICAL_INDEX], row)
-                            for row in load.values())
+                            for row in load.values()
+                            if row[PHYSICAL_INDEX])
         if by_physindex:
             result = dict()
             names = yield self._get_cpu_names(by_physindex.keys())
