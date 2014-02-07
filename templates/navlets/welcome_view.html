@@ -4,9 +4,4 @@
   <section>
     {{ welcome|safe }}
   </section>
-
-  {% if not request.account.is_default_account %}
-    <a id="joyrideme" class="button small full-width">Take a 30 second tour?</a>
-  {% endif %}
-
 {% endblock %}
