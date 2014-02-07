@@ -16,12 +16,18 @@
 """Room map navlet"""
 
 from nav.web.navlets import Navlet
+from nav.web.info.room.forms import SearchForm
 
 
 class RoomMapNavlet(Navlet):
     """View class for the room map navlet"""
     title = 'Room map'
     description = 'Display a map marking the location of rooms'
+
+    def get_context_data(self, **kwargs):
+        context = super(RoomMapNavlet, self).get_context_data(**kwargs)
+        context['searchform'] = SearchForm()
+        return context
 
     def get_template_basename(self):
         return 'room_map'

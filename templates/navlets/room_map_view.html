@@ -1,8 +1,12 @@
 {% extends 'navlets/base.html' %}
+{% load crispy_forms_tags %}
 
 {% block navlet-content %}
   <a href="{% url seeddb-room %}">Add position to your rooms</a>
   <div class="mapwrapper">
     <div id="room_map" class="navletmap"></div>
   </div>
+
+  {% crispy searchform %}
+
 {% endblock navlet-content %}
