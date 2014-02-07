@@ -29,6 +29,10 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'li
                 $(document).foundation('joyride', 'start');
             });
 
+            $navletsContainer.on('click', '#removeMe', function () {
+                $('#blappTest').slideToggle();
+            });
+
         });
 
     }
