@@ -40,7 +40,7 @@ class LoginForm(forms.Form):
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
             'username', 'password', 'origin',
-            Submit('submit', 'Log in', css_class='small')
+            Submit('submit', 'Log in', css_class='small expand')
         )
 
 class NavbarlinkForm(forms.ModelForm):
