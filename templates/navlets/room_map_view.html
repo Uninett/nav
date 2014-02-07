@@ -2,7 +2,10 @@
 {% load crispy_forms_tags %}
 
 {% block navlet-content %}
-  <a href="{% url seeddb-room %}">Add position to your rooms</a>
+  {% if can_edit_rooms %}
+    <a href="{% url seeddb-room %}">Add position to your rooms</a>
+  {% endif %}
+
   <div class="mapwrapper">
     <div id="room_map" class="navletmap"></div>
   </div>
