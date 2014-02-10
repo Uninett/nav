@@ -100,3 +100,19 @@ img.textbottom {
     height: 300px;
     width: auto;
 }
+
+/* Feedback when user is on the upload page */
+.user-feedback {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    z-index: 10000;
+    > div {
+        margin-left: auto;
+        margin-right: auto;
+        width: 300px;
+        top: -50px;
+    }
+}

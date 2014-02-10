@@ -23,6 +23,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
+from django.contrib import messages
 
 from nav.django.utils import get_account
 from nav.models.manage import Room
@@ -137,6 +138,8 @@ def upload_image(request, roomid):
                   priority=get_next_priority(room),
                   uploader=account).save()
 
+            messages.success(request, 'Image uploaded')
+
             return redirect("room-info-upload", roomid=room.id)
     else:
         _logger.debug('Showing upload form')
@@ -185,6 +188,8 @@ def delete_image(request, roomid):
                 # If the file is not found, then this is ok, otherwise not ok
                 if error.errno != 2:
                     return HttpResponse(status=500)
+            else:
+                messages.success(request, 'Image deleted')
 
             try:
                 os.unlink(join(filepath, 'thumbs', image.name))

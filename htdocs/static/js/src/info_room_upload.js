@@ -10,6 +10,12 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         if ($container.find('.imagecard').length >= 2) {
             addOrdering();
         }
+
+        setTimeout(function () {
+            $('.alert-box').each(function () {
+                removeAlertBox($(this));
+            });
+        }, 3000);
     });
 
     function addButtonListeners(index, element) {
@@ -51,10 +57,11 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
         jqxhr.done(function () {
             $titlecell.html(title);
+            createFeedback('Title updated', 'success');
         });
 
         jqxhr.fail(function () {
-            alert('Failed to update title');
+            createFeedback('Failed to update title', 'error');
         });
 
     }
@@ -72,7 +79,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
                 });
 
                 jqxhr.fail(function () {
-                    alert('Failed to delete image');
+                    createFeedback('Failed to delete image', 'error');
                 });
             }
         });
@@ -91,9 +98,11 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
 
     function saveOrder() {
         var jqxhr = $.post('update_priority', get_image_priorities());
-        jqxhr.done(function () {});
+        jqxhr.done(function () {
+            createFeedback('Image order has been saved', 'success');
+        });
         jqxhr.fail(function () {
-            alert('Could not save image order');
+            createFeedback('Could not save image order', 'error');
         });
     }
 
@@ -103,6 +112,24 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
             priorities[$(element).attr('data-imageid')] = index;
         });
         return priorities;
+    }
+
+    function createFeedback(message, type) {
+        var $alertBox = $('<div>').addClass('alert-box').addClass(type).attr('data-alert', '').html(message),
+            $close = $('<a href="#">').addClass('close').html('&times;').click(function () {
+                removeAlertBox($alertBox);
+        });
+
+        $alertBox.append($close).appendTo('.user-feedback');
+        setTimeout(function () {
+            removeAlertBox($alertBox);
+        }, 2000);
+    }
+
+    function removeAlertBox($alertBox) {
+        $alertBox.fadeOut(function () {
+            $(this.remove());
+        });
     }
 
 });
