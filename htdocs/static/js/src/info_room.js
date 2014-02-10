@@ -64,7 +64,6 @@ require(
         function add_streetmap() {
             var position_node = $('#roominfo td.position');
             var roomname = $(position_node).attr('data-roomname');
-            console.log('Adding streetmap');
             $.getJSON('/ajax/open/roommapper/rooms/' + roomname, function (data) {
                 new RoomMapper('room_map', data.rooms).createMap();
             });

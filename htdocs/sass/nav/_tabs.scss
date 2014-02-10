@@ -125,7 +125,6 @@
         @include tab_content; 
     }
     .ui-tabs-hide { 
-        display: none !important;
         position: absolute;
         left: -10000px;
     }
