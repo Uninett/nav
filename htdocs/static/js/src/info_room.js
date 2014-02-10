@@ -51,7 +51,7 @@ require(
         function request_success() {
             enrich_tables();
             add_filters();
-//            add_csv_download();
+            add_csv_download();
             add_helper_dialog();
         }
 
@@ -118,21 +118,12 @@ require(
         }
 
         function add_csv_download() {
-            var tables = $('#netboxes table.netbox');
+            var tables = $('#netboxes').find('table.netbox');
 
-            var config = {
-                filename: 'interfaces.csv',
-                data: function () {
-                    return table_info_converter.create_csv(tables);
-                },
-                transparent: false,
-                swf: '/js/extras/downloadify.swf',
-                downloadImage: NAV.imagePath + '/roominfo/csv.png',
-                width: 41,
-                height: 13,
-                append: false
-            };
-            $('#downloadify').downloadify(config);
+            var $form = $('#csv-download-form');
+            $form.submit(function () {
+                $form.find('[name=rows]').val(table_info_converter.create_csv(tables));
+            });
         }
 
         function add_helper_dialog() {

@@ -19,7 +19,7 @@
 from django.conf.urls.defaults import url, patterns
 from nav.web.info.room.views import (search, roominfo, render_netboxes,
                                      upload_image, update_title, delete_image,
-                                     update_priority)
+                                     update_priority, create_csv)
 
 urlpatterns = patterns('',
     url(r'^$', search, name='room-search'),
@@ -33,5 +33,6 @@ urlpatterns = patterns('',
         name='room-info-update-priority'),
     url(r'^(?P<roomid>.+)/upload/', upload_image, name='room-info-upload'),
     url(r'^(?P<roomid>.+)/$', roominfo, name='room-info'),
+    url(r'^csv-download$', create_csv, name='room-csv'),
 
 )
