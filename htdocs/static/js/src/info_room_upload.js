@@ -12,7 +12,7 @@ require(['libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], function () {
         }
 
         setTimeout(function () {
-            $('.alert-box').each(function () {
+            $('.user-feedback .alert-box').each(function () {
                 removeAlertBox($(this));
             });
         }, 3000);
