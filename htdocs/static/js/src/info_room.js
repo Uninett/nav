@@ -10,9 +10,7 @@ require(
         "dt_plugins/modulesort",
         "libs/jquery",
         "libs/jquery-ui-1.8.21.custom.min",
-        "libs/jquery.dataTables.min",
-        "libs/downloadify.min",
-        "libs/swfobject"
+        "libs/jquery.dataTables.min"
     ],
     function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper) {
         /* Run javascript at document ready */
