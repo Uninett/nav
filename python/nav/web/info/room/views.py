@@ -17,12 +17,14 @@
 
 import logging
 import os
+import csv
 from os.path import join
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
+from django.contrib import messages
 
 from nav.django.utils import get_account
 from nav.models.manage import Room
@@ -137,6 +139,8 @@ def upload_image(request, roomid):
                   priority=get_next_priority(room),
                   uploader=account).save()
 
+            messages.success(request, 'Image uploaded')
+
             return redirect("room-info-upload", roomid=room.id)
     else:
         _logger.debug('Showing upload form')
@@ -185,6 +189,8 @@ def delete_image(request, roomid):
                 # If the file is not found, then this is ok, otherwise not ok
                 if error.errno != 2:
                     return HttpResponse(status=500)
+            else:
+                messages.success(request, 'Image deleted')
 
             try:
                 os.unlink(join(filepath, 'thumbs', image.name))
@@ -231,3 +237,19 @@ def render_netboxes(request, roomid):
                               {"netboxes": netboxes,
                                "room": room},
                               context_instance=RequestContext(request))
+
+
+def create_csv(request):
+    """Create csv-file from form data"""
+    roomname = request.REQUEST.get('roomid', 'room').encode('utf-8')
+    filename = "{}.csv".format(roomname)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+        filename)
+
+    writer = csv.writer(response)
+    rows = request.REQUEST.get('rows', '').encode('utf-8')
+    for row in rows.split('\n'):
+        writer.writerow(row.split(';'))
+    return response

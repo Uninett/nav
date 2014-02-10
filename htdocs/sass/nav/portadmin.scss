@@ -1,7 +1,8 @@
 @import "../navsettings";
 
 .portadmin-card {
-    background-color: #dcdcdc;
+    position: relative;
+    background-color: white;
     border: 1px solid #b6b6b6;
     padding: 0.7em;
     h6, .save-interface {
@@ -29,4 +30,31 @@
         margin-bottom: 0;
         margin-top: 1em;
     }
+/* Alternate layout from Mizz C
+
+    .port-graphic {
+        float: left;
+        width: 50px;
+        .label {
+            padding-top: 0.6rem;
+            padding-bottom: 0.8rem;
+        }
+    }
+    .port-info {
+        width: auto;
+        margin-left: 50px;
+        margin-bottom: 25px;
+        h5 {
+            margin-bottom: 0;
+        }
+    }
+    .port-edit {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        a {
+            margin-bottom: 0;
+        }
+    }
+*/
 }

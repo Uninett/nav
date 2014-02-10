@@ -12,11 +12,9 @@
   <div class="row">
     <div class="column small-12">
       <a href="#" data-reveal-id="add_image_help" class="small secondary button right" data-reveal>Help</a>
-      <h4>Images for {{ room.id }}</h4>
+      <h3>Images for {{ room.id }}</h3>
     </div>
   </div>
-
-  <p><a href="{% url room-info room.id %}">Back to room</a></p>
 
   <div id="add_image_help" class="reveal-modal" data-reveal>
     <ul class="inside">
@@ -24,17 +22,25 @@
         Add an image by clicking the file dialog, locating the image you want and clicking "Upload image"
       </li>
       <li>
-        Captions may contain html - you can for instance create links
-      </li>
-      <li>
         Sort the images by dragging the <i class="fa fa-arrows"></i> (if more than 1 image)
       </li>
     </ul>
   </div>
 
+  <p><a href="{% url room-info room.id %}">Back to room</a></p>
+
   <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
     {% crispy uploadform %}
   </form>
+
+  <div class="user-feedback">
+    {% for message in messages %}
+      <div class="alert-box {{ message.tags }}" data-alert>
+        {{ message }}
+        <a href="#" class="close">&times;</a>
+      </div>
+    {% endfor %}
+  </div>
 
   <ul id="editimages" class="large-block-grid-4">
   {% for image in room.image_set.all %}

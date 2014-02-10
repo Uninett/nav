@@ -5,6 +5,65 @@
 <ul id='portadmin-wrapper'
     class="large-block-grid-5 medium-block-grid-3 small-block-grid-1">
 
+
+{# Layout Christine #}
+
+{% comment %}
+  {% for interface in interfaces %}
+    <li>
+    <div id="{{ interface.id }}" class="portadmin-card {% if readonly %}readonly{% endif %}">
+
+      <div class="port-graphic"><span class="label">Port</span></div>
+
+      <div class="port-info">
+        <h5>{{ interface.ifname }}</h5>
+
+        <div class="description">
+          {{ interface.ifalias|default:'N/A' }}
+        </div>
+
+        <div class="row description">
+          <div class="small-6 column">
+            <span>Vlan: {{ interface.vlan|default_if_none:'' }}</span>
+          </div>
+          <div class="small-6 column">
+            {% if voice_vlan %}
+              {% if interface.voice_activated or not interface.trunk %}
+                Voice <i style="margin-left: 0.3em;" class="fa fa-phone"></i>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+
+
+        <div class="row">
+          <div class="small-6 column description">
+            Enabled
+              <img title="AdminStatus - If red the interface is down"
+                   src="{{ STATIC_URL }}images/lys/{{ interface.ifadminstatus|drawLight }}"/>
+          </div>
+          <div class="small-6 column description">
+            Linked
+              <img title="OperStatus - If red there is no link on the interface"
+                   src="{{ STATIC_URL }}images/lys/{{ interface.ifoperstatus|drawLight }}"/>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="port-edit">
+        <a href="javascript:void(0);" class="button tiny secondary">Edit</a>
+      </div>
+
+    </div>
+    </li>
+
+  {% endfor %}
+{% endcomment %}
+
+
+
+
   {% for interface in interfaces %}
     <li>
     <div id="{{ interface.id }}" class="portadmin-card {% if readonly %}readonly{% endif %}">
@@ -110,7 +169,6 @@
     </div>
     </li>
   {% endfor %}
-
 
 </ul>
 

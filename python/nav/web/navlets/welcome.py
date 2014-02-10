@@ -14,13 +14,36 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Module comment"""
+
+import os
+from django.shortcuts import render_to_response
+
+from nav.path import sysconfdir
 from nav.web.navlets import Navlet
+from nav.web.webfront.utils import quick_read
+
+WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
+WELCOME_ANONYMOUS_PATH = os.path.join(WEBCONF_DIR_PATH,
+                                      "welcome-anonymous.txt")
+WELCOME_REGISTERED_PATH = os.path.join(WEBCONF_DIR_PATH,
+                                       "welcome-registered.txt")
 
 
 class WelcomeNavlet(Navlet):
-
+    """A navlet that displays welcome information to the user"""
     title = "Welcome!"
     description = "Greets the new user with some basic information"
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        if request.account.is_default_account():
+            welcome = quick_read(WELCOME_ANONYMOUS_PATH)
+        else:
+            welcome = quick_read(WELCOME_REGISTERED_PATH)
+
+        context['welcome'] = welcome
+
+        return self.render_to_response(context)
 
     def get_template_basename(self):
         return "welcome"

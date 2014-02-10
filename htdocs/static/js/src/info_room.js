@@ -9,15 +9,12 @@ require(
         "dt_plugins/date_title_sort",
         "dt_plugins/modulesort",
         "libs/jquery",
-        "libs/jquery.nivo.slider.pack",
         "libs/jquery-ui-1.8.21.custom.min",
-        "libs/jquery.dataTables.min",
-        "libs/downloadify.min",
-        "libs/swfobject"
+        "libs/jquery.dataTables.min"
     ],
     function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper) {
         /* Run javascript at document ready */
-        $(document).ready(function () {
+        $(window).load(function () {
 
             if ($('#infotabs').length != 0) {
                 add_tabs();
@@ -27,11 +24,6 @@ require(
 
             if ($('#mapcontainer').length > 0) {
                 fetchRoomPositions($('#mapcontainer'));
-            }
-
-            var $slider = $('#slider');
-            if ($slider.length) {
-                addImageSlider($slider);
             }
         });
 
@@ -57,7 +49,7 @@ require(
         function request_success() {
             enrich_tables();
             add_filters();
-//            add_csv_download();
+            add_csv_download();
             add_helper_dialog();
         }
 
@@ -124,21 +116,12 @@ require(
         }
 
         function add_csv_download() {
-            var tables = $('#netboxes table.netbox');
+            var tables = $('#netboxes').find('table.netbox');
 
-            var config = {
-                filename: 'interfaces.csv',
-                data: function () {
-                    return table_info_converter.create_csv(tables);
-                },
-                transparent: false,
-                swf: '/js/extras/downloadify.swf',
-                downloadImage: NAV.imagePath + '/roominfo/csv.png',
-                width: 41,
-                height: 13,
-                append: false
-            };
-            $('#downloadify').downloadify(config);
+            var $form = $('#csv-download-form');
+            $form.submit(function () {
+                $form.find('[name=rows]').val(table_info_converter.create_csv(tables));
+            });
         }
 
         function add_helper_dialog() {
@@ -157,14 +140,5 @@ require(
                 new RoomMapper(mapcontainer.get(0), data.rooms).createMap();
             });
         }
-
-        function addImageSlider($element) {
-            $element.nivoSlider({
-                controlNavThumbs: true,
-                effect: 'fade',
-                manualAdvance: true
-            });
-        }
-
     }
 );

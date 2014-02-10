@@ -39,21 +39,12 @@ img.textbottom {
     vertical-align: text-bottom;
 }
 
-#downloadify {
-    padding-top: 5px;
-}
-
 .helperdialog div {
     background-color: #ced8e3;
     padding: 1em;
     margin: 1em 0;
 }
 
-
-/* Slider styles */
-.slider-wrapper {
-    width: 600px;
-}
 
 /* Drag styles */
 .drag {
@@ -84,5 +75,40 @@ img.textbottom {
     }
     .meta {
         font-size: 0.7em;
+    }
+}
+
+
+/* Image Clearing adjustments on Room Info tab. block-grid and clearing-thumbs classes clash */
+.clearing-thumbs {
+    &[class*="block-grid-"] {
+        margin-left: -10px;
+        li { margin-right: auto; }
+    }
+}
+
+/* Prevent OpenStreetmap to show through the image clearing */
+.clearing-blackout {
+    z-index: 1010;
+}
+
+#room_map {
+    height: 300px;
+    width: auto;
+}
+
+/* Feedback when user is on the upload page */
+.user-feedback {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    z-index: 10000;
+    > div {
+        margin-left: auto;
+        margin-right: auto;
+        width: 300px;
+        top: -50px;
     }
 }

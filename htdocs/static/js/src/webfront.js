@@ -2,6 +2,8 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'li
     function (RoomMapper, NavletsController) {
         'use strict';
 
+        var $navletsContainer = $('#navlets');
+
         function createRoomMap(mapwrapper, room_map) {
             $.getJSON('/ajax/open/roommapper/rooms/', function (data) {
                 if (data.rooms.length > 0) {
@@ -12,8 +14,7 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'li
         }
 
         $(function () {
-
-            var controller = new NavletsController($('#navlets'));
+            var controller = new NavletsController($navletsContainer);
             controller.container.on('navlet-rendered', function (event, node) {
                 var mapwrapper = node.children('.mapwrapper');
                 var room_map = mapwrapper.children('#room_map');
@@ -21,6 +22,17 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'li
                     createRoomMap(mapwrapper, room_map);
                 }
             });
+
+
+            /* Add click listener to joyride button */
+            $navletsContainer.on('click', '#joyrideme', function () {
+                $(document).foundation('joyride', 'start');
+            });
+
+            $navletsContainer.on('click', '#removeMe', function () {
+                $('#blappTest').slideToggle();
+            });
+
         });
 
     }

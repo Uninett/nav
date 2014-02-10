@@ -19,7 +19,6 @@ var require = {
         'libs/jquery.tinysort': ['libs/jquery'],
         'libs/jquery-ui-timepicker-addon': ['libs/jquery-ui-1.8.21.custom.min'],
         'libs/jquery.nivo.slider.pack': ['libs/jquery'],
-        'libs/downloadify.min': ['libs/jquery', 'libs/swfobject'],
         'libs/spin.min': ['libs/jquery'],
         'libs/select2.min': ['libs/jquery'],
         'libs/underscore': {

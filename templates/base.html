@@ -55,7 +55,7 @@
     <section class="top-bar-section">
         <ul class="left">
             <li class="has-form search">
-                <form action="{% url info-search %}" method="get">
+                <form id="navbar-search-form" action="{% url info-search %}" method="get">
                     <div class="row collapse">
                         <div class="small-8 columns">
                             <input id="query" type="text" name="query" maxlength="100"/>
@@ -116,9 +116,22 @@
     </section>
 </nav>
 
+  {% comment %}
+
+  MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP
+  MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP
+  MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP
+  MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP
+  MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP
+
+  {% endcomment %}
   <div id="megadrop" class="row hide">
     {% comment %} split_tools are split into 3 lists of tools {% endcomment %}
     <div class="small-12 column">
+
+      <h5>NAV Tools</h5>
+
+      <hr>
 
       <div class="row">
         {% for column in current_user_data.split_tools %}

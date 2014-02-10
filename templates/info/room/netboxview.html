@@ -21,8 +21,12 @@
         </div>
 
         <div class="small-3 columns">
-            <div class="input-filter-desc">Download CSV-file</div>
-            <span id="downloadify">You must have Flash 10 installed to download this file.</span>
+            <div class="input-filter-desc">CSV</div>
+            <form id="csv-download-form"  action="{% url room-csv %}" method="POST">
+              <input type="hidden" name="rows" value="">
+              <input type="hidden" name="roomid" value="{{ room.id }}">
+              <input type="submit" class="button small secondary" value="Download as CSV">
+            </form>
         </div>
     </div>
 
