@@ -33,6 +33,7 @@ from nav.web.crispyforms import HelpField
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
                                             HTML)
+from nav.web.crispyforms import HelpField
 
 _ = lambda a: a
 
@@ -384,6 +385,23 @@ class MatchFieldForm(forms.ModelForm):
         super(MatchFieldForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column('name', css_class='medium-4'),
+                Column('description', css_class='medium-8')
+            ),
+            HelpField('value_help'),
+            Row(
+                Column(HelpField('value_id'), css_class='medium-4'),
+                Column(HelpField('value_name'), css_class='medium-4'),
+                Column(HelpField('value_sort'), css_class='medium-4')
+            ),
+            Row(
+                Column(HelpField('list_limit'), css_class='medium-4'),
+                Column(HelpField('data_type'), css_class='medium-4'),
+                Column(HelpField('show_list'), css_class='medium-4')
+            )
+        )
 
     class Meta:
         model = MatchField
