@@ -1,5 +1,9 @@
 {% extends "alertprofiles/base_list.html" %}
 
+{% block top_links %}
+  <a href="{% url alertprofiles-matchfields-new %}" class="button small">New match field</a>
+{% endblock %}
+
 {% block captioncontent %}
     Matchfields
 {% endblock %}
