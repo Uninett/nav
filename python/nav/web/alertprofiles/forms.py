@@ -380,6 +380,11 @@ class MatchFieldForm(forms.ModelForm):
                     u'checked.'),
     )
 
+    def __init__(self, *args, **kwargs):
+        super(MatchFieldForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+
     class Meta:
         model = MatchField
 
