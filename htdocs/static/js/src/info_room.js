@@ -22,8 +22,9 @@ require(
                 add_streetmap();
             }
 
-            if ($('#mapcontainer').length > 0) {
-                fetchRoomPositions($('#mapcontainer'));
+            var $mapContainer = $('#mapcontainer');
+            if ($mapContainer.length > 0) {
+                fetchRoomPositions($mapContainer);
             }
         });
 
@@ -50,7 +51,8 @@ require(
             enrich_tables();
             add_filters();
             add_csv_download();
-            add_helper_dialog();
+            $(document).foundation('reveal');  // Apply reveal after ajax request
+            $(document).foundation('tooltip');  // Apply tooltip after ajax request
         }
 
         /* Add navigation to jQuery ui tabs */
@@ -117,21 +119,9 @@ require(
 
         function add_csv_download() {
             var tables = $('#netboxes').find('table.netbox');
-
             var $form = $('#csv-download-form');
             $form.submit(function () {
                 $form.find('[name=rows]').val(table_info_converter.create_csv(tables));
-            });
-        }
-
-        function add_helper_dialog() {
-            var dialog = $('#searchhelptext').dialog({
-                autoOpen: false,
-                title: 'Search help',
-                width: 500
-            });
-            $('#searchhelp').click(function () {
-                dialog.dialog('open');
             });
         }
 
