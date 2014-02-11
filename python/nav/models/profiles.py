@@ -256,8 +256,8 @@ class AccountProperty(models.Model):
 class NavbarLink(models.Model):
     """A hyperlink on a user's navigation bar."""
     account = models.ForeignKey('Account', db_column='accountid')
-    name = models.CharField(blank=False, max_length=100)
-    uri = models.CharField(blank=False, max_length=100)
+    name = models.CharField('Link text', blank=False, max_length=100)
+    uri = models.CharField('URL', blank=False, max_length=100)
 
     class Meta:
         db_table = u'navbarlink'
