@@ -277,26 +277,42 @@ def get_snmp_handle(netbox):
 
 
 def handle_status(psu_or_fan, status, dry_run=False):
-    """Check status-value,- post alerts and store state in DB if necessary"""
-    if psu_or_fan.up != status:
-        if psu_or_fan.up == STATE_UP or psu_or_fan.up == STATE_UNKNOWN:
-            if status == STATE_WARNING or status == STATE_DOWN:
-                psu_or_fan.downsince = datetime.now()
-                LOGGER.debug('Posting down-event...')
-                if not dry_run:
-                    post_event(psu_or_fan, status)
-        elif psu_or_fan.up == STATE_DOWN or psu_or_fan.up == STATE_WARNING:
-            if status == STATE_UP:
-                psu_or_fan.downsince = None
-                LOGGER.debug('Posting up-event...')
-                if not dry_run:
-                    post_event(psu_or_fan, status)
-        psu_or_fan.up = status
-        if not dry_run:
-            LOGGER.debug('Save state to database.')
-            psu_or_fan.save()
-        else:
-            LOGGER.debug('Dry run, not saving state.')
+    """Checks status-value, posts alerts and stores state in DB if necessary"""
+    _handle_internal_state(psu_or_fan, status, dry_run)
+    _handle_alert_state(psu_or_fan, status, dry_run)
+
+
+def _handle_internal_state(psu_or_fan, status, dry_run=False):
+    if psu_or_fan.up == status:
+        # state is unchanged, no need to save
+        return
+
+    if psu_or_fan.up in (STATE_UP, STATE_UNKNOWN) and status in (STATE_WARNING,
+                                                                 STATE_DOWN):
+        psu_or_fan.downsince = datetime.now()
+    elif psu_or_fan.up in (STATE_DOWN, STATE_WARNING) and status == STATE_UP:
+        psu_or_fan.downsince = None
+
+    psu_or_fan.up = status
+
+    if not dry_run:
+        LOGGER.debug('Saving state to database.')
+        psu_or_fan.save()
+    else:
+        LOGGER.debug('Dry run, not saving state.')
+
+
+def _handle_alert_state(psu_or_fan, status, dry_run=False):
+    has_alerts = bool(psu_or_fan.get_unresolved_alerts().count())
+    should_post = (
+        status == STATE_UP and has_alerts
+    ) or (
+        status in (STATE_DOWN, STATE_WARNING) and not has_alerts
+    )
+
+    if should_post and not dry_run:
+        LOGGER.debug('Posting event (%s)...', STATE_MAP[status])
+        post_event(psu_or_fan, status)
 
 
 def post_event(psu_or_fan, status):
