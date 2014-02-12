@@ -286,3 +286,16 @@ select[multiple] {
     background: #FFFFFF;
     height: auto;
 }
+
+/* Style graphtite graph elements */
+.graphitegraph {
+    margin-right: 1em;
+    margin-bottom: 1em;
+    button {
+        margin-bottom: 0;
+    }
+}
+
+.graph-toggler {
+    cursor: pointer;
+}
