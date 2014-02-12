@@ -37,7 +37,7 @@ import nav.path
 import nav.db
 from nav.event import Event
 from nav.Snmp import Snmp
-from nav.models.manage import PowerSupplyOrFan
+from nav.models.manage import PowerSupplyOrFan, Device
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
@@ -173,20 +173,20 @@ def post_event(psu_or_fan, status):
     eventtypeid = "psuState" if is_psu(psu_or_fan) else "fanState"
     value = 100
     severity = 50
-    device_id = None
+
     try:
-        if psu_or_fan.device:
-            device_id = psu_or_fan.device.id
-    except Exception, ex:
-        pass
+        device_id = psu_or_fan.device.id
+    except (Device.DoesNotExist, AttributeError):
+        device_id = None
+
     event = Event(source=source, target=target,
-                            deviceid=device_id,
-                            netboxid=psu_or_fan.netbox.id,
-                            subid=psu_or_fan.id,
-                            eventtypeid=eventtypeid,
-                            state='x',
-                            value=value,
-                            severity=severity)
+                  deviceid=device_id,
+                  netboxid=psu_or_fan.netbox.id,
+                  subid=psu_or_fan.id,
+                  eventtypeid=eventtypeid,
+                  state='x',
+                  value=value,
+                  severity=severity)
     event['sysname'] = psu_or_fan.netbox.sysname
     if status in (PowerSupplyOrFan.STATE_DOWN,
                   PowerSupplyOrFan.STATE_WARNING):
@@ -246,7 +246,6 @@ def get_psus_and_fans(sysnames):
 
 def get_snmp_handle(netbox):
     """Allocate an Snmp-handle for a given netbox"""
-    global snmp_handles
     if not netbox.sysname in snmp_handles:
         verify('Allocate SNMP-handle for %s' % netbox.sysname)
         snmp_handles[netbox.sysname] = Snmp(netbox.ip, netbox.read_only,
@@ -256,12 +255,12 @@ def get_snmp_handle(netbox):
 
 def is_fan(psu_or_fan):
     """Determine if this PowerSupplyOrFan-object is a FAN"""
-    return (psu_or_fan.physical_class == 'fan')
+    return psu_or_fan.physical_class == 'fan'
 
 
 def is_psu(psu_or_fan):
     """Determine if this PowerSupplyOrFan-object is a PSU"""
-    return (psu_or_fan.physical_class == 'powerSupply')
+    return psu_or_fan.physical_class == 'powerSupply'
 
 
 def get_state(numerical_state, vendor_id, vendor_state_dict):
@@ -320,7 +319,7 @@ def check_psus_and_fans(to_check):
                 numerical_status = snmp_handle.get(psu_or_fan.sensor_oid)
             except Exception, ex:
                 msg = '%s: %s, Exception = %s' % (psu_or_fan.netbox.sysname,
-                    psu_or_fan.name, ex)
+                                                  psu_or_fan.name, ex)
                 verify(msg)
                 logger.error(msg)
                 # Don't jump out, continue to next psu or fan
@@ -335,7 +334,7 @@ def check_psus_and_fans(to_check):
             status = get_psu_state(numerical_status, vendor_id)
         if status:
             verify('Stored state = %s; polled state = %s' %
-                                    (psu_or_fan.up, status))
+                   (psu_or_fan.up, status))
             handle_status(psu_or_fan, status)
 
 
@@ -348,15 +347,19 @@ def main():
     logger = get_logger()
 
     parser = OptionParser()
-    parser.add_option("-d", "--dry-run", action="store_true", dest="dryrun",
-            help="Dry run.  No changes will be made and no events posted")
-    parser.add_option("-f", "--file", dest="hostsfile",
-            help="A file with hostnames to check. Must be one FQDN per line")
-    parser.add_option("-n", "--netbox", dest="hostname",
-            help="Check only this hostname.  Must be a FQDN")
-    parser.add_option("-v", "--verify", action="store_true", dest="verify",
-            help="Print (lots of) debug-information to stderr")
-    opts, args = parser.parse_args()
+    parser.add_option(
+        "-d", "--dry-run", action="store_true", dest="dryrun",
+        help="Dry run.  No changes will be made and no events posted")
+    parser.add_option(
+        "-f", "--file", dest="hostsfile",
+        help="A file with hostnames to check. Must be one FQDN per line")
+    parser.add_option(
+        "-n", "--netbox", dest="hostname",
+        help="Check only this hostname.  Must be a FQDN")
+    parser.add_option(
+        "-v", "--verify", action="store_true", dest="verify",
+        help="Print (lots of) debug-information to stderr")
+    opts, _args = parser.parse_args()
 
     if opts.dryrun:
         dry_run = opts.dryrun
@@ -372,7 +375,6 @@ def main():
 
     verify('Start checking PSUs and FANs')
     check_psus_and_fans(get_psus_and_fans(sysnames))
-    sys.exit(0)
 
 
 if __name__ == '__main__':
