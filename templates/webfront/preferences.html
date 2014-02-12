@@ -2,8 +2,13 @@
 
 {% load crispy_forms_tags %}
 
+{% block base_header_additional_head %}
+<link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/my_account.css" />
+<script>require(['src/navigation_preferences']);</script>
+{% endblock %}
+
 {% block base_content %}
-    <script>require(['src/navigation_preferences']);</script>
+    
     <div class="row">
         <div class="medium-12 columns">
             <h2>My account</h2>
@@ -79,7 +84,8 @@
         <div class="column medium-6 large-7" style="float:left;">
             <form method="post" id="navigation-preferences" action="{% url webfront-preferences-savelinks %}">
                 <fieldset>
-                    <legend>Navigation preferences</legend>
+                    <legend>'My stuff' quick links</legend>
+                    <p>A quick link requires both link text and URL.</p>
                     {% crispy navbar_formset navbar_formset.form.helper %}
                     <input type="submit" class="button primary small" name="submit" value="Save links" />
                 </fieldset>
