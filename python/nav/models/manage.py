@@ -1335,6 +1335,11 @@ class PowerSupplyOrFan(models.Model):
     class Meta:
         db_table = 'powersupply_or_fan'
 
+    def get_unresolved_alerts(self):
+        """Returns a queryset of unresolved psuState alerts for this unit"""
+        return self.netbox.get_unresolved_alerts().filter(
+            event_type__id__in=['psuState', 'fanState'],
+            subid=self.id)
 
 class UnrecognizedNeighbor(models.Model):
     id = models.AutoField(primary_key=True)
