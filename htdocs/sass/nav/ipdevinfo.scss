@@ -82,50 +82,52 @@
 	padding: 0.2em;
 }
 
-/* Speed legend */
-.passive {
-	background: #ccc;
-}
-.disabled {
-	background: #c99;
-}
-.Mb10 {
-	background: #deebf7;
-}
-.Mb100 {
-	background: #c6dbef;
-}
-.Mb1000 {
-	background: #aecae1;
-}
-.Mb10000 {
-	background: #8baed6;
+.module, #portlegend {
+    /* Speed legend */
+    .passive {
+        background: #ccc;
+    }
+    .disabled {
+        background: #c99;
+    }
+    .Mb10 {
+        background: #deebf7;
+    }
+    .Mb100 {
+        background: #c6dbef;
+    }
+    .Mb1000 {
+        background: #aecae1;
+    }
+    .Mb10000 {
+        background: #8baed6;
+    }
+    /* Frame legend */
+    .hduplex {
+        border: 1px dashed #666;
+    }
+    .fduplex {
+        border: 1px solid #666;
+    }
+    .trunk {
+        border: 3px double #666;
+    }
+    .blocked {
+        text-decoration: line-through;
+    }
+
+    /* Activity legend */
+    .inactive {
+        border: 1px dashed #666;
+    }
+    .active {
+        border: 1px dashed #333;
+    }
+    .link {
+        border: 1px solid #666;
+    }
 }
 
-/* Frame legend */
-.hduplex {
-	border: 1px dashed #666;
-}
-.fduplex {
-	border: 1px solid #666;
-}
-.trunk {
-	border: 3px double #666;
-}
-.blocked {
-	text-decoration: line-through;
-}
-
-/* Activity legend */
-.inactive {
-	border: 1px dashed #666;
-}
-.active {
-	border: 1px dashed #333;
-}
-.link {
-	border: 1px solid #666;
-}
 
 /* Service table */
 .status_up {

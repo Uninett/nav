@@ -47,9 +47,6 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             spinner: '<img src="/images/main/process-working.gif">'
         });
         tabs.show();
-        $('.all-graph-toggler').click(function () {
-            $(this).parents('.nav-metrics').find('.graph-toggler').click();
-        });
     }
 
     /*

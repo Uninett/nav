@@ -4,9 +4,10 @@ define(['libs/jquery', 'libs/spin.min'], function () {
      *
      * Automatically loads graphite graphs based on class attributes.
      *
-     * In the template set the following attributes on the element that the
-     * graph should load in:
+     * The graphs need a container element with the class
+     * 'nav-metrics-container'
      *
+     * Every graph needs the following:
      * class='graphitegraph'
      * data-url: The url of the controller returning the graph image
      *   (you need to write this controller). GraphFetcher adds a 'timeframe'
@@ -16,17 +17,44 @@ define(['libs/jquery', 'libs/spin.min'], function () {
      *   graph, set this to the id of that element. Otherwise the graph is
      *   loaded on page load.
      *
+     * Example:
+     * <div class='nav-metrics-container'>
+     *   <div class="graphitegraph" data-url="{% url interface-counter-graph port.id 'Octets' %}"></div>
+     *   <div class="graphitegraph" data-url="{% url interface-counter-graph port.id 'Octets' %}"></div>
+     * </div>
+     *
+     * You can create buttons inside 'nav-metrics-controller' to open and
+     * close all graphs. These need the class 'all-graph-opener' and
+     * 'all-graph-closer' respectively.
+     *
      * NB: Expected icon for indicating exxpandable is 'fa-toggle-right'
      */
 
     $(function () {
-        $('.graphitegraph').each(function () {
-            var $node = $(this);
-            try {
-                new GraphFetcher($node, $node.attr('data-url'));
-            } catch (error) {
-                console.log('Error initializing graphloader');
-            }
+        $('.nav-metrics-container').each(function (index, element) {
+            var $parent = $(element),
+                graphs = [];
+
+            $parent.find('.graphitegraph').each(function () {
+                var $node = $(this);
+                try {
+                    graphs.push(new GraphFetcher($node, $node.attr('data-url')));
+                } catch (error) {
+                    console.log('Error initializing graphloader');
+                }
+            });
+
+            /* Add listeners for opening and closing all graphs */
+            $parent.find('.all-graph-opener').click(function () {
+                for (var i=0, l=graphs.length; i<l; i++) {
+                    graphs[i].open();
+                }
+            });
+            $parent.find('.all-graph-closer').click(function () {
+                for (var i=0, l=graphs.length; i<l; i++) {
+                    graphs[i].close();
+                }
+            });
         });
     });
 
@@ -38,20 +66,19 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         this.buttons = {'day': 'Day', 'week': 'Week', 'month': 'Month', 'year': 'Year'};
         this.spinner = this.createSpinner();
 
+        this.isInitialized = false;
         var handlerId = this.node.attr('data-handler-id');
         if (handlerId) {
             var self = this;
             this.handler = $('#' + handlerId);
             this.icon = this.handler.find('i');
             this.handler.one('click', function () {
-                self.init();
-                self.node.show(400);
-                self.icon.removeClass('fa-toggle-right').addClass('fa-toggle-down');
+                self.open();
             });
         } else {
             this.init();
         }
-
+        return this;
     }
 
     GraphFetcher.prototype = {
@@ -61,15 +88,26 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             var self = this;
             if (this.handler) {
                 $(this.handler).click(function () {
-                    self.node.toggle(function () {
-                        if (self.node.is(':visible')) {
-                            self.icon.removeClass('fa-toggle-right').addClass('fa-toggle-down');
-                        } else {
-                            self.icon.removeClass('fa-toggle-down').addClass('fa-toggle-right');
-                        }
-                    });
+                    if (self.node.is(':visible')) {
+                        self.close();
+                    } else {
+                        self.open();
+                    }
                 });
             }
+            this.isInitialized = true;
+        },
+        close: function () {
+            this.node.hide();
+            this.icon.removeClass('fa-toggle-down').addClass('fa-toggle-right');
+        },
+        open: function () {
+            if (!this.isInitialized) {
+                this.init();
+            }
+
+            this.node.show();
+            this.icon.removeClass('fa-toggle-right').addClass('fa-toggle-down');
         },
         checkInput: function (node, url) {
             if (!(node instanceof jQuery && node.length)) {

@@ -2,7 +2,7 @@
 
 {% with port_metrics|find_rules|dictsort:"suffix" as metrics %}
   {% if metrics|length %}
-    <table class="listtable full-width">
+    <table class="listtable full-width nav-metrics-container">
       <caption>Counters</caption>
       <thead>
       <tr>
