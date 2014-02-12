@@ -4,8 +4,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
      *
      * Automatically loads graphite graphs based on class attributes.
      *
-     * The graphs need a container element with the class
-     * 'nav-metrics-container'
+     * See 'graphfetcher_controller' for global controls.
      *
      * Every graph needs the following:
      * class='graphitegraph'
@@ -17,46 +16,8 @@ define(['libs/jquery', 'libs/spin.min'], function () {
      *   graph, set this to the id of that element. Otherwise the graph is
      *   loaded on page load.
      *
-     * Example:
-     * <div class='nav-metrics-container'>
-     *   <div class="graphitegraph" data-url="{% url interface-counter-graph port.id 'Octets' %}"></div>
-     *   <div class="graphitegraph" data-url="{% url interface-counter-graph port.id 'Octets' %}"></div>
-     * </div>
-     *
-     * You can create buttons inside 'nav-metrics-controller' to open and
-     * close all graphs. These need the class 'all-graph-opener' and
-     * 'all-graph-closer' respectively.
-     *
      * NB: Expected icon for indicating exxpandable is 'fa-toggle-right'
      */
-
-    $(function () {
-        $('.nav-metrics-container').each(function (index, element) {
-            var $parent = $(element),
-                graphs = [];
-
-            $parent.find('.graphitegraph').each(function () {
-                var $node = $(this);
-                try {
-                    graphs.push(new GraphFetcher($node, $node.attr('data-url')));
-                } catch (error) {
-                    console.log('Error initializing graphloader');
-                }
-            });
-
-            /* Add listeners for opening and closing all graphs */
-            $parent.find('.all-graph-opener').click(function () {
-                for (var i=0, l=graphs.length; i<l; i++) {
-                    graphs[i].open();
-                }
-            });
-            $parent.find('.all-graph-closer').click(function () {
-                for (var i=0, l=graphs.length; i<l; i++) {
-                    graphs[i].close();
-                }
-            });
-        });
-    });
 
     function GraphFetcher(node, url) {
         this.checkInput(node, url);
