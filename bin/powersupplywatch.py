@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2011, 2012 UNINETT AS
+# Copyright (C) 2011, 2012, 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -83,50 +83,57 @@ HP_PSU_PS_FAILED = 4
 HP_PSU_PS_PERM_FAILURE = 5
 HP_PSU_PS_MAX = 5
 
+# Shorthand for database states
+STATE_UNKNOWN = PowerSupplyOrFan.STATE_UNKNOWN
+STATE_UP = PowerSupplyOrFan.STATE_UP
+STATE_DOWN = PowerSupplyOrFan.STATE_DOWN
+STATE_UNKNOWN = PowerSupplyOrFan.STATE_UNKNOWN
+STATE_WARNING = PowerSupplyOrFan.STATE_WARNING
+
 # Mapping between vendors and fan-states
 VENDOR_FAN_STATES = {
-                VENDOR_CISCO: {
-                                CISCO_FAN_STATE_UNKNOWN: 'u',
-                                CISCO_FAN_STATE_UP: 'y',
-                                CISCO_FAN_STATE_DOWN: 'n',
-                                CISCO_FAN_STATE_WARNING: 'w',
-                                },
-                VENDOR_HP: {
-                                HP_FAN_STATE_FAILED: 'n',
-                                HP_FAN_STATE_REMOVED: 'u',
-                                HP_FAN_STATE_OFF: 'u',
-                                HP_FAN_STATE_UNDERSPEED: 'w',
-                                HP_FAN_STATE_OVERSPEED: 'w',
-                                HP_FAN_STATE_OK: 'y',
-                                HP_FAN_STATE_MAXSTATE: 'w',
-                            },
-                }
+    VENDOR_CISCO: {
+        CISCO_FAN_STATE_UNKNOWN: STATE_UNKNOWN ,
+        CISCO_FAN_STATE_UP: STATE_UP,
+        CISCO_FAN_STATE_DOWN: STATE_DOWN,
+        CISCO_FAN_STATE_WARNING: STATE_WARNING,
+    },
+    VENDOR_HP: {
+        HP_FAN_STATE_FAILED: STATE_DOWN,
+        HP_FAN_STATE_REMOVED: STATE_UNKNOWN,
+        HP_FAN_STATE_OFF: STATE_UNKNOWN,
+        HP_FAN_STATE_UNDERSPEED: STATE_WARNING,
+        HP_FAN_STATE_OVERSPEED: STATE_WARNING,
+        HP_FAN_STATE_OK: STATE_UP,
+        HP_FAN_STATE_MAXSTATE: STATE_WARNING,
+    },
+}
 
 # Mapping between vendors and psu-states
 VENDOR_PSU_STATES = {
-                VENDOR_CISCO: {
-                                CISCO_PSU_OFF_ENV_OTHER: 'n',
-                                CISCO_PSU_ON: 'y',
-                                CISCO_PSU_OFF_ADMIN: 'u',
-                                CISCO_PSU_OFF_DENIED: 'n',
-                                CISCO_PSU_OFF_ENV_POWER: 'n',
-                                CISCO_PSU_OFF_ENV_TEMP: 'n',
-                                CISCO_PSU_OFF_ENV_FAN: 'n',
-                                CISCO_PSU_OFF_FAILED: 'n',
-                                CISCO_PSU_ON_BUT_FAN_FAIL: 'w',
-                                CISCO_PSU_OFF_COOLING: 'n',
-                                CISCO_PSU_OFF_CONNECTOR_RATING: 'n',
-                                CISCO_PSU_ON_BUT_INLINE_POWER_FAIL: 'n',
-                                },
-                VENDOR_HP: {
-                                HP_PSU_PS_NOT_PRESENT: 'u',
-                                HP_PSU_PS_NOT_PLUGGED: 'u',
-                                HP_PSU_PS_POWERED: 'y',
-                                HP_PSU_PS_FAILED: 'n',
-                                HP_PSU_PS_PERM_FAILURE: 'n',
-                                HP_PSU_PS_MAX: 'w',
-                            },
-                }
+    VENDOR_CISCO: {
+        CISCO_PSU_OFF_ENV_OTHER: STATE_DOWN,
+        CISCO_PSU_ON: STATE_UP,
+        CISCO_PSU_OFF_ADMIN: STATE_UNKNOWN,
+        CISCO_PSU_OFF_DENIED: STATE_DOWN,
+        CISCO_PSU_OFF_ENV_POWER: STATE_DOWN,
+        CISCO_PSU_OFF_ENV_TEMP: STATE_DOWN,
+        CISCO_PSU_OFF_ENV_FAN: STATE_DOWN,
+        CISCO_PSU_OFF_FAILED: STATE_DOWN,
+        CISCO_PSU_ON_BUT_FAN_FAIL: STATE_WARNING,
+        CISCO_PSU_OFF_COOLING: STATE_DOWN,
+        CISCO_PSU_OFF_CONNECTOR_RATING: STATE_DOWN,
+        CISCO_PSU_ON_BUT_INLINE_POWER_FAIL: STATE_DOWN,
+    },
+    VENDOR_HP: {
+        HP_PSU_PS_NOT_PRESENT: STATE_UNKNOWN,
+        HP_PSU_PS_NOT_PLUGGED: STATE_UNKNOWN,
+        HP_PSU_PS_POWERED: STATE_UP,
+        HP_PSU_PS_FAILED: STATE_DOWN,
+        HP_PSU_PS_PERM_FAILURE: STATE_DOWN,
+        HP_PSU_PS_MAX: STATE_WARNING,
+    },
+}
 
 LOGFILE = join(nav.buildconf.localstatedir, "log/powersupplywatch.log")
 # Loglevel (case-sensitive), may be:
@@ -281,14 +288,14 @@ def get_psu_state(psu_state, vendor_id):
 def handle_status(psu_or_fan, status):
     """Check status-value,- post alerts and store state in DB if necessary"""
     if psu_or_fan.up != status:
-        if psu_or_fan.up == 'y' or psu_or_fan.up == 'u':
-            if status == 'w' or status == 'n':
+        if psu_or_fan.up == STATE_UP or psu_or_fan.up == STATE_UNKNOWN:
+            if status == STATE_WARNING or status == STATE_DOWN:
                 psu_or_fan.downsince = datetime.now()
                 verify('Posting down-event...')
                 if not dry_run:
                     post_event(psu_or_fan, status)
-        elif psu_or_fan.up == 'n' or psu_or_fan.up == 'w':
-            if status == 'y':
+        elif psu_or_fan.up == STATE_DOWN or psu_or_fan.up == STATE_WARNING:
+            if status == STATE_UP:
                 psu_or_fan.downsince = None
                 verify('Posting up-event...')
                 if not dry_run:
