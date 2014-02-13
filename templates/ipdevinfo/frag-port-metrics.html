@@ -4,17 +4,22 @@
 
     <div class="all-graph-buttons"></div>
 
-    <ul>
+    <ul class="no-bullet">
         {% for ifc in interfaces %}
+
             <li>
-                <a id="port-graph-toggler-{{ ifc.id }}" class="graph-toggler"
-                   href="javascript:void(0);"><i class="fa fa-toggle-right"></i>&nbsp;</a>
-                <a id="port-graph-toggler-{{ ifc.id }}" href="{% url ipdevinfo-interface-details netbox.sysname ifc.id %}">{{ ifc.ifname }}{% if ifc.ifalias %}
-                ({{ ifc.ifalias }}){% endif %}</a>
+                <span id="port-graph-toggler-{{ ifc.id }}" class="graph-toggler">
+                    <i class="fa fa-toggle-right"></i>&nbsp;&nbsp;<strong>{{ ifc.ifname }}</strong>
+                    {% if ifc.ifalias %} ({{ ifc.ifalias }}){% endif %}
+                </span>
+
+                <em style="font-size: 80%;"><a href="{% url ipdevinfo-interface-details netbox.sysname ifc.id %}">Port details</a></em>
 
                 <div class="graphitegraph hide" data-url="{% url interface-counter-graph ifc.id 'Octets' %}"
                         data-handler-id="port-graph-toggler-{{ ifc.id }}"></div>
+
             </li>
+
         {% endfor %}
     </ul>
 </div>
