@@ -117,6 +117,12 @@
                 a {
                     background-color: $alert-box-bg;
                     color: $alert-box-color;
+                    &:after {
+                        font-family: FontAwesome;
+                        margin-left: 0.3em;
+                        top: 0;
+                        content: "\f06a";
+                    }
                 }
             }
         }
