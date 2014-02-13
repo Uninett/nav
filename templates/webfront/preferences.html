@@ -19,12 +19,11 @@
     {% endfor %}
     <a href="{% url status-preferences %}" class="button primary small">Status preferences</a>
 
-    <h5>User information</h5>
-
     <div class="row">
-        <div class="column medium-6 large-4">
+        <div class="column medium-6 large-5">
 
             <table class="vertitable full-width">
+                <caption>User information</caption>
                 <tr>
                     <th>Login</th>
                     <td>{{ account.login }}</td>
