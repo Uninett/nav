@@ -29,6 +29,8 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             load: addActivityButtonListener
         };
         $(moduleTabsSelector).tabs(tabconfig);
+        TabNavigation.add(moduleTabsSelector, mainTabsSelector);
+
     }
 
     function addMainTabs() {
@@ -47,6 +49,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             spinner: '<img src="/images/main/process-working.gif">'
         });
         tabs.show();
+        TabNavigation.add(metricTabsSelector, mainTabsSelector);
     }
 
     /*

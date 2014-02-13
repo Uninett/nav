@@ -1,7 +1,11 @@
 define(['libs/jquery-ui-1.8.21.custom.min'], function () {
     /* Add navigation to jQuery ui tabs */
-    function add_navigation(wrapper) {
+    function add_navigation(wrapper, parent) {
         var $wrapper = typeof(wrapper) === 'string' ? $(wrapper) : wrapper;
+        var $parent;
+        if (parent) {
+            $parent = typeof(parent) === 'string' ? $(parent) : parent;
+        }
 
         /* Mark selected tab on page load */
         init();
@@ -12,7 +16,14 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
             if (event.target.id === $wrapper.attr('id')) {
                 var hashValue = ui.tab.hash;
                 if (ui.index != 0 || window.location.hash) {
-                    window.location.hash = '!' + hashValue.substring(1);
+                    if (parent) {
+                        var hashes = window.location.hash.split('!');
+                        hashes[2] = hashValue.substring(1);
+                        hashes[0] = '';  // Overwrite #
+                        window.location.hash = hashes.join('!');
+                    } else {
+                        window.location.hash = '!' + hashValue.substring(1);
+                    }
                 }
                 setTitle(hashValue);
             }
@@ -38,8 +49,24 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
 
         /* Navigate to correct tab based on url hash mark */
         function navigate() {
-            var index = window.location.hash ? window.location.hash.substring(2) : 0;
-            $wrapper.tabs().tabs('select', index);
+            var hashes = window.location.hash.split('!');
+
+            if (hashes.length === 1) {
+                $wrapper.tabs().tabs('select', 0);
+            } else if (hashes.length === 2) {  // Main tab selected
+                var $element;
+                if (parent) {
+                    $element = $parent;
+                } else {
+                    $element = $wrapper;
+                }
+                $element.tabs().tabs('select', hashes[1]);
+            } else if (hashes.length === 3) {  // Subtab selected
+                if (parent) {
+                    $parent.tabs().tabs('select', hashes[1]);
+                }
+                $wrapper.tabs().tabs('select', hashes[2]);
+            }
         }
 
         /* Do some initial stuff */
