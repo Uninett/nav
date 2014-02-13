@@ -16,7 +16,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
      *   graph, set this to the id of that element. Otherwise the graph is
      *   loaded on page load.
      *
-     * NB: Expected icon for indicating exxpandable is 'fa-toggle-right'
+     * NB: Expected icon for indicating expandable is 'fa-chevron-right'
      */
 
     function GraphFetcher(node, url) {
@@ -60,7 +60,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         },
         close: function () {
             this.node.hide();
-            this.icon.removeClass('fa-toggle-down').addClass('fa-toggle-right');
+            this.icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
         },
         open: function () {
             if (!this.isInitialized) {
@@ -68,7 +68,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             }
 
             this.node.show();
-            this.icon.removeClass('fa-toggle-right').addClass('fa-toggle-down');
+            this.icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
         },
         checkInput: function (node, url) {
             if (!(node instanceof jQuery && node.length)) {
