@@ -13,7 +13,7 @@
                     {% if ifc.ifalias %} ({{ ifc.ifalias }}){% endif %}
                 </span>
 
-                <em style="font-size: 80%;"><a href="{% url ipdevinfo-interface-details netbox.sysname ifc.id %}">Port details</a></em>
+                <small><em><a href="{% url ipdevinfo-interface-details netbox.sysname ifc.id %}">Port details</a></em></small>
 
                 <div class="graphitegraph hide" data-url="{% url interface-counter-graph ifc.id 'Octets' %}"
                         data-handler-id="port-graph-toggler-{{ ifc.id }}"></div>
