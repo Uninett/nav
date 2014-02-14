@@ -1,6 +1,6 @@
 {% load thresholds %}
 
-<div id="metrics">
+<div id="sysmetrics">
   {% if netbox %}
     {% regroup system_metrics|find_rules by group as metric_groups %}
 

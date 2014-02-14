@@ -8,13 +8,7 @@
                     <li><a href="{% url ipdevinfo-get-port-view netbox.sysname 'swportactive' %}">Switch port activity<span class="tab-spinner" >&nbsp;</span></a></li>
                     <li><a href="{% url ipdevinfo-get-port-view netbox.sysname 'gwportstatus' %}">Router port status<span class="tab-spinner" >&nbsp;</span></a></li>
                     <li><a href="{% url ipdevinfo-get-port-view netbox.sysname 'physportstatus' %}">Physical ports<span class="tab-spinner" >&nbsp;</span></a></li>
-                    <li><a href="#allportmetrics">Port metrics</a></li>
                 </ul>
-
-                <div id="allportmetrics" class="ui-tabs-hide">
-                    {% include "ipdevinfo/frag-port-metrics.html" %}
-                </div>
-
             </div>
 
         {% else %}

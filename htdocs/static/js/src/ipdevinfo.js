@@ -3,6 +3,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
 
     var mainTabsSelector = '#ipdevinfotabs';
     var metricTabsSelector = "#metrictabs";
+    var portmetricTabsSelector = "#portmetrictabs";
     var moduleTabsSelector = '#moduletabs';
 
     $(document).ready(function () {
@@ -13,6 +14,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         if ($(mainTabsSelector).length !== 0) {
             addModuleTabs();
             addMetricTabs();
+            addPortmetricTabs();
             addMainTabs();
         }
 
@@ -51,6 +53,16 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         tabs.show();
         TabNavigation.add(metricTabsSelector, mainTabsSelector);
     }
+
+    function addPortmetricTabs() {
+        var tabs = $(portmetricTabsSelector).tabs({
+            cache: true,
+            spinner: '<img src="' + NAV.imagePath + '/main/process-working.gif">'
+        });
+        tabs.show();
+        TabNavigation.add(portmetricTabsSelector, mainTabsSelector);
+    }
+
 
     /*
      * Set error-class on tabs marked as error by template
