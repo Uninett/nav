@@ -22,6 +22,10 @@ define(['libs/jquery', 'libs/spin.min'], function () {
     function GraphFetcher(node, url) {
         this.checkInput(node, url);
         this.node = node;
+        this.wrapper = $('<div>')
+            .addClass('graphfetcher-wrapper')
+            .attr('style', 'display: inline-block')
+            .appendTo(this.node);
         this.url = url;
 
         this.buttons = {'day': 'Day', 'week': 'Week', 'month': 'Month', 'year': 'Year'};
@@ -63,12 +67,11 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
         },
         open: function () {
+            this.node.show();
+            this.icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
             if (!this.isInitialized) {
                 this.init();
             }
-
-            this.node.show();
-            this.icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
         },
         checkInput: function (node, url) {
             if (!(node instanceof jQuery && node.length)) {
@@ -79,7 +82,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             }
         },
         addButtons: function () {
-            var headerNode = $('<div>').appendTo(this.node);
+            var headerNode = $('<div>').appendTo(this.wrapper);
             this.headerNode = headerNode;
 
             for (var key in this.buttons) {
@@ -100,23 +103,26 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             $('button', this.headerNode).each(function (index, element) {
                 $(element).removeClass('active');
             });
-            $('button.graph-button-' + timeframe, this.node).addClass('active');
+            this.wrapper.find('button.graph-button-' + timeframe).addClass('active');
         },
         loadGraph: function (timeframe) {
             this.displayGraph(this.getUrl(timeframe));
             this.selectButton(timeframe);
         },
         displayGraph: function (url) {
+            this.spinner.spin(this.wrapper.get(0));
             var self = this;
             var image = new Image();
             image.src = url;
             image.onload = function () {
-                self.node.find('img').remove();
-                self.node.append(image);
+                self.wrapper.find('img').remove();
+                self.wrapper.append(image);
+                self.spinner.stop();
             };
             image.onerror = function () {
-                self.node.find('img').remove();
-                self.node.append("<span class='alert-box alert'>Error loading image</span>");
+                self.wrapper.find('img').remove();
+                self.wrapper.append("<span class='alert-box alert'>Error loading image</span>");
+                self.spinner.stop();
             };
         },
         getUrl: function (timeframe) {
@@ -129,7 +135,6 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         createSpinner: function () {
             var options = {};  // Who knows, maybe in the future?
             /* Set a minimum height on the container so that the spinner displays properly */
-            this.node.css('min-height', '100px');
             return new Spinner(options);
         }
     };
