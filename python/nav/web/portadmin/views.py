@@ -188,8 +188,8 @@ def populate_infodict(request, account, netbox, interfaces):
                                 "are from database" % netbox.sysname)
         if not netbox.read_only:
             messages.error(request, "Read only community not set")
-
-    check_read_write(netbox, request)
+    else:
+        readonly = check_read_write(netbox, request)
 
     ifaliasformat = get_ifaliasformat()
     aliastemplate = ''
@@ -249,11 +249,16 @@ def set_voice_vlan_attribute(voice_vlan, interfaces):
 
 
 def check_read_write(netbox, request):
-    """Add a message to user explaining why he can't edit anything"""
+    """Add a message to user explaining why he can't edit anything
+
+    :returns: flag indicating readonly or not
+    """
     if not netbox.read_write:
         messages.error(request,
                        "Write community not set for this device, "
                        "changes cannot be saved")
+        return True
+    return False
 
 
 def save_interfaceinfo(request):

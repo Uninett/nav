@@ -28,7 +28,9 @@
     </div>
     {% endif %}
     <div class="hide-for-small column {% if voice_vlan %}medium-1{% else %}medium-2{% endif %} text-right">
-      <input type="button" class="saveall_button button tiny" value="Save all"/>
+      {% if not readonly %}
+        <input type="button" class="saveall_button button tiny" value="Save all"/>
+      {% endif %}
     </div>
   </div>
 
