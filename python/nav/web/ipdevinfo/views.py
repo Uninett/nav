@@ -286,6 +286,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'netbox': netbox,
             'interfaces': (netbox.interface_set.order_by('ifindex')
                            if netbox else None),
+            'counter_types': ('Octets', 'UcastPkts', 'Errors', 'Discards'),
             'heading': navpath[-1][0],
             'alert_info': alert_info,
             'no_netbox': no_netbox,
