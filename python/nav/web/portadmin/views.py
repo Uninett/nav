@@ -432,14 +432,19 @@ def render_trunk_edit(request, interfaceid):
     account = request.account
     netbox = interface.netbox
     check_read_write(netbox, request)
-    vlans = agent.get_netbox_vlans()  # All vlans on this netbox
-    native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
-    if should_check_access_rights(account):
-        allowed_vlans = find_allowed_vlans_for_user_on_netbox(account,
-                                                              interface.netbox,
-                                                              agent)
+    try:
+        vlans = agent.get_netbox_vlans()  # All vlans on this netbox
+        native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(
+            interface)
+    except SnmpError:
+        vlans = native_vlan = trunked_vlans = allowed_vlans = None
+        messages.error(request, 'Error getting trunk information')
     else:
-        allowed_vlans = vlans
+        if should_check_access_rights(account):
+            allowed_vlans = find_allowed_vlans_for_user_on_netbox(
+                account, interface.netbox, agent)
+        else:
+            allowed_vlans = vlans
 
     extra_path = [(netbox.sysname,
                    reverse('portadmin-sysname',
