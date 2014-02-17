@@ -48,13 +48,19 @@ require(['plugins/graphfetcher', 'libs/jquery'], function (GraphFetcher) {
             /* Add buttons for choosing timeframe for all graphs */
             $parent.find('.all-graph-buttons').each(function () {
                 var buttons = graphs[0].buttons, // We assume at least one graph
-                    $container = $(this);
+                    $container = $(this),
+                    first = true;
+
                 for (var key in buttons) {
                     if (buttons.hasOwnProperty(key)) {
                         var button = $('<button>')
                             .addClass('tiny secondary graph-button-' + key)
                             .html(buttons[key])
                             .appendTo(this);
+                        if (first) {
+                            button.addClass('active');
+                            first = false;
+                        }
                     }
                 }
                 $container.on('click', 'button', function (event) {
