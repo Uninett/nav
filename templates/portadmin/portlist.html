@@ -27,7 +27,7 @@
       Tel
     </div>
     {% endif %}
-    <div class="hide-for-small column {% if voice_vlan %}medium-1{% else %}medium-2{% endif %}">
+    <div class="hide-for-small column {% if voice_vlan %}medium-1{% else %}medium-2{% endif %} text-right">
       <input type="button" class="saveall_button button tiny" value="Save all"/>
     </div>
   </div>
@@ -68,7 +68,7 @@
         {% endif %}
       </div>
 
-  {#    Vlan / Trunk#}
+      {# Vlan / Trunk #}
       <div class="medium-2 small-4 column">
         {% if interface.trunk and not interface.voice_activated %}
           <a href="{% url portadmin-render-trunk-edit interface.id %}">
@@ -99,29 +99,36 @@
         {% endif %}
       </div>
 
-  {#    Optional checkbox for voice vlan#}
+      {# Optional checkbox for voice vlan #}
       {% if voice_vlan %}
       <div class="small-4 medium-1 column">
         {% if interface.voice_activated or not interface.trunk %}
-          <input class="voicevlan"
-                 type="checkbox"
-                 name="voice_vlan"
-                 data-orig="{{ interface.voice_activated|default:'false' }}"
-                 {% if interface.voice_activated %}checked{% endif %}
-                 {% if not interface.iseditable %}disabled="disabled"{% endif %}>
+          <span> {# This span is needed because of the hide-for-medium-up class on the child #}
+            <span class="hide-for-medium-up">Tel:</span>
+            <input class="voicevlan"
+                   type="checkbox"
+                   name="voice_vlan"
+                   data-orig="{{ interface.voice_activated|default:'false' }}"
+                   {% if interface.voice_activated %}checked{% endif %}
+                   {% if not interface.iseditable %}disabled="disabled"{% endif %}>
+          </span>
         {% else %}
           &nbsp;
         {% endif %}
       </div>
       {% endif %}
 
-  {#    Button for saving#}
-      <div class="column {% if voice_vlan %}medium-1 small-4{% else %}medium-2 small-6{% endif %}">
+      {# Button for saving #}
+      <div class="{% if voice_vlan %}medium-1 small-4{% else %}medium-2 small-8{% endif %}  column text-right">
         {% if interface.iseditable %}
           <button class="tiny portadmin-save">Save</button>
         {% endif %}
       </div>
+
+      <div id="{{ interface.id }}-errors" class="small-12 column error-column"></div>
+
     </div>
+
   {% endfor %}
 
 </div>

@@ -240,16 +240,21 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     }
 
     function indicateError($row, messages) {
-        removeAlerts($row);
+        var rowid = $row.prop('id'),
+            $errorContainer = $('#' + rowid + '-errors');
+        removeAlerts($errorContainer);
         for (var x = 0, l = messages.length; x < l; x++) {
-            $row.append(
-                $('<div class="alert-box alert"></div>').text(messages[x].message)
-            );
+            var $alertBox = $('<div>').addClass('alert-box alert').html(messages[x].message);
+            $errorContainer.append($alertBox);
+            $alertBox.click(function () {
+                $(this).remove();
+            });
         }
+        $errorContainer.show();
     }
 
-    function removeAlerts($row) {
-        $row.find('.alert-box').remove();
+    function removeAlerts($container) {
+        $container.find('.alert-box').remove();
     }
 
     function updateDefaults($row, data) {
