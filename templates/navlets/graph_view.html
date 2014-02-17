@@ -3,7 +3,7 @@
 {% block navlet-content %}
 
     {% if graph_url %}
-        <img src="{{ graph_url }}" alt="Graph">
+        <a href="{{ graph_url }}"><img src="{{ graph_url }}" alt="Graph"></a>
     {% else %}
         <span class="alert-box">Edit the widget to add a graph.</span>
     {% endif %}
