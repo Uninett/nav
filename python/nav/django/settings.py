@@ -148,6 +148,7 @@ NAVLETS = (
     'nav.web.navlets.feedreader.FeedReaderNavlet',
     'nav.web.navlets.navblog.NavBlogNavlet',
     'nav.web.navlets.gettingstarted.GettingStartedWidget',
+    'nav.web.navlets.graph.GraphWidget',
 )
 
 CRISPY_TEMPLATE_PACK = 'foundation'
