@@ -16,7 +16,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
     /* Generic spinner created for display in the middle of a cell */
     var spinner = new Spinner({length: 3, width: 2, radius: 5});
-
+    var parentSelector = '.port_row';
 
     $(document).ready(function(){
         var $wrapper = $('#portadmin-wrapper');
@@ -49,32 +49,32 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
      */
     function addChangeListener($wrapper) {
         $wrapper.on('keyup change', '.ifalias', function (event) {
-            actOnChange($(event.target).parents('.portadmin-card'));
+            actOnChange($(event.target).parents(parentSelector));
         });
         $wrapper.on('change', '.vlanlist', function (event) {
-            actOnChange($(event.target).parents('.portadmin-card'));
+            actOnChange($(event.target).parents(parentSelector));
         });
         $wrapper.on('click', '.voicevlan', function (event) {
-            actOnChange($(event.target).parents('.portadmin-card'));
+            actOnChange($(event.target).parents(parentSelector));
         });
     }
 
     /*
      * Mark card changed or not based on values in card
      */
-    function actOnChange(card) {
-        if (textFieldChanged(card) || dropDownChanged(card) || voiceVlanChanged(card)) {
-            markAsChanged(card);
+    function actOnChange(row) {
+        if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row)) {
+            markAsChanged(row);
         } else {
-            markAsUnchanged(card);
+            markAsUnchanged(row);
         }
     }
 
     function addSaveListener($wrapper) {
         /* Save when clicking on the save buttons. */
-        $wrapper.on('click', '.save-interface', function (event) {
-            var $card = $(event.target).parents('.portadmin-card');
-            saveRow($card);
+        $wrapper.on('click', '.portadmin-save', function (event) {
+            var $row = $(event.target).parents(parentSelector);
+            saveRow($row);
         });
     }
 
@@ -88,23 +88,23 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         });
     }
 
-    function textFieldChanged(card) {
-        var element = $(card).find(".ifalias");
+    function textFieldChanged(row) {
+        var element = $(row).find(".ifalias");
         return $(element).attr('data-orig') !== $(element).val();
     }
 
-    function dropDownChanged(card) {
-        var dropdown = $(card).find(".vlanlist");
+    function dropDownChanged(row) {
+        var dropdown = $(row).find(".vlanlist");
         var origOption = $('[data-orig]', dropdown)[0];
         var selectedOption = $('option:selected', dropdown)[0];
         return origOption !== selectedOption;
     }
 
-    function voiceVlanChanged(card) {
+    function voiceVlanChanged(row) {
         /*
          * XOR checkbox checked and original value to see if changed
          */
-        var $checkbox = $(card).find('.voicevlan');
+        var $checkbox = $(row).find('.voicevlan');
         if ($checkbox.length) {
             var origOption = $checkbox.attr('data-orig').toLowerCase() === 'true';
             var checkedValue = $checkbox.prop('checked');
@@ -114,103 +114,103 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         }
     }
 
-    function markAsChanged(card) {
-        var $card = $(card);
-        if (!$card.hasClass('changed')) {
-            $card.addClass("changed");
+    function markAsChanged(row) {
+        var $row = $(row);
+        if (!$row.hasClass('changed')) {
+            $row.addClass("changed");
         }
     }
 
-    function markAsUnchanged(card) {
-        var $card = $(card);
-        if ($card.hasClass('changed')) {
-            $card.removeClass("changed");
+    function markAsUnchanged(row) {
+        var $row = $(row);
+        if ($row.hasClass('changed')) {
+            $row.removeClass("changed");
         }
     }
 
-    function clearChangedState(card) {
-        markAsUnchanged(card);
+    function clearChangedState(row) {
+        markAsUnchanged(row);
     }
 
-    function saveRow($card) {
+    function saveRow($row) {
         /*
          * This funcion does an ajax call to save the information given by the user
          * when the save-button is clicked.
          */
 
-        var cardid = $card.prop('id');
-        if (!cardid) {
-            console.log('Could not find id of card ' + $card);
+        var rowid = $row.prop('id');
+        if (!rowid) {
+            console.log('Could not find id of card ' + $row);
             return;
         }
 
         // Post data and wait for json-formatted returndata. Display status information to user
-        saveCard($card, create_ajax_data($card));
+        saveInterface($row, create_ajax_data($row));
     }
 
-    function create_ajax_data($card) {
+    function create_ajax_data($row) {
         /*
          Create the object used in the ajax call.
          */
         var data = {};
-        data.interfaceid = $card.prop('id');
-        if (textFieldChanged($card)) {
-            data.ifalias = $card.find(".ifalias").val();
+        data.interfaceid = $row.prop('id');
+        if (textFieldChanged($row)) {
+            data.ifalias = $row.find(".ifalias").val();
         }
-        if (dropDownChanged($card)) {
-            data.vlan = $card.find(".vlanlist").val();
+        if (dropDownChanged($row)) {
+            data.vlan = $row.find(".vlanlist").val();
         }
-        if (voiceVlanChanged($card)) {
-            data.voicevlan = $card.find(".voicevlan").prop('checked');
+        if (voiceVlanChanged($row)) {
+            data.voicevlan = $row.find(".voicevlan").prop('checked');
         }
-        if ($card.find(".voicevlan").prop('checked')) {
+        if ($row.find(".voicevlan").prop('checked')) {
             data.voice_activated = true;
         }
         return data;
     }
 
-    function saveCard($card, interfaceData) {
-        var cardid = $card.prop('id');
+    function saveInterface($row, interfaceData) {
+        var rowid = $row.prop('id');
+        console.log('Saving interface with id ' + rowid);
         // If a save on this card is already in progress, do nothing.
-        if (nav_ajax_queue.indexOf(cardid) > -1) {
+        if (nav_ajax_queue.indexOf(rowid) > -1) {
             return;
         }
         disableSaveallButtons();
-        nav_ajax_queue.push(cardid);
-        queue_data[cardid] = interfaceData;
+        nav_ajax_queue.push(rowid);
+        queue_data[rowid] = interfaceData;
 
         // Do not send more than one request at the time.
         if (nav_ajax_queue.length > 1) {
             return;
         }
 
-        doAjaxRequest(cardid);
+        doAjaxRequest(rowid);
     }
 
-    function doAjaxRequest(cardid) {
-        var $card = $('#' + cardid);
-        var interfaceData = queue_data[cardid];
+    function doAjaxRequest(rowid) {
+        var $row = $('#' + rowid);
+        var interfaceData = queue_data[rowid];
         $.ajax({url: "save_interfaceinfo",
             data: interfaceData,
             dataType: 'json',
             type: 'POST',
             beforeSend: function () {
-                $('tr.error').remove();
-                disableButtons($card);
-                spinner.spin($card);
+                disableButtons($row);
+                spinner.spin($row);
             },
             success: function () {
-                clearChangedState($card);
-                indicateSuccess($card);
-                updateDefaults($card, interfaceData);
+                clearChangedState($row);
+                indicateSuccess($row);
+                updateDefaults($row, interfaceData);
             },
             error: function (jqXhr) {
                 console.log(jqXhr.responseText);
-                indicateError($card, $.parseJSON(jqXhr.responseText).messages);
+                indicateError($row, $.parseJSON(jqXhr.responseText).messages);
             },
             complete: function (jqXhr) {
-                removeFromQueue(cardid);
-                enableButtons($card);
+                removeFromQueue(rowid);
+                enableButtons($row);
                 spinner.stop();
                 if (nav_ajax_queue.length === 0) {
                     enableSaveallButtons();
@@ -222,66 +222,66 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         });
     }
 
-    function disableButtons(card) {
-        $(card).find('button').prop('disabled', true);
+    function disableButtons(row) {
+        $(row).find('button').prop('disabled', true);
     }
 
-    function enableButtons(card) {
-        $(card).find('button').prop('disabled', false);
+    function enableButtons(row) {
+        $(row).find('button').prop('disabled', false);
     }
 
-    function indicateSuccess($card) {
+    function indicateSuccess($row) {
         /* Highlight card to indicate success */
-        removeAlerts($card);
-        $card.addClass('success');
+        removeAlerts($row);
+        $row.addClass('success');
         setTimeout(function () {
-            $card.removeClass('success');
+            $row.removeClass('success');
         }, 1500);
     }
 
-    function indicateError($card, messages) {
-        removeAlerts($card);
+    function indicateError($row, messages) {
+        removeAlerts($row);
         for (var x = 0, l = messages.length; x < l; x++) {
-            $card.append(
+            $row.append(
                 $('<div class="alert-box alert"></div>').text(messages[x].message)
             );
         }
     }
 
-    function removeAlerts($card) {
-        $card.find('.alert-box').remove();
+    function removeAlerts($row) {
+        $row.find('.alert-box').remove();
     }
 
-    function updateDefaults($card, data) {
+    function updateDefaults($row, data) {
         if ('ifalias' in data) {
-            updateIfAliasDefault($card, data.ifalias);
+            updateIfAliasDefault($row, data.ifalias);
         }
         if ('vlan' in data) {
-            updateVlanDefault($card, data.vlan);
+            updateVlanDefault($row, data.vlan);
         }
         if ('voicevlan' in data) {
-            updateVoiceDefault($card, data.voicevlan);
+            updateVoiceDefault($row, data.voicevlan);
         }
     }
 
-    function updateIfAliasDefault($card, ifalias) {
-        var old_ifalias = $card.find(".ifalias").attr('data-orig');
+    function updateIfAliasDefault($row, ifalias) {
+        var old_ifalias = $row.find(".ifalias").attr('data-orig');
         if (old_ifalias !== ifalias) {
-            $card.find(".ifalias").attr('data-orig', ifalias);
+            $row.find(".ifalias").attr('data-orig', ifalias);
         }
     }
 
-    function updateVlanDefault($card, vlan) {
-        var old_vlan = $card.find('option[data-orig]').val();
+    function updateVlanDefault($row, vlan) {
+        var old_vlan = $row.find('option[data-orig]').val();
         if (old_vlan !== vlan) {
             console.log('Updating vlan default from ' + old_vlan + ' to ' + vlan);
-            $card.find('option[data-orig]').removeAttr('data-orig');
-            $card.find('option[value=' + vlan + ']').attr('data-orig', vlan);
+            $row.find('option[data-orig]').removeAttr('data-orig');
+            $row.find('option[value=' + vlan + ']').attr('data-orig', vlan);
         }
     }
 
-    function updateVoiceDefault($card, new_value) {
-        var $voice_element = $card.find(".voicevlan");
+    function updateVoiceDefault($row, new_value) {
+        var $voice_element = $row.find(".voicevlan");
         if ($voice_element.length) {
             var old_value = $voice_element.attr('data-orig');
             if (old_value !== new_value) {
@@ -304,25 +304,6 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
     function enableSaveallButtons() {
         $("input.saveall_button").removeAttr('disabled');
-    }
-
-    function addToggleVlanInfoListener(element) {
-        // Toggler for the available vlans list
-        $('.toggler', element).click(function () {
-            var vlanlist = $('ul', element),
-                expandButton = $('.toggler.expand'),
-                collapseButton = $('.toggler.collapse');
-
-            if (vlanlist.is(':visible')) {
-                vlanlist.hide();
-                expandButton.removeClass('hidden');
-                collapseButton.addClass('hidden');
-            } else {
-                vlanlist.show();
-                expandButton.addClass('hidden');
-                collapseButton.removeClass('hidden');
-            }
-        });
     }
 
 });
