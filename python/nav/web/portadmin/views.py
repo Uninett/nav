@@ -38,7 +38,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_allowed_vlans_for_user,
                                      filter_vlans, fetch_voice_vlans,
                                      should_check_access_rights)
-from nav.Snmp.errors import SnmpError
+from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin.snmputils import SNMPFactory
 from .forms import SearchForm
 
@@ -182,14 +182,19 @@ def populate_infodict(request, account, netbox, interfaces):
         allowed_vlans = find_and_populate_allowed_vlans(account, netbox,
                                                         interfaces, fac)
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
-    except SnmpError:
+    except TimeOutException:
         readonly = True
         messages.error(request, "Timeout when contacting %s. Values displayed "
                                 "are from database" % netbox.sysname)
         if not netbox.read_only:
             messages.error(request, "Read only community not set")
-    else:
-        readonly = check_read_write(netbox, request)
+    except SnmpError:
+        readonly = True
+        messages.error(request, "SNMP error when contacting %s. Values "
+                                "displayed are from database" % netbox.sysname)
+
+    if check_read_write(netbox, request):
+        readonly = True
 
     ifaliasformat = get_ifaliasformat()
     aliastemplate = ''
