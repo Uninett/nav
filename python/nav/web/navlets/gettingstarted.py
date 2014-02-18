@@ -22,7 +22,7 @@ class GettingStartedWidget(Navlet):
     """Getting Started widget"""
 
     title = 'Getting started with NAV'
-    description = 'A widget with information for new users'
+    description = 'Displays a tour and information for new users'
 
     def get_template_basename(self):
         return 'getting_started'

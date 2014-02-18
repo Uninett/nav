@@ -25,7 +25,7 @@ class GraphWidget(Navlet):
     """Widget for displaying a graph"""
 
     title = 'Graph'
-    description = 'Displays a graph given an url'
+    description = 'Displays a graph from the Graphite backend'
     is_editable = True
     refresh_interval = 1000 * 60 * 10
 

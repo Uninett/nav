@@ -31,8 +31,8 @@ WELCOME_REGISTERED_PATH = os.path.join(WEBCONF_DIR_PATH,
 
 class WelcomeNavlet(Navlet):
     """A navlet that displays welcome information to the user"""
-    title = "Welcome!"
-    description = "Greets the new user with some basic information"
+    title = "Site welcome"
+    description = "Displays welcome messages from the site administrators"
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
