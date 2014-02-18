@@ -30,6 +30,8 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         this.urlIndex = 0;  // Index of this.urls
 
         this.buttons = {'day': 'Day', 'week': 'Week', 'month': 'Month', 'year': 'Year'};
+        this.timeframe = 'day';
+        this.isOpen = false;
         this.spinner = this.createSpinner();
 
         this.isInitialized = false;
@@ -50,7 +52,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
     GraphFetcher.prototype = {
         init: function () {
             this.addButtons();
-            this.loadGraph('day');
+            this.loadGraph();
             var self = this;
             if (this.handler) {
                 $(this.handler).click(function () {
@@ -64,10 +66,12 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.isInitialized = true;
         },
         close: function () {
+            this.isOpen = false;
             this.node.hide();
             this.icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
         },
         open: function () {
+            this.isOpen = true;
             this.node.show();
             this.icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
             if (!this.isInitialized) {
@@ -75,7 +79,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             }
         },
         changeUrlIndex: function (index) {
-            if (this.urls.length < index) {
+            if (this.urls.length > index) {
                 this.urlIndex = index;
             }
         },
@@ -102,7 +106,8 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             var that = this;
             var button = $('<button>').addClass('tiny secondary graph-button-' + timeframe).html(text);
             button.click(function () {
-                that.loadGraph(timeframe);
+                that.timeframe = timeframe;
+                that.loadGraph();
             });
             button.appendTo(node);
         },
@@ -124,15 +129,16 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             });
             this.headerNode.append(button);
         },
-        selectButton: function(timeframe) {
+        selectButton: function() {
             $('button', this.headerNode).each(function (index, element) {
                 $(element).removeClass('active');
             });
-            this.wrapper.find('button.graph-button-' + timeframe).addClass('active');
+            this.wrapper.find('button.graph-button-' + this.timeframe).addClass('active');
         },
-        loadGraph: function (timeframe) {
-            this.displayGraph(this.getUrl(timeframe));
-            this.selectButton(timeframe);
+        loadGraph: function () {
+            console.log('Loading graph');
+            this.displayGraph(this.getUrl());
+            this.selectButton();
         },
         displayGraph: function (url) {
             this.spinner.spin(this.wrapper.get(0));
@@ -150,13 +156,13 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 self.spinner.stop();
             };
         },
-        getUrl: function (timeframe) {
+        getUrl: function () {
             var url = this.urls[this.urlIndex],
                 separator = '?';
             if (url.indexOf('?') >= 0) {
                 separator = '&';
             }
-            return url + separator + 'timeframe=' + timeframe;
+            return url + separator + 'timeframe=' + this.timeframe;
         },
         createSpinner: function () {
             var options = {};  // Who knows, maybe in the future?
