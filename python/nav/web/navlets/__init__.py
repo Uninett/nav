@@ -57,6 +57,7 @@ DEFAULT_PREFERENCES = [REFRESH_INTERVAL]
 import logging
 import simplejson
 from collections import namedtuple
+from operator import attrgetter
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -128,6 +129,7 @@ def get_navlets():
             navlets.append(NavletContainer(navletmodule,
                                            cls.title,
                                            cls.description))
+    navlets = sorted(navlets, key=attrgetter('title'))
     return navlets
 
 
