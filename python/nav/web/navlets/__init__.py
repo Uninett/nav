@@ -189,21 +189,23 @@ def add_user_navlet(request):
         account = get_account(request)
 
         if can_modify_navlet(account, request):
-            navlet = add_navlet(account, request)
+            navlet_class = request.POST.get('navlet')
+            navlet = add_navlet(account, navlet_class)
             return HttpResponse(simplejson.dumps(create_navlet_object(navlet)),
                                 content_type="application/json")
 
     return HttpResponse(status=400)
 
 
-def add_navlet(account, request):
+def add_navlet(account, navlet, preferences=None):
     """Create new accountnavlet based on request data"""
-    navlet = request.POST.get('navlet')
-    accountnavlet = AccountNavlet(account=account,
-                                  navlet=navlet)
+    accountnavlet = AccountNavlet(account=account, navlet=navlet)
     accountnavlet.column, accountnavlet.order = find_new_placement(account)
-    accountnavlet.preferences = get_default_preferences(
-        get_navlet_from_name(navlet))
+    if preferences:
+        accountnavlet.preferences = preferences
+    else:
+        accountnavlet.preferences = get_default_preferences(
+            get_navlet_from_name(navlet))
     accountnavlet.save()
 
     return accountnavlet
@@ -322,3 +324,14 @@ def render_base_template(request):
         return render_to_response('navlets/base.html', {'navlet': cls},
                                   RequestContext(request))
 
+
+def add_user_navlet_graph(request):
+    """Add a Graph Widget with url set to user dashboard"""
+    if request.method == 'POST':
+        url = request.POST.get('url')
+        if url:
+            add_navlet(request.account, 'nav.web.navlets.graph.GraphWidget',
+                       {'url': url})
+            return HttpResponse(status=200)
+
+    return HttpResponse(status=400)

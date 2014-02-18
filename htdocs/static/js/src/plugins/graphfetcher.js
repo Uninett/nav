@@ -90,6 +90,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                     this.addButton(headerNode, key, this.buttons[key]);
                 }
             }
+            this.appendAddGraphButton();
         },
         addButton: function (node, timeframe, text) {
             var that = this;
@@ -98,6 +99,17 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 that.loadGraph(timeframe);
             });
             button.appendTo(node);
+        },
+        appendAddGraphButton: function () {
+            var self = this,
+                button = $('<button>').addClass('tiny secondary right').text('Add graph to dashboard');
+            button.click(function () {
+                var url = self.wrapper.find('img').attr('src');
+                $.post(NAV.addGraphWidgetUrl, {'url': url}, function () {
+                    button.removeClass('secondary').addClass('success');
+                });
+            });
+            this.headerNode.append(button);
         },
         selectButton: function(timeframe) {
             $('button', this.headerNode).each(function (index, element) {
