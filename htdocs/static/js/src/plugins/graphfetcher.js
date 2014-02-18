@@ -111,14 +111,16 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 button = $('<button>').addClass('tiny secondary right').text('Add graph to dashboard');
             button.click(function () {
                 /* Image url is a redirect to graphite. Fetch proxy url and use that as preference for graph widget */
-//                var url = self.wrapper.find('img').attr('src'),
-//                    headRequest = $.ajax(url, { 'type': 'HEAD' });
-//                headRequest.done(function (data, status, xhr) {
-//                    var proxyUrl = xhr.getResponseHeader('something');
-//                    $.post(NAV.addGraphWidgetUrl, {'url': proxyUrl}, function () {
-//                        button.removeClass('secondary').addClass('success');
-//                    });
-//                });
+                var url = self.wrapper.find('img').attr('src'),
+                    headRequest = $.ajax(url, { 'type': 'HEAD' });
+                headRequest.done(function (data, status, xhr) {
+                    var proxyUrl = xhr.getResponseHeader('X-Where-Am-I');
+                    if (proxyUrl) {
+                        $.post(NAV.addGraphWidgetUrl, {'url': proxyUrl}, function () {
+                            button.removeClass('secondary').addClass('success');
+                        });
+                    }
+                });
             });
             this.headerNode.append(button);
         },
