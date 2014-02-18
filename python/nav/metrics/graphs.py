@@ -89,9 +89,9 @@ class Graph(object):
     """
     def __init__(self, title=u'', width=480, height=250, targets=None,
                  magic_targets=None):
-        self.args = dict(template=u'nav',
-                         title=title, width=width, height=height,
-                         yMin=0)
+        self.args = dict(template=u'nav', width=width, height=height, yMin=0)
+        if title:
+            self.args['title'] = title
 
         if targets:
             for target in targets:
