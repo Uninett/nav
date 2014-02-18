@@ -45,6 +45,26 @@ require(['plugins/graphfetcher', 'libs/jquery'], function (GraphFetcher) {
                 }
             });
 
+            /* Switch graph url index based on graph-switcher index */
+            $parent.find('.all-graph-url-switcher').each(function () {
+                var $switchers = $(this).find('.graph-switcher');
+                $switchers.each(function (index, element) {
+                    if (index === 0) {
+                        $(element).addClass('active');
+                    }
+                    $(element).click(function () {
+                        $switchers.removeClass('active');
+                        $(this).addClass('active');
+                        for (var i = 0, l = graphs.length; i < l; i++) {
+                            graphs[i].changeUrlIndex(index);
+                            if (graphs[i].isOpen) {
+                                graphs[i].loadGraph();
+                            }
+                        }
+                    });
+                });
+            });
+
             /* Add buttons for choosing timeframe for all graphs */
             $parent.find('.all-graph-buttons').each(function () {
                 var buttons = graphs[0].buttons, // We assume at least one graph
@@ -70,7 +90,10 @@ require(['plugins/graphfetcher', 'libs/jquery'], function (GraphFetcher) {
                             .match(/graph-button-[a-z]+/)[0]
                             .split('-')[2];
                     for (var i = 0, l = graphs.length; i < l; i++) {
-                        graphs[i].loadGraph(timeframe);
+                        graphs[i].timeframe = timeframe;
+                        if (graphs[i].isOpen) {
+                            graphs[i].loadGraph();
+                        }
                     }
                     $container.find('button').removeClass('active');
                     $button.addClass('active');
