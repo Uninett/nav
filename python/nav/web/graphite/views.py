@@ -22,8 +22,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 def index(request, uri):
+    """
+    Proxies render requests to graphite-web, as configured in graphite.conf
+    """
     base = CONFIG.get('graphiteweb', 'base')
-    query = request.GET.urlencode()
+    query = _inject_default_format(request.GET)
     url = base + uri + ('?' + query) if query else ''
 
     LOGGER.debug("proxying request to %r", url)
@@ -32,3 +35,16 @@ def index(request, uri):
     headers = response.info()
     content_type = headers.getheader('Content-Type', 'text/html')
     return HttpResponse(response.read(), content_type=content_type)
+
+
+def _inject_default_format(query):
+    """
+    Injects a default format argument to a render request, unless it was
+    explicitly supplied by the client.
+    """
+    format_ = CONFIG.get('graphiteweb', 'format')
+    query = query.copy()
+    if not 'format' in query:
+        query['format'] = format_
+
+    return query.urlencode()
