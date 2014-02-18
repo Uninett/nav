@@ -136,7 +136,6 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.wrapper.find('button.graph-button-' + this.timeframe).addClass('active');
         },
         loadGraph: function () {
-            console.log('Loading graph');
             this.displayGraph(this.getUrl());
             this.selectButton();
         },
