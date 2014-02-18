@@ -19,14 +19,15 @@ define(['libs/jquery', 'libs/spin.min'], function () {
      * NB: Expected icon for indicating expandable is 'fa-chevron-right'
      */
 
-    function GraphFetcher(node, url) {
-        this.checkInput(node, url);
+    function GraphFetcher(node, urls) {
+        this.checkInput(node, urls);
         this.node = node;
         this.wrapper = $('<div>')
             .addClass('graphfetcher-wrapper')
             .attr('style', 'display: inline-block')
             .appendTo(this.node);
-        this.url = url;
+        this.urls = urls.split(';');
+        this.urlIndex = 0;  // Index of this.urls
 
         this.buttons = {'day': 'Day', 'week': 'Week', 'month': 'Month', 'year': 'Year'};
         this.spinner = this.createSpinner();
@@ -73,6 +74,11 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 this.init();
             }
         },
+        changeUrlIndex: function (index) {
+            if (this.urls.length < index) {
+                this.urlIndex = index;
+            }
+        },
         checkInput: function (node, url) {
             if (!(node instanceof jQuery && node.length)) {
                 throw new Error('Need a valid node to attach to');
@@ -104,10 +110,15 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             var self = this,
                 button = $('<button>').addClass('tiny secondary right').text('Add graph to dashboard');
             button.click(function () {
-                var url = self.wrapper.find('img').attr('src');
-                $.post(NAV.addGraphWidgetUrl, {'url': url}, function () {
-                    button.removeClass('secondary').addClass('success');
-                });
+                /* Image url is a redirect to graphite. Fetch proxy url and use that as preference for graph widget */
+//                var url = self.wrapper.find('img').attr('src'),
+//                    headRequest = $.ajax(url, { 'type': 'HEAD' });
+//                headRequest.done(function (data, status, xhr) {
+//                    var proxyUrl = xhr.getResponseHeader('something');
+//                    $.post(NAV.addGraphWidgetUrl, {'url': proxyUrl}, function () {
+//                        button.removeClass('secondary').addClass('success');
+//                    });
+//                });
             });
             this.headerNode.append(button);
         },
@@ -138,15 +149,15 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             };
         },
         getUrl: function (timeframe) {
-            var separator = '?';
-            if (this.url.indexOf('?') >= 0) {
+            var url = this.urls[this.urlIndex],
+                separator = '?';
+            if (url.indexOf('?') >= 0) {
                 separator = '&';
             }
-            return this.url + separator + 'timeframe=' + timeframe;
+            return url + separator + 'timeframe=' + timeframe;
         },
         createSpinner: function () {
             var options = {};  // Who knows, maybe in the future?
-            /* Set a minimum height on the container so that the spinner displays properly */
             return new Spinner(options);
         }
     };
