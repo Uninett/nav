@@ -25,6 +25,11 @@ def index(request, uri):
     """
     Proxies render requests to graphite-web, as configured in graphite.conf
     """
+    if request.method == 'HEAD':
+        response = HttpResponse(content_type='application/octet-stream')
+        response['X-Where-Am-I'] = request.get_full_path()
+        return response
+
     base = CONFIG.get('graphiteweb', 'base')
     query = _inject_default_format(request.GET)
     url = base + uri + ('?' + query) if query else ''
