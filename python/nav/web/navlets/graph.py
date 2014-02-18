@@ -27,6 +27,7 @@ class GraphWidget(Navlet):
     title = 'Graph'
     description = 'Displays a graph given an url'
     is_editable = True
+    refresh_interval = 1000 * 60 * 10
 
     def get_template_basename(self):
         return 'graph'
