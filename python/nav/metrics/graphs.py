@@ -76,6 +76,14 @@ META_LOOKUPS = (
      dict(unit="bytes", yUnitSystem="binary")),
     (re.compile(r'\.(roundTripTime|responseTime)$'), dict(unit="seconds")),
 
+    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.roundTripTime$'),
+     dict(alias="{sysname}", title="Ping packet round trip time")),
+    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.packetLoss$'),
+     dict(alias="{sysname}", title="Ping packet loss")),
+
+    (re.compile(r'\.ipdevpoll\..*\.runtime$'),
+     dict(transform="keepLastValue({id})")),
+
 )
 
 
@@ -146,6 +154,8 @@ class Graph(object):
             self.args['vtitle'] = meta['unit']
         if meta['yUnitSystem']:
             self.args['yUnitSystem'] = meta['yUnitSystem']
+        if 'title' in meta:
+            self.args['title'] = meta['title']
 
         return target
 
