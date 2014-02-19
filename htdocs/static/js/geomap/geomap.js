@@ -123,7 +123,7 @@ function getLong(position) {
                 netLayer.update();
             });
 
-        mapnikLayer = new OpenLayers.Layer.OSM("OpenStreetMap", '/info/osm_map_redirect/${z}/${x}/${y}.png');
+        mapnikLayer = new OpenLayers.Layer.OSM("OpenStreetMap", NAV.proxyOsmUrl + '/${z}/${x}/${y}.png');
         mapnikLayer.tileOptions = {crossOriginKeyword: null};
         themap.addLayer(mapnikLayer);
 
