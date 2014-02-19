@@ -2,6 +2,15 @@
 {% load crispy_forms_tags %}
 {% load tools %}
 
+{% block base_header_additional_head %}
+  <style type="text/css">
+  .statistics-graph {
+    margin: 0 2em 2em 0;
+  }
+  </style>
+  <script type="text/javascript">require(['src/statistics']);</script>
+{% endblock %}
+
 {% block base_content %}
 
   {% with tool=current_user_data.tools|get_tool:'Statistics' %}
@@ -14,15 +23,14 @@
   {# Display view if exists #}
   {% if result %}
     {% if result.graph_url %}
-      <p>
-        <a href="{{ graphite_base }}{{ result.graph_url }}">
-          Edit this graph (restricted access)
-        </a>
-      </p>
+      <ul class="button-group">
+        <li><a id="line-graph" href="javascript:void(0);" class="button small active">Line graph</a></li>
+        <li><a id="pie-graph" href="javascript:void(0);" class="button small">Pie graph</a></li>
+      </ul>
 
-      <img src="{{ result.graph_url }}" alt="Graph" title="Graph">
+      <img src="{{ result.graph_url }}" alt="Graph" title="Graph" class="left statistics-graph">
 
-      <table class="listtable">
+      <table class="listtable left">
         <caption>Average values</caption>
         {% for metric, value in result.display_data %}
           <tr>
