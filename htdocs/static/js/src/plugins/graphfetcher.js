@@ -57,7 +57,6 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         addToggleHandler: function () {
             var self = this;
             $(this.handler).click(function () {
-                console.log(self);
                 if (self.node.is(':visible')) {
                     self.close();
                 } else {
