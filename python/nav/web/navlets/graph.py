@@ -49,7 +49,7 @@ class GraphWidget(Navlet):
         url = request.POST.get('url')
 
         account_navlet = AccountNavlet.objects.get(pk=nid, account=account)
-        account_navlet.preferences = {'url': url}
+        account_navlet.preferences['url'] = url
         account_navlet.save()
 
         return HttpResponse()
