@@ -27,9 +27,11 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             .attr('style', 'display: inline-block')
             .appendTo(this.node);
         this.urls = urls.split(';');
+        this.lastUrlIndex = -1;
         this.urlIndex = 0;  // Index of this.urls
 
         this.buttons = {'day': 'Day', 'week': 'Week', 'month': 'Month', 'year': 'Year'};
+        this.lastTimeFrame = '';
         this.timeframe = 'day';
         this.isOpen = false;
         this.spinner = this.createSpinner();
@@ -37,12 +39,9 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         this.isInitialized = false;
         var handlerId = this.node.attr('data-handler-id');
         if (handlerId) {
-            var self = this;
             this.handler = $('#' + handlerId);
             this.icon = this.handler.find('i');
-            this.handler.one('click', function () {
-                self.open();
-            });
+            this.addToggleHandler();
         } else {
             this.init();
         }
@@ -53,17 +52,18 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         init: function () {
             this.addButtons();
             this.loadGraph();
-            var self = this;
-            if (this.handler) {
-                $(this.handler).click(function () {
-                    if (self.node.is(':visible')) {
-                        self.close();
-                    } else {
-                        self.open();
-                    }
-                });
-            }
             this.isInitialized = true;
+        },
+        addToggleHandler: function () {
+            var self = this;
+            $(this.handler).click(function () {
+                console.log(self);
+                if (self.node.is(':visible')) {
+                    self.close();
+                } else {
+                    self.open();
+                }
+            });
         },
         close: function () {
             this.isOpen = false;
@@ -71,12 +71,18 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
         },
         open: function () {
-            this.isOpen = true;
-            this.node.show();
-            this.icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
             if (!this.isInitialized) {
                 this.init();
             }
+            if (this.shouldReloadGraph()) {
+                this.loadGraph();
+            }
+            this.node.show();
+            this.isOpen = true;
+            this.icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
+        },
+        shouldReloadGraph: function () {
+            return (this.lastTimeFrame !== this.timeframe) || (this.lastUrlIndex !== this.urlIndex);
         },
         changeUrlIndex: function (index) {
             if (this.urls.length > index) {
@@ -136,6 +142,8 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.wrapper.find('button.graph-button-' + this.timeframe).addClass('active');
         },
         loadGraph: function () {
+            this.lastTimeFrame = this.timeframe;
+            this.lastUrlIndex = this.urlIndex;
             this.displayGraph(this.getUrl());
             this.selectButton();
         },
