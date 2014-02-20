@@ -1,3 +1,38 @@
+Version 4.0b4
+(released 20 Feb 2014)
+
+ User-visible features and improvements:
+
+  * A port metrics tab has been added to IP Device Info, so that all port
+    graphs are available on a single page (just like you're used to from
+    Cricket).
+
+  * Sub-tabs in IP Device Info are now hyperlinkable.
+
+  * Portadmin UI has been reworked again, based on feedback from NTNU.
+
+  * All users are now presented with a "NAV tour" widget on their front page,
+    which will give an interactive tour of the functionality on the new front
+    page.
+
+  * Introduced widget for displaying the contents of `welcome-anonymous.txt`
+    and `welcome-registered.txt`, as was always present on the NAV 3 front
+    page.
+
+  * Introduced button to add any graph displayed in NAV to your front page
+    widget dashboard.
+
+  * CPU stats from HP devices are now included in ranked CPU statistics.
+
+  * New button in ranked statistics to switch between regular graph and pie
+    chart.
+
+  * Improved titles, legends and display of various graphs.
+
+  * Removed obsolete Adobe Flash component that was used to facilitate CSV
+    export of the room switch port view.
+
+
 Version 4.0b3
 (released 06 Feb 2014)
 
@@ -65,6 +100,15 @@ Version 4.0b1
  version we recommend installing NAV on a separate, perhaps virtual, server,
  and migrate production data according to the data migration howto found in
  the documentation.
+
+
+Version 3.15.6
+(released 20 Feb 2014)
+
+  * LP#1274406 (Power Supply status is not correct)
+  * LP#1278433 (Link to alert profiles permissions is missing)
+  * LP#1279748 (Malformed timestamps cause internal crash in activeip API call,
+                instead of proper error message)
 
 
 Version 3.15.5

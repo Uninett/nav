@@ -126,7 +126,7 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
 
         try:
             starttime, endtime = self.get_times(request)
-        except ValueError:
+        except (ValueError, iso8601.ParseError):
             return Response(
                 'start or endtime not formatted correctly. Use iso8601 format',
                 status=status.HTTP_400_BAD_REQUEST)
