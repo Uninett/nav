@@ -67,6 +67,15 @@ Version 4.0b1
  the documentation.
 
 
+Version 3.15.6
+(released 20 Feb 2014)
+
+  * LP#1274406 (Power Supply status is not correct)
+  * LP#1278433 (Link to alert profiles permissions is missing)
+  * LP#1279748 (Malformed timestamps cause internal crash in activeip API call,
+                instead of proper error message)
+
+
 Version 3.15.5
 (released 06 Feb 2014)
 
