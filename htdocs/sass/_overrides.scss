@@ -40,3 +40,10 @@ button, .button {
         &.success { background-color: scale-color($success-color, $lightness: $button-function-factor); }
     }
 }
+
+// Override navbars default height because it casus display problems on medium screens
+@media #{$medium-up} {
+    .top-bar {
+        height: auto;
+    }
+}
