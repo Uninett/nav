@@ -17,7 +17,6 @@
             <tr>
                 <th>Sysname</th>
                 <th class="hide-for-medium-down">IP</th>
-                <th class="hide-for-medium-down">Down since</th>
                 <th>Downtime</th>
             </tr>
             </thead>
@@ -29,7 +28,6 @@
                         <a href="{% url ipdevinfo-details-by-name b.netbox.sysname %}">
                             {{ b.netbox.sysname }}</a></td>
                     <td class="hide-for-medium-down">{{ b.netbox.ip }}</td>
-                    <td class="hide-for-medium-down">{{ b.start_time|date:"DATETIME_FORMAT" }}</td>
                     <td>{{ b.start_time|timesince:date_now }}</td>
                 </tr>
             {% endfor %}
