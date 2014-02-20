@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Widget for displaying a graph"""
+"""Widget for displaying a chart"""
 
 from django.http import HttpResponse
 
@@ -22,7 +22,7 @@ from . import Navlet, NAVLET_MODE_EDIT, REFRESH_INTERVAL
 
 
 class GraphWidget(Navlet):
-    """Widget for displaying a graph"""
+    """Widget for displaying a chart (formerly known as graph)"""
 
     title = 'Chart'
     description = 'Displays a chart from the Graphite backend'
@@ -47,7 +47,7 @@ class GraphWidget(Navlet):
 
     @staticmethod
     def post(request):
-        """Display form for adding an url to a graph"""
+        """Display form for adding an url to a chart"""
         account = request.account
         nid = int(request.POST.get('id'))
         url = request.POST.get('url')
