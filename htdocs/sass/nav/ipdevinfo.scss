@@ -175,3 +175,15 @@ table.module td div.portcell span.oplayer {
 #metrictabs.ui-tabs, #moduletabs.ui-tabs {
 	display:block;
 }
+
+#portmetrics {
+    strong {
+        margin-left: 0.4em;
+    }
+    .graphitegraph {
+        margin-left: 1.5em;
+        img {
+            border: 1px solid #DDDDDD;
+        }
+    }
+}
