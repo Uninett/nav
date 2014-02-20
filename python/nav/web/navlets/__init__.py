@@ -201,15 +201,15 @@ def add_user_navlet(request):
 
 def add_navlet(account, navlet, preferences=None):
     """Create new accountnavlet based on request data"""
+    if preferences is None:
+        preferences = {}
     accountnavlet = AccountNavlet(account=account, navlet=navlet)
     accountnavlet.column, accountnavlet.order = find_new_placement(account)
-    if preferences:
-        accountnavlet.preferences = preferences
-    else:
-        accountnavlet.preferences = get_default_preferences(
-            get_navlet_from_name(navlet))
-    accountnavlet.save()
 
+    default_preferences = get_default_preferences(get_navlet_from_name(navlet))
+    accountnavlet.preferences = dict(preferences.items() +
+                                     default_preferences.items())
+    accountnavlet.save()
     return accountnavlet
 
 
