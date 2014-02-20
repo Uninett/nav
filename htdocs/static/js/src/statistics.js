@@ -1,13 +1,13 @@
 require(['libs/jquery'], function () {
     $(function () {
-        var $graph = $('.statistics-graph');
+        var $graph = $('.statistics-chart');
 
-        $('#line-graph').click(function () {
+        $('#line-chart').click(function () {
             addGraphType('line');
             setActiveButton($(this));
         });
 
-        $('#pie-graph').click(function () {
+        $('#pie-chart').click(function () {
             addGraphType('pie');
             setActiveButton($(this));
         });

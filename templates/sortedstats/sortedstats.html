@@ -4,7 +4,7 @@
 
 {% block base_header_additional_head %}
   <style type="text/css">
-  .statistics-graph {
+  .statistics-chart {
     margin: 0 2em 2em 0;
   }
   </style>
@@ -24,11 +24,11 @@
   {% if result %}
     {% if result.graph_url %}
       <ul class="button-group">
-        <li><a id="line-graph" href="javascript:void(0);" class="button small active">Line graph</a></li>
-        <li><a id="pie-graph" href="javascript:void(0);" class="button small">Pie graph</a></li>
+        <li><a id="line-chart" href="javascript:void(0);" class="button small active">Line chart</a></li>
+        <li><a id="pie-chart" href="javascript:void(0);" class="button small">Pie chart</a></li>
       </ul>
 
-      <img src="{{ result.graph_url }}" alt="Graph" title="Graph" class="left statistics-graph">
+      <img src="{{ result.graph_url }}" alt="Chart" title="Chart" class="left statistics-chart">
 
       <table class="listtable left">
         <caption>Average values</caption>
