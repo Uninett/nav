@@ -18,14 +18,14 @@
 from django.http import HttpResponse
 
 from nav.models.profiles import AccountNavlet
-from . import Navlet
+from . import Navlet, NAVLET_MODE_EDIT, REFRESH_INTERVAL
 
 
 class GraphWidget(Navlet):
     """Widget for displaying a graph"""
 
-    title = 'Graph'
-    description = 'Displays a graph from the Graphite backend'
+    title = 'Chart'
+    description = 'Displays a chart from the Graphite backend'
     is_editable = True
     refresh_interval = 1000 * 60 * 10
 
@@ -39,6 +39,10 @@ class GraphWidget(Navlet):
         if self.preferences and 'url' in self.preferences:
             url = self.preferences['url']
         context['graph_url'] = url
+
+        if self.mode == NAVLET_MODE_EDIT:
+            navlet = AccountNavlet.objects.get(pk=self.navlet_id)
+            context['interval'] = navlet.preferences[REFRESH_INTERVAL] / 1000
         return context
 
     @staticmethod
@@ -47,9 +51,11 @@ class GraphWidget(Navlet):
         account = request.account
         nid = int(request.POST.get('id'))
         url = request.POST.get('url')
+        interval = int(request.POST.get('interval')) * 1000
 
         account_navlet = AccountNavlet.objects.get(pk=nid, account=account)
         account_navlet.preferences['url'] = url
+        account_navlet.preferences['refresh_interval'] = interval
         account_navlet.save()
 
         return HttpResponse()

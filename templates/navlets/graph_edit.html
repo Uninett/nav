@@ -3,17 +3,16 @@
 {% block navlet-content %}
 
   <form method="POST" action="{% url get-user-navlet navlet.navlet_id %}">
-    <div class="row collapse">
-      <div class="small-8 column">
-        <label for="graphWidgetUrl">URL</label>
-        <input id="graphWidgetUrl" type="text" name="url" value="{{ graph_url|default_if_none:'' }}" placeholder="URL">
-      </div>
-      <div class="small-4 column">
-        <label>&nbsp;</label>
-        <input type="submit" name="submit" value="Save" class="button postfix">
-      </div>
-    </div>
     <input type="hidden" name="id" value="{{ navlet.navlet_id }}">
+
+    <label for="graphWidgetUrl">URL</label>
+    <input id="graphWidgetUrl" type="text" name="url"
+           value="{{ graph_url|default_if_none:'' }}" placeholder="URL">
+
+    <label for="chart_refresh_interval">Refresh interval in seconds (requires reload of page)</label>
+    <input id="chart_refresh_interval" type="text" name="interval" value="{{ interval }}">
+
+    <input type="submit" value="Save changes" class="button small">
   </form>
 
 {% endblock %}
