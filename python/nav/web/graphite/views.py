@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 import urllib2
+from django.conf import settings
 from django.http import HttpResponse
 from nav.metrics import CONFIG
 
@@ -31,7 +32,7 @@ def index(request, uri):
         return response
 
     base = CONFIG.get('graphiteweb', 'base')
-    query = _inject_default_format(request.GET)
+    query = _inject_default_arguments(request.GET)
     url = base + uri + ('?' + query) if query else ''
 
     LOGGER.debug("proxying request to %r", url)
@@ -42,14 +43,17 @@ def index(request, uri):
     return HttpResponse(response.read(), content_type=content_type)
 
 
-def _inject_default_format(query):
+def _inject_default_arguments(query):
     """
-    Injects a default format argument to a render request, unless it was
+    Injects default arguments to a render request, unless they are already
     explicitly supplied by the client.
     """
     format_ = CONFIG.get('graphiteweb', 'format')
     query = query.copy()
+
     if not 'format' in query:
         query['format'] = format_
+    if not 'tz' in query and settings.TIME_ZONE:
+        query['tz'] = settings.TIME_ZONE
 
     return query.urlencode()
