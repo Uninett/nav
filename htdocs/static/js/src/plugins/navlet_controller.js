@@ -131,7 +131,9 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.applyRemoveListener();
             this.applyReloadListener();
             this.applySubmitListener();
-            this.applyTitleListener();
+            if (this.navlet.is_title_editable) {
+                this.applyTitleListener();
+            }
             this.applyOnRenderedListener();
         },
         applyModeListener: function () {

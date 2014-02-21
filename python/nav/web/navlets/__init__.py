@@ -82,6 +82,7 @@ class Navlet(TemplateView):
     title = 'Navlet'
     description = 'No description'
     is_editable = False
+    is_title_editable = False
     preferences = {}  # See DEFAULT PREFERENCES for adding default values here
     navlet_id = None
     highlight = None
@@ -162,13 +163,16 @@ def create_navlet_object(usernavlet):
     """Create a structure suitable for json transfer of a navlet"""
     url = reverse('get-user-navlet', kwargs={'navlet_id': usernavlet.id})
     navlet_module = usernavlet.navlet
-    highlight = get_navlet_from_name(navlet_module).highlight
+    navlet_class = get_navlet_from_name(navlet_module)
+    highlight = navlet_class.highlight
+    is_title_editable = navlet_class.is_title_editable
 
     return {'id': usernavlet.id, 'url': url,
             'column': usernavlet.column,
             'preferences': usernavlet.preferences,
             'highlight': highlight,
-            'navlet_class': navlet_module.split('.')[-1]}
+            'navlet_class': navlet_module.split('.')[-1],
+            'is_title_editable': is_title_editable}
 
 
 def dispatcher(request, navlet_id):
