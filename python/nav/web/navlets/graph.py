@@ -15,6 +15,7 @@
 #
 """Widget for displaying a chart"""
 
+import urlparse
 from django.http import HttpResponse
 
 from nav.models.profiles import AccountNavlet
@@ -27,6 +28,7 @@ class GraphWidget(Navlet):
     title = 'Chart'
     description = 'Displays a chart from the Graphite backend'
     is_editable = True
+    is_title_editable = True
     refresh_interval = 1000 * 60 * 10
 
     def get_template_basename(self):
@@ -35,10 +37,14 @@ class GraphWidget(Navlet):
     def get_context_data(self, **kwargs):
         context = super(GraphWidget, self).get_context_data(**kwargs)
 
-        url = None
+        url = title = None
         if self.preferences and 'url' in self.preferences:
             url = self.preferences['url']
+            title = self.get_title()
+
         context['graph_url'] = url
+        if title:
+            self.title = title
 
         if self.mode == NAVLET_MODE_EDIT:
             navlet = AccountNavlet.objects.get(pk=self.navlet_id)
@@ -59,3 +65,16 @@ class GraphWidget(Navlet):
         account_navlet.save()
 
         return HttpResponse()
+
+    def get_title(self):
+        if 'title' in self.preferences:
+            return self.preferences['title']
+        else:
+            return self.get_title_from_url(self.preferences['url'])
+
+    @staticmethod
+    def get_title_from_url(url):
+        parsed_url = urlparse.urlparse(url)
+        query = urlparse.parse_qs(parsed_url.query)
+        if 'title' in query:
+            return query['title'][0]

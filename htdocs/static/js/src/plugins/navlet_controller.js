@@ -131,6 +131,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.applyRemoveListener();
             this.applyReloadListener();
             this.applySubmitListener();
+            this.applyTitleListener();
             this.applyOnRenderedListener();
         },
         applyModeListener: function () {
@@ -196,6 +197,35 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                     });
                 });
             }
+        },
+        applyTitleListener: function () {
+            /* Feel free to refactor this mess */
+            var self = this;
+            this.node.find('.subheader').click(function () {
+                var $header = $(this),
+                    $container = $($header.parents('.title-container').get(0)),
+                    $input = $('<input type="text">').val($header.find('.navlet-title').text());
+
+                $header.hide();
+                $container.append($input);
+                $input.on('keydown', function (event) {
+                    if (event.which === 13) {
+                        var request = $.post($header.attr('data-set-title'),
+                            {
+                                'id': self.navlet.id,
+                                'preferences': JSON.stringify({
+                                    'title': $input.val()
+                                })
+                            }
+                        );
+                        request.done(function () {
+                            $header.find('.navlet-title').text($input.val());
+                            $input.remove();
+                            $header.show();
+                        });
+                    }
+                });
+            });
         },
         applyOnRenderedListener: function () {
             this.container.trigger('navlet-rendered', [this.node]);
