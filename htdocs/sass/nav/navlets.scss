@@ -1,3 +1,5 @@
+@import "../navsettings";
+
 #navlets .highlight {
     background-color: #d6d6d6;
     border: 1px solid #aaaaaa;
@@ -46,6 +48,11 @@
     .subheader {
         font-size: 1.1em;
         position: relative;
+        i {
+            color: $primary-color;
+            font-size: 0.8em;
+            margin-left: 0.3em;
+        }
     }
 }
 
