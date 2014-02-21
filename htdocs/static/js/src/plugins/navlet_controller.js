@@ -222,6 +222,11 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                         );
                         request.done(function () {
                             $header.find('.navlet-title').text($input.val());
+                        });
+                        request.error(function () {
+                            alert("The Oompa Loompas didn't want to change the title (an error occured) - sorry!");
+                        });
+                        request.always(function () {
                             $input.remove();
                             $header.show();
                         });
