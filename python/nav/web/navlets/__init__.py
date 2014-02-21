@@ -55,7 +55,7 @@ REFRESH_INTERVAL = 'refresh_interval'
 DEFAULT_PREFERENCES = [REFRESH_INTERVAL]
 
 import logging
-import simplejson
+import json
 from collections import namedtuple
 from operator import attrgetter
 
@@ -116,7 +116,7 @@ class Navlet(TemplateView):
 
 def list_navlets(request):
     """Gives a json-response with all navlets modulestring, title and desc"""
-    return HttpResponse(simplejson.dumps(get_navlets()))
+    return HttpResponse(json.dumps(get_navlets()))
 
 
 def get_navlets():
@@ -154,7 +154,7 @@ def get_user_navlets(request):
     navlets = []
     for usernavlet in usernavlets:
         navlets.append(create_navlet_object(usernavlet))
-    return HttpResponse(simplejson.dumps(navlets),
+    return HttpResponse(json.dumps(navlets),
                         content_type="application/json")
 
 
@@ -193,7 +193,7 @@ def add_user_navlet(request):
         if can_modify_navlet(account, request):
             navlet_class = request.POST.get('navlet')
             navlet = add_navlet(account, navlet_class)
-            return HttpResponse(simplejson.dumps(create_navlet_object(navlet)),
+            return HttpResponse(json.dumps(create_navlet_object(navlet)),
                                 content_type="application/json")
 
     return HttpResponse(status=400)
@@ -288,7 +288,7 @@ def save_navlet_order(request):
 
 def save_order(account, request):
     """Update navlets with new placement data"""
-    orders = simplejson.loads(request.body)
+    orders = json.loads(request.body)
     for key, value in orders['column1'].items():
         update_navlet(account, key, value, NAVLET_COLUMN_1)
     for key, value in orders['column2'].items():
@@ -337,3 +337,23 @@ def add_user_navlet_graph(request):
             return HttpResponse(status=200)
 
     return HttpResponse(status=400)
+
+
+def set_navlet_preferences(request):
+    """Set preferences for a NAvlet"""
+    if request.method == 'POST':
+        try:
+            preferences = json.loads(request.POST.get('preferences'))
+            navletid = request.POST.get('id')
+            navlet = AccountNavlet.objects.get(pk=navletid,
+                                               account=request.account)
+        except AccountNavlet.DoesNotExist:
+            return HttpResponse(status=400)
+        else:
+            for key, value in preferences.items():
+                navlet.preferences[key] = value
+            navlet.save()
+            return HttpResponse()
+
+    return HttpResponse(status=400)
+
