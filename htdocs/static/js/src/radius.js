@@ -64,6 +64,12 @@ require(['libs/jquery', 'src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_add
         addFilterInputListener(resulttable, datatable);
     }
 
+    function addDetailsClickListener(resulttable) {
+        resulttable.on('click', '[data-bubble-reveal]', function () {
+            $('#details_modal').foundation('reveal', 'open', $(this).attr('data-bubble-reveal'));
+        });
+    }
+
     $(document).ready(function () {
 
         initTimeField();
@@ -71,6 +77,7 @@ require(['libs/jquery', 'src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_add
         var resulttable = $('#resulttable');
         if (resulttable.length) {
             initResulttable(resulttable);
+            addDetailsClickListener(resulttable);
         }
     });
 });
