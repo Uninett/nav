@@ -186,4 +186,19 @@ table.module td div.portcell span.oplayer {
             border: 1px solid #DDDDDD;
         }
     }
+    .floatme {
+        background: #ffffff;
+        border-bottom: 2px solid white;
+        border-right: 2px solid white;
+        position: fixed;
+        top: 0px;
+        z-index: 200;
+        button, .button {
+            margin-bottom: 0;
+        }
+        .button-group:last-child {
+            margin-right: 0;
+        }
+    }
 }
+

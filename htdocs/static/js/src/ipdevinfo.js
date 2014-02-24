@@ -61,8 +61,30 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         });
         tabs.show();
         TabNavigation.add(portmetricTabsSelector, mainTabsSelector);
+        addFloatingGlobalControls();
     }
 
+    function addFloatingGlobalControls() {
+        /* Floats the global controls for all graphs on the Port Metrics tab */
+        var toBeFixed = $('.toBeFixed'),
+            wrapper = toBeFixed.parent('.toBeFixed-wrapper'),
+            startPosY,  // y-Position of '.toBeFixed'
+            toBeFixedClone;
+        $(window).scroll(function () {
+            var currentY = document.documentElement.scrollTop;
+            startPosY = startPosY ? startPosY : toBeFixed.offset().top;
+            /* This clone is needed to prevent the page from jumping when 'position: fixed' is set */
+            toBeFixedClone = toBeFixedClone ? toBeFixedClone : toBeFixed.clone().hide().appendTo(wrapper);
+
+            if (currentY >= startPosY && !toBeFixed.hasClass('floatme')) {
+                toBeFixed.addClass('floatme');
+                toBeFixedClone.show();
+            } else if (currentY < startPosY && toBeFixed.hasClass('floatme')) {
+                toBeFixedClone.hide();
+                toBeFixed.removeClass('floatme');
+            }
+        });
+    }
 
     /*
      * Set error-class on tabs marked as error by template
