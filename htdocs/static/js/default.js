@@ -21,15 +21,6 @@
 var NAV = this.NAV || {};
 
 (function () {
-    function jump(fe) {
-        var opt_key = fe.selectedIndex;
-        var uri_val = fe.options[opt_key].value;
-        if (uri_val) {
-            window.location = uri_val;
-        }
-        return false;
-    }
-
     function addGlobalAjaxHandlers() {
         $(document).ajaxSend(function (event, request) {
             request.setRequestHeader('X-NAV-AJAX', 'true');
@@ -40,9 +31,6 @@ var NAV = this.NAV || {};
             }
         });
     }
-
-    NAV.jump = jump;
     NAV.addGlobalAjaxHandlers = addGlobalAjaxHandlers;
-
 })();
 
