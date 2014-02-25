@@ -1,7 +1,13 @@
 {% extends "status/base.html" %}
 
 {% block base_header_additional_head %}
-  {#    <meta http-equiv="refresh" content="30" />#}
+  <script>
+    require(['libs/jquery'], function () {
+      $('.f-dropdown .close-button').click(function () {
+        $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
+      });
+    });
+  </script>
 {% endblock %}
 
 {% block content %}
@@ -71,13 +77,22 @@
               </td>
             {% endifequal %}
             {% ifequal section.devicehistory_type "a_linkDown" %}
-              <td class="text-right">
-                <form action="{% url resolve-alert %}" method="POST">
-                  <input type="hidden" name="alertid" value="{{ row.alerthistid }}"/>
-                  <input type="submit" value="Resolve"
-                         title="Mark this as resolved"
-                         class="tiny button secondary"/>
-                </form>
+              <td>
+                <a href="javascript:void(0);" class="button tiny secondary"
+                   data-dropdown="resolve-alert-{{ row.alerthistid }}">
+                  Resolve
+                </a>
+                <div id="resolve-alert-{{ row.alerthistid }}" class="f-dropdown content">
+                  <h5>Resolve this alert?</h5>
+                  <p>If this is a real alert it might come back later.</p>
+                  <form action="{% url resolve-alert %}" method="POST">
+                    <input type="hidden" name="alertid" value="{{ row.alerthistid }}"/>
+                    <input type="submit" value="Resolve"
+                           title="Mark this as resolved"
+                           class="tiny button left"/>
+                  </form>
+                  <span class="button tiny secondary close-button left">Leave it</span>
+                </div>
               </td>
             {% endifequal %}
           </tr>
