@@ -70,6 +70,16 @@
                 </form>
               </td>
             {% endifequal %}
+            {% ifequal section.devicehistory_type "a_linkDown" %}
+              <td class="text-right">
+                <form action="{% url resolve-alert %}" method="POST">
+                  <input type="hidden" name="alertid" value="{{ row.alerthistid }}"/>
+                  <input type="submit" value="Resolve"
+                         title="Mark this as resolved"
+                         class="tiny button secondary"/>
+                </form>
+              </td>
+            {% endifequal %}
           </tr>
         {% endfor %}
         </tbody>

@@ -692,14 +692,16 @@ class ThresholdSection(_Section):
             description = "{0} {1}".format(metric, limit)
         return description
 
+
 class LinkStateSection(_Section):
-    columns =  [
+    columns = [
         'Sysname',
         'IP',
         'Interface',
         'Down since',
         'Downtime',
-        '',
+        'History',
+        'Resolve',
     ]
     devicehistory_type = 'a_linkDown'
 
@@ -727,32 +729,32 @@ class LinkStateSection(_Section):
 
         history = []
         for h in netbox_history:
-            row = {'netboxid': h.netbox.id,
-                   'tabrow': (
+            row = {
+                'netboxid': h.netbox.id,
+                'alerthistid': h.id,
+                'tabrow': (
                     (
                         h.netbox.sysname,
                         reverse('ipdevinfo-details-by-name',
-                            args=[h.netbox.sysname])
+                                args=[h.netbox.sysname])
                     ),
                     (h.netbox.ip, None),
                     (
                         h.ifname,
                         reverse('ipdevinfo-interface-details',
-                            args=[h.netbox.sysname, h.interfaceid])
+                                args=[h.netbox.sysname, h.interfaceid])
                     ),
                     (h.start_time, None),
                     (h.downtime, None),
-                    (
-                        'history',
-                        reverse('devicehistory-view') +
-                        '?netbox=%(id)s&eventtype=a_linkDown&group_by=datetime' % {
-                            'id': h.netbox.id,
-                        }
+                    ('history', reverse('devicehistory-view') +
+                '?netbox=%(id)s&eventtype=a_linkDown&group_by=datetime' % {
+                    'id': h.netbox.id, }
                     ),
                 ),
             }
             history.append(row)
         self.history = history
+
 
 class SNMPAgentSection(_Section):
     columns =  [
