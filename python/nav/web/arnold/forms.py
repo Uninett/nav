@@ -228,7 +228,7 @@ class ManualDetentionTargetForm(forms.Form):
         self.helper.form_action = 'arnold-manual-detention'
         self.helper.layout = Layout(
             'target',
-            Submit('submit', 'Go to step 2', css_class='small')
+            Submit('submit', 'Find', css_class='small')
         )
 
     def clean_target(self):
@@ -241,15 +241,18 @@ class ManualDetentionTargetForm(forms.Form):
 
 
 class ManualDetentionForm(forms.Form):
-    """Form for executing a manual detention"""
+    """Form for executing a manual detention
+
+    NB: The camtuple is manually added to this form - see template
+        manualdetain-step2.html
+    """
 
     method = forms.ChoiceField(label="Choose method",
                                choices=DETENTION_TYPE_CHOICES,
                                initial=DETENTION_TYPE_CHOICES[0][0])
     target = forms.CharField(label="IP/MAC to detain",
-                             widget=forms.TextInput(attrs={'readonly': True}))
-    camtuple = forms.ChoiceField(label="Choose interface",
-                                 widget=forms.RadioSelect())
+                             widget=forms.HiddenInput)
+    camtuple = forms.ChoiceField()
     justification = forms.ChoiceField(label="Reason")
     qvlan = forms.ChoiceField(label="Quarantine vlan", required=False)
     comment = forms.CharField(label="Comment", required=False)
@@ -271,10 +274,9 @@ class ManualDetentionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
-        self.helper.form_class = 'custom manualDetentionForm'
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             'target',
-            Div('camtuple', css_class='interface_list'),
             'method',
             Div('qvlan', css_class='qvlanrow'),
             'justification',
