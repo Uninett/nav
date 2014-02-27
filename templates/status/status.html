@@ -76,14 +76,16 @@
                 </form>
               </td>
             {% endifequal %}
+
+            {# Special treatment of linkdown events #}
             {% ifequal section.devicehistory_type "a_linkDown" %}
               <td>
                 <a href="javascript:void(0);" class="button tiny secondary"
                    data-dropdown="resolve-alert-{{ row.alerthistid }}">
-                  Resolve
+                  Clear
                 </a>
                 <div id="resolve-alert-{{ row.alerthistid }}" class="f-dropdown content">
-                  <h5>Resolve this alert?</h5>
+                  <h5>Clear this alert?</h5>
                   <p>If this is a real alert it might come back later.</p>
                   <form action="{% url resolve-alert %}" method="POST">
                     <input type="hidden" name="alertid" value="{{ row.alerthistid }}"/>
