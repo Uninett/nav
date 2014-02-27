@@ -3,7 +3,6 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
 
     var mainTabsSelector = '#ipdevinfotabs';
     var metricTabsSelector = "#metrictabs";
-    var portmetricTabsSelector = "#portmetrictabs";
     var moduleTabsSelector = '#moduletabs';
 
     $(document).ready(function () {
@@ -14,7 +13,6 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         if ($(mainTabsSelector).length !== 0) {
             addModuleTabs();
             addMetricTabs();
-            addPortmetricTabs();
             addMainTabs();
         }
 
@@ -43,6 +41,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         markErrorTabs(tabs);
         tabs.show();
         TabNavigation.add(mainTabsSelector);
+        addFloatingGlobalControls();
     }
 
     function addMetricTabs() {
@@ -54,25 +53,14 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         TabNavigation.add(metricTabsSelector, mainTabsSelector);
     }
 
-    function addPortmetricTabs() {
-        var tabs = $(portmetricTabsSelector).tabs({
-            cache: true,
-            spinner: '<img src="' + NAV.imagePath + '/main/process-working.gif">'
-        });
-        tabs.show();
-        TabNavigation.add(portmetricTabsSelector, mainTabsSelector);
-        addFloatingGlobalControls();
-    }
-
     function addFloatingGlobalControls() {
         /* Floats the global controls for all graphs on the Port Metrics tab */
         var toBeFixed = $('.toBeFixed'),
             wrapper = toBeFixed.parent('.toBeFixed-wrapper'),
-            startPosY,  // y-Position of '.toBeFixed'
             toBeFixedClone;
         $(window).scroll(function () {
-            var currentY = document.documentElement.scrollTop;
-            startPosY = startPosY ? startPosY : toBeFixed.offset().top;
+            var currentY = document.documentElement.scrollTop,
+                startPosY = wrapper.offset().top;
             /* This clone is needed to prevent the page from jumping when 'position: fixed' is set */
             toBeFixedClone = toBeFixedClone ? toBeFixedClone : toBeFixed.clone().hide().appendTo(wrapper);
 
