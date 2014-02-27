@@ -45,7 +45,7 @@
                     </td>
                     <td>{{ identity.last_changed|date:"DATETIME_FORMAT" }}</td>
                     <td>
-                        <a href="{% url arnold-choose-detentions identity.id %}">
+                        <a href="{% url arnold-choose-detentions identity.id %}" class="button tiny secondary">
                             {% if identity.interface %}
                                 Enable
                             {% else %}
