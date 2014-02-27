@@ -41,6 +41,11 @@ button, .button {
     }
 }
 
+// Add a white version of the panel
+.panel.white {
+    background-color: white;
+}
+
 // Override navbars default height because it casus display problems on medium screens
 @media #{$medium-up} {
     .top-bar {
