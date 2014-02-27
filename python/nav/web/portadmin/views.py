@@ -301,6 +301,7 @@ def set_vlan(account, fac, interface, request):
             else:
                 fac.set_vlan(interface.ifindex, vlan)
 
+            fac.restart_if(interface.ifindex)
             interface.vlan = vlan
             _logger.info('%s: %s:%s - vlan set to %s' % (
                 account.login, interface.netbox.get_short_sysname(),
