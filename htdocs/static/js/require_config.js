@@ -30,6 +30,8 @@ var require = {
             exports: 'Backbone'
         },
         'libs/backbone-eventbroker': ['libs/backbone'],
+        'libs/eve': ['libs/jquery'],
+        'libs/raphael.min': ['libs/eve'],
         'libs/justgage.min': ['libs/raphael.min'],
         'src/dt_plugins/ip_address_sort': ['libs/jquery.dataTables.min'],
         'src/dt_plugins/ip_address_typedetect': ['libs/jquery.dataTables.min']
