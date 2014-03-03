@@ -182,7 +182,7 @@ def init_logging():
 
     stderr = logging.StreamHandler(sys.stderr)
     stderr.setFormatter(log_formatter)
-    stderr.setLevel(logging.ERROR)
+    stderr.setLevel(logging.ERROR if sys.stderr.isatty() else logging.CRITICAL)
     root.addHandler(stderr)
 
     try:
