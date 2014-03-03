@@ -13,6 +13,20 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'li
             });
         }
 
+        function addControlCenterListeners() {
+            /* Controls behavior of the elements regarding the Dashboard Control Center */
+            var $widgetContainer = $('#widgets-action-container'),
+                $widgetActions = $('.widget-actions');
+            $widgetContainer.find('.action-container-toggler').click(function () {
+                $widgetActions.toggle('slide', {'direction': 'right'});
+            });
+
+            /* Hide control panel when adding a widget */
+            $widgetContainer.find('[data-reveal-id]').click(function () {
+                $widgetActions.hide();
+            });
+        }
+
         $(function () {
             var controller = new NavletsController($navletsContainer);
             controller.container.on('navlet-rendered', function (event, node) {
@@ -29,10 +43,7 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'li
                 $(document).foundation('joyride', 'start');
             });
 
-            $navletsContainer.on('click', '#removeMe', function () {
-                $('#blappTest').slideToggle();
-            });
-
+            addControlCenterListeners();
         });
 
     }

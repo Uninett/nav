@@ -41,6 +41,43 @@
     h5 { margin-top: 1.3em; }
 }
 
+/* Dashboard control center */
+$widget-action-bg-color: lightsteelblue;
+$widget-fluff-color: scale-color($widget-action-bg-color, $lightness: 20%);
+
+#widgets-action-container {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 1000;
+    .action-container-toggler {
+        color: grey;
+        float: right;
+        i {
+            font-size: 2em;
+        }
+    }
+    .widget-actions:before {
+        color: $widget-fluff-color;
+        content: "\f013";
+        font-family: FontAwesome;
+        font-size: 275px;
+        position: absolute;
+        top: 0;
+        z-index: -1;
+    }
+    .widget-actions {
+        background-color: $widget-action-bg-color;
+        border-top-left-radius: 20px;
+        border-bottom-left-radius: 20px;
+        overflow: hidden;
+        padding: 2em;
+        position: relative;
+        width: 300px;
+        z-index: 1;
+    }
+}
+
 
 /* Padding for all pages */
 
