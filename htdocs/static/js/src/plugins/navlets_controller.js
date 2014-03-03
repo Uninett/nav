@@ -8,9 +8,6 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
         this.fetch_navlets_url = this.container.attr('data-list-navlets');
         this.save_ordering_url = this.container.attr('data-save-order-url');
 
-        this.activateOrderingButton = $('#navlet-ordering-activate');
-        this.saveOrderingButton = $('#navlet-ordering-save');
-
         this.navletSelector = '.navlet';
         this.sorterSelector = '.navletColumn';
 
@@ -66,26 +63,18 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
             var that = this;
 
             this.container.find(this.sorterSelector).sortable({
-                disabled: true,
                 connectWith: '.navletColumn',
                 forcePlaceholderSize: true,
-                placeholder: 'highlight'
+                handle: '.navlet-drag-button',
+                placeholder: 'highlight',
+                start: function () {
+                    that.getNavlets().addClass('outline');
+                },
+                update: function () {
+                    that.saveOrder(that.findOrder());
+                }
             });
 
-            this.activateOrderingButton.click(function () {
-                that.activateOrdering();
-            });
-
-            this.saveOrderingButton.click(function () {
-                that.saveOrder(that.findOrder());
-            });
-
-        },
-        activateOrdering: function () {
-            this.getSorter().sortable('option', 'disabled', false);
-            this.getNavlets().addClass('outline');
-            this.activateOrderingButton.hide();
-            this.saveOrderingButton.show();
         },
         findOrder: function () {
             var ordering = {column1: {}, column2: {}};
@@ -102,10 +91,7 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
                 jqxhr = $.post(this.save_ordering_url, JSON.stringify(ordering));
 
              jqxhr.done(function () {
-                 that.getSorter().sortable('option', 'disabled', true);
                  that.getNavlets().removeClass('outline');
-                 that.activateOrderingButton.show();
-                 that.saveOrderingButton.hide();
              });
         },
         getNavlets: function (column) {
@@ -115,10 +101,6 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
                 return this.container.find(this.navletSelector);
             }
         },
-        getSorter: function () {
-            return this.container.find(this.sorterSelector);
-        }
-
     };
 
     return NavletsController;
