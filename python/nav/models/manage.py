@@ -37,7 +37,8 @@ from nav.metrics.templates import (
     metric_prefix_for_ports,
     metric_prefix_for_device,
     metric_path_for_packet_loss,
-    metric_path_for_roundtrip_time
+    metric_path_for_roundtrip_time,
+    metric_path_for_sensor
 )
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
@@ -1336,6 +1337,12 @@ class Sensor(models.Model):
 
     class Meta:
         db_table = 'sensor'
+
+    def get_metric_name(self):
+        return metric_path_for_sensor(self.netbox.sysname, self.internal_name)
+
+    def get_graph_url(self):
+        return get_simple_graph_url([self.get_metric_name()])
 
 
 class PowerSupplyOrFan(models.Model):
