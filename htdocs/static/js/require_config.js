@@ -33,6 +33,10 @@ var require = {
         'libs/eve': ['libs/jquery'],
         'libs/raphael.min': ['libs/eve'],
         'libs/justgage.min': ['libs/raphael.min'],
+        'libs/rickshaw.min': {
+            exports: 'Rickshaw',
+            deps: ['libs/d3.v2']
+        },
         'src/dt_plugins/ip_address_sort': ['libs/jquery.dataTables.min'],
         'src/dt_plugins/ip_address_typedetect': ['libs/jquery.dataTables.min']
     }
