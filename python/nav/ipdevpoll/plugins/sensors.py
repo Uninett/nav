@@ -28,6 +28,7 @@ from nav.mibs.entity_sensor_mib import EntitySensorMib
 from nav.mibs.cisco_entity_sensor_mib import CiscoEntitySensorMib
 
 from nav.mibs.mg_snmp_ups_mib import MgSnmpUpsMib
+from nav.mibs.p8541_mib import P8541Mib
 from nav.mibs.powernet_mib import PowerNetMib
 from nav.mibs.ups_mib import UpsMib
 from nav.mibs.xups_mib import XupsMib
@@ -47,6 +48,8 @@ VENDOR_EATON = 534
 VENDOR_MGE = 705
 # IT-Watchdogs,- i.e. WxGooses
 VENDOR_ITWATCHDOGS = 17373
+# Comet
+VENDOR_COMET = 22626
 
 
 class MIBFactory(object):
@@ -81,6 +84,8 @@ class MIBFactory(object):
             elif vendor_id == VENDOR_ITWATCHDOGS:
                 # Try with the most recent first
                 mibs = [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
+            elif vendor_id == VENDOR_COMET:
+                mibs = [P8541Mib(agent)]
         if not mibs:
             # And then we just sweep up the remains if we could not
             # find a matching vendor.

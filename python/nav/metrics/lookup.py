@@ -66,7 +66,7 @@ def _reverse_interface(sysname, ifname):
 @reverses(r'\.devices\.(?P<sysname>[^.]+)\.sensors\.(?P<name>[^\.]+)')
 def _reverse_sensor(sysname, name):
     return _single_like_match(Sensor, related=['netbox'],
-                              sysname=sysname, name=name)
+                              sysname=sysname, internal_name=name)
 
 
 @reverses(r'\.devices\.(?P<sysname>[^.]+)$')

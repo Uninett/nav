@@ -36,7 +36,7 @@ def get_sensor_meta(metric_path):
         return dict()
     assert isinstance(sensor, Sensor)
 
-    meta = dict(alias=sensor.name)
+    meta = dict(alias=sensor.human_readable.replace("\n", " ") or sensor.name)
     scale = (sensor.get_data_scale_display()
              if sensor.data_scale != sensor.SCALE_UNITS else None) or ''
     uom = (sensor.unit_of_measurement
