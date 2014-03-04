@@ -46,7 +46,7 @@ require([
             theme: NAV.cssPath + '/openlayers.css'
         }),
             mapLayer = new OpenLayers.Layer.OSM('OpenStreetMap',
-                '/info/osm_map_redirect/${z}/${x}/${y}.png');
+                '/search/osm_map_redirect/${z}/${x}/${y}.png');
 
         mapLayer.tileOptions = {crossOriginKeyword: null};
         map.addLayer(mapLayer);
