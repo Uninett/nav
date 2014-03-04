@@ -70,6 +70,9 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
                 start: function () {
                     that.getNavlets().addClass('outline');
                 },
+                stop: function () {
+                    that.getNavlets().removeClass('outline');
+                },
                 update: function () {
                     that.saveOrder(that.findOrder());
                 }
@@ -87,12 +90,7 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
             return ordering;
         },
         saveOrder: function (ordering) {
-            var that = this,
-                jqxhr = $.post(this.save_ordering_url, JSON.stringify(ordering));
-
-             jqxhr.done(function () {
-                 that.getNavlets().removeClass('outline');
-             });
+            $.post(this.save_ordering_url, JSON.stringify(ordering));
         },
         getNavlets: function (column) {
             if (column) {
