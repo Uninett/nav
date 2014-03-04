@@ -1,3 +1,29 @@
+Version 4.0b5
+(released 03 Mar 2014)
+
+ Bugfixes:
+
+  * Fixed various bugs around the web interface, introduced in previous
+    releases.
+
+ User-visible features and improvements:
+
+  * Graph widget now has editable title. Default value is taken from from the
+    displayed graph.
+
+  * Make global graph controls float on top of viewport when scrolling on a
+    page with heaps of port metrics.
+
+  * Added the much sought-after button to clear link alerts from the status
+    page.
+
+  * Front page widgets can now be re-ordered by dragging their anchor icon;
+    the re-order mode button has been removed.
+
+  * "Add widget" button on the front page was moved to a sliding menu,
+    accessible from the plus icon on the right hand side of the screen.
+
+
 Version 4.0b4
 (released 20 Feb 2014)
 
