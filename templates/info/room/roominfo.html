@@ -40,6 +40,7 @@
             <li><a href="#roominfo">Room info</a></li>
             <li><a href="#deviceinfo">Device info</a></li>
             <li><a href="{% url room-info-netboxes room.id %}" title="netboxinterfaces">Netbox interfaces <span class="tab-spinner">&nbsp;</span></a></li>
+            <li><a href="#sensors">Environment sensors</a></li>
         </ul>
 
         <div id="roominfo">
@@ -58,7 +59,37 @@
 
         <div id="netboxinterfaces"></div>
 
-    </div>
+        <div id="sensors">
+        
+          <div class="room-sensor clearfix">
+            <div id="envsensor1" class="environment-sensor left"></div>
+            <div class="graph left">
+              <img src="http://localhost:9080/graphite/render?width=300&height=150&_salt=1393856008.833&target=nav.devices.uninett-gw_uninett_no.sensors.VTT_1_outlet_temperature_Sensor&hideLegend=true">
+            </div>
+          </div>
+
+          <div class="room-sensor clearfix">
+            <div id="envsensor2" class="environment-sensor left"></div>
+            <div class="graph left">
+              <img src="http://localhost:9080/graphite/render?width=300&height=150&_salt=1393856008.833&target=nav.devices.uninett-gw_uninett_no.sensors.VTT_1_outlet_temperature_Sensor&hideLegend=true">
+            </div>
+          </div>
+
+          <div class="room-sensor clearfix">
+            <div id="envsensor3" class="environment-sensor left"></div>
+            <div class="graph left">
+              <img src="http://localhost:9080/graphite/render?width=300&height=150&_salt=1393856008.833&target=nav.devices.uninett-gw_uninett_no.sensors.VTT_1_outlet_temperature_Sensor&hideLegend=true">
+            </div>
+          </div>
+
+          <div id="chart-container">
+            <div id="yaxis"></div>
+            <div id="rs-chart1"></div>
+          </div>
+
+        </div>  {# sensors #}
+
+    </div> 
 
 {% endblock %}
 

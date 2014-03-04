@@ -4,15 +4,17 @@ require(
         "info/global_dt_filters",
         "info/table_info_converter",
         "plugins/room_mapper",
+        "libs/rickshaw.min",
         "dt_plugins/natsort",
         "dt_plugins/altsort",
         "dt_plugins/date_title_sort",
         "dt_plugins/modulesort",
         "libs/jquery",
         "libs/jquery-ui-1.8.21.custom.min",
-        "libs/jquery.dataTables.min"
+        "libs/jquery.dataTables.min",
+        "libs/justgage.min"
     ],
-    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper) {
+    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, Rickshaw) {
         /* Run javascript at document ready */
         $(window).load(function () {
 
@@ -40,6 +42,8 @@ require(
             };
             var tabs = $('#infotabs').tabs(tabconfig);
             $('#infotabs').show();
+            addSensor();
+            addGraphs();
         }
 
         function request_error(xhr, status, error) {
@@ -130,5 +134,87 @@ require(
                 new RoomMapper(mapcontainer.get(0), data.rooms).createMap();
             });
         }
+
+        function addSensor() {
+            var gauge1 = new JustGage({
+                id: "envsensor1",
+                value: 67,
+                min: 0,
+                max: 100,
+                title: "Temperature"
+            });
+            var gauge2 = new JustGage({
+                id: "envsensor2",
+                value: 50,
+                min: 0,
+                max: 100,
+                title: "Temperature"
+            });
+            var gauge3 = new JustGage({
+                id: "envsensor3",
+                value: 44,
+                min: 0,
+                max: 100,
+                title: "Temperature"
+            });
+
+            var gauges = [gauge1, gauge2, gauge3];
+
+            setInterval(function () {
+                for (var i = 0,l = gauges.length; i<l; i++) {
+                    gauges[i].refresh(parseInt(Math.random() * 100));
+                }
+            }, 10000);
+        }
+
+        function addGraphs() {
+            $.get('http://localhost:9080/graphite/render/?width=399&height=187&_salt=1393919244.764&connectedLimit=&lineWidth=3&hideLegend=true&graphOnly=false&hideGrid=false&hideYAxis=false&target=nav.devices.uninett-gw_uninett_no.sensors.VTT_1_outlet_temperature_Sensor&format=json', function (data) {
+                var results = data[0].datapoints.map(function (point) {
+                        return {
+                            x: point[1],
+                            y: point[0]
+                        };
+                    });
+                drawGraph(results);
+            });
+
+            function drawGraph(points) {
+                var graph1 = new Rickshaw.Graph({
+                    element: document.querySelector('#rs-chart1'),
+                    width: 300,
+                    height: 150,
+                    renderer: 'line',
+                    max: '110',
+                    series: [{
+                        color: 'steelblue',
+                        data: points,
+                        name: 'Temperature'
+                    }]
+                });
+
+                var x_axis = new Rickshaw.Graph.Axis.Time({
+                    'graph': graph1
+                });
+                var y_axis = new Rickshaw.Graph.Axis.Y({
+                    'graph': graph1,
+                    'orientation': 'left',
+//                    'tickFormat': Rickshaw.Fixtures.Number.formatKMBT,
+                    'element': document.getElementById('yaxis')
+                });
+
+                var hoverDetail = new Rickshaw.Graph.HoverDetail({
+                    graph: graph1,
+                    formatter: function (series, x, y) {
+                        var date = '<span class="date">' + new Date(x * 1000).toUTCString() + '</span>';
+                        var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
+                        var content = swatch + series.name + ": " + parseInt(y) + '<br>' + date;
+                        return content;
+                    }
+                });
+
+                graph1.render();
+            }
+        }
+
     }
 );

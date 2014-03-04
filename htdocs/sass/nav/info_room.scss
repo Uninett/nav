@@ -110,3 +110,34 @@ img.textbottom {
         top: -50px;
     }
 }
+
+.environment-sensor {
+    width: 200px;
+    height: 150px;
+}
+
+#chart-container {
+    font-family: Arial, Helvetica, sans-serif;
+    position: relative;
+    #yaxis {
+        position: absolute;
+        width: 40px;
+        top: 0;
+        bottom: 0;
+    }
+    #rs-chart1 {
+        position: relative;
+        left: 40px;
+    }
+}
+
+.rickshaw_graph {
+    .detail {
+        .date { color: #a0a0a0 }
+        .x_label { display: none }
+        .item { line-height: 1.4; padding: 0.5em }
+    }
+}
+.detail_swatch { float: right; display: inline-block; width: 10px; height: 10px; margin: 0 4px 0 0 }
+
+
