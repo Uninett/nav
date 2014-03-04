@@ -18,16 +18,18 @@
 import logging
 import os
 import csv
+import json
 from os.path import join
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponse
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import (render_to_response, redirect, get_object_or_404,
+                              render)
 from django.template import RequestContext
 from django.contrib import messages
 
 from nav.django.utils import get_account
-from nav.models.manage import Room
+from nav.models.manage import Room, Netbox
 from nav.models.roommeta import Image, ROOMIMAGEPATH
 from nav.web.info.room.forms import SearchForm, UploadForm
 from nav.web.info.room.utils import (get_extension, create_hash,
@@ -253,3 +255,13 @@ def create_csv(request):
     for row in rows.split('\n'):
         writer.writerow(row.split(';'))
     return response
+
+
+def render_sensors(request, roomid):
+    """Gets the environment devices for a room"""
+    room = get_object_or_404(Room, pk=roomid)
+    netboxes = room.netbox_set.filter(category='ENV')
+
+    return render(request, 'info/room/roominfo_sensors.html', {
+        'netboxes': netboxes
+    })
