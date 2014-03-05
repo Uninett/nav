@@ -1,40 +1,27 @@
+<dl class="sub-nav">
+  <dt>Filter:</dt>
+  <dd class="active"><a href="javascript:void(0);" data-action="all">All</a></dd>
+  <dd><a href="javascript:void(0);" data-action="gauges">Gauges</a></dd>
+  <dd><a href="javascript:void(0);" data-action="charts">Charts</a></dd>
+</dl>
+
 {% for netbox in netboxes %}
-  <h5>{{ netbox.sysname }}</h5>
-  {% for sensor in netbox.sensor_set.all %}
-    <div class="room-sensor"
-         data-url="{{ sensor.get_graph_url }}"
-         data-unit="{{ sensor.unit_of_measurement }}"
-            >
+  {% if netbox.sensor_set.count > 0 %}
+    <div class="clearfix netbox-sensor-container">
+      <h3>Sensors for {{ netbox.sysname }}</h3>
+      {% for sensor in netbox.sensor_set.all %}
+        {% if 'celsius' in sensor.unit_of_measurement|lower %}
+
+          <div class="room-sensor left"
+               data-url="{{ sensor.get_graph_url }}"
+               data-unit="{{ sensor.unit_of_measurement }}"
+               data-sensorid="{{ sensor.id }}"
+               data-sensorname="{{ sensor.human_readable }}"
+                  >
+          </div>
+        {% endif %}
+
+      {% endfor %}
     </div>
-  {% endfor %}
+  {% endif %}
 {% endfor %}
-
-
-
-{% comment %}
-          <div class="room-sensor clearfix">
-            <div id="envsensor1" class="environment-sensor left"></div>
-            <div class="graph left">
-              <img src="http://localhost:9080/graphite/render?width=300&height=150&_salt=1393856008.833&target=nav.devices.uninett-gw_uninett_no.sensors.VTT_1_outlet_temperature_Sensor&hideLegend=true">
-            </div>
-          </div>
-
-          <div class="room-sensor clearfix">
-            <div id="envsensor2" class="environment-sensor left"></div>
-            <div class="graph left">
-              <img src="http://localhost:9080/graphite/render?width=300&height=150&_salt=1393856008.833&target=nav.devices.uninett-gw_uninett_no.sensors.VTT_1_outlet_temperature_Sensor&hideLegend=true">
-            </div>
-          </div>
-
-          <div class="room-sensor clearfix">
-            <div id="envsensor3" class="environment-sensor left"></div>
-            <div class="graph left">
-              <img src="http://localhost:9080/graphite/render?width=300&height=150&_salt=1393856008.833&target=nav.devices.uninett-gw_uninett_no.sensors.VTT_1_outlet_temperature_Sensor&hideLegend=true">
-            </div>
-          </div>
-
-          <div id="chart-container">
-            <div id="yaxis"></div>
-            <div id="rs-chart1"></div>
-          </div>
-{% endcomment %}

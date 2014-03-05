@@ -4,7 +4,7 @@ require(
         "info/global_dt_filters",
         "info/table_info_converter",
         "plugins/room_mapper",
-        "libs/rickshaw.min",
+        "plugins/sensor_controller",
         "dt_plugins/natsort",
         "dt_plugins/altsort",
         "dt_plugins/date_title_sort",
@@ -12,9 +12,8 @@ require(
         "libs/jquery",
         "libs/jquery-ui-1.8.21.custom.min",
         "libs/jquery.dataTables.min",
-        "libs/justgage.min"
     ],
-    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, Rickshaw) {
+    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorController) {
         /* Run javascript at document ready */
         $(window).load(function () {
 
@@ -38,12 +37,15 @@ require(
                 ajaxOptions: {
                     error: request_error,
                     success: request_success
+                },
+                load: function (event, ui) {
+                    if (ui.panel.id === 'sensors') {
+                        applyEnvironmentHandlers();
+                    }
                 }
             };
             var tabs = $('#infotabs').tabs(tabconfig);
             $('#infotabs').show();
-            addSensor();
-            addGraphs();
         }
 
         function request_error(xhr, status, error) {
@@ -135,85 +137,43 @@ require(
             });
         }
 
-        function addSensor() {
-            var gauge1 = new JustGage({
-                id: "envsensor1",
-                value: 67,
-                min: 0,
-                max: 100,
-                title: "Temperature"
-            });
-            var gauge2 = new JustGage({
-                id: "envsensor2",
-                value: 50,
-                min: 0,
-                max: 100,
-                title: "Temperature"
-            });
-            var gauge3 = new JustGage({
-                id: "envsensor3",
-                value: 44,
-                min: 0,
-                max: 100,
-                title: "Temperature"
+        function applyEnvironmentHandlers() {
+            /* Does stuff with the environment tab when it's loaded */
+            var $page = $('#sensors'),
+                $sensors = $page.find('.room-sensor'),
+                $filters = $page.find('.sub-nav dd');
+
+            // Apply controller for each sensor
+            $sensors.each(function (index, element) {
+                new SensorController($(element));
             });
 
-            var gauges = [gauge1, gauge2, gauge3];
+            // Filter controls
+            $filters.on('click', function (event) {
+                var $target = $(event.target),
+                    $parent = $target.parent('dd');
+                $filters.removeClass('active');
+                $parent.addClass('active');
 
-            setInterval(function () {
-                for (var i = 0,l = gauges.length; i<l; i++) {
-                    gauges[i].refresh(parseInt(Math.random() * 100));
+                console.log($target.attr('data-action'));
+                switch ($target.attr('data-action')) {
+                    case 'all':
+                        console.log('all');
+                        $page.find('.rs-graph').show();
+                        $page.find('.current').show();
+                        break;
+                    case 'charts':
+                        console.log('charts');
+                        $page.find('.rs-graph').show();
+                        $page.find('.current').hide();
+                        break;
+                    case 'gauges':
+                        console.log('gauges');
+                        $page.find('.rs-graph').hide();
+                        $page.find('.current').show();
+                        break;
                 }
-            }, 10000);
-        }
-
-        function addGraphs() {
-            $.get('http://localhost:9080/graphite/render/?width=399&height=187&_salt=1393919244.764&connectedLimit=&lineWidth=3&hideLegend=true&graphOnly=false&hideGrid=false&hideYAxis=false&target=nav.devices.uninett-gw_uninett_no.sensors.VTT_1_outlet_temperature_Sensor&format=json', function (data) {
-                var results = data[0].datapoints.map(function (point) {
-                        return {
-                            x: point[1],
-                            y: point[0]
-                        };
-                    });
-                drawGraph(results);
             });
-
-            function drawGraph(points) {
-                var graph1 = new Rickshaw.Graph({
-                    element: document.querySelector('#rs-chart1'),
-                    width: 300,
-                    height: 150,
-                    renderer: 'line',
-                    max: '110',
-                    series: [{
-                        color: 'steelblue',
-                        data: points,
-                        name: 'Temperature'
-                    }]
-                });
-
-                var x_axis = new Rickshaw.Graph.Axis.Time({
-                    'graph': graph1
-                });
-                var y_axis = new Rickshaw.Graph.Axis.Y({
-                    'graph': graph1,
-                    'orientation': 'left',
-//                    'tickFormat': Rickshaw.Fixtures.Number.formatKMBT,
-                    'element': document.getElementById('yaxis')
-                });
-
-                var hoverDetail = new Rickshaw.Graph.HoverDetail({
-                    graph: graph1,
-                    formatter: function (series, x, y) {
-                        var date = '<span class="date">' + new Date(x * 1000).toUTCString() + '</span>';
-                        var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
-                        var content = swatch + series.name + ": " + parseInt(y) + '<br>' + date;
-                        return content;
-                    }
-                });
-
-                graph1.render();
-            }
         }
 
     }

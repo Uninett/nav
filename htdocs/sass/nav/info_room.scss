@@ -131,6 +131,30 @@ img.textbottom {
     }
 }
 
+
+
+
+.room-sensor {
+    width: 300px;
+    .current {
+        width: 300px;
+        height: 200px;
+    }
+    .rs-graph {
+        position: relative;
+        .rs-ynode {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+        }
+        .rs-graphnode {
+            margin-left: 30px;
+            position: relative;
+        }
+    }
+}
+
 .rickshaw_graph {
     .detail {
         .date { color: #a0a0a0 }
@@ -140,4 +164,6 @@ img.textbottom {
 }
 .detail_swatch { float: right; display: inline-block; width: 10px; height: 10px; margin: 0 4px 0 0 }
 
-
+.netbox-sensor-container {
+    margin-bottom: 3em;
+}
