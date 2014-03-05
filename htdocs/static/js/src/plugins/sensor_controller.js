@@ -2,18 +2,22 @@ define(["moment", "libs/handlebars", "libs/jquery", "libs/justgage.min", "libs/r
     function SensorController($node, templates) {
         this.$node = $node;
         this.url = this.$node.attr('data-url') + '&format=json';
-        this.type = this.$node.attr('data-unit');
+        this.unit = this.$node.attr('data-unit');
         this.sensorid = this.$node.attr('data-sensorid');
         this.sensorname = this.$node.attr('data-sensorname');
 
-        this.maxValue = 50;  // Max value for graphs and gauges
+        if (this.unit.toLowerCase() === 'percent') {
+            this.maxValue = 100;  // Max value for graphs and gauges
+        } else {
+            this.maxValue = 50;  // Max value for graphs and gauges
+        }
 
         var $html = this.render(templates.sensorTemplate);
         this.graphNode = $html.find('.rs-graphnode');
         this.graphYnode = $html.find('.rs-ynode');
         this.currentNode = $html.find('.current');
 
-        this.detailTemplate = templates.detailTemplate;
+        this.detailTemplate = templates.detailsTemplate;
 
         this.update();
         var self = this;
@@ -63,7 +67,7 @@ define(["moment", "libs/handlebars", "libs/jquery", "libs/justgage.min", "libs/r
                 value: value,
                 max: this.maxValue,
                 title: ' ',
-                label: 'Celcius'
+                label: this.unit
             });
         },
         updateGraph: function (values) {

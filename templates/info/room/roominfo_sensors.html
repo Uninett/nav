@@ -10,7 +10,7 @@
     <div class="clearfix netbox-sensor-container">
       <h3>Sensors for {{ netbox.sysname }}</h3>
       {% for sensor in netbox.sensor_set.all %}
-        {% if 'celsius' in sensor.unit_of_measurement|lower %}
+        {% if 'celsius' in sensor.unit_of_measurement|lower or 'percent' in sensor.unit_of_measurement|lower %}
 
           <div class="room-sensor left"
                data-url="{{ sensor.get_graph_url }}"
