@@ -1,4 +1,4 @@
-define(["libs-amd/text!resources/room/sensor.html", "moment", "libs/handlebars", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], function (template, moment) {
+define(["libs-amd/text!resources/room/sensor.html", "libs-amd/text!resources/room/detail.html", "moment", "libs/handlebars", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], function (template, detail_template, moment) {
     function SensorController($node) {
         this.$node = $node;
         this.url = this.$node.attr('data-url') + '&format=json';
@@ -11,6 +11,8 @@ define(["libs-amd/text!resources/room/sensor.html", "moment", "libs/handlebars",
         var $html = this.render();
         this.graphNode = $html.find('.rs-graphnode');
         this.graphYnode = $html.find('.rs-ynode');
+
+        this.detailTemplate = Handlebars.compile(detail_template);
 
         this.update();
         var self = this;
@@ -60,7 +62,7 @@ define(["libs-amd/text!resources/room/sensor.html", "moment", "libs/handlebars",
                 min: 0,
                 value: value,
                 max: this.maxValue,
-                title: this.sensorname,
+                title: ' ',
                 label: 'Celcius'
             });
         },
@@ -75,7 +77,7 @@ define(["libs-amd/text!resources/room/sensor.html", "moment", "libs/handlebars",
         createGraph: function () {
             var graph = new Rickshaw.Graph({
                 element: this.graphNode.get(0),
-                width: 250,
+                width: 230,
                 height: 150,
                 renderer: 'line',
                 max: this.maxValue,
@@ -95,7 +97,7 @@ define(["libs-amd/text!resources/room/sensor.html", "moment", "libs/handlebars",
             };
             var x_axis = new Rickshaw.Graph.Axis.Time({
                 graph: graph,
-                timeUnit: unit_formatter
+                timeUnit: unit_formatter,
             });
             var y_axis = new Rickshaw.Graph.Axis.Y({
                 graph: graph,
@@ -104,13 +106,17 @@ define(["libs-amd/text!resources/room/sensor.html", "moment", "libs/handlebars",
                 ticks: 4
             });
             // Enables details on hover.
+            var self = this;
             var hoverDetail = new Rickshaw.Graph.HoverDetail({
                 graph: graph,
                 formatter: function (series, x, y) {
-                    var date = '<span class="date">' + new Date(x * 1000).toString() + '</span>';
-                    var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
-                    var content = swatch + series.name + ": " + parseInt(y) + '<br>' + date;
-                    return content;
+                    var date = moment(new Date(x * 1000)).format('DD-MM-YYYY HH:mm');
+                    return self.detailTemplate({
+                        color: series.color,
+                        name: series.name,
+                        date: date,
+                        number: parseInt(y, 10)
+                    });
                 }
             });
 
