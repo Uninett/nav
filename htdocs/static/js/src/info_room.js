@@ -141,7 +141,8 @@ require(
             /* Does stuff with the environment tab when it's loaded */
             var $page = $('#sensors'),
                 $sensors = $page.find('.room-sensor'),
-                $filters = $page.find('.sub-nav dd');
+                $filters = $page.find('.sub-nav dd'),
+                animationDuration = 500;
 
             // Apply controller for each sensor
             $sensors.each(function (index, element) {
@@ -158,19 +159,16 @@ require(
                 console.log($target.attr('data-action'));
                 switch ($target.attr('data-action')) {
                     case 'all':
-                        console.log('all');
-                        $page.find('.rs-graph').show();
-                        $page.find('.current').show();
+                        $page.find('.rs-graph').show(animationDuration);
+                        $page.find('.current').show(animationDuration);
                         break;
                     case 'charts':
-                        console.log('charts');
-                        $page.find('.rs-graph').show();
-                        $page.find('.current').hide();
+                        $page.find('.rs-graph').show(animationDuration);
+                        $page.find('.current').hide(animationDuration);
                         break;
                     case 'gauges':
-                        console.log('gauges');
-                        $page.find('.rs-graph').hide();
-                        $page.find('.current').show();
+                        $page.find('.rs-graph').hide(animationDuration);
+                        $page.find('.current').show(animationDuration);
                         break;
                 }
             });
