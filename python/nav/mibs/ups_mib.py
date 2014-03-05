@@ -31,6 +31,7 @@ class UpsMib(mibretriever.MibRetriever):
             },
         'upsInputFrequency': {
             'u_o_m': 'Hz',
+            'precision': 1,
             },
         'upsOutputCurrent': {
             'u_o_m': 'Amperes',
