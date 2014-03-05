@@ -116,18 +116,20 @@ img.textbottom {
  * Styles for everything in the environment tab
  */
 
-.netbox-sensor-container {
-    margin-bottom: 3em;
-}
-
 .room-sensor {
     width: 300px;
-    .legendwrapper span {
-        color: grey;
-        position: relative;
-        bottom: -20px;
-        font-size: 1.2em;
-        font-weight: bold;
+    margin-bottom: 3em;
+    .legendwrapper {
+        position: absolute;
+        width: 300px;
+        left: 50%;
+        top: 20px;
+        margin-left: -150px;
+        span {
+            color: grey;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
     }
     .current {
         width: 300px;
