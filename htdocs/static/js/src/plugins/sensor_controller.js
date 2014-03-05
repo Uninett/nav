@@ -6,6 +6,8 @@ define(["moment", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], func
         this.sensorid = this.$node.attr('data-sensorid');
         this.sensorname = this.$node.attr('data-sensorname');
 
+        this.maxValue = 50;  // Max value for graphs and gauges
+
         this.createContainers();
         this.update();
         var self = this;
@@ -68,7 +70,7 @@ define(["moment", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], func
                 id: 'current' + this.sensorid,
                 min: 0,
                 value: value,
-                max: 100,
+                max: this.maxValue,
                 title: this.sensorname,
                 label: 'Celcius'
             });
@@ -84,16 +86,17 @@ define(["moment", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], func
         createGraph: function () {
             var graph = new Rickshaw.Graph({
                 element: this.graphNode.get(0),
-                width: 200,
+                width: 250,
                 height: 150,
                 renderer: 'line',
-                max: 50,
+                max: this.maxValue,
                 series: [{
                     color: 'steelblue',
-                    data: [{x: 0, y: 0}],
+                    data: [{x: 0, y: 0}], // Data is overridden on update
                     name: this.sensorname
                 }]
             });
+            // Time formatter for the x-axis
             var unit_formatter = {
                 name: '6 hours',
                 seconds: 3600 * 6,
@@ -110,6 +113,7 @@ define(["moment", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], func
                 orientation: 'left',
                 element: this.graphYnode.get(0)
             });
+            // Enables details on hover.
             var hoverDetail = new Rickshaw.Graph.HoverDetail({
                 graph: graph,
                 formatter: function (series, x, y) {
@@ -118,7 +122,6 @@ define(["moment", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], func
                     var content = swatch + series.name + ": " + parseInt(y) + '<br>' + date;
                     return content;
                 }
-
             });
 
             return graph;
