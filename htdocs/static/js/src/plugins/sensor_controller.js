@@ -97,7 +97,7 @@ define(["libs-amd/text!resources/room/sensor.html", "libs-amd/text!resources/roo
             };
             var x_axis = new Rickshaw.Graph.Axis.Time({
                 graph: graph,
-                timeUnit: unit_formatter,
+                timeUnit: unit_formatter
             });
             var y_axis = new Rickshaw.Graph.Axis.Y({
                 graph: graph,
