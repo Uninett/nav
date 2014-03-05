@@ -655,9 +655,6 @@ class NetboxType(models.Model):
             specific = self.sysobjectid[len(prefix):]
             enterprise = specific.split('.')[0]
             return long(enterprise)
-        else:
-            raise ValueError("%r is not a valid sysObjectID" %
-                             self.sysobjectid)
 
 #######################################################################
 ### Device management
