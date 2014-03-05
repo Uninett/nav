@@ -1,5 +1,5 @@
-define(["libs-amd/text!resources/room/sensor.html", "libs-amd/text!resources/room/detail.html", "moment", "libs/handlebars", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], function (template, detail_template, moment) {
-    function SensorController($node) {
+define(["moment", "libs/handlebars", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], function (moment) {
+    function SensorController($node, templates) {
         this.$node = $node;
         this.url = this.$node.attr('data-url') + '&format=json';
         this.type = this.$node.attr('data-unit');
@@ -8,11 +8,12 @@ define(["libs-amd/text!resources/room/sensor.html", "libs-amd/text!resources/roo
 
         this.maxValue = 50;  // Max value for graphs and gauges
 
-        var $html = this.render();
+        var $html = this.render(templates.sensorTemplate);
         this.graphNode = $html.find('.rs-graphnode');
         this.graphYnode = $html.find('.rs-ynode');
+        this.currentNode = $html.find('.current');
 
-        this.detailTemplate = Handlebars.compile(detail_template);
+        this.detailTemplate = templates.detailTemplate;
 
         this.update();
         var self = this;
@@ -22,9 +23,8 @@ define(["libs-amd/text!resources/room/sensor.html", "libs-amd/text!resources/roo
     }
 
     SensorController.prototype = {
-        render: function () {
-            var compiledTemplate = Handlebars.compile(template),
-                $html = $(compiledTemplate({
+        render: function (template) {
+            var $html = $(template({
                     legend: this.sensorname,
                     sensorid: this.sensorid
                 }));
@@ -58,7 +58,7 @@ define(["libs-amd/text!resources/room/sensor.html", "libs-amd/text!resources/roo
         },
         createCurrent: function (value) {
             return new JustGage({
-                id: 'current' + this.sensorid,
+                id: this.currentNode.prop('id'),
                 min: 0,
                 value: value,
                 max: this.maxValue,

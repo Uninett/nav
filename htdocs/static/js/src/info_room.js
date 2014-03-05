@@ -4,7 +4,7 @@ require(
         "info/global_dt_filters",
         "info/table_info_converter",
         "plugins/room_mapper",
-        "plugins/sensor_controller",
+        "plugins/sensors_controller",
         "dt_plugins/natsort",
         "dt_plugins/altsort",
         "dt_plugins/date_title_sort",
@@ -13,7 +13,7 @@ require(
         "libs/jquery-ui-1.8.21.custom.min",
         "libs/jquery.dataTables.min",
     ],
-    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorController) {
+    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController) {
         /* Run javascript at document ready */
         $(window).load(function () {
 
@@ -143,10 +143,9 @@ require(
                 $sensors = $page.find('.room-sensor'),
                 $filters = $page.find('.sub-nav dd');
 
+
+            new SensorsController($sensors);
             // Apply controller for each sensor
-            $sensors.each(function (index, element) {
-                new SensorController($(element));
-            });
 
             // Filter controls
             $filters.on('click', function (event) {
