@@ -35,6 +35,7 @@ class UpsMib(mibretriever.MibRetriever):
             },
         'upsOutputCurrent': {
             'u_o_m': 'Amperes',
+            'precision': 1,
             },
         'upsBatteryTemperature': {
             'u_o_m': 'Celsius',
