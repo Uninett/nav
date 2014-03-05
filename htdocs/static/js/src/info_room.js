@@ -156,7 +156,6 @@ require(
                 $filters.removeClass('active');
                 $parent.addClass('active');
 
-                console.log($target.attr('data-action'));
                 switch ($target.attr('data-action')) {
                     case 'all':
                         $page.find('.rs-graph').show(animationDuration);

@@ -1,4 +1,4 @@
-define(["moment", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], function (moment) {
+define(["libs-amd/text!resources/room/sensor.html", "moment", "libs/handlebars", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], function (template, moment) {
     function SensorController($node) {
         this.$node = $node;
         this.url = this.$node.attr('data-url') + '&format=json';
@@ -8,7 +8,10 @@ define(["moment", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], func
 
         this.maxValue = 50;  // Max value for graphs and gauges
 
-        this.createContainers();
+        var $html = this.render();
+        this.graphNode = $html.find('.rs-graphnode');
+        this.graphYnode = $html.find('.rs-ynode');
+
         this.update();
         var self = this;
         setInterval(function () {
@@ -17,28 +20,14 @@ define(["moment", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], func
     }
 
     SensorController.prototype = {
-        createContainers: function () {
-            var currentContainer = $('<div>').addClass('current')
-                    .attr('id', 'current' + this.sensorid)
-                    .appendTo(this.$node),
-                graphContainer = $('<div>').addClass('rs-graph')
-                    .appendTo(this.$node),
-                graphYAxis = $('<div>').addClass('rs-ynode')
-                    .appendTo(graphContainer),
-                graphNode = $('<div>').addClass('rs-graphnode')
-                    .attr('id', 'graph' + this.sensorid)
-                    .appendTo(graphContainer);
-
-            if (this.type === 'celsius') {
-                currentContainer.addClass('gauge');
-            } else {
-                currentContainer.addClass('number');
-            }
-
-            this.currentContainer = currentContainer;
-            this.graphContainer = graphContainer;
-            this.graphNode = graphNode;
-            this.graphYnode = graphYAxis;
+        render: function () {
+            var compiledTemplate = Handlebars.compile(template),
+                $html = $(compiledTemplate({
+                    legend: this.sensorname,
+                    sensorid: this.sensorid
+                }));
+            $html.appendTo(this.$node);
+            return $html;
         },
         update: function () {
             this.loadData();
@@ -111,7 +100,8 @@ define(["moment", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], func
             var y_axis = new Rickshaw.Graph.Axis.Y({
                 graph: graph,
                 orientation: 'left',
-                element: this.graphYnode.get(0)
+                element: this.graphYnode.get(0),
+                ticks: 4
             });
             // Enables details on hover.
             var hoverDetail = new Rickshaw.Graph.HoverDetail({
