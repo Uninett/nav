@@ -111,28 +111,14 @@ img.textbottom {
     }
 }
 
-.environment-sensor {
-    width: 200px;
-    height: 150px;
+
+/*
+ * Styles for everything in the environment tab
+ */
+
+.netbox-sensor-container {
+    margin-bottom: 3em;
 }
-
-#chart-container {
-    font-family: Arial, Helvetica, sans-serif;
-    position: relative;
-    #yaxis {
-        position: absolute;
-        width: 40px;
-        top: 0;
-        bottom: 0;
-    }
-    #rs-chart1 {
-        position: relative;
-        left: 40px;
-    }
-}
-
-
-
 
 .room-sensor {
     width: 300px;
@@ -161,9 +147,5 @@ img.textbottom {
         .x_label { display: none }
         .item { line-height: 1.4; padding: 0.5em }
     }
-}
-.detail_swatch { float: right; display: inline-block; width: 10px; height: 10px; margin: 0 4px 0 0 }
-
-.netbox-sensor-container {
-    margin-bottom: 3em;
+    .detail_swatch { float: right; display: inline-block; width: 10px; height: 10px; margin: 0 4px 0 0 }
 }
