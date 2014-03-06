@@ -15,6 +15,12 @@
     }
 }
 
+@media #{$medium-up} {
+    #navbar-search-form {
+        width: 400px;
+    }
+}
+
 /* MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP  */
 #megadroptoggler {
     width: 12em;
@@ -42,39 +48,16 @@
 }
 
 /* Dashboard control center */
-$widget-action-bg-color: lightsteelblue;
-$widget-fluff-color: scale-color($widget-action-bg-color, $lightness: 20%);
-
-#widgets-action-container {
+#widgets-action-add {
+    background-color: $topbar-bg-color;
     position: absolute;
     right: 0;
     top: 0;
-    z-index: 1000;
-    .action-container-toggler {
-        color: grey;
-        float: right;
-        i {
-            font-size: 2em;
-        }
-    }
-    .widget-actions:before {
-        color: $widget-fluff-color;
-        content: "\f013";
-        font-family: FontAwesome;
-        font-size: 275px;
-        position: absolute;
-        top: 0;
-        z-index: -1;
-    }
-    .widget-actions {
-        background-color: $widget-action-bg-color;
-        border-top-left-radius: 20px;
-        border-bottom-left-radius: 20px;
-        overflow: hidden;
-        padding: 2em;
-        position: relative;
-        width: 300px;
-        z-index: 1;
+    padding: 0.5rem 0.6rem 0.4rem 0.6rem;
+    i { color: white; }
+    &:hover {
+        background-color: $primary-color;
+        cursor: pointer;
     }
 }
 

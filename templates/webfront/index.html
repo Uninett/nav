@@ -9,25 +9,11 @@
 
 {% block base_content %}
 
-  {#  Dashboard Control Center  #}
+  {#  Reveal Add widgets modal  #}
   {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
 
-    <div id="widgets-action-container" class="hide-for-small">
-        <span class="action-container-toggler">
-          <i class="fa fa-plus-square"></i>
-        </span>
-      <div class="clearfix"></div>
-
-      <div class="widget-actions hide">
-        <h5>Dashboard control center</h5>
-        <a href="javascript:void(0);"
-           data-reveal-id="navlet-list"
-           data-reveal
-           class="button small">
-          Add widget
-        </a>
-      </div>
-
+    <div id="widgets-action-add" class="hide-for-small" title="Add widget" data-reveal data-reveal-id="navlet-list">
+      <i class="fa fa-plus"></i>
     </div>
 
     {% comment %} List of navlets to add {% endcomment %}
