@@ -292,11 +292,11 @@ JustGage = function (config) {
 
         // threshold: int
         // mark a threshold on the gauge
-        threshold: obj.kvLookup('threshold', config, dataset, 0),
+        threshold: obj.kvLookup('threshold', config, dataset, undefined),
 
-        // thresholdColor:
-        // mark a threshold on the gauge
-        thresholdColor: obj.kvLookup('thresholdColor', config, dataset, "#FF0000")
+        // thresholdLevelColor:
+        // color of the level when threshold is surpassed (default red)
+        thresholdLevelColor: obj.kvLookup('thresholdLevelColor', config, dataset, "#FF0000")
     };
 
     // variables
@@ -539,20 +539,33 @@ JustGage = function (config) {
         alpha, Ro, Ri, Cx, Cy, Xo, Yo, Xi, Yi, path = null;
     };
 
+    /* Generate path for threshold */
     obj.canvas.customAttributes.thr = function (value, min, max, w, h, dx, dy, gws, donut) {
-        var alpha, Ro, Ri, Cx, Cy, Xo, Yo, Xi, Yi, path;
+        var alpha, Ro, Ri, Cy, Xo, Yo, Xi, Yi, path;
 
-        alpha = (1 - (value - min) / (max - min)) * Math.PI;
-        Ro = w / 2 - w / 10;
-        Ri = Ro - w / 6.666666666666667 * gws;
+        if (donut) {
+            alpha = (1 - 2 * (value - min) / (max - min)) * Math.PI;
+            Ro = w / 2 - w / 7;
+            Ri = Ro - w / 6.666666666666667 * gws;
 
-        Cx = w / 2 + dx;
-        Cy = h / 1.25 + dy;
+            Cy = h / 1.95 + dy;
 
-        Xo = w / 2 + dx + Ro * Math.cos(alpha);
-        Yo = h - (h - Cy) - Ro * Math.sin(alpha);
-        Xi = w / 2 + dx + Ri * Math.cos(alpha);
-        Yi = h - (h - Cy) - Ri * Math.sin(alpha);
+            Xo = w / 2 + dx + Ro * Math.cos(alpha);
+            Yo = h - (h - Cy) - Ro * Math.sin(alpha);
+            Xi = w / 2 + dx + Ri * Math.cos(alpha);
+            Yi = h - (h - Cy) - Ri * Math.sin(alpha);
+        } else {
+            alpha = (1 - (value - min) / (max - min)) * Math.PI;
+            Ro = w / 2 - w / 10;
+            Ri = Ro - w / 6.666666666666667 * gws;
+
+            Cy = h / 1.25 + dy;
+
+            Xo = w / 2 + dx + Ro * Math.cos(alpha);
+            Yo = h - (h - Cy) - Ro * Math.sin(alpha);
+            Xi = w / 2 + dx + Ri * Math.cos(alpha);
+            Yi = h - (h - Cy) - Ri * Math.sin(alpha);
+        }
 
         path = "M" + Xo + "," + Yo + " L" + Xi + "," + Yi;
 
@@ -571,7 +584,7 @@ JustGage = function (config) {
     // level
     obj.level = obj.canvas.path().attr({
         "stroke": "none",
-        "fill": getColor(obj.config.value, (obj.config.value - obj.config.min) / (obj.config.max - obj.config.min), obj.config.levelColors, obj.config.noGradient, obj.config.customSectors, obj.config.threshold, obj.config.thresholdColor),
+        "fill": getColor(obj.config.value, (obj.config.value - obj.config.min) / (obj.config.max - obj.config.min), obj.config.levelColors, obj.config.noGradient, obj.config.customSectors, obj.config.threshold, obj.config.thresholdLevelColor),
         pki: [
             obj.config.min, obj.config.min, obj.config.max, obj.params.widgetW, obj.params.widgetH, obj.params.dx, obj.params.dy, obj.config.gaugeWidthScale, obj.config.donut
         ]
@@ -580,13 +593,18 @@ JustGage = function (config) {
         obj.level.transform("r" + obj.config.donutStartAngle + ", " + (obj.params.widgetW / 2 + obj.params.dx) + ", " + (obj.params.widgetH / 1.95 + obj.params.dy));
     }
 
-
-    obj.threshold = obj.canvas.path().attr({
-        'stroke': 'black',
-        'thr': [
-            obj.config.threshold, obj.config.min, obj.config.max, obj.params.widgetW, obj.params.widgetH, obj.params.dx, obj.params.dy, obj.config.gaugeWidthScale, obj.config.donut
-        ]
-    });
+    // threshold
+    if (obj.config.threshold !== undefined) {
+        obj.threshold = obj.canvas.path().attr({
+            'stroke': 'black',  // TODO: Maybe add an option for this aswell
+            'thr': [
+                obj.config.threshold, obj.config.min, obj.config.max, obj.params.widgetW, obj.params.widgetH, obj.params.dx, obj.params.dy, obj.config.gaugeWidthScale, obj.config.donut
+            ]
+        });
+        if (obj.config.donut) {
+            obj.threshold.transform("r" + obj.config.donutStartAngle + ", " + (obj.params.widgetW / 2 + obj.params.dx) + ", " + (obj.params.widgetH / 1.95 + obj.params.dy));
+        }
+    }
 
 
     // title
@@ -793,7 +811,13 @@ JustGage.prototype.refresh = function (val, max) {
         val = (obj.config.min * 1);
     }
 
-    color = getColor(val, (val - obj.config.min) / (obj.config.max - obj.config.min), obj.config.levelColors, obj.config.noGradient, obj.config.customSectors, obj.config.threshold, obj.config.thresholdColor);
+    /* If a threshold is set, use threshold as max value for gradient */
+    var colorMax = obj.config.max;
+    if (obj.config.threshold !== undefined) {
+        colorMax = obj.config.threshold;
+    }
+
+    color = getColor(val, (val - obj.config.min) / (colorMax - obj.config.min), obj.config.levelColors, obj.config.noGradient, obj.config.customSectors, obj.config.threshold, obj.config.thresholdLevelColor);
 
     if (obj.config.textRenderer) {
         displayVal = obj.config.textRenderer(displayVal);
