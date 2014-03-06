@@ -1,4 +1,4 @@
-define(["moment", "libs/handlebars", "libs/jquery", "libs/justgage.min", "libs/rickshaw.min"], function (moment) {
+define(["moment", "libs/handlebars", "libs/jquery", "libs/justgage", "libs/rickshaw.min"], function (moment) {
     function SensorController($node, templates) {
         this.$node = $node;
         this.url = this.$node.attr('data-url') + '&format=json';
@@ -6,16 +6,18 @@ define(["moment", "libs/handlebars", "libs/jquery", "libs/justgage.min", "libs/r
         this.sensorid = this.$node.attr('data-sensorid');
         this.sensorname = this.$node.attr('data-sensorname');
 
-        if (this.unit.toLowerCase() === 'percent') {
-            this.maxValue = 100;  // Max value for graphs and gauges
-        } else {
-            this.maxValue = 50;  // Max value for graphs and gauges
-        }
-
         var $html = this.render(templates.sensorTemplate);
         this.graphNode = $html.find('.rs-graphnode');
         this.graphYnode = $html.find('.rs-ynode');
         this.currentNode = $html.find('.current');
+
+        if (this.unit.toLowerCase() === 'percent') {
+            this.maxValue = 100;  // Max value for graphs and gauges
+        } else if (this.unit.toLowerCase() === 'celsius') {
+            this.maxValue = 50;  // Max value for graphs and gauges
+        } else {
+            this.currentNode.addClass('counter');
+        }
 
         this.detailTemplate = templates.detailsTemplate;
 
@@ -68,6 +70,7 @@ define(["moment", "libs/handlebars", "libs/jquery", "libs/justgage.min", "libs/r
                 max: this.maxValue,
                 title: ' ',
                 label: this.unit
+//                threshold: parseInt(Math.random() * 50)
             });
         },
         updateGraph: function (values) {

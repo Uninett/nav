@@ -25,3 +25,16 @@
     </div>
   {% endif %}
 {% endfor %}
+
+{% comment %}
+    <div class="clearfix netbox-sensor-container">
+      <h3>Sensors for mesa wants to go home</h3>
+          <div class="room-sensor left"
+               data-url="/graphite/render?from=-1day&target=alias%28nav.devices.ups-aggregat_uninett_no.sensors.upsEstimatedMinutesRemaining%2C+%22An+estimate+remain+off.%22%29&height=250&width=480&template=nav&vtitle=Minutes&yMin=0&until=now"
+               data-unit="Minutes"
+               data-sensorid="933"
+               data-sensorname="An estimate of the time to battery charge depletion under the present load conditions if the utility power is off and remains off, or if it were to be lost and remain off"
+                  >
+          </div>
+    </div>
+{% endcomment %}
