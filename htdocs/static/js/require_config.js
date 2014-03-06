@@ -33,6 +33,7 @@ var require = {
         'libs/backbone-eventbroker': ['libs/backbone'],
         'libs/raphael.min': ['libs/eve'],
         'libs/justgage.min': ['libs/raphael.min'],
+        'libs/justgage': ['libs/raphael.min'],
         'libs/rickshaw.min': {
             exports: 'Rickshaw',
             deps: ['libs/d3.v2']
