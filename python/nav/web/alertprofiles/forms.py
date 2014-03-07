@@ -143,6 +143,7 @@ class TimePeriodForm(forms.ModelForm):
         else:
             return self.cleaned_data
 
+
 class AlertSubscriptionForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
 
@@ -154,10 +155,10 @@ class AlertSubscriptionForm(forms.ModelForm):
         super(AlertSubscriptionForm, self).__init__(*args, **kwargs)
 
         if isinstance(time_period, TimePeriod):
-            self.fields['time_period'] = forms.IntegerField(
-                    widget=forms.widgets.HiddenInput,
-                    initial=time_period.id
-                )
+            self.fields['time_period'] = forms.ModelChoiceField(
+                queryset=TimePeriod.objects.filter(id=time_period.id),
+                widget=forms.widgets.HiddenInput,
+                initial=time_period.id)
             # Get account
             account = time_period.profile.account
 
@@ -167,25 +168,24 @@ class AlertSubscriptionForm(forms.ModelForm):
                 Q(owner__isnull=True) |
                 Q(owner__exact=account)).order_by('owner', 'name')
 
-            address_choices = [(a.id, unicode(a)) for a in addresses]
-            filter_group_choices = [(f.id, f.name) for f in filter_groups]
-
-            self.fields['alert_address'] = forms.ChoiceField(
-                    choices=address_choices,
-                    error_messages={
-                        'required': 'Alert address is a required field.',
-                        'invalid_choice': ('The selected alert address is an '
-                                           'invalid choice.'),
-                    }
-                )
-            self.fields['filter_group'] = forms.ChoiceField(
-                    choices=filter_group_choices,
-                    error_messages={
-                        'required': 'Filter group is a required field.',
-                        'invalid_choice': ('The selected filter group is a '
-                                           'invalid choice.'),
-                    }
-                )
+            self.fields['alert_address'] = forms.ModelChoiceField(
+                queryset=addresses,
+                empty_label=None,
+                error_messages={
+                    'required': 'Alert address is a required field.',
+                    'invalid_choice': ('The selected alert address is an '
+                                       'invalid choice.'),
+                }
+            )
+            self.fields['filter_group'] = forms.ModelChoiceField(
+                queryset=filter_groups,
+                empty_label=None,
+                error_messages={
+                    'required': 'Filter group is a required field.',
+                    'invalid_choice': ('The selected filter group is an '
+                                       'invalid choice.'),
+                }
+            )
 
     def clean(self):
         alert_address = self.cleaned_data.get('alert_address', None)
@@ -212,13 +212,14 @@ class AlertSubscriptionForm(forms.ModelForm):
             )
 
         if subscription_type == AlertSubscription.NOW and ignore:
-            error_msg.append(u'Resolved alerts can not be ignored ' +
-                'for now subscriptions')
+            error_msg.append(u'Resolved alerts cannot be ignored for '
+                             u'immediate subscriptions')
 
         if error_msg:
             raise forms.util.ValidationError(error_msg)
 
         return self.cleaned_data
+
 
 class FilterGroupForm(forms.Form):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
