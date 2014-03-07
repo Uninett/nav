@@ -1,0 +1,8 @@
+{% if form.errors and form.non_field_errors %}{% spaceless %}
+  {% if form_error_title %}<h3>{{ form_error_title }}</h3>{% endif %}
+  {% for non_field_error in form.non_field_errors %}
+    <div class="alert-box alert">
+      {{ non_field_error }}
+    </div>
+  {% endfor %}
+{% endspaceless %}{% endif %}
