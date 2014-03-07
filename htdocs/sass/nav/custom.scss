@@ -53,10 +53,11 @@
 /* Dashboard control center */
 #widgets-action-add {
     background-color: $topbar-bg-color;
+    box-shadow: 0px 3px 5px grey;  // Christine allowed this =)
+    padding: 0.5rem 0.6rem 0.4rem 0.7rem;
     position: absolute;
     right: 0;
     top: 0;
-    padding: 0.5rem 0.6rem 0.4rem 0.6rem;
     i { color: white; }
     &:hover {
         background-color: $primary-color;
