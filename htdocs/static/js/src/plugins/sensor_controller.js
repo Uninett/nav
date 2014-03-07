@@ -1,4 +1,4 @@
-define(["moment", "libs/handlebars", "libs/jquery", "libs/justgage", "libs/rickshaw.min"], function (moment) {
+define(["moment", "plugins/counterdisplay", "libs/handlebars", "libs/jquery", "libs/justgage", "libs/rickshaw.min"], function (moment, CounterDisplay) {
     function SensorController($node, templates) {
         this.$node = $node;
         this.url = this.$node.attr('data-url') + '&format=json';
@@ -6,20 +6,22 @@ define(["moment", "libs/handlebars", "libs/jquery", "libs/justgage", "libs/ricks
         this.sensorid = this.$node.attr('data-sensorid');
         this.sensorname = this.$node.attr('data-sensorname');
 
-        var $html = this.render(templates.sensorTemplate);
-        this.graphNode = $html.find('.rs-graphnode');
-        this.graphYnode = $html.find('.rs-ynode');
-        this.currentNode = $html.find('.current');
-
+        this.displayGauge = true;
         if (this.unit.toLowerCase() === 'percent') {
             this.maxValue = 100;  // Max value for graphs and gauges
         } else if (this.unit.toLowerCase() === 'celsius') {
             this.maxValue = 50;  // Max value for graphs and gauges
         } else {
-            this.currentNode.addClass('counter');
+            this.displayGauge = false;
         }
 
+        var $html = this.render(templates.sensorTemplate);
+        this.graphNode = $html.find('.rs-graphnode');
+        this.graphYnode = $html.find('.rs-ynode');
+        this.currentNode = $html.find('.current');
+
         this.detailTemplate = templates.detailsTemplate;
+        this.counterTemplate = templates.counterTemplate;
 
         this.update();
         var self = this;
@@ -35,6 +37,9 @@ define(["moment", "libs/handlebars", "libs/jquery", "libs/justgage", "libs/ricks
                     sensorid: this.sensorid
                 }));
             $html.appendTo(this.$node);
+            if (!this.displayGauge) {
+                $html.find('.current').addClass('counter');
+            }
             return $html;
         },
         update: function () {
@@ -60,18 +65,22 @@ define(["moment", "libs/handlebars", "libs/jquery", "libs/justgage", "libs/ricks
             if (!this.current) {
                 this.current = this.createCurrent(value);
             }
-            this.current.refresh(value);
+//            this.current.refresh(value);
         },
         createCurrent: function (value) {
-            return new JustGage({
-                id: this.currentNode.prop('id'),
-                min: 0,
-                value: value,
-                max: this.maxValue,
-                title: ' ',
-                label: this.unit
-//                threshold: parseInt(Math.random() * 50)
-            });
+            if (this.displayGauge) {
+                return new JustGage({
+                    id: this.currentNode.prop('id'),
+                    min: 0,
+                    value: value,
+                    max: this.maxValue,
+                    title: ' ',
+                    label: this.unit
+                    //                threshold: parseInt(Math.random() * 50)
+                });
+            } else {
+                return new CounterDisplay(this.counterTemplate, this.currentNode.prop('id'), 9999, this.unit);
+            }
         },
         updateGraph: function (values) {
             if (!this.graph) {

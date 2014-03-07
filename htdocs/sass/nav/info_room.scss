@@ -125,6 +125,9 @@ img.textbottom {
         left: 50%;
         top: 20px;
         margin-left: -150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         span {
             color: grey;
             font-size: 1.2em;
@@ -133,7 +136,30 @@ img.textbottom {
     }
     .current {
         width: 300px;
+        &.counter {
+            width: 150px;
+            padding-top: 45px;
+            margin-left: auto;
+            margin-right: auto;
+        }
         height: 200px;
+        .counter-node {
+            background-color: steelblue;
+            color: white;
+            font-family: Arial;
+            height: 150px;
+            line-height: 9em;
+            text-align: center;
+            width: 150px;
+            .values {
+                display: inline-block;
+                line-height: normal;
+                vertical-align: middle;
+                .value {
+                    font-size: 3em;
+                }
+            }
+        }
     }
     .rs-graph {
         position: relative;
@@ -170,3 +196,4 @@ img.textbottom {
         left: -19px;
     }
 }
+
