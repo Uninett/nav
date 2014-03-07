@@ -372,6 +372,8 @@ def get_affected_host_count(netboxes):
 def find_affected_but_not_down(netbox_going_down, netboxes):
     """Mark affected but not down because of redundancy boxes"""
     graph = build_layer2_graph()
+    if not graph.has_node(netbox_going_down):
+        return [netbox_going_down]
     graph.remove_node(netbox_going_down)
     masters = find_uplink_nodes(netbox_going_down)
     redundant = []

@@ -207,7 +207,7 @@ class NetboxSerialForm(forms.Form):
                 attrs=READONLY_WIDGET_ATTRS)
 
     def clean_serial(self):
-        serial = self.cleaned_data['serial']
+        serial = self.cleaned_data['serial'].strip()
         try:
             if self.netbox_id:
                 netbox = Netbox.objects.get(

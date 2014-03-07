@@ -207,7 +207,8 @@ class AlertSubscriptionForm(forms.ModelForm):
 
         hidden_fields = ['id']
         if isinstance(time_period, TimePeriod):
-            self.fields['time_period'] = forms.IntegerField(
+            self.fields['time_period'] = forms.ModelChoiceField(
+                queryset=TimePeriod.objects.filter(id=time_period.id),
                 widget=forms.HiddenInput, initial=time_period.id)
             hidden_fields.append('time_period')
             # Get account
@@ -219,21 +220,20 @@ class AlertSubscriptionForm(forms.ModelForm):
                 Q(owner__isnull=True) |
                 Q(owner__exact=account)).order_by('owner', 'name')
 
-            address_choices = [(a.id, unicode(a)) for a in addresses]
-            filter_group_choices = [(f.id, f.name) for f in filter_groups]
-
-            self.fields['alert_address'] = forms.ChoiceField(
-                choices=address_choices,
+            self.fields['alert_address'] = forms.ModelChoiceField(
+                queryset=addresses,
+                empty_label=None,
                 error_messages={
                     'required': 'Alert address is a required field.',
                     'invalid_choice': ('The selected alert address is an '
                                        'invalid choice.'),
                 }, label='Send alerts to')
-            self.fields['filter_group'] = forms.ChoiceField(
-                choices=filter_group_choices,
+            self.fields['filter_group'] = forms.ModelChoiceField(
+                queryset=filter_groups,
+                empty_label=None,
                 error_messages={
                     'required': 'Filter group is a required field.',
-                    'invalid_choice': ('The selected filter group is a '
+                    'invalid_choice': ('The selected filter group is an '
                                        'invalid choice.'),
                 }, label='Watch')
             self.fields['type'].label = 'When'
@@ -294,8 +294,8 @@ class AlertSubscriptionForm(forms.ModelForm):
             )
 
         if subscription_type == AlertSubscription.NOW and ignore:
-            error_msg.append(u'Resolved alerts can not be ignored ' +
-                             'for now subscriptions')
+            error_msg.append(u'Resolved alerts cannot be ignored for '
+                             u'immediate subscriptions')
 
         if error_msg:
             raise forms.util.ValidationError(error_msg)
