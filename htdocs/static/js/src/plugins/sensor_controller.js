@@ -37,7 +37,9 @@ define(["moment", "plugins/counterdisplay", "libs/handlebars", "libs/jquery", "l
                     sensorid: this.sensorid
                 }));
             $html.appendTo(this.$node);
-            if (!this.displayGauge) {
+            if (this.displayGauge) {
+                $html.find('.current').addClass('gauge');
+            } else {
                 $html.find('.current').addClass('counter');
             }
             return $html;
@@ -65,7 +67,7 @@ define(["moment", "plugins/counterdisplay", "libs/handlebars", "libs/jquery", "l
             if (!this.current) {
                 this.current = this.createCurrent(value);
             }
-//            this.current.refresh(value);
+            this.current.refresh(value);
         },
         createCurrent: function (value) {
             if (this.displayGauge) {
@@ -74,9 +76,7 @@ define(["moment", "plugins/counterdisplay", "libs/handlebars", "libs/jquery", "l
                     min: 0,
                     value: value,
                     max: this.maxValue,
-                    title: ' ',
                     label: this.unit
-                    //                threshold: parseInt(Math.random() * 50)
                 });
             } else {
                 return new CounterDisplay(this.counterTemplate, this.currentNode.prop('id'), 9999, this.unit);
