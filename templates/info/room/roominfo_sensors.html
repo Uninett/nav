@@ -1,3 +1,5 @@
+{% load thresholds %}
+
 <dl class="sub-nav">
   <dt>Filter:</dt>
   <dd class="active"><a href="javascript:void(0);" data-action="all">All</a></dd>
@@ -22,6 +24,7 @@
                data-unit="{{ sensor.unit_of_measurement }}"
                data-sensorid="{{ sensor.id }}"
                data-sensorname="{{ sensor.human_readable }}"
+               data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
                   >
           </div>
         {% endif %}

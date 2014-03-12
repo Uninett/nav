@@ -5,6 +5,7 @@ define(["moment", "plugins/counterdisplay", "libs/handlebars", "libs/jquery", "l
         this.unit = this.$node.attr('data-unit');
         this.sensorid = this.$node.attr('data-sensorid');
         this.sensorname = this.$node.attr('data-sensorname');
+        this.thresholds = this.parseThresholds();
 
         this.displayGauge = true;
         if (this.unit.toLowerCase() === 'percent') {
@@ -44,6 +45,20 @@ define(["moment", "plugins/counterdisplay", "libs/handlebars", "libs/jquery", "l
             }
             return $html;
         },
+        parseThresholds: function () {
+            var input = this.$node.attr('data-thresholds');
+            if (input) {
+                /* TOOD: Actually care about the bigger than, smaller than issue */
+                var values = input.split(',');
+                for (var i = 0, j = values.length; i < j; i++) {
+                    values[i] = parseFloat(values[i].replace(/\D/g, ''));
+                }
+                console.log(values);
+                return values;
+            } else {
+                return null;
+            }
+        },
         update: function () {
             this.loadData();
         },
@@ -76,7 +91,8 @@ define(["moment", "plugins/counterdisplay", "libs/handlebars", "libs/jquery", "l
                     min: 0,
                     value: value,
                     max: this.maxValue,
-                    label: this.unit
+                    label: this.unit,
+                    thresholds: this.thresholds
                 });
             } else {
                 return new CounterDisplay(this.counterTemplate, this.currentNode.prop('id'), 9999, this.unit);
