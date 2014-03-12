@@ -140,7 +140,7 @@ JustGage = function (config) {
 
         // title : string
         // gauge title
-        title: obj.kvLookup('title', config, dataset, ""),
+        title: obj.kvLookup('title', config, dataset, null),
 
         // titleFontColor : string
         // color of gauge title
@@ -398,7 +398,12 @@ JustGage = function (config) {
         // width more than height
         if (canvasW > canvasH) {
             widgetH = canvasH;
-            widgetW = widgetH * 1.25;
+            if (obj.config.title === null) {
+                widgetW = widgetH * 1.9;
+            } else {
+                widgetW = widgetH * 1.25;
+            }
+
             //if width doesn't fit, rescale both
             if (widgetW > canvasW) {
                 aspect = widgetW / canvasW;
@@ -421,6 +426,14 @@ JustGage = function (config) {
             widgetH = widgetW * 0.75;
         }
 
+        // Adjust font sizes based on if title is set or not.
+        var valueFontSizeScale = 6.5,
+            smallFontSizeScale = 16;
+        if (obj.config.title === null) {
+            valueFontSizeScale = 4;
+            smallFontSizeScale = 10;
+        }
+
         // delta
         dx = (canvasW - widgetW) / 2;
         dy = (canvasH - widgetH) / 2;
@@ -431,22 +444,22 @@ JustGage = function (config) {
         titleY = dy + widgetH / 6.4;
 
         // value
-        valueFontSize = ((widgetH / 6.5) > obj.config.valueMinFontSize) ? (widgetH / 6.5) : obj.config.valueMinFontSize;
+        valueFontSize = ((widgetH / valueFontSizeScale) > obj.config.valueMinFontSize) ? (widgetH / valueFontSizeScale) : obj.config.valueMinFontSize;
         valueX = dx + widgetW / 2;
         valueY = dy + widgetH / 1.275;
 
         // label
-        labelFontSize = ((widgetH / 16) > obj.config.labelMinFontSize) ? (widgetH / 16) : obj.config.labelMinFontSize;
+        labelFontSize = ((widgetH / smallFontSizeScale) > obj.config.labelMinFontSize) ? (widgetH / smallFontSizeScale) : obj.config.labelMinFontSize;
         labelX = dx + widgetW / 2;
         labelY = valueY + valueFontSize / 2 + 5;
 
         // min
-        minFontSize = ((widgetH / 16) > obj.config.minLabelMinFontSize) ? (widgetH / 16) : obj.config.minLabelMinFontSize;
+        minFontSize = ((widgetH / smallFontSizeScale) > obj.config.minLabelMinFontSize) ? (widgetH / smallFontSizeScale) : obj.config.minLabelMinFontSize;
         minX = dx + (widgetW / 10) + (widgetW / 6.666666666666667 * obj.config.gaugeWidthScale) / 2;
         minY = labelY;
 
         // max
-        maxFontSize = ((widgetH / 16) > obj.config.maxLabelMinFontSize) ? (widgetH / 16) : obj.config.maxLabelMinFontSize;
+        maxFontSize = ((widgetH / smallFontSizeScale) > obj.config.maxLabelMinFontSize) ? (widgetH / smallFontSizeScale) : obj.config.maxLabelMinFontSize;
         maxX = dx + widgetW - (widgetW / 10) - (widgetW / 6.666666666666667 * obj.config.gaugeWidthScale) / 2;
         maxY = labelY;
     }
@@ -608,15 +621,17 @@ JustGage = function (config) {
 
 
     // title
-    obj.txtTitle = obj.canvas.text(obj.params.titleX, obj.params.titleY, obj.config.title);
-    obj.txtTitle.attr({
-        "font-size": obj.params.titleFontSize,
-        "font-weight": "bold",
-        "font-family": "Arial",
-        "fill": obj.config.titleFontColor,
-        "fill-opacity": "1"
-    });
-    setDy(obj.txtTitle, obj.params.titleFontSize, obj.params.titleY);
+    if (obj.config.title !== null) {
+        obj.txtTitle = obj.canvas.text(obj.params.titleX, obj.params.titleY, obj.config.title);
+        obj.txtTitle.attr({
+            "font-size": obj.params.titleFontSize,
+            "font-weight": "bold",
+            "font-family": "Arial",
+            "fill": obj.config.titleFontColor,
+            "fill-opacity": "1"
+        });
+        setDy(obj.txtTitle, obj.params.titleFontSize, obj.params.titleY);
+    }
 
     // value
     obj.txtValue = obj.canvas.text(obj.params.valueX, obj.params.valueY, 0);
