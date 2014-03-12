@@ -120,11 +120,7 @@ img.textbottom {
     width: 300px;
     margin-bottom: 3em;
     .legendwrapper {
-        position: absolute;
-        width: 300px;
-        left: 50%;
-        top: 20px;
-        margin-left: -150px;
+        margin-bottom: 0.5em;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -138,7 +134,7 @@ img.textbottom {
         width: 300px;
         &.counter {
             width: 150px;
-            padding-top: 45px;
+            padding-top: 20px;
             margin-left: auto;
             margin-right: auto;
         }
@@ -163,14 +159,15 @@ img.textbottom {
     }
     .rs-graph {
         position: relative;
+        margin-top: 1em;
         .rs-ynode {
             position: absolute;
             top: 0;
             bottom: 0;
-            width: 30px;
+            width: 40px;
         }
         .rs-graphnode {
-            margin-left: 30px;
+            margin-left: 40px;
             position: relative;
         }
     }
@@ -182,7 +179,7 @@ img.textbottom {
         .date { color: #a0a0a0 }
         .x_label { display: none }
         .item { line-height: 1.4; padding: 0.5em }
-        .series_value { padding-right: 20px; }
+        .series_value { padding-right: 20px; width: 200px; white-space: pre-wrap}
         .detail_swatch {
             float: right;
             display: inline-block;
