@@ -292,7 +292,7 @@ JustGage = function (config) {
 
         // threshold: int
         // mark a threshold on the gauge
-        threshold: obj.kvLookup('threshold', config, dataset, undefined),
+        thresholds: obj.kvLookup('thresholds', config, dataset, null),
 
         // thresholdLevelColor:
         // color of the level when threshold is surpassed (default red)
@@ -597,7 +597,7 @@ JustGage = function (config) {
     // level
     obj.level = obj.canvas.path().attr({
         "stroke": "none",
-        "fill": getColor(obj.config.value, (obj.config.value - obj.config.min) / (obj.config.max - obj.config.min), obj.config.levelColors, obj.config.noGradient, obj.config.customSectors, obj.config.threshold, obj.config.thresholdLevelColor),
+        "fill": getColor(obj.config.value, (obj.config.value - obj.config.min) / (obj.config.max - obj.config.min), obj.config.levelColors, obj.config.noGradient, obj.config.customSectors, obj.config.thresholds, obj.config.thresholdLevelColor),
         pki: [
             obj.config.min, obj.config.min, obj.config.max, obj.params.widgetW, obj.params.widgetH, obj.params.dx, obj.params.dy, obj.config.gaugeWidthScale, obj.config.donut
         ]
@@ -607,15 +607,19 @@ JustGage = function (config) {
     }
 
     // threshold
-    if (obj.config.threshold !== undefined) {
-        obj.threshold = obj.canvas.path().attr({
-            'stroke': 'black',  // TODO: Maybe add an option for this aswell
-            'thr': [
-                obj.config.threshold, obj.config.min, obj.config.max, obj.params.widgetW, obj.params.widgetH, obj.params.dx, obj.params.dy, obj.config.gaugeWidthScale, obj.config.donut
-            ]
-        });
-        if (obj.config.donut) {
-            obj.threshold.transform("r" + obj.config.donutStartAngle + ", " + (obj.params.widgetW / 2 + obj.params.dx) + ", " + (obj.params.widgetH / 1.95 + obj.params.dy));
+    if (obj.config.thresholds !== null) {
+        for (var i = 0, j = obj.config.thresholds.length; i < j; i++) {
+            var thresholdValue = obj.config.thresholds[i];
+            var thresholdNode = obj.canvas.path().attr({
+                'stroke': 'black',  // TODO: Maybe add an option for this aswell
+                'thr': [
+                    thresholdValue, obj.config.min, obj.config.max, obj.params.widgetW, obj.params.widgetH, obj.params.dx, obj.params.dy, obj.config.gaugeWidthScale, obj.config.donut
+                ]
+            });
+            if (obj.config.donut) {
+                thresholdNode.transform("r" + obj.config.donutStartAngle + ", " + (obj.params.widgetW / 2 + obj.params.dx) + ", " + (obj.params.widgetH / 1.95 + obj.params.dy));
+            }
+
         }
     }
 
@@ -832,7 +836,7 @@ JustGage.prototype.refresh = function (val, max) {
         colorMax = obj.config.threshold;
     }
 
-    color = getColor(val, (val - obj.config.min) / (colorMax - obj.config.min), obj.config.levelColors, obj.config.noGradient, obj.config.customSectors, obj.config.threshold, obj.config.thresholdLevelColor);
+    color = getColor(val, (val - obj.config.min) / (colorMax - obj.config.min), obj.config.levelColors, obj.config.noGradient, obj.config.customSectors, obj.config.thresholds, obj.config.thresholdLevelColor);
 
     if (obj.config.textRenderer) {
         displayVal = obj.config.textRenderer(displayVal);
@@ -927,12 +931,12 @@ JustGage.prototype.generateShadow = function (svg, defs) {
 };
 
 /** Get color for value */
-function getColor(val, pct, col, noGradient, custSec, threshold, thresholdColor) {
+function getColor(val, pct, col, noGradient, custSec, thresholds, thresholdColor) {
 
     var no, inc, colors, percentage, rval, gval, bval, lower, upper, range, rangePct, pctLower, pctUpper, color;
     var noGradient = noGradient || custSec.length > 0;
 
-    if (threshold > 0 && val >= threshold) {
+    if (thresholds !== null && thresholds.length === 1 && val >= thresholds[0]) {
         return thresholdColor;
     }
 
