@@ -8,7 +8,12 @@
 {% for netbox in netboxes %}
   {% if netbox.sensor_set.count > 0 %}
     <div class="clearfix netbox-sensor-container">
-      <h3>Sensors for {{ netbox.sysname }}</h3>
+      <h3>Sensors for
+        <a href="{% url ipdevinfo-details-by-name netbox.sysname %}/#!sysmetrics!metricsensors"
+           title="See all sensor metrics for this IP device">
+          {{ netbox.sysname }}
+        </a>
+      </h3>
       {% for sensor in netbox.sensor_set.all %}
         {% if 'celsius' in sensor.unit_of_measurement|lower or 'percent' in sensor.unit_of_measurement|lower %}
 
