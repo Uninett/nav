@@ -59,7 +59,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             wrapper = toBeFixed.parent('.toBeFixed-wrapper'),
             toBeFixedClone;
         $(window).scroll(function () {
-            var currentY = document.documentElement.scrollTop,
+            var currentY = $(window).scrollTop(),
                 startPosY = wrapper.offset().top;
             /* This clone is needed to prevent the page from jumping when 'position: fixed' is set */
             toBeFixedClone = toBeFixedClone ? toBeFixedClone : toBeFixed.clone().hide().appendTo(wrapper);
