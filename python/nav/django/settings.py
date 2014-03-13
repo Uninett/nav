@@ -91,6 +91,7 @@ MIDDLEWARE_CLASSES = (
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = int(
     webfront_config.get('sessions', {}).get('timeout', 3600))
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Message storage for the messages framework
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
