@@ -93,7 +93,7 @@ def authenticate(username, password):
         ldapauth.available and not auth):
         try:
             auth = ldapauth.authenticate(username, password)
-        except ldapauth.Error:
+        except ldapauth.NoAnswerError:
             # Fallback to stored password if ldap is unavailable
             auth = False
         else:
