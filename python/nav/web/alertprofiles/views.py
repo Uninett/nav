@@ -669,6 +669,8 @@ def profile_time_period_setup(request, time_period_id=None):
     else:
         time_period_form = AlertSubscriptionForm(time_period=time_period)
 
+    time_period_form.is_valid()
+
     info_dict = {
         'form': time_period_form,
         'subscriptions': subscriptions,
