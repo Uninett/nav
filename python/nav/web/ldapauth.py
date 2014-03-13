@@ -137,6 +137,10 @@ def authenticate(login, password):
         _logger.exception("An LDAP error occurred when authenticating user %s "
                          "against server %s", login, server)
         return False
+    except UserNotFound:
+        _logger.exception("Username %s was not found in the LDAP catalog %s",
+                          login, server)
+        return False
 
     _logger.debug("LDAP authenticated user %s", login)
 
@@ -296,7 +300,7 @@ class Error(nav.errors.GeneralException):
 class NoAnswerError(Error):
     """No answer from the LDAP server"""
 
-class TimeoutError(Error):
+class TimeoutError(NoAnswerError):
     """Timed out waiting for LDAP reply"""
 
 class NoStartTlsError(Error):
