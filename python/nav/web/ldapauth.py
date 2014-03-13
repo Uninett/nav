@@ -137,6 +137,10 @@ def authenticate(login, password):
         _logger.exception("An LDAP error occurred when authenticating user %s "
                          "against server %s", login, server)
         return False
+    except UserNotFound:
+        _logger.exception("Username %s was not found in the LDAP catalog %s",
+                          login, server)
+        return False
 
     _logger.debug("LDAP authenticated user %s", login)
 
@@ -195,7 +199,7 @@ class LDAPUser(object):
         if method == 'direct':
             self.user_dn = self.construct_dn()
         if method == 'search':
-            self.user_dn = self.search_dn()
+            self.user_dn, self.username = self.search_dn()
         return self.user_dn
 
     def construct_dn(self):
@@ -210,7 +214,11 @@ class LDAPUser(object):
         return user_dn
 
     def search_dn(self):
-        """Searches for the user's Distinguished Name in the LDAP directory"""
+        """Searches for the user's Distinguished Name in the LDAP directory.
+
+        :returns: A tuple of (dn, canonical_username)
+        """
+        uid_attr = _config.get('ldap', 'uid_attr')
         encoding = _config.get('ldap', 'encoding')
         manager = _config.get('ldap', 'manager').encode(encoding)
         manager_password = _config.get(
@@ -219,14 +227,18 @@ class LDAPUser(object):
             _logger.debug("Attempting authenticated bind as manager to %s",
                           manager)
             self.ldap.simple_bind_s(manager, manager_password)
-        filter_ = "(%s:caseExactMatch:=%s)" % (_config.get('ldap', 'uid_attr'),
-                                               self.username)
+        filter_ = "(%s=%s)" % (uid_attr, self.username)
         result = self.ldap.search_s(_config.get('ldap', 'basedn'),
                                     ldap.SCOPE_SUBTREE, filter_)
         if not result or not result[0] or not result[0][0]:
             raise UserNotFound(filter_)
-        user_dn = result[0][0]
-        return user_dn
+
+        user_dn, attrs = result[0]
+        if uid_attr in attrs:
+            uid = attrs[uid_attr][0]
+        else:
+            uid = self.username
+        return user_dn, uid
 
     def get_real_name(self):
         """
@@ -288,7 +300,7 @@ class Error(nav.errors.GeneralException):
 class NoAnswerError(Error):
     """No answer from the LDAP server"""
 
-class TimeoutError(Error):
+class TimeoutError(NoAnswerError):
     """Timed out waiting for LDAP reply"""
 
 class NoStartTlsError(Error):
@@ -316,6 +328,7 @@ def __test():
 
     if user:
         print "User was authenticated."
+        print "User's username is %s" % user.username
         print "User's full name is %s" % user.get_real_name()
     else:
         print "User was not authenticated"
