@@ -59,7 +59,7 @@ except ImportError, e:
 else:
     # Determine whether the config file enables ldap functionality or not
     available = _config.getboolean('ldap', 'enabled')
-
+    from ldap.filter import escape_filter_chars
 
 
 #
@@ -218,7 +218,7 @@ class LDAPUser(object):
 
         :returns: A tuple of (dn, canonical_username)
         """
-        uid_attr = _config.get('ldap', 'uid_attr')
+        uid_attr = escape_filter_chars(_config.get('ldap', 'uid_attr'))
         encoding = _config.get('ldap', 'encoding')
         manager = _config.get('ldap', 'manager').encode(encoding)
         manager_password = _config.get(
@@ -227,7 +227,7 @@ class LDAPUser(object):
             _logger.debug("Attempting authenticated bind as manager to %s",
                           manager)
             self.ldap.simple_bind_s(manager, manager_password)
-        filter_ = "(%s=%s)" % (uid_attr, self.username)
+        filter_ = "(%s=%s)" % (uid_attr, escape_filter_chars(self.username))
         result = self.ldap.search_s(_config.get('ldap', 'basedn'),
                                     ldap.SCOPE_SUBTREE, filter_)
         if not result or not result[0] or not result[0][0]:
@@ -276,12 +276,13 @@ class LDAPUser(object):
         user_dn = self.get_user_dn()
         # Match groupOfNames/groupOfUniqueNames objects
         try:
-            filterstr = '(member=%s)' % user_dn
+            filterstr = '(member=%s)' % escape_filter_chars(user_dn)
             result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE, filterstr)
             _logger.debug("groupOfNames results: %s", result)
             if len(result) < 1:
                 # If no match, match posixGroup objects
-                filterstr = '(memberUid=%s)' % self.username
+                filterstr = ('(memberUid=%s)' %
+                             escape_filter_chars(self.username))
                 result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE,
                                             filterstr)
                 _logger.debug("posixGroup results: %s", result)
