@@ -92,8 +92,8 @@ The next step is to configure and build NAV from your source code, with
 code edits are live and available with a browser refresh button.
 
 .. note:: Local state files (:makevar:`localstatedir`) and configuration files
-          (:makevar:`sysconfdir`) are, however, installed in
-          :file:`~vagrant/var` and :file:`~vagrant/etc`, so you don't commit
+          (:makevar:`sysconfdir`) are, however, installed in :file:`~vagrant/var` 
+          and :file:`~vagrant/etc`, so you don't commit
           running state and configuration changes into version control by
           accident.
 

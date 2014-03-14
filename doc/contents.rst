@@ -16,8 +16,11 @@ NAV documentation contents
     intro/install
     intro/getting-started
     howto/debugging-topology
+    howto/migrate-data
+    howto/migrate-rrd-to-graphite
     faq/faq
     reference/index
+    ../release-notes
     glossary
     
 For developers
