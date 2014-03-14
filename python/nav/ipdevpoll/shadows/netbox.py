@@ -31,6 +31,9 @@ class Netbox(Shadow):
             self.snmp_up = getattr(obj, 'snmp_up', None)
             self.last_updated = getattr(obj, 'last_updated', None)
 
+    def is_up(self):
+        return self.up == manage.Netbox.UP_UP
+
     def copy(self, other):
         super(Netbox, self).copy(other)
         for attr in ('snmp_up', 'last_updated'):

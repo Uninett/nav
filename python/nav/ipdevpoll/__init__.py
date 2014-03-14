@@ -70,7 +70,9 @@ class Plugin(object):
 
         :returns: A boolean value.
         """
-        basic_req = getattr(netbox, 'snmp_up', True) and bool(netbox.read_only)
+        snmp_up = getattr(netbox, 'snmp_up', True)
+
+        basic_req = netbox.is_up() and snmp_up and bool(netbox.read_only)
         vendor_check = cls._verify_vendor_restriction(netbox)
         return basic_req and vendor_check
 

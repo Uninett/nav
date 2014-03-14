@@ -41,7 +41,7 @@ class SnmpCheck(Plugin):
 
     @classmethod
     def can_handle(cls, netbox):
-        return bool(netbox.read_only)
+        return netbox.is_up() and bool(netbox.read_only)
 
     def __init__(self, *args, **kwargs):
         super(SnmpCheck, self).__init__(*args, **kwargs)
