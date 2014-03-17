@@ -160,14 +160,14 @@ as a `Single-Page application <http://en.wikipedia.org/wiki/Single-page_applicat
 See :ref:`BackboneTemplates` for how to work with templates and
 :ref:`BackBoneBootstrapping` for how to bootstrap data.
 
-Views `should` load it's required resources from the ``shared resource
-instance`` by using your defined getter functions for retreiving `fundemental
-resources`. 
+Views *should* load their required resources from the *shared resource
+instance* by using your defined getter functions for retreiving *fundemental
+resources*.
 
-You `may` pass resources with :code:`this.options` hashmap in the view's
-contructor, but be aware of the *scary* depedency injection that easily turns
+You *may* pass resources with ``this.options`` hashmap in the view's
+contructor, but be aware of the *scary* dependency injection that easily turns
 your JavaScript application into a mess. Using this approach requires you to
-*trigger* signals with :code:`Backbone.EventBroker` and catching them in
+*trigger* signals with ``Backbone.EventBroker`` and catching them in
 relevant views with *interests* hashmap.
 
 Backbone.EventBroker is **required** if you need *cross-application* or
@@ -185,14 +185,14 @@ Backbone Bootstrapping
 Bootstrapping data **must** be done in the *base HTML template*.
 
 We suggest you prefix your DOM-element(s) with
-:code:`applicationName_bootstrap_` and and relevant name for what you are
+``applicationName_bootstrap_`` and and relevant name for what you are
 bootstrapping.
 
 An example from the Netmap application:
 
-A list of saved :code:`mapProperties` is bootstrapped under
-:code:`#netmap_bootstrap_mapPropertiesCollection`. This is a `Collection
-<http://backbonejs.org/#Collection>`_ of :code:`mapProperties` which is used
+A list of saved ``mapProperties`` is bootstrapped under
+``#netmap_bootstrap_mapPropertiesCollection``. This is a `Collection
+<http://backbonejs.org/#Collection>`_ of ``mapProperties`` which is used
 for toggling between a user's saved *map properties* (a.k.a *views* in
 Netmap).
 
@@ -217,9 +217,9 @@ For more complex functionality, Handlebars supports for registering helpers.
 This is useful in certain situations.
 
 An example:
-  :code:`context` contains a list of persons' first names and last names. A
-  helper for directly printing the :code:`fullName` given the
-  :code:`firstName` and :code:`lastName` in the :code:`context` would be
+  ``context`` contains a list of persons' first names and last names. A
+  helper for directly printing the ``fullName`` given the
+  ``firstName`` and ``lastName`` in the ``context`` would be
   useful. Maybe it's also useful to have a helper to always lower-case the
   data in a given context variable.
 

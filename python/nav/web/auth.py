@@ -38,14 +38,14 @@ def authenticate(username, password):
     # Try to find the account in the database. If it's not found we can try
     # LDAP.
     try:
-        account = Account.objects.get(login=username)
+        account = Account.objects.get(login__iexact=username)
     except Account.DoesNotExist:
         if ldapauth.available:
             user = ldapauth.authenticate(username, password)
             # If we authenticated, store the user in database.
             if user:
                 account = Account(
-                    login=username,
+                    login=user.username,
                     name=user.get_real_name(),
                     ext_sync='ldap'
                 )
@@ -58,7 +58,7 @@ def authenticate(username, password):
         ldapauth.available and not auth):
         try:
             auth = ldapauth.authenticate(username, password)
-        except ldapauth.Error:
+        except ldapauth.NoAnswerError:
             # Fallback to stored password if ldap is unavailable
             auth = False
         else:
