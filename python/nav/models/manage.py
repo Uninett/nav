@@ -95,6 +95,10 @@ class Netbox(models.Model):
     def __unicode__(self):
         return self.get_short_sysname()
 
+    def is_up(self):
+        """Returns True if the Netbox isn't known to be down or in shadow"""
+        return self.up == self.UP_UP
+
     def get_absolute_url(self):
         kwargs = {
             'name': self.sysname,
