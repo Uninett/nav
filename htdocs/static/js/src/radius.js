@@ -1,15 +1,14 @@
-require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
+require(['libs/jquery', 'src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_address_typedetect'], function () {
 
     function initTimeField() {
-        var time_field = $('#id_time_0');
-        var slack_help = $('a.tooltip');
+        var time_field = $('#id_time_1');
 
         // Disable input if all time is pre-selected
-        if ($('#id_time_1 :selected').val() === '') {
+        if ($('#id_time_0 :selected').val() === '') {
             time_field.attr('disabled', 'disabled');
         }
 
-        $('#id_time_1').change(function() {
+        $('#id_time_0').change(function() {
             var selected = $(this, 'option:selected');
 
             if (selected.val() === '') {
@@ -20,10 +19,8 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
                 time_field.removeAttr('disabled');
                 if (selected.val() === 'timestamp') {
                     time_field.val('YYYY-MM-DD hh:mm|slack');
-                    slack_help.show();
                 } else {
                     time_field.val('');
-                    slack_help.hide();
                 }
             }
         });
@@ -48,12 +45,6 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
     }
     function initResulttable(resulttable) {
         // Add classes
-        $.fn.dataTableExt.oStdClasses.sStripeOdd = 'oddrow';
-        $.fn.dataTableExt.oStdClasses.sStripeEven = 'evenrow';
-        $.fn.dataTableExt.oStdClasses.sSortAsc = 'headerSortDown';
-        $.fn.dataTableExt.oStdClasses.sSortDesc = 'headerSortUp';
-
-
         var nosort = resulttable.children('thead').data('nosort');
 
         // Iniialize
@@ -68,14 +59,15 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
             'oLanguage': {'sSearch': 'Filter results:'}
         });
 
-        // Set caption width to the table width
-        $('.caption').css('width', function() {
-           return resulttable.css('width');
-        });
-
         // Add listeners
         addTableCellListener(resulttable, datatable);
         addFilterInputListener(resulttable, datatable);
+    }
+
+    function addDetailsClickListener(resulttable) {
+        resulttable.on('click', '[data-bubble-reveal]', function () {
+            $('#details_modal').foundation('reveal', 'open', $(this).attr('data-bubble-reveal'));
+        });
     }
 
     $(document).ready(function () {
@@ -85,6 +77,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function () {
         var resulttable = $('#resulttable');
         if (resulttable.length) {
             initResulttable(resulttable);
+            addDetailsClickListener(resulttable);
         }
     });
 });

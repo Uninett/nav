@@ -18,7 +18,7 @@
 from django.conf.urls.defaults import url, patterns
 
 from nav.web.status.views import status, preferences, add_section
-from nav.web.status.views import edit_preferences
+from nav.web.status.views import edit_preferences, resolve_alert
 
 urlpatterns = patterns('',
     url(r'^$', status,
@@ -29,4 +29,5 @@ urlpatterns = patterns('',
         name='status-preferences-addsection'),
     url(r'^preferences/(?P<section_id>\d+)/$', edit_preferences,
         name='status-preferences-edit'),
+    url(r'^resolve-alert/$', resolve_alert, name='resolve-alert')
 )

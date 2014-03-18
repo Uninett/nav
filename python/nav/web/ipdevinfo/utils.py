@@ -372,6 +372,8 @@ def get_affected_host_count(netboxes):
 def find_affected_but_not_down(netbox_going_down, netboxes):
     """Mark affected but not down because of redundancy boxes"""
     graph = build_layer2_graph()
+    if not graph.has_node(netbox_going_down):
+        return [netbox_going_down]
     graph.remove_node(netbox_going_down)
     masters = find_uplink_nodes(netbox_going_down)
     redundant = []
@@ -413,12 +415,16 @@ def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets'):
     in_series = 'alias(color(stacked({0}),"00ff00cc"),"In")'.format(in_series)
     out_series = 'alias({0},"Out")'.format(out_series)
 
-    titlemap = dict(octets='Traffic on {ifname}',
-                    errors='Errors on {ifname}',
-                    ucastpkts='Unicast packets on {ifname}',
-                    discards='Discarded packets on {ifname}')
-    title = titlemap.get(kind.lower(),
-                         '{ifname}').format(ifname=interface.ifname)
+    titlemap = dict(octets='Traffic on {shortname}:{ifname} {ifalias}',
+                    errors='Errors on {shortname}:{ifname} {ifalias}',
+                    ucastpkts='Unicast packets on {shortname}:{ifname}',
+                    discards='Discarded packets on {shortname}:{ifname}')
+    title = titlemap.get(kind.lower(), '{ifname}').format(
+        ifname=interface.ifname,
+        ifalias=(u"(%s)" % interface.ifalias) if interface.ifalias else u'',
+        sysname=interface.netbox.sysname,
+        shortname=interface.netbox.get_short_sysname(),
+    )
 
     return get_simple_graph_url(
         [in_series, out_series], "1" + timeframe,

@@ -1,34 +1,52 @@
 {% extends "base.html" %} {# Don't need a deeper hierarchy for one template #}
 {% load crispy_forms_tags %}
+{% load tools %}
+
+{% block base_header_additional_head %}
+  <style type="text/css">
+  .statistics-chart {
+    margin: 0 2em 2em 0;
+  }
+  </style>
+  <script type="text/javascript">require(['src/statistics']);</script>
+{% endblock %}
 
 {% block base_content %}
 
-  <h2>Ranked statistics</h2>
+  {% with tool=current_user_data.tools|get_tool:'Statistics' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
 
   {% crispy form %}
 
   {# Display view if exists #}
   {% if result %}
-      {% if result.graph_url %}
-          <img src="{{ result.graph_url }}" alt="Graph" title="Graph">
+    {% if result.graph_url %}
+      <ul class="button-group">
+        <li><a id="line-chart" href="javascript:void(0);" class="button small active">Line chart</a></li>
+        <li><a id="pie-chart" href="javascript:void(0);" class="button small">Pie chart</a></li>
+      </ul>
 
-          <table class="listtable">
-              <caption>Average values</caption>
-              {% for metric, value in result.display_data %}
-                  <tr>
-                      <td>
-                          {{ metric }}
-                      </td>
-                      <td>
-                          {{ value }}{{ result.graph_args.vtitle }}
-                      </td>
-                  </tr>
-              {% endfor %}
+      <img src="{{ result.graph_url }}" alt="Chart" title="Chart" class="left statistics-chart">
 
-          </table>
-      {% else %}
-          <p>Error fetching data</p>
-      {% endif %}
+      <table class="listtable left">
+        <caption>Average values</caption>
+        {% for metric, value in result.display_data %}
+          <tr>
+            <td>
+              {{ metric }}
+            </td>
+            <td>
+              {{ value }}{{ result.graph_args.vtitle }}
+            </td>
+          </tr>
+        {% endfor %}
+
+      </table>
+    {% else %}
+      <p>Error fetching data</p>
+    {% endif %}
   {% endif %}
 
 {% endblock base_content %}

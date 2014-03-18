@@ -55,8 +55,9 @@ REFRESH_INTERVAL = 'refresh_interval'
 DEFAULT_PREFERENCES = [REFRESH_INTERVAL]
 
 import logging
-import simplejson
+import json
 from collections import namedtuple
+from operator import attrgetter
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -81,8 +82,10 @@ class Navlet(TemplateView):
     title = 'Navlet'
     description = 'No description'
     is_editable = False
+    is_title_editable = False
     preferences = {}  # See DEFAULT PREFERENCES for adding default values here
     navlet_id = None
+    highlight = None
 
     @property
     def mode(self):
@@ -114,7 +117,7 @@ class Navlet(TemplateView):
 
 def list_navlets(request):
     """Gives a json-response with all navlets modulestring, title and desc"""
-    return HttpResponse(simplejson.dumps(get_navlets()))
+    return HttpResponse(json.dumps(get_navlets()))
 
 
 def get_navlets():
@@ -127,6 +130,7 @@ def get_navlets():
             navlets.append(NavletContainer(navletmodule,
                                            cls.title,
                                            cls.description))
+    navlets = sorted(navlets, key=attrgetter('title'))
     return navlets
 
 
@@ -151,16 +155,24 @@ def get_user_navlets(request):
     navlets = []
     for usernavlet in usernavlets:
         navlets.append(create_navlet_object(usernavlet))
-    return HttpResponse(simplejson.dumps(navlets),
+    return HttpResponse(json.dumps(navlets),
                         content_type="application/json")
 
 
 def create_navlet_object(usernavlet):
     """Create a structure suitable for json transfer of a navlet"""
     url = reverse('get-user-navlet', kwargs={'navlet_id': usernavlet.id})
+    navlet_module = usernavlet.navlet
+    navlet_class = get_navlet_from_name(navlet_module)
+    highlight = navlet_class.highlight
+    is_title_editable = navlet_class.is_title_editable
+
     return {'id': usernavlet.id, 'url': url,
             'column': usernavlet.column,
-            'preferences': usernavlet.preferences}
+            'preferences': usernavlet.preferences,
+            'highlight': highlight,
+            'navlet_class': navlet_module.split('.')[-1],
+            'is_title_editable': is_title_editable}
 
 
 def dispatcher(request, navlet_id):
@@ -183,23 +195,26 @@ def add_user_navlet(request):
         account = get_account(request)
 
         if can_modify_navlet(account, request):
-            navlet = add_navlet(account, request)
-            return HttpResponse(simplejson.dumps(create_navlet_object(navlet)),
+            navlet_class = request.POST.get('navlet')
+            navlet = add_navlet(account, navlet_class)
+            return HttpResponse(json.dumps(create_navlet_object(navlet)),
                                 content_type="application/json")
 
     return HttpResponse(status=400)
 
 
-def add_navlet(account, request):
+def add_navlet(account, navlet, preferences=None):
     """Create new accountnavlet based on request data"""
-    navlet = request.POST.get('navlet')
-    accountnavlet = AccountNavlet(account=account,
-                                  navlet=navlet)
+    if preferences is None:
+        preferences = {}
+    accountnavlet = AccountNavlet(account=account, navlet=navlet)
     accountnavlet.column, accountnavlet.order = find_new_placement(account)
-    accountnavlet.preferences = get_default_preferences(
-        get_navlet_from_name(navlet))
-    accountnavlet.save()
 
+    default_preferences = get_default_preferences(
+        get_navlet_from_name(navlet)) or {}
+    accountnavlet.preferences = dict(preferences.items() +
+                                     default_preferences.items())
+    accountnavlet.save()
     return accountnavlet
 
 
@@ -278,7 +293,7 @@ def save_navlet_order(request):
 
 def save_order(account, request):
     """Update navlets with new placement data"""
-    orders = simplejson.loads(request.body)
+    orders = json.loads(request.body)
     for key, value in orders['column1'].items():
         update_navlet(account, key, value, NAVLET_COLUMN_1)
     for key, value in orders['column2'].items():
@@ -315,4 +330,35 @@ def render_base_template(request):
         cls = get_navlet_from_name(accountnavlet.navlet)
         return render_to_response('navlets/base.html', {'navlet': cls},
                                   RequestContext(request))
+
+
+def add_user_navlet_graph(request):
+    """Add a Graph Widget with url set to user dashboard"""
+    if request.method == 'POST':
+        url = request.POST.get('url')
+        if url:
+            add_navlet(request.account, 'nav.web.navlets.graph.GraphWidget',
+                       {'url': url})
+            return HttpResponse(status=200)
+
+    return HttpResponse(status=400)
+
+
+def set_navlet_preferences(request):
+    """Set preferences for a NAvlet"""
+    if request.method == 'POST':
+        try:
+            preferences = json.loads(request.POST.get('preferences'))
+            navletid = request.POST.get('id')
+            navlet = AccountNavlet.objects.get(pk=navletid,
+                                               account=request.account)
+        except AccountNavlet.DoesNotExist:
+            return HttpResponse(status=400)
+        else:
+            for key, value in preferences.items():
+                navlet.preferences[key] = value
+            navlet.save()
+            return HttpResponse()
+
+    return HttpResponse(status=400)
 

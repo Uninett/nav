@@ -15,9 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django import forms
+from ..forms import NetboxTypeFilterForm, NetboxTypeForm
 
-from nav.models.manage import NetboxType, Vendor
+from nav.models.manage import NetboxType
 from nav.bulkparse import NetboxTypeBulkParser
 from nav.bulkimport import NetboxTypeImporter
 
@@ -29,28 +29,26 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
 
+
 class NetboxTypeInfo(SeeddbInfo):
     active = {'type': True}
     caption = 'Types'
-    tab_template = 'seeddb/tabs_type.html'
+    tab_template = 'seeddb/tabs_generic.html'
     _title = 'Types'
     _navpath = [('Types', reverse_lazy('seeddb-type'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-type')
+    back_url = reverse_lazy('seeddb-type')
+    add_url = reverse_lazy('seeddb-type-edit')
+    bulk_url = reverse_lazy('seeddb-type-bulk')
 
-class NetboxTypeFilterForm(forms.Form):
-    vendor = forms.ModelChoiceField(
-        Vendor.objects.order_by('id').all(), required=False)
-
-class NetboxTypeForm(forms.ModelForm):
-    class Meta:
-        model = NetboxType
 
 def netboxtype(request):
     return view_switcher(request,
-        list_view=netboxtype_list,
-        move_view=not_implemented,
-        delete_view=netboxtype_delete)
+                         list_view=netboxtype_list,
+                         move_view=not_implemented,
+                         delete_view=netboxtype_delete)
+
 
 def netboxtype_list(request):
     info = NetboxTypeInfo()
@@ -59,20 +57,23 @@ def netboxtype_list(request):
     value_list = (
         'name', 'vendor', 'description', 'sysobjectid', 'cdp', 'tftp')
     return render_list(request, query, value_list, 'seeddb-type-edit',
-        filter_form=filter_form,
-        extra_context=info.template_context)
+                       filter_form=filter_form,
+                       extra_context=info.template_context)
+
 
 def netboxtype_delete(request):
     info = NetboxTypeInfo()
     return render_delete(request, NetboxType, 'seeddb-type',
-        whitelist=SEEDDB_EDITABLE_MODELS,
-        extra_context=info.template_context)
+                         whitelist=SEEDDB_EDITABLE_MODELS,
+                         extra_context=info.template_context)
+
 
 def netboxtype_edit(request, type_id=None):
     info = NetboxTypeInfo()
     return render_edit(request, NetboxType, NetboxTypeForm, type_id,
-        'seeddb-type-edit',
-        extra_context=info.template_context)
+                       'seeddb-type-edit',
+                       extra_context=info.template_context)
+
 
 def netboxtype_bulk(request):
     info = NetboxTypeInfo()

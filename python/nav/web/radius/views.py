@@ -15,20 +15,17 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """radius accounting interface views"""
-from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-
+from nav.web.utils import create_title
 from .forms import (AccountChartsForm,
                     AccountLogSearchForm,
                     ErrorLogSearchForm)
 
-from radius_config import (INDEX_PAGE,
-                           LOG_SEARCHRESULTFIELDS,
-                           ACCT_DETAILSFIELDS,
-                           ACCT_DBFIELDSDESCRIPTIONS,
-                           LOG_DETAILFIELDS,
-                           LOG_FIELDDESCRIPTIONS)
+from .radius_config import (INDEX_PAGE, LOG_SEARCHRESULTFIELDS,
+                            ACCT_DETAILSFIELDS, ACCT_DBFIELDSDESCRIPTIONS,
+                            LOG_DETAILFIELDS, LOG_FIELDDESCRIPTIONS)
 
 from .db import (AcctChartsQuery,
                  AcctDetailQuery,
@@ -37,8 +34,13 @@ from .db import (AcctChartsQuery,
                  LogSearchQuery)
 
 
-TITLE = 'NAV - Radius'
-NAVPATH = [('Home', '/'), ('Radius', None)]
+def get_navpath(path):
+    """Add path to root path.
+
+    :type path: tuple
+    """
+    navpath = [('Home', '/'), ('Radius', reverse('radius-index'))]
+    return navpath + [path]
 
 
 def index(request):
@@ -47,34 +49,35 @@ def index(request):
     Uses redirect to get the whole urls
     """
     if INDEX_PAGE == 'acctcharts':
-        return HttpResponseRedirect('acctcharts')
+        return account_charts(request)
     elif INDEX_PAGE == 'logsearch':
-        return HttpResponseRedirect('logsearch')
+        return log_search(request)
     else:
-        return HttpResponseRedirect('acctsearch')
+        return account_search(request)
 
 
 def log_search(request):
-
+    """Displays the page for doing a radius log search"""
     context = {}
 
     if 'send' in request.GET:
         form = ErrorLogSearchForm(request.GET)
         if form.is_valid():
             data = form.cleaned_data
+            searchstring = data.get('query')[1]
+            searchtype = data.get('query')[0]
 
-            # TODO? Put this logic in the form itself
             hours = timestamp = slack = ''
             time = data.get('time')
-            timemode = time[1] if time and len(time) == 2 else ''
+            timemode = time[0] if time and len(time) == 2 else ''
             if timemode == 'hours':
                 hours = time[0]
             elif timemode == 'timestamp':
-                timestamp, slack = time[0].split('|')
+                timestamp, slack = split_time(time[1])
 
             query = LogSearchQuery(
-                data.get('query')[0],
-                data.get('query')[1],
+                searchstring,
+                searchtype,
                 data.get('log_entry_type'),
                 timemode,
                 timestamp,
@@ -99,9 +102,10 @@ def log_search(request):
     else:
         form = ErrorLogSearchForm()
 
+    navpath = get_navpath(('Error Log',))
     context.update({
-        'title': TITLE,
-        'navpath': NAVPATH,
+        'navpath': navpath,
+        'title': create_title(navpath),
         'form': form,
         'logsearch': True
     })
@@ -110,9 +114,21 @@ def log_search(request):
                               context_instance=RequestContext(request))
 
 
-def log_detail(request):
+def log_detail_page(request, accountid):
+    """Displays log details as a separate page"""
+    template = 'radius/detail.html'
+    return log_detail(request, accountid, template)
 
-    query = LogDetailQuery(request.GET.get('id'))
+
+def log_detail_modal(request, accountid):
+    """Displays log details as a separate page"""
+    template = 'radius/detail_modal.html'
+    return log_detail(request, accountid, template)
+
+
+def log_detail(request, accountid, template):
+    """Displays log details for accountid with the given template"""
+    query = LogDetailQuery(accountid)
     query.execute()
     result = query.result[0]
 
@@ -121,18 +137,20 @@ def log_detail(request):
         for field in LOG_DETAILFIELDS]
     fields = zip(field_desc, result)
 
+    navpath = get_navpath(('Log Detail', ))
     context = {
-        'title': TITLE,
-        'navpath': NAVPATH,
+        'reverse': reverse('radius-log_detail', args=(accountid, )),
+        'title': create_title(navpath),
+        'navpath': navpath,
         'fields': fields,
     }
 
-    return render_to_response('radius/detail.html', context,
+    return render_to_response(template, context,
                               context_instance=RequestContext(request))
 
 
 def account_charts(request):
-
+    """Displays the page for account charts"""
     context = {}
 
     if 'send' in request.GET:
@@ -150,9 +168,10 @@ def account_charts(request):
     else:
         form = AccountChartsForm()
 
+    navpath = get_navpath(('Account Charts', ))
     context.update({
-        'title': TITLE,
-        'navpath': NAVPATH,
+        'navpath': navpath,
+        'title': create_title(navpath),
         'form': form,
         'acctcharts': True
     })
@@ -161,9 +180,21 @@ def account_charts(request):
                               context_instance=RequestContext(request))
 
 
-def account_detail(request):
+def account_detail_page(request, accountid):
+    """Displays account details as a separate page"""
+    template = 'radius/detail.html'
+    return account_detail(request, accountid, template)
 
-    query = AcctDetailQuery(request.GET.get('acctuniqueid'))
+
+def account_detail_modal(request, accountid):
+    """Displays account details suitable for a modal"""
+    template = 'radius/detail_modal.html'
+    return account_detail(request, accountid, template)
+
+
+def account_detail(request, accountid, template):
+    """Finds account details for a specific accountid"""
+    query = AcctDetailQuery(accountid)
     query.execute()
     result = query.result[0]
 
@@ -172,19 +203,21 @@ def account_detail(request):
         for field in ACCT_DETAILSFIELDS]
     fields = zip(field_desc, result)
 
+    navpath = get_navpath(('Account Detail',))
     context = {
-        'title': TITLE,
-        'navpath': NAVPATH,
+        'reverse': reverse('radius-account_detail', args=(accountid, )),
+        'title': create_title(navpath),
+        'navpath': navpath,
         'fields': fields,
         'result': query.result
     }
 
-    return render_to_response('radius/detail.html', context,
+    return render_to_response(template, context,
                               context_instance=RequestContext(request))
 
 
 def account_search(request):
-
+    """Displays the page for doing an account log search"""
     context = {}
 
     if 'send' in request.GET:
@@ -192,20 +225,19 @@ def account_search(request):
         if form.is_valid():
             data = form.cleaned_data
 
-            # TODO? Put this logic in the form itself
             days = timestamp = slack = ''
             time = data.get('time')
-            timemode = time[1] if time and len(time) == 2 else ''
+            timemode = time[0] if time and len(time) == 2 else ''
             if timemode == 'days':
-                days = time[0]
+                days = time[1]
             elif timemode == 'timestamp':
-                timestamp, slack = time[0].split('|')
+                timestamp, slack = split_time(time[1])
 
             dns_lookup = data.get('dns_lookup')
 
             query = AcctSearchQuery(
-                data.get('query')[0],
                 data.get('query')[1],
+                data.get('query')[0],
                 data.get('port_type'),
                 timemode,
                 timestamp,
@@ -217,11 +249,7 @@ def account_search(request):
                 'DESC'
             )
             query.execute()
-            (
-                total_time,
-                total_sent,
-                total_received
-            ) = query.make_stats()
+            (total_time, total_sent, total_received) = query.make_stats()
             context.update({
                 'result': query.result,
                 'total_time': total_time,
@@ -233,12 +261,23 @@ def account_search(request):
     else:
         form = AccountLogSearchForm()
 
+    navpath = get_navpath(('Account Log', ))
     context.update({
-        'title': TITLE,
-        'navpath': NAVPATH,
+        'title': create_title(navpath),
+        'navpath': navpath,
         'form': form,
         'acctsearch': True
     })
 
     return render_to_response('radius/account_log.html', context,
                               context_instance=RequestContext(request))
+
+
+def split_time(timestring):
+    """Splits timestrin in timestamp and optional slack. Default slack is 1"""
+    time_values = timestring.split('|')
+    timestamp = time_values[0]
+    slack = 1
+    if len(time_values) > 1:
+        slack = time_values[1]
+    return timestamp, slack

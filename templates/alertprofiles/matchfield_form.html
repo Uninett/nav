@@ -2,6 +2,10 @@
 
 {% block url_edit %}{% url alertprofiles-matchfields-save %}{% endblock %}
 
+{% block backnavigation %}
+    <p><a href="{% url alertprofiles-matchfields %}">Back to matchfields</a></p>
+{% endblock %}
+
 {% block headercontent %}
     {% if detail_id %}
         Matchfield details
@@ -11,24 +15,29 @@
 {% endblock %}
 
 {% block form_additional_fields %}
-<tr>
-    <th><label for="id_operator">Available operators:</label></th>
-    <td>
-        <select name="operator" id="id_operator" multiple="multiple">
+  <div class="row">
+    <div class="medium-4 column">
+      <label for="id_operator">
+        Available operators
+        <i class="fa fa-info-circle" data-tooltip title="
+          The operators that will be available to use on this match field.
+          &nbsp;&nbsp;
+          Note:
+          Only 'equals' and 'in' makes sense when 'Show list' is checked, there
+          is however nothing that will prevent you from selecting them all for
+          use on a list, but alert engine won't understand it.
+        "></i>
+      </label>
+
+      <select name="operator" id="id_operator" multiple="multiple">
         {% for o in operators %}
-            <option value="{{ o.id }}"
-            {% if o.selected %}selected="selected"{% endif %}
-            >{{ o.name }}</option>
+          <option value="{{ o.id }}"
+                  {% if o.selected %}selected="selected"{% endif %}
+                  >{{ o.name }}</option>
         {% endfor %}
-        </select>
-        <br />
-        The operators that will be available to use on this match field.<br />
-        Note:<br />
-        Only "equals" and "in" makes sense when "Show list" is checked, there
-        is however nothing that will prevent you from selecting them all for
-        use on a list, but alert engine won't understand it.
-    </td>
-</tr>
+      </select>
+    </div>
+  </div>
 {% endblock %}
 
 {% block filter_content %}

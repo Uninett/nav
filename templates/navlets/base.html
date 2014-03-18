@@ -1,24 +1,51 @@
-{% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
-    <ul class="navlet-action-group button-group right">
+<div class="row navlet-header">
+  <div class="small-12 column">
+    {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
+      <ul class="navlet-action-group button-group">
+        <li>
+          <a href="javascript:void(0);" class="navlet-drag-button right">
+            <i class="fa fa-arrows" title="Drag to move widgets to where you want them"></i>
+          </a>
+        </li>
+{% comment %} Leave this uncommented in case we want it back.
+        <li>
+          <a href="javascript:void(0);" class="navlet-reload-button right">
+            <i class="fa fa-refresh" title="Reload"></i>
+          </a>
+        </li>
+{% endcomment %}
         {% if navlet.is_editable %}
-            <li>
-                <a href="javascript:void(0);" class="navlet-mode-switch button tiny right secondary"
-                   data-mode="{{ navlet.mode }}">
-                    {% if navlet.mode == 'VIEW' %}
-                        Edit
-                    {% else %}
-                        View
-                    {% endif %}
-                </a>
-            </li>
+          <li>
+            <a href="javascript:void(0);" class="navlet-mode-switch right"
+               data-mode="{{ navlet.mode }}">
+              {% if navlet.mode == 'VIEW' %}
+                <i class="fa fa-gear" title="Edit"></i>
+              {% else %}
+                <i class="fa fa-check-square-o" title="View"></i>
+              {% endif %}
+            </a>
+          </li>
         {% endif %}
         <li>
-            <a href="javascript:void(0);" class="navlet-remove-button button tiny right secondary">Remove</a>
+          <a href="javascript:void(0);" class="navlet-remove-button right">
+            <i class="fa fa-times-circle" title="Remove"></i>
+          </a>
         </li>
-    </ul>
-{% endif %}
+      </ul>
+    {% endif %}
 
-<span class="subheader" title="{{ navlet.description }}">{{ navlet.title }}</span>
+    <div class="title-container">
+      <span class="subheader" title="{{ navlet.description }}"
+            {% if navlet.is_title_editable %}data-set-title="{% url set-navlet-preferences %}"{% endif %}>
+        <span class="navlet-title">{{ navlet.title }}</span>
+          {% if navlet.is_title_editable %}
+            <i class="fa fa-edit"></i>
+          {% endif %}
+      </span>
+    </div>
+
+  </div>
+</div>
 
 {% block navlet-content %}
 {% endblock %}

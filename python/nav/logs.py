@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2006, 2007, 2009, 2011, 2012 UNINETT AS
+# Copyright (C) 2006, 2007, 2009, 2011, 2012, 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,24 +17,27 @@
 """NAV related logging functionality."""
 
 import sys
-import os.path
+import os
 import logging
 import ConfigParser
 import nav.path
 
 DEFAULT_LOG_FORMATTER = logging.Formatter('[%(asctime)s] [%(levelname)s] '
                                           '[%(name)s] %(message)s')
+LOGGING_CONF_VAR = 'NAV_LOGGING_CONF'
+LOGGING_CONF_FILE_DEFAULT = os.path.join(nav.path.sysconfdir, 'logging.conf')
+_logger = logging.getLogger(__name__)
 
 
 def set_log_levels():
-    """Read the logging config file and set up log levels for the different
-    loggers."""
-    logconf_file = os.path.join(nav.path.sysconfdir, 'logging.conf')
-    config = ConfigParser.ConfigParser()
-    config.read(logconf_file)
-    
+    """
+    Read the logging config file and set up log levels for the different
+    loggers.
+    """
+    config = get_logging_conf()
     if 'levels' not in config.sections():
         return
+
     for logger_name in config.options('levels'):
         level = config.get('levels', logger_name)
         # Allow the config file to specify the root logger as 'root'
@@ -52,6 +55,26 @@ def set_log_levels():
             # Default to INFO
             level = logging.INFO
         logger.setLevel(level)
+
+
+def get_logging_conf():
+    """
+    Returns a ConfigParser with the logging configuration to use.
+
+    Unless a specific config file is specified NAV_LOGGING_CONF environment
+    variable, the default is to read from the file specified by
+    LOGGING_CONF_FILE_DEFAULT .
+
+    """
+    filename = os.environ.get(LOGGING_CONF_VAR, LOGGING_CONF_FILE_DEFAULT)
+    config = ConfigParser.ConfigParser()
+    read = config.read(filename)
+    if filename not in read and LOGGING_CONF_VAR in os.environ:
+        _logger.error("cannot read logging config from %s, trying default %s",
+                      filename, LOGGING_CONF_FILE_DEFAULT)
+        config.read(LOGGING_CONF_FILE_DEFAULT)
+    return config
+
 
 def reset_log_levels(level=logging.WARNING):
     """Resets the log level of all loggers.

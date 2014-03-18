@@ -9,61 +9,92 @@ require([
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
 
-    $(function() {
-        new CheckboxSelector('#select', '.selector').add();
-        new QuickSelect('.quickselect');
+    function executeOnLoad() {
+        if ($('#map').length) {
+            populateMap(initMap());     // Show map for coordinates
+        }
 
+        /* The Datatables plugin works best when content is rendered. Thus
+         * we activate it on load */
         if ($(tableSelector).find('tbody tr').length > 1) {
             enrichTable();
         } else {
             $(tableWrapper).removeClass('notvisible');
         }
 
-        // Mapstuff
-        if ($('#map').length) {
+        new CheckboxSelector('#select', '.selector').add();
+        new QuickSelect('.quickselect');
+    }
 
-            var map = initMap();
-            var marker_layer = addMarkerLayer(map);
-            var marker;
-            var displayProjection = map.displayProjection;
-            var inputProjection = map.getProjectionObject();
+    /* Internet Explorer caching leads to onload event firing before script
+       is loaded - thus we never get the load event. This code will at least
+       make it usable. */
+    if (document.readyState === 'complete') {
+        executeOnLoad();
+    } else {
+        $(window).load(executeOnLoad);
+    }
 
-            var position_input = $('#id_position');
-            var deferredCenter = $.when(getLocation(position_input.val()));
+    function initMap() {
+        OpenLayers.ImgPath = NAV.imagePath + '/openlayers/';
+        var map = new OpenLayers.Map('map', {
+            displayProjection: new OpenLayers.Projection("EPSG:4326"),
+            controls: [
+                new OpenLayers.Control.PanZoomBar(),
+                new OpenLayers.Control.Navigation()
+            ],
+            theme: NAV.cssPath + '/openlayers.css'
+        }),
+            mapLayer = new OpenLayers.Layer.OSM('OpenStreetMap',
+                '/search/osm_map_redirect/${z}/${x}/${y}.png');
 
-            deferredCenter.done(function(center) {
-                center.transform(displayProjection, inputProjection);
-                map.setCenter(center, 14);
-                marker = addMarkerToLayer(center, marker_layer);
-                moveMarker(
-                    map,
-                    center,
-                    marker,
-                    position_input,
-                    displayProjection,
-                    inputProjection);
+        mapLayer.tileOptions = {crossOriginKeyword: null};
+        map.addLayer(mapLayer);
+        return map;
+    }
 
-                initGetLonLatOnClickControl(
-                    map, marker ,inputProjection, displayProjection, position_input);
-            });
 
-            deferredCenter.fail(function() {
-                map.zoomToMaxExtent();
-                var center = map.center;
-                marker = addMarkerToLayer(center, marker_layer);
-                moveMarker(
-                    map,
-                    center,
-                    marker,
-                    position_input,
-                    displayProjection,
-                    inputProjection);
+    function populateMap(map) {
+        var marker_layer = addMarkerLayer(map);
+        var marker;
+        var displayProjection = map.displayProjection;
+        var inputProjection = map.getProjectionObject();
 
-                initGetLonLatOnClickControl(
-                    map, marker ,inputProjection, displayProjection, position_input);
-            });
-        }
-    });
+        var position_input = $('#id_position');
+        var deferredCenter = $.when(getLocation(position_input.val()));
+
+        deferredCenter.done(function(center) {
+            center.transform(displayProjection, inputProjection);
+            map.setCenter(center, 14);
+            marker = addMarkerToLayer(center, marker_layer);
+            moveMarker(
+                map,
+                center,
+                marker,
+                position_input,
+                displayProjection,
+                inputProjection);
+
+            initGetLonLatOnClickControl(
+                map, marker ,inputProjection, displayProjection, position_input);
+        });
+
+        deferredCenter.fail(function() {
+            map.zoomToMaxExtent();
+            var center = map.center;
+            marker = addMarkerToLayer(center, marker_layer);
+            moveMarker(
+                map,
+                center,
+                marker,
+                position_input,
+                displayProjection,
+                inputProjection);
+
+            initGetLonLatOnClickControl(
+                map, marker ,inputProjection, displayProjection, position_input);
+        });
+    }
 
     function getLocation(position_string) {
         var deferred = $.Deferred();
@@ -85,7 +116,8 @@ require([
             center = new OpenLayers.LonLat(0, 0);
             navigator.geolocation.getCurrentPosition(
                 gotPosition,
-                errorGettingPosition
+                errorGettingPosition,
+                {timeout: 1000}  // Default is infinity, yay. No map for you.
             );
         }
         else {
@@ -94,24 +126,6 @@ require([
         }
 
         return deferred.promise();
-    }
-
-    function initMap() {
-        OpenLayers.ImgPath = NAV.imagePath + '/openlayers/';
-        var map = new OpenLayers.Map('map', {
-            displayProjection: new OpenLayers.Projection("EPSG:4326"),
-            controls: [
-                new OpenLayers.Control.PanZoomBar(),
-                new OpenLayers.Control.Navigation()
-            ],
-            theme: NAV.cssPath + '/openlayers.css'
-        });
-        map.addLayer(new OpenLayers.Layer.OSM(
-            'OpenStreetMap',
-            '/info/osm_map_redirect/${z}/${x}/${y}.png')
-        );
-        console.log(map);
-        return map;
     }
 
     function addMarkerLayer(map) {
@@ -218,7 +232,7 @@ require([
                 { 'bSortable': false, 'sWidth': '16px', 'aTargets': [ 0 ] }  // Do not sort on first column
             ],
             "sPaginationType": "full_numbers", // Display page numbers in pagination
-            "sDom": "<li>t<p>",   // display order of metainfo (lengthchange, info, pagination)
+            "sDom": "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
             "fnDrawCallback": function (oSettings) {
                 /* Run this on redraw of table */
                 $('.paginate_button').removeClass('disabled').addClass('button tiny');
@@ -234,10 +248,6 @@ require([
         });
 
         table.fnSort([[1, 'asc']]);  // When loaded, sort ascending on second column
-        $(window).bind('resize', function () {
-            /* Adjust table size when resizing window */
-            table.fnAdjustColumnSizing();
-        });
     }
 
 });

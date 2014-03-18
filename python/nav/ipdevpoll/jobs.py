@@ -86,8 +86,8 @@ class JobHandler(object):
         self.storage_queue = []
 
         # Initialize netbox in container
-        nb = self.container_factory(shadows.Netbox, key=None)
-        (nb.id, nb.sysname) = (netbox.id, netbox.sysname)
+        nb = self.container_factory(shadows.Netbox, key=None,
+                                    id=netbox.id, sysname=netbox.sysname)
 
         self.agent = None
 
@@ -159,7 +159,12 @@ class JobHandler(object):
         willing_plugins = []
         unwilling_plugins = []
         for cls in plugin_classes:
-            can_handle = yield defer.maybeDeferred(cls.can_handle, self.netbox)
+            try:
+                can_handle = yield defer.maybeDeferred(cls.can_handle, self.netbox)
+            except Exception, err:
+                self._logger.exception(
+                    "Unhandled exception from can_handle(): %r", cls)
+                can_handle = False
             if can_handle:
                 willing_plugins.append(cls)
             else:
@@ -446,9 +451,9 @@ class JobHandler(object):
             manager = shadow_class.manager(shadow_class, self.containers)
             self.storage_queue.append(manager)
 
-    def container_factory(self, container_class, key):
+    def container_factory(self, container_class, key, *args, **kwargs):
         """Container factory function"""
-        return self.containers.factory(key, container_class)
+        return self.containers.factory(key, container_class, *args, **kwargs)
 
     def raise_if_cancelled(self):
         """Raises an AbortedJobError if the current job is cancelled"""

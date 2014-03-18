@@ -86,6 +86,8 @@ class CiscoVlan(Plugin):
             interface = self.containers.factory(ifindex, shadows.Interface)
             interface.trunk = False
             interface.vlan = vlan
+            if not interface.baseport:
+                interface.baseport = -ifindex
 
 
     def _store_trunk_ports(self, native_vlans, enabled_vlans):

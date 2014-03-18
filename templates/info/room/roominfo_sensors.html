@@ -1,0 +1,48 @@
+{% load thresholds %}
+
+<dl class="sub-nav">
+  <dt>Filter:</dt>
+  <dd class="active"><a href="javascript:void(0);" data-action="all">All</a></dd>
+  <dd><a href="javascript:void(0);" data-action="gauges">Gauges</a></dd>
+  <dd><a href="javascript:void(0);" data-action="charts">Charts</a></dd>
+</dl>
+
+{% for netbox in netboxes %}
+  {% if netbox.sensor_set.count > 0 %}
+    <div class="clearfix netbox-sensor-container">
+      <h3>Sensors for
+        <a href="{% url ipdevinfo-details-by-name netbox.sysname %}/#!sysmetrics!metricsensors"
+           title="See all sensor metrics for this IP device">
+          {{ netbox.sysname }}
+        </a>
+      </h3>
+      {% for sensor in netbox.sensor_set.all %}
+        {% if 'celsius' in sensor.unit_of_measurement|lower or 'percent' in sensor.unit_of_measurement|lower %}
+
+          <div class="room-sensor left"
+               data-url="{{ sensor.get_graph_url }}"
+               data-unit="{{ sensor.unit_of_measurement }}"
+               data-sensorid="{{ sensor.id }}"
+               data-sensorname="{{ sensor.human_readable }}"
+               data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
+                  >
+          </div>
+        {% endif %}
+
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endfor %}
+
+{% comment %}
+    <div class="clearfix netbox-sensor-container">
+      <h3>Sensors for ups-aggregat</h3>
+          <div class="room-sensor left"
+               data-url="/graphite/render?from=-1day&target=alias%28nav.devices.ups-aggregat_uninett_no.sensors.upsEstimatedMinutesRemaining%2C+%22An+estimate+remain+off.%22%29&height=250&width=480&template=nav&vtitle=Minutes&yMin=0&until=now"
+               data-unit="Minutes"
+               data-sensorid="933"
+               data-sensorname="An estimate of the time to battery charge depletion under the present load conditions if the utility power is off and remains off, or if it were to be lost and remain off"
+                  >
+          </div>
+    </div>
+{% endcomment %}

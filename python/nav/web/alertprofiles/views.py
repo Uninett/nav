@@ -669,6 +669,8 @@ def profile_time_period_setup(request, time_period_id=None):
     else:
         time_period_form = AlertSubscriptionForm(time_period=time_period)
 
+    time_period_form.is_valid()
+
     info_dict = {
         'form': time_period_form,
         'subscriptions': subscriptions,
@@ -2165,7 +2167,7 @@ def matchfield_list(request):
     new_message(request,
         _('''Editing matchfields is black magic. Don't do it unless you know
         exacly what you are doing.'''),
-        Messages.NOTICE,
+        Messages.ERROR,
     )
 
     # Get all matchfields aka. filter variables
@@ -2188,6 +2190,7 @@ def matchfield_list(request):
             template_name='alertprofiles/matchfield_list.html',
             extra_context=info_dict,
         )
+
 
 def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
     active = {'matchfields': True}
@@ -2217,11 +2220,11 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
 
         if len(filters) > 0:
             names = ', '.join([f.name for f in filters])
-            new_message(request,
-                _('''Match field is in use in filters: %(filters)s. Editing
-                this match field may alter how those filters work.''') % {
-                    'filters': names,
-                },
+            new_message(
+                request,
+                _("Match field is in use in filters: %(filters)s. Editing "
+                  "this match field may alter how those filters work.")
+                % {'filters': names},
                 Messages.WARNING
             )
 
@@ -2236,29 +2239,30 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
         subsection = {'new': True}
 
     new_message(request,
-        _('''Editing matchfields is black magic. Don't do it unless you know
-        exacly what you are doing.'''),
-        Messages.NOTICE,
-    )
+                _("Editing matchfields is black magic. Don't do it unless you "
+                  "know exacly what you are doing."),
+                Messages.ERROR)
 
     info_dict = {
-            'active': active,
-            'subsection': subsection,
-            'detail_id': matchfield_id,
-            'form': matchfield_form,
-            'operators': operators,
-            'owner': True,
-            'navpath': BASE_PATH+[
-                ('Matchfields', reverse('alertprofiles-matchfields')),
-                (page_name, None),
-            ],
-            'title': 'NAV - Alert profiles',
-        }
+        'active': active,
+        'subsection': subsection,
+        'detail_id': matchfield_id,
+        'form': matchfield_form,
+        'operators': operators,
+        'owner': True,
+        'navpath': BASE_PATH + [
+            ('Matchfields', reverse('alertprofiles-matchfields')),
+            (page_name, None),
+        ],
+        'title': 'NAV - Alert profiles',
+    }
+
     return render_to_response(
-            'alertprofiles/matchfield_form.html',
-            info_dict,
-            RequestContext(request),
-        )
+        'alertprofiles/matchfield_form.html',
+        info_dict,
+        RequestContext(request),
+    )
+
 
 def matchfield_detail(request, matchfield_id=None):
     return matchfield_show_form(request, matchfield_id)

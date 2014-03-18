@@ -55,7 +55,7 @@ Views accessing and sharing the same model or collection from
 :ref:`Netmap_Resources` uses the *events* `(doc)
 <http://backbonejs.org/#View-delegateEvents>`__ keymap defined in views for
 reacting on changes. Other views not sharing the same model/collection instance
-should use :code:`Backbone.EventBroker` `(doc)
+should use ``Backbone.EventBroker`` `(doc)
 <https://github.com/efeminella/backbone-eventbroker>`__ to trigger
 notifications for data which is required elsewhere. A view can attach an
 code:`interests` hashmap for listening to a certain trigger.
@@ -82,7 +82,7 @@ These three main views render quite a few subviews, which we call *widgets*.
 The main views also have the responsibility for plugging in
 :file:`htdocs/js/src/plugins/header_footer_minimize.js`, which enables
 toggling the visibility of the side panels (:ref:`NavigationView` &
-:ref:`InfoView`) and NAV's header (:code:`css: #header`).
+:ref:`InfoView`) and NAV's header (``css: #header``).
 
 .. _NavigationView: 
 
@@ -230,10 +230,10 @@ state storage".
 
 Resources are bootstrapped from :file:`htdocs/js/src/netmap/app.js`, which
 makes sure to initalize the Resources. Resources fetches saved
-:js:data:`mapProperties` from :code:`#netmap_bootstrap_mapPropertiesCollection`.
+:js:data:`mapProperties` from ``#netmap_bootstrap_mapPropertiesCollection``.
 
 If :ref:`bootstrap` also contains data for the current favorite
-:code:`mapProperties(view)`, this gets updated for its related 
+``mapProperties(view)``, this gets updated for its related 
 :js:data:`activeMapProperties` in the js:data:`mapProperties` collection. 
 
 If a View requires access to data stored in :js:data:`activeMapProperties`, it

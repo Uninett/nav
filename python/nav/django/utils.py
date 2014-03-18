@@ -35,36 +35,17 @@ def get_request_body(request):
     else:
         return request.raw_post_data
 
+
 def get_account(request):
-    """Tries to fetch account from request object. If it's not found we look it
-    up in the database.
-    """
-    try:
-        account = request.account
-    except AttributeError:
-        account = Account.objects.get(
-            login=request._req.session['user']['login'])
-        request.account = account
-    return account
+    """Returns the account associated with the request"""
+    return request.account
 
 
 def is_admin(account):
     """Check if user is a member of the administrator group"""
     return account.accountgroup_set.filter(
-        pk=AccountGroup.ADMIN_GROUP).count() > 0;
+        pk=AccountGroup.ADMIN_GROUP).count() > 0
 
-def permission_required(function):
-    """Decorator to check if user have access"""
-    def _check_permission(request, *args, **kwargs):
-        account = get_account(request)
-        if account.has_perm('web_access', request.path):
-            return function(request, *args, **kwargs)
-        else:
-            # FIXME better 403 handling
-            return HttpResponseForbidden(
-                '<h1>403 Forbidden</h1>'
-                '<p>You do not have access to this page</p>')
-    return _check_permission
 
 def get_verbose_name(model, lookup):
     """Verbose name introspection of ORM models.

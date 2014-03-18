@@ -1,16 +1,8 @@
 {% extends 'navlets/base.html' %}
+{% load crispy_forms_tags %}
 
 {% block navlet-content %}
 
-    <form action="{% url get-user-navlet navlet.navlet_id %}" method="post">
-        <div class="row collapse">
-            <div class="large-9 column">
-                <input type="text" name="searchvalue" placeholder="IP-address or hostname">
-            </div>
-            <div class="large-3 column">
-                <input type="submit" class="button postfix" value="Search">
-            </div>
-        </div>
-    </form>
+  {% crispy form %}
 
 {% endblock %}

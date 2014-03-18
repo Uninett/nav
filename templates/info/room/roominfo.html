@@ -40,72 +40,11 @@
             <li><a href="#roominfo">Room info</a></li>
             <li><a href="#deviceinfo">Device info</a></li>
             <li><a href="{% url room-info-netboxes room.id %}" title="netboxinterfaces">Netbox interfaces <span class="tab-spinner">&nbsp;</span></a></li>
+            <li><a href="{% url room-info-sensors room.id %}" title="sensors">Environment sensors <span class="tab-spinner">&nbsp;</span></a></li>
         </ul>
 
         <div id="roominfo">
-            <table id="roominfotable" class="listtable">
-                <caption>Roominfo</caption>
-                <thead>
-                <tr>
-                    <th>Location</th>
-                    <th>Description</th>
-                    <th>opt1</th>
-                    <th>opt2</th>
-                    <th>opt3</th>
-                    <th>opt4</th>
-                    <th>Position</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td><a href="/report/location?locationid={{ room.location.id }}">{{ room.location.description }}</a></td>
-                    <td>{{ room.description }}</td>
-                    <td>{{ room.optional_1|urlize }}</td>
-                    <td>{{ room.optional_2|urlize }}</td>
-                    <td>{{ room.optional_3|urlize }}</td>
-                    <td>{{ room.optional_4|urlize }}</td>
-                    <td class="position" data-roomname="{{ room.id }}">
-                        {% if room.position %}{{ room.position|join:', ' }}{% endif %}
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-
-            {% if images|length > 0 %}
-                <div class="slider-wrapper theme-default">
-                    <div id="slider" class="nivoSlider">
-                        {% for image in images %}
-                            <a href="/uploads/images/rooms/{{ image.path }}/{{ image.name }}">
-                                <img src="/uploads/images/rooms/{{ image.path }}/{{ image.name }}"
-                                     data-thumb="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}"
-                                     title="#{{ image.id }}" />
-                            </a>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                {% comment %} To support html captions we need to create an element for each image {% endcomment %}
-                {% for image in images %}
-                    <div id="{{ image.id }}" class="nivo-html-caption">
-                        {{ image.title|safe }}
-                    </div>
-                {% endfor %}
-
-            {% else %}
-                <a href="{% url room-info-upload room.id %}" class="button secondary small">
-                    Add images
-                    <i class="fa fa-camera"></i>
-                </a>
-            {% endif %}
-
-            <div class="float-clear"></div>
-
-
-            {% comment %}
-            <div id="room_map" class="smallmap"></div>
-            <div id="coordinates"></div>
-{% endcomment %}
-
+          {% include 'info/room/roominfo_main.html' %}
         </div>
 
         <div id="deviceinfo">
@@ -120,7 +59,9 @@
 
         <div id="netboxinterfaces"></div>
 
-    </div>
+        <div id="sensors"></div>  {# sensors #}
+
+    </div> 
 
 {% endblock %}
 

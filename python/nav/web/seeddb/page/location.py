@@ -29,6 +29,7 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
+
 class LocationForm(forms.ModelForm):
     class Meta:
         model = Location
@@ -38,39 +39,48 @@ class LocationForm(forms.ModelForm):
         if kwargs.get('instance'):
             del self.fields['id']
 
+
 class LocationInfo(SeeddbInfo):
     active = {'location': True}
     caption = 'Locations'
-    tab_template = 'seeddb/tabs_location.html'
+    tab_template = 'seeddb/tabs_generic.html'
     _title = 'Locations'
     _navpath = [('Locations', reverse_lazy('seeddb-location'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-location')
+    back_url = reverse_lazy('seeddb-location')
+    add_url = reverse_lazy('seeddb-location-edit')
+    bulk_url = reverse_lazy('seeddb-location-bulk')
+
 
 def location(request):
     return view_switcher(request,
-        list_view=location_list,
-        move_view=not_implemented,
-        delete_view=location_delete)
+                         list_view=location_list,
+                         move_view=not_implemented,
+                         delete_view=location_delete)
+
 
 def location_list(request):
     info = LocationInfo()
     value_list = ('id', 'description')
     query = Location.objects.all()
     return render_list(request, query, value_list, 'seeddb-location-edit',
-        extra_context=info.template_context)
+                       extra_context=info.template_context)
+
 
 def location_delete(request):
     info = LocationInfo()
     return render_delete(request, Location, 'seeddb-location',
-        whitelist=SEEDDB_EDITABLE_MODELS,
-        extra_context=info.template_context)
+                         whitelist=SEEDDB_EDITABLE_MODELS,
+                         extra_context=info.template_context)
+
 
 def location_edit(request, location_id=None):
     info = LocationInfo()
     return render_edit(request, Location, LocationForm, location_id,
-        'seeddb-location-edit',
-        extra_context=info.template_context)
+                       'seeddb-location-edit',
+                       extra_context=info.template_context)
+
 
 def location_bulk(request):
     info = LocationInfo()

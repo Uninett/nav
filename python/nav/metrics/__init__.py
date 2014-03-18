@@ -29,6 +29,7 @@ port = 2003
 
 [graphiteweb]
 base=http://localhost:8000/
+format=png
 """
 
 CONFIG = GraphiteConfigParser()

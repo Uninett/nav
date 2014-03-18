@@ -1,65 +1,73 @@
 {% extends "radius/base.html" %}
-
+{% load crispy_forms_tags %}
 {% load radius %}
 
 {% block content %}
 
-  <div id="form">
-    <form id="charts" action="" method="get">
-      {% csrf_token %}
-      {{ form.days }} {{ form.days.label_tag }}
-      {{ form.charts }}
-      <input type="submit" name="send" value="Create">
-    </form>
+  <div class="row">
+    <div class="small-9 column">
+      <h4 class="subheader">Show top 6 talkers</h4>
+    </div>
+    <div class="small-3 column">
+      <a href="javascript:void(0);" class="button small secondary right"
+         data-reveal-id="account-chart-hints" data-reveal>About the data</a>
+    </div>
   </div>
 
-  {% for table in tables %}
+  <div id="form" class="row">
+    <div class="medium-6 columns">
+      {% crispy form %}
+    </div>
+  </div>
 
-    <table id="charttable{{ forloop.counter }}" class="listtable">
-      <caption>
-        {{ table.0 }}<br>
-      </caption>
+  <ul class="large-block-grid-2">
 
-      <thead>
-        <tr>
-          <th>Pos.</th>
-          <th>Username</th>
-          <th>Transferred</th>
-          <th>Time</th>
-        </tr>
-      </thead>
+    {% for table in tables %}
+      <li>
+        <table id="charttable{{ forloop.counter }}" class="listtable full-width">
+          <caption>
+            {{ table.0 }}<br>
+          </caption>
 
-      <tbody>
-        {% for row in table.1 %}
-          <tr class="{% cycle 'oddrow' 'evenrow' %}">
-            <td align="center">{{ forloop.counter }}</td>
-            {# TODO: Search #}
-            <td><a>{{ row.username|default:"" }}</a></td>
-            <td align="right">
-              {{ row.sortfield|filesizeformat }}
-            </td>
-            <td align="right">
-              {{ row.acctsessiontime|time_from_seconds }}
-            </td>
+          <thead>
+          <tr>
+            <th>Pos.</th>
+            <th>Username</th>
+            <th>Transferred</th>
+            <th>Time</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+          </thead>
 
-  {% empty %}
-    <div class="infobox">
-      <h5>Radius accounting chart information</h5>
+          <tbody>
+          {% for row in table.1 %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td><a>{{ row.username|default:"" }}</a></td>
+              <td>{{ row.sortfield|filesizeformat }}</td>
+              <td>{{ row.acctsessiontime|time_from_seconds }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </li>
+    {% endfor %}
+  </ul>
+
+  {% block radius-helper %}
+    <div id="account-chart-hints" class="reveal-modal" data-reveal>
+      <h3>About top talkers</h3>
+
+      <blockquote>"There are three types of lies - lies, damn lies, and
+        statistics." <cite>Mark Twain</cite>
+      </blockquote>
+
       <p>
-        <i>"There are three types of lies - lies, damn lies, and statistics."</i>
-      </p>
-      <p>
-        We get transfer data from sessions that have ended, and where we
-        received an explicit Stop message. These charts show transfer data
-        for all sessions that <u>ended</u> during the specified time
-        period, so the data could actually have been transferred before
+        Shows data from sessions that have ended, with an explicit
+        <code>Stop</code> message. Top talkers lists sessions using the <em>end
+        time</em> , but the data could actually have been transferred before
         this period.
       </p>
     </div>
-  {% endfor %}
+  {% endblock %}
 
 {% endblock content %}

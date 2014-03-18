@@ -17,11 +17,14 @@
 import simplejson
 import logging
 
+from operator import or_ as OR
+
 from django.http import HttpResponse
 from django.template import RequestContext, Context
 from django.shortcuts import render_to_response
 from django.contrib import messages
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 
 from nav.django.utils import get_account
 from nav.web.utils import create_title
@@ -35,27 +38,70 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_allowed_vlans_for_user,
                                      filter_vlans, fetch_voice_vlans,
                                      should_check_access_rights)
-from nav.Snmp.errors import SnmpError
+from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin.snmputils import SNMPFactory
-
-NAVBAR = [('Home', '/'), ('PortAdmin', None)]
-DEFAULT_VALUES = {'title': "PortAdmin", 'navpath': NAVBAR}
+from .forms import SearchForm
 
 _logger = logging.getLogger("nav.web.portadmin")
 
 
+def get_base_context(additional_paths=None, form=None):
+    """Returns a base context for portadmin
+
+    :type additional_paths: list of tuple
+    """
+    navpath = [('Home', '/'), ('PortAdmin', reverse('portadmin-index'))]
+    if additional_paths:
+        navpath += additional_paths
+    form = form if form else SearchForm()
+    return {
+        'header': {'name': 'PortAdmin',
+                   'description': 'Configure interfaces on ip devices'},
+        'navpath': navpath,
+        'title': create_title(navpath),
+        'form': form
+    }
+
+
 def index(request):
     """View for showing main page"""
-    info_dict = {}
-    info_dict.update(DEFAULT_VALUES)
+    netboxes = []
+    interfaces = []
+    if 'query' in request.GET:
+        form = SearchForm(request.GET)
+        if form.is_valid():
+            netboxes, interfaces = search(form.cleaned_data['query'])
+            if len(netboxes) == 1 and not interfaces:
+                return search_by_sysname(request, netboxes[0].sysname)
+            elif len(interfaces) == 1 and not netboxes:
+                return search_by_interfaceid(request, interfaces[0].id)
+    else:
+        form = SearchForm()
+    context = get_base_context(form=form)
+    context['netboxes'] = netboxes
+    context['interfaces'] = interfaces
+
     return render_to_response('portadmin/base.html',
-                              info_dict,
+                              context,
                               RequestContext(request))
+
+
+def search(query):
+    """Search for something in portadmin"""
+    netbox_filters = [
+        Q(sysname__icontains=query),
+        Q(ip=query)
+    ]
+    netboxes = Netbox.objects.filter(
+        reduce(OR, netbox_filters)).order_by('sysname')
+    interfaces = Interface.objects.filter(
+        ifalias__icontains=query).order_by('netbox__sysname', 'ifname')
+    return netboxes, interfaces
 
 
 def search_by_ip(request, ip):
     """View for showing a search done by ip-address"""
-    info_dict = {}
+    info_dict = get_base_context()
     account = get_account(request)
     try:
         netbox = Netbox.objects.get(ip=ip)
@@ -72,14 +118,14 @@ def search_by_ip(request, ip):
         interfaces = netbox.get_swports_sorted()
         info_dict = populate_infodict(request, account, netbox, interfaces)
         return render_to_response(
-            'portadmin/portlist.html',
+            'portadmin/netbox.html',
             info_dict,
             RequestContext(request))
 
 
 def search_by_sysname(request, sysname):
     """View for showing a search done by sysname"""
-    info_dict = {}
+    info_dict = get_base_context()
     account = get_account(request)
     try:
         netbox = Netbox.objects.get(sysname=sysname)
@@ -95,14 +141,14 @@ def search_by_sysname(request, sysname):
     else:
         interfaces = netbox.get_swports_sorted()
         info_dict = populate_infodict(request, account, netbox, interfaces)
-        return render_to_response('portadmin/portlist.html',
+        return render_to_response('portadmin/netbox.html',
                                   info_dict,
                                   RequestContext(request))
 
 
 def search_by_interfaceid(request, interfaceid):
     """View for showing a search done by interface id"""
-    info_dict = {}
+    info_dict = get_base_context()
     account = get_account(request)
     try:
         interface = Interface.objects.get(id=interfaceid)
@@ -120,7 +166,7 @@ def search_by_interfaceid(request, interfaceid):
         netbox = interface.netbox
         interfaces = [interface]
         info_dict = populate_infodict(request, account, netbox, interfaces)
-        return render_to_response('portadmin/portlist.html',
+        return render_to_response('portadmin/netbox.html',
                                   info_dict,
                                   RequestContext(request))
 
@@ -130,18 +176,25 @@ def populate_infodict(request, account, netbox, interfaces):
 
     allowed_vlans = []
     voice_vlan = None
+    readonly = False
     try:
         fac = get_and_populate_livedata(netbox, interfaces)
         allowed_vlans = find_and_populate_allowed_vlans(account, netbox,
                                                         interfaces, fac)
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
-    except SnmpError:
-        messages.error(request, "Timeout when contacting %s" % netbox.sysname)
+    except TimeOutException:
+        readonly = True
+        messages.error(request, "Timeout when contacting %s. Values displayed "
+                                "are from database" % netbox.sysname)
         if not netbox.read_only:
             messages.error(request, "Read only community not set")
-            messages.error(request, "Values displayed are from database")
+    except SnmpError:
+        readonly = True
+        messages.error(request, "SNMP error when contacting %s. Values "
+                                "displayed are from database" % netbox.sysname)
 
-    check_read_write(netbox, request)
+    if check_read_write(netbox, request):
+        readonly = True
 
     ifaliasformat = get_ifaliasformat()
     aliastemplate = ''
@@ -154,13 +207,14 @@ def populate_infodict(request, account, netbox, interfaces):
     if voice_vlan:
         set_voice_vlan_attribute(voice_vlan, interfaces)
 
-    info_dict = {'interfaces': interfaces,
-                 'netbox': netbox,
-                 'voice_vlan': voice_vlan,
-                 'allowed_vlans': allowed_vlans,
-                 'account': account,
-                 'aliastemplate': aliastemplate}
-    info_dict.update(DEFAULT_VALUES)
+    info_dict = get_base_context([(netbox.sysname, )])
+    info_dict.update({'interfaces': interfaces,
+                      'netbox': netbox,
+                      'voice_vlan': voice_vlan,
+                      'allowed_vlans': allowed_vlans,
+                      'account': account,
+                      'readonly': readonly,
+                      'aliastemplate': aliastemplate})
     return info_dict
 
 
@@ -200,11 +254,16 @@ def set_voice_vlan_attribute(voice_vlan, interfaces):
 
 
 def check_read_write(netbox, request):
-    """Add a message to user explaining why he can't edit anything"""
+    """Add a message to user explaining why he can't edit anything
+
+    :returns: flag indicating readonly or not
+    """
     if not netbox.read_write:
         messages.error(request,
                        "Write community not set for this device, "
                        "changes cannot be saved")
+        return True
+    return False
 
 
 def save_interfaceinfo(request):
@@ -301,6 +360,8 @@ def set_vlan(account, fac, interface, request):
             else:
                 fac.set_vlan(interface.ifindex, vlan)
 
+            # Restart interface so that client fetches new address
+            fac.restart_if(interface.ifindex)
             interface.vlan = vlan
             _logger.info('%s: %s:%s - vlan set to %s' % (
                 account.login, interface.netbox.get_short_sysname(),
@@ -375,30 +436,35 @@ def render_trunk_edit(request, interfaceid):
         else:
             messages.success(request, 'Trunk edit successful')
 
-    account = get_account(request)
+    account = request.account
     netbox = interface.netbox
     check_read_write(netbox, request)
-    navpath = [('Home', '/'), ('PortAdmin', reverse('portadmin-index')),
-               (netbox.sysname, reverse('portadmin-sysname',
-                                        kwargs={'sysname': netbox.sysname}))]
-
-    vlans = agent.get_netbox_vlans()  # All vlans on this netbox
-    native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(interface)
-    if should_check_access_rights(account):
-        allowed_vlans = find_allowed_vlans_for_user_on_netbox(account,
-                                                              interface.netbox,
-                                                              agent)
+    try:
+        vlans = agent.get_netbox_vlans()  # All vlans on this netbox
+        native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(
+            interface)
+    except SnmpError:
+        vlans = native_vlan = trunked_vlans = allowed_vlans = None
+        messages.error(request, 'Error getting trunk information')
     else:
-        allowed_vlans = vlans
+        if should_check_access_rights(account):
+            allowed_vlans = find_allowed_vlans_for_user_on_netbox(
+                account, interface.netbox, agent)
+        else:
+            allowed_vlans = vlans
+
+    extra_path = [(netbox.sysname,
+                   reverse('portadmin-sysname',
+                           kwargs={'sysname': netbox.sysname})),
+                  ("Trunk %s" % interface,)]
+
+    context = get_base_context(extra_path)
+    context.update({'interface': interface, 'available_vlans': vlans,
+                    'native_vlan': native_vlan, 'trunked_vlans': trunked_vlans,
+                    'allowed_vlans': allowed_vlans})
 
     return render_to_response('portadmin/trunk_edit.html',
-                              {'interface': interface,
-                               'available_vlans': vlans,
-                               'native_vlan': native_vlan,
-                               'trunked_vlans': trunked_vlans,
-                               'allowed_vlans': allowed_vlans,
-                               'navpath': navpath,
-                               'title': create_title(navpath)},
+                              context,
                               RequestContext(request))
 
 

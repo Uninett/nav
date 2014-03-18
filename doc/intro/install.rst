@@ -58,6 +58,7 @@ The following Python modules are required:
  * :mod:`iso8601`
  * :mod:`django-crispy-forms` == 1.3.2
  * :mod:`crispy-forms-foundation` == 0.2.3
+ * :mod:`feedparser` >= 5.1.2,<5.2
 
 The following python modules are optional:
 

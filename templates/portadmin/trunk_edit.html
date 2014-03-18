@@ -1,7 +1,6 @@
 {% extends 'portadmin/base.html' %}
 
-{% block content %}
-
+{% block page_content %}
 
     {% if interface %}
 
@@ -80,6 +79,7 @@
                 </table>
                 <input type="submit"
                        value="Save changes"
+                       class="button small"
                        {% if not interface.netbox.read_write %}disabled="disabled"{% endif %}>
             </form>
 

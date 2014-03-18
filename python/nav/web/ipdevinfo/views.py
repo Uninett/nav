@@ -23,7 +23,8 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.shortcuts import (render_to_response, get_object_or_404, redirect,
+                              render)
 from django.template import RequestContext
 from django.views.generic.list_detail import object_list
 from nav.metrics.errors import GraphiteUnreachableError
@@ -31,7 +32,6 @@ from nav.metrics.errors import GraphiteUnreachableError
 from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
 from nav.models.service import Service
 
-from nav import asyncdns
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import get_interface_counter_graph_url
@@ -41,6 +41,7 @@ from nav.metrics.graphs import get_simple_graph_url
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
 from nav.web.ipdevinfo import utils
+from .host_information import get_host_info
 
 NAVPATH = [('Home', '/'), ('IP Device Info', '/ipdevinfo')]
 
@@ -118,34 +119,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         netbox = get_object_or_404(Netbox, id=netbox_id)
         return HttpResponseRedirect(netbox.get_absolute_url())
 
-    def get_host_info(host):
-        """Returns a dictionary containing DNS information about the host"""
-        addresses = forward_lookup(host) or []
-        if addresses:
-            addresses = list(reverse_lookup(addresses))
-        return {'host': host, 'addresses': addresses}
-
-    def forward_lookup(host):
-        """Do a forward lookup on host"""
-        addrinfo = asyncdns.forward_lookup([host])
-        if not isinstance(addrinfo[host], Exception):
-            return set(addr for addr in addrinfo[host])
-
-    def reverse_lookup(addresses):
-        """Do a reverse lookup on addresses"""
-        reverses = asyncdns.reverse_lookup(addresses)
-        for addr, response in sorted(reverses.items(), key=address_sorter):
-            if isinstance(response, Exception):
-                yield {'addr': addr, 'error': response.__class__.__name__}
-            else:
-                for name in response:
-                    yield {'addr': addr, 'name': name}
-
-    def address_sorter(addr_tuple):
-        """Return ip object from tuple"""
-        return IPy.IP(addr_tuple[0])
-
-    def get_netbox(name=None, addr=None, host_info=None):
+    def get_netbox(name=None, addr=None):
         """Lookup IP device in NAV by either hostname or IP address"""
 
         # Prefetch related objects as to reduce number of database queries
@@ -162,8 +136,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
                 netbox = netboxes.get(ip=addr)
             except Netbox.DoesNotExist:
                 pass
-        elif host_info:
-            for address in host_info['addresses']:
+        if not netbox:
+            host_information = get_host_info(name or addr)
+            for address in host_information['addresses']:
                 if 'name' in address:
                     try:
                         netbox = netboxes.get(sysname=address['name'])
@@ -253,8 +228,8 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     # Get data needed by the template
     addr = is_valid_ip(addr)
-    host_info = get_host_info(name or addr)
-    netbox = get_netbox(name=name, addr=addr, host_info=host_info)
+    host_info = None
+    netbox = get_netbox(name=name, addr=addr)
 
     # Assign default values to variables
     no_netbox = {
@@ -268,9 +243,11 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     job_descriptions = None
     system_metrics = netbox_availability = []
 
+    graphite_error = False
     # If addr or host not a netbox it is not monitored by NAV
     if netbox is None:
-        if addr is None and len(host_info['addresses']) > 0:
+        host_info = get_host_info(name or addr)
+        if not addr and len(host_info['addresses']) > 0:
             # Picks the first address in array if addr not specified
             addr = host_info['addresses'][0]['addr']
 
@@ -291,7 +268,6 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         netboxgroups = netbox.netboxcategory_set.all()
         navpath = NAVPATH + [(netbox.sysname, '')]
         job_descriptions = get_job_descriptions()
-        graphite_error = False
 
         try:
             system_metrics = netbox.get_system_metrics()
@@ -308,6 +284,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         {
             'host_info': host_info,
             'netbox': netbox,
+            'interfaces': (netbox.interface_set.order_by('ifindex')
+                           if netbox else None),
+            'counter_types': ('Octets', 'UcastPkts', 'Errors', 'Discards'),
             'heading': navpath[-1][0],
             'alert_info': alert_info,
             'no_netbox': no_netbox,
@@ -336,7 +315,6 @@ def get_port_view(request, netbox_sysname, perspective):
     # Get port activity search interval from form
     activity_interval = 30
     activity_interval_form = None
-    _logger.debug('perspective = %s' % perspective)
     if perspective == 'swportactive':
         if 'interval' in request.GET:
             activity_interval_form = ActivityIntervalForm(request.GET)
@@ -599,7 +577,7 @@ def service_matrix(request):
             processors=[search_form_processor]))
 
 
-def affected(request, netboxid):
+def render_affected(request, netboxid):
     """Controller for the affected tab in ipdevinfo"""
     netbox = Netbox.objects.get(pk=netboxid)
     netboxes = utils.find_children(netbox)
@@ -623,6 +601,13 @@ def affected(request, netboxid):
             'affected_hosts': affected_hosts
         },
         context_instance=RequestContext(request))
+
+
+def render_host_info(request, identifier):
+    """Controller for getting host info"""
+    return render(request, 'ipdevinfo/frag-hostinfo.html', {
+        'host_info': get_host_info(identifier)
+    })
 
 
 def get_graphite_render_url(request, metric=None):

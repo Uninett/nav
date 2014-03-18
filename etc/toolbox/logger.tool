@@ -1,5 +1,4 @@
 name=Syslog Analyzer
 uri=/syslogger/
 icon=/images/toolbox/syslog-analyzer.png
-description=View syslog messages from (Cisco) network equipment.
-priority=40
+description=Summarize and search syslog messages from (Cisco) devices.

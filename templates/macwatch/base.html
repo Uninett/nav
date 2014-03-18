@@ -1,10 +1,14 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_content %}
 
-<h3>MacWatch</h3>
+  {% with tool=current_user_data.tools|get_tool:'MAC Watch' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
 
-{% block content %}
-{% endblock %}
+
+  {% block content %}
+  {% endblock %}
 
 {% endblock %}

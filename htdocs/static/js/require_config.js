@@ -3,6 +3,7 @@ var require = {
     waitSeconds: 7, // default
     paths: {
         "libs": "libs",
+        "moment": "libs/moment.min",
         "resources": "resources",
         "libs-amd": "resources/libs",
         "plugins": "src/plugins",
@@ -11,7 +12,7 @@ var require = {
         "netmap": "src/netmap"
     },
     shim: {
-        'libs/foundation.min': ['libs/jquery', 'libs/custom.modernizr'],
+        'libs/foundation.min': ['libs/jquery', 'libs/modernizr', 'libs/fastclick'],
         'libs/FixedColumns.min': ['libs/jquery'],
         'libs/jquery-ui-1.8.21.custom.min': ['libs/jquery'],
         'libs/jquery.dataTables.min': ['libs/jquery'],
@@ -19,7 +20,6 @@ var require = {
         'libs/jquery.tinysort': ['libs/jquery'],
         'libs/jquery-ui-timepicker-addon': ['libs/jquery-ui-1.8.21.custom.min'],
         'libs/jquery.nivo.slider.pack': ['libs/jquery'],
-        'libs/downloadify.min': ['libs/jquery', 'libs/swfobject'],
         'libs/spin.min': ['libs/jquery'],
         'libs/select2.min': ['libs/jquery'],
         'libs/underscore': {
@@ -30,7 +30,15 @@ var require = {
             deps: ["libs/underscore", "libs/jquery"],
             exports: 'Backbone'
         },
-        'libs/backbone-eventbroker': ['libs/backbone']
-
+        'libs/backbone-eventbroker': ['libs/backbone'],
+        'libs/raphael.min': ['libs/eve'],
+        'libs/justgage.min': ['libs/raphael.min'],
+        'libs/justgage': ['libs/raphael.min'],
+        'libs/rickshaw.min': {
+            exports: 'Rickshaw',
+            deps: ['libs/d3.v2']
+        },
+        'src/dt_plugins/ip_address_sort': ['libs/jquery.dataTables.min'],
+        'src/dt_plugins/ip_address_typedetect': ['libs/jquery.dataTables.min']
     }
 };

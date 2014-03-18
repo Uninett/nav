@@ -1,0 +1,61 @@
+@import '../navsettings';
+
+$footer-content-padding: 2.8em;
+
+footer {
+    background-color: #ffffff;
+    border-top: 2px solid #111111;
+    color: #666666;
+    padding-top: 4em;
+    padding-bottom: 3em;
+    .column {
+        h4 {
+            font-size: 1.125rem;
+        }
+        p {
+            font-size: 0.8rem;
+        }
+        > div {
+            font-size: 0.8em;
+        }
+        &:first-child {
+            padding-left: $global-padding;
+            padding-right: $footer-content-padding;
+        }
+        &:nth-child(2) {
+            border-right: 1px solid #DDD;
+            border-left: 1px solid #DDD;
+            padding: 0 $footer-content-padding;
+        }
+        &:last-child {
+            padding-left: $footer-content-padding;
+            padding-right: $global-padding;
+        }
+    }
+    a, a:hover {
+        border-bottom: 1px dashed;
+        color: #666666;
+    }
+    .footer-logo {
+        height: 40px;
+        margin-bottom: 0.5em;
+    }
+    .content-with-icon {
+        i {
+            float: left;
+            font-size: 1.8em;
+            margin-top: 0.1em;
+            width: 35px; // Remember to adjust width of <div>
+        }
+        > div {
+            margin-left: 35px; // Remember to adjust width of <i>
+            .subheader {
+                margin: 0;
+            }
+        }
+    }
+    .about {
+        margin-bottom: 3em;
+    }
+
+}

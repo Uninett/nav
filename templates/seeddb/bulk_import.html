@@ -2,6 +2,10 @@
 
 {% block content %}
 
+  <p><a href="{{ back_url }}">Back to list</a></p>
+
+  <h4>Bulk import</h4>
+
     <form enctype="multipart/form-data" action="" method="post">
         {% if form.non_field_errors %}
             <div class="alert-box alert">{{ form.non_field_errors }}</div>

@@ -1,4 +1,4 @@
-require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/graphfetcher", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
+require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/graphfetcher_controller", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
 ], function (TableUtil, TabNavigation, NeighborMap) {
 
     var mainTabsSelector = '#ipdevinfotabs';
@@ -29,6 +29,8 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             load: addActivityButtonListener
         };
         $(moduleTabsSelector).tabs(tabconfig);
+        TabNavigation.add(moduleTabsSelector, mainTabsSelector);
+
     }
 
     function addMainTabs() {
@@ -39,6 +41,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         markErrorTabs(tabs);
         tabs.show();
         TabNavigation.add(mainTabsSelector);
+        addFloatingGlobalControls();
     }
 
     function addMetricTabs() {
@@ -47,6 +50,28 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             spinner: '<img src="/images/main/process-working.gif">'
         });
         tabs.show();
+        TabNavigation.add(metricTabsSelector, mainTabsSelector);
+    }
+
+    function addFloatingGlobalControls() {
+        /* Floats the global controls for all graphs on the Port Metrics tab */
+        var toBeFixed = $('.toBeFixed'),
+            wrapper = toBeFixed.parent('.toBeFixed-wrapper'),
+            toBeFixedClone;
+        $(window).scroll(function () {
+            var currentY = $(window).scrollTop(),
+                startPosY = wrapper.offset().top;
+            /* This clone is needed to prevent the page from jumping when 'position: fixed' is set */
+            toBeFixedClone = toBeFixedClone ? toBeFixedClone : toBeFixed.clone().hide().appendTo(wrapper);
+
+            if (currentY >= startPosY && !toBeFixed.hasClass('floatme')) {
+                toBeFixed.addClass('floatme');
+                toBeFixedClone.show();
+            } else if (currentY < startPosY && toBeFixed.hasClass('floatme')) {
+                toBeFixedClone.hide();
+                toBeFixed.removeClass('floatme');
+            }
+        });
     }
 
     /*

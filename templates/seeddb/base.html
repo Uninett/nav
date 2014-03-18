@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
     <link href="{{ STATIC_URL }}css/nav/seeddb.css" rel="stylesheet" />
@@ -19,7 +20,10 @@
 </div>
 {% endif %}
 
-<h2>Seed Database</h2>
+  {% with tool=current_user_data.tools|get_tool:'Seed Database' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
 
 <div class="tabs tabs-vertical">
     <ul>
@@ -68,25 +72,27 @@
     </ul>
 
     <div class="tabcontent">
+      <div class="row">
+        <div class="small-12 column">
 
-        {% if tab_template %}
-        <div class="tabs">
-            <ul>
-                {% include tab_template %}
-            </ul>
-            <div class="tabcontent">
-                {% endif %}
-
-                {% block content %}
-                {% endblock %}
-
-                {% if tab_template %}
+          {% if tab_template %}
+            <div class="row">
+              <div class="small-12 column">
+                <ul class="button-group right">
+                  {% include tab_template %}
+                </ul>
+                <h3>{% block heading %}{{ caption }}{% endblock %}</h3>
+              </div>
             </div>
-        </div>
-        {% endif %}
+          {% endif %}
 
+          {% block content %}
+          {% endblock %}
+
+        </div>
+      </div>
     </div>
 
 </div>
 
-{% endblock %}
+{% endblock base_content %}

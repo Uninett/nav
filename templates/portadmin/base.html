@@ -1,28 +1,66 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
-	<link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/portadmin.css" />
-    <script>require(['src/portadmin']);</script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/portadmin.css"/>
+  <script>require(['src/portadmin']);</script>
 {% endblock %}
 
 {% block base_content %}
 
-<h3>PortAdmin</h3>
+  {% with header as tool %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
 
-{% if messages %}
-    <div id="messages" class="messages infobox">
-        <ul>
-            {% for message in messages %}
-                <li {% if message.tags %}class="{{ message.tags }}"{% endif %}>
-                    {{ message }}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert-box {{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% block page_content %}
+
+    {% crispy form %}
+
+    {% block content %}
+      {% if form.is_bound %}
+        <div class="row">
+          <div class="medium-5 column">
+            <h5>IP Devices</h5>
+            <ul>
+              {% for netbox in netboxes %}
+                <li>
+                  <a href="{% url portadmin-sysname netbox.sysname %}">
+                    {{ netbox.sysname }}
+                  </a>
                 </li>
-            {% endfor %}
-        </ul>
-    </div>
-{% endif %}
+              {% empty %}
+                <li>No ip devices found</li>
+              {% endfor %}
+            </ul>
+          </div>
 
+          <div class="medium-7 column">
+            <h5>Interfaces</h5>
+            <ul>
+              {% for interface in interfaces %}
+                <li>
+                  <a href="{% url portadmin-interface interface.id %}">
+                    {{ interface.netbox }} - {{ interface.ifname }}
+                    - {{ interface.ifalias }}
+                  </a>
+                </li>
+              {% empty %}
+                <li>No interfaces found</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+    {% endblock content %}
 
-{% block content %}
-{% endblock %}
+  {% endblock page_content %}
 
-{% endblock %}
+{% endblock base_content %}

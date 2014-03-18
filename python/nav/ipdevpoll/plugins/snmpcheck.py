@@ -41,7 +41,7 @@ class SnmpCheck(Plugin):
 
     @classmethod
     def can_handle(cls, netbox):
-        return bool(netbox.read_only)
+        return netbox.is_up() and bool(netbox.read_only)
 
     def __init__(self, *args, **kwargs):
         super(SnmpCheck, self).__init__(*args, **kwargs)
@@ -147,7 +147,6 @@ class SnmpCheck(Plugin):
         event = Event()
         event.source_id = 'ipdevpoll'
         event.target_id = 'eventEngine'
-        event.device_id = self.netbox.device.id
         event.netbox_id = self.netbox.id
         event.event_type_id = 'snmpAgentState'
         return event

@@ -1,12 +1,59 @@
 {% load info %}
 
+
+<div id="searchhelptext" class="reveal-modal" data-reveal>
+    <a class="close-reveal-modal">&#215;</a>
+  <h4>About the search</h4>
+
+  <p>
+    The searchtext matches the whole row including some of the html. You can
+    for instance search for "down" to see all interfaces with status down.
+  </p>
+
+  <p>
+    To improve the filtering you can use the other searchboxes that filters on
+    specific rows.
+  </p>
+
+  <p>
+    You can also use predefined keywords in the main searchbox to filter what
+    you want to see. The following keywords are currently available:
+    <ul>
+      <li>$vlan - Ex: $vlan:130 - Only show interfaces with vlan 130</li>
+      <li>$days - Ex: $days:5 - Only show rows where last active is 5 days or
+        more
+      </li>
+    </ul>
+  </p>
+
+  <p>
+    You can combine the filters if you want to. <code>fa1/2 $days:5
+    $vlan:10</code> is a valid filter. Also combining keywords and searchboxes
+    work, but keywords have presedence
+  </p>
+
+</div>
+
+
+
+
 <div id="netboxes">
 
-    <h4>{{ room.id }}: {{ netboxes|length }} netbox{{ netboxes|pluralize:"es" }}</h4>
+    <div class="row">
+      <div class="small-12 column">
+        <a href="javascript:void(0);"
+           data-reveal-id="searchhelptext"
+           class="small button right secondary"
+           data-reveal>
+          About the search
+        </a>
+        <h4>{{ room.id }}: {{ netboxes|length }} netbox{{ netboxes|pluralize:"es" }}</h4>
+      </div>
+    </div>
 
     <div class="row">
         <div id="global-search" class="small-3 columns">
-            <div class="input-filter-desc">Search <img id="searchhelp" class="textbottom" src="{{ STATIC_URL }}images/helpers/question.png" /></div>
+            <div class="input-filter-desc">Search</div>
             <input id="netbox-global-search" type="text" />
         </div>
 
@@ -21,8 +68,17 @@
         </div>
 
         <div class="small-3 columns">
-            <div class="input-filter-desc">Download CSV-file</div>
-            <span id="downloadify">You must have Flash 10 installed to download this file.</span>
+            <div class="input-filter-desc">
+              CSV
+              <i class="fa fa-question-circle has-tip" data-tooltip title="
+                 To open this in Microsoft Excel, you need to change the file to a .txt file, start Excel and import the file.
+               "></i>
+            </div>
+            <form id="csv-download-form"  action="{% url room-csv %}" method="POST">
+              <input type="hidden" name="rows" value="">
+              <input type="hidden" name="roomid" value="{{ room.id }}">
+              <input type="submit" class="button small secondary" value="Download as CSV">
+            </form>
         </div>
     </div>
 
@@ -80,26 +136,5 @@
 
     {% endfor %}
 
-    <div id="searchhelptext" class="helperdialog">
-        <div>
-            The searchtext matches the whole row including some of the html. You can for instance search for "down" to see all interfaces with status down.
-        </div>
-
-        <div>
-            To improve the filtering you can use the other searchboxes that filters on specific rows.
-        </div>
-
-        <div>
-            You can also use predefined keywords in the main searchbox to filter what you want to see. The following keywords are currently available:
-            <ul>
-                <li>$vlan - Ex: $vlan:130 - Only show interfaces with vlan 130</li>
-                <li>$days - Ex: $days:5 - Only show rows where last active is 5 days or more</li>
-            </ul>
-        </div>
-
-        <div>
-            You can combine the filters if you want to. <kbd>fa1/2 $days:5 $vlan:10</kbd> is a valid filter. Also combining keywords and searchboxes work, but keywords have presedence
-        </div>
-    </div>
 
 </div>

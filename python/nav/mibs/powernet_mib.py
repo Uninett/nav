@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008-2013 UNINETT AS
+# Copyright (C) 2008-2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,16 +22,16 @@ R_PDU_LOAD_STATUS_LOAD = 'rPDULoadStatusLoad'
 R_PDU_LOAD_STATUS_BANK_NUMBER = 'rPDULoadStatusBankNumber'
 
 U_VOLT = dict(u_o_m='Volt')
-U_DECIVOLT = dict(u_o_m='Volt', scale='deci')
+U_DECIVOLT = dict(u_o_m='Volt', precision=1)
 U_AMPERE = dict(u_o_m='Ampere')
-U_DECIAMPERE = dict(u_o_m='Ampere', scale='deci')
+U_DECIAMPERE = dict(u_o_m='Ampere', precision=1)
 U_HZ = dict(u_o_m='Hz')
-U_DECIHZ = dict(u_o_m='Hz', scale='deci')
+U_DECIHZ = dict(u_o_m='Hz', precision=1)
 U_PERCENT = dict(u_o_m='Percent')
-U_DECIPERCENT = dict(u_o_m='Percent', scale='deci')
+U_DECIPERCENT = dict(u_o_m='Percent', precision=1)
 U_CELSIUS = dict(u_o_m='Celsius')
-U_DECICELSIUS = dict(u_o_m='Celsius', scale='deci')
-U_TIMETICKS = dict(u_o_m='Seconds', scale='centi')
+U_DECICELSIUS = dict(u_o_m='Celsius', precision=1)
+U_TIMETICKS = dict(u_o_m='Seconds', precision=2)
 
 
 class PowerNetMib(UpsMib):
@@ -108,9 +108,9 @@ class PowerNetMib(UpsMib):
 
             result.append(dict(
                 oid=oid,
-                unit_of_measurement='Amperes',
-                precision=None,
-                scale='deci',
+                unit_of_measurement='Ampere',
+                precision=1,
+                scale=None,
                 description='%s ampere load' % name,
                 name=name,
                 internal_name='%s%s' % (R_PDU_LOAD_STATUS_LOAD, index),

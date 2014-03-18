@@ -29,43 +29,53 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
 
+
 class VendorInfo(SeeddbInfo):
     active = {'vendor': True}
     caption = 'Vendors'
-    tab_template = 'seeddb/tabs_vendor.html'
+    tab_template = 'seeddb/tabs_generic.html'
     _title = 'Vendors'
     _navpath = [('Vendors', reverse_lazy('seeddb-vendor'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-vendor')
+    back_url = reverse_lazy('seeddb-vendor')
+    add_url = reverse_lazy('seeddb-vendor-edit')
+    bulk_url = reverse_lazy('seeddb-vendor-bulk')
+
 
 class VendorForm(forms.ModelForm):
     class Meta:
         model = Vendor
 
+
 def vendor(request):
     return view_switcher(request,
-        list_view=vendor_list,
-        move_view=not_implemented,
-        delete_view=vendor_delete)
+                         list_view=vendor_list,
+                         move_view=not_implemented,
+                         delete_view=vendor_delete)
+
 
 def vendor_list(request):
     info = VendorInfo()
     query = Vendor.objects.all()
     value_list = ('id',)
     return render_list(request, query, value_list, None,
-        extra_context=info.template_context)
+                       extra_context=info.template_context)
+
 
 def vendor_delete(request):
     info = VendorInfo()
     return render_delete(request, Vendor, 'seeddb-vendor',
-        whitelist=SEEDDB_EDITABLE_MODELS,
-        extra_context=info.template_context)
+                         whitelist=SEEDDB_EDITABLE_MODELS,
+                         extra_context=info.template_context)
+
 
 def vendor_edit(request, vendor_id=None):
     info = VendorInfo()
     return render_edit(request, Vendor, VendorForm, vendor_id,
-        'seeddb-vendor',
-        extra_context=info.template_context)
+                       'seeddb-vendor',
+                       extra_context=info.template_context)
+
 
 def vendor_bulk(request):
     info = VendorInfo()

@@ -1,0 +1,22 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  <div class="row">
+    <div class="small-12 column">
+      {% if feed %}
+        <ul>
+          {% for entry in feed.maxentries %}
+            <li>
+              <a href="{{ entry.link }}"
+                 title="Read this entry">{{ entry.title }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>Edit widget to add a blog url</p>
+      {% endif %}
+    </div>
+  </div>
+
+{% endblock %}

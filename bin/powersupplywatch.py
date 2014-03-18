@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2011, 2012 UNINETT AS
+# Copyright (C) 2011, 2012, 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,29 +15,25 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-A script to poll the powersupply- and fan-states in netboxes, send alerts at
-state-changes and store states in DB.
+A program to poll the states of known power supplies and fan units in netboxes,
+storing their last known state in the NAV db and post NAV events on state
+changes.
 """
-
-from os.path import join
-from datetime import datetime
 
 import logging
 logging.raiseExceptions = False
 
-import logging.handlers
 import sys
+from os.path import join
+from datetime import datetime
 from optparse import OptionParser
 
 # import NAV libraries
-import nav.config
-import nav.daemon
-import nav.logs
-import nav.path
-import nav.db
+from nav import buildconf
 from nav.event import Event
 from nav.Snmp import Snmp
-from nav.models.manage import PowerSupplyOrFan
+from nav.models.manage import PowerSupplyOrFan, Device
+from nav.logs import set_log_levels
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
@@ -83,80 +79,240 @@ HP_PSU_PS_FAILED = 4
 HP_PSU_PS_PERM_FAILURE = 5
 HP_PSU_PS_MAX = 5
 
+# Shorthand for database states
+STATE_UNKNOWN = PowerSupplyOrFan.STATE_UNKNOWN
+STATE_UP = PowerSupplyOrFan.STATE_UP
+STATE_DOWN = PowerSupplyOrFan.STATE_DOWN
+STATE_UNKNOWN = PowerSupplyOrFan.STATE_UNKNOWN
+STATE_WARNING = PowerSupplyOrFan.STATE_WARNING
+
+STATE_MAP = dict(PowerSupplyOrFan.STATE_CHOICES)
+
 # Mapping between vendors and fan-states
 VENDOR_FAN_STATES = {
-                VENDOR_CISCO: {
-                                CISCO_FAN_STATE_UNKNOWN: 'u',
-                                CISCO_FAN_STATE_UP: 'y',
-                                CISCO_FAN_STATE_DOWN: 'n',
-                                CISCO_FAN_STATE_WARNING: 'w',
-                                },
-                VENDOR_HP: {
-                                HP_FAN_STATE_FAILED: 'n',
-                                HP_FAN_STATE_REMOVED: 'u',
-                                HP_FAN_STATE_OFF: 'u',
-                                HP_FAN_STATE_UNDERSPEED: 'w',
-                                HP_FAN_STATE_OVERSPEED: 'w',
-                                HP_FAN_STATE_OK: 'y',
-                                HP_FAN_STATE_MAXSTATE: 'w',
-                            },
-                }
+    VENDOR_CISCO: {
+        CISCO_FAN_STATE_UNKNOWN: STATE_UNKNOWN,
+        CISCO_FAN_STATE_UP: STATE_UP,
+        CISCO_FAN_STATE_DOWN: STATE_DOWN,
+        CISCO_FAN_STATE_WARNING: STATE_WARNING,
+    },
+    VENDOR_HP: {
+        HP_FAN_STATE_FAILED: STATE_DOWN,
+        HP_FAN_STATE_REMOVED: STATE_UNKNOWN,
+        HP_FAN_STATE_OFF: STATE_UNKNOWN,
+        HP_FAN_STATE_UNDERSPEED: STATE_WARNING,
+        HP_FAN_STATE_OVERSPEED: STATE_WARNING,
+        HP_FAN_STATE_OK: STATE_UP,
+        HP_FAN_STATE_MAXSTATE: STATE_WARNING,
+    },
+}
 
 # Mapping between vendors and psu-states
 VENDOR_PSU_STATES = {
-                VENDOR_CISCO: {
-                                CISCO_PSU_OFF_ENV_OTHER: 'n',
-                                CISCO_PSU_ON: 'y',
-                                CISCO_PSU_OFF_ADMIN: 'u',
-                                CISCO_PSU_OFF_DENIED: 'n',
-                                CISCO_PSU_OFF_ENV_POWER: 'n',
-                                CISCO_PSU_OFF_ENV_TEMP: 'n',
-                                CISCO_PSU_OFF_ENV_FAN: 'n',
-                                CISCO_PSU_OFF_FAILED: 'n',
-                                CISCO_PSU_ON_BUT_FAN_FAIL: 'w',
-                                CISCO_PSU_OFF_COOLING: 'n',
-                                CISCO_PSU_OFF_CONNECTOR_RATING: 'n',
-                                CISCO_PSU_ON_BUT_INLINE_POWER_FAIL: 'n',
-                                },
-                VENDOR_HP: {
-                                HP_PSU_PS_NOT_PRESENT: 'u',
-                                HP_PSU_PS_NOT_PLUGGED: 'u',
-                                HP_PSU_PS_POWERED: 'y',
-                                HP_PSU_PS_FAILED: 'n',
-                                HP_PSU_PS_PERM_FAILURE: 'n',
-                                HP_PSU_PS_MAX: 'w',
-                            },
-                }
+    VENDOR_CISCO: {
+        CISCO_PSU_OFF_ENV_OTHER: STATE_DOWN,
+        CISCO_PSU_ON: STATE_UP,
+        CISCO_PSU_OFF_ADMIN: STATE_UNKNOWN,
+        CISCO_PSU_OFF_DENIED: STATE_DOWN,
+        CISCO_PSU_OFF_ENV_POWER: STATE_DOWN,
+        CISCO_PSU_OFF_ENV_TEMP: STATE_DOWN,
+        CISCO_PSU_OFF_ENV_FAN: STATE_DOWN,
+        CISCO_PSU_OFF_FAILED: STATE_DOWN,
+        CISCO_PSU_ON_BUT_FAN_FAIL: STATE_WARNING,
+        CISCO_PSU_OFF_COOLING: STATE_DOWN,
+        CISCO_PSU_OFF_CONNECTOR_RATING: STATE_DOWN,
+        CISCO_PSU_ON_BUT_INLINE_POWER_FAIL: STATE_DOWN,
+    },
+    VENDOR_HP: {
+        HP_PSU_PS_NOT_PRESENT: STATE_UNKNOWN,
+        HP_PSU_PS_NOT_PLUGGED: STATE_UNKNOWN,
+        HP_PSU_PS_POWERED: STATE_UP,
+        HP_PSU_PS_FAILED: STATE_DOWN,
+        HP_PSU_PS_PERM_FAILURE: STATE_DOWN,
+        HP_PSU_PS_MAX: STATE_WARNING,
+    },
+}
 
-LOGFILE = join(nav.buildconf.localstatedir, "log/powersupplywatch.log")
-# Loglevel (case-sensitive), may be:
-# DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOGLEVEL = 'DEBUG'
-
-logger = None
-dry_run = False
-should_verify = False
-snmp_handles = {}
+LOGFILE = join(buildconf.localstatedir, "log/powersupplywatch.log")
+LOGFORMAT = "[%(asctime)s] [%(levelname)s] %(message)s"
+LOGGER = logging.getLogger('nav.powersupplywatch')
+_snmp_handles = {}
 
 
-def get_logger():
-    """ Return a custom logger."""
-    format_pattern = "[%(asctime)s] [%(levelname)s] %(message)s"
-    filehandler = logging.FileHandler(LOGFILE)
-    log_formatter = logging.Formatter(format_pattern)
-    filehandler.setFormatter(log_formatter)
-    log = logging.getLogger('powersupplywatch')
-    log.addHandler(filehandler)
-    log.setLevel(logging.getLevelName(LOGLEVEL))
-    return log
+def main():
+    """Main program"""
+    stderr = init_logging()
+
+    parser = OptionParser()
+    parser.add_option(
+        "-d", "--dry-run", action="store_true", dest="dryrun",
+        help="Dry run.  No changes will be made and no events posted")
+    parser.add_option(
+        "-f", "--file", dest="hostsfile",
+        help="A file with hostnames to check. Must be one FQDN per line")
+    parser.add_option(
+        "-n", "--netbox", dest="hostname",
+        help="Check only this hostname.  Must be a FQDN")
+    parser.add_option(
+        "-v", "--verify", action="store_true", dest="verify",
+        help="Print (lots of) debug-information to stderr")
+    opts, _args = parser.parse_args()
+
+    if opts.verify:
+        LOGGER.info("-v option used, setting log level to DEBUG")
+        stderr.setLevel(logging.DEBUG)
+        LOGGER.setLevel(logging.DEBUG)
+
+    sysnames = []
+    if opts.hostname:
+        sysnames.append(opts.hostname.strip())
+    if opts.hostsfile:
+        sysnames.extend(read_hostsfile(opts.hostsfile))
+
+    LOGGER.debug('Start checking PSUs and FANs')
+    check_psus_and_fans(get_psus_and_fans(sysnames),
+                        dryrun=opts.dryrun)
 
 
-def verify(msg):
-    """Write message to stderr"""
-    if should_verify:
-        print >> sys.stderr, msg
-    # Convenient to include a debug-statement too
-    logger.debug(msg)
+def init_logging():
+    """Initializes logging"""
+    set_log_levels()
+    root = logging.getLogger('')
+    log_formatter = logging.Formatter(LOGFORMAT)
+
+    stderr = logging.StreamHandler(sys.stderr)
+    stderr.setFormatter(log_formatter)
+    stderr.setLevel(logging.ERROR if sys.stderr.isatty() else logging.CRITICAL)
+    root.addHandler(stderr)
+
+    try:
+        filehandler = logging.FileHandler(LOGFILE)
+    except IOError as err:
+        LOGGER.error("can't write to log file, logging to stderr only: %s", err)
+    else:
+        filehandler.setFormatter(log_formatter)
+        root.addHandler(filehandler)
+
+    return stderr
+
+
+def read_hostsfile(filename):
+    """ Read file with hostnames."""
+    LOGGER.debug('Reading hosts from %s', filename)
+    hostnames = []
+    try:
+        hosts_file = open(filename, 'r')
+    except IOError, error:
+        LOGGER.error("I/O error (%s): %s (%s)",
+                     error.errno, filename, error.strerror)
+        sys.exit(2)
+    for line in hosts_file:
+        sysname = line.strip()
+        if sysname and len(sysname) > 0:
+            hostnames.append(sysname)
+    hosts_file.close()
+    LOGGER.debug('Hosts from %s: %s', filename, hostnames)
+    return hostnames
+
+
+def get_psus_and_fans(sysnames):
+    """
+    Loads netboxes from DB.
+
+    :param sysnames: A list of sysnames to fetch. If empty, all netboxes are
+                     fetched.
+    :type sysnames: list
+    :return: A QuerySet of PowerSupplyOrFan objects.
+
+    """
+    LOGGER.debug('Getting PSUs and FANs')
+    if sysnames and len(sysnames) > 0:
+        psus_and_fans = PowerSupplyOrFan.objects.filter(
+            netbox__sysname__in=sysnames).order_by('netbox')
+    else:
+        psus_and_fans = PowerSupplyOrFan.objects.all().order_by('netbox')
+    LOGGER.debug('Got %s PSUs and FANs', len(psus_and_fans))
+    return psus_and_fans
+
+
+def check_psus_and_fans(to_check, dryrun=False):
+    """
+    Checks the state of the given PSUs and FANs, compares against state in the
+    DB, sends alerts if necessary, and stores any changes.
+    """
+    for psu_or_fan in to_check:
+        snmp_handle = get_snmp_handle(psu_or_fan.netbox)
+        numerical_status = None
+        LOGGER.debug('Polling %s: %s',
+                     psu_or_fan.netbox.sysname, psu_or_fan.name)
+        if psu_or_fan.sensor_oid and snmp_handle:
+            try:
+                numerical_status = snmp_handle.get(psu_or_fan.sensor_oid)
+            except Exception, ex:
+                LOGGER.error('%s: %s, Exception = %s',
+                             psu_or_fan.netbox.sysname, psu_or_fan.name, ex)
+                # Don't jump out, continue to next psu or fan
+                continue
+        vendor_id = None
+        if psu_or_fan.netbox.type:
+            vendor_id = psu_or_fan.netbox.type.get_enterprise_id()
+        status = None
+        if is_fan(psu_or_fan):
+            status = get_fan_state(numerical_status, vendor_id)
+        elif is_psu(psu_or_fan):
+            status = get_psu_state(numerical_status, vendor_id)
+        if status:
+            LOGGER.debug('Stored state = %s; polled state = %s',
+                         STATE_MAP[psu_or_fan.up], STATE_MAP[status])
+            handle_status(psu_or_fan, status, dryrun)
+
+
+def get_snmp_handle(netbox):
+    """Allocate an Snmp-handle for a given netbox"""
+    if not netbox.sysname in _snmp_handles:
+        LOGGER.debug('Allocate SNMP-handle for %s', netbox.sysname)
+        _snmp_handles[netbox.sysname] = Snmp(netbox.ip, netbox.read_only,
+                                             netbox.snmp_version)
+    return _snmp_handles.get(netbox.sysname, None)
+
+
+def handle_status(psu_or_fan, status, dry_run=False):
+    """Checks status-value, posts alerts and stores state in DB if necessary"""
+    _handle_internal_state(psu_or_fan, status, dry_run)
+    _handle_alert_state(psu_or_fan, status, dry_run)
+
+
+def _handle_internal_state(psu_or_fan, status, dry_run=False):
+    if psu_or_fan.up == status:
+        # state is unchanged, no need to save
+        return
+
+    if psu_or_fan.up in (STATE_UP, STATE_UNKNOWN) and status in (STATE_WARNING,
+                                                                 STATE_DOWN):
+        psu_or_fan.downsince = datetime.now()
+    elif psu_or_fan.up in (STATE_DOWN, STATE_WARNING) and status == STATE_UP:
+        psu_or_fan.downsince = None
+
+    psu_or_fan.up = status
+
+    if not dry_run:
+        LOGGER.debug('Saving state to database.')
+        psu_or_fan.save()
+    else:
+        LOGGER.debug('Dry run, not saving state.')
+
+
+def _handle_alert_state(psu_or_fan, status, dry_run=False):
+    has_alerts = bool(psu_or_fan.get_unresolved_alerts().count())
+    should_post = (
+        status == STATE_UP and has_alerts
+    ) or (
+        status in (STATE_DOWN, STATE_WARNING) and not has_alerts
+    )
+
+    if should_post and not dry_run:
+        LOGGER.debug('Posting event (%s)...', STATE_MAP[status])
+        post_event(psu_or_fan, status)
 
 
 def post_event(psu_or_fan, status):
@@ -166,20 +322,20 @@ def post_event(psu_or_fan, status):
     eventtypeid = "psuState" if is_psu(psu_or_fan) else "fanState"
     value = 100
     severity = 50
-    device_id = None
+
     try:
-        if psu_or_fan.device:
-            device_id = psu_or_fan.device.id
-    except Exception, ex:
-        pass
+        device_id = psu_or_fan.device.id
+    except (Device.DoesNotExist, AttributeError):
+        device_id = None
+
     event = Event(source=source, target=target,
-                            deviceid=device_id,
-                            netboxid=psu_or_fan.netbox.id,
-                            subid=psu_or_fan.id,
-                            eventtypeid=eventtypeid,
-                            state='x',
-                            value=value,
-                            severity=severity)
+                  deviceid=device_id,
+                  netboxid=psu_or_fan.netbox.id,
+                  subid=psu_or_fan.id,
+                  eventtypeid=eventtypeid,
+                  state='x',
+                  value=value,
+                  severity=severity)
     event['sysname'] = psu_or_fan.netbox.sysname
     if status in (PowerSupplyOrFan.STATE_DOWN,
                   PowerSupplyOrFan.STATE_WARNING):
@@ -190,82 +346,23 @@ def post_event(psu_or_fan, status):
         event.state = 'e'
     event['unitname'] = psu_or_fan.name
     event['state'] = status
-    verify('Posting event: %s' % event)
+    LOGGER.debug('Posting event: %s', event)
     try:
         event.post()
     except Exception, why:
-        msg = 'post_event: exception = %s' % why
-        verify(msg)
-        logger.error(msg)
+        LOGGER.error('post_event: exception = %s', why)
         return False
     return True
 
 
-def read_hostsfile(filename):
-    """ Read file with hostnames."""
-    verify('Reading hosts from %s' % filename)
-    hostnames = []
-    hosts_file = None
-    try:
-        hosts_file = open(filename, 'r')
-    except IOError, error:
-        err_str = "I/O error (%s): %s (%s)" % (
-            error.errno, filename, error.strerror)
-        print >> sys.stderr, err_str
-        logger.error(err_str)
-        sys.exit(2)
-    for line in hosts_file:
-        sysname = line.strip()
-        if sysname and len(sysname) > 0:
-            hostnames.append(sysname)
-    hosts_file.close()
-    verify('Hosts from %s: %s' % (filename, hostnames))
-    return hostnames
-
-
-def get_psus_and_fans(sysnames):
-    """ Get netboxes from DB,- if hostnames are specified fetch only those;
-    otherwise fetch all."""
-    verify('Getting PSUs and FANs')
-    psus_and_fans = None
-    if sysnames and len(sysnames) > 0:
-        psus_and_fans = PowerSupplyOrFan.objects.filter(
-                            netbox__sysname__in=sysnames).order_by('netbox')
-    else:
-        psus_and_fans = PowerSupplyOrFan.objects.all().order_by('netbox')
-    verify('Got %s PSUs and FANs' % len(psus_and_fans))
-    return psus_and_fans
-
-
-def get_snmp_handle(netbox):
-    """Allocate an Snmp-handle for a given netbox"""
-    global snmp_handles
-    if not netbox.sysname in snmp_handles:
-        verify('Allocate SNMP-handle for %s' % netbox.sysname)
-        snmp_handles[netbox.sysname] = Snmp(netbox.ip, netbox.read_only,
-                                                    netbox.snmp_version)
-    return snmp_handles.get(netbox.sysname, None)
-
-
 def is_fan(psu_or_fan):
     """Determine if this PowerSupplyOrFan-object is a FAN"""
-    return (psu_or_fan.physical_class == 'fan')
+    return psu_or_fan.physical_class == 'fan'
 
 
 def is_psu(psu_or_fan):
     """Determine if this PowerSupplyOrFan-object is a PSU"""
-    return (psu_or_fan.physical_class == 'powerSupply')
-
-
-def get_state(numerical_state, vendor_id, vendor_state_dict):
-    """Get the state as a character, based on numerical state, vendor-id.
-    and state-dictitonary"""
-    if not numerical_state or not vendor_id:
-        return 'u'
-    vendor_states = vendor_state_dict.get(vendor_id, None)
-    if not vendor_states:
-        return 'u'
-    return vendor_states.get(numerical_state, None)
+    return psu_or_fan.physical_class == 'powerSupply'
 
 
 def get_fan_state(fan_state, vendor_id):
@@ -278,94 +375,15 @@ def get_psu_state(psu_state, vendor_id):
     return get_state(psu_state, vendor_id, VENDOR_PSU_STATES)
 
 
-def handle_status(psu_or_fan, status):
-    """Check status-value,- post alerts and store state in DB if necessary"""
-    if psu_or_fan.up != status:
-        if psu_or_fan.up == 'y' or psu_or_fan.up == 'u':
-            if status == 'w' or status == 'n':
-                psu_or_fan.downsince = datetime.now()
-                verify('Posting down-event...')
-                if not dry_run:
-                    post_event(psu_or_fan, status)
-        elif psu_or_fan.up == 'n' or psu_or_fan.up == 'w':
-            if status == 'y':
-                psu_or_fan.downsince = None
-                verify('Posting up-event...')
-                if not dry_run:
-                    post_event(psu_or_fan, status)
-        psu_or_fan.up = status
-        if not dry_run:
-            verify('Save state to database.')
-            psu_or_fan.save()
-        else:
-            verify('Dry run, not saving state.')
-
-
-def check_psus_and_fans(to_check):
-    """Check the state of the given PSUs and FANs, check against state in the
-    DB, send alerts if necessary and store any changes."""
-    for psu_or_fan in to_check:
-        snmp_handle = get_snmp_handle(psu_or_fan.netbox)
-        numerical_status = None
-        verify('Polling %s: %s' % (psu_or_fan.netbox.sysname, psu_or_fan.name))
-        if psu_or_fan.sensor_oid and snmp_handle:
-            try:
-                numerical_status = snmp_handle.get(psu_or_fan.sensor_oid)
-            except Exception, ex:
-                msg = '%s: %s, Exception = %s' % (psu_or_fan.netbox.sysname,
-                    psu_or_fan.name, ex)
-                verify(msg)
-                logger.error(msg)
-                # Don't jump out, continue to next psu or fan
-                continue
-        vendor_id = None
-        if psu_or_fan.netbox.type:
-            vendor_id = psu_or_fan.netbox.type.get_enterprise_id()
-        status = None
-        if is_fan(psu_or_fan):
-            status = get_fan_state(numerical_status, vendor_id)
-        elif is_psu(psu_or_fan):
-            status = get_psu_state(numerical_status, vendor_id)
-        if status:
-            verify('Stored state = %s; polled state = %s' %
-                                    (psu_or_fan.up, status))
-            handle_status(psu_or_fan, status)
-
-
-def main():
-    """Plain good old main..."""
-    global logger
-    global dry_run
-    global should_verify
-
-    logger = get_logger()
-
-    parser = OptionParser()
-    parser.add_option("-d", "--dry-run", action="store_true", dest="dryrun",
-            help="Dry run.  No changes will be made and no events posted")
-    parser.add_option("-f", "--file", dest="hostsfile",
-            help="A file with hostnames to check. Must be one FQDN per line")
-    parser.add_option("-n", "--netbox", dest="hostname",
-            help="Check only this hostname.  Must be a FQDN")
-    parser.add_option("-v", "--verify", action="store_true", dest="verify",
-            help="Print (lots of) debug-information to stderr")
-    opts, args = parser.parse_args()
-
-    if opts.dryrun:
-        dry_run = opts.dryrun
-
-    if opts.verify:
-        should_verify = opts.verify
-
-    sysnames = []
-    if opts.hostname:
-        sysnames.append(opts.hostname.strip())
-    if opts.hostsfile:
-        sysnames.extend(read_hostsfile(opts.hostsfile))
-
-    verify('Start checking PSUs and FANs')
-    check_psus_and_fans(get_psus_and_fans(sysnames))
-    sys.exit(0)
+def get_state(numerical_state, vendor_id, vendor_state_dict):
+    """Get the state as a character, based on numerical state, vendor-id.
+    and state-dictitonary"""
+    if not numerical_state or not vendor_id:
+        return STATE_UNKNOWN
+    vendor_states = vendor_state_dict.get(vendor_id, None)
+    if not vendor_states:
+        return STATE_UNKNOWN
+    return vendor_states.get(numerical_state, None)
 
 
 if __name__ == '__main__':

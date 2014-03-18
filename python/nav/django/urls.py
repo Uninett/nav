@@ -28,7 +28,7 @@ urlpatterns += patterns('',
     (r'^arnold/', include('nav.web.arnold.urls')),
     (r'^devicehistory/', include('nav.web.devicehistory.urls')),
     (r'^geomap/', include('nav.web.geomap.urls')),
-    (r'^info/', include('nav.web.info.urls')),
+    (r'^search/', include('nav.web.info.urls')),
     (r'^ipdevinfo/', include('nav.web.ipdevinfo.urls')),
     (r'^l2trace/', include('nav.web.l2trace.urls')),
     (r'^machinetracker/', include('nav.web.machinetracker.urls')),
@@ -49,7 +49,6 @@ urlpatterns += patterns('',
     (r'^navlets/', include('nav.web.navlets.urls')),
 
     (r'^useradmin/', include('nav.web.useradmin.urls')),
-    url(r'^userinfo/', 'nav.web.useradmin.views.userinfo', name='userinfo'),
 )
 
 handler500 = 'nav.django.views.custom_500'

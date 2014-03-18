@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
 <script type="text/javascript" src="{{ STATIC_URL }}js/geomap/proj4js-compressed.js"></script>
@@ -10,7 +11,6 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/geomap/coordinates.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/geomap/NetworkLayer.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/geomap/PopupControl.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/geomap/PositionControl.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/geomap/MyHTTPProtocol.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/geomap/Calendar.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/geomap/Time.js"></script>
@@ -32,7 +32,14 @@
 
 <div class="row">
   <div class="small-12 columns">
-    <h2 id="geomap-heading">Geomap</h2>
+    {% with tool=current_user_data.tools|get_tool:'Geomap' %}
+      {% include 'nav_header.html' %}
+    {% endwith %}
+
+    <a href="javascript:void(0);" id="time-panel-toggler" class="button small secondary right">
+      Time options
+      <i class="fa fa-caret-down"></i>
+    </a>
 
     <p>Variant:
     {% for other_variant in config.variants.values %}
@@ -46,72 +53,57 @@
     {% endif %}
     {% endfor %}
     </p>
-  </div>
 
+  </div>
 </div>
 
-<div class="row map-control-bar">
+<div class="row">
 
-  <div class="medium-2 columns">
-    <p id="time-navigation-selected-time"></p>
-    <p class="permalink">
-      <a id="permalink">Link to this configuration</a>
-    </p>
-  </div>
+  <div id="time-panel" class="small-12 column hide map-control-bar">
+    <div class="panel">
+      <div class="row">
 
-  <div class="medium-3 columns">
-    <div id="time-navigation">
-      <p><h6>Interval size:</h6> <select id="time-navigation-interval-size"></select></p>
-      <p>
-        <span id="time-navigation-prev-jump"></span>
-        <span id="time-navigation-prev"></span>
-        <span id="time-navigation-next"></span>
-        <span id="time-navigation-next-jump"></span>
-        <span id="time-navigation-last"></span>
-        <span id="time-navigation-up"></span>
-        <select id="time-navigation-down"></select>
-      </p>
-    </div>
-  </div>
-
-  <div class="medium-3 columns">
-
-    <table id="time-navigation-calendar">
-      <tr id="time-navigation-calendar-head-row">
-        <td id="time-navigation-calendar-prev-year" title="Previous year">&lt;&lt;</td>
-        <td id="time-navigation-calendar-prev-month" title="Previous month">&lt;</td>
-        <td id="time-navigation-calendar-header"></td>
-        <td id="time-navigation-calendar-next-month" title="Next month">&gt;</td>
-        <td id="time-navigation-calendar-next-year" title="Next year">&gt;&gt;</td>
-      </tr>
-      <tr id="time-navigation-calendar-body">
-        <td colspan="5">
-          <table id="time-navigation-calendar-month"></table>
-        </td>
-      </tr>
-    </table>
-  </div>
-
-  <div class="medium-4 columns">
-    <div id="position">
-      <h6>Last clicked position:</h6>
-      <div class="row collapse">
-        <div class="medium-9 columns">
-          <input type="text" id="pos-clicked-lonlat" size="18"/>
+        <div class="medium-4 columns">
+          <p id="time-navigation-selected-time"></p>
+          <p class="permalink">
+            <a id="permalink">Link to this configuration</a>
+          </p>
         </div>
-        <div class="medium-3 columns">
-          <span class="postfix">(lat/lon)</span>
+
+        <div class="medium-4 columns">
+          <div id="time-navigation">
+            <p><h6>Interval size:</h6> <select id="time-navigation-interval-size"></select></p>
+            <p>
+              <span id="time-navigation-prev-jump"></span>
+              <span id="time-navigation-prev"></span>
+              <span id="time-navigation-next"></span>
+              <span id="time-navigation-next-jump"></span>
+              <span id="time-navigation-last"></span>
+              <span id="time-navigation-up"></span>
+              <select id="time-navigation-down"></select>
+            </p>
+          </div>
         </div>
+
+        <div class="medium-4 columns">
+
+          <table id="time-navigation-calendar">
+            <tr id="time-navigation-calendar-head-row">
+              <td id="time-navigation-calendar-prev-year" title="Previous year">&lt;&lt;</td>
+              <td id="time-navigation-calendar-prev-month" title="Previous month">&lt;</td>
+              <td id="time-navigation-calendar-header"></td>
+              <td id="time-navigation-calendar-next-month" title="Next month">&gt;</td>
+              <td id="time-navigation-calendar-next-year" title="Next year">&gt;&gt;</td>
+            </tr>
+            <tr id="time-navigation-calendar-body">
+              <td colspan="5">
+                <table id="time-navigation-calendar-month"></table>
+              </td>
+            </tr>
+          </table>
+        </div>
+
       </div>
-      <div class="row collapse">
-        <div class="medium-9 columns">
-          <input type="text" id="pos-clicked-utm" size="18"/>
-        </div>
-        <div class="medium-3 columns">
-          <span class="postfix">(UTM)</span>
-        </div>
-      </div>
-      <a id="add-room" href="{% url seeddb-room-edit %}" target="_blank">Add room at this position</a>
     </div>
   </div>
 
@@ -124,44 +116,54 @@
   </div>
 </div>
 
-<div id="legend" class="row">
-    {% for indicator_list in variant_config.indicators.values %}
-      {% for indicator in indicator_list %}
-        <div class="large-3 columns">
-          <table>
-            <thead>
-              <tr>
-                <th colspan="2">{{ indicator.name }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for option in indicator.options %}
-                <tr>
-                  <td>
-                    {% ifequal indicator.property 'color' %}
-                      <div class="colorbox"
-                           style="background-color: {{ option.value }}">
-                      </div>
-                    {% endifequal %}
-                    {% ifequal indicator.property 'size' %}
-                      {% if indicator.type == 'node' %}
-                        <div class="node-size-indicator"
-                             style="width: {{ option.value }}px; height: {{ option.value }}px">
-                        </div>
-                      {% elif indicator.type == 'edge' %}
-                        <div class="edge-size-indicator"
-                             style="height: {{ option.value }}px">
-                        </div>
-                      {% endif %}
-                    {% endifequal %}
-                  </td>
-                  <td>{{ option.label }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% endfor %}
-    {% endfor %}
-</div>
+<div class="row">
+
+  <div class="small-12 columns">
+    <div id="legend" class="panel">
+      <div class="row">
+
+        {% for indicator_list in variant_config.indicators.values %}
+          {% for indicator in indicator_list %}
+            <div class="small-6 medium-3 columns">
+              <table>
+                <thead>
+                  <tr>
+                    <th colspan="2">{{ indicator.name }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for option in indicator.options %}
+                    <tr>
+                      <td>
+                        {% ifequal indicator.property 'color' %}
+                          <div class="colorbox"
+                               style="background-color: {{ option.value }}">
+                          </div>
+                        {% endifequal %}
+                        {% ifequal indicator.property 'size' %}
+                          {% if indicator.type == 'node' %}
+                            <div class="node-size-indicator"
+                                 style="width: {{ option.value }}px; height: {{ option.value }}px">
+                            </div>
+                          {% elif indicator.type == 'edge' %}
+                            <div class="edge-size-indicator"
+                                 style="height: {{ option.value }}px">
+                            </div>
+                          {% endif %}
+                        {% endifequal %}
+                      </td>
+                      <td>{{ option.label }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endfor %}
+        {% endfor %}
+
+      </div>
+    </div> {# End Panel #}
+  </div>
+
+</div> {# End Row #}
 {% endblock %}

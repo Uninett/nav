@@ -152,7 +152,7 @@ def netbox_render(request, step, netbox, netbox_form, serial_form, group_form,
         'title': title,
         '_navpath': [('Edit Device', reverse_lazy('seeddb-netbox-edit'))],
         'sub_active': netbox and {'edit': True} or {'add': True},
-        'tab_template': 'seeddb/tabs_netbox.html',
+        'tab_template': 'seeddb/tabs_generic.html',
     })
     return render_to_response('seeddb/netbox_wizard.html', context,
                               RequestContext(request))

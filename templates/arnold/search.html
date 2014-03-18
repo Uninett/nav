@@ -9,16 +9,16 @@
   <h4>Search</h4>
 
     {% comment %} Display form for defining search parameters {% endcomment %}
-    <div class="row">
-        <div class="medium-6 column">
-          <div class="panel">
-            {% crispy form %}
-          </div>
-        </div>
+  <div class="row">
+    <div class="medium-6 column">
+      <div class="panel white">
+        {% crispy form %}
+      </div>
     </div>
+  </div>
 
 
-    {% comment %} Display search results {% endcomment %}
+  {% comment %} Display search results {% endcomment %}
     {% if form.is_bound and not form.errors %}
         <table class="listtable">
 

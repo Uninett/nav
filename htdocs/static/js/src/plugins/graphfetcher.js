@@ -4,9 +4,9 @@ define(['libs/jquery', 'libs/spin.min'], function () {
      *
      * Automatically loads graphite graphs based on class attributes.
      *
-     * In the template set the following attributes on the element that the
-     * graph should load in:
+     * See 'graphfetcher_controller' for global controls.
      *
+     * Every graph needs the following:
      * class='graphitegraph'
      * data-url: The url of the controller returning the graph image
      *   (you need to write this controller). GraphFetcher adds a 'timeframe'
@@ -16,59 +16,76 @@ define(['libs/jquery', 'libs/spin.min'], function () {
      *   graph, set this to the id of that element. Otherwise the graph is
      *   loaded on page load.
      *
-     * NB: Expected icon for indicating exxpandable is 'fa-toggle-right'
+     * NB: Expected icon for indicating expandable is 'fa-chevron-right'
      */
 
-    $(function () {
-        $('.graphitegraph').each(function () {
-            var $node = $(this);
-            try {
-                new GraphFetcher($node, $node.attr('data-url'));
-            } catch (error) {
-                console.log('Error initializing graphloader');
-            }
-        });
-    });
-
-    function GraphFetcher(node, url) {
-        this.checkInput(node, url);
+    function GraphFetcher(node, urls) {
+        this.checkInput(node, urls);
         this.node = node;
-        this.url = url;
+        this.wrapper = $('<div>')
+            .addClass('graphfetcher-wrapper')
+            .attr('style', 'display: inline-block')
+            .appendTo(this.node);
+        this.urls = urls.split(';');
+        this.lastUrlIndex = -1;
+        this.urlIndex = 0;  // Index of this.urls
 
         this.buttons = {'day': 'Day', 'week': 'Week', 'month': 'Month', 'year': 'Year'};
+        this.lastTimeFrame = '';
+        this.timeframe = 'day';
+        this.isOpen = false;
         this.spinner = this.createSpinner();
 
+        this.isInitialized = false;
         var handlerId = this.node.attr('data-handler-id');
         if (handlerId) {
-            var self = this;
             this.handler = $('#' + handlerId);
             this.icon = this.handler.find('i');
-            this.handler.one('click', function () {
-                self.init();
-                self.node.show(400);
-                self.icon.removeClass('fa-toggle-right').addClass('fa-toggle-down');
-            });
+            this.addToggleHandler();
         } else {
             this.init();
         }
-
+        return this;
     }
 
     GraphFetcher.prototype = {
         init: function () {
             this.addButtons();
-            this.loadGraph('day');
+            this.loadGraph();
+            this.isInitialized = true;
+        },
+        addToggleHandler: function () {
             var self = this;
-            if (this.handler) {
-                $(this.handler).click(function () {
-                    self.node.toggle(function () {
-                        if (self.node.is(':visible')) {
-                            self.icon.removeClass('fa-toggle-right').addClass('fa-toggle-down');
-                        } else {
-                            self.icon.removeClass('fa-toggle-down').addClass('fa-toggle-right');
-                        }
-                    });
-                });
+            $(this.handler).click(function () {
+                if (self.node.is(':visible')) {
+                    self.close();
+                } else {
+                    self.open();
+                }
+            });
+        },
+        close: function () {
+            this.isOpen = false;
+            this.node.hide();
+            this.icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
+        },
+        open: function () {
+            if (!this.isInitialized) {
+                this.init();
+            }
+            if (this.shouldReloadGraph()) {
+                this.loadGraph();
+            }
+            this.node.show();
+            this.isOpen = true;
+            this.icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
+        },
+        shouldReloadGraph: function () {
+            return (this.lastTimeFrame !== this.timeframe) || (this.lastUrlIndex !== this.urlIndex);
+        },
+        changeUrlIndex: function (index) {
+            if (this.urls.length > index) {
+                this.urlIndex = index;
             }
         },
         checkInput: function (node, url) {
@@ -80,7 +97,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             }
         },
         addButtons: function () {
-            var headerNode = $('<div>').appendTo(this.node);
+            var headerNode = $('<div>').appendTo(this.wrapper);
             this.headerNode = headerNode;
 
             for (var key in this.buttons) {
@@ -88,49 +105,73 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                     this.addButton(headerNode, key, this.buttons[key]);
                 }
             }
+            this.appendAddGraphButton();
         },
         addButton: function (node, timeframe, text) {
             var that = this;
             var button = $('<button>').addClass('tiny secondary graph-button-' + timeframe).html(text);
             button.click(function () {
-                that.loadGraph(timeframe);
+                that.timeframe = timeframe;
+                that.loadGraph();
             });
             button.appendTo(node);
         },
-        selectButton: function(timeframe) {
+        appendAddGraphButton: function () {
+            var self = this,
+                button = $('<button>').addClass('tiny secondary right').text('Add graph to dashboard');
+            button.click(function () {
+                /* Image url is a redirect to graphite. Fetch proxy url and use that as preference for graph widget */
+                var url = self.wrapper.find('img').attr('src'),
+                    headRequest = $.ajax(url, { 'type': 'HEAD' });
+                headRequest.done(function (data, status, xhr) {
+                    var proxyUrl = xhr.getResponseHeader('X-Where-Am-I');
+                    if (proxyUrl) {
+                        $.post(NAV.addGraphWidgetUrl, {'url': proxyUrl}, function () {
+                            button.removeClass('secondary').addClass('success');
+                        });
+                    }
+                });
+            });
+            this.headerNode.append(button);
+        },
+        selectButton: function() {
             $('button', this.headerNode).each(function (index, element) {
                 $(element).removeClass('active');
             });
-            $('button.graph-button-' + timeframe, this.node).addClass('active');
+            this.wrapper.find('button.graph-button-' + this.timeframe).addClass('active');
         },
-        loadGraph: function (timeframe) {
-            this.displayGraph(this.getUrl(timeframe));
-            this.selectButton(timeframe);
+        loadGraph: function () {
+            this.lastTimeFrame = this.timeframe;
+            this.lastUrlIndex = this.urlIndex;
+            this.displayGraph(this.getUrl());
+            this.selectButton();
         },
         displayGraph: function (url) {
+            this.spinner.spin(this.wrapper.get(0));
             var self = this;
             var image = new Image();
             image.src = url;
             image.onload = function () {
-                self.node.find('img').remove();
-                self.node.append(image);
+                self.wrapper.find('img').remove();
+                self.wrapper.append(image);
+                self.spinner.stop();
             };
             image.onerror = function () {
-                self.node.find('img').remove();
-                self.node.append("<span class='alert-box alert'>Error loading image</span>");
+                self.wrapper.find('img').remove();
+                self.wrapper.append("<span class='alert-box alert'>Error loading image</span>");
+                self.spinner.stop();
             };
         },
-        getUrl: function (timeframe) {
-            var separator = '?';
-            if (this.url.indexOf('?') >= 0) {
+        getUrl: function () {
+            var url = this.urls[this.urlIndex],
+                separator = '?';
+            if (url.indexOf('?') >= 0) {
                 separator = '&';
             }
-            return this.url + separator + 'timeframe=' + timeframe;
+            return url + separator + 'timeframe=' + this.timeframe;
         },
         createSpinner: function () {
             var options = {};  // Who knows, maybe in the future?
-            /* Set a minimum height on the container so that the spinner displays properly */
-            this.node.css('min-height', '100px');
             return new Spinner(options);
         }
     };

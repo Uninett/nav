@@ -34,7 +34,7 @@ try:
 except IOError:
     webfront_config = {}
 
-DEBUG = nav_config.get('DJANGO_DEBUG', False)
+DEBUG = nav_config.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
 TEMPLATE_DEBUG = DEBUG
 
 # Admins
@@ -86,6 +86,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'nav.django.context_processors.debug',
     'nav.django.context_processors.account_processor',
     'nav.django.context_processors.nav_version',
+    'nav.django.context_processors.graphite_base',
     'nav.django.context_processors.footer_info',
     'django.core.context_processors.static',
 )
@@ -104,6 +105,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = int(
     webfront_config.get('sessions', {}).get('timeout', 3600))
 SESSION_COOKIE_NAME = 'nav_sessionid'
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Message storage for the messages framework
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
@@ -144,6 +146,10 @@ NAVLETS = (
     'nav.web.navlets.messages.MessagesNavlet',
     'nav.web.navlets.welcome.WelcomeNavlet',
     'nav.web.navlets.room_map.RoomMapNavlet',
+    'nav.web.navlets.feedreader.FeedReaderNavlet',
+    'nav.web.navlets.navblog.NavBlogNavlet',
+    'nav.web.navlets.gettingstarted.GettingStartedWidget',
+    'nav.web.navlets.graph.GraphWidget',
 )
 
 CRISPY_TEMPLATE_PACK = 'foundation'

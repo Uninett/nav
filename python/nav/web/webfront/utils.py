@@ -133,3 +133,22 @@ def get_account_tools(account, all_tools):
             tool.display = account_tool.display
             tools.append(tool)
     return tools
+
+
+def split_tools(tools, parts=3):
+    """Split tools into even parts for megadropdown"""
+    columns = []
+    tools_in_column = len(tools) / parts
+    remainder = len(tools) % parts
+    first_index = 0
+    for column in range(parts):
+        tools_in_this_column = tools_in_column
+        if remainder:
+            tools_in_this_column += 1
+            remainder -= 1
+        last_index = first_index + tools_in_this_column
+        columns.append(tools[first_index:last_index])
+        first_index += tools_in_this_column
+    return columns
+
+

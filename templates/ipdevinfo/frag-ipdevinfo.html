@@ -7,8 +7,8 @@
 {% if netbox %}
 
   {% comment %} IP DEVICE {% endcomment %}
-  <div class="medium-4 column">
-    <table class="vertitable">
+  <div class="medium-6 column">
+    <table class="vertitable full-width">
       <caption>
         IP Device: {{ netbox.get_short_sysname }}
       </caption>
@@ -167,8 +167,8 @@
 
 
   {% comment %} STATUS {% endcomment %}
-  <div class="medium-4 column">
-    <table class="vertitable">
+  <div class="medium-6 column">
+    <table class="vertitable full-width">
       <caption>
         Status
       </caption>
@@ -261,62 +261,56 @@
 
       </tbody>
     </table>
-  </div>
 
-
-  {% comment %} JOBS {% endcomment %}
-  <div class="medium-4 column">
     {% with netbox.get_last_jobs as jobs %}
-      {% if jobs %}
-        <table class="listtable full-width">
-          <caption>Jobs</caption>
-          <thead>
+    {% if jobs %}
+      <table class="listtable full-width">
+        <caption>Jobs</caption>
+        <thead>
+        <tr>
+          <th>Name</th>
+          <th>End time</th>
+          <th>Duration</th>
+          <th class="cell-center">Status</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for job in jobs|dictsortreversed:'end_time' %}
           <tr>
-            <th>Name</th>
-            <th>End time</th>
-            <th>Duration</th>
-            <th class="cell-center">Status</th>
-          </tr>
-          </thead>
-
-          <tbody>
-          {% for job in jobs|dictsortreversed:'end_time' %}
-            <tr>
-              <td title="{{ job_descriptions|lookup:job.job_name|default:'No description' }}">
-                {{ job.job_name|capfirst }}
-              </td>
-              <td title="Next run expected at {{ job.end_time|add_interval:job.interval|date:"DATETIME_FORMAT" }}">
-                {{ job.end_time|date:"DATETIME_FORMAT" }}
-              </td>
-              <td class="cell-right">
-                {{ job.duration|stringformat:".2f" }}s
-              </td>
-              <td class="cell-center">
-                {% if job.is_overdue %}
-                  <img src="{{ STATIC_URL }}images/lys/yellow.png"
-                       alt="Overdue"
-                       title="Overdue - interval is {{ job.interval|interval }}">
+            <td title="{{ job_descriptions|lookup:job.job_name|default:'No description' }}">
+              {{ job.job_name|capfirst }}
+            </td>
+            <td title="Next run expected at {{ job.end_time|add_interval:job.interval|date:"DATETIME_FORMAT" }}">
+              {{ job.end_time|date:"DATETIME_FORMAT" }}
+            </td>
+            <td class="cell-right">
+              {{ job.duration|stringformat:".2f" }}s
+            </td>
+            <td class="cell-center">
+              {% if job.is_overdue %}
+                <img src="{{ STATIC_URL }}images/lys/yellow.png"
+                     alt="Overdue"
+                     title="Overdue - interval is {{ job.interval|interval }}">
+              {% else %}
+                {% if job.success %}
+                  <img src="{{ STATIC_URL }}images/lys/green.png"
+                       alt="Success" title="Success">
                 {% else %}
-                  {% if job.success %}
-                    <img src="{{ STATIC_URL }}images/lys/green.png"
-                         alt="Success" title="Success">
-                  {% else %}
-                    <img src="{{ STATIC_URL }}images/lys/red.png"
-                         alt="Failed" title="Failed">
-                  {% endif %}
+                  <img src="{{ STATIC_URL }}images/lys/red.png"
+                       alt="Failed" title="Failed">
                 {% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p>No jobs have run on this netbox</p>
-      {% endif %}
-    {% endwith %}
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No jobs have run on this netbox</p>
+    {% endif %}
+  {% endwith %}
   </div>
-
-
 
 {% else %}
 
@@ -329,6 +323,32 @@
       <tr>
         <th>Status</th>
         <td>Not monitored</td>
+      </tr>
+
+      <tr>
+        <th>DNS</th>
+        <td>
+          <ul class="no-bullet" style="font-size: 1em;">
+            {% for address in host_info.addresses %}
+              <li>
+                <a href="{% url ipdevinfo-details-by-addr address.addr %}">
+                  {{ address.addr }}
+                </a>
+
+                {% if address.name %}
+                  &ndash; <a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>
+                {% endif %}
+
+                {% if address.error %}
+                  ({{ address.error }})
+                {% endif %}
+
+              </li>
+            {% empty %}
+              <li>N/A</li>
+            {% endfor %}
+          </ul>
+        </td>
       </tr>
 
       <tr>

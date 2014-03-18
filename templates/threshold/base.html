@@ -1,11 +1,14 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
   <script>require(['src/threshold']);</script>
 {% endblock %}
 
 {% block base_content %}
-  <h4>Thresholds</h4>
+  {% with tool=current_user_data.tools|get_tool:'Thresholds' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
 
   {% if rules %}
     <a href="{% url threshold-add %}" class="button small">Add rule</a>

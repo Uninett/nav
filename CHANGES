@@ -1,3 +1,88 @@
+Version 4.0b5
+(released 03 Mar 2014)
+
+ Bugfixes:
+
+  * Fixed various bugs around the web interface, introduced in previous
+    releases.
+
+ User-visible features and improvements:
+
+  * Graph widget now has editable title. Default value is taken from from the
+    displayed graph.
+
+  * Make global graph controls float on top of viewport when scrolling on a
+    page with heaps of port metrics.
+
+  * Added the much sought-after button to clear link alerts from the status
+    page.
+
+  * Front page widgets can now be re-ordered by dragging their anchor icon;
+    the re-order mode button has been removed.
+
+  * "Add widget" button on the front page was moved to a sliding menu,
+    accessible from the plus icon on the right hand side of the screen.
+
+
+Version 4.0b4
+(released 20 Feb 2014)
+
+ User-visible features and improvements:
+
+  * A port metrics tab has been added to IP Device Info, so that all port
+    graphs are available on a single page (just like you're used to from
+    Cricket).
+
+  * Sub-tabs in IP Device Info are now hyperlinkable.
+
+  * Portadmin UI has been reworked again, based on feedback from NTNU.
+
+  * All users are now presented with a "NAV tour" widget on their front page,
+    which will give an interactive tour of the functionality on the new front
+    page.
+
+  * Introduced widget for displaying the contents of `welcome-anonymous.txt`
+    and `welcome-registered.txt`, as was always present on the NAV 3 front
+    page.
+
+  * Introduced button to add any graph displayed in NAV to your front page
+    widget dashboard.
+
+  * CPU stats from HP devices are now included in ranked CPU statistics.
+
+  * New button in ranked statistics to switch between regular graph and pie
+    chart.
+
+  * Improved titles, legends and display of various graphs.
+
+  * Removed obsolete Adobe Flash component that was used to facilitate CSV
+    export of the room switch port view.
+
+
+Version 4.0b3
+(released 06 Feb 2014)
+
+ Bugfixes:
+
+  * LP#1270095 (APC sensors stored at wrong precision)
+  * All VLAN utilization graphs produced error messages in b2.
+
+ User-visible features and improvements:
+
+  * Inserted the new NAV logo, and completely reworked the page footer.
+
+  * New NAV blog feed widget added as default.
+
+  * UI clean-ups and improvements in front page widgets, login page, Geomap,
+    SeedDB, Messages, PortAdmin, Radius, Syslog Analyzer, IP Device Info, room
+    photo database, personal preferences page and others.
+
+  * Fixed Internet Explorer 9 brokenness.
+
+  * Tool descriptions have been completely re-authored, and are now also
+    available as a subheading inside each tool.
+
+
 Version 4.0b2
 (released 9 Jan 2014)
 
@@ -41,6 +126,29 @@ Version 4.0b1
  version we recommend installing NAV on a separate, perhaps virtual, server,
  and migrate production data according to the data migration howto found in
  the documentation.
+
+
+Version 3.15.6
+(released 20 Feb 2014)
+
+  * LP#1274406 (Power Supply status is not correct)
+  * LP#1278433 (Link to alert profiles permissions is missing)
+  * LP#1279748 (Malformed timestamps cause internal crash in activeip API call,
+                instead of proper error message)
+
+
+Version 3.15.5
+(released 06 Feb 2014)
+
+  * LP#1241624 (Attempting to access a restricted resource when logged in as an
+                underprivileged user causes a 403 Forbidden response with an
+                empty body)
+  * LP#1269714 (Physically replacing a device may cause all further SNMP polling
+                of it to stop)
+  * LP#1272226 (PSU alerts are not shown in the status page)
+  * LP#1273706 ("put on maintenance" from status page doesn't work properly when
+                NAV and PostgreSQL are configured with differing timezones)
+  * LP#1276509 (Access ports sometimes wrongly categorized as uplinks/downlinks)
 
 
 Version 3.15.4

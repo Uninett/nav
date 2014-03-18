@@ -1,45 +1,58 @@
 <div class="place-popup">
 
-  <table class="vertitable">
-    <tr><th>Rooms</th>          <td>{{ place.num_rooms }}</td></tr>
-    <tr><th>IP devices</th>     <td>{{ place.num_netboxes }}</td></tr>
-    <tr><th>CPU load (max)</th> <td>{{ place.load|nan2none|floatformat:2|default:"unknown" }}</td></tr>
+  <table class="listtable">
+    <tr>
+      <th>Rooms</th>
+      <th>IP devices</th>
+      <th>CPU load (max)</th>
+    </tr>
+    <tr>
+      <td>{{ place.num_rooms }}</td>
+      <td>{{ place.num_netboxes }}</td>
+      <td>{{ place.load|nan2none|floatformat:2|default:"unknown" }}</td>
+    </tr>
   </table>
 
   {% for room in place.rooms %}
-  <table class="vertitable">
-
-    <caption>
+    <table class="listtable">
+      <caption>
         <a href="{% url room-info room.id %}"
            target="_blank"
            title="View room information">
-            {{ room.id }}
-            {% if room.descr %}({{ room.descr }}){% endif %}
+          {{ room.id }}
+          {% if room.descr %}({{ room.descr }}){% endif %}
         </a>
-    </caption>
-    <tr><th>IP Devices</th>     <td>{{ room.num_netboxes }}</td></tr>
-    <tr><th>CPU load (max)</th> <td>{{ room.load|nan2none|floatformat:2|default:"unknown" }}</td></tr>
+      </caption>
 
-    <td colspan="2">
-      {% for box in room.netboxes %}
-      <table class="vertitable">
-	<caption>
-        <a href="{% url ipdevinfo-details-by-name box.sysname %}"
-           target="_blank"
-           title="View in IP Device Info">{{ box.sysname }}</a>
-    </caption>
-	<tr><th>IP</th>       <td>{{ box.ip }}</td></tr>
-	<tr><th>Category</th> <td>{{ box.catid }}</td></tr>
-	<tr><th>Type</th>     <td>{{ box.type|default:"N/A" }}</td></tr>
-	<tr><th>Up</th>       <td>{{ box.up }}</td></tr>
-	<tr><th>Load %</th>   <td>{{ box.load|nan2none|floatformat:2|default:"unknown" }}</td></tr>
-	{% if debug %}
-	  <tr><th>Netboxid</th> <td>{{ box.netboxid }}</td></tr>
-	{% endif %}
-      </table>
-      {% endfor %}
+      <tr>
+        <td><b>IP Devices:</b> {{ room.num_netboxes }}</td>
+        <td><b>CPU load (max):</b> {{ room.load|nan2none|floatformat:2|default:"unknown" }}</td>
+      </tr>
 
-  </table>
+      <tr>
+        <td colspan="2">
+          <ul class="large-block-grid-2">
+            {% for box in room.netboxes %}
+              <li>
+                <h5>
+                  <a href="{% url ipdevinfo-details-by-name box.sysname %}"
+                     target="_blank"
+                     title="View in IP Device Info">{{ box.sysname }}</a>
+                </h5>
+                <ul class="no-bullet">
+                  <li><b>IP:</b> {{ box.ip }}</li>
+                  <li><b>Category:</b> {{ box.catid }}</li>
+                  <li><b>Type:</b> {{ box.type|default:"N/A" }}</li>
+                  <li><b>Up:</b> {{ box.up }}</li>
+                  <li><b>Load:</b> {{ box.load|nan2none|floatformat:2|default:"unknown" }}</li>
+                </ul>
+              </li>
+            {% endfor %}
+          </ul>
+        </td>
+      </tr>
+
+    </table>
   {% endfor %}
 
 </div>

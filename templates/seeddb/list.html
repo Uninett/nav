@@ -1,20 +1,19 @@
 {% extends "seeddb/base.html" %}
 {% load url_parameters %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 
 {% if filter_form %}
-<form action="" method="get">
-    <table class="listtable">
-        {{ filter_form }}
-        <tr>
-            <th></th>
-            <td>
-                <input type="submit" value="Filter" class="button tiny" />
-            </td>
-        </tr>
-    </table>
-</form>
+  {% if filter_form.base_fields|length >= 3 %}
+    {% crispy filter_form %}
+  {% else %}
+    <div class="row">
+      <div class="medium-6 column">
+        {% crispy filter_form %}
+      </div>
+    </div>
+  {% endif %}
 {% endif %}
 
 <form action="{{ request.path }}" method="post">
@@ -79,12 +78,6 @@
 
     </div>
 
-    {% if not hide_move %}
-        <input type="submit" name="move" value="Move selected" class="button small secondary" />
-    {% endif %}
-    {% if not hide_delete %}
-        <input type="submit" name="delete" value="Delete selected" class="button small secondary"/>
-    {% endif %}
 </form>
 
 {% endblock %}

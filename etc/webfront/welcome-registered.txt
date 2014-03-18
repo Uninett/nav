@@ -1,10 +1,6 @@
-<h2>Welcome to NAV!</h2>
-
 <p>This is where you can put a welcome message and some information
 about your NAV installation for registered users.</p>
 
-<!-- Remove this line to display map of rooms
-<div class="mapwrapper">
-  <div id="room_map" class="smallmap"></div>
-</div>
-     Remove this line to display map of rooms -->
+<p>
+    <a href="https://nav.uninett.no/user_guide?s[]=welcome#the_index_page">See how to do that</a>
+</p>

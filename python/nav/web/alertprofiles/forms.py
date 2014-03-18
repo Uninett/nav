@@ -33,6 +33,7 @@ from nav.web.crispyforms import HelpField
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
                                             HTML)
+from nav.web.crispyforms import HelpField
 
 _ = lambda a: a
 
@@ -206,7 +207,8 @@ class AlertSubscriptionForm(forms.ModelForm):
 
         hidden_fields = ['id']
         if isinstance(time_period, TimePeriod):
-            self.fields['time_period'] = forms.IntegerField(
+            self.fields['time_period'] = forms.ModelChoiceField(
+                queryset=TimePeriod.objects.filter(id=time_period.id),
                 widget=forms.HiddenInput, initial=time_period.id)
             hidden_fields.append('time_period')
             # Get account
@@ -218,27 +220,26 @@ class AlertSubscriptionForm(forms.ModelForm):
                 Q(owner__isnull=True) |
                 Q(owner__exact=account)).order_by('owner', 'name')
 
-            address_choices = [(a.id, unicode(a)) for a in addresses]
-            filter_group_choices = [(f.id, f.name) for f in filter_groups]
-
-            self.fields['alert_address'] = forms.ChoiceField(
-                choices=address_choices,
+            self.fields['alert_address'] = forms.ModelChoiceField(
+                queryset=addresses,
+                empty_label=None,
                 error_messages={
                     'required': 'Alert address is a required field.',
                     'invalid_choice': ('The selected alert address is an '
                                        'invalid choice.'),
                 }, label='Send alerts to')
-            self.fields['filter_group'] = forms.ChoiceField(
-                choices=filter_group_choices,
+            self.fields['filter_group'] = forms.ModelChoiceField(
+                queryset=filter_groups,
+                empty_label=None,
                 error_messages={
                     'required': 'Filter group is a required field.',
-                    'invalid_choice': ('The selected filter group is a '
+                    'invalid_choice': ('The selected filter group is an '
                                        'invalid choice.'),
                 }, label='Watch')
             self.fields['type'].label = 'When'
             self.fields['type'].help_text = """
             <dl>
-                <dt>Immidiately</dt>
+                <dt>Immediately</dt>
                 <dd>Send the alert as soon as alertengine has processed it.</dd>
 
                 <dt>Daily at predefined time</dt>
@@ -293,8 +294,8 @@ class AlertSubscriptionForm(forms.ModelForm):
             )
 
         if subscription_type == AlertSubscription.NOW and ignore:
-            error_msg.append(u'Resolved alerts can not be ignored ' +
-                             'for now subscriptions')
+            error_msg.append(u'Resolved alerts cannot be ignored for '
+                             u'immediate subscriptions')
 
         if error_msg:
             raise forms.util.ValidationError(error_msg)
@@ -379,6 +380,29 @@ class MatchFieldForm(forms.ModelForm):
                     u'list. Only does something when "Show list" is '
                     u'checked.'),
     )
+
+    def __init__(self, *args, **kwargs):
+        super(MatchFieldForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id',
+            Row(
+                Column('name', css_class='medium-4'),
+                Column('description', css_class='medium-8')
+            ),
+            HelpField('value_help'),
+            Row(
+                Column(HelpField('value_id'), css_class='medium-4'),
+                Column(HelpField('value_name'), css_class='medium-4'),
+                Column(HelpField('value_sort'), css_class='medium-4')
+            ),
+            Row(
+                Column(HelpField('list_limit'), css_class='medium-4'),
+                Column(HelpField('data_type'), css_class='medium-4'),
+                Column(HelpField('show_list'), css_class='medium-4')
+            )
+        )
 
     class Meta:
         model = MatchField

@@ -1,16 +1,20 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
-<script>require(["src/syslogger"]);</script>
-<link rel="stylesheet" href="{{ STATIC_URL }}css/nav/syslogger.css"/>
+  <script>require(["src/syslogger"]);</script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/syslogger.css"/>
 {% endblock %}
 
 
 {% block base_content %}
 
-<h3>Syslog Analyzer</h3>
-{% block content %}
+  {% with tool=current_user_data.tools|get_tool:'Syslog Analyzer' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
 
-{% endblock %}
+  {% block content %}
+
+  {% endblock %}
 
 {% endblock %}

@@ -40,11 +40,13 @@
   </div>
 
   <h3>Activity graphs</h3>
-  <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Octets' %}"></div>
-  <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'UcastPkts' %}"></div>
-  <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Errors' %}"></div>
-  <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Discards' %}"></div>
-  <div class="float-clear"></div>
+  <div class="nav-metrics-container">
+    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Octets' %}"></div>
+    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'UcastPkts' %}"></div>
+    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Errors' %}"></div>
+    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Discards' %}"></div>
+    <div class="float-clear"></div>
+  </div>
 
   <h3>Metrics</h3>
   {% include 'ipdevinfo/port-details-metrics-frag.html' %}

@@ -1,0 +1,35 @@
+{% extends "portadmin/base.html" %}
+
+{% block content %}
+
+  {% if interfaces %}
+
+    <div class="row">
+
+      <div class="small-12 column">
+
+        {% include 'portadmin/portlist.html' %}
+      </div>
+
+{% comment %}
+      <div class="medium-4 column">
+
+        <div class="panel">
+          <p>
+            Available vlans
+            for {{ account.login }}@{{ netbox.get_short_sysname }}
+          </p>
+
+          <ul>
+            {% for vlan in allowed_vlans %}
+              <li>{{ vlan }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+      </div>
+{% endcomment %}
+    </div>
+
+  {% endif %}
+{% endblock content %}

@@ -18,13 +18,14 @@
 from django.conf.urls.defaults import patterns, url
 
 from nav.web.maintenance.views import active, planned, historic, calendar
-from nav.web.maintenance.views import view, cancel, edit
+from nav.web.maintenance.views import view, cancel, edit, redirect_to_calendar
 from nav.web.maintenance.views import add_box_to_maintenance
 
 dummy = lambda *args, **kwargs: None
 
 urlpatterns = patterns('',
-    url(r'^$', calendar,
+    url(r'^$', redirect_to_calendar),
+    url(r'^calendar/$', calendar,
         name='maintenance'),
     url(r'^calendar/$', calendar,
         name='maintenance-calendar'),

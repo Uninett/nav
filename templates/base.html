@@ -1,6 +1,4 @@
-{% block base_header %}
-
-<!DOCTYPE html>
+{% block base_header %}<!DOCTYPE html>
 <html>
 
 {# FIXME Hardcoded urls #}
@@ -20,7 +18,8 @@
         var NAV = {
             'cssPath': '{{ STATIC_URL }}css/nav',
             'imagePath': '{{ STATIC_URL }}images',
-            'proxyOsmUrl': '{% url base_osm_map_redirect %}'
+            'proxyOsmUrl': '{% url base_osm_map_redirect %}',
+            'addGraphWidgetUrl': '{% url add-user-navlet-graph %}'
         };
     </script>
     <script src="{{ STATIC_URL }}js/require_config.js"></script>
@@ -37,14 +36,14 @@
 
 
 {% comment %} TOP BAR {% endcomment %}
-<nav class="top-bar">
+<nav class="top-bar" data-topbar data-options="is_hover: false">
     <ul class="title-area">
-        <li>
-            <h1 class="name">
-                <a href="/" title="Network Administration Visualized">
-                    <span class="logo-text">NAV</span>
-                </a>
-            </h1>
+        <li class="name">
+          <h1>
+            <a href="/" title="Network Administration Visualized">
+              <img class="nav-logo" src="{{ STATIC_URL }}images/main/nav-logo.svg" alt="NAV">
+            </a>
+          </h1>
         </li>
         <li class="toggle-topbar menu-icon">
             <a href="#"><span>Menu</span></a>
@@ -55,13 +54,13 @@
     <section class="top-bar-section">
         <ul class="left">
             <li class="has-form search">
-                <form action="{% url info-search %}" method="get">
+                <form id="navbar-search-form" action="{% url info-search %}" method="get">
                     <div class="row collapse">
-                        <div class="small-10 columns">
+                        <div class="small-8 columns">
                             <input id="query" type="text" name="query" maxlength="100"/>
                         </div>
-                        <div class="small-2 columns">
-                            <input class="button" type="submit" value="Search" />
+                        <div class="small-4 columns">
+                            <input class="button secondary" type="submit" value="Search" />
                         </div>
                     </div>
                 </form>
@@ -69,17 +68,6 @@
         </ul>
 
         <ul class="right">
-            <li class="has-dropdown">
-                <a href="{% url webfront-preferences-navigation %}">
-                    Your links <i class="fa fa-gear"></i>
-                </a>
-                <ul class="dropdown">
-                    {% for link in current_user_data.navbar %}
-                        <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
-                    {% endfor %}
-                </ul>
-            </li>
-
             {% comment %} This dropdown only visible on small screens {% endcomment %}
             <li class="has-dropdown hide-for-medium-up">
                 <a href="{% url webfront-toolbox %}">
@@ -94,72 +82,87 @@
                             </a>
                         </li>
                     {% endfor %}
+
                 </ul>
             </li>
 
-            <li class="hide-for-small"><a id="megadroptoggler" href="javascript:void(0);">Tools <i class="fa fa-caret-down"></i></a></li>
+            <li class="hide-for-small text-center"><a id="megadroptoggler" href="javascript:void(0);">Tools <i class="fa fa-caret-down"></i></a></li>
 
-            <li><a href="/doc">Documentation</a></li>
+            {% if not current_user_data.account.is_default_account %}
+                <li class="has-dropdown">
+                    <a href="javascript:void(0);">
+                        My stuff
+                    </a>
+                    <ul class="dropdown">
+                        {% for link in current_user_data.my_links %}
+                            <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
+                        {% endfor %}
+                        <li class="divider"><a href="{% url webfront-preferences %}">My account <i class="fa fa-gear"></i></a></li>
+                    </ul>
+                </li>
+            {% endif %}
 
             {% if current_user_data.account.is_default_account %}
                 <li>
-                    <a class="navbar login button" href="/index/login">Login</a>
+                    <a class="navbar login button secondary" href="/index/login">Login</a>
                 </li>
             {% else %}
                 <li>
-                    <a class="navbar logout button" href="/index/logout">Logout {{ current_user_data.account.login }}</a>
+                    <a class="navbar logout button secondary" href="/index/logout">Logout {{ current_user_data.account.login }}</a>
                 </li>
             {% endif %}
         </ul>
     </section>
 </nav>
 
-<div id="megadrop" class="row hide">
-  <div class="medium-4 column">
-    <ul class="no-bullet">
-    {% for tool in current_user_data.tools %}
-      {% if forloop.counter <= 7 %}
-        <li>
-          <a href="{{ tool.uri }}" title="{{ tool.description }}">
-            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
-            {{ tool.name }}
-          </a>
-        </li>
-      {% endif %}
-    {% endfor %}
-    </ul>
-  </div>
-  <div class="medium-4 column">
-    <ul class="no-bullet">
-    {% for tool in current_user_data.tools %}
-      {% if forloop.counter > 7 and forloop.counter <= 14 %}
-        <li>
-          <a href="{{ tool.uri }}" title="{{ tool.description }}">
-            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
-            {{ tool.name }}
-          </a>
-        </li>
-      {% endif %}
-    {% endfor %}
-    </ul>
-  </div>
-  <div class="medium-4 column">
-    <ul class="no-bullet">
-    {% for tool in current_user_data.tools %}
-      {% if forloop.counter > 14 %}
-        <li>
-          <a href="{{ tool.uri }}" title="{{ tool.description }}">
-            <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
-            {{ tool.name }}
-          </a>
-        </li>
-      {% endif %}
-    {% endfor %}
-    </ul>
-  </div>
-</div>
+  {% comment %}
 
-{% if current_user_data.sudoer %}
+  MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP
+  MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP
+  MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP
+  MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP
+  MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP
+
+  {% endcomment %}
+  <div class="megadropcontainer">
+    <div id="megadrop" class="row hide">
+      {% comment %} split_tools are split into 3 lists of tools {% endcomment %}
+      <div class="small-12 column">
+
+        <h5>NAV Tools</h5>
+
+        <hr>
+
+        <div class="row">
+          {% for column in current_user_data.split_tools %}
+            <div class="medium-4 column">
+              <ul class="no-bullet">
+                {% for tool in column %}
+                  <li>
+                    <a href="{{ tool.uri }}" title="{{ tool.description }}">
+                      <img src="{{ STATIC_URL }}{{ tool.icon }}"
+                           alt="{{ tool.name }}">
+                      {{ tool.name }}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="row">
+          <div class="small-12 column">
+            <p><a href="{% url webfront-toolbox %}">Go to toolbox</a></p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div> {# End megadropcontainer #}
+
+
+  {% if current_user_data.sudoer %}
     <div class="sudoer-bar">
         <form action="{% url webfront-logout %}" method="post">
             <img src="{{ STATIC_URL }}images/main/emblem-important.png"
@@ -172,74 +175,34 @@
 {% endif %}
 
 {% comment %} BREADCRUMB {% endcomment %}
-<div class="row">
-
-    <div class="large-12 columns">
-        <ul id="nav-breadcrumbs" class="breadcrumbs">
-            {% for title, url in navpath %}
-                {% if url %}
-                    <li><a href="{{ url }}">{{ title }}</a></li>
-                {% else %}
-                    <li class="unavailable"><a href="#">{{ title }}</a></li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </div>
-
-</div>
+<ul id="nav-breadcrumbs" class="breadcrumbs">
+  {% for title, url in navpath %}
+    {% if url %}
+      <li><a href="{{ url }}">{{ title }}</a></li>
+    {% else %}
+      <li class="current"><a href="#">{{ title }}</a></li>
+    {% endif %}
+  {% endfor %}
+</ul>
 
 {% endblock base_header %}
 
 {% comment %} MAIN CONTENT {% endcomment %}
 {% block base_navbody_start %}
 <div class="row">
-    <div class="large-12 columns">
-        <div class="navbody">
+    <div class="large-12 columns navbody">
 {% endblock %}
 
     {% block base_content %}
     {% endblock %}
 
 {% block base_navbody_end %}
-        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block base_footer %}
-<hr />
-
-<footer class="row">
-    <div class="large-4 medium-4 columns">
-        <h5 class="subheader">NAV Version</h5>
-
-        <p>
-            <a href="/about/">Network Administration Visualized</a>
-            <br/>
-            {{ nav_version }}
-        </p>
-
-
-        <p>
-            {% if current_user_data.account.is_default_account %}
-                You are not logged in.
-            {% else %}
-                You are logged in as <a href="/userinfo/">{{ current_user_data.account.name }}</a>.
-            {% endif %}
-        </p>
-    </div>
-
-    <div class="large-4 medium-4 columns">
-        <h5 class="subheader">External links</h5>
-        {{ external_links|safe }}
-    </div>
-
-    <div class="large-4 medium-4 columns">
-        <h5 class="subheader"
-                >Contact information</h5>
-        {{ contact_information|safe }}
-    </div>
-</footer>
+  {% include 'footer.html' %}
 
   {% block base_debug %}
     {% if debug %}
