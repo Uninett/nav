@@ -26,21 +26,7 @@ class UpsMib(mibretriever.MibRetriever):
     from nav.smidumps.ups_mib import MIB as mib
 
     sensor_columns = {
-        'upsInputVoltage': {
-            'is_column': True,
-            'u_o_m': 'Volts',
-        },
-        'upsInputFrequency': {
-            'is_column': True,
-            'u_o_m': 'Hz',
-            'precision': 1,
-        },
-        'upsOutputCurrent': {
-            'is_column': True,
-            'u_o_m': 'Amperes',
-            'precision': 1,
-        },
-
+        # battery group
         'upsBatteryTemperature': {
             'u_o_m': 'Celsius',
         },
@@ -49,6 +35,74 @@ class UpsMib(mibretriever.MibRetriever):
         },
         'upsEstimatedMinutesRemaining': {
             'u_o_m': 'Minutes',
+        },
+
+        # input group
+        'upsInputNumLines': {},
+
+        'upsInputFrequency': {
+            'is_column': True,
+            'u_o_m': 'Hz',
+            'precision': 1,
+        },
+        'upsInputVoltage': {
+            'is_column': True,
+            'u_o_m': 'Volts',
+        },
+        'upsInputCurrent': {
+            'is_column': True,
+            'u_o_m': 'Amperes',
+            'precision': 1,
+        },
+        'upsInputTruePower': {
+            'is_column': True,
+            'u_o_m': 'Watts',
+        },
+
+        # output group
+        'upsOutputFrequency': {
+            'u_o_m': 'Hz',
+            'precision': 1,
+        },
+        'upsOutputNumLines': {},
+
+        'upsOutputVoltage': {
+            'is_column': True,
+            'u_o_m': 'Volts',
+        },
+        'upsOutputCurrent': {
+            'is_column': True,
+            'u_o_m': 'Amperes',
+            'precision': 1,
+        },
+        'upsOutputPower': {
+            'is_column': True,
+            'u_o_m': 'Watts',
+        },
+        'upsOutputPercentLoad': {
+            'is_column': True,
+            'u_o_m': 'Percent',
+        },
+
+        # bypass group
+        'upsBypassFrequency': {
+            'u_o_m': 'Hz',
+            'precision': 1
+        },
+        'upsBypassNumLines': {},
+
+        'upsBypassVoltage': {
+            'is_column': True,
+            'u_o_m': 'Volts',
+        },
+        'upsBypassCurrent': {
+            'is_column': True,
+            'u_o_m': 'Amperes',
+            'precision': 1,
+        },
+        'upsBypassPower': {
+            'is_column': True,
+            'u_o_m': 'Watts',
         },
     }
 
