@@ -159,7 +159,12 @@ class JobHandler(object):
         willing_plugins = []
         unwilling_plugins = []
         for cls in plugin_classes:
-            can_handle = yield defer.maybeDeferred(cls.can_handle, self.netbox)
+            try:
+                can_handle = yield defer.maybeDeferred(cls.can_handle, self.netbox)
+            except Exception, err:
+                self._logger.exception(
+                    "Unhandled exception from can_handle(): %r", cls)
+                can_handle = False
             if can_handle:
                 willing_plugins.append(cls)
             else:

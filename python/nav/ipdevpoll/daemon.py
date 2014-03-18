@@ -297,7 +297,8 @@ class CommandProcessor(object):
         if not value:
             parser.error("%s argument must be non-empty" % opt)
         matches = manage.Netbox.objects.filter(
-            Q(sysname__startswith=value) | Q(ip=value)).order_by('sysname')
+            Q(sysname__startswith=value) | Q(ip=value)
+        ).select_related('type', 'type__vendor').order_by('sysname')
         if len(matches) == 1:
             parser.values.netbox = matches[0]
             parser.values.foreground = True
