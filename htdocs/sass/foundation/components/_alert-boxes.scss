@@ -1,3 +1,7 @@
+// Foundation by ZURB
+// foundation.zurb.com
+// Licensed under MIT Open Source
+
 @import "global";
 
 //
@@ -57,7 +61,7 @@ $alert-radius: $global-radius !default;
 // We use this mixin to add alert styles
 //
 // $bg - The background of the alert. Default: $primary-color.
-@mixin  alert-style($bg:$primary-color) {
+@mixin alert-style($bg:$primary-color) {
 
   // This find the lightness percentage of the background color.
   $bg-lightness: lightness($bg);
