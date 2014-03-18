@@ -131,6 +131,7 @@ img.textbottom {
         }
     }
     .current {
+        text-align: center;
         width: 300px;
         &.counter {
             width: 150px;
@@ -138,7 +139,6 @@ img.textbottom {
             margin-left: auto;
             margin-right: auto;
         }
-        height: 200px;
         .counter-node {
             background-color: steelblue;
             color: white;

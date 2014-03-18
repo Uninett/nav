@@ -1,4 +1,5 @@
-define(["moment", "plugins/counterdisplay", "libs/handlebars", "libs/jquery", "libs/justgage", "libs/rickshaw.min"], function (moment, CounterDisplay) {
+define(["moment", "plugins/counterdisplay", "plugins/gauge", "libs/handlebars", "libs/jquery", "libs/rickshaw.min"],
+function (moment, CounterDisplay, JohnGauge) {
     function SensorController($node, templates) {
         this.$node = $node;
         this.url = this.$node.attr('data-url') + '&format=json';
@@ -86,13 +87,13 @@ define(["moment", "plugins/counterdisplay", "libs/handlebars", "libs/jquery", "l
         },
         createCurrent: function (value) {
             if (this.displayGauge) {
-                return new JustGage({
-                    id: this.currentNode.prop('id'),
+                return new JohnGauge({
+                    nodeId: this.currentNode.prop('id'),
                     min: 0,
                     value: value,
                     max: this.maxValue,
-                    label: this.unit,
-                    thresholds: this.thresholds
+                    thresholds: this.thresholds,
+                    radius: 110
                 });
             } else {
                 return new CounterDisplay(this.counterTemplate, this.currentNode.prop('id'), 9999, this.unit);
