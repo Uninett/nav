@@ -10,6 +10,12 @@ require([
         tableSelector = '#seeddb-content';
 
     function executeOnLoad() {
+        /* Start joyride if url endswith #joyride */
+        if (location.hash === '#joyride') {
+            $(document).foundation('joyride', 'start');
+        }
+
+
         if ($('#map').length) {
             populateMap(initMap());     // Show map for coordinates
         }
