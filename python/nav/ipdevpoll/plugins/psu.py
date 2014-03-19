@@ -27,6 +27,7 @@ CISCO-ENTITY-FRU-CONTROL-MIB.
 Status for PSUs and FANs in HP-equipment are collected with POWERSUPPLY-MIB
 and FAN-MIB from HP's support pages.
 """
+from operator import itemgetter
 
 from twisted.internet import defer
 
@@ -59,30 +60,21 @@ class PowerSupplyUnit(Plugin):
         elif self.vendor_id == VENDOR_HP:
             self.entity_fru_control = HpEntityFruControlMib(self.agent)
 
-    def _get_lowest_index(self, values):
-        """Return the lowest index in the list of dicts.  Index is placed at
-        key 0 in the dicts"""
-        lowest_index = 2147483647L
-        for val in values:
-            curr_idx = val.get(0, None)
-            if curr_idx < lowest_index:
-                lowest_index = curr_idx
-        return lowest_index
+    def _enumerate_entities(self, entities):
+        """Enumerate and annotate entities according to their internal order,
+        for looking up the entities in private HP MIBs.
 
-    def _rearrange_indexes(self, values):
-        """Rearrange indexes down to the lowest possible number"""
-        lowest_index = self._get_lowest_index(values)
-        # First index must start at 1.
-        lowest_index -= 1
-        if lowest_index < 0:
-            lowest_index = 0
-        for val in values:
-            curr_idx = val.get(0, None)
-            val[0] = curr_idx - lowest_index
-        return values
+        This makes the very naive assumption that fans and power supplies are
+        listed in the same order in entPhysicalTable as in the private HP
+        mibs for fans and power supplies.
+        """
+        entities.sort(key=itemgetter(0))
+        for index, ent in enumerate(entities, start=1):
+            ent['_internal_index'] = index
+        return entities
 
     def _get_psus_and_fans(self, to_filter):
-        """ Filter out PSUs and FANs, and return only redundant."""
+        """Extracts only fans and power supplies from a list of entities"""
         power_supplies = []
         fans = []
         for unit in to_filter.values():
@@ -95,8 +87,9 @@ class PowerSupplyUnit(Plugin):
             # index-numbers in POWERSUPPLY-MIB and FAN-MIB.
             # Index-numbers should in practice start at 1 for both PSUs and
             # FANs to match the corresponding statuses.
-            power_supplies = self._rearrange_indexes(power_supplies)
-            fans = self._rearrange_indexes(fans)
+            self._enumerate_entities(power_supplies)
+            self._enumerate_entities(fans)
+
         # Create list of all psus and fans.  Add all psus first.
         all_psus_and_fans = power_supplies
         # Then add all fans.
@@ -127,7 +120,7 @@ class PowerSupplyUnit(Plugin):
     @defer.inlineCallbacks
     def _handle_unit(self, psu_or_fan):
         self._logger.debug('PSU:FAN: %s', psu_or_fan)
-        entity_index = psu_or_fan.get(0, None)
+        internal_index = psu_or_fan.get('_internal_index', None)
         is_up = 'u'
         sensor_oid = None
         control = self.entity_fru_control
@@ -136,16 +129,16 @@ class PowerSupplyUnit(Plugin):
 
         if self.is_fan(psu_or_fan):
             # locate sensor and get status
-            ret = yield control.is_fan_up(entity_index)
+            ret = yield control.is_fan_up(internal_index)
             if ret:
                 is_up = ret
-                sensor_oid = control.get_oid_for_fan_status(entity_index)
+                sensor_oid = control.get_oid_for_fan_status(internal_index)
             self._logger.debug('FAN: %s: %s', ret, sensor_oid)
         elif self.is_psu(psu_or_fan):
-            ret = yield control.is_psu_up(entity_index)
+            ret = yield control.is_psu_up(internal_index)
             if ret:
                 is_up = ret
-                sensor_oid = control.get_oid_for_psu_status(entity_index)
+                sensor_oid = control.get_oid_for_psu_status(internal_index)
             self._logger.debug('PSU: %s: %s', ret, sensor_oid)
         phys_name = psu_or_fan.get('entPhysicalName', None)
 
