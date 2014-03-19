@@ -81,19 +81,20 @@ class EntityMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_useful_physical_table_columns(self):
-        "Retrieves the most useful columns of the entPhysicalTable"
+        """Retrieves the most useful columns of the entPhysicalTable"""
         columns = yield self.retrieve_columns([
-                'entPhysicalDescr',
-                'entPhysicalContainedIn',
-                'entPhysicalClass',
-                'entPhysicalName',
-                'entPhysicalHardwareRev',
-                'entPhysicalFirmwareRev',
-                'entPhysicalSoftwareRev',
-                'entPhysicalSerialNum',
-                'entPhysicalModelName',
-                'entPhysicalIsFRU',
-                ])
+            'entPhysicalDescr',
+            'entPhysicalContainedIn',
+            'entPhysicalClass',
+            'entPhysicalParentRelPos',
+            'entPhysicalName',
+            'entPhysicalHardwareRev',
+            'entPhysicalFirmwareRev',
+            'entPhysicalSoftwareRev',
+            'entPhysicalSerialNum',
+            'entPhysicalModelName',
+            'entPhysicalIsFRU',
+        ])
         defer.returnValue(self.translate_result(columns))
 
 
