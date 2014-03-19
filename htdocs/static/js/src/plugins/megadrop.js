@@ -31,10 +31,9 @@ require(['libs/jquery'], function () {
         });
 
         /*
-            Hide megadrop when clicking outside it.
-            NB: Foundation top bar dropdowns does not propagate click event,
-            thus we can not detect if the other dropdowns are clicked.
-         */
+            Hide megadrop when clicking outside it. See special case for
+            top-bar dropdowns below
+        */
         $(document).click(function (event) {
             if ($megadrop.is(":visible")) {
                 var $target = $(event.target),
@@ -46,5 +45,13 @@ require(['libs/jquery'], function () {
                 }
             }
         });
+
+        /* Special case for top bar dropdown menus (event does not propagate to document) */
+        $('.top-bar .has-dropdown').click(function () {
+            if ($megadrop.is(":visible")) {
+                hideMegaDrop();
+            }
+        });
+
     });
 });
