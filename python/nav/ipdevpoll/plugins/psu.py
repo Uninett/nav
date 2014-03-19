@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2011, 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -60,7 +60,8 @@ class PowerSupplyUnit(Plugin):
         elif self.vendor_id == VENDOR_HP:
             self.entity_fru_control = HpEntityFruControlMib(self.agent)
 
-    def _enumerate_entities(self, entities):
+    @staticmethod
+    def _enumerate_entities(entities):
         """Enumerate and annotate entities according to their internal order,
         for looking up the entities in private HP MIBs.
 
@@ -96,11 +97,13 @@ class PowerSupplyUnit(Plugin):
         all_psus_and_fans.extend(fans)
         return all_psus_and_fans
 
-    def is_fan(self, pwr):
+    @staticmethod
+    def is_fan(pwr):
         """Determine if this unit is a fan"""
         return pwr.get('entPhysicalClass', None) == 'fan'
 
-    def is_psu(self, pwr):
+    @staticmethod
+    def is_psu(pwr):
         """Determine if this unit is a powersupply"""
         return pwr.get('entPhysicalClass', None) == 'powerSupply'
 
@@ -155,7 +158,7 @@ class PowerSupplyUnit(Plugin):
         # device info
         serial = psu_or_fan.get('entPhysicalSerialNum', None)
         if serial:
-            device = self.containers.factory(serial,shadows.Device)
+            device = self.containers.factory(serial, shadows.Device)
             device.serial = serial
             device.hardware_version = psu_or_fan.get('entPhysicalHardwareRev',
                                                      None)
