@@ -77,14 +77,6 @@ img.textbottom {
 }
 
 
-/* Image Clearing adjustments on Room Info tab. block-grid and clearing-thumbs classes clash */
-.clearing-thumbs {
-    &[class*="block-grid-"] {
-        margin-left: -10px;
-        li { margin-right: auto; }
-    }
-}
-
 /* Prevent OpenStreetmap to show through the image clearing */
 .clearing-blackout {
     z-index: 1010;
