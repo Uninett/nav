@@ -14,12 +14,12 @@ require([
         if (location.hash === '#joyride') {
             $(document).foundation({
                 'joyride': {
-                    'pre_ride_callback': function (index, tip, blapp) {
-                        var rides = $('.joyride-tip-guide').find('.joyride-content-wrapper');
-                        rides.each(function (index, element) {
+                    'pre_ride_callback': function () {
+                        var cards = $('.joyride-tip-guide').find('.joyride-content-wrapper');
+                        cards.each(function (index, element) {
                             var counter = $('<small>')
                                 .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
-                                .html(index + 1 + ' of ' + rides.length);
+                                .html(index + 1 + ' of ' + cards.length);
                             $(element).append(counter);
                         });
                     },
