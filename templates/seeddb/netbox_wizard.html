@@ -51,7 +51,7 @@
   {% endif %}
 
 
-  <ol class="joyride-list" data-joyride data-options="modal:false;">
+  <ol class="joyride-list" data-joyride>
     <li>
       <p>Use the Seed Database tool to enable NAV to gather information from
         your network.</p>
@@ -64,7 +64,8 @@
         give some basic information about it.</p>
     </li>
     <li data-id="id_ip">
-      <p>The IP-address of the device is needed.</p>
+      <p>The IP-address of the device is needed. Both IPv4 and IPv6 addresses
+        can be used.</p>
     </li>
     <li data-id="id_room">
       <p>The room is the physical location of the device. You can add more
@@ -86,7 +87,7 @@
     <li data-id="id_read_only">
       <p>The SNMP read only community is essential. Without the community
         NAV has no means to communicate with the device.</p>
-      <p>Remember that the SNMP server on the device also has to be active.</p>
+      <p>Remember that the SNMP Agent on the device also has to be active.</p>
     </li>
     <li data-id="id_read_write">
       <p>If you want to configure your device using the tools Arnold or
