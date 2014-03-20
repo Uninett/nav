@@ -89,6 +89,15 @@ def vlan_details(request, vlanid):
     prefixes = sorted(vlan.prefix_set.all(),
                       key=methodcaller('get_prefix_size'))
 
+    has_v6 = False
+    has_v4 = False
+    for prefix in prefixes:
+        version = IP(prefix.net_address).version()
+        if version == 6:
+            has_v6 = True
+        elif version == 4:
+            has_v4 = True
+
     navpath = get_path([(str(vlan), '')])
 
     return render_to_response('info/vlan/vlandetails.html',
@@ -96,6 +105,8 @@ def vlan_details(request, vlanid):
                                'prefixes': prefixes,
                                'gwportprefixes': find_gwportprefixes(vlan),
                                'navpath': navpath,
+                               'has_v4': has_v4,
+                               'has_v6': has_v6,
                                'title': create_title(navpath)},
                               context_instance=RequestContext(request))
 
