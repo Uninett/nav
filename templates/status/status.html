@@ -81,7 +81,7 @@
             {% ifequal section.devicehistory_type "a_linkDown" %}
               <td>
                 <a href="javascript:void(0);" class="button tiny secondary"
-                   data-dropdown="resolve-alert-{{ row.alerthistid }}">
+                   data-dropdown="resolve-alert-{{ row.alerthistid }}" data-options="align:left">
                   Clear
                 </a>
                 <div id="resolve-alert-{{ row.alerthistid }}" class="f-dropdown content">
@@ -89,8 +89,8 @@
                   <p>If this is a real alert it might come back later.</p>
                   <form action="{% url resolve-alert %}" method="POST">
                     <input type="hidden" name="alertid" value="{{ row.alerthistid }}"/>
-                    <input type="submit" value="Resolve"
-                           title="Mark this as resolved"
+                    <input type="submit" value="Clear"
+                           title="Clear this alert"
                            class="tiny button left"/>
                   </form>
                   <span class="button tiny secondary close-button left">Leave it</span>
