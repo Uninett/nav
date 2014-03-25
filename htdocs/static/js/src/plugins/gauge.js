@@ -19,6 +19,7 @@ define(['libs/d3.v2'], function () {
             value = config.value || 0,
             thresholds = config.thresholds || [];
 
+        this.precision = config.precision || null;
         this.notation = config.notation || '\u00B0';  // Default is degrees
         this.animationSpeed = 1000;  // Speed of value transitions
 
@@ -66,6 +67,9 @@ define(['libs/d3.v2'], function () {
     JohnGauge.prototype = {
         refresh: function (value) {
             var self = this;
+            if (this.precision !== null) {
+                value = value.toFixed(this.precision);
+            }
 
             /* Transition arc and color to new value */
             this.valueArc.transition().duration(this.animationSpeed).call(arcTween, value)
