@@ -633,10 +633,6 @@ class NetboxType(models.Model):
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
     name = VarcharField(db_column='typename', verbose_name="type name")
     sysobjectid = VarcharField(unique=True)
-    cdp = models.BooleanField(default=False)
-    tftp = models.BooleanField(default=False)
-    cs_at_vlan = models.BooleanField()
-    chassis = models.BooleanField(default=True)
     description = VarcharField(db_column='descr')
 
     class Meta:

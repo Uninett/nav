@@ -269,8 +269,7 @@ class NetboxTypeImporter(BulkImporter):
 
         netbox_type = NetboxType(vendor=vendor, name=row['typename'],
                                  sysobjectid=row['sysobjectid'],
-                                 description=row['description'],
-                                 cdp=row['cdp'], tftp=row['tftp'])
+                                 description=row['description'])
         return [netbox_type]
 
 
