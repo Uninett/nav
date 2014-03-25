@@ -24,6 +24,9 @@
     </script>
     <script src="{{ STATIC_URL }}js/require_config.js"></script>
     <script src="{{ STATIC_URL }}js/libs/require.js" data-main='src/main'></script>
+    <script>
+      require.config({ urlArgs: 'bust={{ nav_version }}' });
+    </script>
     {% block base_header_additional_head %}
     {% endblock %}
 </head>
