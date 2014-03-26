@@ -1,6 +1,5 @@
 require([
     'plugins/accordion_maker',
-    'default',
     'libs/foundation.min',
     'libs/select2.min',
     'plugins/megadrop'
