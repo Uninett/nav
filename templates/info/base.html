@@ -32,7 +32,7 @@
 
     {% block content %}
 
-    <div class="panel">Search for netboxes, interfaces, rooms and vlans. This search is the same as searching in the navbar.</div>
+    <div class="panel">Search for IP devices, interfaces, rooms and vlans. This search is the same as searching in the navbar.</div>
 
     <div class="row">
         <div class="medium-6 column">
@@ -48,14 +48,14 @@
                 <ul>
                 {% for searchprovider in searchproviders %}
                     {% if searchprovider.results %}
-                        <li><a href="#{{ searchprovider.name }}">{{ searchprovider.name }} ({{ searchprovider.results|length }})</a></li>
+                        <li><a href="#{{ searchprovider.name|cut:" " }}">{{ searchprovider.name }} ({{ searchprovider.results|length }})</a></li>
                     {% endif %}
                 {% endfor %}
                 </ul>
 
                 {% for searchprovider in searchproviders %}
                     {% if searchprovider.results %}
-                        <div id="{{ searchprovider.name }}">
+                        <div id="{{ searchprovider.name|cut:" " }}">
                             <table class="listtable full-width table-hover">
                                 <caption>
                                     {{ searchprovider.name }}

@@ -71,7 +71,7 @@ class RoomSearchProvider(SearchProvider):
 
 class NetboxSearchProvider(SearchProvider):
     """Searchprovider for netboxes"""
-    name = "Netboxes"
+    name = "IP devices"
     headers = [('Sysname', 'sysname'),
                ('IP', 'ip')]
     link = 'Sysname'
@@ -95,7 +95,7 @@ class InterfaceSearchProvider(SearchProvider):
     """Searchprovider for interfaces"""
     name = "Interfaces"
     headers = [
-        ('Netbox', 'netbox.sysname'),
+        ('IP Device', 'netbox.sysname'),
         ('Interface', 'ifname'),
         ('Alias', 'ifalias'),
     ]

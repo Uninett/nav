@@ -19,6 +19,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.list_detail import object_list
 
 from nav.models.profiles import Account, AccountGroup, Privilege
@@ -49,6 +50,8 @@ def account_list(request):
                               UserAdminContext(request))
 
 
+
+@sensitive_post_parameters('password1', 'password2')
 def account_detail(request, account_id=None):
     try:
         account = Account.objects.get(id=account_id)
