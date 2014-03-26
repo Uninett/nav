@@ -169,7 +169,7 @@ Importing multiple devices in bulk
 
 While you can go ahead and add one device at a time like this, it will quickly
 get tedious if you have more than a handful of devices to monitor. This is
-where the :guilabel:`Bulk import` tab comes into the picture:
+where the :guilabel:`Bulk import` function comes into the picture:
 
 .. image:: seeddb-bulkimport-ipdevice.png
 
