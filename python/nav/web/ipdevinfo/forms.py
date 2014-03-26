@@ -18,6 +18,7 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
+from nav.web.crispyforms import LabelSubmit
 
 
 class SearchForm(forms.Form):
@@ -42,5 +43,18 @@ class SearchForm(forms.Form):
 
 class ActivityIntervalForm(forms.Form):
     """Form for setting an interval in switch port activity"""
-    interval = forms.IntegerField(min_value=0, label='Interval in days',
-                                  widget=forms.TextInput(attrs={'size': 3}))
+    interval = forms.IntegerField(label='Days', min_value=0)
+
+    def __init__(self, *args, **kwargs):
+        super(ActivityIntervalForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column('interval', css_class='small-4'),
+                Column(LabelSubmit('submit', 'Recheck activity',
+                                   css_class='postfix'),
+                       css_class='small-8'),
+                css_class='collapse'
+            )
+        )

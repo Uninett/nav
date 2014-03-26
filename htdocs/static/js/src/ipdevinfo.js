@@ -90,7 +90,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             return;
         }
         var activityTab = findActivityTab();
-        var button = activityTab.find('form button');
+        var button = activityTab.find('form input[type=submit]');
 
         button.click(function (event) {
             event.preventDefault();
