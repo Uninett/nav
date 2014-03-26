@@ -24,6 +24,8 @@ from django.forms.formsets import formset_factory
 from django.forms.models import modelformset_factory
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
+from django.views.decorators.debug import (sensitive_variables,
+                                           sensitive_post_parameters)
 from django.shortcuts import get_object_or_404
 
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
@@ -64,7 +66,7 @@ def index(request):
         }
     )
 
-
+@sensitive_post_parameters('password')
 def login(request):
     if request.method == 'POST':
         return do_login(request)
@@ -90,6 +92,7 @@ def login(request):
     )
 
 
+@sensitive_variables('password')
 def do_login(request):
     # FIXME Log stuff?
     errors = []
@@ -274,6 +277,7 @@ def preferences(request):
     )
 
 
+@sensitive_post_parameters('old_password', 'new_password1', 'new_password2')
 def change_password(request):
     """ Handles POST requests to change a users password """
     context = _create_preference_context(request)

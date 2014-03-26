@@ -24,6 +24,7 @@ import os
 from datetime import datetime
 import re
 # To stay compatible with both python 2.4 and 2.6:
+from django.views.decorators.debug import sensitive_variables
 
 try:
     from hashlib import md5
@@ -155,6 +156,7 @@ class Account(models.Model):
         """Has this user administrator rights?"""
         return self.has_perm(None, None)
 
+    @sensitive_variables('password')
     def set_password(self, password):
         '''Sets user password. Copied from nav.db.navprofiles'''
         if len(password.strip()):
@@ -163,6 +165,7 @@ class Account(models.Model):
         else:
             self.password = ''
 
+    @sensitive_variables('password')
     def check_password(self, password):
         """
         Return True if the submitted authentication tokens are valid
