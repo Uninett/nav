@@ -10,19 +10,17 @@
 
 {% block base_content %}
 
-{% if current_user_data.messages %}
-<div class="messages">
-    <ul>
-    {% for m in current_user_data.messages %}
-        <li class="{{ m.type }}">{{ m.message }}</li>
-    {% endfor %}
-    </ul>
-</div>
-{% endif %}
-
   {% with tool=current_user_data.tools|get_tool:'Seed Database' %}
     {% include 'nav_header.html' %}
   {% endwith %}
+
+  {% if current_user_data.messages %}
+    {% for m in current_user_data.messages %}
+      <div class="alert-box {{ m.type }}">
+      {{ m.message }}
+      </div>
+    {% endfor %}
+  {% endif %}
 
 
 <div class="tabs tabs-vertical">
