@@ -6,7 +6,10 @@
                 <caption>Power supplies</caption>
                 {% include "ipdevinfo/frag-psutable.html" %}
             </table>
+        {% else %}
+          <span class="alert-box info">No powersupplies found.</span>
         {% endif %}
+
     {% endwith %}
 
     {% with netbox.get_fans as psus %}
@@ -15,6 +18,8 @@
                 <caption>Fans</caption>
                 {% include "ipdevinfo/frag-psutable.html" %}
             </table>
+        {% else %}
+          <span class="alert-box info">No fans found.</span>
         {% endif %}
     {% endwith %}
 
