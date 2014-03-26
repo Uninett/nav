@@ -108,8 +108,7 @@ class Handlers:
         header("#vendorid:typename:sysoid[:description:cdp:tftp]")
         for type in manage.NetboxType.objects.all():
             line = [type.vendor.id, type.name, type.sysobjectid,
-                    type.description, str(type.cdp or False),
-                    str(type.tftp or False)]
+                    type.description]
             lineout(line)
 
     def vendor(self):
