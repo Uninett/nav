@@ -19,6 +19,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.list_detail import object_list
 
 from nav.models.profiles import Account, AccountGroup
@@ -42,6 +43,8 @@ def account_list(request):
                         template_name='useradmin/account_list.html',
                         extra_context={'active': {'account_list': 1}})
 
+
+@sensitive_post_parameters('password1', 'password2')
 def account_detail(request, account_id=None):
     try:
         account = Account.objects.get(id=account_id)
@@ -431,6 +434,8 @@ def group_privilege_remove(request, group_id, privilege_id):
                                             args=[group.id]),
                         }, UserAdminContext(request))
 
+
+@sensitive_post_parameters('old_password', 'new_password1', 'new_password2')
 def userinfo(request):
     account = get_account(request)
 

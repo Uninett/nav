@@ -24,6 +24,8 @@ from django.forms.formsets import formset_factory
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
+from django.views.decorators.debug import (sensitive_variables,
+                                           sensitive_post_parameters)
 
 from nav.config import read_flat_config
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
@@ -84,6 +86,7 @@ def index(request):
         }
     )
 
+@sensitive_post_parameters('password')
 def login(request):
     if request.method == 'POST':
         return do_login(request)
@@ -108,6 +111,8 @@ def login(request):
         }
     )
 
+
+@sensitive_variables('password')
 def do_login(request):
     # FIXME Log stuff?
     errors = []
