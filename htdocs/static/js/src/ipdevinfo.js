@@ -31,6 +31,10 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         $(moduleTabsSelector).tabs(tabconfig);
         TabNavigation.add(moduleTabsSelector, mainTabsSelector);
 
+        /* Toggle port legend */
+        $('#ports').on('click', '.portlegendToggler', function () {
+            $(this).next().toggle();
+        });
     }
 
     function addMainTabs() {
