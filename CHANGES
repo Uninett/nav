@@ -1,3 +1,43 @@
+Version 4.0.0
+(released 27 Mar 2014)
+
+ Bugfixes:
+
+  * LP#1293616 (missing cascade in table account_navlet)
+  * The map would not display when editing rooms in SeedDB.
+
+ User-visible features and improvements:
+
+  * Stale link state alerts can now be cleared/dismissed directly from the
+    Status page.
+
+  * Sensor readings are now collected every minute (the `statsensors` plugin
+    has moved to the 1minstats job. Please update your Graphite's
+    `storage-schemas.conf` accordingly, if you have been beta testing the 4.0
+    releases).
+
+  * The POWER and ENV main device categories have been added, to categorize
+    power distribution equipment and environmental probes.
+
+  * Added "Environment sensors" tab to the Room view. All temperature sensors
+    on ENV-category devices in a room are now displayed on this tab, with
+    gauges and time-series graphs.
+
+  * Added support for the Comet P8541 web probe (remote temperature sensor).
+
+  * UPS-MIB sensors: Fixed wrong value precision on a couple of objects, and
+    added support for the full range of data available from the battery,
+    input, output and bypass groups.
+
+  * Added a "setup guide"-type tour for first-time SeedDB users.
+
+  * The cdp, tftp, cs_at_vlan and chassis checkboxes in SeedDB's type form
+    have been obsolete for several years, and were finally removed from NAV's
+    data model. Bulk import and dump formats have been updated accordingly.
+
+  * Even more tweaks and adjustments to improve the new UI.
+
+
 Version 4.0b5
 (released 03 Mar 2014)
 
@@ -128,8 +168,36 @@ Version 4.0b1
  the documentation.
 
 
+Version 3.15.7
+(released 27 Feb 2014)
+
+ Bugfixes:
+
+  * LP#1251211 (portadmin wishlist: option to reset active interface whene
+                changing vlan)
+  * LP#1285601 (Switch ports on non-existant VLANs on Cisco switches don't
+                appear as switch ports in NAV)
+  * LP#1287700 (SeedDB will readily accept serial numbers with trailing spaces)
+  * LP#1289219 (affected displays no information on nodes not in topology)
+  * LP#1289320 (Submitting invalid alert subscription forms cause crash instead
+                of error message)
+  * LP#1291956 (LDAP auth against MS AD broken since NAV 3.14.1592653)
+  * LP#1291978 (User supplied login name is not escaped in LDAP search filters,
+                causing possible injection vulnerabilities)
+  * LP#1292513 (sysname/reverse dns lookups are inconsistent or lacking after a
+                bulk import)
+  * LP#1293621 (missing cascade in table accounttool)
+  * LP#1295092 (Only modules and power supplies on first member are collected
+                from stacked HP 2920)
+  * LP#1297200 (powersupplywatch crashes when there are more than ~1024 devices
+                to poll)
+  * LP#1297767 (Django exposes sensitive data like: username/password)
+
+
 Version 3.15.6
 (released 20 Feb 2014)
+
+ Bugfixes:
 
   * LP#1274406 (Power Supply status is not correct)
   * LP#1278433 (Link to alert profiles permissions is missing)
@@ -139,6 +207,8 @@ Version 3.15.6
 
 Version 3.15.5
 (released 06 Feb 2014)
+
+ Bugfixes:
 
   * LP#1241624 (Attempting to access a restricted resource when logged in as an
                 underprivileged user causes a 403 Forbidden response with an
