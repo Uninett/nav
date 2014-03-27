@@ -156,11 +156,19 @@ categories:
 `WLAN`
   A wireless access point or controller of some sort.
 
+`ENV`
+  An environmental probe, possibly measuring temperatures, humiditiy, etc. If
+  NAV has support for the probe, its measurements will be displayed in the
+  room view for the room the device was registered in.
+
+`POWER`
+  Power distribution and measurement equipment, UPS units and so forth.
+
 `OTHER`
   Any other type of device not fitting neatly into the other categories.
 
-The `GW`, `GSW`, `SW` and `EDGE` categories will all require an SNMP community
-to be configured; this is optional with the remaining categories.
+All categories will *require* an SNMP community to be configured, except for
+`SRV` and `OTHER`, where it is optional.
 
 .. _seeddb-bulk-import-intro:
 
