@@ -1,13 +1,13 @@
-===========
- PortAdmin
-===========
+=========
+PortAdmin
+=========
 
 
 Introduction
 ============
 
 PortAdmin is a tool for configuring your switch ports by the help of a web
-interface. It does so by communicating with a network device over SNMP [#f1]_
+interface. It does so by communicating with a network device over SNMP [#f1]_.
 
 
 What can PortAdmin do?
@@ -30,12 +30,10 @@ What the interface tells you
 
 1. Port is the interface name given by the vendor. This is not possible to
    change
-2. These indicators tells you the admin status and the operstatus of the
-   interface:
+2. These indicators tells you the status of the interface:
 
-  * AdminStatus indicates if the interface is enabled (green) or disabled
-    (red)
-  * OperStatus indicates if the interface has link (green) or not (red)
+  * *Enabled* indicates if the interface is enabled (green) or disabled (red)
+  * *Linked* indicates if the interface has link (green) or not (red)
 
 3. Port Description is the ifAlias. This is editable by the user. This is
    what you set by the `name` command on HP and `description` command on Cisco
@@ -43,16 +41,15 @@ What the interface tells you
 4. Vlan is the current active access vlan on the interface. You can change
    this by using the drop down menu. To set this interface to trunking mode,
    select the trunk option from the drop-down.
-5. Available vlans are the vlans this user is organizationally connected to.
-   Push the button to see the list of available vlans.
-6. This interface is a trunk. To enter trunk edit mode, click the link.
+5. This interface is a trunk. To enter trunk edit mode, click the link.
 
 
 How to use the interface
 ========================
 
 Whenever you alter the values on an interface, the color of the row will
-change and buttons will appear enabling you to save or undo the changes.
+change. The save button will turn blue to indicate that you can use it to save
+the changes.
 
 .. image:: portadmin-change.png
 
@@ -62,13 +59,15 @@ red error message appears, this means there was an error making the change.
 
 **I want to change the port description**
 
-Start writing in the text field. The row should turn blue and a save and
-undo button should appear. Click save to save the changes,
-and undo to undo the changes.
+Start writing in the text field. The row and save button should change
+color. Click save to save the changes.
 
 **I want to change the vlan**
 
-Choose vlan from the vlan drop down and click "Save".
+Choose vlan from the vlan drop down and click "Save". PortAdmin will disable the
+interface for a few seconds and then enable it again. This is done to indicate
+to any client connected to the interface that it should try to get a new
+IP-address.
 
 **I want to edit a trunk**
 
@@ -99,12 +98,6 @@ by a NAV administrator.
 .. image:: portadmin-voicevlan.png
 
 To activate the voice vlan, click the checkbox and click "Save".
-
-**What does the undo button do?**
-
-If you edit an interface but want to revert the changes,
-click the undo button. The button will not revert the changes if you have
-already saved them.
 
 **I cannot edit an interface**
 
