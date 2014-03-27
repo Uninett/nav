@@ -1,6 +1,9 @@
 Version 4.0.0
 (released 27 Mar 2014)
 
+ Final 4.0.0 release. Please read changelog entries for all 4.0 beta releases
+ to get a complete overview of the changes since 3.15.
+
  Bugfixes:
 
   * LP#1293616 (missing cascade in table account_navlet)
