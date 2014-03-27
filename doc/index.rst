@@ -35,7 +35,8 @@ See also :doc:`the release notes <release-notes>` for this version (|version|).
 * **From scratch:**
   :doc:`Overview <overview>` |
   :doc:`Installation <intro/install>` |
-  :doc:`Getting started <intro/getting-started>`
+  :doc:`Getting started <intro/getting-started>` |
+  :doc:`Getting organized <intro/getting-organized>`
 
 * **Howto guides:**
   :doc:`Troubleshooting topology problems <howto/debugging-topology>` |

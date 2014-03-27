@@ -131,6 +131,8 @@ page until its value changes from `N/A` into a meaningful timestamp.
           after adding your switch to NAV, you may need to start
           troubleshooting NAV's log files.
 
+.. _selecting-a-device-category:
+
 Selecting a device category
 ---------------------------
 
@@ -201,3 +203,10 @@ an error with the line; such a line will be ignored when you submit the
 preview form, unless you go back and fix it before trying again.
 
 .. |URL| replace:: http://example.org/
+
+
+Further reading
+===============
+
+Now you know how to monitor things. It's time to 
+:doc:`get organized <getting-organized>`!
