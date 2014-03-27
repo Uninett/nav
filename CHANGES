@@ -1,5 +1,33 @@
+Version 3.15.7
+(released 27 Feb 2014)
+
+ Bugfixes:
+
+  * LP#1251211 (portadmin wishlist: option to reset active interface whene
+                changing vlan)
+  * LP#1285601 (Switch ports on non-existant VLANs on Cisco switches don't
+                appear as switch ports in NAV)
+  * LP#1287700 (SeedDB will readily accept serial numbers with trailing spaces)
+  * LP#1289219 (affected displays no information on nodes not in topology)
+  * LP#1289320 (Submitting invalid alert subscription forms cause crash instead
+                of error message)
+  * LP#1291956 (LDAP auth against MS AD broken since NAV 3.14.1592653)
+  * LP#1291978 (User supplied login name is not escaped in LDAP search filters,
+                causing possible injection vulnerabilities)
+  * LP#1292513 (sysname/reverse dns lookups are inconsistent or lacking after a
+                bulk import)
+  * LP#1293621 (missing cascade in table accounttool)
+  * LP#1295092 (Only modules and power supplies on first member are collected
+                from stacked HP 2920)
+  * LP#1297200 (powersupplywatch crashes when there are more than ~1024 devices
+                to poll)
+  * LP#1297767 (Django exposes sensitive data like: username/password)
+
+
 Version 3.15.6
 (released 20 Feb 2014)
+
+ Bugfixes:
 
   * LP#1274406 (Power Supply status is not correct)
   * LP#1278433 (Link to alert profiles permissions is missing)
@@ -8,6 +36,8 @@ Version 3.15.6
 
 Version 3.15.5
 (released 06 Feb 2014)
+
+ Bugfixes:
 
   * LP#1241624 (Attempting to access a restricted resource when logged in as an
                 underprivileged user causes a 403 Forbidden response with an
