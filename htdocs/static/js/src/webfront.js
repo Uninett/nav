@@ -25,6 +25,15 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'li
 
             /* Add click listener to joyride button */
             $navletsContainer.on('click', '#joyrideme', function () {
+                var menu = $('.toggle-topbar'),
+                    is_small_screen = menu.is(':visible');
+
+                if (is_small_screen) {
+                    $('#joyride_for_desktop').remove();
+                } else {
+                    $('#joyride_for_mobile').remove();
+                }
+
                 $(document).foundation('joyride', 'start');
             });
 
