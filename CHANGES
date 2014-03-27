@@ -1,3 +1,43 @@
+Version 4.0.0
+(released 27 Mar 2014)
+
+ Bugfixes:
+
+  * LP#1293616 (missing cascade in table account_navlet)
+  * The map would not display when editing rooms in SeedDB.
+
+ User-visible features and improvements:
+
+  * Stale link state alerts can now be cleared/dismissed directly from the
+    Status page.
+
+  * Sensor readings are now collected every minute (the `statsensors` plugin
+    has moved to the 1minstats job. Please update your Graphite's
+    `storage-schemas.conf` accordingly, if you have been beta testing the 4.0
+    releases).
+
+  * The POWER and ENV main device categories have been added, to categorize
+    power distribution equipment and environmental probes.
+
+  * Added "Environment sensors" tab to the Room view. All temperature sensors
+    on ENV-category devices in a room are now displayed on this tab, with
+    gauges and time-series graphs.
+
+  * Added support for the Comet P8541 web probe (remote temperature sensor).
+
+  * UPS-MIB sensors: Fixed wrong value precision on a couple of objects, and
+    added support for the full range of data available from the battery,
+    input, output and bypass groups.
+
+  * Added a "setup guide"-type tour for first-time SeedDB users.
+
+  * The cdp, tftp, cs_at_vlan and chassis checkboxes in SeedDB's type form
+    have been obsolete for several years, and were finally removed from NAV's
+    data model. Bulk import and dump formats have been updated accordingly.
+
+  * Even more tweaks and adjustments to improve the new UI.
+
+
 Version 4.0b5
 (released 03 Mar 2014)
 
