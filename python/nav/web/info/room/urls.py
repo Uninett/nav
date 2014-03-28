@@ -20,12 +20,14 @@ from django.conf.urls.defaults import url, patterns
 from nav.web.info.room.views import (search, roominfo, render_netboxes,
                                      upload_image, update_title, delete_image,
                                      update_priority, create_csv,
-                                     render_sensors)
+                                     render_sensors, render_deviceinfo)
 
 urlpatterns = patterns('',
     url(r'^$', search, name='room-search'),
     url(r'^(?P<roomid>.+)/netboxes/', render_netboxes,
         name='room-info-netboxes'),
+    url(r'^(?P<roomid>.+)/deviceinfo/', render_deviceinfo,
+        name='room-info-deviceinfo'),
     url(r'^(?P<roomid>.+)/upload/update_title', update_title,
         name='room-info-update-title'),
     url(r'^(?P<roomid>.+)/upload/delete_image', delete_image,
