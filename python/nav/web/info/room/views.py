@@ -95,7 +95,8 @@ def filter_netboxes(room):
 def roominfo(request, roomid):
     """Controller for displaying roominfo"""
     room = Room.objects.get(id=roomid)
-    all_netboxes = room.netbox_set.order_by("sysname")
+    all_netboxes = room.netbox_set.select_related(
+        'type', 'category', 'organization', 'interface').order_by('sysname')
     images = room.image_set.all()
 
     navpath = get_path() + [(room.id,)]

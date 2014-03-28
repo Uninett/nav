@@ -139,6 +139,10 @@ class Netbox(models.Model):
         logs = IpdevpollJobLog.objects.raw(query, [self.id])
         return list(logs)
 
+    def get_gwport_count(self):
+        """Returns the number of all interfaces that have IP addresses."""
+        return self.get_gwports().count()
+
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(netbox=self,
@@ -149,6 +153,10 @@ class Netbox(models.Model):
 
         ports = self.get_gwports().select_related('module', 'netbox')
         return Interface.sort_ports_by_ifname(ports)
+
+    def get_swport_count(self):
+        """Returns the number of all interfaces that are switch ports."""
+        return self.get_swports().count()
 
     def get_swports(self):
         """Returns all interfaces that are switch ports."""
